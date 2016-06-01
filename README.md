@@ -59,7 +59,27 @@ You are welcome
 
 ## Thanks
 
-Thanks a lot for helping out!
+###### Economic model developing:
+* Max Demianiuk
+* Sergiy Vdovichuk 
+* Andriy Sluzhuk 
+* Mychailo Mychailiuk 
+
+###### Communications (and media):
+* Andriy Dubetsky
+* Bogdan Trofaniuk 
+* Natalia Lastivka
+ 
+###### Decentralized protocol developing:
+* Max Demianiuk
+* [Dima Chizhevsky](https://github.com/HaySayCheese)
+ 
+###### Centralized CV experiment:
+* [Nata Kopylenko](https://github.com/natakopulenko)
+* Denis Makovsky
+
+
+#####Thanks a lot for helping out!
 
 
 ## Licence 
