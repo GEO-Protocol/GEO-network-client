@@ -42,7 +42,7 @@ economic feasibility, and the excess is automatically deleted from the system as
 causes of financial crises, inflation, etc.)
 
 ##### How to join to the discussion about the economic model
-`[#todo: add slack integration]` `[#todo: add email subscription]` `[#todo: open Google docs for commenting and collaborating]`
+To add you to the discussion, - please, through us a word to the `demyanmax@gmail.com`. `[#todo: add email subscription]` `[#todo: open Google docs for commenting and collaborating]`
 
 
 ## Project status
@@ -52,7 +52,7 @@ Today, we have the economic model proven by real experiment `[#todo: add info ab
 
 ## How you can join or help
 You are welcome 
-* to join the community `[#todo: add slack integration]`;
+* to join the community via [slack](mailto:demyanmax@gmail.com?subject=GEO%20slack%20channel&body=Hi,%20I%20want%20to%20be%20in%20GEO%20slack%20channel) (please, through us a word to one of the following emails: `demyanmax@gmail.com` or `dima.chizhevsky@gmail.com`, and we will add you to the discussion)
 * co-writing the economic model `[#todo: add email subscription]` `[#todo: open Google docs for commenting and collaborating]`;
 * or support the project by coding the protocol `[#todo: add instructions]`;  
 
