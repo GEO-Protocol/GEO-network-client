@@ -5,8 +5,7 @@
 GEO – is **decentralized `p2p` (or better `f2f`: friend to friend) platform** for economic cooperation between people.
 
 
-### Quick summary
----
+## Quick summary
 ##### GEO Core is the stack of protocols
 * for nodes discovering and path(s) finding; `[#todo: add graph traverse approaches description]`
 * for payment transactions processing through pair (or several) nodes; `[#todo: add protocol descripion]`
@@ -27,8 +26,7 @@ The problem to be solved by GEO is limiting and destructive influence of the cur
 Read more about it in [russian](https://docs.google.com/document/d/1Yu6IvTfQ3cCUQoyP0C_zI_JtyVXYv9ffc_3rRP2NW_Y/edit) or in [english](https://drive.google.com/open?id=0B0xtlHQ9B_8VNWZRbmdKeHBjVmM).
 
 
-### Brief economic model description
----
+## Brief economic model description
 GEO offers an alternative way of economic interaction - interchange without money using of a decentralized system of trust bonds between people.
 
 Consequences for society that we expect:
@@ -47,28 +45,24 @@ causes of financial crises, inflation, etc.)
 `[#todo: add slack integration]` `[#todo: add email subscription]` `[#todo: open Google docs for commenting and collaborating]`
 
 
-### Project status
----
+## Project status
 ##### GEO is a work in progress!
 Today, we have the economic model proven by real experiment `[#todo: add info about experiment in CV]`, the mathematic model and centralized implementation `[#todo: describe GEO Pay]`, that is used to improve the economic and algorithmic visions before decentralised protocol will be implemented. In our vision, this way gives us ability to prove our expectations and to move out all hypothesis. 
 
 
-### How you can join or help
----
+## How you can join or help
 You are welcome 
 * to join the community `[#todo: add slack integration]`;
 * co-writing the economic model `[#todo: add email subscription]` `[#todo: open Google docs for commenting and collaborating]`;
 * or support the project by coding the protocol `[#todo: add instructions]`;  
 
 
-### Thanks
-
+## Thanks
 
 Thanks a lot for helping out!
 
 
-### Licence 
----
+## Licence 
 <img align="right" src="http://opensource.org/trademarks/opensource/OSI-Approved-License-100x137.png">
 MIT License
 
