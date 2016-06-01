@@ -4,6 +4,7 @@
 # GEO - Project
 GEO – is **decentralized `p2p` (or better `f2f`: friend to friend) platform** for economic cooperation between people.
 
+| [`Decentralized protocol white paper`](https://docs.google.com/document/d/1Kw6kXdDC-NvpSfoVPBm7OTCQicxaGO-3UP7DoCbsM9U/edit?usp=sharing) (docs are open for comments, welcome)
 
 ## Quick summary
 ##### GEO Core is the stack of protocols
