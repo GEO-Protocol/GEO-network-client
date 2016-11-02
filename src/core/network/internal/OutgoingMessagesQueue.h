@@ -22,6 +22,8 @@ using namespace std;
 namespace fs = boost::filesystem;
 
 class FileBackedMessagesQueue {
+    friend class FileBackedMessagesQueueTests;
+
 public:
     explicit FileBackedMessagesQueue(const std::string &filename, bool autoTruncate=true);
     ~FileBackedMessagesQueue();

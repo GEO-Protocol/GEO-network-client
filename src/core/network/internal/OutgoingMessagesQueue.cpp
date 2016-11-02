@@ -155,6 +155,12 @@ void FileBackedMessagesQueue::enqueue(const shared_ptr<SerialisedMessage> &messa
     }
 }
 
+// Outgoing message may be not delivered after first attempt.
+// So it may be re-sent several times.
+// So, it should not be removed from the queue after first send attempt.
+// Instead of that, message should be deleted after delivery confirmation was received.
+//
+// This method removes next message from the queue.
 void FileBackedMessagesQueue::removeNextRecord() {
     if (mCacheIsReadOnly) {
         throw IOError("Attempt to modify read only file.");
