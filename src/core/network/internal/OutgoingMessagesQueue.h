@@ -50,6 +50,7 @@ private:
     inline void seekToTheEnd();
     inline void seekToTheNextRecord();
     inline void seekToTheHeaderNextRecordIndex();
+
 private:
     std::string mCacheFilename;
     bool mCacheIsReadOnly;

@@ -2,14 +2,41 @@
 #define GEO_NETWORK_CLIENT_MESSAGE_H
 
 #include "../../common/exceptions/Exception.h"
+#include "../../common/exceptions/MemoryError.h"
 
-#include <utility>
 #include <stdint.h>
+#include <malloc.h>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
+#include <utility>
 
 
 class SerialisationError: public Exception {
     using Exception::Exception;
+};
+
+
+// Base class for all messages in the system.
+// All other messages are derived from this one.
+class SerialisedMessage;
+class Message {
+public:
+    enum MessageTypeID {
+        // System messages.
+        // Used for low level system logic:
+        // for example, message processing reports, etc.
+        ProcessingReportMessage = 1,
+
+        // Test messages
+        TestSimpleMessage, TestLongMesage,
+
+        // User space messages
+    };
+
+public:
+    virtual std::shared_ptr<SerialisedMessage> serialize() const = 0;
+    virtual const MessageTypeID typeID() const = 0;
 };
 
 // Contains serialized messages: only bytes array and bytes counter.
@@ -18,23 +45,26 @@ class SerialisationError: public Exception {
 // is used for efficient data transfer into the memory during methods calls.
 class SerialisedMessage {
 public:
-    explicit SerialisedMessage(const uint8_t *bytes, const uint64_t bytesCount);
+    explicit SerialisedMessage(const uint8_t *rawMessageBytes,
+                               const uint16_t rawMessageBytesCount);
+
+    explicit SerialisedMessage(const uint8_t *messageBytes,
+                               const uint16_t messageBytesCount,
+                               const Message::MessageTypeID messageTypeID);
+
     ~SerialisedMessage();
 
     const uint64_t bytesCount() const;
     const uint8_t* bytes() const;
 
 private:
+    void initialiseInternalSerialisationBuffer(const uint8_t *messageBytes,
+                                               const uint16_t messageBytesCount,
+                                               const Message::MessageTypeID messageTypeID);
+
+private:
     uint64_t mBytesCount;
-    const uint8_t *mBytes;
-};
-
-
-// Base class for all messages in the system.
-// All other messages are derived from this one.
-class Message {
-public:
-    virtual std::shared_ptr<SerialisedMessage> serialize() const = 0;
+    uint8_t *mBytesBuffer;
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H

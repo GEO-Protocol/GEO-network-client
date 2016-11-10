@@ -65,7 +65,7 @@ void FileBackedMessagesQueue::createEmptyFileCache() {
 
     mFileCacheDescriptor = fopen(cacheFilePath().c_str(), "w+");
     if (mFileCacheDescriptor == nullptr) {
-        throw IOError("Can't create disk file cache!");
+        throw IOError("Can't createFIFO disk file cache!");
     }
 
     writeEmptyV1Header();

@@ -11,6 +11,10 @@ public:
 
         return std::shared_ptr<SerialisedMessage>(new SerialisedMessage((uint8_t*)(bytes), bytesLen));
     }
+
+    virtual const MessageTypeID typeID() const {
+        return TestSimpleMessage;
+    }
 };
 
 class LongTestMessage: public Message {
@@ -23,6 +27,10 @@ public:
         memcpy(bytes, message, bytesLen);
 
         return std::shared_ptr<SerialisedMessage>(new SerialisedMessage((uint8_t*)(bytes), bytesLen));
+    }
+
+    virtual const MessageTypeID typeID() const {
+        return TestLongMesage;
     }
 };
 

@@ -3,6 +3,7 @@
 
 #include <string>
 
+// todo: add exception parameters info (source code line, subsystem, etc)
 class Exception {
 public:
     Exception(const std::string &message);

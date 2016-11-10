@@ -1,19 +1,44 @@
-//
-// Created by hsc on 31.10.16.
-//
-
 #ifndef GEO_NETWORK_CLIENT_COMMUNICATOR_H
 #define GEO_NETWORK_CLIENT_COMMUNICATOR_H
 
 #include "internal/OutgoingMessagesHandler.h"
+#include "internal/IncomingMessagesHandler.h"
+
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+
+#include <stdlib.h>
+
+
+using namespace std;
+
+namespace as = boost::asio;
+namespace ip = boost::asio::ip;
+
 
 class Communicator {
 public:
-    explicit Communicator();
+    explicit Communicator(as::io_service &ioService,
+                          const string &interface, const uint16_t port);
+    ~Communicator();
 
-    OutgoingMessagesHandler* outgoingMessagesHandler() const;
+    void beginAcceptMessages();
 
 private:
+    void asyncReceiveData();
+    void handleReceivedInfo(const boost::system::error_code& error, size_t bytesTransferred);
+
+private:
+    static constexpr const uint16_t kMaxIncomingBufferSize = 1024;
+
+private:
+    as::io_service &mIOService;
+    udp::socket *mSocket;
+
+    boost::array<char, kMaxIncomingBufferSize> mRecvBuffer;
+    udp::endpoint mRemoteEndpointBuffer;
+
+    IncomingMessagesHandler *mIncomingMessagesHandler;
     OutgoingMessagesHandler *mOutgoingMessagesHandler;
 };
 

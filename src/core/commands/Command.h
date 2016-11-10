@@ -1,0 +1,10 @@
+#ifndef GEO_NETWORK_CLIENT_COMMAND_H
+#define GEO_NETWORK_CLIENT_COMMAND_H
+
+
+class Command {
+
+};
+
+
+#endif //GEO_NETWORK_CLIENT_COMMAND_H
