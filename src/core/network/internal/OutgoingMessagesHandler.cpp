@@ -2,7 +2,8 @@
 
 OutgoingMessagesHandler::OutgoingMessagesHandler() {
     mOutgoingQueues = new std::map<NodeUUID, OutgoingMessagesQueue*>();
-    // todo: add queue restoring mechanism
+
+    // todo: restore all queues on startup
 }
 
 void OutgoingMessagesHandler::sendMessageToTheNode(

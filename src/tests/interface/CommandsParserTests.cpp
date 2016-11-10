@@ -32,7 +32,7 @@ public:
         const char *message = "short";
 
         for (int i=0; i<5; ++i) {
-            auto resp = parser.processReceivedCommand(message, sizeof(message));
+            auto resp = parser.processReceivedCommandPart(message, sizeof(message));
 
             // Command should not be parsed until '\n'
             // would not appear in the data stream.
@@ -50,7 +50,7 @@ public:
         CommandsParser parser;
 
         const char *message = "invalid uuid invalid uuid invalid uuid";
-        auto resp = parser.processReceivedCommand(message, strlen(message));
+        auto resp = parser.processReceivedCommandPart(message, strlen(message));
         assert(resp.first == false);
         assert(resp.second == nullptr);
 
@@ -63,7 +63,7 @@ public:
         CommandsParser parser;
 
         const char *message = "invalid uuid invalid uuid invalid uuid \n";
-        auto resp = parser.processReceivedCommand(message, strlen(message));
+        auto resp = parser.processReceivedCommandPart(message, strlen(message));
         assert(resp.first == false);
         assert(resp.second == nullptr);
 
@@ -75,7 +75,7 @@ public:
         CommandsParser parser;
 
         const char *message = "\n";
-        auto resp = parser.processReceivedCommand(message, strlen(message));
+        auto resp = parser.processReceivedCommandPart(message, strlen(message));
         assert(resp.first == false);
         assert(resp.second == nullptr);
 
@@ -88,7 +88,7 @@ public:
 
         // Valid UUID but empty identifier
         const char *message = "550e8400-e29b-41d4-a716-446655440000 \n";
-        auto resp = parser.processReceivedCommand(message, strlen(message));
+        auto resp = parser.processReceivedCommandPart(message, strlen(message));
         assert(resp.first == false);
         assert(resp.second == nullptr);
 
@@ -101,7 +101,7 @@ public:
 
         // Valid UUID but empty identifier
         const char *message = "550e8400-e29b-41d4-a716-446655440000 Identifier \n";
-        auto resp = parser.processReceivedCommand(message, strlen(message));
+        auto resp = parser.processReceivedCommandPart(message, strlen(message));
         assert(resp.first == true);
         assert(resp.second.get()->identifier() == string("Identifier"));
 
@@ -122,7 +122,7 @@ public:
 
         // Valid UUID but empty identifier
         const char *message = "550e8400-e29b-41d4-a716-446655440000 Identifier \n550e8400-e29b-41d4-a716-446655440000";
-        auto resp = parser.processReceivedCommand(message, strlen(message));
+        auto resp = parser.processReceivedCommandPart(message, strlen(message));
         assert(resp.first == true);
         assert(resp.second.get()->identifier() == string("Identifier"));
 

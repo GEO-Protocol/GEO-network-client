@@ -29,28 +29,34 @@ namespace as = boost::asio;
 namespace fs = boost::filesystem;
 namespace uuids = boost::uuids;
 
-
-// Note: shares almost the same logic as "MessagesParser"
-// (see IncomingMessagesHandler.h for details).
+/*!
+ * User commands are transmitted via text protocol.
+ * CommandsParser is used for parsing received user input
+ * and deserialising them into commands instances.
+ *
+ *
+ * Note: shares almost the same logic as "MessagesParser"
+ * (see IncomingMessagesHandler.h for details).
+ */
 class CommandsParser {
     friend class CommandsParserTests;
 
 public:
-    pair<bool, shared_ptr<Command>> processReceivedCommand(
-        const char* commandPart, const size_t receivedBytesCount);
+    pair<bool, shared_ptr<Command>> processReceivedCommandPart(
+        const char *commandPart, const size_t receivedBytesCount);
 
 protected:
     inline pair<bool, shared_ptr<Command>> tryDeserializeCommand();
     inline pair<bool, shared_ptr<Command>> tryParseCommand(
         const uuids::uuid &commandUUID, const string &commandIdentifier);
-    inline pair<bool, shared_ptr<Command>> invalidMessageReturnValue();
+    inline pair<bool, shared_ptr<Command>> commandIsInvalidOrIncomplete();
 
-    void cutCommandFromTheBuffer();
+    void cutNextCommandFromTheBuffer();
 
 protected:
     static const size_t kUUIDHexRepresentationSize = 36;
 
-    // uuid of the command, the space,
+    // uuid of the command, the space (separator),
     // and, at least, one symbol of command identifier.
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
     static const char kCommandsSeparator = '\n';
@@ -66,7 +72,11 @@ protected:
     string mBuffer;
 };
 
-
+/*!
+ * User commands are transamitted via named pipe (FIFO in Linux).
+ * This class is used to asyncornously receive them,
+ * parse, and transfer for the further execution.
+ */
 class CommandsInterface: public BaseFIFOInterface {
 public:
     explicit CommandsInterface(as::io_service &ioService, CommandsAPI *API);
@@ -88,6 +98,4 @@ private:
     as::posix::stream_descriptor *mFIFOStreamDescriptor;
     vector<char> mCommandBuffer;
 };
-
-
 #endif //GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H

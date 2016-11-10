@@ -20,9 +20,8 @@ int Core::run() {
         mIOService.run();
         return 0;
 
-    } catch (Exception &e) {
-        // todo: replace me with logger
-        std::cout << "Exception: " << e.message() << std::endl;
+    } catch (const Exception &e) {
+        mLog.logException("core", e);
         return -1;
     }
 }

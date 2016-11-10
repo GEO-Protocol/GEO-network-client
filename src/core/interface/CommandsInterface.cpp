@@ -1,14 +1,20 @@
 #include "CommandsInterface.h"
 #include "../common/exceptions/ValueError.h"
 
-pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommand(
+/*!
+ * Handles received data from FIFO.
+ * Writes it to the internal buffer for further processing.
+ * Calls tryDeserializeCommand() internally for buffer processing.
+ * Return value is similar to the tryDeserializeCommand() return value.
+ */
+pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommandPart(
     const char *commandPart, const size_t receivedBytesCount) {
 
-    // Memory reservation for whole the command
-    // to prevent huge amount of memory reallocations.
+    // Memory reservation for whole command part
+    // (to prevent huge amount of memory reallocations).
     mBuffer.reserve(mBuffer.size() + receivedBytesCount);
 
-    // Concatenating with the previously received command parts.
+    // Concatenating with the previously received parts of the command.
     for (size_t i=0; i<receivedBytesCount; ++i) {
         mBuffer.push_back(commandPart[i]);
     }
@@ -16,23 +22,33 @@ pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommand(
     return tryDeserializeCommand();
 }
 
+/*!
+ * Tries o deserialise received command, using buffered data.
+ * In case when buffer is too short to contains even one command -
+ * will return immideately.
+ *
+ * First value of returned pair indicates if command was parsed succesfully,
+ * and, if so, - the second one will contains shared pointer
+ * to the command instance itself.
+ * Otherwise - the second value of the pair will contain nullptr.
+ */
 pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
     if (mBuffer.size() < kMinCommandSize) {
-        // if command contains trailing symbol,
+        // If command contains trailing symbol,
         // but is shorter than min command size -
         // then this command is invalid and should be rejected.
         if (mBuffer.find(kCommandsSeparator) != string::npos) {
-            cutCommandFromTheBuffer();
+            cutNextCommandFromTheBuffer();
         }
 
-        return invalidMessageReturnValue();
+        return commandIsInvalidOrIncomplete();
     }
 
     // Check if received sting contains command separator.
-    // If no - the command is received partially.
+    // If no - then command may be received partially.
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (nextCommandSeparatorIndex == string::npos) {
-        return invalidMessageReturnValue();
+        return commandIsInvalidOrIncomplete();
     }
 
     // UUID parsing
@@ -43,12 +59,12 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
     } catch (...) {
         // UUID can't be parsed correctly.
         // Command seems to be broken and should be rejected.
-        cutCommandFromTheBuffer();
-        return invalidMessageReturnValue();
+        cutNextCommandFromTheBuffer();
+        return commandIsInvalidOrIncomplete();
     }
 
     // Command identifier parsing
-    const size_t averageCommandIdentifierLength = 12; // for optimisations reasons only.
+    const size_t averageCommandIdentifierLength = 12; // for optimisations purpose only.
     const size_t identifierOffset = kUUIDHexRepresentationSize + 1; // + separator
 
     string identifier;
@@ -66,29 +82,44 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
     if (identifier.size() == 0) {
         // Command identifier can't be parsed.
         // Command seems to be broken and should be rejected.
-        cutCommandFromTheBuffer();
-        return invalidMessageReturnValue();
+        cutNextCommandFromTheBuffer();
+        return commandIsInvalidOrIncomplete();
     }
 
     return tryParseCommand(uuid, identifier);
 }
 
+/*!
+ * @commandUUID - uuid of the received command (parsed on previous step).
+ * @commandIdentifier - identifier of the received command (parsed on the previous step).
+ *
+ * Accepts "commandsIdentifier" and tries to deserialise the rest of the command.
+ * In case when "commandsIdentifier" is unexpected - raises ValueError exception.
+ *
+ * First value of returned pair indicates if command was parsed succesfully,
+ * and, if so, - the second one will contains shared pointer
+ * to the command instance itself.
+ * Otherwise - the second value of the pair will contain nullptr.
+ */
 pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(
     const uuids::uuid &commandUUID, const string &commandIdentifier) {
 
-    // todo: add realisation here
-#ifdef DEBUG
-    std::cout << "Command received: " << commandIdentifier << std::endl;
-#endif
+    // ...
+    // Commands parsing goes here
 
-    cutCommandFromTheBuffer();
+    cutNextCommandFromTheBuffer();
 
     auto command = new Command(commandIdentifier);
     return pair<bool, shared_ptr<Command>>(
         true, shared_ptr<Command>(command));
 }
 
-void CommandsParser::cutCommandFromTheBuffer() {
+/*!
+ * Removes last command (valid, or invalid) from the buffer.
+ * Stops on commands separator symbol.
+ * If no commands separator symbol is present - clears buffer at all.
+ */
+void CommandsParser::cutNextCommandFromTheBuffer() {
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (mBuffer.size() > (nextCommandSeparatorIndex + 1)) {
         // Buffer contains other commands (or their parts), and them should be keept;
@@ -103,7 +134,7 @@ void CommandsParser::cutCommandFromTheBuffer() {
     mBuffer.shrink_to_fit();
 }
 
-pair<bool, shared_ptr<Command>> CommandsParser::invalidMessageReturnValue() {
+pair<bool, shared_ptr<Command>> CommandsParser::commandIsInvalidOrIncomplete() {
     return pair<bool, shared_ptr<Command>>(false, nullptr);
 }
 
@@ -146,9 +177,8 @@ void CommandsInterface::beginAcceptCommands() {
 
 void CommandsInterface::createFIFO() {
     if (! FIFOExists()) {
-        auto path = FIFOPath();
         fs::create_directories(dir());
-        mkfifo(path.c_str(), 0420); // Read; Write; No access; // todo: tests mask
+        mkfifo(FIFOPath().c_str(), 0420); // Read; Write; No access; // todo: tests mask
     }
 }
 
@@ -164,7 +194,7 @@ void CommandsInterface::handleReceivedInfo(
     const boost::system::error_code &error, const size_t bytesTransferred) {
 
     if (!error || error == as::error::message_size) {
-        mCommandsParser->processReceivedCommand(
+        mCommandsParser->processReceivedCommandPart(
             mCommandBuffer.data(), bytesTransferred);
     }
 
