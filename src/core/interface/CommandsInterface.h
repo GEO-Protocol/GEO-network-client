@@ -33,6 +33,8 @@ namespace uuids = boost::uuids;
 // Note: shares almost the same logic as "MessagesParser"
 // (see IncomingMessagesHandler.h for details).
 class CommandsParser {
+    friend class CommandsParserTests;
+
 public:
     pair<bool, shared_ptr<Command>> processReceivedCommand(
         const char* commandPart, const size_t receivedBytesCount);

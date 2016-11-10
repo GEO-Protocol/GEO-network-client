@@ -18,6 +18,13 @@ pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommand(
 
 pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
     if (mBuffer.size() < kMinCommandSize) {
+        // if command contains trailing symbol,
+        // but is shorter than min command size -
+        // then this command is invalid and should be rejected.
+        if (mBuffer.find(kCommandsSeparator) != string::npos) {
+            cutCommandFromTheBuffer();
+        }
+
         return invalidMessageReturnValue();
     }
 
@@ -48,7 +55,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
     identifier.reserve(averageCommandIdentifierLength);
     for (size_t i=identifierOffset; i<mBuffer.size(); ++i){
         char symbol = mBuffer.at(i);
-        if (symbol == kTokensSeparator){
+        if (symbol == kTokensSeparator || symbol == kCommandsSeparator){
             break;
         }
 
@@ -75,7 +82,10 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(
 #endif
 
     cutCommandFromTheBuffer();
-    return invalidMessageReturnValue();
+
+    auto command = new Command(commandIdentifier);
+    return pair<bool, shared_ptr<Command>>(
+        true, shared_ptr<Command>(command));
 }
 
 void CommandsParser::cutCommandFromTheBuffer() {

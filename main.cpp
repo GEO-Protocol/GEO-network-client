@@ -1,16 +1,20 @@
 #include "src/core/Core.h"
 
+#ifdef TESTS
 #include "src/tests/network/FileBackedMessagesQueueTests.cpp"
+#include "src/tests/interface/CommandsParserTests.cpp"
+#endif
 
 int main() {
-    bool runTests = true;
+#ifdef TESTS
+//    FileBackedMessagesQueueTests fileBackedMessagesQueueTests;
+//    fileBackedMessagesQueueTests.run();
 
-    if (runTests) {
-        FileBackedMessagesQueueTests fileBackedMessagesQueueTests;
-        fileBackedMessagesQueueTests.run();
+    CommandsParserTests commandsParserTests;
+    commandsParserTests.run();
+#endif
 
-    } else {
-        auto core = Core();
-        return core.run();
-    }
+#ifndef TESTS
+    return Core().run();
+#endif
 }
