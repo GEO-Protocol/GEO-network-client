@@ -1,0 +1,13 @@
+#ifndef TRUSTLINEMANAGER_TRUSTLINESMANAGERTEST_H
+#define TRUSTLINEMANAGER_TRUSTLINESMANAGERTEST_H
+
+#include "TrustLinesManager.h"
+
+class TrustLinesManagerTest {
+
+public:
+    void run();
+};
+
+
+#endif //TRUSTLINEMANAGER_TRUSTLINESMANAGERTEST_H
