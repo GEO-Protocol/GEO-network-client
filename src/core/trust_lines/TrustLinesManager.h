@@ -1,8 +1,14 @@
-#ifndef TRUSTLINEMANAGER_TRUSTLINESMANAGER_H
-#define TRUSTLINEMANAGER_TRUSTLINESMANAGER_H
+#ifndef GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
+#define GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 
 #include <map>
 #include <vector>
+#include <boost/uuid/uuid.hpp>
+#include <boost/function.hpp>
+#include <boost/bind.hpp>
+#include "../common/exceptions/ValueError.h"
+#include "../common/exceptions/ConflictError.h"
+#include "../common/exceptions/PreconditionFaultError.h"
 #include "TrustLine.h"
 
 using namespace std;
@@ -79,17 +85,16 @@ private:
      * Function saveTrustLine(TrustLine *trustLine) <br>
      * Save trust lines bytes in bin file, if storage manager returns success result - save trust line struct instance in ram (map). <br>
      * @param trustLine - pointer on trust line structure instance.
-     * @return true if trust line is successfully saved, false if something wrong.
      */
-    bool saveTrustLine(TrustLine *trustLine);
+    void saveTrustLine(TrustLine *trustLine);
 
     /**
      * Function removeTrustLine(TrustLine *trustLine) <br>
      * Remove trust lines bytes from bin file, if storage manager returns success result - remove trust line struct instance from ram (map). <br>
      * @param contractorUUID - contractor UUID.
-     * @return true if trust line is successfully saved, false if something wrong.
+     * @throw ConflictError - if trust line with such contracotr UUID does not exist
      */
-    bool removeTrustLine(const uuids::uuid contractorUUID);
+    void removeTrustLine(const uuids::uuid contractorUUID);
 
     /**
      * Function isTrustLineExist(const uuids::uuid contractorUUID) <br>
@@ -116,37 +121,49 @@ public:
      * Open trust line from user to contractor. <br>
      * @param contractorUUID - contractor UUID.
      * @param amount - trust line value (size, volume who knows how it's write) to contractor.
-     * @return true if trust line successfully opened, false if something wrong.
+     * @throw ConflictError - outgoing trust line to such contractor already exist.
+     * @throw ValueError - outgoing trust line amount less or equals to zero.
      */
-    bool open(const uuids::uuid contractorUUID, const trust_amount amount);
+    void open(const uuids::uuid contractorUUID, const trust_amount amount);
 
     /**
      * Function close(const uuids::uuid contractorUUID) <br>
      * Close trust line from user to contractor. <br>
      * @param contractorUUID - contractor UUID.
-     * @return 1 if trust line is successfully closed, -1 if trust line can not be closed, <br>
-     * -2 if error ocurred while save/remove in/from storage operation performed, 0 if trust line with such contractor does not exist.
+     * @throw ConflictError - ttrust line to such contractor does not exist.
+     * @throw ValueError - outgoing trust line amount less or equals to zero.
+     * @throw PreconditionError - contractor already used part of amount.
      */
-    int close(const uuids::uuid contractorUUID);
+    void close(const uuids::uuid contractorUUID);
 
     /**
      * Function accept(const uuids::uuid contractorUUID, const trust_amount amount) <br>
      * Accept trust line from contractor to user. <br>
      * @param contractorUUID - contractor UUID.
      * @param amount - trust line value(size, volume who knows how it's write) from contractor.
-     * @return true if trust line successfully opened, false if something wrong.
+     * @throw ConflictError - incoming trust line to such contractor already exist.
+     * @throw ValueError - incoming trust line amount less or equals to zero.
      */
-    bool accept(const uuids::uuid contractorUUID, const trust_amount amount);
+    void accept(const uuids::uuid contractorUUID, const trust_amount amount);
 
     /**
      * Function reject(const uuids::uuid contractorUUID) <br>
      * Reject trust line from contractor to user. <br>
      * @param contractorUUID - contractor UUID.
-     * @return 1 if trust line is successfully rejected, -1 if trust line can not be rejected, <br>
-     * -2 if error ocurred while save/remove in/from storage operation performed, 0 if trust line with such contractor does not exist.
+     * @throw ConflictError - trust line to such contractor does not exist.
+     * @throw ValueError - incoming trust line amount less or equals to zero.
+     * @throw PreconditionError - user already used part of amount.
      */
-    int reject(const uuids::uuid contractorUUID);
+    void reject(const uuids::uuid contractorUUID);
+
+    /**
+     * Function getTrustLineByContractorUUID(const uuids::uuid contractorUUID) <br>
+     * Seek trust line by contractor UUID. <br>
+     * @param contractorUUID - contractor UUID.
+     * @return TrustLine* - pointer on Trust Line structure instance.
+     */
+    TrustLine *getTrustLineByContractorUUID(const uuids::uuid contractorUUID);
 };
 
 
-#endif //TRUSTLINEMANAGER_TRUSTLINESMANAGER_H
+#endif //GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H

@@ -1,8 +1,6 @@
-#include <boost/uuid/uuid.hpp>
 #include "TrustLinesManager.h"
 
 TrustLinesManager::TrustLinesManager() {
-
 }
 
 TrustLinesManager::~TrustLinesManager() {
@@ -69,12 +67,13 @@ vector<uint8_t> TrustLinesManager::balanceToBytes(balance_value balance) {
 
 void TrustLinesManager::deserializeTrustLineStructFromBytes(uint8_t *buffer, uuids::uuid contractorUUID) {
     //Десереалізаця байтового масиву в екземпляр структури.
-    TrustLine trustLine(contractorUUID,
-                        parseTrustAmountData(buffer),
-                        parseTrustAmountData(buffer + TRUST_AMOUNT_PART_SIZE),
-                        parseBalanceData(buffer + TRUST_AMOUNT_PART_SIZE * 2));
+    TrustLine *trustLine = new TrustLine(contractorUUID,
+                                         parseTrustAmountData(buffer),
+                                         parseTrustAmountData(buffer + TRUST_AMOUNT_PART_SIZE),
+                                         parseBalanceData(buffer + TRUST_AMOUNT_PART_SIZE * 2));
+    cout << "Trust line after deserialization " << trustLine->getContractorNodeUUID() << " " << trustLine->getIncomingTrustAmount() << " " << trustLine->getOutgoingTrustAmount() << " " << trustLine->getBalance() << endl;
     //Додання готового екземпляру в динамічну пам’ять.
-    mTrustLines.insert(pair<boost::uuids::uuid, TrustLine *>(contractorUUID, &trustLine));
+    //mTrustLines.insert(pair<boost::uuids::uuid, TrustLine *>(contractorUUID, trustLine));
 }
 
 trust_amount TrustLinesManager::parseTrustAmountData(uint8_t *buffer) {
@@ -114,12 +113,12 @@ balance_value TrustLinesManager::parseBalanceData(uint8_t *buffer) {
             notZeroBytesVector.push_back(bytesVector.at(i));
         }
     }
-    //Якщо значення не рівне нулю, тоді у векторі не нульових байтів будуть якісь дані.
+    //Якщо значення не рівне нулю, тоді у векторі не нульових байтів будуть якісь дані -
     if (notZeroBytesVector.size() > 0) {
-        //Конвертація байтів в cpp_int шаблон з вектору не нульових байтів.
+        //конвертація байтів в cpp_int шаблон з вектору не нульових байтів.
         import_bits(balance, notZeroBytesVector.begin(), notZeroBytesVector.end(), 8, true);
     } else if (notZeroBytesVector.size() == 0) {
-        //Конвертація байтів в cpp_int шаблон з вектору байтів.
+        //конвертація байтів в cpp_int шаблон з вектору байтів.
         import_bits(balance, bytesVector.begin(), bytesVector.end(), 8, true);
     }
     //Якщо байт знаку рівний одиниці -
@@ -130,7 +129,7 @@ balance_value TrustLinesManager::parseBalanceData(uint8_t *buffer) {
     return balance;
 }
 
-bool TrustLinesManager::saveTrustLine(TrustLine *trustLine) {
+void TrustLinesManager::saveTrustLine(TrustLine *trustLine) {
     uint8_t *trustLineData = serializeBytesFromTrustLineStruct(trustLine);
     //TODO: write bytes data in file with StorageManager, check if operation proceed success and write trust line in ram
     //Contractor's uuid is present in trust line instance, but she's not serialized in bytes array
@@ -143,29 +142,29 @@ bool TrustLinesManager::saveTrustLine(TrustLine *trustLine) {
          return false;
      }
      */
+    cout << "Saving trust line in map: " << " UUID " << trustLine->getContractorNodeUUID() <<
+         " Incoming trust amount " << trustLine->getIncomingTrustAmount() <<
+         " Outgoing trust amount " << trustLine->getOutgoingTrustAmount() <<
+         " Balance " << trustLine->getBalance() << endl;
     free(trustLineData);
     if (isTrustLineExist(trustLine->getContractorNodeUUID())) {
         map<uuids::uuid, TrustLine *>::iterator it = mTrustLines.find(trustLine->getContractorNodeUUID());
         if (it != mTrustLines.end()){
             it->second = trustLine;
-            return true;
-        } else {
-            return false;
         }
     } else {
-        return mTrustLines.insert(pair<uuids::uuid, TrustLine *>(trustLine->getContractorNodeUUID(), trustLine)).second;
+        mTrustLines.insert(pair<uuids::uuid, TrustLine *>(trustLine->getContractorNodeUUID(), trustLine));
     }
 }
 
-bool TrustLinesManager::removeTrustLine(const uuids::uuid contractorUUID) {
+void TrustLinesManager::removeTrustLine(const uuids::uuid contractorUUID) {
     //TODO: remove data from storage manager, check if operation proceed success and remove trust line from ram
     //TODO: something like in saveTrustLine() method
     if (isTrustLineExist(contractorUUID)) {
         delete mTrustLines.at(contractorUUID);
         mTrustLines.erase(contractorUUID);
-        return true;
-    }else{
-        return false;
+    } else {
+        throw ConflictError("Trust line to such contractor does not exist");
     }
 }
 
@@ -173,96 +172,133 @@ bool TrustLinesManager::isTrustLineExist(const uuids::uuid contractorUUID) {
     return mTrustLines.count(contractorUUID) > 0;
 }
 
-bool TrustLinesManager::open(const uuids::uuid contractorUUID, const trust_amount amount) {
-    //Якщо лінія довіри існує
-    if (isTrustLineExist(contractorUUID)) {
-        //Отримання вказівник на екземпляр
-        TrustLine *trustLine = mTrustLines.at(contractorUUID);
-        //Встановлення розміру вихідної лінії довіри
-        trustLine->setOutgoingTrustAmount(amount);
-        //Збереження лінії довіри
-        return saveTrustLine(trustLine);
+void TrustLinesManager::open(const uuids::uuid contractorUUID, const trust_amount amount) {
+    //Якщо значення лінії довіри, що відкривається більше за нуль
+    if (amount > ZERO_CHECKED_INT256_VALUE){
+        //Якщо існує вхідна лінія довіри від контрагента
+        if (isTrustLineExist(contractorUUID)) {
+            //Отримання вказівника на екземпляр
+            TrustLine *trustLine = mTrustLines.at(contractorUUID);
+            //Якщо вихідна лінія рівна нулю, тобто лінія довіри від користувача до контрагента раніше не була відкрита
+            if (trustLine->getOutgoingTrustAmount() == 0) {
+                //Встановлення розміру вихідної лінії довіри
+                //Збереження лінії довіри
+                trustLine->setOutgoingTrustAmount(boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine), amount);
+            } else {
+                //Інакше відкрити лінію не можливо, вихідна лінія довіри вже існує
+                throw ConflictError("Сan not open outgoing trust line. Outgoing trust line to such contractor already exist.");
+            }
+        } else {
+            //Інакше, створення нового екзмепляру лінії довіри
+            //Встановлення розміру вихідної лінії довіри
+            TrustLine *trustLine = new TrustLine(contractorUUID, 0, amount, 0);
+            //Збереження лінії довіри
+            saveTrustLine(trustLine);
+        }
     } else {
-        //Інакше, створення нового екзмепляру лінії довіри
-        //Встановлення розміру вихідної лінії довіри
-        TrustLine *trustLine = new TrustLine(contractorUUID, 0, amount, 0);
-        //Збереження лінії довіри
-        return saveTrustLine(trustLine);
+        //Інакше відкрити лінію не можливо, значення лінії менше/рівне нулю
+        throw ValueError("Сan not open outgoing trust line. Outgoing trust line amount less or equals to zero.");
     }
 }
 
-int TrustLinesManager::close(const uuids::uuid contractorUUID) {
+void TrustLinesManager::close(const uuids::uuid contractorUUID) {
     //Якщо лінія довіри по відношенню до контрагента існує
     if (isTrustLineExist(contractorUUID)) {
         TrustLine *trustLine = mTrustLines.at(contractorUUID);
-        //Якщо баланс менший або рівний нулю (лінія довіри від користувача не використана)
-        if (trustLine->getBalance() <= ZERO_INT256_VALUE) {
-            //Якщо лінія довіри до користувача рівна нулю
-            if (trustLine->getIncomingTrustAmount() == ZERO_CHECKED_INT256_VALUE) {
-                //Вилучення лінії довіри цілком
-                trustLine = nullptr;
-                //Якщо при вилученні відбулась помилка - буде повернуто значення -2
-                return removeTrustLine(contractorUUID) ? 1 : -2;
+        //Якщо користувач довіряє контрагенту, вихідна лінія довіри більша за нуль
+        if (trustLine->getOutgoingTrustAmount() > ZERO_CHECKED_INT256_VALUE){
+            //Якщо баланс менший або рівний нулю (лінія довіри від користувача не використана)
+            if (trustLine->getBalance() <= ZERO_INT256_VALUE) {
+                //Якщо лінія довіри до користувача рівна нулю
+                if (trustLine->getIncomingTrustAmount() == ZERO_CHECKED_INT256_VALUE) {
+                    //Вилучення лінії довіри цілком
+                    trustLine = nullptr;
+                    removeTrustLine(contractorUUID);
+                } else {
+                    //Інакше, якщо лінія довіри до користувача існує, редагування значення вихідної лінії довіри
+                    trustLine->setOutgoingTrustAmount(boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine), 0);
+                }
             } else {
-                //Інакше, якщо лінія довіри до користувача існує, редагуємо значення вихідної лінії довіри,
-                //присвоївши йому нуль.
-                trustLine->setOutgoingTrustAmount(0);
-                return saveTrustLine(trustLine) ? 1 : -2;
+                //Інакше лінію довіри до контрагента закрити не можливо, через помилку балансу, баланс більший за нуль, контрагент
+                //використав лінію довіри від користувача
+                throw PreconditionFaultError("Сan not close outgoing trust line. Contractor already used part of amount.");
             }
         } else {
-            //Інакше повернення значення, яке вказує, що лінію довіри від користувача до контрагента закрити не можливо
-            return -1;
+            //Інакше лінію довіри до контрагента закрити не можливо, значення вихідної лінії довіри менше/рівне нулю
+            throw ValueError("Сan not close outgoing trust line. Outgoing trust line amount less or equals to zero.");
         }
     } else {
-        //Інакше повернення значення, яке вказує, що лінія довіри по відношенню до контрагента не існує
-        return 0;
+        //Інакше лінію довіри до контрагента закрити не можливо, лінія довіри по відношенню до контрагента не існує
+        throw ConflictError("Сan not close outgoing trust line. Ttrust line to such contractor does not exist.");
     }
 }
 
-bool TrustLinesManager::accept(const uuids::uuid contractorUUID, const trust_amount amount) {
-    //Якщо лінія довіри існує
-    if (isTrustLineExist(contractorUUID)) {
-        //Отримання вказівник на екземпляр
-        TrustLine *trustLine = mTrustLines.at(contractorUUID);
-        //Встановлення розміру вхідної лінії довіри
-        trustLine->setIncomingTrustAmount(amount);
-        //Збереження лінії довіри
-        return saveTrustLine(trustLine);
+void TrustLinesManager::accept(const uuids::uuid contractorUUID, const trust_amount amount) {
+    //Якщо значення лінії довіри, що приймається більше за нуль
+    if (amount > ZERO_CHECKED_INT256_VALUE){
+        //Якщо існує вихідна лінія довіри до контрагента
+        if (isTrustLineExist(contractorUUID)) {
+            //Отримання вказівника на екземпляр
+            TrustLine *trustLine = mTrustLines.at(contractorUUID);
+            //Якщо вхідна лінія рівна нулю, тобто лінія довіри від контрагента до користувача раніше не була відкрита
+            if (trustLine->getIncomingTrustAmount() == 0){
+                //Встановлення розміру вхідної лінії довіри
+                //Збереження лінії довіри
+                trustLine->setIncomingTrustAmount(boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine), amount);
+            } else {
+                //Інакше прийняти лінію довіри не можливо, вхідна лінія довіри вже існує
+                throw ConflictError("Сan not accept incoming trust line. Incoming trust line to such contractor already exist.");
+            }
+        } else {
+            //Інакше, створення нового екзмепляру лінії довіри
+            //Встановлення розміру вхідної лінії довіри
+            TrustLine *trustLine = new TrustLine(contractorUUID, amount, 0, 0);
+            //Збереження лінії довіри
+            saveTrustLine(trustLine);
+        }
     } else {
-        //Інакше, створення нового екзмепляру лінії довіри
-        //Встановлення розміру вихідної лінії довіри
-        TrustLine *trustLine = new TrustLine(contractorUUID, amount, 0, 0);
-        //Збереження лінії довіри
-        return saveTrustLine(trustLine);
+        //Інакше прийняти лінію довіри не можливо, значення лінії менше/рівне нулю
+        throw ValueError("Сan not accept incoming trust line. Incoming trust line amount less or equals to zero.");
     }
 }
 
-int TrustLinesManager::reject(const uuids::uuid contractorUUID) {
+void TrustLinesManager::reject(const uuids::uuid contractorUUID) {
     //Якщо лінія довіри по відношенню до контрагента існує
     if (isTrustLineExist(contractorUUID)) {
         TrustLine *trustLine = mTrustLines.at(contractorUUID);
-        //Якщо баланс більший або рівний нулю (лінія довіри від контрагента не використана)
-        if (trustLine->getBalance() >= ZERO_INT256_VALUE) {
-            //Якщо лінія довіри до контрагента рівна нулю
-            if (trustLine->getOutgoingTrustAmount() == ZERO_CHECKED_INT256_VALUE) {
-                //Вилучення лінії довіри цілком
-                trustLine = nullptr;
-                //Якщо при вилученні відбулась помилка - буде повернуто значення -2
-                return removeTrustLine(contractorUUID) ? 1 : -2;
+        //Якщо контрагент довіряє користувачу, вхідна лінія довіри більша за нуль
+        if (trustLine->getIncomingTrustAmount() > ZERO_CHECKED_INT256_VALUE){
+            //Якщо баланс більший або рівний нулю (лінія довіри від контрагента не використана)
+            if (trustLine->getBalance() >= ZERO_INT256_VALUE) {
+                //Якщо лінія довіри до контрагента рівна нулю
+                if (trustLine->getOutgoingTrustAmount() == ZERO_CHECKED_INT256_VALUE) {
+                    //Вилучення лінії довіри цілком
+                    trustLine = nullptr;
+                    removeTrustLine(contractorUUID);
+                } else {
+                    //Інакше, якщо лінія довіри до контрагента існує, редагування значення вхідної лінії довіри
+                    trustLine->setIncomingTrustAmount(boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine), 0);
+                }
             } else {
-                //Інакше, якщо лінія довіри до контрагента існує, редагуємо значення вхідної лінії довіри,
-                //присвоївши йому нуль.
-                trustLine->setIncomingTrustAmount(0);
-                return saveTrustLine(trustLine) ? 1 : -2;
+                //Інакше лінію довіри від контрагента відхилити не можливо, через помилку балансу, баланс менший за нуль, користувач
+                //використав лінію довіри від контрагента
+                throw PreconditionFaultError("Сan not reject incoming trust line. User already used part of amount.");
             }
         } else {
-            //Інакше повернення значення, яке вказує, що лінію довіри від контрагента до користувача відхилити не можливо
-            return -1;
+            //Інакше лінію довіри від контрагента відхилити не можливо, значення вхідної лінії довіри менше/рівне нулю
+            throw ValueError("Сan not reject incoming trust line. Incoming trust line amount less or equals to zero.");
         }
     } else {
-        //Інакше повернення значення, яке вказує, що лінія довіри по відношенню до контрагента не існує
-        return 0;
+        //Інакше лінію довіри від контрагента відхилити не можливо, лінія довіри по відношенню до контрагента не існує
+        throw ConflictError("Сan not reject incoming trust line. Trust line to such contractor does not exist.");
     }
+}
+
+TrustLine *getTrustLineByContractorUUID(const uuids::uuid contractorUUID){
+    if (isTrustLineExist(contractorUUID)) {
+        return mTrustLines.at(contractorUUID);
+    }
+    return nullptr;
 }
 
 
