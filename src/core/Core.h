@@ -3,7 +3,7 @@
 
 #include "settings/Settings.h"
 #include "network/Communicator.h"
-#include "interface/CommandsInterface.h"
+#include "interface/commands/CommandsInterface.h"
 #include "logger/Logger.h"
 
 #include <boost/filesystem.hpp>

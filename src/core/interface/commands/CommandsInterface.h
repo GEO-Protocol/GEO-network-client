@@ -1,10 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 #define GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 
-#include "BaseFIFOInterface.h"
-#include "../commands/Command.h"
-#include "../commands/CommandsAPI.h"
-#include "../common/exceptions/IOError.h"
+#include "../BaseFIFOInterface.h"
+#include "../../commands/Command.h"
+#include "../../commands/CommandsAPI.h"
+#include "../../common/exceptions/IOError.h"
 
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>

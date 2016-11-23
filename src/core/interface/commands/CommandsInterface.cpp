@@ -1,5 +1,5 @@
 #include "CommandsInterface.h"
-#include "../common/exceptions/ValueError.h"
+#include "../../common/exceptions/ValueError.h"
 
 /*!
  * Handles received data from FIFO.
@@ -23,7 +23,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommandPart(
 }
 
 /*!
- * Tries o deserialise received command, using buffered data.
+ * Tries to deserialise received command, using buffered data.
  * In case when buffer is too short to contains even one command -
  * will return immideately.
  *
@@ -44,7 +44,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
         return commandIsInvalidOrIncomplete();
     }
 
-    // Check if received sting contains command separator.
+    // Check if received string contains command separator.
     // If no - then command may be received partially.
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (nextCommandSeparatorIndex == string::npos) {

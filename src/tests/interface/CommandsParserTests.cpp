@@ -1,4 +1,4 @@
-#include "../../core/interface/CommandsInterface.h"
+#include "../../core/interface/commands/CommandsInterface.h"
 
 
 class CommandsParserTests {
