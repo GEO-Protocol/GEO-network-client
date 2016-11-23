@@ -1,6 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_PAYMENTRESULT_H
 #define GEO_NETWORK_CLIENT_PAYMENTRESULT_H
 
+#include <boost/lexical_cast.hpp>
 #include "Result.h"
 #include "../trust_lines/TrustLine.h"
 
@@ -18,8 +19,6 @@ public:
                           string timestampCompleted);
 
     ~PaymentResult();
-
-    Command getCommand();
 
     uint16_t getResultCode();
 

@@ -1,25 +1,24 @@
 #include "Result.h"
 
+Result::Result() {}
+
 Result::Result(Command *command, uint16_t resultCode, string timestampExcepted, string timestampCompleted){
-    mCommand = *command,
     mCode = resultCode,
     mTimestampExcepted = timestampExcepted;
     mTimestampCompleted = timestampCompleted;
 }
 
-Command Result::getCommand() {
-    return mCommand;
-}
+Result::~Result() {}
 
-uint16_t Result::getResultCode(){
+uint16_t Result::getResCode(){
     return mCode;
 }
 
-string Result::getTimestampExcepted(){
+string Result::getExceptedTimestamp(){
     return mTimestampExcepted;
 }
 
-string Result::getTimestampCompleted(){
+string Result::getCompletedTimestamp(){
     return mTimestampCompleted;
 }
 

@@ -1,26 +1,24 @@
 #include "OpenTrustLineResult.h"
 
 OpenTrustLineResult::OpenTrustLineResult(trust_amount amount, boost::uuids::uuid contractorUUID, Command *command,
-                                         uint16_t resultCode, string timestampExcepted, string timestampCompleted) {
+                                         uint16_t resultCode, string timestampExcepted, string timestampCompleted) :
+        Result(command, resultCode, timestampExcepted, timestampCompleted) {
     mAmount = amount;
     mContractorUUID = contractorUUID;
-    Result::Result(command, resultCode, timestampExcepted, timestampCompleted);
 }
 
-Command OpenTrustLineResult::getCommand() {
-    return Result::getCommand();
-}
+OpenTrustLineResult::~OpenTrustLineResult() {}
 
 uint16_t OpenTrustLineResult::getResultCode() {
-    return Result::getResultCode();
+    return Result::getResCode();
 }
 
 string OpenTrustLineResult::getTimestampExcepted() {
-    return Result::getTimestampExcepted();
+    return Result::getExceptedTimestamp();
 }
 
 string OpenTrustLineResult::getTimestampCompleted() {
-    return Result::getTimestampCompleted();
+    return Result::getCompletedTimestamp();
 }
 
 trust_amount OpenTrustLineResult::getAmount() {
@@ -32,12 +30,13 @@ boost::uuids::uuid OpenTrustLineResult::getContractorUUID() {
 }
 
 string OpenTrustLineResult::serialize() {
-    return lexical_cast<string>(mContractorUUID) + "_" +
-           lexical_cast<string>(Result::getResultCode()) + "_" +
-           Result::getTimestampExcepted() + "_" +
-           Result::getTimestampCompleted() + "_" +
-           lexical_cast<string>(mAmount) + "\n";
+    return boost::lexical_cast<string>(mContractorUUID) + "_" +
+           boost::lexical_cast<string>(Result::getResCode()) + "_" +
+           Result::getExceptedTimestamp() + "_" +
+           Result::getCompletedTimestamp() + "_" +
+           boost::lexical_cast<string>(mAmount) + "\n";
 }
+
 
 
 

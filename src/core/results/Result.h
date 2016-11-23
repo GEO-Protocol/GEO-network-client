@@ -9,27 +9,25 @@ using namespace std;
 
 class Result {
 private:
-    Command mCommand;
     uint16_t mCode;
     string mTimestampExcepted;
     string mTimestampCompleted;
 
 protected:
+    Result();
+
     Result(Command *command,
            uint16_t resultCode,
            string timestampExcepted,
-           string timestampCompleted
-    );
+           string timestampCompleted);
 
     ~Result();
 
-    Command getCommand();
+    uint16_t getResCode();
 
-    uint16_t getResultCode();
+    string getExceptedTimestamp();
 
-    string getTimestampExcepted();
-
-    string getTimestampCompleted();
+    string getCompletedTimestamp();
 
     virtual string serialize() = 0;
 };

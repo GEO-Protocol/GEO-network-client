@@ -19,8 +19,6 @@ public:
 
     ~OpenTrustLineResult();
 
-    Command getCommand();
-
     uint16_t getResultCode();
 
     string getTimestampExcepted();

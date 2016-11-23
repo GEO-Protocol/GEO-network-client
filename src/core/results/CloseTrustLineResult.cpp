@@ -1,35 +1,34 @@
 #include "CloseTrustLineResult.h"
 
 CloseTrustLineResult::CloseTrustLineResult(boost::uuids::uuid contractorUUID, Command *command,
-                             uint16_t resultCode, string timestampExcepted, string timestampCompleted) {
+                                           uint16_t resultCode, string timestampExcepted, string timestampCompleted) :
+        Result(command, resultCode, timestampExcepted, timestampCompleted) {
     mContractorUUID = contractorUUID;
-    Result::Result(command, resultCode, timestampExcepted, timestampCompleted);
 }
 
-Command CloseTrustLineResult::getCommand() {
-    return Result::getCommand();
+CloseTrustLineResult::~CloseTrustLineResult() {}
+
+uint16_t CloseTrustLineResult::getResultCode() {
+    return Result::getResCode();
 }
 
-uint16_t CloseTrustLineResult::getResultCode(){
-    return Result::getResultCode();
+string CloseTrustLineResult::getTimestampExcepted() {
+    return Result::getExceptedTimestamp();
 }
 
-string CloseTrustLineResult::getTimestampExcepted(){
-    return Result::getTimestampExcepted();
+string CloseTrustLineResult::getTimestampCompleted() {
+    return Result::getCompletedTimestamp();
 }
 
-string CloseTrustLineResult::getTimestampCompleted(){
-    return Result::getTimestampCompleted();
-}
-
-boost::uuids::uuid CloseTrustLineResult::getContractorUUID(){
+boost::uuids::uuid CloseTrustLineResult::getContractorUUID() {
     return mContractorUUID;
 }
 
 string CloseTrustLineResult::serialize() {
-    return lexical_cast<string>(mContractorUUID) + "_" +
-           lexical_cast<string>(Result::getResultCode()) + "_" +
-           Result::getTimestampExcepted() + "_" +
-           Result::getTimestampCompleted() + "\n";
+    return boost::lexical_cast<string>(mContractorUUID) + "_" +
+           boost::lexical_cast<string>(Result::getResCode()) + "_" +
+           Result::getExceptedTimestamp() + "_" +
+           Result::getCompletedTimestamp() + "\n";
 }
+
 

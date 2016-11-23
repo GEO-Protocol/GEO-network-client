@@ -294,7 +294,7 @@ void TrustLinesManager::reject(const uuids::uuid contractorUUID) {
     }
 }
 
-TrustLine *getTrustLineByContractorUUID(const uuids::uuid contractorUUID){
+TrustLine* TrustLinesManager::getTrustLineByContractorUUID(const uuids::uuid contractorUUID){
     if (isTrustLineExist(contractorUUID)) {
         return mTrustLines.at(contractorUUID);
     }
