@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <malloc.h>
 #include <boost/uuid/uuid.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
@@ -13,13 +14,15 @@
 
 using namespace std;
 
+typedef uint8_t byte;
+
 class TrustLinesManager {
 
 private:
-    const size_t BUCKET_SIZE = 97;
     const size_t TRUST_AMOUNT_PART_SIZE = 32;
     const size_t BALANCE_PART_SIZE = 32;
     const size_t SIGN_BYTE_PART_SIZE = 1;
+    const size_t BUCKET_SIZE = TRUST_AMOUNT_PART_SIZE + TRUST_AMOUNT_PART_SIZE + BALANCE_PART_SIZE + SIGN_BYTE_PART_SIZE;
     const trust_amount ZERO_CHECKED_INT256_VALUE = 0;
     const balance_value ZERO_INT256_VALUE = 0;
     map<uuids::uuid, TrustLine *> mTrustLines;
@@ -32,7 +35,7 @@ private:
      * @param trustLine - pointer to TrustLine structure instance.
      * @return pointer to bytes array with serialized TrustLine structure instance.
      */
-    uint8_t *serializeBytesFromTrustLineStruct(TrustLine *trustLine);
+    byte *serializeBytesFromTrustLineStruct(TrustLine *trustLine);
 
     /**
      * Function trustAmountDataToBytes(trust_amount amount) <br>
@@ -42,7 +45,7 @@ private:
      * trust_amount type defined in header file. @see TrustLine.h
      * @return vector of bytes size of 32 bytes.
      */
-    vector<uint8_t> trustAmountDataToBytes(trust_amount amount);
+    vector<byte> trustAmountDataToBytes(trust_amount amount);
 
     /**
      * Function balanceToBytes(balance_value balance) <br>
@@ -52,7 +55,7 @@ private:
      * balance_value type defined in header file. @see TrustLine.h
      * @return vector of bytes size of 33 bytes. Last byte in vector specified sign, others bytes are value.
      */
-    vector<uint8_t> balanceToBytes(balance_value balance);
+    vector<byte> balanceToBytes(balance_value balance);
 
     /**
      * Function deserializeTrustLineStructFromBytes(uint8_t *buffer, uuids::uuid contractorUUID) <br>
@@ -61,7 +64,7 @@ private:
      * @param contractorUUID - contractor UUID absent into buffer and set in instance manually.
      * Deserialized instace insert into map.
      */
-    void deserializeTrustLineStructFromBytes(uint8_t *buffer, uuids::uuid contractorUUID);
+    void deserializeTrustLineStructFromBytes(byte *buffer, uuids::uuid contractorUUID);
 
     /**
      * Function parseTrustAmountData(uint8_t *buffer) <br>
@@ -70,7 +73,7 @@ private:
      * @param buffer - uint8_t array with set of bytes.
      * @return trust_amount - incoming/outgoing trust line value, type of checked_uint256_t.
      */
-    trust_amount parseTrustAmountData(uint8_t *buffer);
+    trust_amount parseTrustAmountData(byte *buffer);
 
     /**
      * Function parseBalanceData(uint8_t *buffer) <br>
@@ -79,7 +82,7 @@ private:
      * @param buffer - uint8_t array with set of bytes.
      * @return balance_value - user's balance value, type of int256_t.
      */
-    balance_value parseBalanceData(uint8_t *buffer);
+    balance_value parseBalanceData(byte *buffer);
 
     /**
      * Function saveTrustLine(TrustLine *trustLine) <br>

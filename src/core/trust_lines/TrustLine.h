@@ -22,36 +22,36 @@ typedef boost::function<void()> callback;
 class TrustLinesManager;
 
 struct TrustLine {
-
-private:
     friend class TrustLinesManager;
-    uuids::uuid contractor_node_uuid;
-    trust_amount incoming_trust_amount;
-    trust_amount outgoing_trust_amount;
-    balance_value balance;
-    callback managerCallback;
 
 private:
-    TrustLine(uuids::uuid nodeUUID,
-              trust_amount incomingAmount,
-              trust_amount outgoingAmount,
-              balance_value nodeBalance);
+    uuids::uuid mContractorNodeUuid;
+    trust_amount mIncomingTrustAmount;
+    trust_amount mOutgoingTrustAmount;
+    balance_value mBalance;
+    callback mManagerCallback;
 
-    void setContractorNodeUUID(uuids::uuid nodeUUID);
+private:
+    TrustLine(const uuids::uuid &nodeUUID,
+              const trust_amount &incomingAmount,
+              const trust_amount &outgoingAmount,
+              const balance_value &nodeBalance);
 
-    void setIncomingTrustAmount(callback managersCallback, trust_amount incomingAmount);
+    void setContractorNodeUUID(const uuids::uuid &nodeUUID);
 
-    void setOutgoingTrustAmount(callback managersCallback, trust_amount outgoingAmount);
+    void setIncomingTrustAmount(callback managersCallback, const trust_amount &incomingAmount);
 
-    void setBalance(callback managersCallback, balance_value nodeBalance);
+    void setOutgoingTrustAmount(callback managersCallback, const trust_amount &outgoingAmount);
 
-    uuids::uuid getContractorNodeUUID();
+    void setBalance(callback managersCallback, const balance_value &nodeBalance);
 
-    trust_amount getIncomingTrustAmount();
+    uuids::uuid& getContractorNodeUUID();
 
-    trust_amount getOutgoingTrustAmount();
+    trust_amount& getIncomingTrustAmount();
 
-    balance_value getBalance();
+    trust_amount& getOutgoingTrustAmount();
+
+    balance_value& getBalance();
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINE_H

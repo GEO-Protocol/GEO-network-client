@@ -1,43 +1,50 @@
 #include "TrustLine.h"
 
-TrustLine::TrustLine(uuids::uuid nodeUUID,
-                     trust_amount incomingAmount,
-                     trust_amount outgoingAmount,
-                     balance_value nodeBalance){
-    contractor_node_uuid = nodeUUID;
-    incoming_trust_amount = incomingAmount;
-    outgoing_trust_amount = outgoingAmount;
-    balance = nodeBalance;
+TrustLine::TrustLine(const uuids::uuid &nodeUUID,
+                     const trust_amount &incomingAmount,
+                     const trust_amount &outgoingAmount,
+                     const balance_value &nodeBalance) {
+    mContractorNodeUuid = nodeUUID;
+    mIncomingTrustAmount = incomingAmount;
+    mOutgoingTrustAmount = outgoingAmount;
+    mBalance = nodeBalance;
 }
 
-void TrustLine::setContractorNodeUUID(uuids::uuid nodeUUID) {
-    contractor_node_uuid = nodeUUID;
+void TrustLine::setContractorNodeUUID(const uuids::uuid &nodeUUID) {
+    mContractorNodeUuid = nodeUUID;
 }
-void TrustLine::setIncomingTrustAmount(callback managersCallback, trust_amount incomingAmount) {
-    incoming_trust_amount = incomingAmount;
-    managerCallback = managersCallback;
-    managersCallback();
+
+void TrustLine::setIncomingTrustAmount(callback managersCallback, const trust_amount &incomingAmount) {
+    mIncomingTrustAmount = incomingAmount;
+    mManagerCallback = managersCallback;
+    mManagerCallback();
 }
-void TrustLine::setOutgoingTrustAmount(callback managersCallback, trust_amount outgoingAmount) {
-    outgoing_trust_amount = outgoingAmount;
-    managerCallback = managersCallback;
-    managersCallback();
+
+void TrustLine::setOutgoingTrustAmount(callback managersCallback, const trust_amount &outgoingAmount) {
+    mOutgoingTrustAmount = outgoingAmount;
+    mManagerCallback = managersCallback;
+    mManagerCallback();
 }
-void TrustLine::setBalance(callback managersCallback, balance_value nodeBalance) {
-    balance = nodeBalance;
-    managerCallback = managersCallback;
-    managersCallback();
+
+void TrustLine::setBalance(callback managersCallback, const balance_value &nodeBalance) {
+    mBalance = nodeBalance;
+    mManagerCallback = managersCallback;
+    mManagerCallback();
 }
-uuids::uuid TrustLine::getContractorNodeUUID() {
-    return contractor_node_uuid;
+
+uuids::uuid &TrustLine::getContractorNodeUUID() {
+    return mContractorNodeUuid;
 }
-trust_amount TrustLine::getIncomingTrustAmount() {
-    return incoming_trust_amount;
+
+trust_amount &TrustLine::getIncomingTrustAmount() {
+    return mIncomingTrustAmount;
 }
-trust_amount TrustLine::getOutgoingTrustAmount() {
-    return outgoing_trust_amount;
+
+trust_amount &TrustLine::getOutgoingTrustAmount() {
+    return mOutgoingTrustAmount;
 }
-balance_value TrustLine::getBalance() {
-    return balance;
+
+balance_value &TrustLine::getBalance() {
+    return mBalance;
 }
 

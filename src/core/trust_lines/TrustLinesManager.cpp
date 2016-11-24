@@ -10,9 +10,9 @@ TrustLinesManager::~TrustLinesManager() {
     mTrustLines.clear();
 }
 
-uint8_t *TrustLinesManager::serializeBytesFromTrustLineStruct(TrustLine *trustLine) {
+byte *TrustLinesManager::serializeBytesFromTrustLineStruct(TrustLine *trustLine) {
     //Виділення 97 байт пам’яті під масив(буфер), в якому буде зберігатись сереалізований екземпляр стр-ри.
-    uint8_t *buffer = (uint8_t *) malloc(BUCKET_SIZE);
+    byte *buffer = (byte *) malloc(BUCKET_SIZE);
     //Занулення байтів в буфері,
     memset(buffer, 0, BUCKET_SIZE);
     //Сереалізація значення лінії довіри до користувача в байти і запис в буфер.
@@ -24,8 +24,8 @@ uint8_t *TrustLinesManager::serializeBytesFromTrustLineStruct(TrustLine *trustLi
     return buffer;
 }
 
-vector<uint8_t> TrustLinesManager::trustAmountDataToBytes(trust_amount amount) {
-    vector<uint8_t> byteSet;
+vector<byte> TrustLinesManager::trustAmountDataToBytes(trust_amount amount) {
+    vector<byte> byteSet;
     //Конвертація cpp_int шаблону в байти, результат записується у вектор.
     export_bits(static_cast<boost::multiprecision::checked_uint256_t>(amount), back_inserter(byteSet), 8);
     //Отримання розміру вектора.
@@ -40,8 +40,8 @@ vector<uint8_t> TrustLinesManager::trustAmountDataToBytes(trust_amount amount) {
     return byteSet;
 }
 
-vector<uint8_t> TrustLinesManager::balanceToBytes(balance_value balance) {
-    vector<uint8_t> byteSet;
+vector<byte> TrustLinesManager::balanceToBytes(balance_value balance) {
+    vector<byte> byteSet;
     //Конвертація cpp_int шаблону в байти, результат записується у вектор.
     export_bits(static_cast<boost::multiprecision::int256_t>(balance), back_inserter(byteSet), 8, true);
     //Отримання розміру вектора.
@@ -65,21 +65,20 @@ vector<uint8_t> TrustLinesManager::balanceToBytes(balance_value balance) {
     return byteSet;
 }
 
-void TrustLinesManager::deserializeTrustLineStructFromBytes(uint8_t *buffer, uuids::uuid contractorUUID) {
+void TrustLinesManager::deserializeTrustLineStructFromBytes(byte *buffer, uuids::uuid contractorUUID) {
     //Десереалізаця байтового масиву в екземпляр структури.
     TrustLine *trustLine = new TrustLine(contractorUUID,
                                          parseTrustAmountData(buffer),
                                          parseTrustAmountData(buffer + TRUST_AMOUNT_PART_SIZE),
                                          parseBalanceData(buffer + TRUST_AMOUNT_PART_SIZE * 2));
-    cout << "Trust line after deserialization " << trustLine->getContractorNodeUUID() << " " << trustLine->getIncomingTrustAmount() << " " << trustLine->getOutgoingTrustAmount() << " " << trustLine->getBalance() << endl;
     //Додання готового екземпляру в динамічну пам’ять.
-    //mTrustLines.insert(pair<boost::uuids::uuid, TrustLine *>(contractorUUID, trustLine));
+    mTrustLines.insert(pair<boost::uuids::uuid, TrustLine *>(contractorUUID, trustLine));
 }
 
-trust_amount TrustLinesManager::parseTrustAmountData(uint8_t *buffer) {
+trust_amount TrustLinesManager::parseTrustAmountData(byte *buffer) {
     trust_amount amount;
-    vector<uint8_t> bytesVector(TRUST_AMOUNT_PART_SIZE);
-    vector<uint8_t> notZeroBytesVector;
+    vector<byte> bytesVector(TRUST_AMOUNT_PART_SIZE);
+    vector<byte> notZeroBytesVector;
     //Копіювання даних з буфера у вектор байтів. У векторі попередньо зарезервоване місце під к-сть елементів.
     copy(buffer, buffer + TRUST_AMOUNT_PART_SIZE, bytesVector.begin());
     //Отримання не нульових байтів і копіювання їх у вектор не нуьлових байтів
@@ -99,12 +98,12 @@ trust_amount TrustLinesManager::parseTrustAmountData(uint8_t *buffer) {
     return amount;
 }
 
-balance_value TrustLinesManager::parseBalanceData(uint8_t *buffer) {
+balance_value TrustLinesManager::parseBalanceData(byte *buffer) {
     balance_value balance;
-    vector<uint8_t> bytesVector(BALANCE_PART_SIZE);
-    vector<uint8_t> notZeroBytesVector;
+    vector<byte> bytesVector(BALANCE_PART_SIZE);
+    vector<byte> notZeroBytesVector;
     //Отримання байту зі знаком значення.
-    uint8_t sign = buffer[BALANCE_PART_SIZE + SIGN_BYTE_PART_SIZE - 1];
+    byte sign = buffer[BALANCE_PART_SIZE + SIGN_BYTE_PART_SIZE - 1];
     //Копіювання даних з буфера у вектор байтів. У векторі попередньо зарезервоване місце під к-сть елементів.
     copy(buffer, buffer + BALANCE_PART_SIZE, bytesVector.begin());
     //Отримання не нульових байтів і копіювання їх у вектор не нуьлових байтів
@@ -130,22 +129,9 @@ balance_value TrustLinesManager::parseBalanceData(uint8_t *buffer) {
 }
 
 void TrustLinesManager::saveTrustLine(TrustLine *trustLine) {
-    uint8_t *trustLineData = serializeBytesFromTrustLineStruct(trustLine);
+    byte *trustLineData = serializeBytesFromTrustLineStruct(trustLine);
     //TODO: write bytes data in file with StorageManager, check if operation proceed success and write trust line in ram
     //Contractor's uuid is present in trust line instance, but she's not serialized in bytes array
-    /*
-     if ((pStorageManager->write(trustLineData)){
-         free(trustLineData);
-         return mTrustLines.insert(pair<uuids::uuid, TrustLine *>(trustLine->getContractorNodeUUID(), trustLine)).second;
-     } else {
-         free(trustLineData);
-         return false;
-     }
-     */
-    cout << "Saving trust line in map: " << " UUID " << trustLine->getContractorNodeUUID() <<
-         " Incoming trust amount " << trustLine->getIncomingTrustAmount() <<
-         " Outgoing trust amount " << trustLine->getOutgoingTrustAmount() <<
-         " Balance " << trustLine->getBalance() << endl;
     free(trustLineData);
     if (isTrustLineExist(trustLine->getContractorNodeUUID())) {
         map<uuids::uuid, TrustLine *>::iterator it = mTrustLines.find(trustLine->getContractorNodeUUID());
@@ -229,7 +215,7 @@ void TrustLinesManager::close(const uuids::uuid contractorUUID) {
         }
     } else {
         //Інакше лінію довіри до контрагента закрити не можливо, лінія довіри по відношенню до контрагента не існує
-        throw ConflictError("Сan not close outgoing trust line. Ttrust line to such contractor does not exist.");
+        throw ConflictError("Сan not close outgoing trust line. Trust line to such contractor does not exist.");
     }
 }
 
