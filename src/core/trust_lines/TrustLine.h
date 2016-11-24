@@ -45,13 +45,13 @@ private:
 
     void setBalance(callback managersCallback, const balance_value &nodeBalance);
 
-    uuids::uuid& getContractorNodeUUID();
+    const uuids::uuid &getContractorNodeUUID() const;
 
-    trust_amount& getIncomingTrustAmount();
+    const trust_amount &getIncomingTrustAmount() const;
 
-    trust_amount& getOutgoingTrustAmount();
+    const trust_amount &getOutgoingTrustAmount() const;
 
-    balance_value& getBalance();
+    const balance_value &getBalance() const;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINE_H

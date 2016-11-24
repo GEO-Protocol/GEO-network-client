@@ -17,17 +17,14 @@ protected:
     Result();
 
     Result(Command *command,
-           uint16_t resultCode,
-           string timestampExcepted,
-           string timestampCompleted);
+           const uint16_t &resultCode,
+           const string &timestampCompleted);
 
-    ~Result();
+    const uint16_t &resCode() const;
 
-    uint16_t getResCode();
+    const string &exceptedTimestamp() const;
 
-    string getExceptedTimestamp();
-
-    string getCompletedTimestamp();
+    const string &completedTimestamp() const;
 
     virtual string serialize() = 0;
 };

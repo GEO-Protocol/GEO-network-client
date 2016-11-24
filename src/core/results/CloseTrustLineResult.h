@@ -6,24 +6,22 @@
 
 class CloseTrustLineResult : public Result {
 private:
-    uuids::uuid mContractorUUID;
+    uuids::uuid mContractorUuid;
+    trust_amount mAmount;
 
 public:
-    CloseTrustLineResult(boost::uuids::uuid contractorUUID,
-                  Command *command,
-                  uint16_t resultCode,
-                  string timestampExcepted,
-                  string timestampCompleted);
+    CloseTrustLineResult(Command *command,
+                         const uint16_t &resultCode,
+                         const string &timestampCompleted,
+                         const boost::uuids::uuid &contractorUuid);
 
-    ~CloseTrustLineResult();
+    const uint16_t &resultCode() const;
 
-    uint16_t getResultCode();
+    const string &timestampExcepted() const;
 
-    string getTimestampExcepted();
+    const string &timestampCompleted() const;
 
-    string getTimestampCompleted();
-
-    boost::uuids::uuid getContractorUUID();
+    const boost::uuids::uuid &contractorUuid() const;
 
     string serialize();
 };

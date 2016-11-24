@@ -6,28 +6,25 @@
 
 class MaximalTransactionAmountResult : public Result {
 private:
+    uuids::uuid mContractorUuid;
     trust_amount mAmount;
-    uuids::uuid mContractorUUID;
 
 public:
-    MaximalTransactionAmountResult(trust_amount amount,
-                  boost::uuids::uuid contractorUUID,
-                  Command *command,
-                  uint16_t resultCode,
-                  string timestampExcepted,
-                  string timestampCompleted);
+    MaximalTransactionAmountResult(Command *command,
+                                   const uint16_t &resultCode,
+                                   const string &timestampCompleted,
+                                   const boost::uuids::uuid &contractorUuid,
+                                   const trust_amount amount);
 
-    ~MaximalTransactionAmountResult();
+    const uint16_t &resultCode() const;
 
-    uint16_t getResultCode();
+    const string &timestampExcepted() const;
 
-    string getTimestampExcepted();
+    const string &timestampCompleted() const;
 
-    string getTimestampCompleted();
+    const boost::uuids::uuid &contractorUuid() const;
 
-    trust_amount getAmount();
-
-    boost::uuids::uuid getContractorUUID();
+    const trust_amount &amount() const;
 
     string serialize();
 };

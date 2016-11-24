@@ -1,34 +1,34 @@
 #include "CloseTrustLineResult.h"
 
-CloseTrustLineResult::CloseTrustLineResult(boost::uuids::uuid contractorUUID, Command *command,
-                                           uint16_t resultCode, string timestampExcepted, string timestampCompleted) :
-        Result(command, resultCode, timestampExcepted, timestampCompleted) {
+CloseTrustLineResult::CloseTrustLineResult(Command *command,
+                                         const uint16_t &resultCode,
+                                         const string &timestampCompleted,
+                                         const boost::uuids::uuid &contractorUuid) :
+        Result(command, resultCode, timestampCompleted) {
     mContractorUUID = contractorUUID;
 }
 
-CloseTrustLineResult::~CloseTrustLineResult() {}
-
-uint16_t CloseTrustLineResult::getResultCode() {
-    return Result::getResCode();
+const uint16_t &CloseTrustLineResult::resultCode() const {
+    return Result::resCode();
 }
 
-string CloseTrustLineResult::getTimestampExcepted() {
-    return Result::getExceptedTimestamp();
+const string &CloseTrustLineResult::timestampExcepted() const {
+    return Result::exceptedTimestamp();
 }
 
-string CloseTrustLineResult::getTimestampCompleted() {
-    return Result::getCompletedTimestamp();
+const string &CloseTrustLineResult::timestampCompleted() const {
+    return Result::completedTimestamp();
 }
 
-boost::uuids::uuid CloseTrustLineResult::getContractorUUID() {
-    return mContractorUUID;
+const boost::uuids::uuid &CloseTrustLineResult::contractorUUID() const {
+    return mContractorUuid;
 }
 
-string CloseTrustLineResult::serialize() {
-    return boost::lexical_cast<string>(mContractorUUID) + "_" +
-           boost::lexical_cast<string>(Result::getResCode()) + "_" +
-           Result::getExceptedTimestamp() + "_" +
-           Result::getCompletedTimestamp() + "\n";
+string OpenTrustLineResult::serialize() {
+    return boost::lexical_cast<string>(mContractorUuid) + "_" +
+           boost::lexical_cast<string>(resultCode()) + "_" +
+           timestampExcepted() + "_" +
+           timestampCompleted() + "\n";
 }
 
 

@@ -1,37 +1,40 @@
 #include "UpdateTrustLineResult.h"
 
-UpdateTrustLineResult::UpdateTrustLineResult(trust_amount amount, boost::uuids::uuid contractorUUID, Command *command,
-                                             uint16_t resultCode, string timestampExcepted, string timestampCompleted) :
-        Result(command, resultCode, timestampExcepted, timestampCompleted) {
-    mAmount = amount;
+UpdateTrustLineResult::UpdateTrustLineResult(Command *command,
+                                         const uint16_t &resultCode,
+                                         const string &timestampCompleted,
+                                         const boost::uuids::uuid &contractorUuid,
+                                         const trust_amount amount) :
+        Result(command, resultCode, timestampCompleted) {
     mContractorUUID = contractorUUID;
+    mAmount = amount;
 }
 
-uint16_t UpdateTrustLineResult::getResultCode() {
-    return Result::getResCode();
+const uint16_t &UpdateTrustLineResult::resultCode() const {
+    return Result::resCode();
 }
 
-string UpdateTrustLineResult::getTimestampExcepted() {
-    return Result::getExceptedTimestamp();
+const string &UpdateTrustLineResult::timestampExcepted() const {
+    return Result::exceptedTimestamp();
 }
 
-string UpdateTrustLineResult::getTimestampCompleted() {
-    return Result::getCompletedTimestamp();
+const string &UpdateTrustLineResult::timestampCompleted() const {
+    return Result::completedTimestamp();
 }
 
-trust_amount UpdateTrustLineResult::getAmount() {
+const boost::uuids::uuid &UpdateTrustLineResult::contractorUUID() const {
+    return mContractorUuid;
+}
+
+const trust_amount &UpdateTrustLineResult::amount() const {
     return mAmount;
 }
 
-boost::uuids::uuid UpdateTrustLineResult::getContractorUUID() {
-    return mContractorUUID;
-}
-
 string UpdateTrustLineResult::serialize() {
-    return boost::lexical_cast<string>(mContractorUUID) + "_" +
-           boost::lexical_cast<string>(Result::getResCode()) + "_" +
-           Result::getExceptedTimestamp() + "_" +
-           Result::getCompletedTimestamp() + "_" +
+    return boost::lexical_cast<string>(mContractorUuid) + "_" +
+           boost::lexical_cast<string>(resultCode()) + "_" +
+           timestampExcepted() + "_" +
+           timestampCompleted() + "_" +
            boost::lexical_cast<string>(mAmount) + "\n";
 }
 

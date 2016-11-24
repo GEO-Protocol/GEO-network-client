@@ -2,23 +2,23 @@
 
 Result::Result() {}
 
-Result::Result(Command *command, uint16_t resultCode, string timestampExcepted, string timestampCompleted){
+Result::Result(Command *command,
+               const uint16_t &resultCode,
+               const string &timestampCompleted){
     mCode = resultCode,
-    mTimestampExcepted = timestampExcepted;
-    mTimestampCompleted = timestampCompleted;
+    mTimestampExcepted(command->timeStampExcepted());
+    mTimestampCompleted(timestampCompleted);
 }
 
-Result::~Result() {}
-
-uint16_t Result::getResCode(){
+const uint16_t &Result::resCode() const{
     return mCode;
 }
 
-string Result::getExceptedTimestamp(){
+const string &Result::exceptedTimestamp() const{
     return mTimestampExcepted;
 }
 
-string Result::getCompletedTimestamp(){
+const string &Result::completedTimestamp() const{
     return mTimestampCompleted;
 }
 

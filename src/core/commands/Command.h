@@ -10,10 +10,16 @@ class Command {
 public:
     Command(const string &identifier);
 
-    const string& identifier() const;
+    Command(const string &identifier, const string &timestampExcepted);
+
+    const string &identifier() const;
+
+    const string &timeStampExcepted() const;
 
 private:
     string mIdentifier;
+
+    string mTimestampExcepted;
 };
 
 

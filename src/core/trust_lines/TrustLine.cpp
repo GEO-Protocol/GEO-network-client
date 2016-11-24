@@ -32,19 +32,19 @@ void TrustLine::setBalance(callback managersCallback, const balance_value &nodeB
     mManagerCallback();
 }
 
-uuids::uuid &TrustLine::getContractorNodeUUID() {
+const uuids::uuid &TrustLine::getContractorNodeUUID() const{
     return mContractorNodeUuid;
 }
 
-trust_amount &TrustLine::getIncomingTrustAmount() {
+const trust_amount &TrustLine::getIncomingTrustAmount() const{
     return mIncomingTrustAmount;
 }
 
-trust_amount &TrustLine::getOutgoingTrustAmount() {
+const trust_amount &TrustLine::getOutgoingTrustAmount() const{
     return mOutgoingTrustAmount;
 }
 
-balance_value &TrustLine::getBalance() {
+const balance_value &TrustLine::getBalance() const{
     return mBalance;
 }
 
