@@ -6,7 +6,7 @@ PaymentResult::PaymentResult(Command *command,
                              const boost::uuids::uuid &contractorUuid,
                              const trust_amount amount) :
         Result(command, resultCode, timestampCompleted) {
-    mContractorUUID = contractorUUID;
+    mContractorUuid = contractorUuid;
     mAmount = amount;
 }
 
@@ -22,7 +22,7 @@ const string &PaymentResult::timestampCompleted() const {
     return Result::completedTimestamp();
 }
 
-const boost::uuids::uuid &PaymentResult::contractorUUID() const {
+const boost::uuids::uuid &PaymentResult::contractorUuid() const {
     return mContractorUuid;
 }
 

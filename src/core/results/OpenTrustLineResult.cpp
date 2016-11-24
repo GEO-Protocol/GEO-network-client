@@ -6,7 +6,7 @@ OpenTrustLineResult::OpenTrustLineResult(Command *command,
                                          const boost::uuids::uuid &contractorUuid,
                                          const trust_amount amount) :
         Result(command, resultCode, timestampCompleted) {
-    mContractorUUID = contractorUUID;
+    mContractorUuid = contractorUuid;
     mAmount = amount;
 }
 
@@ -22,7 +22,7 @@ const string &OpenTrustLineResult::timestampCompleted() const {
     return Result::completedTimestamp();
 }
 
-const boost::uuids::uuid &OpenTrustLineResult::contractorUUID() const {
+const boost::uuids::uuid &OpenTrustLineResult::contractorUuid() const {
     return mContractorUuid;
 }
 
