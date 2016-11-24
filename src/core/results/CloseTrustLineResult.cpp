@@ -5,7 +5,7 @@ CloseTrustLineResult::CloseTrustLineResult(Command *command,
                                          const string &timestampCompleted,
                                          const boost::uuids::uuid &contractorUuid) :
         Result(command, resultCode, timestampCompleted) {
-    mContractorUUID = contractorUUID;
+    mContractorUuid = contractorUuid;
 }
 
 const uint16_t &CloseTrustLineResult::resultCode() const {
@@ -20,11 +20,11 @@ const string &CloseTrustLineResult::timestampCompleted() const {
     return Result::completedTimestamp();
 }
 
-const boost::uuids::uuid &CloseTrustLineResult::contractorUUID() const {
+const boost::uuids::uuid &CloseTrustLineResult::contractorUuid() const {
     return mContractorUuid;
 }
 
-string OpenTrustLineResult::serialize() {
+string CloseTrustLineResult::serialize() {
     return boost::lexical_cast<string>(mContractorUuid) + "_" +
            boost::lexical_cast<string>(resultCode()) + "_" +
            timestampExcepted() + "_" +

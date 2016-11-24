@@ -6,7 +6,7 @@ MaximalTransactionAmountResult::MaximalTransactionAmountResult(Command *command,
                                                                const boost::uuids::uuid &contractorUuid,
                                                                const trust_amount amount) :
         Result(command, resultCode, timestampCompleted) {
-    mContractorUUID = contractorUUID;
+    mContractorUuid = contractorUuid;
     mAmount = amount;
 }
 
@@ -22,7 +22,7 @@ const string &MaximalTransactionAmountResult::timestampCompleted() const {
     return Result::completedTimestamp();
 }
 
-const boost::uuids::uuid &MaximalTransactionAmountResult::contractorUUID() const {
+const boost::uuids::uuid &MaximalTransactionAmountResult::contractorUuid() const {
     return mContractorUuid;
 }
 
