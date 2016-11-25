@@ -7,6 +7,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
+#include <string>
 #include <stdlib.h>
 
 
@@ -29,6 +30,10 @@ private:
     void asyncReceiveData();
 
     void handleReceivedInfo(const boost::system::error_code &error, size_t bytesTransferred);
+
+    void sendData();
+
+    void handleSentInfo(const boost::system::error_code &error, size_t bytesTransferred);
 
 private:
     static constexpr const uint16_t kMaxIncomingBufferSize = 1024;
