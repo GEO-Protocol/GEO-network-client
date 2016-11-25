@@ -13,15 +13,17 @@ class OutgoingMessagesHandler {
 public:
     OutgoingMessagesHandler();
 
-    void sendMessageToTheNode(const std::shared_ptr<NodeUUID> nodeUUID, const std::shared_ptr<Message> message);
+    void sendMessageToTheNode(const std::shared_ptr <NodeUUID> nodeUUID, const std::shared_ptr <Message> message);
 
 private:
-    bool containsQueueFor(const std::shared_ptr<NodeUUID> nodeUUID) const;
-    void initQueueFor(const std::shared_ptr<NodeUUID> nodeUUID);
-    OutgoingMessagesQueue* queueFor(const std::shared_ptr<NodeUUID> nodeUUID) const;
+    bool containsQueueFor(const std::shared_ptr <NodeUUID> nodeUUID) const;
+
+    void initQueueFor(const std::shared_ptr <NodeUUID> nodeUUID);
+
+    OutgoingMessagesQueue *queueFor(const std::shared_ptr <NodeUUID> nodeUUID) const;
 
 private:
-    std::map<NodeUUID, OutgoingMessagesQueue*> *mOutgoingQueues;
+    std::map<NodeUUID, OutgoingMessagesQueue *> *mOutgoingQueues;
 };
 
 
