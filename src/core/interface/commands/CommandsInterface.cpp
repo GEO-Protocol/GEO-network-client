@@ -1,5 +1,4 @@
 #include "CommandsInterface.h"
-#include "../../common/exceptions/ValueError.h"
 
 /*!
  * Handles received data from FIFO.
@@ -138,12 +137,8 @@ pair<bool, shared_ptr<Command>> CommandsParser::commandIsInvalidOrIncomplete() {
     return pair<bool, shared_ptr<Command>>(false, nullptr);
 }
 
-CommandsInterface::CommandsInterface(as::io_service &ioService, CommandsAPI *API):
-    mIOService(ioService), mAPI(API) {
-
-    if (API == nullptr) {
-        throw ValueError("Commands API can't be nullptr.");
-    }
+CommandsInterface::CommandsInterface(as::io_service &ioService):
+    mIOService(ioService){
 
     if (! FIFOExists()) {
         createFIFO();

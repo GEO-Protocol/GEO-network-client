@@ -3,8 +3,8 @@
 
 #include "../BaseFIFOInterface.h"
 #include "../../commands/Command.h"
-#include "../../commands/CommandsAPI.h"
 #include "../../common/exceptions/IOError.h"
+#include "../../common/exceptions/ValueError.h"
 
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
@@ -79,7 +79,7 @@ protected:
  */
 class CommandsInterface: public BaseFIFOInterface {
 public:
-    explicit CommandsInterface(as::io_service &ioService, CommandsAPI *API);
+    explicit CommandsInterface(as::io_service &ioService);
     ~CommandsInterface();
 
     void beginAcceptCommands();
@@ -92,7 +92,6 @@ private:
 
 private:
     CommandsParser *mCommandsParser;
-    CommandsAPI *mAPI;
 
     as::io_service &mIOService;
     as::posix::stream_descriptor *mFIFOStreamDescriptor;
