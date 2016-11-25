@@ -29,7 +29,7 @@ void ResultsInterface::createFifo() {
     }
 }
 
-void ResultsInterface::writeNextCommand() {
+void ResultsInterface::writeResult() {
     mFIFOStreamDescriptor->async_write_some(
             as::buffer(mResultBuffer),
             boost::bind(&ResultsInterface::writerHandler, this, as::placeholders::error,

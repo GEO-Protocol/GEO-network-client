@@ -22,7 +22,7 @@ private:
 private:
     void createFifo();
 
-    void writeNextCommand();
+    void writeResult();
 
     void writerHandler(const boost::system::error_code &error, const size_t bytesTransferred);
 
