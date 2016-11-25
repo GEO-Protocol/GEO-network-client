@@ -12,15 +12,15 @@ TrustLinesManager::~TrustLinesManager() {
 
 byte *TrustLinesManager::serializeBytesFromTrustLineStruct(TrustLine *trustLine) {
     //Виділення 97 байт пам’яті під масив(буфер), в якому буде зберігатись сереалізований екземпляр стр-ри.
-    byte *buffer = (byte *) malloc(BUCKET_SIZE);
+    byte *buffer = (byte *) malloc(kBucketSize);
     //Занулення байтів в буфері,
-    memset(buffer, 0, BUCKET_SIZE);
+    memset(buffer, 0, kBucketSize);
     //Сереалізація значення лінії довіри до користувача в байти і запис в буфер.
-    memcpy(buffer, trustAmountDataToBytes(trustLine->getIncomingTrustAmount()).data(), TRUST_AMOUNT_PART_SIZE);
+    memcpy(buffer, trustAmountDataToBytes(trustLine->getIncomingTrustAmount()).data(), kTrustAmountPartSize);
     //Сереалізація значення лінії довіри від користувача в байти і запис в буфер.
-    memcpy(buffer + TRUST_AMOUNT_PART_SIZE, trustAmountDataToBytes(trustLine->getOutgoingTrustAmount()).data(), TRUST_AMOUNT_PART_SIZE);
+    memcpy(buffer + kTrustAmountPartSize, trustAmountDataToBytes(trustLine->getOutgoingTrustAmount()).data(), kTrustAmountPartSize);
     //Сереалізація значення балансу користувача в байти і запис в буфер. Останній елемент масиву - знак балансу.
-    memcpy(buffer + TRUST_AMOUNT_PART_SIZE * 2, balanceToBytes(trustLine->getBalance()).data(), BALANCE_PART_SIZE + SIGN_BYTE_PART_SIZE);
+    memcpy(buffer + kTrustAmountPartSize * 2, balanceToBytes(trustLine->getBalance()).data(), kBalancePartSize + kSignBytePartSize);
     return buffer;
 }
 
@@ -34,7 +34,7 @@ vector<byte> TrustLinesManager::trustAmountDataToBytes(trust_amount amount) {
     //після конвертації в байти, у вектор будуть записана лише та к-сть байтів, яка являє собою значення, нульові байти відкидаються.
     //Тому, для того, щоб зберегти шаблон по якому буде визначатись зміщення, у вектор додаються нульові байти, до тих пір,
     //поки весь простір, який виділений під тип даних не буде використаний.
-    for (unsigned long i = 0; i < TRUST_AMOUNT_PART_SIZE - filledPlace; ++i) {
+    for (unsigned long i = 0; i < kTrustAmountPartSize - filledPlace; ++i) {
         byteSet.push_back(0);
     }
     return byteSet;
@@ -50,7 +50,7 @@ vector<byte> TrustLinesManager::balanceToBytes(balance_value balance) {
     //після конвертації в байти, у вектор будуть записана лише та к-сть байтів, яка являє собою значення, нульові байти відкидаються.
     //Тому, для того, щоб зберегти шаблон по якому буде визначатись зміщення, у вектор додаються нульові байти, до тих пір,
     //поки весь простір, який виділений під тип даних не буде використаний.
-    for (unsigned long i = 0; i < BALANCE_PART_SIZE - filledPlace; ++i) {
+    for (unsigned long i = 0; i < kBalancePartSize - filledPlace; ++i) {
         byteSet.push_back(0);
     }
     //Перевірка знаку:
@@ -69,18 +69,18 @@ void TrustLinesManager::deserializeTrustLineStructFromBytes(byte *buffer, uuids:
     //Десереалізаця байтового масиву в екземпляр структури.
     TrustLine *trustLine = new TrustLine(contractorUUID,
                                          parseTrustAmountData(buffer),
-                                         parseTrustAmountData(buffer + TRUST_AMOUNT_PART_SIZE),
-                                         parseBalanceData(buffer + TRUST_AMOUNT_PART_SIZE * 2));
+                                         parseTrustAmountData(buffer + kTrustAmountPartSize),
+                                         parseBalanceData(buffer + kTrustAmountPartSize * 2));
     //Додання готового екземпляру в динамічну пам’ять.
     mTrustLines.insert(pair<boost::uuids::uuid, TrustLine *>(contractorUUID, trustLine));
 }
 
 trust_amount TrustLinesManager::parseTrustAmountData(byte *buffer) {
     trust_amount amount;
-    vector<byte> bytesVector(TRUST_AMOUNT_PART_SIZE);
+    vector<byte> bytesVector(kTrustAmountPartSize);
     vector<byte> notZeroBytesVector;
     //Копіювання даних з буфера у вектор байтів. У векторі попередньо зарезервоване місце під к-сть елементів.
-    copy(buffer, buffer + TRUST_AMOUNT_PART_SIZE, bytesVector.begin());
+    copy(buffer, buffer + kTrustAmountPartSize, bytesVector.begin());
     //Отримання не нульових байтів і копіювання їх у вектор не нуьлових байтів
     for (unsigned long i = 0; i < bytesVector.size(); ++i) {
         if (bytesVector.at(i) != 0) {
@@ -100,12 +100,12 @@ trust_amount TrustLinesManager::parseTrustAmountData(byte *buffer) {
 
 balance_value TrustLinesManager::parseBalanceData(byte *buffer) {
     balance_value balance;
-    vector<byte> bytesVector(BALANCE_PART_SIZE);
+    vector<byte> bytesVector(kBalancePartSize);
     vector<byte> notZeroBytesVector;
     //Отримання байту зі знаком значення.
-    byte sign = buffer[BALANCE_PART_SIZE + SIGN_BYTE_PART_SIZE - 1];
+    byte sign = buffer[kBalancePartSize + kSignBytePartSize - 1];
     //Копіювання даних з буфера у вектор байтів. У векторі попередньо зарезервоване місце під к-сть елементів.
-    copy(buffer, buffer + BALANCE_PART_SIZE, bytesVector.begin());
+    copy(buffer, buffer + kBalancePartSize, bytesVector.begin());
     //Отримання не нульових байтів і копіювання їх у вектор не нуьлових байтів
     for (unsigned long i = 0; i < bytesVector.size(); ++i) {
         if (bytesVector.at(i) != 0) {

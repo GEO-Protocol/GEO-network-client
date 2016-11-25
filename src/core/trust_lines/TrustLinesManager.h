@@ -19,10 +19,10 @@ typedef uint8_t byte;
 class TrustLinesManager {
 
 private:
-    const size_t TRUST_AMOUNT_PART_SIZE = 32;
-    const size_t BALANCE_PART_SIZE = 32;
-    const size_t SIGN_BYTE_PART_SIZE = 1;
-    const size_t BUCKET_SIZE = TRUST_AMOUNT_PART_SIZE + TRUST_AMOUNT_PART_SIZE + BALANCE_PART_SIZE + SIGN_BYTE_PART_SIZE;
+    const size_t kTrustAmountPartSize = 32;
+    const size_t kBalancePartSize = 32;
+    const size_t kSignBytePartSize = 1;
+    const size_t kBucketSize = kTrustAmountPartSize + kTrustAmountPartSize + kBalancePartSize + kSignBytePartSize;
     const trust_amount ZERO_CHECKED_INT256_VALUE = 0;
     const balance_value ZERO_INT256_VALUE = 0;
     map<uuids::uuid, TrustLine *> mTrustLines;

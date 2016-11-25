@@ -33,10 +33,6 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
-    initCode = initCommandsAPI();
-    if (initCode != 0)
-        return initCode;
-
     initCode = initCommandsInterface();
     if (initCode != 0)
         return initCode;
@@ -78,25 +74,9 @@ int Core::initSettings() {
     return 0;
 }
 
-int Core::initCommandsAPI() {
-    try {
-        mCommandsAPI = new CommandsAPI();
-
-    } catch (const Exception &e) {
-        mLog.logException("commands API", e);
-        return -1;
-
-    } catch (const std::exception &e) {
-        mLog.logException("commands API", e);
-        return -1;
-    }
-
-    return 0;
-}
-
 int Core::initCommandsInterface() {
     try {
-        mCommandsInterface = new CommandsInterface(mIOService, mCommandsAPI);
+        mCommandsInterface = new CommandsInterface(mIOService);
 
     } catch (const Exception &e) {
         mLog.logException("commands interface", e);
@@ -136,10 +116,6 @@ void Core::cleanupMemory() {
         delete mCommunicator;
     }
 
-    if (mCommandsAPI != nullptr) {
-        delete mCommandsAPI;
-    }
-
     if (mCommandsInterface != nullptr) {
         delete mCommandsInterface;
     }
@@ -148,6 +124,5 @@ void Core::cleanupMemory() {
 void Core::zeroPointers() {
     mSettings = nullptr;
     mCommunicator = nullptr;
-    mCommandsAPI = nullptr;
     mCommandsInterface = nullptr;
 }

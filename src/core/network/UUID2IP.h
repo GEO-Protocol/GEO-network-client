@@ -18,7 +18,7 @@ class UUID2IP {
     friend class Communicator;
 
 private:
-    map <uuids::uuid, pair<string, unit16_t>> mCache;
+    map <uuids::uuid, pair<string, uint16_t >> mCache;
 
 private:
     UUID2IP();
@@ -27,9 +27,9 @@ private:
 
     void registerInGlobalCache();
 
-    const pair<string, uint16_t> &getNodeIpAddress(const uuids::uuid &contractorUuid) const;
+    const pair<string, uint16_t> &getNodeAddress(const uuids::uuid &contractorUuid) const;
 
-    bool isNodeAddressExistInLocalCache(const uuids::uuid &nodeUuid);
+    const bool isNodeAddressExistInLocalCache(const uuids::uuid &nodeUuid) const;
 
     void compressLocalCache();
 
