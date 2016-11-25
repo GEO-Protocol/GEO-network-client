@@ -1,9 +1,13 @@
 #include "UUID2IP.h"
 
 UUID2IP::UUID2IP() {
+    boost::uuids::uuid contractor = boost::uuids::random_generator()();
+    mCache.insert(pair<uuids::uuid, pair<string, uint16_t>>(contractor, make_pair(string("127.0.0.1"), 8086)));
 }
 
-UUID2IP::~UUID2IP() {}
+UUID2IP::~UUID2IP() {
+    mCache.clear();
+}
 
 void UUID2IP::registerInGlobalCache() {}
 
