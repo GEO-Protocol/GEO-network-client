@@ -3,6 +3,10 @@
 
 #include "../BaseFIFOInterface.h"
 #include "../../commands/Command.h"
+#include "../../commands/OpenTrustLineCommand.h"
+#include "../../commands/CloseTrustLineCommand.h"
+#include "../../commands/UpdateOutgoingTrustAmountCommand.h"
+#include "../../commands/UseCreditCommand.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
 
@@ -15,6 +19,7 @@
 
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include <sys/types.h>
 
@@ -28,6 +33,7 @@ using namespace std;
 namespace as = boost::asio;
 namespace fs = boost::filesystem;
 namespace uuids = boost::uuids;
+namespace chrono = std::chrono;
 
 /*!
  * User commands are transmitted via text protocol.
@@ -42,13 +48,16 @@ class CommandsParser {
     friend class CommandsParserTests;
 
 public:
-    pair<bool, shared_ptr<Command>> processReceivedCommandPart(
-        const char *commandPart, const size_t receivedBytesCount);
+    pair<bool, shared_ptr<Command>> processReceivedCommandPart(const char *commandPart,
+                                                               const size_t receivedBytesCount);
 
 protected:
     inline pair<bool, shared_ptr<Command>> tryDeserializeCommand();
-    inline pair<bool, shared_ptr<Command>> tryParseCommand(
-        const uuids::uuid &commandUUID, const string &commandIdentifier);
+
+    inline pair<bool, shared_ptr<Command>> tryParseCommand(const uuids::uuid &commandUUID,
+                                                           const string &commandIdentifier,
+                                                           const string &buffer);
+
     inline pair<bool, shared_ptr<Command>> commandIsInvalidOrIncomplete();
 
     void cutNextCommandFromTheBuffer();
@@ -61,6 +70,10 @@ protected:
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
     static const char kCommandsSeparator = '\n';
     static const char kTokensSeparator = ' ';
+    static const string kTrustLinesOpenIdentifier = "trustlines/open";
+    static const string kTrustLinesCloseIdentifier = "trustlines/close";
+    static const string kTrustLinesUpdateIdentifier = "trustlines/update";
+    static const string kTransactionsUseCreditIdentifier = "transactions/usecredit";
 
 protected:
     // Commands may arrive via pipe partially.
@@ -77,16 +90,19 @@ protected:
  * This class is used to asyncornously receive them,
  * parse, and transfer for the further execution.
  */
-class CommandsInterface: public BaseFIFOInterface {
+class CommandsInterface : public BaseFIFOInterface {
 public:
     explicit CommandsInterface(as::io_service &ioService);
+
     ~CommandsInterface();
 
     void beginAcceptCommands();
 
 private:
     void createFIFO();
+
     void asyncReceiveNextCommand();
+
     void handleReceivedInfo(const boost::system::error_code &error,
                             const size_t bytesTransferred);
 
@@ -97,4 +113,5 @@ private:
     as::posix::stream_descriptor *mFIFOStreamDescriptor;
     vector<char> mCommandBuffer;
 };
+
 #endif //GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H

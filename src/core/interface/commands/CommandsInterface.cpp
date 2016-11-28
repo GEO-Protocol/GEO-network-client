@@ -6,15 +6,14 @@
  * Calls tryDeserializeCommand() internally for buffer processing.
  * Return value is similar to the tryDeserializeCommand() return value.
  */
-pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommandPart(
-    const char *commandPart, const size_t receivedBytesCount) {
+pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommandPart(const char *commandPart, const size_t receivedBytesCount) {
 
     // Memory reservation for whole command part
     // (to prevent huge amount of memory reallocations).
     mBuffer.reserve(mBuffer.size() + receivedBytesCount);
 
     // Concatenating with the previously received parts of the command.
-    for (size_t i=0; i<receivedBytesCount; ++i) {
+    for (size_t i = 0; i < receivedBytesCount; ++i) {
         mBuffer.push_back(commandPart[i]);
     }
 
@@ -63,17 +62,19 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
     }
 
     // Command identifier parsing
-    const size_t averageCommandIdentifierLength = 12; // for optimisations purpose only.
+    const size_t averageCommandIdentifierLength = 15; // for optimisations purpose only.
     const size_t identifierOffset = kUUIDHexRepresentationSize + 1; // + separator
 
     string identifier;
     identifier.reserve(averageCommandIdentifierLength);
-    for (size_t i=identifierOffset; i<mBuffer.size(); ++i){
+    size_t contractorOffset = identifierOffset;
+    for (size_t i = identifierOffset; i < mBuffer.size(); ++i) {
         char symbol = mBuffer.at(i);
-        if (symbol == kTokensSeparator || symbol == kCommandsSeparator){
+        if (symbol == kTokensSeparator || symbol == kCommandsSeparator) {
             break;
         }
 
+        contractorOffset += 1;
         identifier.push_back(symbol);
     }
 
@@ -85,7 +86,9 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
         return commandIsInvalidOrIncomplete();
     }
 
-    return tryParseCommand(uuid, identifier);
+    contractorOffset +=1;
+
+    return tryParseCommand(uuid, identifier, mBuffer.substr(contractorOffset, mBuffer.size()));
 }
 
 /*!
@@ -100,17 +103,38 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
  * to the command instance itself.
  * Otherwise - the second value of the pair will contain nullptr.
  */
-pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(
-    const uuids::uuid &commandUUID, const string &commandIdentifier) {
+pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(const uuids::uuid &commandUUID,
+                                                                const string &commandIdentifier,
+                                                                const string &buffer) {
 
-    // ...
-    // Commands parsing goes here
+    Command command = nullptr;
+    unsigned long timestamp = chrono::system_clock::now().time_since_epoch() / chrono::milliseconds(1);
+    switch (commandIdentifier) {
+        case kTrustLinesOpenIdentifier:
+            command = new OpenTrustLineCommand(commandUUID, commandIdentifier,
+                                               std::to_string(timestamp), mBuffer);
+            break;
+        case kTrustLinesCloseIdentifier:
+            command = new CloseTrustLineCommand(commandUUID, commandIdentifier,
+                                                std::to_string(timestamp), mBuffer);
+            break;
+        case kTrustLinesUpdateIdentifier:
+            command = new UpdateOutgoingTrustAmountCommand(commandUUID, commandIdentifier,
+                                                           std::to_string(timestamp), mBuffer);
+            break;
+        case kTransactionsUseCreditIdentifier:
+            command = new UseCreditCommand(commandUUID, commandIdentifier,
+                                           std::to_string(timestamp), mBuffer);
+            break;
+        default:
+            cutNextCommandFromTheBuffer();
+            commandIsInvalidOrIncomplete();
+
+    }
 
     cutNextCommandFromTheBuffer();
 
-    auto command = new Command(commandIdentifier);
-    return pair<bool, shared_ptr<Command>>(
-        true, shared_ptr<Command>(command));
+    return pair <bool, shared_ptr<Command>> (true, shared_ptr<Command>(command));
 }
 
 /*!
@@ -122,7 +146,7 @@ void CommandsParser::cutNextCommandFromTheBuffer() {
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (mBuffer.size() > (nextCommandSeparatorIndex + 1)) {
         // Buffer contains other commands (or their parts), and them should be keept;
-        mBuffer = mBuffer.substr(nextCommandSeparatorIndex+1, mBuffer.size()-1);
+        mBuffer = mBuffer.substr(nextCommandSeparatorIndex + 1, mBuffer.size() - 1);
 
     } else {
         // Buffer doesn't contains any other commands (even parts).
@@ -134,13 +158,13 @@ void CommandsParser::cutNextCommandFromTheBuffer() {
 }
 
 pair<bool, shared_ptr<Command>> CommandsParser::commandIsInvalidOrIncomplete() {
-    return pair<bool, shared_ptr<Command>>(false, nullptr);
+    return pair <bool, shared_ptr<Command>> (false, nullptr);
 }
 
-CommandsInterface::CommandsInterface(as::io_service &ioService):
-    mIOService(ioService){
+CommandsInterface::CommandsInterface(as::io_service &ioService) :
+        mIOService(ioService) {
 
-    if (! FIFOExists()) {
+    if (!FIFOExists()) {
         createFIFO();
     }
 
@@ -171,7 +195,7 @@ void CommandsInterface::beginAcceptCommands() {
 }
 
 void CommandsInterface::createFIFO() {
-    if (! FIFOExists()) {
+    if (!FIFOExists()) {
         fs::create_directories(dir());
         mkfifo(FIFOPath().c_str(), 0420); // Read; Write; No access; // todo: tests mask
     }
@@ -179,18 +203,18 @@ void CommandsInterface::createFIFO() {
 
 void CommandsInterface::asyncReceiveNextCommand() {
     mFIFOStreamDescriptor->async_read_some(
-        as::buffer(mCommandBuffer), boost::bind(
-            &CommandsInterface::handleReceivedInfo, this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred));
+            as::buffer(mCommandBuffer), boost::bind(
+                    &CommandsInterface::handleReceivedInfo, this,
+                    boost::asio::placeholders::error,
+                    boost::asio::placeholders::bytes_transferred));
 }
 
 void CommandsInterface::handleReceivedInfo(
-    const boost::system::error_code &error, const size_t bytesTransferred) {
+        const boost::system::error_code &error, const size_t bytesTransferred) {
 
     if (!error || error == as::error::message_size) {
         mCommandsParser->processReceivedCommandPart(
-            mCommandBuffer.data(), bytesTransferred);
+                mCommandBuffer.data(), bytesTransferred);
     }
 
     // In all cases - commands receiving should be continued
