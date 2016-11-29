@@ -8,15 +8,15 @@ UseCreditCommand::UseCreditCommand(const uuids::uuid &commandUUID, const string 
 }
 
 const uuids::uuid &UseCreditCommand::commandUUID() const {
-    commandsUUID();
+    return commandsUUID();
 }
 
 const string &UseCreditCommand::id() const {
-    identifier();
+    return identifier();
 }
 
 const string &UseCreditCommand::exceptedTimestamp() const {
-    timeStampExcepted();
+    return timeStampExcepted();
 }
 
 const uuids::uuid &UseCreditCommand::contractorUUID() const {

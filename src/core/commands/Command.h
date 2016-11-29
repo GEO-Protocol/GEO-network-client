@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace uuids = boost::uuid;
+namespace uuids = boost::uuids;
 namespace multiprecision = boost::multiprecision;
 
 typedef multiprecision::checked_uint256_t trust_amount;

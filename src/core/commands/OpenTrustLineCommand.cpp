@@ -8,15 +8,15 @@ OpenTrustLineCommand::OpenTrustLineCommand(const uuids::uuid &commandUUID, const
 }
 
 const uuids::uuid &OpenTrustLineCommand::commandUUID() const {
-    commandsUUID();
+    return commandsUUID();
 }
 
 const string &OpenTrustLineCommand::id() const {
-    identifier();
+    return identifier();
 }
 
 const string &OpenTrustLineCommand::exceptedTimestamp() const {
-    timeStampExcepted();
+    return timeStampExcepted();
 }
 
 const uuids::uuid &OpenTrustLineCommand::contractorUUID() const {

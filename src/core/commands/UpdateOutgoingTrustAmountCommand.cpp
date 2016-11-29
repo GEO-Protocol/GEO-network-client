@@ -10,15 +10,15 @@ UpdateOutgoingTrustAmountCommand::UpdateOutgoingTrustAmountCommand(const uuids::
 }
 
 const uuids::uuid &UpdateOutgoingTrustAmountCommand::commandUUID() const {
-    commandsUUID();
+    return commandsUUID();
 }
 
 const string &UpdateOutgoingTrustAmountCommand::id() const {
-    identifier();
+    return identifier();
 }
 
 const string &UpdateOutgoingTrustAmountCommand::exceptedTimestamp() const {
-    timeStampExcepted();
+    return timeStampExcepted();
 }
 
 const uuids::uuid &UpdateOutgoingTrustAmountCommand::contractorUUID() const {

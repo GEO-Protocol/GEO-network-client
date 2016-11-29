@@ -6,15 +6,15 @@ CloseTrustLineCommand::CloseTrustLineCommand(const uuids::uuid &commandUUID, con
 }
 
 const uuids::uuid &CloseTrustLineCommand::commandUUID() const {
-    commandsUUID();
+    return commandsUUID();
 }
 
 const string &CloseTrustLineCommand::id() const {
-    identifier();
+    return identifier();
 }
 
 const string &CloseTrustLineCommand::exceptedTimestamp() const {
-    timeStampExcepted();
+    return timeStampExcepted();
 }
 
 const uuids::uuid &CloseTrustLineCommand::contractorUUID() const {
