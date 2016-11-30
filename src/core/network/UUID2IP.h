@@ -3,19 +3,20 @@
 
 #include <map>
 #include <string>
+#include <iostream>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/array.hpp>
+#include <boost/asio.hpp>
 #include "Communicator.h"
 
 using namespace std;
+using boost::asio::ip::tcp;
 
 namespace uuids = boost::uuids;
 
-class Communicator;
-
 class UUID2IP {
-    friend class Communicator;
 
 private:
     map <uuids::uuid, pair<string, uint16_t >> mCache;
