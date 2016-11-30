@@ -1,5 +1,6 @@
 #include "CommandsInterface.h"
 
+
 /*!
  * Handles received data from FIFO.
  * Writes it to the internal buffer for further processing.
@@ -107,32 +108,30 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(const uuids::uui
                                                                 const string &commandIdentifier,
                                                                 const string &buffer) {
 
-    Command command = nullptr;
-    unsigned long timestamp = chrono::system_clock::now().time_since_epoch() / chrono::milliseconds(1);
-    switch (commandIdentifier) {
-        case kTrustLinesOpenIdentifier:
-            command = new OpenTrustLineCommand(commandUUID, commandIdentifier,
-                                               std::to_string(timestamp), mBuffer);
-            break;
-        case kTrustLinesCloseIdentifier:
-            command = new CloseTrustLineCommand(commandUUID, commandIdentifier,
-                                                std::to_string(timestamp), mBuffer);
-            break;
-        case kTrustLinesUpdateIdentifier:
-            command = new UpdateOutgoingTrustAmountCommand(commandUUID, commandIdentifier,
-                                                           std::to_string(timestamp), mBuffer);
-            break;
-        case kTransactionsUseCreditIdentifier:
-            command = new UseCreditCommand(commandUUID, commandIdentifier,
-                                           std::to_string(timestamp), mBuffer);
-            break;
-        default:
-            cutNextCommandFromTheBuffer();
-            commandIsInvalidOrIncomplete();
-
+    Command *command = nullptr;
+    long timestamp = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+    if(strcmp(kTrustLinesOpenIdentifier, commandIdentifier.c_str()) == 0){
+        command = new OpenTrustLineCommand(commandUUID, commandIdentifier,
+                                           std::to_string(timestamp), buffer);
+    }
+    if(strcmp(kTrustLinesCloseIdentifier, commandIdentifier.c_str()) == 0){
+        command = new CloseTrustLineCommand(commandUUID, commandIdentifier,
+                                            std::to_string(timestamp), buffer);
+    }
+    if(strcmp(kTrustLinesUpdateIdentifier, commandIdentifier.c_str()) == 0){
+        command = new UpdateOutgoingTrustAmountCommand(commandUUID, commandIdentifier,
+                                                       std::to_string(timestamp), buffer);
+    }
+    if(strcmp(kTransactionsUseCreditIdentifier, commandIdentifier.c_str()) == 0){
+        command = new UseCreditCommand(commandUUID, commandIdentifier,
+                                       std::to_string(timestamp), buffer);
     }
 
     cutNextCommandFromTheBuffer();
+
+    if(command == nullptr){
+        return commandIsInvalidOrIncomplete();
+    }
 
     return pair <bool, shared_ptr<Command>> (true, shared_ptr<Command>(command));
 }
@@ -160,6 +159,7 @@ void CommandsParser::cutNextCommandFromTheBuffer() {
 pair<bool, shared_ptr<Command>> CommandsParser::commandIsInvalidOrIncomplete() {
     return pair <bool, shared_ptr<Command>> (false, nullptr);
 }
+
 
 CommandsInterface::CommandsInterface(as::io_service &ioService) :
         mIOService(ioService) {

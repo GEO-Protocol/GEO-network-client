@@ -33,7 +33,6 @@ using namespace std;
 namespace as = boost::asio;
 namespace fs = boost::filesystem;
 namespace uuids = boost::uuids;
-namespace chrono = std::chrono;
 
 /*!
  * User commands are transmitted via text protocol.
@@ -70,10 +69,10 @@ protected:
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
     static const char kCommandsSeparator = '\n';
     static const char kTokensSeparator = ' ';
-    static const string kTrustLinesOpenIdentifier = "trustlines/open";
-    static const string kTrustLinesCloseIdentifier = "trustlines/close";
-    static const string kTrustLinesUpdateIdentifier = "trustlines/update";
-    static const string kTransactionsUseCreditIdentifier = "transactions/usecredit";
+    static const constexpr char* kTrustLinesOpenIdentifier = "trustlines/open";
+    static const constexpr char* kTrustLinesCloseIdentifier = "trustlines/close";
+    static const constexpr char* kTrustLinesUpdateIdentifier = "trustlines/update";
+    static const constexpr char* kTransactionsUseCreditIdentifier = "transactions/usecredit";
 
 protected:
     // Commands may arrive via pipe partially.

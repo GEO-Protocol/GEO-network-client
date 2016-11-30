@@ -31,7 +31,7 @@ private:
 
     void handleReceivedInfo(const boost::system::error_code &error, size_t bytesTransferred);
 
-    void sendData();
+    void sendData(as::mutable_buffer buffer, size_t bufferSize, pair <string, uint16_t> address);
 
     void handleSentInfo(const boost::system::error_code &error, size_t bytesTransferred);
 

@@ -12,7 +12,7 @@ private:
 
 public:
     UseCreditCommand(const uuids::uuid &commandUUID, const string &identifier,
-                     const string &timestampExcepted, string &commandBuffer);
+                     const string &timestampExcepted, const string &commandBuffer);
 
     const uuids::uuid &commandUUID() const;
 

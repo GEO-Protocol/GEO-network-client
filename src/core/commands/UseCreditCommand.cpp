@@ -1,7 +1,7 @@
 #include "UseCreditCommand.h"
 
 UseCreditCommand::UseCreditCommand(const uuids::uuid &commandUUID, const string &identifier,
-                                   const string &timestampExcepted, string &commandBuffer) :
+                                   const string &timestampExcepted, const string &commandBuffer) :
         Command(identifier, timestampExcepted) {
     mCommandBuffer = commandBuffer;
     deserialize();
@@ -48,10 +48,11 @@ void UseCreditCommand::deserialize() {
             break;
         }
         purposeOffset += 1;
-        amount.push_back(symbol);
+        amount.push_back(character);
     }
     if (amount.size() > 0){
-        mAmount(amount);
+        trust_amount value(amount);
+        mAmount = value;
     } else {
         //TODO:: throw error
     }

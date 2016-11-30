@@ -42,10 +42,11 @@ void OpenTrustLineCommand::deserialize() {
         if (character == kTokensSeparator || character == kCommandsSeparator) {
             break;
         }
-        amount.push_back(symbol);
+        amount.push_back(character);
     }
     if (amount.size() > 0){
-        mAmount(amount);
+        trust_amount trustValue(amount);
+        mAmount = trustValue;
     }
 }
 

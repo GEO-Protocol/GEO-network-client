@@ -41,8 +41,7 @@ void Communicator::handleReceivedInfo(const boost::system::error_code &error, si
     asyncReceiveData(); // WARNING: stack permanent growing
 }
 
-void Communicator::sendData(boost::array<char, kMaxOutgoingBufferSize> buffer, size_t bufferSize,
-                            pair <string, uint16_t> address) {
+void Communicator::sendData(as::mutable_buffer buffer, size_t bufferSize, pair <string, uint16_t> address) {
     ip::udp::endpoint destination(ip::address::from_string(address.first), address.second);
     mSocket->async_send_to(
             as::buffer(buffer, bufferSize),
