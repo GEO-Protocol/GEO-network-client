@@ -11,6 +11,7 @@
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include "../../libs/json.h"
+#include "../logger/Logger.h"
 #include "../common/exceptions/ValueError.h"
 #include "../common/exceptions/IOError.h"
 
@@ -36,14 +37,18 @@ private:
     boost::asio::streambuf mRequest;
     std::ostream mRequestStream;
 
+    Logger mLogger;
+    static const constexpr char* kSubsystemName = "UUID2IP client";
+
 public:
     UUID2IP(string serviceIP, string servicePort);
 
     ~UUID2IP();
 
+private:
     void registerInGlobalCache(uuids::uuid nodeUUID, string nodeIP, string nodePort);
 
-    void fetchFromGlobalCache(uuids::uuid nodeUUID);
+    pair<string, uint16_t> fetchFromGlobalCache(uuids::uuid nodeUUID);
 
     string processResponse();
 
