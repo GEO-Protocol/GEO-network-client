@@ -49,8 +49,10 @@ void BucketBlockRecord::insert(const RecordNumber recNo) {
     }
 
 
+#define REC_N_SIZE sizeof(RecordNumber)
+    
     const size_t newBufferSize =
-        (mRecordsNumbersCount * sizeof(RecordNumber)) + sizeof(RecordNumber); // + one record
+        (mRecordsNumbersCount * REC_N_SIZE) + REC_N_SIZE; // + one record
 
     RecordNumber *newBuffer = (RecordNumber*)malloc(newBufferSize);
     if (newBuffer == nullptr) {
@@ -61,12 +63,12 @@ void BucketBlockRecord::insert(const RecordNumber recNo) {
 
     // Copying values from previous buffer to the new one.
     if (mRecordsNumbersCount > 0) {
-        memcpy(newBuffer, mRecordsNumbers, mRecordsNumbersCount*sizeof(RecordNumber));
+        memcpy(newBuffer, mRecordsNumbers, mRecordsNumbersCount*REC_N_SIZE);
         for (RecordsCount i=0; i<mRecordsNumbersCount; ++i){
             auto newBufferItem = newBuffer[i];
             if (recNo < newBufferItem) {
                 new (newBuffer+i) RecordNumber(recNo);
-                memcpy(newBuffer+i+1, mRecordsNumbers+i, (mRecordsNumbersCount-i)*sizeof(RecordNumber));
+                memcpy(newBuffer+i+1, mRecordsNumbers+i, (mRecordsNumbersCount-i)*REC_N_SIZE);
 
                 goto EXIT;
             }
@@ -125,11 +127,12 @@ bool BucketBlockRecord::remove(const RecordNumber recNo) {
     return false;
 }
 
-/*!
- * Returns pointer to the record's data.
- */
 const byte *BucketBlockRecord::data() const {
     return (byte*)mRecordsNumbers;
+}
+
+const NodeUUID &BucketBlockRecord::uuid() const {
+    return mUUID;
 }
 
 } // namespace routing_tables

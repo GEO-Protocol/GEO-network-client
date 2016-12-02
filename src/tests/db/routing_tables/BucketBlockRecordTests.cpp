@@ -20,7 +20,7 @@ public:
 
 private:
     void checkInsertInEmptyRecord() {
-        boost::uuids::uuid uuid;
+        NodeUUID uuid;
         BucketBlockRecord record(uuid);
         RecordNumber recordNumber(100);
 
@@ -31,7 +31,7 @@ private:
     }
 
     void checkInsert() {
-        boost::uuids::uuid uuid;
+        NodeUUID uuid;
         BucketBlockRecord record(uuid);
 
         for (size_t i=100; i>0; --i){
@@ -46,7 +46,7 @@ private:
     }
 
     void checkInsertDuplicate() {
-        boost::uuids::uuid uuid;
+        NodeUUID uuid;
 
         BucketBlockRecord record(uuid);
         RecordNumber recordNumber(100);
@@ -68,7 +68,7 @@ private:
     }
 
     void checkRemoveFromEmptyRecord(){
-        boost::uuids::uuid uuid;
+        NodeUUID uuid;
         BucketBlockRecord record(uuid);
         RecordNumber recordNumber(100);
 
@@ -76,7 +76,7 @@ private:
     }
 
     void checkRemove() {
-        boost::uuids::uuid uuid;
+        NodeUUID uuid;
         BucketBlockRecord record(uuid);
 
         // populating
@@ -91,7 +91,7 @@ private:
     }
 
     void checkReverseRemove() {
-        boost::uuids::uuid uuid;
+        NodeUUID uuid;
         BucketBlockRecord record(uuid);
 
         // populating

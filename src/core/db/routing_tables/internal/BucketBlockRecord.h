@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_BUCKETBLOCKRECORD_H
 
 #include "Types.h"
+#include "../../../common/NodeUUID.h"
 #include "../../../common/exceptions/MemoryError.h"
 #include "../../../common/exceptions/OverflowError.h"
 #include "../../../common/exceptions/ConflictError.h"
@@ -53,6 +54,7 @@ public:
     bool remove(const RecordNumber recNo);
 
     const byte* data() const;
+    const NodeUUID& uuid() const;
 
 private:
     const NodeUUID &mUUID;
