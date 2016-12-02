@@ -3,10 +3,12 @@
 #ifdef TESTS
 #include "src/tests/network/FileBackedMessagesQueueTests.cpp"
 #include "src/tests/interface/CommandsParserTests.cpp"
+#include "src/core/network/UUID2IP.h"
 #endif
 
 int main() {
-#ifdef TESTS
+    UUID2IP *uuid2IP = new UUID2IP("10.0.2.2", "8088");
+/*#ifdef TESTS
 //    FileBackedMessagesQueueTests fileBackedMessagesQueueTests;
 //    fileBackedMessagesQueueTests.run();
 
@@ -16,5 +18,5 @@ int main() {
 
 #ifndef TESTS
     return Core().run();
-#endif
+#endif*/
 }

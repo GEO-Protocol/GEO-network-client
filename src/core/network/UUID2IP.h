@@ -9,8 +9,10 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
+#include <boost/lexical_cast.hpp>
 #include "../../libs/json.h"
 #include "../common/exceptions/ValueError.h"
+#include "../common/exceptions/IOError.h"
 
 using namespace std;
 using boost::asio::ip::tcp;
@@ -28,22 +30,22 @@ private:
     string mServicePort;
     boost::asio::io_service mIOService;
     tcp::resolver mResolver;
-    tcp::resolver mQuery;
+    tcp::resolver::query mQuery;
     tcp::resolver::iterator mEndpointIterator;
     tcp::socket mSocket;
     boost::asio::streambuf mRequest;
     std::ostream mRequestStream;
 
-private:
-    UUID2IP();
+public:
+    UUID2IP(string serviceIP, string servicePort);
 
     ~UUID2IP();
 
-    void registerInGlobalCache();
+    void registerInGlobalCache(uuids::uuid nodeUUID, string nodeIP, string nodePort);
 
-    void fetchFromGlobalCache();
+    void fetchFromGlobalCache(uuids::uuid nodeUUID);
 
-    const string processResponse();
+    string processResponse();
 
     const pair<string, uint16_t> &getNodeAddress(const uuids::uuid &contractorUuid) const;
 
