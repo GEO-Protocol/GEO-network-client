@@ -21,6 +21,14 @@ BucketBlockRecord::~BucketBlockRecord() {
     }
 }
 
+/*!
+ * Inserts "recNo" into the record.
+ * In case when exact recNo is already present into the record -
+ * throws "ConflictError".
+ *
+ * Throws OverflowError when no more rec. numbers may be inserted.
+ * Throws MemoryError in case of lack of memory.
+ */
 void BucketBlockRecord::insert(const RecordNumber recNo) {
 
     // Check if current record doesn't contains recNo.
@@ -30,7 +38,7 @@ void BucketBlockRecord::insert(const RecordNumber recNo) {
         if (mRecordsNumbers[i] == recNo) {
             throw ConflictError(
                 "BucketBlockRecord::insert: "
-                    "duplicate recno occurred.");
+                    "duplicate recNo occurred.");
         }
     }
 
@@ -76,6 +84,12 @@ EXIT:
     mRecordsNumbersCount += 1;
 }
 
+/*!
+ * Removes "recNo" from the record.
+ * Returns true in case of success, otherwise - returns false.
+ *
+ * Throws MemoryError in case of lack of memory.
+ */
 bool BucketBlockRecord::remove(const RecordNumber recNo) {
 
     // Check if current record contains recNo.
@@ -111,6 +125,9 @@ bool BucketBlockRecord::remove(const RecordNumber recNo) {
     return false;
 }
 
+/*!
+ * Returns pointer to the record's data.
+ */
 const byte *BucketBlockRecord::data() const {
     return (byte*)mRecordsNumbers;
 }

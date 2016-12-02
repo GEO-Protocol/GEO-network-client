@@ -17,6 +17,28 @@ namespace routing_tables {
 
 using namespace std;
 
+/*
+ * Bucket block should map uuid's to their record. numbers.
+ * For example:
+ *    uuid1 -> recNo1
+ *    uuid2 -> recNo2
+ *    uuid3 -> recNo3
+ *
+ * But, duplicates may appear in the block,
+ * and the map may be as shown next:
+ *    uuid1 -> recNo1
+ *    uuid1 -> recNo2
+ *    uuid1 -> recNo3
+ *    uuid2 -> recNo4
+ *    uuid2 -> recNo5
+ *
+ * Obviously, that it would be much more efficiently to store
+ * this structure in the next way:
+ *    uuid1 -> [recNo1, recNo2, recNo3]
+ *    uuid2 -> [recNo4, recNo5]
+ *
+ * This class implements exactly that structure.
+ */
 class BucketBlockRecord {
     friend class BucketBlockRecordTests;
 
