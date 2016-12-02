@@ -1,7 +1,5 @@
 #include "../../../core/db/routing_tables/internal/BucketBlockRecord.h"
 
-#include <assert.h>
-
 
 namespace db {
 namespace routing_tables {
@@ -16,6 +14,12 @@ public:
         checkRemoveFromEmptyRecord();
         checkRemove();
         checkReverseRemove();
+
+        checkBinSearchWithZeroElements();
+        checkBinSearchWithAbsentElement();
+        checkBinSearchWithOneElement();
+        checkBinSearchWithPairCountOfElements();
+        checkBinSearchWithNonPairCountOfElements();
     }
 
 private:
@@ -105,6 +109,74 @@ private:
         assert(record.mRecordsNumbersCount == 0);
     }
 
+    void checkBinSearchWithZeroElements() {
+        NodeUUID uuid;
+        BucketBlockRecord record(uuid);
+
+        try {
+            record.indexOf(1);
+            assert(false); // no throw;
+
+        } catch (IndexError &e){
+        } catch (...) {
+            assert(false); // unexpected exception;
+        }
+    }
+
+    void checkBinSearchWithAbsentElement() {
+        NodeUUID uuid;
+        BucketBlockRecord record(uuid);
+        record.insert(1);
+        record.insert(2);
+
+        try {
+            record.indexOf(100);
+            assert(false); // no throw;
+
+        } catch (IndexError &e){
+        } catch (...) {
+            assert(false); // unexpected exception;
+        }
+    }
+
+    void checkBinSearchWithOneElement() {
+        NodeUUID uuid;
+        BucketBlockRecord record(uuid);
+
+        record.insert(1);
+        assert(record.indexOf(1) == 0);
+    }
+
+    void checkBinSearchWithPairCountOfElements() {
+        NodeUUID uuid;
+        BucketBlockRecord record(uuid);
+
+        record.insert(1);
+        assert(record.indexOf(1) == 0);
+
+        record.insert(2);
+        assert(record.indexOf(2) == 1);
+    }
+
+    void checkBinSearchWithNonPairCountOfElements() {
+        NodeUUID uuid;
+        BucketBlockRecord record(uuid);
+
+        record.insert(1);
+        assert(record.indexOf(1) == 0);
+
+        record.insert(2);
+        assert(record.indexOf(2) == 1);
+
+        record.insert(3);
+        assert(record.indexOf(3) == 2);
+
+        record.insert(4);
+        assert(record.indexOf(4) == 3);
+
+        record.insert(5);
+        assert(record.indexOf(5) == 4);
+    }
 };
 
 }

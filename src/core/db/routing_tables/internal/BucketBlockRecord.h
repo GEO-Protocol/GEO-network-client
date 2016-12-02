@@ -6,6 +6,7 @@
 #include "../../../common/exceptions/MemoryError.h"
 #include "../../../common/exceptions/OverflowError.h"
 #include "../../../common/exceptions/ConflictError.h"
+#include "../../../common/exceptions/IndexError.h"
 
 #include <cstring>
 #include <limits>
@@ -50,13 +51,16 @@ public:
                       RecordNumber *recordsNumbers);
     ~BucketBlockRecord();
 
-    void insert(const RecordNumber recNo);
-    bool remove(const RecordNumber recNo);
+    void insert(const RecordNumber recN);
+    bool remove(const RecordNumber recN);
 
     const byte* data() const;
     const NodeUUID& uuid() const;
 
-private:
+protected:
+    const RecordsCount indexOf(const RecordNumber recN);
+
+protected:
     const NodeUUID &mUUID;
 
     // Each record stores pair of <uuid> -> [recNo, recNo, recNo, ...]

@@ -29,16 +29,16 @@ BucketBlockRecord::~BucketBlockRecord() {
  * Throws OverflowError when no more rec. numbers may be inserted.
  * Throws MemoryError in case of lack of memory.
  */
-void BucketBlockRecord::insert(const RecordNumber recNo) {
+void BucketBlockRecord::insert(const RecordNumber recN) {
 
-    // Check if current record doesn't contains recNo.
+    // Check if current record doesn't contains recN.
     // If so - there is no reason to initialize buffers reorganization
     // and sorting operations.
     for (RecordsCount i=0; i<mRecordsNumbersCount; ++i){
-        if (mRecordsNumbers[i] == recNo) {
+        if (mRecordsNumbers[i] == recN) {
             throw ConflictError(
                 "BucketBlockRecord::insert: "
-                    "duplicate recNo occurred.");
+                    "duplicate recN occurred.");
         }
     }
 
@@ -50,7 +50,7 @@ void BucketBlockRecord::insert(const RecordNumber recNo) {
 
 
 #define REC_N_SIZE sizeof(RecordNumber)
-    
+
     const size_t newBufferSize =
         (mRecordsNumbersCount * REC_N_SIZE) + REC_N_SIZE; // + one record
 
@@ -66,8 +66,8 @@ void BucketBlockRecord::insert(const RecordNumber recNo) {
         memcpy(newBuffer, mRecordsNumbers, mRecordsNumbersCount*REC_N_SIZE);
         for (RecordsCount i=0; i<mRecordsNumbersCount; ++i){
             auto newBufferItem = newBuffer[i];
-            if (recNo < newBufferItem) {
-                new (newBuffer+i) RecordNumber(recNo);
+            if (recN < newBufferItem) {
+                new (newBuffer+i) RecordNumber(recN);
                 memcpy(newBuffer+i+1, mRecordsNumbers+i, (mRecordsNumbersCount-i)*REC_N_SIZE);
 
                 goto EXIT;
@@ -75,7 +75,7 @@ void BucketBlockRecord::insert(const RecordNumber recNo) {
         }
     }
 
-    newBuffer[mRecordsNumbersCount] = recNo;
+    newBuffer[mRecordsNumbersCount] = recN;
 
 EXIT:
     // Swap the buffers
@@ -92,12 +92,12 @@ EXIT:
  *
  * Throws MemoryError in case of lack of memory.
  */
-bool BucketBlockRecord::remove(const RecordNumber recNo) {
+bool BucketBlockRecord::remove(const RecordNumber recN) {
 
-    // Check if current record contains recNo.
+    // Check if current record contains recN.
     // If not - there is no reason to initialize buffers reorganization operations.
     for (RecordsCount i=0; i<mRecordsNumbersCount; ++i){
-        if (mRecordsNumbers[i] == recNo) {
+        if (mRecordsNumbers[i] == recN) {
             const size_t newBufferSize = (mRecordsNumbersCount * sizeof(RecordNumber))
                                          - sizeof(RecordNumber); // - one record
 
@@ -133,6 +133,54 @@ const byte *BucketBlockRecord::data() const {
 
 const NodeUUID &BucketBlockRecord::uuid() const {
     return mUUID;
+}
+
+/*!
+ * Returns index of "recN" in the record.
+ * In case if such "recN" is absent - throws IndexError.
+ */
+const RecordsCount BucketBlockRecord::indexOf(const RecordNumber recN) {
+    RecordsCount first = 0;
+    RecordsCount last = mRecordsNumbersCount; // index of elem. that is BEHIND THE LAST elem.
+
+    if (mRecordsNumbersCount == 0) {
+        // The record is empty.
+        // There is no reason to search anything;
+        throw IndexError(
+            "BucketBlockRecord::indexOf: "
+                "record is empty. No search operation is possible.");
+
+    } else if (recN < mRecordsNumbers[0]) {
+        // Record record number is less than least one.
+        throw IndexError(
+            "BucketBlockRecord::indexOf: "
+                "recN is absent in the row.");
+
+    } else if (recN > mRecordsNumbers[mRecordsNumbersCount - 1]) {
+        // Received record number is greater than the greatest one.
+        throw IndexError(
+            "BucketBlockRecord::indexOf: "
+                "recN is absent in the row.");
+    }
+
+    while (first < last) {
+        size_t mid = first + (last - first) / 2;
+
+        if (recN <= mRecordsNumbers[mid])
+            last = mid;
+        else
+            first = mid + 1;
+    }
+
+    if (mRecordsNumbers[last] == recN) {
+        // Found.
+        return last;
+
+    } else {
+        throw IndexError(
+            "BucketBlockRecord::indexOf: "
+                "recN is absent in the row.");
+    }
 }
 
 } // namespace routing_tables
