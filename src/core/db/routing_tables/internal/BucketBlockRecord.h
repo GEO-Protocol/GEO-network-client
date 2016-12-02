@@ -56,6 +56,7 @@ public:
 
     const byte* data() const;
     const NodeUUID& uuid() const;
+    const bool isModified() const;
 
 protected:
     const RecordsCount indexOf(const RecordNumber recN);
@@ -63,10 +64,9 @@ protected:
 protected:
     const NodeUUID &mUUID;
 
-    // Each record stores pair of <uuid> -> [recNo, recNo, recNo, ...]
-    // This member specifies how much elements are in the list of records numbers.
     RecordsCount mRecordsNumbersCount;
     RecordNumber *mRecordsNumbers;
+    bool mHasBeenModified;
 };
 
 

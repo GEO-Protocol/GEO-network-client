@@ -6,14 +6,16 @@ namespace routing_tables {
 BucketBlockRecord::BucketBlockRecord(const NodeUUID &uuid):
     mUUID(uuid),
     mRecordsNumbersCount(0),
-    mRecordsNumbers(nullptr){}
+    mRecordsNumbers(nullptr),
+    mHasBeenModified(false){}
 
 BucketBlockRecord::BucketBlockRecord(const NodeUUID &uuid,
                                      RecordsCount recordsNumbersCount,
                                      RecordNumber *recordsNumbers):
     mUUID(uuid),
     mRecordsNumbers(recordsNumbers),
-    mRecordsNumbersCount(recordsNumbersCount) {}
+    mRecordsNumbersCount(recordsNumbersCount),
+    mHasBeenModified(false){}
 
 BucketBlockRecord::~BucketBlockRecord() {
     if (mRecordsNumbers != nullptr) {
@@ -84,6 +86,7 @@ EXIT:
     }
     mRecordsNumbers = newBuffer;
     mRecordsNumbersCount += 1;
+    mHasBeenModified = true;
 }
 
 /*!
@@ -120,6 +123,7 @@ bool BucketBlockRecord::remove(const RecordNumber recN) {
             mRecordsNumbers = newBuffer;
 
             mRecordsNumbersCount -= 1;
+            mHasBeenModified = true;
             return true;
         }
     }
@@ -133,6 +137,10 @@ const byte *BucketBlockRecord::data() const {
 
 const NodeUUID &BucketBlockRecord::uuid() const {
     return mUUID;
+}
+
+const bool BucketBlockRecord::isModified() const {
+    return mHasBeenModified;
 }
 
 /*!

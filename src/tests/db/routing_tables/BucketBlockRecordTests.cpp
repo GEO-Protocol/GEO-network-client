@@ -20,6 +20,9 @@ public:
         checkBinSearchWithOneElement();
         checkBinSearchWithPairCountOfElements();
         checkBinSearchWithNonPairCountOfElements();
+
+        checkModifiedAfterInsertion();
+        checkModifiedAfterRemoving();
     }
 
 private:
@@ -176,6 +179,25 @@ private:
 
         record.insert(5);
         assert(record.indexOf(5) == 4);
+    }
+
+    void checkModifiedAfterInsertion() {
+        NodeUUID uuid;
+        BucketBlockRecord record(uuid);
+        assert(!record.isModified());
+
+        record.insert(1);
+        assert(record.isModified());
+    }
+
+    void checkModifiedAfterRemoving() {
+        NodeUUID uuid;
+        BucketBlockRecord record(uuid);
+        assert(!record.isModified());
+
+        record.insert(1);
+        record.remove(1);
+        assert(record.isModified());
     }
 };
 
