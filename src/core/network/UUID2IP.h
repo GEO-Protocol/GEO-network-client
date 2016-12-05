@@ -26,7 +26,8 @@ namespace uuids = boost::uuids;
 class UUID2IP {
 
 private:
-    map <uuids::uuid, pair<string, uint16_t >> mCache;
+    map <uuids::uuid, pair<string, uint16_t>> mCache;
+    map <uuids::uuid, long> mLastAccessTime;
 
     string mServiceIP;
     string mServicePort;
@@ -53,11 +54,17 @@ private:
 
     const string processResponse();
 
-    const pair<string, uint16_t> getNodeAddress(const uuids::uuid &contractorUuid);
+    const pair<string, uint16_t> getNodeAddress(const uuids::uuid &contractorUUUID);
 
-    const bool isNodeAddressExistInLocalCache(const uuids::uuid &nodeUuid);
+    const bool isNodeAddressExistInLocalCache(const uuids::uuid &nodeUUID);
 
     void compressLocalCache();
+
+    const long getCurrentTimestamp();
+
+    const long getYesterdayTimestamp();
+
+    const bool wasAddressAlreadyCached(const uuids::uuid &nodeUUID);
 
 };
 

@@ -42,7 +42,7 @@ void UUID2IP::registerInGlobalCache(const uuids::uuid &nodeUUID, const string &n
     }
 }
 
-const pair<string, uint16_t> UUID2IP::fetchFromGlobalCache(const uuids::uuid &nodeUUID) {
+const pair <string, uint16_t> UUID2IP::fetchFromGlobalCache(const uuids::uuid &nodeUUID) {
     string uuid = boost::lexical_cast<string>(nodeUUID);
     string urlParams = "/api/v1/nodes/" + uuid + "/";
     string host = mServiceIP + ":" + mServicePort;
@@ -63,8 +63,9 @@ const pair<string, uint16_t> UUID2IP::fetchFromGlobalCache(const uuids::uuid &no
         string ip = data.value("ip_address", "");
         int port = data.value("port", -1);
         if (!ip.compare("") && port > -1) {
-            pair<string, uint16_t> remoteNodeAddressPair = make_pair(ip, (uint16_t) port);
-            mCache.insert(pair<uuids::uuid, pair<string, uint16_t>>(nodeUUID, remoteNodeAddressPair));
+            pair <string, uint16_t> remoteNodeAddressPair = make_pair(ip, (uint16_t) port);
+            mCache.insert(pair <uuids::uuid, pair<string, uint16_t>> (nodeUUID, remoteNodeAddressPair));
+            mLastAccessTime.insert(pair<uuid::uuid, long>(nodeUUID, getCurrentTimestamp()));
             return remoteNodeAddressPair;
         } else {
             throw ConflictError("Incorrect ip address value from remote service.");
@@ -108,20 +109,48 @@ const string UUID2IP::processResponse() {
     }
 }
 
-const pair<string, uint16_t> UUID2IP::getNodeAddress(const uuids::uuid &contractorUuid) {
+const pair <string, uint16_t> UUID2IP::getNodeAddress(const uuids::uuid &contractorUUID) {
     if (isNodeAddressExistInLocalCache(contractorUuid)) {
+        if (wasAddressAlreadyCached(contractorUUID)) {
+            map<uuid::uuid, long>::iterator it = mLastAccessTime.find(contractorUUID);
+            if (it != mLastAccessTime.end()) {
+                it->second = getCurrentTimestamp();
+            }
+        } else {
+            mLastAccessTime.insert(pair<uuid::uuid, long>(contractorUUID, getCurrentTimestamp()));
+        }
         return mCache.at(contractorUuid);
     } else {
         return fetchFromGlobalCache(contractorUuid);
     }
 }
 
-const bool UUID2IP::isNodeAddressExistInLocalCache(const uuids::uuid &nodeUuid) {
+const bool UUID2IP::isNodeAddressExistInLocalCache(const uuids::uuid &nodeUUID) {
     return mCache.count(nodeUuid) > 0;
 }
 
 void UUID2IP::compressLocalCache() {
+    map<uuids::uuid, long>::iteratot iterator;
+    for (iterator it = mLastAccessTime.begin(); it != mLastAccessTime.end(); ++it){
+        long timeOfLastUsing = it->second;
+        if (timeOfLastUsing < getYesterdayTimestamp()){
+            mCache.erase(it->first);
+            mLastAccessTime.erase(it->first);
+        }
+    }
+}
 
+const long UUID2IP::getCurrentTimestamp() {
+    return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+const long UUID2IP::getYesterdayTimestamp() {
+    std::chrono::time_point<std::chrono::system_clock> yesterday = std::chrono::system_clock::now() - std::chrono::hours(24);
+    return std::chrono::duration_cast<std::chrono::seconds>(yesterday.time_since_epoch()).count();
+}
+
+const bool UUID2IP::wasAddressAlreadyCached(const uuids::uuid &nodeUUID) {
+    return mLastAccessTime.count(nodeUUID) > 0;
 }
 
 

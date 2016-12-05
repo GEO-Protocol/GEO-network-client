@@ -109,7 +109,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(const uuids::uui
                                                                 const string &buffer) {
 
     Command *command = nullptr;
-    long timestamp = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+    long timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     if(strcmp(kTrustLinesOpenIdentifier, commandIdentifier.c_str()) == 0){
         command = new OpenTrustLineCommand(commandUUID, commandIdentifier,
                                            std::to_string(timestamp), buffer);
