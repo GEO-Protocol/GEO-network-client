@@ -14,6 +14,7 @@
 #include "../logger/Logger.h"
 #include "../common/exceptions/ValueError.h"
 #include "../common/exceptions/IOError.h"
+#include "../common/exceptions/ConflictError.h"
 
 using namespace std;
 using boost::asio::ip::tcp;
@@ -46,15 +47,15 @@ public:
     ~UUID2IP();
 
 private:
-    void registerInGlobalCache(uuids::uuid nodeUUID, string nodeIP, string nodePort);
+    void registerInGlobalCache(const uuids::uuid &nodeUUID, const string &nodeIP, const string &nodePort);
 
-    const pair<string, uint16_t> &fetchFromGlobalCache(uuids::uuid nodeUUID);
+    const pair<string, uint16_t> fetchFromGlobalCache(const uuids::uuid &nodeUUID);
 
-    const string &processResponse();
+    const string processResponse();
 
-    const pair<string, uint16_t> &getNodeAddress(const uuids::uuid &contractorUuid) const;
+    const pair<string, uint16_t> getNodeAddress(const uuids::uuid &contractorUuid);
 
-    const bool isNodeAddressExistInLocalCache(const uuids::uuid &nodeUuid) const;
+    const bool isNodeAddressExistInLocalCache(const uuids::uuid &nodeUuid);
 
     void compressLocalCache();
 

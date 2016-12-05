@@ -15,7 +15,7 @@ UUID2IP::~UUID2IP() {
     mSocket.close();
 }
 
-void UUID2IP::registerInGlobalCache(uuids::uuid nodeUUID, string nodeIP, string nodePort) {
+void UUID2IP::registerInGlobalCache(const uuids::uuid &nodeUUID, const string &nodeIP, const string &nodePort) {
     string requestBody = string("{\"ip_address\"") + string(":") + string("\"") + nodeIP + string("\",") +
                          string("\"port\"") + string(":") + string("\"") + nodePort + string("\"}");
 
@@ -37,12 +37,12 @@ void UUID2IP::registerInGlobalCache(uuids::uuid nodeUUID, string nodeIP, string 
 
     json result = json::parse(processResponse());
     int code = result.value("code", -1);
-    if (code == 0){
+    if (code == 0) {
         mLogger.logInfo(kSubsystemName, string("Registered in UUID2IP system global cache"));
     }
 }
 
-const pair<string, uint16_t> &UUID2IP::fetchFromGlobalCache(uuids::uuid nodeUUID) {
+const pair<string, uint16_t> UUID2IP::fetchFromGlobalCache(const uuids::uuid &nodeUUID) {
     string uuid = boost::lexical_cast<string>(nodeUUID);
     string urlParams = "/api/v1/nodes/" + uuid + "/";
     string host = mServiceIP + ":" + mServicePort;
@@ -58,12 +58,14 @@ const pair<string, uint16_t> &UUID2IP::fetchFromGlobalCache(uuids::uuid nodeUUID
 
     json result = json::parse(processResponse());
     int code = result.value("code", -1);
-    if (code == 0){
+    if (code == 0) {
         json data = result["data"];
         string ip = data.value("ip_address", "");
         int port = data.value("port", -1);
         if (!ip.compare("") && port > -1) {
-            return make_pair(ip, (uint16_t)port);
+            pair<string, uint16_t> remoteNodeAddressPair = make_pair(ip, (uint16_t) port);
+            mCache.insert(pair<uuids::uuid, pair<string, uint16_t>>(nodeUUID, remoteNodeAddressPair));
+            return remoteNodeAddressPair;
         } else {
             throw ConflictError("Incorrect ip address value from remote service.");
         }
@@ -72,7 +74,7 @@ const pair<string, uint16_t> &UUID2IP::fetchFromGlobalCache(uuids::uuid nodeUUID
     }
 }
 
-conststring &UUID2IP::processResponse() {
+const string UUID2IP::processResponse() {
     boost::asio::streambuf response;
     std::istream responseStream(&response);
 
@@ -106,16 +108,15 @@ conststring &UUID2IP::processResponse() {
     }
 }
 
-const pair <string, uint16_t> &UUID2IP::getNodeAddress(const uuids::uuid &contractorUuid) const {
+const pair<string, uint16_t> UUID2IP::getNodeAddress(const uuids::uuid &contractorUuid) {
     if (isNodeAddressExistInLocalCache(contractorUuid)) {
         return mCache.at(contractorUuid);
+    } else {
+        return fetchFromGlobalCache(contractorUuid);
     }
-    pair<string, uint16_t> remoteNodeAddressPair = fetchFromGlobalCache(contractorUuid);
-    mCache.insert(pair<uuids::uuid, pair<string, uint16_t>>(nodeUUID, remoteNodeAddressPair));
-    return remoteNodeAddressPair;
 }
 
-const bool UUID2IP::isNodeAddressExistInLocalCache(const uuids::uuid &nodeUuid) const {
+const bool UUID2IP::isNodeAddressExistInLocalCache(const uuids::uuid &nodeUuid) {
     return mCache.count(nodeUuid) > 0;
 }
 
