@@ -65,7 +65,7 @@ const pair <string, uint16_t> UUID2IP::fetchFromGlobalCache(const uuids::uuid &n
         if (!ip.compare("") && port > -1) {
             pair <string, uint16_t> remoteNodeAddressPair = make_pair(ip, (uint16_t) port);
             mCache.insert(pair <uuids::uuid, pair<string, uint16_t>> (nodeUUID, remoteNodeAddressPair));
-            mLastAccessTime.insert(pair<uuid::uuid, long>(nodeUUID, getCurrentTimestamp()));
+            mLastAccessTime.insert(pair<uuids::uuid, long>(nodeUUID, getCurrentTimestamp()));
             return remoteNodeAddressPair;
         } else {
             throw ConflictError("Incorrect ip address value from remote service.");
@@ -110,28 +110,28 @@ const string UUID2IP::processResponse() {
 }
 
 const pair <string, uint16_t> UUID2IP::getNodeAddress(const uuids::uuid &contractorUUID) {
-    if (isNodeAddressExistInLocalCache(contractorUuid)) {
+    if (isNodeAddressExistInLocalCache(contractorUUID)) {
         if (wasAddressAlreadyCached(contractorUUID)) {
-            map<uuid::uuid, long>::iterator it = mLastAccessTime.find(contractorUUID);
+            map<uuids::uuid, long>::iterator it = mLastAccessTime.find(contractorUUID);
             if (it != mLastAccessTime.end()) {
                 it->second = getCurrentTimestamp();
             }
         } else {
-            mLastAccessTime.insert(pair<uuid::uuid, long>(contractorUUID, getCurrentTimestamp()));
+            mLastAccessTime.insert(pair<uuids::uuid, long>(contractorUUID, getCurrentTimestamp()));
         }
-        return mCache.at(contractorUuid);
+        return mCache.at(contractorUUID);
     } else {
-        return fetchFromGlobalCache(contractorUuid);
+        return fetchFromGlobalCache(contractorUUID);
     }
 }
 
 const bool UUID2IP::isNodeAddressExistInLocalCache(const uuids::uuid &nodeUUID) {
-    return mCache.count(nodeUuid) > 0;
+    return mCache.count(nodeUUID) > 0;
 }
 
 void UUID2IP::compressLocalCache() {
-    map<uuids::uuid, long>::iteratot iterator;
-    for (iterator it = mLastAccessTime.begin(); it != mLastAccessTime.end(); ++it){
+    map<uuids::uuid, long>::iterator it;
+    for (it = mLastAccessTime.begin(); it != mLastAccessTime.end(); ++it){
         long timeOfLastUsing = it->second;
         if (timeOfLastUsing < getYesterdayTimestamp()){
             mCache.erase(it->first);
