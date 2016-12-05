@@ -38,11 +38,11 @@ void UUID2IP::registerInGlobalCache(uuids::uuid nodeUUID, string nodeIP, string 
     json result = json::parse(processResponse());
     int code = result.value("code", -1);
     if (code == 0){
-        mLogger.logException(kSubsystemName, string("Registered in UUID2IP system global cache"));
+        mLogger.logInfo(kSubsystemName, string("Registered in UUID2IP system global cache"));
     }
 }
 
-pair<string, uint16_t> UUID2IP::fetchFromGlobalCache(uuids::uuid nodeUUID) {
+const pair<string, uint16_t> &UUID2IP::fetchFromGlobalCache(uuids::uuid nodeUUID) {
     string uuid = boost::lexical_cast<string>(nodeUUID);
     string urlParams = "/api/v1/nodes/" + uuid + "/";
     string host = mServiceIP + ":" + mServicePort;
@@ -62,16 +62,17 @@ pair<string, uint16_t> UUID2IP::fetchFromGlobalCache(uuids::uuid nodeUUID) {
         json data = result["data"];
         string ip = data.value("ip_address", "");
         int port = data.value("port", -1);
-        if (port > 1 && !ip.compare("")) {
-            pair<string, uint16_t> remoteNodeAddressPair = make_pair(ip, (uint16_t)port);
-            mCache.insert(pair<uuids::uuid, pair<string, uint16_t>>(nodeUUID, remoteNodeAddressPair));
-            return remoteNodeAddressPair;
+        if (!ip.compare("") && port > -1) {
+            return make_pair(ip, (uint16_t)port);
+        } else {
+            throw ConflictError("Incorrect ip address value from remote service.");
         }
+    } else {
+        throw ConflictError("Illegal result code from remote service.");
     }
-    return make_pair("", 0);
 }
 
-string UUID2IP::processResponse() {
+conststring &UUID2IP::processResponse() {
     boost::asio::streambuf response;
     std::istream responseStream(&response);
 
@@ -109,17 +110,18 @@ const pair <string, uint16_t> &UUID2IP::getNodeAddress(const uuids::uuid &contra
     if (isNodeAddressExistInLocalCache(contractorUuid)) {
         return mCache.at(contractorUuid);
     }
-    pair <string, uint16_t> remoteNodeAddress = fetchFromGlobalCache(contractorUuid);
-    if (remoteNodeAddress.second == 0) {
-        throw ValueError("Can't get remote node's address");
-    }
+    pair<string, uint16_t> remoteNodeAddressPair = fetchFromGlobalCache(contractorUuid);
+    mCache.insert(pair<uuids::uuid, pair<string, uint16_t>>(nodeUUID, remoteNodeAddressPair));
+    return remoteNodeAddressPair;
 }
 
 const bool UUID2IP::isNodeAddressExistInLocalCache(const uuids::uuid &nodeUuid) const {
     return mCache.count(nodeUuid) > 0;
 }
 
-void UUID2IP::compressLocalCache() {}
+void UUID2IP::compressLocalCache() {
+
+}
 
 
 

@@ -48,9 +48,9 @@ public:
 private:
     void registerInGlobalCache(uuids::uuid nodeUUID, string nodeIP, string nodePort);
 
-    pair<string, uint16_t> fetchFromGlobalCache(uuids::uuid nodeUUID);
+    const pair<string, uint16_t> &fetchFromGlobalCache(uuids::uuid nodeUUID);
 
-    string processResponse();
+    const string &processResponse();
 
     const pair<string, uint16_t> &getNodeAddress(const uuids::uuid &contractorUuid) const;
 
