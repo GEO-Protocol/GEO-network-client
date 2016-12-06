@@ -7,8 +7,7 @@
 #endif
 
 int main() {
-    UUID2IP *uuid2IP = new UUID2IP("10.0.2.2", "8088");
-/*#ifdef TESTS
+#ifdef TESTS
 //    FileBackedMessagesQueueTests fileBackedMessagesQueueTests;
 //    fileBackedMessagesQueueTests.run();
 
@@ -18,5 +17,5 @@ int main() {
 
 #ifndef TESTS
     return Core().run();
-#endif*/
+#endif
 }
