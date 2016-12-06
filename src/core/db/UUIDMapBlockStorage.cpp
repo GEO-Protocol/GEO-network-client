@@ -20,9 +20,11 @@ namespace db {
 
         void UUIDMapBlockStorage::erase(const uuids::uuid &uuid) {}
 
-        Block UUIDMapBlockStorage::read(const uuids::uuid &uuid) {}
+        void UUIDMapBlockStorage::read(const uuids::uuid &uuid) {}
 
-        const vector <uuids::uuid> UUIDMapBlockStorage::keys() const {}
+        const vector <uuids::uuid> UUIDMapBlockStorage::keys() const {
+            return vector<uuids::uuid>();
+        }
 
         void UUIDMapBlockStorage::vacuum() {}
 
@@ -37,7 +39,7 @@ namespace db {
 
         void UUIDMapBlockStorage::checkFileDescriptor() {
             if (mFileDescriptor == NULL) {
-                mLogger.logInfo(kSubsystemName, "Unable to obtain *.dat file descriptor");
+                mLogger.logInfo(kSubsystemName.c_str(), "Unable to obtain *.dat file descriptor");
                 throw IOError("Unable to obtain file descriptor");
             }
         }
@@ -47,12 +49,11 @@ namespace db {
             memset(buffer, 0, kFileHeaderSize);
             fseek(mFileDescriptor, 0, SEEK_SET);
             fwrite(buffer, 1, kFileHeaderSize, mFileDescriptor);
-            mFileSize += kFileHeaderSize;
         }
 
         void UUIDMapBlockStorage::readFileHeader() {
             //Get old map index offset and record count from file header
-            byte *headerBuffer = malloc(kFileHeaderMapIndexOffset);
+            byte *headerBuffer = (byte *)malloc(kFileHeaderMapIndexOffset);
             memset(headerBuffer, 0, kFileHeaderMapIndexOffset);
             //Seek to start of file
             fseek(mFileDescriptor, 0, SEEK_SET);
@@ -63,7 +64,7 @@ namespace db {
             //Free allocated memory for headerBuffer further using
             free(headerBuffer);
             //Reallocate buffer
-            headerBuffer = malloc(kFileHeaderMapRecordsCount);
+            headerBuffer = (byte *)malloc(kFileHeaderMapRecordsCount);
             memset(headerBuffer, 0, kFileHeaderMapRecordsCount);
             //Read map records count that takes 8 bytes and write in buffer
             fread(headerBuffer, 1, kFileHeaderMapRecordsCount, mFileDescriptor);
@@ -74,7 +75,7 @@ namespace db {
         }
 
         const bool UUIDMapBlockStorage::isFileExist() {
-            File *file = fopen(kFileName.c_str(), "w");
+            FILE *file = fopen(kFileName.c_str(), "w");
             if (file != NULL) {
                 fclose(file);
                 return true;
@@ -102,21 +103,22 @@ namespace db {
             if (mIndexBlock.count(uuid) > 0) {
                 map<uuids::uuid, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
                 if (seeker != mIndexBlock.end()) {
-                    seeker->second = make_pair((uint32_t) offset, (uint64_t) blockBytesCount);
+                    seeker->second.first = (uint32_t) offset;
+                    seeker->second.second = (uint64_t) blockBytesCount;
                 }
             } else {
-                mIndexBlock.insert(uuids::uuid, pair<uint32_t, uint64_t>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
+                mIndexBlock.insert(pair<uuids::uuid, pair<uint32_t, uint64_t>>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
             }
             //Iterate through map and create index block from index records
             //after last data block
             map<uuids::uuid, pair<uint32_t, uint64_t>>::iterator looper;
-            for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++it){
+            for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
                 //Write uuid to the index record
-                fwrite(looper->first, 1, kIndexBlockUUIDSize, mFileDescriptor);
+                fwrite(looper->first.data, 1, kIndexBlockUUIDSize, mFileDescriptor);
                 //Write offset to the index record
-                fwrite(looper->first->first, 1, kIndexBlockOffsetSize, mFileDescriptor);
+                fwrite(&looper->second.first, 1, kIndexBlockOffsetSize, mFileDescriptor);
                 //Write data block size to the index record
-                fwrite(looper->first->second, 1, kIndexBlockDataSize, mFileDescriptor);
+                fwrite(&looper->second.second, 1, kIndexBlockDataSize, mFileDescriptor);
             }
             return offsetToIndexBlocks;
         }

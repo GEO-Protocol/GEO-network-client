@@ -3,7 +3,7 @@
 
 #include <map>
 #include <string>
-#include <stdio>
+#include <cstdio>
 #include <vector>
 #include <malloc.h>
 #include <boost/uuid/uuid.hpp>
@@ -24,19 +24,19 @@ namespace db {
         class UUIDMapBlockStorage {
         public:
             Logger mLogger;
-            const constexpr string kSubsystemName = "UUIDMapBlockStorage";
+            const string kSubsystemName = "UUIDMapBlockStorage";
 
         private:
-            File *mFileDescriptor;
+            FILE *mFileDescriptor;
 
             uint32_t mMapIndexOffset = 0;
             uint64_t mMapIndexRecordsCount = 0;
 
             map <uuids::uuid, pair<uint32_t, uint64_t>> mIndexBlock;
 
-            const constexpr string kFileName = "D:/block_storage.dat";
-            const constexpr string kModeCreate = "w+";
-            const constexpr string kModeUpdate = "r+";
+            const string kFileName = "D:/block_storage.dat";
+            const string kModeCreate = "w+";
+            const string kModeUpdate = "r+";
 
             const size_t kFileHeaderMapIndexOffset = 4;
             const size_t kFileHeaderMapRecordsCount = 8;
@@ -55,7 +55,7 @@ namespace db {
 
             void erase(const uuids::uuid &uuid);
 
-            Block read(const uuids::uuid &uuid);
+            void read(const uuids::uuid &uuid);
 
             const vector <uuids::uuid> keys() const;
 
@@ -74,7 +74,7 @@ namespace db {
 
             const long writeIndexRecords(const uuids::uuid &uuid, const long &offset, const size_t &blockBytesCount);
 
-            void updateFileHeader(const size_t offsetToIndexBlock);
+            void updateFileHeader();
 
             const bool isFileExist();
         };
