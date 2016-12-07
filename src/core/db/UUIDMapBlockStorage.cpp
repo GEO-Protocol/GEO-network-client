@@ -3,8 +3,10 @@
 namespace db {
     namespace uuid_map_block_storage {
 
-        UUIDMapBlockStorage::UUIDMapBlockStorage() {
+        UUIDMapBlockStorage::UUIDMapBlockStorage(const string fileName) {
+            mFileName = fileName;
             obtainFileDescriptor();
+            readFileHeader();
         }
 
         UUIDMapBlockStorage::~UUIDMapBlockStorage() {
@@ -13,35 +15,95 @@ namespace db {
             }
         }
 
-        void UUIDMapBlockStorage::write(const uuids::uuid &uuid, const byte *block, const size_t blockBytesCount) {
+        void UUIDMapBlockStorage::write(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount) {
             long offset = writeData(block, blockBytesCount);
-            mMapIndexOffset = (uint32_t) writeIndexRecords(uuid, offset, blockBytesCount);
+            pair<uint32_t, uint64_t> fileHeaderData = (uint32_t) writeIndexRecordsInMemory(uuid, offset, blockBytesCount);
+            mMapIndexOffset = fileHeaderData.first;
+            mMapIndexRecordsCount = fileHeaderData.second;
+            writeFileHeader();
         }
 
-        void UUIDMapBlockStorage::erase(const uuids::uuid &uuid) {}
-
-        void UUIDMapBlockStorage::read(const uuids::uuid &uuid) {}
-
-        const vector <uuids::uuid> UUIDMapBlockStorage::keys() const {
-            return vector<uuids::uuid>();
+        void UUIDMapBlockStorage::erase(const NodeUUID &uuid) {
+            if (isUUIDTheIndex(uuid)){
+                map<NodeUUID, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
+                if (seeker != mIndexBlock.end()) {
+                    mIndexBlock.erase(seeker);
+                    mMapIndexRecordsCount = (uint64_t) mIndexBlock.size();
+                    fseek(mFileDescriptor, 0, SEEK_END);
+                    mMapIndexOffset = (uint32_t) ftell(mFileDescriptor);
+                    writeIndexBlock();
+                    writeFileHeader();
+                } else {
+                    throw IndexError("Can't iterate map to find value by such key.");
+                }
+            } else {
+                throw IndexError("Can't find such uuid in index block.");
+            }
         }
 
-        void UUIDMapBlockStorage::vacuum() {}
+        Block UUIDMapBlockStorage::read(const NodeUUID &uuid) {
+            if (isUUIDTheIndex(uuid)){
+                map<NodeUUID, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
+                if (seeker != mIndexBlock.end()) {
+                    size_t offset = (size_t)seeker->second.first;
+                    size_t bytesCount = (size_t)seeker->second.second;
+                    fseek(mFileDescriptor, offset, SEEK_SET);
+                    byte *dataBuffer = (byte *)malloc(bytesCount);
+                    memset(dataBuffer, 0, bytesCount);
+                    fread(dataBuffer, 1, bytesCount, mFileDescriptor);
+                    Block block;
+                    block.mData = dataBuffer;
+                    block.mBytesCount = bytesCount;
+                    return block;
+                } else {
+                    throw IndexError("Can't iterate map to find value by such key.");
+                }
+            } else {
+                throw IndexError("Can't find such uuid in index block.");
+            }
+        }
+
+        const vector <NodeUUID> UUIDMapBlockStorage::keys() const {
+            vector<NodeUUID> uuidsVector(mIndexBlock.size());
+            map<NodeUUID, pair<uint32_t, uint64_t>>::iterator it;
+            for (it = mIndexBlock.begin(); it != mIndexBlock.end(); ++it){
+                uuidsVector.push_back(it->first);
+            }
+        }
+
+        void UUIDMapBlockStorage::vacuum() {
+            UUIDMapBlockStorage *mapBlockStorage = new UUIDMapBlockStorage(kTempFileName);
+            for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
+                Block block = read(looper->first);
+                mapBlockStorage->write(looper->first, block.mData, block.mBytesCount, tempFileDescriptor);
+            }
+            delete mapBlockStorage;
+            fclose(mFileDescriptor);
+            if (remove(mFileName) != 0){
+                throw IOError("Can't remove old *.dat file.");
+            }
+            if (rename(kTempFileName, mFileName) != 0){
+                throw IOError("Can't rename temporary *.dat file to main *.dat file.");
+            }
+            obtainFileDescriptor();
+        }
 
         void UUIDMapBlockStorage::obtainFileDescriptor() {
             if (isFileExist()) {
-                mFileDescriptor = fopen(kFileName.c_str(), kModeUpdate.c_str());
+                mFileDescriptor = fopen(mFileName.c_str(), kModeUpdate.c_str());
+                checkFileDescriptor();
             } else {
-                mFileDescriptor = fopen(kFileName.c_str(), kModeCreate.c_str());
-                allocateFileHeader();
+                mFileDescriptor = fopen(mFileName.c_str(), kModeCreate.c_str());
+                checkFileDescriptor();
+                allocateFileHeader(mFileDescriptor);
             }
         }
 
         void UUIDMapBlockStorage::checkFileDescriptor() {
             if (mFileDescriptor == NULL) {
-                mLogger.logInfo(kSubsystemName.c_str(), "Unable to obtain *.dat file descriptor");
                 throw IOError("Unable to obtain file descriptor");
             }
+            mPOSIXFileDescriptor = fileno(mFileDescriptor);
         }
 
         void UUIDMapBlockStorage::allocateFileHeader() {
@@ -49,29 +111,69 @@ namespace db {
             memset(buffer, 0, kFileHeaderSize);
             fseek(mFileDescriptor, 0, SEEK_SET);
             fwrite(buffer, 1, kFileHeaderSize, mFileDescriptor);
+            syncData();
         }
 
         void UUIDMapBlockStorage::readFileHeader() {
-            //Get old map index offset and record count from file header
+            checkFileDescriptor();
             byte *headerBuffer = (byte *)malloc(kFileHeaderMapIndexOffset);
             memset(headerBuffer, 0, kFileHeaderMapIndexOffset);
-            //Seek to start of file
             fseek(mFileDescriptor, 0, SEEK_SET);
-            //Read map index offset that takes 4 bytes and write in buffer
             fread(headerBuffer, 1, kFileHeaderMapIndexOffset, mFileDescriptor);
-            //Convert map index offset bytes buffer to numeric value
             mMapIndexOffset = *((uint32_t *) headerBuffer);
-            //Free allocated memory for headerBuffer further using
             free(headerBuffer);
-            //Reallocate buffer
             headerBuffer = (byte *)malloc(kFileHeaderMapRecordsCount);
             memset(headerBuffer, 0, kFileHeaderMapRecordsCount);
-            //Read map records count that takes 8 bytes and write in buffer
             fread(headerBuffer, 1, kFileHeaderMapRecordsCount, mFileDescriptor);
-            //Convert map records count bytes buffer to numeric value
             mMapIndexRecordsCount = *((uint64_t *) headerBuffer);
-            //Free allocated memory
             free(headerBuffer);
+        }
+
+        const long UUIDMapBlockStorage::writeData(const byte *block, const size_t &blockBytesCount) {
+            fseek(mFileDescriptor, 0, SEEK_END);
+            long offset = ftell(mFileDescriptor);
+            fwrite(block, 1, blockBytesCount, mFileDescriptor);
+            syncData();
+            return offset;
+        }
+
+        const pair<uint32_t, uint64_t> UUIDMapBlockStorage::writeIndexRecordsInMemory(const NodeUUID &uuid, const long &offset,
+                                                          const size_t &blockBytesCount) {
+            fseek(mFileDescriptor, 0, SEEK_END);
+            long offsetToIndexRecords = ftell(mFileDescriptor);
+            if (isUUIDTheIndex(uuid)) {
+                map<NodeUUID, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
+                if (seeker != mIndexBlock.end()) {
+                    seeker->second.first = (uint32_t) offset;
+                    seeker->second.second = (uint64_t) blockBytesCount;
+                }
+            } else {
+                mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
+            }
+            size_t recordsCount = mIndexBlock.size();
+            writeIndexBlock();
+            return make_pair((uint32_t) offsetToIndexRecords, (uint64_t) recordsCount);
+        }
+
+        void UUIDMapBlockStorage::writeFileHeader() {
+            fseek(mFileDescriptor, 0, SEEK_SET);
+            fwrite(&mMapIndexOffset, 1, kFileHeaderMapIndexOffset, mFileDescriptor);
+            fwrite(&mMapIndexRecordsCount, 1, kFileHeaderMapRecordsCount, mFileDescriptor);
+            syncData();
+        }
+
+        void UUIDMapBlockStorage::writeIndexBlock() {
+            map<NodeUUID, pair<uint32_t, uint64_t>>::iterator looper;
+            for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
+                fwrite(looper->first.data, 1, kIndexBlockUUIDSize, mFileDescriptor);
+                fwrite(&looper->second.first, 1, kIndexBlockOffsetSize, mFileDescriptor);
+                fwrite(&looper->second.second, 1, kIndexBlockDataSize, mFileDescriptor);
+            }
+            syncData();
+        }
+
+        void UUIDMapBlockStorage::syncData() {
+            fdatasync(mPOSIXFileDescriptor);
         }
 
         const bool UUIDMapBlockStorage::isFileExist() {
@@ -83,53 +185,17 @@ namespace db {
             return false;
         }
 
-        const long UUIDMapBlockStorage::writeData(const byte *block, const size_t &blockBytesCount) {
-            //Seek to end of file
-            fseek(mFileDescriptor, 0, SEEK_END);
-            //Get offset (pointer to data block) before start writing
-            long offset = ftell(mFileDescriptor);
-            //Write block with data
-            fwrite(block, 1, blockBytesCount, mFileDescriptor);
-            return offset;
+        const bool UUIDMapBlockStorage::isUUIDTheIndex(const NodeUUID &uuid) {
+            return mIndexBlock.count(uuid) > 0;
         }
 
-        const long UUIDMapBlockStorage::writeIndexRecords(const uuids::uuid &uuid, const long &offset,
-                                                          const size_t &blockBytesCount) {
-            //Seek to end of file
-            fseek(mFileDescriptor, 0, SEEK_END);
-            //Get offset (pointer to first index record) of index blocks
-            long offsetToIndexBlocks = ftell(mFileDescriptor);
-            //Insert data about new index record into the map
-            if (mIndexBlock.count(uuid) > 0) {
-                map<uuids::uuid, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
-                if (seeker != mIndexBlock.end()) {
-                    seeker->second.first = (uint32_t) offset;
-                    seeker->second.second = (uint64_t) blockBytesCount;
-                }
-            } else {
-                mIndexBlock.insert(pair<uuids::uuid, pair<uint32_t, uint64_t>>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
-            }
-            //Iterate through map and create index block from index records
-            //after last data block
-            map<uuids::uuid, pair<uint32_t, uint64_t>>::iterator looper;
-            for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
-                //Write uuid to the index record
-                fwrite(looper->first.data, 1, kIndexBlockUUIDSize, mFileDescriptor);
-                //Write offset to the index record
-                fwrite(&looper->second.first, 1, kIndexBlockOffsetSize, mFileDescriptor);
-                //Write data block size to the index record
-                fwrite(&looper->second.second, 1, kIndexBlockDataSize, mFileDescriptor);
-            }
-            return offsetToIndexBlocks;
+        Block::Block(const byte *data, const size_t bytesCount) {
+            mData = data;
+            mBytesCount = bytesCount;
         }
 
-        void UUIDMapBlockStorage::updateFileHeader() {
-            //Seek to start of file and write in file header map index offset and records count
-            fseek(mFileDescriptor, 0, SEEK_SET);
-            //Write index offset in file header
-            fwrite(&mMapIndexOffset, 1, kFileHeaderMapIndexOffset, mFileDescriptor);
-            //Write record count in file header
-            fwrite(&mMapIndexRecordsCount, 1, kFileHeaderMapRecordsCount, mFileDescriptor);
+        Block::~Block() {
+            free(mData);
         }
 
         const byte *Block::data() const {

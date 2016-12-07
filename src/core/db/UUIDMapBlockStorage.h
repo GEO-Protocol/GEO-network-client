@@ -6,35 +6,34 @@
 #include <cstdio>
 #include <vector>
 #include <malloc.h>
+#include <unistd.h>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include "../common/NodeUUID.h"
 #include "../common/exceptions/IOError.h"
+#include "../common/exceptions/IndexError.h"
 #include "../logger/Logger.h"
 
 namespace db {
     namespace uuid_map_block_storage {
 
         using namespace std;
-
-        namespace uuids = boost::uuids;
-
+        
         typedef uint8_t byte;
 
         class UUIDMapBlockStorage {
-        public:
-            Logger mLogger;
-            const string kSubsystemName = "UUIDMapBlockStorage";
-
         private:
             FILE *mFileDescriptor;
+            int mPOSIXFileDescriptor;
+            string mFileName;
 
             uint32_t mMapIndexOffset = 0;
             uint64_t mMapIndexRecordsCount = 0;
 
-            map <uuids::uuid, pair<uint32_t, uint64_t>> mIndexBlock;
+            map <NodeUUID, pair<uint32_t, uint64_t>> mIndexBlock;
 
-            const string kFileName = "D:/block_storage.dat";
+            const string kTempFileName = "D:/block_storage_temp.dat";
             const string kModeCreate = "w+";
             const string kModeUpdate = "r+";
 
@@ -44,20 +43,19 @@ namespace db {
             const size_t kIndexBlockUUIDSize = 16;
             const size_t kIndexBlockOffsetSize = 4;
             const size_t kIndexBlockDataSize = 8;
-            const size_t kIndexBlockSize = kIndexBlockUUIDSize + kIndexBlockOffsetSize + kIndexBlockDataSize;
 
         public:
-            UUIDMapBlockStorage();
+            UUIDMapBlockStorage(const string fileName);
 
             ~UUIDMapBlockStorage();
 
-            void write(const uuids::uuid &uuid, const byte *block, const size_t blockBytesCount);
+            void write(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount, const FILE *fileDescriptor);
 
-            void erase(const uuids::uuid &uuid);
+            void erase(const NodeUUID &uuid);
 
-            void read(const uuids::uuid &uuid);
+            Block read(const NodeUUID &uuid);
 
-            const vector <uuids::uuid> keys() const;
+            const vector <NodeUUID> keys() const;
 
             void vacuum();
 
@@ -72,11 +70,17 @@ namespace db {
 
             const long writeData(const byte *block, const size_t &blockBytesCount);
 
-            const long writeIndexRecords(const uuids::uuid &uuid, const long &offset, const size_t &blockBytesCount);
+            const pair<uint32_t, uint64_t> writeIndexRecordsInMemory(const NodeUUID &uuid, const long &offset, const size_t &blockBytesCount);
 
-            void updateFileHeader();
+            void writeFileHeader();
+
+            void writeIndexBlock();
+
+            void syncData();
 
             const bool isFileExist();
+
+            const bool isUUIDTheIndex(const NodeUUID &uuid);
         };
 
         class UUIDMapBlockStorage;
@@ -89,6 +93,10 @@ namespace db {
             size_t mBytesCount;
 
         public:
+            Block(const byte *data, const size_t bytesCount);
+
+            ~Block();
+
             const byte *data() const;
 
             const size_t bytesCount() const;
