@@ -17,7 +17,7 @@ namespace db {
 
         void UUIDMapBlockStorage::write(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount) {
             long offset = writeData(block, blockBytesCount);
-            pair<uint32_t, uint64_t> fileHeaderData = (uint32_t) writeIndexRecordsInMemory(uuid, offset, blockBytesCount);
+            pair<uint32_t, uint64_t> fileHeaderData = writeIndexRecordsInMemory(uuid, offset, blockBytesCount);
             mMapIndexOffset = fileHeaderData.first;
             mMapIndexRecordsCount = fileHeaderData.second;
             writeFileHeader();
@@ -41,17 +41,17 @@ namespace db {
             }
         }
 
-        Block UUIDMapBlockStorage::read(const NodeUUID &uuid) {
+        Block UUIDMapBlockStorage::readFromFile(const NodeUUID &uuid) {
             if (isUUIDTheIndex(uuid)){
                 map<NodeUUID, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
                 if (seeker != mIndexBlock.end()) {
-                    size_t offset = (size_t)seeker->second.first;
-                    size_t bytesCount = (size_t)seeker->second.second;
+                    size_t offset = (size_t) seeker->second.first;
+                    size_t bytesCount = (size_t) seeker->second.second;
                     fseek(mFileDescriptor, offset, SEEK_SET);
                     byte *dataBuffer = (byte *)malloc(bytesCount);
                     memset(dataBuffer, 0, bytesCount);
                     fread(dataBuffer, 1, bytesCount, mFileDescriptor);
-                    Block block;
+                    Block block(dataBuffer, bytesCount);
                     block.mData = dataBuffer;
                     block.mBytesCount = bytesCount;
                     return block;
@@ -65,24 +65,25 @@ namespace db {
 
         const vector <NodeUUID> UUIDMapBlockStorage::keys() const {
             vector<NodeUUID> uuidsVector(mIndexBlock.size());
-            map<NodeUUID, pair<uint32_t, uint64_t>>::iterator it;
-            for (it = mIndexBlock.begin(); it != mIndexBlock.end(); ++it){
-                uuidsVector.push_back(it->first);
+            for (auto &it : mIndexBlock){
+                uuidsVector.push_back(it.first);
             }
+            return uuidsVector;
         }
 
         void UUIDMapBlockStorage::vacuum() {
             UUIDMapBlockStorage *mapBlockStorage = new UUIDMapBlockStorage(kTempFileName);
+            map<NodeUUID, pair<uint32_t, uint64_t>>::iterator looper;
             for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
-                Block block = read(looper->first);
-                mapBlockStorage->write(looper->first, block.mData, block.mBytesCount, tempFileDescriptor);
+                Block block = readFromFile(looper->first);
+                mapBlockStorage->write(looper->first, block.mData, block.mBytesCount);
             }
             delete mapBlockStorage;
             fclose(mFileDescriptor);
-            if (remove(mFileName) != 0){
+            if (remove(mFileName.c_str()) != 0){
                 throw IOError("Can't remove old *.dat file.");
             }
-            if (rename(kTempFileName, mFileName) != 0){
+            if (rename(kTempFileName.c_str(), mFileName.c_str()) != 0){
                 throw IOError("Can't rename temporary *.dat file to main *.dat file.");
             }
             obtainFileDescriptor();
@@ -95,7 +96,7 @@ namespace db {
             } else {
                 mFileDescriptor = fopen(mFileName.c_str(), kModeCreate.c_str());
                 checkFileDescriptor();
-                allocateFileHeader(mFileDescriptor);
+                allocateFileHeader();
             }
         }
 
@@ -177,7 +178,7 @@ namespace db {
         }
 
         const bool UUIDMapBlockStorage::isFileExist() {
-            FILE *file = fopen(kFileName.c_str(), "w");
+            FILE *file = fopen(mFileName.c_str(), "w");
             if (file != NULL) {
                 fclose(file);
                 return true;
@@ -189,22 +190,6 @@ namespace db {
             return mIndexBlock.count(uuid) > 0;
         }
 
-        Block::Block(const byte *data, const size_t bytesCount) {
-            mData = data;
-            mBytesCount = bytesCount;
-        }
-
-        Block::~Block() {
-            free(mData);
-        }
-
-        const byte *Block::data() const {
-            return mData;
-        }
-
-        const size_t Block::bytesCount() const {
-            return mBytesCount;
-        }
 
     }
 }

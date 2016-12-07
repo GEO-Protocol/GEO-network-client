@@ -7,9 +7,7 @@
 #include <vector>
 #include <malloc.h>
 #include <unistd.h>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include "Block.h"
 #include "../common/NodeUUID.h"
 #include "../common/exceptions/IOError.h"
 #include "../common/exceptions/IndexError.h"
@@ -49,11 +47,11 @@ namespace db {
 
             ~UUIDMapBlockStorage();
 
-            void write(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount, const FILE *fileDescriptor);
+            void write(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount);
 
             void erase(const NodeUUID &uuid);
 
-            Block read(const NodeUUID &uuid);
+            Block readFromFile(const NodeUUID &uuid);
 
             const vector <NodeUUID> keys() const;
 
@@ -83,24 +81,6 @@ namespace db {
             const bool isUUIDTheIndex(const NodeUUID &uuid);
         };
 
-        class UUIDMapBlockStorage;
-
-        class Block {
-            friend class UUIDMapBlockStorage;
-
-        private:
-            byte *mData;
-            size_t mBytesCount;
-
-        public:
-            Block(const byte *data, const size_t bytesCount);
-
-            ~Block();
-
-            const byte *data() const;
-
-            const size_t bytesCount() const;
-        };
     }
 }
 #endif //GEO_NETWORK_CLIENT_UUIDMAPBLOCKSTORAGE_H
