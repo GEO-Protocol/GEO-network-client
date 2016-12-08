@@ -126,6 +126,7 @@ namespace db {
             memset(buffer, 0, kFileHeaderSize);
             fseek(mFileDescriptor, 0, SEEK_SET);
             fwrite(buffer, 1, kFileHeaderSize, mFileDescriptor);
+            free(buffer);
             syncData();
         }
 
