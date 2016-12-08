@@ -7,6 +7,7 @@ namespace db {
             mFileName = fileName;
             obtainFileDescriptor();
             readFileHeader();
+            readIndexBlock();
         }
 
         UUIDMapBlockStorage::~UUIDMapBlockStorage() {
@@ -17,8 +18,20 @@ namespace db {
 
         void UUIDMapBlockStorage::write(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount) {
             if (isUUIDTheIndex(uuid)){
-                throw ConflictError(string("Unable to write data. Index with such uuid already exist. Maybe you should use rewrite() method.").c_str());
+                throw ConflictError(string("Can't write data. Index with such uuid already exist. Maybe you should to use rewrite() method.").c_str());
             }
+            long offset = writeData(block, blockBytesCount);
+            pair<uint32_t, uint64_t> fileHeaderData = writeIndexRecordsInMemory(uuid, offset, blockBytesCount);
+            mMapIndexOffset = fileHeaderData.first;
+            mMapIndexRecordsCount = fileHeaderData.second;
+            writeFileHeader();
+        }
+
+        void UUIDMapBlockStorage::rewrite(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount) {
+            if (!isUUIDTheIndex(uuid)){
+                throw ConflictError(string("Unable to rewrite data. Index with such uuid does not exist. Maybe you to should use write() method.").c_str());
+            }
+            erase(uuid);
             long offset = writeData(block, blockBytesCount);
             pair<uint32_t, uint64_t> fileHeaderData = writeIndexRecordsInMemory(uuid, offset, blockBytesCount);
             mMapIndexOffset = fileHeaderData.first;
@@ -84,10 +97,10 @@ namespace db {
             delete mapBlockStorage;
             fclose(mFileDescriptor);
             if (remove(mFileName.c_str()) != 0){
-                throw IOError("Can't remove old *.dat file.");
+                throw IOError("Can't remove old *.bin file.");
             }
             if (rename(kTempFileName.c_str(), mFileName.c_str()) != 0){
-                throw IOError("Can't rename temporary *.dat file to main *.dat file.");
+                throw IOError("Can't rename temporary *.bin file to main *.bin file.");
             }
             obtainFileDescriptor();
         }
@@ -120,7 +133,7 @@ namespace db {
 
         void UUIDMapBlockStorage::readFileHeader() {
             checkFileDescriptor();
-            byte *headerBuffer = (byte *)malloc(kFileHeaderMapIndexOffset);
+            byte *headerBuffer = (byte *) malloc(kFileHeaderMapIndexOffset);
             memset(headerBuffer, 0, kFileHeaderMapIndexOffset);
             fseek(mFileDescriptor, 0, SEEK_SET);
             fread(headerBuffer, 1, kFileHeaderMapIndexOffset, mFileDescriptor);
@@ -133,6 +146,30 @@ namespace db {
             free(headerBuffer);
         }
 
+        void UUIDMapBlockStorage::readIndexBlock() {
+            if (mMapIndexRecordsCount > 0) {
+                byte *indexBlockBuffer = (byte *) malloc(kIndexRecordSize * mMapIndexRecordsCount);
+                memset(indexBlockBuffer, 0, kIndexRecordSize * mMapIndexRecordsCount);
+                fseek(mFileDescriptor, mMapIndexOffset, SEEK_SET);
+                if (fread(indexBlockBuffer, 1, kIndexRecordSize * mMapIndexRecordsCount, mFileDescriptor) != kIndexRecordSize){
+                    if (fread(indexBlockBuffer, 1, kIndexRecordSize * mMapIndexRecordsCount, mFileDescriptor) != kIndexRecordSize){
+                        free(indexBlockBuffer);
+                        throw IOError("Error while reading index block from *.bin file.");
+                    }
+                }
+
+                byte *indexBlockBufferOffset = indexBlockBuffer;
+                for (size_t recordNumber = 0; recordNumber < mMapIndexRecordsCount; ++ recordNumber) {
+                    NodeUUID *uuid = new (indexBlockBuffer) NodeUUID;
+                    uint32_t *offset = new (indexBlockBuffer + kIndexRecordUUIDSize) uint32_t;
+                    uint64_t *blockBytesCount = new (indexBlockBuffer + kIndexRecordUUIDSize + sizeof(uint32_t)) uint64_t;
+                    mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
+                    indexBlockBufferOffset += kIndexRecordSize;
+                }
+                free(indexBlockBuffer);
+            }
+        }
+
         const long UUIDMapBlockStorage::writeData(const byte *block, const size_t blockBytesCount) {
             fseek(mFileDescriptor, 0, SEEK_END);
             long offset = ftell(mFileDescriptor);
@@ -141,8 +178,8 @@ namespace db {
             return offset;
         }
 
-        const pair<uint32_t, uint64_t> UUIDMapBlockStorage::writeIndexRecordsInMemory(const NodeUUID &uuid, const long &offset,
-                                                          const size_t &blockBytesCount) {
+        const pair<uint32_t, uint64_t> UUIDMapBlockStorage::writeIndexRecordsInMemory(const NodeUUID &uuid, const long offset,
+                                                          const size_t blockBytesCount) {
             fseek(mFileDescriptor, 0, SEEK_END);
             long offsetToIndexRecords = ftell(mFileDescriptor);
             mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
@@ -161,9 +198,9 @@ namespace db {
         void UUIDMapBlockStorage::writeIndexBlock() {
             map<NodeUUID, pair<uint32_t, uint64_t>>::iterator looper;
             for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
-                fwrite(looper->first.data, 1, kIndexBlockUUIDSize, mFileDescriptor);
-                fwrite(&looper->second.first, 1, kIndexBlockOffsetSize, mFileDescriptor);
-                fwrite(&looper->second.second, 1, kIndexBlockDataSize, mFileDescriptor);
+                fwrite(looper->first.data, 1, kIndexRecordUUIDSize, mFileDescriptor);
+                fwrite(&looper->second.first, 1, kIndexRecordOffsetSize, mFileDescriptor);
+                fwrite(&looper->second.second, 1, kIndexRecordDataSize, mFileDescriptor);
             }
             syncData();
         }

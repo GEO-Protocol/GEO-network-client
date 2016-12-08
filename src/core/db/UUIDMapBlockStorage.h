@@ -41,9 +41,10 @@ namespace db {
             const size_t kFileHeaderMapIndexOffset = 4;
             const size_t kFileHeaderMapRecordsCount = 8;
             const size_t kFileHeaderSize = kFileHeaderMapIndexOffset + kFileHeaderMapRecordsCount;
-            const size_t kIndexBlockUUIDSize = 16;
-            const size_t kIndexBlockOffsetSize = 4;
-            const size_t kIndexBlockDataSize = 8;
+            const size_t kIndexRecordUUIDSize = 16;
+            const size_t kIndexRecordOffsetSize = 4;
+            const size_t kIndexRecordDataSize = 8;
+            const size_t kIndexRecordSize = kIndexRecordUUIDSize + kIndexRecordOffsetSize + kIndexBlockDataSize;
 
         public:
             UUIDMapBlockStorage(const string fileName);
@@ -51,6 +52,8 @@ namespace db {
             ~UUIDMapBlockStorage();
 
             void write(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount);
+
+            void rewrite(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount);
 
             void erase(const NodeUUID &uuid);
 
@@ -69,9 +72,11 @@ namespace db {
 
             void readFileHeader();
 
+            void readIndexBlock();
+
             const long writeData(const byte *block, const size_t blockBytesCount);
 
-            const pair<uint32_t, uint64_t> writeIndexRecordsInMemory(const NodeUUID &uuid, const long &offset, const size_t &blockBytesCount);
+            const pair<uint32_t, uint64_t> writeIndexRecordsInMemory(const NodeUUID &uuid, const long offset, const size_t blockBytesCount);
 
             void writeFileHeader();
 

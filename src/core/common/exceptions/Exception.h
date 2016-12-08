@@ -8,18 +8,18 @@ using namespace std;
 // todo: add exception parameters info (source code line, subsystem, etc)
 class Exception : public std::exception {
 public:
+    virtual ~Exception() throw(){}
+
     explicit Exception(const std::string &message);
 
     explicit Exception(const char *message) :
             msg_(message) {};
 
-    virtual ~Exception() throw(){}
+    const std::string message() const;
 
     virtual const char* what() const throw(){
         return msg_.c_str();
     }
-
-    const std::string message() const;
 
 protected:
     std::string msg_;
