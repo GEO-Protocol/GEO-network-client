@@ -8,15 +8,18 @@
 #include <malloc.h>
 #include <unistd.h>
 #include "Block.h"
+#include <boost/filesystem.hpp>
 #include "../common/NodeUUID.h"
 #include "../common/exceptions/IOError.h"
 #include "../common/exceptions/IndexError.h"
-#include "../logger/Logger.h"
+#include "../common/exceptions/ConflictError.h"
 
 namespace db {
     namespace uuid_map_block_storage {
 
         using namespace std;
+
+        namespace fs = boost::filesystem;
         
         typedef uint8_t byte;
 
@@ -31,7 +34,7 @@ namespace db {
 
             map <NodeUUID, pair<uint32_t, uint64_t>> mIndexBlock;
 
-            const string kTempFileName = "block_storage_temp.dat";
+            const string kTempFileName = "block_storage_temp.bin";
             const string kModeCreate = "w+";
             const string kModeUpdate = "r+";
 
@@ -66,7 +69,7 @@ namespace db {
 
             void readFileHeader();
 
-            const long writeData(const byte *block, const size_t &blockBytesCount);
+            const long writeData(const byte *block, const size_t blockBytesCount);
 
             const pair<uint32_t, uint64_t> writeIndexRecordsInMemory(const NodeUUID &uuid, const long &offset, const size_t &blockBytesCount);
 

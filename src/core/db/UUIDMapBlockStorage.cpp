@@ -16,6 +16,9 @@ namespace db {
         }
 
         void UUIDMapBlockStorage::write(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount) {
+            if (isUUIDTheIndex(uuid)){
+                throw ConflictError(string("Unable to write data. Index with such uuid already exist. Maybe you should use rewrite() method.").c_str());
+            }
             long offset = writeData(block, blockBytesCount);
             pair<uint32_t, uint64_t> fileHeaderData = writeIndexRecordsInMemory(uuid, offset, blockBytesCount);
             mMapIndexOffset = fileHeaderData.first;
@@ -130,7 +133,7 @@ namespace db {
             free(headerBuffer);
         }
 
-        const long UUIDMapBlockStorage::writeData(const byte *block, const size_t &blockBytesCount) {
+        const long UUIDMapBlockStorage::writeData(const byte *block, const size_t blockBytesCount) {
             fseek(mFileDescriptor, 0, SEEK_END);
             long offset = ftell(mFileDescriptor);
             fwrite(block, 1, blockBytesCount, mFileDescriptor);
@@ -142,15 +145,7 @@ namespace db {
                                                           const size_t &blockBytesCount) {
             fseek(mFileDescriptor, 0, SEEK_END);
             long offsetToIndexRecords = ftell(mFileDescriptor);
-            if (isUUIDTheIndex(uuid)) {
-                map<NodeUUID, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
-                if (seeker != mIndexBlock.end()) {
-                    seeker->second.first = (uint32_t) offset;
-                    seeker->second.second = (uint64_t) blockBytesCount;
-                }
-            } else {
-                mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
-            }
+            mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
             size_t recordsCount = mIndexBlock.size();
             writeIndexBlock();
             return make_pair((uint32_t) offsetToIndexRecords, (uint64_t) recordsCount);
@@ -178,12 +173,7 @@ namespace db {
         }
 
         const bool UUIDMapBlockStorage::isFileExist() {
-            FILE *file = fopen(mFileName.c_str(), "w");
-            if (file != NULL) {
-                fclose(file);
-                return true;
-            }
-            return false;
+            return fs::exists(fs::path(mFileName.c_str()));
         }
 
         const bool UUIDMapBlockStorage::isUUIDTheIndex(const NodeUUID &uuid) {

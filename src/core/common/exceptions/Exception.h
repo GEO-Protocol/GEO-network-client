@@ -3,13 +3,26 @@
 
 #include <string>
 
+using namespace std;
+
 // todo: add exception parameters info (source code line, subsystem, etc)
-class Exception {
+class Exception : public std::exception {
 public:
-    Exception(const std::string &message);
-    Exception(const char *message);
+    explicit Exception(const std::string &message);
+
+    explicit Exception(const char *message) :
+            msg_(message) {};
+
+    virtual ~Exception() throw(){}
+
+    virtual const char* what() const throw(){
+        return msg_.c_str();
+    }
 
     const std::string message() const;
+
+protected:
+    std::string msg_;
 
 private:
     std::string mMessage;
