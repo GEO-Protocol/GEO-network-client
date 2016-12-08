@@ -11,7 +11,7 @@ void UUIDMapBlockStorageTest::writeTestCase() {
 
     UUIDMapBlockStorage *mapBlockStorage = new UUIDMapBlockStorage("storage.dat");
     mapBlockStorage->write(u, array, size);
-    
+
 }
 
 byte *UUIDMapBlockStorageTest::generateRandomByteArray(size_t bytesCount) {
