@@ -31,7 +31,7 @@ namespace db {
 
             map <NodeUUID, pair<uint32_t, uint64_t>> mIndexBlock;
 
-            const string kTempFileName = "D:/block_storage_temp.dat";
+            const string kTempFileName = "block_storage_temp.dat";
             const string kModeCreate = "w+";
             const string kModeUpdate = "r+";
 
