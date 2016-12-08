@@ -57,7 +57,7 @@ namespace db {
             }
         }
 
-        Block UUIDMapBlockStorage::readFromFile(const NodeUUID &uuid) {
+        Block *UUIDMapBlockStorage::readFromFile(const NodeUUID &uuid) {
             if (isUUIDTheIndex(uuid)){
                 map<NodeUUID, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
                 if (seeker != mIndexBlock.end()) {
@@ -67,10 +67,7 @@ namespace db {
                     byte *dataBuffer = (byte *)malloc(bytesCount);
                     memset(dataBuffer, 0, bytesCount);
                     fread(dataBuffer, 1, bytesCount, mFileDescriptor);
-                    Block block(dataBuffer, bytesCount);
-                    block.mData = dataBuffer;
-                    block.mBytesCount = bytesCount;
-                    return block;
+                    return new Block (dataBuffer, bytesCount);
                 } else {
                     throw IndexError("Can't iterate map to find value by such key.");
                 }
@@ -91,8 +88,9 @@ namespace db {
             UUIDMapBlockStorage *mapBlockStorage = new UUIDMapBlockStorage(kTempFileName);
             map<NodeUUID, pair<uint32_t, uint64_t>>::iterator looper;
             for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
-                Block block = readFromFile(looper->first);
-                mapBlockStorage->write(looper->first, block.mData, block.mBytesCount);
+                Block *block = readFromFile(looper->first);
+                mapBlockStorage->write(looper->first, block->mData, block->mBytesCount);
+                delete block;
             }
             delete mapBlockStorage;
             fclose(mFileDescriptor);
@@ -163,7 +161,7 @@ namespace db {
                     NodeUUID *uuid = new (indexBlockBuffer) NodeUUID;
                     uint32_t *offset = new (indexBlockBuffer + kIndexRecordUUIDSize) uint32_t;
                     uint64_t *blockBytesCount = new (indexBlockBuffer + kIndexRecordUUIDSize + sizeof(uint32_t)) uint64_t;
-                    mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
+                    mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(*uuid, make_pair(*offset, *blockBytesCount)));
                     indexBlockBufferOffset += kIndexRecordSize;
                 }
                 free(indexBlockBuffer);

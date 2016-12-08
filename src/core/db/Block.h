@@ -20,7 +20,7 @@ namespace db {
             size_t mBytesCount;
 
         public:
-            Block(byte *data, const size_t bytesCount);
+            explicit Block(byte *data, const size_t bytesCount);
 
             ~Block();
 

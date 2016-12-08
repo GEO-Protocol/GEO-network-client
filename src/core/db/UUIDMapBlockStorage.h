@@ -44,7 +44,7 @@ namespace db {
             const size_t kIndexRecordUUIDSize = 16;
             const size_t kIndexRecordOffsetSize = 4;
             const size_t kIndexRecordDataSize = 8;
-            const size_t kIndexRecordSize = kIndexRecordUUIDSize + kIndexRecordOffsetSize + kIndexBlockDataSize;
+            const size_t kIndexRecordSize = kIndexRecordUUIDSize + kIndexRecordOffsetSize + kIndexRecordDataSize;
 
         public:
             UUIDMapBlockStorage(const string fileName);
@@ -57,7 +57,7 @@ namespace db {
 
             void erase(const NodeUUID &uuid);
 
-            Block readFromFile(const NodeUUID &uuid);
+            Block *readFromFile(const NodeUUID &uuid);
 
             const vector <NodeUUID> keys() const;
 
