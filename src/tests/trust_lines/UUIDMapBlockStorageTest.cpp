@@ -12,8 +12,7 @@ void UUIDMapBlockStorageTest::writeTestCase() {
     try{
         mapBlockStorage->write(u, u.data, 16);
         mapBlockStorage->write(u1, u1.data, 16);
-        mapBlockStorage->erase(u);
-        mapBlockStorage->vacuum();
+        mapBlockStorage->rewrite(u1, u.data, 16);
     } catch(std::exception &e){
         cout << e.what() << endl;
     }

@@ -150,8 +150,8 @@ namespace db {
                 byte *indexBlockBuffer = (byte *) malloc(kIndexRecordSize * mMapIndexRecordsCount);
                 memset(indexBlockBuffer, 0, kIndexRecordSize * mMapIndexRecordsCount);
                 fseek(mFileDescriptor, mMapIndexOffset, SEEK_SET);
-                if (fread(indexBlockBuffer, 1, kIndexRecordSize * mMapIndexRecordsCount, mFileDescriptor) != kIndexRecordSize){
-                    if (fread(indexBlockBuffer, 1, kIndexRecordSize * mMapIndexRecordsCount, mFileDescriptor) != kIndexRecordSize){
+                if (fread(indexBlockBuffer, 1, kIndexRecordSize * mMapIndexRecordsCount, mFileDescriptor) != kIndexRecordSize * mMapIndexRecordsCount){
+                    if (fread(indexBlockBuffer, 1, kIndexRecordSize * mMapIndexRecordsCount, mFileDescriptor) != kIndexRecordSize * mMapIndexRecordsCount){
                         free(indexBlockBuffer);
                         throw IOError("Error while reading index block from *.bin file.");
                     }
