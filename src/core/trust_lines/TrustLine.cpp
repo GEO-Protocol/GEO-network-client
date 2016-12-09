@@ -1,6 +1,6 @@
 #include "TrustLine.h"
 
-TrustLine::TrustLine(const uuids::uuid &nodeUUID,
+TrustLine::TrustLine(const NodeUUID &nodeUUID,
                      const trust_amount &incomingAmount,
                      const trust_amount &outgoingAmount,
                      const balance_value &nodeBalance) {
@@ -10,7 +10,7 @@ TrustLine::TrustLine(const uuids::uuid &nodeUUID,
     mBalance = nodeBalance;
 }
 
-void TrustLine::setContractorNodeUUID(const uuids::uuid &nodeUUID) {
+void TrustLine::setContractorNodeUUID(const NodeUUID &nodeUUID) {
     mContractorNodeUuid = nodeUUID;
 }
 
@@ -32,7 +32,7 @@ void TrustLine::setBalance(callback managersCallback, const balance_value &nodeB
     mManagerCallback();
 }
 
-const uuids::uuid &TrustLine::getContractorNodeUUID() const{
+const NodeUUID &TrustLine::getContractorNodeUUID() const{
     return mContractorNodeUuid;
 }
 

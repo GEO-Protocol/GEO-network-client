@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include "../../common/NodeUUID.h"
-#include "../../trust_lines/TrustLinesManager.h"
 #include "../../db/Block.h"
 #include "../../db/UUIDMapBlockStorage.h"
 
@@ -14,11 +13,9 @@ namespace io = db::uuid_map_block_storage;
 
 typedef io::byte byte;
 
-class TrustLinesManager;
 class TrustLinesStorage : public io::UUIDMapBlockStorage {
-    friend class TrustLinesManager;
 
-private:
+public:
     TrustLinesStorage(const string &fileName);
 
     ~TrustLinesStorage();
@@ -29,7 +26,7 @@ private:
 
     void modifyExistingTrustLineInStorage(const NodeUUID &uuid, const byte *data, const size_t bytesCount);
 
-    const Block *readTrustLineFromStorage(const NodeUUID &uuid);
+    const io::Block *readTrustLineFromStorage(const NodeUUID &uuid);
 
     void removeTrustLineFromStorage(const NodeUUID &uuid);
 };

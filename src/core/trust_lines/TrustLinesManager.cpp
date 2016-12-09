@@ -27,7 +27,7 @@ byte *TrustLinesManager::serializeBytesFromTrustLineStruct(TrustLine *trustLine)
     return buffer;
 }
 
-vector<byte> TrustLinesManager::trustAmountDataToBytes(trust_amount &amount) {
+vector<byte> TrustLinesManager::trustAmountDataToBytes(const trust_amount &amount) {
     vector<byte> byteSet;
     //Конвертація cpp_int шаблону в байти, результат записується у вектор.
     export_bits(static_cast<boost::multiprecision::checked_uint256_t>(amount), back_inserter(byteSet), 8);
@@ -43,7 +43,7 @@ vector<byte> TrustLinesManager::trustAmountDataToBytes(trust_amount &amount) {
     return byteSet;
 }
 
-vector<byte> TrustLinesManager::balanceToBytes(balance_value &balance) {
+vector<byte> TrustLinesManager::balanceToBytes(const balance_value &balance) {
     vector<byte> byteSet;
     //Конвертація cpp_int шаблону в байти, результат записується у вектор.
     export_bits(static_cast<boost::multiprecision::int256_t>(balance), back_inserter(byteSet), 8, true);
@@ -68,7 +68,7 @@ vector<byte> TrustLinesManager::balanceToBytes(balance_value &balance) {
     return byteSet;
 }
 
-void TrustLinesManager::deserializeTrustLineStructFromBytes(byte *buffer, NodeUUID &contractorUUID) {
+void TrustLinesManager::deserializeTrustLineStructFromBytes(const byte *buffer, const NodeUUID &contractorUUID) {
     //Десереалізаця байтового масиву в екземпляр структури.
     TrustLine *trustLine = new TrustLine(contractorUUID,
                                          parseTrustAmountData(buffer),
@@ -78,7 +78,7 @@ void TrustLinesManager::deserializeTrustLineStructFromBytes(byte *buffer, NodeUU
     mTrustLines.insert(pair<NodeUUID, TrustLine *>(contractorUUID, trustLine));
 }
 
-trust_amount TrustLinesManager::parseTrustAmountData(byte *buffer) {
+trust_amount TrustLinesManager::parseTrustAmountData(const byte *buffer) {
     trust_amount amount;
     vector<byte> bytesVector(kTrustAmountPartSize);
     vector<byte> notZeroBytesVector;
@@ -101,7 +101,7 @@ trust_amount TrustLinesManager::parseTrustAmountData(byte *buffer) {
     return amount;
 }
 
-balance_value TrustLinesManager::parseBalanceData(byte *buffer) {
+balance_value TrustLinesManager::parseBalanceData(const byte *buffer) {
     balance_value balance;
     vector<byte> bytesVector(kBalancePartSize);
     vector<byte> notZeroBytesVector;
@@ -176,8 +176,8 @@ void TrustLinesManager::getTrustLinesFromStorage() {
     vector<NodeUUID> contractorsUUIDs = mTrustLinesStorage->getAllContractorsUUIDs();
     if (contractorsUUIDs.size() > 0){
         for (auto const &item : contractorsUUIDs){
-            storage::Block *block = mTrustLinesStorage->readTrustLineFromStorage(item);
-            deserializeTrustLineStructFromBytes(block->data());
+            const storage::Block *block = mTrustLinesStorage->readTrustLineFromStorage(item);
+            deserializeTrustLineStructFromBytes(block->data(), item);
             delete block;
         }
     }

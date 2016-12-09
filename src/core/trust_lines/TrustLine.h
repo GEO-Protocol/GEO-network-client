@@ -22,19 +22,19 @@ struct TrustLine {
     friend class TrustLinesManager;
 
 private:
-    uuids::uuid mContractorNodeUuid;
+    NodeUUID mContractorNodeUuid;
     trust_amount mIncomingTrustAmount;
     trust_amount mOutgoingTrustAmount;
     balance_value mBalance;
     callback mManagerCallback;
 
 private:
-    TrustLine(const uuids::uuid &nodeUUID,
+    TrustLine(const NodeUUID &nodeUUID,
               const trust_amount &incomingAmount,
               const trust_amount &outgoingAmount,
               const balance_value &nodeBalance);
 
-    void setContractorNodeUUID(const uuids::uuid &nodeUUID);
+    void setContractorNodeUUID(const NodeUUID &nodeUUID);
 
     void setIncomingTrustAmount(callback managersCallback, const trust_amount &incomingAmount);
 
@@ -43,7 +43,7 @@ private:
     void setBalance(callback managersCallback, const balance_value &nodeBalance);
 
 public:
-    const uuids::uuid &getContractorNodeUUID() const;
+    const NodeUUID &getContractorNodeUUID() const;
 
     const trust_amount &getIncomingTrustAmount() const;
 

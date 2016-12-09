@@ -84,7 +84,8 @@ namespace db {
         }
 
         const vector <NodeUUID> UUIDMapBlockStorage::keys() const {
-            vector<NodeUUID> uuidsVector(mIndexBlock.size());
+            vector<NodeUUID> uuidsVector;
+            uuidsVector.reserve(mIndexBlock.size());
             for (auto const &it : mIndexBlock){
                 uuidsVector.push_back(it.first);
             }
@@ -181,9 +182,9 @@ namespace db {
 
                 byte *indexBlockBufferOffset = indexBlockBuffer;
                 for (size_t recordNumber = 0; recordNumber < mMapIndexRecordsCount; ++ recordNumber) {
-                    NodeUUID *uuid = new (indexBlockBuffer) NodeUUID;
-                    uint32_t *offset = new (indexBlockBuffer + kIndexRecordUUIDSize) uint32_t;
-                    uint64_t *blockBytesCount = new (indexBlockBuffer + kIndexRecordUUIDSize + sizeof(uint32_t)) uint64_t;
+                    NodeUUID *uuid = new (indexBlockBufferOffset) NodeUUID;
+                    uint32_t *offset = new (indexBlockBufferOffset + kIndexRecordUUIDSize) uint32_t;
+                    uint64_t *blockBytesCount = new (indexBlockBufferOffset + kIndexRecordUUIDSize + sizeof(uint32_t)) uint64_t;
                     mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(*uuid, make_pair(*offset, *blockBytesCount)));
                     indexBlockBufferOffset += kIndexRecordSize;
                 }

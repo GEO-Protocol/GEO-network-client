@@ -16,3 +16,9 @@ NodeUUID::operator boost::uuids::uuid() const {
     return static_cast<boost::uuids::uuid const&>(*this);
 }
 
+const string NodeUUID::stringUUID() const{
+    uuid u;
+    memcpy(&u.data, data, 16);
+    return boost::lexical_cast<string>(u);
+}
+

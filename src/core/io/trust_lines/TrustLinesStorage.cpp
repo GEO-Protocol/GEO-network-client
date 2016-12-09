@@ -2,7 +2,7 @@
 
 TrustLinesStorage::TrustLinesStorage(const string &fileName) : UUIDMapBlockStorage(fileName) {}
 
-TrustLinesStorage::~TrustLinesStorage() : ~UUIDMapBlockStorage() {}
+TrustLinesStorage::~TrustLinesStorage() {}
 
 const vector<NodeUUID> TrustLinesStorage::getAllContractorsUUIDs() {
     return keys();
@@ -20,8 +20,8 @@ void TrustLinesStorage::modifyExistingTrustLineInStorage(const NodeUUID &uuid, c
     }
 }
 
-const Block *TrustLinesStorage::readTrustLineFromStorage(const NodeUUID &uuid) {
-    Block *block;
+const io::Block *TrustLinesStorage::readTrustLineFromStorage(const NodeUUID &uuid) {
+    io::Block *block;
     try{
         block = readFromFile(uuid);
     }catch (std::exception &e){

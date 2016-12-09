@@ -7,8 +7,8 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include "../common/NodeUUID.h"
-#include "../io/trust_lines/TrustLinesStorage.h"
 #include "../db/Block.h"
+#include "../io/trust_lines/TrustLinesStorage.h"
 #include "../db/UUIDMapBlockStorage.h"
 #include "../common/exceptions/IOError.h"
 #include "../common/exceptions/ValueError.h"
@@ -24,7 +24,7 @@ typedef storage::byte byte;
 
 class TrustLinesManager {
 
-private:
+public:
     const size_t kTrustAmountPartSize = 32;
     const size_t kBalancePartSize = 32;
     const size_t kSignBytePartSize = 1;
@@ -52,7 +52,7 @@ private:
      * trust_amount type defined in header file. @see TrustLine.h
      * @return vector of bytes size of 32 bytes.
      */
-    vector<byte> trustAmountDataToBytes(trust_amount &amount);
+    vector<byte> trustAmountDataToBytes(const trust_amount &amount);
 
     /**
      * Function balanceToBytes(balance_value balance) <br>
@@ -62,7 +62,7 @@ private:
      * balance_value type defined in header file. @see TrustLine.h
      * @return vector of bytes size of 33 bytes. Last byte in vector specified sign, others bytes are value.
      */
-    vector<byte> balanceToBytes(balance_value &balance);
+    vector<byte> balanceToBytes(const balance_value &balance);
 
     /**
      * Function deserializeTrustLineStructFromBytes(uint8_t *buffer, uuids::uuid contractorUUID) <br>
@@ -71,7 +71,7 @@ private:
      * @param contractorUUID - contractor UUID absent into buffer and set in instance manually.
      * Deserialized instace insert into map.
      */
-    void deserializeTrustLineStructFromBytes(byte *buffer, NodeUUID &contractorUUID);
+    void deserializeTrustLineStructFromBytes(const byte *buffer, const NodeUUID &contractorUUID);
 
     /**
      * Function parseTrustAmountData(uint8_t *buffer) <br>
@@ -80,7 +80,7 @@ private:
      * @param buffer - uint8_t array with set of bytes.
      * @return trust_amount - incoming/outgoing trust line value, type of checked_uint256_t.
      */
-    trust_amount parseTrustAmountData(byte *buffer);
+    trust_amount parseTrustAmountData(const byte *buffer);
 
     /**
      * Function parseBalanceData(uint8_t *buffer) <br>
@@ -89,7 +89,7 @@ private:
      * @param buffer - uint8_t array with set of bytes.
      * @return balance_value - user's balance value, type of int256_t.
      */
-    balance_value parseBalanceData(byte *buffer);
+    balance_value parseBalanceData(const byte *buffer);
 
     /**
      * Function saveTrustLine(TrustLine *trustLine) <br>
