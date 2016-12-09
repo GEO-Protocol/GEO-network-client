@@ -7,8 +7,8 @@
 #include <vector>
 #include <malloc.h>
 #include <unistd.h>
-#include "Block.h"
 #include <boost/filesystem.hpp>
+#include "Block.h"
 #include "../common/NodeUUID.h"
 #include "../common/exceptions/IOError.h"
 #include "../common/exceptions/IndexError.h"
@@ -28,13 +28,13 @@ namespace db {
             FILE *mFileDescriptor;
             int mPOSIXFileDescriptor;
             string mFileName;
+            string mTempFIleName;
 
             uint32_t mMapIndexOffset = 0;
             uint64_t mMapIndexRecordsCount = 0;
 
             map <NodeUUID, pair<uint32_t, uint64_t>> mIndexBlock;
 
-            const string kTempFileName = "block_storage_temp.bin";
             const string kModeCreate = "w+";
             const string kModeUpdate = "r+";
 
@@ -46,8 +46,8 @@ namespace db {
             const size_t kIndexRecordDataSize = 8;
             const size_t kIndexRecordSize = kIndexRecordUUIDSize + kIndexRecordOffsetSize + kIndexRecordDataSize;
 
-        public:
-            UUIDMapBlockStorage(const string fileName);
+        protected:
+            UUIDMapBlockStorage(const string &fileName);
 
             ~UUIDMapBlockStorage();
 
@@ -84,7 +84,9 @@ namespace db {
 
             void syncData();
 
-            const bool isFileExist();
+            void removeTemporaryFile();
+
+            const bool isFileExist(string &fileName);
 
             const bool isUUIDTheIndex(const NodeUUID &uuid);
         };

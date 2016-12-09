@@ -1,6 +1,8 @@
 #include "TrustLinesManager.h"
 
 TrustLinesManager::TrustLinesManager() {
+    mTrustLinesStorage = new TrustLinesStorage("trust_lines_storage.bin");
+    getTrustLinesFromStorage();
 }
 
 TrustLinesManager::~TrustLinesManager() {
@@ -8,6 +10,7 @@ TrustLinesManager::~TrustLinesManager() {
         delete iterator.second;
     }
     mTrustLines.clear();
+    delete mTrustLinesStorage;
 }
 
 byte *TrustLinesManager::serializeBytesFromTrustLineStruct(TrustLine *trustLine) {
@@ -24,7 +27,7 @@ byte *TrustLinesManager::serializeBytesFromTrustLineStruct(TrustLine *trustLine)
     return buffer;
 }
 
-vector<byte> TrustLinesManager::trustAmountDataToBytes(trust_amount amount) {
+vector<byte> TrustLinesManager::trustAmountDataToBytes(trust_amount &amount) {
     vector<byte> byteSet;
     //Конвертація cpp_int шаблону в байти, результат записується у вектор.
     export_bits(static_cast<boost::multiprecision::checked_uint256_t>(amount), back_inserter(byteSet), 8);
@@ -40,7 +43,7 @@ vector<byte> TrustLinesManager::trustAmountDataToBytes(trust_amount amount) {
     return byteSet;
 }
 
-vector<byte> TrustLinesManager::balanceToBytes(balance_value balance) {
+vector<byte> TrustLinesManager::balanceToBytes(balance_value &balance) {
     vector<byte> byteSet;
     //Конвертація cpp_int шаблону в байти, результат записується у вектор.
     export_bits(static_cast<boost::multiprecision::int256_t>(balance), back_inserter(byteSet), 8, true);
@@ -65,14 +68,14 @@ vector<byte> TrustLinesManager::balanceToBytes(balance_value balance) {
     return byteSet;
 }
 
-void TrustLinesManager::deserializeTrustLineStructFromBytes(byte *buffer, uuids::uuid contractorUUID) {
+void TrustLinesManager::deserializeTrustLineStructFromBytes(byte *buffer, NodeUUID &contractorUUID) {
     //Десереалізаця байтового масиву в екземпляр структури.
     TrustLine *trustLine = new TrustLine(contractorUUID,
                                          parseTrustAmountData(buffer),
                                          parseTrustAmountData(buffer + kTrustAmountPartSize),
                                          parseBalanceData(buffer + kTrustAmountPartSize * 2));
     //Додання готового екземпляру в динамічну пам’ять.
-    mTrustLines.insert(pair<boost::uuids::uuid, TrustLine *>(contractorUUID, trustLine));
+    mTrustLines.insert(pair<NodeUUID, TrustLine *>(contractorUUID, trustLine));
 }
 
 trust_amount TrustLinesManager::parseTrustAmountData(byte *buffer) {
@@ -130,23 +133,34 @@ balance_value TrustLinesManager::parseBalanceData(byte *buffer) {
 
 void TrustLinesManager::saveTrustLine(TrustLine *trustLine) {
     byte *trustLineData = serializeBytesFromTrustLineStruct(trustLine);
-    //TODO: write bytes data in file with StorageManager, check if operation proceed success and write trust line in ram
-    //Contractor's uuid is present in trust line instance, but she's not serialized in bytes array
-    free(trustLineData);
     if (isTrustLineExist(trustLine->getContractorNodeUUID())) {
-        map<uuids::uuid, TrustLine *>::iterator it = mTrustLines.find(trustLine->getContractorNodeUUID());
+        try{
+            mTrustLinesStorage->modifyExistingTrustLineInStorage(trustLine->getContractorNodeUUID(), trustLineData, kBucketSize);
+        }catch (std::exception &e){
+            throw IOError(string(string("Can't store existing trust line in file. Message-> ") + string(e.what())).c_str());
+        }
+        map<NodeUUID, TrustLine *>::iterator it = mTrustLines.find(trustLine->getContractorNodeUUID());
         if (it != mTrustLines.end()){
             it->second = trustLine;
         }
     } else {
-        mTrustLines.insert(pair<uuids::uuid, TrustLine *>(trustLine->getContractorNodeUUID(), trustLine));
+        try{
+            mTrustLinesStorage->writeNewTrustLineInStorage(trustLine->getContractorNodeUUID(), trustLineData, kBucketSize);
+        }catch (std::exception &e){
+            throw IOError(string(string("Can't store new trust line in file. Message-> ") + string(e.what())).c_str());
+        }
+        mTrustLines.insert(pair<NodeUUID, TrustLine *>(trustLine->getContractorNodeUUID(), trustLine));
     }
+    free(trustLineData);
 }
 
-void TrustLinesManager::removeTrustLine(const uuids::uuid contractorUUID) {
-    //TODO: remove data from storage manager, check if operation proceed success and remove trust line from ram
-    //TODO: something like in saveTrustLine() method
+void TrustLinesManager::removeTrustLine(const NodeUUID &contractorUUID) {
     if (isTrustLineExist(contractorUUID)) {
+        try{
+            mTrustLinesStorage->removeTrustLineFromStorage(contractorUUID);
+        }catch (std::exception &e){
+            throw IOError(string(string("Can't remove trust line from file. Message-> ") + string(e.what())).c_str());
+        }
         delete mTrustLines.at(contractorUUID);
         mTrustLines.erase(contractorUUID);
     } else {
@@ -154,11 +168,22 @@ void TrustLinesManager::removeTrustLine(const uuids::uuid contractorUUID) {
     }
 }
 
-bool TrustLinesManager::isTrustLineExist(const uuids::uuid contractorUUID) {
+bool TrustLinesManager::isTrustLineExist(const NodeUUID &contractorUUID) {
     return mTrustLines.count(contractorUUID) > 0;
 }
 
-void TrustLinesManager::open(const uuids::uuid contractorUUID, const trust_amount amount) {
+void TrustLinesManager::getTrustLinesFromStorage() {
+    vector<NodeUUID> contractorsUUIDs = mTrustLinesStorage->getAllContractorsUUIDs();
+    if (contractorsUUIDs.size() > 0){
+        for (auto const &item : contractorsUUIDs){
+            storage::Block *block = mTrustLinesStorage->readTrustLineFromStorage(item);
+            deserializeTrustLineStructFromBytes(block->data());
+            delete block;
+        }
+    }
+}
+
+void TrustLinesManager::open(const NodeUUID &contractorUUID, const trust_amount &amount) {
     //Якщо значення лінії довіри, що відкривається більше за нуль
     if (amount > ZERO_CHECKED_INT256_VALUE){
         //Якщо існує вхідна лінія довіри від контрагента
@@ -187,7 +212,7 @@ void TrustLinesManager::open(const uuids::uuid contractorUUID, const trust_amoun
     }
 }
 
-void TrustLinesManager::close(const uuids::uuid contractorUUID) {
+void TrustLinesManager::close(const NodeUUID &contractorUUID) {
     //Якщо лінія довіри по відношенню до контрагента існує
     if (isTrustLineExist(contractorUUID)) {
         TrustLine *trustLine = mTrustLines.at(contractorUUID);
@@ -219,7 +244,7 @@ void TrustLinesManager::close(const uuids::uuid contractorUUID) {
     }
 }
 
-void TrustLinesManager::accept(const uuids::uuid contractorUUID, const trust_amount amount) {
+void TrustLinesManager::accept(const NodeUUID &contractorUUID, const trust_amount &amount) {
     //Якщо значення лінії довіри, що приймається більше за нуль
     if (amount > ZERO_CHECKED_INT256_VALUE){
         //Якщо існує вихідна лінія довіри до контрагента
@@ -248,7 +273,7 @@ void TrustLinesManager::accept(const uuids::uuid contractorUUID, const trust_amo
     }
 }
 
-void TrustLinesManager::reject(const uuids::uuid contractorUUID) {
+void TrustLinesManager::reject(const NodeUUID &contractorUUID) {
     //Якщо лінія довіри по відношенню до контрагента існує
     if (isTrustLineExist(contractorUUID)) {
         TrustLine *trustLine = mTrustLines.at(contractorUUID);
@@ -280,7 +305,7 @@ void TrustLinesManager::reject(const uuids::uuid contractorUUID) {
     }
 }
 
-TrustLine* TrustLinesManager::getTrustLineByContractorUUID(const uuids::uuid contractorUUID){
+TrustLine* TrustLinesManager::getTrustLineByContractorUUID(const NodeUUID &contractorUUID){
     if (isTrustLineExist(contractorUUID)) {
         return mTrustLines.at(contractorUUID);
     }

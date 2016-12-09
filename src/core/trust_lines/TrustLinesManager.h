@@ -4,9 +4,13 @@
 #include <map>
 #include <vector>
 #include <malloc.h>
-#include <boost/uuid/uuid.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
+#include "../common/NodeUUID.h"
+#include "../io/trust_lines/TrustLinesStorage.h"
+#include "../db/Block.h"
+#include "../db/UUIDMapBlockStorage.h"
+#include "../common/exceptions/IOError.h"
 #include "../common/exceptions/ValueError.h"
 #include "../common/exceptions/ConflictError.h"
 #include "../common/exceptions/PreconditionFaultError.h"
@@ -14,7 +18,9 @@
 
 using namespace std;
 
-typedef uint8_t byte;
+namespace storage = db::uuid_map_block_storage;
+
+typedef storage::byte byte;
 
 class TrustLinesManager {
 
@@ -25,7 +31,8 @@ private:
     const size_t kBucketSize = kTrustAmountPartSize + kTrustAmountPartSize + kBalancePartSize + kSignBytePartSize;
     const trust_amount ZERO_CHECKED_INT256_VALUE = 0;
     const balance_value ZERO_INT256_VALUE = 0;
-    map<uuids::uuid, TrustLine *> mTrustLines;
+    map<NodeUUID, TrustLine *> mTrustLines;
+    TrustLinesStorage *mTrustLinesStorage;
 
 private:
 
@@ -45,7 +52,7 @@ private:
      * trust_amount type defined in header file. @see TrustLine.h
      * @return vector of bytes size of 32 bytes.
      */
-    vector<byte> trustAmountDataToBytes(trust_amount amount);
+    vector<byte> trustAmountDataToBytes(trust_amount &amount);
 
     /**
      * Function balanceToBytes(balance_value balance) <br>
@@ -55,7 +62,7 @@ private:
      * balance_value type defined in header file. @see TrustLine.h
      * @return vector of bytes size of 33 bytes. Last byte in vector specified sign, others bytes are value.
      */
-    vector<byte> balanceToBytes(balance_value balance);
+    vector<byte> balanceToBytes(balance_value &balance);
 
     /**
      * Function deserializeTrustLineStructFromBytes(uint8_t *buffer, uuids::uuid contractorUUID) <br>
@@ -64,7 +71,7 @@ private:
      * @param contractorUUID - contractor UUID absent into buffer and set in instance manually.
      * Deserialized instace insert into map.
      */
-    void deserializeTrustLineStructFromBytes(byte *buffer, uuids::uuid contractorUUID);
+    void deserializeTrustLineStructFromBytes(byte *buffer, NodeUUID &contractorUUID);
 
     /**
      * Function parseTrustAmountData(uint8_t *buffer) <br>
@@ -97,7 +104,7 @@ private:
      * @param contractorUUID - contractor UUID.
      * @throw ConflictError - if trust line with such contracotr UUID does not exist
      */
-    void removeTrustLine(const uuids::uuid contractorUUID);
+    void removeTrustLine(const NodeUUID &contractorUUID);
 
     /**
      * Function isTrustLineExist(const uuids::uuid contractorUUID) <br>
@@ -105,7 +112,9 @@ private:
      * @param contractorUUID - contractor UUID.
      * @return true if pointer to TrustLine struct instance by such contractor UUID key exist in map, else return false.
      */
-    bool isTrustLineExist(const uuids::uuid contractorUUID);
+    bool isTrustLineExist(const NodeUUID &contractorUUID);
+
+    void getTrustLinesFromStorage();
 
 public:
 
@@ -127,7 +136,7 @@ public:
      * @throw ConflictError - outgoing trust line to such contractor already exist.
      * @throw ValueError - outgoing trust line amount less or equals to zero.
      */
-    void open(const uuids::uuid contractorUUID, const trust_amount amount);
+    void open(const NodeUUID &contractorUUID, const trust_amount &amount);
 
     /**
      * Function close(const uuids::uuid contractorUUID) <br>
@@ -137,7 +146,7 @@ public:
      * @throw ValueError - outgoing trust line amount less or equals to zero.
      * @throw PreconditionError - contractor already used part of amount.
      */
-    void close(const uuids::uuid contractorUUID);
+    void close(const NodeUUID &contractorUUID);
 
     /**
      * Function accept(const uuids::uuid contractorUUID, const trust_amount amount) <br>
@@ -147,7 +156,7 @@ public:
      * @throw ConflictError - incoming trust line to such contractor already exist.
      * @throw ValueError - incoming trust line amount less or equals to zero.
      */
-    void accept(const uuids::uuid contractorUUID, const trust_amount amount);
+    void accept(const NodeUUID &contractorUUID, const trust_amount &amount);
 
     /**
      * Function reject(const uuids::uuid contractorUUID) <br>
@@ -157,7 +166,7 @@ public:
      * @throw ValueError - incoming trust line amount less or equals to zero.
      * @throw PreconditionError - user already used part of amount.
      */
-    void reject(const uuids::uuid contractorUUID);
+    void reject(const NodeUUID &contractorUUID);
 
     /**
      * Function getTrustLineByContractorUUID(const uuids::uuid contractorUUID) <br>
@@ -165,7 +174,7 @@ public:
      * @param contractorUUID - contractor UUID.
      * @return TrustLine* - pointer on Trust Line structure instance.
      */
-    TrustLine *getTrustLineByContractorUUID(const uuids::uuid contractorUUID);
+    TrustLine *getTrustLineByContractorUUID(const NodeUUID &contractorUUID);
 };
 
 

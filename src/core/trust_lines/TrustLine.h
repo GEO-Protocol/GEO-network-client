@@ -3,16 +3,13 @@
 
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
+#include "../common/NodeUUID.h"
 
 
 using namespace std;
 using boost::multiprecision::cpp_int;
 
-namespace uuids = boost::uuids;
 namespace multiprecision = boost::multiprecision;
 
 typedef multiprecision::checked_uint256_t trust_amount;
@@ -45,6 +42,7 @@ private:
 
     void setBalance(callback managersCallback, const balance_value &nodeBalance);
 
+public:
     const uuids::uuid &getContractorNodeUUID() const;
 
     const trust_amount &getIncomingTrustAmount() const;

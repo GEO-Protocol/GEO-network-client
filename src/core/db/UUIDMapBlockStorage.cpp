@@ -3,8 +3,10 @@
 namespace db {
     namespace uuid_map_block_storage {
 
-        UUIDMapBlockStorage::UUIDMapBlockStorage(const string fileName) {
+        UUIDMapBlockStorage::UUIDMapBlockStorage(const string &fileName) {
             mFileName = fileName;
+            mTempFIleName = string("temp_") + mFileName;
+            removeTemporaryFile();
             obtainFileDescriptor();
             readFileHeader();
             readIndexBlock();
@@ -50,10 +52,10 @@ namespace db {
                     writeIndexBlock();
                     writeFileHeader();
                 } else {
-                    throw IndexError("Can't iterate map to find value by such key.");
+                    throw IndexError(string("Can't iterate map to find value by such key.").c_str());
                 }
             } else {
-                throw IndexError("Can't find such uuid in index block.");
+                throw IndexError(string("Can't find such uuid in index block.").c_str());
             }
         }
 
@@ -66,26 +68,31 @@ namespace db {
                     fseek(mFileDescriptor, offset, SEEK_SET);
                     byte *dataBuffer = (byte *)malloc(bytesCount);
                     memset(dataBuffer, 0, bytesCount);
-                    fread(dataBuffer, 1, bytesCount, mFileDescriptor);
-                    return new Block (dataBuffer, bytesCount);
+                    if (fread(dataBuffer, 1, bytesCount, mFileDescriptor) != bytesCount) {
+                        if (fread(dataBuffer, 1, bytesCount, mFileDescriptor) != bytesCount) {
+                            free(dataBuffer);
+                            throw IOError(string("Can't read data block from file in buffer").c_str());
+                        }
+                    }
+                    return new Block(dataBuffer, bytesCount);
                 } else {
-                    throw IndexError("Can't iterate map to find value by such key.");
+                    throw IndexError(string("Can't iterate map to find value by such key.").c_str());
                 }
             } else {
-                throw IndexError("Can't find such uuid in index block.");
+                throw IndexError(string("Can't find such uuid in index block.").c_str());
             }
         }
 
         const vector <NodeUUID> UUIDMapBlockStorage::keys() const {
             vector<NodeUUID> uuidsVector(mIndexBlock.size());
-            for (auto &it : mIndexBlock){
+            for (auto const &it : mIndexBlock){
                 uuidsVector.push_back(it.first);
             }
             return uuidsVector;
         }
 
         void UUIDMapBlockStorage::vacuum() {
-            UUIDMapBlockStorage *mapBlockStorage = new UUIDMapBlockStorage(kTempFileName);
+            UUIDMapBlockStorage *mapBlockStorage = new UUIDMapBlockStorage(mTempFIleName);
             map<NodeUUID, pair<uint32_t, uint64_t>>::iterator looper;
             for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
                 Block *block = readFromFile(looper->first);
@@ -95,16 +102,16 @@ namespace db {
             delete mapBlockStorage;
             fclose(mFileDescriptor);
             if (remove(mFileName.c_str()) != 0){
-                throw IOError("Can't remove old *.bin file.");
+                throw IOError(string("Can't remove old *.bin file.").c_str());
             }
-            if (rename(kTempFileName.c_str(), mFileName.c_str()) != 0){
-                throw IOError("Can't rename temporary *.bin file to main *.bin file.");
+            if (rename(mTempFIleName.c_str(), mFileName.c_str()) != 0){
+                throw IOError(string("Can't rename temporary *.bin file to main *.bin file.").c_str());
             }
             obtainFileDescriptor();
         }
 
         void UUIDMapBlockStorage::obtainFileDescriptor() {
-            if (isFileExist()) {
+            if (isFileExist(mFileName)) {
                 mFileDescriptor = fopen(mFileName.c_str(), kModeUpdate.c_str());
                 checkFileDescriptor();
             } else {
@@ -116,7 +123,7 @@ namespace db {
 
         void UUIDMapBlockStorage::checkFileDescriptor() {
             if (mFileDescriptor == NULL) {
-                throw IOError("Unable to obtain file descriptor");
+                throw IOError(string("Unable to obtain file descriptor.").c_str());
             }
             mPOSIXFileDescriptor = fileno(mFileDescriptor);
         }
@@ -125,7 +132,12 @@ namespace db {
             byte *buffer = (byte *) malloc(kFileHeaderSize);
             memset(buffer, 0, kFileHeaderSize);
             fseek(mFileDescriptor, 0, SEEK_SET);
-            fwrite(buffer, 1, kFileHeaderSize, mFileDescriptor);
+            if (fwrite(buffer, 1, kFileHeaderSize, mFileDescriptor) != kFileHeaderSize) {
+                if (fwrite(buffer, 1, kFileHeaderSize, mFileDescriptor) != kFileHeaderSize) {
+                    free(buffer);
+                    throw IOError(string("Can't allocate default empty file header.").c_str());
+                }
+            }
             free(buffer);
             syncData();
         }
@@ -135,12 +147,22 @@ namespace db {
             byte *headerBuffer = (byte *) malloc(kFileHeaderMapIndexOffset);
             memset(headerBuffer, 0, kFileHeaderMapIndexOffset);
             fseek(mFileDescriptor, 0, SEEK_SET);
-            fread(headerBuffer, 1, kFileHeaderMapIndexOffset, mFileDescriptor);
+            if (fread(headerBuffer, 1, kFileHeaderMapIndexOffset, mFileDescriptor) != kFileHeaderMapIndexOffset) {
+                if (fread(headerBuffer, 1, kFileHeaderMapIndexOffset, mFileDescriptor) != kFileHeaderMapIndexOffset) {
+                    free(headerBuffer);
+                    throw IOError(string("Can't read index block offset from file header").c_str());
+                }
+            }
             mMapIndexOffset = *((uint32_t *) headerBuffer);
             free(headerBuffer);
             headerBuffer = (byte *)malloc(kFileHeaderMapRecordsCount);
             memset(headerBuffer, 0, kFileHeaderMapRecordsCount);
-            fread(headerBuffer, 1, kFileHeaderMapRecordsCount, mFileDescriptor);
+            if (fread(headerBuffer, 1, kFileHeaderMapRecordsCount, mFileDescriptor) != kFileHeaderMapRecordsCount) {
+                if (fread(headerBuffer, 1, kFileHeaderMapRecordsCount, mFileDescriptor) != kFileHeaderMapRecordsCount) {
+                    free(headerBuffer);
+                    throw IOError(string("Can't read index records count in index block from file header").c_str());
+                }
+            }
             mMapIndexRecordsCount = *((uint64_t *) headerBuffer);
             free(headerBuffer);
         }
@@ -153,7 +175,7 @@ namespace db {
                 if (fread(indexBlockBuffer, 1, kIndexRecordSize * mMapIndexRecordsCount, mFileDescriptor) != kIndexRecordSize * mMapIndexRecordsCount){
                     if (fread(indexBlockBuffer, 1, kIndexRecordSize * mMapIndexRecordsCount, mFileDescriptor) != kIndexRecordSize * mMapIndexRecordsCount){
                         free(indexBlockBuffer);
-                        throw IOError("Error while reading index block from *.bin file.");
+                        throw IOError(string("Error while reading index block from *.bin file.").c_str());
                     }
                 }
 
@@ -172,7 +194,11 @@ namespace db {
         const long UUIDMapBlockStorage::writeData(const byte *block, const size_t blockBytesCount) {
             fseek(mFileDescriptor, 0, SEEK_END);
             long offset = ftell(mFileDescriptor);
-            fwrite(block, 1, blockBytesCount, mFileDescriptor);
+            if (fwrite(block, 1, blockBytesCount, mFileDescriptor) != blockBytesCount) {
+                if (fwrite(block, 1, blockBytesCount, mFileDescriptor) != blockBytesCount) {
+                    throw IOError(string("Can't write data buffer in file.").c_str());
+                }
+            }
             syncData();
             return offset;
         }
@@ -189,17 +215,37 @@ namespace db {
 
         void UUIDMapBlockStorage::writeFileHeader() {
             fseek(mFileDescriptor, 0, SEEK_SET);
-            fwrite(&mMapIndexOffset, 1, kFileHeaderMapIndexOffset, mFileDescriptor);
-            fwrite(&mMapIndexRecordsCount, 1, kFileHeaderMapRecordsCount, mFileDescriptor);
+            if (fwrite(&mMapIndexOffset, 1, kFileHeaderMapIndexOffset, mFileDescriptor) != kFileHeaderMapIndexOffset) {
+                if (fwrite(&mMapIndexOffset, 1, kFileHeaderMapIndexOffset, mFileDescriptor) != kFileHeaderMapIndexOffset) {
+                    throw IOError(string("Can't write index block offset in file header.").c_str());
+                }
+            }
+            if (fwrite(&mMapIndexRecordsCount, 1, kFileHeaderMapRecordsCount, mFileDescriptor) != kFileHeaderMapRecordsCount){
+                if (fwrite(&mMapIndexRecordsCount, 1, kFileHeaderMapRecordsCount, mFileDescriptor) != kFileHeaderMapRecordsCount){
+                    throw IOError(string("Can't write index records count in index block in file header.").c_str());
+                }
+            }
             syncData();
         }
 
         void UUIDMapBlockStorage::writeIndexBlock() {
             map<NodeUUID, pair<uint32_t, uint64_t>>::iterator looper;
             for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
-                fwrite(looper->first.data, 1, kIndexRecordUUIDSize, mFileDescriptor);
-                fwrite(&looper->second.first, 1, kIndexRecordOffsetSize, mFileDescriptor);
-                fwrite(&looper->second.second, 1, kIndexRecordDataSize, mFileDescriptor);
+                if (fwrite(looper->first.data, 1, kIndexRecordUUIDSize, mFileDescriptor) != kIndexRecordUUIDSize){
+                    if (fwrite(looper->first.data, 1, kIndexRecordUUIDSize, mFileDescriptor) != kIndexRecordUUIDSize){
+                        throw IOError(string("Can't uuid in index block.").c_str());
+                    }
+                }
+                if (fwrite(&looper->second.first, 1, kIndexRecordOffsetSize, mFileDescriptor) != kIndexRecordOffsetSize){
+                    if (fwrite(&looper->second.first, 1, kIndexRecordOffsetSize, mFileDescriptor) != kIndexRecordOffsetSize){
+                        throw IOError(string("Can't offset to data block in index block.").c_str());
+                    }
+                }
+                if (fwrite(&looper->second.second, 1, kIndexRecordDataSize, mFileDescriptor) != kIndexRecordDataSize){
+                    if (fwrite(&looper->second.second, 1, kIndexRecordDataSize, mFileDescriptor) != kIndexRecordDataSize){
+                        throw IOError(string("Can't data bytes count in index block.").c_str());
+                    }
+                }
             }
             syncData();
         }
@@ -208,8 +254,16 @@ namespace db {
             fdatasync(mPOSIXFileDescriptor);
         }
 
-        const bool UUIDMapBlockStorage::isFileExist() {
-            return fs::exists(fs::path(mFileName.c_str()));
+        void UUIDMapBlockStorage::removeTemporaryFile() {
+            if (isFileExist(mTempFIleName)){
+                if (remove(mTempFIleName.c_str()) != 0){
+                    throw IOError(string("Can't remove old *.bin file.").c_str());
+                }
+            }
+        }
+
+        const bool UUIDMapBlockStorage::isFileExist(string &fileName) {
+            return fs::exists(fs::path(fileName.c_str()));
         }
 
         const bool UUIDMapBlockStorage::isUUIDTheIndex(const NodeUUID &uuid) {
