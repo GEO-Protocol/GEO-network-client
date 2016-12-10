@@ -23,7 +23,11 @@ namespace db {
         
         typedef uint8_t byte;
 
+        class UUIDMapBlockStorageTest;
+
         class UUIDMapBlockStorage {
+            friend class UUIDMapBlockStorageTest;
+
         private:
             FILE *mFileDescriptor;
             int mPOSIXFileDescriptor;

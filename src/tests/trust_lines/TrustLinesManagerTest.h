@@ -10,6 +10,16 @@ using namespace std;
 class TrustLinesManagerTest {
 
 public:
+    NodeUUID contractor1;
+    NodeUUID contractor2;
+    NodeUUID contractor3;
+    NodeUUID contractor4;
+
+    TrustLinesManager *mTrustLinesManager;
+
+public:
+
+    TrustLinesManagerTest();
 
     void openSuccessTestCase();
 
@@ -18,6 +28,10 @@ public:
     void closeSuccessTestCase();
 
     void rejectSuccessTestCase();
+
+    void deletePointer();
+
+    void showAllTrustLines();
 
     void run();
 };

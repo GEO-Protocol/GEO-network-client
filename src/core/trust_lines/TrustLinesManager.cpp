@@ -308,8 +308,9 @@ void TrustLinesManager::reject(const NodeUUID &contractorUUID) {
 TrustLine* TrustLinesManager::getTrustLineByContractorUUID(const NodeUUID &contractorUUID){
     if (isTrustLineExist(contractorUUID)) {
         return mTrustLines.at(contractorUUID);
+    } else {
+        throw ConflictError("Can't find trust line by such contractor UUID.");
     }
-    return nullptr;
 }
 
 

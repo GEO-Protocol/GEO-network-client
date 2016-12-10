@@ -7,8 +7,8 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include "../common/NodeUUID.h"
-#include "../db/Block.h"
 #include "../io/trust_lines/TrustLinesStorage.h"
+#include "../db/Block.h"
 #include "../db/UUIDMapBlockStorage.h"
 #include "../common/exceptions/IOError.h"
 #include "../common/exceptions/ValueError.h"
@@ -22,9 +22,12 @@ namespace storage = db::uuid_map_block_storage;
 
 typedef storage::byte byte;
 
-class TrustLinesManager {
+class TrustLinesManagerTest;
 
-public:
+class TrustLinesManager {
+    friend class TrustLinesManagerTest;
+
+private:
     const size_t kTrustAmountPartSize = 32;
     const size_t kBalancePartSize = 32;
     const size_t kSignBytePartSize = 1;

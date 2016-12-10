@@ -1,41 +1,54 @@
 #include "TrustLinesManagerTest.h"
 
+TrustLinesManagerTest::TrustLinesManagerTest() {
+    mTrustLinesManager = new TrustLinesManager();
+}
+
 void TrustLinesManagerTest::openSuccessTestCase() {
-    NodeUUID nodeUUID;
-    NodeUUID nodeUUID1;
-    TrustLinesManager *trustLinesManager = new TrustLinesManager();
-    trustLinesManager->open(nodeUUID, 100);
-    trustLinesManager->open(nodeUUID1, 200);
-    trustLinesManager->accept(nodeUUID1, 300);
-    delete trustLinesManager;
+    mTrustLinesManager->open(contractor1, 10543);
+    mTrustLinesManager->open(contractor2, 29841);
+
 }
 
 void TrustLinesManagerTest::acceptSuccessTestCase() {
+    mTrustLinesManager->accept(contractor2, 50000);
+    mTrustLinesManager->accept(contractor3, 7854);
+    mTrustLinesManager->accept(contractor4, 80);
+}
+
+
+void TrustLinesManagerTest::closeSuccessTestCase() {
+    mTrustLinesManager->close(contractor1);
+}
+
+void TrustLinesManagerTest::rejectSuccessTestCase() {
+    mTrustLinesManager->reject(contractor2);
+    mTrustLinesManager->reject(contractor4);
+}
+
+void TrustLinesManagerTest::deletePointer() {
+    delete mTrustLinesManager;
+}
+
+void TrustLinesManagerTest::showAllTrustLines() {
+    deletePointer();
     TrustLinesManager *trustLinesManager = new TrustLinesManager();
     for(auto const &it : trustLinesManager->mTrustLines){
         TrustLine *tl = trustLinesManager->getTrustLineByContractorUUID(it.first);
-        cout << tl->getContractorNodeUUID().stringUUID() << endl;
-        cout << tl->getOutgoingTrustAmount() << endl;
-        cout << tl->getIncomingTrustAmount() << endl;
-        cout << tl->getBalance() << endl;
+        cout << "Contractor " << tl->getContractorNodeUUID().stringUUID() << endl;
+        cout << "Outgoing trust amount " << tl->getOutgoingTrustAmount() << endl;
+        cout << "Incoming trust amount " << tl->getIncomingTrustAmount() << endl;
+        cout << "Balance " << tl->getBalance() << endl;
         cout << "-------------------------------------------------------" <<endl;
     }
     delete trustLinesManager;
 }
 
 
-void TrustLinesManagerTest::closeSuccessTestCase() {
-
-}
-
-void TrustLinesManagerTest::rejectSuccessTestCase() {
-
-}
-
-
 void TrustLinesManagerTest::run() {
-    openSuccessTestCase();
-    acceptSuccessTestCase();
+    //openSuccessTestCase();
+    //acceptSuccessTestCase();
+    //closeSuccessTestCase();
+    //rejectSuccessTestCase();
+    showAllTrustLines();
 }
-
-
