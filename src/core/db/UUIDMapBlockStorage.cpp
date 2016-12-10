@@ -256,9 +256,17 @@ namespace db {
         }
 
         void UUIDMapBlockStorage::removeTemporaryFile() {
-            if (isFileExist(mTempFIleName)){
-                if (remove(mTempFIleName.c_str()) != 0){
-                    throw IOError(string("Can't remove old *.bin file.").c_str());
+            if (isFileExist(mFileName)){
+                if (isFileExist(mTempFIleName)){
+                    if (remove(mTempFIleName.c_str()) != 0){
+                        throw IOError(string("Can't remove old *.bin file.").c_str());
+                    }
+                }
+            } else {
+                if (isFileExist(mTempFIleName)){
+                    if (rename(mTempFIleName.c_str(), mFileName.c_str()) != 0){
+                        throw IOError(string("Can't rename temporary *.bin file to main *.bin file.").c_str());
+                    }
                 }
             }
         }
