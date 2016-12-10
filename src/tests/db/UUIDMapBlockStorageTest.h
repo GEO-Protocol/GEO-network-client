@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_UUIDMAPBLOCKSTORAGETEST_H
 
 #include <iostream>
+#include <assert.h>
 #include "../../core/db/UUIDMapBlockStorage.h"
 
 namespace db {
@@ -29,9 +30,19 @@ namespace db {
 
             ~UUIDMapBlockStorageTest();
 
+            void initializeNewPointer();
+
+            void deletePointerToStorage();
+
             void writeTestCase();
 
             void readFromFile();
+
+            void readFirstIndex();
+
+            void readSecondIndex();
+
+            void readThirdIndex();
 
             void start();
         };

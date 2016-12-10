@@ -182,10 +182,11 @@ namespace db {
 
                 byte *indexBlockBufferOffset = indexBlockBuffer;
                 for (size_t recordNumber = 0; recordNumber < mMapIndexRecordsCount; ++ recordNumber) {
-                    NodeUUID *uuid = new (indexBlockBufferOffset) NodeUUID;
+                    NodeUUID uuid;
+                    memcpy(&uuid, indexBlockBufferOffset, 16);
                     uint32_t *offset = new (indexBlockBufferOffset + kIndexRecordUUIDSize) uint32_t;
                     uint64_t *blockBytesCount = new (indexBlockBufferOffset + kIndexRecordUUIDSize + sizeof(uint32_t)) uint64_t;
-                    mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(*uuid, make_pair(*offset, *blockBytesCount)));
+                    mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(uuid, make_pair(*offset, *blockBytesCount)));
                     indexBlockBufferOffset += kIndexRecordSize;
                 }
                 free(indexBlockBuffer);
