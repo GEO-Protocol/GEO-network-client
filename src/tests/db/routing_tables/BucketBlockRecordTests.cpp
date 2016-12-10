@@ -1,4 +1,4 @@
-#include "../../../core/db/routing_tables/internal/BucketBlockRecord.h"
+#include "../../../core/db/fields/uuid_map_column/internal/BucketBlockRecord.h"
 
 
 namespace db {
@@ -28,11 +28,12 @@ public:
 private:
     void checkInsertInEmptyRecord() {
         NodeUUID uuid;
-        BucketBlockRecord record(uuid);
         RecordNumber recordNumber(100);
 
-        record.insert(recordNumber);
+        BucketBlockRecord record(uuid);
+        assert(record.mRecordsNumbersCount == 0);
 
+        record.insert(recordNumber);
         assert(record.mRecordsNumbersCount == 1);
         assert(record.mRecordsNumbers[0] == recordNumber);
     }

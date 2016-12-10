@@ -1,7 +1,10 @@
 #include "BucketBlockRecord.h"
 
+
 namespace db {
-namespace routing_tables {
+namespace fields {
+namespace uuid_map {
+
 
 BucketBlockRecord::BucketBlockRecord(const NodeUUID &uuid):
     mUUID(uuid),
@@ -33,60 +36,62 @@ BucketBlockRecord::~BucketBlockRecord() {
  */
 void BucketBlockRecord::insert(const RecordNumber recN) {
 
-    // Check if current record doesn't contains recN.
-    // If so - there is no reason to initialize buffers reorganization
-    // and sorting operations.
-    for (RecordsCount i=0; i<mRecordsNumbersCount; ++i){
-        if (mRecordsNumbers[i] == recN) {
-            throw ConflictError(
-                "BucketBlockRecord::insert: "
-                    "duplicate recN occurred.");
-        }
-    }
-
     if (mRecordsNumbersCount == numeric_limits<RecordsCount>::max()){
         throw OverflowError(
-            "BucketBlockRecord::insert: "
+            "BucketBlockRecord::set: "
                 "there is no free space in this record.");
     }
 
+    try {
+        indexOf(recN);
 
-#define REC_N_SIZE sizeof(RecordNumber)
-
-    const size_t newBufferSize =
-        (mRecordsNumbersCount * REC_N_SIZE) + REC_N_SIZE; // + one record
-
-    RecordNumber *newBuffer = (RecordNumber*)malloc(newBufferSize);
-    if (newBuffer == nullptr) {
-        throw MemoryError(
+        // IndexError was not thrown.
+        // Record number is already present.
+        throw ConflictError(
             "BucketBlockRecord::insert: "
-                "can't allocate memory for new records numbers block.");
-    }
+                "duplicate recN occurred.");
 
-    // Copying values from previous buffer to the new one.
-    if (mRecordsNumbersCount > 0) {
-        memcpy(newBuffer, mRecordsNumbers, mRecordsNumbersCount*REC_N_SIZE);
-        for (RecordsCount i=0; i<mRecordsNumbersCount; ++i){
-            auto newBufferItem = newBuffer[i];
-            if (recN < newBufferItem) {
-                new (newBuffer+i) RecordNumber(recN);
-                memcpy(newBuffer+i+1, mRecordsNumbers+i, (mRecordsNumbersCount-i)*REC_N_SIZE);
+    } catch(IndexError &) {
 
-                goto EXIT;
+        // Received record number is absent
+        // and may be inserted into the record.
+
+        const size_t kRecNSize = sizeof(RecordNumber);
+        const size_t newBufferSize = (mRecordsNumbersCount * kRecNSize) + kRecNSize; // + one record
+
+        auto *newBuffer = (RecordNumber*)malloc(newBufferSize);
+        if (newBuffer == nullptr) {
+            throw MemoryError(
+                "BucketBlockRecord::set: "
+                    "can't allocate memory for new records numbers block.");
+        }
+
+        // Copying values from previous buffer to the new one.
+        if (mRecordsNumbersCount > 0) {
+            memcpy(newBuffer, mRecordsNumbers, mRecordsNumbersCount*kRecNSize);
+
+            for (RecordsCount i=0; i<mRecordsNumbersCount; ++i){
+                auto newBufferItem = newBuffer[i];
+                if (recN < newBufferItem) {
+                    new (newBuffer+i) RecordNumber(recN);
+                    memcpy(newBuffer+i+1, mRecordsNumbers+i, (mRecordsNumbersCount-i)*kRecNSize);
+
+                    goto EXIT;
+                }
             }
         }
-    }
 
-    newBuffer[mRecordsNumbersCount] = recN;
+        newBuffer[mRecordsNumbersCount] = recN;
 
 EXIT:
-    // Swap the buffers
-    if (mRecordsNumbers != nullptr) {
-        free(mRecordsNumbers);
+        // Swap the buffers
+        if (mRecordsNumbers != nullptr) {
+            free(mRecordsNumbers);
+        }
+        mRecordsNumbers = newBuffer;
+        mRecordsNumbersCount += 1;
+        mHasBeenModified = true;
     }
-    mRecordsNumbers = newBuffer;
-    mRecordsNumbersCount += 1;
-    mHasBeenModified = true;
 }
 
 /*!
@@ -131,8 +136,16 @@ bool BucketBlockRecord::remove(const RecordNumber recN) {
     return false;
 }
 
+const RecordsCount BucketBlockRecord::count() const {
+    return mRecordsNumbersCount;
+}
+
 const byte *BucketBlockRecord::data() const {
     return (byte*)mRecordsNumbers;
+}
+
+const AbstractRecordsHandler::RecordNumber *BucketBlockRecord::records() const {
+    return (AbstractRecordsHandler::RecordNumber*)mRecordsNumbers;
 }
 
 const NodeUUID &BucketBlockRecord::uuid() const {
@@ -172,8 +185,7 @@ const RecordsCount BucketBlockRecord::indexOf(const RecordNumber recN) {
     }
 
     while (first < last) {
-        size_t mid = first + (last - first) / 2;
-
+        RecordsCount mid = first + (last - first) / 2;
         if (recN <= mRecordsNumbers[mid])
             last = mid;
         else
@@ -191,5 +203,7 @@ const RecordsCount BucketBlockRecord::indexOf(const RecordNumber recN) {
     }
 }
 
-} // namespace routing_tables
+
+} // namespace uuid_map
+} // namespace fields
 } // namespace db

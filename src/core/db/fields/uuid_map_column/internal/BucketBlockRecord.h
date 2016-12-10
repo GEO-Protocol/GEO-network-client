@@ -1,20 +1,24 @@
 #ifndef GEO_NETWORK_CLIENT_BUCKETBLOCKRECORD_H
 #define GEO_NETWORK_CLIENT_BUCKETBLOCKRECORD_H
 
-#include "Types.h"
-#include "../../../common/NodeUUID.h"
-#include "../../../common/exceptions/MemoryError.h"
-#include "../../../common/exceptions/OverflowError.h"
-#include "../../../common/exceptions/ConflictError.h"
-#include "../../../common/exceptions/IndexError.h"
+
+#include "BucketBlock.h"
+#include "../../common/Types.h"
+#include "../../../../common/NodeUUID.h"
+#include "../../../../common/exceptions/MemoryError.h"
+#include "../../../../common/exceptions/OverflowError.h"
+#include "../../../../common/exceptions/ConflictError.h"
+#include "../../../../common/exceptions/IndexError.h"
 
 #include <cstring>
 #include <limits>
+
 #include "malloc.h"
 
 
 namespace db {
-namespace routing_tables {
+namespace fields {
+namespace uuid_map {
 
 
 using namespace std;
@@ -41,28 +45,40 @@ using namespace std;
  *
  * This class implements exactly that structure.
  */
-class BucketBlockRecord {
+class BucketBlockRecord: protected AbstractRecordsHandler {
+    friend class BucketBlockTests;
     friend class BucketBlockRecordTests;
 
 public:
-    BucketBlockRecord(const NodeUUID &uuid);
-    BucketBlockRecord(const NodeUUID &uuid,
-                      RecordsCount recordsNumbersCount,
-                      RecordNumber *recordsNumbers);
+    BucketBlockRecord(
+        const NodeUUID &uuid);
+
+    BucketBlockRecord(
+        const NodeUUID &uuid,
+        RecordsCount recordsNumbersCount,
+        RecordNumber *recordsNumbers);
+
     ~BucketBlockRecord();
 
-    void insert(const RecordNumber recN);
-    bool remove(const RecordNumber recN);
+    void insert(
+        const RecordNumber recN);
+
+    bool remove(
+        const RecordNumber recN);
+
+    const RecordsCount count() const;
+    const RecordNumber* records() const;
 
     const byte* data() const;
     const NodeUUID& uuid() const;
     const bool isModified() const;
 
 protected:
-    const RecordsCount indexOf(const RecordNumber recN);
+    const RecordsCount indexOf(
+        const RecordNumber recN);
 
 protected:
-    const NodeUUID &mUUID;
+    const NodeUUID mUUID;
 
     RecordsCount mRecordsNumbersCount;
     RecordNumber *mRecordsNumbers;
@@ -70,8 +86,8 @@ protected:
 };
 
 
-} // namespace routing_tables
+} // namespace uuid_map
+} // namespace fields
 } // namespace db
-
 
 #endif //GEO_NETWORK_CLIENT_BUCKETBLOCKRECORD_H
