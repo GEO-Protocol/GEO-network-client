@@ -2,11 +2,12 @@
 #define GEO_NETWORK_CLIENT_OPENTRUSTLINECOMMAND_H
 
 #include "Command.h"
+#include "../common/NodeUUID.h"
 
 class OpenTrustLineCommand : public Command {
 private:
     string mCommandBuffer;
-    uuids::uuid mContractorUUID;
+    NodeUUID mContractorUUID;
     trust_amount mAmount;
 
 public:
@@ -19,7 +20,7 @@ public:
 
     const string &exceptedTimestamp() const;
 
-    const uuids::uuid &contractorUUID() const;
+    const NodeUUID &contractorUUID() const;
 
     const trust_amount &amount() const;
 

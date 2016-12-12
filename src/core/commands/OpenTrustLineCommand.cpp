@@ -2,7 +2,7 @@
 
 OpenTrustLineCommand::OpenTrustLineCommand(const uuids::uuid &commandUUID, const string &identifier,
                                            const string &timestampExcepted, const string &commandBuffer) :
-        Command(identifier, timestampExcepted) {
+        Command(commandUUID, identifier, timestampExcepted) {
     mCommandBuffer = commandBuffer;
     deserialize();
 }
@@ -19,7 +19,7 @@ const string &OpenTrustLineCommand::exceptedTimestamp() const {
     return timeStampExcepted();
 }
 
-const uuids::uuid &OpenTrustLineCommand::contractorUUID() const {
+const NodeUUID &OpenTrustLineCommand::contractorUUID() const {
     return mContractorUUID;
 }
 
@@ -30,7 +30,8 @@ const trust_amount &OpenTrustLineCommand::amount() const {
 void OpenTrustLineCommand::deserialize() {
     string hexUUID = mCommandBuffer.substr(0, kUUIDHexSize);
     try {
-        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
+        NodeUUID uuid(boost::lexical_cast<uuids::uuid>(hexUUID));
+        mContractorUUID = uuid;
     } catch (...) {
         //TODO: create error for this exception type and throw
     }
