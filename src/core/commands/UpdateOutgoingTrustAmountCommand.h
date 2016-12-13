@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_UPDATEOUTGOINGTRUSTAMOUNTCOMMAND_H
 
 #include "Command.h"
+#include "../common/NodeUUID.h"
 
 class UpdateOutgoingTrustAmountCommand : public Command {
 private:
@@ -19,7 +20,7 @@ public:
 
     const string &exceptedTimestamp() const;
 
-    const uuids::uuid &contractorUUID() const;
+    const NodeUUID &contractorUUID() const;
 
     const trust_amount &amount() const;
 

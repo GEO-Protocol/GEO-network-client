@@ -87,7 +87,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
         return commandIsInvalidOrIncomplete();
     }
 
-    contractorOffset +=1;
+    contractorOffset += 2; // + separator after identifier
 
     return tryParseCommand(uuid, identifier, mBuffer.substr(contractorOffset, mBuffer.size()));
 }

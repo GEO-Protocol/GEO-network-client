@@ -2,11 +2,12 @@
 #define GEO_NETWORK_CLIENT_CLOSETRUSTLINECOMMAND_H
 
 #include "Command.h"
+#include "../common/NodeUUID.h"
 
 class CloseTrustLineCommand : public Command {
 private:
     string mCommandBuffer;
-    uuids::uuid mContractorUUID;
+    NodeUUID mContractorUUID;
 
 public:
     CloseTrustLineCommand(const uuids::uuid &commandUUID, const string &identifier,
@@ -18,7 +19,7 @@ public:
 
     const string &exceptedTimestamp() const;
 
-    const uuids::uuid &contractorUUID() const;
+    const NodeUUID &contractorUUID() const;
 
 private:
     void deserialize();

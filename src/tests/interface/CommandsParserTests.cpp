@@ -4,21 +4,18 @@
 class CommandsParserTests {
 public:
     void run() {
-        checkDataConcatenation();
+        /*checkDataConcatenation();
         checkParsingWithoutTerminationSymbol();
         checkParsingWithInvalidUUID();
         checkParsingWithEmptyUUID();
         checkParsingWithEmptyIdentifier();
         checkParsingWithValidIdentifier();
-        checkParsingOneAndHalfCommand();
+        checkParsingOneAndHalfCommand();*/
 
-        // todo: add test when command identifier is unexpected.
-
-        // ..
-        // Commands tests goes here
+        checkParsingOpenTrustLineCommand();
     };
 
-    void checkDataConcatenation() {
+    /*void checkDataConcatenation() {
         // This test tries to parse several short messages.
         // It ensures that input data, that would be received
         // will be collected in the buffer for further parsing.
@@ -128,6 +125,13 @@ public:
 
         // Command should be rejected and internal buffer should be cleared.
         assert(parser.mBuffer == string("550e8400-e29b-41d4-a716-446655440000"));
+    }*/
+
+    void checkParsingOpenTrustLineCommand(){
+        CommandsParser parser;
+
+        const char *command = "550e8400-e29b-41d4-a716-446655440000 trustlines/open 550e8400-e29b-41d4-a716-446655440000 150\n";
+        auto response = parser.processReceivedCommandPart(command, strlen(command));
     }
 
 };

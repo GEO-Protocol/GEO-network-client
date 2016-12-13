@@ -36,7 +36,6 @@ public:
 
     Command(const uuids::uuid &commandUUID, const string &identifier, const string &timestampExcepted);
 
-protected:
     const uuids::uuid &commandsUUID() const;
 
     const string &identifier() const;

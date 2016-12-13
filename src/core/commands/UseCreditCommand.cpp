@@ -2,7 +2,7 @@
 
 UseCreditCommand::UseCreditCommand(const uuids::uuid &commandUUID, const string &identifier,
                                    const string &timestampExcepted, const string &commandBuffer) :
-        Command(identifier, timestampExcepted) {
+        Command(commandUUID, identifier, timestampExcepted) {
     mCommandBuffer = commandBuffer;
     deserialize();
 }
@@ -19,7 +19,7 @@ const string &UseCreditCommand::exceptedTimestamp() const {
     return timeStampExcepted();
 }
 
-const uuids::uuid &UseCreditCommand::contractorUUID() const {
+const NodeUUID &UseCreditCommand::contractorUUID() const {
     return mContractorUUID;
 }
 
@@ -34,7 +34,8 @@ const string &UseCreditCommand::purpose() const {
 void UseCreditCommand::deserialize() {
     string hexUUID = mCommandBuffer.substr(0, kUUIDHexSize);
     try {
-        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
+        NodeUUID uuid(boost::lexical_cast<uuids::uuid>(hexUUID));
+        mContractorUUID = uuid;
     } catch (...) {
         //TODO: create error for this exception type and throw
     }

@@ -12,12 +12,12 @@ int main() {
 #ifdef TESTS
 //    FileBackedMessagesQueueTests fileBackedMessagesQueueTests;
 //    fileBackedMessagesQueueTests.run();
-//    CommandsParserTests commandsParserTests;
-//    commandsParserTests.run();
+    CommandsParserTests commandsParserTests;
+    commandsParserTests.run();
 //    TrustLinesManagerTest trustLinesManagerTest;
 //    trustLinesManagerTest.run();
-    db::uuid_map_block_storage::UUIDMapBlockStorageTest mapBlockStorageTest;
-    mapBlockStorageTest.start();
+//    db::uuid_map_block_storage::UUIDMapBlockStorageTest mapBlockStorageTest;
+//    mapBlockStorageTest.start();
 
 #endif
 

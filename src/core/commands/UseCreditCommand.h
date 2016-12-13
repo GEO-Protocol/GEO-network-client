@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_USECREDITCOMMAND_H
 
 #include "Command.h"
+#include "../common/NodeUUID.h"
 
 class UseCreditCommand : public Command {
 private:
@@ -20,7 +21,7 @@ public:
 
     const string &exceptedTimestamp() const;
 
-    const uuids::uuid &contractorUUID() const;
+    const NodeUUID &contractorUUID() const;
 
     const trust_amount &amount() const;
 
