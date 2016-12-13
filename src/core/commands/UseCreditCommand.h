@@ -3,11 +3,12 @@
 
 #include "Command.h"
 #include "../common/NodeUUID.h"
+#include "../common/exceptions/IndexError.h"
 
 class UseCreditCommand : public Command {
 private:
     string mCommandBuffer;
-    uuids::uuid mContractorUUID;
+    NodeUUID mContractorUUID;
     trust_amount mAmount;
     string mPurpose;
 

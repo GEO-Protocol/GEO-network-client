@@ -7,17 +7,17 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
-#include "../common/NodeUUID.h"
 
 using namespace std;
 
 namespace multiprecision = boost::multiprecision;
+namespace uuids = boost::uuids;
 
 typedef multiprecision::checked_uint256_t trust_amount;
 typedef multiprecision::int256_t balance_value;
 
 class Command {
-public:
+protected:
     static const size_t kUUIDHexSize = 36;
     static const char kCommandsSeparator = '\n';
     static const char kTokensSeparator = ' ';
@@ -36,6 +36,7 @@ public:
 
     Command(const uuids::uuid &commandUUID, const string &identifier, const string &timestampExcepted);
 
+protected:
     const uuids::uuid &commandsUUID() const;
 
     const string &identifier() const;

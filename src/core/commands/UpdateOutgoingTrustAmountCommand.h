@@ -7,7 +7,7 @@
 class UpdateOutgoingTrustAmountCommand : public Command {
 private:
     string mCommandBuffer;
-    uuids::uuid mContractorUUID;
+    NodeUUID mContractorUUID;
     trust_amount mAmount;
 
 public:

@@ -87,7 +87,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
         return commandIsInvalidOrIncomplete();
     }
 
-    contractorOffset += 2; // + separator after identifier
+    contractorOffset += 1; // + separator after identifier
 
     return tryParseCommand(uuid, identifier, mBuffer.substr(contractorOffset, mBuffer.size()));
 }
@@ -113,16 +113,13 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(const uuids::uui
     if(strcmp(kTrustLinesOpenIdentifier, commandIdentifier.c_str()) == 0){
         command = new OpenTrustLineCommand(commandUUID, commandIdentifier,
                                            std::to_string(timestamp), buffer);
-    }
-    if(strcmp(kTrustLinesCloseIdentifier, commandIdentifier.c_str()) == 0){
+    } else if(strcmp(kTrustLinesCloseIdentifier, commandIdentifier.c_str()) == 0){
         command = new CloseTrustLineCommand(commandUUID, commandIdentifier,
                                             std::to_string(timestamp), buffer);
-    }
-    if(strcmp(kTrustLinesUpdateIdentifier, commandIdentifier.c_str()) == 0){
+    } else if(strcmp(kTrustLinesUpdateIdentifier, commandIdentifier.c_str()) == 0){
         command = new UpdateOutgoingTrustAmountCommand(commandUUID, commandIdentifier,
                                                        std::to_string(timestamp), buffer);
-    }
-    if(strcmp(kTransactionsUseCreditIdentifier, commandIdentifier.c_str()) == 0){
+    } else if(strcmp(kTransactionsUseCreditIdentifier, commandIdentifier.c_str()) == 0){
         command = new UseCreditCommand(commandUUID, commandIdentifier,
                                        std::to_string(timestamp), buffer);
     }

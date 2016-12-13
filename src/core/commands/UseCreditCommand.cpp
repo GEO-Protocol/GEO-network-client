@@ -59,7 +59,14 @@ void UseCreditCommand::deserialize() {
     }
 
     purposeOffset +=1;
-
-    mPurpose = mCommandBuffer.substr(purposeOffset, mCommandBuffer.size());
+    mPurpose = "";
+    for (size_t i = purposeOffset; i < mCommandBuffer.size(); ++i){
+        char character = mCommandBuffer.at(i);
+        if (character != '[' && character != ']'){
+            mPurpose.push_back(character);
+        } else if (character == ']' && (mCommandBuffer.at(i + 1) == kTokensSeparator || mCommandBuffer.at(i + 1) == kCommandsSeparator)){
+            break;
+        } 
+    }
 }
 

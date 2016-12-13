@@ -6,7 +6,7 @@ Result::Result(Command *command,
                const uint16_t &resultCode,
                const string &timestampCompleted){
     mCode = resultCode,
-    mTimestampExcepted = command->timeStampExcepted();
+    //mTimestampExcepted = command->timeStampExcepted();
     mTimestampCompleted = timestampCompleted;
 }
 
