@@ -4,10 +4,12 @@
 #include <string>
 #include <chrono>
 #include <boost/lexical_cast.hpp>
+#include "../commands/Command.h"
 #include "../commands/OpenTrustLineCommand.h"
 #include "../commands/CloseTrustLineCommand.h"
 #include "../commands/UpdateOutgoingTrustAmountCommand.h"
 #include "../commands/UseCreditCommand.h"
+#include "../results/Result.h"
 #include "../results/OpenTrustLineResult.h"
 #include "../results/CloseTrustLineResult.h"
 #include "../results/UpdateTrustLineResult.h"

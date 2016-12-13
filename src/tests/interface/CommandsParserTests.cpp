@@ -1,4 +1,5 @@
 #include "../../core/interface/commands/CommandsInterface.h"
+#include "../../core/transactions/TransactionsManager.h"
 
 
 class CommandsParserTests {
@@ -133,7 +134,7 @@ public:
     void checkParsingOpenTrustLineCommand(){
         CommandsParser parser;
 
-        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r150\ntrustlines/open";
+        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r150\n";
         auto response = parser.processReceivedCommandPart(command, strlen(command));
         Command *c = response.second.get();
         OpenTrustLineCommand *openTrustLineCommand = dynamic_cast<OpenTrustLineCommand *>(c);
@@ -143,6 +144,10 @@ public:
         assert(openTrustLineCommand->id() == string("CREATE:contractors/trust-lines"));
         assert(openTrustLineCommand->contractorUUID().stringUUID() == string("550e8400-e29b-41d4-a716-446655440000"));
         assert(openTrustLineCommand->amount() == 150);
+
+        auto result = checkAcceptCommand(response.second);
+        Result *r = result.second.get();
+        cout << r->serialize() << endl;
     }
 
     void checkParsingCloseTrustLineCommand(){
@@ -188,6 +193,11 @@ public:
         assert(useCeditCommand->contractorUUID().stringUUID() == string("550e8400-e29b-41d4-a716-446655440000"));
         assert(useCeditCommand->amount() == 11456);
         assert(useCeditCommand->purpose() == string("prosto tak"));
+    }
+
+    pair<bool, shared_ptr<Result>> checkAcceptCommand(shared_ptr<Command> command){
+        TransactionsManager manager;
+        return manager.acceptCommand(command);
     }
 
 };
