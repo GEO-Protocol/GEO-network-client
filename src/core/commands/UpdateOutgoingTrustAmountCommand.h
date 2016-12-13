@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_UPDATEOUTGOINGTRUSTAMOUNTCOMMAND_H
 
 #include "Command.h"
-#include "../common/NodeUUID.h"
 
 class UpdateOutgoingTrustAmountCommand : public Command {
 private:

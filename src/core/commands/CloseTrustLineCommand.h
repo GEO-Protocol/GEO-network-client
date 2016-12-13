@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_CLOSETRUSTLINECOMMAND_H
 
 #include "Command.h"
-#include "../common/NodeUUID.h"
 
 class CloseTrustLineCommand : public Command {
 private:

@@ -3,27 +3,35 @@
 MaximalTransactionAmountResult::MaximalTransactionAmountResult(Command *command,
                                                                const uint16_t &resultCode,
                                                                const string &timestampCompleted,
-                                                               const boost::uuids::uuid &contractorUuid,
+                                                               const NodeUUID &contractorUUID,
                                                                const trust_amount amount) :
         Result(command, resultCode, timestampCompleted) {
-    mContractorUuid = contractorUuid;
+    mContractorUUID = contractorUUID;
     mAmount = amount;
 }
 
+const uuids::uuid &MaximalTransactionAmountResult::commandUUID() const {
+    return commandsUUID();
+}
+
+const string &MaximalTransactionAmountResult::id() const {
+    return identifier();
+}
+
 const uint16_t &MaximalTransactionAmountResult::resultCode() const {
-    return Result::resCode();
+    return resCode();
 }
 
 const string &MaximalTransactionAmountResult::timestampExcepted() const {
-    return Result::exceptedTimestamp();
+    return exceptedTimestamp();
 }
 
 const string &MaximalTransactionAmountResult::timestampCompleted() const {
-    return Result::completedTimestamp();
+    return completedTimestamp();
 }
 
-const boost::uuids::uuid &MaximalTransactionAmountResult::contractorUuid() const {
-    return mContractorUuid;
+const NodeUUID &MaximalTransactionAmountResult::contractorUUID() const {
+    return mContractorUUID;
 }
 
 const trust_amount &MaximalTransactionAmountResult::amount() const {
@@ -31,9 +39,13 @@ const trust_amount &MaximalTransactionAmountResult::amount() const {
 }
 
 string MaximalTransactionAmountResult::serialize() {
-    return boost::lexical_cast<string>(mContractorUuid) + "_" +
-           boost::lexical_cast<string>(resultCode()) + "_" +
-           timestampExcepted() + "_" +
-           timestampCompleted() + "_" +
-           boost::lexical_cast<string>(mAmount) + "\n";
+    if (resultCode() == 200){
+        return lexical_cast<string>(commandUUID()) + " " +
+               lexical_cast<string>(resultCode()) + " " +
+               lexical_cast<string>(mAmount) +
+               "\n";
+    }
+    return lexical_cast<string>(commandUUID()) + " " +
+           lexical_cast<string>(resultCode()) +
+           "\n";
 }

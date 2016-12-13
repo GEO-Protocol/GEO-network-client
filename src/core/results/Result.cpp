@@ -5,9 +5,19 @@ Result::Result() {}
 Result::Result(Command *command,
                const uint16_t &resultCode,
                const string &timestampCompleted){
+    mCommandUUID = command->commandsUUID();
+    mIdentifier = command->identifier();
     mCode = resultCode,
-    //mTimestampExcepted = command->timeStampExcepted();
+    mTimestampExcepted = command->timeStampExcepted();
     mTimestampCompleted = timestampCompleted;
+}
+
+const uuids::uuid &Result::commandsUUID() const {
+    return mCommandUUID;
+}
+
+const string &Result::identifier() const {
+    return mIdentifier;
 }
 
 const uint16_t &Result::resCode() const{

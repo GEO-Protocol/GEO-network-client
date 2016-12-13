@@ -3,38 +3,66 @@
 PaymentResult::PaymentResult(Command *command,
                              const uint16_t &resultCode,
                              const string &timestampCompleted,
-                             const boost::uuids::uuid &contractorUuid,
-                             const trust_amount amount) :
+                             const uuids::uuid &transactionUUID,
+                             const NodeUUID &contractorUUID,
+                             const trust_amount &amount,
+                             const string &purpose) :
         Result(command, resultCode, timestampCompleted) {
-    mContractorUuid = contractorUuid;
+    mTransactionUUID = transactionUUID;
+    mContractorUUID = contractorUUID;
     mAmount = amount;
+    mPurpose = purpose;
+}
+
+const uuids::uuid &PaymentResult::commandUUID() const {
+    return commandsUUID();
+}
+
+const string &PaymentResult::id() const {
+    return identifier();
 }
 
 const uint16_t &PaymentResult::resultCode() const {
-    return Result::resCode();
+    return resCode();
 }
 
 const string &PaymentResult::timestampExcepted() const {
-    return Result::exceptedTimestamp();
+    return exceptedTimestamp();
 }
 
 const string &PaymentResult::timestampCompleted() const {
-    return Result::completedTimestamp();
+    return completedTimestamp();
 }
 
-const boost::uuids::uuid &PaymentResult::contractorUuid() const {
-    return mContractorUuid;
+const uuids::uuid & PaymentResult::transactionUUID() const {
+    return mTransactionUUID;
+}
+
+const NodeUUID &PaymentResult::contractorUUID() const {
+    return mContractorUUID;
 }
 
 const trust_amount &PaymentResult::amount() const {
     return mAmount;
 }
 
+const sting & PaymentResult::purpose() const {
+    return mPurpose;
+}
+
 string PaymentResult::serialize() {
-    return boost::lexical_cast<string>(mContractorUuid) + "_" +
-           boost::lexical_cast<string>(resultCode()) + "_" +
-           timestampExcepted() + "_" +
-           timestampCompleted() + "_" +
-           boost::lexical_cast<string>(mAmount) + "\n";
+    if (resultCode() == 200) {
+        return lexical_cast<string>(commandUUID()) + " " +
+               lexical_cast<string>(mTransactionUUID) + " " +
+               lexical_cast<string>(mAmount) + " " +
+               lexical_cast<string>(resultCode()) + " " +
+               timestampExcepted() + " " +
+               timestampCompleted() + " " +
+               mPurpose +
+               "\n";
+    }
+    return lexical_cast<string>(commandUUID()) + " " +
+           lexical_cast<string>(resultCode()) +
+           "\n";
 }
 

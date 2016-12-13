@@ -68,11 +68,11 @@ protected:
     // and, at least, one symbol of command identifier.
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
     static const char kCommandsSeparator = '\n';
-    static const char kTokensSeparator = ' ';
-    static const constexpr char* kTrustLinesOpenIdentifier = "trustlines/open";
-    static const constexpr char* kTrustLinesCloseIdentifier = "trustlines/close";
-    static const constexpr char* kTrustLinesUpdateIdentifier = "trustlines/update";
-    static const constexpr char* kTransactionsUseCreditIdentifier = "transactions/usecredit";
+    static const char kTokensSeparator = '\r';
+    static const constexpr char* kTrustLinesOpenIdentifier = "CREATE:contractors/trust-lines";
+    static const constexpr char* kTrustLinesCloseIdentifier = "REMOVE:contractors/trust-lines";
+    static const constexpr char* kTrustLinesUpdateIdentifier = "SET:contractors/trust-lines";
+    static const constexpr char* kTransactionsUseCreditIdentifier = "CREATE:contractors/transations";
 
 protected:
     // Commands may arrive via pipe partially.

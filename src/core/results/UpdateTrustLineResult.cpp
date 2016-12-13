@@ -3,27 +3,35 @@
 UpdateTrustLineResult::UpdateTrustLineResult(Command *command,
                                          const uint16_t &resultCode,
                                          const string &timestampCompleted,
-                                         const boost::uuids::uuid &contractorUuid,
+                                         const NodeUUID &contractorUUID,
                                          const trust_amount amount) :
         Result(command, resultCode, timestampCompleted) {
-    mContractorUuid = contractorUuid;
+    mContractorUUID = contractorUUID;
     mAmount = amount;
 }
 
+const uuids::uuid &UpdateTrustLineResult::commandUUID() const {
+    return commandsUUID();
+}
+
+const string &UpdateTrustLineResult::id() const {
+    return identifier();
+}
+
 const uint16_t &UpdateTrustLineResult::resultCode() const {
-    return Result::resCode();
+    return resCode();
 }
 
 const string &UpdateTrustLineResult::timestampExcepted() const {
-    return Result::exceptedTimestamp();
+    return exceptedTimestamp();
 }
 
 const string &UpdateTrustLineResult::timestampCompleted() const {
-    return Result::completedTimestamp();
+    return completedTimestamp();
 }
 
-const boost::uuids::uuid &UpdateTrustLineResult::contractorUuid() const {
-    return mContractorUuid;
+const NodeUUID &UpdateTrustLineResult::contractorUUID() const {
+    return mContractorUUID;
 }
 
 const trust_amount &UpdateTrustLineResult::amount() const {
@@ -31,11 +39,9 @@ const trust_amount &UpdateTrustLineResult::amount() const {
 }
 
 string UpdateTrustLineResult::serialize() {
-    return boost::lexical_cast<string>(mContractorUuid) + "_" +
-           boost::lexical_cast<string>(resultCode()) + "_" +
-           timestampExcepted() + "_" +
-           timestampCompleted() + "_" +
-           boost::lexical_cast<string>(mAmount) + "\n";
+    return lexical_cast<string>(commandUUID()) + " " +
+           lexical_cast<string>(resultCode()) +
+           "\n";
 }
 
 

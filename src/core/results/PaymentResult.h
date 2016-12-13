@@ -1,21 +1,27 @@
 #ifndef GEO_NETWORK_CLIENT_PAYMENTRESULT_H
 #define GEO_NETWORK_CLIENT_PAYMENTRESULT_H
 
-#include <boost/lexical_cast.hpp>
 #include "Result.h"
-#include "../trust_lines/TrustLine.h"
 
 class PaymentResult : public Result {
 private:
-    uuids::uuid mContractorUuid;
+    uuids::uuid mTransactionUUID;
+    NodeUUID mContractorUUID;
     trust_amount mAmount;
+    string mPurpose;
 
 public:
     PaymentResult(Command *command,
                   const uint16_t &resultCode,
                   const string &timestampCompleted,
-                  const boost::uuids::uuid &contractorUuid,
-                  const trust_amount amount);
+                  const uuids::uuid &transactionUUID,
+                  const NodeUUID &contractorUUID,
+                  const trust_amount &amount,
+                  const string &purpose);
+
+    const uuids::uuid &commandUUID() const;
+
+    const string &id() const;
 
     const uint16_t &resultCode() const;
 
@@ -23,9 +29,13 @@ public:
 
     const string &timestampCompleted() const;
 
-    const boost::uuids::uuid &contractorUuid() const;
+    const uuids::uuid &transactionUUID() const;
+
+    const NodeUUID &contractorUUID() const;
 
     const trust_amount &amount() const;
+
+    const sting &purpose() const;
 
     string serialize();
 };

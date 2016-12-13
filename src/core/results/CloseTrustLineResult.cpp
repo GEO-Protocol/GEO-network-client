@@ -3,32 +3,39 @@
 CloseTrustLineResult::CloseTrustLineResult(Command *command,
                                          const uint16_t &resultCode,
                                          const string &timestampCompleted,
-                                         const boost::uuids::uuid &contractorUuid) :
+                                         const NodeUUID &contractorUUID) :
         Result(command, resultCode, timestampCompleted) {
-    mContractorUuid = contractorUuid;
+    mContractorUUID = contractorUUID;
+}
+
+const uuids::uuid &CloseTrustLineResult::commandUUID() const {
+    return commandsUUID();
+}
+
+const string &CloseTrustLineResult::id() const {
+    return identifier();
 }
 
 const uint16_t &CloseTrustLineResult::resultCode() const {
-    return Result::resCode();
+    return resCode();
 }
 
 const string &CloseTrustLineResult::timestampExcepted() const {
-    return Result::exceptedTimestamp();
+    return exceptedTimestamp();
 }
 
 const string &CloseTrustLineResult::timestampCompleted() const {
-    return Result::completedTimestamp();
+    return completedTimestamp();
 }
 
-const boost::uuids::uuid &CloseTrustLineResult::contractorUuid() const {
-    return mContractorUuid;
+const boost::uuids::uuid &CloseTrustLineResult::contractorUUID() const {
+    return mContractorUUID;
 }
 
 string CloseTrustLineResult::serialize() {
-    return boost::lexical_cast<string>(mContractorUuid) + "_" +
-           boost::lexical_cast<string>(resultCode()) + "_" +
-           timestampExcepted() + "_" +
-           timestampCompleted() + "\n";
+    return lexical_cast<string>(commandUUID()) + " " +
+           lexical_cast<string>(resultCode()) +
+           "\n";
 }
 
 

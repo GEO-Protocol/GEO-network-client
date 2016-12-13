@@ -133,14 +133,14 @@ public:
     void checkParsingOpenTrustLineCommand(){
         CommandsParser parser;
 
-        const char *command = "550e8400-e29b-41d4-a716-446655440000 trustlines/open 550e8400-e29b-41d4-a716-446655440000 150\ntrustlines/open";
+        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r150\ntrustlines/open";
         auto response = parser.processReceivedCommandPart(command, strlen(command));
         Command *c = response.second.get();
         OpenTrustLineCommand *openTrustLineCommand = dynamic_cast<OpenTrustLineCommand *>(c);
 
         assert(response.first);
         assert(openTrustLineCommand->commandUUID() == boost::lexical_cast<uuids::uuid>("550e8400-e29b-41d4-a716-446655440000"));
-        assert(openTrustLineCommand->id() == string("trustlines/open"));
+        assert(openTrustLineCommand->id() == string("CREATE:contractors/trust-lines"));
         assert(openTrustLineCommand->contractorUUID().stringUUID() == string("550e8400-e29b-41d4-a716-446655440000"));
         assert(openTrustLineCommand->amount() == 150);
     }
@@ -148,28 +148,28 @@ public:
     void checkParsingCloseTrustLineCommand(){
         CommandsParser parser;
 
-        const char *command = "550e8400-e29b-41d4-a716-446655440000 trustlines/close 550e8400-e29b-41d4-a716-446655440000\ntrustlines/open";
+        const char *command = "550e8400-e29b-41d4-a716-446655440000\rREMOVE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\ntrustlines/open";
         auto response = parser.processReceivedCommandPart(command, strlen(command));
         Command *c = response.second.get();
         CloseTrustLineCommand *closeTrustLineCommand = dynamic_cast<CloseTrustLineCommand *>(c);
 
         assert(response.first);
         assert(closeTrustLineCommand->commandUUID() == boost::lexical_cast<uuids::uuid>("550e8400-e29b-41d4-a716-446655440000"));
-        assert(closeTrustLineCommand->id() == string("trustlines/close"));
+        assert(closeTrustLineCommand->id() == string("REMOVE:contractors/trust-lines"));
         assert(closeTrustLineCommand->contractorUUID().stringUUID() == string("550e8400-e29b-41d4-a716-446655440000"));
     }
 
     void checkParsingUpdateOutgoingTrustLineCommand(){
         CommandsParser parser;
 
-        const char *command = "550e8400-e29b-41d4-a716-446655440000 trustlines/update 550e8400-e29b-41d4-a716-446655440000 11456\ntrustlines/open";
+        const char *command = "550e8400-e29b-41d4-a716-446655440000\rSET:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r11456\ntrustlines/open";
         auto response = parser.processReceivedCommandPart(command, strlen(command));
         Command *c = response.second.get();
         UpdateOutgoingTrustAmountCommand *updateTrustLineCommand = dynamic_cast<UpdateOutgoingTrustAmountCommand *>(c);
 
         assert(response.first);
         assert(updateTrustLineCommand->commandUUID() == boost::lexical_cast<uuids::uuid>("550e8400-e29b-41d4-a716-446655440000"));
-        assert(updateTrustLineCommand->id() == string("trustlines/update"));
+        assert(updateTrustLineCommand->id() == string("SET:contractors/trust-lines"));
         assert(updateTrustLineCommand->contractorUUID().stringUUID() == string("550e8400-e29b-41d4-a716-446655440000"));
         assert(updateTrustLineCommand->amount() == 11456);
     }
@@ -177,14 +177,14 @@ public:
     void checkParsingUseCreditCommand(){
         CommandsParser parser;
 
-        const char *command = "550e8400-e29b-41d4-a716-446655440000 transactions/usecredit 550e8400-e29b-41d4-a716-446655440000 11456 [prosto tak]\ntrustlines/open";
+        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/transations\r550e8400-e29b-41d4-a716-446655440000\r11456\rprosto tak\ntrustlines/open";
         auto response = parser.processReceivedCommandPart(command, strlen(command));
         Command *c = response.second.get();
         UseCreditCommand *useCeditCommand = dynamic_cast<UseCreditCommand *>(c);
 
         assert(response.first);
         assert(useCeditCommand->commandUUID() == boost::lexical_cast<uuids::uuid>("550e8400-e29b-41d4-a716-446655440000"));
-        assert(useCeditCommand->id() == string("transactions/usecredit"));
+        assert(useCeditCommand->id() == string("CREATE:contractors/transations"));
         assert(useCeditCommand->contractorUUID().stringUUID() == string("550e8400-e29b-41d4-a716-446655440000"));
         assert(useCeditCommand->amount() == 11456);
         assert(useCeditCommand->purpose() == string("prosto tak"));

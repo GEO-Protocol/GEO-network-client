@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_OPENTRUSTLINECOMMAND_H
 
 #include "Command.h"
-#include "../common/NodeUUID.h"
 
 class OpenTrustLineCommand : public Command {
 private:

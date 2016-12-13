@@ -2,8 +2,6 @@
 #define GEO_NETWORK_CLIENT_USECREDITCOMMAND_H
 
 #include "Command.h"
-#include "../common/NodeUUID.h"
-#include "../common/exceptions/IndexError.h"
 
 class UseCreditCommand : public Command {
 private:
