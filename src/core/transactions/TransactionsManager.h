@@ -2,6 +2,8 @@
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
 #include <string>
+#include <chrono>
+#include <boost/lexical_cast.hpp>
 #include "../commands/OpenTrustLineCommand.h"
 #include "../commands/CloseTrustLineCommand.h"
 #include "../commands/UpdateOutgoingTrustAmountCommand.h"
@@ -16,10 +18,10 @@ using namespace std;
 class TransactionsManager {
 
 private:
-    const constexpr char* kTrustLinesOpenIdentifier = "CREATE:contractors/trust-lines";
-    const constexpr char* kTrustLinesCloseIdentifier = "REMOVE:contractors/trust-lines";
-    const constexpr char* kTrustLinesUpdateIdentifier = "SET:contractors/trust-lines";
-    const constexpr char* kTransactionsUseCreditIdentifier = "CREATE:contractors/transations";
+    static const constexpr char* kTrustLinesOpenIdentifier = "CREATE:contractors/trust-lines";
+    static const constexpr char* kTrustLinesCloseIdentifier = "REMOVE:contractors/trust-lines";
+    static const constexpr char* kTrustLinesUpdateIdentifier = "SET:contractors/trust-lines";
+    static const constexpr char* kTransactionsUseCreditIdentifier = "CREATE:contractors/transations";
 
 public:
     TransactionsManager();

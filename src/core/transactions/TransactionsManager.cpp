@@ -1,3 +1,4 @@
+#include <chrono>
 #include "TransactionsManager.h"
 
 TransactionsManager::TransactionsManager() {}
@@ -43,7 +44,7 @@ pair<bool, shared_ptr<Result>> TransactionsManager::closeTrustLine(shared_ptr<Co
     return pair<bool, shared_ptr<Result>> (true, shared_ptr<Result>(result));
 }
 
-pair<bool> TransactionsManager::updateTrustLine(shared_ptr<Command> commandPointer) {
+pair<bool, shared_ptr<Result>> TransactionsManager::updateTrustLine(shared_ptr<Command> commandPointer) {
     UpdateOutgoingTrustAmountCommand *updateTrustLineCommand = dynamic_cast<UpdateOutgoingTrustAmountCommand *>(commandPointer.get());
 
     Result *result = new UpdateTrustLineResult(commandPointer.get(), resultCode(commandPointer.get()->commandsUUID()),
@@ -53,7 +54,7 @@ pair<bool> TransactionsManager::updateTrustLine(shared_ptr<Command> commandPoint
     return pair<bool, shared_ptr<Result>> (true, shared_ptr<Result>(result));
 }
 
-pair<bool> TransactionsManager::useCredit(shared_ptr<Command> commandPointer) {
+pair<bool, shared_ptr<Result>> TransactionsManager::useCredit(shared_ptr<Command> commandPointer) {
     UseCreditCommand *useCreditCommand = dynamic_cast<UseCreditCommand *>(commandPointer.get());
 
     Result *result = new PaymentResult(commandPointer.get(), resultCode(commandPointer.get()->commandsUUID()),
@@ -71,7 +72,7 @@ string TransactionsManager::currentTimestamp() {
 
 const uint16_t TransactionsManager::resultCode(const uuids::uuid &commandUUID) {
     uint16_t resultCode = 0;
-    string commandUUIDAsStr = lexical_cast<string>(commandUUID);
+    string commandUUIDAsStr = boost::lexical_cast<string>(commandUUID);
     char controlCharacter = commandUUIDAsStr.at(commandUUIDAsStr.size() - 1);
     if (controlCharacter == '0') {
         resultCode = 200;

@@ -40,12 +40,12 @@ const trust_amount &MaximalTransactionAmountResult::amount() const {
 
 string MaximalTransactionAmountResult::serialize() {
     if (resultCode() == 200){
-        return lexical_cast<string>(commandUUID()) + " " +
-               lexical_cast<string>(resultCode()) + " " +
-               lexical_cast<string>(mAmount) +
+        return boost::lexical_cast<string>(commandUUID()) + " " +
+               boost::lexical_cast<string>(resultCode()) + " " +
+               boost:: lexical_cast<string>(mAmount) +
                "\n";
     }
-    return lexical_cast<string>(commandUUID()) + " " +
-           lexical_cast<string>(resultCode()) +
+    return boost::lexical_cast<string>(commandUUID()) + " " +
+           boost::lexical_cast<string>(resultCode()) +
            "\n";
 }

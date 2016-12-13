@@ -35,7 +35,7 @@ public:
 
     const trust_amount &amount() const;
 
-    const sting &purpose() const;
+    const string &purpose() const;
 
     string serialize();
 };

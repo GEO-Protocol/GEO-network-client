@@ -39,7 +39,7 @@ const trust_amount &OpenTrustLineResult::amount() const {
 }
 
 string OpenTrustLineResult::serialize() {
-    return lexical_cast<string>(commandUUID()) + " " +
-           lexical_cast<string>(resultCode()) +
+    return boost::lexical_cast<string>(commandUUID()) + " " +
+           boost::lexical_cast<string>(resultCode()) +
            "\n";
 }

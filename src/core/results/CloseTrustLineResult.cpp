@@ -28,13 +28,13 @@ const string &CloseTrustLineResult::timestampCompleted() const {
     return completedTimestamp();
 }
 
-const boost::uuids::uuid &CloseTrustLineResult::contractorUUID() const {
+const NodeUUID &CloseTrustLineResult::contractorUUID() const {
     return mContractorUUID;
 }
 
 string CloseTrustLineResult::serialize() {
-    return lexical_cast<string>(commandUUID()) + " " +
-           lexical_cast<string>(resultCode()) +
+    return boost::lexical_cast<string>(commandUUID()) + " " +
+           boost::lexical_cast<string>(resultCode()) +
            "\n";
 }
 

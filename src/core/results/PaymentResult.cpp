@@ -46,23 +46,23 @@ const trust_amount &PaymentResult::amount() const {
     return mAmount;
 }
 
-const sting & PaymentResult::purpose() const {
+const string & PaymentResult::purpose() const {
     return mPurpose;
 }
 
 string PaymentResult::serialize() {
     if (resultCode() == 200) {
-        return lexical_cast<string>(commandUUID()) + " " +
-               lexical_cast<string>(mTransactionUUID) + " " +
-               lexical_cast<string>(mAmount) + " " +
-               lexical_cast<string>(resultCode()) + " " +
+        return boost::lexical_cast<string>(commandUUID()) + " " +
+               boost::lexical_cast<string>(mTransactionUUID) + " " +
+               boost::lexical_cast<string>(mAmount) + " " +
+               boost::lexical_cast<string>(resultCode()) + " " +
                timestampExcepted() + " " +
                timestampCompleted() + " " +
                mPurpose +
                "\n";
     }
-    return lexical_cast<string>(commandUUID()) + " " +
-           lexical_cast<string>(resultCode()) +
+    return boost::lexical_cast<string>(commandUUID()) + " " +
+           boost::lexical_cast<string>(resultCode()) +
            "\n";
 }
 
