@@ -8,12 +8,7 @@
  * Return value is similar to the tryDeserializeCommand() return value.
  */
 pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommandPart(const char *commandPart, const size_t receivedBytesCount) {
-
-    // Memory reservation for whole command part
-    // (to prevent huge amount of memory reallocations).
     mBuffer.reserve(mBuffer.size() + receivedBytesCount);
-
-    // Concatenating with the previously received parts of the command.
     for (size_t i = 0; i < receivedBytesCount; ++i) {
         mBuffer.push_back(commandPart[i]);
     }
@@ -33,63 +28,48 @@ pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommandPart(const
  */
 pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
     if (mBuffer.size() < kMinCommandSize) {
-        // If command contains trailing symbol,
-        // but is shorter than min command size -
-        // then this command is invalid and should be rejected.
         if (mBuffer.find(kCommandsSeparator) != string::npos) {
             cutNextCommandFromTheBuffer();
         }
-
         return commandIsInvalidOrIncomplete();
     }
-
-    // Check if received string contains command separator.
-    // If no - then command may be received partially.
+    
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (nextCommandSeparatorIndex == string::npos) {
         return commandIsInvalidOrIncomplete();
     }
-
-    // UUID parsing
-    uuids::uuid uuid;
-    string hexUUID = mBuffer.substr(0, kUUIDHexRepresentationSize);
+    
+    uuids::uuid commandUUID;
     try {
-        uuid = boost::lexical_cast<uuids::uuid>(hexUUID);
+        string hexUUID = mBuffer.substr(0, kUUIDHexRepresentationSize);
+        commandUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
     } catch (...) {
-        // UUID can't be parsed correctly.
-        // Command seems to be broken and should be rejected.
         cutNextCommandFromTheBuffer();
         return commandIsInvalidOrIncomplete();
     }
+    
+    const size_t averageCommandIdentifierLength = 15;
+    const size_t identifierOffset = kUUIDHexRepresentationSize + 1;
 
-    // Command identifier parsing
-    const size_t averageCommandIdentifierLength = 15; // for optimisations purpose only.
-    const size_t identifierOffset = kUUIDHexRepresentationSize + 1; // + separator
-
-    string identifier;
-    identifier.reserve(averageCommandIdentifierLength);
-    size_t contractorOffset = identifierOffset;
+    string commandIdentifier;
+    commandIdentifier.reserve(averageCommandIdentifierLength);
+    size_t nextTokenOffset = identifierOffset;
     for (size_t i = identifierOffset; i < mBuffer.size(); ++i) {
         char symbol = mBuffer.at(i);
         if (symbol == kTokensSeparator || symbol == kCommandsSeparator) {
             break;
         }
-
-        contractorOffset += 1;
-        identifier.push_back(symbol);
+        nextTokenOffset += 1;
+        commandIdentifier.push_back(symbol);
     }
-
-    // Validate received identifier
-    if (identifier.size() == 0) {
-        // Command identifier can't be parsed.
-        // Command seems to be broken and should be rejected.
+    nextTokenOffset += 1;
+    
+    if (commandIdentifier.size() == 0) {
         cutNextCommandFromTheBuffer();
         return commandIsInvalidOrIncomplete();
     }
-
-    contractorOffset += 1; // + separator after identifier
-
-    return tryParseCommand(uuid, identifier, mBuffer.substr(contractorOffset, mBuffer.size()));
+    
+    return tryParseCommand(commandUUID, commandIdentifier, mBuffer.substr(nextTokenOffset, mBuffer.size()));
 }
 
 /*!
@@ -110,18 +90,26 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(const uuids::uui
 
     Command *command = nullptr;
     long timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    if(strcmp(kTrustLinesOpenIdentifier, commandIdentifier.c_str()) == 0){
-        command = new OpenTrustLineCommand(commandUUID, commandIdentifier,
+    try{
+        if(strcmp(kTrustLinesOpenIdentifier, commandIdentifier.c_str()) == 0) {
+            command = new OpenTrustLineCommand(commandUUID, commandIdentifier,
+                                               std::to_string(timestamp), buffer);
+        } else if(strcmp(kTrustLinesCloseIdentifier, commandIdentifier.c_str()) == 0) {
+            command = new CloseTrustLineCommand(commandUUID, commandIdentifier,
+                                                std::to_string(timestamp), buffer);
+        } else if(strcmp(kTrustLinesUpdateIdentifier, commandIdentifier.c_str()) == 0) {
+            command = new UpdateOutgoingTrustAmountCommand(commandUUID, commandIdentifier,
+                                                           std::to_string(timestamp), buffer);
+        } else if(strcmp(kTransactionsUseCreditIdentifier, commandIdentifier.c_str()) == 0) {
+            command = new UseCreditCommand(commandUUID, commandIdentifier,
                                            std::to_string(timestamp), buffer);
-    } else if(strcmp(kTrustLinesCloseIdentifier, commandIdentifier.c_str()) == 0){
-        command = new CloseTrustLineCommand(commandUUID, commandIdentifier,
-                                            std::to_string(timestamp), buffer);
-    } else if(strcmp(kTrustLinesUpdateIdentifier, commandIdentifier.c_str()) == 0){
-        command = new UpdateOutgoingTrustAmountCommand(commandUUID, commandIdentifier,
-                                                       std::to_string(timestamp), buffer);
-    } else if(strcmp(kTransactionsUseCreditIdentifier, commandIdentifier.c_str()) == 0){
-        command = new UseCreditCommand(commandUUID, commandIdentifier,
-                                       std::to_string(timestamp), buffer);
+        } else if (strcmp(kTransactionsMaximalAmountIdentifier, commandIdentifier.c_str()) == 0) {
+            command = new MaximalTransactionAmountCommand(commandUUID, commandIdentifier,
+                                                          std::to_string(timestamp), buffer);
+        }
+    } catch (std::exception &e){
+        cutNextCommandFromTheBuffer();
+        return commandIsInvalidOrIncomplete();
     }
 
     cutNextCommandFromTheBuffer();

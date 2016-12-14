@@ -7,6 +7,7 @@
 #include "../../commands/CloseTrustLineCommand.h"
 #include "../../commands/UpdateOutgoingTrustAmountCommand.h"
 #include "../../commands/UseCreditCommand.h"
+#include "../../commands/MaximalTransactionAmountCommand.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
 
@@ -63,16 +64,16 @@ protected:
 
 protected:
     static const size_t kUUIDHexRepresentationSize = 36;
-
-    // uuid of the command, the space (separator),
-    // and, at least, one symbol of command identifier.
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
+
     static const char kCommandsSeparator = '\n';
     static const char kTokensSeparator = '\r';
+
     static const constexpr char* kTrustLinesOpenIdentifier = "CREATE:contractors/trust-lines";
     static const constexpr char* kTrustLinesCloseIdentifier = "REMOVE:contractors/trust-lines";
     static const constexpr char* kTrustLinesUpdateIdentifier = "SET:contractors/trust-lines";
     static const constexpr char* kTransactionsUseCreditIdentifier = "CREATE:contractors/transations";
+    static const constexpr char* kTransactionsMaximalAmountIdentifier = "GET:contractors/transations/max";
 
 protected:
     // Commands may arrive via pipe partially.

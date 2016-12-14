@@ -24,11 +24,11 @@ const NodeUUID &CloseTrustLineCommand::contractorUUID() const {
 }
 
 void CloseTrustLineCommand::deserialize() {
-    string hexUUID = mCommandBuffer.substr(0, kUUIDHexSize);
     try {
+        string hexUUID = mCommandBuffer.substr(0, kUUIDHexSize);
         NodeUUID uuid(boost::lexical_cast<uuids::uuid>(hexUUID));
         mContractorUUID = uuid;
     } catch (...) {
-        //TODO: create error for this exception type and throw
+        throw CommandParsingError("Can't parse command with 'REMOVE:contractors/trust-lines' identifier. Error occurred while parsing contractor 'UUID' token.");
     }
 }

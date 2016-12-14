@@ -10,7 +10,7 @@ private:
 
 public:
     CloseTrustLineCommand(const uuids::uuid &commandUUID, const string &identifier,
-                         const string &timestampExcepted, const string &commandBuffer);
+                          const string &timestampExcepted, const string &commandBuffer);
 
     const uuids::uuid &commandUUID() const;
 

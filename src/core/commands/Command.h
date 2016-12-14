@@ -4,6 +4,7 @@
 #include <string>
 #include "../common/NodeUUID.h"
 #include "../trust_lines/TrustLine.h"
+#include "../common/exceptions/CommandParsingError.h"
 
 using namespace std;
 
@@ -14,6 +15,8 @@ protected:
     static const size_t kUUIDHexSize = 36;
     static const char kCommandsSeparator = '\n';
     static const char kTokensSeparator = '\r';
+    const trust_amount ZERO_TRUST_AMOUNT_VALUE = 0;
+    const balance_value ZERO_BALANCE_VALUE = 0;
 
 private:
     uuids::uuid mCommandUUID;
