@@ -10,6 +10,7 @@
 #include "../../commands/MaximalTransactionAmountCommand.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
+#include <exception>
 
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
@@ -56,7 +57,7 @@ protected:
 
     inline pair<bool, shared_ptr<Command>> tryParseCommand(const uuids::uuid &commandUUID,
                                                            const string &commandIdentifier,
-                                                           const string &buffer);
+                                                           const string buffer);
 
     inline pair<bool, shared_ptr<Command>> commandIsInvalidOrIncomplete();
 

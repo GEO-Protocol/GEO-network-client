@@ -1,7 +1,7 @@
 #include "OpenTrustLineCommand.h"
 
 OpenTrustLineCommand::OpenTrustLineCommand(const uuids::uuid &commandUUID, const string &identifier,
-                                           const string &timestampExcepted, const string &commandBuffer) :
+                                           const string &timestampExcepted, const string commandBuffer) :
         Command(commandUUID, identifier, timestampExcepted) {
     mCommandBuffer = commandBuffer;
     deserialize();
@@ -30,10 +30,11 @@ const trust_amount &OpenTrustLineCommand::amount() const {
 void OpenTrustLineCommand::deserialize() {
     try {
         string hexUUID = mCommandBuffer.substr(0, kUUIDHexSize);
-        NodeUUID uuid(boost::lexical_cast<uuids::uuid>(hexUUID));
+        uuids::uuid u = boost::lexical_cast<uuids::uuid>(hexUUID);
+        NodeUUID uuid(u);
         mContractorUUID = uuid;
     } catch (...) {
-        throw CommandParsingError("Can't parse command with 'CREATE:contractors/trust-lines' identifier. Error occurred while parsing contractor 'UUID' token.");
+        throw CommandParsingError(string("Can't parse command with 'CREATE:contractors/trust-lines' identifier. Error occurred while parsing contractor 'UUID' token.").c_str());
     }
 
     const size_t amountOffset = kUUIDHexSize + 1;
@@ -51,16 +52,16 @@ void OpenTrustLineCommand::deserialize() {
                 trust_amount trustValue(amount);
                 mAmount = trustValue;
                 if (mAmount == ZERO_TRUST_AMOUNT_VALUE) {
-                    throw ConflictError("Can't parse command with 'CREATE:contractors/trust-lines' identifier. 'Amount' token value must be greater than zero.");
+                    throw ConflictError(string("Can't parse command with 'CREATE:contractors/trust-lines' identifier. 'Amount' token value must be greater than zero.").c_str());
                 }
             } catch(...){
-                throw ConflictError("Can't parse command with 'CREATE:contractors/trust-lines' identifier. Can't cast token 'amount' value to boost::multiprecision.");
+                throw ConflictError(string("Can't parse command with 'CREATE:contractors/trust-lines' identifier. Can't cast token 'amount' value to boost::multiprecision.").c_str());
             }
         } else {
-            throw CommandParsingError("Can't parse command with 'CREATE:contractors/trust-lines' identifier. 'Amount' token must be greater than zero.");
+            throw CommandParsingError(string("Can't parse command with 'CREATE:contractors/trust-lines' identifier. 'Amount' token must be greater than zero.").c_str());
         }
     } else {
-        throw CommandParsingError("Can't parse command with 'CREATE:contractors/trust-lines' identifier. 'Amount' token was not found.");
+        throw CommandParsingError(string("Can't parse command with 'CREATE:contractors/trust-lines' identifier. 'Amount' token was not found.").c_str());
     }
 }
 

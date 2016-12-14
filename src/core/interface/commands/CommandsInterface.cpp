@@ -69,7 +69,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
         return commandIsInvalidOrIncomplete();
     }
     
-    return tryParseCommand(commandUUID, commandIdentifier, mBuffer.substr(nextTokenOffset, mBuffer.size()));
+    return tryParseCommand(commandUUID, commandIdentifier, string(mBuffer.substr(nextTokenOffset, mBuffer.size())));
 }
 
 /*!
@@ -86,26 +86,27 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
  */
 pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(const uuids::uuid &commandUUID,
                                                                 const string &commandIdentifier,
-                                                                const string &buffer) {
+                                                                const string buffer) {
 
     Command *command = nullptr;
     long timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    string sinceEpoch = to_string(timestamp);
     try{
         if(strcmp(kTrustLinesOpenIdentifier, commandIdentifier.c_str()) == 0) {
             command = new OpenTrustLineCommand(commandUUID, commandIdentifier,
-                                               std::to_string(timestamp), buffer);
+                                               sinceEpoch, buffer);
         } else if(strcmp(kTrustLinesCloseIdentifier, commandIdentifier.c_str()) == 0) {
             command = new CloseTrustLineCommand(commandUUID, commandIdentifier,
-                                                std::to_string(timestamp), buffer);
+                                                sinceEpoch, buffer);
         } else if(strcmp(kTrustLinesUpdateIdentifier, commandIdentifier.c_str()) == 0) {
             command = new UpdateOutgoingTrustAmountCommand(commandUUID, commandIdentifier,
-                                                           std::to_string(timestamp), buffer);
+                                                           sinceEpoch, buffer);
         } else if(strcmp(kTransactionsUseCreditIdentifier, commandIdentifier.c_str()) == 0) {
             command = new UseCreditCommand(commandUUID, commandIdentifier,
-                                           std::to_string(timestamp), buffer);
+                                           sinceEpoch, buffer);
         } else if (strcmp(kTransactionsMaximalAmountIdentifier, commandIdentifier.c_str()) == 0) {
             command = new MaximalTransactionAmountCommand(commandUUID, commandIdentifier,
-                                                          std::to_string(timestamp), buffer);
+                                                          sinceEpoch, buffer);
         }
     } catch (std::exception &e){
         cutNextCommandFromTheBuffer();

@@ -5,6 +5,8 @@
 #include "../common/NodeUUID.h"
 #include "../trust_lines/TrustLine.h"
 #include "../common/exceptions/CommandParsingError.h"
+#include "../common/exceptions/ConflictError.h"
+#include <exception>
 
 using namespace std;
 
