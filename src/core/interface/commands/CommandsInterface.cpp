@@ -33,12 +33,12 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
         }
         return commandIsInvalidOrIncomplete();
     }
-    
+
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (nextCommandSeparatorIndex == string::npos) {
         return commandIsInvalidOrIncomplete();
     }
-    
+
     uuids::uuid commandUUID;
     try {
         string hexUUID = mBuffer.substr(0, kUUIDHexRepresentationSize);
@@ -47,7 +47,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
         cutNextCommandFromTheBuffer();
         return commandIsInvalidOrIncomplete();
     }
-    
+
     const size_t averageCommandIdentifierLength = 15;
     const size_t identifierOffset = kUUIDHexRepresentationSize + 1;
 
@@ -63,13 +63,13 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
         commandIdentifier.push_back(symbol);
     }
     nextTokenOffset += 1;
-    
+
     if (commandIdentifier.size() == 0) {
         cutNextCommandFromTheBuffer();
         return commandIsInvalidOrIncomplete();
     }
-    
-    return tryParseCommand(commandUUID, commandIdentifier, string(mBuffer.substr(nextTokenOffset, mBuffer.size())));
+
+    return tryParseCommand(commandUUID, commandIdentifier, mBuffer.substr(nextTokenOffset, mBuffer.size()));
 }
 
 /*!
@@ -86,7 +86,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
  */
 pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(const uuids::uuid &commandUUID,
                                                                 const string &commandIdentifier,
-                                                                const string buffer) {
+                                                                const string &buffer) {
 
     Command *command = nullptr;
     long timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -107,6 +107,12 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(const uuids::uui
         } else if (strcmp(kTransactionsMaximalAmountIdentifier, commandIdentifier.c_str()) == 0) {
             command = new MaximalTransactionAmountCommand(commandUUID, commandIdentifier,
                                                           sinceEpoch, buffer);
+        } else if (strcmp(kBalanceGetTotalBalanceIdentifier, commandIdentifier.c_str()) == 0) {
+            command = new TotalBalanceCommand(commandUUID, commandIdentifier,
+                                              sinceEpoch);
+        } else if (strcmp(kContractorsGetAllContractorsIdentifier, commandIdentifier.c_str()) == 0) {
+            command = new ContractorsListCommand(commandUUID, commandIdentifier,
+                                                 sinceEpoch);
         }
     } catch (std::exception &e){
         cutNextCommandFromTheBuffer();
@@ -168,12 +174,14 @@ CommandsInterface::CommandsInterface(as::io_service &ioService) :
     }
 
     mCommandsParser = new CommandsParser();
+    mTransactionsManager = new TransactionsManager();
 }
 
 CommandsInterface::~CommandsInterface() {
     close(mFIFODescriptor);
     delete mFIFOStreamDescriptor;
     delete mCommandsParser;
+    delete mTransactionsManager;
 }
 
 void CommandsInterface::beginAcceptCommands() {
@@ -188,21 +196,22 @@ void CommandsInterface::createFIFO() {
 }
 
 void CommandsInterface::asyncReceiveNextCommand() {
-    mFIFOStreamDescriptor->async_read_some(
-            as::buffer(mCommandBuffer), boost::bind(
-                    &CommandsInterface::handleReceivedInfo, this,
-                    boost::asio::placeholders::error,
-                    boost::asio::placeholders::bytes_transferred));
+    mFIFOStreamDescriptor->async_read_some(as::buffer(mCommandBuffer),
+                                           boost::bind(&CommandsInterface::handleReceivedInfo,
+                                                    this,
+                                                    boost::asio::placeholders::error,
+                                                    boost::asio::placeholders::bytes_transferred)
+    );
 }
 
-void CommandsInterface::handleReceivedInfo(
-        const boost::system::error_code &error, const size_t bytesTransferred) {
+void CommandsInterface::handleReceivedInfo(const boost::system::error_code &error, const size_t bytesTransferred) {
 
     if (!error || error == as::error::message_size) {
-        mCommandsParser->processReceivedCommandPart(
-                mCommandBuffer.data(), bytesTransferred);
+        auto parsingResult = mCommandsParser->processReceivedCommandPart(mCommandBuffer.data(), bytesTransferred);
+        if (parsingResult.first){
+            mTransactionsManager->acceptCommand(parsingResult.second.get());
+        }
     }
-
     // In all cases - commands receiving should be continued
     asyncReceiveNextCommand();
 }

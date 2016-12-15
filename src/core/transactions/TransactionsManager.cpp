@@ -1,32 +1,51 @@
 #include <chrono>
 #include "TransactionsManager.h"
 
-TransactionsManager::TransactionsManager() {}
+TransactionsManager::TransactionsManager() : {
+    mResultsInterface = new ResultsInterface();
+}
 
-TransactionsManager::~TransactionsManager() {}
+TransactionsManager::~TransactionsManager() {
+    delete mResultsInterface;
+}
 
-pair<bool, shared_ptr<Result>> TransactionsManager::acceptCommand(shared_ptr<Command> commandPointer) {
+void TransactionsManager::acceptCommand(shared_ptr<Command> commandPointer) {
+    pair<bool, shared_ptr<Result>> parsingResult;
     if (commandPointer.get()->identifier() == string(kTrustLinesOpenIdentifier)) {
-        return openTrustLine(commandPointer);
+        parsingResult = openTrustLine(commandPointer);
     }
 
     if (commandPointer.get()->identifier() == string(kTrustLinesCloseIdentifier)) {
-        return closeTrustLine(commandPointer);
+        parsingResult = closeTrustLine(commandPointer);
     }
 
     if (commandPointer.get()->identifier() == string(kTrustLinesUpdateIdentifier)) {
-        return updateTrustLine(commandPointer);
+        parsingResult = updateTrustLine(commandPointer);
     }
 
     if (commandPointer.get()->identifier() == string(kTransactionsUseCreditIdentifier)) {
-        return useCredit(commandPointer);
+        parsingResult = useCredit(commandPointer);
     }
 
     if (commandPointer.get()->identifier() == string(kTransactionsMaximalAmountIdentifier)) {
-        return maximalTransactionAmount(commandPointer);
+        parsingResult = maximalTransactionAmount(commandPointer);
     }
 
-    return pair<bool, shared_ptr<Result>> (false, nullptr);
+    if (commandPointer.get()->identifier() == string(kBalanceGetTotalBalanceIdentifier)) {
+        parsingResult = totalBalance(commandPointer);
+    }
+
+    if (commandPointer.get()->identifier() == string(kContractorsGetAllContractorsIdentifier)) {
+        parsingResult = contractorsList(commandPointer);
+    }
+
+    if(parsingResult.first){
+        try {
+            mResultsInterface->writeResult(parsingResult.second.get()->serialize());
+        } catch(std::exception &e){
+            cout << e.what() << endl;
+        }
+    }
 }
 
 pair<bool, shared_ptr<Result>> TransactionsManager::openTrustLine(shared_ptr <Command> commandPointer) {
@@ -90,9 +109,36 @@ pair<bool, shared_ptr<Result>> TransactionsManager::useCredit(shared_ptr <Comman
     return pair<bool, shared_ptr<Result>> (true, shared_ptr<Result>(result));
 }
 
+pair<bool, shared_ptr<Result>> TransactionsManager::totalBalance(shared_ptr <Command> commandPointer) {
+    TotalBalanceCommand *totalBalanceCommand = dynamic_cast<TotalBalanceCommand *>(commandPointer.get());
+
+    Result *result = new TotalBalanceResult(commandPointer.get(),
+                                            resultCode(commandPointer.get()->commandsUUID()),
+                                            currentTimestamp(),
+                                            500, 200,
+                                            1000, 900);
+
+    return pair<bool, shared_ptr<Result>> (true, shared_ptr<Result>(result));
+}
+
+pair<bool, shared_ptr<Result>> TransactionsManager::contractorsList(shared_ptr <Command> commandPointer) {
+    ContractorsListCommand *contractorsListCommand = dynamic_cast<ContractorsListCommand *>(commandPointer.get());
+
+    NodeUUID uuid1, uuid2, uuid3;
+    vector<NodeUUID> contractorList = {uuid1, uuid2, uuid3};
+
+    Result *result = new ContractorsListResult(
+            commandPointer.get(),
+            resultCode(commandPointer.get()->commandsUUID()),
+            currentTimestamp(),
+            contractorList
+    );
+
+    return pair<bool, shared_ptr<Result>> (true, shared_ptr<Result>(result));
+}
+
 string TransactionsManager::currentTimestamp() {
-    long timestamp = std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
+    long timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     return to_string(timestamp);
 }
 

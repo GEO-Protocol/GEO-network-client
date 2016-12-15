@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_RESULT_H
 
 #include <string>
+#include <vector>
 #include "../trust_lines/TrustLine.h"
 #include "../common/NodeUUID.h"
 #include "../commands/Command.h"
@@ -17,8 +18,6 @@ private:
     string mTimestampCompleted;
 
 public:
-    Result();
-
     Result(Command *command,
            const uint16_t &resultCode,
            const string &timestampCompleted);

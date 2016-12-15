@@ -1,35 +1,39 @@
 #ifndef GEO_NETWORK_CLIENT_RESULTSINTERFACE_H
 #define GEO_NETWORK_CLIENT_RESULTSINTERFACE_H
 
-#include <vector>
-#include <boost/asio.hpp>
+#include <string>
 #include <boost/filesystem.hpp>
-#include <boost/bind.hpp>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include "../BaseFIFOInterface.h"
 #include "../../common/exceptions/IOError.h"
 
-namespace as = boost::asio;
+using namespace std;
+
 namespace fs = boost::filesystem;
 
-class ResultsInterface : public BaseFIFOInterface {
+typedef uint8_t byte;
+
+class ResultsInterface{
 private:
-    as::io_service &mIOService;
-    as::posix::stream_descriptor *mFIFOStreamDescriptor;
-    vector<char> mResultBuffer;
+    FILE *mFileDescriptor;
+    string mFileName = "results.bin";
 
-private:
-    void createFifo();
-
-    void writeResult();
-
-    void writerHandler(const boost::system::error_code &error, const size_t bytesTransferred);
+    const string kModeCreate = "w+";
+    const string kModeUpdate = "r+";
 
 public:
-    explicit ResultsInterface(as::io_service &ioService);
+    ResultsInterface();
 
     ~ResultsInterface();
+
+    void writeResult(string &result);
+
+private:
+
+    void obtainFileDescriptor();
+
+    void checkFileDescriptor();
+
+    const bool isFileExists();
+
 };
 
 #endif //GEO_NETWORK_CLIENT_RESULTSINTERFACE_H

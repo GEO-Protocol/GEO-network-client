@@ -8,9 +8,11 @@
 #include "../../commands/UpdateOutgoingTrustAmountCommand.h"
 #include "../../commands/UseCreditCommand.h"
 #include "../../commands/MaximalTransactionAmountCommand.h"
+#include "../../commands/ContractorsListCommand.h"
+#include "../../commands/TotalBalanceCommand.h"
+#include "../../transactions/TransactionsManager.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
-#include <exception>
 
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
@@ -22,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <exception>
 
 #include <sys/types.h>
 
@@ -57,7 +60,7 @@ protected:
 
     inline pair<bool, shared_ptr<Command>> tryParseCommand(const uuids::uuid &commandUUID,
                                                            const string &commandIdentifier,
-                                                           const string buffer);
+                                                           const string &buffer);
 
     inline pair<bool, shared_ptr<Command>> commandIsInvalidOrIncomplete();
 
@@ -75,14 +78,10 @@ protected:
     static const constexpr char* kTrustLinesUpdateIdentifier = "SET:contractors/trust-lines";
     static const constexpr char* kTransactionsUseCreditIdentifier = "CREATE:contractors/transations";
     static const constexpr char* kTransactionsMaximalAmountIdentifier = "GET:contractors/transations/max";
+    static const constexpr char* kContractorsGetAllContractorsIdentifier = "GET:contractors";
+    static const constexpr char* kBalanceGetTotalBalanceIdentifier = "GET:stats/balances/total/";
 
 protected:
-    // Commands may arrive via pipe partially.
-    // This buffer is needed to collect all the parts
-    // and deserialize whole the message.
-    //
-    // This buffer is separated from the boost::asio buffer,
-    // that is used for reading info from the pipe.
     string mBuffer;
 };
 
@@ -92,6 +91,13 @@ protected:
  * parse, and transfer for the further execution.
  */
 class CommandsInterface : public BaseFIFOInterface {
+private:
+    as::io_service &mIOService;
+    as::posix::stream_descriptor *mFIFOStreamDescriptor;
+    vector<char> mCommandBuffer;
+
+    CommandsParser *mCommandsParser;
+    TransactionsManager *mTransactionsManager;
 public:
     explicit CommandsInterface(as::io_service &ioService);
 
@@ -104,15 +110,7 @@ private:
 
     void asyncReceiveNextCommand();
 
-    void handleReceivedInfo(const boost::system::error_code &error,
-                            const size_t bytesTransferred);
-
-private:
-    CommandsParser *mCommandsParser;
-
-    as::io_service &mIOService;
-    as::posix::stream_descriptor *mFIFOStreamDescriptor;
-    vector<char> mCommandBuffer;
+    void handleReceivedInfo(const boost::system::error_code &error, const size_t bytesTransferred);
 };
 
 #endif //GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H

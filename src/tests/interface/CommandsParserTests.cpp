@@ -24,13 +24,13 @@ public:
 
         const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r150\n";
         auto response = parser.processReceivedCommandPart(command, strlen(command));
-//        OpenTrustLineCommand *openTrustLineCommand = dynamic_cast<OpenTrustLineCommand *>(response.second.get());
-//
-//        assert(response.first);
-//        assert(openTrustLineCommand->commandUUID() == boost::lexical_cast<uuids::uuid>("550e8400-e29b-41d4-a716-446655440000"));
-//        assert(openTrustLineCommand->id() == string("CREATE:contractors/trust-lines"));
-//        assert(openTrustLineCommand->contractorUUID().stringUUID() == string("550e8400-e29b-41d4-a716-446655440000"));
-//        assert(openTrustLineCommand->amount() == 150);
+        OpenTrustLineCommand *openTrustLineCommand = dynamic_cast<OpenTrustLineCommand *>(response.second.get());
+
+        assert(response.first);
+        assert(openTrustLineCommand->commandUUID() == boost::lexical_cast<uuids::uuid>("550e8400-e29b-41d4-a716-446655440000"));
+        assert(openTrustLineCommand->id() == string("CREATE:contractors/trust-lines"));
+        assert(openTrustLineCommand->contractorUUID().stringUUID() == string("550e8400-e29b-41d4-a716-446655440000"));
+        assert(openTrustLineCommand->amount() == 150);
     }
 
     void failureCaseOfParsingOpenTrustLineCommandWithEmptyCommandUUID(){

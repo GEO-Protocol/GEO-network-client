@@ -7,12 +7,8 @@ PaymentResult::PaymentResult(Command *command,
                              const NodeUUID &contractorUUID,
                              const trust_amount &amount,
                              const string &purpose) :
-        Result(command, resultCode, timestampCompleted) {
-    mTransactionUUID = transactionUUID;
-    mContractorUUID = contractorUUID;
-    mAmount = amount;
-    mPurpose = purpose;
-}
+        Result(command, resultCode, timestampCompleted), mTransactionUUID(transactionUUID),
+        mContractorUUID(contractorUUID), mAmount(amount), mPurpose(purpose) {}
 
 const uuids::uuid &PaymentResult::commandUUID() const {
     return commandsUUID();
@@ -34,7 +30,7 @@ const string &PaymentResult::timestampCompleted() const {
     return completedTimestamp();
 }
 
-const uuids::uuid & PaymentResult::transactionUUID() const {
+const uuids::uuid &PaymentResult::transactionUUID() const {
     return mTransactionUUID;
 }
 
@@ -46,7 +42,7 @@ const trust_amount &PaymentResult::amount() const {
     return mAmount;
 }
 
-const string & PaymentResult::purpose() const {
+const string &PaymentResult::purpose() const {
     return mPurpose;
 }
 

@@ -1,14 +1,11 @@
 #include "UpdateTrustLineResult.h"
 
 UpdateTrustLineResult::UpdateTrustLineResult(Command *command,
-                                         const uint16_t &resultCode,
-                                         const string &timestampCompleted,
-                                         const NodeUUID &contractorUUID,
-                                         const trust_amount amount) :
-        Result(command, resultCode, timestampCompleted) {
-    mContractorUUID = contractorUUID;
-    mAmount = amount;
-}
+                                             const uint16_t &resultCode,
+                                             const string &timestampCompleted,
+                                             const NodeUUID &contractorUUID,
+                                             const trust_amount &amount) :
+        Result(command, resultCode, timestampCompleted), mContractorUUID(contractorUUID), mAmount(amount) {}
 
 const uuids::uuid &UpdateTrustLineResult::commandUUID() const {
     return commandsUUID();

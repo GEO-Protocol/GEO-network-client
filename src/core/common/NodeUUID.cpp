@@ -8,6 +8,10 @@ NodeUUID::NodeUUID(uuid const &u):
     boost::uuids::uuid(u){
 }
 
+NodeUUID::NodeUUID(NodeUUID const &u) {
+    boost::uuids::uuid(u.boost::uuids::uuid());
+}
+
 NodeUUID::operator boost::uuids::uuid() {
     return static_cast<boost::uuids::uuid&>(*this);
 }

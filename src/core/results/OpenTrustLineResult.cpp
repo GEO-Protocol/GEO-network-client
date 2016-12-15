@@ -4,11 +4,8 @@ OpenTrustLineResult::OpenTrustLineResult(Command *command,
                                          const uint16_t &resultCode,
                                          const string &timestampCompleted,
                                          const NodeUUID &contractorUUID,
-                                         const trust_amount amount) :
-        Result(command, resultCode, timestampCompleted) {
-    mContractorUUID = contractorUUID;
-    mAmount = amount;
-}
+                                         const trust_amount &amount) :
+        Result(command, resultCode, timestampCompleted), mContractorUUID(contractorUUID), mAmount(amount) {}
 
 const uuids::uuid &OpenTrustLineResult::commandUUID() const {
     return commandsUUID();

@@ -1,9 +1,8 @@
 #include "OpenTrustLineCommand.h"
 
 OpenTrustLineCommand::OpenTrustLineCommand(const uuids::uuid &commandUUID, const string &identifier,
-                                           const string &timestampExcepted, const string commandBuffer) :
-        Command(commandUUID, identifier, timestampExcepted) {
-    mCommandBuffer = commandBuffer;
+                                           const string &timestampExcepted, const string &commandBuffer) :
+        Command(commandUUID, identifier, timestampExcepted), mCommandBuffer(commandBuffer){
     deserialize();
 }
 

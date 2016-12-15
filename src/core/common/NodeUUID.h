@@ -13,7 +13,8 @@ using namespace std;
 class NodeUUID: public uuid {
 public:
     NodeUUID();
-    explicit NodeUUID(uuid const& u);
+    explicit NodeUUID(uuid const &u);
+    explicit NodeUUID(NodeUUID const &u);
 
     operator boost::uuids::uuid();
     operator boost::uuids::uuid() const;

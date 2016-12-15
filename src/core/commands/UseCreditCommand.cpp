@@ -2,8 +2,7 @@
 
 UseCreditCommand::UseCreditCommand(const uuids::uuid &commandUUID, const string &identifier,
                                    const string &timestampExcepted, const string &commandBuffer) :
-        Command(commandUUID, identifier, timestampExcepted) {
-    mCommandBuffer = commandBuffer;
+        Command(commandUUID, identifier, timestampExcepted), mCommandBuffer(commandBuffer) {
     deserialize();
 }
 

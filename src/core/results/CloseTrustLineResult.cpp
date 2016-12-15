@@ -4,9 +4,7 @@ CloseTrustLineResult::CloseTrustLineResult(Command *command,
                                          const uint16_t &resultCode,
                                          const string &timestampCompleted,
                                          const NodeUUID &contractorUUID) :
-        Result(command, resultCode, timestampCompleted) {
-    mContractorUUID = contractorUUID;
-}
+        Result(command, resultCode, timestampCompleted), mContractorUUID(contractorUUID) {}
 
 const uuids::uuid &CloseTrustLineResult::commandUUID() const {
     return commandsUUID();

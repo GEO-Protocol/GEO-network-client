@@ -4,11 +4,8 @@ MaximalTransactionAmountResult::MaximalTransactionAmountResult(Command *command,
                                                                const uint16_t &resultCode,
                                                                const string &timestampCompleted,
                                                                const NodeUUID &contractorUUID,
-                                                               const trust_amount amount) :
-        Result(command, resultCode, timestampCompleted) {
-    mContractorUUID = contractorUUID;
-    mAmount = amount;
-}
+                                                               const trust_amount &amount) :
+        Result(command, resultCode, timestampCompleted), mContractorUUID(contractorUUID), mAmount(amount) {}
 
 const uuids::uuid &MaximalTransactionAmountResult::commandUUID() const {
     return commandsUUID();

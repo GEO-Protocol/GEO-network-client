@@ -1,42 +1,44 @@
 #include "ResultsInterface.h"
 
-ResultsInterface::ResultsInterface(as::io_service &ioService) :
-        mIOService(ioService) {
-    if (!FIFOExists()) {
-        createFifo();
-    }
-    mFIFODescriptor = open(FIFOPath().c_str(), O_WRONLY);
-    if (mFIFODescriptor == -1) {
-        throw IOError("Can not open FIFO file");
-    }
-
-    try {
-        mFIFOStreamDescriptor = new as::posix::stream_descriptor(mIOService, mFIFODescriptor);
-    } catch (const std::exception &e) {
-        throw IOError("Can't assign FIFO descriptor to writer");
-    }
+ResultsInterface::ResultsInterface() {
+    obtainFileDescriptor();
 }
 
 ResultsInterface::~ResultsInterface() {
-    close(mFIFODescriptor);
-    delete mFIFOStreamDescriptor;
-}
-
-void ResultsInterface::createFifo() {
-    if (!FIFOExists()) {
-        fs::create_directories(dir());
-        mkfifo(FIFOPath().c_str(), 0420);
+    if (mFileDescriptor != NULL) {
+        fclose(mFileDescriptor);
     }
 }
 
-void ResultsInterface::writeResult() {
-    mFIFOStreamDescriptor->async_write_some(
-            as::buffer(mResultBuffer),
-            boost::bind(&ResultsInterface::writerHandler, this, as::placeholders::error,
-                        as::placeholders::bytes_transferred)
-    );
+void ResultsInterface::writeResult(string &result) {
+    checkFileDescriptor();
+    const byte *buffer = reinterpret_cast<const byte*>(result.c_str());
+    size_t length = result.size();
+    fseek(mFileDescriptor, 0, SEEK_END);
+    if (fwrite(buffer, 1, length, mFileDescriptor) != length){
+        if (fwrite(buffer, 1, length, mFileDescriptor) != length){
+            throw IOError(string("Can't write result buffer in file.").c_str());
+        }
+    }
 }
 
-void ResultsInterface::writerHandler(const boost::system::error_code &error, const size_t bytesTransferred) {
-
+void ResultsInterface::obtainFileDescriptor() {
+    if (isFileExists()){
+        mFileDescriptor = fopen(mFileName.c_str(), kModeUpdate.c_str());
+        checkFileDescriptor();
+    } else {
+        mFileDescriptor = fopen(mFileName.c_str(), kModeCreate.c_str());
+        checkFileDescriptor();
+    }
 }
+
+void ResultsInterface::checkFileDescriptor() {
+    if (mFileDescriptor == NULL) {
+        throw IOError(string("Unable to obtain file descriptor.").c_str());
+    }
+}
+
+const bool ResultsInterface::isFileExists() {
+    return fs::exists(fs::path(mFileName.c_str()));
+}
+

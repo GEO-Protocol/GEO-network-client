@@ -13,7 +13,7 @@ public:
                                    const uint16_t &resultCode,
                                    const string &timestampCompleted,
                                    const NodeUUID &contractorUUID,
-                                   const trust_amount amount);
+                                   const trust_amount &amount);
 
     const uuids::uuid &commandUUID() const;
 
