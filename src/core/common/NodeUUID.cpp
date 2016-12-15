@@ -9,7 +9,7 @@ NodeUUID::NodeUUID(uuid const &u):
 }
 
 NodeUUID::NodeUUID(NodeUUID const &u) {
-    boost::uuids::uuid(u.boost::uuids::uuid());
+    boost::uuids::uuid(boost::lexical_cast<boost::uuids::uuid>(u.stringUUID()));
 }
 
 NodeUUID::operator boost::uuids::uuid() {

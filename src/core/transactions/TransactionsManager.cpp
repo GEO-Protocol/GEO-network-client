@@ -1,7 +1,7 @@
 #include <chrono>
 #include "TransactionsManager.h"
 
-TransactionsManager::TransactionsManager() : {
+TransactionsManager::TransactionsManager() {
     mResultsInterface = new ResultsInterface();
 }
 
@@ -12,31 +12,31 @@ TransactionsManager::~TransactionsManager() {
 void TransactionsManager::acceptCommand(shared_ptr<Command> commandPointer) {
     pair<bool, shared_ptr<Result>> parsingResult;
     if (commandPointer.get()->identifier() == string(kTrustLinesOpenIdentifier)) {
-        parsingResult = openTrustLine(commandPointer);
+        parsingResult = pair<bool, shared_ptr<Result>> (openTrustLine(commandPointer));
     }
 
     if (commandPointer.get()->identifier() == string(kTrustLinesCloseIdentifier)) {
-        parsingResult = closeTrustLine(commandPointer);
+        parsingResult = pair<bool, shared_ptr<Result>> (closeTrustLine(commandPointer));
     }
 
     if (commandPointer.get()->identifier() == string(kTrustLinesUpdateIdentifier)) {
-        parsingResult = updateTrustLine(commandPointer);
+        parsingResult = pair<bool, shared_ptr<Result>> (updateTrustLine(commandPointer));
     }
 
     if (commandPointer.get()->identifier() == string(kTransactionsUseCreditIdentifier)) {
-        parsingResult = useCredit(commandPointer);
+        parsingResult = pair<bool, shared_ptr<Result>> (useCredit(commandPointer));
     }
 
     if (commandPointer.get()->identifier() == string(kTransactionsMaximalAmountIdentifier)) {
-        parsingResult = maximalTransactionAmount(commandPointer);
+        parsingResult = pair<bool, shared_ptr<Result>> (maximalTransactionAmount(commandPointer));
     }
 
     if (commandPointer.get()->identifier() == string(kBalanceGetTotalBalanceIdentifier)) {
-        parsingResult = totalBalance(commandPointer);
+        parsingResult = pair<bool, shared_ptr<Result>> (totalBalance(commandPointer));
     }
 
     if (commandPointer.get()->identifier() == string(kContractorsGetAllContractorsIdentifier)) {
-        parsingResult = contractorsList(commandPointer);
+        parsingResult = pair<bool, shared_ptr<Result>> (contractorsList(commandPointer));
     }
 
     if(parsingResult.first){
@@ -109,6 +109,7 @@ pair<bool, shared_ptr<Result>> TransactionsManager::useCredit(shared_ptr <Comman
     return pair<bool, shared_ptr<Result>> (true, shared_ptr<Result>(result));
 }
 
+
 pair<bool, shared_ptr<Result>> TransactionsManager::totalBalance(shared_ptr <Command> commandPointer) {
     TotalBalanceCommand *totalBalanceCommand = dynamic_cast<TotalBalanceCommand *>(commandPointer.get());
 
@@ -125,7 +126,10 @@ pair<bool, shared_ptr<Result>> TransactionsManager::contractorsList(shared_ptr <
     ContractorsListCommand *contractorsListCommand = dynamic_cast<ContractorsListCommand *>(commandPointer.get());
 
     NodeUUID uuid1, uuid2, uuid3;
-    vector<NodeUUID> contractorList = {uuid1, uuid2, uuid3};
+    vector<NodeUUID> contractorList;
+    contractorList.push_back(uuid1);
+    contractorList.push_back(uuid2);
+    contractorList.push_back(uuid3);
 
     Result *result = new ContractorsListResult(
             commandPointer.get(),

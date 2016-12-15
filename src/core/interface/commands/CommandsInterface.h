@@ -94,7 +94,8 @@ class CommandsInterface : public BaseFIFOInterface {
 private:
     as::io_service &mIOService;
     as::posix::stream_descriptor *mFIFOStreamDescriptor;
-    vector<char> mCommandBuffer;
+    //vector<char> mCommandBuffer;
+    boost::array<char, 1024> mCommandBuffer;
 
     CommandsParser *mCommandsParser;
     TransactionsManager *mTransactionsManager;

@@ -6,13 +6,6 @@ json Settings::loadParsedJSON() const {
     try {
         ifstream stream("conf.json");
 
-        stream.seekg(0, std::ios::end);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
-        buffer.reserve(stream.tellg());
-#pragma clang diagnostic pop
-        stream.seekg(0, std::ios::beg);
-
         buffer.assign((std::istreambuf_iterator<char>(stream)),
                    std::istreambuf_iterator<char>());
 

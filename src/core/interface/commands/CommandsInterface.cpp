@@ -8,6 +8,10 @@
  * Return value is similar to the tryDeserializeCommand() return value.
  */
 pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommandPart(const char *commandPart, const size_t receivedBytesCount) {
+    if (receivedBytesCount == 0) {
+        return commandIsInvalidOrIncomplete();
+    }
+
     mBuffer.reserve(mBuffer.size() + receivedBytesCount);
     for (size_t i = 0; i < receivedBytesCount; ++i) {
         mBuffer.push_back(commandPart[i]);
@@ -196,22 +200,31 @@ void CommandsInterface::createFIFO() {
 }
 
 void CommandsInterface::asyncReceiveNextCommand() {
-    mFIFOStreamDescriptor->async_read_some(as::buffer(mCommandBuffer),
-                                           boost::bind(&CommandsInterface::handleReceivedInfo,
-                                                    this,
+   mFIFOStreamDescriptor->async_read_some(as::buffer(mCommandBuffer),
+                                           boost::bind(&CommandsInterface::handleReceivedInfo, this,
                                                     boost::asio::placeholders::error,
                                                     boost::asio::placeholders::bytes_transferred)
-    );
+   );
 }
 
 void CommandsInterface::handleReceivedInfo(const boost::system::error_code &error, const size_t bytesTransferred) {
 
     if (!error || error == as::error::message_size) {
+
+        cout << "Bytes transferred " << bytesTransferred << endl;
+        cout << "Data ";
+        cout.write(mCommandBuffer.data(), bytesTransferred) << endl;
+
         auto parsingResult = mCommandsParser->processReceivedCommandPart(mCommandBuffer.data(), bytesTransferred);
         if (parsingResult.first){
-            mTransactionsManager->acceptCommand(parsingResult.second.get());
+            mTransactionsManager->acceptCommand(parsingResult.second);
+        } else {
+            cout << "Can't create command" << endl;
         }
+
+    } else {
+        cout << error.message() << endl;
     }
     // In all cases - commands receiving should be continued
-    asyncReceiveNextCommand();
+    //asyncReceiveNextCommand();
 }

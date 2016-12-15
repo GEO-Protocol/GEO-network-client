@@ -14,7 +14,7 @@ typedef uint8_t byte;
 class ResultsInterface{
 private:
     FILE *mFileDescriptor;
-    string mFileName = "results.bin";
+    string mFileName = "fifo/results.bin";
 
     const string kModeCreate = "w+";
     const string kModeUpdate = "r+";
@@ -24,7 +24,7 @@ public:
 
     ~ResultsInterface();
 
-    void writeResult(string &result);
+    void writeResult(const string &result);
 
 private:
 

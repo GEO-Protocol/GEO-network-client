@@ -181,8 +181,6 @@ public:
     }
 
     pair<bool, shared_ptr<Result>> checkAcceptCommand(shared_ptr<Command> command){
-        TransactionsManager manager;
-        return manager.acceptCommand(command);
     }
 
 };

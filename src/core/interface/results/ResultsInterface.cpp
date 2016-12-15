@@ -10,7 +10,7 @@ ResultsInterface::~ResultsInterface() {
     }
 }
 
-void ResultsInterface::writeResult(string &result) {
+void ResultsInterface::writeResult(const string &result) {
     checkFileDescriptor();
     const byte *buffer = reinterpret_cast<const byte*>(result.c_str());
     size_t length = result.size();
