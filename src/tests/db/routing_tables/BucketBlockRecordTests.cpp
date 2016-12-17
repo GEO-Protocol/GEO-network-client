@@ -2,11 +2,12 @@
 
 
 namespace db {
-namespace routing_tables {
+namespace fields {
+namespace uuid_map {
 
 class BucketBlockRecordTests {
 public:
-    void run(){
+    void run() {
         checkInsertInEmptyRecord();
         checkInsert();
         checkInsertDuplicate();
@@ -28,7 +29,8 @@ public:
 private:
     void checkInsertInEmptyRecord() {
         NodeUUID uuid;
-        RecordNumber recordNumber(100);
+        
+        AbstractRecordsHandler::RecordNumber recordNumber(100);
 
         BucketBlockRecord record(uuid);
         assert(record.mRecordsNumbersCount == 0);
@@ -42,14 +44,14 @@ private:
         NodeUUID uuid;
         BucketBlockRecord record(uuid);
 
-        for (size_t i=100; i>0; --i){
+        for (size_t i = 100; i > 0; --i) {
             record.insert(i);
         }
         assert(record.mRecordsNumbersCount == 100);
 
         // Check sorting order
-        for (size_t i=0; i<100; ++i){
-            assert(record.mRecordsNumbers[i] == i+1);
+        for (size_t i = 0; i < 100; ++i) {
+            assert(record.mRecordsNumbers[i] == i + 1);
         }
     }
 
@@ -57,7 +59,7 @@ private:
         NodeUUID uuid;
 
         BucketBlockRecord record(uuid);
-        RecordNumber recordNumber(100);
+        AbstractRecordsHandler::RecordNumber recordNumber(100);
 
         try {
             record.insert(recordNumber);
@@ -75,10 +77,10 @@ private:
         assert(record.mRecordsNumbers[0] == recordNumber);
     }
 
-    void checkRemoveFromEmptyRecord(){
+    void checkRemoveFromEmptyRecord() {
         NodeUUID uuid;
         BucketBlockRecord record(uuid);
-        RecordNumber recordNumber(100);
+        AbstractRecordsHandler::RecordNumber recordNumber(100);
 
         assert(!record.remove(recordNumber));
     }
@@ -88,11 +90,11 @@ private:
         BucketBlockRecord record(uuid);
 
         // populating
-        for (size_t i=0; i<100; ++i){
+        for (size_t i = 0; i < 100; ++i) {
             record.insert(i);
         }
 
-        for (size_t i=0; i<100; ++i){
+        for (size_t i = 0; i < 100; ++i) {
             assert(record.remove(i));
         }
         assert(record.mRecordsNumbersCount == 0);
@@ -103,11 +105,11 @@ private:
         BucketBlockRecord record(uuid);
 
         // populating
-        for (size_t i=0; i<100; ++i){
+        for (size_t i = 0; i < 100; ++i) {
             record.insert(i);
         }
 
-        for (size_t i=100; i>0; --i){
+        for (size_t i = 100; i > 0; --i) {
             assert(record.remove(i - 1));
         }
         assert(record.mRecordsNumbersCount == 0);
@@ -121,7 +123,7 @@ private:
             record.indexOf(1);
             assert(false); // no throw;
 
-        } catch (IndexError &e){
+        } catch (IndexError &e) {
         } catch (...) {
             assert(false); // unexpected exception;
         }
@@ -137,7 +139,7 @@ private:
             record.indexOf(100);
             assert(false); // no throw;
 
-        } catch (IndexError &e){
+        } catch (IndexError &e) {
         } catch (...) {
             assert(false); // unexpected exception;
         }
@@ -202,6 +204,7 @@ private:
     }
 };
 
+}
 }
 }
 

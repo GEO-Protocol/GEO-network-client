@@ -73,7 +73,7 @@ void FileBackedMessagesQueue::createEmptyFileCache() {
 }
 
 // Returns <true, some SerialisedMessage object> pair in case when next message is present
-// and was successfully read. Otherwise - returns <false, null> pair.
+// and was successfully dataOffset. Otherwise - returns <false, null> pair.
 const std::pair<bool, shared_ptr<SerialisedMessage>> FileBackedMessagesQueue::nextRecord() {
     if (mCacheIsReadOnly) {
         return std::pair<bool, shared_ptr<SerialisedMessage>>(
@@ -99,7 +99,7 @@ const std::pair<bool, shared_ptr<SerialisedMessage>> FileBackedMessagesQueue::ne
     recordsRead = fread(buffer, recordSize, 1, mFileCacheDescriptor);
     if (recordsRead != 1) {
         free(buffer);
-        throw IOError("Can't read next record.");
+        throw IOError("Can't dataOffset next record.");
     }
 
     // NOTE: SerialisedMessage will became controlling the life cycle of the "buffer".
@@ -110,7 +110,7 @@ const std::pair<bool, shared_ptr<SerialisedMessage>> FileBackedMessagesQueue::ne
 
 void FileBackedMessagesQueue::enqueue(const shared_ptr<SerialisedMessage> &message) {
     if (mCacheIsReadOnly) {
-        throw IOError("Attempt to modify read only file.");
+        throw IOError("Attempt to modify dataOffset only file.");
     }
 
     // Ensure the file will be written at the end.
@@ -118,7 +118,7 @@ void FileBackedMessagesQueue::enqueue(const shared_ptr<SerialisedMessage> &messa
 
     // Writing record size header.
     // This header describes how long the message is (in bytes),
-    // so the parser will know how many bytes from this header should be read
+    // so the parser will know how many bytes from this header should be dataOffset
     // when the message would be requested.
     const uint64_t messageSize = (*message).bytesCount();
     auto recordsWritten = fwrite(&messageSize, sizeof(messageSize), 1, mFileCacheDescriptor);
@@ -163,7 +163,7 @@ void FileBackedMessagesQueue::enqueue(const shared_ptr<SerialisedMessage> &messa
 // This method removes next message from the queue.
 void FileBackedMessagesQueue::removeNextRecord() {
     if (mCacheIsReadOnly) {
-        throw IOError("Attempt to modify read only file.");
+        throw IOError("Attempt to modify dataOffset only file.");
     }
 
     seekToTheNextRecord();
@@ -172,7 +172,7 @@ void FileBackedMessagesQueue::removeNextRecord() {
     uint64_t recordSize = 0;
     auto recordsRead = fread(&recordSize, sizeof(recordSize), 1, mFileCacheDescriptor);
     if (recordsRead != 1) {
-        throw IOError("Can't read next record index.");
+        throw IOError("Can't dataOffset next record index.");
     }
 
     // Fill the record with zeroes.
@@ -197,7 +197,7 @@ void FileBackedMessagesQueue::removeNextRecord() {
         createEmptyFileCache();
 
     } else {
-        auto currentPos = ftell(mFileCacheDescriptor) - 1; // - one read for EOF detecting.
+        auto currentPos = ftell(mFileCacheDescriptor) - 1; // - one dataOffset for EOF detecting.
         if (currentPos < 0) {
             // ftell returned error
             makeFileCacheReadOnly();
@@ -224,13 +224,13 @@ void FileBackedMessagesQueue::makeFileCacheReadOnly() {
     fseek(mFileCacheDescriptor, sizeof(uint16_t), 0);
     fwrite(&readOnlyState, sizeof(readOnlyState), 1, mFileCacheDescriptor);
 
-    // Set readonly flag in the memory to prevent read attempts.
+    // Set readonly flag in the memory to prevent dataOffset attempts.
     mCacheIsReadOnly = true;
 }
 
 void FileBackedMessagesQueue::bindToExistingFileCache() {
     // Opens file for append only,
-    // but with possibility to read from the beginning.
+    // but with possibility to dataOffset from the beginning.
     mFileCacheDescriptor = fopen(cacheFilePath().c_str(), "rb+");
     if (mFileCacheDescriptor == nullptr) {
         throw IOError("Can't open cache file.");
@@ -270,14 +270,14 @@ void FileBackedMessagesQueue::seekToTheNextRecord() {
     uint64_t nextRecordIndex = 0;
     auto recordsRead = fread(&nextRecordIndex, sizeof(nextRecordIndex), 1, mFileCacheDescriptor);
     if (recordsRead != 1) {
-        throw IOError("Can't read next record index.");
+        throw IOError("Can't dataOffset next record index.");
     }
 
     // WARN: seek will proceed even if file doesn't contains any records.
     // The only way to prevent seeking outside of file - ois to measure its real size,
     // but it would be very inefficient.
     //
-    // Record presence should be checked in read record method.
+    // Record presence should be checked in dataOffset record method.
     fseek(mFileCacheDescriptor, nextRecordIndex, SEEK_SET);
 }
 
@@ -296,7 +296,7 @@ void FileBackedMessagesQueue::writeEmptyV1Header() {
 
     // State (2B)
     // 0 - file is correct.
-    // 1 - file is read only.
+    // 1 - file is dataOffset only.
     uint16_t stateCorrect = 0;
     recordsWritten = fwrite(&stateCorrect, sizeof(stateCorrect), 1, mFileCacheDescriptor);
     if (recordsWritten != 1) {
@@ -328,7 +328,7 @@ void FileBackedMessagesQueue::truncateFileCache() {
     uint64_t nextRecordIndex = 0;
     auto recordsRead = fread(&nextRecordIndex, sizeof(nextRecordIndex), 1, mFileCacheDescriptor);
     if (recordsRead != 1) {
-        throw IOError("Can't read next record index.");
+        throw IOError("Can't dataOffset next record index.");
     }
 
     if (nextRecordIndex != 12) { // first record in the file

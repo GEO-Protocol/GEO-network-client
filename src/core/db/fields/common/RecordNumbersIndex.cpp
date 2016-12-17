@@ -4,8 +4,9 @@
 namespace db {
 namespace fields {
 
-RecordNumbersIndex::RecordNumbersIndex(const char *filename, const char *path):
-    AbstractFileDescriptorHandler(filename, path){
+RecordNumbersIndex::RecordNumbersIndex(const char *path, const char *filename) :
+
+    AbstractFileDescriptorHandler(path, filename) {
     open(kWriteAccessMode);
 }
 
@@ -14,7 +15,9 @@ RecordNumbersIndex::FileHeader::FileHeader():
 
 RecordNumbersIndex::IndexRecord::IndexRecord() {}
 
-RecordNumbersIndex::IndexRecord::IndexRecord(const RecordNumbersIndex::DataOffset offset):
+RecordNumbersIndex::IndexRecord::IndexRecord(
+    const RecordNumbersIndex::DataOffset offset):
+
     offset(offset){}
 
 /*!
@@ -26,25 +29,17 @@ RecordNumbersIndex::IndexRecord::IndexRecord(const RecordNumbersIndex::DataOffse
  * @param flushBuffers - specifies if fdatasync() should be called
  *      after successfull operation.
  */
-void RecordNumbersIndex::set(const RecordNumber recN,
-                             const DataOffset storageOffset,
-                             const bool flushBuffers) {
+void RecordNumbersIndex::set(
+    const RecordNumber recN,
+    const DataOffset storageOffset) {
 
     IndexRecord record(storageOffset);
 
-    fseek(mFileDescriptor, recordOffset(recN));
+    fseek(mFileDescriptor, recordOffset(recN), SEEK_SET);
     if (fwrite(&record, sizeof(record), 1, mFileDescriptor) != 1) {
         throw IOError(
             "RecordNumbersIndex::set: "
                 "can't write index record.");
-    }
-
-    if (flushBuffers) {
-        if (fdatasync(fileno(mFileDescriptor)) != 0) {
-            throw IOError(
-                "RecordNumbersIndex::set: "
-                    "can't sync buffers with the device.");
-        }
     }
 }
 
@@ -58,24 +53,16 @@ void RecordNumbersIndex::set(const RecordNumber recN,
  * @param flushBuffers - specifies if fdatasync() should be called
  *      after successfull operation.
  */
-void RecordNumbersIndex::remove(const RecordNumber recN,
-                                const bool flushBuffers) {
+void RecordNumbersIndex::remove(
+    const RecordNumber recN) {
 
     IndexRecord record(IndexRecord::kRemovedRecordValue);
 
-    fseek(mFileDescriptor, recordOffset(recN));
+    fseek(mFileDescriptor, recordOffset(recN), SEEK_SET);
     if (fwrite(&record, sizeof(record), 1, mFileDescriptor) != 1) {
         throw IOError(
             "RecordNumbersIndex::remove: "
                 "can't mark record as removed.");
-    }
-
-    if (flushBuffers) {
-        if (fdatasync(fileno(mFileDescriptor)) != 0) {
-            throw IOError(
-                "RecordNumbersIndex::remove: "
-                    "can't sync buffers with the device.");
-        }
     }
 }
 
@@ -83,10 +70,11 @@ void RecordNumbersIndex::remove(const RecordNumber recN,
  * @param recN - number of the record that should be read.
  * @return offset of the data block that is associated with "recN"
  */
-const DataOffset RecordNumbersIndex::dataOffset(const RecordNumber recN) const {
-    IndexRecord record;
+const RecordNumbersIndex::DataOffset RecordNumbersIndex::dataOffset(
+    const RecordNumber recN) const {
 
-    fseek(mFileDescriptor, recordOffset(recN));
+    IndexRecord record;
+    fseek(mFileDescriptor, recordOffset(recN), SEEK_SET);
     if (fread(&record, sizeof(record), 1, mFileDescriptor) != 1){
         throw IOError(
             "RecordNumbersIndex::dataOffset: "
@@ -96,17 +84,21 @@ const DataOffset RecordNumbersIndex::dataOffset(const RecordNumber recN) const {
     return record.offset;
 }
 
-const IndexRecordOffset RecordNumbersIndex::recordOffset(const RecordNumber recN) const {
+const RecordNumbersIndex::IndexRecordOffset RecordNumbersIndex::recordOffset(
+    const RecordNumber recN) const {
+
     return (recN*sizeof(IndexRecord)) + sizeof(FileHeader);
 }
 
-void RecordNumbersIndex::open(const char *accessMode) {
+void RecordNumbersIndex::open(
+    const char *accessMode) {
+
     AbstractFileDescriptorHandler::open(accessMode);
 
     if (fileSize() == 0) {
         // Init default header.
         FileHeader initialHeader; // will be initialised to the defaults by the constructor.
-        updateFileHeader(initialHeader);
+        updateFileHeader(&initialHeader);
 
     } else {
         // Load data from current header.
@@ -137,9 +129,11 @@ RecordNumbersIndex::FileHeader RecordNumbersIndex::loadFileHeader() const {
  * Atomically updates file header.
  * Throws IOError in case when write operation failed.
  */
-void RecordNumbersIndex::updateFileHeader(const RecordNumbersIndex::FileHeader &header) const {
+void RecordNumbersIndex::updateFileHeader(
+    const FileHeader *header) const {
+
     fseek(mFileDescriptor, 0, SEEK_SET);
-    if (fwrite(header, sizeof(header), 1, mFileDescriptor) != 1) {
+    if (fwrite(header, sizeof(FileHeader), 1, mFileDescriptor) != 1) {
         throw IOError(
             "RecordNumbersIndex::updateFileHeader: "
                 "can't write header to the disk.");

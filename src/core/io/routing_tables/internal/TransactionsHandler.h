@@ -28,16 +28,13 @@ class BaseTransaction:
     public AbstractRecordsHandler {
 
 public:
-    static const TransactionType type = Base;
-
-public:
     enum TransactionType {
         Base              = 0,
-
         DirectionUpdating = 1,
         RecordInserting   = 2,
         RecordRemoving    = 3,
     };
+    static const TransactionType type = Base;
 
     const RecordNumber recordNumber;
 
@@ -48,8 +45,8 @@ public:
     virtual const pair<void*, size_t> serialize() const = 0;
 
 protected:
-    const constexpr size_t kTransactionTypeSize = 1;
-    const constexpr size_t kTLDirectionSize = 1;
+    static const size_t kTransactionTypeSize = 1;
+    static const size_t kTLDirectionSize = 1;
 };
 
 
@@ -171,7 +168,7 @@ protected:
 
     FileHeader loadFileHeader() const;
     void updateFileHeader(
-        const FileHeader &header) const;
+        const FileHeader *header) const;
 
     void saveTransaction(const BaseTransaction *transaction);
     BaseTransaction* loadLastTransaction() const;

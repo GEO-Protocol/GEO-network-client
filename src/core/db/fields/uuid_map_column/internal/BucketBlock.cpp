@@ -33,7 +33,7 @@ BucketBlock::~BucketBlock() {
  * Throws "MemoryError".
  */
 void BucketBlock::insert(const NodeUUID &uuid, const RecordNumber recN) {
-    if (mRecordsCount == numeric_limits<RecordsCount>::max()){
+    if (mRecordsCount == numeric_limits<AbstractRecordsHandler::RecordsCount>::max()){
         throw OverflowError(
             "BucketBlock::set: "
                 "there is no free space in this block.");
@@ -77,7 +77,7 @@ bool BucketBlock::remove(const NodeUUID &uuid, const RecordNumber recN) {
  */
 BucketBlockRecord *BucketBlock::recordByUUID(const NodeUUID &uuid) const {
     try {
-        RecordsCount index = recordIndexByUUID(uuid);
+        AbstractRecordsHandler::RecordsCount index = recordIndexByUUID(uuid);
         return mRecords+index;
 
     } catch (IndexError &) {
@@ -90,9 +90,9 @@ BucketBlockRecord *BucketBlock::recordByUUID(const NodeUUID &uuid) const {
  * Returns record index in case when record with "uuid" was found in the block;
  * Otherwise - throws IndexError;
  */
-const RecordsCount BucketBlock::recordIndexByUUID(const NodeUUID &uuid) const {
-    RecordsCount first = 0;
-    RecordsCount last = mRecordsCount; // index of elem. that is BEHIND THE LAST elem.
+const AbstractRecordsHandler::RecordsCount BucketBlock::recordIndexByUUID(const NodeUUID &uuid) const {
+    AbstractRecordsHandler::RecordsCount first = 0;
+    AbstractRecordsHandler::RecordsCount last = mRecordsCount; // index of elem. that is BEHIND THE LAST elem.
 
     if (mRecordsCount == 0) {
         // The record is empty.
@@ -153,13 +153,13 @@ BucketBlockRecord *BucketBlock::createRecord(const NodeUUID &uuid) {
     if (newBuffer == nullptr) {
         throw MemoryError(
             "BucketBlock::createRecord: "
-                "can't allocate memory for new records buffer.");
+                "can't allocate memory for new recordNumbers buffer.");
     }
 
     // Copying values from previous buffer to the new one.
     if (mRecordsCount > 0) {
         memcpy(newBuffer, mRecords, mRecordsCount*BUCKET_BLOCK_RECORD_PTR_SIZE);
-        for (RecordsCount i=0; i<mRecordsCount; ++i){
+        for (AbstractRecordsHandler::RecordsCount i=0; i<mRecordsCount; ++i){
             BucketBlockRecord *bufferRecord = newBuffer+i;
             auto compareResult = NodeUUID::compare(uuid, bufferRecord->uuid());
             if (compareResult == NodeUUID::LESS) {
@@ -188,7 +188,7 @@ EXIT:
 
 void BucketBlock::dropRecord(BucketBlockRecord *record) {
     try {
-        RecordsCount index = recordIndexByUUID(record->uuid());
+        AbstractRecordsHandler::RecordsCount index = recordIndexByUUID(record->uuid());
 
         const size_t newBufferSize = (mRecordsCount * BUCKET_BLOCK_RECORD_PTR_SIZE)
             - sizeof(BucketBlockRecord); // - one record
@@ -197,7 +197,7 @@ void BucketBlock::dropRecord(BucketBlockRecord *record) {
         if (newBuffer == nullptr) {
             throw MemoryError(
                 "BucketBlockRecord::remove: "
-                    "can't allocate memory for new records numbers block.");
+                    "can't allocate memory for new recordNumbers numbers block.");
         }
 
         // Chain the buffers
@@ -219,6 +219,22 @@ void BucketBlock::dropRecord(BucketBlockRecord *record) {
         return;
     }
 }
+
+const AbstractRecordsHandler::RecordNumber BucketBlock::recordsCount() const {
+    return mRecordsCount;
+}
+
+const BucketBlockRecord *BucketBlock::records() const {
+    return mRecords;
+}
+
+/*
+ * Returns pointer to block data and it's size in bytes.
+ */
+const pair<void*, size_t> BucketBlock::data() const {
+    return make_pair((void*)mRecords, mRecordsCount * sizeof(RecordNumber));
+}
+
 
 } // namespace uuid_map
 } // namespace fields

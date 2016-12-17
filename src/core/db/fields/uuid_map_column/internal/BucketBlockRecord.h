@@ -2,8 +2,8 @@
 #define GEO_NETWORK_CLIENT_BUCKETBLOCKRECORD_H
 
 
-#include "BucketBlock.h"
-#include "../../common/Types.h"
+#include "../../common/AbstractRecordsHandler.h"
+#include "../../../../common/Types.h"
 #include "../../../../common/NodeUUID.h"
 #include "../../../../common/exceptions/MemoryError.h"
 #include "../../../../common/exceptions/OverflowError.h"
@@ -22,6 +22,7 @@ namespace uuid_map {
 
 
 using namespace std;
+
 
 /*
  * Bucket block should map uuid's to their record. numbers.
@@ -45,7 +46,8 @@ using namespace std;
  *
  * This class implements exactly that structure.
  */
-class BucketBlockRecord: protected AbstractRecordsHandler {
+class BucketBlockRecord:
+    protected AbstractRecordsHandler {
     friend class BucketBlockTests;
     friend class BucketBlockRecordTests;
 
@@ -67,9 +69,9 @@ public:
         const RecordNumber recN);
 
     const RecordsCount count() const;
-    const RecordNumber* records() const;
+    RecordNumber* recordNumbers() const;
 
-    const byte* data() const;
+    const pair<void*, size_t> data() const;
     const NodeUUID& uuid() const;
     const bool isModified() const;
 

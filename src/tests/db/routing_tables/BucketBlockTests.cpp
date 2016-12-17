@@ -1,11 +1,13 @@
 #include "../../../core/db/fields/uuid_map_column/internal/BucketBlock.h"
 
 namespace db {
-namespace routing_tables {
+namespace fields {
+namespace uuid_map {
+
 
 class BucketBlockTests {
 public:
-    void run(){
+    void run() {
         checkInsertInEmptyBlock();
         checkInsertInSameUUID();
 //        checkInsertInDifferentUUID();
@@ -25,7 +27,7 @@ public:
 private:
     void checkInsertInEmptyBlock() {
         NodeUUID uuid;
-        RecordNumber recordNumber(1);
+        AbstractRecordsHandler::RecordNumber recordNumber(1);
 
         BucketBlock block;
         assert(block.mRecordsCount == 0);
@@ -41,7 +43,7 @@ private:
         BucketBlock block;
         assert(block.mRecordsCount == 0);
 
-        for (size_t i=100; i>0; --i){
+        for (size_t i = 100; i > 0; --i) {
             block.insert(uuid, i);
         }
         assert(block.mRecordsCount == 1);
@@ -52,11 +54,11 @@ private:
         BucketBlock block;
         assert(block.mRecordsCount == 0);
 
-        for (size_t i=100; i>0; --i){
+        for (size_t i = 100; i > 0; --i) {
             block.insert(NodeUUID(), i);
         }
         assert(block.mRecordsCount == 100);
-        for (size_t i=0; i<100; ++i){
+        for (size_t i = 0; i < 100; ++i) {
             assert(block.mRecords[i].mRecordsNumbersCount == 1);
         }
     }
@@ -70,7 +72,7 @@ private:
         NodeUUID uuid3;
 
         // zero the uuids for order predictability reasons
-        for (size_t i=0; i<16; ++i){
+        for (size_t i = 0; i < 16; ++i) {
             uuid1.data[i] = 0;
             uuid2.data[i] = 0;
             uuid3.data[i] = 0;
@@ -99,13 +101,13 @@ private:
             block.insert(uuid, 1);
             assert(false); // nothrow
 
-        } catch (ConflictError &e){}
+        } catch (ConflictError &e) {}
         catch (...) {
             assert(false); // unexpected exception
         }
     }
 
-    void checkRemoveFromEmptyRecord(){
+    void checkRemoveFromEmptyRecord() {
         NodeUUID uuid;
         BucketBlock block;
 
@@ -117,11 +119,11 @@ private:
         BucketBlock block;
 
         // populating
-        for (size_t i=0; i<100; ++i){
+        for (size_t i = 0; i < 100; ++i) {
             block.insert(uuid, i);
         }
 
-        for (size_t i=0; i<100; ++i){
+        for (size_t i = 0; i < 100; ++i) {
             assert(block.remove(uuid, i));
         }
         assert(block.mRecordsCount == 0);
@@ -131,16 +133,16 @@ private:
         BucketBlock block;
 
         std::vector<NodeUUID> uuids;
-        for (size_t i=0; i<100; ++i){
+        for (size_t i = 0; i < 100; ++i) {
             uuids.push_back(NodeUUID());
         }
 
         // populating
-        for (size_t i=0; i<100; ++i){
+        for (size_t i = 0; i < 100; ++i) {
             block.insert(uuids.at(i), i);
         }
 
-        for (size_t i=0; i<100; ++i){
+        for (size_t i = 0; i < 100; ++i) {
             assert(block.remove(uuids.at(i), i));
         }
         assert(block.mRecordsCount == 0);
@@ -154,7 +156,7 @@ private:
             block.recordIndexByUUID(NodeUUID());
             assert(false); // no throw;
 
-        } catch (IndexError &e){
+        } catch (IndexError &e) {
         } catch (...) {
             assert(false); // unexpected exception;
         }
@@ -171,7 +173,7 @@ private:
             block.recordIndexByUUID(NodeUUID());
             assert(false); // no throw;
 
-        } catch (IndexError &e){
+        } catch (IndexError &e) {
         } catch (...) {
             assert(false); // unexpected exception;
         }
@@ -206,7 +208,7 @@ private:
         NodeUUID uuid4;
         NodeUUID uuid5;
 
-        for (size_t i=0;i<16; i++){
+        for (size_t i = 0; i < 16; i++) {
             uuid1.data[i] = 0;
             uuid2.data[i] = 0;
             uuid3.data[i] = 0;
@@ -258,4 +260,4 @@ private:
 
 }
 }
-
+}

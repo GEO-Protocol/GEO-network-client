@@ -6,21 +6,32 @@
 #include "../../../db/fields/uuid_map_column/UUIDMapColumn.h"
 #include "../../../db/fields/tl_direction_column/TrustLineDirectionColumn.h"
 
+#include <boost/filesystem.hpp>
 
 
 namespace io {
 namespace routing_tables {
 
 
+namespace fs = boost::filesystem;
 using namespace db::fields;
 
 
-class AbstractRoutingTable {
+class AbstractRoutingTable:
+    protected AbstractRecordsHandler {
+
+    friend class AbstractRoutingTableTests;
+
 public:
+    enum Level {
+        Second,
+        Third,
+    };
 
 public:
     AbstractRoutingTable(
-        const char *path);
+        const char *path,
+        const Level level);
 
     ~AbstractRoutingTable();
 
@@ -38,7 +49,18 @@ public:
     // ...
 
 protected:
-    const UUIDMapColumn::RecordNumber intersectingRecordNumber(
+    fs::path mF1Path;
+    fs::path mF2Path;
+    fs::path mDirColumnPath;
+
+    UUIDMapColumn *mF1Column;
+    UUIDMapColumn *mF2Column;
+    TrustLineDirectionColumn *mDirColumn;
+
+    TransactionsHandler *mTransactionHandler;
+
+protected:
+    const RecordNumber intersectingRecordNumber(
         const NodeUUID &u1,
         const NodeUUID &u2) const;
 
@@ -51,12 +73,9 @@ protected:
     void rollbackTransaction(
         const BaseTransaction *transaction);
 
-protected:
-    UUIDMapColumn *mF1Column;
-    UUIDMapColumn *mF2Column;
-    TrustLineDirectionColumn *mDirColumn;
 
-    TransactionsHandler *mTransactionHandler;
+
+
 };
 
 

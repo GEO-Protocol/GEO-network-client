@@ -22,7 +22,7 @@ DirectionUpdateTransaction::DirectionUpdateTransaction(
     const AbstractRecordsHandler::byte *serializedData):
 
     BaseTransaction(*serializedData),
-    direction(*(serializedData + sizeof(RecordNumber))) {
+    direction((TrustLineDirectionColumn::Direction)*(serializedData + sizeof(RecordNumber))) {
 
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(serializedData != nullptr);
@@ -70,7 +70,7 @@ InsertTransaction::InsertTransaction(
     BaseTransaction(*serializedData),
     u1(NodeUUID(serializedData + sizeof(RecordNumber))),
     u2(NodeUUID(serializedData + sizeof(RecordNumber) + 16)),
-    direction(*(serializedData + sizeof(RecordNumber) + 32)) {}
+    direction((TrustLineDirectionColumn::Direction) *(serializedData + sizeof(RecordNumber) + 32)) {}
 
 const pair<void*, size_t> InsertTransaction::serialize() const {
     const size_t kBufferSize =
@@ -119,7 +119,7 @@ TransactionsHandler::TransactionsHandler(
     const char *filename,
     const char *path):
 
-    AbstractFileDescriptorHandler(filename, path) {
+    AbstractFileDescriptorHandler(path, filename) {
     open(kWriteAccessMode);
 }
 
@@ -243,7 +243,7 @@ void TransactionsHandler::open(
     if (fileSize() == 0) {
         // Init default header.
         FileHeader initialHeader; // will be initialised to the defaults by the constructor.
-        updateFileHeader(initialHeader);
+        updateFileHeader(&initialHeader);
         mCurrentRecordNumber = initialHeader.currentRecordNumber;
 
     } else {
@@ -268,9 +268,9 @@ TransactionsHandler::FileHeader TransactionsHandler::loadFileHeader() const {
  * Atomically updates file header.
  * Throws IOError in case when write operation failed.
  */
-void TransactionsHandler::updateFileHeader(const TransactionsHandler::FileHeader &header) const {
+void TransactionsHandler::updateFileHeader(const FileHeader *header) const {
     fseek(mFileDescriptor, 0, SEEK_SET);
-    if (fwrite(header, sizeof(header), 1, mFileDescriptor) != 1) {
+    if (fwrite(header, sizeof(FileHeader), 1, mFileDescriptor) != 1) {
         throw IOError(
             "TransactionsHandler::updateFileHeader: "
                 "can't write header to the disk.");
@@ -308,6 +308,14 @@ void TransactionsHandler::saveTransaction(const BaseTransaction *transaction) {
             "TransactionsHandler::saveTransaction: "
                 "can't sync buffer with the device.");
     }
+}
+
+void TransactionsHandler::removeLastTransaction() {
+
+}
+
+void TransactionsHandler::commitLastTransaction() {
+
 }
 } // namespace routing_tables;
 } // namespace io;

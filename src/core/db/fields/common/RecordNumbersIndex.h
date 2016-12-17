@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_RECORDNUMBERSINDEX_H
 #define GEO_NETWORK_CLIENT_RECORDNUMBERSINDEX_H
 
-#include "Types.h"
+#include "../../../common/Types.h"
 #include "AbstractFileDescriptorHandler.h"
 #include "AbstractRecordsHandler.h"
 #include "../../../common/exceptions/ValueError.h"
@@ -41,18 +41,14 @@ public:
     typedef uint32_t DataOffset;        // Offset of the data block in column storage.
 
 public:
-    RecordNumbersIndex(
-        const char *filename,
-        const char *path);
+    RecordNumbersIndex(const char *path, const char *filename);
 
     void set(
         const RecordNumber recN,
-        const DataOffset storageOffset,
-        const bool flushBuffers = true);
+        const DataOffset storageOffset);
 
     void remove(
-        const RecordNumber recN,
-        const bool flushBuffers=true);
+        const RecordNumber recN);
 
     const DataOffset dataOffset(
         const RecordNumber recN) const;
@@ -87,7 +83,7 @@ protected:
 
     FileHeader loadFileHeader() const;
     void updateFileHeader(
-        const FileHeader &header) const;
+        const FileHeader *header) const;
 
     inline const IndexRecordOffset recordOffset(
         const RecordNumber recN) const;

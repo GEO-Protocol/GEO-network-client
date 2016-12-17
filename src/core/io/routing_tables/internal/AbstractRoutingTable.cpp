@@ -5,11 +5,38 @@ namespace routing_tables {
 
 
 AbstractRoutingTable::AbstractRoutingTable(
-    const char *path) {
+    const char *path,
+    const Level level):
 
-    mF1Column = new UUIDMapColumn("f1.col", path);
-    mF2Column = new UUIDMapColumn("f2.col", path);
+    // Each column would be located into its sub-directory.
+    mF1Path(string(path) + "/f1/"),
+    mF2Path(string(path) + "/f2/"),
+    mDirColumnPath(string(path) + "/dir/") {
+
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(path != nullptr);
+#endif
+
+    uint8_t pow2bucketsIndex;
+    switch (level) {
+        case Second:
+            pow2bucketsIndex = 9; // 2**9 = 512 buckets on the disk.
+            break;
+
+        case Third:
+            pow2bucketsIndex = 13; // 2**13 = 8192 buckets on the disk.
+            break;
+
+        default:
+            throw ValueError(
+                "AbstractRoutingTable::AbstractRoutingTable: "
+                    "invalid \"level\" received.");
+    }
+
+    mF1Column = new UUIDMapColumn(mF1Path.c_str(), pow2bucketsIndex);
+    mF2Column = new UUIDMapColumn(mF2Path.c_str(), pow2bucketsIndex);
     mDirColumn = new TrustLineDirectionColumn("dir.col", path);
+
     mTransactionHandler = new TransactionsHandler("tr.dat", path);
 }
 
@@ -66,7 +93,7 @@ void AbstractRoutingTable::remove(
     }
 }
 
-const UUIDMapColumn::RecordNumber AbstractRoutingTable::intersectingRecordNumber(
+const AbstractRecordsHandler::RecordNumber AbstractRoutingTable::intersectingRecordNumber(
     const NodeUUID &u1,
     const NodeUUID &u2) const {
 
@@ -124,26 +151,26 @@ void AbstractRoutingTable::executeTransaction(
 
     switch (transaction->type) {
         case BaseTransaction::RecordInserting: {
-            InsertTransaction *insertTransaction =
-                dynamic_cast<InsertTransaction*>(transaction);
+            const InsertTransaction *insertTransaction =
+                dynamic_cast<const InsertTransaction*>(transaction);
 
-            mF1Column->set(insertTransaction->recordNumber, insertTransaction->u1);
-            mF2Column->set(insertTransaction->recordNumber, insertTransaction->u2);
+            mF1Column->set(insertTransaction->u1, insertTransaction->recordNumber);
+            mF2Column->set(insertTransaction->u2, insertTransaction->recordNumber);
             mDirColumn->set(insertTransaction->recordNumber, insertTransaction->direction);
         }
 
         case BaseTransaction::RecordRemoving: {
-            RemoveTransaction *removeTransaction =
-                dynamic_cast<RemoveTransaction*>(transaction);
+            const RemoveTransaction *removeTransaction =
+                dynamic_cast<const RemoveTransaction*>(transaction);
 
-            mF1Column->remove(removeTransaction->recordNumber, removeTransaction->u1);
-            mF2Column->remove(removeTransaction->recordNumber, removeTransaction->u2);
+            mF1Column->remove(removeTransaction->u1, removeTransaction->recordNumber);
+            mF2Column->remove(removeTransaction->u2, removeTransaction->recordNumber);
             mDirColumn->remove(removeTransaction->recordNumber);
         }
 
         case BaseTransaction::DirectionUpdating: {
-            DirectionUpdateTransaction *updateTransaction =
-                dynamic_cast<DirectionUpdateTransaction*>(transaction);
+            const DirectionUpdateTransaction *updateTransaction =
+                dynamic_cast<const DirectionUpdateTransaction*>(transaction);
 
             mDirColumn->set(updateTransaction->recordNumber, updateTransaction->direction);
         }
@@ -164,15 +191,15 @@ void AbstractRoutingTable::rollbackTransaction(
             // Reverting of the insert transaction is
             // removing of partially inserted record.
 
-            InsertTransaction *insertTransaction =
-                dynamic_cast<InsertTransaction*>(transaction);
+            const InsertTransaction *insertTransaction =
+                dynamic_cast<const InsertTransaction*>(transaction);
 
             try {
-                mF1Column->remove(insertTransaction->recordNumber, insertTransaction->u1);
+                mF1Column->remove(insertTransaction->u1, insertTransaction->recordNumber);
             } catch (NotFoundError &e) {}
 
             try {
-                mF2Column->remove(insertTransaction->recordNumber, insertTransaction->u2);
+                mF2Column->remove(insertTransaction->u2, insertTransaction->recordNumber);
             } catch (NotFoundError &e) {}
 
             try {
@@ -184,15 +211,15 @@ void AbstractRoutingTable::rollbackTransaction(
             // Reverting of removing transaction is
             // inserting record back.
 
-            RemoveTransaction *removeTransaction =
-                dynamic_cast<RemoveTransaction*>(transaction);
+            const RemoveTransaction *removeTransaction =
+                dynamic_cast<const RemoveTransaction*>(transaction);
 
             try {
-                mF1Column->set(removeTransaction->recordNumber, removeTransaction->u1);
+                mF1Column->set(removeTransaction->u1, removeTransaction->recordNumber);
             } catch (ConflictError &e) {}
 
             try {
-                mF2Column->set(removeTransaction->recordNumber, removeTransaction->u2);
+                mF2Column->set(removeTransaction->u2, removeTransaction->recordNumber);
             } catch (ConflictError &e) {}
 
             try {
@@ -202,8 +229,8 @@ void AbstractRoutingTable::rollbackTransaction(
         }
 
         case BaseTransaction::DirectionUpdating: {
-            DirectionUpdateTransaction *updateTransaction =
-                dynamic_cast<DirectionUpdateTransaction*>(transaction);
+            const DirectionUpdateTransaction *updateTransaction =
+                dynamic_cast<const DirectionUpdateTransaction*>(transaction);
 
             mDirColumn->set(updateTransaction->recordNumber, updateTransaction->direction);
         }

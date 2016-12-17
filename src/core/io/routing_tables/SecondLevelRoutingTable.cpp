@@ -5,7 +5,7 @@ namespace routing_tables {
 
 
 SecondLevelRoutingTable::SecondLevelRoutingTable():
-    AbstractRoutingTable("io/rt2/"){}
+    AbstractRoutingTable("io/rt2/", AbstractRoutingTable::Second){}
 
 } // namespace routing tables
 } // namespace io

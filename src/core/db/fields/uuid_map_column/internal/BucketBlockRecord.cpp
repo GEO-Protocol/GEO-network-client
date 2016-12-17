@@ -12,9 +12,11 @@ BucketBlockRecord::BucketBlockRecord(const NodeUUID &uuid):
     mRecordsNumbers(nullptr),
     mHasBeenModified(false){}
 
-BucketBlockRecord::BucketBlockRecord(const NodeUUID &uuid,
-                                     RecordsCount recordsNumbersCount,
-                                     RecordNumber *recordsNumbers):
+BucketBlockRecord::BucketBlockRecord(
+    const NodeUUID &uuid,
+    AbstractRecordsHandler::RecordsCount recordsNumbersCount,
+    RecordNumber *recordsNumbers):
+
     mUUID(uuid),
     mRecordsNumbers(recordsNumbers),
     mRecordsNumbersCount(recordsNumbersCount),
@@ -36,7 +38,7 @@ BucketBlockRecord::~BucketBlockRecord() {
  */
 void BucketBlockRecord::insert(const RecordNumber recN) {
 
-    if (mRecordsNumbersCount == numeric_limits<RecordsCount>::max()){
+    if (mRecordsNumbersCount == numeric_limits<AbstractRecordsHandler::RecordsCount>::max()){
         throw OverflowError(
             "BucketBlockRecord::set: "
                 "there is no free space in this record.");
@@ -63,14 +65,14 @@ void BucketBlockRecord::insert(const RecordNumber recN) {
         if (newBuffer == nullptr) {
             throw MemoryError(
                 "BucketBlockRecord::set: "
-                    "can't allocate memory for new records numbers block.");
+                    "can't allocate memory for new recordNumbers numbers block.");
         }
 
         // Copying values from previous buffer to the new one.
         if (mRecordsNumbersCount > 0) {
             memcpy(newBuffer, mRecordsNumbers, mRecordsNumbersCount*kRecNSize);
 
-            for (RecordsCount i=0; i<mRecordsNumbersCount; ++i){
+            for (AbstractRecordsHandler::RecordsCount i=0; i<mRecordsNumbersCount; ++i){
                 auto newBufferItem = newBuffer[i];
                 if (recN < newBufferItem) {
                     new (newBuffer+i) RecordNumber(recN);
@@ -104,7 +106,7 @@ bool BucketBlockRecord::remove(const RecordNumber recN) {
 
     // Check if current record contains recN.
     // If not - there is no reason to initialize buffers reorganization operations.
-    for (RecordsCount i=0; i<mRecordsNumbersCount; ++i){
+    for (AbstractRecordsHandler::RecordsCount i=0; i<mRecordsNumbersCount; ++i){
         if (mRecordsNumbers[i] == recN) {
             const size_t newBufferSize = (mRecordsNumbersCount * sizeof(RecordNumber))
                                          - sizeof(RecordNumber); // - one record
@@ -113,7 +115,7 @@ bool BucketBlockRecord::remove(const RecordNumber recN) {
             if (newBuffer == nullptr) {
                 throw MemoryError(
                     "BucketBlockRecord::remove: "
-                        "can't allocate memory for new records numbers block.");
+                        "can't allocate memory for new recordNumbers numbers block.");
             }
 
             // Chain the buffers
@@ -136,15 +138,15 @@ bool BucketBlockRecord::remove(const RecordNumber recN) {
     return false;
 }
 
-const RecordsCount BucketBlockRecord::count() const {
+const AbstractRecordsHandler::RecordsCount BucketBlockRecord::count() const {
     return mRecordsNumbersCount;
 }
 
-const byte *BucketBlockRecord::data() const {
-    return (byte*)mRecordsNumbers;
+const pair<void*, size_t> BucketBlockRecord::data() const {
+    return make_pair((void*)mRecordsNumbers, mRecordsNumbersCount * sizeof(RecordNumber));
 }
 
-const AbstractRecordsHandler::RecordNumber *BucketBlockRecord::records() const {
+AbstractRecordsHandler::RecordNumber *BucketBlockRecord::recordNumbers() const {
     return (AbstractRecordsHandler::RecordNumber*)mRecordsNumbers;
 }
 
@@ -160,9 +162,9 @@ const bool BucketBlockRecord::isModified() const {
  * Returns index of "recN" in the record.
  * In case if such "recN" is absent - throws IndexError.
  */
-const RecordsCount BucketBlockRecord::indexOf(const RecordNumber recN) {
-    RecordsCount first = 0;
-    RecordsCount last = mRecordsNumbersCount; // index of elem. that is BEHIND THE LAST elem.
+const AbstractRecordsHandler::RecordsCount BucketBlockRecord::indexOf(const RecordNumber recN) {
+    AbstractRecordsHandler::RecordsCount first = 0;
+    AbstractRecordsHandler::RecordsCount last = mRecordsNumbersCount; // index of elem. that is BEHIND THE LAST elem.
 
     if (mRecordsNumbersCount == 0) {
         // The record is empty.
@@ -185,7 +187,7 @@ const RecordsCount BucketBlockRecord::indexOf(const RecordNumber recN) {
     }
 
     while (first < last) {
-        RecordsCount mid = first + (last - first) / 2;
+        AbstractRecordsHandler::RecordsCount mid = first + (last - first) / 2;
         if (recN <= mRecordsNumbers[mid])
             last = mid;
         else

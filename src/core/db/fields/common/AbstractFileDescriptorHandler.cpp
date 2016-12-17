@@ -2,12 +2,19 @@
 
 
 namespace db {
-namespace fields {
 
 
-AbstractFileDescriptorHandler::AbstractFileDescriptorHandler(const char *filename,
-                                                             const char *path):
-    mFileDescriptor(nullptr), mFilename(filename), mPath(path){}
+AbstractFileDescriptorHandler::AbstractFileDescriptorHandler(const char *path, const char *filename) :
+
+    mFileDescriptor(nullptr),
+    mFilename(filename),
+    mPath(path) {
+
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(filename != nullptr);
+    assert(path != nullptr);
+#endif
+}
 
 AbstractFileDescriptorHandler::~AbstractFileDescriptorHandler() {
     close();
@@ -22,7 +29,7 @@ const string &AbstractFileDescriptorHandler::path() const {
 }
 
 const bool AbstractFileDescriptorHandler::exists() const {
-    return fs::exists(fs::path(filename()));
+    return fs::exists(fs::path(path() + filename()));
 }
 
 /*!
@@ -31,11 +38,13 @@ const bool AbstractFileDescriptorHandler::exists() const {
  * Throws IOError in case when file is already opened,
  * or in case of FS error.
  */
-void AbstractFileDescriptorHandler::open(const char *accessMode) {
+void AbstractFileDescriptorHandler::open(
+    const char *accessMode) {
+
     if (mFileDescriptor != nullptr) {
         throw IOError(
             "AbstractFileDescriptorHandler::open: "
-                "File is already opened.");
+                "file is already opened.");
     }
 
     // Create directories if doesn't exists.
@@ -54,18 +63,13 @@ void AbstractFileDescriptorHandler::open(const char *accessMode) {
 }
 
 /*!
- * Flushes the buffers and closes the file descriptor;
- *
- * Throws IOError in case when file is not opened.
+ * Flushes the buffers and closes file descriptor.
  */
 void AbstractFileDescriptorHandler::close() {
-    if (mFileDescriptor == nullptr) {
-        throw IOError("AbstractFileDescriptorHandler::open: "
-                          "File is not opened.");
+    if (mFileDescriptor != nullptr) {
+        fflush(mFileDescriptor);
+        fclose(mFileDescriptor);
     }
-
-    fflush(mFileDescriptor);
-    fclose(mFileDescriptor);
 }
 
 __off_t AbstractFileDescriptorHandler::fileSize() const {
@@ -80,5 +84,4 @@ __off_t AbstractFileDescriptorHandler::fileSize() const {
 }
 
 
-} // namespace fields
 } // namespace db

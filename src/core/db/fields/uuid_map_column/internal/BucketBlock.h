@@ -1,8 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_BUCKETBLOCKDESCRIPTOR_H
 #define GEO_NETWORK_CLIENT_BUCKETBLOCKDESCRIPTOR_H
 
+
 #include "BucketBlockRecord.h"
-#include "UUIDMapStorage.h"
+#include "../../common/AbstractRecordsHandler.h"
 
 
 namespace db {
@@ -13,7 +14,11 @@ namespace uuid_map {
 using namespace std;
 
 
-class BucketBlock: protected AbstractRecordsHandler {
+class BucketBlockRecord;
+
+class BucketBlock:
+    protected AbstractRecordsHandler {
+
     friend class BucketBlockTests;
 
 public:
@@ -39,16 +44,19 @@ public:
         const NodeUUID &uuid) const;
 
     const bool isModified() const;
-
-protected:
-    BucketBlockRecord* createRecord(
-        const NodeUUID &uuid);
-    void dropRecord(BucketBlockRecord *record);
+    const RecordNumber recordsCount() const;
+    const BucketBlockRecord* records() const;
+    const pair<void*, size_t> data() const;
 
 protected:
     BucketBlockRecord *mRecords;
     RecordNumber mRecordsCount;
     bool mHasBeenModified;
+
+protected:
+    BucketBlockRecord* createRecord(
+        const NodeUUID &uuid);
+    void dropRecord(BucketBlockRecord *record);
 };
 
 } // namespace uuid_map

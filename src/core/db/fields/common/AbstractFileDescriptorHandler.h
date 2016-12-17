@@ -24,17 +24,16 @@ public:
     static const constexpr char *kWriteAccessMode = "w+";
 
 public:
-    AbstractFileDescriptorHandler(
-        const char *filename,
-        const char *path);
-    ~AbstractFileDescriptorHandler();
+    AbstractFileDescriptorHandler(const char *path, const char *filename);
 
+    ~AbstractFileDescriptorHandler();
 
     const string& filename() const;
     const string& path() const;
 
     virtual void open(
         const char *accessMode);
+
     void close();
     const bool exists() const;
     __off_t fileSize() const;
