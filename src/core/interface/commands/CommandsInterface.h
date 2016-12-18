@@ -13,9 +13,9 @@
 #include "../../transactions/TransactionsManager.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
+#include "../../common/exceptions/MemoryError.h"
+#include "../../logger/Logger.h"
 
-#include <boost/asio.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/bind.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -26,17 +26,8 @@
 #include <chrono>
 #include <exception>
 
-#include <sys/types.h>
-
-#ifdef DEBUG
-#include <iostream>
-#endif
-
 
 using namespace std;
-
-namespace as = boost::asio;
-namespace fs = boost::filesystem;
 namespace uuids = boost::uuids;
 
 /*!
@@ -47,31 +38,34 @@ namespace uuids = boost::uuids;
  *
  * Note: shares almost the same logic as "MessagesParser"
  * (see IncomingMessagesHandler.h for details).
+ *
+ * todo: HSC: review this class
  */
 class CommandsParser {
     friend class CommandsParserTests;
 
 public:
-    pair<bool, shared_ptr<Command>> processReceivedCommandPart(const char *commandPart,
-                                                               const size_t receivedBytesCount);
-
-protected:
-    inline pair<bool, shared_ptr<Command>> tryDeserializeCommand();
-
-    inline pair<bool, shared_ptr<Command>> tryParseCommand(const uuids::uuid &commandUUID,
-                                                           const string &commandIdentifier,
-                                                           const string &buffer);
-
-    inline pair<bool, shared_ptr<Command>> commandIsInvalidOrIncomplete();
-
-    void cutNextCommandFromTheBuffer();
-
-protected:
     static const size_t kUUIDHexRepresentationSize = 36;
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
 
+public:
+    pair<bool, shared_ptr<Command>> processReceivedCommandPart(
+        const char *commandPart,
+        const size_t receivedBytesCount);
+
+protected:
+    inline pair<bool, shared_ptr<Command>> tryDeserializeCommand();
+    inline pair<bool, shared_ptr<Command>> tryParseCommand(
+        const uuids::uuid &commandUUID,
+        const string &commandIdentifier,
+        const string &buffer);
+
+    inline pair<bool, shared_ptr<Command>> commandIsInvalidOrIncomplete();
+    void cutNextCommandFromTheBuffer();
+
+protected:
     static const char kCommandsSeparator = '\n';
-    static const char kTokensSeparator = '\r';
+    static const char kTokensSeparator = '\t';
 
     static const constexpr char* kTrustLinesOpenIdentifier = "CREATE:contractors/trust-lines";
     static const constexpr char* kTrustLinesCloseIdentifier = "REMOVE:contractors/trust-lines";
@@ -86,32 +80,51 @@ protected:
 };
 
 /*!
- * User commands are transamitted via named pipe (FIFO in Linux).
- * This class is used to asyncornously receive them,
- * parse, and transfer for the further execution.
+ * User commands are transmitted via named pipe (FIFO on Linux).
+ * This class is used to asynchronously receive them, parse,
+ * and transfer for the further execution.
  */
-class CommandsInterface : public BaseFIFOInterface {
-private:
-    as::io_service &mIOService;
-    as::posix::stream_descriptor *mFIFOStreamDescriptor;
-    //vector<char> mCommandBuffer;
-    boost::array<char, 1024> mCommandBuffer;
+class CommandsInterface:
+    public BaseFIFOInterface {
 
-    CommandsParser *mCommandsParser;
-    TransactionsManager *mTransactionsManager;
 public:
-    explicit CommandsInterface(as::io_service &ioService);
+    static const constexpr char *kFIFOName = "commands.fifo";
+    static const constexpr unsigned int kPermissionsMask = 0755;
+
+public:
+    explicit CommandsInterface(
+        as::io_service &ioService,
+        TransactionsManager *transactionsManager,
+        Logger *logger);
 
     ~CommandsInterface();
 
     void beginAcceptCommands();
 
-private:
-    void createFIFO();
+protected:
+    static const constexpr size_t kCommandBufferSize = 128;
 
+protected:
+    // External
+    as::io_service &mIOService;
+    TransactionsManager *mTransactionsManager;
+    Logger *mLog;
+
+    // Internal
+    as::posix::stream_descriptor *mFIFOStreamDescriptor;
+    as::deadline_timer *mReadTimeoutTimer;
+    CommandsParser *mCommandsParser;
+
+    vector<char> mCommandBuffer;
+
+protected:
+    virtual const char* name() const;
     void asyncReceiveNextCommand();
-
-    void handleReceivedInfo(const boost::system::error_code &error, const size_t bytesTransferred);
+    void handleReceivedInfo(
+        const boost::system::error_code &error,
+        const size_t bytesTransferred);
+    void handleTimeout(
+        const boost::system::error_code &error);
 };
 
 #endif //GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H

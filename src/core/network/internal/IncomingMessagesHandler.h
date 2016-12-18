@@ -39,8 +39,10 @@ public:
     IncomingMessagesHandler();
     ~IncomingMessagesHandler();
 
-    void processIncomingMessage(udp::endpoint &clientEndpoint, const char *messagePart,
-                                const size_t receivedBytesCount);
+    void processIncomingMessage(
+        udp::endpoint &clientEndpoint,
+        const char *messagePart,
+        const size_t receivedBytesCount);
 
 private:
     const pair<bool, shared_ptr<MessagesParser>> endpointMessagesParser(udp::endpoint &) const;

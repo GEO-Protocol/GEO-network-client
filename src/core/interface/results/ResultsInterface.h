@@ -1,39 +1,43 @@
 #ifndef GEO_NETWORK_CLIENT_RESULTSINTERFACE_H
 #define GEO_NETWORK_CLIENT_RESULTSINTERFACE_H
 
-#include <string>
-#include <boost/filesystem.hpp>
+#include "../BaseFIFOInterface.h"
 #include "../../common/exceptions/IOError.h"
+#include "../../common/exceptions/MemoryError.h"
+
+#include <boost/filesystem.hpp>
+
+#include <string>
+
+
 
 using namespace std;
 
-namespace fs = boost::filesystem;
 
-typedef uint8_t byte;
-
-class ResultsInterface{
-private:
-    FILE *mFileDescriptor;
-    string mFileName = "fifo/results.bin";
-
-    const string kModeCreate = "w+";
-    const string kModeUpdate = "r+";
+class ResultsInterface:
+    public BaseFIFOInterface {
 
 public:
-    ResultsInterface();
+    static const constexpr char *kFIFOName = "results.fifo";
+    static const constexpr unsigned int kPermissionsMask = 0755;
+
+public:
+    explicit ResultsInterface(
+        as::io_service &ioService);
 
     ~ResultsInterface();
 
-    void writeResult(const string &result);
+    void writeResult(
+        const char *bytes,
+        const size_t bytesCount);
 
 private:
+    as::io_service &mIOService;
+    as::posix::stream_descriptor *mFIFOStreamDescriptor;
+    vector<char> mCommandBuffer;
 
-    void obtainFileDescriptor();
-
-    void checkFileDescriptor();
-
-    const bool isFileExists();
-
+private:
+    virtual const char* name() const;
 };
 
 #endif //GEO_NETWORK_CLIENT_RESULTSINTERFACE_H

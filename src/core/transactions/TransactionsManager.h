@@ -1,6 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
+#include "../logger/Logger.h"
 #include "../commands/Command.h"
 #include "../commands/OpenTrustLineCommand.h"
 #include "../commands/CloseTrustLineCommand.h"
@@ -39,14 +40,19 @@ private:
     static const constexpr char* kContractorsGetAllContractorsIdentifier = "GET:contractors";
     static const constexpr char* kBalanceGetTotalBalanceIdentifier = "GET:stats/balances/total/";
 
+    as::io_service &mIOService;
     ResultsInterface *mResultsInterface;
+    Logger *mLog;
 
 public:
-    TransactionsManager();
+    TransactionsManager(
+        as::io_service &IOService,
+        ResultsInterface *resultsInterface,
+        Logger *logger);
 
     ~TransactionsManager();
 
-    void acceptCommand(shared_ptr<Command> commandPointer);
+    void processCommand(shared_ptr<Command> commandPointer);
 
 private:
     pair<bool, shared_ptr<Result>> openTrustLine(shared_ptr<Command> commandPointer);

@@ -1,48 +1,52 @@
 #ifndef GEO_NETWORK_CLIENT_BASEINTERFACE_H
 #define GEO_NETWORK_CLIENT_BASEINTERFACE_H
 
+#include "../common/exceptions/IOError.h"
+
+#include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 
 #include <string>
 
+// for mkfifo()
+#include <sys/types.h>
+#include <sys/stat.h>
+
 
 using namespace std;
+namespace as = boost::asio;
 namespace fs = boost::filesystem;
 
+
 class BaseFIFOInterface {
+public:
+    static const constexpr char *kFIFODir = "fifo/";
+
 protected:
-    virtual const char* dir() const {
-        return "fifo/";
+    virtual const char* name() const = 0;
+
+    const string FIFOFilePath() const {
+        return string(kFIFODir) + string(name());
     }
 
-    virtual const char* name() const {
-        return "commands.fifo";
+    const bool isFIFOExists() const {
+        return fs::exists(fs::path(FIFOFilePath()));
     }
 
-    virtual const char* resultsFIleName() const {
-        return "results.fifo";
-    }
+    void createFIFO(unsigned int permissionsMask) {
+        if (! isFIFOExists()) {
+            fs::create_directories(kFIFODir);
 
-    const string FIFOPath() const {
-        return (string(dir()) + string(name())).c_str();
-    }
-
-    const string FIFOResultsPath() const {
-        return (string(dir()) + string(resultsFIleName())).c_str();
-    }
-
-    const bool FIFOExists() const {
-        return fs::exists(fs::path(FIFOPath()));
-    }
-
-    const bool FIFOResultsExists() const {
-        return fs::exists(fs::path(FIFOResultsPath()));
+            if (mkfifo(FIFOFilePath().c_str(), permissionsMask) != 0) {
+                throw IOError(
+                    "BaseFIFOInterface::createFIFO: "
+                        "Can't create FIFO file.");
+            }
+        }
     }
 
 protected:
     int mFIFODescriptor;
-
-    int mFIFOResultsDescriptor;
 };
 
 #endif //GEO_NETWORK_CLIENT_BASEINTERFACE_H

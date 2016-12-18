@@ -31,10 +31,17 @@ void Communicator::asyncReceiveData() {
                     boost::asio::placeholders::bytes_transferred));
 }
 
-void Communicator::handleReceivedInfo(const boost::system::error_code &error, size_t bytesTransferred) {
+void Communicator::handleReceivedInfo(
+    const boost::system::error_code &error,
+    size_t bytesTransferred) {
+
     if (!error || error == boost::asio::error::message_size) {
         mIncomingMessagesHandler->processIncomingMessage(
-                mRemoteEndpointBuffer, mRecvBuffer.data(), bytesTransferred);
+            mRemoteEndpointBuffer, mRecvBuffer.data(), bytesTransferred);
+
+    } else {
+        // todo: add record to the log
+//        mLog.
     }
 
     // In all cases - messages receiving should be continued.

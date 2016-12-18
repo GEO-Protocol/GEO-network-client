@@ -16,27 +16,22 @@ using namespace std;
 namespace as = boost::asio;
 namespace ip = boost::asio::ip;
 
+typedef boost::system::error_code err;
+
 
 class Communicator {
 public:
-    explicit Communicator(as::io_service &ioService,
-                          const string &interface, const uint16_t port);
+    explicit Communicator(
+        as::io_service &ioService,
+        const string &interface,
+        const uint16_t port);
 
     ~Communicator();
 
     void beginAcceptMessages();
 
 private:
-    void asyncReceiveData();
-
-    void handleReceivedInfo(const boost::system::error_code &error, size_t bytesTransferred);
-
-    void sendData(as::mutable_buffer buffer, size_t bufferSize, pair <string, uint16_t> address);
-
-    void handleSentInfo(const boost::system::error_code &error, size_t bytesTransferred);
-
-private:
-    static constexpr const uint16_t kMaxIncomingBufferSize = 1024;
+    static constexpr const size_t kMaxIncomingBufferSize = 1024;
 
 private:
     as::io_service &mIOService;
@@ -47,6 +42,26 @@ private:
 
     IncomingMessagesHandler *mIncomingMessagesHandler;
     OutgoingMessagesHandler *mOutgoingMessagesHandler;
+
+private:
+    // todo: move to the incoming handler
+    void asyncReceiveData();
+    void handleReceivedInfo(
+        const boost::system::error_code &error,
+        size_t bytesTransferred);
+
+    // todo: move to the outgoing messages handler
+    // todo: review this method.
+    // why it accepts buffer as parameter?
+    // is it normal?
+    void sendData(
+        as::mutable_buffer buffer,
+        size_t bufferSize,
+        pair <string, uint16_t> address);
+
+    void handleSentInfo(
+        const boost::system::error_code &error,
+        size_t bytesTransferred);
 };
 
 

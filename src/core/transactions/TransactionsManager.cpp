@@ -1,15 +1,20 @@
 #include <chrono>
 #include "TransactionsManager.h"
 
-TransactionsManager::TransactionsManager() {
-    mResultsInterface = new ResultsInterface();
-}
+TransactionsManager::TransactionsManager(
+    as::io_service &IOService,
+    ResultsInterface *resultsInterface,
+    Logger *logger):
+
+    mIOService(IOService),
+    mResultsInterface(resultsInterface),
+    mLog(logger){}
 
 TransactionsManager::~TransactionsManager() {
-    delete mResultsInterface;
+
 }
 
-void TransactionsManager::acceptCommand(shared_ptr<Command> commandPointer) {
+void TransactionsManager::processCommand(shared_ptr<Command> commandPointer) {
     pair<bool, shared_ptr<Result>> parsingResult;
     if (commandPointer.get()->identifier() == string(kTrustLinesOpenIdentifier)) {
         parsingResult = pair<bool, shared_ptr<Result>> (openTrustLine(commandPointer));
@@ -41,7 +46,9 @@ void TransactionsManager::acceptCommand(shared_ptr<Command> commandPointer) {
 
     if(parsingResult.first){
         try {
-            mResultsInterface->writeResult(parsingResult.second.get()->serialize());
+            auto result = parsingResult.second.get()->serialize();
+
+            mResultsInterface->writeResult(result.c_str(), result.size());
         } catch(std::exception &e){
             cout << e.what() << endl;
         }

@@ -5,19 +5,16 @@ json Settings::loadParsedJSON() const {
 
     try {
         ifstream stream("conf.json");
+        buffer.assign(
+            (std::istreambuf_iterator<char>(stream)), // parentheses are valuable!
+            std::istreambuf_iterator<char>());
 
-        buffer.assign((std::istreambuf_iterator<char>(stream)),
-                   std::istreambuf_iterator<char>());
-
-    } catch (...) {
-        throw IOError("Can't read conf.json");
-    }
-
-    try {
         return json::parse(buffer.data());
 
     } catch (...) {
-        throw IOError("Can't parse conf.json");
+        throw IOError(
+            "Settings::loadParsedJSON: "
+                "Can't read conf.json");
     }
 }
 
