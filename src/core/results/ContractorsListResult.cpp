@@ -1,6 +1,6 @@
 #include "ContractorsListResult.h"
 
-ContractorsListResult::ContractorsListResult(Command *command,
+ContractorsListResult::ContractorsListResult(BaseUserCommand *command,
                                              const uint16_t &resultCode,
                                              const string &timestampCompleted,
                                              vector<NodeUUID> &contractorsList) :

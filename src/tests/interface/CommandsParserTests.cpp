@@ -140,7 +140,7 @@ public:
 
         const char *command = "550e8400-e29b-41d4-a716-446655440000\rREMOVE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\ntrustlines/open";
         auto response = parser.processReceivedCommandPart(command, strlen(command));
-        Command *c = response.second.get();
+        BaseUserCommand *c = response.second.get();
         CloseTrustLineCommand *closeTrustLineCommand = dynamic_cast<CloseTrustLineCommand *>(c);
 
         assert(response.first);
@@ -154,7 +154,7 @@ public:
 
         const char *command = "550e8400-e29b-41d4-a716-446655440000\rSET:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r11456\ntrustlines/open";
         auto response = parser.processReceivedCommandPart(command, strlen(command));
-        Command *c = response.second.get();
+        BaseUserCommand *c = response.second.get();
         UpdateOutgoingTrustAmountCommand *updateTrustLineCommand = dynamic_cast<UpdateOutgoingTrustAmountCommand *>(c);
 
         assert(response.first);
@@ -169,7 +169,7 @@ public:
 
         const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/transations\r550e8400-e29b-41d4-a716-446655440000\r11456\rprosto tak\ntrustlines/open";
         auto response = parser.processReceivedCommandPart(command, strlen(command));
-        Command *c = response.second.get();
+        BaseUserCommand *c = response.second.get();
         UseCreditCommand *useCeditCommand = dynamic_cast<UseCreditCommand *>(c);
 
         assert(response.first);
@@ -180,7 +180,7 @@ public:
         assert(useCeditCommand->purpose() == string("prosto tak"));
     }
 
-    pair<bool, shared_ptr<Result>> checkAcceptCommand(shared_ptr<Command> command){
+    pair<bool, shared_ptr<Result>> checkAcceptCommand(shared_ptr<BaseUserCommand> command){
     }
 
 };

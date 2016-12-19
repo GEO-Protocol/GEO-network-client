@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
 #include "../logger/Logger.h"
-#include "../commands/Command.h"
+#include "../commands/BaseUserCommand.h"
 #include "../commands/OpenTrustLineCommand.h"
 #include "../commands/CloseTrustLineCommand.h"
 #include "../commands/UpdateOutgoingTrustAmountCommand.h"
@@ -52,22 +52,22 @@ public:
 
     ~TransactionsManager();
 
-    void processCommand(shared_ptr<Command> commandPointer);
+    void processCommand(shared_ptr<BaseUserCommand> commandPointer);
 
 private:
-    pair<bool, shared_ptr<Result>> openTrustLine(shared_ptr<Command> commandPointer);
+    pair<bool, shared_ptr<Result>> openTrustLine(shared_ptr<BaseUserCommand> commandPointer);
 
-    pair<bool, shared_ptr<Result>> closeTrustLine(shared_ptr<Command> commandPointer);
+    pair<bool, shared_ptr<Result>> closeTrustLine(shared_ptr<BaseUserCommand> commandPointer);
 
-    pair<bool, shared_ptr<Result>> updateTrustLine(shared_ptr<Command> commandPointer);
+    pair<bool, shared_ptr<Result>> updateTrustLine(shared_ptr<BaseUserCommand> commandPointer);
 
-    pair<bool, shared_ptr<Result>> maximalTransactionAmount(shared_ptr<Command> commandPointer);
+    pair<bool, shared_ptr<Result>> maximalTransactionAmount(shared_ptr<BaseUserCommand> commandPointer);
 
-    pair<bool, shared_ptr<Result>> useCredit(shared_ptr<Command> commandPointer);
+    pair<bool, shared_ptr<Result>> useCredit(shared_ptr<BaseUserCommand> commandPointer);
 
-    pair<bool, shared_ptr<Result>> totalBalance(shared_ptr<Command> commandPointer);
+    pair<bool, shared_ptr<Result>> totalBalance(shared_ptr<BaseUserCommand> commandPointer);
 
-    pair<bool, shared_ptr<Result>> contractorsList(shared_ptr<Command> commandPointer);
+    pair<bool, shared_ptr<Result>> contractorsList(shared_ptr<BaseUserCommand> commandPointer);
 
     string currentTimestamp();
 

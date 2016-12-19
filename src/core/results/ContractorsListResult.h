@@ -8,7 +8,7 @@ private:
     vector<NodeUUID> mContractorsList;
 
 public:
-    ContractorsListResult(Command *command,
+    ContractorsListResult(BaseUserCommand *command,
                           const uint16_t &resultCode,
                           const string &timestampCompleted,
                           vector<NodeUUID> &contractorsList);

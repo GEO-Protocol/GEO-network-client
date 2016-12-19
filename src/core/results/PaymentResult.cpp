@@ -1,6 +1,6 @@
 #include "PaymentResult.h"
 
-PaymentResult::PaymentResult(Command *command,
+PaymentResult::PaymentResult(BaseUserCommand *command,
                              const uint16_t &resultCode,
                              const string &timestampCompleted,
                              const uuids::uuid &transactionUUID,

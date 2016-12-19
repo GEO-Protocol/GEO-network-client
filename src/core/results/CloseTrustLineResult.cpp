@@ -1,6 +1,6 @@
 #include "CloseTrustLineResult.h"
 
-CloseTrustLineResult::CloseTrustLineResult(Command *command,
+CloseTrustLineResult::CloseTrustLineResult(BaseUserCommand *command,
                                          const uint16_t &resultCode,
                                          const string &timestampCompleted,
                                          const NodeUUID &contractorUUID) :

@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 
 #include "../BaseFIFOInterface.h"
-#include "../../commands/Command.h"
+#include "../../commands/BaseUserCommand.h"
 #include "../../commands/OpenTrustLineCommand.h"
 #include "../../commands/CloseTrustLineCommand.h"
 #include "../../commands/UpdateOutgoingTrustAmountCommand.h"
@@ -49,18 +49,18 @@ public:
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
 
 public:
-    pair<bool, shared_ptr<Command>> processReceivedCommandPart(
+    pair<bool, shared_ptr<BaseUserCommand>> processReceivedCommandPart(
         const char *commandPart,
         const size_t receivedBytesCount);
 
 protected:
-    inline pair<bool, shared_ptr<Command>> tryDeserializeCommand();
-    inline pair<bool, shared_ptr<Command>> tryParseCommand(
+    inline pair<bool, shared_ptr<BaseUserCommand>> tryDeserializeCommand();
+    inline pair<bool, shared_ptr<BaseUserCommand>> tryParseCommand(
         const uuids::uuid &commandUUID,
         const string &commandIdentifier,
         const string &buffer);
 
-    inline pair<bool, shared_ptr<Command>> commandIsInvalidOrIncomplete();
+    inline pair<bool, shared_ptr<BaseUserCommand>> commandIsInvalidOrIncomplete();
     void cutNextCommandFromTheBuffer();
 
 protected:

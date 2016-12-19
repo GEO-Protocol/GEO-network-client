@@ -9,7 +9,7 @@ private:
     trust_amount mAmount;
 
 public:
-    UpdateTrustLineResult(Command *command,
+    UpdateTrustLineResult(BaseUserCommand *command,
                           const uint16_t &resultCode,
                           const string &timestampCompleted,
                           const NodeUUID &contractorUUID,

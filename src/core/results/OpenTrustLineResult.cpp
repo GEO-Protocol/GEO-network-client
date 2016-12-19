@@ -1,6 +1,6 @@
 #include "OpenTrustLineResult.h"
 
-OpenTrustLineResult::OpenTrustLineResult(Command *command,
+OpenTrustLineResult::OpenTrustLineResult(BaseUserCommand *command,
                                          const uint16_t &resultCode,
                                          const string &timestampCompleted,
                                          const NodeUUID &contractorUUID,

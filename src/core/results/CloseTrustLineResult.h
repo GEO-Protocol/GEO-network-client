@@ -8,7 +8,7 @@ private:
     NodeUUID mContractorUUID;
 
 public:
-    CloseTrustLineResult(Command *command,
+    CloseTrustLineResult(BaseUserCommand *command,
                          const uint16_t &resultCode,
                          const string &timestampCompleted,
                          const NodeUUID &contractorUUID);

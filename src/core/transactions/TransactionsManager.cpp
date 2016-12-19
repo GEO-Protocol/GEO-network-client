@@ -14,7 +14,7 @@ TransactionsManager::~TransactionsManager() {
 
 }
 
-void TransactionsManager::processCommand(shared_ptr<Command> commandPointer) {
+void TransactionsManager::processCommand(shared_ptr<BaseUserCommand> commandPointer) {
     pair<bool, shared_ptr<Result>> parsingResult;
     if (commandPointer.get()->identifier() == string(kTrustLinesOpenIdentifier)) {
         parsingResult = pair<bool, shared_ptr<Result>> (openTrustLine(commandPointer));
@@ -55,11 +55,11 @@ void TransactionsManager::processCommand(shared_ptr<Command> commandPointer) {
     }
 }
 
-pair<bool, shared_ptr<Result>> TransactionsManager::openTrustLine(shared_ptr <Command> commandPointer) {
+pair<bool, shared_ptr<Result>> TransactionsManager::openTrustLine(shared_ptr <BaseUserCommand> commandPointer) {
     OpenTrustLineCommand *openTrustLineCommand = dynamic_cast<OpenTrustLineCommand *>(commandPointer.get());
 
     Result *result = new OpenTrustLineResult(commandPointer.get(),
-                                             resultCode(commandPointer.get()->commandsUUID()),
+                                             resultCode(commandPointer.get()->uuid()),
                                              currentTimestamp(),
                                              openTrustLineCommand->contractorUUID(),
                                              openTrustLineCommand->amount());
@@ -67,22 +67,22 @@ pair<bool, shared_ptr<Result>> TransactionsManager::openTrustLine(shared_ptr <Co
     return pair<bool, shared_ptr<Result>> (true, shared_ptr<Result>(result));
 }
 
-pair<bool, shared_ptr<Result>> TransactionsManager::closeTrustLine(shared_ptr <Command> commandPointer) {
+pair<bool, shared_ptr<Result>> TransactionsManager::closeTrustLine(shared_ptr <BaseUserCommand> commandPointer) {
     CloseTrustLineCommand *closeTrustLineCommand = dynamic_cast<CloseTrustLineCommand *>(commandPointer.get());
 
     Result *result = new CloseTrustLineResult(commandPointer.get(),
-                                              resultCode(commandPointer.get()->commandsUUID()),
+                                              resultCode(commandPointer.get()->uuid()),
                                               currentTimestamp(),
                                               closeTrustLineCommand->contractorUUID());
 
     return pair<bool, shared_ptr<Result>> (true, shared_ptr<Result>(result));
 }
 
-pair<bool, shared_ptr<Result>> TransactionsManager::updateTrustLine(shared_ptr <Command> commandPointer) {
+pair<bool, shared_ptr<Result>> TransactionsManager::updateTrustLine(shared_ptr <BaseUserCommand> commandPointer) {
     UpdateOutgoingTrustAmountCommand *updateTrustLineCommand = dynamic_cast<UpdateOutgoingTrustAmountCommand *>(commandPointer.get());
 
     Result *result = new UpdateTrustLineResult(commandPointer.get(),
-                                               resultCode(commandPointer.get()->commandsUUID()),
+                                               resultCode(commandPointer.get()->uuid()),
                                                currentTimestamp(),
                                                updateTrustLineCommand->contractorUUID(),
                                                updateTrustLineCommand->amount());
@@ -90,11 +90,11 @@ pair<bool, shared_ptr<Result>> TransactionsManager::updateTrustLine(shared_ptr <
     return pair<bool, shared_ptr <Result>> (true, shared_ptr<Result>(result));
 }
 
-pair<bool, shared_ptr<Result>> TransactionsManager::maximalTransactionAmount(shared_ptr <Command> commandPointer) {
+pair<bool, shared_ptr<Result>> TransactionsManager::maximalTransactionAmount(shared_ptr <BaseUserCommand> commandPointer) {
     MaximalTransactionAmountCommand *maximalTransactionAmountCommand = dynamic_cast<MaximalTransactionAmountCommand *>(commandPointer.get());
 
     Result *result = new MaximalTransactionAmountResult(commandPointer.get(),
-                                                        resultCode(commandPointer.get()->commandsUUID()),
+                                                        resultCode(commandPointer.get()->uuid()),
                                                         currentTimestamp(),
                                                         maximalTransactionAmountCommand->contractorUUID(),
                                                         500);
@@ -102,13 +102,13 @@ pair<bool, shared_ptr<Result>> TransactionsManager::maximalTransactionAmount(sha
     return pair<bool, shared_ptr<Result>> (true, shared_ptr<Result>(result));
 }
 
-pair<bool, shared_ptr<Result>> TransactionsManager::useCredit(shared_ptr <Command> commandPointer) {
+pair<bool, shared_ptr<Result>> TransactionsManager::useCredit(shared_ptr <BaseUserCommand> commandPointer) {
     UseCreditCommand *useCreditCommand = dynamic_cast<UseCreditCommand *>(commandPointer.get());
 
     Result *result = new PaymentResult(commandPointer.get(),
-                                       resultCode(commandPointer.get()->commandsUUID()),
+                                       resultCode(commandPointer.get()->uuid()),
                                        currentTimestamp(),
-                                       commandPointer.get()->commandsUUID(), //let's imagine that this is transaction uuid
+                                       commandPointer.get()->uuid(), //let's imagine that this is transaction uuid
                                        useCreditCommand->contractorUUID(),
                                        useCreditCommand->amount(),
                                        useCreditCommand->purpose());
@@ -117,11 +117,11 @@ pair<bool, shared_ptr<Result>> TransactionsManager::useCredit(shared_ptr <Comman
 }
 
 
-pair<bool, shared_ptr<Result>> TransactionsManager::totalBalance(shared_ptr <Command> commandPointer) {
+pair<bool, shared_ptr<Result>> TransactionsManager::totalBalance(shared_ptr <BaseUserCommand> commandPointer) {
     TotalBalanceCommand *totalBalanceCommand = dynamic_cast<TotalBalanceCommand *>(commandPointer.get());
 
     Result *result = new TotalBalanceResult(commandPointer.get(),
-                                            resultCode(commandPointer.get()->commandsUUID()),
+                                            resultCode(commandPointer.get()->uuid()),
                                             currentTimestamp(),
                                             500, 200,
                                             1000, 900);
@@ -129,7 +129,7 @@ pair<bool, shared_ptr<Result>> TransactionsManager::totalBalance(shared_ptr <Com
     return pair<bool, shared_ptr<Result>> (true, shared_ptr<Result>(result));
 }
 
-pair<bool, shared_ptr<Result>> TransactionsManager::contractorsList(shared_ptr <Command> commandPointer) {
+pair<bool, shared_ptr<Result>> TransactionsManager::contractorsList(shared_ptr <BaseUserCommand> commandPointer) {
     ContractorsListCommand *contractorsListCommand = dynamic_cast<ContractorsListCommand *>(commandPointer.get());
 
     NodeUUID uuid1, uuid2, uuid3;
@@ -140,7 +140,7 @@ pair<bool, shared_ptr<Result>> TransactionsManager::contractorsList(shared_ptr <
 
     Result *result = new ContractorsListResult(
             commandPointer.get(),
-            resultCode(commandPointer.get()->commandsUUID()),
+            resultCode(commandPointer.get()->uuid()),
             currentTimestamp(),
             contractorList
     );

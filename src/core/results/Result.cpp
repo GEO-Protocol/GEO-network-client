@@ -1,9 +1,9 @@
 #include "Result.h"
 
-Result::Result(Command *command,
+Result::Result(BaseUserCommand *command,
                const uint16_t &resultCode,
                const string &timestampCompleted) :
-        mCommandUUID(command->commandsUUID()), mIdentifier(command->identifier()),
+        mCommandUUID(command->uuid()), mIdentifier(command->identifier()),
         mTimestampExcepted(mTimestampExcepted), mTimestampCompleted(timestampCompleted) {
     mCode = resultCode;
 }

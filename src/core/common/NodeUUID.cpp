@@ -26,3 +26,8 @@ const string NodeUUID::stringUUID() const{
     return boost::lexical_cast<string>(u);
 }
 
+NodeUUID &NodeUUID::operator=(const boost::uuids::uuid &u){
+    NodeUUID newUUID(u);
+    return newUUID;
+}
+

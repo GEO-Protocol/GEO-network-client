@@ -7,7 +7,7 @@
  * Calls tryDeserializeCommand() internally for buffer processing.
  * Return value is similar to the tryDeserializeCommand() return value.
  */
-pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommandPart(
+pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::processReceivedCommandPart(
     const char *commandPart,
     const size_t receivedBytesCount) {
 
@@ -32,7 +32,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::processReceivedCommandPart(
  * and, if so, - the second one will contains shared pointer to the command instance itself.
  * Otherwise - the second value of the pair will contains nullptr.
  */
-pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
+pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryDeserializeCommand() {
     if (mBuffer.size() < kMinCommandSize) {
         if (mBuffer.find(kCommandsSeparator) != string::npos) {
             cutNextCommandFromTheBuffer();
@@ -93,7 +93,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryDeserializeCommand() {
  * to the command instance itself.
  * Otherwise - the second value of the pair will contain nullptr.
  */
-pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(
+pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryParseCommand(
     const uuids::uuid &commandUUID,
     const string &commandIdentifier,
     const string &buffer) {
@@ -101,7 +101,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(
     long timestamp = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
 
-    Command *command = nullptr;
+    BaseUserCommand *command = nullptr;
     string sinceEpoch = to_string(timestamp);
     try{
         if(strcmp(kTrustLinesOpenIdentifier, commandIdentifier.c_str()) == 0) {
@@ -137,7 +137,7 @@ pair<bool, shared_ptr<Command>> CommandsParser::tryParseCommand(
         return commandIsInvalidOrIncomplete();
     }
 
-    return pair<bool, shared_ptr<Command>> (true, shared_ptr<Command>(command));
+    return pair<bool, shared_ptr<BaseUserCommand>> (true, shared_ptr<BaseUserCommand>(command));
 }
 
 /*!
@@ -160,8 +160,8 @@ void CommandsParser::cutNextCommandFromTheBuffer() {
     mBuffer.shrink_to_fit();
 }
 
-pair<bool, shared_ptr<Command>> CommandsParser::commandIsInvalidOrIncomplete() {
-    return pair <bool, shared_ptr<Command>> (false, nullptr);
+pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::commandIsInvalidOrIncomplete() {
+    return pair <bool, shared_ptr<BaseUserCommand>> (false, nullptr);
 }
 
 

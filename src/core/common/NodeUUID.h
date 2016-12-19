@@ -1,16 +1,22 @@
 #ifndef GEO_NETWORK_CLIENT_NODEUUID_H
 #define GEO_NETWORK_CLIENT_NODEUUID_H
 
-#include <string>
+
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <string>
+
+
 using boost::uuids::uuid;
 using namespace std;
 
 class NodeUUID: public uuid {
+public:
+    static const size_t kUUIDLength = 16;
+
 public:
     NodeUUID();
     explicit NodeUUID(uuid const &u);
@@ -18,6 +24,7 @@ public:
 
     operator boost::uuids::uuid();
     operator boost::uuids::uuid() const;
+    NodeUUID& operator=(const boost::uuids::uuid &u);
 
     const string stringUUID() const;
 };

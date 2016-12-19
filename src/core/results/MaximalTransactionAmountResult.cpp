@@ -1,6 +1,6 @@
 #include "MaximalTransactionAmountResult.h"
 
-MaximalTransactionAmountResult::MaximalTransactionAmountResult(Command *command,
+MaximalTransactionAmountResult::MaximalTransactionAmountResult(BaseUserCommand *command,
                                                                const uint16_t &resultCode,
                                                                const string &timestampCompleted,
                                                                const NodeUUID &contractorUUID,

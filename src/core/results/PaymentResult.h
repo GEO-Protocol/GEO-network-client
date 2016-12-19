@@ -11,7 +11,7 @@ private:
     string mPurpose;
 
 public:
-    PaymentResult(Command *command,
+    PaymentResult(BaseUserCommand *command,
                   const uint16_t &resultCode,
                   const string &timestampCompleted,
                   const uuids::uuid &transactionUUID,

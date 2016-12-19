@@ -5,7 +5,7 @@
 #include <vector>
 #include "../trust_lines/TrustLine.h"
 #include "../common/NodeUUID.h"
-#include "../commands/Command.h"
+#include "../commands/BaseUserCommand.h"
 
 using namespace std;
 
@@ -18,7 +18,7 @@ private:
     string mTimestampCompleted;
 
 public:
-    Result(Command *command,
+    Result(BaseUserCommand *command,
            const uint16_t &resultCode,
            const string &timestampCompleted);
 

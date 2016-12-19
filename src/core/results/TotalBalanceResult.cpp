@@ -1,6 +1,6 @@
 #include "TotalBalanceResult.h"
 
-TotalBalanceResult::TotalBalanceResult(Command *command,
+TotalBalanceResult::TotalBalanceResult(BaseUserCommand *command,
                                        const uint16_t &resultCode,
                                        const string &timestampCompleted,
                                        const trust_amount &totalIncomingTrust,

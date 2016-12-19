@@ -1,6 +1,6 @@
 #include "UpdateTrustLineResult.h"
 
-UpdateTrustLineResult::UpdateTrustLineResult(Command *command,
+UpdateTrustLineResult::UpdateTrustLineResult(BaseUserCommand *command,
                                              const uint16_t &resultCode,
                                              const string &timestampCompleted,
                                              const NodeUUID &contractorUUID,

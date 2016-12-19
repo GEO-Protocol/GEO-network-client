@@ -11,7 +11,7 @@ private:
     trust_amount mTotalOutgoingTrustUsed;
 
 public:
-    TotalBalanceResult(Command *command,
+    TotalBalanceResult(BaseUserCommand *command,
                        const uint16_t &resultCode,
                        const string &timestampCompleted,
                        const trust_amount &totalIncomingTrust,

@@ -47,7 +47,7 @@ private:
     }
 
     const string recordPrefix(const char *group) {
-        // todo: add timestamp
+        // todo: add Timestamp
         return string(group) + string("\t\t");
     }
 
