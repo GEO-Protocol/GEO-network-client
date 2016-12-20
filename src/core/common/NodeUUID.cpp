@@ -5,11 +5,19 @@ NodeUUID::NodeUUID()
 }
 
 NodeUUID::NodeUUID(uuid const &u):
-    boost::uuids::uuid(u){
+    boost::uuids::uuid(u){}
+
+NodeUUID::NodeUUID(NodeUUID &u) {
+    memcpy(data, u.data, kUUIDLength);
 }
 
-NodeUUID::NodeUUID(NodeUUID const &u) {
-    boost::uuids::uuid(boost::lexical_cast<boost::uuids::uuid>(u.stringUUID()));
+NodeUUID::NodeUUID(const NodeUUID &u){
+    memcpy(data, u.data, kUUIDLength);
+}
+
+NodeUUID::NodeUUID(const string &hex) {
+    uuid u = boost::lexical_cast<uuid>(hex);
+    memcpy(data, u.data, kUUIDLength);
 }
 
 NodeUUID::operator boost::uuids::uuid() {
@@ -26,8 +34,8 @@ const string NodeUUID::stringUUID() const{
     return boost::lexical_cast<string>(u);
 }
 
-NodeUUID &NodeUUID::operator=(const boost::uuids::uuid &u){
-    NodeUUID newUUID(u);
-    return newUUID;
+NodeUUID& NodeUUID::operator=(const boost::uuids::uuid &u){
+    memcpy(data, u.data, kUUIDLength);
+    return *this;
 }
 

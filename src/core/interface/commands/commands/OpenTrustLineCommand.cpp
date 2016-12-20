@@ -5,9 +5,14 @@ OpenTrustLineCommand::OpenTrustLineCommand(
     const CommandUUID &uuid,
     const string &commandBuffer):
 
-    BaseUserCommand(uuid, kIdentifier){
+    BaseUserCommand(uuid, identifier()){
 
     deserialize(commandBuffer);
+}
+
+const string OpenTrustLineCommand::identifier() {
+    static const string identifier = "CREATE:contractors/trust-lines";
+    return identifier;
 }
 
 const NodeUUID& OpenTrustLineCommand::contractorUUID() const {

@@ -4,9 +4,14 @@ MaximalTransactionAmountCommand::MaximalTransactionAmountCommand(
     const CommandUUID &uuid,
     const string &commandBuffer):
 
-    BaseUserCommand(uuid, kIdentifier) {
+    BaseUserCommand(uuid, identifier()) {
 
     deserialize(commandBuffer);
+}
+
+const string &MaximalTransactionAmountCommand::identifier() {
+    static const string identifier = "GET:contractors/transactions/max";
+    return identifier;
 }
 
 const NodeUUID &MaximalTransactionAmountCommand::contractorUUID() const {

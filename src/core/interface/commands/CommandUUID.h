@@ -40,8 +40,8 @@ public:
     }
 
     CommandUUID& operator=(const boost::uuids::uuid &u){
-        CommandUUID newUUID(u);
-        return newUUID;
+        memcpy(data, u.data, kLength);
+        return *this;
     }
 
     const string stringUUID() const {

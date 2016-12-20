@@ -1,34 +1,62 @@
 #include "Communicator.h"
 
-Communicator::Communicator(
-        as::io_service &ioService, const string &interface, const uint16_t port) :
-        mIOService(ioService) {
 
-    mSocket = new udp::socket(mIOService, udp::endpoint(udp::v4(), port));
-    mIncomingMessagesHandler = new IncomingMessagesHandler();
-    mOutgoingMessagesHandler = new OutgoingMessagesHandler();
+Communicator::Communicator(
+    as::io_service &ioService,
+    const NodeUUID &nodeUUID,
+    const string &nodeInterface,
+    const uint16_t nodePort,
+    const string &uuid2AddressHost,
+    const uint16_t uuid2AddressPort):
+
+    mIOService(ioService),
+    mNodeUUID(nodeUUID),
+    mInterface(nodeInterface),
+    mPort(nodePort){
+
+    try {
+        mUUID2AddressService = new UUID2Address(
+            ioService, uuid2AddressHost, uuid2AddressPort);
+
+        mSocket = new udp::socket(mIOService, udp::endpoint(udp::v4(), nodePort));
+        mIncomingMessagesHandler = new IncomingMessagesHandler();
+        mOutgoingMessagesHandler = new OutgoingMessagesHandler();
+
+    } catch (std::exception &) {
+        throw MemoryError(
+            "Communicator::Communicator: "
+                "cant allocate enough memory for the mUUID2AddressService.");
+    }
 }
 
 Communicator::~Communicator() {
+    delete mUUID2AddressService;
+
     delete mSocket;
     delete mOutgoingMessagesHandler;
     delete mIncomingMessagesHandler;
 }
 
 void Communicator::beginAcceptMessages() {
-    // ...
-    // all preparing things goes here
+
+    try {
+        mUUID2AddressService->registerInGlobalCache(mNodeUUID, mInterface, mPort);
+    } catch (std::exception &e) {
+        throw RuntimeError(
+            "Communicator::beginAcceptMessages: "
+                "Can't register in global nodes addresses cache.");
+    }
 
     asyncReceiveData();
 }
 
 void Communicator::asyncReceiveData() {
     mSocket->async_receive_from(
-            boost::asio::buffer(mRecvBuffer), mRemoteEndpointBuffer,
-            boost::bind(
-                    &Communicator::handleReceivedInfo, this,
-                    boost::asio::placeholders::error,
-                    boost::asio::placeholders::bytes_transferred));
+        boost::asio::buffer(mRecvBuffer), mRemoteEndpointBuffer,
+        boost::bind(
+            &Communicator::handleReceivedInfo, this,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred));
 }
 
 void Communicator::handleReceivedInfo(

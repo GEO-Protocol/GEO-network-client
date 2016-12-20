@@ -9,8 +9,7 @@ class CloseTrustLineCommand:
     public BaseUserCommand {
 
 public:
-    static const constexpr char *kIdentifier =
-        "REMOVE:contractors/trust-lines";
+    static const string &identifier();
 
 public:
     CloseTrustLineCommand(

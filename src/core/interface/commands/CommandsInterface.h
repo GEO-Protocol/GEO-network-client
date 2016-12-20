@@ -1,19 +1,20 @@
 #ifndef GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 #define GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 
+#include "commands/BaseUserCommand.h"
+#include "commands/OpenTrustLineCommand.h"
+#include "commands/CloseTrustLineCommand.h"
+#include "commands/UpdateTrustLineCommand.h"
+#include "commands/UseCreditCommand.h"
+#include "commands/MaximalTransactionAmountCommand.h"
+#include "commands/ContractorsListCommand.h"
+#include "commands/TotalBalanceCommand.h"
 #include "../BaseFIFOInterface.h"
-#include "../../commands/BaseUserCommand.h"
-#include "../../commands/OpenTrustLineCommand.h"
-#include "../../commands/CloseTrustLineCommand.h"
-#include "../../commands/UpdateOutgoingTrustAmountCommand.h"
-#include "../../commands/UseCreditCommand.h"
-#include "../../commands/MaximalTransactionAmountCommand.h"
-#include "../../commands/ContractorsListCommand.h"
-#include "../../commands/TotalBalanceCommand.h"
 #include "../../transactions/TransactionsManager.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/MemoryError.h"
+#include "../../common/exceptions/RuntimeError.h"
 #include "../../logger/Logger.h"
 
 #include <boost/bind.hpp>
@@ -56,12 +57,12 @@ public:
 protected:
     inline pair<bool, shared_ptr<BaseUserCommand>> tryDeserializeCommand();
     inline pair<bool, shared_ptr<BaseUserCommand>> tryParseCommand(
-        const uuids::uuid &commandUUID,
-        const string &commandIdentifier,
+        const CommandUUID &uuid,
+        const string &identifier,
         const string &buffer);
 
     inline pair<bool, shared_ptr<BaseUserCommand>> commandIsInvalidOrIncomplete();
-    void cutNextCommandFromTheBuffer();
+    void cutBufferUpToNextCommand();
 
 protected:
     static const char kCommandsSeparator = '\n';

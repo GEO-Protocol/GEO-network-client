@@ -3,4 +3,9 @@
 TotalBalanceCommand::TotalBalanceCommand(
     const CommandUUID &uuid) :
 
-    BaseUserCommand(uuid, kIdentifier) {}
+    BaseUserCommand(uuid, identifier()) {}
+
+const string &TotalBalanceCommand::identifier(){
+    static const string identifier = "GET:stats/balances/total";
+    return identifier;
+}

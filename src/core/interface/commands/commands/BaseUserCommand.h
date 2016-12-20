@@ -22,20 +22,23 @@ public:
 public:
     BaseUserCommand(
         const CommandUUID &uuid,
-        const string &identifier);
+        const string& identifier);
 
-    const string &identifier() const;
+    const string& derivedIdentifier() const;
+
     const CommandUUID &uuid() const;
     const Timestamp &timestampAccepted() const;
 
 protected:
     const CommandUUID mUUID;
-    const string mIdentifier;
     const Timestamp mTimestampAccepted;
 
 protected:
     virtual void deserialize(
         const string &commandBuffer) = 0;
+
+private:
+    const string mDerivedIdentifier;
 };
 
 

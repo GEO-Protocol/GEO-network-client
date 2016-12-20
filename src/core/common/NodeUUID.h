@@ -10,24 +10,29 @@
 #include <string>
 
 
-using boost::uuids::uuid;
+using namespace boost::uuids;
 using namespace std;
 
-class NodeUUID: public uuid {
+
+class NodeUUID:
+    public uuid {
+
 public:
     static const size_t kUUIDLength = 16;
 
 public:
-    NodeUUID();
-    explicit NodeUUID(uuid const &u);
-    explicit NodeUUID(NodeUUID const &u);
+    explicit NodeUUID();
+    NodeUUID(uuid const &u);
+    NodeUUID(NodeUUID &u);
+    NodeUUID(const NodeUUID &u);
+    NodeUUID(const string &hex);
 
     operator boost::uuids::uuid();
     operator boost::uuids::uuid() const;
-    NodeUUID& operator=(const boost::uuids::uuid &u);
+    NodeUUID& operator=(
+        const boost::uuids::uuid &u);
 
     const string stringUUID() const;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_NODEUUID_H

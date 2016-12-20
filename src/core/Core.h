@@ -19,17 +19,16 @@ public:
 
     int run();
 
-private:
+protected:
+    NodeUUID mNodeUUID;
+    Logger mLog;
     as::io_service mIOService;
 
     Settings *mSettings;
     Communicator *mCommunicator;
     CommandsInterface *mCommandsInterface;
     ResultsInterface *mResultsInterface;
-
     TransactionsManager *mTransactionsManager;
-
-    Logger mLog;
 
 private:
     int initCoreComponents();

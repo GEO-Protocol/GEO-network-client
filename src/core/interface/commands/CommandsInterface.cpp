@@ -35,27 +35,30 @@ pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::processReceivedCommandPa
 pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryDeserializeCommand() {
     if (mBuffer.size() < kMinCommandSize) {
         if (mBuffer.find(kCommandsSeparator) != string::npos) {
-            cutNextCommandFromTheBuffer();
+            cutBufferUpToNextCommand();
         }
         return commandIsInvalidOrIncomplete();
     }
+
 
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (nextCommandSeparatorIndex == string::npos) {
         return commandIsInvalidOrIncomplete();
     }
 
-    uuids::uuid commandUUID;
+
+    CommandUUID commandUUID;
     try {
         string hexUUID = mBuffer.substr(0, kUUIDHexRepresentationSize);
         commandUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
     } catch (...) {
-        cutNextCommandFromTheBuffer();
+        cutBufferUpToNextCommand();
         return commandIsInvalidOrIncomplete();
     }
 
     const size_t averageCommandIdentifierLength = 15;
     const size_t identifierOffset = kUUIDHexRepresentationSize + 1;
+
 
     string commandIdentifier;
     commandIdentifier.reserve(averageCommandIdentifierLength);
@@ -71,14 +74,22 @@ pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryDeserializeCommand() 
     nextTokenOffset += 1;
 
     if (commandIdentifier.size() == 0) {
-        cutNextCommandFromTheBuffer();
+        cutBufferUpToNextCommand();
         return commandIsInvalidOrIncomplete();
     }
 
-    return tryParseCommand(
-        commandUUID, commandIdentifier,
-        mBuffer.substr(
-            nextTokenOffset, mBuffer.size()));
+
+    try {
+        auto command = tryParseCommand(
+            commandUUID, commandIdentifier, mBuffer.substr(nextTokenOffset, mBuffer.size()));
+
+        cutBufferUpToNextCommand();
+        return command;
+
+    } catch (std::exception &e) {
+        cutBufferUpToNextCommand();
+        return commandIsInvalidOrIncomplete();
+    }
 }
 
 /*!
@@ -94,50 +105,43 @@ pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryDeserializeCommand() 
  * Otherwise - the second value of the pair will contain nullptr.
  */
 pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryParseCommand(
-    const uuids::uuid &commandUUID,
-    const string &commandIdentifier,
+    const CommandUUID &uuid,
+    const string &identifier,
     const string &buffer) {
 
-    long timestamp = std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
-
     BaseUserCommand *command = nullptr;
-    string sinceEpoch = to_string(timestamp);
-    try{
-        if(strcmp(kTrustLinesOpenIdentifier, commandIdentifier.c_str()) == 0) {
-            command = new OpenTrustLineCommand(commandUUID, commandIdentifier,
-                                               sinceEpoch, buffer);
-        } else if(strcmp(kTrustLinesCloseIdentifier, commandIdentifier.c_str()) == 0) {
-            command = new CloseTrustLineCommand(commandUUID, commandIdentifier,
-                                                sinceEpoch, buffer);
-        } else if(strcmp(kTrustLinesUpdateIdentifier, commandIdentifier.c_str()) == 0) {
-            command = new UpdateOutgoingTrustAmountCommand(commandUUID, commandIdentifier,
-                                                           sinceEpoch, buffer);
-        } else if(strcmp(kTransactionsUseCreditIdentifier, commandIdentifier.c_str()) == 0) {
-            command = new UseCreditCommand(commandUUID, commandIdentifier,
-                                           sinceEpoch, buffer);
-        } else if (strcmp(kTransactionsMaximalAmountIdentifier, commandIdentifier.c_str()) == 0) {
-            command = new MaximalTransactionAmountCommand(commandUUID, commandIdentifier,
-                                                          sinceEpoch, buffer);
-        } else if (strcmp(kBalanceGetTotalBalanceIdentifier, commandIdentifier.c_str()) == 0) {
-            command = new TotalBalanceCommand(commandUUID, commandIdentifier,
-                                              sinceEpoch);
-        } else if (strcmp(kContractorsGetAllContractorsIdentifier, commandIdentifier.c_str()) == 0) {
-            command = new ContractorsListCommand(commandUUID, commandIdentifier,
-                                                 sinceEpoch);
+    try {
+        if (OpenTrustLineCommand::identifier() == identifier){
+            command = new OpenTrustLineCommand(uuid, buffer);
+
+        } else if (CloseTrustLineCommand::identifier() == identifier) {
+            command = new CloseTrustLineCommand(uuid, buffer);
+
+        } else if (UpdateTrustLineCommand::identifier() == identifier) {
+            command = new UpdateTrustLineCommand(uuid, buffer);
+
+        } else if (MaximalTransactionAmountCommand::identifier() == identifier) {
+            command = new MaximalTransactionAmountCommand(uuid, buffer);
+
+        } else if (TotalBalanceCommand::identifier() == identifier) {
+            command = new TotalBalanceCommand(uuid);
+
+        } else if (ContractorsListCommand::identifier() == identifier) {
+            command = new ContractorsListCommand(uuid);
+
+            // todo: add credit usage command
+
+        } else {
+            throw RuntimeError(
+                "CommandsParser::tryParseCommand: "
+                    "unexpected command identifier received.");
         }
+
     } catch (std::exception &e){
-        cutNextCommandFromTheBuffer();
         return commandIsInvalidOrIncomplete();
     }
 
-    cutNextCommandFromTheBuffer();
-
-    if(command == nullptr){
-        return commandIsInvalidOrIncomplete();
-    }
-
-    return pair<bool, shared_ptr<BaseUserCommand>> (true, shared_ptr<BaseUserCommand>(command));
+    return make_pair(true, shared_ptr<BaseUserCommand>(command));
 }
 
 /*!
@@ -145,7 +149,7 @@ pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryParseCommand(
  * Stops on commands separator symbol.
  * If no commands separator symbol is present - clears buffer at all.
  */
-void CommandsParser::cutNextCommandFromTheBuffer() {
+void CommandsParser::cutBufferUpToNextCommand() {
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (mBuffer.size() > (nextCommandSeparatorIndex + 1)) {
         // Buffer contains other commands (or their parts), and them should be keept;
@@ -161,7 +165,7 @@ void CommandsParser::cutNextCommandFromTheBuffer() {
 }
 
 pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::commandIsInvalidOrIncomplete() {
-    return pair <bool, shared_ptr<BaseUserCommand>> (false, nullptr);
+    return pair<bool, shared_ptr<BaseUserCommand>>(false, nullptr);
 }
 
 

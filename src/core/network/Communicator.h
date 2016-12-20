@@ -1,8 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_COMMUNICATOR_H
 #define GEO_NETWORK_CLIENT_COMMUNICATOR_H
 
+#include "UUID2Address.h"
 #include "internal/OutgoingMessagesHandler.h"
 #include "internal/IncomingMessagesHandler.h"
+#include "../common/exceptions/RuntimeError.h"
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -23,8 +25,11 @@ class Communicator {
 public:
     explicit Communicator(
         as::io_service &ioService,
-        const string &interface,
-        const uint16_t port);
+        const NodeUUID &nodeUUID,
+        const string &nodeInterface,
+        const uint16_t nodePort,
+        const string &uuid2AddressHost,
+        const uint16_t uuid2AddressPort);
 
     ~Communicator();
 
@@ -34,14 +39,28 @@ private:
     static constexpr const size_t kMaxIncomingBufferSize = 1024;
 
 private:
-    as::io_service &mIOService;
+    const string mInterface;
+    const uint16_t mPort;
+
+    // external
+    const NodeUUID &mNodeUUID;
+    UUID2Address *mUUID2AddressService;
+
+    // internal
     udp::socket *mSocket;
+    IncomingMessagesHandler *mIncomingMessagesHandler;
+    OutgoingMessagesHandler *mOutgoingMessagesHandler;
+
+
+
+
+    as::io_service &mIOService;
+
 
     boost::array<char, kMaxIncomingBufferSize> mRecvBuffer;
     udp::endpoint mRemoteEndpointBuffer;
 
-    IncomingMessagesHandler *mIncomingMessagesHandler;
-    OutgoingMessagesHandler *mOutgoingMessagesHandler;
+
 
 private:
     // todo: move to the incoming handler

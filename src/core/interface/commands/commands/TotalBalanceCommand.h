@@ -7,12 +7,12 @@ class TotalBalanceCommand:
     public BaseUserCommand {
 
 public:
-    static const constexpr char *kIdentifier =
-        "GET:stats/balances/total";
-
-public:
     TotalBalanceCommand(
         const CommandUUID &uuid);
+
+    static const string &identifier();
+
+    void deserialize(const string &buffer){};
 };
 
 #endif //GEO_NETWORK_CLIENT_TOTALBALANCE_H

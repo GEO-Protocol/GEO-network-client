@@ -1,35 +1,35 @@
-#ifndef GEO_NETWORK_CLIENT_OPENTRUSTLINECOMMAND_H
-#define GEO_NETWORK_CLIENT_OPENTRUSTLINECOMMAND_H
-
+#ifndef GEO_NETWORK_CLIENT_USECREDITCOMMAND_H
+#define GEO_NETWORK_CLIENT_USECREDITCOMMAND_H
 
 #include "BaseUserCommand.h"
 #include "../../../trust_lines/TrustLine.h"
 #include "../../../common/exceptions/ValueError.h"
 
 
-using namespace std;
-
-
-class OpenTrustLineCommand:
+class UseCreditCommand:
     public BaseUserCommand {
 
 public:
-    OpenTrustLineCommand(
+    static const constexpr char *kIdentifier =
+        "CREATE:contractors/transactions";
+
+public:
+    UseCreditCommand(
         const CommandUUID &uuid,
         const string &commandBuffer);
 
-    static const string identifier();
     const NodeUUID& contractorUUID() const;
     const trust_amount& amount() const;
-
+    const string& purpose() const;
 
 protected:
     NodeUUID mContractorUUID;
     trust_amount mAmount;
+    string mPurpose;
 
 protected:
     void deserialize(
         const string &command);
 };
 
-#endif //GEO_NETWORK_CLIENT_OPENTRUSTLINECOMMAND_H
+#endif //GEO_NETWORK_CLIENT_USECREDITCOMMAND_H

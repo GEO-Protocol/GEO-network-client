@@ -4,9 +4,14 @@ UpdateTrustLineCommand::UpdateTrustLineCommand(
     const CommandUUID &uuid,
     const string &commandBuffer):
 
-    BaseUserCommand(uuid, kIdentifier) {
+    BaseUserCommand(uuid, identifier()) {
 
     deserialize(commandBuffer);
+}
+
+const string &UpdateTrustLineCommand::identifier() {
+    static const string identifier = "SET:contractors/trust-lines";
+    return identifier;
 }
 
 const NodeUUID &UpdateTrustLineCommand::contractorUUID() const {

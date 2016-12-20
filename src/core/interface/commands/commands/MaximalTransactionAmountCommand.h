@@ -9,14 +9,11 @@ class MaximalTransactionAmountCommand:
     public BaseUserCommand {
 
 public:
-    static const constexpr char *kIdentifier =
-        "GET:contractors/transactions/max";
-
-public:
     MaximalTransactionAmountCommand(
         const CommandUUID &uuid,
         const string &commandBuffer);
 
+    static const string &identifier();
     const NodeUUID &contractorUUID() const;
 
 protected:

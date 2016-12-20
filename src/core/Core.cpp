@@ -49,6 +49,13 @@ int Core::initCoreComponents() {
         return -1;
     }
 
+    try {
+        mNodeUUID = mSettings->nodeUUID(&conf);
+    } catch (RuntimeError &) {
+        mLog.logFatal("Core", "Can't read uuid of the node from the settings.");
+        return -1;
+    }
+
     initCode = initCommunicator(conf);
     if (initCode != 0)
         return initCode;
@@ -119,11 +126,14 @@ int Core::initTransactionsManager() {
 int Core::initCommunicator(const json &conf) {
     try {
         mCommunicator = new Communicator(
-            mIOService, mSettings->interface(&conf), mSettings->port(&conf));
+            mIOService, mNodeUUID,
+            mSettings->interface(&conf), mSettings->port(&conf),
+            mSettings->uuid2addressHost(&conf), mSettings->uuid2addressPort(&conf));
         mLog.logSuccess("Core", "Network communicator is successfully initialised");
 
     } catch (const std::exception &e) {
-        mLog.logException("Communicator", e);
+        mLog.logError("Core", "Can't initialize network communicator.");
+        mLog.logException("Core", e);
         return -1;
     }
 

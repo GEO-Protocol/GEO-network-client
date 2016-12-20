@@ -10,14 +10,11 @@ class UpdateTrustLineCommand:
     public BaseUserCommand {
 
 public:
-    static const constexpr char *kIdentifier =
-        "SET:contractors/trust-lines";
-
-public:
     UpdateTrustLineCommand(
         const CommandUUID &uuid,
         const string &commandBuffer);
 
+    static const string& identifier();
     const NodeUUID &contractorUUID() const;
     const trust_amount &amount() const;
 
