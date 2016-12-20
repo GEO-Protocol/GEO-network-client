@@ -10,13 +10,25 @@ CloseTrustLineCommand::CloseTrustLineCommand(
     deserialize(commandBuffer);
 }
 
+const string &CloseTrustLineCommand::identifier() {
+    static const string identifier = "REMOVE:contractors/trust-lines";
+    return identifier;
+}
+
 const NodeUUID& CloseTrustLineCommand::contractorUUID() const {
     return mContractorUUID;
 }
 
-const string &CloseTrustLineCommand::identifier() {
-    static const string identifier = "REMOVE:contractors/trust-lines";
-    return identifier;
+const CommandResult *CloseTrustLineCommand::resultOk() const {
+    return new CommandResult(uuid(), 200);
+}
+
+const CommandResult *CloseTrustLineCommand::trustLineIsAbsentResult() const {
+    return new CommandResult(uuid(), 404);
+}
+
+const CommandResult *CloseTrustLineCommand::trustLineIsAbsentOrInvalidResult() const {
+    return new CommandResult(uuid(), 409);
 }
 
 /*!
@@ -33,3 +45,4 @@ void CloseTrustLineCommand::deserialize(const string &command) {
                 "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 }
+

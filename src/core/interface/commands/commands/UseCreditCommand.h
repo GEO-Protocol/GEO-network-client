@@ -9,23 +9,31 @@
 class UseCreditCommand:
     public BaseUserCommand {
 
-public:
-    static const constexpr char *kIdentifier =
-        "CREATE:contractors/transactions";
+protected:
+    NodeUUID mContractorUUID;
+    trust_amount mAmount;
+    string mPurpose;
 
 public:
     UseCreditCommand(
         const CommandUUID &uuid,
         const string &commandBuffer);
 
-    const NodeUUID& contractorUUID() const;
-    const trust_amount& amount() const;
-    const string& purpose() const;
+    static const string identifier();
 
-protected:
-    NodeUUID mContractorUUID;
-    trust_amount mAmount;
-    string mPurpose;
+    const NodeUUID &contractorUUID() const;
+
+    const trust_amount &amount() const;
+
+    const string &purpose() const;
+
+    const CommandResult *resultOk(
+            TransactionUUID &transactionUUID,
+            uint16_t resultCode,
+            Timestamp &transactionReceived,
+            Timestamp &transactionProceed) const;
+
+    const CommandResult *notEnoughtCreditAmountResult() const;
 
 protected:
     void deserialize(

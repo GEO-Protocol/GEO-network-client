@@ -13,6 +13,10 @@ public:
 
     static const string& identifier();
 
+    const CommandResult *resultOk(vector<NodeUUID> contractors) const;
+
+    const CommandResult *noContractorsResult() const;
+
     void deserialize(const string& command){};
 };
 

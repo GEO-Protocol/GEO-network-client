@@ -1,6 +1,4 @@
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include "BaseUserCommand.h"
-
 
 BaseUserCommand::BaseUserCommand(
     const CommandUUID &uuid,
@@ -8,7 +6,7 @@ BaseUserCommand::BaseUserCommand(
 
     mUUID(uuid),
     mDerivedIdentifier(identifier),
-    mTimestampAccepted(boost::posix_time::microsec_clock::local_time()) {}
+    mTimestampAccepted(boost::posix_time::microsec_clock::universal_time()) {}
 
 const CommandUUID &BaseUserCommand::uuid() const {
     return mUUID;
@@ -20,4 +18,9 @@ const Timestamp &BaseUserCommand::timestampAccepted() const {
 
 const string &BaseUserCommand::derivedIdentifier() const {
     return mDerivedIdentifier;
+}
+
+const CommandResult *BaseUserCommand::unexpectedErrorResult() {
+    CommandResult *result = new CommandResult(mUUID, 501);
+    return result;
 }

@@ -6,12 +6,14 @@
 #include "../../../trust_lines/TrustLine.h"
 #include "../../../common/exceptions/ValueError.h"
 
-
 using namespace std;
-
 
 class OpenTrustLineCommand:
     public BaseUserCommand {
+
+protected:
+    NodeUUID mContractorUUID;
+    trust_amount mAmount;
 
 public:
     OpenTrustLineCommand(
@@ -19,13 +21,14 @@ public:
         const string &commandBuffer);
 
     static const string identifier();
-    const NodeUUID& contractorUUID() const;
-    const trust_amount& amount() const;
 
+    const NodeUUID &contractorUUID() const;
 
-protected:
-    NodeUUID mContractorUUID;
-    trust_amount mAmount;
+    const trust_amount &amount() const;
+
+    const CommandResult *resultOk() const;
+
+    const CommandResult *trustLineAlreadyPresentResult() const;
 
 protected:
     void deserialize(

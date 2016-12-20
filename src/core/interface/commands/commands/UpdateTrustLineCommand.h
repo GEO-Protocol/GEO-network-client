@@ -9,18 +9,26 @@
 class UpdateTrustLineCommand:
     public BaseUserCommand {
 
+protected:
+    NodeUUID mContractorUUID;
+    trust_amount mAmount;
+
 public:
     UpdateTrustLineCommand(
         const CommandUUID &uuid,
         const string &commandBuffer);
 
     static const string& identifier();
+
     const NodeUUID &contractorUUID() const;
+
     const trust_amount &amount() const;
 
-protected:
-    NodeUUID mContractorUUID;
-    trust_amount mAmount;
+    const CommandResult *resultOk() const;
+
+    const CommandResult *trustLineIsAbsentResult() const;
+
+    const CommandResult *debtGreaterThanAmountResult() const;
 
 protected:
     void deserialize(

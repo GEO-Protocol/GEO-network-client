@@ -8,21 +8,27 @@
 class CloseTrustLineCommand:
     public BaseUserCommand {
 
-public:
-    static const string &identifier();
+protected:
+    NodeUUID mContractorUUID;
 
 public:
     CloseTrustLineCommand(
         const CommandUUID &uuid,
         const string &commandBuffer);
 
+    static const string &identifier();
+
     const NodeUUID &contractorUUID() const;
 
-protected:
-    NodeUUID mContractorUUID;
+    const CommandResult *resultOk() const;
+
+    const CommandResult *trustLineIsAbsentResult() const;
+
+    const CommandResult *trustLineIsAbsentOrInvalidResult() const;
 
 private:
-    void deserialize(const string &command);
+    void deserialize(
+            const string &command);
 };
 
 #endif //GEO_NETWORK_CLIENT_CLOSETRUSTLINECOMMAND_H

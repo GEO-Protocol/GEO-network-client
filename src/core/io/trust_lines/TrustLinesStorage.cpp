@@ -27,6 +27,7 @@ const io::Block *TrustLinesStorage::readTrustLineFromStorage(const NodeUUID &uui
     }catch (std::exception &e){
         throw IOError(string(string("Can't read trust line data from storage. Details: ") + string(e.what())).c_str());
     }
+    return block;
 }
 
 void TrustLinesStorage::removeTrustLineFromStorage(const NodeUUID &uuid) {

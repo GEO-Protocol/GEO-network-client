@@ -1,15 +1,15 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
-#include "../logger/Logger.h"
-#include "../interface/commands/commands/BaseUserCommand.h"
-#include "../interface/commands/commands/OpenTrustLineCommand.h"
-#include "../interface/commands/commands/CloseTrustLineCommand.h"
-#include "../interface/commands/commands/UpdateTrustLineCommand.h"
-#include "../interface/commands/commands/MaximalTransactionAmountCommand.h"
-#include "../interface/commands/commands/UseCreditCommand.h"
-#include "../interface/commands/commands/TotalBalanceCommand.h"
-#include "../interface/commands/commands/ContractorsListCommand.h"
+#include "../../logger/Logger.h"
+#include "../../interface/commands/commands/BaseUserCommand.h"
+#include "../../interface/commands/commands/OpenTrustLineCommand.h"
+#include "../../interface/commands/commands/CloseTrustLineCommand.h"
+#include "../../interface/commands/commands/UpdateTrustLineCommand.h"
+#include "../../interface/commands/commands/MaximalTransactionAmountCommand.h"
+#include "../../interface/commands/commands/UseCreditCommand.h"
+#include "../../interface/commands/commands/TotalBalanceCommand.h"
+#include "../../interface/commands/commands/ContractorsListCommand.h"
 //#include "../results/Result.h"
 //#include "../results/OpenTrustLineResult.h"
 //#include "../results/CloseTrustLineResult.h"
@@ -18,7 +18,7 @@
 //#include "../results/PaymentResult.h"
 //#include "../results/TotalBalanceResult.h"
 //#include "../results/ContractorsListResult.h"
-#include "../interface/results/ResultsInterface.h"
+#include "../../interface/results/ResultsInterface.h"
 
 #include <boost/lexical_cast.hpp>
 

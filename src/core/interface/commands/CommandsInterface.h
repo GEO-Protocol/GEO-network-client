@@ -10,7 +10,7 @@
 #include "commands/ContractorsListCommand.h"
 #include "commands/TotalBalanceCommand.h"
 #include "../BaseFIFOInterface.h"
-#include "../../transactions/TransactionsManager.h"
+#include "../../transactions/manager/TransactionsManager.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/MemoryError.h"

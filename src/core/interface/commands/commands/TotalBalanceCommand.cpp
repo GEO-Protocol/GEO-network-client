@@ -1,11 +1,26 @@
 #include "TotalBalanceCommand.h"
 
 TotalBalanceCommand::TotalBalanceCommand(
-    const CommandUUID &uuid) :
+        const CommandUUID &uuid) :
 
-    BaseUserCommand(uuid, identifier()) {}
+        BaseUserCommand(uuid, identifier()) {}
 
-const string &TotalBalanceCommand::identifier(){
+const string &TotalBalanceCommand::identifier() {
     static const string identifier = "GET:stats/balances/total";
     return identifier;
 }
+
+const CommandResult *TotalBalanceCommand::resultOk(
+        trust_amount &totalIncomingTrust,
+        trust_amount &totalIncomingTrustUsed,
+        trust_amount &totalOutgoingTrust,
+        trust_amount &totalOutgoingTrustUsed) const {
+    string additionalInformation = boost::lexical_cast<string>(totalIncomingTrust) + "\r" +
+                                   boost::lexical_cast<string>(totalIncomingTrustUsed) + "\r" +
+                                   boost::lexical_cast<string>(totalOutgoingTrust) + "\r" +
+                                   boost::lexical_cast<string>(totalOutgoingTrustUsed);
+    return new CommandResult(uuid(), 200, additionalInformation);
+}
+
+
+

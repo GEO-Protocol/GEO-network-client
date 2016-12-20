@@ -22,6 +22,18 @@ const trust_amount &UpdateTrustLineCommand::amount() const {
     return mAmount;
 }
 
+const CommandResult *UpdateTrustLineCommand::resultOk() const {
+    return new CommandResult(uuid(), 200);
+}
+
+const CommandResult *UpdateTrustLineCommand::trustLineIsAbsentResult() const {
+    return new CommandResult(uuid(), 404);
+}
+
+const CommandResult *UpdateTrustLineCommand::debtGreaterThanAmountResult() const {
+    return new CommandResult(uuid(), 409);
+}
+
 void UpdateTrustLineCommand::deserialize(
     const string &command) {
 
@@ -48,6 +60,7 @@ void UpdateTrustLineCommand::deserialize(
 
     try {
         mAmount = trust_amount(command.substr(amountTokenOffset));
+
     } catch (...) {
         throw ValueError(
             "UpdateTrustLineCommand::deserialize: "
@@ -60,3 +73,4 @@ void UpdateTrustLineCommand::deserialize(
                 "Can't parse command. Received 'Amount' can't be 0.");
     }
 }
+
