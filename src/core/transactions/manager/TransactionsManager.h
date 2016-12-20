@@ -10,15 +10,10 @@
 #include "../../interface/commands/commands/UseCreditCommand.h"
 #include "../../interface/commands/commands/TotalBalanceCommand.h"
 #include "../../interface/commands/commands/ContractorsListCommand.h"
-//#include "../results/Result.h"
-//#include "../results/OpenTrustLineResult.h"
-//#include "../results/CloseTrustLineResult.h"
-//#include "../results/UpdateTrustLineResult.h"
-//#include "../results/MaximalTransactionAmountResult.h"
-//#include "../results/PaymentResult.h"
-//#include "../results/TotalBalanceResult.h"
-//#include "../results/ContractorsListResult.h"
 #include "../../interface/results/ResultsInterface.h"
+#include "../../interface/results/CommandResult.h"
+
+#include "../../trust_lines/TrustLine.h"
 
 #include <boost/lexical_cast.hpp>
 
@@ -32,13 +27,6 @@ using namespace std;
 class TransactionsManager {
 
 private:
-    static const constexpr char* kTrustLinesOpenIdentifier = "CREATE:contractors/trust-lines";
-    static const constexpr char* kTrustLinesCloseIdentifier = "REMOVE:contractors/trust-lines";
-    static const constexpr char* kTrustLinesUpdateIdentifier = "SET:contractors/trust-lines";
-    static const constexpr char* kTransactionsUseCreditIdentifier = "CREATE:contractors/transations";
-    static const constexpr char* kTransactionsMaximalAmountIdentifier = "GET:contractors/transations/max";
-    static const constexpr char* kContractorsGetAllContractorsIdentifier = "GET:contractors";
-    static const constexpr char* kBalanceGetTotalBalanceIdentifier = "GET:stats/balances/total/";
 
     as::io_service &mIOService;
     ResultsInterface *mResultsInterface;
@@ -55,23 +43,20 @@ public:
     void processCommand(shared_ptr<BaseUserCommand> commandPointer);
 
 private:
-//    pair<bool, shared_ptr<Result>> openTrustLine(shared_ptr<BaseUserCommand> commandPointer);
-//
-//    pair<bool, shared_ptr<Result>> closeTrustLine(shared_ptr<BaseUserCommand> commandPointer);
-//
-//    pair<bool, shared_ptr<Result>> updateTrustLine(shared_ptr<BaseUserCommand> commandPointer);
-//
-//    pair<bool, shared_ptr<Result>> maximalTransactionAmount(shared_ptr<BaseUserCommand> commandPointer);
-//
-//    pair<bool, shared_ptr<Result>> useCredit(shared_ptr<BaseUserCommand> commandPointer);
-//
-//    pair<bool, shared_ptr<Result>> totalBalance(shared_ptr<BaseUserCommand> commandPointer);
-//
-//    pair<bool, shared_ptr<Result>> contractorsList(shared_ptr<BaseUserCommand> commandPointer);
-//
-//    string currentTimestamp();
+    pair<bool, shared_ptr<const CommandResult>> openTrustLine(shared_ptr<BaseUserCommand> commandPointer);
 
-//    const uint16_t resultCode(const uuids::uuid &commandUUID);
+    pair<bool, shared_ptr<const CommandResult>> closeTrustLine(shared_ptr<BaseUserCommand> commandPointer);
+
+    pair<bool, shared_ptr<const CommandResult>> updateTrustLine(shared_ptr<BaseUserCommand> commandPointer);
+
+    pair<bool, shared_ptr<const CommandResult>> maximalTransactionAmount(shared_ptr<BaseUserCommand> commandPointer);
+
+    pair<bool, shared_ptr<const CommandResult>> useCredit(shared_ptr<BaseUserCommand> commandPointer);
+
+    pair<bool, shared_ptr<const CommandResult>> totalBalance(shared_ptr<BaseUserCommand> commandPointer);
+
+    pair<bool, shared_ptr<const CommandResult>> contractorsList(shared_ptr<BaseUserCommand> commandPointer);
+
 };
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H

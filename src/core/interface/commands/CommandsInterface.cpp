@@ -81,7 +81,9 @@ pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryDeserializeCommand() 
 
     try {
         auto command = tryParseCommand(
-            commandUUID, commandIdentifier, mBuffer.substr(nextTokenOffset, mBuffer.size()));
+            commandUUID,
+            commandIdentifier,
+            mBuffer.substr(nextTokenOffset, mBuffer.size()));
 
         cutBufferUpToNextCommand();
         return command;
@@ -129,7 +131,8 @@ pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryParseCommand(
         } else if (ContractorsListCommand::identifier() == identifier) {
             command = new ContractorsListCommand(uuid);
 
-            // todo: add credit usage command
+        } else if (UseCreditCommand::identifier() == identifier){
+            command = new UseCreditCommand(uuid, buffer);
 
         } else {
             throw RuntimeError(
