@@ -36,7 +36,7 @@ const CommandResult *CloseTrustLineCommand::trustLineIsAbsentOrInvalidResult() c
  */
 void CloseTrustLineCommand::deserialize(const string &command) {
     try {
-        string hexUUID = command.substr(0, CommandUUID::kLength);
+        string hexUUID = command.substr(0, CommandUUID::kUUIDLength);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {

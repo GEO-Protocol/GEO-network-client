@@ -37,7 +37,7 @@ const CommandResult *UpdateTrustLineCommand::debtGreaterThanAmountResult() const
 void UpdateTrustLineCommand::deserialize(
     const string &command) {
 
-    const auto amountTokenOffset = CommandUUID::kLength + 1;
+    const auto amountTokenOffset = CommandUUID::kUUIDLength + 1;
     const auto minCommandLength = amountTokenOffset + 1;
 
     if (command.size() < minCommandLength) {
@@ -59,7 +59,11 @@ void UpdateTrustLineCommand::deserialize(
 
 
     try {
-        mAmount = trust_amount(command.substr(amountTokenOffset));
+        for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < command.length(); ++commandSeparatorPosition) {
+            if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
+                mAmount = trust_amount(command.substr(amountTokenOffset, commandSeparatorPosition - amountTokenOffset));
+            }
+        }
 
     } catch (...) {
         throw ValueError(

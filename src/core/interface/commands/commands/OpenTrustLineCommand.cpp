@@ -23,11 +23,11 @@ const trust_amount& OpenTrustLineCommand::amount() const {
     return mAmount;
 }
 
-const CommandResult *OpenTrustLineCommand::resultOk() const {
+const CommandResult *OpenTrustLineCommand::resultOk() const{
     return new CommandResult(uuid(), 200);
 }
 
-const CommandResult *OpenTrustLineCommand::trustLineAlreadyPresentResult() const {
+const CommandResult *OpenTrustLineCommand::trustLineAlreadyPresentResult() const{
     return new CommandResult(uuid(), 409);
 }
 
@@ -37,7 +37,7 @@ const CommandResult *OpenTrustLineCommand::trustLineAlreadyPresentResult() const
 void OpenTrustLineCommand::deserialize(
     const string &command) {
 
-    const auto amountTokenOffset = CommandUUID::kLength + 1;
+    const auto amountTokenOffset = NodeUUID::kUUIDLength + 1;
     const auto minCommandLength = amountTokenOffset + 1;
 
     if (command.size() < minCommandLength) {
@@ -59,7 +59,12 @@ void OpenTrustLineCommand::deserialize(
 
 
     try {
-        mAmount = trust_amount(command.substr(amountTokenOffset));
+        for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < command.length(); ++commandSeparatorPosition) {
+            if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
+                mAmount = trust_amount(command.substr(amountTokenOffset, commandSeparatorPosition - amountTokenOffset));
+            }
+        }
+
     } catch (...) {
         throw ValueError(
             "OpenTrustLineCommand::deserialize: "

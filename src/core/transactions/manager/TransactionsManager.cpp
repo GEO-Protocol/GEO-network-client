@@ -11,42 +11,44 @@ TransactionsManager::TransactionsManager(
     mLog(logger){}
 
 TransactionsManager::~TransactionsManager() {
-
 }
 
 void TransactionsManager::processCommand(shared_ptr<BaseUserCommand> commandPointer) {
     pair<bool, shared_ptr<const CommandResult>> parsingResult;
+
+    cout << commandPointer.get()->derivedIdentifier() + string(" in processing") << endl;
+
     if (commandPointer.get()->derivedIdentifier() == OpenTrustLineCommand::identifier()) {
         parsingResult = pair<bool, shared_ptr<const CommandResult>> (openTrustLine(commandPointer));
-    }
-
-    if (commandPointer.get()->derivedIdentifier() == CloseTrustLineCommand::identifier()) {
+    } else if (commandPointer.get()->derivedIdentifier() == CloseTrustLineCommand::identifier()) {
         parsingResult = pair<bool, shared_ptr<const CommandResult>> (closeTrustLine(commandPointer));
-    }
-
-    if (commandPointer.get()->derivedIdentifier() == UpdateTrustLineCommand::identifier()) {
+    } else if (commandPointer.get()->derivedIdentifier() == UpdateTrustLineCommand::identifier()) {
         parsingResult = pair<bool, shared_ptr<const CommandResult>> (updateTrustLine(commandPointer));
-    }
-
-    if (commandPointer.get()->derivedIdentifier() == UseCreditCommand::identifier()) {
+    } else if (commandPointer.get()->derivedIdentifier() == UseCreditCommand::identifier()) {
         parsingResult = pair<bool, shared_ptr<const CommandResult>> (useCredit(commandPointer));
-    }
-
-    if (commandPointer.get()->derivedIdentifier() == MaximalTransactionAmountCommand::identifier()) {
+    } else if (commandPointer.get()->derivedIdentifier() == MaximalTransactionAmountCommand::identifier()) {
         parsingResult = pair<bool, shared_ptr<const CommandResult>> (maximalTransactionAmount(commandPointer));
-    }
-
-    if (commandPointer.get()->derivedIdentifier() == TotalBalanceCommand::identifier()) {
+    } else if (commandPointer.get()->derivedIdentifier() == TotalBalanceCommand::identifier()) {
         parsingResult = pair<bool, shared_ptr<const CommandResult>> (totalBalance(commandPointer));
-    }
-
-    if (commandPointer.get()->derivedIdentifier() == ContractorsListCommand::identifier()) {
+    } else if (commandPointer.get()->derivedIdentifier() == ContractorsListCommand::identifier()) {
         parsingResult = pair<bool, shared_ptr<const CommandResult>> (contractorsList(commandPointer));
     }
+
 
     if(parsingResult.first){
         try {
             auto result = parsingResult.second.get()->serialize();
+
+            cout << string("Command UUID ") + parsingResult.second.get()->commandUUID().stringUUID() +
+                    string(" Result code: ") + to_string(parsingResult.second.get()->resultCode())
+                 << endl;
+
+            /*struct sigaction sa;
+            memset(&sa, 0, sizeof(struct sigaction));
+            sigemptyset(&sa.sa_mask);
+            sa.sa_sigaction = TransactionsManager::segfaultSigaction;
+            sa.sa_flags = SA_SIGINFO;
+            sigaction(SIGSEGV, &sa, NULL);*/
 
             mResultsInterface->writeResult(result.c_str(), result.size());
         } catch(std::exception &e){
@@ -82,7 +84,8 @@ pair<bool, shared_ptr<const CommandResult>> TransactionsManager::updateTrustLine
 pair<bool, shared_ptr<const CommandResult>> TransactionsManager::maximalTransactionAmount(shared_ptr <BaseUserCommand> commandPointer) {
     MaximalTransactionAmountCommand *maximalTransactionAmountCommand = dynamic_cast<MaximalTransactionAmountCommand *>(commandPointer.get());
 
-    const CommandResult *result = maximalTransactionAmountCommand->resultOk();
+    trust_amount maximal(500);
+    const CommandResult *result = maximalTransactionAmountCommand->resultOk(maximal);
 
     return pair<bool, shared_ptr<const CommandResult>> (true, shared_ptr<const CommandResult>(result));
 }
@@ -111,7 +114,11 @@ pair<bool, shared_ptr<const CommandResult>> TransactionsManager::totalBalance(sh
     trust_amount outgoing(200);
     trust_amount outgoingUsed(100);
 
-    const CommandResult *result = totalBalanceCommand->resultOk(incoming, incomingUsed, outgoing, outgoingUsed);
+    const CommandResult *result = totalBalanceCommand->resultOk(
+            incoming,
+            incomingUsed,
+            outgoing,
+            outgoingUsed);
 
     return pair<bool, shared_ptr<const CommandResult>> (true, shared_ptr<const CommandResult>(result));
 }
@@ -119,7 +126,9 @@ pair<bool, shared_ptr<const CommandResult>> TransactionsManager::totalBalance(sh
 pair<bool, shared_ptr<const CommandResult>> TransactionsManager::contractorsList(shared_ptr <BaseUserCommand> commandPointer) {
     ContractorsListCommand *contractorsListCommand = dynamic_cast<ContractorsListCommand *>(commandPointer.get());
 
-    NodeUUID uuid1, uuid2, uuid3;
+    NodeUUID uuid1 = boost::uuids::random_generator()();
+    NodeUUID uuid2 = boost::uuids::random_generator()();
+    NodeUUID uuid3 = boost::uuids::random_generator()();
     vector<NodeUUID> contractorList;
     contractorList.push_back(uuid1);
     contractorList.push_back(uuid2);
@@ -129,3 +138,8 @@ pair<bool, shared_ptr<const CommandResult>> TransactionsManager::contractorsList
 
     return pair<bool, shared_ptr<const CommandResult>> (true, shared_ptr<const CommandResult>(result));
 }
+
+/*void TransactionsManager::segfaultSigaction(int signal, siginfo_t *si, void *arg) {
+    printf("Caught segfault at address %p\n", si->si_addr);
+    _exit(0);
+}*/

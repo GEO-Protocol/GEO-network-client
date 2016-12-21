@@ -15,9 +15,9 @@ const CommandResult *TotalBalanceCommand::resultOk(
         trust_amount &totalIncomingTrustUsed,
         trust_amount &totalOutgoingTrust,
         trust_amount &totalOutgoingTrustUsed) const {
-    string additionalInformation = boost::lexical_cast<string>(totalIncomingTrust) + "\r" +
-                                   boost::lexical_cast<string>(totalIncomingTrustUsed) + "\r" +
-                                   boost::lexical_cast<string>(totalOutgoingTrust) + "\r" +
+    string additionalInformation = boost::lexical_cast<string>(totalIncomingTrust) + "\t" +
+                                   boost::lexical_cast<string>(totalIncomingTrustUsed) + "\t" +
+                                   boost::lexical_cast<string>(totalOutgoingTrust) + "\t" +
                                    boost::lexical_cast<string>(totalOutgoingTrustUsed);
     return new CommandResult(uuid(), 200, additionalInformation);
 }

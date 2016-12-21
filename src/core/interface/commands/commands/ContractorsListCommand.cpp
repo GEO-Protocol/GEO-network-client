@@ -16,10 +16,10 @@ const CommandResult *ContractorsListCommand::resultOk(vector<NodeUUID> contracto
     for (auto &contractor : contractors) {
         additionalInformation += contractor.stringUUID();
         if (contractor != contractors.at(contractors.size() - 1)){
-            additionalInformation += "\r";
+            additionalInformation += "\t";
         }
     }
-    return new CommandResult(uuid(), 200);
+    return new CommandResult(uuid(), 200, additionalInformation);
 }
 
 const CommandResult *ContractorsListCommand::noContractorsResult() const {

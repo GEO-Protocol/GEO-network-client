@@ -18,7 +18,8 @@ class NodeUUID:
     public uuid {
 
 public:
-    static const size_t kUUIDLength = 16;
+    static const size_t kUUIDLength = 36;
+    static const size_t kUUIDSize = 16;
 
 public:
     explicit NodeUUID();

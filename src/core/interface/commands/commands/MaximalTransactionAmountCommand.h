@@ -11,7 +11,6 @@ class MaximalTransactionAmountCommand:
 
 protected:
     NodeUUID mContractorUUID;
-    trust_amount mAmount;
 
 public:
     MaximalTransactionAmountCommand(
@@ -22,9 +21,7 @@ public:
 
     const NodeUUID &contractorUUID() const;
 
-    const trust_amount &amount() const;
-
-    const CommandResult *resultOk() const;
+    const CommandResult *resultOk(trust_amount amount) const;
 
 
 protected:

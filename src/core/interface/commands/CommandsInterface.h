@@ -68,14 +68,6 @@ protected:
     static const char kCommandsSeparator = '\n';
     static const char kTokensSeparator = '\t';
 
-    static const constexpr char* kTrustLinesOpenIdentifier = "CREATE:contractors/trust-lines";
-    static const constexpr char* kTrustLinesCloseIdentifier = "REMOVE:contractors/trust-lines";
-    static const constexpr char* kTrustLinesUpdateIdentifier = "SET:contractors/trust-lines";
-    static const constexpr char* kTransactionsUseCreditIdentifier = "CREATE:contractors/transations";
-    static const constexpr char* kTransactionsMaximalAmountIdentifier = "GET:contractors/transations/max";
-    static const constexpr char* kContractorsGetAllContractorsIdentifier = "GET:contractors";
-    static const constexpr char* kBalanceGetTotalBalanceIdentifier = "GET:stats/balances/total/";
-
 protected:
     string mBuffer;
 };

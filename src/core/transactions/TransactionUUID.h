@@ -15,7 +15,8 @@ class TransactionUUID:
         public uuid {
 
 public:
-    static const size_t kUUIDLength = 16;
+    static const size_t kUUIDSize = 16;
+    static const size_t kUUIDLength = 36;
 
 public:
     explicit TransactionUUID();

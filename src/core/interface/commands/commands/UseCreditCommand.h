@@ -19,7 +19,7 @@ public:
         const CommandUUID &uuid,
         const string &commandBuffer);
 
-    static const string identifier();
+    static const string &identifier();
 
     const NodeUUID &contractorUUID() const;
 

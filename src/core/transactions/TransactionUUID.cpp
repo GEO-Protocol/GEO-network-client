@@ -8,16 +8,16 @@ TransactionUUID::TransactionUUID(uuid const &u):
         boost::uuids::uuid(u){}
 
 TransactionUUID::TransactionUUID(TransactionUUID &u) {
-    memcpy(data, u.data, kUUIDLength);
+    memcpy(data, u.data, kUUIDSize);
 }
 
 TransactionUUID::TransactionUUID(const TransactionUUID &u){
-    memcpy(data, u.data, kUUIDLength);
+    memcpy(data, u.data, kUUIDSize);
 }
 
 TransactionUUID::TransactionUUID(const string &hex) {
     uuid u = boost::lexical_cast<uuid>(hex);
-    memcpy(data, u.data, kUUIDLength);
+    memcpy(data, u.data, kUUIDSize);
 }
 
 TransactionUUID::operator boost::uuids::uuid() {
@@ -30,11 +30,11 @@ TransactionUUID::operator boost::uuids::uuid() const {
 
 const string TransactionUUID::stringUUID() const{
     uuid u;
-    memcpy(&u.data, data, 16);
+    memcpy(&u.data, data, kUUIDSize);
     return boost::lexical_cast<string>(u);
 }
 
 TransactionUUID& TransactionUUID::operator=(const boost::uuids::uuid &u){
-    memcpy(data, u.data, kUUIDLength);
+    memcpy(data, u.data, kUUIDSize);
     return *this;
 }

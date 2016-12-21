@@ -17,6 +17,8 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include <signal.h>
+#include <stdlib.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -56,6 +58,8 @@ private:
     pair<bool, shared_ptr<const CommandResult>> totalBalance(shared_ptr<BaseUserCommand> commandPointer);
 
     pair<bool, shared_ptr<const CommandResult>> contractorsList(shared_ptr<BaseUserCommand> commandPointer);
+
+    //static void segfaultSigaction(int signal, siginfo_t *si, void *arg);
 
 };
 

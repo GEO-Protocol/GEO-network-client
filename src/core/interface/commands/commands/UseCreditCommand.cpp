@@ -9,8 +9,9 @@ UseCreditCommand::UseCreditCommand(
     deserialize(commandBuffer);
 }
 
-const string UseCreditCommand::identifier() {
+const string &UseCreditCommand::identifier() {
     static const string kIdentifier = "CREATE:contractors/transactions";
+    return kIdentifier;
 }
 
 const NodeUUID &UseCreditCommand::contractorUUID() const {
@@ -36,9 +37,9 @@ const CommandResult *UseCreditCommand::resultOk(TransactionUUID &transactionUUID
     microseconds_timestamp received = (microseconds_timestamp) receivedTransaction.total_microseconds();
     microseconds_timestamp proceed = (microseconds_timestamp) proceedTransaction.total_microseconds();
 
-    string additionalInformation = transactionUUID.stringUUID() + "\r" +
-                                   boost::lexical_cast<string>(resultCode) + "\r" +
-                                   to_string(received) + "\r" +
+    string additionalInformation = transactionUUID.stringUUID() + "\t" +
+                                   boost::lexical_cast<string>(resultCode) + "\t" +
+                                   to_string(received) + "\t" +
                                    to_string(proceed);
 
     return new CommandResult(uuid(), 200, additionalInformation);
@@ -51,7 +52,7 @@ const CommandResult *UseCreditCommand::notEnoughtCreditAmountResult() const {
 void UseCreditCommand::deserialize(
         const string &command) {
 
-    const auto amountTokenOffset = CommandUUID::kLength + 1;
+    const auto amountTokenOffset = CommandUUID::kUUIDLength + 1;
     const auto minCommandLength = amountTokenOffset + 1;
 
     if (command.size() < minCommandLength) {
@@ -72,9 +73,14 @@ void UseCreditCommand::deserialize(
     }
 
 
+    size_t purposeStartPosition = 0;
     try {
-        mAmount = trust_amount(command.substr(
-                amountTokenOffset, command.find_last_of(kTokensSeparator)));
+        for (size_t nextTokenSeparatorPosition = amountTokenOffset; nextTokenSeparatorPosition < command.length(); ++nextTokenSeparatorPosition) {
+            if (command.at(nextTokenSeparatorPosition) == kTokensSeparator || command.at(nextTokenSeparatorPosition) == kCommandsSeparator) {
+                mAmount = trust_amount(command.substr(amountTokenOffset, nextTokenSeparatorPosition - amountTokenOffset));
+                purposeStartPosition = nextTokenSeparatorPosition + 1;
+            }
+        }
     } catch (...) {
         throw ValueError(
                 "UseCreditCommand::deserialize: "
@@ -88,19 +94,16 @@ void UseCreditCommand::deserialize(
     }
 
 
-//    try {
-//        mPurpose = command.substr(
-//            amountTokenOffset, command.find_last_of(kTokensSeparator)));
-//    } catch (...) {
-//        throw ValueError(
-//            "UseCreditCommand::deserialize: "
-//                "Can't parse command. Error occurred while parsing 'Amount' token.");
-//    }
-//
-//    if (mAmount == trust_amount(0)){
-//        throw ValueError(
-//            "UseCreditCommand::deserialize: "
-//                "Can't parse command. Received 'Amount' can't be 0.");
-//    }
+    try {
+        for (size_t nextTokenSeparatorPosition = purposeStartPosition; nextTokenSeparatorPosition < command.length(); ++nextTokenSeparatorPosition) {
+            if (command.at(nextTokenSeparatorPosition) == kTokensSeparator || command.at(nextTokenSeparatorPosition) == kCommandsSeparator) {
+                mPurpose = command.substr(purposeStartPosition, nextTokenSeparatorPosition - purposeStartPosition);
+            }
+        }
+    } catch (...) {
+        throw ValueError(
+            "UseCreditCommand::deserialize: "
+                "Can't parse command. Error occurred while parsing 'Amount' token.");
+    }
 
 }

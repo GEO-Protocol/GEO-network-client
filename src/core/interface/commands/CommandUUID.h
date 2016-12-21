@@ -17,7 +17,8 @@ class CommandUUID:
     public uuid {
 
 public:
-    static const size_t kLength = 16;
+    static const size_t kUUIDLength = 36;
+    static const size_t kUUIDSize = 16;
 
 public:
     CommandUUID():
@@ -40,13 +41,13 @@ public:
     }
 
     CommandUUID& operator=(const boost::uuids::uuid &u){
-        memcpy(data, u.data, kLength);
+        memcpy(data, u.data, kUUIDSize);
         return *this;
     }
 
     const string stringUUID() const {
         uuid u;
-        memcpy(&u.data, data, 16);
+        memcpy(&u.data, data, kUUIDSize);
         return boost::lexical_cast<string>(u);
     }
 };

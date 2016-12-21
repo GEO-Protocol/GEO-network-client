@@ -17,7 +17,7 @@ int Core::run() {
 
     try {
         // todo: register in uuid2address service;
-        mCommunicator->beginAcceptMessages();
+        //mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
 
         mLog.logSuccess("Core", "Processing started.");
@@ -56,9 +56,9 @@ int Core::initCoreComponents() {
         return -1;
     }
 
-    initCode = initCommunicator(conf);
-    if (initCode != 0)
-        return initCode;
+//    initCode = initCommunicator(conf);
+//    if (initCode != 0)
+//        return initCode;
 
     initCode = initResultsInterface();
     if (initCode != 0)
@@ -87,16 +87,21 @@ int Core::initSettings() {
     }
 }
 
-int Core::initCommandsInterface() {
+int Core::initCommunicator(const json &conf) {
     try {
-        mCommandsInterface = new CommandsInterface(mIOService, mTransactionsManager, &mLog);
-        mLog.logSuccess("Core", "Commands interface is successfully initialised");
-        return 0;
+        mCommunicator = new Communicator(
+                mIOService, mNodeUUID,
+                mSettings->interface(&conf), mSettings->port(&conf),
+                mSettings->uuid2addressHost(&conf), mSettings->uuid2addressPort(&conf));
+        mLog.logSuccess("Core", "Network communicator is successfully initialised");
 
     } catch (const std::exception &e) {
+        mLog.logError("Core", "Can't initialize network communicator.");
         mLog.logException("Core", e);
         return -1;
     }
+
+    return 0;
 }
 
 int Core::initResultsInterface() {
@@ -123,21 +128,16 @@ int Core::initTransactionsManager() {
     }
 }
 
-int Core::initCommunicator(const json &conf) {
+int Core::initCommandsInterface() {
     try {
-        mCommunicator = new Communicator(
-            mIOService, mNodeUUID,
-            mSettings->interface(&conf), mSettings->port(&conf),
-            mSettings->uuid2addressHost(&conf), mSettings->uuid2addressPort(&conf));
-        mLog.logSuccess("Core", "Network communicator is successfully initialised");
+        mCommandsInterface = new CommandsInterface(mIOService, mTransactionsManager, &mLog);
+        mLog.logSuccess("Core", "Commands interface is successfully initialised");
+        return 0;
 
     } catch (const std::exception &e) {
-        mLog.logError("Core", "Can't initialize network communicator.");
         mLog.logException("Core", e);
         return -1;
     }
-
-    return 0;
 }
 
 void Core::cleanupMemory() {

@@ -18,18 +18,14 @@ const NodeUUID &MaximalTransactionAmountCommand::contractorUUID() const {
     return mContractorUUID;
 }
 
-const trust_amount &MaximalTransactionAmountCommand::amount() const {
-    return mAmount;
-}
-
-const CommandResult *MaximalTransactionAmountCommand::resultOk() const {
-    string maximalAmount = boost::lexical_cast<string>(mAmount);
+const CommandResult *MaximalTransactionAmountCommand::resultOk(trust_amount amount) const {
+    string maximalAmount = boost::lexical_cast<string>(amount);
     return new CommandResult(uuid(), 200, maximalAmount);
 }
 
 void MaximalTransactionAmountCommand::deserialize(const string &command) {
     try {
-        string hexUUID = command.substr(0, CommandUUID::kLength);
+        string hexUUID = command.substr(0, CommandUUID::kUUIDLength);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {

@@ -6,8 +6,11 @@
 #include "../../common/exceptions/MemoryError.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/bind.hpp>
 
 #include <string>
+#include <iostream>
+
 
 
 
@@ -30,6 +33,10 @@ public:
     void writeResult(
         const char *bytes,
         const size_t bytesCount);
+
+    void handleTransferredInfo(
+            const boost::system::error_code &error,
+            const size_t bytesTransferred);
 
 private:
     as::io_service &mIOService;

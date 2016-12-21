@@ -34,11 +34,11 @@ const Timestamp &CommandResult::timestampCompleted() const {
 
 const string CommandResult::serialize() const {
     if (!mResultInformation.empty()) {
-        return mCommandUUID.stringUUID() + "\r" +
-               boost::lexical_cast<string>(mResultCode) + "\r" +
+        return mCommandUUID.stringUUID() + "\t" +
+               boost::lexical_cast<string>(mResultCode) + "\t" +
                mResultInformation + "\n";
     }
-    return mCommandUUID.stringUUID() + "\r" +
+    return mCommandUUID.stringUUID() + "\t" +
            boost::lexical_cast<string>(mResultCode) + "\n";
 }
 
