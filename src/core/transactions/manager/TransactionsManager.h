@@ -2,6 +2,9 @@
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
 #include "../../logger/Logger.h"
+
+#include "../../trust_lines/TrustLine.h"
+
 #include "../../interface/commands/commands/BaseUserCommand.h"
 #include "../../interface/commands/commands/OpenTrustLineCommand.h"
 #include "../../interface/commands/commands/CloseTrustLineCommand.h"
@@ -10,19 +13,26 @@
 #include "../../interface/commands/commands/UseCreditCommand.h"
 #include "../../interface/commands/commands/TotalBalanceCommand.h"
 #include "../../interface/commands/commands/ContractorsListCommand.h"
-#include "../../interface/results/ResultsInterface.h"
-#include "../../interface/results/CommandResult.h"
 
-#include "../../trust_lines/TrustLine.h"
+#include "../scheduler/TransactionsScheduler.h"
+#include "../transactions/BaseTransaction.h"
+#include "../transactions/OpenTrustLineTransaction.h"
+#include "../transactions/CloseTrustLineTransaction.h"
+#include "../transactions/UpdateTrustLineTransaction.h"
+#include "../transactions/MaximalAmountTransaction.h"
+#include "../transactions/ContractorsListTransaction.h"
+#include "../transactions/TotalBalanceTransaction.h"
+#include "../transactions/UseCreditTransaction.h"
+
+#include "../../interface/results/interface/ResultsInterface.h"
+#include "../../interface/results/result/CommandResult.h"
 
 #include <boost/lexical_cast.hpp>
 
-#include <signal.h>
 #include <stdlib.h>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <chrono>
 
 using namespace std;
 
@@ -31,6 +41,7 @@ class TransactionsManager {
 private:
 
     as::io_service &mIOService;
+    TransactionsScheduler *mTransactionsScheduler;
     ResultsInterface *mResultsInterface;
     Logger *mLog;
 
@@ -45,22 +56,22 @@ public:
     void processCommand(shared_ptr<BaseUserCommand> commandPointer);
 
 private:
-    pair<bool, shared_ptr<const CommandResult>> openTrustLine(shared_ptr<BaseUserCommand> commandPointer);
+    pair<bool, CommandResult::SharedConst> openTrustLine(BaseUserCommand::Shared commandPointer);
 
-    pair<bool, shared_ptr<const CommandResult>> closeTrustLine(shared_ptr<BaseUserCommand> commandPointer);
+    pair<bool, CommandResult::SharedConst> closeTrustLine(BaseUserCommand::Shared commandPointer);
 
-    pair<bool, shared_ptr<const CommandResult>> updateTrustLine(shared_ptr<BaseUserCommand> commandPointer);
+    pair<bool, CommandResult::SharedConst> updateTrustLine(BaseUserCommand::Shared commandPointer);
 
-    pair<bool, shared_ptr<const CommandResult>> maximalTransactionAmount(shared_ptr<BaseUserCommand> commandPointer);
+    pair<bool, CommandResult::SharedConst> maximalTransactionAmount(BaseUserCommand::Shared commandPointer);
 
-    pair<bool, shared_ptr<const CommandResult>> useCredit(shared_ptr<BaseUserCommand> commandPointer);
+    pair<bool, CommandResult::SharedConst> useCredit(BaseUserCommand::Shared commandPointer);
 
-    pair<bool, shared_ptr<const CommandResult>> totalBalance(shared_ptr<BaseUserCommand> commandPointer);
+    pair<bool, CommandResult::SharedConst> totalBalance(BaseUserCommand::Shared commandPointer);
 
-    pair<bool, shared_ptr<const CommandResult>> contractorsList(shared_ptr<BaseUserCommand> commandPointer);
-
-    //static void segfaultSigaction(int signal, siginfo_t *si, void *arg);
+    pair<bool, CommandResult::SharedConst> contractorsList(BaseUserCommand::Shared commandPointer);
 
 };
+
+
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H

@@ -9,6 +9,9 @@
 class UseCreditCommand:
     public BaseUserCommand {
 
+public:
+    typedef shared_ptr<UseCreditCommand> Shared;
+
 protected:
     NodeUUID mContractorUUID;
     trust_amount mAmount;

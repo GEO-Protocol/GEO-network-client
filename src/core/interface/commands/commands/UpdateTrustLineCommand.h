@@ -8,6 +8,8 @@
 
 class UpdateTrustLineCommand:
     public BaseUserCommand {
+public:
+    typedef shared_ptr<UpdateTrustLineCommand> Shared;
 
 protected:
     NodeUUID mContractorUUID;

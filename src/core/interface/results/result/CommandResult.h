@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "../commands/CommandUUID.h"
+#include "../../commands/CommandUUID.h"
 
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -14,6 +14,9 @@ typedef boost::posix_time::time_duration Duration;
 typedef uint64_t microseconds_timestamp;
 
 class CommandResult {
+public:
+    typedef shared_ptr<const CommandResult> SharedConst;
+
 private:
     CommandUUID mCommandUUID;
     uint16_t mResultCode;

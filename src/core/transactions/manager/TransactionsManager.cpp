@@ -1,4 +1,3 @@
-#include <chrono>
 #include "TransactionsManager.h"
 
 TransactionsManager::TransactionsManager(
@@ -8,30 +7,39 @@ TransactionsManager::TransactionsManager(
 
     mIOService(IOService),
     mResultsInterface(resultsInterface),
-    mLog(logger){}
-
-TransactionsManager::~TransactionsManager() {
+    mLog(logger){
+    mTransactionsScheduler = new TransactionsScheduler(mIOService);
 }
 
-void TransactionsManager::processCommand(shared_ptr<BaseUserCommand> commandPointer) {
-    pair<bool, shared_ptr<const CommandResult>> parsingResult;
+TransactionsManager::~TransactionsManager() {
+    if (mTransactionsScheduler != nullptr) {
+        delete mTransactionsScheduler;
+    }
+}
 
-    cout << commandPointer.get()->derivedIdentifier() + string(" in processing") << endl;
+void TransactionsManager::processCommand(BaseUserCommand::Shared commandPointer) {
+    pair<bool, CommandResult::SharedConst> parsingResult;
 
     if (commandPointer.get()->derivedIdentifier() == OpenTrustLineCommand::identifier()) {
-        parsingResult = pair<bool, shared_ptr<const CommandResult>> (openTrustLine(commandPointer));
+        parsingResult = pair<bool, CommandResult::SharedConst> (openTrustLine(commandPointer));
+
     } else if (commandPointer.get()->derivedIdentifier() == CloseTrustLineCommand::identifier()) {
-        parsingResult = pair<bool, shared_ptr<const CommandResult>> (closeTrustLine(commandPointer));
+        parsingResult = pair<bool, CommandResult::SharedConst> (closeTrustLine(commandPointer));
+
     } else if (commandPointer.get()->derivedIdentifier() == UpdateTrustLineCommand::identifier()) {
-        parsingResult = pair<bool, shared_ptr<const CommandResult>> (updateTrustLine(commandPointer));
+        parsingResult = pair<bool, CommandResult::SharedConst> (updateTrustLine(commandPointer));
+
     } else if (commandPointer.get()->derivedIdentifier() == UseCreditCommand::identifier()) {
-        parsingResult = pair<bool, shared_ptr<const CommandResult>> (useCredit(commandPointer));
+        parsingResult = pair<bool, CommandResult::SharedConst> (useCredit(commandPointer));
+
     } else if (commandPointer.get()->derivedIdentifier() == MaximalTransactionAmountCommand::identifier()) {
-        parsingResult = pair<bool, shared_ptr<const CommandResult>> (maximalTransactionAmount(commandPointer));
+        parsingResult = pair<bool, CommandResult::SharedConst> (maximalTransactionAmount(commandPointer));
+
     } else if (commandPointer.get()->derivedIdentifier() == TotalBalanceCommand::identifier()) {
-        parsingResult = pair<bool, shared_ptr<const CommandResult>> (totalBalance(commandPointer));
+        parsingResult = pair<bool, CommandResult::SharedConst> (totalBalance(commandPointer));
+
     } else if (commandPointer.get()->derivedIdentifier() == ContractorsListCommand::identifier()) {
-        parsingResult = pair<bool, shared_ptr<const CommandResult>> (contractorsList(commandPointer));
+        parsingResult = pair<bool, CommandResult::SharedConst> (contractorsList(commandPointer));
     }
 
 
@@ -39,107 +47,82 @@ void TransactionsManager::processCommand(shared_ptr<BaseUserCommand> commandPoin
         try {
             auto result = parsingResult.second.get()->serialize();
 
-            cout << string("Command UUID ") + parsingResult.second.get()->commandUUID().stringUUID() +
-                    string(" Result code: ") + to_string(parsingResult.second.get()->resultCode())
-                 << endl;
-
-            /*struct sigaction sa;
-            memset(&sa, 0, sizeof(struct sigaction));
-            sigemptyset(&sa.sa_mask);
-            sa.sa_sigaction = TransactionsManager::segfaultSigaction;
-            sa.sa_flags = SA_SIGINFO;
-            sigaction(SIGSEGV, &sa, NULL);*/
-
             mResultsInterface->writeResult(result.c_str(), result.size());
+
         } catch(std::exception &e){
-            cout << e.what() << endl;
+
         }
     }
 }
 
-pair<bool, shared_ptr<const CommandResult>> TransactionsManager::openTrustLine(shared_ptr <BaseUserCommand> commandPointer) {
+pair<bool, CommandResult::SharedConst> TransactionsManager::openTrustLine(BaseUserCommand::Shared commandPointer) {
     OpenTrustLineCommand *openTrustLineCommand = dynamic_cast<OpenTrustLineCommand *>(commandPointer.get());
 
-    const CommandResult *result = openTrustLineCommand->resultOk();
+    BaseTransaction *baseTransaction = new OpenTrustLineTransaction(OpenTrustLineCommand::Shared(openTrustLineCommand));
 
-    return pair<bool, shared_ptr<const CommandResult>> (true, shared_ptr<const CommandResult>(result));
+    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+
+    return make_pair(true, CommandResult::SharedConst(nullptr));
 }
 
-pair<bool, shared_ptr<const CommandResult>> TransactionsManager::closeTrustLine(shared_ptr <BaseUserCommand> commandPointer) {
+pair<bool, CommandResult::SharedConst> TransactionsManager::closeTrustLine(BaseUserCommand::Shared commandPointer) {
     CloseTrustLineCommand *closeTrustLineCommand = dynamic_cast<CloseTrustLineCommand *>(commandPointer.get());
 
-    const CommandResult *result = closeTrustLineCommand->resultOk();
+    BaseTransaction *baseTransaction = new CloseTrustLineTransaction(CloseTrustLineCommand::Shared(closeTrustLineCommand));
 
-    return pair<bool, shared_ptr<const CommandResult>> (true, shared_ptr<const CommandResult>(result));
+    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+
+    return make_pair(true, CommandResult::SharedConst(nullptr));
 }
 
-pair<bool, shared_ptr<const CommandResult>> TransactionsManager::updateTrustLine(shared_ptr <BaseUserCommand> commandPointer) {
+pair<bool, CommandResult::SharedConst> TransactionsManager::updateTrustLine(BaseUserCommand::Shared commandPointer) {
     UpdateTrustLineCommand *updateTrustLineCommand = dynamic_cast<UpdateTrustLineCommand *>(commandPointer.get());
 
-    const CommandResult *result = updateTrustLineCommand->resultOk();
+    BaseTransaction *baseTransaction = new UpdateTrustLineTransaction(UpdateTrustLineCommand::Shared(updateTrustLineCommand));
 
-    return pair<bool, shared_ptr<const CommandResult>> (true, shared_ptr<const CommandResult>(result));
+    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+
+    return make_pair(true, CommandResult::SharedConst(nullptr));
 }
 
-pair<bool, shared_ptr<const CommandResult>> TransactionsManager::maximalTransactionAmount(shared_ptr <BaseUserCommand> commandPointer) {
+pair<bool, CommandResult::SharedConst> TransactionsManager::maximalTransactionAmount(BaseUserCommand::Shared commandPointer) {
     MaximalTransactionAmountCommand *maximalTransactionAmountCommand = dynamic_cast<MaximalTransactionAmountCommand *>(commandPointer.get());
 
-    trust_amount maximal(500);
-    const CommandResult *result = maximalTransactionAmountCommand->resultOk(maximal);
+    BaseTransaction *baseTransaction = new MaximalAmountTransaction(MaximalTransactionAmountCommand::Shared(maximalTransactionAmountCommand));
 
-    return pair<bool, shared_ptr<const CommandResult>> (true, shared_ptr<const CommandResult>(result));
+    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+
+    return make_pair(true, CommandResult::SharedConst(nullptr));
 }
 
-pair<bool, shared_ptr<const CommandResult>> TransactionsManager::useCredit(shared_ptr <BaseUserCommand> commandPointer) {
+pair<bool, CommandResult::SharedConst> TransactionsManager::useCredit(BaseUserCommand::Shared commandPointer) {
     UseCreditCommand *useCreditCommand = dynamic_cast<UseCreditCommand *>(commandPointer.get());
 
-    TransactionUUID transactionUUID;
-    Timestamp received = boost::posix_time::microsec_clock::universal_time();
-    Timestamp proceed = boost::posix_time::microsec_clock::universal_time();
-    const CommandResult *result = useCreditCommand->resultOk(
-            transactionUUID,
-            200,
-            received,
-            proceed);
+    BaseTransaction *baseTransaction = new UseCreditTransaction(UseCreditCommand::Shared(useCreditCommand));
 
-    return pair<bool, shared_ptr<const CommandResult>> (true, shared_ptr<const CommandResult>(result));
+    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+
+    return make_pair(true, CommandResult::SharedConst(nullptr));
 }
 
 
-pair<bool, shared_ptr<const CommandResult>> TransactionsManager::totalBalance(shared_ptr <BaseUserCommand> commandPointer) {
+pair<bool, CommandResult::SharedConst> TransactionsManager::totalBalance(BaseUserCommand::Shared commandPointer) {
     TotalBalanceCommand *totalBalanceCommand = dynamic_cast<TotalBalanceCommand *>(commandPointer.get());
 
-    trust_amount incoming(100);
-    trust_amount incomingUsed(50);
-    trust_amount outgoing(200);
-    trust_amount outgoingUsed(100);
+    BaseTransaction *baseTransaction = new TotalBalanceTransaction(TotalBalanceCommand::Shared(totalBalanceCommand));
 
-    const CommandResult *result = totalBalanceCommand->resultOk(
-            incoming,
-            incomingUsed,
-            outgoing,
-            outgoingUsed);
+    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
 
-    return pair<bool, shared_ptr<const CommandResult>> (true, shared_ptr<const CommandResult>(result));
+    return make_pair(true, CommandResult::SharedConst(nullptr));
 }
 
-pair<bool, shared_ptr<const CommandResult>> TransactionsManager::contractorsList(shared_ptr <BaseUserCommand> commandPointer) {
+pair<bool, CommandResult::SharedConst> TransactionsManager::contractorsList(BaseUserCommand::Shared commandPointer) {
     ContractorsListCommand *contractorsListCommand = dynamic_cast<ContractorsListCommand *>(commandPointer.get());
 
-    NodeUUID uuid1 = boost::uuids::random_generator()();
-    NodeUUID uuid2 = boost::uuids::random_generator()();
-    NodeUUID uuid3 = boost::uuids::random_generator()();
-    vector<NodeUUID> contractorList;
-    contractorList.push_back(uuid1);
-    contractorList.push_back(uuid2);
-    contractorList.push_back(uuid3);
+    BaseTransaction *baseTransaction = new ContractorsListTransaction(ContractorsListCommand::Shared(contractorsListCommand));
 
-    const CommandResult *result = contractorsListCommand->resultOk(contractorList);
+    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
 
-    return pair<bool, shared_ptr<const CommandResult>> (true, shared_ptr<const CommandResult>(result));
+
+    return make_pair(true, CommandResult::SharedConst(nullptr));
 }
-
-/*void TransactionsManager::segfaultSigaction(int signal, siginfo_t *si, void *arg) {
-    printf("Caught segfault at address %p\n", si->si_addr);
-    _exit(0);
-}*/

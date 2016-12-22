@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <string>
-#include "../../core/trust_lines/TrustLinesManager.h"
+#include "../../core/trust_lines/manager/TrustLinesManager.h"
 
 using namespace std;
 

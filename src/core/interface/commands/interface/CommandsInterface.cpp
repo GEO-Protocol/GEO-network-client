@@ -7,7 +7,7 @@
  * Calls tryDeserializeCommand() internally for buffer processing.
  * Return value is similar to the tryDeserializeCommand() return value.
  */
-pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::processReceivedCommandPart(
+pair<bool, BaseUserCommand::Shared> CommandsParser::processReceivedCommandPart(
     const char *commandPart,
     const size_t receivedBytesCount) {
 
@@ -32,7 +32,7 @@ pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::processReceivedCommandPa
  * and, if so, - the second one will contains shared pointer to the command instance itself.
  * Otherwise - the second value of the pair will contains nullptr.
  */
-pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryDeserializeCommand() {
+pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
     if (mBuffer.size() < kMinCommandSize) {
         if (mBuffer.find(kCommandsSeparator) != string::npos) {
             cutBufferUpToNextCommand();
@@ -106,7 +106,7 @@ pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryDeserializeCommand() 
  * to the command instance itself.
  * Otherwise - the second value of the pair will contain nullptr.
  */
-pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryParseCommand(
+pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
     const CommandUUID &uuid,
     const string &identifier,
     const string &buffer) {
@@ -144,7 +144,7 @@ pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::tryParseCommand(
         return commandIsInvalidOrIncomplete();
     }
 
-    return make_pair(true, shared_ptr<BaseUserCommand>(command));
+    return make_pair(true, BaseUserCommand::Shared(command));
 }
 
 /*!
@@ -167,8 +167,8 @@ void CommandsParser::cutBufferUpToNextCommand() {
     mBuffer.shrink_to_fit();
 }
 
-pair<bool, shared_ptr<BaseUserCommand>> CommandsParser::commandIsInvalidOrIncomplete() {
-    return pair<bool, shared_ptr<BaseUserCommand>>(false, nullptr);
+pair<bool, BaseUserCommand::Shared> CommandsParser::commandIsInvalidOrIncomplete() {
+    return pair<bool, BaseUserCommand::Shared>(false, nullptr);
 }
 
 

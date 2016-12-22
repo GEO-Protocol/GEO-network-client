@@ -1,21 +1,21 @@
 #ifndef GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 #define GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 
-#include "commands/BaseUserCommand.h"
-#include "commands/OpenTrustLineCommand.h"
-#include "commands/CloseTrustLineCommand.h"
-#include "commands/UpdateTrustLineCommand.h"
-#include "commands/UseCreditCommand.h"
-#include "commands/MaximalTransactionAmountCommand.h"
-#include "commands/ContractorsListCommand.h"
-#include "commands/TotalBalanceCommand.h"
-#include "../BaseFIFOInterface.h"
-#include "../../transactions/manager/TransactionsManager.h"
-#include "../../common/exceptions/IOError.h"
-#include "../../common/exceptions/ValueError.h"
-#include "../../common/exceptions/MemoryError.h"
-#include "../../common/exceptions/RuntimeError.h"
-#include "../../logger/Logger.h"
+#include "../commands/BaseUserCommand.h"
+#include "../commands/OpenTrustLineCommand.h"
+#include "../commands/CloseTrustLineCommand.h"
+#include "../commands/UpdateTrustLineCommand.h"
+#include "../commands/UseCreditCommand.h"
+#include "../commands/MaximalTransactionAmountCommand.h"
+#include "../commands/ContractorsListCommand.h"
+#include "../commands/TotalBalanceCommand.h"
+#include "../../BaseFIFOInterface.h"
+#include "../../../transactions/manager/TransactionsManager.h"
+#include "../../../common/exceptions/IOError.h"
+#include "../../../common/exceptions/ValueError.h"
+#include "../../../common/exceptions/MemoryError.h"
+#include "../../../common/exceptions/RuntimeError.h"
+#include "../../../logger/Logger.h"
 
 #include <boost/bind.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -49,27 +49,29 @@ public:
     static const size_t kUUIDHexRepresentationSize = 36;
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
 
-public:
-    pair<bool, shared_ptr<BaseUserCommand>> processReceivedCommandPart(
-        const char *commandPart,
-        const size_t receivedBytesCount);
-
-protected:
-    inline pair<bool, shared_ptr<BaseUserCommand>> tryDeserializeCommand();
-    inline pair<bool, shared_ptr<BaseUserCommand>> tryParseCommand(
-        const CommandUUID &uuid,
-        const string &identifier,
-        const string &buffer);
-
-    inline pair<bool, shared_ptr<BaseUserCommand>> commandIsInvalidOrIncomplete();
-    void cutBufferUpToNextCommand();
-
 protected:
     static const char kCommandsSeparator = '\n';
     static const char kTokensSeparator = '\t';
 
 protected:
     string mBuffer;
+
+public:
+    pair<bool, BaseUserCommand::Shared> processReceivedCommandPart(
+        const char *commandPart,
+        const size_t receivedBytesCount);
+
+protected:
+    inline pair<bool, BaseUserCommand::Shared> tryDeserializeCommand();
+
+    inline pair<bool, BaseUserCommand::Shared> tryParseCommand(
+        const CommandUUID &uuid,
+        const string &identifier,
+        const string &buffer);
+
+    inline pair<bool, BaseUserCommand::Shared> commandIsInvalidOrIncomplete();
+
+    void cutBufferUpToNextCommand();
 };
 
 /*!
@@ -112,10 +114,13 @@ protected:
 
 protected:
     virtual const char* name() const;
+
     void asyncReceiveNextCommand();
+
     void handleReceivedInfo(
         const boost::system::error_code &error,
         const size_t bytesTransferred);
+
     void handleTimeout(
         const boost::system::error_code &error);
 };

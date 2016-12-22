@@ -6,15 +6,15 @@
 #include <malloc.h>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
-#include "../common/NodeUUID.h"
-#include "../io/trust_lines/TrustLinesStorage.h"
-#include "../db/Block.h"
-#include "../db/UUIDMapBlockStorage.h"
-#include "../common/exceptions/IOError.h"
-#include "../common/exceptions/ValueError.h"
-#include "../common/exceptions/ConflictError.h"
-#include "../common/exceptions/PreconditionFaultError.h"
-#include "TrustLine.h"
+#include "../../common/NodeUUID.h"
+#include "../../io/trust_lines/TrustLinesStorage.h"
+#include "../../db/Block.h"
+#include "../../db/UUIDMapBlockStorage.h"
+#include "../../common/exceptions/IOError.h"
+#include "../../common/exceptions/ValueError.h"
+#include "../../common/exceptions/ConflictError.h"
+#include "../../common/exceptions/PreconditionFaultError.h"
+#include "../TrustLine.h"
 
 using namespace std;
 

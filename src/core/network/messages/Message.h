@@ -22,6 +22,8 @@ class SerialisationError: public Exception {
 class SerialisedMessage;
 class Message {
 public:
+    typedef shared_ptr<Message> Shared;
+public:
     enum MessageTypeID {
         // System messages.
         // Used for low level system logic:
@@ -29,7 +31,7 @@ public:
         ProcessingReportMessage = 1,
 
         // Test messages
-        TestSimpleMessage, TestLongMesage,
+        TestSimpleMessage, TestLongMessage,
 
         // User space messages
     };

@@ -1,9 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_RESULTSINTERFACE_H
 #define GEO_NETWORK_CLIENT_RESULTSINTERFACE_H
 
-#include "../BaseFIFOInterface.h"
-#include "../../common/exceptions/IOError.h"
-#include "../../common/exceptions/MemoryError.h"
+#include "../../BaseFIFOInterface.h"
+#include "../../../common/exceptions/IOError.h"
+#include "../../../common/exceptions/MemoryError.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/bind.hpp>

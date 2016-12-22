@@ -6,6 +6,8 @@
 
 class ContractorsListCommand:
     public BaseUserCommand {
+public:
+    typedef shared_ptr<ContractorsListCommand> Shared;
 
 public:
     ContractorsListCommand(

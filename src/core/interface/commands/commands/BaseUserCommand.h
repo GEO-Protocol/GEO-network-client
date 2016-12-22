@@ -6,7 +6,7 @@
 #include "../CommandUUID.h"
 #include "../../../common/NodeUUID.h"
 #include "../../../transactions/TransactionUUID.h"
-#include "../../results/CommandResult.h"
+#include "../../results/result/CommandResult.h"
 
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -19,6 +19,7 @@ typedef boost::posix_time::ptime Timestamp;
 
 class BaseUserCommand {
 public:
+    typedef shared_ptr<BaseUserCommand> Shared;
     static const constexpr char kCommandsSeparator = '\n';
     static const constexpr char kTokensSeparator = '\t';
 

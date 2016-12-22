@@ -8,6 +8,8 @@
 
 class MaximalTransactionAmountCommand:
     public BaseUserCommand {
+public:
+    typedef shared_ptr<MaximalTransactionAmountCommand> Shared;
 
 protected:
     NodeUUID mContractorUUID;

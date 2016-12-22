@@ -8,6 +8,9 @@
 class CloseTrustLineCommand:
     public BaseUserCommand {
 
+public:
+    typedef shared_ptr<CloseTrustLineCommand> Shared;
+
 protected:
     NodeUUID mContractorUUID;
 

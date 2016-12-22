@@ -6,6 +6,8 @@
 
 class TotalBalanceCommand:
     public BaseUserCommand {
+public:
+    typedef shared_ptr<TotalBalanceCommand> Shared;
 
 public:
     TotalBalanceCommand(
