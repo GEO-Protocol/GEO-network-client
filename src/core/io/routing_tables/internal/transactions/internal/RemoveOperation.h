@@ -21,7 +21,6 @@ class RemoveOperation:
 
 public:
     typedef shared_ptr<RemoveOperation> Shared;
-    typedef shared_ptr<RollbackRemoveOperation> RollbackShared;
 
 public:
     using SetOperation::SetOperation;
@@ -34,7 +33,7 @@ public:
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "HidingNonVirtualFunction"
-    const RemoveOperation::RollbackShared rollbackOperation() const;
+    const RollbackRemoveOperation::Shared rollbackOperation() const;
 #pragma clang diagnostic pop
 };
 

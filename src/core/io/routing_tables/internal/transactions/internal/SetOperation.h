@@ -7,6 +7,7 @@
 #include "../../../../../common/NodeUUID.h"
 #include "../../../../../common/exceptions/MemoryError.h"
 
+
 namespace io {
 namespace routing_tables {
 
@@ -16,7 +17,6 @@ class SetOperation :
 
 public:
     typedef shared_ptr<SetOperation> Shared;
-    typedef shared_ptr<RollbackSetOperation> RollbackShared;
 
     // Size of this instance in serialized format.
     static const constexpr size_t kSerializedSize =
@@ -42,7 +42,7 @@ public:
     const RecordNumber recordNumber() const;
 
     virtual const pair<shared_ptr<byte>, size_t> serialize() const;
-    const SetOperation::RollbackShared rollbackOperation() const;
+    const RollbackSetOperation::Shared rollbackOperation() const;
 
 protected:
     NodeUUID mU1;

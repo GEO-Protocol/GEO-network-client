@@ -1,5 +1,4 @@
 #include "SetOperation.h"
-#include "../../../../../common/exceptions/ValueError.h"
 
 
 namespace io {
@@ -92,9 +91,10 @@ const pair<shared_ptr<byte>, size_t> SetOperation::serialize() const {
     return make_pair(bufferHandler, bufferSize);
 }
 
-const SetOperation::RollbackShared SetOperation::rollbackOperation() const {
+const RollbackSetOperation::Shared SetOperation::rollbackOperation() const {
     try {
-        return RollbackShared(new RollbackSetOperation(mU1, mU2));
+        return RollbackSetOperation::Shared(
+            new RollbackSetOperation(mU1, mU2));
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"

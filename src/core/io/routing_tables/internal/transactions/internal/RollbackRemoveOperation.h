@@ -6,12 +6,16 @@
 #include "../../../../../common/NodeUUID.h"
 #include "../../../../../common/exceptions/RuntimeError.h"
 
+
 namespace io {
 namespace routing_tables {
 
 
 class RollbackRemoveOperation:
     public Operation {
+
+public:
+    typedef shared_ptr<RollbackRemoveOperation> Shared;
 
 public:
     explicit RollbackRemoveOperation(

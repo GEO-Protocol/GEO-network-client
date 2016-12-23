@@ -19,9 +19,10 @@ RemoveOperation::RemoveOperation(
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "HidingNonVirtualFunction"
-const RemoveOperation::RollbackShared RemoveOperation::rollbackOperation() const {
+const RollbackRemoveOperation::Shared RemoveOperation::rollbackOperation() const {
     try {
-        return RollbackShared(new RollbackRemoveOperation(mU1, mU2, mDirection));
+        return RollbackRemoveOperation::Shared(
+            new RollbackRemoveOperation(mU1, mU2, mDirection));
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"

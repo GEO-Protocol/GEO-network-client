@@ -15,6 +15,9 @@ class RollbackSetOperation:
     public Operation {
 
 public:
+    typedef shared_ptr<RollbackSetOperation> Shared;
+
+public:
     explicit RollbackSetOperation(
         const NodeUUID &u1,
         const NodeUUID &u2);
