@@ -30,7 +30,7 @@ public:
     typedef byte SerializedTrustLineDirectionType;
 
 public:
-    enum TransactionType {
+    enum OperationType {
         Set = 1,
         RollbackSet,
 
@@ -40,15 +40,15 @@ public:
         Update,
         RollbackUpdate,
     };
-    const TransactionType type;
 
 public:
-    Operation(TransactionType type);
+    Operation(OperationType type);
 
     virtual const pair<shared_ptr<byte>, size_t> serialize() const = 0;
+    const OperationType type() const;
 
 protected:
-    static const size_t kTrustLineDirectionSize = 1;
+    OperationType mType;
 };
 
 
