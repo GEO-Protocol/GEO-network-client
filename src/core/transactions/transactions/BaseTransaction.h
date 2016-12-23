@@ -6,6 +6,7 @@
 #include "../../interface/results/result/CommandResult.h"
 
 class BaseTransaction {
+    friend class TransactionsScheduler;
 
 public:
     typedef shared_ptr<BaseTransaction> Shared;

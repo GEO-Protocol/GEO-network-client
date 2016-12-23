@@ -53,22 +53,33 @@ public:
 
     ~TransactionsManager();
 
-    void processCommand(shared_ptr<BaseUserCommand> commandPointer);
+    void processCommand(
+            shared_ptr<BaseUserCommand> commandPointer);
 
 private:
-    pair<bool, CommandResult::SharedConst> openTrustLine(BaseUserCommand::Shared commandPointer);
+    void openTrustLine(
+            BaseUserCommand::Shared commandPointer);
 
-    pair<bool, CommandResult::SharedConst> closeTrustLine(BaseUserCommand::Shared commandPointer);
+    void closeTrustLine(
+            BaseUserCommand::Shared commandPointer);
 
-    pair<bool, CommandResult::SharedConst> updateTrustLine(BaseUserCommand::Shared commandPointer);
+    void updateTrustLine(
+            BaseUserCommand::Shared commandPointer);
 
-    pair<bool, CommandResult::SharedConst> maximalTransactionAmount(BaseUserCommand::Shared commandPointer);
+    void maximalTransactionAmount(
+            BaseUserCommand::Shared commandPointer);
 
-    pair<bool, CommandResult::SharedConst> useCredit(BaseUserCommand::Shared commandPointer);
+    void useCredit(
+            BaseUserCommand::Shared commandPointer);
 
-    pair<bool, CommandResult::SharedConst> totalBalance(BaseUserCommand::Shared commandPointer);
+    void totalBalance(
+            BaseUserCommand::Shared commandPointer);
 
-    pair<bool, CommandResult::SharedConst> contractorsList(BaseUserCommand::Shared commandPointer);
+    void contractorsList(
+            BaseUserCommand::Shared commandPointer);
+
+public:
+    void acceptCommandResult(CommandResult::SharedConst commandResult);
 
 };
 
