@@ -57,25 +57,25 @@ public:
             shared_ptr<BaseUserCommand> commandPointer);
 
 private:
-    void openTrustLine(
+    CommandResult::SharedConst openTrustLine(
             BaseUserCommand::Shared commandPointer);
 
-    void closeTrustLine(
+    CommandResult::SharedConst closeTrustLine(
             BaseUserCommand::Shared commandPointer);
 
-    void updateTrustLine(
+    CommandResult::SharedConst updateTrustLine(
             BaseUserCommand::Shared commandPointer);
 
-    void maximalTransactionAmount(
+    CommandResult::SharedConst maximalTransactionAmount(
             BaseUserCommand::Shared commandPointer);
 
-    void useCredit(
+    CommandResult::SharedConst useCredit(
             BaseUserCommand::Shared commandPointer);
 
-    void totalBalance(
+    CommandResult::SharedConst totalBalance(
             BaseUserCommand::Shared commandPointer);
 
-    void contractorsList(
+    CommandResult::SharedConst contractorsList(
             BaseUserCommand::Shared commandPointer);
 
 public:

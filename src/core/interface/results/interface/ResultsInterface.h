@@ -4,6 +4,7 @@
 #include "../../BaseFIFOInterface.h"
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/MemoryError.h"
+#include "../../../logger/Logger.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/bind.hpp>
@@ -26,7 +27,8 @@ public:
 
 public:
     explicit ResultsInterface(
-        as::io_service &ioService);
+        as::io_service &ioService,
+        Logger *logger);
 
     ~ResultsInterface();
 
@@ -41,7 +43,9 @@ public:
 private:
     as::io_service &mIOService;
     as::posix::stream_descriptor *mFIFOStreamDescriptor;
-    vector<char> mCommandBuffer;
+    FILE *mFilePointer;
+    Logger *mLog;
+    as::streambuf mBuffer;
 
 private:
     virtual const char* name() const;

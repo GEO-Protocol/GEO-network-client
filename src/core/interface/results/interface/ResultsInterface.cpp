@@ -1,9 +1,11 @@
 #include "ResultsInterface.h"
 
 ResultsInterface::ResultsInterface(
-    as::io_service &ioService):
+    as::io_service &ioService,
+    Logger *logger):
 
-    mIOService(ioService){
+    mIOService(ioService),
+    mLog(logger){
 
     if (!isFIFOExists()) {
         createFIFO(kPermissionsMask);
@@ -17,11 +19,18 @@ ResultsInterface::ResultsInterface(
     // For the server realisation this makes the process unusable,
     // because it can't be demonized, until the commands writer will
     // open the commands file for writing.
-    mFIFODescriptor = open(FIFOFilePath().c_str(), O_WRONLY | O_NONBLOCK);
+    mFIFODescriptor = open(FIFOFilePath().c_str(), O_RDWR | O_NONBLOCK);
     if (mFIFODescriptor == -1) {
         throw IOError(
             "ResultsInterface::ResultsInterface: "
                 "Can't open FIFO file.");
+    }
+
+    mFilePointer = fdopen(mFIFODescriptor, "r+");
+    if (mFilePointer == nullptr) {
+        throw IOError(
+                "ResultsInterface::ResultsInterface: "
+                        "Can't convert fifo descriptor to file pointer.");
     }
 
     try {
@@ -43,22 +52,31 @@ void ResultsInterface::writeResult(
     const char *bytes,
     const size_t bytesCount) {
 
+    std::ostream stream(&mBuffer);
+    stream << string(bytes);
+
+    //as::buffer(bytes, bytesCount)
     as::async_write(
         *mFIFOStreamDescriptor,
-        as::buffer(vector<char>(bytes, bytes+bytesCount)),
+        mBuffer,
         boost::bind(
                 &ResultsInterface::handleTransferredInfo, this,
                 as::placeholders::error,
                 as::placeholders::bytes_transferred));
+
 }
 
 void ResultsInterface::handleTransferredInfo(
         const boost::system::error_code &error,
         const size_t bytesTransferred) {
-    if (!error) {
-        cout << "Bytes transferred " + to_string(bytesTransferred) << endl;
+    if (error) {
+        mLog->logError("CommandsInterface::handleTimeout", error.message());
+        mBuffer.commit(bytesTransferred);
     } else {
-        cout << error.message() << endl;
+        if (mFilePointer != nullptr) {
+            fflush(mFilePointer);
+        }
+        fdatasync(mFIFODescriptor);
     }
 }
 

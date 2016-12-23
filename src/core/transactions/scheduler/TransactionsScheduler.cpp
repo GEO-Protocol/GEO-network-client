@@ -24,8 +24,8 @@ void TransactionsScheduler::addTransaction(
         BaseTransaction::Shared transaction) {
 
     mTransactions.insert(make_pair(transaction, nullptr));
-    launchTransaction(transaction,
-                      boost::bind(&TransactionsScheduler::handleTransactionResult, this, transaction, mTemporaryTransactionResult));
+    //launchTransaction(transaction,
+    //                  boost::bind(&TransactionsScheduler::handleTransactionResult, this, transaction, mTemporaryTransactionResult));
 }
 
 void TransactionsScheduler::run() {

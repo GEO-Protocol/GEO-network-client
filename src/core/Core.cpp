@@ -106,7 +106,7 @@ int Core::initCommunicator(const json &conf) {
 
 int Core::initResultsInterface() {
     try {
-        mResultsInterface = new ResultsInterface(mIOService);
+        mResultsInterface = new ResultsInterface(mIOService, &mLog);
         mLog.logSuccess("Core", "Results interface is successfully initialised");
         return 0;
 
