@@ -45,6 +45,10 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
     if (nextCommandSeparatorIndex == string::npos) {
         return commandIsInvalidOrIncomplete();
     }
+    if (nextCommandSeparatorIndex == 0 && mBuffer.size() > 1) {
+        // Command separator of previous command is received and should be ignored.
+        mBuffer = mBuffer.substr(1);
+    }
 
 
     CommandUUID commandUUID;

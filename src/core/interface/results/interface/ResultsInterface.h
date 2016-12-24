@@ -1,6 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_RESULTSINTERFACE_H
 #define GEO_NETWORK_CLIENT_RESULTSINTERFACE_H
 
+
 #include "../../BaseFIFOInterface.h"
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/MemoryError.h"
@@ -13,6 +14,7 @@
 #include <iostream>
 
 
+//#define DEBUG_RESULTS_INTERFACE
 
 
 using namespace std;
@@ -26,9 +28,7 @@ public:
     static const constexpr unsigned int kPermissionsMask = 0755;
 
 public:
-    explicit ResultsInterface(
-        as::io_service &ioService,
-        Logger *logger);
+    explicit ResultsInterface(Logger *logger);
 
     ~ResultsInterface();
 
@@ -36,16 +36,9 @@ public:
         const char *bytes,
         const size_t bytesCount);
 
-    void handleTransferredInfo(
-            const boost::system::error_code &error,
-            const size_t bytesTransferred);
-
 private:
-    as::io_service &mIOService;
-    as::posix::stream_descriptor *mFIFOStreamDescriptor;
-    FILE *mFilePointer;
+    // remote
     Logger *mLog;
-    as::streambuf mBuffer;
 
 private:
     virtual const char* name() const;

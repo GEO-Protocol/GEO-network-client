@@ -1,6 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_BASEINTERFACE_H
 #define GEO_NETWORK_CLIENT_BASEINTERFACE_H
 
+
 #include "../common/exceptions/IOError.h"
 
 #include <boost/asio.hpp>

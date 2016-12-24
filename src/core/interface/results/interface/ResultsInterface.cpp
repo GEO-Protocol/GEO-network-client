@@ -1,10 +1,6 @@
 #include "ResultsInterface.h"
 
-ResultsInterface::ResultsInterface(
-    as::io_service &ioService,
-    Logger *logger):
-
-    mIOService(ioService),
+ResultsInterface::ResultsInterface(Logger *logger) :
     mLog(logger){
 
     if (!isFIFOExists()) {
@@ -25,58 +21,28 @@ ResultsInterface::ResultsInterface(
             "ResultsInterface::ResultsInterface: "
                 "Can't open FIFO file.");
     }
-
-    mFilePointer = fdopen(mFIFODescriptor, "r+");
-    if (mFilePointer == nullptr) {
-        throw IOError(
-                "ResultsInterface::ResultsInterface: "
-                        "Can't convert fifo descriptor to file pointer.");
-    }
-
-    try {
-        mFIFOStreamDescriptor = new as::posix::stream_descriptor(mIOService, mFIFODescriptor);
-    } catch (exception &) {
-        throw MemoryError(
-            "ResultsInterface::ResultsInterface: "
-                "Can't allocate enough space for mFIFOStreamDescriptor. "
-                "Can't open FIFO file.");
-    }
 }
 
 ResultsInterface::~ResultsInterface() {
     close(mFIFODescriptor);
-    delete mFIFOStreamDescriptor;
 }
 
 void ResultsInterface::writeResult(
     const char *bytes,
     const size_t bytesCount) {
 
-    std::ostream stream(&mBuffer);
-    stream << string(bytes);
+#ifdef DEBUG_RESULTS_INTERFACE
+    mLog->logInfo("Results interface: message received", bytes);
+#endif
 
-    //as::buffer(bytes, bytesCount)
-    as::async_write(
-        *mFIFOStreamDescriptor,
-        mBuffer,
-        boost::bind(
-                &ResultsInterface::handleTransferredInfo, this,
-                as::placeholders::error,
-                as::placeholders::bytes_transferred));
+    if (write(mFIFODescriptor, bytes, bytesCount) == bytesCount ||
+        write(mFIFODescriptor, bytes, bytesCount) == bytesCount) {
+        fsync(mFIFODescriptor);
 
-}
-
-void ResultsInterface::handleTransferredInfo(
-        const boost::system::error_code &error,
-        const size_t bytesTransferred) {
-    if (error) {
-        mLog->logError("CommandsInterface::handleTimeout", error.message());
-        mBuffer.commit(bytesTransferred);
     } else {
-        if (mFilePointer != nullptr) {
-            fflush(mFilePointer);
-        }
-        fdatasync(mFIFODescriptor);
+        throw IOError(
+            "ResultsInterface::writeResult: "
+                "can't write resultto the disk.");
     }
 }
 
