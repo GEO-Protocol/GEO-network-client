@@ -4,15 +4,17 @@
 namespace db {
 
 
-AbstractFileDescriptorHandler::AbstractFileDescriptorHandler(const char *path, const char *filename) :
+AbstractFileDescriptorHandler::AbstractFileDescriptorHandler(
+    const fs::path &path):
 
     mFileDescriptor(nullptr),
-    mFilename(filename),
-    mPath(path) {
+    mDirPath(path.parent_path()),
+    mFilename(path.filename()){
 
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
-    assert(filename != nullptr);
-    assert(path != nullptr);
+    assert(path.has_filename());
+    assert(path.has_extension());
+    assert(path.has_parent_path());
 #endif
 }
 
@@ -20,16 +22,12 @@ AbstractFileDescriptorHandler::~AbstractFileDescriptorHandler() {
     close();
 }
 
-const string &AbstractFileDescriptorHandler::filename() const {
+const fs::path &AbstractFileDescriptorHandler::filename() const {
     return mFilename;
 }
 
-const string &AbstractFileDescriptorHandler::path() const {
-    return mPath;
-}
-
-const bool AbstractFileDescriptorHandler::exists() const {
-    return fs::exists(fs::path(path() + filename()));
+const fs::path &AbstractFileDescriptorHandler::path() const {
+    return mDirPath;
 }
 
 /*!
@@ -48,13 +46,11 @@ void AbstractFileDescriptorHandler::open(
     }
 
     // Create directories if doesn't exists.
-    fs::path path(mPath);
-    if (! fs::exists(path)) {
-        fs::create_directories(path);
+    if (! fs::exists(path())) {
+        fs::create_directories(path());
     }
 
-    path.append(mFilename);
-    mFileDescriptor = fopen(path.c_str(), accessMode);
+    mFileDescriptor = fopen((path() / filename()).c_str(), accessMode);
     if (mFileDescriptor == nullptr) {
         throw IOError(
             "AbstractFileDescriptorHandler::open: "
@@ -81,6 +77,19 @@ __off_t AbstractFileDescriptorHandler::fileSize() const {
     }
 
     return stbuf.st_size;
+}
+
+const bool AbstractFileDescriptorHandler::exists() const {
+    return fs::exists((path() / filename()));
+}
+
+void AbstractFileDescriptorHandler::syncLowLevelOSBuffers() const {
+    fflush(mFileDescriptor);
+    if (fdatasync(fileno(mFileDescriptor)) != 0) {
+        throw IOError(
+            "UUIDMapColumn::writeBlock: "
+                "can't sync user-space buffers.");
+    }
 }
 
 

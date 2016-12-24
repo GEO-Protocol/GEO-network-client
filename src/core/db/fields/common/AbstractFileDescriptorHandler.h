@@ -24,13 +24,12 @@ public:
     static const constexpr char *kWriteAccessMode = "w+";
 
 public:
-    AbstractFileDescriptorHandler(const char *path, const char *filename);
-
+    AbstractFileDescriptorHandler(
+        const fs::path &path);
     ~AbstractFileDescriptorHandler();
 
-    const string& filename() const;
-    const string& path() const;
-
+    const fs::path& filename() const;
+    const fs::path& path() const;
     virtual void open(
         const char *accessMode);
 
@@ -38,11 +37,12 @@ public:
     const bool exists() const;
     __off_t fileSize() const;
 
-protected:
-    FILE* mFileDescriptor;
+    void syncLowLevelOSBuffers() const;
 
-    const string mFilename;
-    const string mPath;
+protected:
+    fs::path mDirPath;
+    fs::path mFilename;
+    FILE* mFileDescriptor;
 };
 
 
