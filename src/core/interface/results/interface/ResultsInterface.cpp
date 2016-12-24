@@ -6,6 +6,12 @@ ResultsInterface::ResultsInterface(Logger *logger) :
     if (!isFIFOExists()) {
         createFIFO(kPermissionsMask);
     }
+    mFIFODescriptor = 0;
+}
+
+ResultsInterface::~ResultsInterface() {
+    if (mFIFODescriptor != 0)
+        close(mFIFODescriptor);
 }
 
 void ResultsInterface::writeResult(
@@ -16,21 +22,16 @@ void ResultsInterface::writeResult(
     mLog->logInfo("Results interface: message received", bytes);
 #endif
 
-    auto FIFODescriptor = open(FIFOFilePath().c_str(), O_WRONLY | O_RSYNC | O_DSYNC);
-    if (FIFODescriptor == -1) {
-        throw IOError(
-            "ResultsInterface::ResultsInterface: "
-                "Can't open FIFO file.");
+    if (mFIFODescriptor == 0){
+        mFIFODescriptor = open(FIFOFilePath().c_str(), O_WRONLY | O_RSYNC | O_DSYNC);
+        if (mFIFODescriptor == -1) {
+            throw IOError(
+                "ResultsInterface::ResultsInterface: "
+                    "Can't open FIFO file.");
+        }
     }
 
-    if (write(FIFODescriptor, bytes, bytesCount) == bytesCount ||
-        write(FIFODescriptor, bytes, bytesCount) == bytesCount) {
-//        fflush(fdopen(FIFODescriptor, "a"));
-        fdatasync(FIFODescriptor);
-        close(FIFODescriptor);
-
-    } else {
-        close(FIFODescriptor);
+    if (write(mFIFODescriptor, bytes, bytesCount) != bytesCount) {
         throw IOError(
             "ResultsInterface::writeResult: "
                 "can't write result to the disk.");

@@ -29,6 +29,7 @@ public:
 
 public:
     explicit ResultsInterface(Logger *logger);
+    ~ResultsInterface();
 
     void writeResult(
         const char *bytes,

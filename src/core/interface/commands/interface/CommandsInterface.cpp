@@ -286,6 +286,14 @@ void CommandsInterface::handleReceivedInfo(
 
         if (parsingResult.first){
             mTransactionsManager->processCommand(parsingResult.second);
+            mLog->logError(
+                "CommandsInterface::handleReceivedInfo: "
+                    "command parsed well: ", mCommandBuffer.data());
+
+        } else {
+            mLog->logError(
+                "CommandsInterface::handleReceivedInfo: "
+                    "invalid command received. Command: ", mCommandBuffer.data());
         }
 
         // In case of successive read - next command should be received

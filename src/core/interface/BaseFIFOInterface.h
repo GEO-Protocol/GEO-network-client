@@ -24,6 +24,9 @@ public:
     static const constexpr char *kFIFODir = "fifo/";
 
 protected:
+    BaseFIFOInterface():
+        mFIFODescriptor(0){};
+
     virtual const char* name() const = 0;
 
     const string FIFOFilePath() const {
