@@ -24,12 +24,12 @@ public:
     CommandUUID():
         uuid(boost::uuids::random_generator()()){};
 
-    explicit CommandUUID(uuid const &u):
-        boost::uuids::uuid(u){}
+    explicit CommandUUID(uuid const &u){
+        memcpy(data, u.data, kUUIDLength);
+    }
 
     explicit CommandUUID(CommandUUID const &u){
-        boost::uuids::uuid(
-            boost::lexical_cast<boost::uuids::uuid>(u.stringUUID()));
+        memcpy(data, u.data, kUUIDLength);
     }
 
     operator boost::uuids::uuid(){
