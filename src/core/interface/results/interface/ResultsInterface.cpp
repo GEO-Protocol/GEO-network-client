@@ -6,25 +6,6 @@ ResultsInterface::ResultsInterface(Logger *logger) :
     if (!isFIFOExists()) {
         createFIFO(kPermissionsMask);
     }
-
-    // Try to open FIFO file in non-blocking manner.
-    // In case if this file will be opened in standard blocking manner -
-    // it will freeze whole the process,
-    // until writer would connect to the FIFO from the other side.
-    //
-    // For the server realisation this makes the process unusable,
-    // because it can't be demonized, until the commands writer will
-    // open the commands file for writing.
-    mFIFODescriptor = open(FIFOFilePath().c_str(), O_RDWR | O_NONBLOCK);
-    if (mFIFODescriptor == -1) {
-        throw IOError(
-            "ResultsInterface::ResultsInterface: "
-                "Can't open FIFO file.");
-    }
-}
-
-ResultsInterface::~ResultsInterface() {
-    close(mFIFODescriptor);
 }
 
 void ResultsInterface::writeResult(
@@ -35,14 +16,24 @@ void ResultsInterface::writeResult(
     mLog->logInfo("Results interface: message received", bytes);
 #endif
 
-    if (write(mFIFODescriptor, bytes, bytesCount) == bytesCount ||
-        write(mFIFODescriptor, bytes, bytesCount) == bytesCount) {
-        fsync(mFIFODescriptor);
+    auto FIFODescriptor = open(FIFOFilePath().c_str(), O_WRONLY | O_RSYNC | O_DSYNC);
+    if (FIFODescriptor == -1) {
+        throw IOError(
+            "ResultsInterface::ResultsInterface: "
+                "Can't open FIFO file.");
+    }
+
+    if (write(FIFODescriptor, bytes, bytesCount) == bytesCount ||
+        write(FIFODescriptor, bytes, bytesCount) == bytesCount) {
+//        fflush(fdopen(FIFODescriptor, "a"));
+        fdatasync(FIFODescriptor);
+        close(FIFODescriptor);
 
     } else {
+        close(FIFODescriptor);
         throw IOError(
             "ResultsInterface::writeResult: "
-                "can't write resultto the disk.");
+                "can't write result to the disk.");
     }
 }
 

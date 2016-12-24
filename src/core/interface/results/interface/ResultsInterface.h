@@ -14,7 +14,7 @@
 #include <iostream>
 
 
-//#define DEBUG_RESULTS_INTERFACE
+#define DEBUG_RESULTS_INTERFACE
 
 
 using namespace std;
@@ -29,8 +29,6 @@ public:
 
 public:
     explicit ResultsInterface(Logger *logger);
-
-    ~ResultsInterface();
 
     void writeResult(
         const char *bytes,
