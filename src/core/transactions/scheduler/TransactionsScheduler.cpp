@@ -11,33 +11,59 @@ TransactionsScheduler::TransactionsScheduler(
 
     try {
         mProcessingTimer = new as::deadline_timer(
-                mIOService, boost::posix_time::seconds(2));
+                mIOService, boost::posix_time::milliseconds(2 * 1000));
 
     } catch (exception &) {
         throw MemoryError(
                 "TransactionsManager::TransactionsScheduler: "
-                        "Can't allocate enough space for mReadTimeoutTimer.");
+                        "Can't allocate enough space for processing timer.");
+    }
+
+    mStorage = new storage::UUIDMapBlockStorage("storage", "transactions.bin");
+}
+
+TransactionsScheduler::~TransactionsScheduler() {
+    if (mStorage != nullptr) {
+        delete mStorage;
     }
 }
 
 void TransactionsScheduler::addTransaction(
         BaseTransaction::Shared transaction) {
 
-    mTransactions.insert(make_pair(transaction, nullptr));
-    //launchTransaction(transaction,
-    //                  boost::bind(&TransactionsScheduler::handleTransactionResult, this, transaction, mTemporaryTransactionResult));
+    try{
+        auto transactionContext = transaction.get()->serializeContext();
+        mStorage->write(storage::uuids::uuid(transaction.get()->uuid()), transactionContext.first, transactionContext.second);
+        launchTransaction(transaction);
+
+    } catch (std::exception &e) {
+        mLog->logError("Transactions scheduler", e.what());
+        sleepFor(findTransactionWithMinimalTimeout().second);
+    }
 }
 
 void TransactionsScheduler::run() {
 
+    if (!mTransactions.empty()) {
+        try{
+            launchTransaction(findTransactionWithMinimalTimeout().first);
 
+        } catch (std::exception &e) {
+            mLog->logError("Transactions scheduler", e.what());
+            sleepFor(findTransactionWithMinimalTimeout().second);
+        }
+
+    } else {
+        sleepFor(kDefaultDelay);
+    }
 }
 
 void TransactionsScheduler::launchTransaction(
-        BaseTransaction::Shared transaction,
-        boost::_bi::bind_t<void, boost::_mfi::mf2<void, TransactionsScheduler, BaseTransaction::Shared, pair<CommandResult::SharedConst, TransactionState::SharedConst>>, boost::_bi::list_av_3<TransactionsScheduler *, std::shared_ptr<BaseTransaction>, std::pair<std::shared_ptr<CommandResult>, std::shared_ptr<TransactionState>>>::type> handler) {
+        BaseTransaction::Shared transaction) {
 
-    mTemporaryTransactionResult = transaction.get()->run();
+    pair<CommandResult::SharedConst, TransactionState::SharedConst> transactionResult = transaction.get()->run();
+    mTransactions.insert(make_pair(transaction, transactionResult.second));
+    handleTransactionResult(transaction, transactionResult);
 }
 
 void TransactionsScheduler::handleTransactionResult(
@@ -48,70 +74,99 @@ void TransactionsScheduler::handleTransactionResult(
         if (isTransactionInScheduler(transaction)){
             auto it = mTransactions.find(transaction);
             it->second = result.second;
+
+            auto transactionContext = transaction.get()->serializeContext();
+            mStorage->rewrite(storage::uuids::uuid(transaction.get()->uuid()), transactionContext.first, transactionContext.second);
+
         } else {
             throw ValueError("TransactionsManager::TransactionsScheduler"
                                      "Transaction reference must be store in memory");
         }
-        sleepForMinimalTimeout();
+        sleepFor(findTransactionWithMinimalTimeout().second);
 
     } else if (result.second.get() == nullptr) {
         mMangerCallback(result.first);
         if (isTransactionInScheduler(transaction)) {
             mTransactions.erase(transaction);
+
+            mStorage->erase(storage::uuids::uuid(transaction.get()->uuid()));
+
         } else {
             throw ValueError("TransactionsManager::TransactionsScheduler"
                                      "Transaction reference must be store in memory");
         }
-        sleepForMinimalTimeout();
+        sleepFor(findTransactionWithMinimalTimeout().second);
 
     } else if (result.first.get() == nullptr && result.second.get() == nullptr) {
-        throw ValueError("TransactionsManager::TransactionsScheduler"
+        throw ConflictError("TransactionsManager::TransactionsScheduler"
                                  "Command result and transaction state may not be null pointer references at the same time");
+
+    } else if (result.first.get() != nullptr && result.second.get() != nullptr) {
+        throw ConflictError("TransactionsManager::TransactionsScheduler"
+                                    "Transaction cat not has command result and transaction state at the same time");
     }
 }
 
-bool TransactionsScheduler::isTransactionInScheduler(
-        BaseTransaction::Shared transaction) {
-    return mTransactions.count(transaction) > 0;
-}
+pair<BaseTransaction::Shared, timeout> TransactionsScheduler::findTransactionWithMinimalTimeout() {
 
-void TransactionsScheduler::sleepForMinimalTimeout() {
-    timeout minimalTimeout = posix_time::seconds(0);
+    BaseTransaction::Shared transaction;
+    timeout minimalTimeout = posix_time::milliseconds(0);
     for (auto &it : mTransactions) {
         auto transactionStateValue = it.second;
         if (transactionStateValue.get() != nullptr) {
             if (transactionStateValue.get()->timeout() > 0) {
-                minimalTimeout = posix_time::seconds(transactionStateValue.get()->timeout());
+                minimalTimeout = posix_time::milliseconds(transactionStateValue.get()->timeout());
+                transaction = it.first;
             }
         }
     }
 
-    if (minimalTimeout == posix_time::seconds(0)) {
+    if (minimalTimeout == posix_time::milliseconds(0)) {
         minimalTimeout = kDefaultDelay;
     }
 
     for (auto &it : mTransactions) {
         auto transactionStateValue = it.second;
         if (transactionStateValue.get() != nullptr) {
-            if (transactionStateValue.get()->timeout() > 0 && posix_time::seconds(transactionStateValue.get()->timeout()) < minimalTimeout) {
-                minimalTimeout = posix_time::seconds(transactionStateValue.get()->timeout());
+            if (transactionStateValue.get()->timeout() > 0 && posix_time::milliseconds(transactionStateValue.get()->timeout()) < minimalTimeout) {
+                minimalTimeout = posix_time::milliseconds(transactionStateValue.get()->timeout());
+                transaction = it.first;
             }
         }
     }
 
-    mProcessingTimer->expires_from_now(minimalTimeout);
-    mProcessingTimer->async_wait(
-            boost::bind(
-                    &TransactionsScheduler::handleTimeout, this, as::placeholders::error));
+    return make_pair(transaction, minimalTimeout);
 
 }
 
-void TransactionsScheduler::handleTimeout(
-        const boost::system::error_code &error) {
+void TransactionsScheduler::sleepFor(
+        timeout delay) {
+
+    mProcessingTimer->expires_from_now(delay);
+    mProcessingTimer->async_wait(
+            boost::bind(
+                    &TransactionsScheduler::handleSleep,
+                    this,
+                    as::placeholders::error,
+                    delay));
+}
+
+void TransactionsScheduler::handleSleep(
+        const boost::system::error_code &error,
+        timeout delay) {
 
     if (error) {
-        mLog->logError("CommandsInterface::handleTimeout", error.message());
-    }
+        return;
 
-    run();
+    } else {
+        if (delay > kDefaultDelay) {
+            run();
+        }
+    }
+}
+
+bool TransactionsScheduler::isTransactionInScheduler(
+        BaseTransaction::Shared transaction) {
+
+    return mTransactions.count(transaction) > 0;
 }

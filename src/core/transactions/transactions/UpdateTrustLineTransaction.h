@@ -4,7 +4,6 @@
 #include "BaseTransaction.h"
 #include "../../interface/commands/commands/UpdateTrustLineCommand.h"
 
-class TransactionsScheduler;
 
 class UpdateTrustLineTransaction : public BaseTransaction {
     friend class TransactionsScheduler;
@@ -24,6 +23,7 @@ private:
 
     pair<CommandResult::SharedConst, TransactionState::SharedConst> run();
 
+    pair<byte *, size_t> serializeContext();
 };
 
 

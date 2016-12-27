@@ -15,6 +15,10 @@ void UpdateTrustLineTransaction::setContext(
 }
 
 pair<CommandResult::SharedConst, TransactionState::SharedConst> UpdateTrustLineTransaction::run() {
-    return make_pair(CommandResult::SharedConst(mCommand.get()->unexpectedErrorResult()),
-                     TransactionState::SharedConst(new TransactionState(0)));
+    return make_pair(CommandResult::SharedConst(nullptr),
+                     TransactionState::SharedConst(new TransactionState(15000)));
+}
+
+pair<byte *, size_t> UpdateTrustLineTransaction::serializeContext() {
+
 }

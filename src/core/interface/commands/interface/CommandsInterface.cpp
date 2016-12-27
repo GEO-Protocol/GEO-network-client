@@ -285,10 +285,10 @@ void CommandsInterface::handleReceivedInfo(
                 mCommandBuffer.data(), bytesTransferred);
 
         if (parsingResult.first){
+            mLog->logInfo(
+                    "CommandsInterface::handleReceivedInfo: "
+                            "command parsed well: ", mCommandBuffer.data());
             mTransactionsManager->processCommand(parsingResult.second);
-            mLog->logError(
-                "CommandsInterface::handleReceivedInfo: "
-                    "command parsed well: ", mCommandBuffer.data());
 
         } else {
             mLog->logError(

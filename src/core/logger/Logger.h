@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_LOGGER_H
 
 #include "../common/exceptions/Exception.h"
+#include "FileLogger.h"
 
 #include <iostream>
 #include <string>
@@ -11,6 +12,10 @@ using namespace std;
 
 class Logger {
 public:
+    Logger(){}
+
+    ~Logger(){}
+
     void logException(const char *subsystem, const exception &e) {
         auto m = string(e.what());
         logRecord("EXCEPT", subsystem, m);
@@ -33,6 +38,7 @@ public:
     }
 
 private:
+
     const string formatMessage(const string &message) const {
         if (message.size() == 0) {
             return message;

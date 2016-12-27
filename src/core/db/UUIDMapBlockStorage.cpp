@@ -3,9 +3,13 @@
 namespace db {
     namespace uuid_map_block_storage {
 
-        UUIDMapBlockStorage::UUIDMapBlockStorage(const string &fileName) {
-            mFileName = fileName;
-            mTempFIleName = string("temp_") + mFileName;
+        UUIDMapBlockStorage::UUIDMapBlockStorage(const string &directory, const string &fileName) :
+                mDirectory(directory),
+                mFileName(fileName),
+                mTempFileName(string("temp_") + mFileName),
+                mFilePath(mDirectory + "/" + mFileName),
+                mTempFilePath(mDirectory + "/" + mTempFileName){
+            
             removeTemporaryFile();
             obtainFileDescriptor();
             readFileHeader();
@@ -18,7 +22,7 @@ namespace db {
             }
         }
 
-        void UUIDMapBlockStorage::write(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount) {
+        void UUIDMapBlockStorage::write(const uuids::uuid &uuid, const byte *block, const size_t blockBytesCount) {
             if (isUUIDTheIndex(uuid)){
                 throw ConflictError(string("Can't write data. Index with such uuid already exist. Maybe you should to use rewrite() method.").c_str());
             }
@@ -29,7 +33,7 @@ namespace db {
             writeFileHeader();
         }
 
-        void UUIDMapBlockStorage::rewrite(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount) {
+        void UUIDMapBlockStorage::rewrite(const uuids::uuid &uuid, const byte *block, const size_t blockBytesCount) {
             if (!isUUIDTheIndex(uuid)){
                 throw ConflictError(string("Unable to rewrite data. Index with such uuid does not exist. Maybe you to should use write() method.").c_str());
             }
@@ -41,9 +45,9 @@ namespace db {
             writeFileHeader();
         }
 
-        void UUIDMapBlockStorage::erase(const NodeUUID &uuid) {
+        void UUIDMapBlockStorage::erase(const uuids::uuid &uuid) {
             if (isUUIDTheIndex(uuid)){
-                map<NodeUUID, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
+                map<uuids::uuid, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
                 if (seeker != mIndexBlock.end()) {
                     mIndexBlock.erase(seeker);
                     mMapIndexRecordsCount = (uint64_t) mIndexBlock.size();
@@ -59,9 +63,9 @@ namespace db {
             }
         }
 
-        Block *UUIDMapBlockStorage::readFromFile(const NodeUUID &uuid) {
+        Block *UUIDMapBlockStorage::readFromFile(const uuids::uuid &uuid) {
             if (isUUIDTheIndex(uuid)){
-                map<NodeUUID, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
+                map<uuids::uuid, pair<uint32_t, uint64_t>>::iterator seeker = mIndexBlock.find(uuid);
                 if (seeker != mIndexBlock.end()) {
                     size_t offset = (size_t) seeker->second.first;
                     size_t bytesCount = (size_t) seeker->second.second;
@@ -83,8 +87,8 @@ namespace db {
             }
         }
 
-        const vector <NodeUUID> UUIDMapBlockStorage::keys() const {
-            vector<NodeUUID> uuidsVector;
+        const vector <uuids::uuid> UUIDMapBlockStorage::keys() const {
+            vector<uuids::uuid> uuidsVector;
             uuidsVector.reserve(mIndexBlock.size());
             for (auto const &it : mIndexBlock){
                 uuidsVector.push_back(it.first);
@@ -93,8 +97,8 @@ namespace db {
         }
 
         void UUIDMapBlockStorage::vacuum() {
-            UUIDMapBlockStorage *mapBlockStorage = new UUIDMapBlockStorage(mTempFIleName);
-            map<NodeUUID, pair<uint32_t, uint64_t>>::iterator looper;
+            UUIDMapBlockStorage *mapBlockStorage = new UUIDMapBlockStorage(mDirectory, mTempFileName);
+            map<uuids::uuid, pair<uint32_t, uint64_t>>::iterator looper;
             for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
                 Block *block = readFromFile(looper->first);
                 mapBlockStorage->write(looper->first, block->mData, block->mBytesCount);
@@ -102,21 +106,21 @@ namespace db {
             }
             delete mapBlockStorage;
             fclose(mFileDescriptor);
-            if (remove(mFileName.c_str()) != 0){
+            if (remove(mFilePath.c_str()) != 0){
                 throw IOError(string("Can't remove old *.bin file.").c_str());
             }
-            if (rename(mTempFIleName.c_str(), mFileName.c_str()) != 0){
+            if (rename(mTempFilePath.c_str(), mFilePath.c_str()) != 0){
                 throw IOError(string("Can't rename temporary *.bin file to main *.bin file.").c_str());
             }
             obtainFileDescriptor();
         }
 
         void UUIDMapBlockStorage::obtainFileDescriptor() {
-            if (isFileExist(mFileName)) {
-                mFileDescriptor = fopen(mFileName.c_str(), kModeUpdate.c_str());
+            if (isFileExist(mFilePath)) {
+                mFileDescriptor = fopen(mFilePath.c_str(), kModeUpdate.c_str());
                 checkFileDescriptor();
             } else {
-                mFileDescriptor = fopen(mFileName.c_str(), kModeCreate.c_str());
+                mFileDescriptor = fopen(mFilePath.c_str(), kModeCreate.c_str());
                 checkFileDescriptor();
                 allocateFileHeader();
             }
@@ -182,11 +186,11 @@ namespace db {
 
                 byte *indexBlockBufferOffset = indexBlockBuffer;
                 for (size_t recordNumber = 0; recordNumber < mMapIndexRecordsCount; ++ recordNumber) {
-                    NodeUUID uuid;
+                    uuids::uuid uuid;
                     memcpy(&uuid, indexBlockBufferOffset, 16);
                     uint32_t *offset = new (indexBlockBufferOffset + kIndexRecordUUIDSize) uint32_t;
                     uint64_t *blockBytesCount = new (indexBlockBufferOffset + kIndexRecordUUIDSize + sizeof(uint32_t)) uint64_t;
-                    mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(uuid, make_pair(*offset, *blockBytesCount)));
+                    mIndexBlock.insert(pair<uuids::uuid, pair<uint32_t, uint64_t>>(uuid, make_pair(*offset, *blockBytesCount)));
                     indexBlockBufferOffset += kIndexRecordSize;
                 }
                 free(indexBlockBuffer);
@@ -205,11 +209,11 @@ namespace db {
             return offset;
         }
 
-        const pair<uint32_t, uint64_t> UUIDMapBlockStorage::writeIndexRecordsInMemory(const NodeUUID &uuid, const long offset,
+        const pair<uint32_t, uint64_t> UUIDMapBlockStorage::writeIndexRecordsInMemory(const uuids::uuid &uuid, const long offset,
                                                           const size_t blockBytesCount) {
             fseek(mFileDescriptor, 0, SEEK_END);
             long offsetToIndexRecords = ftell(mFileDescriptor);
-            mIndexBlock.insert(pair<NodeUUID, pair<uint32_t, uint64_t>>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
+            mIndexBlock.insert(pair<uuids::uuid, pair<uint32_t, uint64_t>>(uuid, make_pair((uint32_t) offset, (uint64_t) blockBytesCount)));
             size_t recordsCount = mIndexBlock.size();
             writeIndexBlock();
             return make_pair((uint32_t) offsetToIndexRecords, (uint64_t) recordsCount);
@@ -231,7 +235,7 @@ namespace db {
         }
 
         void UUIDMapBlockStorage::writeIndexBlock() {
-            map<NodeUUID, pair<uint32_t, uint64_t>>::iterator looper;
+            map<uuids::uuid, pair<uint32_t, uint64_t>>::iterator looper;
             for (looper = mIndexBlock.begin(); looper != mIndexBlock.end(); ++looper){
                 if (fwrite(looper->first.data, 1, kIndexRecordUUIDSize, mFileDescriptor) != kIndexRecordUUIDSize){
                     if (fwrite(looper->first.data, 1, kIndexRecordUUIDSize, mFileDescriptor) != kIndexRecordUUIDSize){
@@ -257,15 +261,15 @@ namespace db {
         }
 
         void UUIDMapBlockStorage::removeTemporaryFile() {
-            if (isFileExist(mFileName)){
-                if (isFileExist(mTempFIleName)){
-                    if (remove(mTempFIleName.c_str()) != 0){
+            if (isFileExist(mFilePath)){
+                if (isFileExist(mTempFilePath)){
+                    if (remove(mTempFilePath.c_str()) != 0){
                         throw IOError(string("Can't remove old *.bin file.").c_str());
                     }
                 }
             } else {
-                if (isFileExist(mTempFIleName)){
-                    if (rename(mTempFIleName.c_str(), mFileName.c_str()) != 0){
+                if (isFileExist(mTempFilePath)){
+                    if (rename(mTempFilePath.c_str(), mFilePath.c_str()) != 0){
                         throw IOError(string("Can't rename temporary *.bin file to main *.bin file.").c_str());
                     }
                 }
@@ -276,7 +280,7 @@ namespace db {
             return fs::exists(fs::path(fileName.c_str()));
         }
 
-        const bool UUIDMapBlockStorage::isUUIDTheIndex(const NodeUUID &uuid) {
+        const bool UUIDMapBlockStorage::isUUIDTheIndex(const uuids::uuid &uuid) {
             return mIndexBlock.count(uuid) > 0;
         }
 

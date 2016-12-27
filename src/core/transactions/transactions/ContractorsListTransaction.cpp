@@ -18,3 +18,7 @@ pair<CommandResult::SharedConst, TransactionState::SharedConst> ContractorsListT
     return make_pair(CommandResult::SharedConst(mCommand.get()->unexpectedErrorResult()),
                      TransactionState::SharedConst(new TransactionState(0)));
 }
+
+pair<byte *, size_t> ContractorsListTransaction::serializeContext() {
+
+}

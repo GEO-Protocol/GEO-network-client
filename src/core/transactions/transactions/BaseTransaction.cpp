@@ -7,3 +7,7 @@ BaseTransaction::BaseTransaction(
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
     return mType;
 }
+
+const TransactionUUID BaseTransaction::uuid() const {
+    return mTransactionUUID;
+}
