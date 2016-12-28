@@ -126,9 +126,10 @@ void TransactionsManager::acceptCommandResult(
     try{
         if (commandResult.get() != nullptr) {
             mLog->logInfo("Transactions manager",
-                          "writing result to fifo.");
+                          "Writing result in FIFO.");
             string result = commandResult.get()->serialize();
             mResultsInterface->writeResult(result.c_str(), result.size());
+
         }
     } catch(...) {
         mLog->logError("Transactions manager", "Error occurred when command result has accepted");

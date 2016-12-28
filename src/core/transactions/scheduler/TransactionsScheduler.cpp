@@ -32,8 +32,10 @@ void TransactionsScheduler::addTransaction(
         BaseTransaction::Shared transaction) {
 
     try{
-        auto transactionContext = transaction.get()->serializeContext();
-        mStorage->write(storage::uuids::uuid(transaction.get()->uuid()), transactionContext.first, transactionContext.second);
+        /*auto transactionContext = transaction.get()->serializeContext();
+        mStorage->write(storage::uuids::uuid(transaction.get()->uuid()), transactionContext.first, transactionContext.second);*/
+        mLog->logInfo("Transactions manager::Transactions scheduler",
+                      "New transaction from manager.");
         launchTransaction(transaction);
 
     } catch (std::exception &e) {
@@ -44,8 +46,12 @@ void TransactionsScheduler::addTransaction(
 
 void TransactionsScheduler::run() {
 
+    mLog->logInfo("Transactions manager::Transactions scheduler",
+                  "Wake up.");
     if (!mTransactions.empty()) {
         try{
+            mLog->logInfo("Transactions manager::Transactions scheduler",
+                          "Try to relaunch pending transaction.");
             launchTransaction(findTransactionWithMinimalTimeout().first);
 
         } catch (std::exception &e) {
@@ -54,6 +60,8 @@ void TransactionsScheduler::run() {
         }
 
     } else {
+        mLog->logInfo("Transactions manager::Transactions scheduler",
+                      "Transactions with optimal conditions was not found.");
         sleepFor(kDefaultDelay);
     }
 }
@@ -61,8 +69,12 @@ void TransactionsScheduler::run() {
 void TransactionsScheduler::launchTransaction(
         BaseTransaction::Shared transaction) {
 
+    mLog->logInfo("Transactions manager::Transactions scheduler",
+                  "Transaction running.");
     pair<CommandResult::SharedConst, TransactionState::SharedConst> transactionResult = transaction.get()->run();
-    mTransactions.insert(make_pair(transaction, transactionResult.second));
+    if (!isTransactionInScheduler(transaction)) {
+        mTransactions.insert(make_pair(transaction, transactionResult.second));
+    }
     handleTransactionResult(transaction, transactionResult);
 }
 
@@ -72,11 +84,13 @@ void TransactionsScheduler::handleTransactionResult(
 
     if (result.first.get() == nullptr) {
         if (isTransactionInScheduler(transaction)){
+            mLog->logInfo("Transactions manager::Transactions scheduler",
+                          "Handle transaction result. Transaction has state. Store transaction for further relaunching.");
             auto it = mTransactions.find(transaction);
             it->second = result.second;
 
-            auto transactionContext = transaction.get()->serializeContext();
-            mStorage->rewrite(storage::uuids::uuid(transaction.get()->uuid()), transactionContext.first, transactionContext.second);
+            /*auto transactionContext = transaction.get()->serializeContext();
+            mStorage->rewrite(storage::uuids::uuid(transaction.get()->uuid()), transactionContext.first, transactionContext.second);*/
 
         } else {
             throw ValueError("TransactionsManager::TransactionsScheduler"
@@ -85,11 +99,13 @@ void TransactionsScheduler::handleTransactionResult(
         sleepFor(findTransactionWithMinimalTimeout().second);
 
     } else if (result.second.get() == nullptr) {
+        mLog->logInfo("Transactions manager::Transactions scheduler",
+                      "Handle transaction result. Transaction has result. Callback to manager.");
         mMangerCallback(result.first);
         if (isTransactionInScheduler(transaction)) {
             mTransactions.erase(transaction);
 
-            mStorage->erase(storage::uuids::uuid(transaction.get()->uuid()));
+            //mStorage->erase(storage::uuids::uuid(transaction.get()->uuid()));
 
         } else {
             throw ValueError("TransactionsManager::TransactionsScheduler"
@@ -109,6 +125,9 @@ void TransactionsScheduler::handleTransactionResult(
 
 pair<BaseTransaction::Shared, timeout> TransactionsScheduler::findTransactionWithMinimalTimeout() {
 
+    mLog->logInfo("Transactions manager::Transactions scheduler",
+                  "Searching for minimal timeout.");
+
     BaseTransaction::Shared transaction;
     timeout minimalTimeout = posix_time::milliseconds(0);
     for (auto &it : mTransactions) {
@@ -123,6 +142,11 @@ pair<BaseTransaction::Shared, timeout> TransactionsScheduler::findTransactionWit
 
     if (minimalTimeout == posix_time::milliseconds(0)) {
         minimalTimeout = kDefaultDelay;
+        mLog->logInfo("Transactions manager::Transactions scheduler",
+                      "Using default timeout.");
+    } else {
+        mLog->logInfo("Transactions manager::Transactions scheduler",
+                      "Timeout was found.");
     }
 
     for (auto &it : mTransactions) {
@@ -142,6 +166,8 @@ pair<BaseTransaction::Shared, timeout> TransactionsScheduler::findTransactionWit
 void TransactionsScheduler::sleepFor(
         timeout delay) {
 
+    mLog->logInfo("Transactions manager::Transactions scheduler",
+                  "Try to sleep.");
     mProcessingTimer->expires_from_now(delay);
     mProcessingTimer->async_wait(
             boost::bind(
@@ -155,10 +181,17 @@ void TransactionsScheduler::handleSleep(
         const boost::system::error_code &error,
         timeout delay) {
 
+    mLog->logInfo("Transactions manager::Transactions scheduler",
+                  "Handle delay.");
+
     if (error) {
+        mLog->logInfo("Transactions manager::Transactions scheduler",
+                      "Can't sleep. Timer has not completed task.");
         return;
 
     } else {
+        mLog->logInfo("Transactions manager::Transactions scheduler",
+                      "Sleep.");
         if (delay > kDefaultDelay) {
             run();
         }

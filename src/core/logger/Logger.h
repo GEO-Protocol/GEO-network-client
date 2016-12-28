@@ -12,9 +12,17 @@ using namespace std;
 
 class Logger {
 public:
-    Logger(){}
+    FileLogger *mFileLogger;
 
-    ~Logger(){}
+    Logger(){
+        mFileLogger = new FileLogger();
+    }
+
+    ~Logger(){
+        if (mFileLogger != nullptr) {
+            delete mFileLogger;
+        };
+    }
 
     void logException(const char *subsystem, const exception &e) {
         auto m = string(e.what());
@@ -23,6 +31,7 @@ public:
 
     void logInfo(const char *subsystem, const string &message){
         logRecord("INFO", subsystem, message);
+        logInFile("INFO", subsystem, message);
     }
 
     void logSuccess(const char *subsystem, const string &message){
@@ -31,6 +40,7 @@ public:
 
     void logError(const char *subsystem, const string &message){
         logRecord("ERROR", subsystem, message);
+        logInFile("ERROR", subsystem, message);
     }
 
     void logFatal(const char *subsystem, const string &message){
@@ -45,8 +55,12 @@ private:
         }
 
         auto m = message;
-        if (m.at(m.size()-1) != '.') {
-            m += ".";
+        if (m.find("\n") == std::string::npos) {
+            if (m.at(m.size()-1) != '.') {
+                m += ".";
+            }
+        } else {
+            m.replace(m.find("\n"), 1, ".");
         }
 
         return m;
@@ -62,6 +76,10 @@ private:
              << subsystem << "\t\t\t"
              << formatMessage(message) << endl;
         cout.flush();
+    }
+
+    void logInFile(const char *group, const char *subsystem, const string &message) {
+        mFileLogger->writeLine(string(recordPrefix(group) + " " + string(subsystem) + " " + formatMessage(message) + "\n").c_str());
     }
 };
 

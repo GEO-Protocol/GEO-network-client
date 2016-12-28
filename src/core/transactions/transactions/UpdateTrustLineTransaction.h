@@ -10,6 +10,7 @@ class UpdateTrustLineTransaction : public BaseTransaction {
 
 private:
     UpdateTrustLineCommand::Shared mCommand;
+    uint8_t mSuccessIncrementer = 0;
 
 public:
     UpdateTrustLineTransaction(

@@ -47,7 +47,7 @@ public:
     ~TransactionsManager();
 
     void processCommand(
-            shared_ptr<BaseUserCommand> commandPointer);
+            BaseUserCommand::Shared commandPointer);
 
 private:
     void openTrustLine(

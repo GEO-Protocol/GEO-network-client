@@ -5,6 +5,7 @@
 #include "network/Communicator.h"
 #include "interface/commands/interface/CommandsInterface.h"
 #include "logger/Logger.h"
+#include "../tests/transactions/TransactionsManagerTest.h"
 
 #include <boost/filesystem.hpp>
 
