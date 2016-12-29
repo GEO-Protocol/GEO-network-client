@@ -10,17 +10,22 @@ TrustLine::TrustLine(const NodeUUID &nodeUUID,
     mBalance = nodeBalance;
 }
 
-void TrustLine::setContractorNodeUUID(const NodeUUID &nodeUUID) {
+void TrustLine::setContractorNodeUUID(
+        const NodeUUID &nodeUUID) {
     mContractorNodeUuid = nodeUUID;
 }
 
-void TrustLine::setIncomingTrustAmount(callback managersCallback, const trust_amount &incomingAmount) {
+void TrustLine::setIncomingTrustAmount(
+        callback managersCallback,
+        const trust_amount &incomingAmount) {
     mIncomingTrustAmount = incomingAmount;
     mManagerCallback = managersCallback;
     mManagerCallback();
 }
 
-void TrustLine::setOutgoingTrustAmount(callback managersCallback, const trust_amount &outgoingAmount) {
+void TrustLine::setOutgoingTrustAmount(
+        callback managersCallback,
+        const trust_amount &outgoingAmount) {
     mOutgoingTrustAmount = outgoingAmount;
     mManagerCallback = managersCallback;
     mManagerCallback();

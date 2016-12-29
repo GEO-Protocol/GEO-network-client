@@ -29,6 +29,7 @@ protected:
     Communicator *mCommunicator;
     CommandsInterface *mCommandsInterface;
     ResultsInterface *mResultsInterface;
+    TrustLinesManager *mTrustLinesManager;
     TransactionsManager *mTransactionsManager;
 
 private:
@@ -36,6 +37,7 @@ private:
     int initSettings();
     int initCommandsInterface();
     int initResultsInterface();
+    int initTrustLinesManager();
     int initTransactionsManager();
     int initCommunicator(const json &conf);
 

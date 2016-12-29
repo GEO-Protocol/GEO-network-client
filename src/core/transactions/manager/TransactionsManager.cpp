@@ -2,13 +2,16 @@
 
 TransactionsManager::TransactionsManager(
     as::io_service &IOService,
+    TrustLinesManager *trustLinesManager,
     ResultsInterface *resultsInterface,
     Logger *logger):
 
     mIOService(IOService),
+    mTrustLinesManager(trustLinesManager),
     mResultsInterface(resultsInterface),
     mLog(logger){
 
+    mTrustLinesInterface = new TrustLinesInterface(mTrustLinesManager);
     mTransactionsScheduler = new TransactionsScheduler(
             mIOService,
             boost::bind(&TransactionsManager::acceptCommandResult, this, ::_1),
@@ -19,6 +22,10 @@ TransactionsManager::~TransactionsManager() {
 
     if (mTransactionsScheduler != nullptr) {
         delete mTransactionsScheduler;
+    }
+
+    if (mTrustLinesInterface != nullptr) {
+        delete mTrustLinesInterface;
     }
 }
 
@@ -125,8 +132,6 @@ void TransactionsManager::acceptCommandResult(
 
     try{
         if (commandResult.get() != nullptr) {
-            mLog->logInfo("Transactions manager",
-                          "Writing result in FIFO.");
             string result = commandResult.get()->serialize();
             mResultsInterface->writeResult(result.c_str(), result.size());
 

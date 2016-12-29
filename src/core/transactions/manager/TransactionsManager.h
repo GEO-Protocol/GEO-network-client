@@ -12,6 +12,8 @@
 #include "../../interface/commands/commands/TotalBalanceCommand.h"
 #include "../../interface/commands/commands/ContractorsListCommand.h"
 
+#include "../../trust_lines/manager/TrustLinesManager.h"
+#include "../../trust_lines/interface/TrustLinesInterface.h"
 #include "../scheduler/TransactionsScheduler.h"
 #include "../transactions/BaseTransaction.h"
 #include "../transactions/OpenTrustLineTransaction.h"
@@ -34,6 +36,8 @@ class TransactionsManager {
 private:
 
     as::io_service &mIOService;
+    TrustLinesManager *mTrustLinesManager;
+    TrustLinesInterface *mTrustLinesInterface;
     TransactionsScheduler *mTransactionsScheduler;
     ResultsInterface *mResultsInterface;
     Logger *mLog;
@@ -41,6 +45,7 @@ private:
 public:
     TransactionsManager(
         as::io_service &IOService,
+        TrustLinesManager *trustLinesManager,
         ResultsInterface *resultsInterface,
         Logger *logger);
 
