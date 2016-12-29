@@ -17,7 +17,7 @@ int Core::run() {
 
     try {
         // todo: register in uuid2address service;
-        //mCommunicator->beginAcceptMessages();
+        mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
 
         mLog.logSuccess("Core", "Processing started.");
@@ -56,9 +56,9 @@ int Core::initCoreComponents() {
         return -1;
     }
 
-//    initCode = initCommunicator(conf);
-//    if (initCode != 0)
-//        return initCode;
+    initCode = initCommunicator(conf);
+    if (initCode != 0)
+        return initCode;
 
     initCode = initResultsInterface();
     if (initCode != 0)

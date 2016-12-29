@@ -27,10 +27,10 @@ class TrustLinesManagerTest;
 class TrustLinesManager {
     friend class TrustLinesManagerTest;
 
-private:
-    const size_t kTrustAmountPartSize = 32;
-    const size_t kBalancePartSize = 32;
-    const size_t kSignBytePartSize = 1;
+public:
+    static const size_t kTrustAmountPartSize = 32;
+    static const size_t kBalancePartSize = 32;
+    static const size_t kSignBytePartSize = 1;
     const size_t kBucketSize = kTrustAmountPartSize + kTrustAmountPartSize + kBalancePartSize + kSignBytePartSize;
     const trust_amount ZERO_CHECKED_INT256_VALUE = 0;
     const balance_value ZERO_INT256_VALUE = 0;

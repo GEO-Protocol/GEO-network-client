@@ -30,18 +30,18 @@ void UUID2Address::registerInGlobalCache(
     const string &nodeHost,
     const uint16_t &nodePort) {
 
-    std::stringstream url;
+    stringstream url;
     url << "/api/v1/nodes/"
         << boost::lexical_cast<string>(uuid)
         << "/";
 
-    std::stringstream host;
+    stringstream host;
     host << mServiceIP << ":" << mServicePort;
 
-    std::stringstream body;
+    stringstream body;
     body << "{"
          << "\"ip_address\": \"" << nodeHost << "\","
-         << "\"port\": \"" << nodePort << "\";"
+         << "\"port\": \"" << nodePort << "\""
          << "}";
 
 
@@ -56,11 +56,10 @@ void UUID2Address::registerInGlobalCache(
 
     as::connect(mSocket, mEndpointIterator);
     as::write(mSocket, mRequest);
-    mSocket.close();
 
     json result = json::parse(processResponse());
     int code = result.value("code", -1);
-    if (code == 0) {
+    if (code != 0) {
         throw Exception(
             "UUID2Address::registerInGlobalCache: "
                 "Cant issue the request.");

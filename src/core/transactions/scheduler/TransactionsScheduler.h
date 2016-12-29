@@ -5,7 +5,10 @@
 #include "../../interface/results/result/CommandResult.h"
 #include "../transactions/state/TransactionState.h"
 
+#include "../../db/UUIDMapBlockStorage.h"
+
 #include "../../common/exceptions/ValueError.h"
+#include "../../common/exceptions/ConflictError.h"
 #include "../../logger/Logger.h"
 
 #include <boost/asio.hpp>
@@ -18,9 +21,11 @@ using namespace std;
 
 namespace as = boost::asio;
 
+namespace storage = db::uuid_map_block_storage;
+
 typedef boost::function<void(CommandResult::SharedConst)> function_callback;
-typedef boost::function<void(BaseTransaction::Shared, pair<CommandResult::SharedConst, TransactionState::SharedConst>)> handler_callback;
 typedef boost::posix_time::time_duration timeout;
+typedef storage::byte byte;
 
 namespace posix_time = boost::posix_time;
 
@@ -30,7 +35,7 @@ class TransactionsScheduler {
     friend class TransactionsManager;
 
 private:
-    const timeout kDefaultDelay = posix_time::seconds(60 * 3);
+    const timeout kDefaultDelay = posix_time::milliseconds(200);
 
 private:
     as::io_service &mIOService;
@@ -39,7 +44,8 @@ private:
     function_callback mMangerCallback;
 
     map<BaseTransaction::Shared, TransactionState::SharedConst> mTransactions;
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> mTemporaryTransactionResult;
+
+    storage::UUIDMapBlockStorage *mStorage;
 
     Logger *mLog;
 
@@ -49,6 +55,7 @@ private:
             function_callback managerCallback,
             Logger *logger);
 
+    ~TransactionsScheduler();
 private:
     void addTransaction(
             BaseTransaction::Shared transaction);
@@ -56,22 +63,24 @@ private:
     void run();
 
     void launchTransaction(
-            BaseTransaction::Shared transaction,
-            boost::_bi::bind_t<void, boost::_mfi::mf2<void, TransactionsScheduler, BaseTransaction::Shared, pair<CommandResult::SharedConst, TransactionState::SharedConst>>, boost::_bi::list_av_3<TransactionsScheduler *, std::shared_ptr<BaseTransaction>, std::pair<std::shared_ptr<CommandResult>, std::shared_ptr<TransactionState>>>::type> handler);
+            BaseTransaction::Shared transaction);
 
     void handleTransactionResult(
             BaseTransaction::Shared transaction,
             pair<CommandResult::SharedConst, TransactionState::SharedConst> result);
 
+    pair<BaseTransaction::Shared, timeout> findTransactionWithMinimalTimeout();
+
+    void sleepFor(
+            timeout delay);
+
+    void handleSleep(
+            const boost::system::error_code &error,
+            timeout delay);
+
     bool isTransactionInScheduler(
             BaseTransaction::Shared transaction);
 
-    void sleepForMinimalTimeout();
-
-    void handleTimeout(
-            const boost::system::error_code &error);
-
 };
-
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H

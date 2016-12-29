@@ -15,6 +15,23 @@ void UpdateTrustLineTransaction::setContext(
 }
 
 pair<CommandResult::SharedConst, TransactionState::SharedConst> UpdateTrustLineTransaction::run() {
-    return make_pair(CommandResult::SharedConst(mCommand.get()->unexpectedErrorResult()),
-                     TransactionState::SharedConst(new TransactionState(0)));
+    if (mSuccessIncrementer > 0) {
+        return make_pair(CommandResult::SharedConst(mCommand->resultOk()),
+                         TransactionState::SharedConst(nullptr));
+    } else {
+        mSuccessIncrementer += 1;
+        string contractorUUID = mCommand.get()->contractorUUID().stringUUID();
+        char controlCharacter = contractorUUID.at(contractorUUID.size() - 1);
+        if (controlCharacter == '0') {
+            return make_pair(CommandResult::SharedConst(nullptr),
+                             TransactionState::SharedConst(new TransactionState(10000)));
+        } else {
+            return make_pair(CommandResult::SharedConst(nullptr),
+                             TransactionState::SharedConst(new TransactionState(15000)));
+        }
+    }
+}
+
+pair<byte *, size_t> UpdateTrustLineTransaction::serializeContext() {
+
 }

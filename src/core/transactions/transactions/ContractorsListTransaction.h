@@ -4,8 +4,6 @@
 #include "BaseTransaction.h"
 #include "../../interface/commands/commands/ContractorsListCommand.h"
 
-class TransactionsScheduler;
-
 class ContractorsListTransaction : public BaseTransaction {
     friend class TransactionsScheduler;
 
@@ -23,6 +21,8 @@ private:
             Message::Shared message);
 
     pair<CommandResult::SharedConst, TransactionState::SharedConst> run();
+
+    pair<byte *, size_t> serializeContext();
 };
 
 

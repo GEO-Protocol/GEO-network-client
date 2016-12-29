@@ -3,8 +3,7 @@
 
 #include "BaseTransaction.h"
 #include "../../interface/commands/commands/OpenTrustLineCommand.h"
-
-class TransactionsScheduler;
+#include "../../trust_lines/manager/TrustLinesManager.h"
 
 class OpenTrustLineTransaction : public BaseTransaction {
     friend class TransactionsScheduler;
@@ -23,6 +22,8 @@ private:
             Message::Shared message);
 
     pair<CommandResult::SharedConst, TransactionState::SharedConst> run();
+
+    pair<byte *, size_t> serializeContext();
 };
 
 

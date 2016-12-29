@@ -18,3 +18,7 @@ pair<CommandResult::SharedConst, TransactionState::SharedConst> UseCreditTransac
     return make_pair(CommandResult::SharedConst(mCommand.get()->unexpectedErrorResult()),
                      TransactionState::SharedConst(new TransactionState(0)));
 }
+
+pair<byte *, size_t> UseCreditTransaction::serializeContext() {
+
+}

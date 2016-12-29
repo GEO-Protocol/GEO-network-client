@@ -7,9 +7,16 @@
 #include <vector>
 #include <malloc.h>
 #include <unistd.h>
+
 #include <boost/filesystem.hpp>
+
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include "Block.h"
-#include "../common/NodeUUID.h"
+
 #include "../common/exceptions/IOError.h"
 #include "../common/exceptions/IndexError.h"
 #include "../common/exceptions/ConflictError.h"
@@ -20,6 +27,7 @@ namespace db {
         using namespace std;
 
         namespace fs = boost::filesystem;
+        namespace uuids = boost::uuids;
         
         typedef uint8_t byte;
 
@@ -31,13 +39,16 @@ namespace db {
         private:
             FILE *mFileDescriptor;
             int mPOSIXFileDescriptor;
+            string mDirectory;
             string mFileName;
-            string mTempFIleName;
+            string mTempFileName;
+            string mFilePath;
+            string mTempFilePath;
 
             uint32_t mMapIndexOffset = 0;
             uint64_t mMapIndexRecordsCount = 0;
 
-            map <NodeUUID, pair<uint32_t, uint64_t>> mIndexBlock;
+            map <uuids::uuid, pair<uint32_t, uint64_t>> mIndexBlock;
 
             const string kModeCreate = "w+";
             const string kModeUpdate = "r+";
@@ -50,20 +61,20 @@ namespace db {
             const size_t kIndexRecordDataSize = 8;
             const size_t kIndexRecordSize = kIndexRecordUUIDSize + kIndexRecordOffsetSize + kIndexRecordDataSize;
 
-        protected:
-            UUIDMapBlockStorage(const string &fileName);
+        public:
+            UUIDMapBlockStorage(const string &directory, const string &fileName);
 
             ~UUIDMapBlockStorage();
 
-            void write(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount);
+            void write(const uuids::uuid &uuid, const byte *block, const size_t blockBytesCount);
 
-            void rewrite(const NodeUUID &uuid, const byte *block, const size_t blockBytesCount);
+            void rewrite(const uuids::uuid &uuid, const byte *block, const size_t blockBytesCount);
 
-            void erase(const NodeUUID &uuid);
+            void erase(const uuids::uuid &uuid);
 
-            Block *readFromFile(const NodeUUID &uuid);
+            Block *readFromFile(const uuids::uuid &uuid);
 
-            const vector <NodeUUID> keys() const;
+            const vector <uuids::uuid> keys() const;
 
             void vacuum();
 
@@ -80,7 +91,7 @@ namespace db {
 
             const long writeData(const byte *block, const size_t blockBytesCount);
 
-            const pair<uint32_t, uint64_t> writeIndexRecordsInMemory(const NodeUUID &uuid, const long offset, const size_t blockBytesCount);
+            const pair<uint32_t, uint64_t> writeIndexRecordsInMemory(const uuids::uuid &uuid, const long offset, const size_t blockBytesCount);
 
             void writeFileHeader();
 
@@ -92,7 +103,7 @@ namespace db {
 
             const bool isFileExist(string &fileName);
 
-            const bool isUUIDTheIndex(const NodeUUID &uuid);
+            const bool isUUIDTheIndex(const uuids::uuid &uuid);
         };
 
     }

@@ -3,8 +3,6 @@
 
 #include "../../logger/Logger.h"
 
-#include "../../trust_lines/TrustLine.h"
-
 #include "../../interface/commands/commands/BaseUserCommand.h"
 #include "../../interface/commands/commands/OpenTrustLineCommand.h"
 #include "../../interface/commands/commands/CloseTrustLineCommand.h"
@@ -27,12 +25,7 @@
 #include "../../interface/results/interface/ResultsInterface.h"
 #include "../../interface/results/result/CommandResult.h"
 
-#include <boost/lexical_cast.hpp>
-
-#include <stdlib.h>
-#include <iostream>
 #include <string>
-#include <vector>
 
 using namespace std;
 
@@ -54,35 +47,33 @@ public:
     ~TransactionsManager();
 
     void processCommand(
-            shared_ptr<BaseUserCommand> commandPointer);
+            BaseUserCommand::Shared commandPointer);
 
 private:
-    CommandResult::SharedConst openTrustLine(
+    void openTrustLine(
             BaseUserCommand::Shared commandPointer);
 
-    CommandResult::SharedConst closeTrustLine(
+    void closeTrustLine(
             BaseUserCommand::Shared commandPointer);
 
-    CommandResult::SharedConst updateTrustLine(
+    void updateTrustLine(
             BaseUserCommand::Shared commandPointer);
 
-    CommandResult::SharedConst maximalTransactionAmount(
+    void maximalTransactionAmount(
             BaseUserCommand::Shared commandPointer);
 
-    CommandResult::SharedConst useCredit(
+    void useCredit(
             BaseUserCommand::Shared commandPointer);
 
-    CommandResult::SharedConst totalBalance(
+    void totalBalance(
             BaseUserCommand::Shared commandPointer);
 
-    CommandResult::SharedConst contractorsList(
+    void contractorsList(
             BaseUserCommand::Shared commandPointer);
 
 public:
     void acceptCommandResult(CommandResult::SharedConst commandResult);
 
 };
-
-
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
