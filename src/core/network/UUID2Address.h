@@ -16,7 +16,7 @@
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "../../libs/json.h"
+#include "../../libs/json/json.h"
 
 #include "../logger/Logger.h"
 #include "../common/exceptions/ValueError.h"

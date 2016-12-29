@@ -17,9 +17,9 @@
 
 #include "Block.h"
 
-#include "../common/exceptions/IOError.h"
-#include "../common/exceptions/IndexError.h"
-#include "../common/exceptions/ConflictError.h"
+#include "../../common/exceptions/IOError.h"
+#include "../../common/exceptions/IndexError.h"
+#include "../../common/exceptions/ConflictError.h"
 
 namespace db {
     namespace uuid_map_block_storage {

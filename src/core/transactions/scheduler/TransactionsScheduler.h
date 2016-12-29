@@ -5,7 +5,7 @@
 #include "../../interface/results/result/CommandResult.h"
 #include "../transactions/state/TransactionState.h"
 
-#include "../../db/UUIDMapBlockStorage.h"
+#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"

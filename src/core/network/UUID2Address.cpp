@@ -13,10 +13,6 @@ UUID2Address::UUID2Address(
     mSocket(mIOService),
     mRequestStream(&mRequest) {
 
-#ifdef INTERNAL_ARGUMENTS_VALIDATION
-    assert(logger != nullptr);
-#endif
-
     mEndpointIterator = mResolver.resolve(mQuery);
 }
 

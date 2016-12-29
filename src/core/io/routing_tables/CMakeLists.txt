@@ -24,10 +24,10 @@ set(SOURCE_FILES
         ThirdLevelRoutingTable.cpp
         ThirdLevelRoutingTable.h internal/transactions/internal/RollbackRemoveOperation.cpp internal/transactions/internal/RollbackRemoveOperation.h internal/transactions/internal/RollbackDirectionUpdateOperation.cpp internal/transactions/internal/RollbackDirectionUpdateOperation.h)
 
-add_library(io_routing_tables ${SOURCE_FILES})
-target_link_libraries(io_routing_tables
+add_library(io__routing_tables_storage ${SOURCE_FILES})
+target_link_libraries(io__routing_tables_storage
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
 
         common
-        db)
+        db__fields)

@@ -5,7 +5,7 @@
 #include "../../network/messages/Message.h"
 #include "state/TransactionState.h"
 #include "../../interface/results/result/CommandResult.h"
-#include "../../db/UUIDMapBlockStorage.h"
+#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 namespace storage = db::uuid_map_block_storage;
 

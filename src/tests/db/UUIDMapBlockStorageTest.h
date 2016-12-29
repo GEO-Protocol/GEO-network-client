@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <assert.h>
-#include "../../core/db/UUIDMapBlockStorage.h"
+#include "../../core/db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 namespace db {
     namespace uuid_map_block_storage {

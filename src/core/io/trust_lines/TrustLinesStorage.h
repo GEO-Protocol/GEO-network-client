@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "../../common/NodeUUID.h"
-#include "../../db/Block.h"
-#include "../../db/UUIDMapBlockStorage.h"
+#include "../../db/uuid_map_block_storage/Block.h"
+#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 using namespace std;
 
