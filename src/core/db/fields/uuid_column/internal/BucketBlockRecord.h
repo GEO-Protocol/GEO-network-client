@@ -54,17 +54,13 @@ class BucketBlockRecord:
 public:
     BucketBlockRecord(
         const NodeUUID &uuid);
-
     BucketBlockRecord(
-        const NodeUUID &uuid,
-        RecordsCount recordsNumbersCount,
-        RecordNumber *recordsNumbers);
+        byte *data);
 
     ~BucketBlockRecord();
 
     void insert(
         const RecordNumber recN);
-
     bool remove(
         const RecordNumber recN);
 
@@ -80,10 +76,16 @@ protected:
         const RecordNumber recN);
 
 protected:
-    const NodeUUID mUUID;
+    // This fields are defined as pointers,
+    // to be able to initialize several instances of this class
+    // from one memory block.
+    //
+    // See deserialization constructor of the BucketBlock
+    // for the details.
+    NodeUUID *mUUID;
+    RecordNumber *mRecordsNumbers;
 
     RecordsCount mRecordsNumbersCount;
-    RecordNumber *mRecordsNumbers;
     bool mHasBeenModified;
 };
 

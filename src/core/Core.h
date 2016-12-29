@@ -22,8 +22,8 @@ public:
 private:
     int initCoreComponents();
     int initSettings();
-    int initCommandsAPI();
-    int initCommandsInterface();
+//    int initCommandsAPI();
+//    int initCommandsInterface();
     int initCommunicator(const json &conf);
 
     void zeroPointers();
@@ -36,8 +36,8 @@ private:
 
     Settings *mSettings;
     Communicator *mCommunicator;
-    CommandsAPI *mCommandsAPI;
-    CommandsInterface *mCommandsInterface;
+//    CommandsAPI *mCommandsAPI;
+//    CommandsInterface *mCommandsInterface;
 };
 
 

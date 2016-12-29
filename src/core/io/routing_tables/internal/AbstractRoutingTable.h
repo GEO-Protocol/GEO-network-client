@@ -1,9 +1,11 @@
 #ifndef GEO_NETWORK_CLIENT_ABSTRACTROUTINGTABLE_H
 #define GEO_NETWORK_CLIENT_ABSTRACTROUTINGTABLE_H
 
-#include "TransactionsHandler.h"
 
-#include "../../../db/fields/uuid_map_column/UUIDMapColumn.h"
+#include "transactions/OperationsLog.h"
+#include "transactions/Transaction.h"
+
+#include "../../../db/fields/uuid_column/UUIDColumn.h"
 #include "../../../db/fields/tl_direction_column/TrustLineDirectionColumn.h"
 
 #include <boost/filesystem.hpp>
@@ -17,65 +19,55 @@ namespace fs = boost::filesystem;
 using namespace db::fields;
 
 
+class Transaction;
 class AbstractRoutingTable:
     protected AbstractRecordsHandler {
-
     friend class AbstractRoutingTableTests;
+    friend class Transaction;
 
-public:
-    enum Level {
-        Second,
-        Third,
-    };
 
 public:
     AbstractRoutingTable(
-        const char *path,
-        const Level level);
+        const fs::path &path,
+        const uint8_t pow2bucketsCountIndex);
 
     ~AbstractRoutingTable();
 
-    void set(
-        const NodeUUID &u1,
-        const NodeUUID &u2,
-        const TrustLineDirectionColumn::Direction direction);
-
-    void remove(
-        const NodeUUID &u1,
-        const NodeUUID &u2);
-
-    // ...
-    // The rest methods would be implemented when specification would be clear
-    // ...
+    Transaction* beginTransaction() const;
 
 protected:
     fs::path mF1Path;
     fs::path mF2Path;
     fs::path mDirColumnPath;
 
-    UUIDMapColumn *mF1Column;
-    UUIDMapColumn *mF2Column;
+    UUIDColumn *mF1Column;
+    UUIDColumn *mF2Column;
     TrustLineDirectionColumn *mDirColumn;
-
-    TransactionsHandler *mTransactionHandler;
+    OperationsLog *mOperationsLog;
 
 protected:
+    void set(
+        const NodeUUID &u1,
+        const NodeUUID &u2,
+        const TrustLineDirection direction,
+        const bool commit = true);
+
+    void remove(
+        const NodeUUID &u1,
+        const NodeUUID &u2,
+        const bool commit = true);
+
+    void commitOperations();
+    void rollBackOperations();
+    void rollbackSetOperation(
+        SetOperation::Shared operation);
+
     const RecordNumber intersectingRecordNumber(
         const NodeUUID &u1,
         const NodeUUID &u2) const;
 
-    void processTransaction(
-        const BaseTransaction *transaction);
-
-    void executeTransaction(
-        const BaseTransaction *transaction);
-
-    void rollbackTransaction(
-        const BaseTransaction *transaction);
-
-
-
-
+    void executeOperation(
+        const Operation::Shared operation);
 };
 
 

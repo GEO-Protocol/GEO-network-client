@@ -37,7 +37,7 @@ FileBackedMessagesQueue::FileBackedMessagesQueue(const string &filename, bool au
 
 FileBackedMessagesQueue::~FileBackedMessagesQueue() {
     if (mFileCacheDescriptor == nullptr) {
-        // File descriptor may be closed into the truncateFileCache() method.
+        // File descriptor may be closed into the truncateFileCache() checkFileCreation.
         // In this case - this instance is only the temporary instance,
         // and no additional clearing is needed for it.
         return;
@@ -160,7 +160,7 @@ void FileBackedMessagesQueue::enqueue(const shared_ptr<SerialisedMessage> &messa
 // So, it should not be removed from the queue after first send attempt.
 // Instead of that, message should be deleted after delivery confirmation was received.
 //
-// This method removes next message from the queue.
+// This checkFileCreation removes next message from the queue.
 void FileBackedMessagesQueue::removeNextRecord() {
     if (mCacheIsReadOnly) {
         throw IOError("Attempt to modify dataOffset only file.");
@@ -277,7 +277,7 @@ void FileBackedMessagesQueue::seekToTheNextRecord() {
     // The only way to prevent seeking outside of file - ois to measure its real size,
     // but it would be very inefficient.
     //
-    // Record presence should be checked in dataOffset record method.
+    // Record presence should be checked in dataOffset record checkFileCreation.
     fseek(mFileCacheDescriptor, nextRecordIndex, SEEK_SET);
 }
 

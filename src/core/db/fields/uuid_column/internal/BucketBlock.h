@@ -15,7 +15,6 @@ using namespace std;
 
 
 class BucketBlockRecord;
-
 class BucketBlock:
     protected AbstractRecordsHandler {
 
@@ -24,29 +23,24 @@ class BucketBlock:
 public:
     explicit BucketBlock();
     explicit BucketBlock(
-        BucketBlockRecord *records,
-        const RecordNumber recordsCount);
-
+        byte *data);
     ~BucketBlock();
 
     void insert(
         const NodeUUID &uuid,
         const RecordNumber recN);
-
     bool remove(
         const NodeUUID &uuid,
         const RecordNumber recN);
 
     BucketBlockRecord* recordByUUID(
         const NodeUUID &uuid) const;
-
     const RecordNumber recordIndexByUUID(
         const NodeUUID &uuid) const;
 
     const bool isModified() const;
     const RecordNumber recordsCount() const;
-    const BucketBlockRecord* records() const;
-    const pair<void*, size_t> data() const;
+    const pair<shared_ptr<byte>, uint32_t> serializeToBytes() const;
 
 protected:
     BucketBlockRecord *mRecords;

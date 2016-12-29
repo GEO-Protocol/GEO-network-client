@@ -7,25 +7,33 @@ namespace uuid_map {
 
 
 BucketBlockRecord::BucketBlockRecord(const NodeUUID &uuid):
-    mUUID(uuid),
     mRecordsNumbersCount(0),
     mRecordsNumbers(nullptr),
-    mHasBeenModified(false){}
+    mHasBeenModified(false){
+
+    mUUID = new NodeUUID();
+    memcpy(mUUID->data, uuid.data, NodeUUID::kUUIDLength);
+}
 
 BucketBlockRecord::BucketBlockRecord(
-    const NodeUUID &uuid,
-    AbstractRecordsHandler::RecordsCount recordsNumbersCount,
-    RecordNumber *recordsNumbers):
+    byte *data):
+    mHasBeenModified(false){
 
-    mUUID(uuid),
-    mRecordsNumbers(recordsNumbers),
-    mRecordsNumbersCount(recordsNumbersCount),
-    mHasBeenModified(false){}
+    mUUID = (NodeUUID*)data;
+
+    const auto kRecordsCountOffset = data + NodeUUID::kUUIDLength;
+    mRecordsNumbersCount = *(RecordsCount*)kRecordsCountOffset;
+
+    const byte *kRecordsNumbersOffset = kRecordsCountOffset + sizeof(RecordsCount);
+    mRecordsNumbers = (RecordNumber*)kRecordsNumbersOffset;
+}
 
 BucketBlockRecord::~BucketBlockRecord() {
     if (mRecordsNumbers != nullptr) {
         free(mRecordsNumbers);
     }
+
+    delete mUUID;
 }
 
 /*!
@@ -151,7 +159,7 @@ AbstractRecordsHandler::RecordNumber *BucketBlockRecord::recordNumbers() const {
 }
 
 const NodeUUID &BucketBlockRecord::uuid() const {
-    return mUUID;
+    return *mUUID;
 }
 
 const bool BucketBlockRecord::isModified() const {

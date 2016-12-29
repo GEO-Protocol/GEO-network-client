@@ -5,15 +5,52 @@ namespace db {
 namespace fields {
 namespace uuid_map {
 
+
 BucketBlock::BucketBlock():
     mRecords(nullptr),
     mRecordsCount(0),
     mHasBeenModified(false){}
 
-BucketBlock::BucketBlock(BucketBlockRecord *records, const RecordNumber recordsCount):
-    mRecords(records),
-    mRecordsCount(recordsCount),
-    mHasBeenModified(false){}
+/*!
+ * Deserialization constructor.
+ *
+ * Initializes the instance from the already allocated and populated data-block.
+ * This constructor is used to perform optimized instance initialisation after reading from the disk.
+ *
+ * @param data - pointer to the data block, that was read from the disk.
+ */
+BucketBlock::BucketBlock(
+    byte *data):
+    mHasBeenModified(false){
+
+    // By the format, each serialized bucket block is prefixed with records count field.
+    const auto kRecordsCount = *(RecordsCount*)data;
+    mRecords = (BucketBlockRecord*)malloc(sizeof(BucketBlockRecord) * kRecordsCount);
+
+    // Populating the records of the block with the data.
+    BucketBlockRecord* nextRecordOffset = mRecords;
+    byte *currentDataOffset = data + sizeof(RecordsCount);
+
+    for (RecordsCount i=0; i<kRecordsCount; ++i) {
+        // Create instance of BucketBlockRecord into
+        // the already allocated and populated data-block;
+        new (nextRecordOffset) BucketBlockRecord(currentDataOffset);
+
+        // Determine how much record numbers are present into the BucketBlockRecord.
+        // This is needed to be able to increment offset for the next record.
+        // (Records numbers count field is situated after the uuid field)
+        byte *recordsCountFieldOffset = currentDataOffset + NodeUUID::kUUIDLength;
+        RecordsCount recordNumbersCount = *(RecordsCount*)recordsCountFieldOffset;
+
+        // Move offset to the next record
+        currentDataOffset +=
+            + NodeUUID::kUUIDLength
+            + sizeof(RecordsCount)
+            + sizeof(RecordNumber) * recordNumbersCount;
+
+        nextRecordOffset += 1;
+    }
+}
 
 BucketBlock::~BucketBlock() {
     for (size_t i=0; i<mRecordsCount; ++i){
@@ -39,14 +76,16 @@ void BucketBlock::insert(const NodeUUID &uuid, const RecordNumber recN) {
                 "there is no free space in this block.");
     }
 
-    auto record = recordByUUID(uuid);
-    if (record == nullptr) {
+    try {
+        auto record = recordByUUID(uuid);
+        record->insert(recN);
+
+    } catch (IndexError &) {
         // Current block doesn't contains record with exact uuid.
         // New one record should be created.
-        record = createRecord(uuid);
+        auto record = createRecord(uuid);
+        record->insert(recN);
     }
-
-    record->insert(recN);
     mHasBeenModified = true;
 }
 
@@ -76,13 +115,8 @@ bool BucketBlock::remove(const NodeUUID &uuid, const RecordNumber recN) {
  * Otherwise - returns it's address.
  */
 BucketBlockRecord *BucketBlock::recordByUUID(const NodeUUID &uuid) const {
-    try {
-        AbstractRecordsHandler::RecordsCount index = recordIndexByUUID(uuid);
-        return mRecords+index;
-
-    } catch (IndexError &) {
-        return nullptr;
-    }
+    auto index = recordIndexByUUID(uuid);
+    return mRecords+index;
 }
 
 /*!
@@ -90,7 +124,9 @@ BucketBlockRecord *BucketBlock::recordByUUID(const NodeUUID &uuid) const {
  * Returns record index in case when record with "uuid" was found in the block;
  * Otherwise - throws IndexError;
  */
-const AbstractRecordsHandler::RecordsCount BucketBlock::recordIndexByUUID(const NodeUUID &uuid) const {
+const AbstractRecordsHandler::RecordsCount BucketBlock::recordIndexByUUID(
+    const NodeUUID &uuid) const {
+
     AbstractRecordsHandler::RecordsCount first = 0;
     AbstractRecordsHandler::RecordsCount last = mRecordsCount; // index of elem. that is BEHIND THE LAST elem.
 
@@ -115,7 +151,7 @@ const AbstractRecordsHandler::RecordsCount BucketBlock::recordIndexByUUID(const 
     }
 
     while (first < last) {
-        size_t mid = first + (last - first) / 2;
+        RecordsCount mid = first + (last - first) / 2;
 
         auto comp = NodeUUID::compare(uuid, mRecords[mid].uuid());
         if (comp == NodeUUID::LESS || comp == NodeUUID::EQUAL)
@@ -224,15 +260,52 @@ const AbstractRecordsHandler::RecordNumber BucketBlock::recordsCount() const {
     return mRecordsCount;
 }
 
-const BucketBlockRecord *BucketBlock::records() const {
-    return mRecords;
-}
 
-/*
- * Returns pointer to block data and it's size in bytes.
- */
-const pair<void*, size_t> BucketBlock::data() const {
-    return make_pair((void*)mRecords, mRecordsCount * sizeof(RecordNumber));
+const pair<shared_ptr<byte>, uint32_t> BucketBlock::serializeToBytes() const {
+
+    // By default, block data should be prefixed with field,
+    // that specifies how many records are in the storage.
+    uint32_t totalBlockSize = sizeof(RecordNumber);
+
+    for (RecordsCount i=0; i<mRecordsCount; ++i){
+        totalBlockSize +=
+            + NodeUUID::kUUIDLength // uuid of the record
+            + sizeof(RecordsCount)  // how many record numbers are stored in the record
+            + sizeof(RecordNumber) * mRecords[i].count(); // record numbers itself
+    }
+
+    byte *block = (byte*) malloc(totalBlockSize);
+    if (block == nullptr) {
+        throw MemoryError(
+            "BucketBlock::serializeToBytes: "
+                "can't allocated memory for serialization.");
+    }
+
+    //
+    // Filling the block with data
+    //
+
+    // Filling records count
+    new (block) RecordsCount(mRecordsCount);
+
+    // Filling records
+    byte *currentOffset = block + sizeof(RecordNumber);
+    for (RecordsCount i=0; i<mRecordsCount; ++i){
+        // UUID
+        memcpy(currentOffset, mRecords[i].uuid().data, NodeUUID::kUUIDLength);
+        currentOffset += NodeUUID::kUUIDLength;;
+
+        // Record numbers count
+        new (currentOffset) RecordsCount(mRecords[i].count());
+        currentOffset += sizeof(RecordsCount);
+
+        // Record numbers
+        memcpy(currentOffset,  mRecords[i].recordNumbers(), sizeof(RecordNumber) * mRecords[i].count());
+    }
+
+
+    shared_ptr<byte> blockPtr(block, free);
+    return make_pair(blockPtr, totalBlockSize);
 }
 
 

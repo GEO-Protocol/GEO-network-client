@@ -9,7 +9,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(src/core/common/)
 add_subdirectory(src/core/common/exceptions)
+
 add_subdirectory(src/core/db)
+add_subdirectory(src/tests/db)
 
 add_subdirectory(src/core/io/routing_tables)
 add_subdirectory(src/tests/io/routing_tables)
@@ -35,7 +37,7 @@ set(SOURCE_FILES
         src/core/commands/Command.cpp
         src/core/commands/Command.h
 
-        src/tests/interface/CommandsParserTests.cpp src/tests/io/routing_tables/SetOperationTests.cpp)
+        src/tests/interface/CommandsParserTests.cpp src/tests/io/routing_tables/SetOperationTests.cpp src/tests/db/fields/TrustLineDirectionColumnTests.cpp)
 
 add_executable(geo_network_client ${SOURCE_FILES})
 
@@ -46,7 +48,9 @@ target_link_libraries(geo_network_client
 
         common
         exceptions
+
         db
+        db_tests
 
         io_routing_tables
         io_routing_tables_tests

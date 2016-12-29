@@ -8,7 +8,9 @@ namespace io {
 namespace routing_tables {
 
 
-class ThirdLevelRoutingTable: AbstractRoutingTable {
+class ThirdLevelRoutingTable:
+    public AbstractRoutingTable {
+
 public:
     ThirdLevelRoutingTable();
 };

@@ -87,7 +87,7 @@ void AbstractFileDescriptorHandler::syncLowLevelOSBuffers() const {
     fflush(mFileDescriptor);
     if (fdatasync(fileno(mFileDescriptor)) != 0) {
         throw IOError(
-            "UUIDMapColumn::writeBlock: "
+            "UUIDColumn::writeBlock: "
                 "can't sync user-space buffers.");
     }
 }

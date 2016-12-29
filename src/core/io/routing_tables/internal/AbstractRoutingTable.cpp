@@ -5,52 +5,58 @@ namespace routing_tables {
 
 
 AbstractRoutingTable::AbstractRoutingTable(
-    const char *path,
-    const Level level):
+    const fs::path &path,
+    const uint8_t pow2bucketsCountIndex):
 
     // Each column would be located into its sub-directory.
-    mF1Path(string(path) + "/f1/"),
-    mF2Path(string(path) + "/f2/"),
-    mDirColumnPath(string(path) + "/dir/") {
+    mF1Path(path / fs::path("f1/")),
+    mF2Path(path / fs::path("f2/")),
+    mDirColumnPath(path / fs::path("dir/")) {
 
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
-    assert(path != nullptr);
+    assert(pow2bucketsCountIndex > 0 && pow2bucketsCountIndex < 16);
 #endif
 
-    uint8_t pow2bucketsIndex;
-    switch (level) {
-        case Second:
-            pow2bucketsIndex = 9; // 2**9 = 512 buckets on the disk.
-            break;
+    try {
+        mF1Column = new UUIDColumn(mF1Path, pow2bucketsCountIndex);
+        mF2Column = new UUIDColumn(mF2Path, pow2bucketsCountIndex);
+        mDirColumn = new TrustLineDirectionColumn(mDirColumnPath);
+        mOperationsLog = new OperationsLog(path);
 
-        case Third:
-            pow2bucketsIndex = 13; // 2**13 = 8192 buckets on the disk.
-            break;
-
-        default:
-            throw ValueError(
-                "AbstractRoutingTable::AbstractRoutingTable: "
-                    "invalid \"level\" received.");
+    } catch (std::bad_alloc &e) {
+        throw MemoryError(
+            "AbstractRoutingTable::AbstractRoutingTable: "
+                "can't allocate enough memory internal components.");
     }
 
-    mF1Column = new UUIDMapColumn(mF1Path.c_str(), pow2bucketsIndex);
-    mF2Column = new UUIDMapColumn(mF2Path.c_str(), pow2bucketsIndex);
-    mDirColumn = new TrustLineDirectionColumn("dir.col", path);
-
-    mTransactionHandler = new TransactionsHandler("tr.dat", path);
+    // In case if transactions log contains operations -
+    // all of them should be rolled back;
+    rollBackOperations();
 }
 
 AbstractRoutingTable::~AbstractRoutingTable() {
     delete mF1Column;
     delete mF2Column;
     delete mDirColumn;
-    delete mTransactionHandler;
+    delete mOperationsLog;
+}
+
+Transaction *AbstractRoutingTable::beginTransaction() const {
+    if (mOperationsLog->transactionMayBeStarted()) {
+        return new Transaction(this);
+
+    } else {
+        throw ConflictError(
+            "AbstractRoutingTable::beginTransaction: "
+                "other transaction is in progress.");
+    }
 }
 
 void AbstractRoutingTable::set(
     const NodeUUID &u1,
     const NodeUUID &u2,
-    const TrustLineDirectionColumn::Direction direction) {
+    const TrustLineDirection direction,
+    const bool commit) {
 
     // (u1, u2) is primary key.
     // In case when this PK is already present in the table -
@@ -58,19 +64,23 @@ void AbstractRoutingTable::set(
     // Otherwise - new record should be inserted.
     try {
         auto recN = intersectingRecordNumber(u1, u2);
-        processTransaction(
-            mTransactionHandler->beginDirectionUpdateTransaction(recN, direction));
+        auto directionBackup = mDirColumn->direction(recN);
+        executeOperation(mOperationsLog->initDirectionUpdateOperation(recN, direction, directionBackup));
 
     } catch (IndexError &){
         // New record should be inserted
-        processTransaction(
-            mTransactionHandler->beginInsertTransaction(u1, u2, direction));
+        executeOperation(mOperationsLog->initSetOperation(u1, u2, direction));
+    }
+
+    if (commit) {
+        commitOperations();
     }
 }
 
 void AbstractRoutingTable::remove(
     const NodeUUID &u1,
-    const NodeUUID &u2) {
+    const NodeUUID &u2,
+    const bool commit) {
 
     // (u1, u2) is primary key.
     // In case when this PK is already present in the table -
@@ -83,13 +93,42 @@ void AbstractRoutingTable::remove(
         // in case when transaction will crash.
         auto direction = mDirColumn->direction(recN);
 
-        processTransaction(
-            mTransactionHandler->beginRemoveTransaction(u1, u2, direction, recN));
+//        processTransaction(
+//            mOperationsLog->initRemoveOperation(u1, u2, direction));
+
+        if (commit) {
+            commitOperations();
+        }
 
     } catch (IndexError &){
         throw NotFoundError(
             "AbstractRoutingTable::remove: "
                 "record with pk=(u1, u2) doesn't exists.");
+    }
+}
+
+void AbstractRoutingTable::commitOperations() {
+
+}
+
+void AbstractRoutingTable::rollBackOperations() {
+    auto uncompletedOperations = mOperationsLog->uncompletedOperations();
+    if (uncompletedOperations->size() > 0) {
+        for (auto &op: *uncompletedOperations) {
+            switch (op->type()) {
+                case Operation::Set: {
+                    rollbackSetOperation(
+                        dynamic_pointer_cast<SetOperation>(op));
+                    continue;
+                }
+
+                default: {
+                    throw RuntimeError(
+                        "AbstractRoutingTable::rollBackOperations: "
+                            "unexpected operation occurred.");
+                }
+            }
+        }
     }
 }
 
@@ -127,122 +166,28 @@ const AbstractRecordsHandler::RecordNumber AbstractRoutingTable::intersectingRec
             "there is intersecting record number between first field and second field.");
 }
 
-void AbstractRoutingTable::processTransaction(
-    const BaseTransaction *transaction) {
+void AbstractRoutingTable::executeOperation(
+    const Operation::Shared operation) {
 
-    try {
-        executeTransaction(transaction);
-        mTransactionHandler->commitLastTransaction();
-        delete transaction;
+    if (operation->type() == Operation::Set) {
+        const SetOperation *op = dynamic_cast<SetOperation*>(operation.get());
 
-    } catch (Exception &e) {
-        // todo: process errors
+        mF1Column->set(op->u1(), op->recordNumber());
+        mF2Column->set(op->u2(), op->recordNumber());
+        mDirColumn->set(op->recordNumber(), op->direction());
+        return;
 
-        rollbackTransaction(transaction);
-        mTransactionHandler->removeLastTransaction();
-        delete transaction;
-
-        throw e;
+    } else {
+        throw Exception(
+            "AbstractRoutingTable::executeTransaction: "
+                "unexpected transaction type occurred.");
     }
 }
 
-void AbstractRoutingTable::executeTransaction(
-    const BaseTransaction *transaction) {
+void AbstractRoutingTable::rollbackSetOperation(
+    SetOperation::Shared operation) {
 
-    switch (transaction->type) {
-        case BaseTransaction::RecordInserting: {
-            const InsertTransaction *insertTransaction =
-                dynamic_cast<const InsertTransaction*>(transaction);
-
-            mF1Column->set(insertTransaction->u1, insertTransaction->recordNumber);
-            mF2Column->set(insertTransaction->u2, insertTransaction->recordNumber);
-            mDirColumn->set(insertTransaction->recordNumber, insertTransaction->direction);
-        }
-
-        case BaseTransaction::RecordRemoving: {
-            const RemoveTransaction *removeTransaction =
-                dynamic_cast<const RemoveTransaction*>(transaction);
-
-            mF1Column->remove(removeTransaction->u1, removeTransaction->recordNumber);
-            mF2Column->remove(removeTransaction->u2, removeTransaction->recordNumber);
-            mDirColumn->remove(removeTransaction->recordNumber);
-        }
-
-        case BaseTransaction::DirectionUpdating: {
-            const DirectionUpdateTransaction *updateTransaction =
-                dynamic_cast<const DirectionUpdateTransaction*>(transaction);
-
-            mDirColumn->set(updateTransaction->recordNumber, updateTransaction->direction);
-        }
-
-        default: {
-            throw Exception(
-                "AbstractRoutingTable::executeTransaction: "
-                    "unexpected transaction type occurred.");
-        }
-    }
 }
-
-void AbstractRoutingTable::rollbackTransaction(
-    const BaseTransaction *transaction) {
-
-    switch (transaction->type) {
-        case BaseTransaction::RecordInserting: {
-            // Reverting of the insert transaction is
-            // removing of partially inserted record.
-
-            const InsertTransaction *insertTransaction =
-                dynamic_cast<const InsertTransaction*>(transaction);
-
-            try {
-                mF1Column->remove(insertTransaction->u1, insertTransaction->recordNumber);
-            } catch (NotFoundError &e) {}
-
-            try {
-                mF2Column->remove(insertTransaction->u2, insertTransaction->recordNumber);
-            } catch (NotFoundError &e) {}
-
-            try {
-                mDirColumn->remove(insertTransaction->recordNumber);
-            } catch (NotFoundError &e) {}
-        }
-
-        case BaseTransaction::RecordRemoving: {
-            // Reverting of removing transaction is
-            // inserting record back.
-
-            const RemoveTransaction *removeTransaction =
-                dynamic_cast<const RemoveTransaction*>(transaction);
-
-            try {
-                mF1Column->set(removeTransaction->u1, removeTransaction->recordNumber);
-            } catch (ConflictError &e) {}
-
-            try {
-                mF2Column->set(removeTransaction->u2, removeTransaction->recordNumber);
-            } catch (ConflictError &e) {}
-
-            try {
-                mDirColumn->set(removeTransaction->recordNumber, removeTransaction->direction);
-            } catch (ConflictError &e) {}
-
-        }
-
-        case BaseTransaction::DirectionUpdating: {
-            const DirectionUpdateTransaction *updateTransaction =
-                dynamic_cast<const DirectionUpdateTransaction*>(transaction);
-
-            mDirColumn->set(updateTransaction->recordNumber, updateTransaction->direction);
-        }
-
-        default: {
-            throw Exception(
-                "AbstractRoutingTable::executeTransaction: "
-                    "unexpected transaction type occurred.");
-        }
-    }
-}
-
 
 } // namespace routing tables
 } // namespace io

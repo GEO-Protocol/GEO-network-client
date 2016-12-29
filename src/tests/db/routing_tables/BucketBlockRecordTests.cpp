@@ -5,6 +5,7 @@ namespace db {
 namespace fields {
 namespace uuid_map {
 
+
 class BucketBlockRecordTests {
 public:
     void run() {

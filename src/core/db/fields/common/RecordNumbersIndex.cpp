@@ -4,16 +4,16 @@
 namespace db {
 namespace fields {
 
-RecordNumbersIndex::RecordNumbersIndex(const char *path, const char *filename) :
 
-    AbstractFileDescriptorHandler(path, filename) {
+RecordNumbersIndex::RecordNumbersIndex(
+    const fs::path &path):
+    AbstractFileDescriptorHandler(path) {
+
     open(kWriteAccessMode);
 }
 
 RecordNumbersIndex::FileHeader::FileHeader():
     version(1){}
-
-RecordNumbersIndex::IndexRecord::IndexRecord() {}
 
 RecordNumbersIndex::IndexRecord::IndexRecord(
     const RecordNumbersIndex::DataOffset offset):
@@ -21,40 +21,30 @@ RecordNumbersIndex::IndexRecord::IndexRecord(
     offset(offset){}
 
 /*!
- * Updates data offset of the record with number == "recN".
- * Throws IOError in case if operation can't be finished successfully.
- *
- * @param recN - number of the record that should be updated.
- * @param storageOffset - data offset into the external storage.
- * @param flushBuffers - specifies if fdatasync() should be called
- *      after successfull operation.
+ * Throws IOError;
  */
 void RecordNumbersIndex::set(
     const RecordNumber recN,
-    const DataOffset storageOffset) {
+    const DataOffset storageOffset,
+    const bool sync) {
 
     IndexRecord record(storageOffset);
-
     fseek(mFileDescriptor, recordOffset(recN), SEEK_SET);
     if (fwrite(&record, sizeof(record), 1, mFileDescriptor) != 1) {
         throw IOError(
-            "RecordNumbersIndex::set: "
-                "can't write index record.");
+            "RecordNumbersIndex::set: can't write index record.");
     }
+
+    if (sync)
+        syncLowLevelOSBuffers();
 }
 
 /*!
- * Marks record with record number "recN" as removed.
- * Records are never physically removing from index.
- *
- * Throws IOError in case if operation can't be finished successfully.
- *
- * @param recN - number of the record that should be removed.
- * @param flushBuffers - specifies if fdatasync() should be called
- *      after successfull operation.
+ * Throws IOError;
  */
 void RecordNumbersIndex::remove(
-    const RecordNumber recN) {
+    const RecordNumber recN,
+    const bool sync) {
 
     IndexRecord record(IndexRecord::kRemovedRecordValue);
 
@@ -64,16 +54,18 @@ void RecordNumbersIndex::remove(
             "RecordNumbersIndex::remove: "
                 "can't mark record as removed.");
     }
+
+    if (sync)
+        syncLowLevelOSBuffers();
 }
 
 /*!
- * @param recN - number of the record that should be read.
- * @return offset of the data block that is associated with "recN"
+ * Throws NotFoundError.
  */
 const RecordNumbersIndex::DataOffset RecordNumbersIndex::dataOffset(
     const RecordNumber recN) const {
 
-    IndexRecord record;
+    IndexRecord record(IndexRecord::kRemovedRecordValue);
     fseek(mFileDescriptor, recordOffset(recN), SEEK_SET);
     if (fread(&record, sizeof(record), 1, mFileDescriptor) != 1){
         throw IOError(
@@ -81,6 +73,12 @@ const RecordNumbersIndex::DataOffset RecordNumbersIndex::dataOffset(
                 "can't read from the disk.");
     }
 
+    if (record.offset == IndexRecord::kRemovedRecordValue ||
+        record.offset == 0) {
+
+        throw NotFoundError(
+            "RecordNumbersIndex::dataOffset: no offset is associated to the recN");
+    }
     return record.offset;
 }
 
@@ -90,6 +88,10 @@ const RecordNumbersIndex::IndexRecordOffset RecordNumbersIndex::recordOffset(
     return (recN*sizeof(IndexRecord)) + sizeof(FileHeader);
 }
 
+/*!
+ * Throws IOError in case when file header can't be read.
+ * Throws ValueError in case when file version is unexpected;
+ */
 void RecordNumbersIndex::open(
     const char *accessMode) {
 
@@ -114,6 +116,9 @@ void RecordNumbersIndex::open(
     }
 }
 
+/*!
+ * Throws IOError;
+ */
 RecordNumbersIndex::FileHeader RecordNumbersIndex::loadFileHeader() const {
     FileHeader header;
     fseek(mFileDescriptor, 0, SEEK_SET);
@@ -144,6 +149,8 @@ void RecordNumbersIndex::updateFileHeader(
                 "can't sync buffers with the disk.");
     }
 }
+
+
 } // namespace fields
 } // namespace db
 

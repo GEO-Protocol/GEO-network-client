@@ -15,7 +15,7 @@ int Core::run() {
 
     try {
         mCommunicator->beginAcceptMessages();
-        mCommandsInterface->beginAcceptCommands();
+//        mCommandsInterface->beginAcceptCommands();
 
         mIOService.run();
         return 0;
@@ -33,13 +33,13 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
-    initCode = initCommandsAPI();
-    if (initCode != 0)
-        return initCode;
+//    initCode = initCommandsAPI();
+//    if (initCode != 0)
+//        return initCode;
 
-    initCode = initCommandsInterface();
-    if (initCode != 0)
-        return initCode;
+//    initCode = initCommandsInterface();
+//    if (initCode != 0)
+//        return initCode;
 
     json conf;
     try {
@@ -78,37 +78,37 @@ int Core::initSettings() {
     return 0;
 }
 
-int Core::initCommandsAPI() {
-    try {
-        mCommandsAPI = new CommandsAPI();
-
-    } catch (const Exception &e) {
-        mLog.logException("commands API", e);
-        return -1;
-
-    } catch (const std::exception &e) {
-        mLog.logException("commands API", e);
-        return -1;
-    }
-
-    return 0;
-}
-
-int Core::initCommandsInterface() {
-    try {
-        mCommandsInterface = new CommandsInterface(mIOService, mCommandsAPI);
-
-    } catch (const Exception &e) {
-        mLog.logException("commands interface", e);
-        return -1;
-
-    } catch (const std::exception &e) {
-        mLog.logException("commands interface", e);
-        return -1;
-    }
-
-    return 0;
-}
+//int Core::initCommandsAPI() {
+//    try {
+//        mCommandsAPI = new CommandsAPI();
+//
+//    } catch (const Exception &e) {
+//        mLog.logException("commands API", e);
+//        return -1;
+//
+//    } catch (const std::exception &e) {
+//        mLog.logException("commands API", e);
+//        return -1;
+//    }
+//
+//    return 0;
+//}
+//
+//int Core::initCommandsInterface() {
+//    try {
+//        mCommandsInterface = new CommandsInterface(mIOService, mCommandsAPI);
+//
+//    } catch (const Exception &e) {
+//        mLog.logException("commands interface", e);
+//        return -1;
+//
+//    } catch (const std::exception &e) {
+//        mLog.logException("commands interface", e);
+//        return -1;
+//    }
+//
+//    return 0;
+//}
 
 int Core::initCommunicator(const json &conf) {
     try {
@@ -136,18 +136,18 @@ void Core::cleanupMemory() {
         delete mCommunicator;
     }
 
-    if (mCommandsAPI != nullptr) {
-        delete mCommandsAPI;
-    }
-
-    if (mCommandsInterface != nullptr) {
-        delete mCommandsInterface;
-    }
+//    if (mCommandsAPI != nullptr) {
+//        delete mCommandsAPI;
+//    }
+//
+//    if (mCommandsInterface != nullptr) {
+//        delete mCommandsInterface;
+//    }
 }
 
 void Core::zeroPointers() {
     mSettings = nullptr;
     mCommunicator = nullptr;
-    mCommandsAPI = nullptr;
-    mCommandsInterface = nullptr;
+//    mCommandsAPI = nullptr;
+//    mCommandsInterface = nullptr;
 }
