@@ -2,12 +2,13 @@
 
 TransactionsManagerTest::TransactionsManagerTest(
         as::io_service &IOService,
+        TrustLinesManager *trustLinesManager,
         ResultsInterface *resultsInterface,
         Logger *logger) :
 
         mLog(logger){
 
-    mTransactionsManager = new TransactionsManager(IOService, resultsInterface, logger);
+    mTransactionsManager = new TransactionsManager(IOService, trustLinesManager, resultsInterface, logger);
 }
 
 TransactionsManagerTest::~TransactionsManagerTest() {

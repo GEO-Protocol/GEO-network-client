@@ -41,6 +41,8 @@ private:
     as::io_service &mIOService;
     as::deadline_timer *mProcessingTimer;
 
+
+
     function_callback mMangerCallback;
 
     map<BaseTransaction::Shared, TransactionState::SharedConst> mTransactions;

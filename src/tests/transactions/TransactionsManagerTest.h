@@ -13,6 +13,7 @@ public:
 public:
     TransactionsManagerTest(
             as::io_service &IOService,
+            TrustLinesManager *trustLinesManager,
             ResultsInterface *resultsInterface,
             Logger *logger);
 

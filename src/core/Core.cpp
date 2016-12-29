@@ -64,6 +64,10 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
+    initCode = initTrustLinesManager();
+    if (initCode != 0)
+        return initCode;
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
@@ -116,9 +120,21 @@ int Core::initResultsInterface() {
     }
 }
 
+int Core::initTrustLinesManager() {
+    try{
+        mTrustLinesManager = new TrustLinesManager();
+        mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
+        return 0;
+
+    }catch(const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
 int Core::initTransactionsManager() {
     try {
-        mTransactionsManager = new TransactionsManager(mIOService, mResultsInterface, &mLog);
+        mTransactionsManager = new TransactionsManager(mIOService, mTrustLinesManager, mResultsInterface, &mLog);
         mLog.logSuccess("Core", "Transactions handler is successfully initialised");
         return 0;
 
@@ -149,16 +165,20 @@ void Core::cleanupMemory() {
         delete mCommunicator;
     }
 
-    if (mCommandsInterface != nullptr) {
-        delete mCommandsInterface;
-    }
-
     if (mResultsInterface != nullptr) {
         delete mResultsInterface;
     }
 
+    if (mTrustLinesManager != nullptr) {
+        delete mTrustLinesManager;
+    }
+
     if (mTransactionsManager != nullptr) {
         delete mTransactionsManager;
+    }
+
+    if (mCommandsInterface != nullptr) {
+        delete mCommandsInterface;
     }
 }
 
@@ -166,4 +186,8 @@ void Core::zeroPointers() {
     mSettings = nullptr;
     mCommunicator = nullptr;
     mCommandsInterface = nullptr;
+    mResultsInterface = nullptr;
+    mTrustLinesManager = nullptr;
+    mTransactionsManager = nullptr;
 }
+

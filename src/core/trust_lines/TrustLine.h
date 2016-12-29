@@ -1,10 +1,11 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINE_H
 #define GEO_NETWORK_CLIENT_TRUSTLINE_H
 
+#include "../common/NodeUUID.h"
+
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
-#include "../common/NodeUUID.h"
 
 
 using namespace std;
@@ -16,10 +17,12 @@ typedef multiprecision::checked_uint256_t trust_amount;
 typedef multiprecision::int256_t balance_value;
 typedef boost::function<void()> callback;
 
-class TrustLinesManager;
-
 struct TrustLine {
     friend class TrustLinesManager;
+
+public:
+    typedef shared_ptr<TrustLine> Shared;
+    typedef shared_ptr<const TrustLine> SharedConst;
 
 private:
     NodeUUID mContractorNodeUuid;
@@ -34,13 +37,20 @@ private:
               const trust_amount &outgoingAmount,
               const balance_value &nodeBalance);
 
-    void setContractorNodeUUID(const NodeUUID &nodeUUID);
+    void setContractorNodeUUID(
+            const NodeUUID &nodeUUID);
 
-    void setIncomingTrustAmount(callback managersCallback, const trust_amount &incomingAmount);
+    void setIncomingTrustAmount(
+            callback managersCallback,
+            const trust_amount &incomingAmount);
 
-    void setOutgoingTrustAmount(callback managersCallback, const trust_amount &outgoingAmount);
+    void setOutgoingTrustAmount(
+            callback managersCallback,
+            const trust_amount &outgoingAmount);
 
-    void setBalance(callback managersCallback, const balance_value &nodeBalance);
+    void setBalance(
+            callback managersCallback,
+            const balance_value &nodeBalance);
 
 public:
     const NodeUUID &getContractorNodeUUID() const;
