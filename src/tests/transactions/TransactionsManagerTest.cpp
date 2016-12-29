@@ -20,13 +20,13 @@ TransactionsManagerTest::~TransactionsManagerTest() {
 
 void TransactionsManagerTest::runFewTransactionsWithSuccessResultTestCase() {
 
-    mLog->mFileLogger->writeEmptyLine(1);
-    mLog->logInfo("Transactions manager test",
-                  "_________________________________________________");
-    mLog->logInfo("Transactions manager test",
-                  "Case 1. Run few transactions with success result.");
-    mLog->logInfo("Transactions manager test",
-                  "_________________________________________________");
+//    mLog->mFileLogger->writeEmptyLine(1);
+//    mLog->logInfo("Transactions manager test",
+//                  "_________________________________________________");
+//    mLog->logInfo("Transactions manager test",
+//                  "Case 1. Run few transactions with success result.");
+//    mLog->logInfo("Transactions manager test",
+//                  "_________________________________________________");
 
     CommandUUID command1UUID;
     BaseUserCommand *command1 = new OpenTrustLineCommand(command1UUID, "550e8400-e29b-41d4-a716-446655440000\t200\n");
@@ -41,13 +41,13 @@ void TransactionsManagerTest::runFewTransactionsWithSuccessResultTestCase() {
 
 void TransactionsManagerTest::runSingleTransactionWithFailureStateAndAfterRelaunchingWithSuccessResultTestCase() {
 
-    mLog->mFileLogger->writeEmptyLine(1);
-    mLog->logInfo("Transactions manager test",
-                  "_________________________________________________");
-    mLog->logInfo("Transactions manager test",
-                  "Case 2. Run single transaction which first returns failure result, relaunch after 15 sec and return success result.");
-    mLog->logInfo("Transactions manager test",
-                  "_________________________________________________");
+//    mLog->mFileLogger->writeEmptyLine(1);
+//    mLog->logInfo("Transactions manager test",
+//                  "_________________________________________________");
+//    mLog->logInfo("Transactions manager test",
+//                  "Case 2. Run single transaction which first returns failure result, relaunch after 15 sec and return success result.");
+//    mLog->logInfo("Transactions manager test",
+//                  "_________________________________________________");
 
     CommandUUID command1UUID;
     BaseUserCommand *command1 = new UpdateTrustLineCommand(command1UUID, "550e8400-e29b-41d4-a716-446655440000\t200\n");
@@ -57,13 +57,13 @@ void TransactionsManagerTest::runSingleTransactionWithFailureStateAndAfterRelaun
 }
 
 void TransactionsManagerTest::runSingleTransactionWhichCrashWhileRunning() {
-    mLog->mFileLogger->writeEmptyLine(1);
-    mLog->logInfo("Transactions manager test",
-                  "_________________________________________________");
-    mLog->logInfo("Transactions manager test",
-                  "Case 3. Run single transaction which crash while running.");
-    mLog->logInfo("Transactions manager test",
-                  "_________________________________________________");
+//    mLog->mFileLogger->writeEmptyLine(1);
+//    mLog->logInfo("Transactions manager test",
+//                  "_________________________________________________");
+//    mLog->logInfo("Transactions manager test",
+//                  "Case 3. Run single transaction which crash while running.");
+//    mLog->logInfo("Transactions manager test",
+//                  "_________________________________________________");
 
     CommandUUID command1UUID;
     BaseUserCommand *command1 = new CloseTrustLineCommand(command1UUID, "550e8400-e29b-41d4-a716-446655440000\n");
@@ -72,13 +72,13 @@ void TransactionsManagerTest::runSingleTransactionWhichCrashWhileRunning() {
 }
 
 void TransactionsManagerTest::runFewTransactionsWhichReturnsFailureStateAndAfterRelaunchingWithSuccessResultTestCase() {
-    mLog->mFileLogger->writeEmptyLine(1);
-    mLog->logInfo("Transactions manager test",
-                  "_________________________________________________");
-    mLog->logInfo("Transactions manager test",
-                  "Case 4. Run few transactions which first returns failure result, relaunching after 15 and 25 sec and returns success result.");
-    mLog->logInfo("Transactions manager test",
-                  "_________________________________________________");
+//    mLog->mFileLogger->writeEmptyLine(1);
+//    mLog->logInfo("Transactions manager test",
+//                  "_________________________________________________");
+//    mLog->logInfo("Transactions manager test",
+//                  "Case 4. Run few transactions which first returns failure result, relaunching after 15 and 25 sec and returns success result.");
+//    mLog->logInfo("Transactions manager test",
+//                  "_________________________________________________");
 
     CommandUUID command1UUID;
     BaseUserCommand *command1 = new UpdateTrustLineCommand(command1UUID, "550e8400-e29b-41d4-a716-446655440000\t200\n");
@@ -91,13 +91,13 @@ void TransactionsManagerTest::runFewTransactionsWhichReturnsFailureStateAndAfter
 }
 
 void TransactionsManagerTest::runAllCases() {
-    mLog->mFileLogger->writeEmptyLine(1);
-    mLog->logInfo("Transactions manager test",
-                  "_________________________________________________");
-    mLog->logInfo("Transactions manager test",
-                  "Run all previous cases step by step.");
-    mLog->logInfo("Transactions manager test",
-                  "_________________________________________________");
+//    mLog->mFileLogger->writeEmptyLine(1);
+//    mLog->logInfo("Transactions manager test",
+//                  "_________________________________________________");
+//    mLog->logInfo("Transactions manager test",
+//                  "Run all previous cases step by step.");
+//    mLog->logInfo("Transactions manager test",
+//                  "_________________________________________________");
     runFewTransactionsWithSuccessResultTestCase();
     runSingleTransactionWithFailureStateAndAfterRelaunchingWithSuccessResultTestCase();
     runSingleTransactionWhichCrashWhileRunning();
