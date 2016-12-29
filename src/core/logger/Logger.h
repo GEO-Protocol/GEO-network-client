@@ -4,59 +4,65 @@
 #include "../common/exceptions/Exception.h"
 
 #include <iostream>
+#include <sstream>
 #include <string>
 
 
 using namespace std;
 
-class Logger {
+
+class Logger;
+class LoggerStream:
+    public stringstream {
+
 public:
-    void logException(const char *subsystem, const exception &e) {
-        auto m = string(e.what());
-        logRecord("EXCEPT", subsystem, m);
-    }
-
-    void logInfo(const char *subsystem, const string &message){
-        logRecord("INFO", subsystem, message);
-    }
-
-    void logSuccess(const char *subsystem, const string &message){
-        logRecord("SUCCESS", subsystem, message);
-    }
-
-    void logError(const char *subsystem, const string &message){
-        logRecord("ERROR", subsystem, message);
-    }
-
-    void logFatal(const char *subsystem, const string &message){
-        logRecord("FATAL", subsystem, message);
-    }
+    explicit LoggerStream(
+        Logger *logger,
+        const char *group,
+        const char *subsystem);
+    LoggerStream(const LoggerStream &other);
+    ~LoggerStream();
 
 private:
-    const string formatMessage(const string &message) const {
-        if (message.size() == 0) {
-            return message;
-        }
-
-        auto m = message;
-        if (m.at(m.size()-1) != '.') {
-            m += ".";
-        }
-
-        return m;
-    }
-
-    const string recordPrefix(const char *group) {
-        // todo: add Timestamp
-        return string(group) + string("\t\t");
-    }
-
-    void logRecord(const char *group, const char *subsystem, const string &message) {
-        cout << recordPrefix(group)
-             << subsystem << "\t\t\t"
-             << formatMessage(message) << endl;
-        cout.flush();
-    }
+    Logger *mLogger;
+    const char *mGroup;
+    const char *mSubsystem;
 };
+
+
+class Logger {
+    friend class LoggerStream;
+
+public:
+    void logException(
+        const char *subsystem,
+        const exception &e);
+    void logInfo(
+        const char *subsystem,
+        const string &message);
+    void logSuccess(
+        const char *subsystem,
+        const string &message);
+    void logError(
+        const char *subsystem,
+        const string &message);
+    void logFatal(
+        const char *subsystem,
+        const string &message);
+
+    LoggerStream info(
+        const char *subsystem);
+
+private:
+    const string formatMessage(
+        const string &message) const;
+    const string recordPrefix(
+        const char *group);
+    void logRecord(
+        const char *group,
+        const char *subsystem,
+        const string &message);
+};
+
 
 #endif //GEO_NETWORK_CLIENT_LOGGER_H

@@ -14,7 +14,7 @@
 #include <iostream>
 
 
-#define DEBUG_RESULTS_INTERFACE
+//#define DEBUG_RESULTS_INTERFACE
 
 
 using namespace std;
@@ -40,7 +40,7 @@ private:
     Logger *mLog;
 
 private:
-    virtual const char* name() const;
+    virtual const char* FIFOname() const;
 };
 
 #endif //GEO_NETWORK_CLIENT_RESULTSINTERFACE_H

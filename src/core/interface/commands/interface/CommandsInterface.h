@@ -28,6 +28,9 @@
 #include <exception>
 
 
+#define COMMANDS_INTERFACE_DEBUG
+
+
 using namespace std;
 namespace uuids = boost::uuids;
 
@@ -48,18 +51,20 @@ class CommandsParser {
 public:
     static const size_t kUUIDHexRepresentationSize = 36;
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
-
-protected:
     static const char kCommandsSeparator = '\n';
     static const char kTokensSeparator = '\t';
 
+public:
+    CommandsParser(Logger *log);
+    void appendReadData(
+        as::streambuf *buffer,
+        const size_t receivedBytesCount);
+    pair<bool, BaseUserCommand::Shared> processReceivedCommands();
+
 protected:
     string mBuffer;
+    Logger *mLog;
 
-public:
-    pair<bool, BaseUserCommand::Shared> processReceivedCommandPart(
-        const char *commandPart,
-        const size_t receivedBytesCount);
 
 protected:
     inline pair<bool, BaseUserCommand::Shared> tryDeserializeCommand();
@@ -97,7 +102,7 @@ public:
     void beginAcceptCommands();
 
 protected:
-    static const constexpr size_t kCommandBufferSize = 128;
+    static const constexpr size_t kCommandBufferSize = 1024;
 
 protected:
     // External
@@ -106,21 +111,19 @@ protected:
     Logger *mLog;
 
     // Internal
+    as::streambuf mCommandBuffer;
     as::posix::stream_descriptor *mFIFOStreamDescriptor;
     as::deadline_timer *mReadTimeoutTimer;
     CommandsParser *mCommandsParser;
 
-    vector<char> mCommandBuffer;
+//    vector<char> mCommandBuffer;
 
 protected:
-    virtual const char* name() const;
-
+    virtual const char* FIFOname() const;
     void asyncReceiveNextCommand();
-
     void handleReceivedInfo(
         const boost::system::error_code &error,
         const size_t bytesTransferred);
-
     void handleTimeout(
         const boost::system::error_code &error);
 };
