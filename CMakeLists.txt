@@ -2,21 +2,58 @@ cmake_minimum_required(VERSION 3.6)
 project(geo_network_client)
 
 # NOTE: Do not forget to change it in release version
-add_definitions(-DDEBUG -DTESTS)
-
+add_definitions(-DDEBUG -DTESTS -DINTERNAL_ARGUMENTS_VALIDATION)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
+add_subdirectory(src/core/common/)
+add_subdirectory(src/core/common/exceptions)
 
-set(SOURCE_FILES main.cpp src/core/logger/Logger.cpp src/core/network/Communicator.cpp src/core/network/Communicator.h src/core/network/internal/OutgoingMessagesHandler.cpp src/core/network/internal/OutgoingMessagesHandler.h src/core/common/NodeUUID.cpp src/core/common/NodeUUID.h src/core/network/messages/Message.cpp src/core/network/messages/Message.h src/core/network/internal/OutgoingMessagesQueue.cpp src/core/network/internal/OutgoingMessagesQueue.h src/core/Core.cpp src/core/Core.h src/core/common/exceptions/Exception.cpp src/core/common/exceptions/Exception.h src/core/network/messages/TestMessage.h src/core/common/exceptions/IOError.h src/core/common/exceptions/ValueError.h src/core/common/exceptions/MemoryError.h src/core/common/exceptions/PreconditionFaultError.h src/tests/network/FileBackedMessagesQueueTests.cpp src/core/network/internal/IncomingMessagesHandler.cpp src/core/network/internal/IncomingMessagesHandler.h src/core/common/exceptions/ConflictError.h src/core/network/messages/ProcessingReportMessage.h src/core/settings/Settings.cpp src/core/settings/Settings.h src/libs/json.h src/core/interface/commands/interface/CommandsInterface.cpp src/core/interface/commands/interface/CommandsInterface.h src/core/interface/BaseFIFOInterface.h src/core/interface/commands/commands/BaseUserCommand.cpp src/core/interface/commands/commands/BaseUserCommand.h src/core/logger/Logger.h src/core/trust_lines/TrustLine.h src/core/trust_lines/TrustLine.cpp src/core/trust_lines/manager/TrustLinesManager.h src/core/trust_lines/manager/TrustLinesManager.cpp src/tests/interface/CommandsParserTests.cpp src/tests/trust_lines/TrustLinesManagerTest.h src/tests/trust_lines/TrustLinesManagerTest.cpp src/core/interface/results/interface/ResultsInterface.h src/core/interface/results/interface/ResultsInterface.cpp src/core/network/UUID2Address.h src/core/network/UUID2Address.cpp src/core/transactions/manager/TransactionsManager.h src/core/transactions/manager/TransactionsManager.cpp src/core/interface/commands/commands/OpenTrustLineCommand.h src/core/interface/commands/commands/OpenTrustLineCommand.cpp src/core/interface/commands/commands/CloseTrustLineCommand.h src/core/interface/commands/commands/CloseTrustLineCommand.cpp src/core/interface/commands/commands/UpdateTrustLineCommand.h src/core/interface/commands/commands/UpdateTrustLineCommand.cpp src/core/interface/commands/commands/UseCreditCommand.h src/core/interface/commands/commands/UseCreditCommand.cpp src/core/db/UUIDMapBlockStorage.h src/core/db/UUIDMapBlockStorage.cpp src/core/common/exceptions/IndexError.h src/core/db/Block.h src/core/db/Block.cpp src/tests/db/UUIDMapBlockStorageTest.h src/tests/db/UUIDMapBlockStorageTest.cpp src/core/io/trust_lines/TrustLinesStorage.h src/core/io/trust_lines/TrustLinesStorage.cpp src/core/interface/commands/commands/MaximalTransactionAmountCommand.h src/core/interface/commands/commands/MaximalTransactionAmountCommand.cpp src/core/common/exceptions/CommandParsingError.h src/core/interface/commands/commands/TotalBalanceCommand.h src/core/interface/commands/commands/TotalBalanceCommand.cpp src/core/interface/commands/commands/ContractorsListCommand.h src/core/interface/commands/commands/ContractorsListCommand.cpp src/core/interface/commands/CommandUUID.h src/core/common/exceptions/RuntimeError.h src/core/transactions/TransactionUUID.cpp src/core/transactions/TransactionUUID.h src/core/interface/results/result/CommandResult.h src/core/interface/results/result/CommandResult.cpp src/core/transactions/scheduler/TransactionsScheduler.cpp src/core/transactions/scheduler/TransactionsScheduler.h src/core/transactions/transactions/BaseTransaction.cpp src/core/transactions/transactions/BaseTransaction.h src/core/transactions/transactions/OpenTrustLineTransaction.cpp src/core/transactions/transactions/OpenTrustLineTransaction.h src/core/transactions/transactions/state/TransactionState.cpp src/core/transactions/transactions/state/TransactionState.h src/core/transactions/transactions/CloseTrustLineTransaction.cpp src/core/transactions/transactions/CloseTrustLineTransaction.h src/core/transactions/transactions/UpdateTrustLineTransaction.cpp src/core/transactions/transactions/UpdateTrustLineTransaction.h src/core/transactions/transactions/MaximalAmountTransaction.cpp src/core/transactions/transactions/MaximalAmountTransaction.h src/core/transactions/transactions/UseCreditTransaction.cpp src/core/transactions/transactions/UseCreditTransaction.h src/core/transactions/transactions/TotalBalanceTransaction.cpp src/core/transactions/transactions/TotalBalanceTransaction.h src/core/transactions/transactions/ContractorsListTransaction.cpp src/core/transactions/transactions/ContractorsListTransaction.h src/core/logger/FileLogger.h src/tests/transactions/TransactionsManagerTest.cpp src/tests/transactions/TransactionsManagerTest.h src/core/trust_lines/interface/TrustLinesInterface.cpp src/core/trust_lines/interface/TrustLinesInterface.h)
+add_subdirectory(src/core/db)
+add_subdirectory(src/tests/db)
+
+add_subdirectory(src/core/io/routing_tables)
+add_subdirectory(src/tests/io/routing_tables)
+
+
+add_subdirectory(src/core/network)
+
+set(SOURCE_FILES
+        main.cpp
+
+        src/core/logger/Logger.h
+
+        src/core/Core.cpp
+        src/core/Core.h
+
+        src/libs/json.h
+        src/core/settings/Settings.cpp
+        src/core/settings/Settings.h
+
+        src/core/interface/CommandsInterface.cpp
+        src/core/interface/CommandsInterface.h
+        src/core/interface/BaseFIFOInterface.h
+        src/core/commands/Command.cpp
+        src/core/commands/Command.h
+
+        src/tests/interface/CommandsParserTests.cpp src/tests/io/routing_tables/SetOperationTests.cpp src/tests/db/fields/TrustLineDirectionColumnTests.cpp)
+
 add_executable(geo_network_client ${SOURCE_FILES})
 
-find_package(Boost COMPONENTS system filesystem thread REQUIRED)
+find_package(Boost COMPONENTS system filesystem REQUIRED)
 target_link_libraries(geo_network_client
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
-        ${Boost_THREAD_LIBRARY}
-        Boost::thread)
+
+        common
+        exceptions
+
+        db
+        db_tests
+
+        io_routing_tables
+        io_routing_tables_tests
+
+        network
+)

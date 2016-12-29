@@ -6,6 +6,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/endian/arithmetic.hpp>
 
 #include <string>
 
@@ -16,10 +17,18 @@ using namespace std;
 
 class NodeUUID:
     public uuid {
+    friend class BucketBlockTests;
 
 public:
     static const size_t kUUIDLength = 36;
     static const size_t kUUIDSize = 16;
+
+    enum ComparePredicates {
+        LESS = 0,
+        EQUAL = 1,
+        GREATER = 2,
+    };
+    static ComparePredicates compare(const NodeUUID &a, const NodeUUID &b);
 
 public:
     explicit NodeUUID();
@@ -27,6 +36,7 @@ public:
     NodeUUID(NodeUUID &u);
     NodeUUID(const NodeUUID &u);
     NodeUUID(const string &hex);
+    explicit NodeUUID(const uint8_t *bytes);
 
     operator boost::uuids::uuid();
     operator boost::uuids::uuid() const;

@@ -4,7 +4,10 @@
 #include "Exception.h"
 
 
-class RuntimeError: public Exception {
+class RuntimeError:
+    public Exception {
+
+public:
     using Exception::Exception;
 };
 

@@ -37,6 +37,14 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
+//    initCode = initCommandsAPI();
+//    if (initCode != 0)
+//        return initCode;
+
+//    initCode = initCommandsInterface();
+//    if (initCode != 0)
+//        return initCode;
+
     json conf;
     try {
         // Optimised conf read.
@@ -89,14 +97,16 @@ int Core::initSettings() {
         mLog.logException("Core", e);
         return -1;
     }
+
+    return 0;
 }
 
 int Core::initCommunicator(const json &conf) {
     try {
         mCommunicator = new Communicator(
-                mIOService, mNodeUUID,
-                mSettings->interface(&conf), mSettings->port(&conf),
-                mSettings->uuid2addressHost(&conf), mSettings->uuid2addressPort(&conf));
+            mIOService, mNodeUUID,
+            mSettings->interface(&conf), mSettings->port(&conf),
+            mSettings->uuid2addressHost(&conf), mSettings->uuid2addressPort(&conf));
         mLog.logSuccess("Core", "Network communicator is successfully initialised");
 
     } catch (const std::exception &e) {
@@ -190,4 +200,3 @@ void Core::zeroPointers() {
     mTrustLinesManager = nullptr;
     mTransactionsManager = nullptr;
 }
-
