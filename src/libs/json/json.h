@@ -930,7 +930,7 @@ Format](http://rfc7159.net/rfc7159)
 
     public:
         //////////////////////////
-        // JSON parser callback //
+        // JSON parser SaveTrustLineCallback //
         //////////////////////////
 
         /*!
@@ -9195,7 +9195,7 @@ Format](http://rfc7159.net/rfc7159)
                 expect(lexer::token_type::end_of_input);
 
                 // return parser result and replace it with null in case the
-                // top-level value was discarded by the callback function
+                // top-level value was discarded by the SaveTrustLineCallback function
                 return result.is_discarded() ? basic_json() : std::move(result);
             }
 

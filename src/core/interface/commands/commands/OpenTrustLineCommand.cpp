@@ -19,7 +19,7 @@ const NodeUUID& OpenTrustLineCommand::contractorUUID() const {
     return mContractorUUID;
 }
 
-const trust_amount& OpenTrustLineCommand::amount() const {
+const TrustLineAmount& OpenTrustLineCommand::amount() const {
     return mAmount;
 }
 
@@ -61,7 +61,7 @@ void OpenTrustLineCommand::deserialize(
     try {
         for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < command.length(); ++commandSeparatorPosition) {
             if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
-                mAmount = trust_amount(command.substr(amountTokenOffset, commandSeparatorPosition - amountTokenOffset));
+                mAmount = TrustLineAmount(command.substr(amountTokenOffset, commandSeparatorPosition - amountTokenOffset));
             }
         }
 
@@ -71,7 +71,7 @@ void OpenTrustLineCommand::deserialize(
                 "Can't parse command. Error occurred while parsing 'Amount' token.");
     }
 
-    if (mAmount == trust_amount(0)){
+    if (mAmount == TrustLineAmount(0)){
         throw ValueError(
             "OpenTrustLineCommand::deserialize: "
                 "Can't parse command. Received 'Amount' can't be 0.");

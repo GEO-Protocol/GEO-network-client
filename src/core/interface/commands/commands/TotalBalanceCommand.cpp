@@ -11,10 +11,10 @@ const string &TotalBalanceCommand::identifier() {
 }
 
 const CommandResult *TotalBalanceCommand::resultOk(
-        trust_amount &totalIncomingTrust,
-        trust_amount &totalIncomingTrustUsed,
-        trust_amount &totalOutgoingTrust,
-        trust_amount &totalOutgoingTrustUsed) const {
+        TrustLineAmount &totalIncomingTrust,
+        TrustLineAmount &totalIncomingTrustUsed,
+        TrustLineAmount &totalOutgoingTrust,
+        TrustLineAmount &totalOutgoingTrustUsed) const {
     string additionalInformation = boost::lexical_cast<string>(totalIncomingTrust) + "\t" +
                                    boost::lexical_cast<string>(totalIncomingTrustUsed) + "\t" +
                                    boost::lexical_cast<string>(totalOutgoingTrust) + "\t" +

@@ -2,9 +2,12 @@
 #define GEO_NETWORK_CLIENT_TYPES_H
 
 #include <cstdint>
+#include <vector>
 
 
 typedef uint8_t byte;
+typedef shared_ptr<byte> BytesShared;
+typedef shared_ptr<const byte> BytesSharedConst;
 
 enum TrustLineDirection {
     Incoming = 0,

@@ -11,7 +11,7 @@ TrustLinesInterface::~TrustLinesInterface() {
 
 void TrustLinesInterface::open(
         const NodeUUID &contractorUUID,
-        const trust_amount &amount) {
+        const TrustLineAmount &amount) {
 
     mManager->open(
             contractorUUID,
@@ -20,7 +20,7 @@ void TrustLinesInterface::open(
 
 void TrustLinesInterface::accept(
         const NodeUUID &contractorUUID,
-        const trust_amount &amount) {
+        const TrustLineAmount &amount) {
 
     mManager->accept(
             contractorUUID,

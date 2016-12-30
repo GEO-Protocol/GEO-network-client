@@ -491,7 +491,7 @@ void UUIDColumn::clearReadCache() {
         const auto block = kv.second;
 
         if (block->isModified()) {
-            // Block is modified and should be committed.
+            // Record is modified and should be committed.
             // It cant be removed from the cache.
             continue;
         }

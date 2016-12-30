@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
-    Block.h
-    Block.cpp
+        Record.h
+        Record.cpp
     UUIDMapBlockStorage.h
     UUIDMapBlockStorage.cpp)
 

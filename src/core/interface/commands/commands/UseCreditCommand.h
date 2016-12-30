@@ -14,7 +14,7 @@ public:
 
 protected:
     NodeUUID mContractorUUID;
-    trust_amount mAmount;
+    TrustLineAmount mAmount;
     string mPurpose;
 
 public:
@@ -26,7 +26,7 @@ public:
 
     const NodeUUID &contractorUUID() const;
 
-    const trust_amount &amount() const;
+    const TrustLineAmount &amount() const;
 
     const string &purpose() const;
 

@@ -13,7 +13,7 @@ public:
 
 protected:
     NodeUUID mContractorUUID;
-    trust_amount mAmount;
+    TrustLineAmount mAmount;
 
 public:
     UpdateTrustLineCommand(
@@ -24,7 +24,7 @@ public:
 
     const NodeUUID &contractorUUID() const;
 
-    const trust_amount &amount() const;
+    const TrustLineAmount &amount() const;
 
     const CommandResult *resultOk() const;
 

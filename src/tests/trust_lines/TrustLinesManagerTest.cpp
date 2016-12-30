@@ -1,4 +1,4 @@
-#include "TrustLinesManagerTest.h"
+#include "TrustLinesManagerTests.h"
 
 TrustLinesManagerTest::TrustLinesManagerTest() {
     mTrustLinesManager = new TrustLinesManager();

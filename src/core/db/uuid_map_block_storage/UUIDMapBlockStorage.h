@@ -15,7 +15,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "Block.h"
+#include "Record.h"
 
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/IndexError.h"
@@ -72,7 +72,7 @@ namespace db {
 
             void erase(const uuids::uuid &uuid);
 
-            Block *readFromFile(const uuids::uuid &uuid);
+            Record *readFromFile(const uuids::uuid &uuid);
 
             const vector <uuids::uuid> keys() const;
 

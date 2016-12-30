@@ -4,15 +4,14 @@
 #include <string>
 #include <vector>
 
+#include "../../common/Types.h"
 #include "../../common/NodeUUID.h"
-#include "../../db/uuid_map_block_storage/Block.h"
+#include "../../db/uuid_map_block_storage/Record.h"
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 using namespace std;
 
 namespace storage = db::uuid_map_block_storage;
-
-typedef storage::byte byte;
 
 class TrustLinesStorage : public storage::UUIDMapBlockStorage {
 

@@ -12,7 +12,7 @@ namespace db {
         typedef uint8_t byte;
 
         class UUIDMapBlockStorage;
-        class Block {
+        class Record {
             friend class UUIDMapBlockStorage;
 
         private:
@@ -20,9 +20,9 @@ namespace db {
             size_t mBytesCount;
 
         public:
-            explicit Block(byte *data, const size_t bytesCount);
+            explicit Record(byte *data, const size_t bytesCount);
 
-            ~Block();
+            ~Record();
 
             const byte *data() const;
 

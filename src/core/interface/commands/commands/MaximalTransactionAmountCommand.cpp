@@ -18,7 +18,7 @@ const NodeUUID &MaximalTransactionAmountCommand::contractorUUID() const {
     return mContractorUUID;
 }
 
-const CommandResult *MaximalTransactionAmountCommand::resultOk(trust_amount amount) const {
+const CommandResult *MaximalTransactionAmountCommand::resultOk(TrustLineAmount amount) const {
     string maximalAmount = boost::lexical_cast<string>(amount);
     return new CommandResult(uuid(), 200, maximalAmount);
 }

@@ -23,7 +23,7 @@ public:
 
     const NodeUUID &contractorUUID() const;
 
-    const CommandResult *resultOk(trust_amount amount) const;
+    const CommandResult *resultOk(TrustLineAmount amount) const;
 
 
 protected:

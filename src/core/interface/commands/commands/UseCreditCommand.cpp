@@ -18,7 +18,7 @@ const NodeUUID &UseCreditCommand::contractorUUID() const {
     return mContractorUUID;
 }
 
-const trust_amount &UseCreditCommand::amount() const {
+const TrustLineAmount &UseCreditCommand::amount() const {
     return mAmount;
 }
 
@@ -77,7 +77,7 @@ void UseCreditCommand::deserialize(
     try {
         for (size_t nextTokenSeparatorPosition = amountTokenOffset; nextTokenSeparatorPosition < command.length(); ++nextTokenSeparatorPosition) {
             if (command.at(nextTokenSeparatorPosition) == kTokensSeparator || command.at(nextTokenSeparatorPosition) == kCommandsSeparator) {
-                mAmount = trust_amount(command.substr(amountTokenOffset, nextTokenSeparatorPosition - amountTokenOffset));
+                mAmount = TrustLineAmount(command.substr(amountTokenOffset, nextTokenSeparatorPosition - amountTokenOffset));
                 purposeStartPosition = nextTokenSeparatorPosition + 1;
             }
         }
@@ -87,7 +87,7 @@ void UseCreditCommand::deserialize(
                         "Can't parse command. Error occurred while parsing 'Amount' token.");
     }
 
-    if (mAmount == trust_amount(0)) {
+    if (mAmount == TrustLineAmount(0)) {
         throw ValueError(
                 "UseCreditCommand::deserialize: "
                         "Can't parse command. Received 'Amount' can't be 0.");

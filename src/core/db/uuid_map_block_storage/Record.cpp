@@ -1,22 +1,22 @@
-#include "Block.h"
+#include "Record.h"
 
 namespace db {
     namespace uuid_map_block_storage {
 
-        Block::Block(byte *data, const size_t bytesCount) {
+        Record::Record(byte *data, const size_t bytesCount) {
             mData = data;
             mBytesCount = bytesCount;
         }
 
-        Block::~Block() {
+        Record::~Record() {
             free(mData);
         }
 
-        const byte *Block::data() const {
+        const byte *Record::data() const {
             return mData;
         }
 
-        const size_t Block::bytesCount() const {
+        const size_t Record::bytesCount() const {
             return mBytesCount;
         }
 

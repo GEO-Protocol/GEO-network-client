@@ -18,10 +18,10 @@ public:
     void deserialize(const string &buffer){};
 
     const CommandResult *resultOk(
-            trust_amount &totalIncomingTrust,
-            trust_amount &totalIncomingTrustUsed,
-            trust_amount &totalOutgoingTrust,
-            trust_amount &totalOutgoingTrustUsed) const;
+            TrustLineAmount &totalIncomingTrust,
+            TrustLineAmount &totalIncomingTrustUsed,
+            TrustLineAmount &totalOutgoingTrust,
+            TrustLineAmount &totalOutgoingTrustUsed) const;
 };
 
 #endif //GEO_NETWORK_CLIENT_TOTALBALANCE_H

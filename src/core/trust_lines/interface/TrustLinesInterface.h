@@ -17,11 +17,11 @@ public:
 
     void open(
             const NodeUUID &contractorUUID,
-            const trust_amount &amount);
+            const TrustLineAmount &amount);
 
     void accept(
             const NodeUUID &contractorUUID,
-            const trust_amount &amount);
+            const TrustLineAmount &amount);
 
     void close(
             const NodeUUID &contractorUUID);
