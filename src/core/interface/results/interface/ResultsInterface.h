@@ -40,7 +40,7 @@ private:
     Logger *mLog;
 
 private:
-    virtual const char* FIFOname() const;
+    virtual const char* FIFOName() const;
 };
 
 #endif //GEO_NETWORK_CLIENT_RESULTSINTERFACE_H

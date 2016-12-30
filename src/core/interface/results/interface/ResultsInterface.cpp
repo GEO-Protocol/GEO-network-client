@@ -38,7 +38,7 @@ void ResultsInterface::writeResult(
     }
 }
 
-const char *ResultsInterface::FIFOname() const {
+const char *ResultsInterface::FIFOName() const {
     return kFIFOName;
 }
 

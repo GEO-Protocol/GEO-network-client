@@ -1,39 +1,48 @@
 #include "TrustLine.h"
 
-TrustLine::TrustLine(const NodeUUID &nodeUUID,
-                     const trust_amount &incomingAmount,
-                     const trust_amount &outgoingAmount,
-                     const balance_value &nodeBalance) {
+TrustLine::TrustLine(
+    const NodeUUID &nodeUUID,
+    const trust_amount &incomingAmount,
+    const trust_amount &outgoingAmount,
+    const balance_value &nodeBalance) {
+
+    // todo: use initialisation lists when possible
     mContractorNodeUuid = nodeUUID;
     mIncomingTrustAmount = incomingAmount;
     mOutgoingTrustAmount = outgoingAmount;
     mBalance = nodeBalance;
 }
 
-void TrustLine::setContractorNodeUUID(
-        const NodeUUID &nodeUUID) {
-    mContractorNodeUuid = nodeUUID;
-}
+// todo: remove
+//void TrustLine::setContractorNodeUUID(
+//        const NodeUUID &nodeUUID) {
+//    mContractorNodeUuid = nodeUUID;
+//}
 
 void TrustLine::setIncomingTrustAmount(
-        callback managersCallback,
-        const trust_amount &incomingAmount) {
-    mIncomingTrustAmount = incomingAmount;
-    mManagerCallback = managersCallback;
+    const trust_amount &amount,
+    callback callback) {
+
+    mIncomingTrustAmount = amount;
+    mManagerCallback = callback; // todo: why this callback is assigned here? when it would be called again?
     mManagerCallback();
 }
 
 void TrustLine::setOutgoingTrustAmount(
-        callback managersCallback,
-        const trust_amount &outgoingAmount) {
-    mOutgoingTrustAmount = outgoingAmount;
-    mManagerCallback = managersCallback;
+    const trust_amount &amount,
+    callback callback) {
+
+    mOutgoingTrustAmount = amount;
+    mManagerCallback = callback; // todo: why this callback is assigned here? when it would be called again?
     mManagerCallback();
 }
 
-void TrustLine::setBalance(callback managersCallback, const balance_value &nodeBalance) {
-    mBalance = nodeBalance;
-    mManagerCallback = managersCallback;
+void TrustLine::setBalance(
+    const balance_value &balance,
+    callback callback) {
+
+    mBalance = balance;
+    mManagerCallback = callback; // todo: why this callback is assigned here? when it would be called again?
     mManagerCallback();
 }
 
