@@ -28,13 +28,17 @@
 
 #include <string>
 
+
 using namespace std;
 
 
 class TransactionsManager {
+    // todo: hsc: tests?
 
+    // todo: public methods should be at the top, and then - private
 private:
 
+    // todo: separate members that would be created into this class from the pointers to the external objects.
     as::io_service &mIOService;
     TrustLinesManager *mTrustLinesManager;
     TrustLinesInterface *mTrustLinesInterface;
@@ -48,36 +52,36 @@ public:
         TrustLinesManager *trustLinesManager,
         ResultsInterface *resultsInterface,
         Logger *logger);
-
     ~TransactionsManager();
 
     void processCommand(
-            BaseUserCommand::Shared commandPointer);
+        BaseUserCommand::Shared command);
 
 private:
     void openTrustLine(
-            BaseUserCommand::Shared commandPointer);
+        BaseUserCommand::Shared command);
 
     void closeTrustLine(
-            BaseUserCommand::Shared commandPointer);
+        BaseUserCommand::Shared command);
 
     void updateTrustLine(
-            BaseUserCommand::Shared commandPointer);
+        BaseUserCommand::Shared command);
 
-    void maximalTransactionAmount(
-            BaseUserCommand::Shared commandPointer);
+    void maximalTransactionAmount( // todo: rename to calculateMaxTransactionAmount (method name should describe the action)
+        BaseUserCommand::Shared command);
 
     void useCredit(
-            BaseUserCommand::Shared commandPointer);
+        BaseUserCommand::Shared command);
 
-    void totalBalance(
-             BaseUserCommand::Shared commandPointer);
+    void totalBalance( // todo: rename to calculateTotalBalance (method name should describe the action)
+         BaseUserCommand::Shared command);
 
-    void contractorsList(
-            BaseUserCommand::Shared commandPointer);
+    void contractorsList( // todo: rename to formContractorsList (method name should describe the action)
+        BaseUserCommand::Shared command);
 
+    // todo: why this public method is separated?
 public:
-    void acceptCommandResult(CommandResult::SharedConst commandResult);
+    void acceptCommandResult(CommandResult::SharedConst result);
 
 };
 
