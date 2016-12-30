@@ -15,14 +15,14 @@ TrustLinesManager::~TrustLinesManager() {
 }
 
 byte *TrustLinesManager::serializeTrustLine(
-        TrustLine::Shared trustLinePtr) {
+        TrustLine::Shared trustLine) {
 
     byte *buffer = (byte *) malloc(kBucketSize);
     memset(buffer, 0, kBucketSize);
 
-    memcpy(buffer, trustAmountToBytes(trustLinePtr.get()->getIncomingTrustAmount()).data(), kTrustAmountPartSize);
-    memcpy(buffer + kTrustAmountPartSize, trustAmountToBytes(trustLinePtr.get()->getOutgoingTrustAmount()).data(), kTrustAmountPartSize);
-    memcpy(buffer + kTrustAmountPartSize * 2, balanceToBytes(trustLinePtr.get()->getBalance()).data(), kBalancePartSize + kSignBytePartSize);
+    memcpy(buffer, trustAmountToBytes(trustLine.get()->getIncomingTrustAmount()).data(), kTrustAmountPartSize);
+    memcpy(buffer + kTrustAmountPartSize, trustAmountToBytes(trustLine.get()->getOutgoingTrustAmount()).data(), kTrustAmountPartSize);
+    memcpy(buffer + kTrustAmountPartSize * 2, balanceToBytes(trustLine.get()->getBalance()).data(), kBalancePartSize + kSignBytePartSize);
 
     return buffer;
 }

@@ -27,10 +27,10 @@ protected:
     BaseFIFOInterface():
         mFIFODescriptor(0){};
 
-    virtual const char* FIFOname() const = 0;
+    virtual const char* FIFOName() const = 0;
 
     const string FIFOFilePath() const {
-        return string(kFIFODir) + string(FIFOname());
+        return string(kFIFODir) + string(FIFOName());
     }
 
     const bool isFIFOExists() const {

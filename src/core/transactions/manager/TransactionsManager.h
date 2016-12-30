@@ -25,11 +25,11 @@
 #include "../transactions/UseCreditTransaction.h"
 
 #include "../../interface/results/interface/ResultsInterface.h"
-#include "../../interface/results/result/CommandResult.h"
 
 #include <string>
 
 using namespace std;
+
 
 class TransactionsManager {
 
@@ -71,7 +71,7 @@ private:
             BaseUserCommand::Shared commandPointer);
 
     void totalBalance(
-            BaseUserCommand::Shared commandPointer);
+             BaseUserCommand::Shared commandPointer);
 
     void contractorsList(
             BaseUserCommand::Shared commandPointer);

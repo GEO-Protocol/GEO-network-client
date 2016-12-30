@@ -52,6 +52,8 @@ public:
 
     LoggerStream info(
         const char *subsystem);
+    LoggerStream error(
+        const char *subsystem);
 
 private:
     const string formatMessage(

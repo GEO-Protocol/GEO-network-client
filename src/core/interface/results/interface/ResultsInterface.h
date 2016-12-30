@@ -7,14 +7,14 @@
 #include "../../../common/exceptions/MemoryError.h"
 #include "../../../logger/Logger.h"
 
-#include <boost/filesystem.hpp>
 #include <boost/bind.hpp>
 
 #include <string>
 #include <iostream>
 
-
-//#define DEBUG_RESULTS_INTERFACE
+#ifdef DEBUG
+#define DEBUG_RESULTS_INTERFACE
+#endif
 
 
 using namespace std;

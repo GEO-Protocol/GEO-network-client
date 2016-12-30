@@ -1,7 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 #define GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 
-#include "../commands/BaseUserCommand.h"
 #include "../commands/OpenTrustLineCommand.h"
 #include "../commands/CloseTrustLineCommand.h"
 #include "../commands/UpdateTrustLineCommand.h"
@@ -23,27 +22,27 @@
 #include <boost/lexical_cast.hpp>
 
 #include <string>
-#include <vector>
-#include <chrono>
-#include <exception>
 
 
+#ifdef DEBUG
 #define COMMANDS_INTERFACE_DEBUG
+#endif
 
 
 using namespace std;
-namespace uuids = boost::uuids;
+using namespace boost::uuids;
+
 
 /*!
  * User commands are transmitted via text protocol.
  * CommandsParser is used for parsing received user input
- * and deserialising them into commands instances.
+ * and deserializing them into commands instances.
  *
  *
  * Note: shares almost the same logic as "MessagesParser"
  * (see IncomingMessagesHandler.h for details).
  *
- * todo: HSC: review this class
+ * todo: hsc: review this class
  */
 class CommandsParser {
     friend class CommandsParserTests;
@@ -65,17 +64,14 @@ protected:
     string mBuffer;
     Logger *mLog;
 
-
 protected:
     inline pair<bool, BaseUserCommand::Shared> tryDeserializeCommand();
-
     inline pair<bool, BaseUserCommand::Shared> tryParseCommand(
         const CommandUUID &uuid,
         const string &identifier,
         const string &buffer);
 
     inline pair<bool, BaseUserCommand::Shared> commandIsInvalidOrIncomplete();
-
     void cutBufferUpToNextCommand();
 };
 
@@ -96,7 +92,6 @@ public:
         as::io_service &ioService,
         TransactionsManager *transactionsManager,
         Logger *logger);
-
     ~CommandsInterface();
 
     void beginAcceptCommands();
@@ -116,10 +111,8 @@ protected:
     as::deadline_timer *mReadTimeoutTimer;
     CommandsParser *mCommandsParser;
 
-//    vector<char> mCommandBuffer;
-
 protected:
-    virtual const char* FIFOname() const;
+    virtual const char* FIFOName() const;
     void asyncReceiveNextCommand();
     void handleReceivedInfo(
         const boost::system::error_code &error,

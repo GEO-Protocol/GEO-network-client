@@ -2,31 +2,51 @@
 
 
 CommandsParser::CommandsParser(Logger *log):
-    mLog(log){}
+    mLog(log){
+
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(log != nullptr);
+#endif
+}
 
 /*!
- * Handles data received from commands FIFO.
+ * Parses internal buffer for user commands.
+ * Returns <true, command> in case, when command was parsed well.
+ * Otherwise returns <false, nullptr>.
+ *
+ * This method should be called several times to parse all received commands.
+ *
  * See: tryDeserializeCommand() for the details.
  */
 pair<bool, BaseUserCommand::Shared> CommandsParser::processReceivedCommands() {
     return tryDeserializeCommand();
 }
 
-/*
- * Copies data, received from the commands FIFO, into the internal commands buffer.
- * There is non-zero probability, that buffer will contains some part of previous command,
- * that was not parsed. It may happen, when async read from FIFO returned
+/*!
+ * Copies data, received from the commands FIFO, into the internal buffer.
+ * There is a non-zero probability, that buffer will contains some part of previous command,
+ * that was not parsed on previous steps. It may happen, when async read from FIFO returned
+ * one and a half of the command. In such a case - newly received data will be appended to the
+ * previously received.
  *
- * Received data will be appended to the previously received data.
+ * @param buffer - pointer to the buffer, that collects raw input from the user (ASIO buffer).
+ * @param receivedBytesCount - specifies how many bytes was received by the last FIFO read.
+ *      (how many bytes are in the "buffer" at the moment)
  */
 void CommandsParser::appendReadData(
     as::streambuf *buffer,
     const size_t receivedBytesCount) {
 
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(buffer != nullptr);
+#endif
+
+
     if (receivedBytesCount == 0) {
         return;
     }
 
+    // todo: check if using buffer->data() doesn't leads to the buffer overflow.
     const char *it = as::buffer_cast<const char*>(buffer->data());
     for (size_t i = 0; i < receivedBytesCount; ++i) {
         mBuffer.push_back(*it++);
@@ -34,22 +54,18 @@ void CommandsParser::appendReadData(
 }
 
 /*!
- * Tries to deserialize received command, using buffered data.
+ * Tries to deserialize received command.
  * In case when buffer is too short to contains even one command -
  * will return immediately.
  *
  * First value of returned pair indicates if command was parsed succesfully,
  * and, if so, - the second one will contains shared pointer to the command instance itself.
- * Otherwise - the second value of the pair will contains nullptr.
+ * Otherwise - the second value of the pair will contains "nullptr".
  */
 pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
     if (mBuffer.size() < kMinCommandSize) {
-//        if (mBuffer.find(kCommandsSeparator) != string::npos) {
-//            cutBufferUpToNextCommand();
-//        }
         return commandIsInvalidOrIncomplete();
     }
-
 
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (nextCommandSeparatorIndex == string::npos) {
@@ -58,20 +74,24 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
     }
 
 
+    // Command uuid
     CommandUUID commandUUID;
     try {
         string hexUUID = mBuffer.substr(0, kUUIDHexRepresentationSize);
-        commandUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
+        commandUUID = boost::lexical_cast<uuid>(hexUUID);
     } catch (...) {
         cutBufferUpToNextCommand();
         return commandIsInvalidOrIncomplete();
     }
 
-    const size_t averageCommandIdentifierLength = 15;
+
+    // Command identifier parsing
+    string commandIdentifier;
     const size_t identifierOffset = kUUIDHexRepresentationSize + 1;
 
-
-    string commandIdentifier;
+    // This constant is for optimisation purposes only.
+    // It only helps to prevent several memory reallocations.
+    const size_t averageCommandIdentifierLength = 15;
     commandIdentifier.reserve(averageCommandIdentifierLength);
     size_t nextTokenOffset = identifierOffset;
     for (size_t i = identifierOffset; i < mBuffer.size(); ++i) {
@@ -85,39 +105,40 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
     nextTokenOffset += 1;
 
     if (commandIdentifier.size() == 0) {
+        // Received command is invalid.
         cutBufferUpToNextCommand();
         return commandIsInvalidOrIncomplete();
     }
 
-
     try {
-        // It is possible, that part of next command is in the buffer already,
-        // but it shouldn't be included in the command parsing sub-buffer.
-        auto nextCommandStart = mBuffer.find(kCommandsSeparator);
-        if (nextCommandStart == string::npos) {
-            nextCommandStart = mBuffer.size();
+        // It is possible, that part of the next command is in the buffer already,
+        // but it shouldn't be included into the command's sub-buffer.
+        auto nextCommandBegin = mBuffer.find(kCommandsSeparator);
+        if (nextCommandBegin == string::npos) {
+            nextCommandBegin = mBuffer.size();
         }
 
         auto command = tryParseCommand(commandUUID, commandIdentifier,
-            mBuffer.substr(nextTokenOffset, nextCommandStart-nextTokenOffset+1));
-
-        stringstream s;
-        s << "Received command: "
-                  << commandUUID.stringUUID() << "\\t"
-                  << commandIdentifier << "\\t"
-                  << mBuffer.substr(nextTokenOffset, nextCommandStart-nextTokenOffset+1)
-                  << std::endl;
-        std::cout << s.str();
-
+            mBuffer.substr(nextTokenOffset, nextCommandBegin-nextTokenOffset+1));
         cutBufferUpToNextCommand();
+
+#ifdef COMMANDS_INTERFACE_DEBUG
+        auto info = mLog->info("CommandsParser::tryDeserializeCommand");
+        info << "Command received: "
+             << commandUUID.stringUUID() << " "
+             << commandIdentifier << " "
+             << mBuffer.substr(nextTokenOffset, nextCommandBegin-nextTokenOffset+1);
+#endif
         return command;
 
     } catch (std::exception &e) {
-#ifdef COMMANDS_INTERFACE_DEBUG
-        mLog->logError("CommandsParser::tryDeserializeCommand: received invalid command:", mBuffer);
-#endif
-
         cutBufferUpToNextCommand();
+
+#ifdef COMMANDS_INTERFACE_DEBUG
+        auto err = mLog->error("CommandsParser::tryDeserializeCommand");
+        err << "Invalid command received. Internal buffer data is: "
+            << mBuffer << ". ";
+#endif
         return commandIsInvalidOrIncomplete();
     }
 }
@@ -162,6 +183,10 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
         } else if (UseCreditCommand::identifier() == identifier){
             command = new UseCreditCommand(uuid, buffer);
 
+            // ...
+            // Other commands prsing should go here
+            // ...
+
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "
@@ -169,6 +194,7 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
         }
 
     } catch (std::exception &e){
+        mLog->logException("CommandsParser::tryParseCommand", e);
         return commandIsInvalidOrIncomplete();
     }
 
@@ -240,11 +266,9 @@ CommandsInterface::CommandsInterface(
     try {
         mFIFOStreamDescriptor = new as::posix::stream_descriptor(mIOService, mFIFODescriptor);
         mFIFOStreamDescriptor->non_blocking(true);
-    } catch (exception &) {
+    } catch (std::bad_alloc &) {
         throw MemoryError(
-            "CommandsInterface::CommandsInterface: "
-                "Can't allocate enough space for mFIFOStreamDescriptor. "
-                "Can't open FIFO file.");
+            "CommandsInterface::CommandsInterface");
     }
     mCommandBuffer.prepare(kCommandBufferSize);
 
@@ -252,18 +276,16 @@ CommandsInterface::CommandsInterface(
         mReadTimeoutTimer = new as::deadline_timer(
             mIOService, boost::posix_time::seconds(2));
 
-    } catch (exception &) {
+    } catch (std::bad_alloc &) {
         throw MemoryError(
-            "CommandsInterface::CommandsInterface: "
-                "Can't allocate enough space for mReadTimeoutTimer.");
+            "CommandsInterface::CommandsInterface");
     }
 
     try {
         mCommandsParser = new CommandsParser(mLog);
-    } catch (exception &) {
+    } catch (std::bad_alloc &) {
         throw MemoryError(
-            "CommandsInterface::CommandsInterface: "
-                "Can't allocate enough space for mCommandsParser.");
+            "CommandsInterface::CommandsInterface");
     }
 }
 
@@ -348,7 +370,7 @@ void CommandsInterface::handleReceivedInfo(
     }
 }
 
-const char *CommandsInterface::FIFOname() const {
+const char *CommandsInterface::FIFOName() const {
     return kFIFOName;
 }
 

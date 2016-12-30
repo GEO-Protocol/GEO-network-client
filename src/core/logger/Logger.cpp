@@ -63,6 +63,11 @@ LoggerStream Logger::info(
     return LoggerStream(this, "INFO", subsystem);
 }
 
+LoggerStream Logger::error(
+    const char *subsystem) {
+    return LoggerStream(this, "ERROR", subsystem);
+}
+
 const string Logger::formatMessage(
     const string &message) const {
     if (message.size() == 0) {

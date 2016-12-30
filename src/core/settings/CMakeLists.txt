@@ -4,6 +4,6 @@ set(SOURCE_FILES
         Settings.h
         Settings.cpp)
 
-add_library(settings ${SOURCE_FILES})
+add_library(settings SHARED ${SOURCE_FILES})
 target_link_libraries(settings
         common)
