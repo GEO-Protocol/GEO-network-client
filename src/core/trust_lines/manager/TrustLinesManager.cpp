@@ -1,9 +1,14 @@
 #include "TrustLinesManager.h"
 
 TrustLinesManager::TrustLinesManager() {
-    // todo: wrap into the try catch (std::bad_alloc)
-    mTrustLinesStorage = new TrustLinesStorage(
-        "trust_lines_storage.bin"); // todo: move it to the io/trust_lines/trust_lines.dat
+    try {
+        mTrustLinesStorage = new TrustLinesStorage(
+            "trust_lines_storage.bin"); // todo: move it to the io/trust_lines/trust_lines.dat
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TrustLinesManager::TrustLinesManager. "
+                              "Can not allocate memory for new trust line storage instance.");
+    }
 
 }
 
@@ -82,6 +87,7 @@ const bool TrustLinesManager::isTrustLineExist(
 }
 
 /**
+ * throw IOError - can not read trust line data from file by key
  * throw Exception - unable to create instance of trust line
  */
 void TrustLinesManager::loadTrustLines() {
@@ -104,7 +110,9 @@ void TrustLinesManager::loadTrustLines() {
             }
 
             try{
-                TrustLine *trustLine = new TrustLine(record->data(), item);
+                TrustLine *trustLine = new TrustLine(
+                    record->data(),
+                    item);
                 mTrustLines.insert(make_pair(item, TrustLine::Shared(trustLine)));
 
             } catch (...) {
@@ -120,18 +128,21 @@ void TrustLinesManager::loadTrustLines() {
     }
 }
 
-
+/**
+ * throw ConflictError - trust line is already exist
+ * throw MemoryError - can not allocate memory for trust line instance
+ */
 void TrustLinesManager::open(
     const NodeUUID &contractorUUID,
     const TrustLineAmount &amount) {
 
     if (isTrustLineExist(contractorUUID)) {
         auto it = mTrustLines.find(contractorUUID);
-        TrustLine::Shared trustLinePtr = it->second;
-        if (trustLinePtr->outgoingTrustAmount() == 0) {
-            trustLinePtr->setOutgoingTrustAmount(
+        TrustLine::Shared trustLine = it->second;
+        if (trustLine->outgoingTrustAmount() == 0) {
+            trustLine->setOutgoingTrustAmount(
                 amount,
-                boost::bind(&TrustLinesManager::saveTrustLine, this, trustLinePtr));
+                boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine)); //trust line invokes TrustLinesManager's function saveTrustLine() as a callback
 
         } else {
             throw ConflictError(
@@ -140,138 +151,149 @@ void TrustLinesManager::open(
         }
 
     } else {
-        TrustLine *trustLine = new TrustLine(
-            contractorUUID, 
-            0, 
-            amount, 
-            0);
+        TrustLine *trustLine = nullptr;
+        try{
+            trustLine = new TrustLine(
+                contractorUUID,
+                0,
+                amount,
+                0);
+
+        } catch (std::bad_alloc &e) {
+            throw MemoryError("TrustLinesManager::open. "
+                                  "Can not allocate memory for new trust line instance.");
+        }
         saveTrustLine(TrustLine::Shared(trustLine));
     }
 }
 
-// todo: add comment about possible PreconditionFaultError
-// todo: add comment about possible ValueError
-// todo: add comment about possible NotFoundError
+/**
+ * throw PreconditionFailedError - contractor already used part of amount
+ * throw ValueError - trust amount less or equals by zero
+ * throw NotFoundError - trust line does not exist
+ */
 void TrustLinesManager::close(
     const NodeUUID &contractorUUID) {
 
     if (isTrustLineExist(contractorUUID)) {
         auto it = mTrustLines.find(contractorUUID);
-        TrustLine::Shared trustLinePtr = it->second;
-        if (trustLinePtr->outgoingTrustAmount() > TrustLineAmount(0)) { // todo: replace ".get()" with simple  ->
-            if (trustLinePtr->balance() <= TrustLineBalance(0)) { // todo: replace ".get()" with simple  ->
-                if (trustLinePtr->incomingTrustAmount() ==
-                    TrustLineAmount(0)) { // todo: replace ".get()" with simple  ->
-                    trustLinePtr.reset(); // todo: wtf?!!
+        TrustLine::Shared trustLine = it->second;
+        if (trustLine->outgoingTrustAmount() > TrustLineAmount(0)) {
+            if (trustLine->balance() <= TrustLineBalance(0)) {
+                if (trustLine->incomingTrustAmount() == TrustLineAmount(0)) {
                     removeTrustLine(contractorUUID);
 
                 } else {
-                    // todo: this line is too long
-                    trustLinePtr->setOutgoingTrustAmount(0, boost::bind(&TrustLinesManager::saveTrustLine, this,
-                                                                              trustLinePtr)); // todo: replace ".get()" with simple  ->
+                    trustLine->setOutgoingTrustAmount(
+                        0,
+                        boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine)); //trust line invokes TrustLinesManager's function saveTrustLine() as a callback
                 }
 
             } else {
-                // todo: exception must inform about method that throws the exception to be able to find it via log file
-                throw PreconditionFaultError(
-                    "Сan not close outgoing trust line. Contractor already used part of amount.");
+                throw PreconditionFailedError(
+                    "TrustLinesManager::close. "
+                        "Сan not close outgoing trust line. Contractor already used part of amount.");
             }
 
         } else {
-            // todo: exception must inform about method that throws the exception to be able to find it via log file
-            throw ValueError("Сan not close outgoing trust line. Outgoing trust line amount less or equals to zero.");
+            throw ValueError("TrustLinesManager::close. "
+                                 "Сan not close outgoing trust line. Outgoing trust line amount less or equals to zero.");
         }
 
     } else {
-        // todo: exception must inform about method that throws the exception to be able to find it via log file
-        throw ConflictError(
-            "Сan not close outgoing trust line. Trust line to such contractor does not exist."); // todo: NotFoundError
+        throw NotFoundError("TrustLinesManager::close. "
+                                "Сan not close outgoing trust line. Trust line to such contractor does not exist.");
     }
 }
 
-// todo: add comment about possible ConflictError
-// todo: add comment about possible MemoryError
-// todo: add comment about possible ValueError
+/**
+ * throw ConflictError - trust line is already exist
+ * throw MemoryError - can not allocate memory for trust line instance
+ */
 void TrustLinesManager::accept(
     const NodeUUID &contractorUUID,
     const TrustLineAmount &amount) {
 
-    if (amount > TrustLineAmount(0)) { // todo: trust amount can't be less that 0!
-        if (isTrustLineExist(contractorUUID)) {
-            auto it = mTrustLines.find(contractorUUID);
-            TrustLine::Shared trustLinePtr = it->second;
-            if (trustLinePtr->incomingTrustAmount() == 0) { // todo: replace ".get()" with simple  ->
-                trustLinePtr->setIncomingTrustAmount(amount, boost::bind(&TrustLinesManager::saveTrustLine,
-                                                                               this, // todo: replace ".get()" with simple  ->
-                                                                               trustLinePtr));
-            } else {
-
-                // todo: exception must inform about method that throws the exception to be able to find it via log file
-                throw ConflictError(
-                    "Сan not accept incoming trust line. Incoming trust line to such contractor already exist.");
-            }
+    if (isTrustLineExist(contractorUUID)) {
+        auto it = mTrustLines.find(contractorUUID);
+        TrustLine::Shared trustLine = it->second;
+        if (trustLine->incomingTrustAmount() == 0) {
+            trustLine->setIncomingTrustAmount(
+                amount,
+                boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine)); //trust line invokes TrustLinesManager's function saveTrustLine() as a callback
 
         } else {
-            // todo: memory error
-            TrustLine *trustLine = new TrustLine(contractorUUID, amount, 0, 0);
-            saveTrustLine(TrustLine::Shared(trustLine));
+            throw ConflictError("TrustLinesManager::accept. "
+                                    "Сan not accept incoming trust line. Incoming trust line to such contractor already exist.");
         }
 
     } else {
-        // todo: trust amount can't be less that 0!
-        throw ValueError("Сan not accept incoming trust line. Incoming trust line amount less or equals to zero.");
+        TrustLine *trustLine = nullptr;
+        try{
+            trustLine = new TrustLine(
+                contractorUUID,
+                amount,
+                0,
+                0);
+
+        } catch (std::bad_alloc &e) {
+            throw MemoryError("TrustLinesManager::accept. "
+                                  "Can not allocate memory for new trust line instance.");
+        }
+        saveTrustLine(TrustLine::Shared(trustLine));
     }
 }
 
-// todo: add comment about possible PreconditionFailedError
-// todo: add comment about possible ValueError
-// todo: add comment about possible NotFoundError
+/**
+ * throw PreconditionFailedError - user already used part of amount
+ * throw ValueError - trust amount less or equals by zero
+ * throw NotFoundError - trust line does not exist
+ */
 void TrustLinesManager::reject(
     const NodeUUID &contractorUUID) {
 
     if (isTrustLineExist(contractorUUID)) {
         auto it = mTrustLines.find(contractorUUID);
-        TrustLine::Shared trustLinePtr = it->second; // todo: trustLinePtr -> trustLine
-        if (trustLinePtr->incomingTrustAmount() > TrustLineAmount(0)) { // todo: replace ".get()" with simple  ->
-            if (trustLinePtr->balance() >= TrustLineBalance(0)) { // todo: replace ".get()" with simple  ->
-                if (trustLinePtr->outgoingTrustAmount() == TrustLineAmount(0)) {
-                    trustLinePtr.reset(); //todo: wtf!!?
+        TrustLine::Shared trustLine = it->second;
+        if (trustLine->incomingTrustAmount() > TrustLineAmount(0)) {
+            if (trustLine->balance() >= TrustLineBalance(0)) {
+                if (trustLine->outgoingTrustAmount() == TrustLineAmount(0)) {
                     removeTrustLine(contractorUUID);
-                } else {
 
-                    // todo: add comment that TL would be saved by the SaveTrustLineCallback
-                    // it's not obviously at all.
-                    trustLinePtr->setIncomingTrustAmount(0, boost::bind(&TrustLinesManager::saveTrustLine, this,
-                                                                              trustLinePtr));
+                } else {
+                    trustLine->setIncomingTrustAmount(
+                        0,
+                        boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine)); //trust line invokes TrustLinesManager's function saveTrustLine() as a callback
                 }
 
             } else {
-                // todo: exception must inform about method that throws the exception to be able to find it via log file
-                throw PreconditionFaultError("Сan not reject incoming trust line. User already used part of amount.");
+                throw PreconditionFailedError("TrustLinesManager::reject. "
+                                                  "Сan not reject incoming trust line. User already used part of amount.");
             }
 
         } else {
-            // todo: exception must inform about method that throws the exception to be able to find it via log file
-            throw ValueError("Сan not reject incoming trust line. Incoming trust line amount less or equals to zero.");
+            throw ValueError("TrustLinesManager::reject. "
+                                 "Сan not reject incoming trust line. Incoming trust line amount less or equals to zero.");
         }
 
     } else {
-        // todo: exception must inform about method that throws the exception to be able to find it via log file
-        throw ConflictError(
-            "Сan not reject incoming trust line. Trust line to such contractor does not exist."); // todo: NotFoundError
+        throw NotFoundError("TrustLinesManager::reject. "
+                                "Сan not reject incoming trust line. Trust line to such contractor does not exist.");
     }
 }
 
-// todo: add comment about possible NotFoundError
-TrustLine::Shared TrustLinesManager::getTrustLineByContractorUUID(
+/**
+ * throw NotFoundError - trust line by this contractor UUID not found
+ */
+TrustLine::Shared TrustLinesManager::trustLineByContractorUUID(
     const NodeUUID &contractorUUID) {
 
     if (isTrustLineExist(contractorUUID)) {
         return mTrustLines.at(contractorUUID);
 
     } else {
-        // todo: exception must inform about method that throws the exception to be able to find it via log file
-        throw ConflictError("Can't find trust line by such contractor UUID."); // todo: NotFoundError
+        throw NotFoundError("TrustLinesManager::trustLineByContractorUUID. "
+                                "Can't find trust line by such contractor UUID.");
     }
 }
 

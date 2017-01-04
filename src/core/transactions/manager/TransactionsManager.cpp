@@ -11,166 +11,185 @@ TransactionsManager::TransactionsManager(
     mResultsInterface(resultsInterface),
     mLog(logger){
 
-    // todo: memory error handling?
-    mTrustLinesInterface = new TrustLinesInterface(mTrustLinesManager);
-    mTransactionsScheduler = new TransactionsScheduler(
+    try{
+        mTrustLinesInterface = new TrustLinesInterface(mTrustLinesManager);
+        
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsManager::TransactionsManager. "
+                              "Can not allocate memory for trust lines interface.");
+    }
+
+    try{
+        mTransactionsScheduler = new TransactionsScheduler(
             mIOService,
             boost::bind(&TransactionsManager::acceptCommandResult, this, ::_1),
             mLog);
+
+    } catch (std::bad_alloc &e) {
+        delete mTrustLinesInterface;
+        throw MemoryError("TransactionsManager::TransactionsManager. "
+                              "Can not allocate memory for transactions scheduler.");
+    }
+
 }
 
 TransactionsManager::~TransactionsManager() {
 
-    // todo: there is no default pointers zeroing.
-    // so the pointers will never be equal to nullptr
-    if (mTransactionsScheduler != nullptr) {
-        delete mTransactionsScheduler;
-    }
-
-    if (mTrustLinesInterface != nullptr) {
-        delete mTrustLinesInterface;
-    }
+    delete mTrustLinesInterface;
+    delete mTransactionsScheduler;
 }
 
 void TransactionsManager::processCommand(
     BaseUserCommand::Shared command) {
 
-    if (command.get()->derivedIdentifier() == OpenTrustLineCommand::identifier()) { // todo: use ->
+    if (command->derivedIdentifier() == OpenTrustLineCommand::identifier()) {
         openTrustLine(command);
 
-    } else if (command.get()->derivedIdentifier() == CloseTrustLineCommand::identifier()) {
+    } else if (command->derivedIdentifier() == CloseTrustLineCommand::identifier()) {
         closeTrustLine(command);
 
-    } else if (command.get()->derivedIdentifier() == UpdateTrustLineCommand::identifier()) {
+    } else if (command->derivedIdentifier() == UpdateTrustLineCommand::identifier()) {
         updateTrustLine(command);
 
-    } else if (command.get()->derivedIdentifier() == UseCreditCommand::identifier()) {
+    } else if (command->derivedIdentifier() == UseCreditCommand::identifier()) {
         useCredit(command);
 
-    } else if (command.get()->derivedIdentifier() == MaximalTransactionAmountCommand::identifier()) {
-        maximalTransactionAmount(command);
+    } else if (command->derivedIdentifier() == MaximalTransactionAmountCommand::identifier()) {
+        calculateMaxTransactionAmount(command);
 
-    } else if (command.get()->derivedIdentifier() == TotalBalanceCommand::identifier()) {
-        totalBalance(command);
+    } else if (command->derivedIdentifier() == TotalBalanceCommand::identifier()) {
+        calculateTotalBalance(command);
 
-    } else if (command.get()->derivedIdentifier() == ContractorsListCommand::identifier()) {
-        contractorsList(command);
+    } else if (command->derivedIdentifier() == ContractorsListCommand::identifier()) {
+        formContractorsList(command);
+
+    } else {
+        throw ConflictError("TransactionsManager::processCommand. "
+                                "Unexpected command identifier.");
     }
-
-    // todo: what if we will receive not expected command?
 }
 
 void TransactionsManager::openTrustLine(
     BaseUserCommand::Shared command) {
 
-    OpenTrustLineCommand *openTrustLineCommand = dynamic_cast<OpenTrustLineCommand *>(command.get());
+    OpenTrustLineCommand::Shared openTrustLineCommand = static_pointer_cast<OpenTrustLineCommand>(command);
 
-    // todo: possible heap corruption
-    // todo: http://stackoverflow.com/questions/1358143/downcasting-shared-ptrbase-to-shared-ptrderived
-    // counters of "command" shared pointer and newly created shared pointer are not the same.
-    // This two pointers knows nothing about each one, and "command" will drop the memory even if newly created one -
-    // will still be present
-    BaseTransaction *baseTransaction = new OpenTrustLineTransaction(OpenTrustLineCommand::Shared(openTrustLineCommand));
-    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+    try{
+        BaseTransaction *baseTransaction = new OpenTrustLineTransaction(openTrustLineCommand);
+        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsManager::openTrustLine. "
+                              "Can not allocate memory for transaction instance.");
+    }
 }
 
 void TransactionsManager::closeTrustLine(
         BaseUserCommand::Shared command) {
 
-    CloseTrustLineCommand *closeTrustLineCommand = dynamic_cast<CloseTrustLineCommand *>(command.get());
+    CloseTrustLineCommand::Shared closeTrustLineCommand = static_pointer_cast<CloseTrustLineCommand>(command);
 
-    // todo: possible heap corruption
-    // todo: http://stackoverflow.com/questions/1358143/downcasting-shared-ptrbase-to-shared-ptrderived
-    // counters of "command" shared pointer and newly created shared pointer are not the same.
-    // This two pointers knows nothing about each one, and "command" will drop the memory even if newly created one -
-    // will still be present
-    BaseTransaction *baseTransaction = new CloseTrustLineTransaction(CloseTrustLineCommand::Shared(closeTrustLineCommand));
-    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+    try{
+        BaseTransaction *baseTransaction = new CloseTrustLineTransaction(closeTrustLineCommand);
+        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsManager::closeTrustLine. "
+                              "Can not allocate memory for transaction instance.");
+    }
 }
 
 void TransactionsManager::updateTrustLine(
         BaseUserCommand::Shared command) {
 
-    UpdateTrustLineCommand *updateTrustLineCommand = dynamic_cast<UpdateTrustLineCommand *>(command.get());
+    UpdateTrustLineCommand::Shared updateTrustLineCommand = static_pointer_cast<UpdateTrustLineCommand>(command);
 
-    // todo: possible heap corruption
-    // todo: http://stackoverflow.com/questions/1358143/downcasting-shared-ptrbase-to-shared-ptrderived
-    // counters of "command" shared pointer and newly created shared pointer are not the same.
-    // This two pointers knows nothing about each one, and "command" will drop the memory even if newly created one -
-    // will still be present
-    BaseTransaction *baseTransaction = new UpdateTrustLineTransaction(UpdateTrustLineCommand::Shared(updateTrustLineCommand));
-    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+    try{
+        BaseTransaction *baseTransaction = new UpdateTrustLineTransaction(updateTrustLineCommand);
+        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsManager::updateTrustLine. "
+                              "Can not allocate memory for transaction instance.");
+    }
 }
 
-void TransactionsManager::maximalTransactionAmount(
-        BaseUserCommand::Shared command) {
+void TransactionsManager::calculateMaxTransactionAmount(
+    BaseUserCommand::Shared command) {
 
-    MaximalTransactionAmountCommand *maximalTransactionAmountCommand = dynamic_cast<MaximalTransactionAmountCommand *>(command.get());
+    MaximalTransactionAmountCommand::Shared maximalTransactionAmountCommand = static_pointer_cast<MaximalTransactionAmountCommand>(command);
 
-    // todo: possible heap corruption
-    // todo: http://stackoverflow.com/questions/1358143/downcasting-shared-ptrbase-to-shared-ptrderived
-    // counters of "command" shared pointer and newly created shared pointer are not the same.
-    // This two pointers knows nothing about each one, and "command" will drop the memory even if newly created one -
-    // will still be present
-    BaseTransaction *baseTransaction = new MaximalAmountTransaction(MaximalTransactionAmountCommand::Shared(maximalTransactionAmountCommand));
-    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+    try{
+        BaseTransaction *baseTransaction = new MaximalAmountTransaction(maximalTransactionAmountCommand);
+        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsManager::calculateMaxTransactionAmount. "
+                              "Can not allocate memory for transaction instance.");
+    }
 }
 
 void TransactionsManager::useCredit(
         BaseUserCommand::Shared command) {
 
-    UseCreditCommand *useCreditCommand = dynamic_cast<UseCreditCommand *>(command.get());
+    UseCreditCommand::Shared useCreditCommand = static_pointer_cast<UseCreditCommand>(command);
 
-    // todo: possible heap corruption
-    // todo: http://stackoverflow.com/questions/1358143/downcasting-shared-ptrbase-to-shared-ptrderived
-    // counters of "command" shared pointer and newly created shared pointer are not the same.
-    // This two pointers knows nothing about each one, and "command" will drop the memory even if newly created one -
-    // will still be present
-    BaseTransaction *baseTransaction = new UseCreditTransaction(UseCreditCommand::Shared(useCreditCommand));
-    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+    try{
+        BaseTransaction *baseTransaction = new UseCreditTransaction(useCreditCommand);
+        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsManager::useCredit. "
+                              "Can not allocate memory for transaction instance.");
+    }
 }
 
 
-void TransactionsManager::totalBalance(
-        BaseUserCommand::Shared command) {
+void TransactionsManager::calculateTotalBalance(
+    BaseUserCommand::Shared command) {
 
-    TotalBalanceCommand *totalBalanceCommand = dynamic_cast<TotalBalanceCommand *>(command.get());
+    TotalBalanceCommand::Shared totalBalanceCommand = static_pointer_cast<TotalBalanceCommand>(command);
 
-    // todo: possible heap corruption
-    // todo: http://stackoverflow.com/questions/1358143/downcasting-shared-ptrbase-to-shared-ptrderived
-    // counters of "command" shared pointer and newly created shared pointer are not the same.
-    // This two pointers knows nothing about each one, and "command" will drop the memory even if newly created one -
-    // will still be present
-    BaseTransaction *baseTransaction = new TotalBalanceTransaction(TotalBalanceCommand::Shared(totalBalanceCommand));
-    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+    try{
+        BaseTransaction *baseTransaction = new TotalBalanceTransaction(totalBalanceCommand);
+        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsManager::calculateTotalBalance. "
+                              "Can not allocate memory for transaction instance.");
+    }
 }
 
-void TransactionsManager::contractorsList(
-        BaseUserCommand::Shared command) {
+void TransactionsManager::formContractorsList(
+    BaseUserCommand::Shared command) {
 
-    ContractorsListCommand *contractorsListCommand = dynamic_cast<ContractorsListCommand *>(command.get());
+    ContractorsListCommand::Shared contractorsListCommand = static_pointer_cast<ContractorsListCommand>(command);
 
-    // todo: possible heap corruption
-    // todo: http://stackoverflow.com/questions/1358143/downcasting-shared-ptrbase-to-shared-ptrderived
-    // counters of "command" shared pointer and newly created shared pointer are not the same.
-    // This two pointers knows nothing about each one, and "command" will drop the memory even if newly created one -
-    // will still be present
-    BaseTransaction *baseTransaction = new ContractorsListTransaction(ContractorsListCommand::Shared(contractorsListCommand));
-    mTransactionsScheduler->addTransaction(BaseTransaction::Shared(baseTransaction));
+    try{
+        BaseTransaction *baseTransaction = new ContractorsListTransaction(contractorsListCommand);
+        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsManager::formContractorsList. "
+                              "Can not allocate memory for transaction instance.");
+    }
 }
+
+
 
 void TransactionsManager::acceptCommandResult(
     CommandResult::SharedConst result) {
 
-    try {
-        if (result != nullptr) {
-            string message = result.get()->serialize(); // todo: use ->
-            mResultsInterface->writeResult(message.c_str(), message.size());
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(result != nullptr);
+#endif
 
-        }
+    try {
+        string message = result->serialize();
+        mResultsInterface->writeResult(message.c_str(), message.size());
+
     } catch(...) {
-        // todo: add info about the command and the result
-        // how wy should fix it if we even don't know what command created this situation?
-        mLog->logError("Transactions manager", "Error occurred when command result has accepted");
+        mLog->logError("Transactions manager",
+                       "Error occurred when command result has accepted");
     }
 }

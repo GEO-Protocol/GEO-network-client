@@ -294,7 +294,7 @@ CommandsInterface::~CommandsInterface() {
     mFIFOStreamDescriptor->cancel();
     delete mFIFOStreamDescriptor;
 
-    // Cancel last timeout operation
+    // Cancel last Timeout operation
     mReadTimeoutTimer->cancel();
     delete mReadTimeoutTimer;
 
@@ -353,7 +353,7 @@ void CommandsInterface::handleReceivedInfo(
         if (error == as::error::eof) {
 
             // It is possible, that FIFO file is not opened by the other side.
-            // Next read attempt should be performed with a timeout,
+            // Next read attempt should be performed with a Timeout,
             // to prevent heavy processor usage.
             mReadTimeoutTimer->expires_from_now(boost::posix_time::seconds(1));
             mReadTimeoutTimer->async_wait(
@@ -362,7 +362,7 @@ void CommandsInterface::handleReceivedInfo(
 
         } else {
             // Looks like FIFO file is corrupted or unreachable.
-            // Next read attempt should be performed with a long timeout.
+            // Next read attempt should be performed with a long Timeout.
             mReadTimeoutTimer->expires_from_now(boost::posix_time::minutes(10));
             mReadTimeoutTimer->async_wait(boost::bind(
                 &CommandsInterface::handleTimeout, this, as::placeholders::error));

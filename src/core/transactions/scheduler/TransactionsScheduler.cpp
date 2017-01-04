@@ -2,45 +2,57 @@
 
 TransactionsScheduler::TransactionsScheduler(
     as::io_service &IOService,
-    function_callback managerCallback,
+    ManagerCallback managerCallback,
     Logger *logger) :
 
     mIOService(IOService),
-    mMangerCallback(managerCallback),
+    mManagerCallback(managerCallback),
     mLog(logger) {
 
     try {
         mProcessingTimer = new as::deadline_timer(
-            mIOService, boost::posix_time::milliseconds(2 * 1000));
+            mIOService,
+            boost::posix_time::milliseconds(2 * 1000));
 
-    } catch (exception &) { // todo: -> bad_alloc
-        // todo: call delete mProcessingTimer
-        throw MemoryError(
-            "TransactionsScheduler::TransactionsScheduler");
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsScheduler::TransactionsScheduler."
+                              "Can not allocate memory for deadline timer instance.");
     }
 
-    // todo: this code can also throw bad_alloc
-    mStorage = new storage::UUIDMapBlockStorage("storage", "transactions.bin"); // todo: the path should be io/transactions/transactions.dat
+    try{
+        mStorage = new storage::UUIDMapBlockStorage(
+            "storage",
+            "transactions.bin"); // todo: the path should be io/transactions/transactions.dat
+
+    } catch (std::bad_alloc &e) {
+        delete mProcessingTimer;
+        throw MemoryError("TransactionsScheduler::TransactionsScheduler."
+                              "Can not allocate memory for UUIDMapBlockStorage instance.");
+    }
 }
 
 TransactionsScheduler::~TransactionsScheduler() {
-    //todo: mStorage would not be nullptr by default.
-    if (mStorage != nullptr) {
-        delete mStorage;
-    }
+
+    delete mProcessingTimer;
+    delete mStorage;
 }
 
-void TransactionsScheduler::addTransaction(
+void TransactionsScheduler::scheduleTransaction(
     BaseTransaction::Shared transaction) {
 
     try {
-        // todo: is this code needed?
-        /*auto transactionContext = transaction.get()->serializeContext();
-        mStorage->write(storage::uuids::uuid(transaction.get()->uuid()), transactionContext.first, transactionContext.second);*/
+        /*auto transactionContext = transaction->serializeContext();
+        mStorage->write(
+         storage::uuids::uuid(transaction->uuid()),
+         transactionContext.first,
+         transactionContext.second);*/
+
         launchTransaction(transaction);
 
     } catch (std::exception &e) {
-        mLog->logError("Transactions scheduler", e.what());
+        mLog->logError(
+            "TransactionsScheduler",
+            e.what());
         sleepFor(findTransactionWithMinimalTimeout().second);
     }
 }
@@ -52,97 +64,107 @@ void TransactionsScheduler::run() {
             launchTransaction(findTransactionWithMinimalTimeout().first);
 
         } catch (std::exception &e) {
-            mLog->logError("Transactions scheduler", e.what());
+            mLog->logError(
+                "TransactionsScheduler",
+                e.what());
             sleepFor(findTransactionWithMinimalTimeout().second);
         }
-
-    } else {
-        sleepFor(kDefaultDelay); // todo: there should be no default delay!
     }
 }
 
 void TransactionsScheduler::launchTransaction(
     BaseTransaction::Shared transaction) {
 
-    // todo: pair<CommandResult::SharedConst, TransactionState::SharedConst> transactionResult -> auto transactionResult
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> transactionResult = transaction.get()->run(); // todo: use ->
+    auto transactionResult = transaction->run();
     if (!isTransactionInScheduler(transaction)) {
-        // todo: would the transaction be saved to the storage?
         mTransactions.insert(make_pair(transaction, transactionResult.second));
     }
     handleTransactionResult(transaction, transactionResult);
 }
 
-// todo: document all the exceptions may be thrown
+/**
+ * Handling transaction executing result.
+ * Result consist of command result and transaction state.
+ * If transaction executed successfully - result has reference to command result,
+ * else - result has reference to transaction state.
+ * If handler has transaction state, he checking if transaction is present in scheduler's map, change
+ * her state in RAM and writing context in storage. Then looking for transaction, which state has minimal timeout for delay.
+ * If handler has command result, he return result via transactions manager's callback and remove transaction from RAM and storage.
+ * Then looking for transaction which state has minimal timeout for delay.
+ * In both cases, if map is empty - scheduler loose control.
+ *
+ * throw ValueError - transaction has executed, but she's absent in map
+ * throw ConflictError - transaction's result and state will could not been nullptr or ptr at the same time
+ */
 void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,
     pair<CommandResult::SharedConst, TransactionState::SharedConst> result) {
 
-    // todo: please, document the logic of the method.
     if (result.first.get() == nullptr) {
         if (isTransactionInScheduler(transaction)) {
             auto it = mTransactions.find(transaction);
             it->second = result.second;
-            /*auto transactionContext = transaction.get()->serializeContext();
-            mStorage->rewrite(storage::uuids::uuid(transaction.get()->uuid()), transactionContext.first, transactionContext.second);*/
+            /*auto transactionContext = transaction->serializeContext();
+             mStorage->rewrite(
+             storage::uuids::uuid(transaction->uuid()),
+             transactionContext.first,
+             transactionContext.second);*/
 
         } else {
             throw ValueError("TransactionsManager::TransactionsScheduler"
                                  "Transaction reference must be store in memory");
         }
-
-        sleepFor(findTransactionWithMinimalTimeout().second); // todo: what if no more transactions?
+        Timeout minimalDelay = findTransactionWithMinimalTimeout().second;
+        if (minimalDelay > posix_time::milliseconds(0)) {
+            sleepFor(minimalDelay);
+        }
 
     } else if (result.second.get() == nullptr) {
-        mMangerCallback(result.first);
+        mManagerCallback(result.first);
         if (isTransactionInScheduler(transaction)) {
             mTransactions.erase(transaction);
-            //mStorage->erase(storage::uuids::uuid(transaction.get()->uuid()));
+            //mStorage->erase(
+            // storage::uuids::uuid(transaction->uuid()));
 
         } else {
-            throw ValueError("TransactionsManager::TransactionsScheduler"
-                                 "Transaction reference must be store in memory");
+            throw ValueError("TransactionsManager::handleTransactionResult. "
+                                 "Transaction reference must be store in memory.");
         }
-        sleepFor(findTransactionWithMinimalTimeout().second);
+        Timeout minimalDelay = findTransactionWithMinimalTimeout().second;
+        if (minimalDelay > posix_time::milliseconds(0)) {
+            sleepFor(minimalDelay);
+        }
 
     } else if (result.first.get() == nullptr && result.second.get() == nullptr) {
-        throw ConflictError("TransactionsManager::TransactionsScheduler"
-                                "Command result and transaction state may not be null pointer references at the same time");
+        throw ConflictError("TransactionsManager::handleTransactionResult. "
+                                "Command result and transaction state may not be null pointer references at the same time.");
 
     } else if (result.first.get() != nullptr && result.second.get() != nullptr) {
-        throw ConflictError("TransactionsManager::TransactionsScheduler"
-                                "Transaction cat not has command result and transaction state at the same time");
+        throw ConflictError("TransactionsManager::handleTransactionResult. "
+                                "Transaction cat not has command result and transaction state at the same time.");
     }
 }
 
-pair<BaseTransaction::Shared, timeout> TransactionsScheduler::findTransactionWithMinimalTimeout() {
+pair<BaseTransaction::Shared, Timeout> TransactionsScheduler::findTransactionWithMinimalTimeout() {
 
-    BaseTransaction::Shared transaction;
-    timeout minimalTimeout = posix_time::milliseconds(0); // todo: may it be const?
+    BaseTransaction::Shared transaction(nullptr);
+    Timeout minimalTimeout = posix_time::milliseconds(0);
+
     for (auto &it : mTransactions) {
         auto transactionStateValue = it.second;
         if (transactionStateValue.get() != nullptr) {
-            if (transactionStateValue.get()->timeout() > 0) {
-                // todo: there is no comparison with previous timeout
-                // is it calculates the minimum timeout correct?
-                minimalTimeout = posix_time::milliseconds(transactionStateValue.get()->timeout());
+            if (transactionStateValue->timeout() > 0) {
+                minimalTimeout = posix_time::milliseconds(transactionStateValue->timeout());
                 transaction = it.first;
             }
         }
     }
 
-    // todo: there is no default timeout in the system.
-    if (minimalTimeout == posix_time::milliseconds(0)) {
-        minimalTimeout = kDefaultDelay;
-
-    }
-
     for (auto &it : mTransactions) {
         auto transactionStateValue = it.second;
         if (transactionStateValue.get() != nullptr) {
-            if (transactionStateValue.get()->timeout() > 0 &&
-                posix_time::milliseconds(transactionStateValue.get()->timeout()) < minimalTimeout) {
-                minimalTimeout = posix_time::milliseconds(transactionStateValue.get()->timeout());
+            if (transactionStateValue->timeout() > 0 && posix_time::milliseconds(transactionStateValue->timeout()) < minimalTimeout) {
+                minimalTimeout = posix_time::milliseconds(transactionStateValue->timeout());
                 transaction = it.first;
             }
         }
@@ -153,27 +175,30 @@ pair<BaseTransaction::Shared, timeout> TransactionsScheduler::findTransactionWit
 }
 
 void TransactionsScheduler::sleepFor(
-    timeout delay) {
+    Timeout delay) {
 
-    // todo: add previous operation cancelling.
+    mProcessingTimer->cancel();
     mProcessingTimer->expires_from_now(delay);
     mProcessingTimer->async_wait(
         boost::bind(
-            &TransactionsScheduler::handleSleep, this,
-            as::placeholders::error, delay));
+            &TransactionsScheduler::handleSleep,
+            this,
+            as::placeholders::error,
+            delay));
 }
 
 void TransactionsScheduler::handleSleep(
     const boost::system::error_code &error,
-    timeout delay) {
+    Timeout delay) {
 
     if (error) {
-        // todo: no log - no problems?
+        mLog->logError(
+            "TransactionsScheduler",
+            error.message());
         return;
 
     } else {
-        // todo: there is no default timeout
-        if (delay > kDefaultDelay) {
+        if (delay > posix_time::milliseconds(0)) {
             run();
         }
     }

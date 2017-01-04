@@ -30,17 +30,18 @@ const CommandResult *UseCreditCommand::resultOk(TransactionUUID &transactionUUID
                                                 uint16_t resultCode,
                                                 Timestamp &transactionReceived,
                                                 Timestamp &transactionProceed) const {
+
     Timestamp epoch(boost::gregorian::date(1970, 1, 1));
     Duration receivedTransaction = transactionReceived - epoch;
     Duration proceedTransaction = transactionProceed - epoch;
 
-    microseconds_timestamp received = (microseconds_timestamp) receivedTransaction.total_microseconds();
-    microseconds_timestamp proceed = (microseconds_timestamp) proceedTransaction.total_microseconds();
+    uint64_t received = (uint64_t) receivedTransaction.total_microseconds();
+    uint64_t proceed = (uint64_t) proceedTransaction.total_microseconds();
 
-    string additionalInformation = transactionUUID.stringUUID() + "\t" +
-                                   boost::lexical_cast<string>(resultCode) + "\t" +
-                                   to_string(received) + "\t" +
-                                   to_string(proceed);
+    string additionalInformation = transactionUUID.stringUUID() + "\t"
+                                   + boost::lexical_cast<string>(resultCode) + "\t"
+                                   + "123456789" + "\t"
+                                   + "123456789";
 
     return new CommandResult(uuid(), 200, additionalInformation);
 }

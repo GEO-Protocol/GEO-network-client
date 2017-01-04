@@ -53,13 +53,13 @@ public:
         const TrustLineBalance &balance,
         SaveTrustLineCallback callback);
 
-    inline const NodeUUID &contractorNodeUUID() const;
+    const NodeUUID &contractorNodeUUID() const;
 
-    inline const TrustLineAmount &incomingTrustAmount() const;
+    const TrustLineAmount &incomingTrustAmount() const;
 
-    inline const TrustLineAmount &outgoingTrustAmount() const;
+    const TrustLineAmount &outgoingTrustAmount() const;
 
-    inline const TrustLineBalance &balance() const;
+    const TrustLineBalance &balance() const;
 
     vector<byte> *serializeTrustLine();
 

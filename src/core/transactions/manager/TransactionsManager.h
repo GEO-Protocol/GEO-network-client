@@ -35,27 +35,20 @@ using namespace std;
 class TransactionsManager {
     // todo: hsc: tests?
 
-    // todo: public methods should be at the top, and then - private
-private:
-
-    // todo: separate members that would be created into this class from the pointers to the external objects.
-    as::io_service &mIOService;
-    TrustLinesManager *mTrustLinesManager;
-    TrustLinesInterface *mTrustLinesInterface;
-    TransactionsScheduler *mTransactionsScheduler;
-    ResultsInterface *mResultsInterface;
-    Logger *mLog;
-
 public:
     TransactionsManager(
         as::io_service &IOService,
         TrustLinesManager *trustLinesManager,
         ResultsInterface *resultsInterface,
         Logger *logger);
+
     ~TransactionsManager();
 
     void processCommand(
         BaseUserCommand::Shared command);
+
+    void acceptCommandResult(
+        CommandResult::SharedConst result);
 
 private:
     void openTrustLine(
@@ -67,21 +60,27 @@ private:
     void updateTrustLine(
         BaseUserCommand::Shared command);
 
-    void maximalTransactionAmount( // todo: rename to calculateMaxTransactionAmount (method name should describe the action)
+    void calculateMaxTransactionAmount(
         BaseUserCommand::Shared command);
 
     void useCredit(
         BaseUserCommand::Shared command);
 
-    void totalBalance( // todo: rename to calculateTotalBalance (method name should describe the action)
-         BaseUserCommand::Shared command);
-
-    void contractorsList( // todo: rename to formContractorsList (method name should describe the action)
+    void calculateTotalBalance(
         BaseUserCommand::Shared command);
 
-    // todo: why this public method is separated?
-public:
-    void acceptCommandResult(CommandResult::SharedConst result);
+    void formContractorsList(
+        BaseUserCommand::Shared command);
+
+private:
+
+    as::io_service &mIOService;
+    TrustLinesManager *mTrustLinesManager;
+    ResultsInterface *mResultsInterface;
+    Logger *mLog;
+
+    TrustLinesInterface *mTrustLinesInterface;
+    TransactionsScheduler *mTransactionsScheduler;
 
 };
 

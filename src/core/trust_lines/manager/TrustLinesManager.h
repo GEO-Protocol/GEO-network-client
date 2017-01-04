@@ -6,9 +6,10 @@
 
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
+#include "../../common/exceptions/MemoryError.h"
 #include "../../common/exceptions/ConflictError.h"
 #include "../../common/exceptions/NotFoundError.h"
-#include "../../common/exceptions/PreconditionFaultError.h"
+#include "../../common/exceptions/PreconditionFailedError.h"
 
 #include <map>
 #include <vector>
@@ -51,7 +52,7 @@ public:
     void reject(
         const NodeUUID &contractorUUID);
 
-    TrustLine::Shared getTrustLineByContractorUUID(
+    TrustLine::Shared trustLineByContractorUUID(
         const NodeUUID &contractorUUID);
 
 protected:

@@ -4,8 +4,8 @@
 #include <string>
 
 #include "../CommandUUID.h"
-#include "../../../common/NodeUUID.h"
 #include "../../../transactions/TransactionUUID.h"
+#include "../../../common/NodeUUID.h"
 #include "../../results/result/CommandResult.h"
 
 #include <boost/date_time/posix_time/ptime.hpp>
@@ -16,6 +16,8 @@
 namespace uuids = boost::uuids;
 
 typedef boost::posix_time::ptime Timestamp;
+
+class CommandResult;
 
 class BaseUserCommand {
 public:
@@ -41,7 +43,7 @@ public:
 
     const Timestamp &timestampAccepted() const;
 
-    const CommandResult *unexpectedErrorResult();
+    CommandResult::SharedConst unexpectedErrorResult();
 
 protected:
     virtual void deserialize(

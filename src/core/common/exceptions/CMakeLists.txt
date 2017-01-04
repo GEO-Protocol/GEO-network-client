@@ -10,7 +10,7 @@ set(SOURCE_FILES
         MemoryError.h
         NotFoundError.h
         OverflowError.h
-        PreconditionFaultError.h
+        PreconditionFailedError.h
         RuntimeError.h
         ValueError.h)
 add_library(exceptions SHARED ${SOURCE_FILES})

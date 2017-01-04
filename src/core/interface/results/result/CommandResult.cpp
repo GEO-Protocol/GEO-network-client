@@ -6,6 +6,7 @@ CommandResult::CommandResult(
 
         mCommandUUID(commandUUID),
         mTimestampCompleted(boost::posix_time::microsec_clock::universal_time()) {
+
     mResultCode = resultCode;
 }
 
@@ -17,6 +18,7 @@ CommandResult::CommandResult(
         mCommandUUID(commandUUID),
         mTimestampCompleted(boost::posix_time::microsec_clock::universal_time()),
         mResultInformation(resultInformation) {
+
     mResultCode = resultCode;
 }
 
@@ -41,5 +43,3 @@ const string CommandResult::serialize() const {
     return mCommandUUID.stringUUID() + "\t" +
            boost::lexical_cast<string>(mResultCode) + "\n";
 }
-
-

@@ -6,8 +6,7 @@
 #include "../../../common/exceptions/ValueError.h"
 
 
-class UseCreditCommand:
-    public BaseUserCommand {
+class UseCreditCommand : public BaseUserCommand {
 
 public:
     typedef shared_ptr<UseCreditCommand> Shared;
