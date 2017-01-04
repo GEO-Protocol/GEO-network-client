@@ -6,10 +6,10 @@
 #include "state/TransactionState.h"
 #include "../../interface/results/result/CommandResult.h"
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
+#include "../../common/Types.h"
 
 namespace storage = db::uuid_map_block_storage;
 
-typedef storage::byte byte;
 
 class BaseTransaction {
     friend class TransactionsScheduler;

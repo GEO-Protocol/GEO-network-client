@@ -98,14 +98,11 @@ void TrustLinesManager::loadTrustLines() {
 
         for (auto const &item : contractorsUUIDs) {
 
-            storage::Record *record = nullptr;
+            storage::Record::Shared record;
             try {
                  record = mTrustLinesStorage->readFromFile(storage::uuids::uuid(item));
 
             } catch(std::exception &e) {
-                if (record != nullptr) {
-                    delete record;
-                }
                 throw IOError(e.what());
             }
 
@@ -116,14 +113,9 @@ void TrustLinesManager::loadTrustLines() {
                 mTrustLines.insert(make_pair(item, TrustLine::Shared(trustLine)));
 
             } catch (...) {
-                if (record != nullptr) {
-                    delete record;
-                }
                 throw Exception("TrustLinesManager::loadTrustLine. "
                                     "Unable to create trust line instance from buffer.");
             }
-
-            delete record;
         }
     }
 }

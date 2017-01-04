@@ -19,8 +19,6 @@ public:
     TrustLinesStorage(
             const string &fileName);
 
-    ~TrustLinesStorage();
-
     const vector<NodeUUID> getAllContractorsUUIDs();
 };
 
