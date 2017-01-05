@@ -3,11 +3,10 @@
 
 #include "../common/NodeUUID.h"
 
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <chrono>
-#include <map>
+#include "../common/exceptions/ValueError.h"
+#include "../common/exceptions/IOError.h"
+#include "../common/exceptions/ConflictError.h"
+#include "../logger/Logger.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -18,18 +17,19 @@
 
 #include "../../libs/json/json.h"
 
-#include "../logger/Logger.h"
-#include "../common/exceptions/ValueError.h"
-#include "../common/exceptions/IOError.h"
-#include "../common/exceptions/ConflictError.h"
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <chrono>
+#include <map>
 
 
 namespace uuids = boost::uuids;
 namespace as = boost::asio;
 
 using namespace std;
-using boost::asio::ip::tcp;
-using boost::asio::ip::address;
+using as::ip::tcp;
+using as::ip::address;
 using json = nlohmann::json;
 
 
@@ -38,7 +38,7 @@ public:
     UUID2Address(
         as::io_service &IOService,
         const string host,
-        const uint16_t port=80);
+        const uint16_t port = 80);
 
     ~UUID2Address();
 
@@ -47,7 +47,28 @@ public:
         const string &nodeHost,
         const uint16_t &nodePort);
 
-protected:
+    const pair<string, uint16_t> getNodeAddress(
+        const uuids::uuid &contractorUUUID);
+
+private:
+    const pair<string, uint16_t> fetchFromGlobalCache(
+        const NodeUUID &uuid);
+
+    const pair<unsigned int, string> processResponse();
+
+    const bool isNodeAddressExistInLocalCache(
+        const uuids::uuid &nodeUUID);
+
+    void compressLocalCache();
+
+    const long currentTimestamp(); // todo: specify this on boost::chrono types
+
+    const long yesterdayTimestamp(); // todo: specify this on boost::chrono types
+
+    const bool wasAddressAlreadyCached(
+        const uuids::uuid &nodeUUID);
+
+private:
     map<uuids::uuid, pair<string, uint16_t>> mCache;
     map<uuids::uuid, long> mLastAccessTime; // todo: specify this on boost::chrono types
 
@@ -62,25 +83,6 @@ protected:
     tcp::resolver::iterator mEndpointIterator;
     boost::asio::streambuf mRequest;
     std::ostream mRequestStream;
-
-
-private:
-    const pair<string, uint16_t> fetchFromGlobalCache(
-        const NodeUUID &uuid);
-
-    const string processResponse();
-
-    const pair<string, uint16_t> getNodeAddress(
-        const uuids::uuid &contractorUUUID);
-
-    const bool isNodeAddressExistInLocalCache(
-        const uuids::uuid &nodeUUID);
-
-    void compressLocalCache();
-
-    const long getCurrentTimestamp(); // todo: specify this on boost::chrono types
-    const long getYesterdayTimestamp(); // todo: specify this on boost::chrono types
-    const bool wasAddressAlreadyCached(const uuids::uuid &nodeUUID);
 
 };
 

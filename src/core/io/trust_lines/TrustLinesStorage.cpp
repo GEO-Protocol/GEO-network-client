@@ -4,7 +4,7 @@ TrustLinesStorage::TrustLinesStorage(
         const string &fileName) :
 
         UUIDMapBlockStorage(
-                "storage",
+                "io/trust_lines",
                 fileName) {}
 
 const vector<NodeUUID> TrustLinesStorage::getAllContractorsUUIDs() {

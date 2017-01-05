@@ -3,7 +3,7 @@
 TrustLinesManager::TrustLinesManager() {
     try {
         mTrustLinesStorage = new TrustLinesStorage(
-            "trust_lines_storage.bin"); // todo: move it to the io/trust_lines/trust_lines.dat
+            "trust_lines.dat");
 
     } catch (std::bad_alloc &e) {
         throw MemoryError("TrustLinesManager::TrustLinesManager. "

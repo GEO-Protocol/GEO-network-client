@@ -1,9 +1,10 @@
 #include "UUID2Address.h"
+#include "../common/exceptions/NotFoundError.h"
 
 UUID2Address::UUID2Address(
     as::io_service &IOService,
     const string host,
-    const uint16_t port):
+    const uint16_t port) :
 
     mIOService(IOService),
     mResolver(mIOService),
@@ -17,6 +18,7 @@ UUID2Address::UUID2Address(
 }
 
 UUID2Address::~UUID2Address() {
+
     mRequest.consume(mRequest.size());
     mSocket.close();
 }
@@ -53,12 +55,10 @@ void UUID2Address::registerInGlobalCache(
     as::connect(mSocket, mEndpointIterator);
     as::write(mSocket, mRequest);
 
-    json result = json::parse(processResponse());
-    int code = result.value("code", -1);
-    if (code != 0) {
-        throw Exception(
-            "UUID2Address::registerInGlobalCache: "
-                "Cant issue the request.");
+    auto response = processResponse();
+    if (response.first != 200) {
+        throw Exception("UUID2Address::registerInGlobalCache: "
+                            "Cant issue the request.");
     }
 }
 
@@ -82,26 +82,52 @@ const pair<string, uint16_t> UUID2Address::fetchFromGlobalCache(
     boost::asio::connect(mSocket, mEndpointIterator);
     boost::asio::write(mSocket, mRequest);
 
-    json result = json::parse(processResponse());
-    int code = result.value("code", -1);
-    if (code == 0) {
-        json data = result["data"];
-        string ip = data.value("ip_address", "");
-        int port = data.value("port", -1);
-        if (!ip.compare("") && port > -1) {
-            pair <string, uint16_t> remoteNodeAddressPair = make_pair(ip, (uint16_t) port);
-            mCache.insert(pair <uuids::uuid, pair<string, uint16_t>> (uuid, remoteNodeAddressPair));
-            mLastAccessTime.insert(pair<uuids::uuid, long>(uuid, getCurrentTimestamp()));
-            return remoteNodeAddressPair;
-        } else {
-            throw ConflictError("Incorrect ip address value from remote service.");
+    auto result = processResponse();
+    switch (result.first) {
+        case 200: {
+            json jsonResponse = json::parse(result.second);
+            json data = jsonResponse["data"];
+            string ip = data.value("ip_address", "");
+            int port = data.value("port", -1);
+            if (!ip.compare("") && port > -1) {
+                pair<string, uint16_t> remoteNodeAddressPair = make_pair(ip, (uint16_t) port);
+                mCache.insert(
+                    make_pair(
+                        uuid, remoteNodeAddressPair
+                    )
+                );
+                mLastAccessTime.insert(
+                    make_pair(
+                        uuid,
+                        currentTimestamp()
+                    )
+                );
+                return remoteNodeAddressPair;
+            } else {
+                throw ConflictError("UUID2Address::fetchFromGlobalCache: "
+                                        "Incorrect ip address value from remote service.");
+            }
         }
-    } else {
-        throw ConflictError("Illegal result code from remote service.");
+
+        case 400: {
+            throw NotFoundError("UUID2Address::fetchFromGlobalCache: "
+                                    "One or sevaral request parameters are invalid.");
+        }
+
+        case 404: {
+            throw NotFoundError("UUID2Address::fetchFromGlobalCache: "
+                                    "There is no node with exact UUID.");
+        }
+
+        default: {
+            throw ConflictError("UUID2Address::fetchFromGlobalCache: "
+                                    "Illegal result code from remote service.");
+        }
     }
 }
 
-const string UUID2Address::processResponse() {
+const pair<unsigned int, string> UUID2Address::processResponse() {
+
     boost::asio::streambuf response;
     std::istream responseStream(&response);
 
@@ -109,73 +135,111 @@ const string UUID2Address::processResponse() {
 
     std::string httpVersion;
     responseStream >> httpVersion;
+
     unsigned int statusCode;
     responseStream >> statusCode;
+
     std::string statusMessage;
     getline(responseStream, statusMessage);
+
     if (!responseStream || httpVersion.substr(0, 5) != "HTTP/") {
         throw ValueError(
             "UUID2Address::processResponse: "
                 "Invalid response from the remote service");
     }
 
-    if (statusCode == 200) {
-        boost::asio::read_until(mSocket, response, "\r\n\r\n");
+    switch (statusCode) {
+        case 200: {
+            boost::asio::read_until(mSocket, response, "\r\n\r\n");
+            string header;
+            while (getline(responseStream, header) && header != "\r") {}
+            if (response.size() > 0) {
+                string data(
+                    (istreambuf_iterator<char>(&response)),
+                    istreambuf_iterator<char>()
+                );
+                return make_pair(
+                    statusCode,
+                    data
+                );
 
-        string header;
-        while (std::getline(responseStream, header) && header != "\r") {}
-        if (response.size() > 0) {
-            std::string data((std::istreambuf_iterator<char>(&response)), std::istreambuf_iterator<char>());
-            return data;
-        } else {
-            throw ValueError("Empty response body from the remote service");
+            } else {
+                throw ValueError("UUID2Address::processResponse: "
+                                     "Empty response body from the remote service");
+            }
         }
-    } else {
-        throw IOError("Bad request to the remote service");
+
+        case 400:
+        case 404:
+        case 500: {
+            return make_pair(
+                statusCode,
+                string()
+            );
+        }
+
+        default: {
+            throw IOError("UUID2Address::processResponse: "
+                              "Unexpected response code");
+        }
     }
 }
 
-const pair <string, uint16_t> UUID2Address::getNodeAddress(const uuids::uuid &contractorUUID) {
+const pair<string, uint16_t> UUID2Address::getNodeAddress(
+    const uuids::uuid &contractorUUID) {
+
     if (isNodeAddressExistInLocalCache(contractorUUID)) {
         if (wasAddressAlreadyCached(contractorUUID)) {
-            map<uuids::uuid, long>::iterator it = mLastAccessTime.find(contractorUUID);
+            auto it = mLastAccessTime.find(contractorUUID);
             if (it != mLastAccessTime.end()) {
-                it->second = getCurrentTimestamp();
+                it->second = currentTimestamp();
             }
+
         } else {
-            mLastAccessTime.insert(pair<uuids::uuid, long>(contractorUUID, getCurrentTimestamp()));
+            mLastAccessTime.insert(make_pair(contractorUUID, currentTimestamp()));
         }
         return mCache.at(contractorUUID);
+
     } else {
         return fetchFromGlobalCache(contractorUUID);
     }
 }
 
-const bool UUID2Address::isNodeAddressExistInLocalCache(const uuids::uuid &nodeUUID) {
+const bool UUID2Address::isNodeAddressExistInLocalCache(
+    const uuids::uuid &nodeUUID) {
+
     return mCache.count(nodeUUID) > 0;
 }
 
 void UUID2Address::compressLocalCache() {
-    map<uuids::uuid, long>::iterator it;
-    for (it = mLastAccessTime.begin(); it != mLastAccessTime.end(); ++it){
-        long timeOfLastUsing = it->second;
-        if (timeOfLastUsing < getYesterdayTimestamp()){
-            mCache.erase(it->first);
-            mLastAccessTime.erase(it->first);
+
+    for (auto const &it : mLastAccessTime) {
+        long timeOfLastUsing = it.second;
+        if (timeOfLastUsing < yesterdayTimestamp()) {
+            mCache.erase(it.first);
+            mLastAccessTime.erase(it.first);
         }
     }
 }
 
-const long UUID2Address::getCurrentTimestamp() {
-    return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+const long UUID2Address::currentTimestamp() {
+
+    return std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
 }
 
-const long UUID2Address::getYesterdayTimestamp() {
+const long UUID2Address::yesterdayTimestamp() {
+
     std::chrono::time_point<std::chrono::system_clock> yesterday = std::chrono::system_clock::now() - std::chrono::hours(24);
-    return std::chrono::duration_cast<std::chrono::seconds>(yesterday.time_since_epoch()).count();
+    return std::chrono::duration_cast<std::chrono::seconds>(
+        yesterday.time_since_epoch()
+    ).count();
 }
 
-const bool UUID2Address::wasAddressAlreadyCached(const uuids::uuid &nodeUUID) {
+const bool UUID2Address::wasAddressAlreadyCached(
+    const uuids::uuid &nodeUUID) {
+
     return mLastAccessTime.count(nodeUUID) > 0;
 }
 

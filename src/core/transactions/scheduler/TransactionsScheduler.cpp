@@ -21,8 +21,8 @@ TransactionsScheduler::TransactionsScheduler(
 
     try{
         mStorage = new storage::UUIDMapBlockStorage(
-            "storage",
-            "transactions.bin"); // todo: the path should be io/transactions/transactions.dat
+            "io/transactions",
+            "transactions.dat");
 
     } catch (std::bad_alloc &e) {
         delete mProcessingTimer;

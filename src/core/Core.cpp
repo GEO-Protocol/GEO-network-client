@@ -16,7 +16,6 @@ int Core::run() {
     }
 
     try {
-        // todo: register in uuid2address service;
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
 
