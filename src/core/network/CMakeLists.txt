@@ -16,7 +16,9 @@ set(SOURCE_FILES
         messages/ProcessingReportMessage.h
         messages/TestMessage.h
         UUID2Address.cpp
-        UUID2Address.h)
+        UUID2Address.h
+        channels/channel/Channel.cpp
+        channels/channel/Channel.h channels/packet/Packet.cpp channels/packet/Packet.h channels/manager/ChannelsManager.cpp channels/manager/ChannelsManager.h channels/packet/PacketHeader.cpp channels/packet/PacketHeader.h)
 
 add_library(network ${SOURCE_FILES})
 target_link_libraries(network
