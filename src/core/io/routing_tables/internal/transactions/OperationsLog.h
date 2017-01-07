@@ -31,6 +31,10 @@ class OperationsLog:
     protected AbstractFileDescriptorHandler,
     protected AbstractRecordsHandler {
 
+#ifdef TESTS__ROUTING_TABLE
+    friend class OperationsLogTests;
+#endif
+
 public:
     OperationsLog(
         const fs::path &path);
@@ -53,7 +57,7 @@ public:
     bool transactionMayBeStarted();
 
     void commit();
-    shared_ptr<vector<Operation::Shared>> uncompletedOperations();
+    shared_ptr<vector<Operation::ConstShared>> uncompletedOperations();
     void truncateOperations();
 
 protected:
@@ -86,8 +90,5 @@ protected:
 
 } // namespace routing_tables;
 } // namespace io;
-
-
-
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSHANDLER_H

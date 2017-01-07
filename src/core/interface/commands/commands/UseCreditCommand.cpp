@@ -64,7 +64,7 @@ void UseCreditCommand::deserialize(
 
 
     try {
-        string hexUUID = command.substr(0, NodeUUID::kUUIDLength);
+        string hexUUID = command.substr(0, NodeUUID::kHexSize);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {

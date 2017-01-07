@@ -25,11 +25,10 @@ SetOperation::SetOperation(
 
     auto currentOffset = data;
 
-    // Set operation type
-    // This constructor is shared also for RemoveOperation.
-    // So the type should be loaded from file,
-    // instead of direct setting.
+    // Setting operation type.
     //
+    // This constructor is shared also for RemoveOperation,
+    // so the type should be loaded from file, instead of setting it direct.
     // (see RemoveOperation.h for details)
     auto operationType = (Operation::SerializedOperationType*)currentOffset;
     mType = Operation::OperationType(*operationType);
@@ -37,12 +36,12 @@ SetOperation::SetOperation(
 
 
     // Deserialization of the first node uuid
-    memcpy(mU1.data, currentOffset, NodeUUID::kUUIDLength);
-    currentOffset += NodeUUID::kUUIDLength;
+    memcpy(mU1.data, currentOffset, NodeUUID::kBytesSize);
+    currentOffset += NodeUUID::kBytesSize;
 
     // Deserialization of the second node uuid
-    memcpy(mU2.data, currentOffset, NodeUUID::kUUIDLength);
-    currentOffset += NodeUUID::kUUIDLength;
+    memcpy(mU2.data, currentOffset, NodeUUID::kBytesSize);
+    currentOffset += NodeUUID::kBytesSize;
 
     // Deserialization of the direction
     auto directionOffset = (Operation::SerializedTrustLineDirectionType*)currentOffset;
@@ -73,12 +72,12 @@ const pair<shared_ptr<byte>, size_t> SetOperation::serialize() const {
     currentOffset += sizeof(serializableOperationType);
 
     // Serializing first node uuid
-    memcpy(currentOffset, mU1.data, NodeUUID::kUUIDLength);
-    currentOffset += NodeUUID::kUUIDLength;
+    memcpy(currentOffset, mU1.data, NodeUUID::kBytesSize);
+    currentOffset += NodeUUID::kBytesSize;
 
     // Serializing second node uuid
-    memcpy(currentOffset, mU2.data, NodeUUID::kUUIDLength);
-    currentOffset += NodeUUID::kUUIDLength;
+    memcpy(currentOffset, mU2.data, NodeUUID::kBytesSize);
+    currentOffset += NodeUUID::kBytesSize;
 
     // Serializing direction
     SerializedTrustLineDirectionType serializableDirection = mDirection;

@@ -5,5 +5,5 @@ set(SOURCE_FILES
     NodeUUID.h
     Types.h)
 
-add_library(common SHARED ${SOURCE_FILES})
+add_library(common ${SOURCE_FILES})
 target_link_libraries(common)

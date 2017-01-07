@@ -60,7 +60,7 @@ protected:
     void commitOperations();
     void rollBackOperations();
     void rollbackSetOperation(
-        SetOperation::Shared operation);
+        SetOperation::ConstShared operation);
 
     const RecordNumber intersectingRecordNumber(
         const NodeUUID &u1,

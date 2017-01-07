@@ -111,24 +111,40 @@ void AbstractRoutingTable::commitOperations() {
 
 }
 
+/*
+ * Reverts all operations that are currently in the log.
+ *
+ *
+ * Throws RuntimeError in case when uncompleted operations can't be loaded, or correctly processed.
+ */
 void AbstractRoutingTable::rollBackOperations() {
-    auto uncompletedOperations = mOperationsLog->uncompletedOperations();
-    if (uncompletedOperations->size() > 0) {
-        for (auto &op: *uncompletedOperations) {
-            switch (op->type()) {
-                case Operation::Set: {
-                    rollbackSetOperation(
-                        dynamic_pointer_cast<SetOperation>(op));
-                    continue;
-                }
+    try {
+        auto uncompletedOperations = mOperationsLog->uncompletedOperations();
 
-                default: {
-                    throw RuntimeError(
-                        "AbstractRoutingTable::rollBackOperations: "
-                            "unexpected operation occurred.");
+        if (uncompletedOperations->size() > 0) {
+            for (auto &op: *uncompletedOperations) {
+                switch (op->type()) {
+                    case Operation::Set: {
+                        rollbackSetOperation(dynamic_pointer_cast<const SetOperation>(op));
+                        continue;
+                    }
+
+                    // todo: add rest operations
+
+                    default: {
+                        throw RuntimeError(
+                            "AbstractRoutingTable::rollBackOperations: "
+                                "unexpected operation occurred.");
+                    }
                 }
             }
         }
+
+
+    } catch (Exception &e) {
+        throw RuntimeError(
+            string("AbstractRoutingTable::rollBackOperations: unexpected operation occurred. Details are: ")
+            + e.message());
     }
 }
 
@@ -185,7 +201,7 @@ void AbstractRoutingTable::executeOperation(
 }
 
 void AbstractRoutingTable::rollbackSetOperation(
-    SetOperation::Shared operation) {
+    SetOperation::ConstShared operation) {
 
 }
 

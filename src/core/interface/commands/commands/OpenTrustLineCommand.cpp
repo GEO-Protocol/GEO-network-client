@@ -37,7 +37,7 @@ const CommandResult *OpenTrustLineCommand::trustLineAlreadyPresentResult() const
 void OpenTrustLineCommand::deserialize(
     const string &command) {
 
-    const auto amountTokenOffset = NodeUUID::kUUIDLength + 1;
+    const auto amountTokenOffset = NodeUUID::kHexSize + 1;
     const auto minCommandLength = amountTokenOffset + 1;
 
     if (command.size() < minCommandLength) {
@@ -48,7 +48,7 @@ void OpenTrustLineCommand::deserialize(
 
 
     try {
-        string hexUUID = command.substr(0, NodeUUID::kUUIDLength);
+        string hexUUID = command.substr(0, NodeUUID::kHexSize);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {

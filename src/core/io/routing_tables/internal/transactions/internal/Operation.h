@@ -1,5 +1,5 @@
-#ifndef GEO_NETWORK_CLIENT_BASETRANSACTION_H
-#define GEO_NETWORK_CLIENT_BASETRANSACTION_H
+#ifndef GEO_NETWORK_CLIENT_BASEOPERATION_H
+#define GEO_NETWORK_CLIENT_BASEOPERATION_H
 
 
 #include "../../../../../common/Types.h"
@@ -25,6 +25,7 @@ class Operation:
 
 public:
     typedef shared_ptr<Operation> Shared;
+    typedef shared_ptr<const Operation> ConstShared;
 
     typedef byte SerializedOperationType;
     typedef byte SerializedTrustLineDirectionType;
@@ -55,4 +56,4 @@ protected:
 } // routing_tables
 } // io
 
-#endif //GEO_NETWORK_CLIENT_BASETRANSACTION_H
+#endif //GEO_NETWORK_CLIENT_BASEOPERATION_H

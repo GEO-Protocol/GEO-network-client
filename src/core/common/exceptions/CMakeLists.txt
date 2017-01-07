@@ -13,4 +13,4 @@ set(SOURCE_FILES
         PreconditionFailedError.h
         RuntimeError.h
         ValueError.h)
-add_library(exceptions SHARED ${SOURCE_FILES})
+add_library(exceptions ${SOURCE_FILES})

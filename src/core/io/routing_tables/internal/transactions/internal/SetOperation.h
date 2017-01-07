@@ -21,8 +21,8 @@ public:
     // Size of this instance in serialized format.
     static const constexpr size_t kSerializedSize =
         + sizeof(Operation::SerializedOperationType)
-        + NodeUUID::kUUIDLength
-        + NodeUUID::kUUIDLength
+        + NodeUUID::kBytesSize
+        + NodeUUID::kBytesSize
         + sizeof(Operation::SerializedTrustLineDirectionType)
         + sizeof(RecordNumber);
 
