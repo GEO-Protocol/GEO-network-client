@@ -1,4 +1,4 @@
-#include "../../../core/io/routing_tables/internal/transactions/internal/DirectionUpdateOperation.h"
+#include "../../../../core/io/routing_tables/internal/transactions/internal/DirectionUpdateOperation.h"
 
 
 using namespace io::routing_tables;
@@ -8,6 +8,7 @@ class DirectionUpdateOperationsTests {
 public:
     void run() {
         checkSerialization();
+        checkDeserialization();
         checkRollbackOperationGeneration();
     }
 
@@ -51,6 +52,11 @@ public:
             assert(deserializedOp.directionBackup() == dirBackup);
             assert(deserializedOp.recordNumber() == recN);
         }
+    }
+
+    void checkDeserialization() {
+        // see: OperationsLogTests.cpp.
+        // In that tests implicit deserialization test logic is present.
     }
 
     void checkRollbackOperationGeneration() {

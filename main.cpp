@@ -29,9 +29,9 @@
 
 #ifdef TESTS__ROUTING_TABLE
 #include "src/tests/io/routing_tables/OperationsLogTests.cpp"
-#include "src/tests/io/routing_tables/SetOperationTests.cpp"
-#include "src/tests/io/routing_tables/RemoveOperationTests.cpp"
-#include "src/tests/io/routing_tables/DirectionUpdateOperationTests.cpp"
+#include "src/tests/io/routing_tables/operations/SetOperationTests.cpp"
+#include "src/tests/io/routing_tables/operations/RemoveOperationTests.cpp"
+#include "src/tests/io/routing_tables/operations/DirectionUpdateOperationTests.cpp"
 #endif
 
 
@@ -79,18 +79,18 @@ int main() {
             OperationsLogTests tests;
             tests.run();
         }
-//        {
-//            SetOperationsTests tests;
-//            tests.run();
-//        }
-//        {
-//            RemoveOperationsTests tests;
-//            tests.run();
-//        }
-//        {
-//            DirectionUpdateOperationsTests tests;
-//            tests.run();
-//        }
+        {
+            SetOperationsTests tests;
+            tests.run();
+        }
+        {
+            RemoveOperationsTests tests;
+            tests.run();
+        }
+        {
+            DirectionUpdateOperationsTests tests;
+            tests.run();
+        }
     }
 #endif
 

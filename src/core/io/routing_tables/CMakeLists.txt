@@ -30,4 +30,5 @@ target_link_libraries(io__routing_tables_storage
         ${Boost_SYSTEM_LIBRARY}
 
         common
+        exceptions
         db__fields)
