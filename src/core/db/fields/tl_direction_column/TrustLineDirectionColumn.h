@@ -74,9 +74,7 @@ protected:
         std::numeric_limits<SerializedTrustLineDirection>::max();
 
 protected:
-    void open(
-        const char *accessMode);
-
+    void open();
     FileHeader loadFileHeader() const;
     void updateFileHeader(
         const FileHeader *header) const;

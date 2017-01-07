@@ -9,7 +9,7 @@ TrustLineDirectionColumn::TrustLineDirectionColumn(
     const fs::path &path):
     AbstractFileDescriptorHandler(path / fs::path("data.bin")) {
 
-    open(kWriteAccessMode);
+    open();
 }
 
 
@@ -80,9 +80,8 @@ TrustLineDirectionColumn::FileHeader::FileHeader():
     version(1){}
 
 
-void TrustLineDirectionColumn::open(const char *accessMode) {
-    AbstractFileDescriptorHandler::open(accessMode);
-
+void TrustLineDirectionColumn::open() {
+    AbstractFileDescriptorHandler::open();
 
     if (fileSize() == 0) {
         // Init default header.

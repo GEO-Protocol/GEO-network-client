@@ -24,8 +24,13 @@ BucketBlock::BucketBlock(
     mHasBeenModified(false){
 
     // By the format, each serialized bucket block is prefixed with records count field.
-    const auto kRecordsCount = *(RecordsCount*)data;
+    const auto kRecordsCount = *((RecordsCount*)data);
     mRecords = (BucketBlockRecord*)malloc(sizeof(BucketBlockRecord) * kRecordsCount);
+    if (mRecords == nullptr) {
+        throw MemoryError(
+            "BucketBlock::BucketBlock: bad alloc.");
+    }
+    mRecordsCount = kRecordsCount;
 
     // Populating the records of the block with the data.
     BucketBlockRecord* nextRecordOffset = mRecords;
@@ -60,14 +65,16 @@ BucketBlock::~BucketBlock() {
 
 /*!
  * Inserts record with "uuid" and "recN" into the block.
- * In case when record with "uuid" would be already present -
- * "recN" would be inserted into it with reallocation.
+ * In case when record with "uuid" is already present -
+ * "recN" would be appended to the record, associated with "uuid" (with reallocation).
  * Otherwise - new record would be created.
  *
  * It is guarantied, that "mRecords" will remain sorted in ascending order.
  *
- * Throws "ConflictError" in case when record with "uuid" already contains exact "recN".
- * Throws "MemoryError".
+ *
+ * Throws OverflowError in case when there is no free space into the block.
+ * Throws ConflictError in case when record with "uuid" already contains exact "recN".
+ * Throws MemoryError.
  */
 void BucketBlock::insert(const NodeUUID &uuid, const RecordNumber recN) {
     if (mRecordsCount == numeric_limits<AbstractRecordsHandler::RecordsCount>::max()){
@@ -111,10 +118,14 @@ bool BucketBlock::remove(const NodeUUID &uuid, const RecordNumber recN) {
 }
 
 /*!
- * Returns nullptr in case when record with "uuid" was not found in the block;
- * Otherwise - returns it's address.
+ * Returns pointer to the record by it's uuid.
+ *
+ *
+ * Throws IOError in case when no record with exact uuid is present in the block;
  */
-BucketBlockRecord *BucketBlock::recordByUUID(const NodeUUID &uuid) const {
+BucketBlockRecord *BucketBlock::recordByUUID(
+    const NodeUUID &uuid) const {
+
     auto index = recordIndexByUUID(uuid);
     return mRecords+index;
 }
@@ -263,13 +274,16 @@ const AbstractRecordsHandler::RecordNumber BucketBlock::recordsCount() const {
 
 const pair<shared_ptr<byte>, uint32_t> BucketBlock::serializeToBytes() const {
 
-    // By default, block data should be prefixed with field,
-    // that specifies how many records are in the storage.
-    uint32_t totalBlockSize = sizeof(RecordNumber);
+    uint32_t totalBlockSize = 0;
 
+    // Block data should be prefixed with field,
+    // that specifies how many records are in the block.
+    totalBlockSize += sizeof(RecordNumber);
+
+    // Calculating how long the block is.
     for (RecordsCount i=0; i<mRecordsCount; ++i){
         totalBlockSize +=
-            + NodeUUID::kBytesSize // uuid of the record
+            + NodeUUID::kBytesSize  // uuid of the record
             + sizeof(RecordsCount)  // how many record numbers are stored in the record
             + sizeof(RecordNumber) * mRecords[i].count(); // record numbers itself
     }
@@ -301,8 +315,8 @@ const pair<shared_ptr<byte>, uint32_t> BucketBlock::serializeToBytes() const {
 
         // Record numbers
         memcpy(currentOffset,  mRecords[i].recordNumbers(), sizeof(RecordNumber) * mRecords[i].count());
+        currentOffset += sizeof(RecordNumber) * mRecords[i].count();
     }
-
 
     shared_ptr<byte> blockPtr(block, free);
     return make_pair(blockPtr, totalBlockSize);

@@ -34,6 +34,7 @@ public:
         checkCommit();
         checkTruncateOperations();
 
+
         clean();
     };
 

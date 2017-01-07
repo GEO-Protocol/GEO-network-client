@@ -1,6 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_UUIDMAP_H
 #define GEO_NETWORK_CLIENT_UUIDMAP_H
 
+
 #include "internal/BucketBlock.h"
 
 #include "../common/AbstractFileDescriptorHandler.h"
@@ -8,6 +9,7 @@
 #include "../common/RecordNumbersIndex.h"
 #include "../../../common/NodeUUID.h"
 #include "../../../common/exceptions/NotFoundError.h"
+#include "../../../common/exceptions/RuntimeError.h"
 
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -63,6 +65,8 @@ public:
 
 protected:
     static constexpr const BucketBlockAddress kNoBucketAddressValue = 0;
+    static constexpr const char *kDataFilename = "data.bin";
+    static constexpr const char *kIndexFilename = "records_number_index.bin";
 
 protected:
     struct FileHeader {
@@ -89,7 +93,8 @@ protected:
         BucketOffset offset;
 
         // Specifies how long (in bytes) the bucket block is.
-        uint32_t bytesCount;
+        // WARN: this type should be uint64_t to prevent structure memory alignment!
+        uint64_t bytesCount;
     };
 
     // Specifies in k**2 format how many buckets would be created on the disk.
@@ -133,9 +138,7 @@ protected:
         const BucketIndex index,
         const SharedBucketBlock block);
 
-
-    void open(
-        const char *accessMode);
+    void open();
 };
 
 

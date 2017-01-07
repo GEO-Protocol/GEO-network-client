@@ -76,13 +76,7 @@ protected:
         const RecordNumber recN);
 
 protected:
-    // This fields are defined as pointers,
-    // to be able to initialize several instances of this class
-    // from one memory block.
-    //
-    // See deserialization constructor of the BucketBlock
-    // for the details.
-    NodeUUID *mUUID;
+    NodeUUID mUUID;
     RecordNumber *mRecordsNumbers;
 
     RecordsCount mRecordsNumbersCount;

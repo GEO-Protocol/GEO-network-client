@@ -4,9 +4,9 @@
 
 
 #ifdef TESTS
-//#define TESTS__DB__UUID_COLUMN
+#define TESTS__DB__UUID_COLUMN
 //#define TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
-#define TESTS__ROUTING_TABLE
+//#define TESTS__ROUTING_TABLE
 #endif
 
 
@@ -35,14 +35,6 @@
 #endif
 
 
-
-
-
-
-
-
-
-
 int main() {
 //    FileBackedMessagesQueueTests fileBackedMessagesQueueTests;
 //    fileBackedMessagesQueueTests.run();
@@ -59,16 +51,16 @@ int main() {
 //    db::fields::UUIDMapColumnTests mUUIDMapColumnTests;
 //    mUUIDMapColumnTests.run();
 
-#ifdef TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
+#ifdef TESTS__DB__UUID_COLUMN
     {
-        TrustLineDirectionColumnTests tests;
+        UUIDColumnTests tests;
         tests.run();
     }
 #endif
 
-#ifdef TESTS__DB__UUID_COLUMN
+#ifdef TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
     {
-        UUIDMapColumnTests tests;
+        TrustLineDirectionColumnTests tests;
         tests.run();
     }
 #endif

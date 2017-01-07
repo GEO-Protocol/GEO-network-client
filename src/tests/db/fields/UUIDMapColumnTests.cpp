@@ -8,18 +8,31 @@ using namespace db::fields;
 namespace f = boost::filesystem;
 
 
-class UUIDMapColumnTests {
+class UUIDColumnTests {
 public:
     void run() {
 //        checkInternalFilesCreation();
         checkAtomicSet();
 
+
         clean();
     };
 
 protected:
-    f::path path() {
-        return f::path("tests/db/trust_line_direction_column/");
+    // Testable class, that allows acces to the private methods and fields.
+    class TUUIDColumn:
+        public UUIDColumn {
+        friend class UUIDColumnTests;
+
+    public:
+        using UUIDColumn::UUIDColumn;
+    };
+
+
+    // Returns path to the directory,
+    // into which all the tests must be done.
+    const f::path path() const {
+        return f::path("tests/db/uuid_column/");
     }
 
     void clean() {
@@ -32,38 +45,32 @@ protected:
         // Ensure directory
         f::create_directories(path());
 
-        auto dataFilename = (path() / f::path("data.bin"));
-        auto indexFilename = (path() / f::path("data.bin"));
 
+        // Check if UUIDColumn would be correct created with pow2BucketsCountIndex set in range of 1..16.
         for (uint8_t i = 1; i <= 16; ++i) {
-            UUIDColumn column(path(), i);
+            TUUIDColumn column(path(), i);
 
-            assert(f::exists(dataFilename));
-            assert(f::file_size(dataFilename) > 0);
+            // Check if index file and data file are present
+            assert(f::exists(path() / f::path(TUUIDColumn::kIndexFilename)));
+            assert(f::exists(path() / f::path(TUUIDColumn::kDataFilename)));
 
-            assert(f::exists(indexFilename));
-            assert(f::file_size(indexFilename) > 0);
-
-            // Clear the directory
+            // Clear the directory for next iteration
             f::remove_all(path());
         }
 
-        // Check creation with 0 buckets index
+        // UUIDColumn can't be created with pow2BucketsCountIndex set to zero.
         try {
             UUIDColumn column(path(), 0);
             assert(false);
         } catch (...) {
-            // Clear the directory
             f::remove_all(path());
         }
 
-
-        // Check creation with 17 buckets index
+        // UUIDColumn can't be created with pow2BucketsCountIndex greater than 16.
         try {
             UUIDColumn column(path(), 17);
             assert(false);
         } catch (...) {
-            // Clear the directory
             f::remove_all(path());
         }
     }
@@ -73,12 +80,9 @@ protected:
 
         // Ensure directory
         f::create_directories(path());
-        auto dataFilename = (path() / f::path("data.bin"));
-        auto indexFilename = (path() / f::path("data.bin"));
-
 
         NodeUUID u;
-        AbstractRecordsHandler::RecordNumber recN = 1;
+        AbstractRecordsHandler::RecordNumber recN = 100;
 
         {
             // Check saving when column instance is going to destroy
@@ -88,6 +92,7 @@ protected:
         {
             UUIDColumn column(path(), 2);
             auto fetchResult = column.recordNumbersAssignedToUUID(u);
+            assert(fetchResult.first[0] == 100);
             assert(fetchResult.second == 1);
         }
     }

@@ -36,9 +36,7 @@ const fs::path &AbstractFileDescriptorHandler::path() const {
  * Throws IOError in case when file is already opened,
  * or in case of FS error.
  */
-void AbstractFileDescriptorHandler::open(
-    const char *accessMode) {
-
+void AbstractFileDescriptorHandler::open() {
     if (mFileDescriptor != nullptr) {
         throw IOError(
             "AbstractFileDescriptorHandler::open: "
@@ -50,7 +48,13 @@ void AbstractFileDescriptorHandler::open(
         fs::create_directories(path());
     }
 
-    mFileDescriptor = fopen((path() / filename()).c_str(), accessMode);
+    if (! fs::exists(path() / filename())){
+        mFileDescriptor = fopen((path() / filename()).c_str(), "wb+");
+    } else {
+        mFileDescriptor = fopen((path() / filename()).c_str(), "rb+");
+    }
+
+
     if (mFileDescriptor == nullptr) {
         throw IOError(
             "AbstractFileDescriptorHandler::open: "

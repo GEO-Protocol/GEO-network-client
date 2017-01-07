@@ -4,29 +4,52 @@
 namespace db {
 namespace fields {
 
-
+/*!
+ * @param path - path to te directory in which column should be created.
+ * @param pow2BucketsCountIndex - specifies how many buckets would be created in the column.
+ * This argument is represented as power of 2, for example:
+ * if pow2BucketsCountIndex would be equal to 2 - than 4 buckets would be created,
+ * if pow2BucketsCountIndex would be equal to 10 - than 2**10 buckets would be created.
+ * See class description for more details about buckets.
+ *
+ *
+ * Throws ValueError in case if one or more arguments doens't pass validation.
+ * Throws RuntimeError in case if internal data file can't be opened.
+ */
 UUIDColumn::UUIDColumn(
     const fs::path &path,
     const uint8_t pow2BucketsCountIndex):
 
-    AbstractFileDescriptorHandler(path / fs::path("data.bin")),
-    mRecordsIndex(path / fs::path("index.dat")),
+    AbstractFileDescriptorHandler(path / fs::path(kDataFilename)),
+    mRecordsIndex(path / fs::path(kIndexFilename)),
     mPow2BucketsCountIndex(pow2BucketsCountIndex){
 
+    // todo: in case when data file is already present - mPow2BucketsCountIndex and the rest data must be readed from the disk.
+
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
-    assert(path.filename() == fs::path("."));
-    assert(! path.has_extension());
+    assert(! path.has_extension());     // path should not indicate the file.
 #endif
 
     if (pow2BucketsCountIndex == 0 || pow2BucketsCountIndex > 16) {
         throw ValueError(
             "UUIDColumn::UUIDColumn: "
-                "\"pow2BucketsCountIndex\" can't be equal to 0 or greater than 16.");
+                "\"pow2BucketsCountIndex\" can't be equal to 0 or greater than NodeUUID::kBytesSize.");
     }
 
-    open(kWriteAccessMode);
+    try {
+        open();
+
+    } catch (Exception &e) {
+        throw RuntimeError(
+            string("UUIDColumn::UUIDColumn: can't open file descriptor. Details: ")
+            + e.message());
+    }
 }
 
+
+UUIDColumn::FileHeader::FileHeader():
+    version(1),
+    state(READ_WRITE) {}
 
 UUIDColumn::FileHeader::FileHeader(
     const uint16_t version,
@@ -35,20 +58,16 @@ UUIDColumn::FileHeader::FileHeader(
     version(version),
     state(state) {}
 
-UUIDColumn::FileHeader::FileHeader():
-    version(1),
-    state(READ_WRITE) {}
-
 
 /*!
- * Attempts to assign "recN" to the "uuid".
- * If "commit" is true - internal read/write cache would be synced to the disk.
+ * Tries to assign "recN" to the "uuid".
+ * If "sync" is "true" - internal read/write cache would be synced to the disk.
  *
- * Throws "ConflictError" in case, when equal record is already present in the block.
- * Throws "OverflowError" in case when block is full and no more records may be inserted.
  *
- * Throws "MemoryError" in case when there is not enough memory for the operation.
- * Throws IOError in case when i/o error occured.
+ * Throws ConflictError in case, when equal record is already present in the block.
+ * Throws OverflowError in case when block is full and no more records may be inserted.
+ * Throws MemoryError;
+ * Throws IOError;
  */
 void UUIDColumn::set(
     const NodeUUID &uuid,
@@ -94,8 +113,12 @@ const bool UUIDColumn::remove(
     return succesfullyRemoved;
 }
 
-void UUIDColumn::open(const char *accessMode) {
-    AbstractFileDescriptorHandler::open(accessMode);
+/*!
+ * Opens internal data file for writing.
+ * In case if it was created a moment ago - also writes initial file header to it.
+ */
+void UUIDColumn::open() {
+    AbstractFileDescriptorHandler::open();
 
     if (fileSize() == 0) {
         initDefaultFileHeader();
@@ -282,8 +305,16 @@ SharedBucketBlock UUIDColumn::readBlock(
                 "can't dataOffset block from the disk.");
     }
 
-    // BucketBlock will take ownership on "blockData".
-    return SharedBucketBlock(new BucketBlock(blockData));
+    try {
+        SharedBucketBlock block(new BucketBlock(blockData));
+        free(blockData);
+        return block;
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "UUIDColumn::readBlock: bad alloc.");
+    }
+
 }
 
 /*!
@@ -343,13 +374,9 @@ void UUIDColumn::updateFileHeader(
     if (fwrite(header, sizeof(FileHeader), 1, mFileDescriptor) != 1) {
         throw IOError(
             "UUIDColumn::updateFileHeader: "
-                "can't write header to the disk.");
+                "can't write file header to the disk.");
     }
-    if (fdatasync(fileno(mFileDescriptor)) != 0) {
-        throw IOError(
-            "UUIDColumn::updateFileHeader: "
-                "can't sync buffers with the disk.");
-    }
+    syncLowLevelOSBuffers();
 }
 
 void UUIDColumn::initDefaultFileHeader() {
@@ -368,19 +395,23 @@ void UUIDColumn::initFromFileHeader() {
 }
 
 void UUIDColumn::commitCachedBlocks() {
-    for (auto& kv : mReadWriteCache) {
-        const auto bucketIndex = kv.first;
-        const auto block = kv.second;
+    // todo: check if file is not read only.
 
-        try {
+    try {
+        for (auto& kv : mReadWriteCache) {
+            const auto bucketIndex = kv.first;
+            const auto block = kv.second;
+
             writeBlock(bucketIndex, block);
-        } catch (Exception &e) {
-            // ToDo: make file read only.
-            throw e;
         }
+        syncLowLevelOSBuffers();
+
+    } catch (Exception &e) {
+        // ToDo: make file read only.
+        throw e;
     }
 
-    // note: memory will be freed by the shard pointers;
+    // note: memory will be freed by the shared pointers;
     mReadWriteCache.clear();
 }
 
@@ -412,8 +443,8 @@ void UUIDColumn::writeBlock(
                 "cant seek to the end of the file.");
     }
 
-    BucketsIndexRecord mapIndexRecord;
-    mapIndexRecord.offset = ftell(mFileDescriptor);
+    BucketsIndexRecord indexRecord;
+    indexRecord.offset = ftell(mFileDescriptor);
 
 
     // Writing block to the disk
@@ -424,20 +455,18 @@ void UUIDColumn::writeBlock(
             "UUIDColumn::writeBlock: "
                 "cant write bucket block to the disk.");
     }
-    syncLowLevelOSBuffers();
 
 
     // Updating the blocks index
-    mapIndexRecord.bytesCount = serializationResult.second;
+    indexRecord.bytesCount = serializationResult.second;
 
     seekToBucketIndexRecord(bucketIndex);
-    if (fwrite(&mapIndexRecord, sizeof(mapIndexRecord), 1, mFileDescriptor) != 1 &&
-        fwrite(&mapIndexRecord, sizeof(mapIndexRecord), 1, mFileDescriptor) != 1) {
+    if (fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1 &&
+        fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1) {
         throw IOError(
             "UUIDColumn::writeBlock: "
                 "cant update blocks index.");
     }
-    syncLowLevelOSBuffers();
 }
 
 /*!

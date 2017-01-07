@@ -9,7 +9,14 @@ RecordNumbersIndex::RecordNumbersIndex(
     const fs::path &path):
     AbstractFileDescriptorHandler(path) {
 
-    open(kWriteAccessMode);
+    try {
+        open();
+
+    } catch (Exception &e) {
+        throw RuntimeError(
+            "RecordNumbersIndex::RecordNumbersIndex: can't open file descriptor. Details: "
+            + e.message());
+    }
 }
 
 RecordNumbersIndex::FileHeader::FileHeader():
@@ -92,11 +99,8 @@ const RecordNumbersIndex::IndexRecordOffset RecordNumbersIndex::recordOffset(
  * Throws IOError in case when file header can't be read.
  * Throws ValueError in case when file version is unexpected;
  */
-void RecordNumbersIndex::open(
-    const char *accessMode) {
-
-    AbstractFileDescriptorHandler::open(accessMode);
-
+void RecordNumbersIndex::open() {
+    AbstractFileDescriptorHandler::open();
     if (fileSize() == 0) {
         // Init default header.
         FileHeader initialHeader; // will be initialised to the defaults by the constructor.

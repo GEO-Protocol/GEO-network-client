@@ -10,7 +10,7 @@ OperationsLog::OperationsLog(
     const fs::path &path):
     AbstractFileDescriptorHandler(path / fs::path("operations.dat")) {
 
-    open(kWriteAccessMode);
+    open();
 }
 
 OperationsLog::FileHeader::FileHeader():
@@ -132,10 +132,8 @@ const DirectionUpdateOperation::Shared OperationsLog::initDirectionUpdateOperati
     }
 }
 
-void OperationsLog::open(
-    const char *accessMode) {
-
-    db::AbstractFileDescriptorHandler::open(accessMode);
+void OperationsLog::open() {
+    db::AbstractFileDescriptorHandler::open();
     if (fileSize() == 0) {
         // Init default header.
         FileHeader header; // will be initialised to the defaults by the constructor.

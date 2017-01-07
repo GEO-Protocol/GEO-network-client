@@ -11,40 +11,43 @@ BucketBlockRecord::BucketBlockRecord(const NodeUUID &uuid):
     mRecordsNumbers(nullptr),
     mHasBeenModified(false){
 
-    mUUID = new NodeUUID();
-    memcpy(mUUID->data, uuid.data, NodeUUID::kBytesSize);
+    memcpy(mUUID.data, uuid.data, NodeUUID::kBytesSize);
 }
 
 BucketBlockRecord::BucketBlockRecord(
     byte *data):
     mHasBeenModified(false){
 
-    mUUID = (NodeUUID*)data;
+    memcpy(mUUID.data, data, NodeUUID::kBytesSize);
 
     const auto kRecordsCountOffset = data + NodeUUID::kBytesSize;
     mRecordsNumbersCount = *(RecordsCount*)kRecordsCountOffset;
 
-    const byte *kRecordsNumbersOffset = kRecordsCountOffset + sizeof(RecordsCount);
-    mRecordsNumbers = (RecordNumber*)kRecordsNumbersOffset;
+    const auto kRecordsNumbersOffset = kRecordsCountOffset + sizeof(RecordsCount);
+    mRecordsNumbers = (RecordNumber*)malloc(sizeof(RecordNumber) * mRecordsNumbersCount);
+    if (mRecordsNumbers == nullptr) {
+        throw MemoryError(
+            "BucketBlockRecord::BucketBlockRecord: bad alloc.");
+    }
+    memcpy(mRecordsNumbers, kRecordsNumbersOffset, sizeof(RecordNumber) * mRecordsNumbersCount);
 }
 
 BucketBlockRecord::~BucketBlockRecord() {
     if (mRecordsNumbers != nullptr) {
         free(mRecordsNumbers);
     }
-
-    delete mUUID;
 }
 
 /*!
- * Inserts "recNo" into the record.
- * In case when exact recNo is already present into the record -
- * throws "ConflictError".
+ * Inserts "recN" into the record.
  *
+ *
+ * Throws ConflictError in case when exact "recN" is already present into the record
  * Throws OverflowError when no more rec. numbers may be inserted.
- * Throws MemoryError in case of lack of memory.
+ * Throws MemoryError.
  */
-void BucketBlockRecord::insert(const RecordNumber recN) {
+void BucketBlockRecord::insert(
+    const RecordNumber recN) {
 
     if (mRecordsNumbersCount == numeric_limits<AbstractRecordsHandler::RecordsCount>::max()){
         throw OverflowError(
@@ -155,11 +158,11 @@ const pair<void*, size_t> BucketBlockRecord::data() const {
 }
 
 AbstractRecordsHandler::RecordNumber *BucketBlockRecord::recordNumbers() const {
-    return (AbstractRecordsHandler::RecordNumber*)mRecordsNumbers;
+    return mRecordsNumbers;
 }
 
 const NodeUUID &BucketBlockRecord::uuid() const {
-    return *mUUID;
+    return mUUID;
 }
 
 const bool BucketBlockRecord::isModified() const {

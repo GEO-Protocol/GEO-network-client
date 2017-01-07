@@ -1,11 +1,13 @@
 #ifndef GEO_NETWORK_CLIENT_RECORDNUMBERSINDEX_H
 #define GEO_NETWORK_CLIENT_RECORDNUMBERSINDEX_H
 
+
 #include "AbstractFileDescriptorHandler.h"
 #include "AbstractRecordsHandler.h"
 #include "../../../common/Types.h"
 #include "../../../common/exceptions/ValueError.h"
 #include "../../../common/exceptions/NotFoundError.h"
+#include "../../../common/exceptions/RuntimeError.h"
 
 
 namespace db {
@@ -80,8 +82,7 @@ protected:
     };
 
 protected:
-    void open(
-        const char *accessMode);
+    void open();
 
     FileHeader loadFileHeader() const;
     void updateFileHeader(

@@ -20,18 +20,13 @@ namespace fs = boost::filesystem;
 
 class AbstractFileDescriptorHandler {
 public:
-    static const constexpr char *kReadAccessMode  = "r+";
-    static const constexpr char *kWriteAccessMode = "w+";
-
-public:
     AbstractFileDescriptorHandler(
         const fs::path &path);
     ~AbstractFileDescriptorHandler();
 
     const fs::path& filename() const;
     const fs::path& path() const;
-    virtual void open(
-        const char *accessMode);
+    virtual void open();
 
     void close();
     const bool exists() const;

@@ -25,4 +25,5 @@ target_link_libraries(db__fields
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
 
+        exceptions
         common)
