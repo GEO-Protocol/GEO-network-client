@@ -1,16 +1,16 @@
 #include "src/core/Core.h"
 
-//#define INTERNAL_ARGUMENTS_VALIDATION
+#define TESTS
 
 
 #ifdef TESTS
-//#define ROUTING_TABLE_TESTS
-//#define DB_TRUST_LINE_DIRECTION_COLUMN_TESTS
-#define DB_UUID_COLUMN_TESTS
+//#define TESTS__DB__UUID_COLUMN
+//#define TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
+#define TESTS__ROUTING_TABLE
 #endif
 
 
-
+// todo: move this into separate if..def
 //#include "src/tests/network/FileBackedMessagesQueueTests.cpp"
 //#include "src/tests/interface/OperationsLogTests.cpp"
 //#include "src/tests/db/routing_tables/BucketBlockRecordTests.cpp"
@@ -18,20 +18,27 @@
 //#include "src/tests/db/uuid_column/UUIDMapColumnTests.cpp"
 
 
-#ifdef ROUTING_TABLE_TESTS
+#ifdef TESTS__DB__UUID_COLUMN
+#include "src/tests/db/fields/UUIDMapColumnTests.cpp"
+#endif
+
+#ifdef TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
+#include "src/tests/db/fields/TrustLineDirectionColumnTests.cpp"
+#endif
+
+
+#ifdef TESTS__ROUTING_TABLE
 #include "src/tests/io/routing_tables/OperationsLogTests.cpp"
 #include "src/tests/io/routing_tables/SetOperationTests.cpp"
 #include "src/tests/io/routing_tables/RemoveOperationTests.cpp"
 #include "src/tests/io/routing_tables/DirectionUpdateOperationTests.cpp"
 #endif
 
-#ifdef DB_TRUST_LINE_DIRECTION_COLUMN_TESTS
-#include "src/tests/db/fields/TrustLineDirectionColumnTests.cpp"
-#endif
 
-#ifdef DB_UUID_COLUMN_TESTS
-#include "src/tests/db/fields/UUIDMapColumnTests.cpp"
-#endif
+
+
+
+
 
 
 
@@ -52,37 +59,43 @@ int main() {
 //    db::fields::UUIDMapColumnTests mUUIDMapColumnTests;
 //    mUUIDMapColumnTests.run();
 
-
-#ifdef ROUTING_TABLE_TESTS
+#ifdef TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
     {
-        OperationsLogTests operationsLogTests;
-        operationsLogTests.run();
+        TrustLineDirectionColumnTests tests;
+        tests.run();
+    }
+#endif
 
-        SetOperationsTests setOperationsTests;
-        setOperationsTests.run();
+#ifdef TESTS__DB__UUID_COLUMN
+    {
+        UUIDMapColumnTests tests;
+        tests.run();
+    }
+#endif
 
-        RemoveOperationsTests removeOperationsTests;
-        removeOperationsTests.run();
-
-        DirectionUpdateOperationsTests directionUpdateOperationsTests;
-        directionUpdateOperationsTests.run();
+#ifdef TESTS__ROUTING_TABLE
+    {
+        {
+            OperationsLogTests tests;
+            tests.run();
+        }
+//        {
+//            SetOperationsTests tests;
+//            tests.run();
+//        }
+//        {
+//            RemoveOperationsTests tests;
+//            tests.run();
+//        }
+//        {
+//            DirectionUpdateOperationsTests tests;
+//            tests.run();
+//        }
     }
 #endif
 
 
-#ifdef DB_TRUST_LINE_DIRECTION_COLUMN_TESTS
-    {
-        TrustLineDirectionColumnTests trustLineDirectionColumnTests;
-        trustLineDirectionColumnTests.run();
-    }
-#endif
 
-#ifdef DB_UUID_COLUMN_TESTS
-    {
-        UUIDMapColumnTests uuidMapColumnTests;
-        uuidMapColumnTests.run();
-    }
-#endif
 
 
 #ifndef TESTS
