@@ -12,8 +12,14 @@ class UUIDColumnTests {
 public:
     void run() {
 //        checkInternalFilesCreation();
-        checkAtomicSet();
+//        checkAtomicSet();
+//        checkNonAtomicSet();
+//        checkSetSeveralRecordNumbersIntoSameRecord();
+//
+//        checkAtomicRemoving();
+//        checkAtomicRemovingTC2();
 
+        performanceOfWriting();
 
         clean();
     };
@@ -96,4 +102,159 @@ protected:
             assert(fetchResult.second == 1);
         }
     }
+
+    void checkNonAtomicSet() {
+        clean();
+
+        // Ensure directory
+        f::create_directories(path());
+
+        NodeUUID u;
+        AbstractRecordsHandler::RecordNumber recN = 100;
+
+        {
+            // Check saving when column instance is going to destroy
+            UUIDColumn column(path(), 2);
+            column.set(u, recN, false);
+        }
+        {
+            UUIDColumn column(path(), 2);
+            auto fetchResult = column.recordNumbersAssignedToUUID(u);
+
+            // Previous set was not atomic.
+            // Changes should not be written to the disk.
+            assert(fetchResult.second == 0);
+        }
+    }
+
+    /*
+     * This test tries to set one hundred record numbers associated with one uuid.
+     */
+    void checkSetSeveralRecordNumbersIntoSameRecord() {
+        clean();
+
+        // Ensure directory
+        f::create_directories(path());
+
+        NodeUUID u;
+        {
+            UUIDColumn column(path(), 2);
+            for (AbstractRecordsHandler::RecordNumber recN = 0; recN<100; recN++) {
+                column.set(u, recN, false);
+            }
+            column.commitCachedBlocks();
+        }
+
+        {
+            UUIDColumn column(path(), 2);
+            auto fetchResult = column.recordNumbersAssignedToUUID(u);
+            assert(fetchResult.second == 100);
+
+            // Record numbers must be sorted in ascending order
+            for (AbstractRecordsHandler::RecordNumber recN = 0; recN<100; recN++) {
+                assert(fetchResult.first[recN] == recN);
+            }
+        }
+
+
+        // Check records numbers inserted in reverse order
+        NodeUUID u2;
+        {
+            UUIDColumn column(path(), 2);
+            for (AbstractRecordsHandler::RecordNumber recN = 100; recN>0; recN--) {
+                column.set(u2, recN, false);
+            }
+            column.commitCachedBlocks();
+        }
+        {
+            UUIDColumn column(path(), 2);
+            auto fetchResult = column.recordNumbersAssignedToUUID(u2);
+            assert(fetchResult.second == 100);
+
+            // Record numbers must be sorted in ascending order
+            for (AbstractRecordsHandler::RecordNumber recN = 0; recN<100; recN++) {
+                assert(fetchResult.first[recN] == recN+1);
+            }
+        }
+    }
+
+    void checkAtomicRemoving() {
+        clean();
+        f::create_directories(path());
+
+        NodeUUID u;
+        AbstractRecordsHandler::RecordNumber recN = 100;
+
+        {
+            UUIDColumn column(path(), 2);
+            column.set(u, recN, true);
+            column.remove(u, recN, true);
+        }
+        {
+            UUIDColumn column(path(), 2);
+            auto fetchResult = column.recordNumbersAssignedToUUID(u);
+            assert(fetchResult.second == 0);
+        }
+    }
+
+    /*
+     * This test case assigns 100 records to one uuid.
+     * Than removes 50 of them and checks if rest 50 are stored correct.
+     */
+    void checkAtomicRemovingTC2() {
+        clean();
+        f::create_directories(path());
+
+
+        NodeUUID u;
+        {
+            UUIDColumn column(path(), 2);
+            for (AbstractRecordsHandler::RecordNumber recN = 0; recN<100; recN++) {
+                column.set(u, recN, false);
+            }
+            column.commitCachedBlocks();
+
+
+            for (AbstractRecordsHandler::RecordNumber recN = 0; recN<50; recN++) {
+                column.remove(u, recN, false);
+            }
+            column.commitCachedBlocks();
+        }
+
+        // Check if rest 50 records are stored correct
+        {
+            UUIDColumn column(path(), 2);
+            auto fetchResult = column.recordNumbersAssignedToUUID(u);
+
+            // check count == 50
+            assert(fetchResult.second == 50);
+
+            for (AbstractRecordsHandler::RecordNumber recN = 0; recN<50; recN++) {
+                assert(fetchResult.first[recN] == recN+50);
+            }
+        }
+    }
+
+    void performanceOfWriting() {
+        clean();
+        f::create_directories(path());
+
+
+        NodeUUID u;
+        {
+            UUIDColumn column(path(), 10);
+
+            boost::posix_time::ptime started = boost::posix_time::microsec_clock::local_time();
+
+            const size_t iterationsCount = 100000;
+            for (AbstractRecordsHandler::RecordNumber recN = 0; recN<iterationsCount; recN++) {
+                column.set(u, recN, false);
+            }
+            column.commitCachedBlocks();
+
+            boost::posix_time::ptime ended = boost::posix_time::microsec_clock::local_time();
+            std::cout << iterationsCount << " insert operations per " << ended-started;
+        }
+    }
+
 };

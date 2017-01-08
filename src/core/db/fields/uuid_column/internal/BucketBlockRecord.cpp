@@ -35,6 +35,7 @@ BucketBlockRecord::BucketBlockRecord(
 BucketBlockRecord::~BucketBlockRecord() {
     if (mRecordsNumbers != nullptr) {
         free(mRecordsNumbers);
+        mRecordsNumbers = nullptr;
     }
 }
 

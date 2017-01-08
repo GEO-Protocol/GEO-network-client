@@ -58,8 +58,12 @@ BucketBlock::BucketBlock(
 }
 
 BucketBlock::~BucketBlock() {
-    for (size_t i=0; i<mRecordsCount; ++i){
-        delete (mRecords+i);
+    if (mRecords != nullptr) {
+        for (size_t i=0; i<mRecordsCount; ++i){
+            delete (mRecords+i);
+        }
+
+        mRecords = nullptr;
     }
 }
 
@@ -107,14 +111,14 @@ bool BucketBlock::remove(const NodeUUID &uuid, const RecordNumber recN) {
         return false;
     }
 
-    bool isRecordWasRemoved = record->remove(recN);
-    if (isRecordWasRemoved) {
+    bool isRecNWasRemoved = record->remove(recN);
+    if (isRecNWasRemoved) {
         mHasBeenModified = true;
 
         if (record->count() == 0)
             dropRecord(record);
     }
-    return isRecordWasRemoved;
+    return isRecNWasRemoved;
 }
 
 /*!
@@ -180,6 +184,10 @@ const AbstractRecordsHandler::RecordsCount BucketBlock::recordIndexByUUID(
             "BucketBlockRecord::indexOf: "
                 "recN is absent in the row.");
     }
+}
+
+const BucketBlockRecord* BucketBlock::records() const {
+    return mRecords;
 }
 
 const bool BucketBlock::isModified() const {

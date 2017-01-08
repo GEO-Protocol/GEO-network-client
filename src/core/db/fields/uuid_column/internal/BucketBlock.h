@@ -37,6 +37,7 @@ public:
         const NodeUUID &uuid) const;
     const RecordNumber recordIndexByUUID(
         const NodeUUID &uuid) const;
+    const BucketBlockRecord* records() const;
 
     const bool isModified() const;
     const RecordNumber recordsCount() const;

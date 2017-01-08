@@ -416,9 +416,13 @@ void UUIDColumn::commitCachedBlocks() {
 }
 
 /*!
- * Atomically writes "block" to the bucket with index "bucketIndex".
+ * Atomically writes "block" (bucket) to the disk and updates blocks index.
  *
- * Throws IOError in case of any error.
+ * The block would be reallocated on the disk.
+ * Old block should be removed by the vacuum().
+ *
+ *
+ * Throws IOError;
  * Throws MemoryError.
  */
 void UUIDColumn::writeBlock(
@@ -429,50 +433,94 @@ void UUIDColumn::writeBlock(
     assert(bucketIndex < totalBucketsCount());
 #endif
 
-    if (!block->isModified() || block->recordsCount() == 0) {
+    if (!block->isModified()) {
         return;
     }
 
     // todo: check if file is not read only.
 
+    if (block->recordsCount() == 0) {
+        removeBlockFromRecordNumbersIndex(block);
 
-    // New block will be written to the end of file.
-    if (fseek(mFileDescriptor, 0, SEEK_END) != 0){
-        throw IOError(
-            "UUIDColumn::writeBlock: "
-                "cant seek to the end of the file.");
-    }
+        // The block is empty.
+        // Only blocks index must be updated (settigns address to zero).
+        BucketsIndexRecord indexRecord;
+        indexRecord.bytesCount = 0;
+        indexRecord.offset = kNoBucketAddressValue;
 
-    BucketsIndexRecord indexRecord;
-    indexRecord.offset = ftell(mFileDescriptor);
+        seekToBucketIndexRecord(bucketIndex);
+        if (fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1 &&
+            fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1) {
+            throw IOError(
+                "UUIDColumn::writeBlock: "
+                    "cant update blocks index.");
+        }
+
+    } else {
+        // Block is not empty an should be reallocated.
+
+        // In case if some records was removed from the block - record numbers index should be updated.
+        // But it is impossible in this context to know what records has been removed (if any),
+        // so the records index must be rewitten for all the records:
+        //  obsolete block records should be removed from the index,
+        //  and new block should be indexed.
+
+        // todo: there is a more efficient way to this
+        // Only some records delta should be removed from the index:
+        // (only record that are not present in current block, but are present in obsolete block)
+
+        // This operation is not atomic.
+        // In case of error - index would be broken.
+        // But index may be recreated after transaction failure:
+        // this is a responsiblity of transactions handler, and not the column.
+        // todo: add reindexAllRecordNumbers()
+
+        try {
+            auto obsoleteBlock = readBucket(bucketIndex);
+            removeBlockFromRecordNumbersIndex(obsoleteBlock);
+
+        } catch (NotFoundError &) {
+            // There is no previous block record for this bucket.
+        }
 
 
-    // Writing block to the disk
-    auto serializationResult = block->serializeToBytes();
-    if (fwrite(serializationResult.first.get(), serializationResult.second, 1, mFileDescriptor) != 1 &&
-        fwrite(serializationResult.first.get(), serializationResult.second, 1, mFileDescriptor) != 1) {
-        throw IOError(
-            "UUIDColumn::writeBlock: "
-                "cant write bucket block to the disk.");
-    }
+        // New block will be written to the end of file.
+        BucketsIndexRecord indexRecord;
+        if (fseek(mFileDescriptor, 0, SEEK_END) != 0){
+            throw IOError(
+                "UUIDColumn::writeBlock: "
+                    "cant seek to the end of the file.");
+        }
+        indexRecord.offset = ftell(mFileDescriptor);
 
+        // Writing block to the disk
+        auto serializationResult = block->serializeToBytes();
+        if (fwrite(serializationResult.first.get(), serializationResult.second, 1, mFileDescriptor) != 1 &&
+            fwrite(serializationResult.first.get(), serializationResult.second, 1, mFileDescriptor) != 1) {
+            throw IOError(
+                "UUIDColumn::writeBlock: "
+                    "cant write bucket block to the disk.");
+        }
 
-    // Updating the blocks index
-    indexRecord.bytesCount = serializationResult.second;
+        // Updating the blocks index
+        indexRecord.bytesCount = serializationResult.second;
+        seekToBucketIndexRecord(bucketIndex);
+        if (fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1 &&
+            fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1) {
+            throw IOError(
+                "UUIDColumn::writeBlock: "
+                    "cant update blocks index.");
+        }
 
-    seekToBucketIndexRecord(bucketIndex);
-    if (fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1 &&
-        fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1) {
-        throw IOError(
-            "UUIDColumn::writeBlock: "
-                "cant update blocks index.");
+        reindexBlockInRecordNumbersIndex(block, indexRecord);
     }
 }
 
 /*!
- * Initializes buckets index, according to received buckets count index.
+ * Initializes buckets index, according to the received buckets count index.
  *
- * May thrown IOError.
+ *
+ * Throws IOError.
  */
 void UUIDColumn::initBucketsIndex() {
     BucketsIndexRecord emptyRecord;
@@ -527,6 +575,63 @@ void UUIDColumn::clearReadCache() {
 
         mReadWriteCache.erase(bucketIndex);
     }
+}
+
+/*!
+ * Removes all record numbers that are in the block from the record numbers index.
+ * WARN: this operation is not atomic.
+ *
+ *
+ * Throws IOError;
+ */
+void UUIDColumn::removeBlockFromRecordNumbersIndex(
+    const SharedBucketBlock block) {
+
+    auto records = block->records();
+    for (size_t r=0; r < block->recordsCount(); ++r) {
+        auto record = records + r;
+        auto recordNumbers = record->recordNumbers();
+
+        for (size_t rn=0; rn < record->count(); ++rn) {
+
+            // Current C Filesystem API allows only uint32 file offsets.
+            // So it's OK, no type owerflow is possible.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+            mRecordsIndex.remove(recordNumbers[rn], false);
+#pragma clang diagnostic pop
+        }
+    }
+    mRecordsIndex.commit();
+}
+
+/*!
+ * Inserts all record numbers that are in the block to the record numbers index.
+ * WARN: this operation is not atomic.
+ *
+ *
+ * Throws IOError;
+ */
+void UUIDColumn::reindexBlockInRecordNumbersIndex(
+    const SharedBucketBlock block,
+    const BucketsIndexRecord recordIndex) {
+
+    auto records = block->records();
+    for (size_t r=0; r < block->recordsCount(); ++r) {
+        auto record = records + r;
+        auto recordNumbers = record->recordNumbers();
+
+        for (size_t rn=0; rn < record->count(); ++rn) {
+
+            // Current C Filesystem API allows only uint32 file offsets.
+            // So it's OK, no type owerflow is possible.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+            mRecordsIndex.set(recordNumbers[rn], recordIndex.offset, false);
+#pragma clang diagnostic pop
+        }
+    }
+    mRecordsIndex.commit();
 }
 
 

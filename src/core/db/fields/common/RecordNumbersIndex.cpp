@@ -154,6 +154,10 @@ void RecordNumbersIndex::updateFileHeader(
     }
 }
 
+void RecordNumbersIndex::commit() {
+    syncLowLevelOSBuffers();
+}
+
 
 } // namespace fields
 } // namespace db

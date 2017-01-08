@@ -58,6 +58,8 @@ public:
     const DataOffset dataOffset(
         const RecordNumber recN) const;
 
+    void commit();
+
 protected:
     struct FileHeader {
         explicit FileHeader();

@@ -133,10 +133,15 @@ protected:
     void writeBlock(
         const BucketIndex bucketIndex,
         const SharedBucketBlock block);
-
     void cacheBucketBlock(
         const BucketIndex index,
         const SharedBucketBlock block);
+
+    void removeBlockFromRecordNumbersIndex(
+        const SharedBucketBlock block);
+    void reindexBlockInRecordNumbersIndex(
+        const SharedBucketBlock block,
+        const BucketsIndexRecord recordIndex);
 
     void open();
 };
