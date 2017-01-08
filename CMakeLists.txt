@@ -7,9 +7,11 @@ add_definitions(-DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-find_package(Boost COMPONENTS system filesystem thread REQUIRED)
+
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
+find_package(Boost COMPONENTS system filesystem thread REQUIRED)
+
 
 #
 # source files

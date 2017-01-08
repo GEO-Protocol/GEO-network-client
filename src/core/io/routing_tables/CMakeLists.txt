@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.6)
 
+
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost COMPONENTS system filesystem REQUIRED)
+
 
 set(SOURCE_FILES
         internal/AbstractRoutingTable.cpp
