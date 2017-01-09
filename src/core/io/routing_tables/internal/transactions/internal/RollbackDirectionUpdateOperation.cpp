@@ -12,7 +12,7 @@ RollbackDirectionUpdateOperation::RollbackDirectionUpdateOperation(
     mRecN(recN),
     mDir(direction){}
 
-const AbstractRecordsHandler::RecordNumber RollbackDirectionUpdateOperation::recordNumber() {
+const AbstractRecordsHandler::RecordNumber RollbackDirectionUpdateOperation::recordNumber() const {
     return mRecN;
 }
 

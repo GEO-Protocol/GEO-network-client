@@ -60,9 +60,10 @@ BucketBlock::BucketBlock(
 BucketBlock::~BucketBlock() {
     if (mRecords != nullptr) {
         for (size_t i=0; i<mRecordsCount; ++i){
-            delete (mRecords+i);
+            // force call destructor
+            auto instance = mRecords[i];
         }
-
+        free(mRecords);
         mRecords = nullptr;
     }
 }
@@ -260,8 +261,7 @@ void BucketBlock::dropRecord(BucketBlockRecord *record) {
         if (index > 0) {
             memcpy(newBuffer, mRecords, index*BUCKET_BLOCK_RECORD_PTR_SIZE);
         }
-        memcpy(newBuffer+index, mRecords+index+1,
-               (mRecordsCount-index-1)*BUCKET_BLOCK_RECORD_PTR_SIZE);
+        memcpy(newBuffer+index, mRecords+index+1, (mRecordsCount-index-1)*BUCKET_BLOCK_RECORD_PTR_SIZE);
 
         // Swap the buffers
         free(mRecords);

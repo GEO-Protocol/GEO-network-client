@@ -1,9 +1,10 @@
 #include "../../../core/db/fields/uuid_map_column/internal/BucketBlockRecord.h"
 
-
+// todo: remove this namespaces
 namespace db {
 namespace fields {
 namespace uuid_map {
+
 
 
 class BucketBlockRecordTests {
@@ -204,6 +205,7 @@ private:
         assert(record.isModified());
     }
 };
+
 
 }
 }

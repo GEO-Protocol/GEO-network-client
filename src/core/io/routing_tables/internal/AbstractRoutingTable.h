@@ -15,7 +15,6 @@ namespace io {
 namespace routing_tables {
 
 
-namespace fs = boost::filesystem;
 using namespace db::fields;
 
 
@@ -25,7 +24,6 @@ class AbstractRoutingTable:
     friend class AbstractRoutingTableTests;
     friend class Transaction;
 
-
 public:
     AbstractRoutingTable(
         const fs::path &path,
@@ -33,7 +31,7 @@ public:
 
     ~AbstractRoutingTable();
 
-    Transaction* beginTransaction() const;
+    shared_ptr<Transaction> beginTransaction() const;
 
 protected:
     fs::path mF1Path;
@@ -59,15 +57,13 @@ protected:
 
     void commitOperations();
     void rollBackOperations();
-    void rollbackSetOperation(
-        SetOperation::ConstShared operation);
 
     const RecordNumber intersectingRecordNumber(
         const NodeUUID &u1,
         const NodeUUID &u2) const;
 
     void executeOperation(
-        const Operation::Shared operation);
+        Operation::ConstShared operation);
 };
 
 

@@ -1,4 +1,4 @@
-#include "../../../core/db/fields/tl_direction_column/TrustLineDirectionColumn.h"
+#include "../../../../core/db/fields/tl_direction_column/TrustLineDirectionColumn.h"
 #include <boost/date_time.hpp>
 
 
@@ -12,9 +12,12 @@ public:
     void run() {
         checkFileCreation();
         checkSetOperation();
-        checkSetOperationSpeed();
-        checkSyncSetOperationSpeed();
         checkRemoveOperation();
+        checkStartupIndexInitialisation();
+
+//        checkSetOperationSpeed();
+//        checkSyncSetOperationSpeed();
+
         clean();
     }
 
@@ -43,16 +46,19 @@ private:
             column.set(i, Incoming);
             assert(column.direction(i) == Incoming);
         }
+        assert(column.incomingDirectedRecordsNumbers().size() == 10);
 
-        for (AbstractRecordsHandler::RecordNumber i=11; i<20; i++) {
+        for (AbstractRecordsHandler::RecordNumber i=10; i<20; i++) {
             column.set(i, Outgoing);
             assert(column.direction(i) == Outgoing);
         }
+        assert(column.outgoingDirectedRecordsNumbers().size() == 10);
 
-        for (AbstractRecordsHandler::RecordNumber i=21; i<30; i++) {
+        for (AbstractRecordsHandler::RecordNumber i=20; i<30; i++) {
             column.set(i, Both);
             assert(column.direction(i) == Both);
         }
+        assert(column.bothDirectedRecordsNumbers().size() == 10);
     };
 
     void checkSetOperationSpeed(){
@@ -118,6 +124,8 @@ private:
             } catch (...) {
                 assert(false);
             }
+
+            assert(column.incomingDirectedRecordsNumbers().size() == 0);
         }
 
         for (AbstractRecordsHandler::RecordNumber i=11; i<20; i++) {
@@ -132,6 +140,8 @@ private:
             } catch (...) {
                 assert(false);
             }
+
+            assert(column.outgoingDirectedRecordsNumbers().size() == 0);
         }
 
         for (AbstractRecordsHandler::RecordNumber i=21; i<30; i++) {
@@ -146,6 +156,32 @@ private:
             } catch (...) {
                 assert(false);
             }
+
+            assert(column.bothDirectedRecordsNumbers().size() == 0);
         }
+    };
+
+    void checkStartupIndexInitialisation(){
+        clean();
+
+        TrustLineDirectionColumn column(path());
+
+        for (AbstractRecordsHandler::RecordNumber i=100; i<110; i++) {
+            column.set(i, Incoming);
+            assert(column.direction(i) == Incoming);
+        }
+        for (AbstractRecordsHandler::RecordNumber i=110; i<120; i++) {
+            column.set(i, Outgoing);
+            assert(column.direction(i) == Outgoing);
+        }
+        for (AbstractRecordsHandler::RecordNumber i=120; i<130; i++) {
+            column.set(i, Both);
+            assert(column.direction(i) == Both);
+        }
+
+        TrustLineDirectionColumn column2(path());
+        assert(column.incomingDirectedRecordsNumbers().size() == 10);
+        assert(column.outgoingDirectedRecordsNumbers().size() == 10);
+        assert(column.bothDirectedRecordsNumbers().size() == 10);
     };
 };

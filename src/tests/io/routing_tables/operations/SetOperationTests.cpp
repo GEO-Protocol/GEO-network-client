@@ -75,5 +75,6 @@ public:
         assert(rollbackOp->type() == Operation::RollbackSet);
         assert(rollbackOp->u1() == uuid1);
         assert(rollbackOp->u2() == uuid2);
+        assert(rollbackOp->recordNumber() == recN);
     }
 };

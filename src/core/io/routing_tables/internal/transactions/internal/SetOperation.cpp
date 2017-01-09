@@ -93,7 +93,7 @@ const pair<shared_ptr<byte>, size_t> SetOperation::serialize() const {
 const RollbackSetOperation::Shared SetOperation::rollbackOperation() const {
     try {
         return RollbackSetOperation::Shared(
-            new RollbackSetOperation(mU1, mU2));
+            new RollbackSetOperation(mU1, mU2, mRecN));
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"

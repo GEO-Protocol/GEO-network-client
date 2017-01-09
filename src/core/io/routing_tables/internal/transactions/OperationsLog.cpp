@@ -39,7 +39,7 @@ const SetOperation::Shared OperationsLog::initSetOperation(
 
     try {
         SetOperation::Shared operation(
-            new SetOperation(u1, u2, direction, mCurrentRecordNumber));
+            new SetOperation(u1, u2, direction, nextRecordNumber()));
 
         logOperation(operation);
         return operation;
@@ -73,11 +73,12 @@ const SetOperation::Shared OperationsLog::initSetOperation(
 const RemoveOperation::Shared OperationsLog::initRemoveOperation(
     const NodeUUID &u1,
     const NodeUUID &u2,
-    const TrustLineDirection direction) {
+    const TrustLineDirection direction,
+    const RecordNumber recN) {
 
     try {
         RemoveOperation::Shared operation(
-            new RemoveOperation(u1, u2, direction));
+            new RemoveOperation(u1, u2, direction, recN));
 
         logOperation(operation);
         return operation;
@@ -314,6 +315,17 @@ bool OperationsLog::transactionMayBeStarted() {
 
 void OperationsLog::truncateOperations() {
     ftruncate(fileno(mFileDescriptor), sizeof(FileHeader));
+    syncLowLevelOSBuffers();
+}
+
+const AbstractRecordsHandler::RecordNumber OperationsLog::nextRecordNumber() {
+    mCurrentRecordNumber += 1;
+
+    FileHeader header;
+    header.currentRecordNumber = mCurrentRecordNumber;
+    updateFileHeader(&header);
+
+    return mCurrentRecordNumber;
 }
 
 

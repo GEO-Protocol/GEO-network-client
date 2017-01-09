@@ -104,17 +104,20 @@ public:
         NodeUUID uuid1;
         NodeUUID uuid2;
         TrustLineDirection dir(Incoming);
-        log.initRemoveOperation(uuid1, uuid2, dir);
+        AbstractRecordsHandler::RecordNumber recN1 = 100;
+        log.initRemoveOperation(uuid1, uuid2, dir, recN1);
 
         NodeUUID uuid3;
         NodeUUID uuid4;
         TrustLineDirection dir2(Outgoing);
-        log.initRemoveOperation(uuid3, uuid4, dir2);
+        AbstractRecordsHandler::RecordNumber recN2 = 200;
+        log.initRemoveOperation(uuid3, uuid4, dir2, recN2);
 
         NodeUUID uuid5;
         NodeUUID uuid6;
-        TrustLineDirection dir3(Outgoing);
-        log.initRemoveOperation(uuid5, uuid6, dir3);
+        TrustLineDirection dir3(Both);
+        AbstractRecordsHandler::RecordNumber recN3 = 300;
+        log.initRemoveOperation(uuid5, uuid6, dir3, recN3);
 
         auto operations = log.uncompletedOperations();
         assert(operations->size() == 3);
@@ -125,18 +128,21 @@ public:
         assert(operation3->u1() == uuid5);
         assert(operation3->u2() == uuid6);
         assert(operation3->direction() == dir3);
+        assert(operation3->recordNumber() == recN3);
 
         auto operation2 = dynamic_cast<const RemoveOperation*>(operations->at(1).get());
         assert(operation2->type() == Operation::Remove);
         assert(operation2->u1() == uuid3);
         assert(operation2->u2() == uuid4);
         assert(operation2->direction() == dir2);
+        assert(operation2->recordNumber() == recN2);
 
         auto operation = dynamic_cast<const RemoveOperation*>(operations->at(2).get());
         assert(operation->type() == Operation::Remove);
         assert(operation->u1() == uuid1);
         assert(operation->u2() == uuid2);
         assert(operation->direction() == dir);
+        assert(operation->recordNumber() == recN1);
     }
 
     void checkDirectionUpdateOperationsSerialization() {

@@ -11,7 +11,6 @@ public:
     virtual ~Exception() throw(){}
 
     explicit Exception(const std::string &message);
-
     explicit Exception(const char *message) :
             msg_(message) {};
 

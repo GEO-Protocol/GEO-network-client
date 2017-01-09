@@ -24,9 +24,12 @@ public:
         const NodeUUID &u2,
         const TrustLineDirection direction);
 
-//    void remove(
-//        const NodeUUID &u1,
-//        const NodeUUID &u2);
+    void remove(
+        const NodeUUID &u1,
+        const NodeUUID &u2);
+
+    void commit();
+    void rollback();
 
 protected:
     enum State {
@@ -37,10 +40,6 @@ protected:
 protected:
     State mState;
     AbstractRoutingTable *mRoutingTable;
-
-protected:
-    inline void commit();
-    inline void rollback();
 };
 
 

@@ -47,12 +47,15 @@ public:
     const RemoveOperation::Shared initRemoveOperation(
         const NodeUUID &u1,
         const NodeUUID &u2,
-        const TrustLineDirection directionBackup);
+        const TrustLineDirection directionBackup,
+        const RecordNumber recN);
 
     const DirectionUpdateOperation::Shared initDirectionUpdateOperation(
         const RecordNumber recN,
         const TrustLineDirection direction,
         const TrustLineDirection directionBackup);
+
+    const RecordNumber nextRecordNumber();
 
     bool transactionMayBeStarted();
 

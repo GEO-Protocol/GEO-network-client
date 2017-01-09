@@ -8,9 +8,11 @@
 typedef uint8_t byte;
 
 enum TrustLineDirection {
-    Incoming = 0,
-    Outgoing = 1,
-    Both     = 2,
+    Unspecified = 0,
+
+    Incoming = 1,
+    Outgoing = 2,
+    Both     = 3,
 };
 typedef uint8_t SerializedTrustLineDirection;
 

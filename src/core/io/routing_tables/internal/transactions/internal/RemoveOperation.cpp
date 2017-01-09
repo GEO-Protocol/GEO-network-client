@@ -8,13 +8,11 @@ namespace routing_tables {
 RemoveOperation::RemoveOperation(
     const NodeUUID &u1,
     const NodeUUID &u2,
-    const TrustLineDirection direction):
-    SetOperation(u1, u2, direction, 0) {
+    const TrustLineDirection direction,
+    const RecordNumber recN):
+    SetOperation(u1, u2, direction, recN) {
 
     mType = Remove;
-
-    // note: recN argument is ignored in logic of RemoveOperation;
-    // RollbackRemoveOperation will request fresh recN from the OperationsLog.
 }
 
 #pragma clang diagnostic push

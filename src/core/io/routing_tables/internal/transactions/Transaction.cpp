@@ -27,17 +27,40 @@ void Transaction::set(
     if (mState != Normal) {
         throw ConflictError(
             "Transaction::set: "
-                "transaction can't be used any more and would be rolled back.");
+                "currnt transaction can't be used any more and would be rolled back.");
     }
 
     try {
-        mRoutingTable->set(u1, u2, direction);
+        mRoutingTable->set(u1, u2, direction, false);
     } catch (Exception &e) {
         mState = Broken;
 
         // Re-throw the error to inform the developer about error.
         throw RuntimeError(
-            string("Transaction::set: operation failed. Details are: ") + e.message());
+            std::string("Transaction::set: operation failed. Details are: ")
+            + e.message());
+    }
+}
+
+void Transaction::remove(
+    const NodeUUID &u1,
+    const NodeUUID &u2) {
+
+    if (mState != Normal) {
+        throw ConflictError(
+            "Transaction::set: "
+                "currnt transaction can't be used any more and would be rolled back.");
+    }
+
+    try {
+        mRoutingTable->remove(u1, u2);
+    } catch (Exception &e) {
+        mState = Broken;
+
+        // Re-throw the error to inform the developer about error.
+        throw RuntimeError(
+            std::string("Transaction::set: operation failed. Details are: ")
+            + e.message());
     }
 }
 

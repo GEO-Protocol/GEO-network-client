@@ -16,7 +16,8 @@ public:
             NodeUUID uuid1;
             NodeUUID uuid2;
             TrustLineDirection dir(Incoming);
-            RemoveOperation op(uuid1, uuid2, dir);
+            AbstractRecordsHandler::RecordNumber recN = 100;
+            RemoveOperation op(uuid1, uuid2, dir, recN);
             auto serialized = op.serialize();
 
             SetOperation deserializedOp(serialized.first.get());
@@ -24,12 +25,14 @@ public:
             assert(deserializedOp.u1() == uuid1);
             assert(deserializedOp.u2() == uuid2);
             assert(deserializedOp.direction() == dir);
+            assert(deserializedOp.recordNumber() == recN);
         }
         {
             NodeUUID uuid1;
             NodeUUID uuid2;
             TrustLineDirection dir(Outgoing);
-            RemoveOperation op(uuid1, uuid2, dir);
+            AbstractRecordsHandler::RecordNumber recN = 100;
+            RemoveOperation op(uuid1, uuid2, dir, recN);
             auto serialized = op.serialize();
 
             SetOperation deserializedOp(serialized.first.get());
@@ -37,12 +40,15 @@ public:
             assert(deserializedOp.u1() == uuid1);
             assert(deserializedOp.u2() == uuid2);
             assert(deserializedOp.direction() == dir);
+            assert(deserializedOp.recordNumber() == recN);
         }
         {
             NodeUUID uuid1;
             NodeUUID uuid2;
             TrustLineDirection dir(Both);
-            RemoveOperation op(uuid1, uuid2, dir);
+            AbstractRecordsHandler::RecordNumber recN = 100;
+            RemoveOperation op(uuid1, uuid2, dir, recN);
+
             auto serialized = op.serialize();
 
             SetOperation deserializedOp(serialized.first.get());
@@ -50,6 +56,7 @@ public:
             assert(deserializedOp.u1() == uuid1);
             assert(deserializedOp.u2() == uuid2);
             assert(deserializedOp.direction() == dir);
+            assert(deserializedOp.recordNumber() == recN);
         }
     }
 
@@ -62,7 +69,8 @@ public:
         NodeUUID uuid1;
         NodeUUID uuid2;
         TrustLineDirection dir(Incoming);
-        RemoveOperation op(uuid1, uuid2, dir);
+        AbstractRecordsHandler::RecordNumber recN = 100;
+        RemoveOperation op(uuid1, uuid2, dir, recN);
         auto rollbackOp = op.rollbackOperation();
 
         assert(rollbackOp->type() == Operation::RollbackRemove);

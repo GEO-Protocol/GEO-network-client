@@ -27,7 +27,8 @@ public:
     explicit RemoveOperation(
         const NodeUUID &u1,
         const NodeUUID &u2,
-        const TrustLineDirection direction);
+        const TrustLineDirection direction,
+        const RecordNumber recN);
 
     virtual const pair<shared_ptr<byte>, size_t> serialize() const;
 

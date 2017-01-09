@@ -18,6 +18,7 @@ void TrustLineDirectionColumn::set(
     const TrustLineDirection direction,
     const bool sync) {
 
+    // Writing record number to the disk index.
     SerializedTrustLineDirection serializableDirection(direction);
     fseek(mFileDescriptor, recordOffset(recN), SEEK_SET);
     if (fwrite(&serializableDirection, sizeof(serializableDirection), 1, mFileDescriptor) != 1 &&
@@ -29,13 +30,59 @@ void TrustLineDirectionColumn::set(
     if (sync) {
         syncLowLevelOSBuffers();
     }
+
+    // Updating memory index
+    switch (direction) {
+        case Incoming: {
+            mIncomingRecordNumbers.insert(recN);
+            break;
+        }
+        case Outgoing: {
+            mOutoingRecordNumbers.insert(recN);
+            break;
+        }
+        case Both: {
+            mBothDirectedRecordNumbers.insert(recN);
+            break;
+        }
+        case Unspecified: {
+            throw ValueError(
+                "TrustLineDirectionColumn::set: unexpected direction received.");
+        }
+    }
 }
 
 void TrustLineDirectionColumn::remove(
     const db::AbstractRecordsHandler::RecordNumber recN,
     const bool sync) {
 
-    const auto removedRecordValue = kRemovedRecordValue;
+    try {
+        // Updating memory index
+        switch (direction(recN)) {
+            case Incoming: {
+                mIncomingRecordNumbers.erase(recN);
+                break;
+            }
+            case Outgoing: {
+                mOutoingRecordNumbers.erase(recN);
+                break;
+            }
+            case Both: {
+                mBothDirectedRecordNumbers.erase(recN);
+                break;
+            }
+            case Unspecified: {
+                break;
+            }
+        }
+
+    } catch (NotFoundError &){
+        // direction(recN) may throw NotFound in case when recN is absent in index.
+        // In this case - no one memory index contains the value.
+    }
+
+
+    const SerializedTrustLineDirection removedRecordValue = Unspecified;
     fseek(mFileDescriptor, recordOffset(recN), SEEK_SET);
     if (fwrite(&removedRecordValue, sizeof(removedRecordValue), 1, mFileDescriptor) != 1 &&
         fwrite(&removedRecordValue, sizeof(removedRecordValue), 1, mFileDescriptor) != 1) {
@@ -52,7 +99,8 @@ void TrustLineDirectionColumn::remove(
  * @param recN - number of the record that should be returned.
  * @return direction of the trust line;
  *
- * Throws
+ *
+ * Throws NotFoundError in case when no recN is in index.
  */
 const TrustLineDirection TrustLineDirectionColumn::direction(
     const db::AbstractRecordsHandler::RecordNumber recN) const {
@@ -65,13 +113,12 @@ const TrustLineDirection TrustLineDirectionColumn::direction(
             "TrustLineDirectionColumn::set: can't read record.");
     }
 
-    if (serializableDirection == kRemovedRecordValue) {
+    if (serializableDirection == Unspecified) {
         throw NotFoundError(
             "TrustLineDirectionColumn::direction: no record associated with recN");
     } else {
         return TrustLineDirection(serializableDirection);
     }
-
 }
 
 
@@ -99,6 +146,8 @@ void TrustLineDirectionColumn::open() {
                 "TrustLineDirectionColumn::open: "
                     "unexpected file version occurred.");
         }
+
+        loadIndexIntoMemory();
     }
 }
 
@@ -132,6 +181,85 @@ void TrustLineDirectionColumn::updateFileHeader(
 const TrustLineDirectionColumn::IndexRecordOffset
 TrustLineDirectionColumn::recordOffset(const AbstractRecordsHandler::RecordNumber recN) const {
     return (recN * sizeof(SerializedTrustLineDirection)) + sizeof(FileHeader);
+}
+
+const flat_set<
+    AbstractRecordsHandler::RecordNumber,
+    less<AbstractRecordsHandler::RecordNumber>,
+    new_allocator<AbstractRecordsHandler::RecordNumber>> &
+TrustLineDirectionColumn::incomingDirectedRecordsNumbers() const {
+    return mIncomingRecordNumbers;
+}
+
+const flat_set<
+    AbstractRecordsHandler::RecordNumber,
+    less<AbstractRecordsHandler::RecordNumber>,
+    new_allocator<AbstractRecordsHandler::RecordNumber>> &
+TrustLineDirectionColumn::outgoingDirectedRecordsNumbers() const {
+    return mOutoingRecordNumbers;
+}
+
+const flat_set<
+    AbstractRecordsHandler::RecordNumber,
+    less<AbstractRecordsHandler::RecordNumber>,
+    new_allocator<AbstractRecordsHandler::RecordNumber>> &
+TrustLineDirectionColumn::bothDirectedRecordsNumbers() const {
+    return mBothDirectedRecordNumbers;
+}
+
+void TrustLineDirectionColumn::loadIndexIntoMemory() {
+    fseek(mFileDescriptor, sizeof(FileHeader), SEEK_SET);
+
+    size_t readingWindow = 512;
+    SerializedTrustLineDirection directions[readingWindow];
+    RecordNumber currentRecordNumber = 0;
+
+    while (true) {
+        size_t totalRead = fread(&directions, sizeof(SerializedTrustLineDirection), readingWindow, mFileDescriptor);
+        if (totalRead == 0) {
+            if (feof(mFileDescriptor)){
+                break;
+            }
+
+            throw IOError(
+                "TrustLineDirectionColumn::loadIndexIntoMemory: "
+                    "can't read from the disk.");
+        }
+
+        for (size_t i=0; i<totalRead; ++i){
+            // Note:
+            // flat_set uses binary search algorithm to find position for the next element inserting,
+            // and this algorithm has a special optimizations for inserting of the value,
+            // that is bigger than all previous values.
+            //
+            // Record numbers are constantly increasing on each iteration,
+            // so it is OK to call insert() without performance harm.
+
+            switch (directions[i]) {
+                case Incoming: {
+                    mIncomingRecordNumbers.insert(currentRecordNumber);
+                    break;
+                }
+                case Outgoing: {
+                    mOutoingRecordNumbers.insert(currentRecordNumber);
+                    break;
+                }
+                case Both: {
+                    mBothDirectedRecordNumbers.insert(currentRecordNumber);
+                    break;
+                }
+                case Unspecified: {
+                    break;
+                }
+            }
+
+            currentRecordNumber++;
+        }
+    }
+}
+
+void TrustLineDirectionColumn::commit() {
+    syncLowLevelOSBuffers();
 }
 
 

@@ -1,4 +1,4 @@
-#include "../../../core/db/fields/uuid_column/UUIDColumn.h"
+#include "../../../../core/db/fields/uuid_column/UUIDColumn.h"
 
 
 using namespace db;
@@ -11,15 +11,15 @@ namespace f = boost::filesystem;
 class UUIDColumnTests {
 public:
     void run() {
-//        checkInternalFilesCreation();
-//        checkAtomicSet();
-//        checkNonAtomicSet();
-//        checkSetSeveralRecordNumbersIntoSameRecord();
-//
-//        checkAtomicRemoving();
-//        checkAtomicRemovingTC2();
+        checkInternalFilesCreation();
+        checkAtomicSet();
+        checkNonAtomicSet();
+        checkSetSeveralRecordNumbersIntoSameRecord();
 
-        performanceOfWriting();
+        checkAtomicRemoving();
+        checkAtomicRemovingTC2();
+
+//        performanceOfWriting();
 
         clean();
     };

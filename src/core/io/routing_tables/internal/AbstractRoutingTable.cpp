@@ -9,9 +9,9 @@ AbstractRoutingTable::AbstractRoutingTable(
     const uint8_t pow2bucketsCountIndex):
 
     // Each column would be located into its sub-directory.
-    mF1Path(path / fs::path("f1/")),
-    mF2Path(path / fs::path("f2/")),
-    mDirColumnPath(path / fs::path("dir/")) {
+    mF1Path(path / fs::path("u1/")),
+    mF2Path(path / fs::path("u2/")),
+    mDirColumnPath(path / fs::path("directions/")) {
 
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(pow2bucketsCountIndex > 0 && pow2bucketsCountIndex < 16);
@@ -41,9 +41,9 @@ AbstractRoutingTable::~AbstractRoutingTable() {
     delete mOperationsLog;
 }
 
-Transaction *AbstractRoutingTable::beginTransaction() const {
+shared_ptr<Transaction> AbstractRoutingTable::beginTransaction() const {
     if (mOperationsLog->transactionMayBeStarted()) {
-        return new Transaction(this);
+        return shared_ptr<Transaction>(new Transaction(this));
 
     } else {
         throw ConflictError(
@@ -92,9 +92,7 @@ void AbstractRoutingTable::remove(
         // backup direction to be able to roll back removing,
         // in case when transaction will crash.
         auto direction = mDirColumn->direction(recN);
-
-//        processTransaction(
-//            mOperationsLog->initRemoveOperation(u1, u2, direction));
+        executeOperation(mOperationsLog->initRemoveOperation(u1, u2, direction, recN));
 
         if (commit) {
             commitOperations();
@@ -108,11 +106,15 @@ void AbstractRoutingTable::remove(
 }
 
 void AbstractRoutingTable::commitOperations() {
+    mF1Column->commitCachedBlocks();
+    mF2Column->commitCachedBlocks();
+    mDirColumn->commit();
 
+    mOperationsLog->commit();
 }
 
 /*
- * Reverts all operations that are currently in the log.
+ * Reverts all operations that are currently in the operations log.
  *
  *
  * Throws RuntimeError in case when uncompleted operations can't be loaded, or correctly processed.
@@ -120,30 +122,34 @@ void AbstractRoutingTable::commitOperations() {
 void AbstractRoutingTable::rollBackOperations() {
     try {
         auto uncompletedOperations = mOperationsLog->uncompletedOperations();
-
         if (uncompletedOperations->size() > 0) {
             for (auto &op: *uncompletedOperations) {
                 switch (op->type()) {
                     case Operation::Set: {
-                        rollbackSetOperation(dynamic_pointer_cast<const SetOperation>(op));
-                        continue;
+                        executeOperation(static_pointer_cast<const SetOperation>(op)->rollbackOperation());
+                        break;
                     }
-
-                    // todo: add rest operations
-
+                    case Operation::Remove: {
+                        executeOperation(static_pointer_cast<const RemoveOperation>(op)->rollbackOperation());
+                        break;
+                    }
+                    case Operation::Update: {
+                        executeOperation(static_pointer_cast<const DirectionUpdateOperation>(op)->rollbackOperation());
+                        break;
+                    }
                     default: {
                         throw RuntimeError(
-                            "AbstractRoutingTable::rollBackOperations: "
-                                "unexpected operation occurred.");
+                            "AbstractRoutingTable::rollBackOperations: invalid operation type received.");
                     }
                 }
             }
-        }
 
+            commitOperations();
+        }
 
     } catch (Exception &e) {
         throw RuntimeError(
-            string("AbstractRoutingTable::rollBackOperations: unexpected operation occurred. Details are: ")
+            std::string("AbstractRoutingTable::rollBackOperations: unexpected operation occurred. Details are: ")
             + e.message());
     }
 }
@@ -183,27 +189,55 @@ const AbstractRecordsHandler::RecordNumber AbstractRoutingTable::intersectingRec
 }
 
 void AbstractRoutingTable::executeOperation(
-    const Operation::Shared operation) {
+    Operation::ConstShared operation) {
 
     if (operation->type() == Operation::Set) {
-        const SetOperation *op = dynamic_cast<SetOperation*>(operation.get());
-
-        mF1Column->set(op->u1(), op->recordNumber());
-        mF2Column->set(op->u2(), op->recordNumber());
-        mDirColumn->set(op->recordNumber(), op->direction());
+        auto op = dynamic_pointer_cast<const SetOperation>(operation);
+        mF1Column->set(op->u1(), op->recordNumber(), false);
+        mF2Column->set(op->u2(), op->recordNumber(), false);
+        mDirColumn->set(op->recordNumber(), op->direction(), false);
         return;
 
+
+    } else if (operation->type() == Operation::RollbackSet) {
+        auto op = dynamic_pointer_cast<const RollbackSetOperation>(operation);
+        mF1Column->remove(op->u1(), op->recordNumber(), false);
+        mF2Column->remove(op->u2(), op->recordNumber(), false);
+        mDirColumn->remove(op->recordNumber(), false);
+        return;
+
+
+    } else if (operation->type() == Operation::Update) {
+        auto op = dynamic_pointer_cast<const DirectionUpdateOperation>(operation);
+        mDirColumn->set(op->recordNumber(), op->direction(), false);
+
+
+    } else if (operation->type() == Operation::RollbackUpdate) {
+        auto op = dynamic_pointer_cast<const RollbackDirectionUpdateOperation>(operation);
+        mDirColumn->set(op->recordNumber(), op->direction(), false);
+
+
+    } else if (operation->type() == Operation::Remove) {
+        auto op = dynamic_pointer_cast<const RemoveOperation>(operation);
+        mF1Column->remove(op->u1(), op->recordNumber(), false);
+        mF2Column->remove(op->u2(), op->recordNumber(), false);
+        mDirColumn->remove(op->recordNumber(), false);
+
+    } else if (operation->type() == Operation::RollbackRemove) {
+        auto op = dynamic_pointer_cast<const RollbackRemoveOperation>(operation);
+        auto nextRecordNumber = mOperationsLog->nextRecordNumber();
+        mF1Column->set(op->u1(), nextRecordNumber, false);
+        mF2Column->set(op->u2(), nextRecordNumber, false);
+        mDirColumn->set(nextRecordNumber, op->direction(), false);
+
+
     } else {
-        throw Exception(
+        throw RuntimeError(
             "AbstractRoutingTable::executeTransaction: "
                 "unexpected transaction type occurred.");
     }
 }
 
-void AbstractRoutingTable::rollbackSetOperation(
-    SetOperation::ConstShared operation) {
-
-}
 
 } // namespace routing tables
 } // namespace io

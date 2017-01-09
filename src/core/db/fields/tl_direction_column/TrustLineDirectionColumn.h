@@ -8,9 +8,14 @@
 #include "../../../common/exceptions/ValueError.h"
 #include "../../../common/exceptions/NotFoundError.h"
 
+#include <boost/container/flat_set.hpp>
+
 
 namespace db {
 namespace fields {
+
+
+using namespace boost::container;
 
 
 /*
@@ -56,6 +61,12 @@ public:
     const TrustLineDirection direction(
         const RecordNumber recN) const;
 
+    const flat_set<RecordNumber>& incomingDirectedRecordsNumbers() const;
+    const flat_set<RecordNumber>& outgoingDirectedRecordsNumbers() const;
+    const flat_set<RecordNumber>& bothDirectedRecordsNumbers() const;
+
+    void commit();
+
 protected:
     struct FileHeader {
         explicit FileHeader();
@@ -64,20 +75,17 @@ protected:
         uint16_t version;
     };
 
-    // Records are physically removing from the file
-    // only when vacuum() is called.
-    // Instead of removing, records are only marking as removed.
-    //
-    // To mark record as removed - special record value is used:
-    // max. possible offset.
-    static const constexpr SerializedTrustLineDirection kRemovedRecordValue =
-        std::numeric_limits<SerializedTrustLineDirection>::max();
+    flat_set<RecordNumber> mIncomingRecordNumbers;
+    flat_set<RecordNumber> mOutoingRecordNumbers;
+    flat_set<RecordNumber> mBothDirectedRecordNumbers;
 
 protected:
     void open();
     FileHeader loadFileHeader() const;
     void updateFileHeader(
         const FileHeader *header) const;
+
+    void loadIndexIntoMemory();
 
     inline const IndexRecordOffset recordOffset(
         const RecordNumber recN) const;

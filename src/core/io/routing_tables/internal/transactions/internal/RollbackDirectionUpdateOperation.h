@@ -22,7 +22,7 @@ public:
         const RecordNumber recN,
         TrustLineDirection direction);
 
-    const RecordNumber recordNumber();
+    const RecordNumber recordNumber() const;
     const TrustLineDirection direction() const;
 
     const pair<shared_ptr<byte>, size_t> serialize() const;
