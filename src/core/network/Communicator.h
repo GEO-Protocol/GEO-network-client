@@ -1,9 +1,13 @@
 #ifndef GEO_NETWORK_CLIENT_COMMUNICATOR_H
 #define GEO_NETWORK_CLIENT_COMMUNICATOR_H
 
+#include "../common/Types.h"
+
 #include "UUID2Address.h"
 #include "internal/OutgoingMessagesHandler.h"
 #include "internal/IncomingMessagesHandler.h"
+
+
 #include "../common/exceptions/RuntimeError.h"
 
 #include <boost/asio.hpp>
@@ -29,42 +33,16 @@ public:
         const string &nodeInterface,
         const uint16_t nodePort,
         const string &uuid2AddressHost,
-        const uint16_t uuid2AddressPort);
+        const uint16_t uuid2AddressPort,
+        Logger *logger);
 
     ~Communicator();
 
     void beginAcceptMessages();
 
 private:
-    static constexpr const size_t kMaxIncomingBufferSize = 1024;
-
-private:
-    const string mInterface;
-    const uint16_t mPort;
-
-    // external
-    const NodeUUID &mNodeUUID;
-    UUID2Address *mUUID2AddressService;
-
-    // internal
-    udp::socket *mSocket;
-    IncomingMessagesHandler *mIncomingMessagesHandler;
-    OutgoingMessagesHandler *mOutgoingMessagesHandler;
-
-
-
-
-    as::io_service &mIOService;
-
-
-    boost::array<char, kMaxIncomingBufferSize> mRecvBuffer;
-    udp::endpoint mRemoteEndpointBuffer;
-
-
-
-private:
-    // todo: move to the incoming handler
     void asyncReceiveData();
+
     void handleReceivedInfo(
         const boost::system::error_code &error,
         size_t bytesTransferred);
@@ -81,6 +59,25 @@ private:
     void handleSentInfo(
         const boost::system::error_code &error,
         size_t bytesTransferred);
+
+private:
+    static constexpr const size_t kMaxIncomingBufferSize = 1024;
+
+    as::io_service &mIOService;
+    const NodeUUID &mNodeUUID;
+    const string mInterface;
+    const uint16_t mPort;
+
+    UUID2Address *mUUID2AddressService;
+
+    udp::socket *mSocket;
+    IncomingMessagesHandler *mIncomingMessagesHandler;
+    OutgoingMessagesHandler *mOutgoingMessagesHandler;
+
+    boost::array<byte, kMaxIncomingBufferSize> mRecvBuffer;
+    udp::endpoint mRemoteEndpointBuffer;
+
+    Logger *mLog;
 };
 
 

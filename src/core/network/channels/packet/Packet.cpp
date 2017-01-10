@@ -2,10 +2,18 @@
 
 Packet::Packet(
     PacketHeader *packetHeader,
-    const byte *bytes) :
+    byte *bytes,
+    size_t bytesCount) :
 
-    mPacketHeader(PacketHeader::Shared(packetHeader)),
-    mBytes(BytesShared(bytes, free)){}
+    mPacketHeader(PacketHeader::Shared(packetHeader)){
+
+    byte *data = (byte *) malloc(bytesCount);
+    memcpy(
+        data,
+        bytes,
+        bytesCount
+    );
+}
 
 Packet::~Packet() {}
 

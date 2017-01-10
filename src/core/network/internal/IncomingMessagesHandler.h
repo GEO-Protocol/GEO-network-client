@@ -7,6 +7,7 @@
 
 #include "../channels/packet/PacketHeader.h"
 #include "../channels/packet/Packet.h"
+#include "../channels/channel/Channel.h"
 #include "../channels/manager/ChannelsManager.h"
 
 #include "../../common/exceptions/ValueError.h"
@@ -15,7 +16,7 @@
 #include <boost/date_time.hpp>
 #include <boost/asio.hpp>
 
-#include <map>
+#include <vector>
 
 
 using namespace std;
@@ -25,25 +26,23 @@ using namespace boost::asio::ip;
 class MessagesParser {
 
 public:
-    pair<bool, shared_ptr<Message>> processMessage(
-        const byte* messagePart,
+    pair<bool, Message::Shared> processMessage(
+        const byte *messagePart,
         const size_t receivedBytesCount);
 
 private:
-    pair<bool, shared_ptr<Message>> tryDeserializeMessage();
+    pair<bool, Message::Shared> tryDeserializeMessage(
+        const byte *messagePart);
+
+    pair<bool, Message::Shared> messageInvalidOrIncomplete();
 
 private:
-    // Messages may arrive via network partially.
-    // This buffer is needed to collect all the parts
-    // and deserialize whole the message.
-    //
-    // This buffer is separated from the boost::asio buffer,
-    // that is used for reading info from the socket.
-    vector<byte> mMessageBuffer;
+    const size_t kMessageIdentifierSize = 2;
+    const size_t kMininalMessageSize = kMessageIdentifierSize + 1;
+
 };
 
 
-// ToDo: add removing of obsolete parsers;
 class IncomingMessagesHandler {
 
 public:
@@ -57,17 +56,16 @@ public:
         const size_t receivedBytesCount);
 
 private:
-    const pair<bool, shared_ptr<MessagesParser>> endpointMessagesParser(
-        udp::endpoint &) const;
+    void tryCollectPacket();
 
-    shared_ptr<MessagesParser> registerNewEndpointParser(
-        udp::endpoint &clientEndpoint);
+    void cutPacketFromBuffer(
+        size_t bytesCount);
 
 private:
     ChannelsManager *mChannelsManager;
     MessagesParser *mMessagesParser;
 
-    map<udp::endpoint, shared_ptr<MessagesParser>> mParsers;
+    vector<byte> mPacketsBuffer;
 };
 
 #endif //GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H

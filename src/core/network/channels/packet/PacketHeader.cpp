@@ -10,23 +10,33 @@ PacketHeader::PacketHeader(const uint16_t channel,
     mChannel = channel;
     mPacketNumber = packetNumber;
     mTotalPacketsCount = totalPacketsCount;
-    mBytesCount = bytesCount;
+    mPacketBytesCount = bytesCount;
+    mBodyBytesCount = mPacketBytesCount - (uint16_t)kHeaderSize;
 }
 
 PacketHeader::~PacketHeader() {}
 
-const uint16_t PacketHeader::channel() const {
+const uint16_t PacketHeader::channelNumber() const {
+
     return mChannel;
 }
 
 const uint16_t PacketHeader::packetNumber() const {
+
     return mPacketNumber;
 }
 
 const uint16_t PacketHeader::totalPacketsCount() const {
+
     return mTotalPacketsCount;
 }
 
-const uint16_t PacketHeader::bytesCount() const {
-    return mBytesCount;
+const uint16_t PacketHeader::packetBytesCount() const {
+
+    return mPacketBytesCount;
+}
+
+const uint16_t PacketHeader::bodyBytesCount() const {
+
+    return mBodyBytesCount;
 }

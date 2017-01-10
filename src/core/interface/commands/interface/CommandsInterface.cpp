@@ -222,7 +222,7 @@ void CommandsParser::cutBufferUpToNextCommand() {
 }
 
 pair<bool, BaseUserCommand::Shared> CommandsParser::commandIsInvalidOrIncomplete() {
-    return pair<bool, BaseUserCommand::Shared>(false, nullptr);
+    return make_pair(false, nullptr);
 }
 
 

@@ -7,12 +7,14 @@
 
 #include "../../../common/exceptions/ConflictError.h"
 
-#include <memory>
+#include <boost/crc.hpp>
+
 #include <malloc.h>
+#include <memory>
+#include <map>
 #include <string>
 #include <cstring>
 #include <cstdint>
-#include <map>
 
 using namespace std;
 
@@ -27,13 +29,20 @@ public:
 
     void addPacket(
         uint16_t position,
-        Packet::Shared packet) const;
+        Packet::Shared packet);
 
     bool checkConsistency() const;
 
-    ConstBytesShared data() const;
+    pair<size_t, ConstBytesShared> data() const;
+
+    const uint16_t expectedPacketsCount() const;
+
+    const uint16_t realPacketsCount() const;
 
 private:
+    const uint16_t kCRCPacketNumber = 0;
+
+    uint16_t mExpectedPacketsCount;
     map<uint16_t, Packet::Shared, less<uint16_t>> *mPackets;
 };
 

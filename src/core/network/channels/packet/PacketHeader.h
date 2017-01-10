@@ -22,19 +22,26 @@ public:
 
     ~PacketHeader();
 
-    const uint16_t channel() const;
+    const uint16_t channelNumber() const;
 
     const uint16_t packetNumber() const;
 
     const uint16_t totalPacketsCount() const;
 
-    const uint16_t bytesCount() const;
+    const uint16_t packetBytesCount() const;
+
+    const uint16_t bodyBytesCount() const;
+
+public:
+    static const constexpr size_t kHeaderRecordSize = 2;
+    static const constexpr size_t kHeaderSize = kHeaderRecordSize * 4;
 
 private:
     uint16_t mChannel;
     uint16_t mPacketNumber;
     uint16_t mTotalPacketsCount;
-    uint16_t mBytesCount;
+    uint16_t mPacketBytesCount;
+    uint16_t mBodyBytesCount;
 };
 
 

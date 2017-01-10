@@ -4,6 +4,7 @@
 #include "../../../common/Types.h"
 #include "PacketHeader.h"
 
+#include <cstring>
 #include <memory>
 #include <malloc.h>
 #include <cstdint>
@@ -19,13 +20,20 @@ public:
 public:
     Packet(
         PacketHeader *packetHeader,
-        const byte *bytes);
+        byte *bytes,
+        size_t bytesCount);
 
     ~Packet();
 
     PacketHeader::SharedConst header() const;
 
     ConstBytesShared body() const;
+
+public:
+    static const constexpr size_t kChannelNumberOffset = PacketHeader::kHeaderRecordSize;
+    static const constexpr size_t kPackageNumberOffset = PacketHeader::kHeaderRecordSize * 2;
+    static const constexpr size_t kTotalPacketsCountOffset = PacketHeader::kHeaderRecordSize * 3;
+    static const constexpr size_t kPacketBodyOffset = PacketHeader::kHeaderSize;
 
 private:
     PacketHeader::Shared mPacketHeader;

@@ -9,6 +9,7 @@ Core::~Core() {
 }
 
 int Core::run() {
+
     auto initCode = initCoreComponents();
     if (initCode != 0) {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
@@ -30,19 +31,12 @@ int Core::run() {
 }
 
 int Core::initCoreComponents() {
+
     int initCode;
 
     initCode = initSettings();
     if (initCode != 0)
         return initCode;
-
-//    initCode = initCommandsAPI();
-//    if (initCode != 0)
-//        return initCode;
-
-//    initCode = initCommandsInterface();
-//    if (initCode != 0)
-//        return initCode;
 
     json conf;
     try {
@@ -87,6 +81,7 @@ int Core::initCoreComponents() {
 }
 
 int Core::initSettings() {
+
     try {
         mSettings = new Settings();
         mLog.logSuccess("Core", "Settings are successfully initialised");
@@ -96,16 +91,19 @@ int Core::initSettings() {
         mLog.logException("Core", e);
         return -1;
     }
-
-    return 0;
 }
 
 int Core::initCommunicator(const json &conf) {
+
     try {
         mCommunicator = new Communicator(
-            mIOService, mNodeUUID,
-            mSettings->interface(&conf), mSettings->port(&conf),
-            mSettings->uuid2addressHost(&conf), mSettings->uuid2addressPort(&conf));
+            mIOService,
+            mNodeUUID,
+            mSettings->interface(&conf),
+            mSettings->port(&conf),
+            mSettings->uuid2addressHost(&conf),
+            mSettings->uuid2addressPort(&conf),
+            &mLog);
         mLog.logSuccess("Core", "Network communicator is successfully initialised");
 
     } catch (const std::exception &e) {
@@ -118,6 +116,7 @@ int Core::initCommunicator(const json &conf) {
 }
 
 int Core::initResultsInterface() {
+
     try {
         mResultsInterface = new ResultsInterface(&mLog);
         mLog.logSuccess("Core", "Results interface is successfully initialised");
@@ -130,6 +129,7 @@ int Core::initResultsInterface() {
 }
 
 int Core::initTrustLinesManager() {
+
     try{
         mTrustLinesManager = new TrustLinesManager();
         mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
@@ -154,6 +154,7 @@ int Core::initTransactionsManager() {
 }
 
 int Core::initCommandsInterface() {
+
     try {
         mCommandsInterface = new CommandsInterface(mIOService, mTransactionsManager, &mLog);
         mLog.logSuccess("Core", "Commands interface is successfully initialised");
@@ -166,6 +167,7 @@ int Core::initCommandsInterface() {
 }
 
 void Core::cleanupMemory() {
+
     if (mSettings != nullptr) {
         delete mSettings;
     }
@@ -192,6 +194,7 @@ void Core::cleanupMemory() {
 }
 
 void Core::zeroPointers() {
+
     mSettings = nullptr;
     mCommunicator = nullptr;
     mCommandsInterface = nullptr;

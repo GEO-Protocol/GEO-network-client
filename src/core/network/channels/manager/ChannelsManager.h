@@ -4,6 +4,7 @@
 #include "../channel/Channel.h"
 
 #include "../../../common/exceptions/IndexError.h"
+#include "../../../common/exceptions/MemoryError.h"
 
 #include <cstdint>
 #include <map>

@@ -1,57 +1,40 @@
 #include "IncomingMessagesHandler.h"
 
-pair<bool, shared_ptr<Message>> MessagesParser::processMessage(
-    const byte *messagePart, const size_t receivedBytesCount) {
+pair<bool, Message::Shared> MessagesParser::processMessage(
+    const byte *messagePart,
+    const size_t receivedBytesCount) {
 
-    // Memory reservation for whole the command
-    // to prevent huge amount of memory reallocations.
-    mMessageBuffer.reserve(mMessageBuffer.size() + receivedBytesCount);
-
-    // Concatenating with the previously received message parts.
-    for (size_t i = 0; i < receivedBytesCount; ++i) {
-        mMessageBuffer.push_back(messagePart[i]);
+    if (receivedBytesCount < kMininalMessageSize || messagePart == nullptr) {
+        return messageInvalidOrIncomplete();
     }
 
-    return tryDeserializeMessage();
+    return tryDeserializeMessage(messagePart);
 }
 
-pair<bool, shared_ptr<Message>> MessagesParser::tryDeserializeMessage() {
-    static const size_t MinimalMessageSize =
-        sizeof(uint16_t) +      // message size header (2B)
-        sizeof(uint32_t) +  // message crc32 header (4B)
-        sizeof(uint8_t) +   // type of the message (1B)
-        sizeof(uint8_t);    // minimal message content - 1B;
+pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
+    const byte *messagePart) {
 
-    if (mMessageBuffer.size() < MinimalMessageSize) {
-        return make_pair(false, nullptr);
+    uint16_t *messageIdentifier = new (const_cast<byte *> (messagePart)) uint16_t;
+    switch(*messageIdentifier) {
+
+        case Message::MessageTypeID::ProcessingReportMessage: {
+
+            return make_pair(
+                true, Message::Shared(nullptr));
+        }
+
+        default: {
+
+            return messageInvalidOrIncomplete();
+        }
     }
+}
 
-    // Check the message length (2B)
-    // Message length includes also the headers
-    // (size and crc32)
-    uint8_t byte0 = (uint8_t) mMessageBuffer[0];
-    uint8_t byte1 = (uint8_t) mMessageBuffer[1];
-    uint16_t messageSizeHeader = ((uint16_t) byte1 << 8) | byte0;
-    if (mMessageBuffer.size() < messageSizeHeader) {
-        // Message received partially.
-        return make_pair(false, nullptr);
-    }
+pair<bool, Message::Shared> MessagesParser::messageInvalidOrIncomplete() {
 
-    // Check message crc (4B)
-    // todo: check crc
-
-    // Check message type
-    uint8_t messageTypeIDHeader = (uint8_t) mMessageBuffer[6];
-    switch (messageTypeIDHeader) {
-        case 0:
-
-
-        default:
-            // Unexpected message type received.
-            // The message should be rejected.
-            mMessageBuffer.resize(0);
-            return make_pair(false, nullptr);
-    }
+    return make_pair(
+        false,
+        Message::Shared(nullptr));
 }
 
 
@@ -63,7 +46,6 @@ IncomingMessagesHandler::IncomingMessagesHandler() {
 
 IncomingMessagesHandler::~IncomingMessagesHandler() {
 
-    mParsers.clear();
     delete mChannelsManager;
     delete mMessagesParser;
 }
@@ -82,77 +64,80 @@ void IncomingMessagesHandler::processIncomingMessage(
                              "\"messagePart\" can't be null.");
     }
 
-
-    uint16_t *channelNumber = new(messagePart) uint16_t;
-
-    PacketHeader *packetHeader = new PacketHeader(
-        *channelNumber,
-        uint16_t(*(new(messagePart + sizeof(uint16_t)) uint16_t)),     // package number
-        uint16_t(*(new(messagePart + sizeof(uint16_t) * 2) uint16_t)), // total packets count
-        uint16_t(*(new(messagePart + sizeof(uint16_t) * 3) uint16_t))  // bytes count
-    );
-
-    auto channel = mChannelsManager->channel(packetHeader->channel());
-    channel->addPacket(
-        packetHeader->packetNumber(),
-        Packet::Shared(new Packet(
-            packetHeader,
-            messagePart + sizeof(uint16_t) * 4)
-        )
-    );
-
-    if (channel->checkConsistency()) {
-        ConstBytesShared bytes = channel->data();
-        mChannelsManager->remove(packetHeader->channel());
+    mPacketsBuffer.reserve(mPacketsBuffer.size() + receivedBytesCount);
+    for (size_t i = 0; i < receivedBytesCount; ++i) {
+        mPacketsBuffer.push_back(messagePart[i]);
     }
 
-    //TODO:: pass bytes to commands parser
-
-    /*auto endpointParser = endpointMessagesParser(clientEndpoint);
-    if (endpointParser.first) {
-        // Messages parser for received endpoint is already present into the system.
-        endpointParser.second.get()->processMessage(
-            messagePart,
-            receivedBytesCount);
-
-    } else {
-        // There is no parser for received endpoint.
-        // New one should be created and used.
-        auto newEndpointParser = registerNewEndpointParser(clientEndpoint);
-        newEndpointParser.get()->processMessage(
-            messagePart,
-            receivedBytesCount);
-    }*/
-}
-
-const pair<bool, shared_ptr<MessagesParser>> IncomingMessagesHandler::endpointMessagesParser(
-    udp::endpoint &clientEndpoint) const {
-
-    if (mParsers.count(clientEndpoint) > 0) {
-        return make_pair(true, mParsers.at(clientEndpoint));
-
-    } else {
-        return make_pair(false, nullptr);
+    if(mPacketsBuffer.size() > 1) {
+        tryCollectPacket();
     }
 }
 
-shared_ptr<MessagesParser> IncomingMessagesHandler::registerNewEndpointParser(
-    udp::endpoint &clientEndpoint) {
+void IncomingMessagesHandler::tryCollectPacket() {
 
-    if (mParsers.count(clientEndpoint) > 0) {
-        // Client endpoint already listed in endpoints map.
-        throw ConflictError("IncomingMessagesHandler::registerNewEndpointParser: "
-                                "Received endpoint is already listed in the system.");
+    uint16_t *bytesCount = new (mPacketsBuffer.data()) uint16_t;
+    if (mPacketsBuffer.size() >= *bytesCount) {
+        uint16_t *channelNumber = new (mPacketsBuffer.data() + Packet::kChannelNumberOffset) uint16_t;
+        uint16_t *packageNumber = new (mPacketsBuffer.data() + Packet::kPackageNumberOffset) uint16_t;
+        uint16_t *totalPacketsCount = new (mPacketsBuffer.data() + Packet::kTotalPacketsCountOffset) uint16_t;
+
+        PacketHeader *packetHeader = nullptr;
+        try {
+            packetHeader = new PacketHeader(
+                *channelNumber,
+                *packageNumber,
+                *totalPacketsCount,
+                *bytesCount
+            );
+
+        } catch (std::bad_alloc &e) {
+            throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
+                                  "Can not allocate memory for packet header instance.");
+        }
+
+        auto channel = mChannelsManager->channel(packetHeader->channelNumber());
+        Packet *packet = nullptr;
+        try {
+            packet = new Packet(
+                packetHeader,
+                mPacketsBuffer.data() + Packet::kPacketBodyOffset,
+                (size_t) packetHeader->bodyBytesCount());
+
+        } catch (std::bad_alloc &e) {
+            throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
+                                  "Can not allocate memory for packet instance.");
+        }
+        channel->addPacket(
+            packetHeader->packetNumber(),
+            Packet::Shared(packet)
+        );
+
+        cutPacketFromBuffer(*bytesCount);
+
+
+        if (channel->expectedPacketsCount() == channel->realPacketsCount()) {
+            if (channel->checkConsistency()) {
+                auto data = channel->data();
+                mMessagesParser->processMessage(
+                  data.second.get(),
+                  data.first
+                );
+                mChannelsManager->remove(packetHeader->channelNumber());
+
+            } else {
+                mChannelsManager->remove(packetHeader->channelNumber());
+            }
+        }
     }
-
-    // Registering new endpoint.
-    auto newEndpointMessagesParser = shared_ptr<MessagesParser>(new MessagesParser());
-    mParsers.insert(
-        make_pair(
-            clientEndpoint,
-            newEndpointMessagesParser
-        )
-    );
-
-    return newEndpointMessagesParser;
 }
+
+void IncomingMessagesHandler::cutPacketFromBuffer(
+    size_t bytesCount) {
+
+    mPacketsBuffer.erase(
+        mPacketsBuffer.begin(),
+        mPacketsBuffer.begin() + bytesCount
+    );
+}
+
