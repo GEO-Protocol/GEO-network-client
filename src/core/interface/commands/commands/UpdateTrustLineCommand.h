@@ -32,6 +32,8 @@ public:
 
     const CommandResult *debtGreaterThanAmountResult() const;
 
+    const CommandResult *resultConflict() const;
+
 protected:
     void deserialize(
         const string &command);

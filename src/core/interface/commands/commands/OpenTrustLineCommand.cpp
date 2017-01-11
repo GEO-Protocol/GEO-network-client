@@ -31,6 +31,10 @@ const CommandResult *OpenTrustLineCommand::trustLineAlreadyPresentResult() const
     return new CommandResult(uuid(), 409);
 }
 
+const CommandResult *OpenTrustLineCommand::resultConflict() const {
+    return new CommandResult(uuid(), 429);
+}
+
 /*!
  * Throws ValueError if deserialization was unsuccessful.
  */
@@ -77,4 +81,5 @@ void OpenTrustLineCommand::deserialize(
                 "Can't parse command. Received 'Amount' can't be 0.");
     }
 }
+
 

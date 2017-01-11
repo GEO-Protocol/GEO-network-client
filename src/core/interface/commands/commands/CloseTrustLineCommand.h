@@ -29,6 +29,8 @@ public:
 
     const CommandResult *trustLineIsAbsentOrInvalidResult() const;
 
+    const CommandResult *resultConflict() const;
+
 private:
     void deserialize(
             const string &command);

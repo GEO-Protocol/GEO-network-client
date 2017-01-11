@@ -47,6 +47,9 @@ public:
 
     void run();
 
+    friend const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
+        TransactionsScheduler *scheduler);
+
 private:
     void launchTransaction(
         BaseTransaction::Shared transaction);
@@ -67,13 +70,14 @@ private:
     bool isTransactionInScheduler(
         BaseTransaction::Shared transaction);
 
+private:
     as::io_service &mIOService;
     ManagerCallback mManagerCallback;
     Logger *mLog;
 
     as::deadline_timer *mProcessingTimer;
     storage::UUIDMapBlockStorage *mStorage;
-    map<BaseTransaction::Shared, TransactionState::SharedConst> mTransactions;
+    map<BaseTransaction::Shared, TransactionState::SharedConst> *mTransactions;
 
 };
 

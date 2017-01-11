@@ -10,11 +10,20 @@ TransactionsScheduler::TransactionsScheduler(
     mLog(logger) {
 
     try {
+        mTransactions = new map<BaseTransaction::Shared, TransactionState::SharedConst>();
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsScheduler::TransactionsScheduler."
+                              "Can not allocate memory for transactions map.");
+    }
+
+    try {
         mProcessingTimer = new as::deadline_timer(
             mIOService,
             boost::posix_time::milliseconds(2 * 1000));
 
     } catch (std::bad_alloc &e) {
+        delete mTransactions;
         throw MemoryError("TransactionsScheduler::TransactionsScheduler."
                               "Can not allocate memory for deadline timer instance.");
     }
@@ -25,6 +34,7 @@ TransactionsScheduler::TransactionsScheduler(
             "transactions.dat");
 
     } catch (std::bad_alloc &e) {
+        delete mTransactions;
         delete mProcessingTimer;
         throw MemoryError("TransactionsScheduler::TransactionsScheduler."
                               "Can not allocate memory for UUIDMapBlockStorage instance.");
@@ -33,6 +43,7 @@ TransactionsScheduler::TransactionsScheduler(
 
 TransactionsScheduler::~TransactionsScheduler() {
 
+    delete mTransactions;
     delete mProcessingTimer;
     delete mStorage;
 }
@@ -59,7 +70,7 @@ void TransactionsScheduler::scheduleTransaction(
 
 void TransactionsScheduler::run() {
 
-    if (!mTransactions.empty()) {
+    if (!mTransactions->empty()) {
         try {
             launchTransaction(findTransactionWithMinimalTimeout().first);
 
@@ -77,7 +88,12 @@ void TransactionsScheduler::launchTransaction(
 
     auto transactionResult = transaction->run();
     if (!isTransactionInScheduler(transaction)) {
-        mTransactions.insert(make_pair(transaction, transactionResult.second));
+        mTransactions->insert(
+            make_pair(
+                transaction,
+                transactionResult.second
+            )
+        );
     }
     handleTransactionResult(transaction, transactionResult);
 }
@@ -102,7 +118,7 @@ void TransactionsScheduler::handleTransactionResult(
 
     if (result.first.get() == nullptr) {
         if (isTransactionInScheduler(transaction)) {
-            auto it = mTransactions.find(transaction);
+            auto it = mTransactions->find(transaction);
             it->second = result.second;
             /*auto transactionContext = transaction->serializeContext();
              mStorage->rewrite(
@@ -122,7 +138,7 @@ void TransactionsScheduler::handleTransactionResult(
     } else if (result.second.get() == nullptr) {
         mManagerCallback(result.first);
         if (isTransactionInScheduler(transaction)) {
-            mTransactions.erase(transaction);
+            mTransactions->erase(transaction);
             //mStorage->erase(
             // storage::uuids::uuid(transaction->uuid()));
 
@@ -150,7 +166,7 @@ pair<BaseTransaction::Shared, Timeout> TransactionsScheduler::findTransactionWit
     BaseTransaction::Shared transaction(nullptr);
     Timeout minimalTimeout = posix_time::milliseconds(0);
 
-    for (auto &it : mTransactions) {
+    for (auto &it : *mTransactions) {
         auto transactionStateValue = it.second;
         if (transactionStateValue.get() != nullptr) {
             if (transactionStateValue->timeout() > 0) {
@@ -160,7 +176,7 @@ pair<BaseTransaction::Shared, Timeout> TransactionsScheduler::findTransactionWit
         }
     }
 
-    for (auto &it : mTransactions) {
+    for (auto &it : *mTransactions) {
         auto transactionStateValue = it.second;
         if (transactionStateValue.get() != nullptr) {
             if (transactionStateValue->timeout() > 0 && posix_time::milliseconds(transactionStateValue->timeout()) < minimalTimeout) {
@@ -207,5 +223,11 @@ void TransactionsScheduler::handleSleep(
 bool TransactionsScheduler::isTransactionInScheduler(
     BaseTransaction::Shared transaction) {
 
-    return mTransactions.count(transaction) > 0;
+    return mTransactions->count(transaction) != 0;
+}
+
+const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
+    TransactionsScheduler *scheduler) {
+
+    return scheduler->mTransactions;
 }

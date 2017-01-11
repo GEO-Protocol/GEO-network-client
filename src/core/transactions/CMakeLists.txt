@@ -24,7 +24,7 @@ set(SOURCE_FILES
         transactions/UseCreditTransaction.cpp
         transactions/UseCreditTransaction.h
         TransactionUUID.cpp
-        TransactionUUID.h)
+        TransactionUUID.h observer/TransactionsObserver.cpp observer/TransactionsObserver.h transactions/UniqueTransaction.cpp transactions/UniqueTransaction.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions

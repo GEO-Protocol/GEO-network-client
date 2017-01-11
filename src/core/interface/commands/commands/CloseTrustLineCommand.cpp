@@ -46,3 +46,7 @@ void CloseTrustLineCommand::deserialize(const string &command) {
     }
 }
 
+const CommandResult *CloseTrustLineCommand::resultConflict() const {
+    return new CommandResult(uuid(), 429);
+}
+

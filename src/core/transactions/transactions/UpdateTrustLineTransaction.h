@@ -1,30 +1,41 @@
 #ifndef GEO_NETWORK_CLIENT_UPDATETRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_UPDATETRUSTLINETRANSACTION_H
 
-#include "BaseTransaction.h"
+#include "UniqueTransaction.h"
+
 #include "../../interface/commands/commands/UpdateTrustLineCommand.h"
 
+#include "../scheduler/TransactionsScheduler.h"
 
-class UpdateTrustLineTransaction : public BaseTransaction {
-    friend class TransactionsScheduler;
+#include "../../trust_lines/interface/TrustLinesInterface.h"
 
-private:
-    UpdateTrustLineCommand::Shared mCommand;
-    uint8_t mSuccessIncrementer = 0;
+class UpdateTrustLineTransaction : public UniqueTransaction {
+
+public:
+    typedef shared_ptr<UpdateTrustLineTransaction> Shared;
 
 public:
     UpdateTrustLineTransaction(
-            UpdateTrustLineCommand::Shared command);
+            UpdateTrustLineCommand::Shared command,
+            TransactionsScheduler *scheduler,
+            TrustLinesInterface *interface);
 
-private:
     UpdateTrustLineCommand::Shared command() const;
 
     void setContext(
             Message::Shared message);
 
+    pair<byte *, size_t> serializeContext();
+
     pair<CommandResult::SharedConst, TransactionState::SharedConst> run();
 
-    pair<byte *, size_t> serializeContext();
+private:
+    pair<CommandResult::SharedConst, TransactionState::SharedConst> conflictErrorResult();
+
+private:
+    UpdateTrustLineCommand::Shared mCommand;
+
+    TrustLinesInterface *mTrustLinesInterface;
 };
 
 

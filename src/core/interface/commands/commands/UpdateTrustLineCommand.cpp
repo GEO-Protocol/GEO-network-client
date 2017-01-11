@@ -34,6 +34,10 @@ const CommandResult *UpdateTrustLineCommand::debtGreaterThanAmountResult() const
     return new CommandResult(uuid(), 409);
 }
 
+const CommandResult *UpdateTrustLineCommand::resultConflict() const {
+    return new CommandResult(uuid(), 429);
+}
+
 void UpdateTrustLineCommand::deserialize(
     const string &command) {
 

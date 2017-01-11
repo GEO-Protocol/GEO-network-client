@@ -4,7 +4,7 @@ BaseTransaction::BaseTransaction(
         BaseTransaction::TransactionType type) :
         mType(type) {}
 
-const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
+const BaseTransaction::TransactionType BaseTransaction::type() const {
     return mType;
 }
 

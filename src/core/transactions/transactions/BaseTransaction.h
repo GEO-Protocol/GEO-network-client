@@ -1,27 +1,31 @@
 #ifndef GEO_NETWORK_CLIENT_BASETRANSACTION_H
 #define GEO_NETWORK_CLIENT_BASETRANSACTION_H
 
+#include "../../common/Types.h"
 #include "../TransactionUUID.h"
+
 #include "../../network/messages/Message.h"
+
+#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
+
 #include "state/TransactionState.h"
 #include "../../interface/results/result/CommandResult.h"
-#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
-#include "../../common/Types.h"
 
 namespace storage = db::uuid_map_block_storage;
 
 
 class BaseTransaction {
-    friend class TransactionsScheduler;
-
 public:
     typedef shared_ptr<BaseTransaction> Shared;
 
 public:
     enum TransactionType {
         OpenTrustLineTransaction,
+        AcceptTrustLineTransaction,
         UpdateTrustLineTransaction,
+        SetTrustLineTransaction,
         CloseTrustLineTransaction,
+        RejectTrustLineTransaction,
         MaximalAmountTransaction,
         UseCreditTransaction,
         TotalBalanceTransaction,
@@ -29,27 +33,26 @@ public:
     };
     typedef uint8_t SerializedTransactionType;
 
+public:
+    virtual const TransactionType type() const;
+
+    virtual const TransactionUUID uuid() const;
+
+    virtual pair<CommandResult::SharedConst, TransactionState::SharedConst> run() = 0;
+
+    virtual void setContext(
+        Message::Shared message) = 0;
+
+    virtual pair<byte *, size_t> serializeContext() = 0;
+
+protected:
+    BaseTransaction(
+        TransactionType type);
+
 protected:
     TransactionType mType;
     TransactionUUID mTransactionUUID;
     Message::Shared mContext;
-
-protected:
-    BaseTransaction(
-            TransactionType type);
-
-public:
-    const TransactionType transactionType() const;
-
-    const TransactionUUID uuid() const;
-
-protected:
-    virtual void setContext(
-            Message::Shared message) = 0;
-
-    virtual pair<CommandResult::SharedConst, TransactionState::SharedConst> run() = 0;
-
-    virtual pair<byte *, size_t> serializeContext() = 0;
 
 };
 

@@ -26,7 +26,7 @@ Communicator::Communicator(
         mIncomingMessagesHandler = new IncomingMessagesHandler();
         mOutgoingMessagesHandler = new OutgoingMessagesHandler();
 
-    } catch (std::exception &) {
+    } catch (std::bad_alloc &e) {
         throw MemoryError(
             "Communicator::Communicator: "
                 "cant allocate enough memory for one of the Communicator's component.");

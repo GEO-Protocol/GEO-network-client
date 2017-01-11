@@ -15,6 +15,8 @@
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../trust_lines/interface/TrustLinesInterface.h"
 #include "../scheduler/TransactionsScheduler.h"
+#include "../observer/TransactionsObserver.h"
+
 #include "../transactions/BaseTransaction.h"
 #include "../transactions/OpenTrustLineTransaction.h"
 #include "../transactions/CloseTrustLineTransaction.h"
@@ -81,6 +83,7 @@ private:
 
     TrustLinesInterface *mTrustLinesInterface;
     TransactionsScheduler *mTransactionsScheduler;
+    TransactionsObserver *mTransactionsObserver;
 
 };
 
