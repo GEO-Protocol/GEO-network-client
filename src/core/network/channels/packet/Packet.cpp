@@ -13,6 +13,8 @@ Packet::Packet(
         bytes,
         bytesCount
     );
+
+    mBytes = BytesShared(data, free);
 }
 
 Packet::~Packet() {}
@@ -25,4 +27,28 @@ PacketHeader::SharedConst Packet::header() const {
 ConstBytesShared Packet::body() const {
 
     return mBytes;
+}
+
+vector<byte> Packet::packetBytes() const {
+
+    byte* packet = (byte *) malloc(mPacketHeader->packetBytesCount());
+    memcpy(
+      packet,
+      mPacketHeader->bytes().first.get(),
+      PacketHeader::kHeaderSize
+    );
+
+    memcpy(
+        packet + PacketHeader::kHeaderSize,
+        mBytes.get(),
+        mPacketHeader->bodyBytesCount()
+    );
+
+    vector<byte> bytes;
+    for (size_t i = 0; i < mPacketHeader->packetBytesCount(); ++i) {
+        bytes.push_back(packet[i]);
+    }
+    delete packet;
+
+    return bytes;
 }

@@ -6,10 +6,13 @@
 #include "../../../common/exceptions/IndexError.h"
 #include "../../../common/exceptions/MemoryError.h"
 
+#include <boost/asio.hpp>
+
 #include <cstdint>
 #include <map>
 
 using namespace std;
+using namespace boost::asio::ip;
 
 class ChannelsManager {
 
@@ -18,18 +21,26 @@ public:
 
     ~ChannelsManager();
 
-    Channel::Shared channel(
-        uint16_t number) const;
+    pair<Channel::Shared, udp::endpoint> channel(
+        uint16_t number,
+        udp::endpoint endpoint) const;
 
-    Channel::Shared create(
-        uint16_t number) const;
+    pair<Channel::Shared, udp::endpoint> create(
+        uint16_t number,
+        udp::endpoint endpoint) const;
 
     void remove(
         uint16_t number) const;
 
+    uint16_t unusedChannelNumber(
+        udp::endpoint endpoint
+    );
+
 private:
     // <number, channel>
     map<uint16_t, Channel::Shared> *mChannels;
+    // <number, endpoint>
+    map<uint16_t, udp::endpoint> *mEndpoints;
 };
 
 

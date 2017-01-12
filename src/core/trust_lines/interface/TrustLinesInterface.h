@@ -29,6 +29,9 @@ public:
     void reject(
             const NodeUUID &contractorUUID);
 
+    const bool isExist(
+        const NodeUUID &contractorUUID);
+
 };
 
 

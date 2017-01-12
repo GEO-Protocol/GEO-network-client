@@ -24,7 +24,7 @@ const TrustLineAmount& OpenTrustLineCommand::amount() const {
 }
 
 const CommandResult *OpenTrustLineCommand::resultOk() const{
-    return new CommandResult(uuid(), 200);
+    return new CommandResult(uuid(), 201);
 }
 
 const CommandResult *OpenTrustLineCommand::trustLineAlreadyPresentResult() const{

@@ -38,15 +38,16 @@ pair<bool, Message::Shared> MessagesParser::messageInvalidOrIncomplete() {
 }
 
 
-IncomingMessagesHandler::IncomingMessagesHandler() {
+IncomingMessagesHandler::IncomingMessagesHandler(
+    ChannelsManager *channelsManager) :
 
-    mChannelsManager = new ChannelsManager();
+    mChannelsManager(channelsManager){
+
     mMessagesParser = new MessagesParser();
 }
 
 IncomingMessagesHandler::~IncomingMessagesHandler() {
 
-    delete mChannelsManager;
     delete mMessagesParser;
 }
 
@@ -70,11 +71,12 @@ void IncomingMessagesHandler::processIncomingMessage(
     }
 
     if(mPacketsBuffer.size() > 1) {
-        tryCollectPacket();
+        tryCollectPacket(clientEndpoint);
     }
 }
 
-void IncomingMessagesHandler::tryCollectPacket() {
+void IncomingMessagesHandler::tryCollectPacket(
+    udp::endpoint &clientEndpoint) {
 
     uint16_t *bytesCount = new (mPacketsBuffer.data()) uint16_t;
     if (mPacketsBuffer.size() >= *bytesCount) {
@@ -96,7 +98,10 @@ void IncomingMessagesHandler::tryCollectPacket() {
                                   "Can not allocate memory for packet header instance.");
         }
 
-        auto channel = mChannelsManager->channel(packetHeader->channelNumber());
+        auto channel = mChannelsManager->channel(
+            packetHeader->channelNumber(),
+            clientEndpoint);
+
         Packet *packet = nullptr;
         try {
             packet = new Packet(
@@ -108,7 +113,7 @@ void IncomingMessagesHandler::tryCollectPacket() {
             throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
                                   "Can not allocate memory for packet instance.");
         }
-        channel->addPacket(
+        channel.first->addPacket(
             packetHeader->packetNumber(),
             Packet::Shared(packet)
         );
@@ -116,9 +121,9 @@ void IncomingMessagesHandler::tryCollectPacket() {
         cutPacketFromBuffer(*bytesCount);
 
 
-        if (channel->expectedPacketsCount() == channel->realPacketsCount()) {
-            if (channel->checkConsistency()) {
-                auto data = channel->data();
+        if (channel.first->expectedPacketsCount() == channel.first->realPacketsCount()) {
+            if (channel.first->checkConsistency()) {
+                auto data = channel.first->data();
                 mMessagesParser->processMessage(
                   data.second.get(),
                   data.first

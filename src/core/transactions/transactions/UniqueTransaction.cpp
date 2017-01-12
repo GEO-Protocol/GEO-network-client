@@ -7,7 +7,7 @@ UniqueTransaction::UniqueTransaction(
     BaseTransaction(type),
     mTransactionsScheduler(scheduler) {}
 
-const map<Shared, TransactionState::SharedConst>* UniqueTransaction::pendingTransactions() {
+const map<BaseTransaction::Shared, TransactionState::SharedConst>* UniqueTransaction::pendingTransactions() {
 
     return transactions(mTransactionsScheduler);
 }

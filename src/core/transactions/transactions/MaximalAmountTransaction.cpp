@@ -2,7 +2,7 @@
 
 MaximalAmountTransaction::MaximalAmountTransaction(
         MaximalTransactionAmountCommand::Shared command) :
-        BaseTransaction(BaseTransaction::TransactionType::MaximalAmountTransaction),
+        BaseTransaction(BaseTransaction::TransactionType::MaximalAmountTransactionType),
         mCommand(command) {}
 
 MaximalTransactionAmountCommand::Shared MaximalAmountTransaction::command() const {

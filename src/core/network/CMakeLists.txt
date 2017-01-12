@@ -9,16 +9,19 @@ set(SOURCE_FILES
         internal/IncomingMessagesHandler.h
         internal/OutgoingMessagesHandler.cpp
         internal/OutgoingMessagesHandler.h
-        internal/OutgoingMessagesQueue.cpp
-        internal/OutgoingMessagesQueue.h
-        messages/Message.cpp
         messages/Message.h
-        messages/ProcessingReportMessage.h
-        messages/TestMessage.h
         UUID2Address.cpp
         UUID2Address.h
         channels/channel/Channel.cpp
-        channels/channel/Channel.h channels/packet/Packet.cpp channels/packet/Packet.h channels/manager/ChannelsManager.cpp channels/manager/ChannelsManager.h channels/packet/PacketHeader.cpp channels/packet/PacketHeader.h)
+        channels/channel/Channel.h
+        channels/packet/Packet.cpp
+        channels/packet/Packet.h
+        channels/manager/ChannelsManager.cpp
+        channels/manager/ChannelsManager.h
+        channels/packet/PacketHeader.cpp
+        channels/packet/PacketHeader.h
+        messages/OpenTrustLineMessage.cpp
+        messages/OpenTrustLineMessage.h)
 
 add_library(network ${SOURCE_FILES})
 target_link_libraries(network

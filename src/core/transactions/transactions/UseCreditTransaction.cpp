@@ -2,7 +2,7 @@
 
 UseCreditTransaction::UseCreditTransaction(
         UseCreditCommand::Shared command) :
-        BaseTransaction(BaseTransaction::TransactionType::UseCreditTransaction),
+        BaseTransaction(BaseTransaction::TransactionType::UseCreditTransactionType),
         mCommand(command) {}
 
 UseCreditCommand::Shared UseCreditTransaction::command() const {

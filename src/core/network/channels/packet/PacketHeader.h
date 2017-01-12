@@ -1,8 +1,12 @@
 #ifndef GEO_NETWORK_CLIENT_PACKETHEADER_H
 #define GEO_NETWORK_CLIENT_PACKETHEADER_H
 
+#include "../../../common/Types.h"
+
+#include <malloc.h>
 #include <memory>
 #include <cstdint>
+#include <cstring>
 
 using namespace std;
 
@@ -31,6 +35,8 @@ public:
     const uint16_t packetBytesCount() const;
 
     const uint16_t bodyBytesCount() const;
+
+    pair<ConstBytesShared, size_t> bytes() const;
 
 public:
     static const constexpr size_t kHeaderRecordSize = 2;

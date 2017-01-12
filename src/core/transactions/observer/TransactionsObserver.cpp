@@ -11,5 +11,5 @@ TransactionsObserver::~TransactionsObserver() {
 const bool TransactionsObserver::isSameTypeTransactionExist(
     BaseTransaction::Shared transaction) const {
 
-    return mScheduler->isTransactionInScheduler(transaction);
+    //return mScheduler->isTransactionInScheduler(transaction);
 }

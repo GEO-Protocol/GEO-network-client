@@ -89,7 +89,7 @@ const pair<string, uint16_t> UUID2Address::fetchFromGlobalCache(
             json data = jsonResponse["data"];
             string ip = data.value("ip_address", "");
             int port = data.value("port", -1);
-            if (!ip.compare("") && port > -1) {
+            if (port > -1) {
                 pair<string, uint16_t> remoteNodeAddressPair = make_pair(ip, (uint16_t) port);
                 mCache.insert(
                     make_pair(

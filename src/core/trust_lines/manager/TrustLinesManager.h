@@ -55,6 +55,9 @@ public:
     TrustLine::Shared trustLineByContractorUUID(
         const NodeUUID &contractorUUID);
 
+    const bool isTrustLineExist(
+        const NodeUUID &contractorUUID) const;
+
 protected:
     // Contractor UUID -> trust line to the contractor.
     map<NodeUUID, TrustLine::Shared> mTrustLines;
@@ -69,9 +72,6 @@ protected:
 
     void removeTrustLine(
         const NodeUUID &contractorUUID);
-
-    const bool isTrustLineExist(
-            const NodeUUID &contractorUUID) const;
 
     void loadTrustLines();
 };

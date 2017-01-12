@@ -22,8 +22,9 @@ Communicator::Communicator(
             uuid2AddressHost,
             uuid2AddressPort);
 
+        mChannelsManager = new ChannelsManager();
         mSocket = new udp::socket(mIOService, udp::endpoint(udp::v4(), nodePort));
-        mIncomingMessagesHandler = new IncomingMessagesHandler();
+        mIncomingMessagesHandler = new IncomingMessagesHandler(mChannelsManager);
         mOutgoingMessagesHandler = new OutgoingMessagesHandler();
 
     } catch (std::bad_alloc &e) {
@@ -37,6 +38,7 @@ Communicator::~Communicator() {
 
     delete mUUID2AddressService;
 
+    delete mChannelsManager;
     delete mSocket;
     delete mOutgoingMessagesHandler;
     delete mIncomingMessagesHandler;
@@ -57,6 +59,33 @@ void Communicator::beginAcceptMessages() {
     }
 
     asyncReceiveData();
+}
+
+void Communicator::sendMessage(
+    Message::Shared message,
+    const NodeUUID &contractorUUID) {
+
+    auto address = mUUID2AddressService->getNodeAddress(contractorUUID);
+    ip::udp::endpoint endpoint(
+        ip::address::from_string(address.first),
+        address.second
+    );
+
+    uint16_t channelNumber = mChannelsManager->unusedChannelNumber(endpoint);
+    auto *packets = mOutgoingMessagesHandler->processOutgoingMessage(
+        message,
+        channelNumber
+    );
+
+    for (auto const &iter : *packets) {
+        sendData(
+            iter->packetBytes(),
+            address
+        );
+    }
+
+    packets->clear();
+    delete packets;
 }
 
 void Communicator::asyncReceiveData() {
@@ -95,8 +124,7 @@ void Communicator::handleReceivedInfo(
 }
 
 void Communicator::sendData(
-    as::mutable_buffer buffer,
-    size_t bufferSize,
+    vector<byte> buffer,
     pair<string, uint16_t> address) {
 
     ip::udp::endpoint destination(
@@ -104,20 +132,31 @@ void Communicator::sendData(
         address.second);
 
     mSocket->async_send_to(
-            as::buffer(
-                buffer,
-                bufferSize
-            ),
-            destination,
-            boost::bind(
-                    &Communicator::handleSentInfo,
-                    this,
-                    boost::asio::placeholders::error,
-                    boost::asio::placeholders::bytes_transferred
-            )
+        as::buffer(
+            buffer,
+            buffer.size()
+        ),
+        destination,
+        boost::bind(
+            &Communicator::handleSend,
+            this,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred
+        )
     );
 }
 
-void Communicator::handleSentInfo(const boost::system::error_code &error, size_t bytesTransferred) {
+void Communicator::handleSend(
+    const boost::system::error_code &error,
+    size_t bytesTransferred) {
 
+    if (error) {
+        mLog->logError(
+            "Communicator::handleSend:",
+            error.message()
+        );
+    } else {
+        mLog->logInfo("Communicator::handleSend:",
+                      "Packet send " + std::to_string(bytesTransferred));
+    }
 }

@@ -2,7 +2,7 @@
 
 TotalBalanceTransaction::TotalBalanceTransaction(
         TotalBalanceCommand::Shared command) :
-        BaseTransaction(BaseTransaction::TransactionType::TotalBalanceTransaction),
+        BaseTransaction(BaseTransaction::TransactionType::TotalBalanceTransactionType),
         mCommand(command) {}
 
 TotalBalanceCommand::Shared TotalBalanceTransaction::command() const {

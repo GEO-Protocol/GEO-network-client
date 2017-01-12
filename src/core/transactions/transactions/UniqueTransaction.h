@@ -12,7 +12,7 @@ protected:
         TransactionType type,
         TransactionsScheduler *scheduler);
 
-    const map<Shared, TransactionState::SharedConst>* pendingTransactions();
+    const map<BaseTransaction::Shared, TransactionState::SharedConst>* pendingTransactions();
 
 private:
     TransactionsScheduler *mTransactionsScheduler;

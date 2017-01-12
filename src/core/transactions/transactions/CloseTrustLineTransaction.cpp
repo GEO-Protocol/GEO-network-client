@@ -5,7 +5,7 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
     TransactionsScheduler *scheduler,
     TrustLinesInterface *interface) :
 
-    UniqueTransaction(BaseTransaction::TransactionType::CloseTrustLineTransaction, scheduler),
+    UniqueTransaction(BaseTransaction::TransactionType::CloseTrustLineTransactionType, scheduler),
     mCommand(command),
     mTrustLinesInterface(interface) {}
 

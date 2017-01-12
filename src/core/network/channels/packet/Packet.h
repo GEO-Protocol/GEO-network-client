@@ -29,6 +29,8 @@ public:
 
     ConstBytesShared body() const;
 
+    vector<byte> packetBytes() const;
+
 public:
     static const constexpr size_t kChannelNumberOffset = PacketHeader::kHeaderRecordSize;
     static const constexpr size_t kPackageNumberOffset = PacketHeader::kHeaderRecordSize * 2;

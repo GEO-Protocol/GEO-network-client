@@ -2,7 +2,7 @@
 
 ContractorsListTransaction::ContractorsListTransaction(
         ContractorsListCommand::Shared command) :
-        BaseTransaction(BaseTransaction::TransactionType::ContractorsListTransaction),
+        BaseTransaction(BaseTransaction::TransactionType::ContractorsListTransactionType),
         mCommand(command) {}
 
 ContractorsListCommand::Shared ContractorsListTransaction::command() const {

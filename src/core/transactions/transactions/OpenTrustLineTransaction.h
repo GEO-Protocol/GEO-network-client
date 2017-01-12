@@ -8,6 +8,10 @@
 #include "UpdateTrustLineTransaction.h"
 #include "CloseTrustLineTransaction.h"
 
+#include "../../network/Communicator.h"
+#include "../../network/messages/Message.h"
+#include "../../network/messages/OpenTrustLineMessage.h"
+
 #include "../scheduler/TransactionsScheduler.h"
 
 #include "../../trust_lines/interface/TrustLinesInterface.h"
@@ -20,6 +24,7 @@ public:
 public:
     OpenTrustLineTransaction(
         OpenTrustLineCommand::Shared command,
+        Communicator *communicator,
         TransactionsScheduler *scheduler,
         TrustLinesInterface *interface);
 
@@ -35,13 +40,13 @@ public:
 private:
     pair<CommandResult::SharedConst, TransactionState::SharedConst> resultOk();
 
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> conflictErrorResult();
-
     pair<CommandResult::SharedConst, TransactionState::SharedConst> trustLinePresentResult();
+
+    pair<CommandResult::SharedConst, TransactionState::SharedConst> conflictErrorResult();
 
 private:
     OpenTrustLineCommand::Shared mCommand;
-
+    Communicator *mCommunicator;
     TrustLinesInterface *mTrustLinesInterface;
 };
 

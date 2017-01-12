@@ -2,11 +2,13 @@
 
 TransactionsManager::TransactionsManager(
     as::io_service &IOService,
+    Communicator *communicator,
     TrustLinesManager *trustLinesManager,
     ResultsInterface *resultsInterface,
     Logger *logger) :
 
     mIOService(IOService),
+    mCommunicator(communicator),
     mTrustLinesManager(trustLinesManager),
     mResultsInterface(resultsInterface),
     mLog(logger) {
@@ -89,6 +91,7 @@ void TransactionsManager::openTrustLine(
     try {
         BaseTransaction *baseTransaction = new OpenTrustLineTransaction(
             openTrustLineCommand,
+            mCommunicator,
             mTransactionsScheduler,
             mTrustLinesInterface);
 
@@ -106,7 +109,11 @@ void TransactionsManager::closeTrustLine(
     CloseTrustLineCommand::Shared closeTrustLineCommand = static_pointer_cast<CloseTrustLineCommand>(command);
 
     try {
-        BaseTransaction *baseTransaction = new CloseTrustLineTransaction(closeTrustLineCommand);
+        BaseTransaction *baseTransaction = new CloseTrustLineTransaction(
+            closeTrustLineCommand,
+            mTransactionsScheduler,
+            mTrustLinesInterface);
+
         mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
 
     } catch (std::bad_alloc &e) {
@@ -121,7 +128,11 @@ void TransactionsManager::updateTrustLine(
     UpdateTrustLineCommand::Shared updateTrustLineCommand = static_pointer_cast<UpdateTrustLineCommand>(command);
 
     try {
-        BaseTransaction *baseTransaction = new UpdateTrustLineTransaction(updateTrustLineCommand);
+        BaseTransaction *baseTransaction = new UpdateTrustLineTransaction(
+            updateTrustLineCommand,
+            mTransactionsScheduler,
+            mTrustLinesInterface);
+
         mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
 
     } catch (std::bad_alloc &e) {

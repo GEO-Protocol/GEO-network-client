@@ -46,7 +46,9 @@ private:
 class IncomingMessagesHandler {
 
 public:
-    IncomingMessagesHandler();
+    IncomingMessagesHandler(
+        ChannelsManager *channelsManager
+    );
 
     ~IncomingMessagesHandler();
 
@@ -56,7 +58,8 @@ public:
         const size_t receivedBytesCount);
 
 private:
-    void tryCollectPacket();
+    void tryCollectPacket(
+        udp::endpoint &clientEndpoint);
 
     void cutPacketFromBuffer(
         size_t bytesCount);

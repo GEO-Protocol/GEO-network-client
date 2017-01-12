@@ -20,16 +20,16 @@ public:
 
 public:
     enum TransactionType {
-        OpenTrustLineTransaction,
-        AcceptTrustLineTransaction,
-        UpdateTrustLineTransaction,
-        SetTrustLineTransaction,
-        CloseTrustLineTransaction,
-        RejectTrustLineTransaction,
-        MaximalAmountTransaction,
-        UseCreditTransaction,
-        TotalBalanceTransaction,
-        ContractorsListTransaction
+        OpenTrustLineTransactionType,
+        AcceptTrustLineTransactionType,
+        UpdateTrustLineTransactionType,
+        SetTrustLineTransactionType,
+        CloseTrustLineTransactionType,
+        RejectTrustLineTransactionType,
+        MaximalAmountTransactionType,
+        UseCreditTransactionType,
+        TotalBalanceTransactionType,
+        ContractorsListTransactionType
     };
     typedef uint8_t SerializedTransactionType;
 

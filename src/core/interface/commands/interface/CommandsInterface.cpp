@@ -122,13 +122,13 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
             mBuffer.substr(nextTokenOffset, nextCommandBegin-nextTokenOffset+1));
         cutBufferUpToNextCommand();
 
-#ifdef COMMANDS_INTERFACE_DEBUG
+/*#ifdef COMMANDS_INTERFACE_DEBUG
         auto info = mLog->info("CommandsParser::tryDeserializeCommand");
         info << "Command received: "
              << commandUUID.stringUUID() << " "
              << commandIdentifier << " "
              << mBuffer.substr(nextTokenOffset, nextCommandBegin-nextTokenOffset+1);
-#endif
+#endif*/
         return command;
 
     } catch (std::exception &e) {

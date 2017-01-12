@@ -5,7 +5,7 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     TransactionsScheduler *scheduler,
     TrustLinesInterface *interface) :
 
-    UniqueTransaction(BaseTransaction::TransactionType::UpdateTrustLineTransaction, scheduler),
+    UniqueTransaction(BaseTransaction::TransactionType::UpdateTrustLineTransactionType, scheduler),
     mCommand(command),
     mTrustLinesInterface(interface) {}
 

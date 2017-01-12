@@ -40,3 +40,41 @@ const uint16_t PacketHeader::bodyBytesCount() const {
 
     return mBodyBytesCount;
 }
+
+pair<ConstBytesShared, size_t> PacketHeader::bytes() const {
+
+    byte * headerBytes = (byte *) malloc (kHeaderSize);
+    memset(
+      headerBytes,
+      0,
+      kHeaderSize
+    );
+
+    memcpy(
+        headerBytes,
+        &mChannel,
+        kHeaderRecordSize
+    );
+
+    memcpy(
+        headerBytes + kHeaderRecordSize,
+        &mPacketNumber,
+        kHeaderRecordSize
+    );
+
+    memcpy(
+        headerBytes + kHeaderRecordSize * 2,
+        &mTotalPacketsCount,
+        kHeaderRecordSize
+    );
+
+    memcpy(
+        headerBytes + kHeaderRecordSize * 3,
+        &mPacketBytesCount,
+        kHeaderRecordSize
+    );
+
+    return make_pair(
+        ConstBytesShared(headerBytes, free),
+        8);
+}

@@ -143,7 +143,7 @@ int Core::initTrustLinesManager() {
 
 int Core::initTransactionsManager() {
     try {
-        mTransactionsManager = new TransactionsManager(mIOService, mTrustLinesManager, mResultsInterface, &mLog);
+        mTransactionsManager = new TransactionsManager(mIOService, mCommunicator, mTrustLinesManager, mResultsInterface, &mLog);
         mLog.logSuccess("Core", "Transactions handler is successfully initialised");
         return 0;
 

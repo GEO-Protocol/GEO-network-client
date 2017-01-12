@@ -40,3 +40,10 @@ void TrustLinesInterface::reject(
     mManager->reject(
             contractorUUID);
 }
+
+const bool TrustLinesInterface::isExist(
+    const NodeUUID &contractorUUID) {
+
+    return mManager->isTrustLineExist(
+        contractorUUID);
+}
