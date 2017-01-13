@@ -3,12 +3,13 @@
 
 #include "../../common/Types.h"
 
-#include "../messages/Message.h"
-
 #include "../channels/packet/PacketHeader.h"
 #include "../channels/packet/Packet.h"
 #include "../channels/channel/Channel.h"
 #include "../channels/manager/ChannelsManager.h"
+
+#include "../messages/Message.h"
+#include "../messages/receiver/AcceptTrustLineMessage.h"
 
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"
@@ -66,6 +67,7 @@ private:
 
 private:
     ChannelsManager *mChannelsManager;
+
     MessagesParser *mMessagesParser;
 
     vector<byte> mPacketsBuffer;

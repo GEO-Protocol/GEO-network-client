@@ -17,10 +17,13 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
     uint16_t *messageIdentifier = new (const_cast<byte *> (messagePart)) uint16_t;
     switch(*messageIdentifier) {
 
-        case Message::MessageTypeID::ProcessingReportMessage: {
-
+        case Message::MessageTypeID::OpenTrustLineMessageType: {
+            Message *message = new AcceptTrustLineMessage(const_cast<byte *>(messagePart + sizeof(uint16_t)));
+            delete messagePart;
             return make_pair(
-                true, Message::Shared(nullptr));
+                true,
+                Message::Shared(message)
+            );
         }
 
         default: {

@@ -1,12 +1,12 @@
 #ifndef GEO_NETWORK_CLIENT_UUID2IP_H
 #define GEO_NETWORK_CLIENT_UUID2IP_H
 
-#include "../common/NodeUUID.h"
+#include "../../../common/NodeUUID.h"
 
-#include "../common/exceptions/ValueError.h"
-#include "../common/exceptions/IOError.h"
-#include "../common/exceptions/ConflictError.h"
-#include "../logger/Logger.h"
+#include "../../../common/exceptions/ValueError.h"
+#include "../../../common/exceptions/IOError.h"
+#include "../../../common/exceptions/ConflictError.h"
+#include "../../../logger/Logger.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -15,7 +15,7 @@
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "../../libs/json/json.h"
+#include "../../../../libs/json/json.h"
 
 #include <string>
 #include <iostream>

@@ -8,9 +8,9 @@
 #include "UpdateTrustLineTransaction.h"
 #include "CloseTrustLineTransaction.h"
 
-#include "../../network/Communicator.h"
+#include "../../network/communicator/Communicator.h"
 #include "../../network/messages/Message.h"
-#include "../../network/messages/OpenTrustLineMessage.h"
+#include "../../network/messages/sender/OpenTrustLineMessage.h"
 
 #include "../scheduler/TransactionsScheduler.h"
 

@@ -3,15 +3,15 @@ cmake_minimum_required(VERSION 3.6)
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 
 set(SOURCE_FILES
-        Communicator.cpp
-        Communicator.h
+        communicator/Communicator.cpp
+        communicator/Communicator.h
         internal/IncomingMessagesHandler.cpp
         internal/IncomingMessagesHandler.h
         internal/OutgoingMessagesHandler.cpp
         internal/OutgoingMessagesHandler.h
         messages/Message.h
-        UUID2Address.cpp
-        UUID2Address.h
+        messages/service/UUID2Address.cpp
+        messages/service/UUID2Address.h
         channels/channel/Channel.cpp
         channels/channel/Channel.h
         channels/packet/Packet.cpp
@@ -20,8 +20,10 @@ set(SOURCE_FILES
         channels/manager/ChannelsManager.h
         channels/packet/PacketHeader.cpp
         channels/packet/PacketHeader.h
-        messages/OpenTrustLineMessage.cpp
-        messages/OpenTrustLineMessage.h)
+        messages/sender/OpenTrustLineMessage.cpp
+        messages/sender/OpenTrustLineMessage.h
+        messages/receiver/AcceptTrustLineMessage.cpp
+        messages/receiver/AcceptTrustLineMessage.h)
 
 add_library(network ${SOURCE_FILES})
 target_link_libraries(network

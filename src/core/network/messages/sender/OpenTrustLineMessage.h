@@ -1,10 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_OPENTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_OPENTRUSTLINEMESSAGE_H
 
-#include "Message.h"
+#include "../Message.h"
 
-#include "../../transactions/TransactionUUID.h"
-#include "../../trust_lines/TrustLine.h"
+#include "../../../transactions/TransactionUUID.h"
+#include "../../../trust_lines/TrustLine.h"
 
 class OpenTrustLineMessage : public Message {
 
@@ -13,14 +13,16 @@ public:
         TransactionUUID &transactionUUID,
         TrustLineAmount &amount);
 
-    pair<ConstBytesShared, size_t> serialize() const;
+    pair<ConstBytesShared, size_t> serialize();
+
+    void deserialize(
+        byte* buffer);
 
     const MessageTypeID typeID() const;
 
 private:
     const size_t kTrustLineAmountSize = 32;
 
-    TransactionUUID mTransactionUUID;
     TrustLineAmount mTrustLineAmount;
 };
 

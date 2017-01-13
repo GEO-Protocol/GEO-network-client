@@ -12,7 +12,7 @@
 #include "../../interface/commands/commands/TotalBalanceCommand.h"
 #include "../../interface/commands/commands/ContractorsListCommand.h"
 
-#include "../../network/Communicator.h"
+#include "../../network/communicator/Communicator.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../trust_lines/interface/TrustLinesInterface.h"
 #include "../scheduler/TransactionsScheduler.h"

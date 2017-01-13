@@ -2,6 +2,8 @@
 #define GEO_NETWORK_CLIENT_MESSAGE_H
 
 #include "../../common/Types.h"
+#include "../../common/NodeUUID.h"
+#include "../../transactions/TransactionUUID.h"
 
 #include "../channels/packet/PacketHeader.h"
 #include "../channels/packet/Packet.h"
@@ -20,12 +22,11 @@
 #include <utility>
 
 
-class SerialisationError: public Exception {
-    using Exception::Exception;
-};
-
-
 using namespace std;
+
+class NotImplementedError : public Exception {
+    using Exception :: Exception;
+};
 
 class Message {
 
@@ -34,14 +35,27 @@ public:
 
 public:
     enum MessageTypeID {
-        ProcessingReportMessage = 1,
-        OpenTrustLineMessageType = 2
+        OpenTrustLineMessageType = 1,
+        AcceptTrustLineMessageType = 2
     };
 
 public:
-    virtual pair<ConstBytesShared, size_t> serialize() const = 0;
+    Message() {};
+
+    Message(TransactionUUID transactionUUID) : mTransactionUUID(transactionUUID) {};
+
+    Message(NodeUUID sender) : mSender(sender) {};
+
+    virtual pair<ConstBytesShared, size_t> serialize() = 0;
+
+    virtual void deserialize(
+        byte* buffer) = 0;
 
     virtual const MessageTypeID typeID() const = 0;
+
+protected:
+    NodeUUID mSender;
+    TransactionUUID mTransactionUUID;
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H

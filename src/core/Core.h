@@ -1,17 +1,21 @@
 #ifndef GEO_NETWORK_CLIENT_CORE_H
 #define GEO_NETWORK_CLIENT_CORE_H
 
+#include "common/NodeUUID.h"
+
 #include "settings/Settings.h"
-#include "network/Communicator.h"
+#include "network/communicator/Communicator.h"
 #include "interface/commands/interface/CommandsInterface.h"
+#include "interface/results/interface/ResultsInterface.h"
+#include "trust_lines/manager/TrustLinesManager.h"
+#include "transactions/manager/TransactionsManager.h"
+
 #include "logger/Logger.h"
-#include "../tests/transactions/TransactionsManagerTest.h"
 
 #include <boost/filesystem.hpp>
 
 using namespace std;
 namespace as = boost::asio;
-
 
 class Core {
 public:
@@ -31,6 +35,7 @@ protected:
     ResultsInterface *mResultsInterface;
     TrustLinesManager *mTrustLinesManager;
     TransactionsManager *mTransactionsManager;
+
 
 private:
     int initCoreComponents();

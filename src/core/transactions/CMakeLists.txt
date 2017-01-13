@@ -28,7 +28,8 @@ set(SOURCE_FILES
         observer/TransactionsObserver.cpp
         observer/TransactionsObserver.h
         transactions/UniqueTransaction.cpp
-        transactions/UniqueTransaction.h)
+        transactions/UniqueTransaction.h
+        )
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions

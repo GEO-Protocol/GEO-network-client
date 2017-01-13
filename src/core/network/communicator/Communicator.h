@@ -1,15 +1,14 @@
 #ifndef GEO_NETWORK_CLIENT_COMMUNICATOR_H
 #define GEO_NETWORK_CLIENT_COMMUNICATOR_H
 
-#include "../common/Types.h"
+#include "../../common/Types.h"
 
-#include "UUID2Address.h"
-#include "channels/manager/ChannelsManager.h"
-#include "internal/OutgoingMessagesHandler.h"
-#include "internal/IncomingMessagesHandler.h"
+#include "../messages/service/UUID2Address.h"
+#include "../channels/manager/ChannelsManager.h"
+#include "../internal/OutgoingMessagesHandler.h"
+#include "../internal/IncomingMessagesHandler.h"
 
-
-#include "../common/exceptions/RuntimeError.h"
+#include "../../common/exceptions/RuntimeError.h"
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -25,7 +24,6 @@ namespace as = boost::asio;
 namespace ip = boost::asio::ip;
 
 typedef boost::system::error_code err;
-
 
 class Communicator {
 public:
@@ -62,7 +60,7 @@ private:
         size_t bytesTransferred);
 
 private:
-    static constexpr const size_t kMaxIncomingBufferSize = 1024;
+    static constexpr const size_t kMaxIncomingBufferSize = 500*2;
 
     as::io_service &mIOService;
     const NodeUUID &mNodeUUID;

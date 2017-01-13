@@ -334,14 +334,13 @@ void CommandsInterface::handleReceivedInfo(
 #endif
             auto parsingResult = mCommandsParser->processReceivedCommands();
             if (parsingResult.first){
-                mTransactionsManager->processCommand(parsingResult.second);
-
 #ifdef COMMANDS_INTERFACE_DEBUG
                 auto info = mLog->info("CommandsInterface::handleReceivedInfo");
                 info << "Command parsed succesfully. "
                      << "Total commands count: "
                      << (++succesfullyParsedCommandsCount);
 #endif
+                mTransactionsManager->processCommand(parsingResult.second);
             } else {
                 break;
             }

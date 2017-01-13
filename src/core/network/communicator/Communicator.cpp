@@ -155,8 +155,6 @@ void Communicator::handleSend(
             "Communicator::handleSend:",
             error.message()
         );
-    } else {
-        mLog->logInfo("Communicator::handleSend:",
-                      "Packet send " + std::to_string(bytesTransferred));
     }
 }
+

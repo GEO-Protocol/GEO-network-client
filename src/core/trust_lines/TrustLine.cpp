@@ -150,7 +150,6 @@ void TrustLine::balanceToBytes(
 void TrustLine::parseTrustAmount(
     const byte *buffer,
     TrustLineAmount &variable) {
-
     vector<byte> *bytesVector = new vector<byte>;
     bytesVector->reserve(kTrustAmountPartSize);
     copy(buffer, buffer + kTrustAmountPartSize, bytesVector->begin());

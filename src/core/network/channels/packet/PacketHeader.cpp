@@ -52,25 +52,25 @@ pair<ConstBytesShared, size_t> PacketHeader::bytes() const {
 
     memcpy(
         headerBytes,
-        &mChannel,
+        &mPacketBytesCount,
         kHeaderRecordSize
     );
 
     memcpy(
         headerBytes + kHeaderRecordSize,
-        &mPacketNumber,
+        &mChannel,
         kHeaderRecordSize
     );
 
     memcpy(
         headerBytes + kHeaderRecordSize * 2,
-        &mTotalPacketsCount,
+        &mPacketNumber,
         kHeaderRecordSize
     );
 
     memcpy(
         headerBytes + kHeaderRecordSize * 3,
-        &mPacketBytesCount,
+        &mTotalPacketsCount,
         kHeaderRecordSize
     );
 

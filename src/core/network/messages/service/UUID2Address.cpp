@@ -1,5 +1,5 @@
 #include "UUID2Address.h"
-#include "../common/exceptions/NotFoundError.h"
+#include "../../../common/exceptions/NotFoundError.h"
 
 UUID2Address::UUID2Address(
     as::io_service &IOService,

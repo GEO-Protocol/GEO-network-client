@@ -4,10 +4,10 @@ OpenTrustLineMessage::OpenTrustLineMessage(
     TransactionUUID &transactionUUID,
     TrustLineAmount &amount) :
 
-    mTransactionUUID(transactionUUID),
+    Message(transactionUUID),
     mTrustLineAmount(amount) {}
 
-pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() const {
+pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
 
     size_t dataSize = sizeof(uint16_t) +
         TransactionUUID::kUUIDSize +
@@ -32,26 +32,36 @@ pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() const {
         TransactionUUID::kUUIDSize
     );
 
-    vector<byte> *buffer = new vector<byte>;
-    export_bits(mTrustLineAmount, back_inserter(*buffer), 8);
-    for (size_t i = 0; i < kTrustLineAmountSize - buffer->size(); ++i) {
-        buffer->push_back(0);
+    vector<byte> buffer;
+    buffer.reserve(kTrustLineAmountSize);
+    export_bits(mTrustLineAmount, back_inserter(buffer), 8);
+    size_t unusedBufferPlace = kTrustLineAmountSize - buffer.size();
+    for (size_t i = 0; i < unusedBufferPlace; ++i) {
+        buffer.push_back(0);
     }
     memcpy(
         data + sizeof(uint16_t) + TransactionUUID::kUUIDSize,
-        buffer->data(),
-        kTrustLineAmountSize
+        buffer.data(),
+        buffer.size()
     );
-    delete buffer;
 
     return make_pair(
         ConstBytesShared(data, free),
-        dataSize);
+        dataSize
+    );
+}
+
+void OpenTrustLineMessage::deserialize(
+    byte* buffer) {
+
+    throw NotImplementedError("OpenTrustLineMessage::deserialize: "
+                                  "Method not implemented.");
 }
 
 const Message::MessageTypeID OpenTrustLineMessage::typeID() const {
     return Message::MessageTypeID::OpenTrustLineMessageType;
 }
+
 
 
 
