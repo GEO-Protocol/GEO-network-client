@@ -5,17 +5,20 @@
 
 #include "../../interface/commands/commands/OpenTrustLineCommand.h"
 
+#include "AcceptTrustLineTransaction.h"
 #include "UpdateTrustLineTransaction.h"
 #include "CloseTrustLineTransaction.h"
 
 #include "../../network/communicator/Communicator.h"
+#include "../../settings/Settings.h"
 #include "../../network/messages/Message.h"
-#include "../../network/messages/sender/OpenTrustLineMessage.h"
+#include "../../network/messages/outgoing/OpenTrustLineMessage.h"
 
 #include "../scheduler/TransactionsScheduler.h"
 
 #include "../../trust_lines/interface/TrustLinesInterface.h"
 
+class Communicator;
 class OpenTrustLineTransaction : public UniqueTransaction {
 
 public:
@@ -35,16 +38,17 @@ public:
 
     pair<byte *, size_t> serializeContext();
 
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> run();
+    TransactionResult::Shared run();
 
 private:
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> resultOk();
+    TransactionResult::Shared resultOk();
 
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> trustLinePresentResult();
+    TransactionResult::Shared trustLinePresentResult();
 
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> conflictErrorResult();
+    TransactionResult::Shared conflictErrorResult();
 
 private:
+    NodeUUID mSender;
     OpenTrustLineCommand::Shared mCommand;
     Communicator *mCommunicator;
     TrustLinesInterface *mTrustLinesInterface;

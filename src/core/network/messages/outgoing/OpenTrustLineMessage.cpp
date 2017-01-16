@@ -1,10 +1,11 @@
 #include "OpenTrustLineMessage.h"
 
 OpenTrustLineMessage::OpenTrustLineMessage(
-    TransactionUUID &transactionUUID,
-    TrustLineAmount &amount) :
+    NodeUUID sender,
+    TransactionUUID transactionUUID,
+    TrustLineAmount amount) :
 
-    Message(transactionUUID),
+    Message(sender, transactionUUID),
     mTrustLineAmount(amount) {}
 
 pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {

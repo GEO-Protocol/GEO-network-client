@@ -9,7 +9,9 @@
 #include "../channels/manager/ChannelsManager.h"
 
 #include "../messages/Message.h"
-#include "../messages/receiver/AcceptTrustLineMessage.h"
+#include "../messages/incoming/AcceptTrustLineMessage.h"
+
+#include "../../transactions/manager/TransactionsManager.h"
 
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"
@@ -44,11 +46,13 @@ private:
 };
 
 
+class TransactionsManager;
 class IncomingMessagesHandler {
 
 public:
     IncomingMessagesHandler(
-        ChannelsManager *channelsManager
+        ChannelsManager *channelsManager,
+        TransactionsManager *transactionsManager
     );
 
     ~IncomingMessagesHandler();
@@ -67,6 +71,7 @@ private:
 
 private:
     ChannelsManager *mChannelsManager;
+    TransactionsManager *mTransactionsManager;
 
     MessagesParser *mMessagesParser;
 

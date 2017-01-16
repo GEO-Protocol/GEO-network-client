@@ -10,8 +10,8 @@ set(SOURCE_FILES
         internal/OutgoingMessagesHandler.cpp
         internal/OutgoingMessagesHandler.h
         messages/Message.h
-        messages/service/UUID2Address.cpp
-        messages/service/UUID2Address.h
+        service/UUID2Address.cpp
+        service/UUID2Address.h
         channels/channel/Channel.cpp
         channels/channel/Channel.h
         channels/packet/Packet.cpp
@@ -20,10 +20,12 @@ set(SOURCE_FILES
         channels/manager/ChannelsManager.h
         channels/packet/PacketHeader.cpp
         channels/packet/PacketHeader.h
-        messages/sender/OpenTrustLineMessage.cpp
-        messages/sender/OpenTrustLineMessage.h
-        messages/receiver/AcceptTrustLineMessage.cpp
-        messages/receiver/AcceptTrustLineMessage.h)
+        messages/outgoing/OpenTrustLineMessage.cpp
+        messages/outgoing/OpenTrustLineMessage.h
+        messages/incoming/AcceptTrustLineMessage.cpp
+        messages/incoming/AcceptTrustLineMessage.h
+        messages/result/MessageResult.cpp
+        messages/result/MessageResult.h)
 
 add_library(network ${SOURCE_FILES})
 target_link_libraries(network

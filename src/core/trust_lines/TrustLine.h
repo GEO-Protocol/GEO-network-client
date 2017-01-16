@@ -61,7 +61,9 @@ public:
 
     const TrustLineBalance &balance() const;
 
-    vector<byte> *serializeTrustLine();
+    const TrustLineDirection direction() const;
+
+    vector<byte> serializeTrustLine();
 
     void deserializeTrustLine(
         const byte *buffer);
@@ -69,11 +71,11 @@ public:
 private:
     void trustAmountToBytes(
         const TrustLineAmount &amount,
-        vector<byte> *buffer);
+        vector<byte> &buffer);
 
     void balanceToBytes(
         const TrustLineBalance &balance,
-        vector<byte> *buffer);
+        vector<byte> &buffer);
 
     void parseTrustAmount(
         const byte *buffer,

@@ -8,6 +8,9 @@
 #include <boost/date_time/posix_time/conversion.hpp>
 
 #include <string>
+#include <memory>
+
+using namespace std;
 
 typedef boost::posix_time::ptime Timestamp;
 typedef boost::posix_time::time_duration Duration;
@@ -15,13 +18,8 @@ typedef uint64_t MicrosecondsTimestamp;
 
 class CommandResult {
 public:
+    typedef shared_ptr<CommandResult> Shared;
     typedef shared_ptr<const CommandResult> SharedConst;
-
-private:
-    CommandUUID mCommandUUID;
-    uint16_t mResultCode;
-    Timestamp mTimestampCompleted;
-    string mResultInformation;
 
 public:
     CommandResult(
@@ -40,6 +38,12 @@ public:
     const Timestamp &timestampCompleted() const;
 
     const string serialize() const;
+
+private:
+    CommandUUID mCommandUUID;
+    uint16_t mResultCode;
+    Timestamp mTimestampCompleted;
+    string mResultInformation;
 
 };
 

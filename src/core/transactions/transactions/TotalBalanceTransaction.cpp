@@ -14,11 +14,11 @@ void TotalBalanceTransaction::setContext(
     BaseTransaction::mContext = message;
 }
 
-pair<CommandResult::SharedConst, TransactionState::SharedConst> TotalBalanceTransaction::run() {
-    return make_pair(CommandResult::SharedConst(mCommand.get()->unexpectedErrorResult()),
-                     TransactionState::SharedConst(new TransactionState(0)));
-}
+pair<byte *, size_t> TotalBalanceTransaction::serializeContext() {}
 
-pair<byte *, size_t> TotalBalanceTransaction::serializeContext() {
+TransactionResult::Shared TotalBalanceTransaction::run() {
 
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setTransactionState(TransactionState::Shared(new TransactionState(10)));
+    return TransactionResult::Shared(transactionResult);
 }

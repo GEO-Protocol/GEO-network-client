@@ -15,8 +15,8 @@ set(SOURCE_FILES
         transactions/MaximalAmountTransaction.h
         transactions/OpenTrustLineTransaction.cpp
         transactions/OpenTrustLineTransaction.h
-        transactions/state/TransactionState.cpp
-        transactions/state/TransactionState.h
+        transactions/result/state/TransactionState.cpp
+        transactions/result/state/TransactionState.h
         transactions/TotalBalanceTransaction.cpp
         transactions/TotalBalanceTransaction.h
         transactions/UpdateTrustLineTransaction.cpp
@@ -25,14 +25,16 @@ set(SOURCE_FILES
         transactions/UseCreditTransaction.h
         TransactionUUID.cpp
         TransactionUUID.h
-        observer/TransactionsObserver.cpp
-        observer/TransactionsObserver.h
         transactions/UniqueTransaction.cpp
         transactions/UniqueTransaction.h
-        )
+        transactions/AcceptTrustLineTransaction.cpp
+        transactions/AcceptTrustLineTransaction.h
+        transactions/result/TransactionResult.cpp
+        transactions/result/TransactionResult.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions
         common
+        settings
         network
         trust_lines)

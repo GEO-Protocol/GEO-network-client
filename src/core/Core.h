@@ -17,10 +17,17 @@
 using namespace std;
 namespace as = boost::asio;
 
+class Communicator;
+class CommandsInterface;
+class TransactionsManager;
 class Core {
+
 public:
     Core();
+
     ~Core();
+
+    TransactionsManager* transactionsManager();
 
     int run();
 

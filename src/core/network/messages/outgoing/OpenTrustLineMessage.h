@@ -1,23 +1,19 @@
-#ifndef GEO_NETWORK_CLIENT_ACCEPTTRUSTLINEMESSAGE_H
-#define GEO_NETWORK_CLIENT_ACCEPTTRUSTLINEMESSAGE_H
-
-#include "../../../common/Types.h"
+#ifndef GEO_NETWORK_CLIENT_OPENTRUSTLINEMESSAGE_H
+#define GEO_NETWORK_CLIENT_OPENTRUSTLINEMESSAGE_H
 
 #include "../Message.h"
 
+#include "../../../common/NodeUUID.h"
 #include "../../../transactions/TransactionUUID.h"
 #include "../../../trust_lines/TrustLine.h"
 
-#include <string>
-#include <vector>
-
-using namespace std;
-
-class AcceptTrustLineMessage : public Message {
+class OpenTrustLineMessage : public Message {
 
 public:
-    AcceptTrustLineMessage(
-        byte* buffer);
+    OpenTrustLineMessage(
+        NodeUUID sender,
+        TransactionUUID transactionUUID,
+        TrustLineAmount amount);
 
     pair<ConstBytesShared, size_t> serialize();
 
@@ -33,4 +29,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_ACCEPTTRUSTLINEMESSAGE_H
+#endif //GEO_NETWORK_CLIENT_OPENTRUSTLINEMESSAGE_H

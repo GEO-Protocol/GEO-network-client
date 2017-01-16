@@ -19,7 +19,7 @@ void ResultsInterface::writeResult(
     const size_t bytesCount) {
 
 #ifdef DEBUG_RESULTS_INTERFACE
-    mLog->logInfo("Results interface: message received", bytes);
+    mLog->logInfo("Results parseInterface: message received", bytes);
 #endif
 
     if (mFIFODescriptor == 0){

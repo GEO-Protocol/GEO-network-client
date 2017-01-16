@@ -1,19 +1,28 @@
 #include "AcceptTrustLineMessage.h"
 
 AcceptTrustLineMessage::AcceptTrustLineMessage(
-    byte* buffer) {
+    byte *buffer) {
 
     deserialize(buffer);
 }
 
+AcceptTrustLineMessage::AcceptTrustLineMessage(
+    NodeUUID sender,
+    TransactionUUID transactionUUID,
+    uint16_t journalCode) :
+
+    Message(sender, transactionUUID) {
+
+    mJournalCode = journalCode;
+}
+
 pair<ConstBytesShared, size_t> AcceptTrustLineMessage::serialize() {
 
-    throw NotImplementedError("AcceptTrustLineMessage::serialize: "
-                                  "Method not implemented.");
+
 }
 
 void AcceptTrustLineMessage::deserialize(
-    byte* buffer) {
+    byte *buffer) {
 
     //Message::deserialize(buffer);
     //------------------------------
@@ -58,3 +67,18 @@ const Message::MessageTypeID AcceptTrustLineMessage::typeID() const {
 
     return Message::MessageTypeID::AcceptTrustLineMessageType;
 }
+
+TrustLineAmount AcceptTrustLineMessage::amount() const {
+
+    return mTrustLineAmount;
+}
+
+const MessageResult *AcceptTrustLineMessage::resultConflict() const {
+
+    return new MessageResult(
+        sender(),
+        409
+    );
+}
+
+

@@ -1,6 +1,8 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 #define GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 
+#include "../../common/Types.h"
+
 #include "../TrustLine.h"
 #include "../../io/trust_lines/TrustLinesStorage.h"
 

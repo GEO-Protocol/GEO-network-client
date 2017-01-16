@@ -42,9 +42,11 @@ pair<bool, Message::Shared> MessagesParser::messageInvalidOrIncomplete() {
 
 
 IncomingMessagesHandler::IncomingMessagesHandler(
-    ChannelsManager *channelsManager) :
+    ChannelsManager *channelsManager,
+    TransactionsManager *transactionsManager) :
 
-    mChannelsManager(channelsManager){
+    mChannelsManager(channelsManager),
+    mTransactionsManager(transactionsManager){
 
     mMessagesParser = new MessagesParser();
 }
@@ -127,10 +129,14 @@ void IncomingMessagesHandler::tryCollectPacket(
         if (channel.first->expectedPacketsCount() == channel.first->realPacketsCount()) {
             if (channel.first->checkConsistency()) {
                 auto data = channel.first->data();
-                mMessagesParser->processMessage(
+                auto message = mMessagesParser->processMessage(
                   data.second.get(),
                   data.first
                 );
+                if (message.first) {
+                    mTransactionsManager->processMessage(message.second);
+                }
+
                 mChannelsManager->remove(packetHeader->channelNumber());
 
             } else {

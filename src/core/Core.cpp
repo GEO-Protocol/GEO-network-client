@@ -8,6 +8,11 @@ Core::~Core() {
     cleanupMemory();
 }
 
+TransactionsManager *Core::transactionsManager() {
+
+    return mTransactionsManager;
+}
+
 int Core::run() {
 
     auto initCode = initCoreComponents();
@@ -52,6 +57,7 @@ int Core::initCoreComponents() {
 
     try {
         mNodeUUID = mSettings->nodeUUID(&conf);
+
     } catch (RuntimeError &) {
         mLog.logFatal("Core", "Can't read uuid of the node from the settings.");
         return -1;
@@ -97,6 +103,7 @@ int Core::initCommunicator(const json &conf) {
 
     try {
         mCommunicator = new Communicator(
+            this,
             mIOService,
             mNodeUUID,
             mSettings->interface(&conf),
@@ -119,7 +126,7 @@ int Core::initResultsInterface() {
 
     try {
         mResultsInterface = new ResultsInterface(&mLog);
-        mLog.logSuccess("Core", "Results interface is successfully initialised");
+        mLog.logSuccess("Core", "Results parseInterface is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {
@@ -157,7 +164,7 @@ int Core::initCommandsInterface() {
 
     try {
         mCommandsInterface = new CommandsInterface(mIOService, mTransactionsManager, &mLog);
-        mLog.logSuccess("Core", "Commands interface is successfully initialised");
+        mLog.logSuccess("Core", "Commands parseInterface is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {

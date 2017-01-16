@@ -65,9 +65,25 @@ const TrustLineBalance &TrustLine::balance() const {
     return mBalance;
 }
 
-vector<byte> *TrustLine::serializeTrustLine() {
-    vector<byte> *buffer = new vector<byte>;
-    buffer->reserve(kRecordSize);
+const TrustLineDirection TrustLine::direction() const {
+
+    if (mOutgoingTrustAmount > TrustLineAmount(0) && mIncomingTrustAmount > TrustLineAmount(0)) {
+        return TrustLineDirection::Both;
+
+    } else if (mOutgoingTrustAmount > TrustLineAmount(0) && mIncomingTrustAmount == TrustLineAmount(0)) {
+        return TrustLineDirection::Outgoing;
+
+    } else if (mOutgoingTrustAmount == TrustLineAmount(0) && mIncomingTrustAmount > TrustLineAmount(0)) {
+        return TrustLineDirection::Incoming;
+
+    } else {
+        return TrustLineDirection::Nowhere;
+    }
+}
+
+vector<byte> TrustLine::serializeTrustLine() {
+    vector<byte> buffer;
+    buffer.reserve(kRecordSize);
 
     try {
         trustAmountToBytes(
@@ -87,8 +103,7 @@ vector<byte> *TrustLine::serializeTrustLine() {
         // todo: (hsc) check if this serializes the sign
 
     } catch (...) {
-        buffer->clear();
-        delete buffer;
+        buffer.clear();
         throw RuntimeError("Can't serialize trust line instance to buffer");
     }
 
@@ -117,94 +132,93 @@ void TrustLine::deserializeTrustLine(
 
 void TrustLine::trustAmountToBytes(
     const TrustLineAmount &amount,
-    vector<byte> *buffer) {
+    vector<byte> &buffer) {
 
-    size_t oldSize = buffer->size();
-    export_bits(amount, back_inserter(*buffer), 8);
+    size_t oldSize = buffer.size();
+    export_bits(amount, back_inserter(buffer), 8);
 
-    size_t newSize = buffer->size();
+    size_t newSize = buffer.size();
     for (size_t i = 0; i < kTrustAmountPartSize - (newSize - oldSize); ++i) {
-        buffer->push_back(0);
+        buffer.push_back(0);
     }
 }
 
 void TrustLine::balanceToBytes(
     const TrustLineBalance &balance,
-    vector<byte> *buffer) {
+    vector<byte> &buffer) {
 
-    size_t oldSize = buffer->size();
-    export_bits(balance, back_inserter(*buffer), 8);
+    size_t oldSize = buffer.size();
+    export_bits(balance, back_inserter(buffer), 8);
 
-    size_t newSize = buffer->size();
+    size_t newSize = buffer.size();
     for (size_t i = 0; i < kBalancePartSize - (newSize - oldSize); ++i) {
-        buffer->push_back(0);
+        buffer.push_back(0);
     }
 
     if (balance.sign() == -1) {
-        buffer->push_back(1);
+        buffer.push_back(1);
     } else {
-        buffer->push_back(0);
+        buffer.push_back(0);
     }
 }
 
 void TrustLine::parseTrustAmount(
     const byte *buffer,
     TrustLineAmount &variable) {
-    vector<byte> *bytesVector = new vector<byte>;
-    bytesVector->reserve(kTrustAmountPartSize);
-    copy(buffer, buffer + kTrustAmountPartSize, bytesVector->begin());
 
-    vector<byte> *notZeroBytesVector = new vector<byte>;
-    notZeroBytesVector->reserve(kTrustAmountPartSize);
-    for (size_t i = 0; i < bytesVector->size(); ++i) {
-        byte item = bytesVector->at(i);
+    vector<byte> bytesVector(
+        buffer,
+        buffer + kTrustAmountPartSize
+    );
+
+    vector<byte> notZeroBytesVector;
+    notZeroBytesVector.reserve(kTrustAmountPartSize);
+    for (auto &item : bytesVector) {
         if (item != 0) {
-            notZeroBytesVector->push_back(item);
+            notZeroBytesVector.push_back(item);
         }
     }
 
-    if (notZeroBytesVector->size() > 0) {
-        import_bits(variable, notZeroBytesVector->begin(), notZeroBytesVector->end());
+    if (notZeroBytesVector.size() > 0) {
+        import_bits(variable, notZeroBytesVector.begin(), notZeroBytesVector.end());
 
     } else {
-        import_bits(variable, bytesVector->begin(), bytesVector->end());
+        import_bits(variable, bytesVector.begin(), bytesVector.end());
     }
-
-    delete bytesVector;
-    delete notZeroBytesVector;
 }
 
 void TrustLine::parseBalance(
     const byte *buffer) {
 
-    vector<byte> *bytesVector = new vector<byte>;
-    bytesVector->reserve(kTrustAmountPartSize);
-    vector<byte> *notZeroBytesVector = new vector<byte>;
-    notZeroBytesVector->reserve(kTrustAmountPartSize);
+    vector<byte> bytesVector(
+        buffer,
+        buffer + kTrustAmountPartSize
+    );
+
+
+    vector<byte> notZeroBytesVector;
+    notZeroBytesVector.reserve(kTrustAmountPartSize);
 
     byte sign = buffer[kBalancePartSize + kSignBytePartSize - 1];
 
-    copy(buffer, buffer + kTrustAmountPartSize, bytesVector->begin());
-    for (size_t i = 0; i < bytesVector->size(); ++i) {
-        byte item = bytesVector->at(i);
+    for (auto &item : bytesVector) {
         if (item != 0) {
-            notZeroBytesVector->push_back(item);
+            notZeroBytesVector.push_back(item);
         }
     }
 
-    if (notZeroBytesVector->size() > 0) {
-        import_bits(mBalance, notZeroBytesVector->begin(), notZeroBytesVector->end());
+    if (notZeroBytesVector.size() > 0) {
+        import_bits(mBalance, notZeroBytesVector.begin(), notZeroBytesVector.end());
 
     } else {
-        import_bits(mBalance, bytesVector->begin(), bytesVector->end());
+        import_bits(mBalance, bytesVector.begin(), bytesVector.end());
     }
 
     if (sign == 1) {
         mBalance = mBalance * -1;
     }
-    delete bytesVector;
-    delete notZeroBytesVector;
 }
+
 
 
 

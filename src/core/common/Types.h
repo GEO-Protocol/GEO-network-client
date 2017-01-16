@@ -13,6 +13,7 @@ enum TrustLineDirection {
     Incoming = 0,
     Outgoing = 1,
     Both     = 2,
+    Nowhere  = 3
 };
 
 typedef uint8_t SerializedTrustLineDirection;

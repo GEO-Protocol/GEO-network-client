@@ -20,11 +20,14 @@ void UpdateTrustLineTransaction::setContext(
 
 pair<byte *, size_t> UpdateTrustLineTransaction::serializeContext() {}
 
-pair<CommandResult::SharedConst, TransactionState::SharedConst> UpdateTrustLineTransaction::run() {}
+TransactionResult::Shared UpdateTrustLineTransaction::run() {
 
-pair<CommandResult::SharedConst, TransactionState::SharedConst> UpdateTrustLineTransaction::conflictErrorResult() {
+    return conflictErrorResult();
+}
 
-    return make_pair(
-        CommandResult::SharedConst(mCommand.get()->resultConflict()),
-        nullptr);
+TransactionResult::Shared UpdateTrustLineTransaction::conflictErrorResult() {
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *>(mCommand->resultConflict())));
+    return TransactionResult::Shared(transactionResult);
 }

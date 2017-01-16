@@ -3,13 +3,14 @@
 
 #include <stdint.h>
 #include <vector>
-#include "../../../network/messages/Message.h"
+#include "../../../../network/messages/Message.h"
 
 
 using namespace std;
 
 class TransactionState {
 public:
+    typedef shared_ptr<TransactionState> Shared;
     typedef shared_ptr<const TransactionState> SharedConst;
 
 private:

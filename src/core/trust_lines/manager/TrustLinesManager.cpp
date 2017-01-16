@@ -23,18 +23,17 @@ TrustLinesManager::~TrustLinesManager() {
 void TrustLinesManager::saveTrustLine(
     TrustLine::Shared trustLine) {
 
-    vector<byte> *trustLineData = trustLine->serializeTrustLine();
+    vector<byte> trustLineData = trustLine->serializeTrustLine();
 
     if (isTrustLineExist(trustLine->contractorNodeUUID())) {
         try {
             mTrustLinesStorage->rewrite(
                 storage::uuids::uuid(
                     trustLine->contractorNodeUUID()),
-                trustLineData->data(),
+                trustLineData.data(),
                 kRecordSize);
 
         } catch (std::exception &e) {
-            delete trustLineData;
             throw IOError(e.what());
         }
 
@@ -43,17 +42,14 @@ void TrustLinesManager::saveTrustLine(
             mTrustLinesStorage->write(
                 storage::uuids::uuid(
                     trustLine->contractorNodeUUID()),
-                trustLineData->data(),
+                trustLineData.data(),
                 kRecordSize);
 
         } catch (std::exception &e) {
-            delete trustLineData;
             throw IOError(e.what());
         }
         mTrustLines.insert(make_pair(trustLine->contractorNodeUUID(), trustLine));
     }
-
-    delete trustLineData;
 }
 
 /**

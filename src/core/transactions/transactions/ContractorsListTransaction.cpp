@@ -14,11 +14,11 @@ void ContractorsListTransaction::setContext(
     BaseTransaction::mContext = message;
 }
 
-pair<CommandResult::SharedConst, TransactionState::SharedConst> ContractorsListTransaction::run() {
-    return make_pair(CommandResult::SharedConst(mCommand.get()->unexpectedErrorResult()),
-                     TransactionState::SharedConst(new TransactionState(0)));
-}
+pair<byte *, size_t> ContractorsListTransaction::serializeContext() {}
 
-pair<byte *, size_t> ContractorsListTransaction::serializeContext() {
+TransactionResult::Shared ContractorsListTransaction::run() {
 
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setTransactionState(TransactionState::Shared(new TransactionState(10)));
+    return TransactionResult::Shared(transactionResult);
 }

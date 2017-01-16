@@ -119,7 +119,7 @@ const UUIDColumn::BucketIndex UUIDColumn::bucketIndexByNodeUUID(
     const NodeUUID &u) const {
 
     // Bucket index is the mask,
-    // formed by chaining significant bits from several bytes of the "nodeUUID".
+    // formed by chaining significant bits from several bytes of the "parseNodeUUID".
     // "mPow2BucketsCountIndex" determines how many buckets may be generated,
     // and how many bits should be used in the mask to handle their indexes.
     //

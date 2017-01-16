@@ -91,7 +91,7 @@ void TransactionsScheduler::launchTransaction(
         mTransactions->insert(
             make_pair(
                 transaction,
-                transactionResult.second
+                transactionResult->transactionState()
             )
         );
     }
@@ -114,12 +114,15 @@ void TransactionsScheduler::launchTransaction(
  */
 void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> result) {
+    TransactionResult::Shared result) {
 
-    if (result.first.get() == nullptr) {
+    if (result->messageResult().get() != nullptr) {
+        //TODO:: journal
+
+    } else if (result->commandResult().get() == nullptr) {
         if (isTransactionInScheduler(transaction)) {
             auto it = mTransactions->find(transaction);
-            it->second = result.second;
+            it->second = result->transactionState();
             /*auto transactionContext = transaction->serializeContext();
              mStorage->rewrite(
              storage::uuids::uuid(transaction->uuid()),
@@ -135,12 +138,12 @@ void TransactionsScheduler::handleTransactionResult(
             sleepFor(minimalDelay);
         }
 
-    } else if (result.second.get() == nullptr) {
-        mManagerCallback(result.first);
+    } else if (result->transactionState().get() == nullptr) {
+        mManagerCallback(result->commandResult());
         if (isTransactionInScheduler(transaction)) {
             mTransactions->erase(transaction);
-            //mStorage->erase(
-            // storage::uuids::uuid(transaction->uuid()));
+            /*mStorage->erase(
+                storage::uuids::uuid(transaction->uuid()));*/
 
         } else {
             throw ValueError("TransactionsManager::handleTransactionResult. "
@@ -151,11 +154,11 @@ void TransactionsScheduler::handleTransactionResult(
             sleepFor(minimalDelay);
         }
 
-    } else if (result.first.get() == nullptr && result.second.get() == nullptr) {
+    } else if (result->commandResult().get() == nullptr && result->transactionState().get() == nullptr) {
         throw ConflictError("TransactionsManager::handleTransactionResult. "
                                 "Command result and transaction state may not be null pointer references at the same time.");
 
-    } else if (result.first.get() != nullptr && result.second.get() != nullptr) {
+    } else if (result->commandResult().get() != nullptr && result->transactionState().get() != nullptr) {
         throw ConflictError("TransactionsManager::handleTransactionResult. "
                                 "Transaction cat not has command result and transaction state at the same time.");
     }

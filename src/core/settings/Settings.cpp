@@ -1,17 +1,13 @@
 #include "Settings.h"
 
-
 json Settings::loadParsedJSON() const {
     string buffer;
-
     try {
         ifstream stream("conf.json");
         buffer.assign(
             (std::istreambuf_iterator<char>(stream)), // parentheses are valuable!
             std::istreambuf_iterator<char>());
-
         return json::parse(buffer.data());
-
     } catch (...) {
         throw IOError(
             "Settings::loadParsedJSON: "
@@ -28,7 +24,6 @@ const string Settings::interface(const json *conf) const {
         auto j = loadParsedJSON();
         conf = &j;
     }
-
     try {
         return (*conf).at("network").at("interface");
     } catch (...) {
@@ -46,7 +41,6 @@ const uint16_t Settings::port(const json *conf) const {
         auto j = loadParsedJSON();
         conf = &j;
     }
-
     try {
         return (*conf).at("network").at("port");
     } catch (...) {
@@ -64,7 +58,6 @@ const string Settings::uuid2addressHost(const json *conf) const {
         auto j = loadParsedJSON();
         conf = &j;
     }
-
     try {
         return (*conf).at("uuid2address").at("host");
     } catch (...) {
@@ -82,7 +75,6 @@ const uint16_t Settings::uuid2addressPort(const json *conf) const {
         auto j = loadParsedJSON();
         conf = &j;
     }
-
     try {
         return (*conf).at("uuid2address").at("port");
     } catch (...) {
@@ -96,7 +88,6 @@ const NodeUUID Settings::nodeUUID(const json *conf) const {
         auto j = loadParsedJSON();
         conf = &j;
     }
-
     try {
         string hexUUID = (*conf).at("node").at("uuid");
         return NodeUUID(hexUUID);

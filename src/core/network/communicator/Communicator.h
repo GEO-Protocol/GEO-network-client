@@ -3,7 +3,9 @@
 
 #include "../../common/Types.h"
 
-#include "../messages/service/UUID2Address.h"
+#include "../../Core.h"
+
+#include "../service/UUID2Address.h"
 #include "../channels/manager/ChannelsManager.h"
 #include "../internal/OutgoingMessagesHandler.h"
 #include "../internal/IncomingMessagesHandler.h"
@@ -25,11 +27,14 @@ namespace ip = boost::asio::ip;
 
 typedef boost::system::error_code err;
 
+class Core;
+class IncomingMessagesHandler;
 class Communicator {
 public:
     explicit Communicator(
+        Core *core,
         as::io_service &ioService,
-        const NodeUUID &nodeUUID,
+        NodeUUID &nodeUUID,
         const string &nodeInterface,
         const uint16_t nodePort,
         const string &uuid2AddressHost,
@@ -37,6 +42,8 @@ public:
         Logger *logger);
 
     ~Communicator();
+
+    NodeUUID &nodeUUID() const;
 
     void beginAcceptMessages();
 
@@ -62,8 +69,9 @@ private:
 private:
     static constexpr const size_t kMaxIncomingBufferSize = 500*2;
 
+    Core *mCore;
     as::io_service &mIOService;
-    const NodeUUID &mNodeUUID;
+    NodeUUID &mNodeUUID;
     const string mInterface;
     const uint16_t mPort;
 

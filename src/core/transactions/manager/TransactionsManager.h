@@ -12,14 +12,17 @@
 #include "../../interface/commands/commands/TotalBalanceCommand.h"
 #include "../../interface/commands/commands/ContractorsListCommand.h"
 
+#include "../../network/messages/Message.h"
+#include "../../network/messages/incoming/AcceptTrustLineMessage.h"
+
 #include "../../network/communicator/Communicator.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../trust_lines/interface/TrustLinesInterface.h"
 #include "../scheduler/TransactionsScheduler.h"
-#include "../observer/TransactionsObserver.h"
 
 #include "../transactions/BaseTransaction.h"
 #include "../transactions/OpenTrustLineTransaction.h"
+#include "../transactions/AcceptTrustLineTransaction.h"
 #include "../transactions/CloseTrustLineTransaction.h"
 #include "../transactions/UpdateTrustLineTransaction.h"
 #include "../transactions/MaximalAmountTransaction.h"
@@ -34,7 +37,7 @@
 
 using namespace std;
 
-
+class Communicator;
 class TransactionsManager {
     // todo: hsc: tests?
 
@@ -51,12 +54,18 @@ public:
     void processCommand(
         BaseUserCommand::Shared command);
 
+    void processMessage(
+        Message::Shared message);
+
     void acceptCommandResult(
         CommandResult::SharedConst result);
 
 private:
     void openTrustLine(
         BaseUserCommand::Shared command);
+
+    void acceptTrustLine(
+        Message::Shared message);
 
     void closeTrustLine(
         BaseUserCommand::Shared command);
@@ -86,7 +95,6 @@ private:
 
     TrustLinesInterface *mTrustLinesInterface;
     TransactionsScheduler *mTransactionsScheduler;
-    TransactionsObserver *mTransactionsObserver;
 
 };
 

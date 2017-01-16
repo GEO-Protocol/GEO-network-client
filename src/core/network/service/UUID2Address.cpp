@@ -1,5 +1,5 @@
 #include "UUID2Address.h"
-#include "../../../common/exceptions/NotFoundError.h"
+#include "../../common/exceptions/NotFoundError.h"
 
 UUID2Address::UUID2Address(
     as::io_service &IOService,
@@ -39,7 +39,7 @@ void UUID2Address::registerInGlobalCache(
     stringstream body;
     body << "{"
          << "\"ip_address\": \"" << nodeHost << "\","
-         << "\"port\": \"" << nodePort << "\""
+         << "\"parsePort\": \"" << nodePort << "\""
          << "}";
 
 
@@ -88,7 +88,7 @@ const pair<string, uint16_t> UUID2Address::fetchFromGlobalCache(
             json jsonResponse = json::parse(result.second);
             json data = jsonResponse["data"];
             string ip = data.value("ip_address", "");
-            int port = data.value("port", -1);
+            int port = data.value("parsePort", -1);
             if (port > -1) {
                 pair<string, uint16_t> remoteNodeAddressPair = make_pair(ip, (uint16_t) port);
                 mCache.insert(

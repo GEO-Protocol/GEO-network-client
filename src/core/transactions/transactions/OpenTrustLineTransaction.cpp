@@ -22,7 +22,7 @@ void OpenTrustLineTransaction::setContext(
 
 pair<byte *, size_t> OpenTrustLineTransaction::serializeContext() {}
 
-pair<CommandResult::SharedConst, TransactionState::SharedConst> OpenTrustLineTransaction::run() {
+TransactionResult::Shared OpenTrustLineTransaction::run() {
 
     //// STEP 1
     auto *transactions = pendingTransactions();
@@ -38,21 +38,7 @@ pair<CommandResult::SharedConst, TransactionState::SharedConst> OpenTrustLineTra
                 break;
             }
 
-            case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
-                //TODO:: create update trust line transaction class
-                break;
-            }
-
-            case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
-                UpdateTrustLineTransaction::Shared updateTrustLineTransaction = static_pointer_cast<UpdateTrustLineTransaction>(it.first);
-                if (mCommand->contractorUUID() == updateTrustLineTransaction->command()->contractorUUID()) {
-                    return conflictErrorResult();
-                }
-                break;
-            }
-
             case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
-                //TODO:: create set trust line transaction class
                 break;
             }
 
@@ -62,10 +48,6 @@ pair<CommandResult::SharedConst, TransactionState::SharedConst> OpenTrustLineTra
                     return conflictErrorResult();
                 }
                 break;
-            }
-
-            case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
-                //TODO:: create reject trust line transaction class
             }
 
             default: {
@@ -81,11 +63,10 @@ pair<CommandResult::SharedConst, TransactionState::SharedConst> OpenTrustLineTra
     }
 
     //// STEP 2
-    TransactionUUID transactionUUID = uuid();
-    TrustLineAmount amount = mCommand->amount();
     Message *message = new OpenTrustLineMessage(
-        transactionUUID,
-        amount
+        mCommunicator->nodeUUID(),
+        uuid(),
+        mCommand->amount()
     );
 
     mCommunicator->sendMessage(
@@ -97,25 +78,25 @@ pair<CommandResult::SharedConst, TransactionState::SharedConst> OpenTrustLineTra
 
 }
 
-pair<CommandResult::SharedConst, TransactionState::SharedConst> OpenTrustLineTransaction::resultOk() {
+TransactionResult::Shared OpenTrustLineTransaction::resultOk() {
 
-    return make_pair(
-        CommandResult::SharedConst(mCommand.get()->resultOk()),
-        nullptr);
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->resultOk())));
+    return TransactionResult::Shared(transactionResult);
 }
 
-pair<CommandResult::SharedConst, TransactionState::SharedConst> OpenTrustLineTransaction::trustLinePresentResult() {
+TransactionResult::Shared OpenTrustLineTransaction::trustLinePresentResult() {
 
-    return make_pair(
-        CommandResult::SharedConst(mCommand.get()->trustLineAlreadyPresentResult()),
-        nullptr);
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->trustLineAlreadyPresentResult())));
+    return TransactionResult::Shared(transactionResult);
 }
 
-pair<CommandResult::SharedConst, TransactionState::SharedConst> OpenTrustLineTransaction::conflictErrorResult() {
+TransactionResult::Shared OpenTrustLineTransaction::conflictErrorResult() {
 
-    return make_pair(
-        CommandResult::SharedConst(mCommand.get()->resultConflict()),
-        nullptr);
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->resultConflict())));
+    return TransactionResult::Shared(transactionResult);
 }
 
 

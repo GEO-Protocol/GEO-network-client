@@ -80,6 +80,7 @@ protected:
  * This class is used to asynchronously receive them, parse,
  * and transfer for the further execution.
  */
+class TransactionsManager;
 class CommandsInterface:
     public BaseFIFOInterface {
 

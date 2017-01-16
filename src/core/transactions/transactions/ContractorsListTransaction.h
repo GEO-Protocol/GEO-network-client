@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CONTRACTORSLISTTRANSACTION_H
 
 #include "BaseTransaction.h"
+
 #include "../../interface/commands/commands/ContractorsListCommand.h"
 
 class ContractorsListTransaction : public BaseTransaction {
@@ -20,9 +21,9 @@ private:
     void setContext(
             Message::Shared message);
 
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> run();
-
     pair<byte *, size_t> serializeContext();
+
+    TransactionResult::Shared run();
 };
 
 

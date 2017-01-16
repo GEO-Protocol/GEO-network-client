@@ -25,7 +25,7 @@
 using namespace std;
 
 class NotImplementedError : public Exception {
-    using Exception :: Exception;
+    using Exception::Exception;
 };
 
 class Message {
@@ -42,14 +42,20 @@ public:
 public:
     Message() {};
 
-    Message(TransactionUUID transactionUUID) : mTransactionUUID(transactionUUID) {};
+    Message(NodeUUID &sender) : mSender(sender) {};
 
-    Message(NodeUUID sender) : mSender(sender) {};
+    Message(TransactionUUID &transactionUUID) : mTransactionUUID(transactionUUID) {};
+
+    Message(NodeUUID &sender, TransactionUUID &transactionUUID) : mSender(sender), mTransactionUUID(transactionUUID) {};
+
+    NodeUUID sender() const { return mSender; }
+
+    TransactionUUID transactionUUID() const { return mTransactionUUID; }
 
     virtual pair<ConstBytesShared, size_t> serialize() = 0;
 
     virtual void deserialize(
-        byte* buffer) = 0;
+        byte *buffer) = 0;
 
     virtual const MessageTypeID typeID() const = 0;
 

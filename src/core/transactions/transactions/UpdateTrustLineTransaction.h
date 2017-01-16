@@ -27,14 +27,13 @@ public:
 
     pair<byte *, size_t> serializeContext();
 
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> run();
+    TransactionResult::Shared run();
 
 private:
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> conflictErrorResult();
+    TransactionResult::Shared conflictErrorResult();
 
 private:
     UpdateTrustLineCommand::Shared mCommand;
-
     TrustLinesInterface *mTrustLinesInterface;
 };
 

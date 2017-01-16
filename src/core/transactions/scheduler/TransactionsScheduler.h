@@ -4,8 +4,7 @@
 #include "../../common/Types.h"
 
 #include "../transactions/BaseTransaction.h"
-#include "../../interface/results/result/CommandResult.h"
-#include "../transactions/state/TransactionState.h"
+#include "../transactions/result/TransactionResult.h"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
@@ -26,9 +25,6 @@ namespace as = boost::asio;
 namespace storage = db::uuid_map_block_storage;
 namespace posix_time = boost::posix_time;
 
-/**
- * Typedef must be declared here
- */
 typedef boost::function<void(CommandResult::SharedConst)> ManagerCallback;
 typedef boost::posix_time::time_duration Timeout;
 
@@ -56,7 +52,7 @@ private:
 
     void handleTransactionResult(
         BaseTransaction::Shared transaction,
-        pair<CommandResult::SharedConst, TransactionState::SharedConst> result);
+        TransactionResult::Shared result);
 
     pair<BaseTransaction::Shared, Timeout> findTransactionWithMinimalTimeout();
 

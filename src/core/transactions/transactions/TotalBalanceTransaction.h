@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_TOTALBALANCETRANSACTION_H
 
 #include "BaseTransaction.h"
+
 #include "../../interface/commands/commands/TotalBalanceCommand.h"
 
 
@@ -21,9 +22,9 @@ private:
     void setContext(
             Message::Shared message);
 
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> run();
-
     pair<byte *, size_t> serializeContext();
+
+    TransactionResult::Shared run();
 };
 
 

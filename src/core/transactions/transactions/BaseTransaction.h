@@ -3,13 +3,14 @@
 
 #include "../../common/Types.h"
 #include "../TransactionUUID.h"
+#include "../../common/NodeUUID.h"
 
 #include "../../network/messages/Message.h"
 
+#include "result/TransactionResult.h"
+
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
-#include "state/TransactionState.h"
-#include "../../interface/results/result/CommandResult.h"
 
 namespace storage = db::uuid_map_block_storage;
 
@@ -38,7 +39,7 @@ public:
 
     virtual const TransactionUUID uuid() const;
 
-    virtual pair<CommandResult::SharedConst, TransactionState::SharedConst> run() = 0;
+    virtual TransactionResult::Shared run() = 0;
 
     virtual void setContext(
         Message::Shared message) = 0;

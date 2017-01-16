@@ -2,14 +2,16 @@
 
 
 Communicator::Communicator(
+    Core *core,
     as::io_service &ioService,
-    const NodeUUID &nodeUUID,
+    NodeUUID &nodeUUID,
     const string &nodeInterface,
     const uint16_t nodePort,
     const string &uuid2AddressHost,
     const uint16_t uuid2AddressPort,
     Logger *logger):
 
+    mCore(core),
     mIOService(ioService),
     mNodeUUID(nodeUUID),
     mInterface(nodeInterface),
@@ -24,7 +26,7 @@ Communicator::Communicator(
 
         mChannelsManager = new ChannelsManager();
         mSocket = new udp::socket(mIOService, udp::endpoint(udp::v4(), nodePort));
-        mIncomingMessagesHandler = new IncomingMessagesHandler(mChannelsManager);
+        mIncomingMessagesHandler = new IncomingMessagesHandler(mChannelsManager, mCore->transactionsManager());
         mOutgoingMessagesHandler = new OutgoingMessagesHandler();
 
     } catch (std::bad_alloc &e) {
@@ -42,6 +44,10 @@ Communicator::~Communicator() {
     delete mSocket;
     delete mOutgoingMessagesHandler;
     delete mIncomingMessagesHandler;
+}
+
+NodeUUID &Communicator::nodeUUID() const {
+    return mNodeUUID;
 }
 
 void Communicator::beginAcceptMessages() {
@@ -157,4 +163,5 @@ void Communicator::handleSend(
         );
     }
 }
+
 

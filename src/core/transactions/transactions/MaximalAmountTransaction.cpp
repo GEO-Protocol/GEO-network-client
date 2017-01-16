@@ -14,11 +14,11 @@ void MaximalAmountTransaction::setContext(
     BaseTransaction::mContext = message;
 }
 
-pair<CommandResult::SharedConst, TransactionState::SharedConst> MaximalAmountTransaction::run() {
-    return make_pair(CommandResult::SharedConst(mCommand.get()->unexpectedErrorResult()),
-                     TransactionState::SharedConst(new TransactionState(0)));
-}
+pair<byte *, size_t> MaximalAmountTransaction::serializeContext() {}
 
-pair<byte *, size_t> MaximalAmountTransaction::serializeContext() {
+TransactionResult::Shared MaximalAmountTransaction::run() {
 
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setTransactionState(TransactionState::Shared(new TransactionState(10)));
+    return TransactionResult::Shared(transactionResult);
 }

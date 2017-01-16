@@ -18,7 +18,7 @@ TransactionsManager::TransactionsManager(
 
     } catch (std::bad_alloc &e) {
         throw MemoryError("TransactionsManager::TransactionsManager. "
-                              "Can not allocate memory for trust lines interface.");
+                              "Can not allocate memory for trust lines parseInterface.");
     }
 
     try {
@@ -32,25 +32,12 @@ TransactionsManager::TransactionsManager(
         throw MemoryError("TransactionsManager::TransactionsManager. "
                               "Can not allocate memory for transactions scheduler.");
     }
-
-    try {
-        mTransactionsObserver = new TransactionsObserver(
-            mTransactionsScheduler);
-
-    } catch (std::bad_alloc &e) {
-        delete mTrustLinesInterface;
-        delete mTransactionsScheduler;
-        throw MemoryError("TransactionsManager::TransactionsManager. "
-                              "Can not allocate memory for transactions observer.");
-    }
-
 }
 
 TransactionsManager::~TransactionsManager() {
 
     delete mTrustLinesInterface;
     delete mTransactionsScheduler;
-    delete mTransactionsObserver;
 }
 
 void TransactionsManager::processCommand(
@@ -83,6 +70,18 @@ void TransactionsManager::processCommand(
     }
 }
 
+void TransactionsManager::processMessage(
+    Message::Shared message) {
+
+    if (message->typeID() == Message::MessageTypeID::AcceptTrustLineMessageType) {
+        acceptTrustLine(message);
+
+    } else {
+        throw ConflictError("TransactionsManager::processMessage. "
+                                "Unexpected message identifier.");
+    }
+}
+
 void TransactionsManager::openTrustLine(
     BaseUserCommand::Shared command) {
 
@@ -99,6 +98,25 @@ void TransactionsManager::openTrustLine(
 
     } catch (std::bad_alloc &e) {
         throw MemoryError("TransactionsManager::openTrustLine. "
+                              "Can not allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::acceptTrustLine(Message::Shared message) {
+
+    AcceptTrustLineMessage::Shared acceptTrustLineMessage = static_pointer_cast<AcceptTrustLineMessage>(message);
+
+    try {
+        BaseTransaction *baseTransaction = new AcceptTrustLineTransaction(
+            acceptTrustLineMessage,
+            mCommunicator,
+            mTransactionsScheduler,
+            mTrustLinesInterface);
+
+        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsManager::acceptTrustLine. "
                               "Can not allocate memory for transaction instance.");
     }
 }
