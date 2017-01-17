@@ -4,7 +4,6 @@
 #include "../Message.h"
 
 #include "../../../common/NodeUUID.h"
-#include "../../../transactions/TransactionUUID.h"
 #include "../../../trust_lines/TrustLine.h"
 
 class OpenTrustLineMessage : public Message {

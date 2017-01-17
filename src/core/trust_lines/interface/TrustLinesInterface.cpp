@@ -47,3 +47,19 @@ const bool TrustLinesInterface::isExist(
     return mManager->isTrustLineExist(
         contractorUUID);
 }
+
+const bool TrustLinesInterface::isDirectionOutgoing(
+    const NodeUUID &contractorUUID) {
+
+    return mManager->checkDirection(
+        contractorUUID,
+        TrustLineDirection::Outgoing);
+}
+
+const bool TrustLinesInterface::isDirectionIncoming(
+    const NodeUUID &contractorUUID) {
+
+    return mManager->checkDirection(
+        contractorUUID,
+        TrustLineDirection::Incoming);
+}

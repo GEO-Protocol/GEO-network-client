@@ -6,7 +6,6 @@
 #include "../Message.h"
 #include "../result/MessageResult.h"
 
-#include "../../../transactions/TransactionUUID.h"
 #include "../../../trust_lines/TrustLine.h"
 
 #include <string>

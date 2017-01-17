@@ -60,6 +60,10 @@ public:
     const bool isTrustLineExist(
         const NodeUUID &contractorUUID) const;
 
+    const bool checkDirection(
+        const NodeUUID &contractorUUID,
+        const TrustLineDirection direction) const;
+
 protected:
     // Contractor UUID -> trust line to the contractor.
     map<NodeUUID, TrustLine::Shared> mTrustLines;

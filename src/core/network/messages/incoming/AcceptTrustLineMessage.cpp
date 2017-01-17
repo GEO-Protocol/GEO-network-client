@@ -18,6 +18,46 @@ AcceptTrustLineMessage::AcceptTrustLineMessage(
 
 pair<ConstBytesShared, size_t> AcceptTrustLineMessage::serialize() {
 
+    size_t dataSize = sizeof(uint16_t) +
+        NodeUUID::kUUIDSize +
+        TransactionUUID::kUUIDSize +
+        sizeof(uint16_t);
+    byte * data = (byte *) malloc(dataSize);
+    memset(
+        data,
+        0,
+        dataSize
+    );
+
+    uint16_t type = typeID();
+    memcpy(
+        data,
+        &type,
+        sizeof(uint16_t)
+    );
+
+    memcpy(
+        data + sizeof(uint16_t),
+        mSender.data,
+        NodeUUID::kUUIDSize
+    );
+
+    memcpy(
+        data + sizeof(uint16_t) + NodeUUID::kUUIDSize,
+        mTransactionUUID.data,
+        TransactionUUID::kUUIDSize
+    );
+
+    memcpy(
+        data + sizeof(uint16_t) + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize,
+        &mJournalCode,
+        sizeof(uint16_t)
+    );
+
+    return make_pair(
+        ConstBytesShared(data, free),
+        dataSize
+    );
 
 }
 

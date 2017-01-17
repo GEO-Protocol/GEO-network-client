@@ -9,7 +9,10 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     UniqueTransaction(BaseTransaction::TransactionType::AcceptTrustLineTransactionType, scheduler),
     mMessage(message),
     mCommunicator(communicator),
-    mTrustLinesInterface(interface) {}
+    mTrustLinesInterface(interface) {
+
+    mStep = 1;
+}
 
 AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
     return mMessage;
@@ -25,39 +28,77 @@ pair<byte *, size_t> AcceptTrustLineTransaction::serializeContext() {}
 
 TransactionResult::Shared AcceptTrustLineTransaction::run() {
 
-    ////STEP 1
-    /*
-     if (journal->hasRecordByWeek(mMessage->sender())) {
-         sendAcceptTrustLineMessage(code);
-     }*/
+    switch (mStep) {
 
-    ////STEP 2
+        case 1: {
+            if (checkJournal()) {
+                sendAcceptTrustLineResponse(400);
+                //TODO:: update journal
+                break;
+            }
+        }
+
+        case 2: {
+            if (checkSameTypeTransactions()) {
+                sendRejectTrustLineResponse();
+                break;
+            }
+        }
+
+        default: {
+            break;
+        }
+
+    }
+
+}
+
+bool AcceptTrustLineTransaction::checkJournal() {
+
+    // return journal->hasRecordByWeek(mMessage->sender());
+    return false;
+}
+
+void AcceptTrustLineTransaction::sendAcceptTrustLineResponse(
+    uint16_t code) {
+
+    Message *message = new AcceptTrustLineMessage(
+        mCommunicator->nodeUUID(),
+        mMessage->transactionUUID(),
+        code
+    );
+
+    mCommunicator->sendMessage(
+        Message::Shared(message),
+        mMessage->sender()
+    );
+}
+
+bool AcceptTrustLineTransaction::checkSameTypeTransactions() {
+
     auto *transactions = pendingTransactions();
     for (auto const &it : *transactions) {
 
         switch (it.first->type()) {
 
             case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
-                AcceptTrustLineTransaction::Shared acceptTrustLineTransaction = static_pointer_cast<AcceptTrustLineTransaction>(
-                    it.first);
+                AcceptTrustLineTransaction::Shared acceptTrustLineTransaction = static_pointer_cast<AcceptTrustLineTransaction>(it.first);
                 if (mMessage->sender() == acceptTrustLineTransaction->message()->sender()) {
-                    sendConflictResponse();
-                    return conflictErrorResult();
+                    return true;
                 }
                 break;
             }
 
             case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
-                UpdateTrustLineTransaction::Shared updateTrustLineTransaction = static_pointer_cast<UpdateTrustLineTransaction>(
-                    it.first);
+                UpdateTrustLineTransaction::Shared updateTrustLineTransaction = static_pointer_cast<UpdateTrustLineTransaction>(it.first);
                 if (mMessage->sender() == updateTrustLineTransaction->command()->contractorUUID()) {
-                    sendConflictResponse();
-                    return conflictErrorResult();
+                    return true;
                 }
                 break;
             }
 
             case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
+                break;
             }
 
             default: {
@@ -65,19 +106,19 @@ TransactionResult::Shared AcceptTrustLineTransaction::run() {
             }
 
         }
+
     }
 
+    return false;
+}
+
+void AcceptTrustLineTransaction::sendRejectTrustLineResponse() {
 
 }
 
-void AcceptTrustLineTransaction::sendAcceptTrustLineMessage(
-    uint16_t) {
+void AcceptTrustLineTransaction::increaseStepsCounter() {
 
-
-}
-
-void AcceptTrustLineTransaction::sendConflictResponse() {
-
+    mStep += 1;
 }
 
 TransactionResult::Shared AcceptTrustLineTransaction::conflictErrorResult() {
@@ -86,6 +127,7 @@ TransactionResult::Shared AcceptTrustLineTransaction::conflictErrorResult() {
     transactionResult->setMessageResult(MessageResult::Shared(const_cast<MessageResult *> (mMessage->resultConflict())));
     return TransactionResult::Shared(transactionResult);
 }
+
 
 
 

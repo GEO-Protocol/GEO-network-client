@@ -10,7 +10,6 @@
 #include "CloseTrustLineTransaction.h"
 
 #include "../../network/communicator/Communicator.h"
-#include "../../settings/Settings.h"
 #include "../../network/messages/Message.h"
 #include "../../network/messages/outgoing/OpenTrustLineMessage.h"
 
@@ -41,6 +40,14 @@ public:
     TransactionResult::Shared run();
 
 private:
+    bool checkSameTypeTransactions();
+
+    bool checkTrustLineDirection();
+
+    void sendMessageToRemoteNode();
+
+    void increaseStepsCounter();
+
     TransactionResult::Shared resultOk();
 
     TransactionResult::Shared trustLinePresentResult();
@@ -48,10 +55,11 @@ private:
     TransactionResult::Shared conflictErrorResult();
 
 private:
-    NodeUUID mSender;
     OpenTrustLineCommand::Shared mCommand;
     Communicator *mCommunicator;
     TrustLinesInterface *mTrustLinesInterface;
+
+    uint16_t mStep;
 };
 
 

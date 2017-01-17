@@ -35,10 +35,16 @@ public:
     TransactionResult::Shared run();
 
 private:
-    void sendAcceptTrustLineMessage(
+    bool checkJournal();
+
+    void sendAcceptTrustLineResponse(
         uint16_t code);
 
-    void sendConflictResponse();
+    bool checkSameTypeTransactions();
+
+    void sendRejectTrustLineResponse();
+
+    void increaseStepsCounter();
 
     TransactionResult::Shared conflictErrorResult();
 
@@ -47,6 +53,7 @@ private:
     Communicator *mCommunicator;
     TrustLinesInterface *mTrustLinesInterface;
 
+    uint16_t mStep;
 };
 
 

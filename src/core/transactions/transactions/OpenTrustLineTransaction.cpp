@@ -9,7 +9,10 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     UniqueTransaction(BaseTransaction::TransactionType::OpenTrustLineTransactionType, scheduler),
     mCommand(command),
     mCommunicator(communicator),
-    mTrustLinesInterface(interface) {}
+    mTrustLinesInterface(interface) {
+
+    mStep = 1;
+}
 
 OpenTrustLineCommand::Shared OpenTrustLineTransaction::command() const {
     return mCommand;
@@ -24,7 +27,41 @@ pair<byte *, size_t> OpenTrustLineTransaction::serializeContext() {}
 
 TransactionResult::Shared OpenTrustLineTransaction::run() {
 
-    //// STEP 1
+
+    switch (mStep) {
+
+        case 1: {
+            if (checkSameTypeTransactions()) {
+                return conflictErrorResult();
+            }
+            increaseStepsCounter();
+        }
+
+        case 2: {
+            if (checkTrustLineDirection()) {
+                return trustLinePresentResult();
+            }
+            increaseStepsCounter();
+        }
+
+        case 3: {
+            sendMessageToRemoteNode();
+            increaseStepsCounter();
+            break;
+        }
+
+        default: {
+            break;
+        }
+
+    }
+
+    return resultOk();
+
+}
+
+bool OpenTrustLineTransaction::checkSameTypeTransactions() {
+
     auto *transactions = pendingTransactions();
     for (auto const &it : *transactions) {
 
@@ -33,7 +70,7 @@ TransactionResult::Shared OpenTrustLineTransaction::run() {
             case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
                 OpenTrustLineTransaction::Shared openTrustLineTransaction = static_pointer_cast<OpenTrustLineTransaction>(it.first);
                 if (mCommand->contractorUUID() == openTrustLineTransaction->command()->contractorUUID()) {
-                    return conflictErrorResult();
+                    return true;
                 }
                 break;
             }
@@ -45,7 +82,7 @@ TransactionResult::Shared OpenTrustLineTransaction::run() {
             case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
                 CloseTrustLineTransaction::Shared closeTrustLineTransaction = static_pointer_cast<CloseTrustLineTransaction>(it.first);
                 if (mCommand->contractorUUID() == closeTrustLineTransaction->command()->contractorUUID()) {
-                    return conflictErrorResult();
+                    return true;
                 }
                 break;
             }
@@ -55,14 +92,19 @@ TransactionResult::Shared OpenTrustLineTransaction::run() {
             }
 
         }
+
     }
 
-    //// STEP 1.1
-    if (mTrustLinesInterface->isExist(mCommand->contractorUUID())) {
-        return trustLinePresentResult();
-    }
+    return false;
+}
 
-    //// STEP 2
+bool OpenTrustLineTransaction::checkTrustLineDirection() {
+
+    return mTrustLinesInterface->isDirectionOutgoing(mCommand->contractorUUID());
+}
+
+void OpenTrustLineTransaction::sendMessageToRemoteNode() {
+
     Message *message = new OpenTrustLineMessage(
         mCommunicator->nodeUUID(),
         uuid(),
@@ -73,9 +115,11 @@ TransactionResult::Shared OpenTrustLineTransaction::run() {
         Message::Shared(message),
         mCommand->contractorUUID()
     );
+}
 
-    return resultOk();
+void OpenTrustLineTransaction::increaseStepsCounter() {
 
+    mStep += 1;
 }
 
 TransactionResult::Shared OpenTrustLineTransaction::resultOk() {
@@ -98,5 +142,6 @@ TransactionResult::Shared OpenTrustLineTransaction::conflictErrorResult() {
     transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->resultConflict())));
     return TransactionResult::Shared(transactionResult);
 }
+
 
 

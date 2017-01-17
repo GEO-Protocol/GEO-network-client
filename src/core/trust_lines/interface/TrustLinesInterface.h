@@ -32,6 +32,12 @@ public:
     const bool isExist(
         const NodeUUID &contractorUUID);
 
+    const bool isDirectionOutgoing(
+        const NodeUUID &contractorUUID);
+
+    const bool isDirectionIncoming(
+        const NodeUUID &contractorUUID);
+
 };
 
 

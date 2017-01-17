@@ -11,6 +11,7 @@ OpenTrustLineMessage::OpenTrustLineMessage(
 pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
 
     size_t dataSize = sizeof(uint16_t) +
+        NodeUUID::kUUIDSize +
         TransactionUUID::kUUIDSize +
         kTrustLineAmountSize;
     byte *data = (byte *) malloc (dataSize);
@@ -28,7 +29,13 @@ pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
     );
 
     memcpy(
-        data + sizeof(uint16_t),
+      data + sizeof(uint16_t),
+      mSender.data,
+      NodeUUID::kUUIDSize
+    );
+
+    memcpy(
+        data + sizeof(uint16_t) + NodeUUID::kUUIDSize,
         mTransactionUUID.data,
         TransactionUUID::kUUIDSize
     );
@@ -41,7 +48,7 @@ pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
         buffer.push_back(0);
     }
     memcpy(
-        data + sizeof(uint16_t) + TransactionUUID::kUUIDSize,
+        data + sizeof(uint16_t) + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize,
         buffer.data(),
         buffer.size()
     );

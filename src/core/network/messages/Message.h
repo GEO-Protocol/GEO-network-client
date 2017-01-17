@@ -36,7 +36,9 @@ public:
 public:
     enum MessageTypeID {
         OpenTrustLineMessageType = 1,
-        AcceptTrustLineMessageType = 2
+        AcceptTrustLineMessageType = 2,
+        CloseTrustLineMessageType = 3,
+        RejectTrustLineMessageType = 4
     };
 
 public:

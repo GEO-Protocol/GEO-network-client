@@ -82,6 +82,13 @@ const bool TrustLinesManager::isTrustLineExist(
     return mTrustLines.count(contractorUUID) > 0;
 }
 
+const bool TrustLinesManager::checkDirection(
+    const NodeUUID &contractorUUID,
+    const TrustLineDirection direction) const {
+
+    return mTrustLines.at(contractorUUID)->direction() == direction;
+}
+
 /**
  * throw IOError - can not read trust line data from file by key
  * throw Exception - unable to create instance of trust line
