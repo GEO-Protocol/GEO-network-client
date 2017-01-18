@@ -30,7 +30,7 @@ pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
 
     memcpy(
       data + sizeof(uint16_t),
-      mSender.data,
+      mSenderUUID.data,
       NodeUUID::kUUIDSize
     );
 

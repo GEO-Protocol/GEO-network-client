@@ -1,16 +1,13 @@
 #include "Core.h"
 
 Core::Core() {
+
     zeroPointers();
 }
 
 Core::~Core() {
+
     cleanupMemory();
-}
-
-TransactionsManager *Core::transactionsManager() {
-
-    return mTransactionsManager;
 }
 
 int Core::run() {
@@ -83,6 +80,9 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
+    initSlots();
+    connectSignalsToSlots();
+
     return 0;
 }
 
@@ -99,27 +99,26 @@ int Core::initSettings() {
     }
 }
 
-int Core::initCommunicator(const json &conf) {
+int Core::initCommunicator(
+    const json &conf) {
 
     try {
         mCommunicator = new Communicator(
-            this,
             mIOService,
             mNodeUUID,
             mSettings->interface(&conf),
             mSettings->port(&conf),
             mSettings->uuid2addressHost(&conf),
             mSettings->uuid2addressPort(&conf),
-            &mLog);
-        mLog.logSuccess("Core", "Network communicator is successfully initialised");
+            &mLog
+        );
+        mLog.logSuccess("Core", "NetworkSlots communicator is successfully initialised");
+        return 0;
 
     } catch (const std::exception &e) {
-        mLog.logError("Core", "Can't initialize network communicator.");
         mLog.logException("Core", e);
         return -1;
     }
-
-    return 0;
 }
 
 int Core::initResultsInterface() {
@@ -149,8 +148,15 @@ int Core::initTrustLinesManager() {
 }
 
 int Core::initTransactionsManager() {
+
     try {
-        mTransactionsManager = new TransactionsManager(mIOService, mCommunicator, mTrustLinesManager, mResultsInterface, &mLog);
+        mTransactionsManager = new TransactionsManager(
+            mIOService,
+            mCommunicator,
+            mTrustLinesManager,
+            mResultsInterface,
+            &mLog
+        );
         mLog.logSuccess("Core", "Transactions handler is successfully initialised");
         return 0;
 
@@ -163,7 +169,11 @@ int Core::initTransactionsManager() {
 int Core::initCommandsInterface() {
 
     try {
-        mCommandsInterface = new CommandsInterface(mIOService, mTransactionsManager, &mLog);
+        mCommandsInterface = new CommandsInterface(
+            mIOService,
+            mTransactionsManager,
+            &mLog
+        );
         mLog.logSuccess("Core", "Commands parseInterface is successfully initialised");
         return 0;
 
@@ -171,6 +181,37 @@ int Core::initCommandsInterface() {
         mLog.logException("Core", e);
         return -1;
     }
+}
+
+int Core::initSlots() {
+
+    try {
+        networkSlots = new NetworkSlots(
+            mTransactionsManager,
+            &mLog
+        );
+        mLog.logSuccess("Core", "Network slot is successfully initialised");
+        return 0;
+    } catch (bad_alloc &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+void Core::connectCommunicatorSignals() {
+
+    //communicator's signal to transactions manager slot
+    mCommunicator->messageReceivedSignal.connect(
+        boost::bind(
+            &Core::NetworkSlots::onMessageReceivedSlot,
+            networkSlots
+        )
+    );
+}
+
+void Core::connectSignalsToSlots() {
+
+    connectCommunicatorSignals();
 }
 
 void Core::cleanupMemory() {
@@ -208,4 +249,22 @@ void Core::zeroPointers() {
     mResultsInterface = nullptr;
     mTrustLinesManager = nullptr;
     mTransactionsManager = nullptr;
+}
+
+Core::NetworkSlots::NetworkSlots(
+    TransactionsManager *manager,
+    Logger *logger) :
+
+    mTransactionsManager(manager),
+    mLog(logger){}
+
+void Core::NetworkSlots::onMessageReceivedSlot(
+    Message::Shared message) {
+
+    try {
+        mTransactionsManager->processMessage(message);
+
+    } catch(exception &e) {
+        mLog->logException("Core", e);
+    }
 }

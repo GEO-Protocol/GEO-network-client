@@ -38,6 +38,16 @@ public:
     const bool isDirectionIncoming(
         const NodeUUID &contractorUUID);
 
+    const bool checkOutgoingAmount(
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &amount
+    );
+
+    const bool checkIncomingAmount(
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &amount
+    );
+
 };
 
 

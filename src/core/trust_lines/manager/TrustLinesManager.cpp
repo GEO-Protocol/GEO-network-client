@@ -86,7 +86,11 @@ const bool TrustLinesManager::checkDirection(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) const {
 
-    return mTrustLines.at(contractorUUID)->direction() == direction;
+    if (isTrustLineExist(contractorUUID)) {
+        return mTrustLines.at(contractorUUID)->direction() == direction;
+    }
+
+    return false;
 }
 
 /**

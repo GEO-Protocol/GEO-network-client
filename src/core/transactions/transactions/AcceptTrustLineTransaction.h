@@ -7,6 +7,7 @@
 
 #include "../../network/communicator/Communicator.h"
 #include "../../network/messages/Message.h"
+#include "../../network/messages/response/Response.h"
 
 #include "../scheduler/TransactionsScheduler.h"
 
@@ -37,16 +38,22 @@ public:
 private:
     bool checkJournal();
 
-    void sendAcceptTrustLineResponse(
-        uint16_t code);
-
     bool checkSameTypeTransactions();
 
-    void sendRejectTrustLineResponse();
+    bool checkTrustLineDirection();
+
+    bool checkTrustLineAmount();
+
+    void sendResponse(
+        uint16_t code);
+
+    void createTrustLine();
 
     void increaseStepsCounter();
 
-    TransactionResult::Shared conflictErrorResult();
+    TransactionResult::Shared makeResult(
+        MessageResult::Shared messageResult);
+
 
 private:
     AcceptTrustLineMessage::Shared mMessage;

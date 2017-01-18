@@ -77,8 +77,7 @@ void TransactionsManager::processMessage(
         acceptTrustLine(message);
 
     } else {
-        throw ConflictError("TransactionsManager::processMessage. "
-                                "Unexpected message identifier.");
+        mTransactionsScheduler->handleMessage(message);
     }
 }
 
@@ -102,16 +101,14 @@ void TransactionsManager::openTrustLine(
     }
 }
 
-void TransactionsManager::acceptTrustLine(Message::Shared message) {
+void TransactionsManager::acceptTrustLine(
+    Message::Shared message) {
 
     AcceptTrustLineMessage::Shared acceptTrustLineMessage = static_pointer_cast<AcceptTrustLineMessage>(message);
 
     try {
         BaseTransaction *baseTransaction = new AcceptTrustLineTransaction(
-            acceptTrustLineMessage,
-            mCommunicator,
-            mTransactionsScheduler,
-            mTrustLinesInterface);
+            acceptTrustLineMessage, mCommunicator, mTransactionsScheduler, mTrustLinesInterface);
 
         mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
 

@@ -1,16 +1,21 @@
-#include "RejectTrustLineMessage.h"
+#include "Response.h"
 
-RejectTrustLineMessage::RejectTrustLineMessage(
-    NodeUUID sender,
-    TransactionUUID transactionUUID,
-    uint16_t resultCode) :
+Response::Response(
+    byte *buffer) {
+
+    deserialize(buffer);
+}
+
+Response::Response(NodeUUID sender,
+                   TransactionUUID transactionUUID,
+                   uint16_t code) :
 
     Message(sender, transactionUUID) {
 
-    mResultCode = resultCode;
+    mCode = code;
 }
 
-pair<ConstBytesShared, size_t> RejectTrustLineMessage::serialize() {
+pair<ConstBytesShared, size_t> Response::serialize() {
 
     size_t dataSize = sizeof(uint16_t) +
                       NodeUUID::kUUIDSize +
@@ -44,7 +49,7 @@ pair<ConstBytesShared, size_t> RejectTrustLineMessage::serialize() {
 
     memcpy(
         data + sizeof(uint16_t) + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize,
-        &mResultCode,
+        &mCode,
         sizeof(uint16_t)
     );
 
@@ -54,17 +59,26 @@ pair<ConstBytesShared, size_t> RejectTrustLineMessage::serialize() {
     );
 }
 
-void RejectTrustLineMessage::deserialize(byte *buffer) {
+void Response::deserialize(byte *buffer) {
 
-    throw NotImplementedError("RejectTrustLineMessage::deserialize: "
-                                  "Method not implemented.");
+    //------------------------------
+    memcpy(
+        mSenderUUID.data,
+        buffer,
+        NodeUUID::kUUIDSize
+    );
+    //------------------------------
+    memcpy(
+        mTransactionUUID.data,
+        buffer + NodeUUID::kUUIDSize,
+        TransactionUUID::kUUIDSize
+    );
+    //------------------------------
+    uint16_t *code = new (buffer + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize) uint16_t;
+    mCode = *code;
 }
 
-const Message::MessageTypeID RejectTrustLineMessage::typeID() const {
-    return Message::MessageTypeID::RejectTrustLineMessageType;
-}
+const Message::MessageTypeID Response::typeID() const {
 
-uint16_t RejectTrustLineMessage::resultCode() const {
-
-    return mResultCode;
+    return Message::MessageTypeID::ResponseMessageType;
 }

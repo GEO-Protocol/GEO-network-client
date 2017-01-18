@@ -1,8 +1,6 @@
 #include "OutgoingMessagesHandler.h"
 
-OutgoingMessagesHandler::OutgoingMessagesHandler() {
-
-}
+OutgoingMessagesHandler::OutgoingMessagesHandler() {}
 
 vector<Packet::SharedConst>* OutgoingMessagesHandler::processOutgoingMessage(
     Message::Shared message,
@@ -23,7 +21,7 @@ vector<Packet::SharedConst>* OutgoingMessagesHandler::processOutgoingMessage(
     packets->push_back(crcPacket.first);
 
     // Create other packages
-    byte *offsetSerialiedBuffer = const_cast<byte *> (serializedMessage.first.get());
+    byte *offsetSerializedBuffer = const_cast<byte *> (serializedMessage.first.get());
     uint16_t dataPacketsCount = crcPacket.second - 1; // crc packet excluded
 
     for (uint16_t packetNumber = 1; packetNumber <= dataPacketsCount; ++ packetNumber) {
@@ -59,7 +57,7 @@ vector<Packet::SharedConst>* OutgoingMessagesHandler::processOutgoingMessage(
         }
 
         auto packet = makePacket(
-            offsetSerialiedBuffer + offset,
+            offsetSerializedBuffer + offset,
             packetSize,
             packetNumber,
             crcPacket.second,

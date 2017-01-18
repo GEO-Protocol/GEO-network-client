@@ -13,10 +13,6 @@ public:
     typedef shared_ptr<TransactionState> Shared;
     typedef shared_ptr<const TransactionState> SharedConst;
 
-private:
-    uint64_t mTimeout;
-    vector<Message::MessageTypeID> mTypes;
-
 public:
     TransactionState(
             uint64_t timeout);
@@ -34,6 +30,10 @@ public:
     const uint64_t timeout() const;
 
     const vector<Message::MessageTypeID> transactionsTypes() const;
+
+private:
+    uint64_t mTimeout;
+    vector<Message::MessageTypeID> mTypes;
 
 };
 

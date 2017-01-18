@@ -12,6 +12,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mTrustLinesInterface(interface) {
 
     mStep = 1;
+    mRequestCounter = 0;
 }
 
 OpenTrustLineCommand::Shared OpenTrustLineTransaction::command() const {
@@ -20,7 +21,8 @@ OpenTrustLineCommand::Shared OpenTrustLineTransaction::command() const {
 
 void OpenTrustLineTransaction::setContext(
     Message::Shared message) {
-    BaseTransaction::mContext = message;
+
+    mContext = message;
 }
 
 pair<byte *, size_t> OpenTrustLineTransaction::serializeContext() {}
@@ -45,9 +47,22 @@ TransactionResult::Shared OpenTrustLineTransaction::run() {
         }
 
         case 3: {
-            sendMessageToRemoteNode();
-            increaseStepsCounter();
-            break;
+            if (mContext.get() != nullptr) {
+                if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
+                    Response::Shared response = static_pointer_cast<Response>(mContext);
+                    cout << "Transaction result code " << to_string(response->mCode) << endl;
+                }
+
+            } else {
+                if (mRequestCounter < kMaxRequestsCount) {
+                    sendMessageToRemoteNode();
+                    mRequestCounter += 1;
+
+                } else {
+                    return noResponseResult();
+                }
+            }
+            return waitForResponse();
         }
 
         default: {
@@ -117,6 +132,19 @@ void OpenTrustLineTransaction::sendMessageToRemoteNode() {
     );
 }
 
+TransactionResult::Shared OpenTrustLineTransaction::waitForResponse() {
+
+    TransactionState *transactionState = new TransactionState(
+        kConnectionTimeout,
+        Message::MessageTypeID::ResponseMessageType
+    );
+
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setTransactionState(TransactionState::Shared(transactionState));
+    return TransactionResult::Shared(transactionResult);
+}
+
 void OpenTrustLineTransaction::increaseStepsCounter() {
 
     mStep += 1;
@@ -140,6 +168,13 @@ TransactionResult::Shared OpenTrustLineTransaction::conflictErrorResult() {
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->resultConflict())));
+    return TransactionResult::Shared(transactionResult);
+}
+
+TransactionResult::Shared OpenTrustLineTransaction::noResponseResult() {
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->resultNoResponse())));
     return TransactionResult::Shared(transactionResult);
 }
 

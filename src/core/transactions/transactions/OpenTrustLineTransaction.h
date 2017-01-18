@@ -46,6 +46,8 @@ private:
 
     void sendMessageToRemoteNode();
 
+    TransactionResult::Shared waitForResponse();
+
     void increaseStepsCounter();
 
     TransactionResult::Shared resultOk();
@@ -54,12 +56,18 @@ private:
 
     TransactionResult::Shared conflictErrorResult();
 
+    TransactionResult::Shared noResponseResult();
+
 private:
+    const uint64_t kConnectionTimeout = 2000;
+    const uint16_t kMaxRequestsCount = 5;
+
     OpenTrustLineCommand::Shared mCommand;
     Communicator *mCommunicator;
     TrustLinesInterface *mTrustLinesInterface;
 
     uint16_t mStep;
+    uint16_t mRequestCounter;
 };
 
 

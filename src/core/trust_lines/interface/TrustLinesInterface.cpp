@@ -63,3 +63,17 @@ const bool TrustLinesInterface::isDirectionIncoming(
         contractorUUID,
         TrustLineDirection::Incoming);
 }
+
+const bool TrustLinesInterface::checkOutgoingAmount(
+    const NodeUUID &contractorUUID,
+    const TrustLineAmount &amount) {
+
+    return mManager->trustLineByContractorUUID(contractorUUID)->outgoingTrustAmount() == amount;
+}
+
+const bool TrustLinesInterface::checkIncomingAmount(
+    const NodeUUID &contractorUUID,
+    const TrustLineAmount &amount) {
+
+    return mManager->trustLineByContractorUUID(contractorUUID)->incomingTrustAmount() == amount;
+}

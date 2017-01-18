@@ -1,10 +1,10 @@
 #include "IncomingMessagesHandler.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
-    const byte *messagePart,
+    ConstBytesShared messagePart,
     const size_t receivedBytesCount) {
 
-    if (receivedBytesCount < kMininalMessageSize || messagePart == nullptr) {
+    if (receivedBytesCount < kMininalMessageSize || messagePart.get() == nullptr) {
         return messageInvalidOrIncomplete();
     }
 
@@ -12,14 +12,24 @@ pair<bool, Message::Shared> MessagesParser::processMessage(
 }
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
+    ConstBytesShared messagePart) {
+
+    uint16_t *messageIdentifier = new (const_cast<byte *> (messagePart.get())) uint16_t;
+    auto deserializedData = tryDeserializeRequest(
+      *messageIdentifier,
+      messagePart.get() + sizeof(uint16_t)
+    );
+    return deserializedData;
+}
+
+pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
+    const uint16_t messageIdentifier,
     const byte *messagePart) {
 
-    uint16_t *messageIdentifier = new (const_cast<byte *> (messagePart)) uint16_t;
-    switch(*messageIdentifier) {
+    switch(messageIdentifier) {
 
         case Message::MessageTypeID::OpenTrustLineMessageType: {
-            Message *message = new AcceptTrustLineMessage(const_cast<byte *>(messagePart + sizeof(uint16_t)));
-            delete messagePart;
+            Message *message = new AcceptTrustLineMessage(const_cast<byte *>(messagePart));
             return make_pair(
                 true,
                 Message::Shared(message)
@@ -27,28 +37,56 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
         }
 
         default: {
+            return tryDeserializeResponse(
+                messageIdentifier,
+                messagePart
+            );
+        }
+    }
 
+};
+
+pair<bool, Message::Shared> MessagesParser::tryDeserializeResponse(
+    const uint16_t messageIdentifier,
+    const byte *messagePart) {
+
+    switch(messageIdentifier) {
+
+        case Message::MessageTypeID::ResponseMessageType: {
+            Message *message = new Response(const_cast<byte *>(messagePart));
+            return make_pair(
+                true,
+                Message::Shared(message)
+            );
+        }
+
+        default: {
             return messageInvalidOrIncomplete();
         }
     }
-}
+};
 
 pair<bool, Message::Shared> MessagesParser::messageInvalidOrIncomplete() {
 
     return make_pair(
         false,
-        Message::Shared(nullptr));
+        Message::Shared(nullptr)
+    );
 }
 
 
 IncomingMessagesHandler::IncomingMessagesHandler(
-    ChannelsManager *channelsManager,
-    TransactionsManager *transactionsManager) :
+    ChannelsManager *channelsManager) :
 
-    mChannelsManager(channelsManager),
-    mTransactionsManager(transactionsManager){
+    mChannelsManager(channelsManager) {
 
-    mMessagesParser = new MessagesParser();
+    try{
+        mMessagesParser = new MessagesParser();
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("IncomingMessagesHandler::IncomingMessagesHandler: "
+                              "Сant allocate enough memory for messages parser.");
+    }
 }
 
 IncomingMessagesHandler::~IncomingMessagesHandler() {
@@ -67,7 +105,7 @@ void IncomingMessagesHandler::processIncomingMessage(
 
     if (messagePart == nullptr) {
         throw ValueError("IncomingMessagesHandler::processIncomingMessage: "
-                             "\"messagePart\" can't be null.");
+                             "message part can't be null.");
     }
 
     mPacketsBuffer.reserve(mPacketsBuffer.size() + receivedBytesCount);
@@ -112,7 +150,8 @@ void IncomingMessagesHandler::tryCollectPacket(
             packet = new Packet(
                 packetHeader,
                 mPacketsBuffer.data() + Packet::kPacketBodyOffset,
-                (size_t) packetHeader->bodyBytesCount());
+                (size_t) packetHeader->bodyBytesCount()
+            );
 
         } catch (std::bad_alloc &e) {
             throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
@@ -130,13 +169,12 @@ void IncomingMessagesHandler::tryCollectPacket(
             if (channel.first->checkConsistency()) {
                 auto data = channel.first->data();
                 auto message = mMessagesParser->processMessage(
-                  data.second.get(),
-                  data.first
+                  data.first,
+                  data.second
                 );
                 if (message.first) {
-                    mTransactionsManager->processMessage(message.second);
+                    messageParsedSignal(message.second);
                 }
-
                 mChannelsManager->remove(packetHeader->channelNumber());
 
             } else {

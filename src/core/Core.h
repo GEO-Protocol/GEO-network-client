@@ -12,14 +12,15 @@
 
 #include "logger/Logger.h"
 
+#include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/signals2.hpp>
 
 using namespace std;
-namespace as = boost::asio;
 
-class Communicator;
-class CommandsInterface;
-class TransactionsManager;
+namespace as = boost::asio;
+namespace signals = boost::signals2;
+
 class Core {
 
 public:
@@ -27,9 +28,36 @@ public:
 
     ~Core();
 
-    TransactionsManager* transactionsManager();
-
     int run();
+
+private:
+    int initCoreComponents();
+
+    int initSettings();
+
+    int initCommunicator(
+        const json &conf);
+
+    int initCommandsInterface();
+
+    int initResultsInterface();
+
+    int initTrustLinesManager();
+
+    int initTransactionsManager();
+
+    int initSlots();
+
+    void connectCommunicatorSignals();
+
+    void connectSignalsToSlots();
+
+    void zeroPointers();
+
+    void cleanupMemory();
+
+public:
+    NetworkSlots *networkSlots;
 
 protected:
     NodeUUID mNodeUUID;
@@ -43,19 +71,21 @@ protected:
     TrustLinesManager *mTrustLinesManager;
     TransactionsManager *mTransactionsManager;
 
-
 private:
-    int initCoreComponents();
-    int initSettings();
-    int initCommandsInterface();
-    int initResultsInterface();
-    int initTrustLinesManager();
-    int initTransactionsManager();
-    int initCommunicator(const json &conf);
+    class NetworkSlots {
 
-    void zeroPointers();
-    void cleanupMemory();
+    public:
+        NetworkSlots(
+            TransactionsManager *manager,
+            Logger *logger);
+
+        void onMessageReceivedSlot(
+            Message::Shared message);
+
+    private:
+        TransactionsManager *mTransactionsManager;
+        Logger *mLog;
+    };
 };
-
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

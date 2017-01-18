@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_MESSAGEREUSLT_H
 
 #include "../../../common/NodeUUID.h"
+#include "../../../transactions/TransactionUUID.h"
 
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -23,10 +24,13 @@ public:
 public:
     MessageResult(
         const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
         const uint16_t resultCode
     );
 
-    const NodeUUID &commandUUID() const;
+    const NodeUUID &senderUUID() const;
+
+    const TransactionUUID transactionUUID() const;
 
     const uint16_t resultCode() const;
 
@@ -36,6 +40,7 @@ public:
 
 private:
     NodeUUID mSenderUUID;
+    TransactionUUID mTransactionUUID;
     uint16_t mResultCode;
     Timestamp mTimestampCompleted;
 

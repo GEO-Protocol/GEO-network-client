@@ -14,6 +14,7 @@
 
 #include "../../network/messages/Message.h"
 #include "../../network/messages/incoming/AcceptTrustLineMessage.h"
+#include "../../network/messages/response/Response.h"
 
 #include "../../network/communicator/Communicator.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"

@@ -83,6 +83,23 @@ void TransactionsScheduler::run() {
     }
 }
 
+void TransactionsScheduler::handleMessage(
+    Message::Shared message) {
+
+    //-------------------------------------
+    for (auto &transaction : *mTransactions) {
+        if (transaction.first->uuid() == message->transactionUUID()) {
+            for (auto &messageType : transaction.second->transactionsTypes()) {
+                if (messageType == message->typeID()) {
+                    transaction.first->setContext(message);
+                    launchTransaction(transaction.first);
+                }
+            }
+        }
+    }
+    //-------------------------------------
+}
+
 void TransactionsScheduler::launchTransaction(
     BaseTransaction::Shared transaction) {
 

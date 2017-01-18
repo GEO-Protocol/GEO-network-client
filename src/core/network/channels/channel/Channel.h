@@ -33,7 +33,7 @@ public:
 
     bool checkConsistency() const;
 
-    pair<size_t, ConstBytesShared> data() const;
+    pair<ConstBytesShared, size_t> data() const;
 
     const uint16_t expectedPacketsCount() const;
 

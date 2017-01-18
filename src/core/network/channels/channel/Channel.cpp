@@ -49,7 +49,7 @@ bool Channel::checkConsistency() const {
     return false;
 }
 
-pair<size_t, ConstBytesShared> Channel::data() const {
+pair<ConstBytesShared, size_t> Channel::data() const {
 
     size_t totalBytesCount = 0;
     for (auto &it : *mPackets) {
@@ -75,7 +75,7 @@ pair<size_t, ConstBytesShared> Channel::data() const {
         }
     }
 
-    return make_pair(totalBytesCount, ConstBytesShared(data, free));
+    return make_pair(ConstBytesShared(data, free), totalBytesCount);
 
 }
 

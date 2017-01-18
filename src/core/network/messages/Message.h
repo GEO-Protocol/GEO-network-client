@@ -38,19 +38,16 @@ public:
         OpenTrustLineMessageType = 1,
         AcceptTrustLineMessageType = 2,
         CloseTrustLineMessageType = 3,
-        RejectTrustLineMessageType = 4
+        RejectTrustLineMessageType = 4,
+        ResponseMessageType = 5
     };
 
 public:
     Message() {};
 
-    Message(NodeUUID &sender) : mSender(sender) {};
+    Message(NodeUUID &sender, TransactionUUID &transactionUUID) : mSenderUUID(sender), mTransactionUUID(transactionUUID) {};
 
-    Message(TransactionUUID &transactionUUID) : mTransactionUUID(transactionUUID) {};
-
-    Message(NodeUUID &sender, TransactionUUID &transactionUUID) : mSender(sender), mTransactionUUID(transactionUUID) {};
-
-    NodeUUID sender() const { return mSender; }
+    NodeUUID senderUUID() const { return mSenderUUID; }
 
     TransactionUUID transactionUUID() const { return mTransactionUUID; }
 
@@ -62,7 +59,7 @@ public:
     virtual const MessageTypeID typeID() const = 0;
 
 protected:
-    NodeUUID mSender;
+    NodeUUID mSenderUUID;
     TransactionUUID mTransactionUUID;
 };
 

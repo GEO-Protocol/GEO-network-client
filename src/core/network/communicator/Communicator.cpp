@@ -2,7 +2,6 @@
 
 
 Communicator::Communicator(
-    Core *core,
     as::io_service &ioService,
     NodeUUID &nodeUUID,
     const string &nodeInterface,
@@ -11,42 +10,63 @@ Communicator::Communicator(
     const uint16_t uuid2AddressPort,
     Logger *logger):
 
-    mCore(core),
     mIOService(ioService),
     mNodeUUID(nodeUUID),
     mInterface(nodeInterface),
     mPort(nodePort),
     mLog(logger){
 
+    zeroPointers();
+
     try {
+        mSocket = new udp::socket(
+            mIOService,
+            udp::endpoint(udp::v4(), nodePort)
+        );
+
         mUUID2AddressService = new UUID2Address(
             ioService,
             uuid2AddressHost,
-            uuid2AddressPort);
+            uuid2AddressPort
+        );
 
         mChannelsManager = new ChannelsManager();
-        mSocket = new udp::socket(mIOService, udp::endpoint(udp::v4(), nodePort));
-        mIncomingMessagesHandler = new IncomingMessagesHandler(mChannelsManager, mCore->transactionsManager());
+
+        mIncomingMessagesHandler = new IncomingMessagesHandler(mChannelsManager);
+
         mOutgoingMessagesHandler = new OutgoingMessagesHandler();
 
+        incomingMessagesSlots = new IncomingMessagesSlots(
+            this,
+            mLog
+        );
+
     } catch (std::bad_alloc &e) {
-        throw MemoryError(
-            "Communicator::Communicator: "
-                "cant allocate enough memory for one of the Communicator's component.");
+        cleanupMemory();
+        throw MemoryError("Communicator::Communicator: "
+                              "Сant allocate enough memory for one of the Communicator's component.");
     }
+
+    connectIncomingMessagesHanlderSignals();
 }
 
 Communicator::~Communicator() {
 
-    delete mUUID2AddressService;
-
-    delete mChannelsManager;
-    delete mSocket;
-    delete mOutgoingMessagesHandler;
-    delete mIncomingMessagesHandler;
+    cleanupMemory();
 }
 
-NodeUUID &Communicator::nodeUUID() const {
+void Communicator::connectIncomingMessagesHanlderSignals() {
+
+    mIncomingMessagesHandler->messageParsedSignal.connect(
+        boost::bind(
+            &Communicator::IncomingMessagesSlots::onMessageParsedSlot,
+            incomingMessagesSlots
+        )
+    );
+}
+
+const NodeUUID &Communicator::nodeUUID() const {
+
     return mNodeUUID;
 }
 
@@ -56,14 +76,13 @@ void Communicator::beginAcceptMessages() {
         mUUID2AddressService->registerInGlobalCache(
             mNodeUUID,
             mInterface,
-            mPort);
+            mPort
+        );
 
     } catch (std::exception &e) {
-        throw RuntimeError(
-            "Communicator::beginAcceptMessages: "
-                "Can't register in global nodes addresses cache.");
+        throw RuntimeError("Communicator::beginAcceptMessages: "
+                               "Can't register in global nodes addresses cache.");
     }
-
     asyncReceiveData();
 }
 
@@ -83,9 +102,9 @@ void Communicator::sendMessage(
         channelNumber
     );
 
-    for (auto const &iter : *packets) {
+    for (auto const &packet : *packets) {
         sendData(
-            iter->packetBytes(),
+            packet->packetBytes(),
             address
         );
     }
@@ -118,15 +137,17 @@ void Communicator::handleReceivedInfo(
             mRecvBuffer.data(),
             bytesTransferred
         );
+        mLog->logInfo("Communicator::handleReceivedInfo: ",
+                       string("Bytes received - ") + to_string(bytesTransferred));
 
     } else {
-        mLog->logError(
-            "Communicator::handleReceivedInfo:",
-            error.message());
+        mLog->logError("Communicator::handleReceivedInfo:",
+                       error.message());
     }
 
     // In all cases - messages receiving should be continued.
-    asyncReceiveData(); // WARNING: stack permanent growing
+    // WARNING: stack permanent growing
+    asyncReceiveData();
 }
 
 void Communicator::sendData(
@@ -157,11 +178,58 @@ void Communicator::handleSend(
     size_t bytesTransferred) {
 
     if (error) {
-        mLog->logError(
-            "Communicator::handleSend:",
-            error.message()
+        mLog->logError("Communicator::handleSend:",
+                       error.message()
         );
+
+    } else {
+        mLog->logInfo("Communicator::handleReceivedInfo: ",
+                      string("Bytes transaferred - ") + to_string(bytesTransferred));
     }
 }
 
+void Communicator::zeroPointers() {
 
+    mSocket = nullptr;
+    mUUID2AddressService = nullptr;
+    mChannelsManager = nullptr;
+    mChannelsManager = nullptr;
+    mOutgoingMessagesHandler = nullptr;
+    mIncomingMessagesHandler = nullptr;
+}
+
+void Communicator::cleanupMemory() {
+
+    if (mSocket != nullptr) {
+        delete mSocket;
+    }
+
+    if (mUUID2AddressService != nullptr) {
+        delete mUUID2AddressService;
+    }
+
+    if (mChannelsManager != nullptr) {
+        delete mChannelsManager;
+    }
+
+    if (mOutgoingMessagesHandler != nullptr) {
+        delete mOutgoingMessagesHandler;
+    }
+
+    if (mIncomingMessagesHandler != nullptr) {
+        delete mIncomingMessagesHandler;
+    }
+}
+
+Communicator::IncomingMessagesSlots::IncomingMessagesSlots(
+    Communicator *communicator,
+    Logger *logger) :
+
+    mCommunicator(communicator),
+    mLog(logger) {}
+
+void Communicator::IncomingMessagesSlots::onMessageParsedSlot(
+    Message::Shared message) {
+
+    mCommunicator->messageReceivedSignal(message);
+}

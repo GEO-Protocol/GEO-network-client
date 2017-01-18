@@ -38,7 +38,7 @@ pair<ConstBytesShared, size_t> AcceptTrustLineMessage::serialize() {
 
     memcpy(
         data + sizeof(uint16_t),
-        mSender.data,
+        mSenderUUID.data,
         NodeUUID::kUUIDSize
     );
 
@@ -67,14 +67,20 @@ void AcceptTrustLineMessage::deserialize(
     //Message::deserialize(buffer);
     //------------------------------
     memcpy(
-        mTransactionUUID.data,
+        mSenderUUID.data,
         buffer,
+        NodeUUID::kUUIDSize
+    );
+    //------------------------------
+    memcpy(
+        mTransactionUUID.data,
+        buffer + NodeUUID::kUUIDSize,
         TransactionUUID::kUUIDSize
     );
     //------------------------------
     vector<byte> amountBytes(
-        buffer + TransactionUUID::kUUIDSize,
-        buffer + TransactionUUID::kUUIDSize + kTrustLineAmountSize);
+        buffer + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize,
+        buffer + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize + kTrustLineAmountSize);
 
 
     vector<byte> amountNotZeroBytes;
@@ -113,11 +119,44 @@ TrustLineAmount AcceptTrustLineMessage::amount() const {
     return mTrustLineAmount;
 }
 
-const MessageResult *AcceptTrustLineMessage::resultConflict() const {
+MessageResult::Shared AcceptTrustLineMessage::resultAccepted() const {
 
-    return new MessageResult(
-        sender(),
-        409
+    return MessageResult::Shared(
+        new MessageResult(
+            mSenderUUID,
+            mTransactionUUID,
+            kResultCodeAccepted)
+    );
+}
+
+MessageResult::Shared AcceptTrustLineMessage::resultConflict() const {
+
+    return MessageResult::Shared(
+        new MessageResult(
+            mSenderUUID,
+            mTransactionUUID,
+            kResultCodeConflict)
+    );
+}
+
+MessageResult::Shared AcceptTrustLineMessage::resultTransactionConflict() const {
+
+    return MessageResult::Shared(
+        new MessageResult(
+            mSenderUUID,
+            mTransactionUUID,
+            kResultCodeTransactionConflict)
+    );
+}
+
+MessageResult::Shared AcceptTrustLineMessage::customCodeResult(
+    uint16_t code) const {
+
+    return MessageResult::Shared(
+        new MessageResult(
+            mSenderUUID,
+            mTransactionUUID,
+            code)
     );
 }
 

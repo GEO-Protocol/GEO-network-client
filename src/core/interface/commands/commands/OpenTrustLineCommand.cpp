@@ -35,6 +35,10 @@ const CommandResult *OpenTrustLineCommand::resultConflict() const {
     return new CommandResult(uuid(), 429);
 }
 
+const CommandResult *OpenTrustLineCommand::resultNoResponse() const {
+    return new CommandResult(uuid(), 444);
+}
+
 /*!
  * Throws ValueError if deserialization was unsuccessful.
  */

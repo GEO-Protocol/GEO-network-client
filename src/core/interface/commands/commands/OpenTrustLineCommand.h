@@ -34,6 +34,8 @@ public:
 
     const CommandResult *resultConflict() const;
 
+    const CommandResult *resultNoResponse() const;
+
 protected:
     void deserialize(
         const string &command);

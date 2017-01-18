@@ -36,7 +36,19 @@ public:
 
     TrustLineAmount amount() const;
 
-    const MessageResult* resultConflict() const;
+    MessageResult::Shared resultAccepted() const;
+
+    MessageResult::Shared resultConflict() const;
+
+    MessageResult::Shared resultTransactionConflict() const;
+
+    MessageResult::Shared customCodeResult(
+        uint16_t code) const;
+
+public:
+    static const uint16_t kResultCodeAccepted = 200;
+    static const uint16_t kResultCodeConflict = 409;
+    static const uint16_t kResultCodeTransactionConflict = 500;
 
 private:
     const size_t kTrustLineAmountSize = 32;

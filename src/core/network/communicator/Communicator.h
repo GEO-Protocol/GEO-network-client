@@ -3,17 +3,14 @@
 
 #include "../../common/Types.h"
 
-#include "../../Core.h"
-
 #include "../service/UUID2Address.h"
 #include "../channels/manager/ChannelsManager.h"
 #include "../internal/OutgoingMessagesHandler.h"
 #include "../internal/IncomingMessagesHandler.h"
 
-#include "../../common/exceptions/RuntimeError.h"
-
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/signals2.hpp>
 
 #include <stdlib.h>
 #include <string>
@@ -24,15 +21,15 @@ using namespace std;
 
 namespace as = boost::asio;
 namespace ip = boost::asio::ip;
+namespace signals = boost::signals2;
 
-typedef boost::system::error_code err;
 
-class Core;
-class IncomingMessagesHandler;
 class Communicator {
 public:
+    signals::signal<void(Message::Shared)> messageReceivedSignal;
+
+public:
     explicit Communicator(
-        Core *core,
         as::io_service &ioService,
         NodeUUID &nodeUUID,
         const string &nodeInterface,
@@ -43,7 +40,9 @@ public:
 
     ~Communicator();
 
-    NodeUUID &nodeUUID() const;
+    void connectIncomingMessagesHanlderSignals();
+
+    const NodeUUID &nodeUUID() const;
 
     void beginAcceptMessages();
 
@@ -66,26 +65,46 @@ private:
         const boost::system::error_code &error,
         size_t bytesTransferred);
 
-private:
-    static constexpr const size_t kMaxIncomingBufferSize = 500*2;
+    void zeroPointers();
 
-    Core *mCore;
+    void cleanupMemory();
+
+private:
+    const size_t kMaxIncomingBufferSize = 1000;
+
     as::io_service &mIOService;
     NodeUUID &mNodeUUID;
     const string mInterface;
     const uint16_t mPort;
+    Logger *mLog;
+
+    udp::socket *mSocket;
 
     UUID2Address *mUUID2AddressService;
-
     ChannelsManager *mChannelsManager;
-    udp::socket *mSocket;
     IncomingMessagesHandler *mIncomingMessagesHandler;
     OutgoingMessagesHandler *mOutgoingMessagesHandler;
 
     boost::array<byte, kMaxIncomingBufferSize> mRecvBuffer;
     udp::endpoint mRemoteEndpointBuffer;
 
-    Logger *mLog;
+    IncomingMessagesSlots *incomingMessagesSlots;
+
+private:
+    class IncomingMessagesSlots {
+
+    public:
+        IncomingMessagesSlots(
+            Communicator *communicator,
+            Logger *logger);
+
+        void onMessageParsedSlot(
+            Message::Shared message);
+
+    private:
+        Communicator *mCommunicator;
+        Logger *mLog;
+    };
 };
 
 

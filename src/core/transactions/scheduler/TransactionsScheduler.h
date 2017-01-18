@@ -5,6 +5,7 @@
 
 #include "../transactions/BaseTransaction.h"
 #include "../transactions/result/TransactionResult.h"
+#include "../../network/messages/response/Response.h"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
@@ -42,6 +43,9 @@ public:
         BaseTransaction::Shared transaction);
 
     void run();
+
+    void handleMessage(
+        Message::Shared message);
 
     friend const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
         TransactionsScheduler *scheduler);
