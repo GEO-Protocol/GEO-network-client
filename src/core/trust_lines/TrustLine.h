@@ -1,25 +1,18 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINE_H
 #define GEO_NETWORK_CLIENT_TRUSTLINE_H
 
+
 #include "../common/Types.h"
 #include "../common/NodeUUID.h"
-
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
-
 #include "../common/exceptions/RuntimeError.h"
+#include "../common/exceptions/MemoryError.h"
+#include "../common/exceptions/ValueError.h"
 
 #include <vector>
 
+
 using namespace std;
 
-namespace multiprecision = boost::multiprecision;
-
-typedef multiprecision::checked_uint256_t TrustLineAmount;
-typedef multiprecision::int256_t TrustLineBalance;
-
-typedef boost::function<void()> SaveTrustLineCallback;
 
 struct TrustLine {
     // todo: tests?
@@ -38,33 +31,30 @@ public:
 
     TrustLine(
         const byte *buffer,
-        const NodeUUID &contractorUUID
-    );
+        const NodeUUID &contractorUUID);
 
     void setIncomingTrustAmount(
-        const TrustLineAmount &amount,
-        SaveTrustLineCallback callback);
+        const TrustLineAmount &amount);
 
     void setOutgoingTrustAmount(
-        const TrustLineAmount &amount,
-        SaveTrustLineCallback callback);
+        const TrustLineAmount &amount);
 
     void setBalance(
-        const TrustLineBalance &balance,
-        SaveTrustLineCallback callback);
+        const TrustLineBalance &balance);
 
     const NodeUUID &contractorNodeUUID() const;
-
     const TrustLineAmount &incomingTrustAmount() const;
-
     const TrustLineAmount &outgoingTrustAmount() const;
-
+    const TrustLineAmount &availableAmount() const;
     const TrustLineBalance &balance() const;
 
-    vector<byte> *serializeTrustLine();
-
-    void deserializeTrustLine(
+    vector<byte> *serialize();
+    void deserialize(
         const byte *buffer);
+
+private:
+    static const constexpr TrustLineBalance ZeroBalance = TrustLineBalance(0);
+    static const constexpr TrustLineAmount ZeroAmount = TrustLineAmount(0);
 
 private:
     void trustAmountToBytes(
@@ -92,11 +82,11 @@ private:
         + kBalancePartSize
         + kSignBytePartSize;
 
+private:
     NodeUUID mContractorNodeUuid;
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
     TrustLineBalance mBalance;
-
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINE_H
