@@ -1,34 +1,24 @@
 #include "OpenTrustLineTransaction.h"
 
 OpenTrustLineTransaction::OpenTrustLineTransaction(
+    NodeUUID &nodeUUID,
     OpenTrustLineCommand::Shared command,
-    Communicator *communicator,
     TransactionsScheduler *scheduler,
-    TrustLinesInterface *interface) :
+    TrustLinesManager *manager) :
 
-    UniqueTransaction(BaseTransaction::TransactionType::OpenTrustLineTransactionType, scheduler),
+    UniqueTransaction(
+        BaseTransaction::TransactionType::OpenTrustLineTransactionType,
+        nodeUUID,
+        scheduler
+    ),
     mCommand(command),
-    mCommunicator(communicator),
-    mTrustLinesInterface(interface) {
-
-    mStep = 1;
-    mRequestCounter = 0;
-}
+    mTrustLinesManager(manager) {}
 
 OpenTrustLineCommand::Shared OpenTrustLineTransaction::command() const {
     return mCommand;
 }
 
-void OpenTrustLineTransaction::setContext(
-    Message::Shared message) {
-
-    mContext = message;
-}
-
-pair<byte *, size_t> OpenTrustLineTransaction::serializeContext() {}
-
 TransactionResult::Shared OpenTrustLineTransaction::run() {
-
 
     switch (mStep) {
 
@@ -48,39 +38,34 @@ TransactionResult::Shared OpenTrustLineTransaction::run() {
 
         case 3: {
             if (mContext.get() != nullptr) {
-                if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
-                    Response::Shared response = static_pointer_cast<Response>(mContext);
-                    cout << "Transaction result code " << to_string(response->mCode) << endl;
-                }
+                return checkTransactionContext();
 
             } else {
                 if (mRequestCounter < kMaxRequestsCount) {
                     sendMessageToRemoteNode();
-                    mRequestCounter += 1;
+                    increaseRequestsCounter();
 
                 } else {
                     return noResponseResult();
                 }
             }
-            return waitForResponse();
+            return waitingForResponseState();
         }
 
         default: {
-            break;
+            throw ConflictError("OpenTrustLineTransaction::run: "
+                                    "Illegal step execution.");
         }
 
     }
-
-    return resultOk();
-
 }
 
 bool OpenTrustLineTransaction::checkSameTypeTransactions() {
 
-    auto *transactions = pendingTransactions();
+    auto transactions = pendingTransactions();
     for (auto const &it : *transactions) {
 
-        switch (it.first->type()) {
+        switch (it.first->transactionType()) {
 
             case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
                 OpenTrustLineTransaction::Shared openTrustLineTransaction = static_pointer_cast<OpenTrustLineTransaction>(it.first);
@@ -115,24 +100,35 @@ bool OpenTrustLineTransaction::checkSameTypeTransactions() {
 
 bool OpenTrustLineTransaction::checkTrustLineDirection() {
 
-    return mTrustLinesInterface->isDirectionOutgoing(mCommand->contractorUUID());
+    return mTrustLinesManager->checkDirection(
+        mCommand->contractorUUID(),
+        TrustLineDirection::Outgoing
+    );
+}
+
+TransactionResult::Shared OpenTrustLineTransaction::checkTransactionContext() {
+
+    if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
+        Response::Shared response = static_pointer_cast<Response>(mContext);
+        cout << "Transaction result code " << to_string(response->mCode) << endl;
+    }
 }
 
 void OpenTrustLineTransaction::sendMessageToRemoteNode() {
 
     Message *message = new OpenTrustLineMessage(
-        mCommunicator->nodeUUID(),
-        uuid(),
+        mNodeUUID,
+        transactionUUID(),
         mCommand->amount()
     );
 
-    mCommunicator->sendMessage(
+    sendMessageSignal(
         Message::Shared(message),
         mCommand->contractorUUID()
     );
 }
 
-TransactionResult::Shared OpenTrustLineTransaction::waitForResponse() {
+TransactionResult::Shared OpenTrustLineTransaction::waitingForResponseState() {
 
     TransactionState *transactionState = new TransactionState(
         kConnectionTimeout,
@@ -145,10 +141,6 @@ TransactionResult::Shared OpenTrustLineTransaction::waitForResponse() {
     return TransactionResult::Shared(transactionResult);
 }
 
-void OpenTrustLineTransaction::increaseStepsCounter() {
-
-    mStep += 1;
-}
 
 TransactionResult::Shared OpenTrustLineTransaction::resultOk() {
 
@@ -177,6 +169,3 @@ TransactionResult::Shared OpenTrustLineTransaction::noResponseResult() {
     transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->resultNoResponse())));
     return TransactionResult::Shared(transactionResult);
 }
-
-
-

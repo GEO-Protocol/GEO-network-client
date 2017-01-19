@@ -1,30 +1,22 @@
 #include "AcceptTrustLineTransaction.h"
 
 AcceptTrustLineTransaction::AcceptTrustLineTransaction(
+    NodeUUID &nodeUUID,
     AcceptTrustLineMessage::Shared message,
-    Communicator *communicator,
     TransactionsScheduler *scheduler,
-    TrustLinesInterface *interface) :
+    TrustLinesManager *manager) :
 
-    UniqueTransaction(BaseTransaction::TransactionType::AcceptTrustLineTransactionType, scheduler),
+    UniqueTransaction(
+        BaseTransaction::TransactionType::AcceptTrustLineTransactionType,
+        nodeUUID,
+        scheduler
+    ), ,
     mMessage(message),
-    mCommunicator(communicator),
-    mTrustLinesInterface(interface) {
-
-    mStep = 1;
-}
+    mTrustLinesManager(manager) {}
 
 AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
     return mMessage;
 }
-
-void AcceptTrustLineTransaction::setContext(
-    Message::Shared message) {
-
-    BaseTransaction::mContext = message;
-}
-
-pair<byte *, size_t> AcceptTrustLineTransaction::serializeContext() {}
 
 TransactionResult::Shared AcceptTrustLineTransaction::run() {
 
@@ -66,7 +58,7 @@ TransactionResult::Shared AcceptTrustLineTransaction::run() {
 
         default: {
             throw ConflictError("AcceptTrustLineTransaction::run: "
-                                    "Illegal step");
+                                    "Illegal step execution.");
         }
 
     }
@@ -84,7 +76,7 @@ bool AcceptTrustLineTransaction::checkSameTypeTransactions() {
     auto *transactions = pendingTransactions();
     for (auto const &it : *transactions) {
 
-        switch (it.first->type()) {
+        switch (it.first->transactionType()) {
 
             case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
                 AcceptTrustLineTransaction::Shared acceptTrustLineTransaction = static_pointer_cast<AcceptTrustLineTransaction>(it.first);
@@ -119,27 +111,26 @@ bool AcceptTrustLineTransaction::checkSameTypeTransactions() {
 
 bool AcceptTrustLineTransaction::checkTrustLineDirection() {
 
-    return mTrustLinesInterface->isDirectionIncoming(mMessage->senderUUID());
+    return mTrustLinesManager->checkDirection(
+        mMessage->senderUUID(),
+        TrustLineDirection::Incoming);
 }
 
 bool AcceptTrustLineTransaction::checkTrustLineAmount() {
 
-    return mTrustLinesInterface->checkIncomingAmount(
-        mMessage->senderUUID(),
-      mMessage->amount()
-    );
+    return mTrustLinesManager->trustLineByContractorUUID(mMessage->senderUUID())->incomingTrustAmount() == mMessage->amount();
 }
 
 void AcceptTrustLineTransaction::sendResponse(
     uint16_t code) {
 
     Message *message = new Response(
-        mCommunicator->nodeUUID(),
+        mNodeUUID,
         mMessage->transactionUUID(),
         code
     );
 
-    mCommunicator->sendMessage(
+    sendMessageSignal(
         Message::Shared(message),
         mMessage->senderUUID()
     );
@@ -148,7 +139,7 @@ void AcceptTrustLineTransaction::sendResponse(
 void AcceptTrustLineTransaction::createTrustLine() {
 
     try {
-        mTrustLinesInterface->open(
+        mTrustLinesManager->open(
             mMessage->senderUUID(),
             mMessage->amount()
         );
@@ -156,11 +147,6 @@ void AcceptTrustLineTransaction::createTrustLine() {
     } catch (std::exception &e) {
         throw Exception(e.what());
     }
-}
-
-void AcceptTrustLineTransaction::increaseStepsCounter() {
-
-    mStep += 1;
 }
 
 TransactionResult::Shared AcceptTrustLineTransaction::makeResult(

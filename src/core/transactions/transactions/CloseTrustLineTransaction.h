@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_CLOSETRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_CLOSETRUSTLINETRANSACTION_H
 
-#include "UniqueTransaction.h"
+#include "unique/UniqueTransaction.h"
 
 #include "../../interface/commands/commands/CloseTrustLineCommand.h"
 

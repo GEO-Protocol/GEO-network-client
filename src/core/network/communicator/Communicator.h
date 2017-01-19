@@ -40,8 +40,6 @@ public:
 
     ~Communicator();
 
-    void connectIncomingMessagesHanlderSignals();
-
     const NodeUUID &nodeUUID() const;
 
     void beginAcceptMessages();
@@ -51,6 +49,8 @@ public:
         const NodeUUID &contractorUUID);
 
 private:
+    void connectIncomingMessagesHanlderSignals();
+
     void asyncReceiveData();
 
     void handleReceivedInfo(

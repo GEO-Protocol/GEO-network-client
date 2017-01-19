@@ -1,9 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_USECREDITTRANSACTION_H
 #define GEO_NETWORK_CLIENT_USECREDITTRANSACTION_H
 
-#include "BaseTransaction.h"
+#include "../../BaseTransaction.h"
 
-#include "../../interface/commands/commands/UseCreditCommand.h"
+#include "../../../../interface/commands/commands/UseCreditCommand.h"
 
 class UseCreditTransaction : public BaseTransaction {
     friend class TransactionsScheduler;

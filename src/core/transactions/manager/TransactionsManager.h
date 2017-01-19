@@ -1,7 +1,12 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
+#include "../../common/NodeUUID.h"
+#include "../../trust_lines/manager/TrustLinesManager.h"
+#include "../../interface/results/interface/ResultsInterface.h"
 #include "../../logger/Logger.h"
+
+#include "../scheduler/TransactionsScheduler.h"
 
 #include "../../interface/commands/commands/BaseUserCommand.h"
 #include "../../interface/commands/commands/OpenTrustLineCommand.h"
@@ -14,38 +19,36 @@
 
 #include "../../network/messages/Message.h"
 #include "../../network/messages/incoming/AcceptTrustLineMessage.h"
-#include "../../network/messages/response/Response.h"
-
-#include "../../network/communicator/Communicator.h"
-#include "../../trust_lines/manager/TrustLinesManager.h"
-#include "../../trust_lines/interface/TrustLinesInterface.h"
-#include "../scheduler/TransactionsScheduler.h"
 
 #include "../transactions/BaseTransaction.h"
-#include "../transactions/OpenTrustLineTransaction.h"
-#include "../transactions/AcceptTrustLineTransaction.h"
+#include "../transactions/unique/trust_lines/OpenTrustLineTransaction.h"
+#include "../transactions/unique/trust_lines/AcceptTrustLineTransaction.h"
 #include "../transactions/CloseTrustLineTransaction.h"
 #include "../transactions/UpdateTrustLineTransaction.h"
 #include "../transactions/MaximalAmountTransaction.h"
 #include "../transactions/ContractorsListTransaction.h"
 #include "../transactions/TotalBalanceTransaction.h"
-#include "../transactions/UseCreditTransaction.h"
+#include "../transactions/unique/payment/UseCreditTransaction.h"
 
-#include "../../interface/results/interface/ResultsInterface.h"
+#include "../../network/messages/response/Response.h"
+
+#include <boost/signals2.hpp>
 
 #include <string>
 
-
 using namespace std;
+namespace signals = boost::signals2;
 
-class Communicator;
 class TransactionsManager {
     // todo: hsc: tests?
 
 public:
+    signals::signal<void(Message::Shared, const NodeUUID&)> sendMessageSignal;
+
+public:
     TransactionsManager(
+        NodeUUID &nodeUUID,
         as::io_service &IOService,
-        Communicator *communicator,
         TrustLinesManager *trustLinesManager,
         ResultsInterface *resultsInterface,
         Logger *logger);
@@ -62,40 +65,62 @@ public:
         CommandResult::SharedConst result);
 
 private:
-    void openTrustLine(
+    void createOpenTrustLineTransaction(
         BaseUserCommand::Shared command);
 
-    void acceptTrustLine(
+    void createAcceptTrustLineTransaction(
         Message::Shared message);
 
-    void closeTrustLine(
+    void createCloseTrustLineTransaction(
         BaseUserCommand::Shared command);
 
-    void updateTrustLine(
+    void createUpdateTrustLineTransaction(
         BaseUserCommand::Shared command);
 
-    void calculateMaxTransactionAmount(
+    void createCalculateMaximalAmountTransaction(
         BaseUserCommand::Shared command);
 
-    void useCredit(
+    void createUseCreditTransaction(
         BaseUserCommand::Shared command);
 
-    void calculateTotalBalance(
+    void createCalculateTotalBalanceTransaction(
         BaseUserCommand::Shared command);
 
-    void formContractorsList(
+    void createFormContractorsListTransaction(
         BaseUserCommand::Shared command);
+
+    void zeroPointers();
+
+    void cleanupMemory();
 
 private:
-
+    NodeUUID &mNodeUUID;
     as::io_service &mIOService;
-    Communicator *mCommunicator;
     TrustLinesManager *mTrustLinesManager;
     ResultsInterface *mResultsInterface;
     Logger *mLog;
 
-    TrustLinesInterface *mTrustLinesInterface;
     TransactionsScheduler *mTransactionsScheduler;
+
+    TransactionsMessagesSlot *transactionsMessagesSlot;
+
+private:
+
+    class TransactionsMessagesSlot {
+
+    public:
+        TransactionsMessagesSlot(
+          TransactionsManager *transactionsManager,
+          Logger *logger);
+
+        void sendTransactionMessageSlot(
+          Message::Shared message,
+          const NodeUUID &contractorUUID);
+
+    private:
+        TransactionsManager *mTransactionsManager;
+        Logger *mLog;
+    };
 
 };
 

@@ -74,7 +74,7 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
     }
 
 
-    // Command uuid
+    // Command transactionUUID
     CommandUUID commandUUID;
     try {
         string hexUUID = mBuffer.substr(0, kUUIDHexRepresentationSize);

@@ -89,7 +89,7 @@ const NodeUUID Settings::nodeUUID(const json *conf) const {
         conf = &j;
     }
     try {
-        string hexUUID = (*conf).at("node").at("uuid");
+        string hexUUID = (*conf).at("node").at("transactionUUID");
         return NodeUUID(hexUUID);
     } catch (...) {
         throw RuntimeError(

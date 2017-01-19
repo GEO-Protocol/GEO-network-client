@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_UPDATETRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_UPDATETRUSTLINETRANSACTION_H
 
-#include "UniqueTransaction.h"
+#include "unique/UniqueTransaction.h"
 
 #include "../../interface/commands/commands/UpdateTrustLineCommand.h"
 

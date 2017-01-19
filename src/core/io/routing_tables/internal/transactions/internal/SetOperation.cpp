@@ -17,7 +17,7 @@ SetOperation::SetOperation(
     mRecN(recN){}
 
 /*
- * data doesn't contains transaction type.
+ * data doesn't contains transaction transactionType.
  */
 SetOperation::SetOperation(
     const AbstractRecordsHandler::byte *data):
@@ -25,9 +25,9 @@ SetOperation::SetOperation(
 
     auto currentOffset = data;
 
-    // Set operation type
+    // Set operation transactionType
     // This constructor is shared also for RemoveOperation.
-    // So the type should be loaded from file,
+    // So the transactionType should be loaded from file,
     // instead of direct setting.
     //
     // (see RemoveOperation.h for details)
@@ -36,11 +36,11 @@ SetOperation::SetOperation(
     currentOffset += sizeof(Operation::SerializedOperationType);
 
 
-    // Deserialization of the first node uuid
+    // Deserialization of the first node transactionUUID
     memcpy(mU1.data, currentOffset, NodeUUID::kUUIDLength);
     currentOffset += NodeUUID::kUUIDLength;
 
-    // Deserialization of the second node uuid
+    // Deserialization of the second node transactionUUID
     memcpy(mU2.data, currentOffset, NodeUUID::kUUIDLength);
     currentOffset += NodeUUID::kUUIDLength;
 
@@ -67,16 +67,16 @@ const pair<shared_ptr<byte>, size_t> SetOperation::serialize() const {
 
     auto currentOffset = buffer;
 
-    // Serializing operation type
+    // Serializing operation transactionType
     Operation::SerializedOperationType serializableOperationType = mType;
     memcpy(currentOffset, &serializableOperationType, sizeof(serializableOperationType));
     currentOffset += sizeof(serializableOperationType);
 
-    // Serializing first node uuid
+    // Serializing first node transactionUUID
     memcpy(currentOffset, mU1.data, NodeUUID::kUUIDLength);
     currentOffset += NodeUUID::kUUIDLength;
 
-    // Serializing second node uuid
+    // Serializing second node transactionUUID
     memcpy(currentOffset, mU2.data, NodeUUID::kUUIDLength);
     currentOffset += NodeUUID::kUUIDLength;
 

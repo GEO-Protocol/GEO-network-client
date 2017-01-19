@@ -1,19 +1,19 @@
 #ifndef GEO_NETWORK_CLIENT_ACCEPTTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_ACCEPTTRUSTLINETRANSACTION_H
 
-#include "UniqueTransaction.h"
+#include "../UniqueTransaction.h"
 
-#include "../../network/messages/incoming/AcceptTrustLineMessage.h"
+#include "../../../../network/messages/incoming/AcceptTrustLineMessage.h"
 
-#include "../../network/communicator/Communicator.h"
-#include "../../network/messages/Message.h"
-#include "../../network/messages/response/Response.h"
+#include "../../UpdateTrustLineTransaction.h"
 
-#include "../scheduler/TransactionsScheduler.h"
+#include "../../../../network/messages/Message.h"
+#include "../../../../network/messages/response/Response.h"
 
-#include "../../trust_lines/interface/TrustLinesInterface.h"
+#include "../../../scheduler/TransactionsScheduler.h"
 
-class Communicator;
+#include "../../../manager/TransactionsManager.h"
+
 class AcceptTrustLineTransaction : public UniqueTransaction {
 
 public:
@@ -21,17 +21,12 @@ public:
 
 public:
     AcceptTrustLineTransaction(
+        NodeUUID &nodeUUID,
         AcceptTrustLineMessage::Shared message,
-        Communicator *communicator,
         TransactionsScheduler *scheduler,
-        TrustLinesInterface *interface);
+        TrustLinesManager *manager);
 
     AcceptTrustLineMessage::Shared message() const;
-
-    void setContext(
-        Message::Shared message);
-
-    pair<byte *, size_t> serializeContext();
 
     TransactionResult::Shared run();
 
@@ -44,12 +39,10 @@ private:
 
     bool checkTrustLineAmount();
 
-    void sendResponse(
-        uint16_t code);
-
     void createTrustLine();
 
-    void increaseStepsCounter();
+    void sendResponse(
+        uint16_t code);
 
     TransactionResult::Shared makeResult(
         MessageResult::Shared messageResult);
@@ -57,10 +50,7 @@ private:
 
 private:
     AcceptTrustLineMessage::Shared mMessage;
-    Communicator *mCommunicator;
-    TrustLinesInterface *mTrustLinesInterface;
-
-    uint16_t mStep;
+    TrustLinesManager *mTrustLinesManager;
 };
 
 

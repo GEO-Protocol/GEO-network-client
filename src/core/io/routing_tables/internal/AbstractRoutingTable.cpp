@@ -180,7 +180,7 @@ void AbstractRoutingTable::executeOperation(
     } else {
         throw Exception(
             "AbstractRoutingTable::executeTransaction: "
-                "unexpected transaction type occurred.");
+                "unexpected transaction transactionType occurred.");
     }
 }
 

@@ -1,23 +1,19 @@
 #ifndef GEO_NETWORK_CLIENT_OPENTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_OPENTRUSTLINETRANSACTION_H
 
-#include "UniqueTransaction.h"
+#include "../UniqueTransaction.h"
 
-#include "../../interface/commands/commands/OpenTrustLineCommand.h"
+#include "../../../../interface/commands/commands/OpenTrustLineCommand.h"
 
 #include "AcceptTrustLineTransaction.h"
-#include "UpdateTrustLineTransaction.h"
-#include "CloseTrustLineTransaction.h"
+#include "../../UpdateTrustLineTransaction.h"
+#include "../../CloseTrustLineTransaction.h"
 
-#include "../../network/communicator/Communicator.h"
-#include "../../network/messages/Message.h"
-#include "../../network/messages/outgoing/OpenTrustLineMessage.h"
+#include "../../../../network/messages/Message.h"
+#include "../../../../network/messages/outgoing/OpenTrustLineMessage.h"
 
-#include "../scheduler/TransactionsScheduler.h"
+#include "../../../manager/TransactionsManager.h"
 
-#include "../../trust_lines/interface/TrustLinesInterface.h"
-
-class Communicator;
 class OpenTrustLineTransaction : public UniqueTransaction {
 
 public:
@@ -25,17 +21,12 @@ public:
 
 public:
     OpenTrustLineTransaction(
+        NodeUUID &nodeUUID,
         OpenTrustLineCommand::Shared command,
-        Communicator *communicator,
         TransactionsScheduler *scheduler,
-        TrustLinesInterface *interface);
+        TrustLinesManager *manager);
 
     OpenTrustLineCommand::Shared command() const;
-
-    void setContext(
-        Message::Shared message);
-
-    pair<byte *, size_t> serializeContext();
 
     TransactionResult::Shared run();
 
@@ -44,11 +35,11 @@ private:
 
     bool checkTrustLineDirection();
 
+    TransactionResult::Shared checkTransactionContext();
+
     void sendMessageToRemoteNode();
 
-    TransactionResult::Shared waitForResponse();
-
-    void increaseStepsCounter();
+    TransactionResult::Shared waitingForResponseState();
 
     TransactionResult::Shared resultOk();
 
@@ -63,11 +54,7 @@ private:
     const uint16_t kMaxRequestsCount = 5;
 
     OpenTrustLineCommand::Shared mCommand;
-    Communicator *mCommunicator;
-    TrustLinesInterface *mTrustLinesInterface;
-
-    uint16_t mStep;
-    uint16_t mRequestCounter;
+    TrustLinesManager *mTrustLinesManager;
 };
 
 

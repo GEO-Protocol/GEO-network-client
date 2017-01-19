@@ -56,12 +56,10 @@ private:
 
     void cleanupMemory();
 
-public:
-    NetworkSlots *networkSlots;
-
 protected:
-    NodeUUID mNodeUUID;
     Logger mLog;
+
+    NodeUUID mNodeUUID;
     as::io_service mIOService;
 
     Settings *mSettings;
@@ -71,18 +69,26 @@ protected:
     TrustLinesManager *mTrustLinesManager;
     TransactionsManager *mTransactionsManager;
 
+    NetworkSlots *networkSlots;
+
 private:
     class NetworkSlots {
 
     public:
         NetworkSlots(
+            Communicator *communicator,
             TransactionsManager *manager,
             Logger *logger);
 
         void onMessageReceivedSlot(
             Message::Shared message);
 
+        void onMessageSendSlot(
+            Message::Shared message,
+            const NodeUUID &contractorUUID);
+
     private:
+        Communicator *mCommunicator;
         TransactionsManager *mTransactionsManager;
         Logger *mLog;
     };

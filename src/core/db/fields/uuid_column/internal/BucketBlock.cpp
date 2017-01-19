@@ -38,7 +38,7 @@ BucketBlock::BucketBlock(
 
         // Determine how much record numbers are present into the BucketBlockRecord.
         // This is needed to be able to increment offset for the next record.
-        // (Records numbers count field is situated after the uuid field)
+        // (Records numbers count field is situated after the transactionUUID field)
         byte *recordsCountFieldOffset = currentDataOffset + NodeUUID::kUUIDLength;
         RecordsCount recordNumbersCount = *(RecordsCount*)recordsCountFieldOffset;
 
@@ -81,7 +81,7 @@ void BucketBlock::insert(const NodeUUID &uuid, const RecordNumber recN) {
         record->insert(recN);
 
     } catch (IndexError &) {
-        // Current block doesn't contains record with exact uuid.
+        // Current block doesn't contains record with exact transactionUUID.
         // New one record should be created.
         auto record = createRecord(uuid);
         record->insert(recN);
@@ -96,7 +96,7 @@ void BucketBlock::insert(const NodeUUID &uuid, const RecordNumber recN) {
 bool BucketBlock::remove(const NodeUUID &uuid, const RecordNumber recN) {
     auto record = recordByUUID(uuid);
     if (record == nullptr) {
-        // There is no record with exact uuid in the block.
+        // There is no record with exact transactionUUID in the block.
         return false;
     }
 
@@ -269,7 +269,7 @@ const pair<shared_ptr<byte>, uint32_t> BucketBlock::serializeToBytes() const {
 
     for (RecordsCount i=0; i<mRecordsCount; ++i){
         totalBlockSize +=
-            + NodeUUID::kUUIDLength // uuid of the record
+            + NodeUUID::kUUIDLength // transactionUUID of the record
             + sizeof(RecordsCount)  // how many record numbers are stored in the record
             + sizeof(RecordNumber) * mRecords[i].count(); // record numbers itself
     }

@@ -56,7 +56,7 @@ int Core::initCoreComponents() {
         mNodeUUID = mSettings->nodeUUID(&conf);
 
     } catch (RuntimeError &) {
-        mLog.logFatal("Core", "Can't read uuid of the node from the settings.");
+        mLog.logFatal("Core", "Can't read transactionUUID of the node from the settings.");
         return -1;
     }
 
@@ -151,8 +151,8 @@ int Core::initTransactionsManager() {
 
     try {
         mTransactionsManager = new TransactionsManager(
+            mNodeUUID,
             mIOService,
-            mCommunicator,
             mTrustLinesManager,
             mResultsInterface,
             &mLog
@@ -187,6 +187,7 @@ int Core::initSlots() {
 
     try {
         networkSlots = new NetworkSlots(
+            mCommunicator,
             mTransactionsManager,
             &mLog
         );
@@ -204,6 +205,14 @@ void Core::connectCommunicatorSignals() {
     mCommunicator->messageReceivedSignal.connect(
         boost::bind(
             &Core::NetworkSlots::onMessageReceivedSlot,
+            networkSlots
+        )
+    );
+
+    //transactions manager's to communicator slot
+    mTransactionsManager->sendMessageSignal.connect(
+        boost::bind(
+            &Core::NetworkSlots::onMessageSendSlot,
             networkSlots
         )
     );
@@ -252,9 +261,11 @@ void Core::zeroPointers() {
 }
 
 Core::NetworkSlots::NetworkSlots(
+    Communicator *communicator,
     TransactionsManager *manager,
     Logger *logger) :
 
+    mCommunicator(communicator),
     mTransactionsManager(manager),
     mLog(logger){}
 
@@ -265,6 +276,21 @@ void Core::NetworkSlots::onMessageReceivedSlot(
         mTransactionsManager->processMessage(message);
 
     } catch(exception &e) {
+        mLog->logException("Core", e);
+    }
+}
+
+void Core::NetworkSlots::onMessageSendSlot(
+    Message::Shared message,
+    const NodeUUID &contractorUUID) {
+
+    try{
+        mCommunicator->sendMessage(
+            message,
+            contractorUUID
+        );
+
+    } catch (exception &e) {
         mLog->logException("Core", e);
     }
 }

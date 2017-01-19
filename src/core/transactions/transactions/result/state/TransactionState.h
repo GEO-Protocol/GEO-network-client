@@ -1,10 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 
-#include <stdint.h>
-#include <vector>
 #include "../../../../network/messages/Message.h"
 
+#include <stdint.h>
+#include <vector>
 
 using namespace std;
 

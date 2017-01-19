@@ -13,22 +13,22 @@ set(SOURCE_FILES
         transactions/ContractorsListTransaction.h
         transactions/MaximalAmountTransaction.cpp
         transactions/MaximalAmountTransaction.h
-        transactions/OpenTrustLineTransaction.cpp
-        transactions/OpenTrustLineTransaction.h
+        transactions/unique/trust_lines/OpenTrustLineTransaction.cpp
+        transactions/unique/trust_lines/OpenTrustLineTransaction.h
         transactions/result/state/TransactionState.cpp
         transactions/result/state/TransactionState.h
         transactions/TotalBalanceTransaction.cpp
         transactions/TotalBalanceTransaction.h
         transactions/UpdateTrustLineTransaction.cpp
         transactions/UpdateTrustLineTransaction.h
-        transactions/UseCreditTransaction.cpp
-        transactions/UseCreditTransaction.h
+        transactions/unique/payment/UseCreditTransaction.cpp
+        transactions/unique/payment/UseCreditTransaction.h
         TransactionUUID.cpp
         TransactionUUID.h
-        transactions/UniqueTransaction.cpp
-        transactions/UniqueTransaction.h
-        transactions/AcceptTrustLineTransaction.cpp
-        transactions/AcceptTrustLineTransaction.h
+        transactions/unique/UniqueTransaction.cpp
+        transactions/unique/UniqueTransaction.h
+        transactions/unique/trust_lines/AcceptTrustLineTransaction.cpp
+        transactions/unique/trust_lines/AcceptTrustLineTransaction.h
         transactions/result/TransactionResult.cpp
         transactions/result/TransactionResult.h)
 
