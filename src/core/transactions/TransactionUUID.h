@@ -1,36 +1,26 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONUUID_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONUUID_H
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/lexical_cast.hpp>
+#include "../common/NodeUUID.h"
 
-#include <string>
 
-using namespace boost::uuids;
-using namespace std;
-
+/*
+ * Used to globally distinquish transactions in whoole the system.
+ * Each one new transaction in the system will be initialised
+ * with a newly generated TransactionUUID.
+ *
+ * todo: research and document if uuid4 is enought for storing global transactions uuids.
+ *
+ *
+ * At this moment, TransactionUUID uses the same logic as the NodeUUID,
+ * but it's possible, that NodeUUID would be change it's logic in the future.
+ * But for now, it's simply enough to inherit TransactionUUID from NodeUUID.
+ */
 class TransactionUUID:
-        public uuid {
+    public NodeUUID {
 
 public:
-    static const size_t kUUIDSize = 16;
-    static const size_t kUUIDLength = 36;
-
-public:
-    explicit TransactionUUID();
-    TransactionUUID(uuid const &u);
-    TransactionUUID(TransactionUUID &u);
-    TransactionUUID(const TransactionUUID &u);
-    TransactionUUID(const string &hex);
-
-    operator boost::uuids::uuid();
-    operator boost::uuids::uuid() const;
-    TransactionUUID& operator=(
-            const boost::uuids::uuid &u);
-
-    const string stringUUID() const;
+    using NodeUUID::NodeUUID;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONUUID_H
