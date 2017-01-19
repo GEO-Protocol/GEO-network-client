@@ -17,17 +17,20 @@ using namespace std;
 
 class NodeUUID:
     public uuid {
-    friend class BucketBlockTests;
+    friend class BucketBlockTests; // todo: deprecated, subclass should be used
 
 public:
     static const size_t kHexSize = 36;
     static const size_t kBytesSize = 16;
 
+    // todo: deprecated, operator== should be used
     enum ComparePredicates {
         LESS = 0,
         EQUAL = 1,
         GREATER = 2,
     };
+
+    // todo: deprecated, operator== should be used
     static ComparePredicates compare(const NodeUUID &a, const NodeUUID &b);
 
 public:
@@ -42,6 +45,10 @@ public:
     operator boost::uuids::uuid() const;
     NodeUUID& operator=(
         const boost::uuids::uuid &u);
+
+    friend bool operator== (
+        const NodeUUID &u1,
+        const NodeUUID &u2);
 
     const string stringUUID() const;
 };

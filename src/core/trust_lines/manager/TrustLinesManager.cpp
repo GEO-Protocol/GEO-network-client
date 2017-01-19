@@ -2,28 +2,26 @@
 
 TrustLinesManager::TrustLinesManager() {
     try {
-        mTrustLinesStorage = new TrustLinesStorage(
-            "trust_lines.dat");
+        mTrustLinesStorage = unique_ptr<TrustLinesStorage>(
+            new TrustLinesStorage("trust_lines.dat"));
 
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TrustLinesManager::TrustLinesManager. "
-                              "Can not allocate memory for new trust line storage instance.");
+        mAmountBlocksHandler = unique_ptr<AmountReservationsHandler>(
+            new AmountReservationsHandler());
+
+    } catch (bad_alloc &e) {
+        throw MemoryError(
+            "TrustLinesManager::TrustLinesManager. "
+                "Can not allocate memory for new trust line storage instance.");
     }
-
-}
-
-TrustLinesManager::~TrustLinesManager() {
-    mTrustLines.clear();
-    delete mTrustLinesStorage;
 }
 
 /**
  * throws IOError - unable to write or update data in storage
  */
-void TrustLinesManager::saveTrustLine(
+void TrustLinesManager::saveToDisk(
     TrustLine::Shared trustLine) {
 
-    vector<byte> *trustLineData = trustLine->serializeTrustLine();
+    vector<byte> *trustLineData = trustLine->serialize();
 
     if (isTrustLineExist(trustLine->contractorNodeUUID())) {
         try {
@@ -132,9 +130,7 @@ void TrustLinesManager::open(
         auto it = mTrustLines.find(contractorUUID);
         TrustLine::Shared trustLine = it->second;
         if (trustLine->outgoingTrustAmount() == 0) {
-            trustLine->setOutgoingTrustAmount(
-                amount,
-                boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine)); //trust line invokes TrustLinesManager's function saveTrustLine() as a callback
+            trustLine->setOutgoingTrustAmount(amount);
 
         } else {
             throw ConflictError(
@@ -155,7 +151,7 @@ void TrustLinesManager::open(
             throw MemoryError("TrustLinesManager::open. "
                                   "Can not allocate memory for new trust line instance.");
         }
-        saveTrustLine(TrustLine::Shared(trustLine));
+        saveToDisk(TrustLine::Shared(trustLine));
     }
 }
 
@@ -176,9 +172,7 @@ void TrustLinesManager::close(
                     removeTrustLine(contractorUUID);
 
                 } else {
-                    trustLine->setOutgoingTrustAmount(
-                        0,
-                        boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine)); //trust line invokes TrustLinesManager's function saveTrustLine() as a callback
+                    trustLine->setOutgoingTrustAmount(0);
                 }
 
             } else {
@@ -210,9 +204,7 @@ void TrustLinesManager::accept(
         auto it = mTrustLines.find(contractorUUID);
         TrustLine::Shared trustLine = it->second;
         if (trustLine->incomingTrustAmount() == 0) {
-            trustLine->setIncomingTrustAmount(
-                amount,
-                boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine)); //trust line invokes TrustLinesManager's function saveTrustLine() as a callback
+            trustLine->setIncomingTrustAmount(amount);
 
         } else {
             throw ConflictError("TrustLinesManager::accept. "
@@ -232,7 +224,7 @@ void TrustLinesManager::accept(
             throw MemoryError("TrustLinesManager::accept. "
                                   "Can not allocate memory for new trust line instance.");
         }
-        saveTrustLine(TrustLine::Shared(trustLine));
+        saveToDisk(TrustLine::Shared(trustLine));
     }
 }
 
@@ -253,9 +245,7 @@ void TrustLinesManager::reject(
                     removeTrustLine(contractorUUID);
 
                 } else {
-                    trustLine->setIncomingTrustAmount(
-                        0,
-                        boost::bind(&TrustLinesManager::saveTrustLine, this, trustLine)); //trust line invokes TrustLinesManager's function saveTrustLine() as a callback
+                    trustLine->setIncomingTrustAmount(0);
                 }
 
             } else {
@@ -274,19 +264,87 @@ void TrustLinesManager::reject(
     }
 }
 
-/**
- * throw NotFoundError - trust line by this contractor UUID not found
- */
-TrustLine::Shared TrustLinesManager::trustLineByContractorUUID(
-    const NodeUUID &contractorUUID) {
+void TrustLinesManager::setIncomingTrustAmount(
+    const NodeUUID &contractor,
+    const TrustLineAmount &amount) {
 
-    if (isTrustLineExist(contractorUUID)) {
-        return mTrustLines.at(contractorUUID);
-
-    } else {
-        throw NotFoundError("TrustLinesManager::trustLineByContractorUUID. "
-                                "Can't find trust line by such contractor UUID.");
+    auto iterator = mTrustLines.find(contractor);
+    if (iterator == mTrustLines.end()){
+        throw NotFoundError(
+            "TrustLinesManager::setIncomingTrustAmount: "
+                "no trust line found.");
     }
+
+    auto trustLine = (*iterator).second;
+    trustLine->setIncomingTrustAmount(amount);
+    saveToDisk(trustLine);
+
+}
+
+void TrustLinesManager::setOutgoingTrustAmount(
+    const NodeUUID &contractor,
+    const TrustLineAmount &amount) {
+
+    auto iterator = mTrustLines.find(contractor);
+    if (iterator == mTrustLines.end()){
+        throw NotFoundError(
+            "TrustLinesManager::setOutogingTrustAmount: "
+                "no trust line found.");
+    }
+
+    auto trustLine = (*iterator).second;
+    trustLine->setOutgoingTrustAmount(amount);
+    saveToDisk(trustLine);
+}
+
+/*!
+ *
+ *
+ * @param contractor - uuid of the contractor to which the trust line should be reserved.
+ * @param transactionUUID - uuid of the transaction, which reserves the amount.
+ * @param amount
+ *
+ *
+ * Throws ValueError in case, if trust line hasn't enought free amount;
+ * Throws ValueError in case, if trust "amount" == 0;
+ * Throws MemoryError;
+ */
+AmountReservation::ConstShared TrustLinesManager::reserveAmount(
+    const NodeUUID &contractor,
+    const TransactionUUID &transactionUUID,
+    const TrustLineAmount &amount) {
+
+    // todo: ensure reservations
+
+    if (*mTrustLines.at(contractor)->availableAmount() >= amount) {
+        return mAmountBlocksHandler->reserve(
+            contractor, transactionUUID, amount);
+    }
+    throw ValueError(
+        "TrustLinesManager::reserveAmount: trust line has not enought amount.");
+}
+
+AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
+    const NodeUUID &contractor,
+    const AmountReservation::ConstShared reservation,
+    const TrustLineAmount &newAmount) {
+
+    // todo: ensure reservations
+
+    if ((*mTrustLines.at(contractor)->availableAmount() - reservation->amount()) >= newAmount) {
+        return mAmountBlocksHandler->updateReservation(
+            contractor, reservation, newAmount);
+    }
+    throw ValueError(
+        "TrustLinesManager::reserveAmount: trust line has not enought amount.");
+}
+
+void TrustLinesManager::dropAmountReservation(
+    const NodeUUID &contractor,
+    const AmountReservation::ConstShared reservation) {
+
+    mAmountBlocksHandler->free(
+        contractor, reservation);
 }
 
 

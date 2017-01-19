@@ -32,6 +32,7 @@ add_subdirectory(src/core/settings)
 add_subdirectory(src/core/transactions)
 add_subdirectory(src/core/trust_lines)
 
+add_subdirectory(src/core/payments/amount_blocks)
 
 set(SOURCE_FILES
         main.cpp

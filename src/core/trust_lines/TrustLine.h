@@ -13,11 +13,9 @@
 
 using namespace std;
 
-
-struct TrustLine {
-    // todo: tests?
-    // todo: hsc: review the tests.
-
+// todo: tests?
+// todo: hsc: review the tests.
+class TrustLine {
 public:
     typedef shared_ptr<TrustLine> Shared;
     typedef shared_ptr<const TrustLine> SharedConst;
@@ -42,19 +40,20 @@ public:
     void setBalance(
         const TrustLineBalance &balance);
 
-    const NodeUUID &contractorNodeUUID() const;
-    const TrustLineAmount &incomingTrustAmount() const;
-    const TrustLineAmount &outgoingTrustAmount() const;
-    const TrustLineAmount &availableAmount() const;
-    const TrustLineBalance &balance() const;
+    const NodeUUID& contractorNodeUUID() const;
+    const TrustLineAmount& incomingTrustAmount() const;
+    const TrustLineAmount& outgoingTrustAmount() const;
+    const TrustLineBalance& balance() const;
+
+    ConstSharedTrustLineAmount availableAmount() const;
 
     vector<byte> *serialize();
     void deserialize(
         const byte *buffer);
 
 private:
-    static const constexpr TrustLineBalance ZeroBalance = TrustLineBalance(0);
-    static const constexpr TrustLineAmount ZeroAmount = TrustLineAmount(0);
+    static const TrustLineBalance& kZeroBalance();
+    static const TrustLineAmount& kZeroAmount();
 
 private:
     void trustAmountToBytes(

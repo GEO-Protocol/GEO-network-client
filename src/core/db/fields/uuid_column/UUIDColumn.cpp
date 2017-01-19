@@ -443,7 +443,7 @@ void UUIDColumn::writeBlock(
         removeBlockFromRecordNumbersIndex(block);
 
         // The block is empty.
-        // Only blocks index must be updated (settigns address to zero).
+        // Only reservations index must be updated (settigns address to zero).
         BucketsIndexRecord indexRecord;
         indexRecord.bytesCount = 0;
         indexRecord.offset = kNoBucketAddressValue;
@@ -453,7 +453,7 @@ void UUIDColumn::writeBlock(
             fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1) {
             throw IOError(
                 "UUIDColumn::writeBlock: "
-                    "cant update blocks index.");
+                    "cant update reservations index.");
         }
 
     } else {
@@ -502,14 +502,14 @@ void UUIDColumn::writeBlock(
                     "cant write bucket block to the disk.");
         }
 
-        // Updating the blocks index
+        // Updating the reservations index
         indexRecord.bytesCount = serializationResult.second;
         seekToBucketIndexRecord(bucketIndex);
         if (fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1 &&
             fwrite(&indexRecord, sizeof(indexRecord), 1, mFileDescriptor) != 1) {
             throw IOError(
                 "UUIDColumn::writeBlock: "
-                    "cant update blocks index.");
+                    "cant update reservations index.");
         }
 
         reindexBlockInRecordNumbersIndex(block, indexRecord);
@@ -543,7 +543,7 @@ void UUIDColumn::initBucketsIndex() {
 
 /*
  * Removes from the cache all blocks, that wasn't modified by the write oprations.
- * Modified blocks should be committed (see: commitCachedBlocks());
+ * Modified reservations should be committed (see: commitCachedBlocks());
  *
  *
  * This checkFileCreation is useful in scenarios when several (thousands?) read operations

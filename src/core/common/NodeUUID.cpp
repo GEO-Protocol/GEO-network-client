@@ -75,3 +75,7 @@ NodeUUID::ComparePredicates NodeUUID::compare(const NodeUUID &a, const NodeUUID 
 #endif
 }
 
+bool operator== (const NodeUUID &u1, const NodeUUID &u2) {
+    return NodeUUID::compare(u1, u2) == NodeUUID::EQUAL;
+}
+

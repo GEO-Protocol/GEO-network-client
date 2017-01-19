@@ -8,6 +8,7 @@
 //#define TESTS__DB__UUID_COLUMN
 //#define TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
 #define TESTS__ROUTING_TABLE
+
 #endif
 
 

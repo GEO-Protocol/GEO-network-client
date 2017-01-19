@@ -13,4 +13,5 @@ set(SOURCE_FILES
 add_library(trust_lines ${SOURCE_FILES})
 target_link_libraries(trust_lines
         common
+        amount_blocks
         io__trust_lines_storage)

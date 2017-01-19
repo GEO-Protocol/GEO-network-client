@@ -31,7 +31,7 @@ void TrustLine::setIncomingTrustAmount(
     const TrustLineAmount &amount) {
 
     // Incoming trust amount may be converted to the TrustLineBalance,
-    // and in case if it would be converted to the negative value - overflow is possible.
+    // and, in case if it would be converted to the negative value, - overflow is possible.
     // To avoid this - max value of TrustLineAmount is avoided from using.
     if (numeric_limits<TrustLineAmount>::max() == amount) {
         throw ValueError(
@@ -92,15 +92,22 @@ const TrustLineBalance &TrustLine::balance() const {
 /*!
  * Returns amount that is availale to use on the trust line.
  */
-const TrustLineAmount &TrustLine::availableAmount() const {
-    if (mBalance >= ZeroBalance){
-        if (mIncomingTrustAmount > ZeroAmount) {
-            return mIncomingTrustAmount + mBalance;
+ConstSharedTrustLineAmount TrustLine::availableAmount() const {
+    if (mBalance >= kZeroBalance()){
+        if (mIncomingTrustAmount > kZeroAmount()) {
+            return ConstSharedTrustLineAmount(
+                new TrustLineAmount(
+                    mIncomingTrustAmount - TrustLineAmount(mBalance)));
         }
-        return mBalance; // note: may be 0;
+
+        return ConstSharedTrustLineAmount(
+            new TrustLineAmount(
+                mBalance));
     }
 
-    return mIncomingTrustAmount + mBalance; // note: mBalance is negative, and mIncomingTrustAmount is positive.
+    return ConstSharedTrustLineAmount(
+        new TrustLineAmount(
+            mIncomingTrustAmount - TrustLineAmount(mBalance)));
 }
 
 /*!
@@ -223,7 +230,7 @@ void TrustLine::parseTrustAmount(
         bytesVector->reserve(kTrustAmountPartSize);
         copy(buffer, buffer + kTrustAmountPartSize, bytesVector->begin());
 
-        unique_ptr<vector<byte>> notZeroBytesVector = new vector<byte>;
+        unique_ptr<vector<byte>> notZeroBytesVector(new vector<byte>);
         notZeroBytesVector->reserve(kTrustAmountPartSize);
         for (size_t i = 0; i < bytesVector->size(); ++i) {
             byte item = bytesVector->at(i);
@@ -290,6 +297,22 @@ void TrustLine::parseBalance(
     }
 }
 
+/*!
+ * @returns static constant zero balance,
+ * that is useful in comparison operations.
+ */
+const TrustLineBalance &TrustLine::kZeroBalance() {
+    // NOTE: "zero" would be common for ALL instances of this class.
+    static TrustLineBalance zero(0);
+    return zero;
+}
 
-
-
+/*!
+ * @returns static constant zero amount,
+ * that is useful in comparison operations.
+ */
+const TrustLineAmount &TrustLine::kZeroAmount() {
+    // NOTE: "zero" would be common for ALL instances of this class.
+    static TrustLineAmount zero(0);
+    return zero;
+}

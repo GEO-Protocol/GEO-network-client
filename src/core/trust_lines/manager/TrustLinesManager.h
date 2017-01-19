@@ -1,7 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 #define GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 
+
 #include "../TrustLine.h"
+#include "../../payments/amount_blocks/AmountReservationsHandler.h"
 #include "../../io/trust_lines/TrustLinesStorage.h"
 
 #include "../../common/exceptions/IOError.h"
@@ -17,13 +19,18 @@
 
 
 using namespace std;
-
 namespace storage = db::uuid_map_block_storage;
 
+
 class TrustLinesManager {
+    // todo: deprecated; Tests subclass should be used.
     friend class TrustLinesManagerTests;
 
 private:
+    // todo: serizlisation/deserialisation of the TrstLine is the responsiblity of the TrustLine.
+    // todo: move this into the TrustLine.
+
+    // todo: this code is duplicated into the TrustLine.
     static const size_t kTrustAmountPartSize = 32;
     static const size_t kBalancePartSize = 32;
     static const size_t kSignBytePartSize = 1;
@@ -35,8 +42,6 @@ private:
 
 public:
     TrustLinesManager();
-
-    ~TrustLinesManager();
 
     void open(
         const NodeUUID &contractorUUID,
@@ -52,19 +57,38 @@ public:
     void reject(
         const NodeUUID &contractorUUID);
 
-    TrustLine::Shared trustLineByContractorUUID(
-        const NodeUUID &contractorUUID);
+    void setIncomingTrustAmount(
+        const NodeUUID &contractor,
+        const TrustLineAmount &amount);
+
+    void setOutgoingTrustAmount(
+        const NodeUUID &contractor,
+        const TrustLineAmount &amount);
+
+    AmountReservation::ConstShared reserveAmount(
+        const NodeUUID &contractor,
+        const TransactionUUID &transactionUUID,
+        const TrustLineAmount &amount);
+
+    AmountReservation::ConstShared updateAmountReservation(
+        const NodeUUID &contractor,
+        const AmountReservation::ConstShared reservation,
+        const TrustLineAmount &newAmount);
+
+    void dropAmountReservation(
+        const NodeUUID &contractor,
+        const AmountReservation::ConstShared reservation);
 
 protected:
     // Contractor UUID -> trust line to the contractor.
     map<NodeUUID, TrustLine::Shared> mTrustLines;
 
-    // Internal
-    TrustLinesStorage *mTrustLinesStorage;
+    unique_ptr<TrustLinesStorage> mTrustLinesStorage;
+    unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
 
 protected:
 
-    void saveTrustLine(
+    void saveToDisk(
         TrustLine::Shared trustLine);
 
     void removeTrustLine(
