@@ -1,52 +1,60 @@
-#include "UpdateTrustLineCommand.h"
+#include "OpenTrustLineCommand.h"
 
-UpdateTrustLineCommand::UpdateTrustLineCommand(
+
+OpenTrustLineCommand::OpenTrustLineCommand(
     const CommandUUID &uuid,
     const string &commandBuffer):
 
-    BaseUserCommand(uuid, identifier()) {
+    BaseUserCommand(uuid, identifier()){
 
     deserialize(commandBuffer);
 }
 
-const string &UpdateTrustLineCommand::identifier() {
-    static const string identifier = "SET:contractors/trust-lines";
+const string OpenTrustLineCommand::identifier() {
+    static const string identifier = "CREATE:contractors/trust-lines";
     return identifier;
 }
 
-const NodeUUID &UpdateTrustLineCommand::contractorUUID() const {
+const NodeUUID& OpenTrustLineCommand::contractorUUID() const {
     return mContractorUUID;
 }
 
-const TrustLineAmount &UpdateTrustLineCommand::amount() const {
+const TrustLineAmount& OpenTrustLineCommand::amount() const {
     return mAmount;
 }
 
-const CommandResult *UpdateTrustLineCommand::resultOk() const {
-    return new CommandResult(uuid(), 200);
+const CommandResult *OpenTrustLineCommand::resultOk() const{
+    return new CommandResult(uuid(), 201);
 }
 
-const CommandResult *UpdateTrustLineCommand::trustLineIsAbsentResult() const {
-    return new CommandResult(uuid(), 404);
-}
-
-const CommandResult *UpdateTrustLineCommand::debtGreaterThanAmountResult() const {
+const CommandResult *OpenTrustLineCommand::trustLineAlreadyPresentResult() const{
     return new CommandResult(uuid(), 409);
 }
 
-const CommandResult *UpdateTrustLineCommand::resultConflict() const {
+const CommandResult *OpenTrustLineCommand::resultConflict() const {
     return new CommandResult(uuid(), 429);
 }
 
-void UpdateTrustLineCommand::deserialize(
+const CommandResult *OpenTrustLineCommand::resultNoResponse() const {
+    return new CommandResult(uuid(), 444);
+}
+
+const CommandResult *OpenTrustLineCommand::resultTransactionConflict() const {
+    return new CommandResult(uuid(), 500);
+}
+
+/*!
+ * Throws ValueError if deserialization was unsuccessful.
+ */
+void OpenTrustLineCommand::deserialize(
     const string &command) {
 
-    const auto amountTokenOffset = CommandUUID::kUUIDLength + 1;
+    const auto amountTokenOffset = NodeUUID::kUUIDLength + 1;
     const auto minCommandLength = amountTokenOffset + 1;
 
     if (command.size() < minCommandLength) {
         throw ValueError(
-            "UpdateTrustLineCommand::deserialize: "
+            "OpenTrustLineCommand::deserialize: "
                 "Can't parse command. Received command is to short.");
     }
 
@@ -57,7 +65,7 @@ void UpdateTrustLineCommand::deserialize(
 
     } catch (...) {
         throw ValueError(
-            "UpdateTrustLineCommand::deserialize: "
+            "OpenTrustLineCommand::deserialize: "
                 "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 
@@ -71,14 +79,15 @@ void UpdateTrustLineCommand::deserialize(
 
     } catch (...) {
         throw ValueError(
-            "UpdateTrustLineCommand::deserialize: "
+            "OpenTrustLineCommand::deserialize: "
                 "Can't parse command. Error occurred while parsing 'Amount' token.");
     }
 
     if (mAmount == TrustLineAmount(0)){
         throw ValueError(
-            "UpdateTrustLineCommand::deserialize: "
+            "OpenTrustLineCommand::deserialize: "
                 "Can't parse command. Received 'Amount' can't be 0.");
     }
 }
+
 

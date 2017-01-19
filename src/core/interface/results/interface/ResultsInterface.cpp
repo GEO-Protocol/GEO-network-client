@@ -18,10 +18,6 @@ void ResultsInterface::writeResult(
     const char *bytes,
     const size_t bytesCount) {
 
-#ifdef DEBUG_RESULTS_INTERFACE
-    mLog->logInfo("Results parseInterface: message received", bytes);
-#endif
-
     if (mFIFODescriptor == 0){
         mFIFODescriptor = open(FIFOFilePath().c_str(), O_WRONLY | O_RSYNC | O_DSYNC);
         if (mFIFODescriptor == -1) {
@@ -35,6 +31,8 @@ void ResultsInterface::writeResult(
         throw IOError(
             "ResultsInterface::writeResult: "
                 "can't write result to the disk.");
+    } else {
+        mLog->logInfo("Results parseInterface: message received", bytes);
     }
 }
 

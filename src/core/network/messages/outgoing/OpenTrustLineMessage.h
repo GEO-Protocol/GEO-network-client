@@ -10,8 +10,8 @@ class OpenTrustLineMessage : public Message {
 
 public:
     OpenTrustLineMessage(
-        NodeUUID sender,
-        TransactionUUID transactionUUID,
+        NodeUUID &sender,
+        TransactionUUID &transactionUUID,
         TrustLineAmount amount);
 
     pair<ConstBytesShared, size_t> serialize();

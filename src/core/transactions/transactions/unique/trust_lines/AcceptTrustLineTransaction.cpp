@@ -10,7 +10,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
         BaseTransaction::TransactionType::AcceptTrustLineTransactionType,
         nodeUUID,
         scheduler
-    ), ,
+    ),
     mMessage(message),
     mTrustLinesManager(manager) {}
 
@@ -87,10 +87,6 @@ bool AcceptTrustLineTransaction::checkSameTypeTransactions() {
             }
 
             case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
-                UpdateTrustLineTransaction::Shared updateTrustLineTransaction = static_pointer_cast<UpdateTrustLineTransaction>(it.first);
-                if (mMessage->senderUUID() == updateTrustLineTransaction->command()->contractorUUID()) {
-                    return true;
-                }
                 break;
             }
 
@@ -130,7 +126,7 @@ void AcceptTrustLineTransaction::sendResponse(
         code
     );
 
-    sendMessageSignal(
+    addMessage(
         Message::Shared(message),
         mMessage->senderUUID()
     );
@@ -139,7 +135,7 @@ void AcceptTrustLineTransaction::sendResponse(
 void AcceptTrustLineTransaction::createTrustLine() {
 
     try {
-        mTrustLinesManager->open(
+        mTrustLinesManager->accept(
             mMessage->senderUUID(),
             mMessage->amount()
         );

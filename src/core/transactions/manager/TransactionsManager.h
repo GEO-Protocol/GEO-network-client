@@ -9,28 +9,16 @@
 #include "../scheduler/TransactionsScheduler.h"
 
 #include "../../interface/commands/commands/BaseUserCommand.h"
-#include "../../interface/commands/commands/OpenTrustLineCommand.h"
-#include "../../interface/commands/commands/CloseTrustLineCommand.h"
-#include "../../interface/commands/commands/UpdateTrustLineCommand.h"
-#include "../../interface/commands/commands/MaximalTransactionAmountCommand.h"
-#include "../../interface/commands/commands/UseCreditCommand.h"
-#include "../../interface/commands/commands/TotalBalanceCommand.h"
-#include "../../interface/commands/commands/ContractorsListCommand.h"
+#include "../../interface/commands/commands/trust_lines/OpenTrustLineCommand.h"
 
 #include "../../network/messages/Message.h"
 #include "../../network/messages/incoming/AcceptTrustLineMessage.h"
+#include "../../network/messages/response/Response.h"
 
 #include "../transactions/BaseTransaction.h"
+#include "../transactions/unique/UniqueTransaction.h"
 #include "../transactions/unique/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/AcceptTrustLineTransaction.h"
-#include "../transactions/CloseTrustLineTransaction.h"
-#include "../transactions/UpdateTrustLineTransaction.h"
-#include "../transactions/MaximalAmountTransaction.h"
-#include "../transactions/ContractorsListTransaction.h"
-#include "../transactions/TotalBalanceTransaction.h"
-#include "../transactions/unique/payment/UseCreditTransaction.h"
-
-#include "../../network/messages/response/Response.h"
 
 #include <boost/signals2.hpp>
 
@@ -41,7 +29,6 @@ namespace signals = boost::signals2;
 
 class TransactionsManager {
     // todo: hsc: tests?
-
 public:
     signals::signal<void(Message::Shared, const NodeUUID&)> sendMessageSignal;
 
@@ -71,23 +58,9 @@ private:
     void createAcceptTrustLineTransaction(
         Message::Shared message);
 
-    void createCloseTrustLineTransaction(
-        BaseUserCommand::Shared command);
-
-    void createUpdateTrustLineTransaction(
-        BaseUserCommand::Shared command);
-
-    void createCalculateMaximalAmountTransaction(
-        BaseUserCommand::Shared command);
-
-    void createUseCreditTransaction(
-        BaseUserCommand::Shared command);
-
-    void createCalculateTotalBalanceTransaction(
-        BaseUserCommand::Shared command);
-
-    void createFormContractorsListTransaction(
-        BaseUserCommand::Shared command);
+    void onMessageSend(
+        Message::Shared message,
+        const NodeUUID &contractorUUID);
 
     void zeroPointers();
 
@@ -101,27 +74,6 @@ private:
     Logger *mLog;
 
     TransactionsScheduler *mTransactionsScheduler;
-
-    TransactionsMessagesSlot *transactionsMessagesSlot;
-
-private:
-
-    class TransactionsMessagesSlot {
-
-    public:
-        TransactionsMessagesSlot(
-          TransactionsManager *transactionsManager,
-          Logger *logger);
-
-        void sendTransactionMessageSlot(
-          Message::Shared message,
-          const NodeUUID &contractorUUID);
-
-    private:
-        TransactionsManager *mTransactionsManager;
-        Logger *mLog;
-    };
-
 };
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H

@@ -22,11 +22,6 @@ TransactionsManager::TransactionsManager(
             mLog
         );
 
-        transactionsMessagesSlot = new TransactionsMessagesSlot(
-          this,
-          mLog
-        );
-
     } catch (std::bad_alloc &e) {
         cleanupMemory();
         throw MemoryError("TransactionsManager::TransactionsManager. "
@@ -44,24 +39,6 @@ void TransactionsManager::processCommand(
 
     if (command->derivedIdentifier() == OpenTrustLineCommand::identifier()) {
         createOpenTrustLineTransaction(command);
-
-    } else if (command->derivedIdentifier() == CloseTrustLineCommand::identifier()) {
-        createCloseTrustLineTransaction(command);
-
-    } else if (command->derivedIdentifier() == UpdateTrustLineCommand::identifier()) {
-        createUpdateTrustLineTransaction(command);
-
-    } else if (command->derivedIdentifier() == UseCreditCommand::identifier()) {
-        createUseCreditTransaction(command);
-
-    } else if (command->derivedIdentifier() == MaximalTransactionAmountCommand::identifier()) {
-        createCalculateMaximalAmountTransaction(command);
-
-    } else if (command->derivedIdentifier() == TotalBalanceCommand::identifier()) {
-        createCalculateTotalBalanceTransaction(command);
-
-    } else if (command->derivedIdentifier() == ContractorsListCommand::identifier()) {
-        createFormContractorsListTransaction(command);
 
     } else {
         throw ConflictError("TransactionsManager::processCommand. "
@@ -92,11 +69,22 @@ void TransactionsManager::createOpenTrustLineTransaction(
             mTransactionsScheduler,
             mTrustLinesManager);
 
-        baseTransaction->sendMessageSignal.connect(
+        /*baseTransaction->sendMessageSignal.connect(
           boost::bind(
-              &TransactionsManager::TransactionsMessagesSlot::sendTransactionMessageSlot,
-              transactionsMessagesSlot
+              &TransactionsManager::onMessageSend,
+              this,
+              _1,
+              _2
           )
+        );*/
+
+        baseTransaction->addOnMessageSendSlot(
+            boost::bind(
+                &TransactionsManager::onMessageSend,
+                this,
+                _1,
+                _2
+            )
         );
 
         mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
@@ -119,10 +107,21 @@ void TransactionsManager::createAcceptTrustLineTransaction(
             mTransactionsScheduler,
             mTrustLinesManager);
 
-        baseTransaction->sendMessageSignal.connect(
+        /*baseTransaction->sendMessageSignal.connect(
+          boost::bind(
+              &TransactionsManager::onMessageSend,
+              this,
+              _1,
+              _2
+          )
+        );*/
+
+        baseTransaction->addOnMessageSendSlot(
             boost::bind(
-                &TransactionsManager::TransactionsMessagesSlot::sendTransactionMessageSlot,
-                transactionsMessagesSlot
+                &TransactionsManager::onMessageSend,
+                this,
+                _1,
+                _2
             )
         );
 
@@ -134,151 +133,20 @@ void TransactionsManager::createAcceptTrustLineTransaction(
     }
 }
 
-void TransactionsManager::createCloseTrustLineTransaction(
-    BaseUserCommand::Shared command) {
-
-    CloseTrustLineCommand::Shared closeTrustLineCommand = static_pointer_cast<CloseTrustLineCommand>(command);
-
-    try {
-        BaseTransaction *baseTransaction = new CloseTrustLineTransaction(
-            closeTrustLineCommand,
-            mTransactionsScheduler,
-            mTrustLinesInterface);
-
-        baseTransaction->sendMessageSignal.connect(
-            boost::bind(
-                &TransactionsManager::TransactionsMessagesSlot::sendTransactionMessageSlot,
-                transactionsMessagesSlot
-            )
-        );
-
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
-
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createCloseTrustLineTransaction. "
-                              "Can not allocate memory for transaction instance.");
-    }
-}
-
-void TransactionsManager::createUpdateTrustLineTransaction(
-    BaseUserCommand::Shared command) {
-
-    UpdateTrustLineCommand::Shared updateTrustLineCommand = static_pointer_cast<UpdateTrustLineCommand>(command);
+void TransactionsManager::onMessageSend(
+    Message::Shared message,
+    const NodeUUID &contractorUUID) {
 
     try {
-        BaseTransaction *baseTransaction = new UpdateTrustLineTransaction(
-            updateTrustLineCommand,
-            mTransactionsScheduler,
-            mTrustLinesInterface);
-
-        baseTransaction->sendMessageSignal.connect(
-            boost::bind(
-                &TransactionsManager::TransactionsMessagesSlot::sendTransactionMessageSlot,
-                transactionsMessagesSlot
-            )
+        sendMessageSignal(
+            message,
+            contractorUUID
         );
 
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
-
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createUpdateTrustLineTransaction. "
-                              "Can not allocate memory for transaction instance.");
+    } catch (exception &e) {
+        mLog->logException("TransactionsManager", e);
     }
 }
-
-void TransactionsManager::createCalculateMaximalAmountTransaction(
-    BaseUserCommand::Shared command) {
-
-    MaximalTransactionAmountCommand::Shared maximalTransactionAmountCommand = static_pointer_cast<MaximalTransactionAmountCommand>(command);
-
-    try {
-        BaseTransaction *baseTransaction = new MaximalAmountTransaction(maximalTransactionAmountCommand);
-
-        baseTransaction->sendMessageSignal.connect(
-            boost::bind(
-                &TransactionsManager::TransactionsMessagesSlot::sendTransactionMessageSlot,
-                transactionsMessagesSlot
-            )
-        );
-
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
-
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createCalculateMaximalAmountTransaction. "
-                              "Can not allocate memory for transaction instance.");
-    }
-}
-
-void TransactionsManager::createUseCreditTransaction(
-    BaseUserCommand::Shared command) {
-
-    UseCreditCommand::Shared useCreditCommand = static_pointer_cast<UseCreditCommand>(command);
-
-    try {
-        BaseTransaction *baseTransaction = new UseCreditTransaction(useCreditCommand);
-
-        baseTransaction->sendMessageSignal.connect(
-            boost::bind(
-                &TransactionsManager::TransactionsMessagesSlot::sendTransactionMessageSlot,
-                transactionsMessagesSlot
-            )
-        );
-
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
-
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createUseCreditTransaction. "
-                              "Can not allocate memory for transaction instance.");
-    }
-}
-
-
-void TransactionsManager::createCalculateTotalBalanceTransaction(
-    BaseUserCommand::Shared command) {
-
-    TotalBalanceCommand::Shared totalBalanceCommand = static_pointer_cast<TotalBalanceCommand>(command);
-
-    try {
-        BaseTransaction *baseTransaction = new TotalBalanceTransaction(totalBalanceCommand);
-
-        baseTransaction->sendMessageSignal.connect(
-            boost::bind(
-                &TransactionsManager::TransactionsMessagesSlot::sendTransactionMessageSlot,
-                transactionsMessagesSlot
-            )
-        );
-
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
-
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createCalculateTotalBalanceTransaction. "
-                              "Can not allocate memory for transaction instance.");
-    }
-}
-
-void TransactionsManager::createFormContractorsListTransaction(
-    BaseUserCommand::Shared command) {
-
-    ContractorsListCommand::Shared contractorsListCommand = static_pointer_cast<ContractorsListCommand>(command);
-
-    try {
-        BaseTransaction *baseTransaction = new ContractorsListTransaction(contractorsListCommand);
-
-        baseTransaction->sendMessageSignal.connect(
-            boost::bind(
-                &TransactionsManager::TransactionsMessagesSlot::sendTransactionMessageSlot,
-                transactionsMessagesSlot
-            )
-        );
-
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
-
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createFormContractorsListTransaction. "
-                              "Can not allocate memory for transaction instance.");
-    }
-}
-
 
 void TransactionsManager::acceptCommandResult(
     CommandResult::SharedConst result) {
@@ -291,7 +159,7 @@ void TransactionsManager::acceptCommandResult(
         );
 
     } catch (...) {
-        mLog->logError("Transactions manager",
+        mLog->logError("Transactions manager::acceptCommandResult: ",
                        "Error occurred when command result has accepted");
     }
 }
@@ -299,38 +167,11 @@ void TransactionsManager::acceptCommandResult(
 void TransactionsManager::zeroPointers() {
 
     mTransactionsScheduler = nullptr;
-    transactionsMessagesSlot = nullptr;
 }
 
 void TransactionsManager::cleanupMemory() {
 
     if (mTransactionsScheduler != nullptr) {
         delete mTransactionsScheduler;
-    }
-
-    if (transactionsMessagesSlot != nullptr) {
-        delete transactionsMessagesSlot;
-    }
-}
-
-TransactionsManager::TransactionsMessagesSlot::TransactionsMessagesSlot(
-    TransactionsManager *transactionsManager,
-    Logger *logger) :
-
-    mTransactionsManager(transactionsManager),
-    mLog(logger){}
-
-void TransactionsManager::TransactionsMessagesSlot::sendTransactionMessageSlot(
-    Message::Shared message,
-    const NodeUUID &contractorUUID) {
-
-    try {
-        mTransactionsManager->sendMessageSignal(
-            message,
-            contractorUUID
-        );
-
-    } catch (exception &e) {
-        mLog->logException("TransactionsManager", e);
     }
 }

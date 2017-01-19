@@ -80,10 +80,6 @@ bool OpenTrustLineTransaction::checkSameTypeTransactions() {
             }
 
             case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
-                CloseTrustLineTransaction::Shared closeTrustLineTransaction = static_pointer_cast<CloseTrustLineTransaction>(it.first);
-                if (mCommand->contractorUUID() == closeTrustLineTransaction->command()->contractorUUID()) {
-                    return true;
-                }
                 break;
             }
 
@@ -110,19 +106,41 @@ TransactionResult::Shared OpenTrustLineTransaction::checkTransactionContext() {
 
     if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
         Response::Shared response = static_pointer_cast<Response>(mContext);
-        cout << "Transaction result code " << to_string(response->mCode) << endl;
+        switch (response->code()) {
+
+            case AcceptTrustLineMessage::kResultCodeAccepted: {
+                createTrustLine();
+                return resultOk();
+            }
+
+            case AcceptTrustLineMessage::kResultCodeConflict: {
+                return conflictErrorResult();
+            }
+
+            case AcceptTrustLineMessage::kResultCodeTransactionConflict: {
+                return transactionConflictResult();
+            }
+
+            default:{
+                return unexpectedErrorResult();
+            }
+        }
+
     }
+
+    return unexpectedErrorResult();
+
 }
 
 void OpenTrustLineTransaction::sendMessageToRemoteNode() {
 
     Message *message = new OpenTrustLineMessage(
         mNodeUUID,
-        transactionUUID(),
+        mTransactionUUID,
         mCommand->amount()
     );
 
-    sendMessageSignal(
+    addMessage(
         Message::Shared(message),
         mCommand->contractorUUID()
     );
@@ -141,6 +159,18 @@ TransactionResult::Shared OpenTrustLineTransaction::waitingForResponseState() {
     return TransactionResult::Shared(transactionResult);
 }
 
+void OpenTrustLineTransaction::createTrustLine() {
+
+    try {
+        mTrustLinesManager->open(
+            mCommand->contractorUUID(),
+            mCommand->amount()
+        );
+
+    } catch (std::exception &e) {
+        throw Exception(e.what());
+    }
+}
 
 TransactionResult::Shared OpenTrustLineTransaction::resultOk() {
 
@@ -167,5 +197,19 @@ TransactionResult::Shared OpenTrustLineTransaction::noResponseResult() {
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->resultNoResponse())));
+    return TransactionResult::Shared(transactionResult);
+}
+
+TransactionResult::Shared OpenTrustLineTransaction::transactionConflictResult() {
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->resultTransactionConflict())));
+    return TransactionResult::Shared(transactionResult);
+}
+
+TransactionResult::Shared OpenTrustLineTransaction::unexpectedErrorResult() {
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->unexpectedErrorResult())));
     return TransactionResult::Shared(transactionResult);
 }

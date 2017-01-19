@@ -20,7 +20,7 @@ const string &BaseUserCommand::derivedIdentifier() const {
     return mDerivedIdentifier;
 }
 
-CommandResult::SharedConst BaseUserCommand::unexpectedErrorResult() {
+CommandResult* BaseUserCommand::unexpectedErrorResult() {
     CommandResult *result = new CommandResult(mUUID, 501);
-    return CommandResult::SharedConst(result);
+    return result;
 }

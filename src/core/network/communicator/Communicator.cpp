@@ -36,11 +36,6 @@ Communicator::Communicator(
 
         mOutgoingMessagesHandler = new OutgoingMessagesHandler();
 
-        incomingMessagesSlots = new IncomingMessagesSlots(
-            this,
-            mLog
-        );
-
     } catch (std::bad_alloc &e) {
         cleanupMemory();
         throw MemoryError("Communicator::Communicator: "
@@ -59,8 +54,9 @@ void Communicator::connectIncomingMessagesHanlderSignals() {
 
     mIncomingMessagesHandler->messageParsedSignal.connect(
         boost::bind(
-            &Communicator::IncomingMessagesSlots::onMessageParsedSlot,
-            incomingMessagesSlots
+            &Communicator::onMessageParsedSlot,
+            this,
+            _1
         )
     );
 }
@@ -132,13 +128,13 @@ void Communicator::handleReceivedInfo(
     size_t bytesTransferred) {
 
     if (!error || error == boost::asio::error::message_size) {
+        mLog->logInfo("Communicator::handleReceivedInfo: ",
+                      string("Bytes received - ") + to_string(bytesTransferred));
         mIncomingMessagesHandler->processIncomingMessage(
             mRemoteEndpointBuffer,
             mRecvBuffer.data(),
             bytesTransferred
         );
-        mLog->logInfo("Communicator::handleReceivedInfo: ",
-                       string("Bytes received - ") + to_string(bytesTransferred));
 
     } else {
         mLog->logError("Communicator::handleReceivedInfo:",
@@ -184,8 +180,14 @@ void Communicator::handleSend(
 
     } else {
         mLog->logInfo("Communicator::handleReceivedInfo: ",
-                      string("Bytes transaferred - ") + to_string(bytesTransferred));
+                      string("Bytes transferred - ") + to_string(bytesTransferred));
     }
+}
+
+void Communicator::onMessageParsedSlot(
+    Message::Shared message) {
+
+    messageReceivedSignal(message);
 }
 
 void Communicator::zeroPointers() {
@@ -221,15 +223,3 @@ void Communicator::cleanupMemory() {
     }
 }
 
-Communicator::IncomingMessagesSlots::IncomingMessagesSlots(
-    Communicator *communicator,
-    Logger *logger) :
-
-    mCommunicator(communicator),
-    mLog(logger) {}
-
-void Communicator::IncomingMessagesSlots::onMessageParsedSlot(
-    Message::Shared message) {
-
-    mCommunicator->messageReceivedSignal(message);
-}

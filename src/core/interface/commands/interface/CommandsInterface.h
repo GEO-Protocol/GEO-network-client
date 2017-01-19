@@ -1,13 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 #define GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H
 
-#include "../commands/OpenTrustLineCommand.h"
-#include "../commands/CloseTrustLineCommand.h"
-#include "../commands/UpdateTrustLineCommand.h"
-#include "../commands/UseCreditCommand.h"
-#include "../commands/MaximalTransactionAmountCommand.h"
-#include "../commands/ContractorsListCommand.h"
-#include "../commands/TotalBalanceCommand.h"
+#include "../commands/trust_lines/OpenTrustLineCommand.h"
 #include "../../BaseFIFOInterface.h"
 #include "../../../transactions/manager/TransactionsManager.h"
 #include "../../../common/exceptions/IOError.h"

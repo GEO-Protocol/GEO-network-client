@@ -2,9 +2,9 @@
 #define GEO_NETWORK_CLIENT_OPENTRUSTLINECOMMAND_H
 
 
-#include "BaseUserCommand.h"
-#include "../../../trust_lines/TrustLine.h"
-#include "../../../common/exceptions/ValueError.h"
+#include "../BaseUserCommand.h"
+#include "../../../../trust_lines/TrustLine.h"
+#include "../../../../common/exceptions/ValueError.h"
 
 using namespace std;
 
@@ -33,6 +33,8 @@ public:
     const CommandResult *trustLineAlreadyPresentResult() const;
 
     const CommandResult *resultConflict() const;
+
+    const CommandResult *resultTransactionConflict() const;
 
     const CommandResult *resultNoResponse() const;
 

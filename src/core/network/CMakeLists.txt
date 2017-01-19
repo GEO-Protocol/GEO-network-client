@@ -25,7 +25,7 @@ set(SOURCE_FILES
         messages/incoming/AcceptTrustLineMessage.cpp
         messages/incoming/AcceptTrustLineMessage.h
         messages/result/MessageResult.cpp
-        messages/result/MessageResult.h messages/outgoing/RejectTrustLineMessage.cpp messages/outgoing/RejectTrustLineMessage.h messages/response/Response.cpp messages/response/Response.h)
+        messages/result/MessageResult.h messages/response/Response.cpp messages/response/Response.h)
 
 add_library(network ${SOURCE_FILES})
 target_link_libraries(network

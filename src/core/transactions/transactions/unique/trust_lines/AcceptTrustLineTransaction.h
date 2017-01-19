@@ -5,8 +5,6 @@
 
 #include "../../../../network/messages/incoming/AcceptTrustLineMessage.h"
 
-#include "../../UpdateTrustLineTransaction.h"
-
 #include "../../../../network/messages/Message.h"
 #include "../../../../network/messages/response/Response.h"
 

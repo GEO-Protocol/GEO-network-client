@@ -23,7 +23,6 @@ namespace as = boost::asio;
 namespace ip = boost::asio::ip;
 namespace signals = boost::signals2;
 
-
 class Communicator {
 public:
     signals::signal<void(Message::Shared)> messageReceivedSignal;
@@ -65,12 +64,15 @@ private:
         const boost::system::error_code &error,
         size_t bytesTransferred);
 
+    void onMessageParsedSlot(
+        Message::Shared message);
+
     void zeroPointers();
 
     void cleanupMemory();
 
 private:
-    const size_t kMaxIncomingBufferSize = 1000;
+    static const constexpr size_t kMaxIncomingBufferSize = 1000;
 
     as::io_service &mIOService;
     NodeUUID &mNodeUUID;
@@ -87,25 +89,8 @@ private:
 
     boost::array<byte, kMaxIncomingBufferSize> mRecvBuffer;
     udp::endpoint mRemoteEndpointBuffer;
-
-    IncomingMessagesSlots *incomingMessagesSlots;
-
-private:
-    class IncomingMessagesSlots {
-
-    public:
-        IncomingMessagesSlots(
-            Communicator *communicator,
-            Logger *logger);
-
-        void onMessageParsedSlot(
-            Message::Shared message);
-
-    private:
-        Communicator *mCommunicator;
-        Logger *mLog;
-    };
 };
+
 
 
 #endif //GEO_NETWORK_CLIENT_COMMUNICATOR_H

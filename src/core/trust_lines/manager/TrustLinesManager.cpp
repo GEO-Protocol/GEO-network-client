@@ -28,8 +28,7 @@ void TrustLinesManager::saveTrustLine(
     if (isTrustLineExist(trustLine->contractorNodeUUID())) {
         try {
             mTrustLinesStorage->rewrite(
-                storage::uuids::uuid(
-                    trustLine->contractorNodeUUID()),
+                storage::uuids::uuid(trustLine->contractorNodeUUID()),
                 trustLineData.data(),
                 kRecordSize);
 
@@ -40,8 +39,7 @@ void TrustLinesManager::saveTrustLine(
     } else {
         try {
             mTrustLinesStorage->write(
-                storage::uuids::uuid(
-                    trustLine->contractorNodeUUID()),
+                storage::uuids::uuid(trustLine->contractorNodeUUID()),
                 trustLineData.data(),
                 kRecordSize);
 

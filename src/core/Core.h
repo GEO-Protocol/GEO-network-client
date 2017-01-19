@@ -46,11 +46,16 @@ private:
 
     int initTransactionsManager();
 
-    int initSlots();
-
     void connectCommunicatorSignals();
 
     void connectSignalsToSlots();
+
+    void onMessageReceivedSlot(
+        Message::Shared message);
+
+    void onMessageSendSlot(
+        Message::Shared message,
+        const NodeUUID &contractorUUID);
 
     void zeroPointers();
 
@@ -68,30 +73,6 @@ protected:
     ResultsInterface *mResultsInterface;
     TrustLinesManager *mTrustLinesManager;
     TransactionsManager *mTransactionsManager;
-
-    NetworkSlots *networkSlots;
-
-private:
-    class NetworkSlots {
-
-    public:
-        NetworkSlots(
-            Communicator *communicator,
-            TransactionsManager *manager,
-            Logger *logger);
-
-        void onMessageReceivedSlot(
-            Message::Shared message);
-
-        void onMessageSendSlot(
-            Message::Shared message,
-            const NodeUUID &contractorUUID);
-
-    private:
-        Communicator *mCommunicator;
-        TransactionsManager *mTransactionsManager;
-        Logger *mLog;
-    };
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

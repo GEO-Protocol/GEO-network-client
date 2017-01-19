@@ -7,6 +7,12 @@ BaseTransaction::BaseTransaction(
         mType(type),
         mNodeUUID(nodeUUID){}
 
+signals::connection BaseTransaction::addOnMessageSendSlot(
+    const SendMessageSignal::slot_type &slot) const {
+
+    return sendMessageSignal.connect(slot);
+}
+
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
     return mType;
 }
@@ -27,6 +33,16 @@ void BaseTransaction::setContext(
 
 pair<ConstBytesShared, size_t> BaseTransaction::serializeContext() {
     return mContext->serialize();
+}
+
+void BaseTransaction::addMessage(
+    Message::Shared message,
+    const NodeUUID &nodeUUID) {
+
+    sendMessageSignal(
+        message,
+        nodeUUID
+    );
 }
 
 void BaseTransaction::increaseStepsCounter() {

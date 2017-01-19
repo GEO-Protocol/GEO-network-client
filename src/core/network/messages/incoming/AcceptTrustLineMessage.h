@@ -22,11 +22,6 @@ public:
     AcceptTrustLineMessage(
         byte* buffer);
 
-    AcceptTrustLineMessage(
-        NodeUUID sender,
-        TransactionUUID transactionUUID,
-        uint16_t journalCode);
-
     pair<ConstBytesShared, size_t> serialize();
 
     void deserialize(
@@ -54,7 +49,6 @@ private:
     const size_t kTrustLineAmountSize = 32;
 
     TrustLineAmount mTrustLineAmount;
-    uint16_t mJournalCode;
 };
 
 

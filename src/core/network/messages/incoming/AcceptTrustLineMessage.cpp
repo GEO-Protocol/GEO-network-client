@@ -6,65 +6,14 @@ AcceptTrustLineMessage::AcceptTrustLineMessage(
     deserialize(buffer);
 }
 
-AcceptTrustLineMessage::AcceptTrustLineMessage(
-    NodeUUID sender,
-    TransactionUUID transactionUUID,
-    uint16_t journalCode) :
-
-    Message(sender, transactionUUID) {
-
-    mJournalCode = journalCode;
-}
-
 pair<ConstBytesShared, size_t> AcceptTrustLineMessage::serialize() {
 
-    size_t dataSize = sizeof(uint16_t) +
-        NodeUUID::kUUIDSize +
-        TransactionUUID::kUUIDSize +
-        sizeof(uint16_t);
-    byte * data = (byte *) malloc(dataSize);
-    memset(
-        data,
-        0,
-        dataSize
-    );
-
-    uint16_t type = typeID();
-    memcpy(
-        data,
-        &type,
-        sizeof(uint16_t)
-    );
-
-    memcpy(
-        data + sizeof(uint16_t),
-        mSenderUUID.data,
-        NodeUUID::kUUIDSize
-    );
-
-    memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kUUIDSize,
-        mTransactionUUID.data,
-        TransactionUUID::kUUIDSize
-    );
-
-    memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize,
-        &mJournalCode,
-        sizeof(uint16_t)
-    );
-
-    return make_pair(
-        ConstBytesShared(data, free),
-        dataSize
-    );
-
+    throw NotImplementedError("AcceptTrustLineMessage::serialize: "
+                                  "Method not implemented.");
 }
 
 void AcceptTrustLineMessage::deserialize(
     byte *buffer) {
-
-    //Message::deserialize(buffer);
     //------------------------------
     memcpy(
         mSenderUUID.data,
@@ -81,7 +30,6 @@ void AcceptTrustLineMessage::deserialize(
     vector<byte> amountBytes(
         buffer + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize,
         buffer + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize + kTrustLineAmountSize);
-
 
     vector<byte> amountNotZeroBytes;
     amountNotZeroBytes.reserve(kTrustLineAmountSize);

@@ -134,11 +134,6 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
     } catch (std::exception &e) {
         cutBufferUpToNextCommand();
 
-#ifdef COMMANDS_INTERFACE_DEBUG
-        auto err = mLog->error("CommandsParser::tryDeserializeCommand");
-        err << "Invalid command received. Internal buffer data is: "
-            << mBuffer << ". ";
-#endif
         return commandIsInvalidOrIncomplete();
     }
 }
@@ -164,28 +159,6 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
     try {
         if (OpenTrustLineCommand::identifier() == identifier){
             command = new OpenTrustLineCommand(uuid, buffer);
-
-        } else if (CloseTrustLineCommand::identifier() == identifier) {
-            command = new CloseTrustLineCommand(uuid, buffer);
-
-        } else if (UpdateTrustLineCommand::identifier() == identifier) {
-            command = new UpdateTrustLineCommand(uuid, buffer);
-
-        } else if (MaximalTransactionAmountCommand::identifier() == identifier) {
-            command = new MaximalTransactionAmountCommand(uuid, buffer);
-
-        } else if (TotalBalanceCommand::identifier() == identifier) {
-            command = new TotalBalanceCommand(uuid);
-
-        } else if (ContractorsListCommand::identifier() == identifier) {
-            command = new ContractorsListCommand(uuid);
-
-        } else if (UseCreditCommand::identifier() == identifier){
-            command = new UseCreditCommand(uuid, buffer);
-
-            // ...
-            // Other commands prsing should go here
-            // ...
 
         } else {
             throw RuntimeError(

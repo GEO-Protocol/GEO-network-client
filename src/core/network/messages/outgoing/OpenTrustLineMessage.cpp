@@ -1,8 +1,8 @@
 #include "OpenTrustLineMessage.h"
 
 OpenTrustLineMessage::OpenTrustLineMessage(
-    NodeUUID sender,
-    TransactionUUID transactionUUID,
+    NodeUUID &sender,
+    TransactionUUID &transactionUUID,
     TrustLineAmount amount) :
 
     Message(sender, transactionUUID),
@@ -21,25 +21,26 @@ pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
         dataSize
     );
 
+    //----------------------------
     uint16_t type = typeID();
     memcpy(
         data,
         &type,
         sizeof(uint16_t)
     );
-
+    //----------------------------
     memcpy(
       data + sizeof(uint16_t),
       mSenderUUID.data,
       NodeUUID::kUUIDSize
     );
-
+    //----------------------------
     memcpy(
         data + sizeof(uint16_t) + NodeUUID::kUUIDSize,
         mTransactionUUID.data,
         TransactionUUID::kUUIDSize
     );
-
+    //----------------------------
     vector<byte> buffer;
     buffer.reserve(kTrustLineAmountSize);
     export_bits(mTrustLineAmount, back_inserter(buffer), 8);
@@ -52,6 +53,7 @@ pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
         buffer.data(),
         buffer.size()
     );
+    //----------------------------
 
     return make_pair(
         ConstBytesShared(data, free),

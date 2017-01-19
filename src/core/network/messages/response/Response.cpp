@@ -15,6 +15,11 @@ Response::Response(NodeUUID sender,
     mCode = code;
 }
 
+uint16_t Response::code() {
+
+    return mCode;
+}
+
 pair<ConstBytesShared, size_t> Response::serialize() {
 
     size_t dataSize = sizeof(uint16_t) +

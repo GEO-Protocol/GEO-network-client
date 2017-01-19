@@ -21,6 +21,8 @@ public:
         TransactionUUID transactionUUID,
         uint16_t code);
 
+    uint16_t code();
+
     pair<ConstBytesShared, size_t> serialize();
 
     void deserialize(

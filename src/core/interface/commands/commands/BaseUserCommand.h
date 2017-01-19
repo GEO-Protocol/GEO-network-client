@@ -43,7 +43,7 @@ public:
 
     const Timestamp &timestampAccepted() const;
 
-    CommandResult::SharedConst unexpectedErrorResult();
+    CommandResult*  unexpectedErrorResult();
 
 protected:
     virtual void deserialize(

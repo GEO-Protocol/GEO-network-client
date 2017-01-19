@@ -3,14 +3,13 @@
 
 #include "../UniqueTransaction.h"
 
-#include "../../../../interface/commands/commands/OpenTrustLineCommand.h"
+#include "../../../../interface/commands/commands/trust_lines/OpenTrustLineCommand.h"
 
 #include "AcceptTrustLineTransaction.h"
-#include "../../UpdateTrustLineTransaction.h"
-#include "../../CloseTrustLineTransaction.h"
 
 #include "../../../../network/messages/Message.h"
 #include "../../../../network/messages/outgoing/OpenTrustLineMessage.h"
+#include "../../../../network/messages/incoming/AcceptTrustLineMessage.h"
 
 #include "../../../manager/TransactionsManager.h"
 
@@ -41,6 +40,8 @@ private:
 
     TransactionResult::Shared waitingForResponseState();
 
+    void createTrustLine();
+
     TransactionResult::Shared resultOk();
 
     TransactionResult::Shared trustLinePresentResult();
@@ -48,6 +49,10 @@ private:
     TransactionResult::Shared conflictErrorResult();
 
     TransactionResult::Shared noResponseResult();
+
+    TransactionResult::Shared transactionConflictResult();
+
+    TransactionResult::Shared unexpectedErrorResult();
 
 private:
     const uint64_t kConnectionTimeout = 2000;

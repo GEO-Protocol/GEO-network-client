@@ -61,9 +61,8 @@ void TransactionsScheduler::scheduleTransaction(
         launchTransaction(transaction);
 
     } catch (std::exception &e) {
-        mLog->logError(
-            "TransactionsScheduler",
-            e.what());
+        mLog->logError("TransactionsScheduler",
+                       e.what());
         sleepFor(findTransactionWithMinimalTimeout().second);
     }
 }
@@ -75,9 +74,8 @@ void TransactionsScheduler::run() {
             launchTransaction(findTransactionWithMinimalTimeout().first);
 
         } catch (std::exception &e) {
-            mLog->logError(
-                "TransactionsScheduler",
-                e.what());
+            mLog->logError("TransactionsScheduler",
+                           e.what());
             sleepFor(findTransactionWithMinimalTimeout().second);
         }
     }
@@ -86,18 +84,23 @@ void TransactionsScheduler::run() {
 void TransactionsScheduler::handleMessage(
     Message::Shared message) {
 
-    //-------------------------------------
     for (auto &transaction : *mTransactions) {
         if (transaction.first->transactionUUID() == message->transactionUUID()) {
             for (auto &messageType : transaction.second->transactionsTypes()) {
                 if (messageType == message->typeID()) {
                     transaction.first->setContext(message);
-                    launchTransaction(transaction.first);
+                    try {
+                        launchTransaction(transaction.first);
+
+                    } catch (std::exception &e) {
+                        mLog->logError("TransactionsScheduler",
+                                       e.what());
+                        sleepFor(findTransactionWithMinimalTimeout().second);
+                    }
                 }
             }
         }
     }
-    //-------------------------------------
 }
 
 void TransactionsScheduler::launchTransaction(
@@ -228,9 +231,8 @@ void TransactionsScheduler::handleSleep(
     Timeout delay) {
 
     if (error) {
-        mLog->logError(
-            "TransactionsScheduler",
-            error.message());
+        mLog->logError("TransactionsScheduler",
+                       error.message());
         return;
 
     } else {

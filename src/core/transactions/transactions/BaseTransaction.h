@@ -9,6 +9,8 @@
 
 #include "result/TransactionResult.h"
 
+#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
+
 #include <boost/signals2.hpp>
 
 
@@ -19,7 +21,8 @@ class BaseTransaction {
 public:
     typedef shared_ptr<BaseTransaction> Shared;
 
-    signals::signal<void(Message::Shared, const NodeUUID&)> sendMessageSignal;
+    typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
+    //signals::signal<void(Message::Shared, const NodeUUID&)> sendMessageSignal;
 
 public:
     enum TransactionType {
@@ -28,14 +31,13 @@ public:
         UpdateTrustLineTransactionType,
         SetTrustLineTransactionType,
         CloseTrustLineTransactionType,
-        RejectTrustLineTransactionType,
-        MaximalAmountTransactionType,
-        UseCreditTransactionType,
-        TotalBalanceTransactionType,
-        ContractorsListTransactionType
+        RejectTrustLineTransactionType
     };
 
 public:
+    signals::connection addOnMessageSendSlot(
+        const SendMessageSignal::slot_type &slot) const;
+
     const TransactionType transactionType() const;
 
     const NodeUUID &nodeUUID() const;
@@ -54,6 +56,10 @@ protected:
         TransactionType type,
         NodeUUID &nodeUUID);
 
+    void addMessage(
+        Message::Shared message,
+        const NodeUUID &nodeUUID);
+
     void increaseStepsCounter();
 
     void increaseRequestsCounter();
@@ -67,6 +73,8 @@ protected:
 
     uint16_t mStep = 1;
     uint16_t mRequestCounter = 0;
+
+    mutable SendMessageSignal sendMessageSignal;
 };
 
 

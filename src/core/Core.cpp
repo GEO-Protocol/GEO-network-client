@@ -80,7 +80,6 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
-    initSlots();
     connectSignalsToSlots();
 
     return 0;
@@ -183,37 +182,24 @@ int Core::initCommandsInterface() {
     }
 }
 
-int Core::initSlots() {
-
-    try {
-        networkSlots = new NetworkSlots(
-            mCommunicator,
-            mTransactionsManager,
-            &mLog
-        );
-        mLog.logSuccess("Core", "Network slot is successfully initialised");
-        return 0;
-    } catch (bad_alloc &e) {
-        mLog.logException("Core", e);
-        return -1;
-    }
-}
-
 void Core::connectCommunicatorSignals() {
 
     //communicator's signal to transactions manager slot
     mCommunicator->messageReceivedSignal.connect(
         boost::bind(
-            &Core::NetworkSlots::onMessageReceivedSlot,
-            networkSlots
+            &Core::onMessageReceivedSlot,
+            this,
+            _1
         )
     );
 
     //transactions manager's to communicator slot
     mTransactionsManager->sendMessageSignal.connect(
         boost::bind(
-            &Core::NetworkSlots::onMessageSendSlot,
-            networkSlots
+            &Core::onMessageSendSlot,
+            this,
+            _1,
+            _2
         )
     );
 }
@@ -221,6 +207,32 @@ void Core::connectCommunicatorSignals() {
 void Core::connectSignalsToSlots() {
 
     connectCommunicatorSignals();
+}
+
+void Core::onMessageReceivedSlot(
+    Message::Shared message) {
+
+    try {
+        mTransactionsManager->processMessage(message);
+
+    } catch(exception &e) {
+        mLog.logException("Core", e);
+    }
+}
+
+void Core::onMessageSendSlot(
+    Message::Shared message,
+    const NodeUUID &contractorUUID) {
+
+    try{
+        mCommunicator->sendMessage(
+            message,
+            contractorUUID
+        );
+
+    } catch (exception &e) {
+        mLog.logException("Core", e);
+    }
 }
 
 void Core::cleanupMemory() {
@@ -260,37 +272,4 @@ void Core::zeroPointers() {
     mTransactionsManager = nullptr;
 }
 
-Core::NetworkSlots::NetworkSlots(
-    Communicator *communicator,
-    TransactionsManager *manager,
-    Logger *logger) :
 
-    mCommunicator(communicator),
-    mTransactionsManager(manager),
-    mLog(logger){}
-
-void Core::NetworkSlots::onMessageReceivedSlot(
-    Message::Shared message) {
-
-    try {
-        mTransactionsManager->processMessage(message);
-
-    } catch(exception &e) {
-        mLog->logException("Core", e);
-    }
-}
-
-void Core::NetworkSlots::onMessageSendSlot(
-    Message::Shared message,
-    const NodeUUID &contractorUUID) {
-
-    try{
-        mCommunicator->sendMessage(
-            message,
-            contractorUUID
-        );
-
-    } catch (exception &e) {
-        mLog->logException("Core", e);
-    }
-}

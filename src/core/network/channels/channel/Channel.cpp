@@ -39,8 +39,8 @@ bool Channel::checkConsistency() const {
             auto channelData = data();
             boost::crc_32_type control;
             control.process_bytes(
-                channelData.second.get(),
-                channelData.first
+                channelData.first.get(),
+                channelData.second
             );
 
             return control.checksum() == *controlSum;
