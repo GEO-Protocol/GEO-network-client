@@ -5,8 +5,8 @@
 
 #include "settings/Settings.h"
 #include "network/communicator/Communicator.h"
-#include "interface/commands/interface/CommandsInterface.h"
-#include "interface/results/interface/ResultsInterface.h"
+#include "interface/commands_interface/interface/CommandsInterface.h"
+#include "interface/results_interface/interface/ResultsInterface.h"
 #include "trust_lines/manager/TrustLinesManager.h"
 #include "transactions/manager/TransactionsManager.h"
 

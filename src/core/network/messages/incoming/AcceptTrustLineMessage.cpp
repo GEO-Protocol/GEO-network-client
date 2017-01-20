@@ -62,7 +62,7 @@ const Message::MessageTypeID AcceptTrustLineMessage::typeID() const {
     return Message::MessageTypeID::AcceptTrustLineMessageType;
 }
 
-TrustLineAmount AcceptTrustLineMessage::amount() const {
+const TrustLineAmount &AcceptTrustLineMessage::amount() const {
 
     return mTrustLineAmount;
 }

@@ -36,6 +36,10 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
+        case Message::MessageTypeID::CloseTrustLineMessageType: {
+
+        }
+
         default: {
             return tryDeserializeResponse(
                 messageIdentifier,
@@ -141,7 +145,7 @@ void IncomingMessagesHandler::tryCollectPacket(
                                   "Can not allocate memory for packet header instance.");
         }
 
-        auto channel = mChannelsManager->channel(
+        auto channelAndEndpoint = mChannelsManager->channel(
             packetHeader->channelNumber(),
             clientEndpoint);
 
@@ -157,7 +161,7 @@ void IncomingMessagesHandler::tryCollectPacket(
             throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
                                   "Can not allocate memory for packet instance.");
         }
-        channel.first->addPacket(
+        channelAndEndpoint.first->addPacket(
             packetHeader->packetNumber(),
             Packet::Shared(packet)
         );
@@ -165,9 +169,9 @@ void IncomingMessagesHandler::tryCollectPacket(
         cutPacketFromBuffer(*bytesCount);
 
 
-        if (channel.first->expectedPacketsCount() == channel.first->realPacketsCount()) {
-            if (channel.first->checkConsistency()) {
-                auto data = channel.first->data();
+        if (channelAndEndpoint.first->expectedPacketsCount() == channelAndEndpoint.first->realPacketsCount()) {
+            if (channelAndEndpoint.first->checkConsistency()) {
+                auto data = channelAndEndpoint.first->data();
                 auto message = mMessagesParser->processMessage(
                   data.first,
                   data.second

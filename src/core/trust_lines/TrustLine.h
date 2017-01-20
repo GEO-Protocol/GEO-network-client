@@ -6,18 +6,12 @@
 
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
 
 #include "../common/exceptions/RuntimeError.h"
 
 #include <vector>
 
 using namespace std;
-
-namespace multiprecision = boost::multiprecision;
-
-typedef multiprecision::checked_uint256_t TrustLineAmount;
-typedef multiprecision::int256_t TrustLineBalance;
 
 typedef boost::function<void()> SaveTrustLineCallback;
 
@@ -53,6 +47,18 @@ public:
         const TrustLineBalance &balance,
         SaveTrustLineCallback callback);
 
+    void activateOutgoingDirection();
+
+    void pendingSuspendOutgoingDirection();
+
+    void suspendOutgoingDirection();
+
+    void activateIncomingDirection();
+
+    void pendingSuspendIncomingDirection();
+
+    void suspendIncomingDirection();
+
     const NodeUUID &contractorNodeUUID() const;
 
     const TrustLineAmount &incomingTrustAmount() const;
@@ -62,6 +68,8 @@ public:
     const TrustLineBalance &balance() const;
 
     const TrustLineDirection direction() const;
+
+    const BalanceRange balanceRange() const;
 
     vector<byte> serializeTrustLine();
 
@@ -98,6 +106,7 @@ private:
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
     TrustLineBalance mBalance;
+    pair<TrustState, TrustState> mTrustLineState;
 
 };
 

@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONRESULT_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONRESULT_H
 
-#include "../../../interface/results/result/CommandResult.h"
+#include "../../../interface/results_interface/result/CommandResult.h"
 #include "../../../network/messages/result/MessageResult.h"
 #include "state/TransactionState.h"
 

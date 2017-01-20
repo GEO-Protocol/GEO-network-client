@@ -56,7 +56,6 @@ target_link_libraries(geo_network_client
         interface__results
         io__trust_lines_storage
         io__routing_tables_storage
-#        io__routing_tables_tests
 
         trust_lines
         transactions

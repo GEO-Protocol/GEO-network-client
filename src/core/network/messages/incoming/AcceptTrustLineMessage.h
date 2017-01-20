@@ -1,12 +1,11 @@
 #ifndef GEO_NETWORK_CLIENT_ACCEPTTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_ACCEPTTRUSTLINEMESSAGE_H
 
+#include "../Message.h"
+
 #include "../../../common/Types.h"
 
-#include "../Message.h"
 #include "../result/MessageResult.h"
-
-#include "../../../trust_lines/TrustLine.h"
 
 #include <string>
 #include <vector>
@@ -29,7 +28,7 @@ public:
 
     const MessageTypeID typeID() const;
 
-    TrustLineAmount amount() const;
+    const TrustLineAmount &amount() const;
 
     MessageResult::Shared resultAccepted() const;
 

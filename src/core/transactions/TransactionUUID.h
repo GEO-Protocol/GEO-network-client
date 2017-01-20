@@ -20,15 +20,20 @@ public:
 
 public:
     explicit TransactionUUID();
+
     TransactionUUID(uuid const &u);
+
     TransactionUUID(TransactionUUID &u);
+
     TransactionUUID(const TransactionUUID &u);
+
     TransactionUUID(const string &hex);
 
     operator boost::uuids::uuid();
+
     operator boost::uuids::uuid() const;
-    TransactionUUID& operator=(
-            const boost::uuids::uuid &u);
+
+    TransactionUUID& operator=(const boost::uuids::uuid &u);
 
     const string stringUUID() const;
 };

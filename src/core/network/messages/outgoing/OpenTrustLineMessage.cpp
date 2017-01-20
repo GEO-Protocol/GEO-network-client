@@ -5,7 +5,10 @@ OpenTrustLineMessage::OpenTrustLineMessage(
     TransactionUUID &transactionUUID,
     TrustLineAmount amount) :
 
-    Message(sender, transactionUUID),
+    Message(
+        sender,
+        transactionUUID
+    ),
     mTrustLineAmount(amount) {}
 
 pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
@@ -69,6 +72,7 @@ void OpenTrustLineMessage::deserialize(
 }
 
 const Message::MessageTypeID OpenTrustLineMessage::typeID() const {
+
     return Message::MessageTypeID::OpenTrustLineMessageType;
 }
 

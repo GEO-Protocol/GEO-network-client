@@ -1,20 +1,14 @@
 #ifndef GEO_NETWORK_CLIENT_BASECOMMANDRESULT_H
 #define GEO_NETWORK_CLIENT_BASECOMMANDRESULT_H
 
-#include "../../commands/CommandUUID.h"
+#include "../../../common/Types.h"
 
-#include <boost/date_time/posix_time/ptime.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
-#include <boost/date_time/posix_time/conversion.hpp>
+#include "../../commands_interface/CommandUUID.h"
 
 #include <string>
 #include <memory>
 
 using namespace std;
-
-typedef boost::posix_time::ptime Timestamp;
-typedef boost::posix_time::time_duration Duration;
-typedef uint64_t MicrosecondsTimestamp;
 
 class CommandResult {
 public:

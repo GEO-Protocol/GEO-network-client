@@ -5,7 +5,7 @@ CommandResult::CommandResult(
         const uint16_t resultCode) :
 
         mCommandUUID(commandUUID),
-        mTimestampCompleted(boost::posix_time::microsec_clock::universal_time()) {
+        mTimestampCompleted(posix::microsec_clock::universal_time()) {
 
     mResultCode = resultCode;
 }
@@ -16,7 +16,7 @@ CommandResult::CommandResult(
         string &resultInformation) :
 
         mCommandUUID(commandUUID),
-        mTimestampCompleted(boost::posix_time::microsec_clock::universal_time()),
+        mTimestampCompleted(posix::microsec_clock::universal_time()),
         mResultInformation(resultInformation) {
 
     mResultCode = resultCode;

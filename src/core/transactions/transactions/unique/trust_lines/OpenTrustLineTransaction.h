@@ -3,7 +3,7 @@
 
 #include "../UniqueTransaction.h"
 
-#include "../../../../interface/commands/commands/trust_lines/OpenTrustLineCommand.h"
+#include "../../../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 
 #include "AcceptTrustLineTransaction.h"
 
@@ -13,7 +13,9 @@
 
 #include "../../../manager/TransactionsManager.h"
 
-class OpenTrustLineTransaction : public UniqueTransaction {
+#include "../../../../common/exceptions/ConflictError.h"
+
+class OpenTrustLineTransaction: public UniqueTransaction {
 
 public:
     typedef shared_ptr<OpenTrustLineTransaction> Shared;

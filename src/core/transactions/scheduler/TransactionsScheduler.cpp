@@ -54,7 +54,7 @@ void TransactionsScheduler::scheduleTransaction(
     try {
         /*auto transactionContext = transaction->serializeContext();
         mStorage->write(
-         storage::uuids::uuid(transaction->transactionUUID()),
+         storage::uuids::commandUUID(transaction->transactionUUID()),
          transactionContext.first,
          transactionContext.second);*/
 
@@ -145,7 +145,7 @@ void TransactionsScheduler::handleTransactionResult(
             it->second = result->transactionState();
             /*auto transactionContext = transaction->serializeContext();
              mStorage->rewrite(
-             storage::uuids::uuid(transaction->transactionUUID()),
+             storage::uuids::commandUUID(transaction->transactionUUID()),
              transactionContext.first,
              transactionContext.second);*/
 
@@ -163,7 +163,7 @@ void TransactionsScheduler::handleTransactionResult(
         if (isTransactionInScheduler(transaction)) {
             mTransactions->erase(transaction);
             /*mStorage->erase(
-                storage::uuids::uuid(transaction->transactionUUID()));*/
+                storage::uuids::commandUUID(transaction->transactionUUID()));*/
 
         } else {
             throw ValueError("TransactionsManager::handleTransactionResult. "

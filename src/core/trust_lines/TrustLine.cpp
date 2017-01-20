@@ -45,6 +45,36 @@ void TrustLine::setBalance(
     callback();
 }
 
+void TrustLine::activateOutgoingDirection() {
+
+    mTrustLineState.second = TrustState::Active;
+}
+
+void TrustLine::suspendOutgoingDirection() {
+
+    mTrustLineState.second = TrustState::Suspended;
+}
+
+void TrustLine::pendingSuspendOutgoingDirection() {
+
+    mTrustLineState.second = TrustState::PendingSuspend;
+}
+
+void TrustLine::activateIncomingDirection() {
+
+    mTrustLineState.first = TrustState::Active;
+}
+
+void TrustLine::pendingSuspendIncomingDirection() {
+
+    mTrustLineState.first = TrustState::PendingSuspend;
+}
+
+void TrustLine::suspendIncomingDirection() {
+
+    mTrustLineState.first = TrustState::Suspended;
+}
+
 const NodeUUID &TrustLine::contractorNodeUUID() const {
 
     return mContractorNodeUuid;
@@ -78,6 +108,19 @@ const TrustLineDirection TrustLine::direction() const {
 
     } else {
         return TrustLineDirection::Nowhere;
+    }
+}
+
+const BalanceRange TrustLine::balanceRange() const{
+
+    if (mBalance > TrustLineBalance(0)) {
+        return BalanceRange::Positive;
+
+    } else if (mBalance < TrustLineBalance(0)) {
+        return BalanceRange::Negative;
+
+    } else {
+        return BalanceRange::EqualsZero;
     }
 }
 
@@ -218,7 +261,6 @@ void TrustLine::parseBalance(
         mBalance = mBalance * -1;
     }
 }
-
 
 
 

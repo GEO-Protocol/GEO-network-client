@@ -5,7 +5,10 @@ UniqueTransaction::UniqueTransaction(
     NodeUUID &nodeUUID,
     TransactionsScheduler *scheduler) :
 
-    BaseTransaction(type, nodeUUID),
+    BaseTransaction(
+        type,
+        nodeUUID
+    ),
     mTransactionsScheduler(scheduler) {}
 
 const map<BaseTransaction::Shared, TransactionState::SharedConst>* UniqueTransaction::pendingTransactions() {

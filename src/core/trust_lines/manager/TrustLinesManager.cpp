@@ -48,6 +48,7 @@ void TrustLinesManager::saveTrustLine(
         }
         mTrustLines.insert(make_pair(trustLine->contractorNodeUUID(), trustLine));
     }
+
 }
 
 /**

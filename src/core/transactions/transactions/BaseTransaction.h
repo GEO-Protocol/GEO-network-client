@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_BASETRANSACTION_H
 
 #include "../../common/Types.h"
+
 #include "../../common/NodeUUID.h"
 #include "../TransactionUUID.h"
 
@@ -22,7 +23,6 @@ public:
     typedef shared_ptr<BaseTransaction> Shared;
 
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
-    //signals::signal<void(Message::Shared, const NodeUUID&)> sendMessageSignal;
 
 public:
     enum TransactionType {

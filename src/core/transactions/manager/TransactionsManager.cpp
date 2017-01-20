@@ -37,7 +37,7 @@ TransactionsManager::~TransactionsManager() {
 void TransactionsManager::processCommand(
     BaseUserCommand::Shared command) {
 
-    if (command->derivedIdentifier() == OpenTrustLineCommand::identifier()) {
+    if (command->commandIdentifier() == OpenTrustLineCommand::identifier()) {
         createOpenTrustLineTransaction(command);
 
     } else {
@@ -69,15 +69,6 @@ void TransactionsManager::createOpenTrustLineTransaction(
             mTransactionsScheduler,
             mTrustLinesManager);
 
-        /*baseTransaction->sendMessageSignal.connect(
-          boost::bind(
-              &TransactionsManager::onMessageSend,
-              this,
-              _1,
-              _2
-          )
-        );*/
-
         baseTransaction->addOnMessageSendSlot(
             boost::bind(
                 &TransactionsManager::onMessageSend,
@@ -106,15 +97,6 @@ void TransactionsManager::createAcceptTrustLineTransaction(
             acceptTrustLineMessage,
             mTransactionsScheduler,
             mTrustLinesManager);
-
-        /*baseTransaction->sendMessageSignal.connect(
-          boost::bind(
-              &TransactionsManager::onMessageSend,
-              this,
-              _1,
-              _2
-          )
-        );*/
 
         baseTransaction->addOnMessageSendSlot(
             boost::bind(

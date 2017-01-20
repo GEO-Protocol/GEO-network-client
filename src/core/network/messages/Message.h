@@ -37,7 +37,9 @@ public:
     enum MessageTypeID {
         OpenTrustLineMessageType = 1,
         AcceptTrustLineMessageType = 2,
-        ResponseMessageType = 3
+        CloseTrustLineMessageType = 3,
+        RejectTrustLineMessageType = 4,
+        ResponseMessageType = 5
     };
 
 public:
@@ -45,9 +47,9 @@ public:
 
     Message(NodeUUID &sender, TransactionUUID &transactionUUID) : mSenderUUID(sender), mTransactionUUID(transactionUUID) {};
 
-    NodeUUID senderUUID() const { return mSenderUUID; }
+    const NodeUUID &senderUUID() const { return mSenderUUID; }
 
-    TransactionUUID transactionUUID() const { return mTransactionUUID; }
+    const TransactionUUID &transactionUUID() const { return mTransactionUUID; }
 
     virtual pair<ConstBytesShared, size_t> serialize() = 0;
 

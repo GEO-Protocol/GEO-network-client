@@ -3,13 +3,13 @@
 
 #include "../../common/NodeUUID.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
-#include "../../interface/results/interface/ResultsInterface.h"
+#include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../logger/Logger.h"
 
 #include "../scheduler/TransactionsScheduler.h"
 
-#include "../../interface/commands/commands/BaseUserCommand.h"
-#include "../../interface/commands/commands/trust_lines/OpenTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/BaseUserCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 
 #include "../../network/messages/Message.h"
 #include "../../network/messages/incoming/AcceptTrustLineMessage.h"

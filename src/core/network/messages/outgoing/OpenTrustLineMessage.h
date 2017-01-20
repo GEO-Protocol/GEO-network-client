@@ -3,8 +3,10 @@
 
 #include "../Message.h"
 
+#include "../../../common/Types.h"
+
+#include "../../../transactions/TransactionUUID.h"
 #include "../../../common/NodeUUID.h"
-#include "../../../trust_lines/TrustLine.h"
 
 class OpenTrustLineMessage : public Message {
 

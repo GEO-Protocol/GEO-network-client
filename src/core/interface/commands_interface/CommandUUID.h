@@ -13,8 +13,7 @@ using boost::uuids::uuid;
 using namespace std;
 
 
-class CommandUUID:
-    public uuid {
+class CommandUUID: public uuid {
 
 public:
     static const size_t kUUIDLength = 36;
@@ -24,28 +23,36 @@ public:
     CommandUUID():
         uuid(boost::uuids::random_generator()()){};
 
-    explicit CommandUUID(uuid const &u){
+    explicit CommandUUID(
+        uuid const &u){
+
         memcpy(data, u.data, kUUIDLength);
     }
 
-    explicit CommandUUID(CommandUUID const &u){
+    explicit CommandUUID(
+        CommandUUID const &u){
+
         memcpy(data, u.data, kUUIDLength);
     }
 
     operator boost::uuids::uuid(){
+
         return static_cast<boost::uuids::uuid&>(*this);
     }
 
     operator boost::uuids::uuid() const {
+
         return static_cast<boost::uuids::uuid const&>(*this);
     }
 
     CommandUUID& operator=(const boost::uuids::uuid &u){
+
         memcpy(data, u.data, kUUIDSize);
         return *this;
     }
 
     const string stringUUID() const {
+
         uuid u;
         memcpy(&u.data, data, kUUIDSize);
         return boost::lexical_cast<string>(u);

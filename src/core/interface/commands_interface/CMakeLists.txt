@@ -8,13 +8,15 @@ set(SOURCE_FILES
         commands/BaseUserCommand.h
         commands/trust_lines/OpenTrustLineCommand.cpp
         commands/trust_lines/OpenTrustLineCommand.h
-        CommandUUID.h
+        commands/trust_lines/CloseTrustLineCommand.cpp
+        commands/trust_lines/CloseTrustLineCommand.h
 
         interface/CommandsInterface.cpp
-        interface/CommandsInterface.h)
+        interface/CommandsInterface.h
+
+        CommandUUID.h)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands
         ${Boost_SYSTEM_LIBRARY}
-
         common)

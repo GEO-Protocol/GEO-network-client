@@ -8,6 +8,8 @@
 #include "../internal/OutgoingMessagesHandler.h"
 #include "../internal/IncomingMessagesHandler.h"
 
+#include "../../common/exceptions/RuntimeError.h"
+
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/signals2.hpp>
