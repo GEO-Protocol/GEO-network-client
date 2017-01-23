@@ -84,6 +84,7 @@ public:
         as::io_service &ioService,
         TransactionsManager *transactionsManager,
         Logger *logger);
+
     ~CommandsInterface();
 
     void beginAcceptCommands();

@@ -142,19 +142,19 @@ const UUIDColumn::BucketIndex UUIDColumn::bucketIndexByNodeUUID(
     const NodeUUID &u) const {
 
     // Bucket index is the mask,
-    // formed by chaining significant bits from several bytes of the "parseNodeUUID".
+    // formed by chaining significant bits from several bytes of the "nodeUUID".
     // "mPow2BucketsCountIndex" determines how many buckets may be generated,
     // and how many bits should be used in the mask to handle their indexes.
     //
-    // In case when "mPow2BucketsCountIndex" is smaller than length of the transactionUUID (16B),
-    // significant bits should be collected from the transactionUUID in way of normal distribution.
-    // "middleOffset" makes it possible to use several bytes from the middle of the transactionUUID,
+    // In case when "mPow2BucketsCountIndex" is smaller than length of the uuid (16B),
+    // significant bits should be collected from the uuid in way of normal distribution.
+    // "middleOffset" makes it possible to use several bytes from the middle of the uuid,
     // and guarantee in such a way that significant bits would be collected
     // in random order.
     //
     // Note:
     // this approach assumes good normal distribution of the random generator,
-    // that was used for generating of the transactionUUID.
+    // that was used for generating of the uuid.
 
     uint16_t index = 0;
     for (uint8_t i=0; i<mPow2BucketsCountIndex; ++i) {
@@ -350,8 +350,8 @@ UUIDColumn::recordNumbersAssignedToUUID(
         return make_pair(record->recordNumbers(), record->count());
 
     } catch (IndexError &e) {
-        // There is no such transactionUUID in the bucket block.
-        // As a result - there is no records assigned to this transactionUUID.
+        // There is no such uuid in the bucket block.
+        // As a result - there is no records assigned to this uuid.
         return make_pair(nullptr, 0);
     }
 }

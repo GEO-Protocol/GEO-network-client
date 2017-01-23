@@ -34,7 +34,6 @@ typedef posix::time_duration Duration;
 typedef uint64_t MicrosecondsTimestamp;
 
 
-
 /*
  * Trust lines types
  */
@@ -55,13 +54,11 @@ enum BalanceRange {
 
 enum TrustState {
     Active = 1,
-    Suspended = 2,
-    PendingSuspend = 3
+    Suspended = 2
 };
 
 enum TrustLineDirection {
-    Unspecified = 0,
-
+    Nowhere = 0,
     Incoming = 1,
     Outgoing = 2,
     Both     = 3,

@@ -1,6 +1,5 @@
 #include "TrustLine.h"
 
-
 TrustLine::TrustLine(
     const NodeUUID &nodeUUID,
     const TrustLineAmount &incomingAmount,
@@ -12,13 +11,15 @@ TrustLine::TrustLine(
     mOutgoingTrustAmount(outgoingAmount),
     mBalance(nodeBalance) {
 
-    if (mBalance > TrustLineBalance(0)){
+    if (mBalance > kZeroBalance()){
         if (mBalance > mIncomingTrustAmount) {
-            throw ValueError("Balance can't be greater than incoming trust amount.");
+            throw ValueError("TrustLine::TrustLine: "
+                                 "Balance can't be greater than incoming trust amount.");
         }
     } else {
         if (-mBalance > mOutgoingTrustAmount) {
-            throw ValueError("Balance can't be less than outgoing trust amount.");
+            throw ValueError("TrustLine::TrustLine: "
+                                 "Balance can't be less than outgoing trust amount.");
         }
     }
 }
@@ -41,10 +42,9 @@ TrustLine::TrustLine(
     deserialize(buffer);
 }
 
-/*!
+/**
  * Sets incoming trust amount of the trust line.
  * This method rewrites previous incoming trust amount.
- *
  *
  * Throws ValueError in case if "amount" is too big.
  */
@@ -55,9 +55,8 @@ void TrustLine::setIncomingTrustAmount(
     // and, in case if it would be converted to the negative value, - overflow is possible.
     // To avoid this - max value of TrustLineAmount is avoided from using.
     if (numeric_limits<TrustLineAmount>::max() == amount) {
-        throw ValueError(
-            "TrustLine::setIncomingTrustAmount: "
-                "amount is too big.");
+        throw ValueError("TrustLine::setIncomingTrustAmount: "
+                             "Amount is too big.");
     }
 
     mIncomingTrustAmount = amount;
@@ -77,9 +76,8 @@ void TrustLine::setOutgoingTrustAmount(
     // and in case if it would be converted to the negative value - overflow is possible.
     // To avoid this - max value of TrustLineAmount is avoided from using.
     if (numeric_limits<TrustLineAmount>::max() == amount) {
-        throw ValueError(
-            "TrustLine::setIncomingTrustAmount: "
-                "amount is too big.");
+        throw ValueError("TrustLine::setOutgoingTrustAmount: "
+                             "Amount is too big.");
     }
 
     mOutgoingTrustAmount = amount;
@@ -91,6 +89,7 @@ void TrustLine::setOutgoingTrustAmount(
  */
 void TrustLine::setBalance(
     const TrustLineBalance &balance) {
+
     mBalance = balance;
 }
 
@@ -104,19 +103,9 @@ void TrustLine::suspendOutgoingDirection() {
     mTrustLineState.second = TrustState::Suspended;
 }
 
-void TrustLine::pendingSuspendOutgoingDirection() {
-
-    mTrustLineState.second = TrustState::PendingSuspend;
-}
-
 void TrustLine::activateIncomingDirection() {
 
     mTrustLineState.first = TrustState::Active;
-}
-
-void TrustLine::pendingSuspendIncomingDirection() {
-
-    mTrustLineState.first = TrustState::PendingSuspend;
 }
 
 void TrustLine::suspendIncomingDirection() {
@@ -125,18 +114,22 @@ void TrustLine::suspendIncomingDirection() {
 }
 
 const NodeUUID &TrustLine::contractorNodeUUID() const {
+
     return mContractorNodeUuid;
 }
 
 const TrustLineAmount &TrustLine::incomingTrustAmount() const {
+
     return mIncomingTrustAmount;
 }
 
 const TrustLineAmount &TrustLine::outgoingTrustAmount() const {
+
     return mOutgoingTrustAmount;
 }
 
 const TrustLineBalance &TrustLine::balance() const {
+
     return mBalance;
 }
 
@@ -144,32 +137,39 @@ const TrustLineBalance &TrustLine::balance() const {
  * Returns amount that is availale to use on the trust line.
  */
 ConstSharedTrustLineAmount TrustLine::availableAmount() const {
+
     if (mBalance >= kZeroBalance()){
         if (mIncomingTrustAmount > kZeroAmount()) {
             return ConstSharedTrustLineAmount(
                 new TrustLineAmount(
-                    mIncomingTrustAmount - TrustLineAmount(mBalance)));
+                    mIncomingTrustAmount - TrustLineAmount(mBalance)
+                )
+            );
         }
 
         return ConstSharedTrustLineAmount(
             new TrustLineAmount(
-                mBalance));
+                mBalance
+            )
+        );
     }
 
     return ConstSharedTrustLineAmount(
         new TrustLineAmount(
-            mIncomingTrustAmount + mBalance));
+            mIncomingTrustAmount + mBalance
+        )
+    );
 }
 
 const TrustLineDirection TrustLine::direction() const {
 
-    if (mOutgoingTrustAmount > TrustLineAmount(0) && mIncomingTrustAmount > TrustLineAmount(0)) {
+    if (mOutgoingTrustAmount > kZeroAmount() && mIncomingTrustAmount > kZeroAmount()) {
         return TrustLineDirection::Both;
 
-    } else if (mOutgoingTrustAmount > TrustLineAmount(0) && mIncomingTrustAmount == TrustLineAmount(0)) {
+    } else if (mOutgoingTrustAmount > kZeroAmount() && mIncomingTrustAmount == kZeroAmount()) {
         return TrustLineDirection::Outgoing;
 
-    } else if (mOutgoingTrustAmount == TrustLineAmount(0) && mIncomingTrustAmount > TrustLineAmount(0)) {
+    } else if (mOutgoingTrustAmount == kZeroAmount() && mIncomingTrustAmount > kZeroAmount()) {
         return TrustLineDirection::Incoming;
 
     } else {
@@ -179,10 +179,10 @@ const TrustLineDirection TrustLine::direction() const {
 
 const BalanceRange TrustLine::balanceRange() const{
 
-    if (mBalance > TrustLineBalance(0)) {
+    if (mBalance > kZeroBalance()) {
         return BalanceRange::Positive;
 
-    } else if (mBalance < TrustLineBalance(0)) {
+    } else if (mBalance < kZeroBalance()) {
         return BalanceRange::Negative;
 
     } else {
@@ -232,14 +232,17 @@ void TrustLine::deserialize(
     try {
         parseTrustAmount(
             buffer,
-            mIncomingTrustAmount);
+            mIncomingTrustAmount
+        );
 
         parseTrustAmount(
             buffer + kTrustAmountPartSize,
-            mOutgoingTrustAmount);
+            mOutgoingTrustAmount
+        );
 
         parseBalance(
-            buffer + kTrustAmountPartSize * 2);
+            buffer + kTrustAmountPartSize * 2
+        );
 
     } catch (exception &e) {
         throw RuntimeError(
@@ -256,7 +259,11 @@ void TrustLine::trustAmountToBytes(
     vector<byte> &buffer) {
 
     size_t oldSize = buffer.size();
-    export_bits(amount, back_inserter(buffer), 8);
+    export_bits(
+        amount,
+        back_inserter(buffer),
+        8
+    );
 
     size_t newSize = buffer.size();
     for (size_t i = 0; i < kTrustAmountPartSize - (newSize - oldSize); ++i) {
@@ -272,7 +279,11 @@ void TrustLine::balanceToBytes(
     vector<byte> &buffer) {
 
     size_t oldSize = buffer.size();
-    export_bits(balance, back_inserter(buffer), 8);
+    export_bits(
+        balance,
+        back_inserter(buffer),
+        8
+    );
 
     size_t newSize = buffer.size();
     for (size_t i = 0; i < kBalancePartSize - (newSize - oldSize); ++i) {
@@ -291,14 +302,13 @@ void TrustLine::balanceToBytes(
  *
  * Parses trust line amount from "buffer" into "variable".
  *
- *
  * Throws MemoryError;
  */
 void TrustLine::parseTrustAmount(
     const byte *buffer,
     TrustLineAmount &variable) {
 
-        try {
+    try {
         vector<byte> bytesVector(
             buffer,
             buffer + kTrustAmountPartSize
@@ -313,10 +323,18 @@ void TrustLine::parseTrustAmount(
         }
 
         if (notZeroBytesVector.size() > 0) {
-            import_bits(variable, notZeroBytesVector.begin(), notZeroBytesVector.end());
+            import_bits(
+                variable,
+                notZeroBytesVector.begin(),
+                notZeroBytesVector.end()
+            );
 
         } else {
-            import_bits(variable, bytesVector.begin(), bytesVector.end());
+            import_bits(
+                variable,
+                bytesVector.begin(),
+                bytesVector.end()
+            );
         }
 
     } catch (bad_alloc &){
@@ -354,10 +372,18 @@ void TrustLine::parseBalance(
         }
 
         if (notZeroBytesVector.size() > 0) {
-            import_bits(mBalance, notZeroBytesVector.begin(), notZeroBytesVector.end());
+            import_bits(
+                mBalance,
+                notZeroBytesVector.begin(),
+                notZeroBytesVector.end()
+            );
 
         } else {
-            import_bits(mBalance, bytesVector.begin(), bytesVector.end());
+            import_bits(
+                mBalance,
+                bytesVector.begin(),
+                bytesVector.end()
+            );
         }
 
         if (sign == 1) {

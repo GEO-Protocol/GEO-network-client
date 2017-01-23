@@ -29,7 +29,7 @@ const NodeUUID &CloseTrustLineCommand::contractorUUID() const {
 void CloseTrustLineCommand::deserialize(const string &command) {
 
     try {
-        string hexUUID = command.substr(0, CommandUUID::kUUIDLength);
+        string hexUUID = command.substr(0, CommandUUID::kHexSize);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {

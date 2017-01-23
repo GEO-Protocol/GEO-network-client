@@ -28,22 +28,10 @@ class TrustLinesManager {
     // todo: deprecated; Tests subclass should be used.
     friend class TrustLinesManagerTests;
 
-private:
-    // todo: serizlisation/deserialisation of the TrstLine is the responsiblity of the TrustLine.
-    // todo: move this into the TrustLine.
-
-    // todo: this code is duplicated into the TrustLine.
-    static const size_t kTrustAmountPartSize = 32;
-    static const size_t kBalancePartSize = 32;
-    static const size_t kSignBytePartSize = 1;
-    static const size_t kRecordSize =
-        + kTrustAmountPartSize
-        + kTrustAmountPartSize
-        + kBalancePartSize
-        + kSignBytePartSize;
-
 public:
     TrustLinesManager();
+
+    void loadTrustLines();
 
     void open(
         const NodeUUID &contractorUUID,
@@ -59,6 +47,18 @@ public:
     void reject(
         const NodeUUID &contractorUUID);
 
+    const bool checkDirection(
+        const NodeUUID &contractorUUID,
+        const TrustLineDirection direction) const;
+
+    const BalanceRange balanceRange(
+        const NodeUUID &contractorUUID) const;
+
+    void suspendDirection(
+        const NodeUUID &contractorUUID,
+        const TrustLineDirection direction
+    );
+
     void setIncomingTrustAmount(
         const NodeUUID &contractor,
         const TrustLineAmount &amount);
@@ -66,6 +66,15 @@ public:
     void setOutgoingTrustAmount(
         const NodeUUID &contractor,
         const TrustLineAmount &amount);
+
+    const TrustLineAmount &incomingTrustAmount(
+        const NodeUUID &contractorUUID);
+
+    const TrustLineAmount &outgoingTrustAmount(
+        const NodeUUID &contractorUUID);
+
+    const TrustLineBalance &balance(
+        const NodeUUID &contractorUUID);
 
     AmountReservation::ConstShared reserveAmount(
         const NodeUUID &contractor,
@@ -84,27 +93,27 @@ public:
     const bool isTrustLineExist(
         const NodeUUID &contractorUUID) const;
 
-    const bool checkDirection(
-        const NodeUUID &contractorUUID,
-        const TrustLineDirection direction) const;
-
-protected:
-    // Contractor UUID -> trust line to the contractor.
-    map<NodeUUID, TrustLine::Shared> mTrustLines;
-
-    unique_ptr<TrustLinesStorage> mTrustLinesStorage;
-    unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
-
-protected:
-
     void saveToDisk(
         TrustLine::Shared trustLine);
 
     void removeTrustLine(
         const NodeUUID &contractorUUID);
 
-    void loadTrustLines();
-};
+private:
+    static const size_t kTrustAmountPartSize = 32;
+    static const size_t kBalancePartSize = 32;
+    static const size_t kSignBytePartSize = 1;
+    static const size_t kRecordSize =
+        + kTrustAmountPartSize
+        + kTrustAmountPartSize
+        + kBalancePartSize
+        + kSignBytePartSize;
 
+    // Contractor UUID -> trust line to the contractor.
+    map<NodeUUID, TrustLine::Shared> mTrustLines;
+
+    unique_ptr<TrustLinesStorage> mTrustLinesStorage;
+    unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
+};
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H

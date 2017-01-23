@@ -4,6 +4,7 @@
 
 #include "../common/Types.h"
 #include "../common/NodeUUID.h"
+
 #include "../common/exceptions/RuntimeError.h"
 #include "../common/exceptions/MemoryError.h"
 #include "../common/exceptions/ValueError.h"
@@ -47,13 +48,9 @@ public:
 
     void activateOutgoingDirection();
 
-    void pendingSuspendOutgoingDirection();
-
     void suspendOutgoingDirection();
 
     void activateIncomingDirection();
-
-    void pendingSuspendIncomingDirection();
 
     void suspendIncomingDirection();
 
@@ -65,18 +62,19 @@ public:
 
     const TrustLineBalance& balance() const;
 
+    ConstSharedTrustLineAmount availableAmount() const;
+
     const TrustLineDirection direction() const;
 
     const BalanceRange balanceRange() const;
 
-    vector<byte> *serializeTrustLine();
+    vector<byte> serialize();
 
-    vector<byte> *serialize();
     void deserialize(
         const byte *buffer);
 
-private:
     static const TrustLineBalance& kZeroBalance();
+
     static const TrustLineAmount& kZeroAmount();
 
 private:
@@ -100,7 +98,7 @@ private:
     const size_t kBalancePartSize = 32;
     const size_t kSignBytePartSize = 1;
     const size_t kRecordSize =
-        +kTrustAmountPartSize
+        + kTrustAmountPartSize
         + kTrustAmountPartSize
         + kBalancePartSize
         + kSignBytePartSize;
@@ -109,6 +107,7 @@ private:
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
     TrustLineBalance mBalance;
+    // <incoming direction state, outgoing direction state>
     pair<TrustState, TrustState> mTrustLineState;
 
 };

@@ -24,7 +24,7 @@ pair<ConstBytesShared, size_t> Response::serialize() {
 
     size_t dataSize = sizeof(uint16_t) +
                       NodeUUID::kBytesSize +
-                      TransactionUUID::kUUIDSize +
+                      TransactionUUID::kBytesSize +
                       sizeof(uint16_t);
     byte * data = (byte *) malloc(dataSize);
     memset(
@@ -49,11 +49,11 @@ pair<ConstBytesShared, size_t> Response::serialize() {
     memcpy(
         data + sizeof(uint16_t) + NodeUUID::kBytesSize,
         mTransactionUUID.data,
-        TransactionUUID::kUUIDSize
+        TransactionUUID::kBytesSize
     );
 
     memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kUUIDSize,
+        data + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
         &mCode,
         sizeof(uint16_t)
     );
@@ -76,10 +76,10 @@ void Response::deserialize(byte *buffer) {
     memcpy(
         mTransactionUUID.data,
         buffer + NodeUUID::kBytesSize,
-        TransactionUUID::kUUIDSize
+        TransactionUUID::kBytesSize
     );
     //------------------------------
-    uint16_t *code = new (buffer + NodeUUID::kBytesSize + TransactionUUID::kUUIDSize) uint16_t;
+    uint16_t *code = new (buffer + NodeUUID::kBytesSize + TransactionUUID::kBytesSize) uint16_t;
     mCode = *code;
 }
 

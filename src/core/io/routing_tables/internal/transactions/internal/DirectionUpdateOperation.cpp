@@ -52,7 +52,7 @@ const pair<shared_ptr<byte>, size_t> DirectionUpdateOperation::serialize() const
 
     auto currentOffset = buffer;
 
-    // Serializing operation transactionType
+    // Serializing operation type
     Operation::SerializedOperationType serializableOperationType = mType;
     memcpy(currentOffset, &serializableOperationType, sizeof(serializableOperationType));
     currentOffset += sizeof(serializableOperationType);

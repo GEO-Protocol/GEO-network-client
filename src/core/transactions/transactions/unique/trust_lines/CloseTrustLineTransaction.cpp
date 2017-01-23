@@ -41,10 +41,10 @@ TransactionResult::Shared CloseTrustLineTransaction::run() {
 
         case 3: {
             if (checkDebt()) {
-                pendingSuspendTrustLineToContractor();
+                suspendTrustLineToContractor();
 
             } else {
-                suspendTrustLineToContractor();
+                closeTrustLine();
             }
             increaseStepsCounter();
         }
@@ -119,20 +119,20 @@ bool CloseTrustLineTransaction::checkTrustLineExisting() {
 
 bool CloseTrustLineTransaction::checkDebt() {
 
-    auto trustLine = mTrustLinesManager->trustLineByContractorUUID(mCommand->contractorUUID());
-    return trustLine->balanceRange() == BalanceRange::Positive;
-}
-
-void CloseTrustLineTransaction::pendingSuspendTrustLineToContractor() {
-
-    auto trustLine = mTrustLinesManager->trustLineByContractorUUID(mCommand->contractorUUID());
-    trustLine->pendingSuspendOutgoingDirection();
+    return mTrustLinesManager->balanceRange(mCommand->contractorUUID()) == BalanceRange::Positive;
 }
 
 void CloseTrustLineTransaction::suspendTrustLineToContractor() {
 
-    auto trustLine = mTrustLinesManager->trustLineByContractorUUID(mCommand->contractorUUID());
-    trustLine->suspendOutgoingDirection();
+    mTrustLinesManager->suspendDirection(
+        mCommand->contractorUUID(),
+        TrustLineDirection::Outgoing
+    );
+}
+
+void CloseTrustLineTransaction::closeTrustLine() {
+
+    mTrustLinesManager->close(mCommand->contractorUUID());
 }
 
 void CloseTrustLineTransaction::sendMessageToRemoteNode() {

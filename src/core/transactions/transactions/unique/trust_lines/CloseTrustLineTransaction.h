@@ -35,9 +35,9 @@ public:
 
     bool checkDebt();
 
-    void pendingSuspendTrustLineToContractor();
-
     void suspendTrustLineToContractor();
+
+    void closeTrustLine();
 
     void sendMessageToRemoteNode();
 

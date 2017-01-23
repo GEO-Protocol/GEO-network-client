@@ -11,7 +11,7 @@ pair<ConstBytesShared, size_t> CloseTrustLineMessage::serialize() {
 
     size_t dataSize = sizeof(uint16_t) +
                       NodeUUID::kBytesSize +
-                      TransactionUUID::kUUIDSize +
+                      TransactionUUID::kBytesSize +
                       NodeUUID::kBytesSize;
     byte *data = (byte *) malloc (dataSize);
     memset(
@@ -37,13 +37,13 @@ pair<ConstBytesShared, size_t> CloseTrustLineMessage::serialize() {
     memcpy(
         data + sizeof(uint16_t) + NodeUUID::kBytesSize,
         mTransactionUUID.data,
-        TransactionUUID::kUUIDSize
+        TransactionUUID::kBytesSize
     );
     //----------------------------
     memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kUUIDSize,
+        data + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
         mContractorUUID.data,
-        TransactionUUID::kUUIDSize
+        TransactionUUID::kBytesSize
     );
 }
 

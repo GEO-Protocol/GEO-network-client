@@ -114,7 +114,8 @@ bool AcceptTrustLineTransaction::checkTrustLineDirection() {
 
 bool AcceptTrustLineTransaction::checkTrustLineAmount() {
 
-    return mTrustLinesManager->trustLineByContractorUUID(mMessage->senderUUID())->incomingTrustAmount() == mMessage->amount();
+
+    return mTrustLinesManager->incomingTrustAmount(mMessage->senderUUID()) == mMessage->amount();
 }
 
 void AcceptTrustLineTransaction::sendResponse(

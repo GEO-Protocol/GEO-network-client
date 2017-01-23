@@ -22,7 +22,6 @@ set(SOURCE_FILES
         transactions/result/TransactionResult.cpp
         transactions/result/TransactionResult.h
 
-        TransactionUUID.cpp
         TransactionUUID.h transactions/unique/trust_lines/CloseTrustLineTransaction.cpp transactions/unique/trust_lines/CloseTrustLineTransaction.h)
 
 add_library(transactions ${SOURCE_FILES})
