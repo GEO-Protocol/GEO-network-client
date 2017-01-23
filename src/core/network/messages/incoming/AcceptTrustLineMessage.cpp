@@ -18,18 +18,18 @@ void AcceptTrustLineMessage::deserialize(
     memcpy(
         mSenderUUID.data,
         buffer,
-        NodeUUID::kUUIDSize
+        NodeUUID::kBytesSize
     );
     //------------------------------
     memcpy(
         mTransactionUUID.data,
-        buffer + NodeUUID::kUUIDSize,
+        buffer + NodeUUID::kBytesSize,
         TransactionUUID::kUUIDSize
     );
     //------------------------------
     vector<byte> amountBytes(
-        buffer + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize,
-        buffer + NodeUUID::kUUIDSize + TransactionUUID::kUUIDSize + kTrustLineAmountSize);
+        buffer + NodeUUID::kBytesSize + TransactionUUID::kUUIDSize,
+        buffer + NodeUUID::kBytesSize + TransactionUUID::kUUIDSize + kTrustLineAmountSize);
 
     vector<byte> amountNotZeroBytes;
     amountNotZeroBytes.reserve(kTrustLineAmountSize);

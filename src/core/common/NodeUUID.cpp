@@ -8,20 +8,20 @@ NodeUUID::NodeUUID(uuid const &u):
     boost::uuids::uuid(u){}
 
 NodeUUID::NodeUUID(NodeUUID &u) {
-    memcpy(data, u.data, kUUIDSize);
+    memcpy(data, u.data, kBytesSize);
 }
 
 NodeUUID::NodeUUID(const NodeUUID &u){
-    memcpy(data, u.data, kUUIDSize);
+    memcpy(data, u.data, kBytesSize);
 }
 
 NodeUUID::NodeUUID(const string &hex) {
     uuid u = boost::lexical_cast<uuid>(hex);
-    memcpy(data, u.data, kUUIDSize);
+    memcpy(data, u.data, kBytesSize);
 }
 
 NodeUUID::NodeUUID(const uint8_t *bytes) {
-    memcpy(data, bytes, kUUIDLength);
+    memcpy(data, bytes, kHexSize);
 }
 
 NodeUUID::operator boost::uuids::uuid() {
@@ -39,7 +39,7 @@ const string NodeUUID::stringUUID() const{
 }
 
 NodeUUID& NodeUUID::operator=(const boost::uuids::uuid &u){
-    memcpy(data, u.data, kUUIDSize);
+    memcpy(data, u.data, kBytesSize);
     return *this;
 }
 
@@ -53,7 +53,7 @@ NodeUUID& NodeUUID::operator=(const boost::uuids::uuid &u){
 NodeUUID::ComparePredicates NodeUUID::compare(const NodeUUID &a, const NodeUUID &b) {
 
 #ifdef BOOST_BIG_ENDIAN
-    for (size_t i=0; i<kUUIDLength; ++i){
+    for (size_t i=0; i<kHexSize; ++i){
         if (a.data[i] < b.data[i])
             return LESS;
 

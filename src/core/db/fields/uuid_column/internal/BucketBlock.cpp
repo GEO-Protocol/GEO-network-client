@@ -39,12 +39,12 @@ BucketBlock::BucketBlock(
         // Determine how much record numbers are present into the BucketBlockRecord.
         // This is needed to be able to increment offset for the next record.
         // (Records numbers count field is situated after the transactionUUID field)
-        byte *recordsCountFieldOffset = currentDataOffset + NodeUUID::kUUIDLength;
+        byte *recordsCountFieldOffset = currentDataOffset + NodeUUID::kHexSize;
         RecordsCount recordNumbersCount = *(RecordsCount*)recordsCountFieldOffset;
 
         // Move offset to the next record
         currentDataOffset +=
-            + NodeUUID::kUUIDLength
+            + NodeUUID::kHexSize
             + sizeof(RecordsCount)
             + sizeof(RecordNumber) * recordNumbersCount;
 
@@ -269,7 +269,7 @@ const pair<shared_ptr<byte>, uint32_t> BucketBlock::serializeToBytes() const {
 
     for (RecordsCount i=0; i<mRecordsCount; ++i){
         totalBlockSize +=
-            + NodeUUID::kUUIDLength // transactionUUID of the record
+            + NodeUUID::kHexSize // transactionUUID of the record
             + sizeof(RecordsCount)  // how many record numbers are stored in the record
             + sizeof(RecordNumber) * mRecords[i].count(); // record numbers itself
     }
@@ -292,8 +292,8 @@ const pair<shared_ptr<byte>, uint32_t> BucketBlock::serializeToBytes() const {
     byte *currentOffset = block + sizeof(RecordNumber);
     for (RecordsCount i=0; i<mRecordsCount; ++i){
         // UUID
-        memcpy(currentOffset, mRecords[i].uuid().data, NodeUUID::kUUIDLength);
-        currentOffset += NodeUUID::kUUIDLength;;
+        memcpy(currentOffset, mRecords[i].uuid().data, NodeUUID::kHexSize);
+        currentOffset += NodeUUID::kHexSize;;
 
         // Record numbers count
         new (currentOffset) RecordsCount(mRecords[i].count());

@@ -12,7 +12,7 @@ BucketBlockRecord::BucketBlockRecord(const NodeUUID &uuid):
     mHasBeenModified(false){
 
     mUUID = new NodeUUID();
-    memcpy(mUUID->data, uuid.data, NodeUUID::kUUIDLength);
+    memcpy(mUUID->data, uuid.data, NodeUUID::kHexSize);
 }
 
 BucketBlockRecord::BucketBlockRecord(
@@ -21,7 +21,7 @@ BucketBlockRecord::BucketBlockRecord(
 
     mUUID = (NodeUUID*)data;
 
-    const auto kRecordsCountOffset = data + NodeUUID::kUUIDLength;
+    const auto kRecordsCountOffset = data + NodeUUID::kHexSize;
     mRecordsNumbersCount = *(RecordsCount*)kRecordsCountOffset;
 
     const byte *kRecordsNumbersOffset = kRecordsCountOffset + sizeof(RecordsCount);

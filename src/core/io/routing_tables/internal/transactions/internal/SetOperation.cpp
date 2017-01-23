@@ -37,12 +37,12 @@ SetOperation::SetOperation(
 
 
     // Deserialization of the first node transactionUUID
-    memcpy(mU1.data, currentOffset, NodeUUID::kUUIDLength);
-    currentOffset += NodeUUID::kUUIDLength;
+    memcpy(mU1.data, currentOffset, NodeUUID::kHexSize);
+    currentOffset += NodeUUID::kHexSize;
 
     // Deserialization of the second node transactionUUID
-    memcpy(mU2.data, currentOffset, NodeUUID::kUUIDLength);
-    currentOffset += NodeUUID::kUUIDLength;
+    memcpy(mU2.data, currentOffset, NodeUUID::kHexSize);
+    currentOffset += NodeUUID::kHexSize;
 
     // Deserialization of the direction
     auto directionOffset = (Operation::SerializedTrustLineDirectionType*)currentOffset;
@@ -73,12 +73,12 @@ const pair<shared_ptr<byte>, size_t> SetOperation::serialize() const {
     currentOffset += sizeof(serializableOperationType);
 
     // Serializing first node transactionUUID
-    memcpy(currentOffset, mU1.data, NodeUUID::kUUIDLength);
-    currentOffset += NodeUUID::kUUIDLength;
+    memcpy(currentOffset, mU1.data, NodeUUID::kHexSize);
+    currentOffset += NodeUUID::kHexSize;
 
     // Serializing second node transactionUUID
-    memcpy(currentOffset, mU2.data, NodeUUID::kUUIDLength);
-    currentOffset += NodeUUID::kUUIDLength;
+    memcpy(currentOffset, mU2.data, NodeUUID::kHexSize);
+    currentOffset += NodeUUID::kHexSize;
 
     // Serializing direction
     SerializedTrustLineDirectionType serializableDirection = mDirection;
