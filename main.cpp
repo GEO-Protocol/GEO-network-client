@@ -8,7 +8,7 @@
 //#define TESTS__DB__UUID_COLUMN
 //#define TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
 #define TESTS__ROUTING_TABLE
-
+#define TESTS__TRUSTLINES
 #endif
 
 
@@ -37,6 +37,9 @@
 #include "src/tests/io/routing_tables/RoutingTableTests.cpp"
 #endif
 
+#ifdef TESTS__TRUSTLINES
+#include "src/tests/trust_lines/TrustLineTests.cpp"
+#endif
 
 int main() {
     // todo: include other tests here
@@ -68,10 +71,16 @@ int main() {
         DirectionUpdateOperationsTests tests;
         tests.run();
     }
+
     {
         AbstractRoutingTableTests tests;
         tests.run();
     }
+#endif
+
+#ifdef TESTS__TRUSTLINES
+    TrustLineTests tests;
+    tests.run();
 #endif
 
 
