@@ -10,11 +10,20 @@ TransactionsScheduler::TransactionsScheduler(
     mLog(logger) {
 
     try {
+        mTransactions = new map<BaseTransaction::Shared, TransactionState::SharedConst>();
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("TransactionsScheduler::TransactionsScheduler."
+                              "Can not allocate memory for transactions map.");
+    }
+
+    try {
         mProcessingTimer = new as::deadline_timer(
             mIOService,
             boost::posix_time::milliseconds(2 * 1000));
 
     } catch (std::bad_alloc &e) {
+        delete mTransactions;
         throw MemoryError("TransactionsScheduler::TransactionsScheduler."
                               "Can not allocate memory for deadline timer instance.");
     }
@@ -25,6 +34,7 @@ TransactionsScheduler::TransactionsScheduler(
             "transactions.dat");
 
     } catch (std::bad_alloc &e) {
+        delete mTransactions;
         delete mProcessingTimer;
         throw MemoryError("TransactionsScheduler::TransactionsScheduler."
                               "Can not allocate memory for UUIDMapBlockStorage instance.");
@@ -33,6 +43,7 @@ TransactionsScheduler::TransactionsScheduler(
 
 TransactionsScheduler::~TransactionsScheduler() {
 
+    delete mTransactions;
     delete mProcessingTimer;
     delete mStorage;
 }
@@ -43,31 +54,51 @@ void TransactionsScheduler::scheduleTransaction(
     try {
         /*auto transactionContext = transaction->serializeContext();
         mStorage->write(
-         storage::uuids::uuid(transaction->uuid()),
+         storage::uuids::commandUUID(transaction->transactionUUID()),
          transactionContext.first,
          transactionContext.second);*/
 
         launchTransaction(transaction);
 
     } catch (std::exception &e) {
-        mLog->logError(
-            "TransactionsScheduler",
-            e.what());
+        mLog->logError("TransactionsScheduler",
+                       e.what());
         sleepFor(findTransactionWithMinimalTimeout().second);
     }
 }
 
 void TransactionsScheduler::run() {
 
-    if (!mTransactions.empty()) {
+    if (!mTransactions->empty()) {
         try {
             launchTransaction(findTransactionWithMinimalTimeout().first);
 
         } catch (std::exception &e) {
-            mLog->logError(
-                "TransactionsScheduler",
-                e.what());
+            mLog->logError("TransactionsScheduler",
+                           e.what());
             sleepFor(findTransactionWithMinimalTimeout().second);
+        }
+    }
+}
+
+void TransactionsScheduler::handleMessage(
+    Message::Shared message) {
+
+    for (auto &transaction : *mTransactions) {
+        if (transaction.first->transactionUUID() == message->transactionUUID()) {
+            for (auto &messageType : transaction.second->transactionsTypes()) {
+                if (messageType == message->typeID()) {
+                    transaction.first->setContext(message);
+                    try {
+                        launchTransaction(transaction.first);
+
+                    } catch (std::exception &e) {
+                        mLog->logError("TransactionsScheduler",
+                                       e.what());
+                        sleepFor(findTransactionWithMinimalTimeout().second);
+                    }
+                }
+            }
         }
     }
 }
@@ -77,7 +108,12 @@ void TransactionsScheduler::launchTransaction(
 
     auto transactionResult = transaction->run();
     if (!isTransactionInScheduler(transaction)) {
-        mTransactions.insert(make_pair(transaction, transactionResult.second));
+        mTransactions->insert(
+            make_pair(
+                transaction,
+                transactionResult->transactionState()
+            )
+        );
     }
     handleTransactionResult(transaction, transactionResult);
 }
@@ -98,15 +134,18 @@ void TransactionsScheduler::launchTransaction(
  */
 void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,
-    pair<CommandResult::SharedConst, TransactionState::SharedConst> result) {
+    TransactionResult::Shared result) {
 
-    if (result.first.get() == nullptr) {
+    if (result->messageResult().get() != nullptr) {
+        //TODO:: journal
+
+    } else if (result->commandResult().get() == nullptr) {
         if (isTransactionInScheduler(transaction)) {
-            auto it = mTransactions.find(transaction);
-            it->second = result.second;
+            auto it = mTransactions->find(transaction);
+            it->second = result->transactionState();
             /*auto transactionContext = transaction->serializeContext();
              mStorage->rewrite(
-             storage::uuids::uuid(transaction->uuid()),
+             storage::uuids::commandUUID(transaction->transactionUUID()),
              transactionContext.first,
              transactionContext.second);*/
 
@@ -119,12 +158,12 @@ void TransactionsScheduler::handleTransactionResult(
             sleepFor(minimalDelay);
         }
 
-    } else if (result.second.get() == nullptr) {
-        mManagerCallback(result.first);
+    } else if (result->transactionState().get() == nullptr) {
+        mManagerCallback(result->commandResult());
         if (isTransactionInScheduler(transaction)) {
-            mTransactions.erase(transaction);
-            //mStorage->erase(
-            // storage::uuids::uuid(transaction->uuid()));
+            mTransactions->erase(transaction);
+            /*mStorage->erase(
+                storage::uuids::commandUUID(transaction->transactionUUID()));*/
 
         } else {
             throw ValueError("TransactionsManager::handleTransactionResult. "
@@ -135,11 +174,11 @@ void TransactionsScheduler::handleTransactionResult(
             sleepFor(minimalDelay);
         }
 
-    } else if (result.first.get() == nullptr && result.second.get() == nullptr) {
+    } else if (result->commandResult().get() == nullptr && result->transactionState().get() == nullptr) {
         throw ConflictError("TransactionsManager::handleTransactionResult. "
                                 "Command result and transaction state may not be null pointer references at the same time.");
 
-    } else if (result.first.get() != nullptr && result.second.get() != nullptr) {
+    } else if (result->commandResult().get() != nullptr && result->transactionState().get() != nullptr) {
         throw ConflictError("TransactionsManager::handleTransactionResult. "
                                 "Transaction cat not has command result and transaction state at the same time.");
     }
@@ -150,7 +189,7 @@ pair<BaseTransaction::Shared, Timeout> TransactionsScheduler::findTransactionWit
     BaseTransaction::Shared transaction(nullptr);
     Timeout minimalTimeout = posix_time::milliseconds(0);
 
-    for (auto &it : mTransactions) {
+    for (auto &it : *mTransactions) {
         auto transactionStateValue = it.second;
         if (transactionStateValue.get() != nullptr) {
             if (transactionStateValue->timeout() > 0) {
@@ -160,7 +199,7 @@ pair<BaseTransaction::Shared, Timeout> TransactionsScheduler::findTransactionWit
         }
     }
 
-    for (auto &it : mTransactions) {
+    for (auto &it : *mTransactions) {
         auto transactionStateValue = it.second;
         if (transactionStateValue.get() != nullptr) {
             if (transactionStateValue->timeout() > 0 && posix_time::milliseconds(transactionStateValue->timeout()) < minimalTimeout) {
@@ -192,9 +231,8 @@ void TransactionsScheduler::handleSleep(
     Timeout delay) {
 
     if (error) {
-        mLog->logError(
-            "TransactionsScheduler",
-            error.message());
+        mLog->logError("TransactionsScheduler",
+                       error.message());
         return;
 
     } else {
@@ -207,5 +245,11 @@ void TransactionsScheduler::handleSleep(
 bool TransactionsScheduler::isTransactionInScheduler(
     BaseTransaction::Shared transaction) {
 
-    return mTransactions.count(transaction) > 0;
+    return mTransactions->count(transaction) != 0;
+}
+
+const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
+    TransactionsScheduler *scheduler) {
+
+    return scheduler->mTransactions;
 }

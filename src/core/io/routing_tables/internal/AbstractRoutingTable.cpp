@@ -234,7 +234,7 @@ void AbstractRoutingTable::executeOperation(
     } else {
         throw RuntimeError(
             "AbstractRoutingTable::executeTransaction: "
-                "unexpected transaction type occurred.");
+                "unexpected transaction transactionType occurred.");
     }
 }
 

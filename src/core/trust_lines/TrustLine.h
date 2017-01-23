@@ -45,12 +45,31 @@ public:
     void setBalance(
         const TrustLineBalance &balance);
 
+    void activateOutgoingDirection();
+
+    void pendingSuspendOutgoingDirection();
+
+    void suspendOutgoingDirection();
+
+    void activateIncomingDirection();
+
+    void pendingSuspendIncomingDirection();
+
+    void suspendIncomingDirection();
+
     const NodeUUID& contractorNodeUUID() const;
+
     const TrustLineAmount& incomingTrustAmount() const;
+
     const TrustLineAmount& outgoingTrustAmount() const;
+
     const TrustLineBalance& balance() const;
 
-    ConstSharedTrustLineAmount availableAmount() const;
+    const TrustLineDirection direction() const;
+
+    const BalanceRange balanceRange() const;
+
+    vector<byte> *serializeTrustLine();
 
     vector<byte> *serialize();
     void deserialize(
@@ -63,11 +82,11 @@ private:
 private:
     void trustAmountToBytes(
         const TrustLineAmount &amount,
-        vector<byte> *buffer);
+        vector<byte> &buffer);
 
     void balanceToBytes(
         const TrustLineBalance &balance,
-        vector<byte> *buffer);
+        vector<byte> &buffer);
 
     void parseTrustAmount(
         const byte *buffer,
@@ -86,11 +105,12 @@ private:
         + kBalancePartSize
         + kSignBytePartSize;
 
-private:
     NodeUUID mContractorNodeUuid;
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
     TrustLineBalance mBalance;
+    pair<TrustState, TrustState> mTrustLineState;
+
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINE_H

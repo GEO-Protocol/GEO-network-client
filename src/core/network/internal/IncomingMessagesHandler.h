@@ -1,56 +1,88 @@
 #ifndef GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 #define GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 
+#include "../../common/Types.h"
+
+#include "../channels/packet/PacketHeader.h"
+#include "../channels/packet/Packet.h"
+#include "../channels/channel/Channel.h"
+#include "../channels/manager/ChannelsManager.h"
+
+#include "../messages/Message.h"
+#include "../messages/incoming/AcceptTrustLineMessage.h"
+#include "../messages/response/Response.h"
+
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"
-#include "../messages/Message.h"
 
 #include <boost/date_time.hpp>
 #include <boost/asio.hpp>
+#include <boost/signals2.hpp>
 
-#include <map>
+#include <vector>
 
 
 using namespace std;
 using namespace boost::asio::ip;
 
+namespace signals = boost::signals2;
 
 class MessagesParser {
+
 public:
-    pair<bool, shared_ptr<Message>> processMessage(const char* messagePart, const size_t receivedBytesCount);
+    pair<bool, Message::Shared> processMessage(
+        ConstBytesShared messagePart,
+        const size_t receivedBytesCount);
 
 private:
-    pair<bool, shared_ptr<Message>> tryDeserializeMessage();
+    pair<bool, Message::Shared> tryDeserializeMessage(
+        ConstBytesShared messagePart);
+
+    pair<bool, Message::Shared> tryDeserializeRequest(
+        const uint16_t messageIdentifier,
+        const byte *messagePart);
+
+    pair<bool, Message::Shared> tryDeserializeResponse(
+        const uint16_t messageIdentifier,
+        const byte *messagePart);
+
+    pair<bool, Message::Shared> messageInvalidOrIncomplete();
 
 private:
-    // Messages may arrive via network partially.
-    // This buffer is needed to collect all the parts
-    // and deserialize whole the message.
-    //
-    // This buffer is separated from the boost::asio buffer,
-    // that is used for reading info from the socket.
-    vector<char> mMessageBuffer;
+    const size_t kMessageIdentifierSize = 2;
+    const size_t kMininalMessageSize = kMessageIdentifierSize + 1;
+
 };
 
 
-// ToDo: add removing of obsolete parsers;
 class IncomingMessagesHandler {
 public:
-    IncomingMessagesHandler();
+    signals::signal<void(Message::Shared)> messageParsedSignal;
+
+public:
+    IncomingMessagesHandler(
+        ChannelsManager *channelsManager);
+
     ~IncomingMessagesHandler();
 
     void processIncomingMessage(
         udp::endpoint &clientEndpoint,
-        const char *messagePart,
+        const byte *messagePart,
         const size_t receivedBytesCount);
 
 private:
-    const pair<bool, shared_ptr<MessagesParser>> endpointMessagesParser(udp::endpoint &) const;
-    shared_ptr<MessagesParser> registerNewEndpointParser(udp::endpoint &clientEndpoint);
+    void tryCollectPacket(
+        udp::endpoint &clientEndpoint);
+
+    void cutPacketFromBuffer(
+        size_t bytesCount);
 
 private:
-    map<udp::endpoint, shared_ptr<MessagesParser>> mParsers;
-};
+    ChannelsManager *mChannelsManager;
 
+    MessagesParser *mMessagesParser;
+
+    vector<byte> mPacketsBuffer;
+};
 
 #endif //GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H

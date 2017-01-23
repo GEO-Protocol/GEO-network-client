@@ -21,37 +21,31 @@ TrustLinesManager::TrustLinesManager() {
 void TrustLinesManager::saveToDisk(
     TrustLine::Shared trustLine) {
 
-    vector<byte> *trustLineData = trustLine->serialize();
+    vector<byte> trustLineData = trustLine->serialize();
 
     if (isTrustLineExist(trustLine->contractorNodeUUID())) {
         try {
             mTrustLinesStorage->rewrite(
-                storage::uuids::uuid(
-                    trustLine->contractorNodeUUID()),
-                trustLineData->data(),
+                storage::uuids::uuid(trustLine->contractorNodeUUID()),
+                trustLineData.data(),
                 kRecordSize);
 
         } catch (std::exception &e) {
-            delete trustLineData;
             throw IOError(e.what());
         }
 
     } else {
         try {
             mTrustLinesStorage->write(
-                storage::uuids::uuid(
-                    trustLine->contractorNodeUUID()),
-                trustLineData->data(),
+                storage::uuids::uuid(trustLine->contractorNodeUUID()),
+                trustLineData.data(),
                 kRecordSize);
 
         } catch (std::exception &e) {
-            delete trustLineData;
             throw IOError(e.what());
         }
         mTrustLines.insert(make_pair(trustLine->contractorNodeUUID(), trustLine));
     }
-
-    delete trustLineData;
 }
 
 /**
@@ -82,6 +76,17 @@ const bool TrustLinesManager::isTrustLineExist(
     const NodeUUID &contractorUUID) const {
 
     return mTrustLines.count(contractorUUID) > 0;
+}
+
+const bool TrustLinesManager::checkDirection(
+    const NodeUUID &contractorUUID,
+    const TrustLineDirection direction) const {
+
+    if (isTrustLineExist(contractorUUID)) {
+        return mTrustLines.at(contractorUUID)->direction() == direction;
+    }
+
+    return false;
 }
 
 /**

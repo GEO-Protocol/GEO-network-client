@@ -17,7 +17,7 @@ SetOperation::SetOperation(
     mRecN(recN){}
 
 /*
- * data doesn't contains transaction type.
+ * data doesn't contains transaction transactionType.
  */
 SetOperation::SetOperation(
     const AbstractRecordsHandler::byte *data):
@@ -25,23 +25,24 @@ SetOperation::SetOperation(
 
     auto currentOffset = data;
 
-    // Setting operation type.
+    // Set operation transactionType
+    // This constructor is shared also for RemoveOperation.
+    // So the transactionType should be loaded from file,
+    // instead of direct setting.
     //
-    // This constructor is shared also for RemoveOperation,
-    // so the type should be loaded from file, instead of setting it direct.
     // (see RemoveOperation.h for details)
     auto operationType = (Operation::SerializedOperationType*)currentOffset;
     mType = Operation::OperationType(*operationType);
     currentOffset += sizeof(Operation::SerializedOperationType);
 
 
-    // Deserialization of the first node uuid
-    memcpy(mU1.data, currentOffset, NodeUUID::kBytesSize);
-    currentOffset += NodeUUID::kBytesSize;
+    // Deserialization of the first node transactionUUID
+    memcpy(mU1.data, currentOffset, NodeUUID::kHexSize);
+    currentOffset += NodeUUID::kHexSize;
 
-    // Deserialization of the second node uuid
-    memcpy(mU2.data, currentOffset, NodeUUID::kBytesSize);
-    currentOffset += NodeUUID::kBytesSize;
+    // Deserialization of the second node transactionUUID
+    memcpy(mU2.data, currentOffset, NodeUUID::kHexSize);
+    currentOffset += NodeUUID::kHexSize;
 
     // Deserialization of the direction
     auto directionOffset = (Operation::SerializedTrustLineDirectionType*)currentOffset;
@@ -66,18 +67,18 @@ const pair<shared_ptr<byte>, size_t> SetOperation::serialize() const {
 
     auto currentOffset = buffer;
 
-    // Serializing operation type
+    // Serializing operation transactionType
     Operation::SerializedOperationType serializableOperationType = mType;
     memcpy(currentOffset, &serializableOperationType, sizeof(serializableOperationType));
     currentOffset += sizeof(serializableOperationType);
 
-    // Serializing first node uuid
-    memcpy(currentOffset, mU1.data, NodeUUID::kBytesSize);
-    currentOffset += NodeUUID::kBytesSize;
+    // Serializing first node transactionUUID
+    memcpy(currentOffset, mU1.data, NodeUUID::kHexSize);
+    currentOffset += NodeUUID::kHexSize;
 
-    // Serializing second node uuid
-    memcpy(currentOffset, mU2.data, NodeUUID::kBytesSize);
-    currentOffset += NodeUUID::kBytesSize;
+    // Serializing second node transactionUUID
+    memcpy(currentOffset, mU2.data, NodeUUID::kHexSize);
+    currentOffset += NodeUUID::kHexSize;
 
     // Serializing direction
     SerializedTrustLineDirectionType serializableDirection = mDirection;
@@ -93,7 +94,7 @@ const pair<shared_ptr<byte>, size_t> SetOperation::serialize() const {
 const RollbackSetOperation::Shared SetOperation::rollbackOperation() const {
     try {
         return RollbackSetOperation::Shared(
-            new RollbackSetOperation(mU1, mU2, mRecN));
+            new RollbackSetOperation(mU1, mU2));
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"

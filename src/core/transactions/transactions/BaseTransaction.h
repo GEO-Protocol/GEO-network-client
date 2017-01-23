@@ -1,56 +1,80 @@
 #ifndef GEO_NETWORK_CLIENT_BASETRANSACTION_H
 #define GEO_NETWORK_CLIENT_BASETRANSACTION_H
 
-#include "../TransactionUUID.h"
-#include "../../network/messages/Message.h"
-#include "state/TransactionState.h"
-#include "../../interface/results/result/CommandResult.h"
-#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 #include "../../common/Types.h"
 
-namespace storage = db::uuid_map_block_storage;
+#include "../../common/NodeUUID.h"
+#include "../TransactionUUID.h"
 
+#include "../../network/messages/Message.h"
+
+#include "result/TransactionResult.h"
+
+#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
+
+#include <boost/signals2.hpp>
+
+
+namespace storage = db::uuid_map_block_storage;
+namespace signals = boost::signals2;
 
 class BaseTransaction {
-    friend class TransactionsScheduler;
-
 public:
     typedef shared_ptr<BaseTransaction> Shared;
 
+    typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
+
 public:
     enum TransactionType {
-        OpenTrustLineTransaction,
-        UpdateTrustLineTransaction,
-        CloseTrustLineTransaction,
-        MaximalAmountTransaction,
-        UseCreditTransaction,
-        TotalBalanceTransaction,
-        ContractorsListTransaction
+        OpenTrustLineTransactionType,
+        AcceptTrustLineTransactionType,
+        UpdateTrustLineTransactionType,
+        SetTrustLineTransactionType,
+        CloseTrustLineTransactionType,
+        RejectTrustLineTransactionType
     };
-    typedef uint8_t SerializedTransactionType;
 
-protected:
-    TransactionType mType;
-    TransactionUUID mTransactionUUID;
-    Message::Shared mContext;
+public:
+    signals::connection addOnMessageSendSlot(
+        const SendMessageSignal::slot_type &slot) const;
+
+    const TransactionType transactionType() const;
+
+    const NodeUUID &nodeUUID() const;
+
+    const TransactionUUID &transactionUUID() const;
+
+    void setContext(
+        Message::Shared message);
+
+    pair<ConstBytesShared, size_t> serializeContext();
+
+    virtual TransactionResult::Shared run() = 0;
 
 protected:
     BaseTransaction(
-            TransactionType type);
+        TransactionType type,
+        NodeUUID &nodeUUID);
 
-public:
-    const TransactionType transactionType() const;
+    void addMessage(
+        Message::Shared message,
+        const NodeUUID &nodeUUID);
 
-    const TransactionUUID uuid() const;
+    void increaseStepsCounter();
+
+    void increaseRequestsCounter();
 
 protected:
-    virtual void setContext(
-            Message::Shared message) = 0;
+    TransactionType mType;
+    NodeUUID &mNodeUUID;
 
-    virtual pair<CommandResult::SharedConst, TransactionState::SharedConst> run() = 0;
+    TransactionUUID mTransactionUUID;
+    Message::Shared mContext;
 
-    virtual pair<byte *, size_t> serializeContext() = 0;
+    uint16_t mStep = 1;
+    uint16_t mRequestCounter = 0;
 
+    mutable SendMessageSignal sendMessageSignal;
 };
 
 

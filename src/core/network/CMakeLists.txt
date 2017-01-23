@@ -5,20 +5,29 @@ find_package(Boost COMPONENTS system filesystem REQUIRED)
 
 
 set(SOURCE_FILES
-        Communicator.cpp
-        Communicator.h
+        communicator/Communicator.cpp
+        communicator/Communicator.h
         internal/IncomingMessagesHandler.cpp
         internal/IncomingMessagesHandler.h
         internal/OutgoingMessagesHandler.cpp
         internal/OutgoingMessagesHandler.h
-        internal/OutgoingMessagesQueue.cpp
-        internal/OutgoingMessagesQueue.h
-        messages/Message.cpp
         messages/Message.h
-        messages/ProcessingReportMessage.h
-        messages/TestMessage.h
-        UUID2Address.cpp
-        UUID2Address.h)
+        service/UUID2Address.cpp
+        service/UUID2Address.h
+        channels/channel/Channel.cpp
+        channels/channel/Channel.h
+        channels/packet/Packet.cpp
+        channels/packet/Packet.h
+        channels/manager/ChannelsManager.cpp
+        channels/manager/ChannelsManager.h
+        channels/packet/PacketHeader.cpp
+        channels/packet/PacketHeader.h
+        messages/outgoing/OpenTrustLineMessage.cpp
+        messages/outgoing/OpenTrustLineMessage.h
+        messages/incoming/AcceptTrustLineMessage.cpp
+        messages/incoming/AcceptTrustLineMessage.h
+        messages/result/MessageResult.cpp
+        messages/result/MessageResult.h messages/response/Response.cpp messages/response/Response.h messages/outgoing/CloseTrustLineMessage.cpp messages/outgoing/CloseTrustLineMessage.h)
 
 add_library(network ${SOURCE_FILES})
 target_link_libraries(network

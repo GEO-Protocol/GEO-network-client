@@ -25,7 +25,7 @@ using namespace std;
 
 
 /*
- * Bucket block should map uuid's to their record. numbers.
+ * Bucket block should map transactionUUID's to their record. numbers.
  * For example:
  *    uuid1 -> recNo1
  *    uuid2 -> recNo2

@@ -2,6 +2,8 @@
 #define GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 
 
+#include "../../common/Types.h"
+
 #include "../TrustLine.h"
 #include "../../payments/amount_blocks/AmountReservationsHandler.h"
 #include "../../io/trust_lines/TrustLinesStorage.h"
@@ -79,6 +81,13 @@ public:
         const NodeUUID &contractor,
         const AmountReservation::ConstShared reservation);
 
+    const bool isTrustLineExist(
+        const NodeUUID &contractorUUID) const;
+
+    const bool checkDirection(
+        const NodeUUID &contractorUUID,
+        const TrustLineDirection direction) const;
+
 protected:
     // Contractor UUID -> trust line to the contractor.
     map<NodeUUID, TrustLine::Shared> mTrustLines;
@@ -93,9 +102,6 @@ protected:
 
     void removeTrustLine(
         const NodeUUID &contractorUUID);
-
-    const bool isTrustLineExist(
-            const NodeUUID &contractorUUID) const;
 
     void loadTrustLines();
 };

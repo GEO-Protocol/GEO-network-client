@@ -11,44 +11,40 @@ BucketBlockRecord::BucketBlockRecord(const NodeUUID &uuid):
     mRecordsNumbers(nullptr),
     mHasBeenModified(false){
 
-    memcpy(mUUID.data, uuid.data, NodeUUID::kBytesSize);
+    mUUID = new NodeUUID();
+    memcpy(mUUID->data, uuid.data, NodeUUID::kHexSize);
 }
 
 BucketBlockRecord::BucketBlockRecord(
     byte *data):
     mHasBeenModified(false){
 
-    memcpy(mUUID.data, data, NodeUUID::kBytesSize);
+    mUUID = (NodeUUID*)data;
 
-    const auto kRecordsCountOffset = data + NodeUUID::kBytesSize;
+    const auto kRecordsCountOffset = data + NodeUUID::kHexSize;
     mRecordsNumbersCount = *(RecordsCount*)kRecordsCountOffset;
 
-    const auto kRecordsNumbersOffset = kRecordsCountOffset + sizeof(RecordsCount);
-    mRecordsNumbers = (RecordNumber*)malloc(sizeof(RecordNumber) * mRecordsNumbersCount);
-    if (mRecordsNumbers == nullptr) {
-        throw MemoryError(
-            "BucketBlockRecord::BucketBlockRecord: bad alloc.");
-    }
-    memcpy(mRecordsNumbers, kRecordsNumbersOffset, sizeof(RecordNumber) * mRecordsNumbersCount);
+    const byte *kRecordsNumbersOffset = kRecordsCountOffset + sizeof(RecordsCount);
+    mRecordsNumbers = (RecordNumber*)kRecordsNumbersOffset;
 }
 
 BucketBlockRecord::~BucketBlockRecord() {
     if (mRecordsNumbers != nullptr) {
         free(mRecordsNumbers);
-        mRecordsNumbers = nullptr;
     }
+
+    delete mUUID;
 }
 
 /*!
- * Inserts "recN" into the record.
+ * Inserts "recNo" into the record.
+ * In case when exact recNo is already present into the record -
+ * throws "ConflictError".
  *
- *
- * Throws ConflictError in case when exact "recN" is already present into the record
  * Throws OverflowError when no more rec. numbers may be inserted.
- * Throws MemoryError.
+ * Throws MemoryError in case of lack of memory.
  */
-void BucketBlockRecord::insert(
-    const RecordNumber recN) {
+void BucketBlockRecord::insert(const RecordNumber recN) {
 
     if (mRecordsNumbersCount == numeric_limits<AbstractRecordsHandler::RecordsCount>::max()){
         throw OverflowError(
@@ -159,11 +155,11 @@ const pair<void*, size_t> BucketBlockRecord::data() const {
 }
 
 AbstractRecordsHandler::RecordNumber *BucketBlockRecord::recordNumbers() const {
-    return mRecordsNumbers;
+    return (AbstractRecordsHandler::RecordNumber*)mRecordsNumbers;
 }
 
 const NodeUUID &BucketBlockRecord::uuid() const {
-    return mUUID;
+    return *mUUID;
 }
 
 const bool BucketBlockRecord::isModified() const {

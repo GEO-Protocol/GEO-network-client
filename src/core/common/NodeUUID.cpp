@@ -53,7 +53,7 @@ NodeUUID& NodeUUID::operator=(const boost::uuids::uuid &u){
 NodeUUID::ComparePredicates NodeUUID::compare(const NodeUUID &a, const NodeUUID &b) {
 
 #ifdef BOOST_BIG_ENDIAN
-    for (size_t i=0; i<kUUIDkUUIDSize; ++i){
+    for (size_t i=0; i<kBytesSize; ++i){
         if (a.data[i] < b.data[i])
             return LESS;
 

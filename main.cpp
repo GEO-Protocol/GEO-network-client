@@ -14,7 +14,7 @@
 
 // todo: move this into separate if..def
 //#include "src/tests/network/FileBackedMessagesQueueTests.cpp"
-//#include "src/tests/interface/OperationsLogTests.cpp"
+//#include "src/tests/parseInterface/OperationsLogTests.cpp"
 //#include "src/tests/db/routing_tables/BucketBlockRecordTests.cpp"
 //#include "src/tests/db/routing_tables/BucketBlockTests.cpp"
 //#include "src/tests/db/uuid_column/UUIDMapColumnTests.cpp"

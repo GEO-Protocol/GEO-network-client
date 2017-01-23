@@ -1,72 +1,66 @@
 #ifndef GEO_NETWORK_CLIENT_MESSAGE_H
 #define GEO_NETWORK_CLIENT_MESSAGE_H
 
+#include "../../common/Types.h"
+#include "../../common/NodeUUID.h"
+#include "../../transactions/TransactionUUID.h"
+
+#include "../channels/packet/PacketHeader.h"
+#include "../channels/packet/Packet.h"
+
 #include "../../common/exceptions/Exception.h"
 #include "../../common/exceptions/MemoryError.h"
 
+#include <boost/crc.hpp>
+
 #include <stdint.h>
 #include <malloc.h>
+#include <vector>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <utility>
 
 
-class SerialisationError: public Exception {
+using namespace std;
+
+class NotImplementedError : public Exception {
     using Exception::Exception;
 };
 
-
-// Base class for all messages in the system.
-// All other messages are derived from this one.
-class SerialisedMessage;
 class Message {
+
 public:
     typedef shared_ptr<Message> Shared;
+
 public:
     enum MessageTypeID {
-        // System messages.
-        // Used for low level system logic:
-        // for example, message processing reports, etc.
-        ProcessingReportMessage = 1,
-
-        // Test messages
-        TestSimpleMessage, TestLongMessage,
-
-        // User space messages
+        OpenTrustLineMessageType = 1,
+        AcceptTrustLineMessageType = 2,
+        CloseTrustLineMessageType = 3,
+        RejectTrustLineMessageType = 4,
+        ResponseMessageType = 5
     };
 
 public:
-    virtual std::shared_ptr<SerialisedMessage> serialize() const = 0;
+    Message() {};
+
+    Message(NodeUUID &sender, TransactionUUID &transactionUUID) : mSenderUUID(sender), mTransactionUUID(transactionUUID) {};
+
+    const NodeUUID &senderUUID() const { return mSenderUUID; }
+
+    const TransactionUUID &transactionUUID() const { return mTransactionUUID; }
+
+    virtual pair<ConstBytesShared, size_t> serialize() = 0;
+
+    virtual void deserialize(
+        byte *buffer) = 0;
+
     virtual const MessageTypeID typeID() const = 0;
-};
 
-// Contains serialized messages: only bytes array and bytes counter.
-// It's the message class responsibility for correct serialisation/deserialization.
-// This class only holds the data in the memory and
-// is used for efficient data transfer into the memory during methods calls.
-class SerialisedMessage {
-public:
-    explicit SerialisedMessage(const uint8_t *rawMessageBytes,
-                               const uint16_t rawMessageBytesCount);
-
-    explicit SerialisedMessage(const uint8_t *messageBytes,
-                               const uint16_t messageBytesCount,
-                               const Message::MessageTypeID messageTypeID);
-
-    ~SerialisedMessage();
-
-    const uint64_t bytesCount() const;
-    const uint8_t* bytes() const;
-
-private:
-    void initialiseInternalSerialisationBuffer(const uint8_t *messageBytes,
-                                               const uint16_t messageBytesCount,
-                                               const Message::MessageTypeID messageTypeID);
-
-private:
-    uint64_t mBytesCount;
-    uint8_t *mBytesBuffer;
+protected:
+    NodeUUID mSenderUUID;
+    TransactionUUID mTransactionUUID;
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H
