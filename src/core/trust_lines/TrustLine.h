@@ -28,6 +28,11 @@ public:
         const TrustLineBalance &nodeBalance);
 
     TrustLine(
+        const NodeUUID &nodeUUID,
+        const TrustLineAmount &incomingAmount,
+        const TrustLineAmount &outgoingAmount);
+
+    TrustLine(
         const byte *buffer,
         const NodeUUID &contractorUUID);
 

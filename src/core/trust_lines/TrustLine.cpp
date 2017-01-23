@@ -10,7 +10,28 @@ TrustLine::TrustLine(
     mContractorNodeUuid(nodeUUID),
     mIncomingTrustAmount(incomingAmount),
     mOutgoingTrustAmount(outgoingAmount),
-    mBalance(nodeBalance) {}
+    mBalance(nodeBalance) {
+
+    if (mBalance > TrustLineBalance(0)){
+        if (mBalance > mIncomingTrustAmount) {
+            throw ValueError("Balance can't be greater than incoming trust amount.");
+        }
+    } else {
+        if (-mBalance > mOutgoingTrustAmount) {
+            throw ValueError("Balance can't be less than outgoing trust amount.");
+        }
+    }
+}
+
+TrustLine::TrustLine(
+    const NodeUUID &nodeUUID,
+    const TrustLineAmount &incomingAmount,
+    const TrustLineAmount &outgoingAmount):
+
+    mContractorNodeUuid(nodeUUID),
+    mIncomingTrustAmount(incomingAmount),
+    mOutgoingTrustAmount(outgoingAmount),
+    mBalance(0) {}
 
 TrustLine::TrustLine(
     const byte *buffer,
@@ -107,7 +128,7 @@ ConstSharedTrustLineAmount TrustLine::availableAmount() const {
 
     return ConstSharedTrustLineAmount(
         new TrustLineAmount(
-            mIncomingTrustAmount - TrustLineAmount(mBalance)));
+            mIncomingTrustAmount + mBalance));
 }
 
 /*!
