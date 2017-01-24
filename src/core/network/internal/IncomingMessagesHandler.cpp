@@ -182,7 +182,6 @@ void IncomingMessagesHandler::tryCollectPacket(
                   data.second
                 );
                 if (message.first) {
-                    cout << "Message from contractor " << message.second->senderUUID().stringUUID() << endl;
                     messageParsedSignal(message.second);
                 }
                 mChannelsManager->remove(packetHeader->channelNumber());

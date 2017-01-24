@@ -137,6 +137,13 @@ void TransactionsScheduler::handleTransactionResult(
     TransactionResult::Shared result) {
 
     if (result->messageResult().get() != nullptr) {
+        if (isTransactionInScheduler(transaction)) {
+            mTransactions->erase(transaction);
+
+        } else {
+            throw ValueError("TransactionsManager::handleTransactionResult. "
+                                 "Transaction reference must be store in memory.");
+        }
         //TODO:: journal
 
     } else if (result->commandResult().get() == nullptr) {

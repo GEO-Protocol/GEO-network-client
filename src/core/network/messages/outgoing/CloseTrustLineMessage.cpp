@@ -3,7 +3,13 @@
 CloseTrustLineMessage::CloseTrustLineMessage(
     NodeUUID &sender,
     TransactionUUID &transactionUUID,
-    NodeUUID &contractorUUID) {
+    NodeUUID &contractorUUID) :
+
+    Message(
+        sender,
+        transactionUUID
+    ),
+    mContractorUUID(contractorUUID){
 
 }
 

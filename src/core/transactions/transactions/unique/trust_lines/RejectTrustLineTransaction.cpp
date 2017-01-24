@@ -90,7 +90,6 @@ bool RejectTrustLineTransaction::checkSameTypeTransactions() {
 
 bool RejectTrustLineTransaction::checkTrustLineExisting() {
 
-    cout << "Existing with " << mMessage->contractorUUID().stringUUID() << endl;
     return mTrustLinesManager->checkDirection(
         mMessage->contractorUUID(),
         TrustLineDirection::Incoming
@@ -107,7 +106,7 @@ void RejectTrustLineTransaction::suspendTrustLineFromContractor() {
 
 void RejectTrustLineTransaction::closeTrustLine() {
 
-    mTrustLinesManager->close(mMessage->contractorUUID());
+    mTrustLinesManager->reject(mMessage->contractorUUID());
 }
 
 bool RejectTrustLineTransaction::checkDebt() {
