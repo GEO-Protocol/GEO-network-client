@@ -5,9 +5,6 @@
 #include "../../common/NodeUUID.h"
 #include "../../transactions/TransactionUUID.h"
 
-#include "../channels/packet/PacketHeader.h"
-#include "../channels/packet/Packet.h"
-
 #include "../../common/exceptions/Exception.h"
 #include "../../common/exceptions/MemoryError.h"
 

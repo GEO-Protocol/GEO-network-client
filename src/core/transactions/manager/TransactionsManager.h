@@ -10,15 +10,19 @@
 
 #include "../../interface/commands_interface/commands/BaseUserCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 
 #include "../../network/messages/Message.h"
 #include "../../network/messages/incoming/AcceptTrustLineMessage.h"
+#include "../../network/messages/incoming/RejectTrustLineMessage.h"
 #include "../../network/messages/response/Response.h"
 
 #include "../transactions/BaseTransaction.h"
 #include "../transactions/unique/UniqueTransaction.h"
 #include "../transactions/unique/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/AcceptTrustLineTransaction.h"
+#include "../transactions/unique/trust_lines/CloseTrustLineTransaction.h"
+#include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -56,6 +60,12 @@ private:
         BaseUserCommand::Shared command);
 
     void createAcceptTrustLineTransaction(
+        Message::Shared message);
+
+    void createCloseTrustLineTransaction(
+        BaseUserCommand::Shared command);
+
+    void createRejectTrustLineTransaction(
         Message::Shared message);
 
     void onMessageSend(

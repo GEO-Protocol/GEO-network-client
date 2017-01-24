@@ -28,6 +28,8 @@ public:
 
     const CommandResult *resultNoResponse() const;
 
+    const CommandResult *resultTransactionConflict() const;
+
 private:
     void deserialize(
         const string &command);

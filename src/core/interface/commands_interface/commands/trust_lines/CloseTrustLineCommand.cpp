@@ -68,3 +68,11 @@ const CommandResult *CloseTrustLineCommand::resultNoResponse() const {
         444
     );
 }
+
+const CommandResult *CloseTrustLineCommand::resultTransactionConflict() const {
+
+    return new CommandResult(
+        commandUUID(),
+        500
+    );
+}

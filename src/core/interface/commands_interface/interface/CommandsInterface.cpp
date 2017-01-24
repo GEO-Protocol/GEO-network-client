@@ -332,8 +332,6 @@ void CommandsInterface::handleReceivedInfo(
         asyncReceiveNextCommand();
 
     } else {
-        mLog->logError("CommandsInterface::handleReceivedInfo: ",
-                       "Error while receiving command.");
         if (error == as::error::eof) {
             mReadTimeoutTimer->expires_from_now(boost::posix_time::seconds(1));
             mReadTimeoutTimer->async_wait(

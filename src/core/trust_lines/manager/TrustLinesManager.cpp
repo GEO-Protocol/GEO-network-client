@@ -397,6 +397,7 @@ void TrustLinesManager::saveToDisk(
                 trustLine
             )
         );
+        cout << "Inserting CA " << trustLine->contractorNodeUUID().stringUUID() << endl;
     }
 }
 

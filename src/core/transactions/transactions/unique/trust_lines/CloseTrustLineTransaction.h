@@ -7,6 +7,7 @@
 
 #include "../../../../network/messages/Message.h"
 #include "../../../../network/messages/outgoing/CloseTrustLineMessage.h"
+#include "../../../../network/messages/incoming/RejectTrustLineMessage.h"
 
 #include "../../../manager/TransactionsManager.h"
 
@@ -39,6 +40,8 @@ public:
 
     void closeTrustLine();
 
+    TransactionResult::Shared checkTransactionContext();
+
     void sendMessageToRemoteNode();
 
     TransactionResult::Shared waitingForResponseState();
@@ -50,6 +53,10 @@ public:
     TransactionResult::Shared conflictErrorResult();
 
     TransactionResult::Shared noResponseResult();
+
+    TransactionResult::Shared transactionConflictResult();
+
+    TransactionResult::Shared unexpectedErrorResult();
 
 private:
     const uint64_t kConnectionTimeout = 2000;

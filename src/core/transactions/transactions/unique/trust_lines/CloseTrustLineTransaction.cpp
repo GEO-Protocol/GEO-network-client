@@ -51,8 +51,7 @@ TransactionResult::Shared CloseTrustLineTransaction::run() {
 
         case 4: {
             if (mContext.get() != nullptr) {
-                //TODO:: check context
-                return resultOk();
+                return checkTransactionContext();
 
             } else {
                 if (mRequestCounter < kMaxRequestsCount) {
@@ -135,6 +134,34 @@ void CloseTrustLineTransaction::closeTrustLine() {
     mTrustLinesManager->close(mCommand->contractorUUID());
 }
 
+TransactionResult::Shared CloseTrustLineTransaction::checkTransactionContext() {
+
+    if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
+        Response::Shared response = static_pointer_cast<Response>(mContext);
+        switch (response->code()) {
+
+            case RejectTrustLineMessage::kResultCodeRejected: {
+                return resultOk();
+            }
+
+            case RejectTrustLineMessage::kResultCodeRejectDelayed: {
+                return resultOk();
+            }
+
+            case AcceptTrustLineMessage::kResultCodeTransactionConflict: {
+                return transactionConflictResult();
+            }
+
+            default:{
+                return unexpectedErrorResult();
+            }
+        }
+
+    }
+
+    return unexpectedErrorResult();
+}
+
 void CloseTrustLineTransaction::sendMessageToRemoteNode() {
 
     Message *message = new CloseTrustLineMessage(
@@ -187,5 +214,19 @@ TransactionResult::Shared CloseTrustLineTransaction::noResponseResult() {
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->resultNoResponse())));
+    return TransactionResult::Shared(transactionResult);
+}
+
+TransactionResult::Shared CloseTrustLineTransaction::transactionConflictResult() {
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->resultTransactionConflict())));
+    return TransactionResult::Shared(transactionResult);
+}
+
+TransactionResult::Shared CloseTrustLineTransaction::unexpectedErrorResult() {
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setCommandResult(CommandResult::Shared(const_cast<CommandResult *> (mCommand.get()->unexpectedErrorResult())));
     return TransactionResult::Shared(transactionResult);
 }

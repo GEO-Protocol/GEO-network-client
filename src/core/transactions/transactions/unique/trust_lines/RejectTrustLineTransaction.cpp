@@ -1,8 +1,8 @@
-#include "AcceptTrustLineTransaction.h"
+#include "RejectTrustLineTransaction.h"
 
-AcceptTrustLineTransaction::AcceptTrustLineTransaction(
+RejectTrustLineTransaction::RejectTrustLineTransaction(
     NodeUUID &nodeUUID,
-    AcceptTrustLineMessage::Shared message,
+    RejectTrustLineMessage::Shared message,
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager) :
 
@@ -14,65 +14,47 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     mMessage(message),
     mTrustLinesManager(manager) {}
 
-AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
+RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
 
     return mMessage;
 }
 
-TransactionResult::Shared AcceptTrustLineTransaction::run() {
+TransactionResult::Shared RejectTrustLineTransaction::run() {
 
-    switch (mStep) {
+    switch(mStep) {
 
         case 1: {
-            if (checkJournal()) {
-                sendResponse(400);
-                return makeResult(mMessage->customCodeResult(400));
-            }
-            increaseStepsCounter();
-        }
-
-        case 2: {
             if (checkSameTypeTransactions()) {
-                sendResponse(AcceptTrustLineMessage::kResultCodeTransactionConflict);
+                sendResponse(RejectTrustLineMessage::kResultCodeTransactionConflict);
                 return makeResult(mMessage->resultTransactionConflict());
             }
             increaseStepsCounter();
         }
 
-        case 3: {
-            if (checkTrustLineDirection()) {
-                if (checkTrustLineAmount()) {
-                    sendResponse(AcceptTrustLineMessage::kResultCodeAccepted);
-                    return makeResult(mMessage->resultAccepted());
+        case 2: {
+            if (checkTrustLineExisting()) {
+                if (checkDebt()) {
+                    suspendTrustLineFromContractor();
+                    sendResponse(RejectTrustLineMessage::kResultCodeRejectDelayed);
+                    return makeResult(mMessage->resultRejectDelayed());
 
                 } else {
-                    sendResponse(AcceptTrustLineMessage::kResultCodeConflict);
-                    return makeResult(mMessage->resultConflict());
+                    closeTrustLine();
+                    sendResponse(RejectTrustLineMessage::kResultCodeRejected);
+                    return makeResult(mMessage->resultRejected());
                 }
-
-            } else {
-                createTrustLine();
-                sendResponse(AcceptTrustLineMessage::kResultCodeAccepted);
-                return makeResult(mMessage->resultAccepted());
             }
         }
 
         default: {
-            throw ConflictError("AcceptTrustLineTransaction::run: "
+            throw ConflictError("RejectTrustLineTransaction::run: "
                                     "Illegal step execution.");
         }
 
     }
-
 }
 
-bool AcceptTrustLineTransaction::checkJournal() {
-
-    // return journal->hasRecordByWeek(mMessage->sender());
-    return false;
-}
-
-bool AcceptTrustLineTransaction::checkSameTypeTransactions() {
+bool RejectTrustLineTransaction::checkSameTypeTransactions() {
 
     auto *transactions = pendingTransactions();
     for (auto const &it : *transactions) {
@@ -106,21 +88,34 @@ bool AcceptTrustLineTransaction::checkSameTypeTransactions() {
     return false;
 }
 
-bool AcceptTrustLineTransaction::checkTrustLineDirection() {
+bool RejectTrustLineTransaction::checkTrustLineExisting() {
 
+    cout << "Existing with " << mMessage->contractorUUID().stringUUID() << endl;
     return mTrustLinesManager->checkDirection(
-        mMessage->senderUUID(),
+        mMessage->contractorUUID(),
         TrustLineDirection::Incoming
     );
 }
 
-bool AcceptTrustLineTransaction::checkTrustLineAmount() {
+void RejectTrustLineTransaction::suspendTrustLineFromContractor() {
 
-
-    return mTrustLinesManager->incomingTrustAmount(mMessage->senderUUID()) == mMessage->amount();
+    mTrustLinesManager->suspendDirection(
+        mMessage->contractorUUID(),
+        TrustLineDirection::Incoming
+    );
 }
 
-void AcceptTrustLineTransaction::sendResponse(
+void RejectTrustLineTransaction::closeTrustLine() {
+
+    mTrustLinesManager->close(mMessage->contractorUUID());
+}
+
+bool RejectTrustLineTransaction::checkDebt() {
+
+    return mTrustLinesManager->balanceRange(mMessage->contractorUUID()) == BalanceRange::Negative;
+}
+
+void RejectTrustLineTransaction::sendResponse(
     uint16_t code) {
 
     Message *message = new Response(
@@ -135,32 +130,10 @@ void AcceptTrustLineTransaction::sendResponse(
     );
 }
 
-void AcceptTrustLineTransaction::createTrustLine() {
-
-    try {
-        mTrustLinesManager->accept(
-            mMessage->senderUUID(),
-            mMessage->amount()
-        );
-
-    } catch (std::exception &e) {
-        throw Exception(e.what());
-    }
-}
-
-TransactionResult::Shared AcceptTrustLineTransaction::makeResult(
+TransactionResult::Shared RejectTrustLineTransaction::makeResult(
     MessageResult::Shared messageResult) {
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setMessageResult(messageResult);
     return TransactionResult::Shared(transactionResult);
 }
-
-
-
-
-
-
-
-
-

@@ -41,7 +41,7 @@
 int main() {
     // todo: include other tests here
 
-#ifdef TESTS__DB__UUID_COLUMN
+/*#ifdef TESTS__DB__UUID_COLUMN
     UUIDColumnTests tests;
     tests.run();
 #endif
@@ -72,10 +72,6 @@ int main() {
         AbstractRoutingTableTests tests;
         tests.run();
     }
-#endif
-
-
-#ifndef TESTS
+#endif*/
     return Core().run();
-#endif
 }

@@ -43,7 +43,13 @@ pair<ConstBytesShared, size_t> CloseTrustLineMessage::serialize() {
     memcpy(
         data + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
         mContractorUUID.data,
-        TransactionUUID::kBytesSize
+        NodeUUID::kBytesSize
+    );
+    //----------------------------
+
+    return make_pair(
+        ConstBytesShared(data, free),
+        dataSize
     );
 }
 

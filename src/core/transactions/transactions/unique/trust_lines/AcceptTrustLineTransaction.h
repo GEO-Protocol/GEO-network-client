@@ -45,7 +45,6 @@ private:
     TransactionResult::Shared makeResult(
         MessageResult::Shared messageResult);
 
-
 private:
     AcceptTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;

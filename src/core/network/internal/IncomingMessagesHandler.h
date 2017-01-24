@@ -10,6 +10,7 @@
 
 #include "../messages/Message.h"
 #include "../messages/incoming/AcceptTrustLineMessage.h"
+#include "../messages/incoming/RejectTrustLineMessage.h"
 #include "../messages/response/Response.h"
 
 #include "../../common/exceptions/ValueError.h"

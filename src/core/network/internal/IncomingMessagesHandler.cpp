@@ -37,6 +37,11 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         }
 
         case Message::MessageTypeID::CloseTrustLineMessageType: {
+            Message *message = new RejectTrustLineMessage(const_cast<byte *>(messagePart));
+            return make_pair(
+                true,
+                Message::Shared(message)
+            );
 
         }
 
@@ -177,6 +182,7 @@ void IncomingMessagesHandler::tryCollectPacket(
                   data.second
                 );
                 if (message.first) {
+                    cout << "Message from contractor " << message.second->senderUUID().stringUUID() << endl;
                     messageParsedSignal(message.second);
                 }
                 mChannelsManager->remove(packetHeader->channelNumber());
