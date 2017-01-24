@@ -14,7 +14,7 @@
 
 // todo: move this into separate if..def
 //#include "src/tests/network/FileBackedMessagesQueueTests.cpp"
-//#include "src/tests/interface/OperationsLogTests.cpp"
+//#include "src/tests/parseInterface/OperationsLogTests.cpp"
 //#include "src/tests/db/routing_tables/BucketBlockRecordTests.cpp"
 //#include "src/tests/db/routing_tables/BucketBlockTests.cpp"
 //#include "src/tests/db/uuid_column/UUIDMapColumnTests.cpp"
@@ -44,7 +44,7 @@
 int main() {
     // todo: include other tests here
 
-#ifdef TESTS__DB__UUID_COLUMN
+/*#ifdef TESTS__DB__UUID_COLUMN
     UUIDColumnTests tests;
     tests.run();
 #endif
@@ -76,6 +76,7 @@ int main() {
         AbstractRoutingTableTests tests;
         tests.run();
     }
+
 #endif
 
 #ifdef TESTS__TRUSTLINES
@@ -85,6 +86,7 @@ int main() {
 
 
 #ifndef TESTS
+
+#endif*/
     return Core().run();
-#endif
 }

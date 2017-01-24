@@ -45,7 +45,7 @@ void TrustLineDirectionColumn::set(
             mBothDirectedRecordNumbers.insert(recN);
             break;
         }
-        case Unspecified: {
+        case Nowhere: {
             throw ValueError(
                 "TrustLineDirectionColumn::set: unexpected direction received.");
         }
@@ -71,7 +71,7 @@ void TrustLineDirectionColumn::remove(
                 mBothDirectedRecordNumbers.erase(recN);
                 break;
             }
-            case Unspecified: {
+            case Nowhere: {
                 break;
             }
         }
@@ -82,7 +82,7 @@ void TrustLineDirectionColumn::remove(
     }
 
 
-    const SerializedTrustLineDirection removedRecordValue = Unspecified;
+    const SerializedTrustLineDirection removedRecordValue = Nowhere;
     fseek(mFileDescriptor, recordOffset(recN), SEEK_SET);
     if (fwrite(&removedRecordValue, sizeof(removedRecordValue), 1, mFileDescriptor) != 1 &&
         fwrite(&removedRecordValue, sizeof(removedRecordValue), 1, mFileDescriptor) != 1) {
@@ -113,7 +113,7 @@ const TrustLineDirection TrustLineDirectionColumn::direction(
             "TrustLineDirectionColumn::set: can't read record.");
     }
 
-    if (serializableDirection == Unspecified) {
+    if (serializableDirection == Nowhere) {
         throw NotFoundError(
             "TrustLineDirectionColumn::direction: no record associated with recN");
     } else {
@@ -248,7 +248,7 @@ void TrustLineDirectionColumn::loadIndexIntoMemory() {
                     mBothDirectedRecordNumbers.insert(currentRecordNumber);
                     break;
                 }
-                case Unspecified: {
+                case Nowhere: {
                     break;
                 }
             }

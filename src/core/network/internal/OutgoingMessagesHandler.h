@@ -1,29 +1,45 @@
 #ifndef GEO_NETWORK_CLIENT_OUTGOINGMESSAGESHANDLER_H
 #define GEO_NETWORK_CLIENT_OUTGOINGMESSAGESHANDLER_H
 
-
-#include "../../common/NodeUUID.h"
 #include "../messages/Message.h"
-//#include "OutgoingMessagesQueue.h"
 
-#include "vector"
-#include "map"
+#include "../channels/packet/PacketHeader.h"
+#include "../channels/packet/Packet.h"
+
+#include "boost/crc.hpp"
+
+#include <vector>
+
+using namespace std;
 
 class OutgoingMessagesHandler {
+
 public:
     OutgoingMessagesHandler();
 
-//    void sendMessageToTheNode(const std::shared_ptr <NodeUUID> nodeUUID, const std::shared_ptr <Message> message);
+public:
+    vector<Packet::SharedConst>* processOutgoingMessage(
+        Message::Shared message,
+        uint16_t channelNumber);
 
 private:
-//    bool containsQueueFor(const std::shared_ptr <NodeUUID> nodeUUID) const;
+    pair<Packet::SharedConst, uint16_t> makeCRCPacket(
+        pair<ConstBytesShared, size_t> serialiedMessage,
+        uint16_t channelNumber);
 
-//    void initQueueFor(const std::shared_ptr <NodeUUID> nodeUUID);
-//
-//    OutgoingMessagesQueue *queueFor(const std::shared_ptr <NodeUUID> nodeUUID) const;
+    Packet::SharedConst makePacket(
+        byte *buffer,
+        size_t bytesCount,
+        uint16_t packetNumber,
+        uint16_t packetsCount,
+        uint16_t channelNumber
+    );
 
 private:
-//    std::map<NodeUUID, OutgoingMessagesQueue *> *mOutgoingQueues;
+    const size_t kMaxPacketBodySize = 490;
+    const size_t kCRCDataSize = 4;
+    const uint16_t kCRCPacketNumber = 0;
+
 };
 
 

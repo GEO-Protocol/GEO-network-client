@@ -32,7 +32,7 @@ namespace db {
 
             if (isUUIDTheIndex(uuid)){
                 throw ConflictError("UUIDMapBlockStorage::write. "
-                                        "Can't write data. Index with such uuid already exist. Maybe you should to use rewrite() method.");
+                                        "Can't write data. Index with such transactionUUID already exist. Maybe you should to use rewrite() method.");
             }
 
             long offset = writeData(
@@ -56,7 +56,7 @@ namespace db {
 
             if (!isUUIDTheIndex(uuid)){
                 throw ConflictError("UUIDMapBlockStorage::rewrite. "
-                                        "Unable to rewrite data. Index with such uuid does not exist. Maybe you to should use write() method.");
+                                        "Unable to rewrite data. Index with such transactionUUID does not exist. Maybe you to should use write() method.");
             }
 
             erase(uuid);
@@ -92,7 +92,7 @@ namespace db {
 
             } else {
                 throw IndexError("UUIDMapBlockStorage::erase. "
-                                     "Can't find such uuid in index block.");
+                                     "Can't find such transactionUUID in index block.");
             }
         }
 
@@ -134,7 +134,7 @@ namespace db {
 
             } else {
                 throw IndexError("UUIDMapBlockStorage::readFromFile. "
-                                     "Can't find such uuid in index block.");
+                                     "Can't find such transactionUUID in index block.");
             }
         }
 
@@ -432,7 +432,7 @@ namespace db {
                 if (fwrite(looper.first.data, 1, kIndexRecordUUIDSize, mFileDescriptor) != kIndexRecordUUIDSize){
                     if (fwrite(looper.first.data, 1, kIndexRecordUUIDSize, mFileDescriptor) != kIndexRecordUUIDSize){
                         throw IOError("UUIDMapBlockStorage::writeIndexBlock. "
-                                          "Can't uuid in index block.");
+                                          "Can't transactionUUID in index block.");
                     }
                 }
                 if (fwrite(&looper.second.first, 1, kIndexRecordOffsetSize, mFileDescriptor) != kIndexRecordOffsetSize){

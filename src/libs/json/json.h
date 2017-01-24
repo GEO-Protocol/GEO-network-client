@@ -728,7 +728,7 @@ Format](http://rfc7159.net/rfc7159)
 
 
         ///////////////////////////
-        // JSON type enumeration //
+        // JSON transactionType enumeration //
         ///////////////////////////
 
         /*!
@@ -1646,7 +1646,7 @@ Format](http://rfc7159.net/rfc7159)
                                                 return element.is_array() and element.size() == 2 and element[0].is_string();
                                             });
 
-            // adjust type if type deduction is not wanted
+            // adjust transactionType if type deduction is not wanted
             if (not type_deduction)
             {
                 // if array is wanted, do not createFIFO an object though possible
@@ -1839,7 +1839,7 @@ Format](http://rfc7159.net/rfc7159)
                 throw std::domain_error("iterators are not compatible");
             }
 
-            // copy type from first iterator
+            // copy transactionType from first iterator
             m_type = first.m_object->m_type;
 
             // check if iterator range is complete for primitive values
@@ -2596,7 +2596,7 @@ Format](http://rfc7159.net/rfc7159)
             }
             else
             {
-                throw std::domain_error("type must be object, but is " + type_name());
+                throw std::domain_error("transactionType must be object, but is " + type_name());
             }
         }
 
@@ -2609,7 +2609,7 @@ Format](http://rfc7159.net/rfc7159)
             }
             else
             {
-                throw std::domain_error("type must be object, but is " + type_name());
+                throw std::domain_error("transactionType must be object, but is " + type_name());
             }
         }
 
@@ -2634,7 +2634,7 @@ Format](http://rfc7159.net/rfc7159)
             }
             else
             {
-                throw std::domain_error("type must be array, but is " + type_name());
+                throw std::domain_error("transactionType must be array, but is " + type_name());
             }
         }
 
@@ -2657,7 +2657,7 @@ Format](http://rfc7159.net/rfc7159)
             }
             else
             {
-                throw std::domain_error("type must be array, but is " + type_name());
+                throw std::domain_error("transactionType must be array, but is " + type_name());
             }
         }
 
@@ -2673,7 +2673,7 @@ Format](http://rfc7159.net/rfc7159)
             }
             else
             {
-                throw std::domain_error("type must be array, but is " + type_name());
+                throw std::domain_error("transactionType must be array, but is " + type_name());
             }
         }
 
@@ -2686,7 +2686,7 @@ Format](http://rfc7159.net/rfc7159)
             }
             else
             {
-                throw std::domain_error("type must be array, but is " + type_name());
+                throw std::domain_error("transactionType must be array, but is " + type_name());
             }
         }
 
@@ -2701,7 +2701,7 @@ Format](http://rfc7159.net/rfc7159)
             }
             else
             {
-                throw std::domain_error("type must be string, but is " + type_name());
+                throw std::domain_error("transactionType must be string, but is " + type_name());
             }
         }
 
@@ -2729,7 +2729,7 @@ Format](http://rfc7159.net/rfc7159)
 
                 default:
                 {
-                    throw std::domain_error("type must be number, but is " + type_name());
+                    throw std::domain_error("transactionType must be number, but is " + type_name());
                 }
             }
         }
@@ -2739,7 +2739,7 @@ Format](http://rfc7159.net/rfc7159)
         {
             return is_boolean()
                    ? m_value.boolean
-                   : throw std::domain_error("type must be boolean, but is " + type_name());
+                   : throw std::domain_error("transactionType must be boolean, but is " + type_name());
         }
 
         /// get a pointer to the value (object)
@@ -2840,7 +2840,7 @@ Format](http://rfc7159.net/rfc7159)
         template<typename ReferenceType, typename ThisType>
         static ReferenceType get_ref_impl(ThisType& obj)
         {
-            // helper type
+            // helper transactionType
             using PointerType = typename std::add_pointer<ReferenceType>::type;
 
             // delegate the call to get_ptr<>()
@@ -2852,7 +2852,7 @@ Format](http://rfc7159.net/rfc7159)
             }
             else
             {
-                throw std::domain_error("incompatible ReferenceType for get_ref, actual type is " +
+                throw std::domain_error("incompatible ReferenceType for get_ref, actual transactionType is " +
                                         obj.type_name());
             }
         }
@@ -2980,11 +2980,11 @@ Format](http://rfc7159.net/rfc7159)
             std::is_pointer<PointerType>::value, int>::type = 0>
         PointerType get_ptr() noexcept
         {
-            // get the type of the PointerType (remove pointer and const)
+            // get the transactionType of the PointerType (remove pointer and const)
             using pointee_t = typename std::remove_const<typename
             std::remove_pointer<typename
             std::remove_const<PointerType>::type>::type>::type;
-            // make sure the type matches the allowed types
+            // make sure the transactionType matches the allowed types
             static_assert(
                 std::is_same<object_t, pointee_t>::value
                 or std::is_same<array_t, pointee_t>::value
@@ -2993,7 +2993,7 @@ Format](http://rfc7159.net/rfc7159)
                 or std::is_same<number_integer_t, pointee_t>::value
                 or std::is_same<number_unsigned_t, pointee_t>::value
                 or std::is_same<number_float_t, pointee_t>::value
-                , "incompatible pointer type");
+                , "incompatible pointer transactionType");
 
             // delegate the call to get_impl_ptr<>()
             return get_impl_ptr(static_cast<PointerType>(nullptr));
@@ -3008,11 +3008,11 @@ Format](http://rfc7159.net/rfc7159)
             std::is_const<typename std::remove_pointer<PointerType>::type>::value, int>::type = 0>
         constexpr const PointerType get_ptr() const noexcept
         {
-            // get the type of the PointerType (remove pointer and const)
+            // get the transactionType of the PointerType (remove pointer and const)
             using pointee_t = typename std::remove_const<typename
             std::remove_pointer<typename
             std::remove_const<PointerType>::type>::type>::type;
-            // make sure the type matches the allowed types
+            // make sure the transactionType matches the allowed types
             static_assert(
                 std::is_same<object_t, pointee_t>::value
                 or std::is_same<array_t, pointee_t>::value
@@ -3021,7 +3021,7 @@ Format](http://rfc7159.net/rfc7159)
                 or std::is_same<number_integer_t, pointee_t>::value
                 or std::is_same<number_unsigned_t, pointee_t>::value
                 or std::is_same<number_float_t, pointee_t>::value
-                , "incompatible pointer type");
+                , "incompatible pointer transactionType");
 
             // delegate the call to get_impl_ptr<>() const
             return get_impl_ptr(static_cast<const PointerType>(nullptr));
@@ -8976,7 +8976,7 @@ Format](http://rfc7159.net/rfc7159)
 
         @return the floating point number
         */
-            long double str_to_float_t(long double* /* type */, char** endptr) const
+            long double str_to_float_t(long double* /* transactionType */, char** endptr) const
             {
                 return std::strtold(reinterpret_cast<typename string_t::const_pointer>(m_start), endptr);
             }
@@ -8996,7 +8996,7 @@ Format](http://rfc7159.net/rfc7159)
 
         @return the floating point number
         */
-            double str_to_float_t(double* /* type */, char** endptr) const
+            double str_to_float_t(double* /* transactionType */, char** endptr) const
             {
                 return std::strtod(reinterpret_cast<typename string_t::const_pointer>(m_start), endptr);
             }
@@ -9016,7 +9016,7 @@ Format](http://rfc7159.net/rfc7159)
 
         @return the floating point number
         */
-            float str_to_float_t(float* /* type */, char** endptr) const
+            float str_to_float_t(float* /* transactionType */, char** endptr) const
             {
                 return std::strtof(reinterpret_cast<typename string_t::const_pointer>(m_start), endptr);
             }
@@ -9051,10 +9051,10 @@ Format](http://rfc7159.net/rfc7159)
                 // accumulate the integer conversion result (unsigned for now)
                 number_unsigned_t value = 0;
 
-                // maximum absolute value of the relevant integer type
+                // maximum absolute value of the relevant integer transactionType
                 number_unsigned_t max;
 
-                // temporarily store the type to avoid unecessary bitfield access
+                // temporarily store the transactionType to avoid unecessary bitfield access
                 value_t type;
 
                 // look for sign
@@ -9130,7 +9130,7 @@ Format](http://rfc7159.net/rfc7159)
                     }
                 }
 
-                // save the type
+                // save the transactionType
                 result.m_type = type;
             }
 
@@ -10395,7 +10395,7 @@ Format](http://rfc7159.net/rfc7159)
                 }
             };
 
-            // type check
+            // transactionType check
             if (not json_patch.is_array())
             {
                 // a JSON patch must be an array of objects
@@ -10422,7 +10422,7 @@ Format](http://rfc7159.net/rfc7159)
                         throw std::invalid_argument(error_msg + " must have member '" + member + "'");
                     }
 
-                    // check if result is of type string
+                    // check if result is of transactionType string
                     if (string_type and not it->second.is_string())
                     {
                         throw std::invalid_argument(error_msg + " must have string member '" + member + "'");
@@ -10432,7 +10432,7 @@ Format](http://rfc7159.net/rfc7159)
                     return it->second;
                 };
 
-                // type check
+                // transactionType check
                 if (not val.is_object())
                 {
                     throw std::invalid_argument("JSON patch must be an array of objects");
@@ -10675,7 +10675,7 @@ Format](http://rfc7159.net/rfc7159)
 
                     default:
                     {
-                        // both primitive type: replace value
+                        // both primitive transactionType: replace value
                         result.push_back(
                             {
                                 {"op", "replace"},
