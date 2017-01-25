@@ -217,9 +217,8 @@ vector<byte> TrustLine::serialize() {
         return buffer;
 
     } catch (exception &e) {
-        throw RuntimeError(
-            string("TrustLine::serialize: can't serialize the trust line. Details: ") +
-            e.what());
+        throw RuntimeError(string("TrustLine::serialize: can't serialize the trust line. Details: ") +
+                               e.what());
     }
 }
 
@@ -245,9 +244,8 @@ void TrustLine::deserialize(
         );
 
     } catch (exception &e) {
-        throw RuntimeError(
-            string("TrustLine::deserialize: can't deserialize buffer to trust line instance") +
-            e.what());
+        throw RuntimeError(string("TrustLine::deserialize: can't deserialize buffer to trust line instance") +
+                               e.what());
     }
 }
 
@@ -338,8 +336,8 @@ void TrustLine::parseTrustAmount(
         }
 
     } catch (bad_alloc &){
-        throw MemoryError(
-            "TrustLine::parseTrustAmount: bad alloc.");
+        throw MemoryError("TrustLine::parseTrustAmount: "
+                              "bad alloc.");
     }
 }
 
@@ -391,8 +389,8 @@ void TrustLine::parseBalance(
         }
 
     } catch (bad_alloc &) {
-        throw MemoryError(
-            "TrustLine::parseTrustAmount: bad alloc.");
+        throw MemoryError("TrustLine::parseTrustAmount: "
+                              "bad alloc.");
     }
 }
 
@@ -401,7 +399,7 @@ void TrustLine::parseBalance(
  * that is useful in comparison operations.
  */
 const TrustLineBalance &TrustLine::kZeroBalance() {
-    // NOTE: "zero" would be common for ALL instances of this class.
+
     static TrustLineBalance zero(0);
     return zero;
 }
@@ -411,7 +409,23 @@ const TrustLineBalance &TrustLine::kZeroBalance() {
  * that is useful in comparison operations.
  */
 const TrustLineAmount &TrustLine::kZeroAmount() {
-    // NOTE: "zero" would be common for ALL instances of this class.
+
     static TrustLineAmount zero(0);
     return zero;
 }
+
+bool operator==(
+    const TrustLine::Shared contractor1,
+    const TrustLine::Shared contractor2) {
+
+    return contractor1->contractorNodeUUID() == contractor2->contractorNodeUUID();
+}
+
+bool operator==(
+    const TrustLine &contractor1,
+    const TrustLine &contractor2) {
+
+    return contractor1.contractorNodeUUID() == contractor2.contractorNodeUUID();
+}
+
+

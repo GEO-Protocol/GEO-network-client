@@ -60,11 +60,13 @@ private:
 
     void sendData(
         vector<byte> buffer,
-        pair <string, uint16_t> address);
+        pair <string, uint16_t> address,
+        Channel::Shared channel);
 
     void handleSend(
         const boost::system::error_code &error,
-        size_t bytesTransferred);
+        size_t bytesTransferred,
+        Channel::Shared channel);
 
     void onMessageParsedSlot(
         Message::Shared message);

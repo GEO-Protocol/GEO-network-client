@@ -2,27 +2,30 @@
 
 OutgoingMessagesHandler::OutgoingMessagesHandler() {}
 
-vector<Packet::SharedConst>* OutgoingMessagesHandler::processOutgoingMessage(
+void OutgoingMessagesHandler::processOutgoingMessage(
     Message::Shared message,
-    uint16_t channelNumber) {
+    uint16_t channelNumber,
+    Channel::Shared channel) {
 
     // Message's serialized data and data size
-    auto serializedMessage = message->serialize();
+    auto messageBytesAndCount = message->serialize();
 
-    // Container for packets allocated in memory
-    vector<Packet::SharedConst> *packets = new vector<Packet::SharedConst>();
 
     // Create crc packet and calculate packet's count
-    auto crcPacket = makeCRCPacket(
-        serializedMessage,
+    auto crcPacketAndCount = makeCRCPacket(
+        messageBytesAndCount,
         channelNumber
     );
-    // Push back crc packet in container
-    packets->push_back(crcPacket.first);
+
+    // Push crc packet in incomingChannel
+    channel->addPacket(
+        Channel::kCRCPacketNumber(),
+        crcPacketAndCount.first
+    );
 
     // Create other packages
-    byte *offsetSerializedBuffer = const_cast<byte *> (serializedMessage.first.get());
-    uint16_t dataPacketsCount = crcPacket.second - 1; // crc packet excluded
+    byte *serializedMessageBuffer = const_cast<byte *> (messageBytesAndCount.first.get());
+    uint16_t dataPacketsCount = crcPacketAndCount.second - 1; // crc packet excluded
 
     for (uint16_t packetNumber = 1; packetNumber <= dataPacketsCount; ++ packetNumber) {
         size_t packetSize;
@@ -37,7 +40,7 @@ vector<Packet::SharedConst>* OutgoingMessagesHandler::processOutgoingMessage(
             // size of next packet will be equals serialized message data - maximal packet's body size * packet sequence number.
             // Else packet size will be equals to maximal packet's body size.
             if (packetNumber == dataPacketsCount) {
-                packetSize = serializedMessage.second - kMaxPacketBodySize * packetNumber;
+                packetSize = messageBytesAndCount.second - kMaxPacketBodySize * packetNumber;
 
             } else {
                 packetSize = kMaxPacketBodySize;
@@ -45,7 +48,7 @@ vector<Packet::SharedConst>* OutgoingMessagesHandler::processOutgoingMessage(
             }
 
         } else {
-            packetSize = serializedMessage.second;
+            packetSize = messageBytesAndCount.second;
         }
 
         // Calculate offset to next part of serialized data.
@@ -57,19 +60,22 @@ vector<Packet::SharedConst>* OutgoingMessagesHandler::processOutgoingMessage(
         }
 
         auto packet = makePacket(
-            offsetSerializedBuffer + offset,
+            serializedMessageBuffer + offset,
             packetSize,
             packetNumber,
-            crcPacket.second,
+            crcPacketAndCount.second,
             channelNumber
         );
-        packets->push_back(packet);
-    }
 
-    return packets;
+        channel->addPacket(
+            packetNumber,
+            packet
+        );
+
+    }
 }
 
-pair<Packet::SharedConst, uint16_t> OutgoingMessagesHandler::makeCRCPacket(
+pair<Packet::Shared, uint16_t> OutgoingMessagesHandler::makeCRCPacket(
     pair<ConstBytesShared, size_t> serialiedMessage,
     uint16_t channelNumber) {
 
@@ -116,13 +122,13 @@ pair<Packet::SharedConst, uint16_t> OutgoingMessagesHandler::makeCRCPacket(
     );
 
     return make_pair(
-        Packet::SharedConst(packet),
+        Packet::Shared(packet),
         packetsCount
     );
 }
 
 
-Packet::SharedConst OutgoingMessagesHandler::makePacket(
+Packet::Shared OutgoingMessagesHandler::makePacket(
     byte *buffer,
     size_t bytesCount,
     uint16_t packetNumber,
@@ -142,6 +148,6 @@ Packet::SharedConst OutgoingMessagesHandler::makePacket(
       packetHeader->bodyBytesCount()
     );
 
-    return Packet::SharedConst(packet);
+    return Packet::Shared(packet);
 }
 

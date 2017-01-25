@@ -77,6 +77,16 @@ public:
 
     static const TrustLineAmount& kZeroAmount();
 
+    friend bool operator== (
+        const TrustLine::Shared contractor1,
+        const TrustLine::Shared contractor2
+    );
+
+    friend bool operator== (
+        const TrustLine &contractor1,
+        const TrustLine &contractor2
+    );
+
 private:
     void trustAmountToBytes(
         const TrustLineAmount &amount,

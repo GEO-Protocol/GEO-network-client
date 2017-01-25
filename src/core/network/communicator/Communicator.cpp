@@ -92,21 +92,23 @@ void Communicator::sendMessage(
         address.second
     );
 
-    uint16_t channelNumber = mChannelsManager->unusedChannelNumber(endpoint);
-    auto *packets = mOutgoingMessagesHandler->processOutgoingMessage(
+
+    auto numberAndChannel = mChannelsManager->outgoingChannel(endpoint);
+
+    mOutgoingMessagesHandler->processOutgoingMessage(
         message,
-        channelNumber
+        numberAndChannel.first,
+        numberAndChannel.second
     );
 
-    for (auto const &packet : *packets) {
+    for (auto const &numberAndPacket : *numberAndChannel.second->packets()) {
         sendData(
-            packet->packetBytes(),
-            address
+            numberAndPacket.second->packetBytes(),
+            address,
+            numberAndChannel.second
         );
     }
 
-    packets->clear();
-    delete packets;
 }
 
 void Communicator::asyncReceiveData() {
@@ -148,7 +150,8 @@ void Communicator::handleReceivedInfo(
 
 void Communicator::sendData(
     vector<byte> buffer,
-    pair<string, uint16_t> address) {
+    pair<string, uint16_t> address,
+    Channel::Shared channel) {
 
     ip::udp::endpoint destination(
         ip::address::from_string(address.first),
@@ -164,14 +167,16 @@ void Communicator::sendData(
             &Communicator::handleSend,
             this,
             boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred
+            boost::asio::placeholders::bytes_transferred,
+            channel
         )
     );
 }
 
 void Communicator::handleSend(
     const boost::system::error_code &error,
-    size_t bytesTransferred) {
+    size_t bytesTransferred,
+    Channel::Shared channel) {
 
     if (error) {
         mLog->logError("Communicator::handleSend:",
@@ -181,6 +186,7 @@ void Communicator::handleSend(
     } else {
         mLog->logInfo("Communicator::handleReceivedInfo: ",
                       string("Bytes transferred - ") + to_string(bytesTransferred));
+        channel->rememberSendTime();
     }
 }
 

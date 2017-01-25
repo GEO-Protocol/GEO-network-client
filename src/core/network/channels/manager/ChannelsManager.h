@@ -21,26 +21,39 @@ public:
 
     ~ChannelsManager();
 
-    pair<Channel::Shared, udp::endpoint> channel(
+    pair<Channel::Shared, udp::endpoint> incomingChannel(
         uint16_t number,
-        udp::endpoint endpoint) const;
+        udp::endpoint endpoint);
 
-    pair<Channel::Shared, udp::endpoint> create(
+    pair<Channel::Shared, udp::endpoint> createIncomingChannel(
         uint16_t number,
-        udp::endpoint endpoint) const;
+        udp::endpoint endpoint);
 
-    void remove(
-        uint16_t number) const;
+    void removeIncomingChannel(
+        uint16_t number);
 
-    uint16_t unusedChannelNumber(
+    pair<uint16_t, Channel::Shared> outgoingChannel(
+        udp::endpoint endpoint);
+
+    Channel::Shared createOutgoingChannel(
+        uint16_t number,
+        udp::endpoint endpoint);
+
+    void removeOutgoingChannel(
+        uint16_t number);
+
+    uint16_t unusedOutgoingChannelNumber(
         udp::endpoint endpoint
     );
 
 private:
     // <number, channel>
-    map<uint16_t, Channel::Shared> *mChannels;
+    map<uint16_t, Channel::Shared> *mIncomingChannels;
+    map<uint16_t, Channel::Shared> *mOutgoingChannels;
+
     // <number, endpoint>
-    map<uint16_t, udp::endpoint> *mEndpoints;
+    map<uint16_t, udp::endpoint> *mIncomingEndpoints;
+    map<uint16_t, udp::endpoint> *mOutgoingEndpoints;
 };
 
 

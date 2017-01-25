@@ -150,7 +150,7 @@ void IncomingMessagesHandler::tryCollectPacket(
                                   "Can not allocate memory for packet header instance.");
         }
 
-        auto channelAndEndpoint = mChannelsManager->channel(
+        auto channelAndEndpoint = mChannelsManager->incomingChannel(
             packetHeader->channelNumber(),
             clientEndpoint);
 
@@ -176,18 +176,18 @@ void IncomingMessagesHandler::tryCollectPacket(
 
         if (channelAndEndpoint.first->expectedPacketsCount() == channelAndEndpoint.first->realPacketsCount()) {
             if (channelAndEndpoint.first->checkConsistency()) {
-                auto data = channelAndEndpoint.first->data();
-                auto message = mMessagesParser->processMessage(
-                  data.first,
-                  data.second
+                auto bytesAndCount = channelAndEndpoint.first->data();
+                auto resultAndMessage = mMessagesParser->processMessage(
+                  bytesAndCount.first,
+                  bytesAndCount.second
                 );
-                if (message.first) {
-                    messageParsedSignal(message.second);
+                if (resultAndMessage.first) {
+                    messageParsedSignal(resultAndMessage.second);
                 }
-                mChannelsManager->remove(packetHeader->channelNumber());
+                mChannelsManager->removeIncomingChannel(packetHeader->channelNumber());
 
             } else {
-                mChannelsManager->remove(packetHeader->channelNumber());
+                mChannelsManager->removeIncomingChannel(packetHeader->channelNumber());
             }
         }
     }

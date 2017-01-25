@@ -30,11 +30,11 @@ void Channel::addPacket(
 
 }
 
-bool Channel::checkConsistency() const {
+bool Channel::checkConsistency() {
 
     if (mPackets->size() == mExpectedPacketsCount) {
-        if (mPackets->count(kCRCPacketNumber) != 0) {
-            uint32_t *controlSum = new(const_cast<byte *> (mPackets->at(kCRCPacketNumber)->body().get())) uint32_t;
+        if (mPackets->count(kCRCPacketNumber()) != 0) {
+            uint32_t *controlSum = new(const_cast<byte *> (mPackets->at(kCRCPacketNumber())->body().get())) uint32_t;
 
             auto channelData = data();
             boost::crc_32_type control;
@@ -49,11 +49,11 @@ bool Channel::checkConsistency() const {
     return false;
 }
 
-pair<ConstBytesShared, size_t> Channel::data() const {
+pair<ConstBytesShared, size_t> Channel::data() {
 
     size_t totalBytesCount = 0;
     for (auto &it : *mPackets) {
-        if (it.first != kCRCPacketNumber) {
+        if (it.first != kCRCPacketNumber()) {
             totalBytesCount += (size_t) it.second->header()->bodyBytesCount();
         }
     }
@@ -65,17 +65,25 @@ pair<ConstBytesShared, size_t> Channel::data() const {
         totalBytesCount
     );
 
+    size_t nextPacketDataOffset = 0;
     for (auto &it : *mPackets) {
-        if (it.first != kCRCPacketNumber) {
+        if (it.first != kCRCPacketNumber()) {
             memcpy(
-                data,
+                data + nextPacketDataOffset,
                 const_cast<byte *>(it.second->body().get()),
                 (size_t) it.second->header()->bodyBytesCount()
             );
+            nextPacketDataOffset += it.second->header()->bodyBytesCount();
         }
     }
 
-    return make_pair(ConstBytesShared(data, free), totalBytesCount);
+    return make_pair(
+        ConstBytesShared(
+            data,
+            free
+        ),
+        totalBytesCount
+    );
 
 }
 
@@ -87,4 +95,25 @@ const uint16_t Channel::expectedPacketsCount() const {
 const uint16_t Channel::realPacketsCount() const {
 
     return (uint16_t) mPackets->size();
+}
+
+const map<uint16_t, Packet::Shared> *Channel::packets() const {
+
+    return mPackets;
+}
+
+void Channel::rememberSendTime() {
+
+    mPacketsSendedTime = posix::second_clock::universal_time();
+}
+
+const Timestamp Channel::sendTime() const {
+
+    return mPacketsSendedTime;
+}
+
+const uint16_t Channel::kCRCPacketNumber() {
+
+    static uint16_t crcPacketNumber = 0;
+    return crcPacketNumber;
 }
