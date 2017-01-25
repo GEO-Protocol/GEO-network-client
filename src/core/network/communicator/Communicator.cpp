@@ -59,6 +59,15 @@ void Communicator::connectIncomingMessagesHanlderSignals() {
             _1
         )
     );
+
+    mIncomingMessagesHandler->sendServiceMessageSignal.connect(
+        boost::bind(
+            &Communicator::onSendServiceMessageSlot,
+            this,
+            _1,
+            _2
+        )
+    );
 }
 
 const NodeUUID &Communicator::nodeUUID() const {
@@ -132,11 +141,16 @@ void Communicator::handleReceivedInfo(
     if (!error || error == boost::asio::error::message_size) {
         mLog->logInfo("Communicator::handleReceivedInfo: ",
                       string("Bytes received - ") + to_string(bytesTransferred));
-        mIncomingMessagesHandler->processIncomingMessage(
-            mRemoteEndpointBuffer,
-            mRecvBuffer.data(),
-            bytesTransferred
-        );
+        try {
+            mIncomingMessagesHandler->processIncomingMessage(
+                mRemoteEndpointBuffer,
+                mRecvBuffer.data(),
+                bytesTransferred
+            );
+        } catch (exception &e) {
+
+            mLog->logError("Communicator", e.what());
+        }
 
     } else {
         mLog->logError("Communicator::handleReceivedInfo:",
@@ -184,9 +198,24 @@ void Communicator::handleSend(
         );
 
     } else {
-        mLog->logInfo("Communicator::handleReceivedInfo: ",
+        mLog->logInfo("Communicator::handleSend: ",
                       string("Bytes transferred - ") + to_string(bytesTransferred));
         channel->rememberSendTime();
+    }
+}
+
+void Communicator::handleServiceSend(
+    const boost::system::error_code &error,
+    size_t bytesTransferred) {
+
+    if (error) {
+        mLog->logError("Communicator::handleSeriveSend:",
+                       error.message()
+        );
+
+    } else {
+        mLog->logInfo("Communicator::handleSeriveSend: ",
+                      string("Bytes transferred - ") + to_string(bytesTransferred));
     }
 }
 
@@ -194,6 +223,31 @@ void Communicator::onMessageParsedSlot(
     Message::Shared message) {
 
     messageReceivedSignal(message);
+}
+
+void Communicator::onSendServiceMessageSlot(
+    ServiceMessage::Shared message,
+    pair<string, uint16_t> address) {
+
+    ip::udp::endpoint destination(
+        ip::address::from_string(address.first),
+        address.second);
+
+    vector<byte> buffer = message->serialize();
+
+    mSocket->async_send_to(
+        as::buffer(
+            buffer,
+            buffer.size()
+        ),
+        destination,
+        boost::bind(
+            &Communicator::handleServiceSend,
+            this,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred
+        )
+    );
 }
 
 void Communicator::zeroPointers() {

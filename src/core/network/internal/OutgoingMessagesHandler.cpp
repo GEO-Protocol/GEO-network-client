@@ -76,12 +76,12 @@ void OutgoingMessagesHandler::processOutgoingMessage(
 }
 
 pair<Packet::Shared, uint16_t> OutgoingMessagesHandler::makeCRCPacket(
-    pair<ConstBytesShared, size_t> serialiedMessage,
+    pair<ConstBytesShared, size_t> messageBytesAndCount,
     uint16_t channelNumber) {
 
     uint16_t packetsCount;
-    if (kMaxPacketBodySize < serialiedMessage.second) {
-        packetsCount = (uint16_t) (serialiedMessage.second / kMaxPacketBodySize + 1); // integer packets count + crc packet;
+    if (kMaxPacketBodySize < messageBytesAndCount.second) {
+        packetsCount = (uint16_t) (messageBytesAndCount.second / kMaxPacketBodySize + 1); // integer packets count + crc packet;
         if (packetsCount == 2) { // if calculated only one integer data packet - add one more packet, it's rest data
             packetsCount += 1;
         }
@@ -92,8 +92,8 @@ pair<Packet::Shared, uint16_t> OutgoingMessagesHandler::makeCRCPacket(
 
     boost::crc_32_type crc;
     crc.process_bytes(
-        serialiedMessage.first.get(),
-        serialiedMessage.second
+        messageBytesAndCount.first.get(),
+        messageBytesAndCount.second
     );
     uint32_t controlSum = crc.checksum();
     byte *controlSumBytes = (byte *) malloc(kCRCDataSize);
