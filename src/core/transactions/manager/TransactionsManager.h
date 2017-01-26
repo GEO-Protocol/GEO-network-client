@@ -11,10 +11,12 @@
 #include "../../interface/commands_interface/commands/BaseUserCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 
 #include "../../network/messages/Message.h"
 #include "../../network/messages/incoming/AcceptTrustLineMessage.h"
 #include "../../network/messages/incoming/RejectTrustLineMessage.h"
+#include "../../network/messages/incoming/UpdateTrustLineMessage.h"
 #include "../../network/messages/response/Response.h"
 
 #include "../transactions/BaseTransaction.h"
@@ -23,6 +25,8 @@
 #include "../transactions/unique/trust_lines/AcceptTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/CloseTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
+#include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
+#include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -66,6 +70,12 @@ private:
         BaseUserCommand::Shared command);
 
     void createRejectTrustLineTransaction(
+        Message::Shared message);
+
+    void createSetTrustLineTransaction(
+        BaseUserCommand::Shared command);
+
+    void createUpdateTrustLineTransaction(
         Message::Shared message);
 
     void onMessageSend(

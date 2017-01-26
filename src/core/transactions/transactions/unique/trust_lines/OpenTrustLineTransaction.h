@@ -6,6 +6,8 @@
 #include "../../../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 
 #include "AcceptTrustLineTransaction.h"
+#include "SetTrustLineTransaction.h"
+#include "CloseTrustLineTransaction.h"
 
 #include "../../../../network/messages/Message.h"
 #include "../../../../network/messages/outgoing/OpenTrustLineMessage.h"
@@ -34,7 +36,7 @@ public:
 private:
     bool checkSameTypeTransactions();
 
-    bool checkTrustLineDirection();
+    bool checkTrustLineDirectionExisting();
 
     TransactionResult::Shared checkTransactionContext();
 
@@ -42,7 +44,7 @@ private:
 
     TransactionResult::Shared waitingForResponseState();
 
-    void createTrustLine();
+    void openTrustLine();
 
     TransactionResult::Shared resultOk();
 

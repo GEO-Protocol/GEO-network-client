@@ -9,6 +9,8 @@
 #include "../../../../network/messages/response/Response.h"
 
 #include "../../../scheduler/TransactionsScheduler.h"
+#include "RejectTrustLineTransaction.h"
+#include "UpdateTrustLineTransaction.h"
 
 #include "../../../manager/TransactionsManager.h"
 
@@ -33,7 +35,7 @@ private:
 
     bool checkSameTypeTransactions();
 
-    bool checkTrustLineDirection();
+    bool checkTrustLineDirectionExisting();
 
     bool checkTrustLineAmount();
 

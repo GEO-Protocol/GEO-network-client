@@ -28,10 +28,10 @@ public:
     enum TransactionType {
         OpenTrustLineTransactionType,
         AcceptTrustLineTransactionType,
-        UpdateTrustLineTransactionType,
         SetTrustLineTransactionType,
         CloseTrustLineTransactionType,
-        RejectTrustLineTransactionType
+        RejectTrustLineTransactionType,
+        UpdateTrustLineTransactionType,
     };
 
 public:
@@ -63,6 +63,9 @@ protected:
     void increaseStepsCounter();
 
     void increaseRequestsCounter();
+
+    TransactionResult::Shared transactionResultFromCommand(
+        CommandResult::Shared result);
 
 protected:
     TransactionType mType;

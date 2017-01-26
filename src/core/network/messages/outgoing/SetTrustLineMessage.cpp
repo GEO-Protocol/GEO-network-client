@@ -1,22 +1,18 @@
-#include "OpenTrustLineMessage.h"
+#include "SetTrustLineMessage.h"
 
-OpenTrustLineMessage::OpenTrustLineMessage(
+SetTrustLineMessage::SetTrustLineMessage(
     NodeUUID &sender,
     TransactionUUID &transactionUUID,
-    TrustLineAmount amount) :
+    TrustLineAmount newAmount) {
 
-    Message(
-        sender,
-        transactionUUID
-    ),
-    mTrustLineAmount(amount) {}
+}
 
-pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
+pair<ConstBytesShared, size_t> SetTrustLineMessage::serialize() {
 
     size_t dataSize = sizeof(uint16_t) +
-        NodeUUID::kBytesSize +
-        TransactionUUID::kBytesSize +
-        kTrustLineAmountSize;
+                      NodeUUID::kBytesSize +
+                      TransactionUUID::kBytesSize +
+                      kTrustLineAmountSize;
     byte *data = (byte *) malloc (dataSize);
     memset(
         data,
@@ -33,9 +29,9 @@ pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
     );
     //----------------------------
     memcpy(
-      data + sizeof(uint16_t),
-      mSenderUUID.data,
-      NodeUUID::kBytesSize
+        data + sizeof(uint16_t),
+        mSenderUUID.data,
+        NodeUUID::kBytesSize
     );
     //----------------------------
     memcpy(
@@ -47,7 +43,7 @@ pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
     vector<byte> buffer;
     buffer.reserve(kTrustLineAmountSize);
     export_bits(
-        mTrustLineAmount,
+        mNewTrustLineAmount,
         back_inserter(buffer),
         8
     );
@@ -68,19 +64,16 @@ pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
     );
 }
 
-void OpenTrustLineMessage::deserialize(
-    byte* buffer) {
+void SetTrustLineMessage::deserialize(
+    byte *buffer) {
 
-    throw NotImplementedError("OpenTrustLineMessage::deserialize: "
+    throw NotImplementedError("SetTrustLineMessage::deserialize: "
                                   "Method not implemented.");
 }
 
-const Message::MessageTypeID OpenTrustLineMessage::typeID() const {
+const Message::MessageTypeID SetTrustLineMessage::typeID() const {
 
-    return Message::MessageTypeID::OpenTrustLineMessageType;
+    return Message::MessageTypeID::SetTrustLineMessageType;
 }
-
-
-
 
 

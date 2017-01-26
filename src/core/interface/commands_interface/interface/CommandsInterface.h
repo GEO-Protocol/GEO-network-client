@@ -8,6 +8,7 @@
 
 #include "../commands/trust_lines/OpenTrustLineCommand.h"
 #include "../commands/trust_lines/CloseTrustLineCommand.h"
+#include "../commands/trust_lines/SetTrustLineCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"

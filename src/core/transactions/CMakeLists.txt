@@ -22,7 +22,7 @@ set(SOURCE_FILES
         transactions/result/TransactionResult.cpp
         transactions/result/TransactionResult.h
 
-        TransactionUUID.h transactions/unique/trust_lines/CloseTrustLineTransaction.cpp transactions/unique/trust_lines/CloseTrustLineTransaction.h transactions/unique/trust_lines/RejectTrustLineTransaction.cpp transactions/unique/trust_lines/RejectTrustLineTransaction.h)
+        TransactionUUID.h transactions/unique/trust_lines/CloseTrustLineTransaction.cpp transactions/unique/trust_lines/CloseTrustLineTransaction.h transactions/unique/trust_lines/RejectTrustLineTransaction.cpp transactions/unique/trust_lines/RejectTrustLineTransaction.h transactions/unique/trust_lines/SetTrustLineTransaction.cpp transactions/unique/trust_lines/SetTrustLineTransaction.h transactions/unique/trust_lines/UpdateTrustLineTransaction.cpp transactions/unique/trust_lines/UpdateTrustLineTransaction.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions

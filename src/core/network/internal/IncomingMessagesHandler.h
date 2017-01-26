@@ -12,6 +12,7 @@
 #include "../messages/ServiceMessage.h"
 #include "../messages/incoming/AcceptTrustLineMessage.h"
 #include "../messages/incoming/RejectTrustLineMessage.h"
+#include "../messages/incoming/UpdateTrustLineMessage.h"
 #include "../messages/response/Response.h"
 
 #include "../../common/exceptions/ValueError.h"

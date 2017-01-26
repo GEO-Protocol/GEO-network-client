@@ -45,6 +45,15 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
 
         }
 
+        case Message::MessageTypeID::SetTrustLineMessageType: {
+            Message *message = new UpdateTrustLineMessage(const_cast<byte *>(messagePart));
+            return make_pair(
+                true,
+                Message::Shared(message)
+            );
+
+        }
+
         default: {
             return tryDeserializeResponse(
                 messageIdentifier,

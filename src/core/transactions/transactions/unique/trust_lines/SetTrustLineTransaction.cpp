@@ -1,29 +1,27 @@
-#include "CloseTrustLineTransaction.h"
+#include "SetTrustLineTransaction.h"
 
-CloseTrustLineTransaction::CloseTrustLineTransaction(
+SetTrustLineTransaction::SetTrustLineTransaction(
     NodeUUID &nodeUUID,
-    CloseTrustLineCommand::Shared command,
+    SetTrustLineCommand::Shared command,
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager) :
 
     UniqueTransaction(
-        BaseTransaction::TransactionType::CloseTrustLineTransactionType,
+        BaseTransaction::TransactionType::SetTrustLineTransactionType,
         nodeUUID,
         scheduler
     ),
     mCommand(command),
-    mTrustLinesManager(manager){
+    mTrustLinesManager(manager) {}
 
-}
-
-CloseTrustLineCommand::Shared CloseTrustLineTransaction::command() const {
+SetTrustLineCommand::Shared SetTrustLineTransaction::command() const {
 
     return mCommand;
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::run() {
+TransactionResult::Shared SetTrustLineTransaction::run() {
 
-    switch(mStep) {
+    switch (mStep) {
 
         case 1: {
             if (checkSameTypeTransactions()) {
@@ -40,24 +38,13 @@ TransactionResult::Shared CloseTrustLineTransaction::run() {
         }
 
         case 3: {
-            if (checkDebt()) {
-                suspendTrustLineToContractor();
-
-            } else {
-                closeTrustLine();
-            }
-            increaseStepsCounter();
-        }
-
-        case 4: {
             if (mContext.get() != nullptr) {
                 return checkTransactionContext();
 
             } else {
                 if (mRequestCounter < kMaxRequestsCount) {
-                    sendMessageToRemoteNode();
                     increaseRequestsCounter();
-
+                    sendMessageToRemoteNode();
                 } else {
                     return noResponseResult();
                 }
@@ -66,15 +53,14 @@ TransactionResult::Shared CloseTrustLineTransaction::run() {
         }
 
         default: {
-            throw ConflictError("CloseTrustLineTransaction::run: "
+            throw ConflictError("SetTrustLineTransaction::run: "
                                     "Illegal step execution.");
         }
 
     }
-
 }
 
-bool CloseTrustLineTransaction::checkSameTypeTransactions() {
+bool SetTrustLineTransaction::checkSameTypeTransactions() {
 
     auto transactions = pendingTransactions();
     for (auto const &it : *transactions) {
@@ -116,7 +102,7 @@ bool CloseTrustLineTransaction::checkSameTypeTransactions() {
     return false;
 }
 
-bool CloseTrustLineTransaction::checkTrustLineDirectionExisting() {
+bool SetTrustLineTransaction::checkTrustLineDirectionExisting() {
 
     return mTrustLinesManager->checkDirection(
         mCommand->contractorUUID(),
@@ -124,39 +110,26 @@ bool CloseTrustLineTransaction::checkTrustLineDirectionExisting() {
     );
 }
 
-bool CloseTrustLineTransaction::checkDebt() {
-
-    return mTrustLinesManager->balanceRange(mCommand->contractorUUID()) == BalanceRange::Positive;
-}
-
-void CloseTrustLineTransaction::suspendTrustLineToContractor() {
-
-    mTrustLinesManager->suspendDirection(
-        mCommand->contractorUUID(),
-        TrustLineDirection::Outgoing
-    );
-}
-
-void CloseTrustLineTransaction::closeTrustLine() {
-
-    mTrustLinesManager->close(mCommand->contractorUUID());
-}
-
-TransactionResult::Shared CloseTrustLineTransaction::checkTransactionContext() {
+TransactionResult::Shared SetTrustLineTransaction::checkTransactionContext() {
 
     if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
         Response::Shared response = static_pointer_cast<Response>(mContext);
         switch (response->code()) {
 
-            case RejectTrustLineMessage::kResultCodeRejected: {
+            case UpdateTrustLineMessage::kResultCodeAccepted: {
+                setOutgoingTrustAmount();
                 return resultOk();
             }
 
-            case RejectTrustLineMessage::kResultCodeRejectDelayed: {
-                return resultOk();
+            case UpdateTrustLineMessage::kResultCodeRejected: {
+                return trustLineAbsentResult();
             }
 
-            case AcceptTrustLineMessage::kResultCodeTransactionConflict: {
+            case UpdateTrustLineMessage::kResultCodeConflict: {
+                return conflictErrorResult();
+            }
+
+            case UpdateTrustLineMessage::kResultCodeTransactionConflict: {
                 return transactionConflictResult();
             }
 
@@ -164,18 +137,16 @@ TransactionResult::Shared CloseTrustLineTransaction::checkTransactionContext() {
                 return unexpectedErrorResult();
             }
         }
-
     }
-
     return unexpectedErrorResult();
 }
 
-void CloseTrustLineTransaction::sendMessageToRemoteNode() {
+void SetTrustLineTransaction::sendMessageToRemoteNode() {
 
-    Message *message = new CloseTrustLineMessage(
+    Message *message = new SetTrustLineMessage(
         mNodeUUID,
         mTransactionUUID,
-        mNodeUUID
+        mCommand->newAmount()
     );
 
     addMessage(
@@ -184,7 +155,7 @@ void CloseTrustLineTransaction::sendMessageToRemoteNode() {
     );
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::waitingForResponseState() {
+TransactionResult::Shared SetTrustLineTransaction::waitingForResponseState() {
 
     TransactionState *transactionState = new TransactionState(
         kConnectionTimeout,
@@ -197,32 +168,40 @@ TransactionResult::Shared CloseTrustLineTransaction::waitingForResponseState() {
     return TransactionResult::Shared(transactionResult);
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::resultOk() {
+void SetTrustLineTransaction::setOutgoingTrustAmount() {
+
+    mTrustLinesManager->setOutgoingTrustAmount(
+        mCommand->contractorUUID(),
+        mCommand->newAmount()
+    );
+}
+
+TransactionResult::Shared SetTrustLineTransaction::resultOk() {
 
     return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultOk())));
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::trustLineAbsentResult() {
+TransactionResult::Shared SetTrustLineTransaction::trustLineAbsentResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->trustLineIsAbsentResult())));
+    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->trustLineAbsentResult())));
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::conflictErrorResult() {
+TransactionResult::Shared SetTrustLineTransaction::conflictErrorResult() {
 
     return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultConflict())));
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::noResponseResult() {
+TransactionResult::Shared SetTrustLineTransaction::noResponseResult() {
 
     return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultNoResponse())));
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::transactionConflictResult() {
+TransactionResult::Shared SetTrustLineTransaction::transactionConflictResult() {
 
     return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultTransactionConflict())));
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::unexpectedErrorResult() {
+TransactionResult::Shared SetTrustLineTransaction::unexpectedErrorResult() {
 
     return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->unexpectedErrorResult())));
 }

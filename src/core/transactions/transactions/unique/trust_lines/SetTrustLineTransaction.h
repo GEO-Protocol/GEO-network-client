@@ -1,54 +1,50 @@
-#ifndef GEO_NETWORK_CLIENT_CLOSETRUSTLINETRANSACTION_H
-#define GEO_NETWORK_CLIENT_CLOSETRUSTLINETRANSACTION_H
+#ifndef GEO_NETWORK_CLIENT_SETTRUSTLINETRANSACTION_H
+#define GEO_NETWORK_CLIENT_SETTRUSTLINETRANSACTION_H
 
 #include "../UniqueTransaction.h"
 
-#include "../../../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
+#include "../../../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 
-#include "RejectTrustLineTransaction.h"
+#include "UpdateTrustLineTransaction.h"
 #include "OpenTrustLineTransaction.h"
-#include "SetTrustLineTransaction.h"
+#include "CloseTrustLineTransaction.h"
 
 #include "../../../../network/messages/Message.h"
-#include "../../../../network/messages/outgoing/CloseTrustLineMessage.h"
-#include "../../../../network/messages/incoming/RejectTrustLineMessage.h"
+#include "../../../../network/messages/outgoing/SetTrustLineMessage.h"
+#include "../../../../network/messages/incoming/UpdateTrustLineMessage.h"
 
 #include "../../../manager/TransactionsManager.h"
 
 #include "../../../../common/exceptions/ConflictError.h"
 
-class CloseTrustLineTransaction: public UniqueTransaction {
+class SetTrustLineTransaction : public UniqueTransaction {
 
 public:
-    typedef shared_ptr<CloseTrustLineTransaction> Shared;
+    typedef shared_ptr<SetTrustLineTransaction> Shared;
 
 public:
-    CloseTrustLineTransaction(
-      NodeUUID &nodeUUID,
-      CloseTrustLineCommand::Shared command,
-      TransactionsScheduler *scheduler,
-      TrustLinesManager *manager
-    );
+    SetTrustLineTransaction(
+        NodeUUID &nodeUUID,
+        SetTrustLineCommand::Shared command,
+        TransactionsScheduler *scheduler,
+        TrustLinesManager *manager);
 
-    CloseTrustLineCommand::Shared command() const;
+    SetTrustLineCommand::Shared command() const;
 
     TransactionResult::Shared run();
 
+private:
     bool checkSameTypeTransactions();
 
     bool checkTrustLineDirectionExisting();
-
-    bool checkDebt();
-
-    void suspendTrustLineToContractor();
-
-    void closeTrustLine();
 
     TransactionResult::Shared checkTransactionContext();
 
     void sendMessageToRemoteNode();
 
     TransactionResult::Shared waitingForResponseState();
+
+    void setOutgoingTrustAmount();
 
     TransactionResult::Shared resultOk();
 
@@ -66,10 +62,10 @@ private:
     const uint64_t kConnectionTimeout = 2000;
     const uint16_t kMaxRequestsCount = 5;
 
-    CloseTrustLineCommand::Shared mCommand;
+    SetTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
 
 };
 
 
-#endif //GEO_NETWORK_CLIENT_CLOSETRUSTLINETRANSACTION_H
+#endif //GEO_NETWORK_CLIENT_SETTRUSTLINETRANSACTION_H

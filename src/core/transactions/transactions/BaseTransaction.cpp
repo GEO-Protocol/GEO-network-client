@@ -54,3 +54,11 @@ void BaseTransaction::increaseRequestsCounter() {
 
     mRequestCounter += 1;
 }
+
+TransactionResult::Shared BaseTransaction::transactionResultFromCommand(
+    CommandResult::Shared result) {
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setCommandResult(CommandResult::Shared(result));
+    return TransactionResult::Shared(transactionResult);
+}

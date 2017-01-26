@@ -40,7 +40,7 @@ TransactionResult::Shared AcceptTrustLineTransaction::run() {
         }
 
         case 3: {
-            if (checkTrustLineDirection()) {
+            if (checkTrustLineDirectionExisting()) {
                 if (checkTrustLineAmount()) {
                     sendResponse(AcceptTrustLineMessage::kResultCodeAccepted);
                     return makeResult(mMessage->resultAccepted());
@@ -88,10 +88,18 @@ bool AcceptTrustLineTransaction::checkSameTypeTransactions() {
             }
 
             case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
+                UpdateTrustLineTransaction::Shared updateTrustLineTransaction = static_pointer_cast<UpdateTrustLineTransaction>(it.first);
+                if (mMessage->senderUUID() == updateTrustLineTransaction->message()->senderUUID()) {
+                    return true;
+                }
                 break;
             }
 
             case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
+                RejectTrustLineTransaction::Shared rejectTrustLineTransaction = static_pointer_cast<RejectTrustLineTransaction>(it.first);
+                if (mMessage->senderUUID() == rejectTrustLineTransaction->message()->senderUUID()) {
+                    return true;
+                }
                 break;
             }
 
@@ -106,7 +114,7 @@ bool AcceptTrustLineTransaction::checkSameTypeTransactions() {
     return false;
 }
 
-bool AcceptTrustLineTransaction::checkTrustLineDirection() {
+bool AcceptTrustLineTransaction::checkTrustLineDirectionExisting() {
 
     return mTrustLinesManager->checkDirection(
         mMessage->senderUUID(),
@@ -118,6 +126,19 @@ bool AcceptTrustLineTransaction::checkTrustLineAmount() {
 
 
     return mTrustLinesManager->incomingTrustAmount(mMessage->senderUUID()) == mMessage->amount();
+}
+
+void AcceptTrustLineTransaction::createTrustLine() {
+
+    try {
+        mTrustLinesManager->accept(
+            mMessage->senderUUID(),
+            mMessage->amount()
+        );
+
+    } catch (std::exception &e) {
+        throw Exception(e.what());
+    }
 }
 
 void AcceptTrustLineTransaction::sendResponse(
@@ -133,19 +154,6 @@ void AcceptTrustLineTransaction::sendResponse(
         Message::Shared(message),
         mMessage->senderUUID()
     );
-}
-
-void AcceptTrustLineTransaction::createTrustLine() {
-
-    try {
-        mTrustLinesManager->accept(
-            mMessage->senderUUID(),
-            mMessage->amount()
-        );
-
-    } catch (std::exception &e) {
-        throw Exception(e.what());
-    }
 }
 
 TransactionResult::Shared AcceptTrustLineTransaction::makeResult(
