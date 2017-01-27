@@ -8,8 +8,34 @@ RejectTrustLineMessage::RejectTrustLineMessage(
 
 pair<ConstBytesShared, size_t> RejectTrustLineMessage::serialize() {
 
-    throw NotImplementedError("RejectTrustLineMessage::serialize: "
-                                  "Method not implemented.");
+    size_t dataSize = NodeUUID::kBytesSize +
+                      TransactionUUID::kBytesSize +
+                      NodeUUID::kBytesSize;
+    byte *data = (byte *) calloc (dataSize, sizeof(byte));
+    //----------------------------
+    memcpy(
+        data,
+        mSenderUUID.data,
+        NodeUUID::kBytesSize
+    );
+    //----------------------------
+    memcpy(
+        data + NodeUUID::kBytesSize,
+        mTransactionUUID.data,
+        TransactionUUID::kBytesSize
+    );
+    //----------------------------
+    memcpy(
+        data + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
+        mContractorUUID.data,
+        NodeUUID::kBytesSize
+    );
+    //----------------------------
+
+    return make_pair(
+        ConstBytesShared(data, free),
+        dataSize
+    );
 }
 
 void RejectTrustLineMessage::deserialize(

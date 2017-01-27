@@ -19,6 +19,9 @@ public:
         const CommandUUID &uuid,
         const string &commandBuffer);
 
+    OpenTrustLineCommand(
+        BytesShared buffer);
+
     static const string &identifier();
 
     const NodeUUID &contractorUUID() const;
@@ -39,7 +42,14 @@ protected:
     void deserialize(
         const string &command);
 
+    pair<BytesShared, size_t> serializeToBytes();
+
+    void deserializeFromBytes(
+        BytesShared buffer);
+
 private:
+    const size_t kTrustLineAmountSize = 32;
+
     NodeUUID mContractorUUID;
     TrustLineAmount mAmount;
 };

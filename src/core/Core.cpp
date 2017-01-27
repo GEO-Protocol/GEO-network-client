@@ -204,9 +204,22 @@ void Core::connectCommunicatorSignals() {
     );
 }
 
+void Core::connectTrustLinesManagerSignals() {
+
+    mTrustLinesManager->trustLineCreatedSignal.connect(
+        boost::bind(
+            &Core::onTrustLineCreatedSlot,
+            this,
+            _1,
+            _2
+        )
+    );
+}
+
 void Core::connectSignalsToSlots() {
 
     connectCommunicatorSignals();
+    connectTrustLinesManagerSignals();
 }
 
 void Core::onMessageReceivedSlot(
@@ -272,4 +285,8 @@ void Core::zeroPointers() {
     mTransactionsManager = nullptr;
 }
 
+void Core::onTrustLineCreatedSlot(
+    const NodeUUID &contractorUUID,
+    TrustLineDirection direction) {
 
+}

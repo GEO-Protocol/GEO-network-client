@@ -13,6 +13,12 @@ OpenTrustLineCommand::OpenTrustLineCommand(
     deserialize(commandBuffer);
 }
 
+OpenTrustLineCommand::OpenTrustLineCommand(
+    BytesShared buffer) {
+
+    deserializeFromBytes(buffer);
+}
+
 const string &OpenTrustLineCommand::identifier() {
 
     static const string identifier = "CREATE:contractors/trust-lines";
@@ -70,6 +76,88 @@ void OpenTrustLineCommand::deserialize(
     }
 }
 
+pair<BytesShared, size_t> OpenTrustLineCommand::serializeToBytes() {
+
+    auto parentBytesAndCount = serializeParentToBytes();
+
+    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize + kTrustLineAmountSize;
+    byte *data = (byte *) calloc(bytesCount, sizeof(byte));
+    //----------------------------------------------------
+    memcpy(
+        data,
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second
+    );
+    //----------------------------------------------------
+    memcpy(
+        data + parentBytesAndCount.second,
+        mContractorUUID.data,
+        NodeUUID::kBytesSize
+    );
+    //----------------------------------------------------
+    vector<byte> buffer;
+    buffer.reserve(kTrustLineAmountSize);
+    export_bits(
+        mAmount,
+        back_inserter(buffer),
+        8
+    );
+    size_t unusedBufferPlace = kTrustLineAmountSize - buffer.size();
+    for (size_t i = 0; i < unusedBufferPlace; ++i) {
+        buffer.push_back(0);
+    }
+    memcpy(
+        data + parentBytesAndCount.second + NodeUUID::kBytesSize,
+        buffer.data(),
+        buffer.size()
+    );
+    //----------------------------------------------------
+    return make_pair(
+        BytesShared(data, free),
+        bytesCount
+    );
+}
+
+void OpenTrustLineCommand::deserializeFromBytes(
+    BytesShared buffer) {
+
+    deserializeParentFromBytes(buffer);
+    //----------------------------------------------------
+    memcpy(
+        mContractorUUID.data,
+        buffer.get() + kOffsetToInheritBytes(),
+        NodeUUID::kBytesSize
+    );
+    //----------------------------------------------------
+    vector<byte> amountBytes(
+        buffer.get() + kOffsetToInheritBytes() + NodeUUID::kBytesSize,
+        buffer.get() + kOffsetToInheritBytes() + NodeUUID::kBytesSize + kTrustLineAmountSize);
+
+    vector<byte> amountNotZeroBytes;
+    amountNotZeroBytes.reserve(kTrustLineAmountSize);
+
+    for (auto &item : amountBytes) {
+        if (item != 0) {
+            amountNotZeroBytes.push_back(item);
+        }
+    }
+
+    if (amountNotZeroBytes.size() > 0) {
+        import_bits(
+            mAmount,
+            amountNotZeroBytes.begin(),
+            amountNotZeroBytes.end()
+        );
+
+    } else {
+        import_bits(
+            mAmount,
+            amountBytes.begin(),
+            amountBytes.end()
+        );
+    }
+}
+
 const CommandResult *OpenTrustLineCommand::resultOk() const{
 
     return new CommandResult(
@@ -109,5 +197,3 @@ const CommandResult *OpenTrustLineCommand::resultTransactionConflict() const {
         500
     );
 }
-
-

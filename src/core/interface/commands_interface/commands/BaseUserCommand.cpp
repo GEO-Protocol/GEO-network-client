@@ -1,5 +1,7 @@
 #include "BaseUserCommand.h"
 
+BaseUserCommand::BaseUserCommand() {}
+
 BaseUserCommand::BaseUserCommand(
     const CommandUUID &commandUUID,
     const string &identifier):
@@ -19,6 +21,63 @@ const string &BaseUserCommand::commandIdentifier() const {
 
 const Timestamp &BaseUserCommand::timestampAccepted() const {
     return mTimestampAccepted;
+}
+
+pair<BytesShared, size_t> BaseUserCommand::serializeParentToBytes() {
+
+    size_t bytesCount = CommandUUID::kBytesSize + sizeof(MicrosecondsTimestamp) + mCommandIdentifier.size();
+    byte *data = (byte *) calloc(bytesCount, sizeof(byte));
+    //-----------------------------------------------------
+    memcpy(
+        data,
+        mCommandUUID.data,
+        CommandUUID::kBytesSize
+    );
+    //-----------------------------------------------------
+    Duration commandAcceptedDuration = mTimestampAccepted - kEpoch();
+    MicrosecondsTimestamp commandAcceptedMicroseconds = (MicrosecondsTimestamp) commandAcceptedDuration.total_microseconds();
+    memcpy(
+        data + CommandUUID::kBytesSize,
+        &commandAcceptedMicroseconds,
+        sizeof(MicrosecondsTimestamp)
+    );
+    //-----------------------------------------------------
+    return make_pair(
+        BytesShared(data, free),
+        bytesCount
+    );
+}
+
+void BaseUserCommand::deserializeParentFromBytes(
+    BytesShared buffer) {
+
+    //-----------------------------------------------------
+    memcpy(
+        mCommandUUID.data,
+        buffer.get(),
+        CommandUUID::kBytesSize
+    );
+    //-----------------------------------------------------
+    uint64_t *commandAcceptedTimestamp = new (buffer.get() + CommandUUID::kBytesSize) uint64_t;
+    uint32_t maxUINT32_T = std::numeric_limits<uint32_t >::max();
+    Timestamp accumulator = kEpoch();
+    while (*commandAcceptedTimestamp > maxUINT32_T) {
+        accumulator += posix::seconds(maxUINT32_T);
+        *commandAcceptedTimestamp -= maxUINT32_T;
+    }
+    accumulator += posix::microseconds(*commandAcceptedTimestamp);
+    mTimestampAccepted = accumulator;
+}
+
+const Timestamp BaseUserCommand::kEpoch() {
+
+    static const Timestamp epoch(boost::gregorian::date(1970, 1, 1));
+    return epoch;
+}
+
+const size_t BaseUserCommand::kOffsetToInheritBytes() {
+    static const size_t offset = CommandUUID::kHexSize + sizeof(MicrosecondsTimestamp);
+    return offset;
 }
 
 const CommandResult* BaseUserCommand::unexpectedErrorResult() {

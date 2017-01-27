@@ -11,6 +11,13 @@ CloseTrustLineCommand::CloseTrustLineCommand(
 
     deserialize(commandBuffer);
 }
+
+CloseTrustLineCommand::CloseTrustLineCommand(
+    BytesShared buffer) {
+
+    deserializeFromBytes(buffer);
+}
+
 const string &CloseTrustLineCommand::identifier() {
 
     static const string identifier = "REMOVE:contractors/trust-lines";
@@ -36,6 +43,44 @@ void CloseTrustLineCommand::deserialize(const string &command) {
         throw ValueError("CloseTrustLineCommand::deserialize: "
                              "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
+}
+
+pair<BytesShared, size_t> CloseTrustLineCommand::serializeToBytes() {
+
+    auto parentBytesAndCount = serializeParentToBytes();
+
+    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize;
+    byte *data = (byte *) calloc(bytesCount, sizeof(byte));
+    //----------------------------------------------------
+    memcpy(
+        data,
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second
+    );
+    //----------------------------------------------------
+    memcpy(
+        data + parentBytesAndCount.second,
+        mContractorUUID.data,
+        NodeUUID::kBytesSize
+    );
+    //----------------------------------------------------
+    return make_pair(
+        BytesShared(data, free),
+        bytesCount
+    );
+}
+
+void CloseTrustLineCommand::deserializeFromBytes(
+    BytesShared buffer) {
+
+    deserializeParentFromBytes(buffer);
+    //----------------------------------------------------
+    memcpy(
+        mContractorUUID.data,
+        buffer.get() + kOffsetToInheritBytes(),
+        NodeUUID::kBytesSize
+    );
+    //----------------------------------------------------
 }
 
 const CommandResult *CloseTrustLineCommand::resultOk() const {

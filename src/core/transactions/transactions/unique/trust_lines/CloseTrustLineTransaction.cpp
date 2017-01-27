@@ -188,7 +188,8 @@ TransactionResult::Shared CloseTrustLineTransaction::waitingForResponseState() {
 
     TransactionState *transactionState = new TransactionState(
         kConnectionTimeout,
-        Message::MessageTypeID::ResponseMessageType
+        Message::MessageTypeID::ResponseMessageType,
+        false
     );
 
 

@@ -49,6 +49,8 @@ public:
 
     pair<ConstBytesShared, size_t> serializeContext();
 
+    //TODO:: virtual serialize to and deserialize from bytes
+
     virtual TransactionResult::Shared run() = 0;
 
 protected:

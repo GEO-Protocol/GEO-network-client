@@ -8,8 +8,45 @@ AcceptTrustLineMessage::AcceptTrustLineMessage(
 
 pair<ConstBytesShared, size_t> AcceptTrustLineMessage::serialize() {
 
-    throw NotImplementedError("AcceptTrustLineMessage::serialize: "
-                                  "Method not implemented.");
+    size_t dataSize = NodeUUID::kBytesSize +
+                      TransactionUUID::kBytesSize +
+                      kTrustLineAmountSize;
+    byte *data = (byte *) calloc (dataSize, sizeof(byte));
+    //----------------------------
+    memcpy(
+        data,
+        mSenderUUID.data,
+        NodeUUID::kBytesSize
+    );
+    //----------------------------
+    memcpy(
+        data + NodeUUID::kBytesSize,
+        mTransactionUUID.data,
+        TransactionUUID::kBytesSize
+    );
+    //----------------------------
+    vector<byte> buffer;
+    buffer.reserve(kTrustLineAmountSize);
+    export_bits(
+        mTrustLineAmount,
+        back_inserter(buffer),
+        8
+    );
+    size_t unusedBufferPlace = kTrustLineAmountSize - buffer.size();
+    for (size_t i = 0; i < unusedBufferPlace; ++i) {
+        buffer.push_back(0);
+    }
+    memcpy(
+        data + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
+        buffer.data(),
+        buffer.size()
+    );
+    //----------------------------
+
+    return make_pair(
+        ConstBytesShared(data, free),
+        dataSize
+    );
 }
 
 void AcceptTrustLineMessage::deserialize(
