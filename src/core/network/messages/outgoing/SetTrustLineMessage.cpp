@@ -3,9 +3,13 @@
 SetTrustLineMessage::SetTrustLineMessage(
     NodeUUID &sender,
     TransactionUUID &transactionUUID,
-    TrustLineAmount newAmount) {
+    TrustLineAmount newAmount) :
 
-}
+    Message(
+        sender,
+        transactionUUID
+    ),
+    mNewTrustLineAmount(newAmount) {}
 
 pair<ConstBytesShared, size_t> SetTrustLineMessage::serialize() {
 

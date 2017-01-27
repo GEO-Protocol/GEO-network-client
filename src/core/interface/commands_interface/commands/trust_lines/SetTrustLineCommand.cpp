@@ -6,7 +6,7 @@ SetTrustLineCommand::SetTrustLineCommand(
 
     BaseUserCommand(
     commandUUID,
-    commandIdentifier()
+    identifier()
     ) {
 
     deserialize(commandBuffer);

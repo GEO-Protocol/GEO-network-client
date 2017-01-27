@@ -62,7 +62,7 @@ void TransactionsManager::processMessage(
         createRejectTrustLineTransaction(message);
 
     } else if (message->typeID() == Message::MessageTypeID::UpdateTrustLineMessageType) {
-        createRejectTrustLineTransaction(message);
+        createUpdateTrustLineTransaction(message);
 
     } else {
         mTransactionsScheduler->handleMessage(message);
