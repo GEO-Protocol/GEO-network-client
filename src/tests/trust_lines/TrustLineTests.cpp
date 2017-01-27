@@ -118,7 +118,7 @@ void TrustLineTests::check_serializeCase(){
     TrustLineBalance current_balance = 100;
     ConstSharedTrustLineAmount available_amount;
     ConstSharedTrustLineBalance balance;
-    vector<byte> buffer_byte;
+//    vector<byte> buffer_byte;
     TrustLine *trustLine_1 = nullptr;
 
     trustLine_1 = new TrustLine(
