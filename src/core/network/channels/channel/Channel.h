@@ -31,16 +31,27 @@ public:
         uint16_t position,
         Packet::Shared packet);
 
-    bool checkConsistency() const;
+    bool checkConsistency();
 
-    pair<ConstBytesShared, size_t> data() const;
+    pair<ConstBytesShared, size_t> data();
 
     const uint16_t expectedPacketsCount() const;
 
     const uint16_t realPacketsCount() const;
 
+    const map<uint16_t, Packet::Shared, less<uint16_t>> *packets() const;
+
+    void rememberSendTime();
+
+    const Timestamp sendTime() const;
+
+    static const uint16_t kCRCPacketNumber();
+
+public:
+    //static const uint16_t kCRCPacketNumber = 0;
+
 private:
-    const uint16_t kCRCPacketNumber = 0;
+    Timestamp mPacketsSendedTime;
 
     uint16_t mExpectedPacketsCount;
     map<uint16_t, Packet::Shared, less<uint16_t>> *mPackets;

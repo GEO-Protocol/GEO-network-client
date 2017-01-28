@@ -13,6 +13,8 @@ TrustLinesManager::TrustLinesManager() {
             "TrustLinesManager::TrustLinesManager: "
                 "Can not allocate memory for one of the trust lines manager's components.");
     }
+
+    loadTrustLines();
 }
 
 /**

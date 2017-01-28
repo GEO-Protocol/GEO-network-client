@@ -85,9 +85,9 @@ namespace db {
                 const long offset,
                 const size_t blockBytesCount);
 
-            void writeFileHeader();
-
             void writeIndexBlock();
+
+            void writeFileHeader();
 
             void syncData();
 

@@ -5,6 +5,7 @@
 
 #include "../channels/packet/PacketHeader.h"
 #include "../channels/packet/Packet.h"
+#include "../channels/channel/Channel.h"
 
 #include "boost/crc.hpp"
 
@@ -18,16 +19,17 @@ public:
     OutgoingMessagesHandler();
 
 public:
-    vector<Packet::SharedConst>* processOutgoingMessage(
+    void processOutgoingMessage(
         Message::Shared message,
-        uint16_t channelNumber);
+        uint16_t channelNumber,
+        Channel::Shared channel);
 
 private:
-    pair<Packet::SharedConst, uint16_t> makeCRCPacket(
-        pair<ConstBytesShared, size_t> serialiedMessage,
+    pair<Packet::Shared, uint16_t> makeCRCPacket(
+        pair<ConstBytesShared, size_t> messageBytesAndCount,
         uint16_t channelNumber);
 
-    Packet::SharedConst makePacket(
+    Packet::Shared makePacket(
         byte *buffer,
         size_t bytesCount,
         uint16_t packetNumber,

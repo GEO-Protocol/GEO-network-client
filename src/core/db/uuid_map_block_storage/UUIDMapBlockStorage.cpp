@@ -404,28 +404,6 @@ namespace db {
             );
         }
 
-        void UUIDMapBlockStorage::writeFileHeader() {
-
-            fseek(
-                mFileDescriptor,
-                0,
-                SEEK_SET
-            );
-            if (fwrite(&mMapIndexOffset, 1, kFileHeaderMapIndexOffset, mFileDescriptor) != kFileHeaderMapIndexOffset) {
-                if (fwrite(&mMapIndexOffset, 1, kFileHeaderMapIndexOffset, mFileDescriptor) != kFileHeaderMapIndexOffset) {
-                    throw IOError("UUIDMapBlockStorage::writeFileHeader. "
-                                      "Can't write index block offset in file header.");
-                }
-            }
-            if (fwrite(&mMapIndexRecordsCount, 1, kFileHeaderMapRecordsCount, mFileDescriptor) != kFileHeaderMapRecordsCount){
-                if (fwrite(&mMapIndexRecordsCount, 1, kFileHeaderMapRecordsCount, mFileDescriptor) != kFileHeaderMapRecordsCount){
-                    throw IOError("UUIDMapBlockStorage::writeFileHeader. "
-                                      "Can't write index records count in index block in file header.");
-                }
-            }
-            syncData();
-        }
-
         void UUIDMapBlockStorage::writeIndexBlock() {
 
             for (auto const &looper : mIndexBlock){
@@ -451,8 +429,31 @@ namespace db {
             syncData();
         }
 
+        void UUIDMapBlockStorage::writeFileHeader() {
+
+            fseek(
+                mFileDescriptor,
+                0,
+                SEEK_SET
+            );
+            if (fwrite(&mMapIndexOffset, 1, kFileHeaderMapIndexOffset, mFileDescriptor) != kFileHeaderMapIndexOffset) {
+                if (fwrite(&mMapIndexOffset, 1, kFileHeaderMapIndexOffset, mFileDescriptor) != kFileHeaderMapIndexOffset) {
+                    throw IOError("UUIDMapBlockStorage::writeFileHeader. "
+                                      "Can't write index block offset in file header.");
+                }
+            }
+            if (fwrite(&mMapIndexRecordsCount, 1, kFileHeaderMapRecordsCount, mFileDescriptor) != kFileHeaderMapRecordsCount){
+                if (fwrite(&mMapIndexRecordsCount, 1, kFileHeaderMapRecordsCount, mFileDescriptor) != kFileHeaderMapRecordsCount){
+                    throw IOError("UUIDMapBlockStorage::writeFileHeader. "
+                                      "Can't write index records count in index block in file header.");
+                }
+            }
+            syncData();
+        }
+
         void UUIDMapBlockStorage::syncData() {
 
+            fflush(mFileDescriptor);
             fdatasync(mPOSIXFileDescriptor);
         }
 
