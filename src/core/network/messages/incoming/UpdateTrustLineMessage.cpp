@@ -6,6 +6,16 @@ UpdateTrustLineMessage::UpdateTrustLineMessage(
     deserialize(buffer);
 }
 
+const Message::MessageTypeID UpdateTrustLineMessage::typeID() const {
+
+    return Message::MessageTypeID::UpdateTrustLineMessageType;
+}
+
+const TrustLineAmount &UpdateTrustLineMessage::newAmount() const {
+
+    return mNewTrustLineAmount;
+}
+
 pair<ConstBytesShared, size_t> UpdateTrustLineMessage::serialize() {
 
     size_t dataSize = NodeUUID::kBytesSize +
@@ -91,17 +101,13 @@ void UpdateTrustLineMessage::deserialize(
             amountBytes.end()
         );
     }
-    //------------------------------
 }
 
-const Message::MessageTypeID UpdateTrustLineMessage::typeID() const {
+const size_t UpdateTrustLineMessage::kRequestedBufferSize() {
 
-    return Message::MessageTypeID::UpdateTrustLineMessageType;
-}
-
-const TrustLineAmount &UpdateTrustLineMessage::newAmount() const {
-
-    return mNewTrustLineAmount;
+    const size_t trustAmountBytesSize = 32;
+    static const size_t size = NodeUUID::kBytesSize + TransactionUUID::kBytesSize + trustAmountBytesSize;
+    return size;
 }
 
 MessageResult::Shared UpdateTrustLineMessage::resultAccepted() const {

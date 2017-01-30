@@ -14,9 +14,66 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     mMessage(message),
     mTrustLinesManager(manager) {}
 
+AcceptTrustLineTransaction::AcceptTrustLineTransaction(
+    BytesShared buffer,
+    TransactionsScheduler *scheduler,
+    TrustLinesManager *manager) :
+
+    UniqueTransaction(scheduler),
+    mTrustLinesManager(manager){
+
+    deserializeFromBytes(buffer);
+}
+
 AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
 
     return mMessage;
+}
+
+pair<BytesShared, size_t> AcceptTrustLineTransaction::serializeToBytes() {
+
+    auto parentBytesAndCount = serializeParentToBytes();
+    auto messageBytesAndCount = mMessage->serialize();
+    size_t bytesCount = parentBytesAndCount.second +  messageBytesAndCount.second;
+    byte *data = (byte *) calloc (
+        bytesCount,
+        sizeof(byte)
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data,
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data + parentBytesAndCount.second,
+        messageBytesAndCount.first.get(),
+        messageBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    return make_pair(
+        BytesShared(data, free),
+        bytesCount
+    );
+}
+
+void AcceptTrustLineTransaction::deserializeFromBytes(
+    BytesShared buffer) {
+
+    deserializeParentFromBytes(buffer);
+    byte *commandBuffer = (byte *) calloc(
+        AcceptTrustLineMessage::kRequestedBufferSize(),
+        sizeof(byte)
+    );
+    memcpy(
+        commandBuffer,
+        buffer.get() + kOffsetToDataBytes(),
+        AcceptTrustLineMessage::kRequestedBufferSize()
+    );
+    BytesShared commandBufferShared(commandBuffer, free);
+    AcceptTrustLineMessage *message = new AcceptTrustLineMessage(commandBufferShared.get());
+    mMessage = AcceptTrustLineMessage::Shared(message);
 }
 
 TransactionResult::Shared AcceptTrustLineTransaction::run() {
@@ -163,12 +220,3 @@ TransactionResult::Shared AcceptTrustLineTransaction::makeResult(
     transactionResult->setMessageResult(messageResult);
     return TransactionResult::Shared(transactionResult);
 }
-
-
-
-
-
-
-
-
-

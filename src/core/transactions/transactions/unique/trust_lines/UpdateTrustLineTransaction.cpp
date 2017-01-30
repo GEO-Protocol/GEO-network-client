@@ -14,9 +14,66 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     mMessage(message),
     mTrustLinesManager(manager) {}
 
+UpdateTrustLineTransaction::UpdateTrustLineTransaction(
+    BytesShared buffer,
+    TransactionsScheduler *scheduler,
+    TrustLinesManager *manager) :
+
+    UniqueTransaction(scheduler),
+    mTrustLinesManager(manager) {
+
+    deserializeFromBytes(buffer);
+}
+
 UpdateTrustLineMessage::Shared UpdateTrustLineTransaction::message() const {
 
     return mMessage;
+}
+
+pair<BytesShared, size_t> UpdateTrustLineTransaction::serializeToBytes() {
+
+    auto parentBytesAndCount = serializeParentToBytes();
+    auto messageBytesAndCount = mMessage->serialize();
+    size_t bytesCount = parentBytesAndCount.second +  messageBytesAndCount.second;
+    byte *data = (byte *) calloc (
+        bytesCount,
+        sizeof(byte)
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data,
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data + parentBytesAndCount.second,
+        messageBytesAndCount.first.get(),
+        messageBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    return make_pair(
+        BytesShared(data, free),
+        bytesCount
+    );
+}
+
+void UpdateTrustLineTransaction::deserializeFromBytes(
+    BytesShared buffer) {
+
+    deserializeParentFromBytes(buffer);
+    byte *commandBuffer = (byte *) calloc(
+        UpdateTrustLineMessage::kRequestedBufferSize(),
+        sizeof(byte)
+    );
+    memcpy(
+        commandBuffer,
+        buffer.get() + kOffsetToDataBytes(),
+        UpdateTrustLineMessage::kRequestedBufferSize()
+    );
+    BytesShared commandBufferShared(commandBuffer, free);
+    UpdateTrustLineMessage *message = new UpdateTrustLineMessage(commandBufferShared.get());
+    mMessage = UpdateTrustLineMessage::Shared(message);
 }
 
 TransactionResult::Shared UpdateTrustLineTransaction::run() {

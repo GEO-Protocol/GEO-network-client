@@ -14,9 +14,66 @@ SetTrustLineTransaction::SetTrustLineTransaction(
     mCommand(command),
     mTrustLinesManager(manager) {}
 
+SetTrustLineTransaction::SetTrustLineTransaction(
+    BytesShared buffer,
+    TransactionsScheduler *scheduler,
+    TrustLinesManager *manager) :
+
+    UniqueTransaction(scheduler),
+    mTrustLinesManager(manager){
+
+    deserializeFromBytes(buffer);
+}
+
 SetTrustLineCommand::Shared SetTrustLineTransaction::command() const {
 
     return mCommand;
+}
+
+pair<BytesShared, size_t> SetTrustLineTransaction::serializeToBytes() {
+
+    auto parentBytesAndCount = serializeParentToBytes();
+    auto commandBytesAndCount = mCommand->serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second +  commandBytesAndCount.second;
+    byte *data = (byte *) calloc (
+        bytesCount,
+        sizeof(byte)
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data,
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data + parentBytesAndCount.second,
+        commandBytesAndCount.first.get(),
+        commandBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    return make_pair(
+        BytesShared(data, free),
+        bytesCount
+    );
+}
+
+void SetTrustLineTransaction::deserializeFromBytes(
+    BytesShared buffer) {
+
+    deserializeParentFromBytes(buffer);
+    byte *commandBuffer = (byte *) calloc(
+        SetTrustLineCommand::kRequestedBufferSize(),
+        sizeof(byte)
+    );
+    memcpy(
+        commandBuffer,
+        buffer.get() + kOffsetToDataBytes(),
+        SetTrustLineCommand::kRequestedBufferSize()
+    );
+    BytesShared commandBufferShared(commandBuffer, free);
+    SetTrustLineCommand *command = new SetTrustLineCommand(commandBufferShared);
+    mCommand = SetTrustLineCommand::Shared(command);
 }
 
 TransactionResult::Shared SetTrustLineTransaction::run() {

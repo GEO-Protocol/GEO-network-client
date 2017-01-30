@@ -17,22 +17,32 @@
 
 #include "../../../../common/exceptions/ConflictError.h"
 
-class CloseTrustLineTransaction: public UniqueTransaction {
+class CloseTrustLineTransaction : public UniqueTransaction {
 
 public:
     typedef shared_ptr<CloseTrustLineTransaction> Shared;
 
 public:
     CloseTrustLineTransaction(
-      NodeUUID &nodeUUID,
-      CloseTrustLineCommand::Shared command,
-      TransactionsScheduler *scheduler,
-      TrustLinesManager *manager
-    );
+        NodeUUID &nodeUUID,
+        CloseTrustLineCommand::Shared command,
+        TransactionsScheduler *scheduler,
+        TrustLinesManager *manager);
+
+    CloseTrustLineTransaction(
+        BytesShared buffer,
+        TransactionsScheduler *scheduler,
+        TrustLinesManager *manager);
 
     CloseTrustLineCommand::Shared command() const;
 
     TransactionResult::Shared run();
+
+private:
+    pair<BytesShared, size_t> serializeToBytes();
+
+    void deserializeFromBytes(
+        BytesShared buffer);
 
     bool checkSameTypeTransactions();
 

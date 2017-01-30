@@ -30,21 +30,6 @@ const NodeUUID &CloseTrustLineCommand::contractorUUID() const {
 
 }
 
-/**
- * Throws ValueError if deserialization was unsuccessful.
- */
-void CloseTrustLineCommand::deserialize(const string &command) {
-
-    try {
-        string hexUUID = command.substr(0, CommandUUID::kHexSize);
-        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
-
-    } catch (...) {
-        throw ValueError("CloseTrustLineCommand::deserialize: "
-                             "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
-    }
-}
-
 pair<BytesShared, size_t> CloseTrustLineCommand::serializeToBytes() {
 
     auto parentBytesAndCount = serializeParentToBytes();
@@ -81,6 +66,27 @@ void CloseTrustLineCommand::deserializeFromBytes(
         NodeUUID::kBytesSize
     );
     //----------------------------------------------------
+}
+
+const size_t CloseTrustLineCommand::kRequestedBufferSize() {
+
+    static const size_t size = kOffsetToInheritBytes() + NodeUUID::kBytesSize;
+    return size;
+}
+
+/**
+ * Throws ValueError if deserialization was unsuccessful.
+ */
+void CloseTrustLineCommand::deserialize(const string &command) {
+
+    try {
+        string hexUUID = command.substr(0, CommandUUID::kHexSize);
+        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
+
+    } catch (...) {
+        throw ValueError("CloseTrustLineCommand::deserialize: "
+                             "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
+    }
 }
 
 const CommandResult *CloseTrustLineCommand::resultOk() const {

@@ -6,6 +6,16 @@ RejectTrustLineMessage::RejectTrustLineMessage(
     deserialize(buffer);
 }
 
+const Message::MessageTypeID RejectTrustLineMessage::typeID() const {
+
+    return Message::MessageTypeID::RejectTrustLineMessageType;
+}
+
+const NodeUUID &RejectTrustLineMessage::contractorUUID() const {
+
+    return mContractorUUID;
+}
+
 pair<ConstBytesShared, size_t> RejectTrustLineMessage::serialize() {
 
     size_t dataSize = NodeUUID::kBytesSize +
@@ -61,14 +71,10 @@ void RejectTrustLineMessage::deserialize(
     );
 }
 
-const Message::MessageTypeID RejectTrustLineMessage::typeID() const {
+const size_t RejectTrustLineMessage::kRequestedBufferSize() {
 
-    return Message::MessageTypeID::RejectTrustLineMessageType;
-}
-
-const NodeUUID &RejectTrustLineMessage::contractorUUID() const {
-
-    return mContractorUUID;
+    static const size_t size = NodeUUID::kBytesSize + TransactionUUID::kBytesSize + NodeUUID::kBytesSize;
+    return size;
 }
 
 MessageResult::Shared RejectTrustLineMessage::resultRejected() {

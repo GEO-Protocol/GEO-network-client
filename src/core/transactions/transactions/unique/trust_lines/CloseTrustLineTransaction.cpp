@@ -16,9 +16,67 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
 
 }
 
+CloseTrustLineTransaction::CloseTrustLineTransaction(
+    BytesShared buffer,
+    TransactionsScheduler *scheduler,
+    TrustLinesManager *manager) :
+
+    UniqueTransaction(scheduler),
+    mTrustLinesManager(manager){
+
+    deserializeFromBytes(buffer);
+}
+
 CloseTrustLineCommand::Shared CloseTrustLineTransaction::command() const {
 
     return mCommand;
+}
+
+pair<BytesShared, size_t> CloseTrustLineTransaction::serializeToBytes() {
+
+    auto parentBytesAndCount = serializeParentToBytes();
+    auto commandBytesAndCount = mCommand->serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second +  commandBytesAndCount.second;
+    byte *data = (byte *) calloc (
+        bytesCount,
+        sizeof(byte)
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data,
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data + parentBytesAndCount.second,
+        commandBytesAndCount.first.get(),
+        commandBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    return make_pair(
+        BytesShared(data, free),
+        bytesCount
+    );
+}
+
+void CloseTrustLineTransaction::deserializeFromBytes(
+    BytesShared buffer) {
+
+    deserializeParentFromBytes(buffer);
+    byte *commandBuffer = (byte *) calloc(
+        CloseTrustLineCommand::kRequestedBufferSize(),
+        sizeof(byte)
+    );
+    memcpy(
+        commandBuffer,
+        buffer.get() + kOffsetToDataBytes(),
+        CloseTrustLineCommand::kRequestedBufferSize()
+    );
+    BytesShared commandBufferShared(commandBuffer, free);
+    CloseTrustLineCommand *command = new CloseTrustLineCommand(commandBufferShared);
+    mCommand = CloseTrustLineCommand::Shared(command);
+
 }
 
 TransactionResult::Shared CloseTrustLineTransaction::run() {

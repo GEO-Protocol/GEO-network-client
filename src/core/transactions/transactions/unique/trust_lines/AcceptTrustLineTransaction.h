@@ -26,11 +26,21 @@ public:
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager);
 
+    AcceptTrustLineTransaction(
+        BytesShared buffer,
+        TransactionsScheduler *scheduler,
+        TrustLinesManager *manager);
+
     AcceptTrustLineMessage::Shared message() const;
 
     TransactionResult::Shared run();
 
 private:
+    pair<BytesShared, size_t> serializeToBytes();
+
+    void deserializeFromBytes(
+        BytesShared buffer);
+
     bool checkJournal();
 
     bool checkSameTypeTransactions();

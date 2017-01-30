@@ -29,11 +29,21 @@ public:
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager);
 
+    SetTrustLineTransaction(
+        BytesShared buffer,
+        TransactionsScheduler *scheduler,
+        TrustLinesManager *manager);
+
     SetTrustLineCommand::Shared command() const;
 
     TransactionResult::Shared run();
 
 private:
+    pair<BytesShared, size_t> serializeToBytes();
+
+    void deserializeFromBytes(
+        BytesShared buffer);
+
     bool checkSameTypeTransactions();
 
     bool checkTrustLineDirectionExisting();

@@ -34,44 +34,6 @@ const TrustLineAmount &SetTrustLineCommand::newAmount() const {
     return mNewAmount;
 }
 
-void SetTrustLineCommand::deserialize(
-    const string &command) {
-
-    const auto amountTokenOffset = NodeUUID::kHexSize + 1;
-    const auto minCommandLength = amountTokenOffset + 1;
-
-    if (command.size() < minCommandLength) {
-        throw ValueError("SetTrustLineCommand::deserialize: "
-                             "Can't parse command. Received command is to short.");
-    }
-
-    try {
-        string hexUUID = command.substr(0, NodeUUID::kHexSize);
-        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
-
-    } catch (...) {
-        throw ValueError("SetTrustLineCommand::deserialize: "
-                             "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
-    }
-
-    try {
-        for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < command.length(); ++commandSeparatorPosition) {
-            if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
-                mNewAmount = TrustLineAmount(command.substr(amountTokenOffset, commandSeparatorPosition - amountTokenOffset));
-            }
-        }
-
-    } catch (...) {
-        throw ValueError("SetTrustLineCommand::deserialize: "
-                             "Can't parse command. Error occurred while parsing 'New amount' token.");
-    }
-
-    if (mNewAmount == TrustLineAmount(0)){
-        throw ValueError("SetTrustLineCommand::deserialize: "
-                             "Can't parse command. Received 'New amount' can't be 0.");
-    }
-}
-
 pair<BytesShared, size_t> SetTrustLineCommand::serializeToBytes() {
 
     auto parentBytesAndCount = serializeParentToBytes();
@@ -151,6 +113,51 @@ void SetTrustLineCommand::deserializeFromBytes(
             amountBytes.begin(),
             amountBytes.end()
         );
+    }
+}
+
+const size_t SetTrustLineCommand::kRequestedBufferSize() {
+
+    const size_t trustAmountBytesSize = 32;
+    static const size_t size = kOffsetToInheritBytes() + NodeUUID::kBytesSize + trustAmountBytesSize;
+    return size;
+}
+
+void SetTrustLineCommand::deserialize(
+    const string &command) {
+
+    const auto amountTokenOffset = NodeUUID::kHexSize + 1;
+    const auto minCommandLength = amountTokenOffset + 1;
+
+    if (command.size() < minCommandLength) {
+        throw ValueError("SetTrustLineCommand::deserialize: "
+                             "Can't parse command. Received command is to short.");
+    }
+
+    try {
+        string hexUUID = command.substr(0, NodeUUID::kHexSize);
+        mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
+
+    } catch (...) {
+        throw ValueError("SetTrustLineCommand::deserialize: "
+                             "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
+    }
+
+    try {
+        for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < command.length(); ++commandSeparatorPosition) {
+            if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
+                mNewAmount = TrustLineAmount(command.substr(amountTokenOffset, commandSeparatorPosition - amountTokenOffset));
+            }
+        }
+
+    } catch (...) {
+        throw ValueError("SetTrustLineCommand::deserialize: "
+                             "Can't parse command. Error occurred while parsing 'New amount' token.");
+    }
+
+    if (mNewAmount == TrustLineAmount(0)){
+        throw ValueError("SetTrustLineCommand::deserialize: "
+                             "Can't parse command. Received 'New amount' can't be 0.");
     }
 }
 

@@ -31,13 +31,13 @@ public:
 
     const Timestamp &timestampAccepted() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() = 0;
-
     const CommandResult *unexpectedErrorResult();
 
 protected:
     virtual void deserialize(
         const string &commandBuffer) = 0;
+
+    virtual pair<BytesShared, size_t> serializeToBytes() = 0;
 
     virtual void deserializeFromBytes(
         BytesShared buffer) = 0;

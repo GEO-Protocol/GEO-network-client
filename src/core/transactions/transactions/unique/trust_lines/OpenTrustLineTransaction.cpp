@@ -14,9 +14,66 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mCommand(command),
     mTrustLinesManager(manager) {}
 
+OpenTrustLineTransaction::OpenTrustLineTransaction(
+    BytesShared buffer,
+    TransactionsScheduler *scheduler,
+    TrustLinesManager *manager) :
+
+    UniqueTransaction(scheduler),
+    mTrustLinesManager(manager){
+
+    deserializeFromBytes(buffer);
+}
+
 OpenTrustLineCommand::Shared OpenTrustLineTransaction::command() const {
 
     return mCommand;
+}
+
+pair<BytesShared, size_t> OpenTrustLineTransaction::serializeToBytes() {
+
+    auto parentBytesAndCount = serializeParentToBytes();
+    auto commandBytesAndCount = mCommand->serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second +  commandBytesAndCount.second;
+    byte *data = (byte *) calloc (
+        bytesCount,
+        sizeof(byte)
+    );
+    //-----------------------------------------------------
+    memcpy(
+      data,
+      parentBytesAndCount.first.get(),
+      parentBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data + parentBytesAndCount.second,
+        commandBytesAndCount.first.get(),
+        commandBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    return make_pair(
+        BytesShared(data, free),
+        bytesCount
+    );
+}
+
+void OpenTrustLineTransaction::deserializeFromBytes(
+    BytesShared buffer) {
+
+    deserializeParentFromBytes(buffer);
+    byte *commandBuffer = (byte *) calloc(
+        OpenTrustLineCommand::kRequestedBufferSize(),
+        sizeof(byte)
+    );
+    memcpy(
+        commandBuffer,
+        buffer.get() + kOffsetToDataBytes(),
+        OpenTrustLineCommand::kRequestedBufferSize()
+    );
+    BytesShared commandBufferShared(commandBuffer, free);
+    OpenTrustLineCommand *command = new OpenTrustLineCommand(commandBufferShared);
+    mCommand = OpenTrustLineCommand::Shared(command);
 }
 
 TransactionResult::Shared OpenTrustLineTransaction::run() {
@@ -160,7 +217,7 @@ TransactionResult::Shared OpenTrustLineTransaction::waitingForResponseState() {
     TransactionState *transactionState = new TransactionState(
         kConnectionTimeout,
         Message::MessageTypeID::ResponseMessageType,
-        false
+        true
     );
 
 

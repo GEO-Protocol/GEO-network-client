@@ -25,7 +25,7 @@ const Timestamp &BaseUserCommand::timestampAccepted() const {
 
 pair<BytesShared, size_t> BaseUserCommand::serializeParentToBytes() {
 
-    size_t bytesCount = CommandUUID::kBytesSize + sizeof(MicrosecondsTimestamp) + mCommandIdentifier.size();
+    size_t bytesCount = CommandUUID::kBytesSize + sizeof(MicrosecondsTimestamp);
     byte *data = (byte *) calloc(bytesCount, sizeof(byte));
     //-----------------------------------------------------
     memcpy(

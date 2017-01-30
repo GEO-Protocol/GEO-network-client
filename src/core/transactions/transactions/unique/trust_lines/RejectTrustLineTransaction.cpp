@@ -14,9 +14,67 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     mMessage(message),
     mTrustLinesManager(manager) {}
 
+
+RejectTrustLineTransaction::RejectTrustLineTransaction(
+    BytesShared buffer,
+    TransactionsScheduler *scheduler,
+    TrustLinesManager *manager) :
+
+    UniqueTransaction(scheduler),
+    mTrustLinesManager(manager){
+
+    deserializeFromBytes(buffer);
+}
+
 RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
 
     return mMessage;
+}
+
+pair<BytesShared, size_t> RejectTrustLineTransaction::serializeToBytes() {
+
+    auto parentBytesAndCount = serializeParentToBytes();
+    auto messageBytesAndCount = mMessage->serialize();
+    size_t bytesCount = parentBytesAndCount.second +  messageBytesAndCount.second;
+    byte *data = (byte *) calloc (
+        bytesCount,
+        sizeof(byte)
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data,
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    memcpy(
+        data + parentBytesAndCount.second,
+        messageBytesAndCount.first.get(),
+        messageBytesAndCount.second
+    );
+    //-----------------------------------------------------
+    return make_pair(
+        BytesShared(data, free),
+        bytesCount
+    );
+}
+
+void RejectTrustLineTransaction::deserializeFromBytes(
+    BytesShared buffer) {
+
+    deserializeParentFromBytes(buffer);
+    byte *commandBuffer = (byte *) calloc(
+        RejectTrustLineMessage::kRequestedBufferSize(),
+        sizeof(byte)
+    );
+    memcpy(
+        commandBuffer,
+        buffer.get() + kOffsetToDataBytes(),
+        RejectTrustLineMessage::kRequestedBufferSize()
+    );
+    BytesShared commandBufferShared(commandBuffer, free);
+    RejectTrustLineMessage *message = new RejectTrustLineMessage(commandBufferShared.get());
+    mMessage = RejectTrustLineMessage::Shared(message);
 }
 
 TransactionResult::Shared RejectTrustLineTransaction::run() {

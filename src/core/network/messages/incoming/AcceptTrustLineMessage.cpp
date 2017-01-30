@@ -6,6 +6,16 @@ AcceptTrustLineMessage::AcceptTrustLineMessage(
     deserialize(buffer);
 }
 
+const Message::MessageTypeID AcceptTrustLineMessage::typeID() const {
+
+    return Message::MessageTypeID::AcceptTrustLineMessageType;
+}
+
+const TrustLineAmount &AcceptTrustLineMessage::amount() const {
+
+    return mTrustLineAmount;
+}
+
 pair<ConstBytesShared, size_t> AcceptTrustLineMessage::serialize() {
 
     size_t dataSize = NodeUUID::kBytesSize +
@@ -91,17 +101,13 @@ void AcceptTrustLineMessage::deserialize(
             amountBytes.end()
         );
     }
-    //------------------------------
 }
 
-const Message::MessageTypeID AcceptTrustLineMessage::typeID() const {
+const size_t AcceptTrustLineMessage::kRequestedBufferSize() {
 
-    return Message::MessageTypeID::AcceptTrustLineMessageType;
-}
-
-const TrustLineAmount &AcceptTrustLineMessage::amount() const {
-
-    return mTrustLineAmount;
+    const size_t trustAmountBytesSize = 32;
+    static const size_t size = NodeUUID::kBytesSize + TransactionUUID::kBytesSize + trustAmountBytesSize;
+    return size;
 }
 
 MessageResult::Shared AcceptTrustLineMessage::resultAccepted() const {

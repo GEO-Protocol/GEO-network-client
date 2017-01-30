@@ -52,10 +52,11 @@ public:
 
     virtual pair<ConstBytesShared, size_t> serialize() = 0;
 
+    virtual const MessageTypeID typeID() const = 0;
+
+protected:
     virtual void deserialize(
         byte *buffer) = 0;
-
-    virtual const MessageTypeID typeID() const = 0;
 
 protected:
     NodeUUID mSenderUUID;

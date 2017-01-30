@@ -21,14 +21,13 @@ public:
     AcceptTrustLineMessage(
         byte* buffer);
 
-    pair<ConstBytesShared, size_t> serialize();
-
-    void deserialize(
-        byte* buffer);
-
     const MessageTypeID typeID() const;
 
     const TrustLineAmount &amount() const;
+
+    pair<ConstBytesShared, size_t> serialize();
+
+    static const size_t kRequestedBufferSize();
 
     MessageResult::Shared resultAccepted() const;
 
@@ -38,6 +37,10 @@ public:
 
     MessageResult::Shared customCodeResult(
         uint16_t code) const;
+
+private:
+    void deserialize(
+        byte* buffer);
 
 public:
     static const uint16_t kResultCodeAccepted = 200;

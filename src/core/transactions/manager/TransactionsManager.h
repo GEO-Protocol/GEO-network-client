@@ -6,6 +6,7 @@
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../logger/Logger.h"
 
+#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 #include "../scheduler/TransactionsScheduler.h"
 
 #include "../../interface/commands_interface/commands/BaseUserCommand.h"
@@ -33,6 +34,7 @@
 #include <string>
 
 using namespace std;
+namespace storage = db::uuid_map_block_storage;
 namespace signals = boost::signals2;
 
 class TransactionsManager {
@@ -60,6 +62,8 @@ public:
         CommandResult::SharedConst result);
 
 private:
+    void loadTransactions();
+
     void createOpenTrustLineTransaction(
         BaseUserCommand::Shared command);
 
@@ -93,6 +97,7 @@ private:
     ResultsInterface *mResultsInterface;
     Logger *mLog;
 
+    storage::UUIDMapBlockStorage *mStorage;
     TransactionsScheduler *mTransactionsScheduler;
 };
 

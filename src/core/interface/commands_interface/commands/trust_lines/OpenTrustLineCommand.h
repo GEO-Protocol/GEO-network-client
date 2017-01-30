@@ -28,6 +28,10 @@ public:
 
     const TrustLineAmount &amount() const;
 
+    pair<BytesShared, size_t> serializeToBytes();
+
+    static const size_t kRequestedBufferSize();
+
     const CommandResult *resultOk() const;
 
     const CommandResult *trustLineAlreadyPresentResult() const;
@@ -41,8 +45,6 @@ public:
 protected:
     void deserialize(
         const string &command);
-
-    pair<BytesShared, size_t> serializeToBytes();
 
     void deserializeFromBytes(
         BytesShared buffer);

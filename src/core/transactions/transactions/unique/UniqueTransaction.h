@@ -13,6 +13,9 @@ protected:
         NodeUUID &nodeUUID,
         TransactionsScheduler *scheduler);
 
+    UniqueTransaction(
+        TransactionsScheduler *scheduler);
+
     const map<BaseTransaction::Shared, TransactionState::SharedConst>* pendingTransactions();
 
 private:

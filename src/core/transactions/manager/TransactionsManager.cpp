@@ -16,8 +16,13 @@ TransactionsManager::TransactionsManager(
     zeroPointers();
 
     try {
+        mStorage = new storage::UUIDMapBlockStorage(
+            "io/transactions",
+            "transactions.dat");
+
         mTransactionsScheduler = new TransactionsScheduler(
             mIOService,
+            mStorage,
             boost::bind(&TransactionsManager::acceptCommandResult, this, ::_1),
             mLog
         );
@@ -26,6 +31,13 @@ TransactionsManager::TransactionsManager(
         cleanupMemory();
         throw MemoryError("TransactionsManager::TransactionsManager. "
                               "Can not allocate memory for one of the transactions manager's component.");
+    }
+
+    try {
+        loadTransactions();
+
+    } catch (std::exception &e) {
+        mLog->logException("TransactionsManager", e);
     }
 }
 
@@ -66,6 +78,92 @@ void TransactionsManager::processMessage(
 
     } else {
         mTransactionsScheduler->handleMessage(message);
+    }
+}
+
+void TransactionsManager::loadTransactions() {
+
+    unique_ptr<const vector<storage::uuids::uuid>> uuidKeys = unique_ptr<const vector<storage::uuids::uuid>> (mStorage->keys());
+    if (uuidKeys->size() > 0) {
+        for (auto const &uuidKey : *uuidKeys) {
+            storage::Record::Shared record;
+            try {
+                record = mStorage->readFromFile(storage::uuids::uuid(uuidKey));
+
+            } catch(std::exception &e) {
+                throw IOError(e.what());
+            }
+
+            BytesShared transactionBuffer(const_cast<byte *>(record->data()));
+
+            BaseTransaction *baseTransaction = nullptr;
+            try{
+                uint16_t *type = new (transactionBuffer.get()) uint16_t;
+                BaseTransaction::TransactionType transactionType = (BaseTransaction::TransactionType) *type;
+                switch (transactionType) {
+
+                    case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
+                        baseTransaction = new OpenTrustLineTransaction(
+                            transactionBuffer,
+                            mTransactionsScheduler,
+                            mTrustLinesManager
+                        );
+                    }
+
+                    case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
+                        baseTransaction = new SetTrustLineTransaction(
+                            transactionBuffer,
+                            mTransactionsScheduler,
+                            mTrustLinesManager
+                        );
+                    }
+
+                    case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
+                        baseTransaction = new CloseTrustLineTransaction(
+                            transactionBuffer,
+                            mTransactionsScheduler,
+                            mTrustLinesManager
+                        );
+                    }
+
+                    case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
+                        baseTransaction = new AcceptTrustLineTransaction(
+                            transactionBuffer,
+                            mTransactionsScheduler,
+                            mTrustLinesManager
+                        );
+                    }
+
+                    case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
+                        baseTransaction = new UpdateTrustLineTransaction(
+                            transactionBuffer,
+                            mTransactionsScheduler,
+                            mTrustLinesManager
+                        );
+                    }
+
+                    case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
+                        baseTransaction = new RejectTrustLineTransaction(
+                            transactionBuffer,
+                            mTransactionsScheduler,
+                            mTrustLinesManager
+                        );
+                    }
+
+                    default: {
+                        throw ConflictError("TrustLinesManager::loadTransactions. "
+                                                "Unexpected transaction type identifier.");
+                    }
+
+                }
+
+            } catch (...) {
+                throw Exception("TrustLinesManager::loadTransactions. "
+                                    "Unable to create transaction instance from buffer.");
+            }
+            BaseTransaction::Shared baseTransactionShared(baseTransaction);
+            mTransactionsScheduler->scheduleTransaction(baseTransactionShared);
+        }
     }
 }
 
@@ -276,6 +374,7 @@ void TransactionsManager::acceptCommandResult(
 
 void TransactionsManager::zeroPointers() {
 
+    mStorage = nullptr;
     mTransactionsScheduler = nullptr;
 }
 
@@ -283,5 +382,9 @@ void TransactionsManager::cleanupMemory() {
 
     if (mTransactionsScheduler != nullptr) {
         delete mTransactionsScheduler;
+    }
+
+    if (mStorage != nullptr) {
+        delete mStorage;
     }
 }
