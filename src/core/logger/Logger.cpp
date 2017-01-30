@@ -1,4 +1,8 @@
+#include <fstream>
+#include <iostream>
 #include "Logger.h"
+#include "../settings/Settings.h"
+
 
 LoggerStream::LoggerStream(
     Logger *logger,
@@ -96,4 +100,17 @@ void Logger::logRecord(
          << subsystem << "\t\t\t"
          << formatMessage(message) << endl;
     cout.flush();
+}
+
+void Logger::logTransactionStatus(
+            const NodeUUID &contractorUUID,
+            const TrustLineAmount &amount
+    ){
+    ofstream logfile;
+    logfile.open("logfile.txt");
+    stringstream ss;
+    ss << amount;
+    string command = "ContractorUUID\t" + contractorUUID.stringUUID() + "\tAmount\t" + ss.str() + "\t";
+    cout << "ContractorUUID" << '\t' << contractorUUID.stringUUID() << endl;
+    logfile << command << endl;
 }

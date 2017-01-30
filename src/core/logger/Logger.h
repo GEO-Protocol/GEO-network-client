@@ -2,7 +2,8 @@
 #define GEO_NETWORK_CLIENT_LOGGER_H
 
 #include "../common/exceptions/Exception.h"
-
+#include "../common/NodeUUID.h"
+#include "../common/Types.h"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -49,6 +50,11 @@ public:
     void logFatal(
         const char *subsystem,
         const string &message);
+    void logTransactionStatus(
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &amount
+//        const TrustLineAmount& outgoingTrustAmount
+    );
 
     LoggerStream info(
         const char *subsystem);
@@ -56,6 +62,7 @@ public:
         const char *subsystem);
 
 private:
+    const string log_filename = "transactionlog.txt";
     const string formatMessage(
         const string &message) const;
     const string recordPrefix(

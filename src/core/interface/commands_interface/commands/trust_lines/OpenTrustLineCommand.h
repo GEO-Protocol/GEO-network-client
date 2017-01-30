@@ -10,7 +10,7 @@
 
 using namespace std;
 
-class OpenTrustLineCommand: public BaseUserCommand {
+class  OpenTrustLineCommand: public BaseUserCommand {
 public:
     typedef shared_ptr<OpenTrustLineCommand> Shared;
 

@@ -4,6 +4,7 @@
 #include <string>
 #include "../../core/common/Types.h"
 #include "../../core/trust_lines/TrustLine.h"
+#include "../../core/logger/Logger.h"
 
 using namespace std;
 
@@ -19,6 +20,7 @@ public:
     void check_serializeCase();
     void change_parametersCase();
     void run();
+    Logger *mLogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINETESTS_H

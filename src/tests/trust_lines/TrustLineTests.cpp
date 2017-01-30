@@ -1,4 +1,5 @@
 #include "TrustLineTests.h"
+#include "../../core/settings/Settings.h"
 
 
 void TrustLineTests::create_trustlineCase() {
@@ -136,11 +137,8 @@ void TrustLineTests::check_serializeCase(){
 
 
 void TrustLineTests::run() {
-
-    cout << "Here it is" << endl;
     create_trustlineCase();
     change_parametersCase();
     create_trustlineCase();
     check_serializeCase();
-
 }

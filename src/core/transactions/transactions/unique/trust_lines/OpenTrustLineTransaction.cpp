@@ -167,10 +167,11 @@ void OpenTrustLineTransaction::createTrustLine() {
             mCommand->contractorUUID(),
             mCommand->amount()
         );
-
+        mlogger->logTransactionStatus(mCommand->contractorUUID(), mCommand->amount());
     } catch (std::exception &e) {
         throw Exception(e.what());
     }
+
 }
 
 TransactionResult::Shared OpenTrustLineTransaction::resultOk() {
