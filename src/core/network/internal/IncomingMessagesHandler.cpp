@@ -140,122 +140,65 @@ void IncomingMessagesHandler::tryCollectPacket(
     udp::endpoint &clientEndpoint) {
 
     uint16_t *bytesCount = new (mPacketsBuffer.data()) uint16_t;
-    if (*bytesCount <= kMaximalUDPPacketSize) {
-        if (mPacketsBuffer.size() >= *bytesCount) {
-            uint16_t *channelNumber = new (mPacketsBuffer.data() + Packet::kChannelNumberOffset) uint16_t;
-            uint16_t *packageNumber = new (mPacketsBuffer.data() + Packet::kPackageNumberOffset) uint16_t;
-            uint16_t *totalPacketsCount = new (mPacketsBuffer.data() + Packet::kTotalPacketsCountOffset) uint16_t;
+    if (mPacketsBuffer.size() >= *bytesCount) {
+        uint16_t *channelNumber = new (mPacketsBuffer.data() + Packet::kChannelNumberOffset) uint16_t;
+        uint16_t *packageNumber = new (mPacketsBuffer.data() + Packet::kPackageNumberOffset) uint16_t;
+        uint16_t *totalPacketsCount = new (mPacketsBuffer.data() + Packet::kTotalPacketsCountOffset) uint16_t;
 
-            PacketHeader *packetHeader = nullptr;
-            try {
-                packetHeader = new PacketHeader(
-                    *channelNumber,
-                    *packageNumber,
-                    *totalPacketsCount,
-                    *bytesCount
-                );
-
-            } catch (std::bad_alloc &e) {
-                throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
-                                      "Can not allocate memory for packet header instance.");
-            }
-
-            auto channelAndEndpoint = mChannelsManager->incomingChannel(
-                packetHeader->channelNumber(),
-                clientEndpoint);
-
-            Packet *packet = nullptr;
-            try {
-                packet = new Packet(
-                    packetHeader,
-                    mPacketsBuffer.data() + Packet::kPacketBodyOffset,
-                    (size_t) packetHeader->bodyBytesCount()
-                );
-
-            } catch (std::bad_alloc &e) {
-                throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
-                                      "Can not allocate memory for packet instance.");
-            }
-            channelAndEndpoint.first->addPacket(
-                packetHeader->packetNumber(),
-                Packet::Shared(packet)
+        PacketHeader *packetHeader = nullptr;
+        try {
+            packetHeader = new PacketHeader(
+                *channelNumber,
+                *packageNumber,
+                *totalPacketsCount,
+                *bytesCount
             );
 
-            cutPacketFromBuffer(*bytesCount);
+        } catch (std::bad_alloc &e) {
+            throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
+                                  "Can not allocate memory for packet header instance.");
+        }
+
+        auto channelAndEndpoint = mChannelsManager->incomingChannel(
+            packetHeader->channelNumber(),
+            clientEndpoint);
+
+        Packet *packet = nullptr;
+        try {
+            packet = new Packet(
+                packetHeader,
+                mPacketsBuffer.data() + Packet::kPacketBodyOffset,
+                (size_t) packetHeader->bodyBytesCount()
+            );
+
+        } catch (std::bad_alloc &e) {
+            throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
+                                  "Can not allocate memory for packet instance.");
+        }
+        channelAndEndpoint.first->addPacket(
+            packetHeader->packetNumber(),
+            Packet::Shared(packet)
+        );
+
+        cutPacketFromBuffer(*bytesCount);
 
 
-            if (channelAndEndpoint.first->expectedPacketsCount() == channelAndEndpoint.first->realPacketsCount()) {
-                if (channelAndEndpoint.first->checkConsistency()) {
-                    auto bytesAndCount = channelAndEndpoint.first->data();
-                    auto resultAndMessage = mMessagesParser->processMessage(
-                        bytesAndCount.first,
-                        bytesAndCount.second
-                    );
-                    if (resultAndMessage.first) {
-                        sendServiceMessage(
-                            ServiceMessage::ServiceMessageType::RemoveDeprecatedChannelType,
-                            packetHeader->channelNumber(),
-                            make_pair(
-                                clientEndpoint.address().to_string(),
-                                clientEndpoint.port()
-                            )
-                        );
-                        mChannelsManager->removeIncomingChannel(packetHeader->channelNumber());
-                        messageParsedSignal(resultAndMessage.second);
-                    }
-
-                } else {
+        if (channelAndEndpoint.first->expectedPacketsCount() == channelAndEndpoint.first->realPacketsCount()) {
+            if (channelAndEndpoint.first->checkConsistency()) {
+                auto bytesAndCount = channelAndEndpoint.first->data();
+                auto resultAndMessage = mMessagesParser->processMessage(
+                    bytesAndCount.first,
+                    bytesAndCount.second
+                );
+                if (resultAndMessage.first) {
                     mChannelsManager->removeIncomingChannel(packetHeader->channelNumber());
+                    messageParsedSignal(resultAndMessage.second);
                 }
+
+            } else {
+                mChannelsManager->removeIncomingChannel(packetHeader->channelNumber());
             }
         }
-
-    } else {
-
-        try {
-            ServiceMessage *serviceMessage = new ServiceMessage(mPacketsBuffer.data());
-            cutPacketFromBuffer(ServiceMessage::kServieMessageBytesCount());
-            tryProcessServiceMessage(ServiceMessage::Shared(serviceMessage));
-
-        } catch (bad_alloc &) {
-            throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
-                                  "Can not allocate memory for service message instance.");
-        }
-    }
-}
-
-void IncomingMessagesHandler::tryProcessServiceMessage(
-    ServiceMessage::Shared message) {
-
-    if (message->messageType() == ServiceMessage::ServiceMessageType::RemoveDeprecatedChannelType) {
-
-        mChannelsManager->removeOutgoingChannel(message->value());
-
-    } else {
-        throw ConflictError("IncomingMessagesHandler::tryProcessServiceMessage: "
-                                "Service message type identifier illegal or invalid");
-    }
-}
-
-void IncomingMessagesHandler::sendServiceMessage(
-    ServiceMessage::ServiceMessageType messageType,
-    uint16_t value,
-    pair<string, uint16_t> address) {
-
-    try {
-        ServiceMessage *serviceMessage = new ServiceMessage(
-            messageType,
-            value
-        );
-
-        sendServiceMessageSignal(
-            ServiceMessage::Shared(serviceMessage),
-            address
-        );
-
-    } catch (bad_alloc &) {
-        throw MemoryError("IncomingMessagesHandler::sendServiceMessage: "
-                              "Can not allocate memory for service message instance.");
     }
 }
 

@@ -17,6 +17,9 @@ void OutgoingMessagesHandler::processOutgoingMessage(
         channelNumber
     );
 
+    // Remember packets count to be sended
+    channel->setOutgoingPacketsCount(crcPacketAndCount.second);
+
     // Push crc packet in incomingChannel
     channel->addPacket(
         Channel::kCRCPacketNumber(),
