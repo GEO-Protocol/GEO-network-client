@@ -1,11 +1,11 @@
 #ifndef GEO_NETWORK_CLIENT_UPDATETRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_UPDATETRUSTLINEMESSAGE_H
 
-#include "../Message.h"
+#include "../../Message.h"
 
-#include "../../../common/Types.h"
+#include "../../../../common/Types.h"
 
-#include "../result/MessageResult.h"
+#include "../../result/MessageResult.h"
 
 #include <string>
 #include <vector>

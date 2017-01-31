@@ -10,8 +10,8 @@
 #include "CloseTrustLineTransaction.h"
 
 #include "../../../../network/messages/Message.h"
-#include "../../../../network/messages/outgoing/SetTrustLineMessage.h"
-#include "../../../../network/messages/incoming/UpdateTrustLineMessage.h"
+#include "../../../../network/messages/outgoing/trust_lines/SetTrustLineMessage.h"
+#include "../../../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 
 #include "../../../manager/TransactionsManager.h"
 

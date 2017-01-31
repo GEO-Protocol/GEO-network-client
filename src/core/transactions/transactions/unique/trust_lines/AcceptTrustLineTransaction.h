@@ -3,7 +3,7 @@
 
 #include "../UniqueTransaction.h"
 
-#include "../../../../network/messages/incoming/AcceptTrustLineMessage.h"
+#include "../../../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 
 #include "../../../../network/messages/Message.h"
 #include "../../../../network/messages/response/Response.h"

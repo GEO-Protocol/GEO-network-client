@@ -15,9 +15,9 @@
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 
 #include "../../network/messages/Message.h"
-#include "../../network/messages/incoming/AcceptTrustLineMessage.h"
-#include "../../network/messages/incoming/RejectTrustLineMessage.h"
-#include "../../network/messages/incoming/UpdateTrustLineMessage.h"
+#include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
+#include "../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
+#include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../../network/messages/response/Response.h"
 
 #include "../transactions/BaseTransaction.h"

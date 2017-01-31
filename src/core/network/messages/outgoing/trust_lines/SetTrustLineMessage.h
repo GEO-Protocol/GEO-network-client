@@ -1,12 +1,12 @@
 #ifndef GEO_NETWORK_CLIENT_SETTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_SETTRUSTLINEMESSAGE_H
 
-#include "../Message.h"
+#include "../../Message.h"
 
-#include "../../../common/Types.h"
+#include "../../../../common/Types.h"
 
-#include "../../../transactions/TransactionUUID.h"
-#include "../../../common/NodeUUID.h"
+#include "../../../../transactions/TransactionUUID.h"
+#include "../../../../common/NodeUUID.h"
 
 class SetTrustLineMessage : public Message {
 

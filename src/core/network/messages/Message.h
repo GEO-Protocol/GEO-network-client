@@ -38,7 +38,9 @@ public:
         CloseTrustLineMessageType = 4,
         RejectTrustLineMessageType = 5,
         UpdateTrustLineMessageType = 6,
-        ResponseMessageType = 7
+        FirstLevelRoutingTableOutgoingMessageType = 7,
+        FirstLevelRoutingTableIncomingMessageType = 8,
+        ResponseMessageType = 9
     };
 
 public:

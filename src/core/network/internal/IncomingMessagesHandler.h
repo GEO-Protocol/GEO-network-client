@@ -9,9 +9,9 @@
 #include "../channels/manager/ChannelsManager.h"
 
 #include "../messages/Message.h"
-#include "../messages/incoming/AcceptTrustLineMessage.h"
-#include "../messages/incoming/RejectTrustLineMessage.h"
-#include "../messages/incoming/UpdateTrustLineMessage.h"
+#include "../messages/incoming/trust_lines/AcceptTrustLineMessage.h"
+#include "../messages/incoming/trust_lines/RejectTrustLineMessage.h"
+#include "../messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../messages/response/Response.h"
 
 #include "../../common/exceptions/ValueError.h"
