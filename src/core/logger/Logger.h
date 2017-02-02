@@ -50,9 +50,11 @@ public:
     void logFatal(
         const char *subsystem,
         const string &message);
-    void logTransactionStatus(
-        const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount
+    void logFileMessage(const string message);
+    void logTruslineOperationStatus(
+            const NodeUUID &contractorUUID,
+            const TrustLineAmount &amount,
+            const string operationType
 //        const TrustLineAmount& outgoingTrustAmount
     );
 

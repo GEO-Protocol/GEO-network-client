@@ -17,7 +17,7 @@ int Core::run() {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
         return initCode;
     }
-
+    mLog.logFileMessage("Ok. We start it");
     try {
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
@@ -30,6 +30,7 @@ int Core::run() {
         mLog.logException("Core", e);
         return -1;
     }
+
 }
 
 int Core::initCoreComponents() {

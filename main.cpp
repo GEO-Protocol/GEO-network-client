@@ -7,7 +7,7 @@
 #ifdef TESTS
 //#define TESTS__DB__UUID_COLUMN
 //#define TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
-#define TESTS__ROUTING_TABLE
+//#define TESTS__ROUTING_TABLE
 #define TESTS__TRUSTLINES
 #endif
 
@@ -79,14 +79,16 @@ int main() {
 
 #endif
 
-#ifdef TESTS__TRUSTLINES
-    TrustLineTests tests;
-    tests.run();
-#endif
 
 
 #ifndef TESTS
 
 #endif*/
+
+#ifdef TESTS__TRUSTLINES
+    TrustLineTests tests;
+    tests.run();
+#endif
+
     return Core().run();
 }

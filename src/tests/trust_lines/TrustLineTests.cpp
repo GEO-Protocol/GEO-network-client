@@ -137,8 +137,10 @@ void TrustLineTests::check_serializeCase(){
 
 
 void TrustLineTests::run() {
-    create_trustlineCase();
-    change_parametersCase();
-    create_trustlineCase();
-    check_serializeCase();
+//    uuid r_uuid = boost::uuids::random_generator()();
+//    cout << r_uuid << endl;
+//    create_trustlineCase();
+//    change_parametersCase();
+//    create_trustlineCase();
+//    check_serializeCase();
 }
