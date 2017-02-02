@@ -17,8 +17,13 @@ UniqueTransaction::UniqueTransaction(
     mTransactionsScheduler(scheduler) {}
 
 
+void UniqueTransaction::killTransaction(
+    const TransactionUUID &transactionUUID) {
+
+    mTransactionsScheduler->killTransaction(transactionUUID);
+}
+
 const map<BaseTransaction::Shared, TransactionState::SharedConst>* UniqueTransaction::pendingTransactions() {
 
     return transactions(mTransactionsScheduler);
 }
-

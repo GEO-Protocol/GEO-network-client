@@ -26,10 +26,8 @@ using namespace std;
 
 namespace as = boost::asio;
 namespace storage = db::uuid_map_block_storage;
-namespace posix_time = boost::posix_time;
 
 typedef boost::function<void(CommandResult::SharedConst)> ManagerCallback;
-typedef boost::posix_time::time_duration Timeout;
 
 class TransactionsScheduler {
     // todo: hsc: tests?
@@ -47,6 +45,12 @@ public:
     void scheduleTransaction(
         BaseTransaction::Shared transaction);
 
+    void postponeRoutingTableTransaction(
+        BaseTransaction::Shared transaction);
+
+    void killTransaction(
+        const TransactionUUID &transactionUUID);
+
     void handleMessage(
         Message::Shared message);
 
@@ -61,19 +65,21 @@ private:
         BaseTransaction::Shared transaction,
         TransactionResult::Shared result);
 
-    pair<BaseTransaction::Shared, Timeout> findTransactionWithMinimalTimeout();
+    pair<BaseTransaction::Shared, Duration> findTransactionWithMinimalTimeout();
 
     void sleepFor(
-        Timeout delay);
+        Duration delay);
 
     void handleSleep(
         const boost::system::error_code &error,
-        Timeout delay);
+        Duration delay);
 
     bool isTransactionInScheduler(
         BaseTransaction::Shared transaction);
 
 private:
+    const uint64_t kPostponeMillisecondsTime = 500;
+
     as::io_service &mIOService;
     storage::UUIDMapBlockStorage *mStorage;
     ManagerCallback mManagerCallback;

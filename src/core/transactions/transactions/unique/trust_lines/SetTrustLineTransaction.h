@@ -5,15 +5,17 @@
 
 #include "../../../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 
-#include "UpdateTrustLineTransaction.h"
-#include "OpenTrustLineTransaction.h"
-#include "CloseTrustLineTransaction.h"
-
 #include "../../../../network/messages/Message.h"
 #include "../../../../network/messages/outgoing/trust_lines/SetTrustLineMessage.h"
 #include "../../../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 
-#include "../../../manager/TransactionsManager.h"
+#include "../../../scheduler/TransactionsScheduler.h"
+#include "UpdateTrustLineTransaction.h"
+#include "OpenTrustLineTransaction.h"
+#include "CloseTrustLineTransaction.h"
+
+#include "../../../../trust_lines/manager/TrustLinesManager.h"
+
 
 #include "../../../../common/exceptions/ConflictError.h"
 

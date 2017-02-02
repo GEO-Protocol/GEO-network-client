@@ -22,7 +22,7 @@ TransactionsScheduler::TransactionsScheduler(
     try {
         mProcessingTimer = new as::deadline_timer(
             mIOService,
-            boost::posix_time::milliseconds(2 * 1000));
+            posix::milliseconds(2 * 1000));
 
     } catch (std::bad_alloc &e) {
         delete mTransactions;
@@ -65,16 +65,52 @@ void TransactionsScheduler::scheduleTransaction(
     }
 }
 
+void TransactionsScheduler::postponeRoutingTableTransaction(
+    BaseTransaction::Shared tranasction) {
+
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    if (tranasction->transactionType() != BaseTransaction::TransactionType::SendRoutingTablesTransactionType) {
+        throw ConflictError("TransactionsScheduler::postponeRoutingTableTransaction: "
+                                "Only routing tables transaction can be postponed.");
+    }
+#endif
+
+    TransactionState *state = new TransactionState(
+        kPostponeMillisecondsTime,
+        false
+    );
+    TransactionState::Shared stateShared(state);
+
+    mTransactions->insert(
+        make_pair(
+            tranasction,
+            stateShared
+        )
+    );
+
+    sleepFor(findTransactionWithMinimalTimeout().second);
+}
+
+void TransactionsScheduler::killTransaction(
+    const TransactionUUID &transactionUUID) {
+
+    for (const auto &transactionAndState : *mTransactions) {
+        if (transactionAndState.first->transactionUUID() == transactionUUID) {
+            mTransactions->erase(transactionAndState.first);
+        }
+    }
+}
+
 void TransactionsScheduler::handleMessage(
     Message::Shared message) {
 
-    for (auto &transaction : *mTransactions) {
-        if (transaction.first->transactionUUID() == message->transactionUUID()) {
-            for (auto &messageType : transaction.second->transactionsTypes()) {
+    for (auto &transactionAndState : *mTransactions) {
+        if (transactionAndState.first->transactionUUID() == message->transactionUUID()) {
+            for (auto &messageType : transactionAndState.second->transactionsTypes()) {
                 if (messageType == message->typeID()) {
-                    transaction.first->setContext(message);
+                    transactionAndState.first->setContext(message);
                     try {
-                        launchTransaction(transaction.first);
+                        launchTransaction(transactionAndState.first);
 
                     } catch (std::exception &e) {
                         mLog->logError("TransactionsScheduler",
@@ -162,8 +198,8 @@ void TransactionsScheduler::handleTransactionResult(
             throw ValueError("TransactionsManager::TransactionsScheduler"
                                  "Transaction reference must be store in memory");
         }
-        Timeout minimalDelay = findTransactionWithMinimalTimeout().second;
-        if (minimalDelay > posix_time::milliseconds(0)) {
+        Duration minimalDelay = findTransactionWithMinimalTimeout().second;
+        if (minimalDelay > posix::milliseconds(0)) {
             sleepFor(minimalDelay);
         }
 
@@ -181,8 +217,8 @@ void TransactionsScheduler::handleTransactionResult(
             throw ValueError("TransactionsManager::handleTransactionResult. "
                                  "Transaction reference must be store in memory.");
         }
-        Timeout minimalDelay = findTransactionWithMinimalTimeout().second;
-        if (minimalDelay > posix_time::milliseconds(0)) {
+        Duration minimalDelay = findTransactionWithMinimalTimeout().second;
+        if (minimalDelay > posix::milliseconds(0)) {
             sleepFor(minimalDelay);
         }
 
@@ -196,16 +232,16 @@ void TransactionsScheduler::handleTransactionResult(
     }
 }
 
-pair<BaseTransaction::Shared, Timeout> TransactionsScheduler::findTransactionWithMinimalTimeout() {
+pair<BaseTransaction::Shared, Duration> TransactionsScheduler::findTransactionWithMinimalTimeout() {
 
     BaseTransaction::Shared transaction(nullptr);
-    Timeout minimalTimeout = posix_time::milliseconds(0);
+    Duration minimalTimeout = posix::milliseconds(0);
 
     for (auto &it : *mTransactions) {
         auto transactionStateValue = it.second;
         if (transactionStateValue.get() != nullptr) {
             if (transactionStateValue->timeout() > 0) {
-                minimalTimeout = posix_time::milliseconds(transactionStateValue->timeout());
+                minimalTimeout = posix::milliseconds(transactionStateValue->timeout());
                 transaction = it.first;
             }
         }
@@ -214,8 +250,8 @@ pair<BaseTransaction::Shared, Timeout> TransactionsScheduler::findTransactionWit
     for (auto &it : *mTransactions) {
         auto transactionStateValue = it.second;
         if (transactionStateValue.get() != nullptr) {
-            if (transactionStateValue->timeout() > 0 && posix_time::milliseconds(transactionStateValue->timeout()) < minimalTimeout) {
-                minimalTimeout = posix_time::milliseconds(transactionStateValue->timeout());
+            if (transactionStateValue->timeout() > 0 && posix::milliseconds(transactionStateValue->timeout()) < minimalTimeout) {
+                minimalTimeout = posix::milliseconds(transactionStateValue->timeout());
                 transaction = it.first;
             }
         }
@@ -226,7 +262,7 @@ pair<BaseTransaction::Shared, Timeout> TransactionsScheduler::findTransactionWit
 }
 
 void TransactionsScheduler::sleepFor(
-    Timeout delay) {
+    Duration delay) {
 
     mProcessingTimer->cancel();
     mProcessingTimer->expires_from_now(delay);
@@ -240,7 +276,7 @@ void TransactionsScheduler::sleepFor(
 
 void TransactionsScheduler::handleSleep(
     const boost::system::error_code &error,
-    Timeout delay) {
+    Duration delay) {
 
     if (error) {
         mLog->logError("TransactionsScheduler",
@@ -248,7 +284,7 @@ void TransactionsScheduler::handleSleep(
         return;
 
     } else {
-        if (delay > posix_time::milliseconds(0)) {
+        if (delay > posix::milliseconds(0)) {
             run();
         }
     }

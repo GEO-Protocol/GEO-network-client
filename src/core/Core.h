@@ -1,3 +1,4 @@
+
 #ifndef GEO_NETWORK_CLIENT_CORE_H
 #define GEO_NETWORK_CLIENT_CORE_H
 
@@ -62,7 +63,7 @@ private:
 
     void onTrustLineCreatedSlot(
         const NodeUUID &contractorUUID,
-        TrustLineDirection direction);
+        const TrustLineDirection direction);
 
     void zeroPointers();
 

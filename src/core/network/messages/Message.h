@@ -40,14 +40,12 @@ public:
         UpdateTrustLineMessageType = 6,
         FirstLevelRoutingTableOutgoingMessageType = 7,
         FirstLevelRoutingTableIncomingMessageType = 8,
-        ResponseMessageType = 9
+        SecondLevelRoutingTableOutgoingMessageType = 9,
+        SecondLevelRoutingTableIncomingMessageType = 10,
+        ResponseMessageType = 11
     };
 
 public:
-    Message() {};
-
-    Message(NodeUUID &sender, TransactionUUID &transactionUUID) : mSenderUUID(sender), mTransactionUUID(transactionUUID) {};
-
     const NodeUUID &senderUUID() const { return mSenderUUID; }
 
     const TransactionUUID &transactionUUID() const { return mTransactionUUID; }
@@ -57,6 +55,10 @@ public:
     virtual const MessageTypeID typeID() const = 0;
 
 protected:
+    Message() {};
+
+    Message(NodeUUID &sender, TransactionUUID &transactionUUID) : mSenderUUID(sender), mTransactionUUID(transactionUUID) {};
+
     virtual void deserialize(
         byte *buffer) = 0;
 
