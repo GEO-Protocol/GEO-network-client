@@ -32,7 +32,7 @@ class TrustLinesManager {
     friend class TrustLinesManagerTests;
 
 public:
-    signals::signal<void(const NodeUUID&, TrustLineDirection)> trustLineCreatedSignal;
+    signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineCreatedSignal;
 
 public:
     TrustLinesManager();
@@ -62,8 +62,7 @@ public:
 
     void suspendDirection(
         const NodeUUID &contractorUUID,
-        const TrustLineDirection direction
-    );
+        const TrustLineDirection direction);
 
     void setIncomingTrustAmount(
         const NodeUUID &contractor,

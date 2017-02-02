@@ -81,6 +81,45 @@ void TransactionsManager::processMessage(
     }
 }
 
+void TransactionsManager::acceptCommandResult(
+    CommandResult::SharedConst result) {
+
+    try {
+        string message = result->serialize();
+        mResultsInterface->writeResult(
+            message.c_str(),
+            message.size()
+        );
+
+    } catch (...) {
+        mLog->logError("Transactions manager::acceptCommandResult: ",
+                       "Error occurred when command result has accepted");
+    }
+}
+
+void TransactionsManager::startRoutingTablesExchange(
+    const NodeUUID &contractorUUID,
+    const TrustLineDirection direction) {
+
+    /*BaseTransaction *baseTransaction = new SendRoutingTablesTransaction(
+        mNodeUUID,
+        const_cast<NodeUUID&> (contractorUUID),
+        mTransactionsScheduler
+    );
+
+    baseTransaction->addOnMessageSendSlot(
+        boost::bind(
+            &TransactionsManager::onMessageSend,
+            this,
+            _1,
+            _2
+        )
+    );
+
+    mTransactionsScheduler->postponeRoutingTableTransaction(BaseTransaction::Shared(baseTransaction));*/
+
+}
+
 void TransactionsManager::loadTransactions() {
 
     unique_ptr<const vector<storage::uuids::uuid>> uuidKeys = unique_ptr<const vector<storage::uuids::uuid>> (mStorage->keys());
@@ -161,6 +200,14 @@ void TransactionsManager::loadTransactions() {
                 throw Exception("TrustLinesManager::loadTransactions. "
                                     "Unable to create transaction instance from buffer.");
             }
+            baseTransaction->addOnMessageSendSlot(
+                boost::bind(
+                    &TransactionsManager::onMessageSend,
+                    this,
+                    _1,
+                    _2
+                )
+            );
             BaseTransaction::Shared baseTransactionShared(baseTransaction);
             mTransactionsScheduler->scheduleTransaction(baseTransactionShared);
         }
@@ -353,22 +400,6 @@ void TransactionsManager::onMessageSend(
 
     } catch (exception &e) {
         mLog->logException("TransactionsManager", e);
-    }
-}
-
-void TransactionsManager::acceptCommandResult(
-    CommandResult::SharedConst result) {
-
-    try {
-        string message = result->serialize();
-        mResultsInterface->writeResult(
-            message.c_str(),
-            message.size()
-        );
-
-    } catch (...) {
-        mLog->logError("Transactions manager::acceptCommandResult: ",
-                       "Error occurred when command result has accepted");
     }
 }
 

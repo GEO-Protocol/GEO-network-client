@@ -3,16 +3,16 @@
 
 #include "../UniqueTransaction.h"
 
-#include "../../../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
-
 #include "../../../../network/messages/Message.h"
+#include "../../../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
 #include "../../../../network/messages/response/Response.h"
 
 #include "../../../scheduler/TransactionsScheduler.h"
 #include "AcceptTrustLineTransaction.h"
 #include "UpdateTrustLineTransaction.h"
 
-#include "../../../manager/TransactionsManager.h"
+#include "../../../../trust_lines/manager/TrustLinesManager.h"
+
 
 class RejectTrustLineTransaction : public UniqueTransaction {
 

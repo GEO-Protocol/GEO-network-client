@@ -60,6 +60,11 @@ void BaseTransaction::increaseRequestsCounter() {
     mRequestCounter += 1;
 }
 
+void BaseTransaction::resetRequestsCounter() {
+
+    mRequestCounter = 0;
+}
+
 pair<BytesShared, size_t> BaseTransaction::serializeParentToBytes() {
 
     size_t bytesCount = sizeof(uint16_t) +

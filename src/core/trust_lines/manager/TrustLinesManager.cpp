@@ -2,11 +2,9 @@
 
 TrustLinesManager::TrustLinesManager() {
     try {
-        mTrustLinesStorage = unique_ptr<TrustLinesStorage>(
-            new TrustLinesStorage("trust_lines.dat"));
+        mTrustLinesStorage = unique_ptr<TrustLinesStorage>(new TrustLinesStorage("trust_lines.dat"));
 
-        mAmountBlocksHandler = unique_ptr<AmountReservationsHandler>(
-            new AmountReservationsHandler());
+        mAmountBlocksHandler = unique_ptr<AmountReservationsHandler>(new AmountReservationsHandler());
 
     } catch (bad_alloc &e) {
         throw MemoryError(
@@ -393,13 +391,24 @@ void TrustLinesManager::saveToDisk(
         } catch (std::exception &e) {
             throw IOError(e.what());
         }
-        mTrustLines.insert(
-            make_pair(
-                trustLine->contractorNodeUUID(),
-                trustLine
-            )
-        );
+
+        try {
+            mTrustLines.insert(
+                make_pair(
+                    trustLine->contractorNodeUUID(),
+                    trustLine
+                )
+            );
+
+        } catch (std::bad_alloc&) {
+            throw MemoryError("TrustLinesManager::saveToDisk: "
+                                  "Can not reallocate STL container memory for new trust line instance.");
+        }
     }
+    trustLineCreatedSignal(
+        trustLine->contractorNodeUUID(),
+        trustLine->direction()
+    );
 }
 
 /**

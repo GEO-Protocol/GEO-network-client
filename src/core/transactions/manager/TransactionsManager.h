@@ -28,6 +28,7 @@
 #include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
+#include "../transactions/unique/routing_tables/SendRoutingTablesTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -60,6 +61,10 @@ public:
 
     void acceptCommandResult(
         CommandResult::SharedConst result);
+
+    void startRoutingTablesExchange(
+        const NodeUUID &contractorUUID,
+        const TrustLineDirection direction);
 
 private:
     void loadTransactions();

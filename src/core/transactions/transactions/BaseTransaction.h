@@ -32,6 +32,8 @@ public:
         CloseTrustLineTransactionType = 4,
         RejectTrustLineTransactionType = 5,
         UpdateTrustLineTransactionType = 6,
+        SendRoutingTablesTransactionType = 7,
+        AcceptRoutingTablesTransactionType = 8,
     };
 
 public:
@@ -67,6 +69,8 @@ protected:
     void increaseStepsCounter();
 
     void increaseRequestsCounter();
+
+    void resetRequestsCounter();
 
     pair<BytesShared, size_t> serializeParentToBytes();
 

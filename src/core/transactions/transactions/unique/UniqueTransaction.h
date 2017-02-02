@@ -3,6 +3,9 @@
 
 #include "../BaseTransaction.h"
 
+#include "../../TransactionUUID.h"
+#include "../../../common/NodeUUID.h"
+
 #include "../../scheduler/TransactionsScheduler.h"
 
 class UniqueTransaction : public BaseTransaction{
@@ -15,6 +18,9 @@ protected:
 
     UniqueTransaction(
         TransactionsScheduler *scheduler);
+
+    void killTransaction(
+        const TransactionUUID &transactionUUID);
 
     const map<BaseTransaction::Shared, TransactionState::SharedConst>* pendingTransactions();
 

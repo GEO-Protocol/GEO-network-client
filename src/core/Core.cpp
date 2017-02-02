@@ -248,6 +248,21 @@ void Core::onMessageSendSlot(
     }
 }
 
+void Core::onTrustLineCreatedSlot(
+    const NodeUUID &contractorUUID,
+    const TrustLineDirection direction) {
+
+    try{
+        mTransactionsManager->startRoutingTablesExchange(
+            contractorUUID,
+            direction
+        );
+
+    } catch (exception &e) {
+        mLog.logException("Core", e);
+    }
+}
+
 void Core::cleanupMemory() {
 
     if (mSettings != nullptr) {
@@ -283,10 +298,4 @@ void Core::zeroPointers() {
     mResultsInterface = nullptr;
     mTrustLinesManager = nullptr;
     mTransactionsManager = nullptr;
-}
-
-void Core::onTrustLineCreatedSlot(
-    const NodeUUID &contractorUUID,
-    TrustLineDirection direction) {
-
 }
