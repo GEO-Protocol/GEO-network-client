@@ -1,10 +1,21 @@
 #include "ChannelsManager.h"
 
-ChannelsManager::ChannelsManager() {
+ChannelsManager::ChannelsManager(
+    as::io_service &ioService) :
+
+    mIOService(ioService){
 
     try {
-        mIncomingChannels = new map<uint16_t, Channel::Shared>();
-        mOutgoingChannels = new map<uint16_t, Channel::Shared>();
+        mProcessingTimer = unique_ptr<as::deadline_timer>(new as::deadline_timer(mIOService, boost::posix_time::milliseconds(2 * 1000)));
+
+    } catch (std::bad_alloc &e) {
+        throw MemoryError("ChannelsManager::ChannelsManager: "
+                              "Can not allocate memory for deadline timer instance.");
+    }
+
+    try {
+        mIncomingChannels = unique_ptr<map<uint16_t, Channel::Shared>>(new map<uint16_t, Channel::Shared>());
+        mOutgoingChannels = unique_ptr<map<uint16_t, Channel::Shared>>(new map<uint16_t, Channel::Shared>());
 
     } catch (std::bad_alloc &e) {
         throw MemoryError("ChannelsManager::ChannelsManager: "
@@ -12,27 +23,18 @@ ChannelsManager::ChannelsManager() {
     }
 
     try {
-        mIncomingEndpoints = new map<uint16_t, udp::endpoint>();
-        mOutgoingEndpoints = new map<uint16_t, udp::endpoint>();
+        mIncomingEndpoints = unique_ptr<map<uint16_t, udp::endpoint>>(new map<uint16_t, udp::endpoint>());
+        mOutgoingEndpoints = unique_ptr<map<uint16_t, udp::endpoint>>(new map<uint16_t, udp::endpoint>());
 
     } catch (std::bad_alloc &e) {
-        delete mIncomingEndpoints;
         throw MemoryError("ChannelsManager::ChannelsManager: "
                               "Can not allocate memory for endpoint container.");
     }
+
+    removeDeprecatedIncomingChannels();
 }
 
-ChannelsManager::~ChannelsManager() {
-
-    mIncomingChannels->clear();
-    mOutgoingChannels->clear();
-    delete mIncomingChannels;
-    delete mOutgoingChannels;
-    mIncomingEndpoints->clear();
-    mOutgoingEndpoints->clear();
-    delete mIncomingEndpoints;
-    delete mOutgoingEndpoints;
-}
+ChannelsManager::~ChannelsManager() {}
 
 pair<Channel::Shared, udp::endpoint> ChannelsManager::incomingChannel(
     uint16_t number,
@@ -87,10 +89,10 @@ void ChannelsManager::removeIncomingChannel(
     uint16_t number) {
 
     if (mIncomingChannels->count(number) != 0) {
-        auto itChan = mIncomingChannels->find(number);
-        mIncomingChannels->erase(itChan);
-        auto itEnd = mIncomingEndpoints->find(number);
-        mIncomingEndpoints->erase(itEnd);
+        auto itChannel = mIncomingChannels->find(number);
+        mIncomingChannels->erase(itChannel);
+        auto itEndpoint = mIncomingEndpoints->find(number);
+        mIncomingEndpoints->erase(itEndpoint);
 
     } else {
         throw IndexError("ChannelsManager::removeIncomingChannel: "
@@ -101,20 +103,7 @@ void ChannelsManager::removeIncomingChannel(
 pair<uint16_t, Channel::Shared> ChannelsManager::outgoingChannel(
     udp::endpoint endpoint) {
 
-    for (const auto &numberAndChannel : *mOutgoingChannels) {
-        if ((posix::second_clock::universal_time() - numberAndChannel.second->sendTime()) > posix::seconds(3)) {
-            uint16_t number = numberAndChannel.first;
-            removeOutgoingChannel(number);
-            return make_pair(
-                number,
-                createOutgoingChannel(
-                    number,
-                    endpoint
-                )
-            );
-        }
-    }
-    uint16_t number = unusedOutgoingChannelNumber(endpoint);
+    uint16_t number = unusedOutgoingChannelNumber();
     return make_pair(
         number,
         createOutgoingChannel(
@@ -156,10 +145,10 @@ void ChannelsManager::removeOutgoingChannel(
     uint16_t number) {
 
     if (mOutgoingChannels->count(number) != 0) {
-        auto itChan = mOutgoingChannels->find(number);
-        mOutgoingChannels->erase(itChan);
-        auto itEnd = mOutgoingEndpoints->find(number);
-        mOutgoingEndpoints->erase(itEnd);
+        auto itChannel = mOutgoingChannels->find(number);
+        mOutgoingChannels->erase(itChannel);
+        auto itEndpoint = mOutgoingEndpoints->find(number);
+        mOutgoingEndpoints->erase(itEndpoint);
 
     } else {
         throw IndexError("ChannelsManager::removeOutgoingChannel: "
@@ -167,28 +156,56 @@ void ChannelsManager::removeOutgoingChannel(
     }
 }
 
-uint16_t ChannelsManager::unusedOutgoingChannelNumber(
-    udp::endpoint endpoint) {
+uint16_t ChannelsManager::unusedOutgoingChannelNumber() {
 
-    if (!mOutgoingEndpoints->empty()) {
-
-        uint16_t number = 0;
-        for (auto const &numberAndEndpoint : *mOutgoingEndpoints) {
-            if (endpoint == numberAndEndpoint.second) {
-                number = numberAndEndpoint.first;
-            }
+    uint16_t miniamlRange = 0;
+    uint16_t maximalRange = 0;
+    for (auto const &numberAndEndpoint : *mOutgoingChannels) {
+        if (numberAndEndpoint.first > maximalRange) {
+            maximalRange = numberAndEndpoint.first;
         }
-
-        for (auto const &numberAndEndpoint : *mOutgoingEndpoints) {
-            if (numberAndEndpoint.first > number) {
-                number = numberAndEndpoint.first;
-            }
-        }
-        number += 1;
-        return number;
-
-    } else {
-        return 0;
     }
+    for (size_t number = miniamlRange; number < maximalRange; ++ number) {
+        if (mOutgoingChannels->count(number) == 0) {
+            return number;
+        }
+    }
+    return maximalRange += 1;
+}
 
+void ChannelsManager::removeDeprecatedIncomingChannels() {
+
+    mProcessingTimer->cancel();
+    mProcessingTimer->expires_from_now(kIncomingChannelsCollectorTimeout());
+    mProcessingTimer->async_wait(
+        boost::bind(
+            &ChannelsManager::handleincomingChannelsCollector,
+            this,
+            as::placeholders::error
+        )
+    );
+}
+
+void ChannelsManager::handleincomingChannelsCollector(
+    const boost::system::error_code &error) {
+
+    if (!error) {
+        for (auto const &numberAndChannel : *mIncomingChannels) {
+            if ((posix::second_clock::universal_time() - numberAndChannel.second->creationTime()) > kIncomingChannelKeepAliveTimeout()) {
+                removeIncomingChannel(numberAndChannel.first);
+            }
+        }
+    }
+}
+
+const Duration ChannelsManager::kIncomingChannelsCollectorTimeout() {
+
+    static const Duration timeout = posix::hours(1);
+    return timeout;
+}
+
+const Duration ChannelsManager::kIncomingChannelKeepAliveTimeout() {
+
+    static const Duration timeout = posix::minutes(1);
+    return timeout;
 }

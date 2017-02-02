@@ -1,37 +1,37 @@
-#ifndef GEO_NETWORK_CLIENT_REJECTTRUSTLINETRANSACTION_H
-#define GEO_NETWORK_CLIENT_REJECTTRUSTLINETRANSACTION_H
+#ifndef GEO_NETWORK_CLIENT_UPDATETRUSTLINETRANSACTION_H
+#define GEO_NETWORK_CLIENT_UPDATETRUSTLINETRANSACTION_H
 
 #include "../UniqueTransaction.h"
 
-#include "../../../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
+#include "../../../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 
 #include "../../../../network/messages/Message.h"
 #include "../../../../network/messages/response/Response.h"
 
 #include "../../../scheduler/TransactionsScheduler.h"
 #include "AcceptTrustLineTransaction.h"
-#include "UpdateTrustLineTransaction.h"
+#include "RejectTrustLineTransaction.h"
 
 #include "../../../manager/TransactionsManager.h"
 
-class RejectTrustLineTransaction : public UniqueTransaction {
+class UpdateTrustLineTransaction : public UniqueTransaction {
 
 public:
-    typedef shared_ptr<RejectTrustLineTransaction> Shared;
+    typedef shared_ptr<UpdateTrustLineTransaction> Shared;
 
 public:
-    RejectTrustLineTransaction(
+    UpdateTrustLineTransaction(
         NodeUUID &nodeUUID,
-        RejectTrustLineMessage::Shared message,
+        UpdateTrustLineMessage::Shared message,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager);
 
-    RejectTrustLineTransaction(
+    UpdateTrustLineTransaction(
         BytesShared buffer,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager);
 
-    RejectTrustLineMessage::Shared message() const;
+    UpdateTrustLineMessage::Shared message() const;
 
     TransactionResult::Shared run();
 
@@ -41,15 +41,15 @@ private:
     void deserializeFromBytes(
         BytesShared buffer);
 
+    bool checkJournal();
+
     bool checkSameTypeTransactions();
 
     bool checkTrustLineDirectionExisting();
 
-    bool checkDebt();
+    bool checkTrustLineAmount();
 
-    void suspendTrustLineFromContractor();
-
-    void rejectTrustLine();
+    void updateIncomingTrustAmount();
 
     void sendResponse(
         uint16_t code);
@@ -58,9 +58,9 @@ private:
         MessageResult::Shared messageResult);
 
 private:
-    RejectTrustLineMessage::Shared mMessage;
+    UpdateTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
 };
 
 
-#endif //GEO_NETWORK_CLIENT_REJECTTRUSTLINETRANSACTION_H
+#endif //GEO_NETWORK_CLIENT_UPDATETRUSTLINETRANSACTION_H

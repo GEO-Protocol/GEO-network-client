@@ -14,7 +14,7 @@ set(SOURCE_FILES
         interface/CommandsInterface.cpp
         interface/CommandsInterface.h
 
-        CommandUUID.h)
+        CommandUUID.h commands/trust_lines/SetTrustLineCommand.cpp commands/trust_lines/SetTrustLineCommand.h)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

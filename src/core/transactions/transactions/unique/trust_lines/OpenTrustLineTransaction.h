@@ -6,10 +6,12 @@
 #include "../../../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 
 #include "AcceptTrustLineTransaction.h"
+#include "SetTrustLineTransaction.h"
+#include "CloseTrustLineTransaction.h"
 
 #include "../../../../network/messages/Message.h"
-#include "../../../../network/messages/outgoing/OpenTrustLineMessage.h"
-#include "../../../../network/messages/incoming/AcceptTrustLineMessage.h"
+#include "../../../../network/messages/outgoing/trust_lines/OpenTrustLineMessage.h"
+#include "../../../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 
 #include "../../../manager/TransactionsManager.h"
 
@@ -27,14 +29,24 @@ public:
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager);
 
+    OpenTrustLineTransaction(
+        BytesShared buffer,
+        TransactionsScheduler *scheduler,
+        TrustLinesManager *manager);
+
     OpenTrustLineCommand::Shared command() const;
 
     TransactionResult::Shared run();
 
 private:
+    pair<BytesShared, size_t> serializeToBytes();
+
+    void deserializeFromBytes(
+        BytesShared buffer);
+
     bool checkSameTypeTransactions();
 
-    bool checkTrustLineDirection();
+    bool checkTrustLineDirectionExisting();
 
     TransactionResult::Shared checkTransactionContext();
 
@@ -42,7 +54,7 @@ private:
 
     TransactionResult::Shared waitingForResponseState();
 
-    void createTrustLine();
+    void openTrustLine();
 
     TransactionResult::Shared resultOk();
 

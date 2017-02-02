@@ -9,6 +9,7 @@
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
+#include "../../common/exceptions/Exception.h"
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"
 #include "../../logger/Logger.h"
@@ -18,6 +19,7 @@
 #include <boost/function.hpp>
 
 #include <map>
+#include <memory>
 
 
 using namespace std;
@@ -34,15 +36,16 @@ class TransactionsScheduler {
 public:
     TransactionsScheduler(
         as::io_service &IOService,
+        storage::UUIDMapBlockStorage *storage,
         ManagerCallback managerCallback,
         Logger *logger);
 
     ~TransactionsScheduler();
 
+    void run();
+
     void scheduleTransaction(
         BaseTransaction::Shared transaction);
-
-    void run();
 
     void handleMessage(
         Message::Shared message);
@@ -72,11 +75,11 @@ private:
 
 private:
     as::io_service &mIOService;
+    storage::UUIDMapBlockStorage *mStorage;
     ManagerCallback mManagerCallback;
     Logger *mLog;
 
     as::deadline_timer *mProcessingTimer;
-    storage::UUIDMapBlockStorage *mStorage;
     map<BaseTransaction::Shared, TransactionState::SharedConst> *mTransactions;
 
 };

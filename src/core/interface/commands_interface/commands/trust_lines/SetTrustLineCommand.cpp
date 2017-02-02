@@ -1,41 +1,40 @@
-#include "OpenTrustLineCommand.h"
+#include "SetTrustLineCommand.h"
 
-
-OpenTrustLineCommand::OpenTrustLineCommand(
-    const CommandUUID &uuid,
-    const string &commandBuffer):
+SetTrustLineCommand::SetTrustLineCommand(
+    const CommandUUID &commandUUID,
+    const string &commandBuffer) :
 
     BaseUserCommand(
-        uuid,
-        identifier()
+    commandUUID,
+    identifier()
     ) {
 
     deserialize(commandBuffer);
 }
 
-OpenTrustLineCommand::OpenTrustLineCommand(
+SetTrustLineCommand::SetTrustLineCommand(
     BytesShared buffer) {
 
     deserializeFromBytes(buffer);
 }
 
-const string &OpenTrustLineCommand::identifier() {
+const string &SetTrustLineCommand::identifier() {
 
-    static const string identifier = "CREATE:contractors/trust-lines";
+    static const string identifier = "SET:contractors/trust-lines";
     return identifier;
 }
 
-const NodeUUID &OpenTrustLineCommand::contractorUUID() const {
+const NodeUUID &SetTrustLineCommand::contractorUUID() const {
 
     return mContractorUUID;
 }
 
-const TrustLineAmount &OpenTrustLineCommand::amount() const {
+const TrustLineAmount &SetTrustLineCommand::newAmount() const {
 
-    return mAmount;
+    return mNewAmount;
 }
 
-pair<BytesShared, size_t> OpenTrustLineCommand::serializeToBytes() {
+pair<BytesShared, size_t> SetTrustLineCommand::serializeToBytes() {
 
     auto parentBytesAndCount = serializeParentToBytes();
 
@@ -57,7 +56,7 @@ pair<BytesShared, size_t> OpenTrustLineCommand::serializeToBytes() {
     vector<byte> buffer;
     buffer.reserve(kTrustLineAmountSize);
     export_bits(
-        mAmount,
+        mNewAmount,
         back_inserter(buffer),
         8
     );
@@ -77,7 +76,7 @@ pair<BytesShared, size_t> OpenTrustLineCommand::serializeToBytes() {
     );
 }
 
-void OpenTrustLineCommand::deserializeFromBytes(
+void SetTrustLineCommand::deserializeFromBytes(
     BytesShared buffer) {
 
     deserializeParentFromBytes(buffer);
@@ -103,38 +102,35 @@ void OpenTrustLineCommand::deserializeFromBytes(
 
     if (amountNotZeroBytes.size() > 0) {
         import_bits(
-            mAmount,
+            mNewAmount,
             amountNotZeroBytes.begin(),
             amountNotZeroBytes.end()
         );
 
     } else {
         import_bits(
-            mAmount,
+            mNewAmount,
             amountBytes.begin(),
             amountBytes.end()
         );
     }
 }
 
-const size_t OpenTrustLineCommand::kRequestedBufferSize() {
+const size_t SetTrustLineCommand::kRequestedBufferSize() {
 
     const size_t trustAmountBytesSize = 32;
     static const size_t size = kOffsetToInheritBytes() + NodeUUID::kBytesSize + trustAmountBytesSize;
     return size;
 }
 
-/**
- * Throws ValueError if deserialization was unsuccessful.
- */
-void OpenTrustLineCommand::deserialize(
+void SetTrustLineCommand::deserialize(
     const string &command) {
 
     const auto amountTokenOffset = NodeUUID::kHexSize + 1;
     const auto minCommandLength = amountTokenOffset + 1;
 
     if (command.size() < minCommandLength) {
-        throw ValueError("OpenTrustLineCommand::deserialize: "
+        throw ValueError("SetTrustLineCommand::deserialize: "
                              "Can't parse command. Received command is to short.");
     }
 
@@ -143,45 +139,45 @@ void OpenTrustLineCommand::deserialize(
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
-        throw ValueError("OpenTrustLineCommand::deserialize: "
+        throw ValueError("SetTrustLineCommand::deserialize: "
                              "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 
     try {
         for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < command.length(); ++commandSeparatorPosition) {
             if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
-                mAmount = TrustLineAmount(command.substr(amountTokenOffset, commandSeparatorPosition - amountTokenOffset));
+                mNewAmount = TrustLineAmount(command.substr(amountTokenOffset, commandSeparatorPosition - amountTokenOffset));
             }
         }
 
     } catch (...) {
-        throw ValueError("OpenTrustLineCommand::deserialize: "
-                             "Can't parse command. Error occurred while parsing 'Amount' token.");
+        throw ValueError("SetTrustLineCommand::deserialize: "
+                             "Can't parse command. Error occurred while parsing 'New amount' token.");
     }
 
-    if (mAmount == TrustLineAmount(0)){
-        throw ValueError("OpenTrustLineCommand::deserialize: "
-                             "Can't parse command. Received 'Amount' can't be 0.");
+    if (mNewAmount == TrustLineAmount(0)){
+        throw ValueError("SetTrustLineCommand::deserialize: "
+                             "Can't parse command. Received 'New amount' can't be 0.");
     }
 }
 
-const CommandResult *OpenTrustLineCommand::resultOk() const{
+const CommandResult *SetTrustLineCommand::resultOk() const {
 
     return new CommandResult(
         commandUUID(),
-        201
+        200
     );
 }
 
-const CommandResult *OpenTrustLineCommand::trustLineAlreadyPresentResult() const{
+const CommandResult *SetTrustLineCommand::trustLineAbsentResult() const {
 
     return new CommandResult(
         commandUUID(),
-        409
+        404
     );
 }
 
-const CommandResult *OpenTrustLineCommand::resultConflict() const {
+const CommandResult *SetTrustLineCommand::resultConflict() const {
 
     return new CommandResult(
         commandUUID(),
@@ -189,7 +185,7 @@ const CommandResult *OpenTrustLineCommand::resultConflict() const {
     );
 }
 
-const CommandResult *OpenTrustLineCommand::resultNoResponse() const {
+const CommandResult *SetTrustLineCommand::resultNoResponse() const {
 
     return new CommandResult(
         commandUUID(),
@@ -197,7 +193,7 @@ const CommandResult *OpenTrustLineCommand::resultNoResponse() const {
     );
 }
 
-const CommandResult *OpenTrustLineCommand::resultTransactionConflict() const {
+const CommandResult *SetTrustLineCommand::resultTransactionConflict() const {
 
     return new CommandResult(
         commandUUID(),

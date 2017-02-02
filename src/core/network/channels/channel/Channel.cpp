@@ -2,7 +2,15 @@
 
 Channel::Channel() {
 
-    mPackets = new map<uint16_t, Packet::Shared, less<uint16_t>>();
+    try {
+        mPackets = new map<uint16_t, Packet::Shared, less<uint16_t>>();
+
+    } catch (std::bad_alloc&) {
+        throw MemoryError("Channel::Channel: "
+                              "Can not allocate memory for packets container.");
+    }
+    rememberCreationTime();
+    mExpectedPacketsCount, mOutgoingPacketsCount, mSendedPacketsCount = 0;
 }
 
 Channel::~Channel() {
@@ -36,11 +44,11 @@ bool Channel::checkConsistency() {
         if (mPackets->count(kCRCPacketNumber()) != 0) {
             uint32_t *controlSum = new(const_cast<byte *> (mPackets->at(kCRCPacketNumber())->body().get())) uint32_t;
 
-            auto channelData = data();
+            auto channelBytesAndCount = data();
             boost::crc_32_type control;
             control.process_bytes(
-                channelData.first.get(),
-                channelData.second
+                channelBytesAndCount.first.get(),
+                channelBytesAndCount.second
             );
 
             return control.checksum() == *controlSum;
@@ -52,28 +60,26 @@ bool Channel::checkConsistency() {
 pair<ConstBytesShared, size_t> Channel::data() {
 
     size_t totalBytesCount = 0;
-    for (auto &it : *mPackets) {
-        if (it.first != kCRCPacketNumber()) {
-            totalBytesCount += (size_t) it.second->header()->bodyBytesCount();
+    for (auto &numberAndChannel : *mPackets) {
+        if (numberAndChannel.first != kCRCPacketNumber()) {
+            totalBytesCount += (size_t) numberAndChannel.second->header()->bodyBytesCount();
         }
     }
 
-    byte *data = (byte *) malloc(totalBytesCount);
-    memset(
-        data,
-        0,
-        totalBytesCount
+    byte *data = (byte *) calloc(
+        totalBytesCount,
+        sizeof(byte)
     );
 
-    size_t nextPacketDataOffset = 0;
-    for (auto &it : *mPackets) {
-        if (it.first != kCRCPacketNumber()) {
+    size_t nextPacketBytesOffset = 0;
+    for (auto &numberAndChannel : *mPackets) {
+        if (numberAndChannel.first != kCRCPacketNumber()) {
             memcpy(
-                data + nextPacketDataOffset,
-                const_cast<byte *>(it.second->body().get()),
-                (size_t) it.second->header()->bodyBytesCount()
+                data + nextPacketBytesOffset,
+                const_cast<byte *>(numberAndChannel.second->body().get()),
+                (size_t) numberAndChannel.second->header()->bodyBytesCount()
             );
-            nextPacketDataOffset += it.second->header()->bodyBytesCount();
+            nextPacketBytesOffset += numberAndChannel.second->header()->bodyBytesCount();
         }
     }
 
@@ -87,6 +93,16 @@ pair<ConstBytesShared, size_t> Channel::data() {
 
 }
 
+void Channel::rememberCreationTime() {
+
+    mCreationTime = posix::second_clock::universal_time();
+}
+
+const Timestamp Channel::creationTime() const {
+
+    return mCreationTime;
+}
+
 const uint16_t Channel::expectedPacketsCount() const {
 
     return mExpectedPacketsCount;
@@ -97,19 +113,21 @@ const uint16_t Channel::realPacketsCount() const {
     return (uint16_t) mPackets->size();
 }
 
+void Channel::setOutgoingPacketsCount(
+    uint16_t packetsCount) {
+
+    mOutgoingPacketsCount = packetsCount;
+}
+
+bool Channel::increaseSendedPacketsCounter() {
+
+    mSendedPacketsCount += 1;
+    return mOutgoingPacketsCount == mSendedPacketsCount;
+}
+
 const map<uint16_t, Packet::Shared> *Channel::packets() const {
 
     return mPackets;
-}
-
-void Channel::rememberSendTime() {
-
-    mPacketsSendedTime = posix::second_clock::universal_time();
-}
-
-const Timestamp Channel::sendTime() const {
-
-    return mPacketsSendedTime;
 }
 
 const uint16_t Channel::kCRCPacketNumber() {

@@ -46,7 +46,11 @@ pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
     //----------------------------
     vector<byte> buffer;
     buffer.reserve(kTrustLineAmountSize);
-    export_bits(mTrustLineAmount, back_inserter(buffer), 8);
+    export_bits(
+        mTrustLineAmount,
+        back_inserter(buffer),
+        8
+    );
     size_t unusedBufferPlace = kTrustLineAmountSize - buffer.size();
     for (size_t i = 0; i < unusedBufferPlace; ++i) {
         buffer.push_back(0);

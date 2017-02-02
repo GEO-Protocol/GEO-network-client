@@ -1,10 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_CLOSETRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_CLOSETRUSTLINEMESSAGE_H
 
-#include "../Message.h"
+#include "../../Message.h"
 
-#include "../../../transactions/TransactionUUID.h"
-#include "../../../common/NodeUUID.h"
+#include "../../../../transactions/TransactionUUID.h"
+#include "../../../../common/NodeUUID.h"
 
 class CloseTrustLineMessage: public Message {
 

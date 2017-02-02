@@ -59,6 +59,9 @@ namespace db {
 
             const vector<uuids::uuid>* keys() const;
 
+            const bool isExist(
+                const uuids::uuid &uuid);
+
             void vacuum();
 
         private:

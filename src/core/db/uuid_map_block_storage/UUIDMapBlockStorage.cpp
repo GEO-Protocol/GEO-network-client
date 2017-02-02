@@ -155,6 +155,12 @@ namespace db {
             return uuidsVector;
         }
 
+        const bool UUIDMapBlockStorage::isExist(
+            const uuids::uuid &uuid) {
+
+            return mIndexBlock.count(uuid) != 0;
+        }
+
         void UUIDMapBlockStorage::vacuum() {
 
             UUIDMapBlockStorage *mapBlockStorage = nullptr;
@@ -468,7 +474,6 @@ namespace db {
 
             return mIndexBlock.count(uuid) > 0;
         }
-
     }
 }
 

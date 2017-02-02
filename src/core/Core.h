@@ -1,6 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_CORE_H
 #define GEO_NETWORK_CLIENT_CORE_H
 
+#include "common/Types.h"
 #include "common/NodeUUID.h"
 
 #include "settings/Settings.h"
@@ -48,6 +49,8 @@ private:
 
     void connectCommunicatorSignals();
 
+    void connectTrustLinesManagerSignals();
+
     void connectSignalsToSlots();
 
     void onMessageReceivedSlot(
@@ -56,6 +59,10 @@ private:
     void onMessageSendSlot(
         Message::Shared message,
         const NodeUUID &contractorUUID);
+
+    void onTrustLineCreatedSlot(
+        const NodeUUID &contractorUUID,
+        TrustLineDirection direction);
 
     void zeroPointers();
 

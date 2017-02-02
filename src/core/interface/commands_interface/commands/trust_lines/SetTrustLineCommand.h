@@ -1,5 +1,5 @@
-#ifndef GEO_NETWORK_CLIENT_OPENTRUSTLINECOMMAND_H
-#define GEO_NETWORK_CLIENT_OPENTRUSTLINECOMMAND_H
+#ifndef GEO_NETWORK_CLIENT_SETTRUSTLINECOMMAND_H
+#define GEO_NETWORK_CLIENT_SETTRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
 
@@ -10,23 +10,23 @@
 
 using namespace std;
 
-class  OpenTrustLineCommand: public BaseUserCommand {
+class SetTrustLineCommand: public BaseUserCommand {
 public:
-    typedef shared_ptr<OpenTrustLineCommand> Shared;
+    typedef shared_ptr<SetTrustLineCommand> Shared;
 
 public:
-    OpenTrustLineCommand(
-        const CommandUUID &uuid,
+    SetTrustLineCommand(
+        const CommandUUID &commandUUID,
         const string &commandBuffer);
 
-    OpenTrustLineCommand(
+    SetTrustLineCommand(
         BytesShared buffer);
 
     static const string &identifier();
 
     const NodeUUID &contractorUUID() const;
 
-    const TrustLineAmount &amount() const;
+    const TrustLineAmount &newAmount() const;
 
     pair<BytesShared, size_t> serializeToBytes();
 
@@ -34,7 +34,7 @@ public:
 
     const CommandResult *resultOk() const;
 
-    const CommandResult *trustLineAlreadyPresentResult() const;
+    const CommandResult *trustLineAbsentResult() const;
 
     const CommandResult *resultConflict() const;
 
@@ -53,7 +53,8 @@ private:
     const size_t kTrustLineAmountSize = 32;
 
     NodeUUID mContractorUUID;
-    TrustLineAmount mAmount;
+    TrustLineAmount mNewAmount;
 };
 
-#endif //GEO_NETWORK_CLIENT_OPENTRUSTLINECOMMAND_H
+
+#endif //GEO_NETWORK_CLIENT_SETTRUSTLINECOMMAND_H

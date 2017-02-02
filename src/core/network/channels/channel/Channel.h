@@ -6,6 +6,7 @@
 #include "../packet/Packet.h"
 
 #include "../../../common/exceptions/ConflictError.h"
+#include "../../../common/exceptions/MemoryError.h"
 
 #include <boost/crc.hpp>
 
@@ -35,25 +36,31 @@ public:
 
     pair<ConstBytesShared, size_t> data();
 
+    const Timestamp creationTime() const;
+
     const uint16_t expectedPacketsCount() const;
 
     const uint16_t realPacketsCount() const;
 
+    void setOutgoingPacketsCount(
+        uint16_t packetsCount);
+
+    bool increaseSendedPacketsCounter();
+
     const map<uint16_t, Packet::Shared, less<uint16_t>> *packets() const;
-
-    void rememberSendTime();
-
-    const Timestamp sendTime() const;
 
     static const uint16_t kCRCPacketNumber();
 
-public:
-    //static const uint16_t kCRCPacketNumber = 0;
+private:
+    void rememberCreationTime();
 
 private:
-    Timestamp mPacketsSendedTime;
+    Timestamp mCreationTime;
 
     uint16_t mExpectedPacketsCount;
+    uint16_t mOutgoingPacketsCount;
+    uint16_t mSendedPacketsCount;
+
     map<uint16_t, Packet::Shared, less<uint16_t>> *mPackets;
 };
 

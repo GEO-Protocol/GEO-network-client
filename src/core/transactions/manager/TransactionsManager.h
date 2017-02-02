@@ -6,15 +6,18 @@
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../logger/Logger.h"
 
+#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 #include "../scheduler/TransactionsScheduler.h"
 
 #include "../../interface/commands_interface/commands/BaseUserCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 
 #include "../../network/messages/Message.h"
-#include "../../network/messages/incoming/AcceptTrustLineMessage.h"
-#include "../../network/messages/incoming/RejectTrustLineMessage.h"
+#include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
+#include "../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
+#include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../../network/messages/response/Response.h"
 
 #include "../transactions/BaseTransaction.h"
@@ -23,12 +26,15 @@
 #include "../transactions/unique/trust_lines/AcceptTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/CloseTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
+#include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
+#include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
 
 #include <boost/signals2.hpp>
 
 #include <string>
 
 using namespace std;
+namespace storage = db::uuid_map_block_storage;
 namespace signals = boost::signals2;
 
 class TransactionsManager {
@@ -56,6 +62,8 @@ public:
         CommandResult::SharedConst result);
 
 private:
+    void loadTransactions();
+
     void createOpenTrustLineTransaction(
         BaseUserCommand::Shared command);
 
@@ -66,6 +74,12 @@ private:
         BaseUserCommand::Shared command);
 
     void createRejectTrustLineTransaction(
+        Message::Shared message);
+
+    void createSetTrustLineTransaction(
+        BaseUserCommand::Shared command);
+
+    void createUpdateTrustLineTransaction(
         Message::Shared message);
 
     void onMessageSend(
@@ -83,6 +97,7 @@ private:
     ResultsInterface *mResultsInterface;
     Logger *mLog;
 
+    storage::UUIDMapBlockStorage *mStorage;
     TransactionsScheduler *mTransactionsScheduler;
 };
 

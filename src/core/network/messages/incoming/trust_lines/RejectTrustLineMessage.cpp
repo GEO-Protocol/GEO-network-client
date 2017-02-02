@@ -6,10 +6,46 @@ RejectTrustLineMessage::RejectTrustLineMessage(
     deserialize(buffer);
 }
 
+const Message::MessageTypeID RejectTrustLineMessage::typeID() const {
+
+    return Message::MessageTypeID::RejectTrustLineMessageType;
+}
+
+const NodeUUID &RejectTrustLineMessage::contractorUUID() const {
+
+    return mContractorUUID;
+}
+
 pair<ConstBytesShared, size_t> RejectTrustLineMessage::serialize() {
 
-    throw NotImplementedError("RejectTrustLineMessage::serialize: "
-                                  "Method not implemented.");
+    size_t dataSize = NodeUUID::kBytesSize +
+                      TransactionUUID::kBytesSize +
+                      NodeUUID::kBytesSize;
+    byte *data = (byte *) calloc (dataSize, sizeof(byte));
+    //----------------------------
+    memcpy(
+        data,
+        mSenderUUID.data,
+        NodeUUID::kBytesSize
+    );
+    //----------------------------
+    memcpy(
+        data + NodeUUID::kBytesSize,
+        mTransactionUUID.data,
+        TransactionUUID::kBytesSize
+    );
+    //----------------------------
+    memcpy(
+        data + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
+        mContractorUUID.data,
+        NodeUUID::kBytesSize
+    );
+    //----------------------------
+
+    return make_pair(
+        ConstBytesShared(data, free),
+        dataSize
+    );
 }
 
 void RejectTrustLineMessage::deserialize(
@@ -35,14 +71,10 @@ void RejectTrustLineMessage::deserialize(
     );
 }
 
-const Message::MessageTypeID RejectTrustLineMessage::typeID() const {
+const size_t RejectTrustLineMessage::kRequestedBufferSize() {
 
-    return Message::MessageTypeID::RejectTrustLineMessageType;
-}
-
-const NodeUUID &RejectTrustLineMessage::contractorUUID() const {
-
-    return mContractorUUID;
+    static const size_t size = NodeUUID::kBytesSize + TransactionUUID::kBytesSize + NodeUUID::kBytesSize;
+    return size;
 }
 
 MessageResult::Shared RejectTrustLineMessage::resultRejected() {

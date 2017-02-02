@@ -15,6 +15,8 @@
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
 
+#include <boost/signals2.hpp>
+
 #include <map>
 #include <vector>
 #include <malloc.h>
@@ -22,11 +24,15 @@
 
 using namespace std;
 namespace storage = db::uuid_map_block_storage;
+namespace signals = boost::signals2;
 
 
 class TrustLinesManager {
     // todo: deprecated; Tests subclass should be used.
     friend class TrustLinesManagerTests;
+
+public:
+    signals::signal<void(const NodeUUID&, TrustLineDirection)> trustLineCreatedSignal;
 
 public:
     TrustLinesManager();

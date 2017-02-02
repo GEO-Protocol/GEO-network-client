@@ -30,7 +30,7 @@ Communicator::Communicator(
             uuid2AddressPort
         );
 
-        mChannelsManager = new ChannelsManager();
+        mChannelsManager = new ChannelsManager(mIOService);
 
         mIncomingMessagesHandler = new IncomingMessagesHandler(mChannelsManager);
 
@@ -57,15 +57,6 @@ void Communicator::connectIncomingMessagesHanlderSignals() {
             &Communicator::onMessageParsedSlot,
             this,
             _1
-        )
-    );
-
-    mIncomingMessagesHandler->sendServiceMessageSignal.connect(
-        boost::bind(
-            &Communicator::onSendServiceMessageSlot,
-            this,
-            _1,
-            _2
         )
     );
 }
@@ -114,7 +105,8 @@ void Communicator::sendMessage(
         sendData(
             numberAndPacket.second->packetBytes(),
             address,
-            numberAndChannel.second
+            numberAndChannel.second,
+            numberAndChannel.first
         );
     }
 
@@ -165,7 +157,8 @@ void Communicator::handleReceivedInfo(
 void Communicator::sendData(
     vector<byte> buffer,
     pair<string, uint16_t> address,
-    Channel::Shared channel) {
+    Channel::Shared channel,
+    uint16_t channelNumber) {
 
     ip::udp::endpoint destination(
         ip::address::from_string(address.first),
@@ -182,7 +175,8 @@ void Communicator::sendData(
             this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred,
-            channel
+            channel,
+            channelNumber
         )
     );
 }
@@ -190,7 +184,12 @@ void Communicator::sendData(
 void Communicator::handleSend(
     const boost::system::error_code &error,
     size_t bytesTransferred,
-    Channel::Shared channel) {
+    Channel::Shared channel,
+    uint16_t channelNumber) {
+
+    if (channel->increaseSendedPacketsCounter()) {
+        mChannelsManager->removeOutgoingChannel(channelNumber);
+    }
 
     if (error) {
         mLog->logError("Communicator::handleSend:",
@@ -200,22 +199,6 @@ void Communicator::handleSend(
     } else {
         mLog->logInfo("Communicator::handleSend: ",
                       string("Bytes transferred - ") + to_string(bytesTransferred));
-        channel->rememberSendTime();
-    }
-}
-
-void Communicator::handleServiceSend(
-    const boost::system::error_code &error,
-    size_t bytesTransferred) {
-
-    if (error) {
-        mLog->logError("Communicator::handleSeriveSend:",
-                       error.message()
-        );
-
-    } else {
-        mLog->logInfo("Communicator::handleSeriveSend: ",
-                      string("Bytes transferred - ") + to_string(bytesTransferred));
     }
 }
 
@@ -223,31 +206,6 @@ void Communicator::onMessageParsedSlot(
     Message::Shared message) {
 
     messageReceivedSignal(message);
-}
-
-void Communicator::onSendServiceMessageSlot(
-    ServiceMessage::Shared message,
-    pair<string, uint16_t> address) {
-
-    ip::udp::endpoint destination(
-        ip::address::from_string(address.first),
-        address.second);
-
-    vector<byte> buffer = message->serialize();
-
-    mSocket->async_send_to(
-        as::buffer(
-            buffer,
-            buffer.size()
-        ),
-        destination,
-        boost::bind(
-            &Communicator::handleServiceSend,
-            this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred
-        )
-    );
 }
 
 void Communicator::zeroPointers() {

@@ -15,14 +15,17 @@ public:
 
 public:
     TransactionState(
-            uint64_t timeout);
+            uint64_t timeout,
+            bool serialize);
 
     TransactionState(
-            Message::MessageTypeID transactionType);
+            Message::MessageTypeID transactionType,
+            bool serialize);
 
     TransactionState(
             uint64_t timeout,
-            Message::MessageTypeID transactionType);
+            Message::MessageTypeID transactionType,
+            bool serialize);
 
     ~TransactionState();
 
@@ -31,9 +34,12 @@ public:
 
     const vector<Message::MessageTypeID> transactionsTypes() const;
 
+    const bool needSerialize() const;
+
 private:
     uint64_t mTimeout;
     vector<Message::MessageTypeID> mTypes;
+    bool mSerialize;
 
 };
 

@@ -34,9 +34,13 @@ public:
     enum MessageTypeID {
         OpenTrustLineMessageType = 1,
         AcceptTrustLineMessageType = 2,
-        CloseTrustLineMessageType = 3,
-        RejectTrustLineMessageType = 4,
-        ResponseMessageType = 5
+        SetTrustLineMessageType = 3,
+        CloseTrustLineMessageType = 4,
+        RejectTrustLineMessageType = 5,
+        UpdateTrustLineMessageType = 6,
+        FirstLevelRoutingTableOutgoingMessageType = 7,
+        FirstLevelRoutingTableIncomingMessageType = 8,
+        ResponseMessageType = 9
     };
 
 public:
@@ -50,10 +54,11 @@ public:
 
     virtual pair<ConstBytesShared, size_t> serialize() = 0;
 
+    virtual const MessageTypeID typeID() const = 0;
+
+protected:
     virtual void deserialize(
         byte *buffer) = 0;
-
-    virtual const MessageTypeID typeID() const = 0;
 
 protected:
     NodeUUID mSenderUUID;

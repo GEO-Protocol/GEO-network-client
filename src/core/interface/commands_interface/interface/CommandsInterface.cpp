@@ -7,20 +7,6 @@ CommandsParser::CommandsParser(
     mLog(log) {}
 
 /**
- * Parses internal buffer for user commands.
- * Returns <true, command> in case, when command was parsed well.
- * Otherwise returns <false, nullptr>.
- *
- * This method should be called several times to parse all received commands.
- *
- * See: tryDeserializeCommand() for the details.
- */
-pair<bool, BaseUserCommand::Shared> CommandsParser::processReceivedCommands() {
-
-    return tryDeserializeCommand();
-}
-
-/**
  * Copies data, received from the commands FIFO, into the internal buffer.
  * There is a non-zero probability, that buffer will contains some part of previous command,
  * that was not parsed on previous steps. It may happen, when async read from FIFO returned
@@ -44,6 +30,20 @@ void CommandsParser::appendReadData(
     for (size_t i = 0; i < receivedBytesCount; ++i) {
         mBuffer.push_back(*data++);
     }
+}
+
+/**
+ * Parses internal buffer for user commands.
+ * Returns <true, command> in case, when command was parsed well.
+ * Otherwise returns <false, nullptr>.
+ *
+ * This method should be called several times to parse all received commands.
+ *
+ * See: tryDeserializeCommand() for the details.
+ */
+pair<bool, BaseUserCommand::Shared> CommandsParser::processReceivedCommands() {
+
+    return tryDeserializeCommand();
 }
 
 /*!
@@ -150,6 +150,12 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
             command = new CloseTrustLineCommand(
                 uuid,
                 buffer
+            );
+
+        } else if (identifier == SetTrustLineCommand::identifier()) {
+            command = new SetTrustLineCommand(
+              uuid,
+              buffer
             );
 
         } else {
@@ -321,9 +327,9 @@ void CommandsInterface::handleReceivedInfo(
         mCommandBuffer.consume(bytesTransferred);
 
         while (true) {
-            auto parsingResult = mCommandsParser->processReceivedCommands();
-            if (parsingResult.first){
-                mTransactionsManager->processCommand(parsingResult.second);
+            auto flagAndCommand = mCommandsParser->processReceivedCommands();
+            if (flagAndCommand.first){
+                mTransactionsManager->processCommand(flagAndCommand.second);
 
             } else {
                 break;

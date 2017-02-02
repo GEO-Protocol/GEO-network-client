@@ -2,10 +2,12 @@
 
 TransactionsScheduler::TransactionsScheduler(
     as::io_service &IOService,
+    storage::UUIDMapBlockStorage *storage,
     ManagerCallback managerCallback,
     Logger *logger) :
 
     mIOService(IOService),
+    mStorage(storage),
     mManagerCallback(managerCallback),
     mLog(logger) {
 
@@ -28,43 +30,12 @@ TransactionsScheduler::TransactionsScheduler(
                               "Can not allocate memory for deadline timer instance.");
     }
 
-    try{
-        mStorage = new storage::UUIDMapBlockStorage(
-            "io/transactions",
-            "transactions.dat");
-
-    } catch (std::bad_alloc &e) {
-        delete mTransactions;
-        delete mProcessingTimer;
-        throw MemoryError("TransactionsScheduler::TransactionsScheduler."
-                              "Can not allocate memory for UUIDMapBlockStorage instance.");
-    }
 }
 
 TransactionsScheduler::~TransactionsScheduler() {
 
     delete mTransactions;
     delete mProcessingTimer;
-    delete mStorage;
-}
-
-void TransactionsScheduler::scheduleTransaction(
-    BaseTransaction::Shared transaction) {
-
-    try {
-        /*auto transactionContext = transaction->serializeContext();
-        mStorage->write(
-         storage::uuids::commandUUID(transaction->transactionUUID()),
-         transactionContext.first,
-         transactionContext.second);*/
-
-        launchTransaction(transaction);
-
-    } catch (std::exception &e) {
-        mLog->logError("TransactionsScheduler",
-                       e.what());
-        sleepFor(findTransactionWithMinimalTimeout().second);
-    }
 }
 
 void TransactionsScheduler::run() {
@@ -78,6 +49,19 @@ void TransactionsScheduler::run() {
                            e.what());
             sleepFor(findTransactionWithMinimalTimeout().second);
         }
+    }
+}
+
+void TransactionsScheduler::scheduleTransaction(
+    BaseTransaction::Shared transaction) {
+
+    try {
+        launchTransaction(transaction);
+
+    } catch (std::exception &e) {
+        mLog->logError("TransactionsScheduler",
+                       e.what());
+        sleepFor(findTransactionWithMinimalTimeout().second);
     }
 }
 
@@ -139,6 +123,11 @@ void TransactionsScheduler::handleTransactionResult(
     if (result->messageResult().get() != nullptr) {
         if (isTransactionInScheduler(transaction)) {
             mTransactions->erase(transaction);
+            if (mStorage->isExist(storage::uuids::uuid(transaction->transactionUUID()))) {
+                mStorage->erase(
+                    storage::uuids::uuid(transaction->transactionUUID())
+                );
+            }
 
         } else {
             throw ValueError("TransactionsManager::handleTransactionResult. "
@@ -146,15 +135,28 @@ void TransactionsScheduler::handleTransactionResult(
         }
         //TODO:: journal
 
-    } else if (result->commandResult().get() == nullptr) {
+    } else if (result->commandResult().get() == nullptr && result->transactionState().get() != nullptr) {
         if (isTransactionInScheduler(transaction)) {
-            auto it = mTransactions->find(transaction);
-            it->second = result->transactionState();
-            /*auto transactionContext = transaction->serializeContext();
-             mStorage->rewrite(
-             storage::uuids::commandUUID(transaction->transactionUUID()),
-             transactionContext.first,
-             transactionContext.second);*/
+            auto transactionAndState = mTransactions->find(transaction);
+            transactionAndState->second = result->transactionState();
+            if (transactionAndState->second->needSerialize()) {
+
+                auto transactionBytesAndCount = transaction->serializeToBytes();
+                if (!mStorage->isExist(storage::uuids::uuid(transaction->transactionUUID()))) {
+                    mStorage->write(
+                        storage::uuids::uuid(transaction->transactionUUID()),
+                        transactionBytesAndCount.first.get(),
+                        transactionBytesAndCount.second
+                    );
+
+                } else {
+                    mStorage->rewrite(
+                        storage::uuids::uuid(transaction->transactionUUID()),
+                        transactionBytesAndCount.first.get(),
+                        transactionBytesAndCount.second
+                    );
+                }
+            }
 
         } else {
             throw ValueError("TransactionsManager::TransactionsScheduler"
@@ -165,12 +167,15 @@ void TransactionsScheduler::handleTransactionResult(
             sleepFor(minimalDelay);
         }
 
-    } else if (result->transactionState().get() == nullptr) {
+    } else if (result->transactionState().get() == nullptr && result->commandResult().get() != nullptr) {
         mManagerCallback(result->commandResult());
         if (isTransactionInScheduler(transaction)) {
             mTransactions->erase(transaction);
-            /*mStorage->erase(
-                storage::uuids::commandUUID(transaction->transactionUUID()));*/
+            if (mStorage->isExist(storage::uuids::uuid(transaction->transactionUUID()))) {
+                mStorage->erase(
+                    storage::uuids::uuid(transaction->transactionUUID())
+                );
+            }
 
         } else {
             throw ValueError("TransactionsManager::handleTransactionResult. "

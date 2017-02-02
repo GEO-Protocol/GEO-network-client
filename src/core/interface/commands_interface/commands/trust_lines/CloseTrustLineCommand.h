@@ -16,9 +16,16 @@ public:
         const CommandUUID &uuid,
         const string &commandBuffer);
 
+    CloseTrustLineCommand(
+        BytesShared buffer);
+
     static const string &identifier();
 
     const NodeUUID &contractorUUID() const;
+
+    pair<BytesShared, size_t> serializeToBytes();
+
+    static const size_t kRequestedBufferSize();
 
     const CommandResult *resultOk() const;
 
@@ -33,6 +40,9 @@ public:
 private:
     void deserialize(
         const string &command);
+
+    void deserializeFromBytes(
+        BytesShared buffer);
 
 private:
     NodeUUID mContractorUUID;

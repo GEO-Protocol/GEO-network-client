@@ -23,18 +23,22 @@ set(SOURCE_FILES
         channels/manager/ChannelsManager.h
         messages/Message.h
         messages/ServiceMessage.h
-        messages/outgoing/OpenTrustLineMessage.cpp
-        messages/outgoing/OpenTrustLineMessage.h
-        messages/outgoing/CloseTrustLineMessage.cpp
-        messages/outgoing/CloseTrustLineMessage.h
-        messages/incoming/RejectTrustLineMessage.cpp
-        messages/incoming/RejectTrustLineMessage.h
-        messages/incoming/AcceptTrustLineMessage.cpp
-        messages/incoming/AcceptTrustLineMessage.h
+        messages/outgoing/trust_lines/OpenTrustLineMessage.cpp
+        messages/outgoing/trust_lines/OpenTrustLineMessage.h
+        messages/outgoing/trust_lines/CloseTrustLineMessage.cpp
+        messages/outgoing/trust_lines/CloseTrustLineMessage.h
+        messages/outgoing/trust_lines/SetTrustLineMessage.cpp
+        messages/outgoing/trust_lines/SetTrustLineMessage.h
+        messages/incoming/trust_lines/RejectTrustLineMessage.cpp
+        messages/incoming/trust_lines/RejectTrustLineMessage.h
+        messages/incoming/trust_lines/AcceptTrustLineMessage.cpp
+        messages/incoming/trust_lines/AcceptTrustLineMessage.h
+        messages/incoming/trust_lines/UpdateTrustLineMessage.cpp
+        messages/incoming/trust_lines/UpdateTrustLineMessage.h
         messages/response/Response.cpp
         messages/response/Response.h
         messages/result/MessageResult.cpp
-        messages/result/MessageResult.h)
+        messages/result/MessageResult.h messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.cpp messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.cpp messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h)
 
 add_library(network ${SOURCE_FILES})
 target_link_libraries(network

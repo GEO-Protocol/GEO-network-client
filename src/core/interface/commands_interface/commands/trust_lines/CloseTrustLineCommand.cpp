@@ -11,6 +11,13 @@ CloseTrustLineCommand::CloseTrustLineCommand(
 
     deserialize(commandBuffer);
 }
+
+CloseTrustLineCommand::CloseTrustLineCommand(
+    BytesShared buffer) {
+
+    deserializeFromBytes(buffer);
+}
+
 const string &CloseTrustLineCommand::identifier() {
 
     static const string identifier = "REMOVE:contractors/trust-lines";
@@ -21,6 +28,50 @@ const NodeUUID &CloseTrustLineCommand::contractorUUID() const {
 
     return mContractorUUID;
 
+}
+
+pair<BytesShared, size_t> CloseTrustLineCommand::serializeToBytes() {
+
+    auto parentBytesAndCount = serializeParentToBytes();
+
+    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize;
+    byte *data = (byte *) calloc(bytesCount, sizeof(byte));
+    //----------------------------------------------------
+    memcpy(
+        data,
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second
+    );
+    //----------------------------------------------------
+    memcpy(
+        data + parentBytesAndCount.second,
+        mContractorUUID.data,
+        NodeUUID::kBytesSize
+    );
+    //----------------------------------------------------
+    return make_pair(
+        BytesShared(data, free),
+        bytesCount
+    );
+}
+
+void CloseTrustLineCommand::deserializeFromBytes(
+    BytesShared buffer) {
+
+    deserializeParentFromBytes(buffer);
+    //----------------------------------------------------
+    memcpy(
+        mContractorUUID.data,
+        buffer.get() + kOffsetToInheritBytes(),
+        NodeUUID::kBytesSize
+    );
+    //----------------------------------------------------
+}
+
+const size_t CloseTrustLineCommand::kRequestedBufferSize() {
+
+    static const size_t size = kOffsetToInheritBytes() + NodeUUID::kBytesSize;
+    return size;
 }
 
 /**

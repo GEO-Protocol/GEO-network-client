@@ -26,12 +26,12 @@ public:
 
 public:
     enum TransactionType {
-        OpenTrustLineTransactionType,
-        AcceptTrustLineTransactionType,
-        UpdateTrustLineTransactionType,
-        SetTrustLineTransactionType,
-        CloseTrustLineTransactionType,
-        RejectTrustLineTransactionType
+        OpenTrustLineTransactionType = 1,
+        AcceptTrustLineTransactionType = 2,
+        SetTrustLineTransactionType = 3,
+        CloseTrustLineTransactionType = 4,
+        RejectTrustLineTransactionType = 5,
+        UpdateTrustLineTransactionType = 6,
     };
 
 public:
@@ -49,12 +49,16 @@ public:
 
     pair<ConstBytesShared, size_t> serializeContext();
 
+    virtual pair<BytesShared, size_t> serializeToBytes() = 0;
+
     virtual TransactionResult::Shared run() = 0;
 
 protected:
     BaseTransaction(
         TransactionType type,
         NodeUUID &nodeUUID);
+
+    BaseTransaction();
 
     void addMessage(
         Message::Shared message,
@@ -64,9 +68,22 @@ protected:
 
     void increaseRequestsCounter();
 
+    pair<BytesShared, size_t> serializeParentToBytes();
+
+    void deserializeParentFromBytes(
+        BytesShared buffer);
+
+    virtual void deserializeFromBytes(
+        BytesShared buffer) = 0;
+
+    const size_t kOffsetToDataBytes();
+
+    TransactionResult::Shared transactionResultFromCommand(
+        CommandResult::Shared result);
+
 protected:
     TransactionType mType;
-    NodeUUID &mNodeUUID;
+    NodeUUID mNodeUUID;
 
     TransactionUUID mTransactionUUID;
     Message::Shared mContext;

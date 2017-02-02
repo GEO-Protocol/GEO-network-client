@@ -9,9 +9,9 @@
 #include "../channels/manager/ChannelsManager.h"
 
 #include "../messages/Message.h"
-#include "../messages/ServiceMessage.h"
-#include "../messages/incoming/AcceptTrustLineMessage.h"
-#include "../messages/incoming/RejectTrustLineMessage.h"
+#include "../messages/incoming/trust_lines/AcceptTrustLineMessage.h"
+#include "../messages/incoming/trust_lines/RejectTrustLineMessage.h"
+#include "../messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../messages/response/Response.h"
 
 #include "../../common/exceptions/ValueError.h"
@@ -60,7 +60,6 @@ private:
 class IncomingMessagesHandler {
 public:
     signals::signal<void(Message::Shared)> messageParsedSignal;
-    signals::signal<void(ServiceMessage::Shared, pair<string, uint16_t>)> sendServiceMessageSignal;
 
 public:
     IncomingMessagesHandler(
@@ -77,20 +76,10 @@ private:
     void tryCollectPacket(
         udp::endpoint &clientEndpoint);
 
-    void tryProcessServiceMessage(
-        ServiceMessage::Shared message);
-
-    void sendServiceMessage(
-      ServiceMessage::ServiceMessageType messageType,
-      uint16_t value,
-      pair<string, uint16_t> address);
-
     void cutPacketFromBuffer(
         size_t bytesCount);
 
 private:
-    const uint16_t kMaximalUDPPacketSize = 502;
-
     ChannelsManager *mChannelsManager;
 
     MessagesParser *mMessagesParser;
