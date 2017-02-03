@@ -18,41 +18,38 @@ const TrustLineAmount &AcceptTrustLineMessage::amount() const {
 
 pair<ConstBytesShared, size_t> AcceptTrustLineMessage::serialize() {
 
-    size_t dataSize = NodeUUID::kBytesSize +
-                      TransactionUUID::kBytesSize +
-                      kTrustLineAmountSize;
-    byte *data = (byte *) calloc (dataSize, sizeof(byte));
-    //----------------------------
+    auto parentBytesAndCount = serializeParentToBytes();
+
+    size_t dataSize = parentBytesAndCount.second + kTrustLineAmountSize;
+
+    byte *data = (byte *) calloc(
+        dataSize,
+        sizeof(byte)
+    );
+
     memcpy(
         data,
-        mSenderUUID.data,
-        NodeUUID::kBytesSize
+        const_cast<byte *> (parentBytesAndCount.first.get()),
+        parentBytesAndCount.second
     );
     //----------------------------
-    memcpy(
-        data + NodeUUID::kBytesSize,
-        mTransactionUUID.data,
-        TransactionUUID::kBytesSize
-    );
-    //----------------------------
-    vector<byte> buffer;
-    buffer.reserve(kTrustLineAmountSize);
+    vector<byte> trustAmountBytesBuffer;
+    trustAmountBytesBuffer.reserve(kTrustLineAmountSize);
     export_bits(
         mTrustLineAmount,
-        back_inserter(buffer),
+        back_inserter(trustAmountBytesBuffer),
         8
     );
-    size_t unusedBufferPlace = kTrustLineAmountSize - buffer.size();
+    size_t unusedBufferPlace = kTrustLineAmountSize - trustAmountBytesBuffer.size();
     for (size_t i = 0; i < unusedBufferPlace; ++i) {
-        buffer.push_back(0);
+        trustAmountBytesBuffer.push_back(0);
     }
     memcpy(
-        data + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
-        buffer.data(),
-        buffer.size()
+        data + parentBytesAndCount.second,
+        trustAmountBytesBuffer.data(),
+        trustAmountBytesBuffer.size()
     );
     //----------------------------
-
     return make_pair(
         ConstBytesShared(data, free),
         dataSize
@@ -61,29 +58,19 @@ pair<ConstBytesShared, size_t> AcceptTrustLineMessage::serialize() {
 
 void AcceptTrustLineMessage::deserialize(
     byte *buffer) {
-    //------------------------------
-    memcpy(
-        mSenderUUID.data,
-        buffer,
-        NodeUUID::kBytesSize
-    );
-    //------------------------------
-    memcpy(
-        mTransactionUUID.data,
-        buffer + NodeUUID::kBytesSize,
-        TransactionUUID::kBytesSize
-    );
+
+    deserializeParentFromBytes(buffer);
     //------------------------------
     vector<byte> amountBytes(
-        buffer + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
-        buffer + NodeUUID::kBytesSize + TransactionUUID::kBytesSize + kTrustLineAmountSize);
+        buffer + kOffsetToInheritBytes(),
+        buffer + kOffsetToInheritBytes() + kTrustLineAmountSize);
 
     vector<byte> amountNotZeroBytes;
     amountNotZeroBytes.reserve(kTrustLineAmountSize);
 
-    for (auto &item : amountBytes) {
-        if (item != 0) {
-            amountNotZeroBytes.push_back(item);
+    for (auto &amountByte : amountBytes) {
+        if (amountByte != 0) {
+            amountNotZeroBytes.push_back(amountByte);
         }
     }
 
@@ -106,7 +93,7 @@ void AcceptTrustLineMessage::deserialize(
 const size_t AcceptTrustLineMessage::kRequestedBufferSize() {
 
     const size_t trustAmountBytesSize = 32;
-    static const size_t size = NodeUUID::kBytesSize + TransactionUUID::kBytesSize + trustAmountBytesSize;
+    static const size_t size = kOffsetToInheritBytes() + trustAmountBytesSize;
     return size;
 }
 

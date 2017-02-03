@@ -16,9 +16,9 @@ public:
 
 public:
     SecondLevelRoutingTableOutgoingMessage(
-        NodeUUID &sender,
-        TransactionUUID &transactionUUID,
-        NodeUUID &contractor);
+        NodeUUID &senderUUID,
+        NodeUUID &contractorUUID,
+        TrustLineUUID &trustLineUUID);
 
 private:
     const MessageTypeID typeID() const;

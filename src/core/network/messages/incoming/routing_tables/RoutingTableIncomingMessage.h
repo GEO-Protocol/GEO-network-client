@@ -1,28 +1,27 @@
 #ifndef GEO_NETWORK_CLIENT_ROUTINGTABLEINCOMINGMESSAGE_H
 #define GEO_NETWORK_CLIENT_ROUTINGTABLEINCOMINGMESSAGE_H
 
-#include "../../Message.h"
+#include "../../RoutingTablesMessage.h"
 
 #include "../../../../common/Types.h"
 
 #include "../../../../common/NodeUUID.h"
-#include "../../../../transactions/TransactionUUID.h"
 
 #include "../../../../common/exceptions/MemoryError.h"
 
 #include <memory>
+#include <utility>
+#include <stdint.h>
 
 using namespace std;
 
-class RoutingTableIncomingMessage : public Message {
+class RoutingTableIncomingMessage : public RoutingTablesMessage {
 public:
     typedef shared_ptr<RoutingTableIncomingMessage> Shared;
 
 protected:
     RoutingTableIncomingMessage(
         byte *buffer);
-
-    ~RoutingTableIncomingMessage();
 
     virtual const MessageTypeID typeID() const = 0;
 
@@ -33,7 +32,6 @@ private:
         byte* buffer);
 
 protected:
-    NodeUUID mContractor;
     unique_ptr<map<NodeUUID, TrustLineDirection>> mRecords;
 
 };

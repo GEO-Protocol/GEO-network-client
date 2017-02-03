@@ -10,7 +10,10 @@ Response::Response(NodeUUID sender,
                    TransactionUUID transactionUUID,
                    uint16_t code) :
 
-    Message(sender, transactionUUID) {
+    TrustLinesMessage(
+        sender,
+        transactionUUID
+    ) {
 
     mCode = code;
 }
@@ -22,42 +25,27 @@ uint16_t Response::code() {
 
 pair<ConstBytesShared, size_t> Response::serialize() {
 
-    size_t dataSize = sizeof(uint16_t) +
-                      NodeUUID::kBytesSize +
-                      TransactionUUID::kBytesSize +
-                      sizeof(uint16_t);
-    byte * data = (byte *) malloc(dataSize);
-    memset(
-        data,
-        0,
-        dataSize
+    auto parentBytesAndCount = serializeParentToBytes();
+
+    size_t dataSize = parentBytesAndCount.second + sizeof(uint16_t);
+
+    byte *data = (byte *) calloc(
+        dataSize,
+        sizeof(byte)
     );
 
-    uint16_t type = typeID();
     memcpy(
         data,
-        &type,
-        sizeof(uint16_t)
+        const_cast<byte *> (parentBytesAndCount.first.get()),
+        parentBytesAndCount.second
     );
-
+    //----------------------------
     memcpy(
-        data + sizeof(uint16_t),
-        mSenderUUID.data,
-        NodeUUID::kBytesSize
-    );
-
-    memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize,
-        mTransactionUUID.data,
-        TransactionUUID::kBytesSize
-    );
-
-    memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
+        data + parentBytesAndCount.second,
         &mCode,
         sizeof(uint16_t)
     );
-
+    //----------------------------
     return make_pair(
         ConstBytesShared(data, free),
         dataSize
@@ -66,20 +54,9 @@ pair<ConstBytesShared, size_t> Response::serialize() {
 
 void Response::deserialize(byte *buffer) {
 
+    deserializeParentFromBytes(buffer);
     //------------------------------
-    memcpy(
-        mSenderUUID.data,
-        buffer,
-        NodeUUID::kBytesSize
-    );
-    //------------------------------
-    memcpy(
-        mTransactionUUID.data,
-        buffer + NodeUUID::kBytesSize,
-        TransactionUUID::kBytesSize
-    );
-    //------------------------------
-    uint16_t *code = new (buffer + NodeUUID::kBytesSize + TransactionUUID::kBytesSize) uint16_t;
+    uint16_t *code = new (buffer + kOffsetToInheritBytes()) uint16_t;
     mCode = *code;
 }
 

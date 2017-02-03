@@ -5,63 +5,51 @@ OpenTrustLineMessage::OpenTrustLineMessage(
     TransactionUUID &transactionUUID,
     TrustLineAmount amount) :
 
-    Message(
+    TrustLinesMessage(
         sender,
         transactionUUID
     ),
     mTrustLineAmount(amount) {}
 
+const Message::MessageTypeID OpenTrustLineMessage::typeID() const {
+
+    return Message::MessageTypeID::OpenTrustLineMessageType;
+}
+
 pair<ConstBytesShared, size_t> OpenTrustLineMessage::serialize() {
 
-    size_t dataSize = sizeof(uint16_t) +
-        NodeUUID::kBytesSize +
-        TransactionUUID::kBytesSize +
-        kTrustLineAmountSize;
-    byte *data = (byte *) malloc (dataSize);
-    memset(
-        data,
-        0,
-        dataSize
+    auto parentBytesAndCount = serializeParentToBytes();
+
+    size_t dataSize = parentBytesAndCount.second + kTrustLineAmountSize;
+
+    byte *data = (byte *) calloc(
+        dataSize,
+        sizeof(byte)
     );
 
-    //----------------------------
-    uint16_t type = typeID();
     memcpy(
         data,
-        &type,
-        sizeof(uint16_t)
+        const_cast<byte *> (parentBytesAndCount.first.get()),
+        parentBytesAndCount.second
     );
     //----------------------------
-    memcpy(
-      data + sizeof(uint16_t),
-      mSenderUUID.data,
-      NodeUUID::kBytesSize
-    );
-    //----------------------------
-    memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize,
-        mTransactionUUID.data,
-        TransactionUUID::kBytesSize
-    );
-    //----------------------------
-    vector<byte> buffer;
-    buffer.reserve(kTrustLineAmountSize);
+    vector<byte> trustAmountBytesBuffer;
+    trustAmountBytesBuffer.reserve(kTrustLineAmountSize);
     export_bits(
         mTrustLineAmount,
-        back_inserter(buffer),
+        back_inserter(trustAmountBytesBuffer),
         8
     );
-    size_t unusedBufferPlace = kTrustLineAmountSize - buffer.size();
+    size_t unusedBufferPlace = kTrustLineAmountSize - trustAmountBytesBuffer.size();
     for (size_t i = 0; i < unusedBufferPlace; ++i) {
-        buffer.push_back(0);
+        trustAmountBytesBuffer.push_back(0);
     }
     memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
-        buffer.data(),
-        buffer.size()
+        data + parentBytesAndCount.second,
+        trustAmountBytesBuffer.data(),
+        trustAmountBytesBuffer.size()
     );
     //----------------------------
-
     return make_pair(
         ConstBytesShared(data, free),
         dataSize
@@ -74,13 +62,3 @@ void OpenTrustLineMessage::deserialize(
     throw NotImplementedError("OpenTrustLineMessage::deserialize: "
                                   "Method not implemented.");
 }
-
-const Message::MessageTypeID OpenTrustLineMessage::typeID() const {
-
-    return Message::MessageTypeID::OpenTrustLineMessageType;
-}
-
-
-
-
-

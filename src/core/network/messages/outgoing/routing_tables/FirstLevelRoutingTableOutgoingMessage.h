@@ -6,7 +6,7 @@
 #include "../../../../common/Types.h"
 
 #include "../../../../common/NodeUUID.h"
-#include "../../../../transactions/TransactionUUID.h"
+#include "../../../../trust_lines/TrustLineUUID.h"
 
 #include <memory>
 
@@ -16,13 +16,12 @@ public:
 
 public:
     FirstLevelRoutingTableOutgoingMessage(
-        NodeUUID &sender,
-        TransactionUUID &transactionUUID,
-        NodeUUID &contractor);
+        NodeUUID &senderUUID,
+        NodeUUID &contractorUUID,
+        TrustLineUUID &trustLineUUID);
 
 private:
     const MessageTypeID typeID() const;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_FIRSTLEVELROUTINGTABLEOUTGOINGMESSAGE_H

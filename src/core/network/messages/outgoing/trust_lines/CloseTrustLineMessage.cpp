@@ -5,7 +5,7 @@ CloseTrustLineMessage::CloseTrustLineMessage(
     TransactionUUID &transactionUUID,
     NodeUUID &contractorUUID) :
 
-    Message(
+    TrustLinesMessage(
         sender,
         transactionUUID
     ),
@@ -13,46 +13,34 @@ CloseTrustLineMessage::CloseTrustLineMessage(
 
 }
 
+const Message::MessageTypeID CloseTrustLineMessage::typeID() const {
+
+    return Message::MessageTypeID::CloseTrustLineMessageType;
+}
+
 pair<ConstBytesShared, size_t> CloseTrustLineMessage::serialize() {
 
-    size_t dataSize = sizeof(uint16_t) +
-                      NodeUUID::kBytesSize +
-                      TransactionUUID::kBytesSize +
-                      NodeUUID::kBytesSize;
-    byte *data = (byte *) malloc (dataSize);
-    memset(
-        data,
-        0,
-        dataSize
+    auto parentBytesAndCount = serializeParentToBytes();
+
+    size_t dataSize = parentBytesAndCount.second + NodeUUID::kBytesSize;
+
+    byte *data = (byte *) calloc(
+        dataSize,
+        sizeof(byte)
     );
 
-    //----------------------------
-    uint16_t type = typeID();
     memcpy(
         data,
-        &type,
-        sizeof(uint16_t)
+        const_cast<byte *> (parentBytesAndCount.first.get()),
+        parentBytesAndCount.second
     );
     //----------------------------
     memcpy(
-        data + sizeof(uint16_t),
-        mSenderUUID.data,
-        NodeUUID::kBytesSize
-    );
-    //----------------------------
-    memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize,
-        mTransactionUUID.data,
-        TransactionUUID::kBytesSize
-    );
-    //----------------------------
-    memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
+        data + parentBytesAndCount.second,
         mContractorUUID.data,
         NodeUUID::kBytesSize
     );
     //----------------------------
-
     return make_pair(
         ConstBytesShared(data, free),
         dataSize
@@ -64,9 +52,4 @@ void CloseTrustLineMessage::deserialize(
 
     throw NotImplementedError("CloseTrustLineMessage::deserialize: "
                                   "Method not implemented.");
-}
-
-const Message::MessageTypeID CloseTrustLineMessage::typeID() const {
-
-    return Message::MessageTypeID::CloseTrustLineMessageType;
 }

@@ -108,7 +108,7 @@ bool SendRoutingTablesTransaction::checkFirstLevelExchangeContext() {
 
 void SendRoutingTablesTransaction::sendMessageWithFirstLevelRoutingTable() {
 
-    FirstLevelRoutingTableOutgoingMessage *firstLevelMessage = new FirstLevelRoutingTableOutgoingMessage(
+    /*FirstLevelRoutingTableOutgoingMessage *firstLevelMessage = new FirstLevelRoutingTableOutgoingMessage(
         mNodeUUID,
         mTransactionUUID,
         mContractorUUID
@@ -125,7 +125,7 @@ void SendRoutingTablesTransaction::sendMessageWithFirstLevelRoutingTable() {
     addMessage(
         message,
         mContractorUUID
-    );
+    );*/
 
 }
 

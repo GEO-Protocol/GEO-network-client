@@ -1,19 +1,20 @@
 #ifndef GEO_NETWORK_CLIENT_ACCEPTTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_ACCEPTTRUSTLINEMESSAGE_H
 
-#include "../../Message.h"
+#include "../../TrustLinesMessage.h"
 
 #include "../../../../common/Types.h"
 
 #include "../../result/MessageResult.h"
 
-#include <string>
-#include <vector>
 #include <memory>
+#include <utility>
+#include <stdint.h>
+#include <malloc.h>
 
 using namespace std;
 
-class AcceptTrustLineMessage : public Message {
+class AcceptTrustLineMessage : public TrustLinesMessage {
 public:
     typedef shared_ptr<AcceptTrustLineMessage> Shared;
 
@@ -21,9 +22,9 @@ public:
     AcceptTrustLineMessage(
         byte* buffer);
 
-    const MessageTypeID typeID() const;
-
     const TrustLineAmount &amount() const;
+
+    const MessageTypeID typeID() const;
 
     pair<ConstBytesShared, size_t> serialize();
 
@@ -48,8 +49,6 @@ public:
     static const uint16_t kResultCodeTransactionConflict = 500;
 
 private:
-    const size_t kTrustLineAmountSize = 32;
-
     TrustLineAmount mTrustLineAmount;
 };
 

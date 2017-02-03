@@ -1,13 +1,20 @@
 #ifndef GEO_NETWORK_CLIENT_REJECTTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_REJECTTRUSTLINEMESSAGE_H
 
-#include "../../Message.h"
+#include "../../TrustLinesMessage.h"
 
 #include "../../../../common/Types.h"
 
 #include "../../result/MessageResult.h"
 
-class RejectTrustLineMessage : public Message {
+#include <memory>
+#include <utility>
+#include <stdint.h>
+#include <malloc.h>
+
+using namespace std;
+
+class RejectTrustLineMessage : public TrustLinesMessage {
 public:
     typedef shared_ptr<RejectTrustLineMessage> Shared;
 

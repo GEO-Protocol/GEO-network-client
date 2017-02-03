@@ -1,12 +1,19 @@
 #ifndef GEO_NETWORK_CLIENT_CLOSETRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_CLOSETRUSTLINEMESSAGE_H
 
-#include "../../Message.h"
+#include "../../TrustLinesMessage.h"
 
-#include "../../../../transactions/TransactionUUID.h"
+#include "../../../../common/Types.h"
+
 #include "../../../../common/NodeUUID.h"
+#include "../../../../transactions/TransactionUUID.h"
 
-class CloseTrustLineMessage: public Message {
+#include <memory>
+#include <utility>
+#include <stdint.h>
+#include <malloc.h>
+
+class CloseTrustLineMessage: public TrustLinesMessage {
 
 public:
     CloseTrustLineMessage(
@@ -15,12 +22,13 @@ public:
         NodeUUID &contractorUUID
     );
 
+    const MessageTypeID typeID() const;
+
     pair<ConstBytesShared, size_t> serialize();
 
+private:
     void deserialize(
         byte* buffer);
-
-    const MessageTypeID typeID() const;
 
 private:
     NodeUUID mContractorUUID;

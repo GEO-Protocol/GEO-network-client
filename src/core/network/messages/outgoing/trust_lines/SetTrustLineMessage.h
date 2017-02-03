@@ -1,14 +1,19 @@
 #ifndef GEO_NETWORK_CLIENT_SETTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_SETTRUSTLINEMESSAGE_H
 
-#include "../../Message.h"
+#include "../../TrustLinesMessage.h"
 
 #include "../../../../common/Types.h"
 
-#include "../../../../transactions/TransactionUUID.h"
 #include "../../../../common/NodeUUID.h"
+#include "../../../../transactions/TransactionUUID.h"
 
-class SetTrustLineMessage : public Message {
+#include <memory>
+#include <utility>
+#include <stdint.h>
+#include <malloc.h>
+
+class SetTrustLineMessage : public TrustLinesMessage {
 
 public:
     SetTrustLineMessage(
@@ -16,16 +21,15 @@ public:
         TransactionUUID &transactionUUID,
         TrustLineAmount newAmount);
 
+    const MessageTypeID typeID() const;
+
     pair<ConstBytesShared, size_t> serialize();
 
+private:
     void deserialize(
         byte* buffer);
 
-    const MessageTypeID typeID() const;
-
 private:
-    const size_t kTrustLineAmountSize = 32;
-
     TrustLineAmount mNewTrustLineAmount;
 };
 

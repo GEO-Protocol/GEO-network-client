@@ -22,6 +22,7 @@ set(SOURCE_FILES
         channels/manager/ChannelsManager.cpp
         channels/manager/ChannelsManager.h
         messages/Message.h
+        messages/TrustLinesMessage.h
         messages/outgoing/trust_lines/OpenTrustLineMessage.cpp
         messages/outgoing/trust_lines/OpenTrustLineMessage.h
         messages/outgoing/trust_lines/CloseTrustLineMessage.cpp
@@ -49,7 +50,7 @@ set(SOURCE_FILES
         messages/response/Response.cpp
         messages/response/Response.h
         messages/result/MessageResult.cpp
-        messages/result/MessageResult.h)
+        messages/result/MessageResult.h messages/RoutingTablesMessage.h)
 
 add_library(network ${SOURCE_FILES})
 target_link_libraries(network

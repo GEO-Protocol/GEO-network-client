@@ -1,15 +1,15 @@
 #include "RoutingTableOutgoingMessage.h"
 
 RoutingTableOutgoingMessage::RoutingTableOutgoingMessage(
-    NodeUUID &sender,
-    TransactionUUID &transactionUUID,
-    NodeUUID &contractor) :
+    NodeUUID &senderUUID,
+    NodeUUID &contractorUUID,
+    TrustLineUUID &trustLineUUID) :
 
-    Message(
-        sender,
-        transactionUUID
-    ),
-    mContractor(contractor){
+    RoutingTablesMessage(
+        senderUUID,
+        contractorUUID,
+        trustLineUUID
+    ) {
 
     try {
         mRecords = unique_ptr<map<NodeUUID, TrustLineDirection>>(new map<NodeUUID, TrustLineDirection>);
@@ -20,48 +20,38 @@ RoutingTableOutgoingMessage::RoutingTableOutgoingMessage(
     }
 }
 
-RoutingTableOutgoingMessage::~RoutingTableOutgoingMessage() {}
+void RoutingTableOutgoingMessage::pushBack(
+    NodeUUID &neighbor,
+    TrustLineDirection direction) {
+
+    try {
+        mRecords->insert(
+            make_pair(
+                neighbor,
+                direction
+            )
+        );
+
+    } catch (std::bad_alloc&) {
+        throw MemoryError("RoutingTableOutgoingMessage::pushBack: "
+                              "Can not reallocate memory when insert new element in routing table container.");
+    }
+}
 
 pair<ConstBytesShared, size_t> RoutingTableOutgoingMessage::serialize() {
 
-    size_t dataSize = sizeof(uint16_t) +
-        NodeUUID::kBytesSize +
-        TransactionUUID::kBytesSize +
-        NodeUUID::kBytesSize +
-        sizeof(uint32_t) +
-        (mRecords->size() * (NodeUUID::kBytesSize + sizeof(uint8_t)));
+    auto parentBytesAndCount = serializeParentToBytes();
 
+    size_t dataSize = parentBytesAndCount.second + (mRecords->size() * (NodeUUID::kBytesSize + sizeof(uint8_t)));
     byte *data = (byte *) calloc(dataSize, sizeof(byte));
-    size_t dataBufferOffset = 0;
-    //---------------------------------------------------
-    uint16_t type = typeID();
+
     memcpy(
         data,
-        &type,
-        sizeof(uint16_t)
+        const_cast<byte *> (parentBytesAndCount.first.get()),
+        parentBytesAndCount.second
     );
-    dataBufferOffset += sizeof(uint16_t);
-    //---------------------------------------------------
-    memcpy(
-        data + dataBufferOffset,
-        mSenderUUID.data,
-        NodeUUID::kBytesSize
-    );
-    dataBufferOffset += NodeUUID::kBytesSize;
-    //---------------------------------------------------
-    memcpy(
-        data + dataBufferOffset,
-        mTransactionUUID.data,
-        TransactionUUID::kBytesSize
-    );
-    dataBufferOffset += TransactionUUID::kBytesSize;
-    //---------------------------------------------------
-    memcpy(
-        data + dataBufferOffset,
-        mContractor.data,
-        NodeUUID::kBytesSize
-    );
-    dataBufferOffset += NodeUUID::kBytesSize;
+    size_t dataBufferOffset = parentBytesAndCount.second;
+
     //---------------------------------------------------
     uint32_t recordsCount = mRecords->size();
     memcpy(
@@ -89,10 +79,7 @@ pair<ConstBytesShared, size_t> RoutingTableOutgoingMessage::serialize() {
     }
     //---------------------------------------------------
     return make_pair(
-      ConstBytesShared(
-          data,
-          free
-      ),
+      ConstBytesShared(data, free),
       dataSize
     );
 
@@ -103,22 +90,4 @@ void RoutingTableOutgoingMessage::deserialize(
 
     throw NotImplementedError("RoutingTableOutgoingMessage::deserialize: "
                                   "Method not implemented.");
-}
-
-void RoutingTableOutgoingMessage::pushBack(
-    NodeUUID &neighbor,
-    TrustLineDirection direction) {
-
-    try {
-        mRecords->insert(
-            make_pair(
-                neighbor,
-                direction
-            )
-        );
-
-    } catch (std::bad_alloc&) {
-        throw MemoryError("RoutingTableOutgoingMessage::pushBack: "
-                              "Can not reallocate memory when insert new element in routing table container.");
-    }
 }

@@ -1,19 +1,20 @@
 #ifndef GEO_NETWORK_CLIENT_UPDATETRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_UPDATETRUSTLINEMESSAGE_H
 
-#include "../../Message.h"
+#include "../../TrustLinesMessage.h"
 
 #include "../../../../common/Types.h"
 
 #include "../../result/MessageResult.h"
 
-#include <string>
-#include <vector>
 #include <memory>
+#include <utility>
+#include <stdint.h>
+#include <malloc.h>
 
 using namespace std;
 
-class UpdateTrustLineMessage : public Message {
+class UpdateTrustLineMessage : public TrustLinesMessage {
 public:
     typedef shared_ptr<UpdateTrustLineMessage> Shared;
 
@@ -51,8 +52,6 @@ public:
     static const uint16_t kResultCodeTransactionConflict = 500;
 
 private:
-    const size_t kTrustLineAmountSize = 32;
-
     TrustLineAmount mNewTrustLineAmount;
 };
 
