@@ -4,7 +4,7 @@ BaseUserCommand::BaseUserCommand() {}
 
 BaseUserCommand::BaseUserCommand(
     const CommandUUID &commandUUID,
-    const string &identifier):
+    const string &identifier) :
 
     mCommandUUID(commandUUID),
     mCommandIdentifier(identifier),
@@ -69,12 +69,16 @@ void BaseUserCommand::deserializeParentFromBytes(
     mTimestampAccepted = accumulator;
 }
 
+// todo: (DM) change this to the GEO epoch (see TransactionState)
+//
+// todo: (DM) BaseUserCommand should not be timestamp poin in the system.
+// todo: (DM) it's not a BaseUserCommand responsibility.
 const Timestamp BaseUserCommand::kEpoch() {
-
     static const Timestamp epoch(boost::gregorian::date(1970, 1, 1));
     return epoch;
 }
 
+// todo: (DM) please, rename. it's not so obvious as it may be.
 const size_t BaseUserCommand::kOffsetToInheritBytes() {
     static const size_t offset = CommandUUID::kHexSize + sizeof(MicrosecondsTimestamp);
     return offset;
