@@ -21,8 +21,8 @@ namespace signals = boost::signals2;
 class BaseTransaction {
 public:
     typedef shared_ptr<BaseTransaction> Shared;
-
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
+    typedef uint16_t SerialisedTransactionType;
 
 public:
     enum TransactionType {
@@ -36,6 +36,8 @@ public:
         AcceptRoutingTablesTransactionType = 8,
     };
 
+    mutable SendMessageSignal outgoingMessageIsReadySignal;
+
 public:
     signals::connection addOnMessageSendSlot(
         const SendMessageSignal::slot_type &slot) const;
@@ -44,7 +46,7 @@ public:
 
     const NodeUUID &nodeUUID() const;
 
-    const TransactionUUID &transactionUUID() const;
+    const TransactionUUID &UUID() const;
 
     void setContext(
         Message::Shared message);
@@ -94,8 +96,6 @@ protected:
 
     uint16_t mStep = 1;
     uint16_t mRequestCounter = 0;
-
-    mutable SendMessageSignal sendMessageSignal;
 };
 
 

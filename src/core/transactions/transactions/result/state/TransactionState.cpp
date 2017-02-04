@@ -1,49 +1,90 @@
 #include "TransactionState.h"
 
-TransactionState::TransactionState(
-        uint64_t timeout,
-        bool serialize) :
+/*!
+ * Returns TransactionState with awakening timestamp set to current UTC;
+ */
+TransactionState::Shared TransactionState::awakeAsFastAsPossible() {
+    auto t = datetime::microsec_clock::universal_time();
+    return make_shared<TransactionState>(
+        timestampFromTheGEOEpoch(
+            t));
+}
 
-        mTimeout(timeout) {
+/*!
+ * Returns TransactionState with awakening timestamp set to current UTC + timeout;
+ */
+TransactionState::Shared TransactionState::awakeAfterTimeout(
+    uint16_t microseconds) {
 
-    mSerialize = serialize;
+    auto t = datetime::microsec_clock::universal_time() + datetime::microseconds(microseconds);
+    return make_shared<TransactionState>(
+        timestampFromTheGEOEpoch(
+            t));
 }
 
 TransactionState::TransactionState(
-        Message::MessageTypeID transactionType,
-        bool serialize) {
+    uint64_t awakeTimestamp,
+    bool flushToPermanentStorage) :
 
-    mTypes.push_back(transactionType);
-    mSerialize = serialize;
+    mAwakeningTimestamp(awakeTimestamp) {
+
+    mFlushToPermanentStorage = flushToPermanentStorage;
 }
 
 TransactionState::TransactionState(
-        uint64_t timeout,
-        Message::MessageTypeID transactionType,
-        bool serialize) :
+    Message::MessageTypeID requiredMessageType,
+    bool flushToPermanentStorage) {
 
-        mTimeout(timeout) {
+    mRequiredMessageTypes.push_back(requiredMessageType);
+    mFlushToPermanentStorage = flushToPermanentStorage;
+}
 
-    mTypes.push_back(transactionType);
-    mSerialize = serialize;
+TransactionState::TransactionState(
+    uint64_t awakeTimestamp,
+    Message::MessageTypeID requiredMessageType,
+    bool flushToPermanentStorage) :
+
+        mAwakeningTimestamp(awakeTimestamp) {
+
+    mRequiredMessageTypes.push_back(requiredMessageType);
+    mFlushToPermanentStorage = flushToPermanentStorage;
 }
 
 TransactionState::~TransactionState() {
 }
 
-const uint64_t TransactionState::timeout() const {
-
-    return mTimeout;
+const uint64_t TransactionState::awakeningTimestamp() const {
+    return mAwakeningTimestamp;
 }
 
-const vector<Message::MessageTypeID> TransactionState::transactionsTypes() const {
-
-    return mTypes;
+const vector<Message::MessageTypeID>& TransactionState::acceptedMessagesTypes() const {
+    return mRequiredMessageTypes;
 }
 
 const bool TransactionState::needSerialize() const {
-
-    return mSerialize;
+    return mFlushToPermanentStorage;
 }
+
+
+
+datetime::ptime &TransactionState::GEOEpoch() {
+    static boost::posix_time::ptime GEOEpoch(
+        boost::gregorian::date(2015, boost::gregorian::Feb, 2));
+
+    return GEOEpoch;
+}
+
+TransactionState::AwakeTimestamp TransactionState::timestampFromTheGEOEpoch(
+    datetime::ptime &timestamp) {
+
+    datetime::time_duration diff = (timestamp - GEOEpoch());
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-conversion"
+    return diff.total_microseconds();
+#pragma clang diagnostic pop
+}
+
+
 
 

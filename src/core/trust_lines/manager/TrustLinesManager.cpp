@@ -29,7 +29,7 @@ void TrustLinesManager::loadTrustLines() {
 
             storage::Record::Shared record;
             try {
-                record = mTrustLinesStorage->readFromFile(storage::uuids::uuid(item));
+                record = mTrustLinesStorage->readByUUID(storage::uuids::uuid(item));
 
             } catch(std::exception &e) {
                 throw IOError(e.what());

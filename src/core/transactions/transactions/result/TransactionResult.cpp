@@ -30,7 +30,7 @@ MessageResult::SharedConst TransactionResult::messageResult() const {
     return mMessageResult;
 }
 
-TransactionState::SharedConst TransactionResult::transactionState() const {
+TransactionState::SharedConst TransactionResult::state() const {
 
     return mTransactionState;
 }

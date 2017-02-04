@@ -96,7 +96,7 @@ namespace db {
             }
         }
 
-        Record::Shared UUIDMapBlockStorage::readFromFile(
+        Record::Shared UUIDMapBlockStorage::readByUUID(
             const uuids::uuid &uuid) {
 
             if (isUUIDTheIndex(uuid)){
@@ -117,7 +117,7 @@ namespace db {
                 if (fread(dataBuffer, 1, bytesCount, mFileDescriptor) != bytesCount) {
                     if (fread(dataBuffer, 1, bytesCount, mFileDescriptor) != bytesCount) {
                         free(dataBuffer);
-                        throw IOError("UUIDMapBlockStorage::readFromFile. "
+                        throw IOError("UUIDMapBlockStorage::readByUUID. "
                                           "Can't read data block from file in buffer.");
                     }
                 }
@@ -127,13 +127,13 @@ namespace db {
 
                 } catch(std::bad_alloc &e) {
                     free(dataBuffer);
-                    throw MemoryError("UUIDMapBlockStorage::readFromFile. "
+                    throw MemoryError("UUIDMapBlockStorage::readByUUID. "
                                           "Can't allocate memory for new record instance.");
                 }
                 return Record::Shared(record);
 
             } else {
-                throw IndexError("UUIDMapBlockStorage::readFromFile. "
+                throw IndexError("UUIDMapBlockStorage::readByUUID. "
                                      "Can't find such transactionUUID in index block.");
             }
         }
@@ -175,7 +175,7 @@ namespace db {
             }
 
             for (auto const &looper : mIndexBlock){
-                Record::Shared record = readFromFile(looper.first);
+                Record::Shared record = readByUUID(looper.first);
                 mapBlockStorage->write(
                     looper.first,
                     record->data(),

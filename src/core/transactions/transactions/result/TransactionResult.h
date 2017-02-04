@@ -36,7 +36,7 @@ public:
 
     MessageResult::SharedConst messageResult() const;
 
-    TransactionState::SharedConst transactionState() const;
+    TransactionState::SharedConst state() const;
 
     ResultType resultType() const;
 

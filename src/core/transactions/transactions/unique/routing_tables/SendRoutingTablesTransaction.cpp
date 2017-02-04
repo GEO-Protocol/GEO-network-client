@@ -84,7 +84,7 @@ void SendRoutingTablesTransaction::checkSameTypeTransactions() {
             case BaseTransaction::TransactionType::SendRoutingTablesTransactionType: {
                 SendRoutingTablesTransaction::Shared sendRoutingTablesTransaction = static_pointer_cast<SendRoutingTablesTransaction>(transactionAndState.first);
                 if (sendRoutingTablesTransaction->contractorUUID() == mContractorUUID) {
-                    killTransaction(sendRoutingTablesTransaction->transactionUUID());
+                    killTransaction(sendRoutingTablesTransaction->UUID());
                 }
                 break;
             }

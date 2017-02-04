@@ -12,7 +12,7 @@ BaseTransaction::BaseTransaction() {}
 signals::connection BaseTransaction::addOnMessageSendSlot(
     const SendMessageSignal::slot_type &slot) const {
 
-    return sendMessageSignal.connect(slot);
+    return outgoingMessageIsReadySignal.connect(slot);
 }
 
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
@@ -25,7 +25,7 @@ const NodeUUID &BaseTransaction::nodeUUID() const {
     return mNodeUUID;
 }
 
-const TransactionUUID &BaseTransaction::transactionUUID() const {
+const TransactionUUID &BaseTransaction::UUID() const {
 
     return mTransactionUUID;
 }
@@ -44,7 +44,7 @@ void BaseTransaction::addMessage(
     Message::Shared message,
     const NodeUUID &nodeUUID) {
 
-    sendMessageSignal(
+    outgoingMessageIsReadySignal(
         message,
         nodeUUID
     );

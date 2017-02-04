@@ -85,7 +85,7 @@ protected:
     virtual const MessageTypeID typeID() const = 0;
 
     const TransactionUUID &transactionUUID() const {
-        throw NotImplementedError("RoutingTablesMessage: public Message::transactionUUID:"
+        throw NotImplementedError("RoutingTablesMessage: public Message::UUID:"
                                       "Method not implemented.");
     }
 
