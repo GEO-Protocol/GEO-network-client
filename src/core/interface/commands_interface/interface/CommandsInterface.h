@@ -73,13 +73,15 @@ private:
     Logger *mLog;
 };
 
+
+// todo: refactor, use signals
+
 /**
  * User commands are transmitted via named pipe (FIFO on Linux).
  * This class is used to asynchronously receive them, parse,
  * and transfer for the further execution.
  */
 class CommandsInterface: public BaseFIFOInterface {
-
 public:
     explicit CommandsInterface(
         as::io_service &ioService,
@@ -89,6 +91,10 @@ public:
     ~CommandsInterface();
 
     void beginAcceptCommands();
+
+public:
+    static const constexpr char *kFIFOName = "commands.fifo";
+    static const constexpr unsigned int kPermissionsMask = 0755;
 
 protected:
     virtual const char* FIFOName() const;
@@ -102,11 +108,7 @@ protected:
     void handleTimeout(
         const boost::system::error_code &error);
 
-public:
-    static const constexpr char *kFIFOName = "commands.fifo";
-    static const constexpr unsigned int kPermissionsMask = 0755;
-
-private:
+protected:
     static const constexpr size_t kCommandBufferSize = 1024;
 
     as::io_service &mIOService;
