@@ -39,13 +39,15 @@ typedef uint64_t MicrosecondsTimestamp;
  * Trust lines types
  */
 namespace multiprecision = boost::multiprecision;
-typedef boost::multiprecision::checked_uint256_t TrustLineAmount;
+typedef multiprecision::checked_uint256_t TrustLineAmount;
 typedef shared_ptr<TrustLineAmount> SharedTrustLineAmount;
 typedef shared_ptr<const TrustLineAmount> ConstSharedTrustLineAmount;
+const byte kTrustLineAmountBytesCount = 32;
 
-typedef boost::multiprecision::int256_t TrustLineBalance;
+typedef multiprecision::int256_t TrustLineBalance;
 typedef shared_ptr<TrustLineBalance> SharedTrustLineBalance;
 typedef shared_ptr<const TrustLineBalance> ConstSharedTrustLineBalance;
+const byte kTrustLineBalanceBytesCount = 32;
 
 enum BalanceRange {
     Negative = 1,
@@ -59,10 +61,12 @@ enum TrustState {
 };
 
 enum TrustLineDirection {
+    // System cpecific
+    // (there are no trust lines of this type in the system).
     Nowhere = 0,
-    Incoming = 1,
-    Outgoing = 2,
-    Both     = 3,
+    Incoming,
+    Outgoing,
+    Both,
 };
 typedef uint8_t SerializedTrustLineDirection;
 
