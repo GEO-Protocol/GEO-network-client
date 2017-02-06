@@ -18,6 +18,8 @@ find_package(Boost COMPONENTS system filesystem thread REQUIRED)
 #
 add_subdirectory(src/core/common/)
 add_subdirectory(src/core/common/exceptions)
+add_subdirectory(src/core/common/time)
+add_subdirectory(src/core/common/memory)
 add_subdirectory(src/core/db)
 #add_subdirectory(src/tests/db)
 add_subdirectory(src/core/io/routing_tables)
@@ -53,6 +55,8 @@ target_link_libraries(geo_network_client
 
         common
         exceptions
+        time
+        memory
         logger
         settings
         network
