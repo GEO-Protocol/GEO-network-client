@@ -50,12 +50,13 @@ public:
     void logFatal(
         const char *subsystem,
         const string &message);
-    void logFileMessage(const string message);
+    void logTustlineState(const NodeUUID &conractorUUID, string direction, string status);
     void logTruslineOperationStatus(
             const NodeUUID &contractorUUID,
-            const TrustLineAmount &amount,
-            const string operationType
-//        const TrustLineAmount& outgoingTrustAmount
+            const TrustLineAmount &incoming_amount,
+            const TrustLineAmount &outgoing_amount,
+            const TrustLineBalance &balance,
+            const TrustLineDirection &direction
     );
 
     LoggerStream info(

@@ -1,6 +1,6 @@
 #include "TrustLinesManager.h"
 
-TrustLinesManager::TrustLinesManager() {
+TrustLinesManager::TrustLinesManager(Logger *logger) : mlogger(logger){
     try {
         mTrustLinesStorage = unique_ptr<TrustLinesStorage>(new TrustLinesStorage("trust_lines.dat"));
 
@@ -91,6 +91,7 @@ void TrustLinesManager::open(
             throw MemoryError("TrustLinesManager::open: "
                                   "Can not allocate memory for new trust line instance.");
         }
+//        mlogger->logTruslineOperationStatus(trustLine->contractorNodeUUID(), amount, "open");
         saveToDisk(TrustLine::Shared(trustLine));
     }
 }
@@ -114,6 +115,7 @@ void TrustLinesManager::close(
                 } else {
                     trustLine->setOutgoingTrustAmount(0);
                     trustLine->suspendOutgoingDirection();
+
                 }
 
             } else {
@@ -405,6 +407,13 @@ void TrustLinesManager::saveToDisk(
                                   "Can not reallocate STL container memory for new trust line instance.");
         }
     }
+    mlogger->logTruslineOperationStatus(
+            trustLine->contractorNodeUUID().stringUUID(),
+            trustLine->incomingTrustAmount(),
+            trustLine->outgoingTrustAmount(),
+            trustLine->balance(),
+            trustLine->direction()
+    );
     trustLineCreatedSignal(
         trustLine->contractorNodeUUID(),
         trustLine->direction()

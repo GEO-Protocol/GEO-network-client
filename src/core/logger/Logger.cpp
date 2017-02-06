@@ -102,38 +102,27 @@ void Logger::logRecord(
     cout.flush();
 }
 
-
-void Logger::logFileMessage(const string message){
+void Logger::logTustlineState(const NodeUUID &conractorUUID, string direction, string status){
     ofstream logfile;
-    logfile.open(log_filename);
-    cout << message << endl;
-    logfile << message << endl;
+//    stringstream ss;
+//    ss << mTruststate.first << "\t" << mTruststate.second << "\n";
+//    logfile.open(log_filename);
+    logfile << conractorUUID.stringUUID() << "\t" << direction << "\t" << status << "\n";
     logfile.close();
 }
 
 void Logger::logTruslineOperationStatus(
         const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount,
-        const string operationType
+        const TrustLineAmount &incoming_amount,
+        const TrustLineAmount &outgoing_amount,
+        const TrustLineBalance &balance,
+        const TrustLineDirection &direction
 ){
     ofstream logfile;
     logfile.open(log_filename);
     stringstream ss;
-    ss << amount;
-    string command = "ContractorUUID\t" + contractorUUID.stringUUID() +"\t";
-    if (operationType == "open"){
-        command += "OpenTrustLine\tAmount\t" + ss.str() + "\t";
-    }
-    else if(operationType == "update"){
-        command += "UpdateTrustline\tAmount\t" + ss.str() + "\t";
-    }
-    else if(operationType == "close"){
-        command += "CloseTrustLine\t";
-    }
-    else {
-        throw Exception("Wrong type of trustline operation");
-    }
-    logfile << command << endl;
+    ss << contractorUUID.stringUUID() << "\t" << incoming_amount << "\t" << outgoing_amount << "\t" << balance << "\t";
+    logfile << ss.str() << endl;
     logfile.close();
 }
 

@@ -233,7 +233,6 @@ void OpenTrustLineTransaction::openTrustLine() {
             mCommand->contractorUUID(),
             mCommand->amount()
         );
-        mlogger->logTruslineOperationStatus(mCommand->contractorUUID(), mCommand->amount(), "open");
     } catch (std::exception &e) {
         throw Exception(e.what());
     }

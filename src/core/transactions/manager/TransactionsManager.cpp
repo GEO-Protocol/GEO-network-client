@@ -133,71 +133,84 @@ void TransactionsManager::loadTransactions() {
                 throw IOError(e.what());
             }
 
-            BytesShared transactionBuffer(const_cast<byte *>(record->data()));
+            byte *transactionBuffer = (byte *) calloc(record->bytesCount(), sizeof(byte));
+            memcpy(
+              transactionBuffer,
+              const_cast<byte *> (record->data()),
+              record->bytesCount()
+            );
+
+            BytesShared transactionBufferShared(transactionBuffer, free);
 
             BaseTransaction *baseTransaction = nullptr;
             try{
-                uint16_t *type = new (transactionBuffer.get()) uint16_t;
+                uint16_t *type = new (transactionBufferShared.get()) uint16_t;
                 BaseTransaction::TransactionType transactionType = (BaseTransaction::TransactionType) *type;
                 switch (transactionType) {
 
                     case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
                         baseTransaction = new OpenTrustLineTransaction(
-                            transactionBuffer,
+                            transactionBufferShared,
                             mTransactionsScheduler,
                             mTrustLinesManager
                         );
+                        break;
                     }
 
                     case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
                         baseTransaction = new SetTrustLineTransaction(
-                            transactionBuffer,
+                            transactionBufferShared,
                             mTransactionsScheduler,
                             mTrustLinesManager
                         );
+                        break;
                     }
 
                     case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
                         baseTransaction = new CloseTrustLineTransaction(
-                            transactionBuffer,
+                            transactionBufferShared,
                             mTransactionsScheduler,
                             mTrustLinesManager
                         );
+                        break;
                     }
 
                     case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
                         baseTransaction = new AcceptTrustLineTransaction(
-                            transactionBuffer,
+                            transactionBufferShared,
                             mTransactionsScheduler,
                             mTrustLinesManager
                         );
+                        break;
                     }
 
                     case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
                         baseTransaction = new UpdateTrustLineTransaction(
-                            transactionBuffer,
+                            transactionBufferShared,
                             mTransactionsScheduler,
                             mTrustLinesManager
                         );
+                        break;
                     }
 
                     case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
                         baseTransaction = new RejectTrustLineTransaction(
-                            transactionBuffer,
+                            transactionBufferShared,
                             mTransactionsScheduler,
                             mTrustLinesManager
                         );
+                        break;
                     }
 
                     default: {
-                        throw ConflictError("TrustLinesManager::loadTransactions. "
+                        throw ConflictError("TransactionsManager::loadTransactions. "
                                                 "Unexpected transaction type identifier.");
                     }
 
                 }
 
-            } catch (...) {
-                throw Exception("TrustLinesManager::loadTransactions. "
+            } catch (std::exception &e) {
+                throw Exception("TransactionsManager::loadTransactions. "
                                     "Unable to create transaction instance from buffer.");
             }
             baseTransaction->addOnMessageSendSlot(
