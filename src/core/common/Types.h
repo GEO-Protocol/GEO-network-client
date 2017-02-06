@@ -1,30 +1,20 @@
 #ifndef GEO_NETWORK_CLIENT_TYPES_H
 #define GEO_NETWORK_CLIENT_TYPES_H
 
-
-/*
- * Trust lines types
- */
 #include <boost/multiprecision/cpp_int.hpp>
-#include <memory>
-
-
-#include <cstdint>
-#include <memory>
-
-#include <boost/date_time/posix_time/ptime.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/date_time.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+
+#include <memory>
+#include <cstdint>
 
 using namespace std;
-
 
 typedef uint8_t byte;
 typedef std::shared_ptr<byte> BytesShared;
 typedef std::shared_ptr<const byte> ConstBytesShared;
-
 
 /*
  * Timestamps
@@ -33,7 +23,6 @@ namespace posix = boost::posix_time;
 typedef posix::ptime Timestamp;
 typedef posix::time_duration Duration;
 typedef uint64_t MicrosecondsTimestamp;
-
 
 /*
  * Trust lines types
@@ -61,8 +50,6 @@ enum TrustState {
 };
 
 enum TrustLineDirection {
-    // System cpecific
-    // (there are no trust lines of this type in the system).
     Nowhere = 0,
     Incoming,
     Outgoing,
