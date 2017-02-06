@@ -1,4 +1,4 @@
 set(SOURCE_FILES
-        MemoryUtils.cpp
-        MemoryUtils.h)
+        memory.cpp
+        memory.h)
 add_library(memory ${SOURCE_FILES})

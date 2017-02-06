@@ -7,14 +7,12 @@
 #include <memory>
 #include <malloc.h>
 
-class MemoryUtils {
 
-    static BytesShared tryMalloc(
-        size_t bytesCount);
+BytesShared tryMalloc(
+    size_t bytesCount);
 
-    static BytesShared tryCalloc(
-        size_t bytesCount);
-};
+BytesShared tryCalloc(
+    size_t bytesCount);
 
 
 #endif //GEO_NETWORK_CLIENT_MEMORYUTILS_H
