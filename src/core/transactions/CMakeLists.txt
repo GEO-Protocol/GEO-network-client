@@ -34,14 +34,20 @@ set(SOURCE_FILES
         transactions/result/state/TransactionState.cpp
         transactions/result/state/TransactionState.h
         transactions/result/TransactionResult.cpp
-        transactions/result/TransactionResult.h)
+        transactions/result/TransactionResult.h
+
+        transactions/regular/payments/CoordinatorPaymentTransaction.cpp
+        transactions/regular/payments/CoordinatorPaymentTransaction.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions
         common
+        exceptions
+        memory
         settings
         network
 
         interface__commands
         interface__results
-        trust_lines)
+        trust_lines
+        )

@@ -9,6 +9,7 @@
 #include "../commands/trust_lines/OpenTrustLineCommand.h"
 #include "../commands/trust_lines/CloseTrustLineCommand.h"
 #include "../commands/trust_lines/SetTrustLineCommand.h"
+#include "../commands/payments/CreditUsageCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"
@@ -116,6 +117,8 @@ protected:
     Logger *mLog;
 
     as::streambuf mCommandBuffer;
+
+    // todo: use unique_ptr
     as::posix::stream_descriptor *mFIFOStreamDescriptor;
     as::deadline_timer *mReadTimeoutTimer;
     CommandsParser *mCommandsParser;

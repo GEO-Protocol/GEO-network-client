@@ -1,13 +1,33 @@
 #include "BaseTransaction.h"
 
+/*!
+ * @param type - specifies transaction type (would be set buy derived classes).
+ * @param nodeUUID - uuid of the node that executes the transaction.
+ * It is often needed during transaction processing.
+ */
 BaseTransaction::BaseTransaction(
-        BaseTransaction::TransactionType type,
-        NodeUUID &nodeUUID) :
+    BaseTransaction::TransactionType type,
+    NodeUUID &nodeUUID) :
 
-        mType(type),
-        mNodeUUID(nodeUUID){}
+    mType(type),
+    mNodeUUID(nodeUUID) {}
 
-BaseTransaction::BaseTransaction() {}
+/*!
+ * Serialization constructor:
+ * is used in cases when transaction was deserialized from the bytes sequence.
+ * In this case "mNodeUUID" would be set indirectly.
+ */
+BaseTransaction::BaseTransaction(
+    BaseTransaction::TransactionType type) :
+
+    mType(type){}
+
+// todo: remove this, and change deserialization behaviour.
+// todo: it must not replace the type.
+/*!
+ * Default constructor is used in deserialization:
+ */
+BaseTransaction::BaseTransaction(){}
 
 signals::connection BaseTransaction::addOnMessageSendSlot(
     const SendMessageSignal::slot_type &slot) const {
@@ -145,9 +165,9 @@ const size_t BaseTransaction::kOffsetToDataBytes() {
 }
 
 TransactionResult::Shared BaseTransaction::transactionResultFromCommand(
-    CommandResult::Shared result) {
+    CommandResult::Shared result) const {
 
-    TransactionResult *transactionResult = new TransactionResult();
+    auto transactionResult = make_shared<TransactionResult>();
     transactionResult->setCommandResult(CommandResult::Shared(result));
-    return TransactionResult::Shared(transactionResult);
+    return transactionResult;
 }

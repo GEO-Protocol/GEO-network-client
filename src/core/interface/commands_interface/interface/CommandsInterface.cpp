@@ -140,32 +140,41 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
     BaseUserCommand *command = nullptr;
     try {
-        if (identifier == OpenTrustLineCommand::identifier()){
+        if (identifier == OpenTrustLineCommand::identifier()) {
             command = new OpenTrustLineCommand(
                 uuid,
-                buffer
-            );
+                buffer);
 
         } else if (identifier == CloseTrustLineCommand::identifier()) {
             command = new CloseTrustLineCommand(
                 uuid,
-                buffer
-            );
+                buffer);
 
         } else if (identifier == SetTrustLineCommand::identifier()) {
             command = new SetTrustLineCommand(
-              uuid,
-              buffer
-            );
+                uuid,
+                buffer);
+
+        } else if (identifier == CreditUsageCommand::identifier()) {
+            command = new CreditUsageCommand(
+                uuid,
+                buffer);
 
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "
-                    "Unexpected command identifier received.");
+                    "unexpected command identifier received.");
         }
 
-    } catch (std::exception &e){
-        mLog->logException("CommandsParser::tryParseCommand", e);
+    } catch (bad_alloc &) {
+        auto errors = mLog->error("CommandsParser::tryParseCommand");
+        errors << "Memory allocation error occured on command instance creation. "
+               << "Command was dropped. ";
+
+        return commandIsInvalidOrIncomplete();
+
+    } catch (exception &e){
+        mLog->logException("CommandsParser", e);
         return commandIsInvalidOrIncomplete();
     }
 
@@ -265,8 +274,9 @@ CommandsInterface::CommandsInterface(
         mCommandsParser = new CommandsParser(mLog);
 
     } catch (std::bad_alloc &) {
-        throw MemoryError("CommandsInterface::CommandsInterface: "
-                              "Can not allocate enough memory for commands parser.");
+        throw MemoryError(
+            "CommandsInterface::CommandsInterface: "
+                "Can not allocate enough memory for commands parser.");
     }
 }
 
@@ -318,8 +328,6 @@ void CommandsInterface::handleReceivedInfo(
     const size_t bytesTransferred) {
 
     if (!error || error == as::error::message_size) {
-        mLog->logInfo("CommandsInterface",
-                      "Command received successfully.");
         mCommandsParser->appendReadData(
             &mCommandBuffer,
             bytesTransferred
@@ -329,6 +337,12 @@ void CommandsInterface::handleReceivedInfo(
         while (true) {
             auto flagAndCommand = mCommandsParser->processReceivedCommands();
             if (flagAndCommand.first){
+#ifdef DEBUG
+                auto debug = mLog->debug("CommandsInterface");
+                debug << "Command received: "
+                      << flagAndCommand.second->commandIdentifier();
+#endif
+
                 mTransactionsManager->processCommand(flagAndCommand.second);
 
             } else {

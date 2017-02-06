@@ -182,7 +182,7 @@ void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,
     TransactionResult::Shared result) {
 
-    if (result->messageResult().get() != nullptr) {
+    if (result->messageResult() != nullptr) {
         if (isTransactionInScheduler(transaction)) {
             mTransactions->erase(transaction);
             if (mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
@@ -197,7 +197,7 @@ void TransactionsScheduler::handleTransactionResult(
         }
         //TODO:: journal
 
-    } else if (result->commandResult().get() == nullptr && result->state().get() != nullptr) {
+    } else if (result->commandResult() == nullptr && result->state() != nullptr) {
         if (isTransactionInScheduler(transaction)) {
             auto transactionAndState = mTransactions->find(transaction);
             transactionAndState->second = result->state();
@@ -231,7 +231,16 @@ void TransactionsScheduler::handleTransactionResult(
             rescheduleNextInterruption(minimalDelay);
         }
 
-    } else if (result->state().get() == nullptr && result->commandResult().get() != nullptr) {
+    } else if (result->state() == nullptr && result->commandResult() != nullptr) {
+
+#ifdef DEBUG
+        {
+            auto debug = mLog->debug("TransactionsScheduler");
+            debug << "Transaction result received: "
+                  << result->commandResult()->serialize();
+        }
+#endif
+
         mManagerCallback(result->commandResult());
         if (isTransactionInScheduler(transaction)) {
             mTransactions->erase(transaction);

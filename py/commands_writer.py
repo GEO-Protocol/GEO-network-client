@@ -9,7 +9,7 @@ def main():
     new_line = args.line
     fifo_file = args.fifo_file
     new_line = new_line.replace("\\t", '\t').replace("\\n", "\n")
-    new_line = new_line.encode()
+    new_line = new_line.encode("utf-8")
     file_handler = os.fdopen(os.open(fifo_file, os.O_WRONLY | os.O_NONBLOCK), 'wb')
     file_handler.write(new_line)
     print("OK)")

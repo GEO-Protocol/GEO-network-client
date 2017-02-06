@@ -16,14 +16,21 @@ public:
     typedef shared_ptr<const CommandResult> SharedConst;
 
 public:
+    enum CommandResultCode {
+        OK = 200,
+
+        // todo: add codes from specification
+    };
+
+public:
     CommandResult(
-            const CommandUUID &commandUUID,
-            const uint16_t resultCode);
+        const CommandUUID &commandUUID,
+        const uint16_t resultCode);
 
     CommandResult(
-            const CommandUUID &commandUUID,
-            const uint16_t resultCode,
-            string &resultInformation);
+        const CommandUUID &commandUUID,
+        const uint16_t resultCode,
+        string &resultInformation);
 
     const CommandUUID &commandUUID() const;
 

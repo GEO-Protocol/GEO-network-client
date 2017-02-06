@@ -80,7 +80,11 @@ const string Logger::formatMessage(
     }
 
     auto m = message;
-    if (m.at(m.size()-1) != '.') {
+    if (m.at(m.size()-1) == '\n') {
+        m = m.substr(0, m.size()-1);
+    }
+
+    if (m.at(m.size()-1) != '.' && m.at(m.size()-1) != '\n') {
         m += ".";
     }
 
