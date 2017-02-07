@@ -24,7 +24,7 @@ public:
     TransactionResult();
 
     void setCommandResult(
-        CommandResult::Shared commandResult);
+        CommandResult::SharedConst commandResult);
 
     void setMessageResult(
         MessageResult::Shared messageResult);
@@ -36,13 +36,13 @@ public:
 
     MessageResult::SharedConst messageResult() const;
 
-    TransactionState::SharedConst transactionState() const;
+    TransactionState::SharedConst state() const;
 
     ResultType resultType() const;
 
 
 private:
-    CommandResult::Shared mCommandResult;
+    CommandResult::SharedConst mCommandResult;
     MessageResult::Shared mMessageResult;
     TransactionState::Shared mTransactionState;
 };

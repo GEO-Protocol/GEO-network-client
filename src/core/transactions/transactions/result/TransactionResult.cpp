@@ -3,7 +3,7 @@
 TransactionResult::TransactionResult() {}
 
 void TransactionResult::setCommandResult(
-    CommandResult::Shared commandResult){
+    CommandResult::SharedConst commandResult){
 
     mCommandResult = commandResult;
 }
@@ -30,7 +30,7 @@ MessageResult::SharedConst TransactionResult::messageResult() const {
     return mMessageResult;
 }
 
-TransactionState::SharedConst TransactionResult::transactionState() const {
+TransactionState::SharedConst TransactionResult::state() const {
 
     return mTransactionState;
 }

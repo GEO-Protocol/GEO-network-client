@@ -11,4 +11,5 @@ set(SOURCE_FILES
 
 add_library(interface__results ${SOURCE_FILES})
 target_link_libraries(interface__results
-        common)
+        common
+        exceptions)

@@ -6,7 +6,7 @@ TrustLine::TrustLine(
     const TrustLineAmount &outgoingAmount,
     const TrustLineBalance &nodeBalance) :
 
-    mContractorNodeUuid(nodeUUID),
+    mContractorNodeUUID(nodeUUID),
     mIncomingTrustAmount(incomingAmount),
     mOutgoingTrustAmount(outgoingAmount),
     mBalance(nodeBalance) {
@@ -29,7 +29,7 @@ TrustLine::TrustLine(
     const TrustLineAmount &incomingAmount,
     const TrustLineAmount &outgoingAmount):
 
-    mContractorNodeUuid(nodeUUID),
+    mContractorNodeUUID(nodeUUID),
     mIncomingTrustAmount(incomingAmount),
     mOutgoingTrustAmount(outgoingAmount),
     mBalance(0) {}
@@ -38,7 +38,7 @@ TrustLine::TrustLine(
     const byte *buffer,
     const NodeUUID &contractorUUID) :
 
-    mContractorNodeUuid(contractorUUID) {
+    mContractorNodeUUID(contractorUUID) {
     deserialize(buffer);
 }
 
@@ -113,9 +113,14 @@ void TrustLine::suspendIncomingDirection() {
     mTrustLineState.first = TrustState::Suspended;
 }
 
+const TrustLineUUID &TrustLine::trustLineUUID() const {
+
+    return mTrustLineUUID;
+}
+
 const NodeUUID &TrustLine::contractorNodeUUID() const {
 
-    return mContractorNodeUuid;
+    return mContractorNodeUUID;
 }
 
 const TrustLineAmount &TrustLine::incomingTrustAmount() const {
@@ -427,5 +432,3 @@ bool operator==(
 
     return contractor1.contractorNodeUUID() == contractor2.contractorNodeUUID();
 }
-
-

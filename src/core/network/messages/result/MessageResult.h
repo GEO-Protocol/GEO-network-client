@@ -1,6 +1,8 @@
 #ifndef GEO_NETWORK_CLIENT_MESSAGEREUSLT_H
 #define GEO_NETWORK_CLIENT_MESSAGEREUSLT_H
 
+#include "../../../common/Types.h"
+
 #include "../../../common/NodeUUID.h"
 #include "../../../transactions/TransactionUUID.h"
 
@@ -11,10 +13,6 @@
 #include <memory>
 
 using namespace std;
-
-typedef boost::posix_time::ptime Timestamp;
-typedef boost::posix_time::time_duration Duration;
-typedef uint64_t MicrosecondsTimestamp;
 
 class MessageResult {
 public:

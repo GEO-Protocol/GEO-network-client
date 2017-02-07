@@ -72,6 +72,11 @@ LoggerStream Logger::error(
     return LoggerStream(this, "ERROR", subsystem);
 }
 
+LoggerStream Logger::debug(
+    const char *subsystem) {
+    return LoggerStream(this, "DEBUG", subsystem);
+}
+
 const string Logger::formatMessage(
     const string &message) const {
     if (message.size() == 0) {
@@ -79,7 +84,11 @@ const string Logger::formatMessage(
     }
 
     auto m = message;
-    if (m.at(m.size()-1) != '.') {
+    if (m.at(m.size()-1) == '\n') {
+        m = m.substr(0, m.size()-1);
+    }
+
+    if (m.at(m.size()-1) != '.' && m.at(m.size()-1) != '\n') {
         m += ".";
     }
 
@@ -88,7 +97,7 @@ const string Logger::formatMessage(
 
 const string Logger::recordPrefix(
     const char *group) {
-    // todo: add Timestamp
+    // todo: add AwakeTimestamp
     return string(group) + string("\t\t");
 }
 

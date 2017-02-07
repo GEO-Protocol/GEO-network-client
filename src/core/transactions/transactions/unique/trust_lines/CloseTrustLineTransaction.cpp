@@ -141,24 +141,30 @@ bool CloseTrustLineTransaction::checkSameTypeTransactions() {
 
             case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
                 OpenTrustLineTransaction::Shared openTrustLineTransaction = static_pointer_cast<OpenTrustLineTransaction>(it.first);
-                if (mCommand->contractorUUID() == openTrustLineTransaction->command()->contractorUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mCommand->contractorUUID() == openTrustLineTransaction->command()->contractorUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
 
             case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
                 SetTrustLineTransaction::Shared setTrustLineTransaction = static_pointer_cast<SetTrustLineTransaction>(it.first);
-                if (mCommand->contractorUUID() == setTrustLineTransaction->command()->contractorUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mCommand->contractorUUID() == setTrustLineTransaction->command()->contractorUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
 
             case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
                 CloseTrustLineTransaction::Shared closeTrustLineTransaction = static_pointer_cast<CloseTrustLineTransaction>(it.first);
-                if (mCommand->contractorUUID() == closeTrustLineTransaction->command()->contractorUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mCommand->contractorUUID() == closeTrustLineTransaction->command()->contractorUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
@@ -176,10 +182,8 @@ bool CloseTrustLineTransaction::checkSameTypeTransactions() {
 
 bool CloseTrustLineTransaction::checkTrustLineDirectionExisting() {
 
-    return mTrustLinesManager->checkDirection(
-        mCommand->contractorUUID(),
-        TrustLineDirection::Outgoing
-    );
+    return mTrustLinesManager->checkDirection(mCommand->contractorUUID(), TrustLineDirection::Outgoing) ||
+        mTrustLinesManager->checkDirection(mCommand->contractorUUID(), TrustLineDirection::Both);
 }
 
 bool CloseTrustLineTransaction::checkDebt() {
@@ -258,30 +262,30 @@ TransactionResult::Shared CloseTrustLineTransaction::waitingForResponseState() {
 
 TransactionResult::Shared CloseTrustLineTransaction::resultOk() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultOk())));
+    return transactionResultFromCommand(mCommand->resultOk());
 }
 
 TransactionResult::Shared CloseTrustLineTransaction::trustLineAbsentResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->trustLineIsAbsentResult())));
+    return transactionResultFromCommand(mCommand->trustLineIsAbsentResult());
 }
 
 TransactionResult::Shared CloseTrustLineTransaction::conflictErrorResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultConflict())));
+    return transactionResultFromCommand(mCommand->resultConflict());
 }
 
 TransactionResult::Shared CloseTrustLineTransaction::noResponseResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultNoResponse())));
+    return transactionResultFromCommand(mCommand->resultNoResponse());
 }
 
 TransactionResult::Shared CloseTrustLineTransaction::transactionConflictResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultTransactionConflict())));
+    return transactionResultFromCommand(mCommand->resultTransactionConflict());
 }
 
 TransactionResult::Shared CloseTrustLineTransaction::unexpectedErrorResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->unexpectedErrorResult())));
+    return transactionResultFromCommand(mCommand->unexpectedErrorResult());
 }

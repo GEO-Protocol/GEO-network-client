@@ -12,6 +12,8 @@
 #include "../../common/exceptions/Exception.h"
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"
+#include "../../common/exceptions/NotFoundError.h"
+#include "../../common/exceptions/RuntimeError.h"
 #include "../../logger/Logger.h"
 
 #include <boost/asio.hpp>
@@ -27,10 +29,11 @@ using namespace std;
 namespace as = boost::asio;
 namespace storage = db::uuid_map_block_storage;
 
+// todo: (DM) is it really must be pubic for all the components?
 typedef boost::function<void(CommandResult::SharedConst)> ManagerCallback;
 
+// todo: hsc: thnk how to implement transactions uniqueness in scheduler logic.
 class TransactionsScheduler {
-    // todo: hsc: tests?
 public:
     TransactionsScheduler(
         as::io_service &IOService,
@@ -38,6 +41,7 @@ public:
         ManagerCallback managerCallback,
         Logger *logger);
 
+    // todo: (DM) remove this in favour of unique_ptr
     ~TransactionsScheduler();
 
     void run();
@@ -48,6 +52,7 @@ public:
     void postponeRoutingTableTransaction(
         BaseTransaction::Shared transaction);
 
+    // todo: (DM) is it really must be public?
     void killTransaction(
         const TransactionUUID &transactionUUID);
 
@@ -65,14 +70,24 @@ private:
         BaseTransaction::Shared transaction,
         TransactionResult::Shared result);
 
-    pair<BaseTransaction::Shared, Duration> findTransactionWithMinimalTimeout();
 
-    void sleepFor(
+    // todo: it should be removed in favour of transactionWithMinimalAwakeningTimestamp();
+    pair<BaseTransaction::Shared, Duration> nextDelayedTransaction();
+
+    pair<BaseTransaction::Shared, TransactionState::AwakeTimestamp> transactionWithMinimalAwakeningTimestamp() const;
+
+    void adjustAwakeningToNextTransaction();
+
+    // todo: (DM) remove this (see asyncWaitUntil);
+    // todo: (DM) this is renamed sleepFor()
+    void rescheduleNextInterruption(
         Duration delay);
 
-    void handleSleep(
-        const boost::system::error_code &error,
-        Duration delay);
+    void asyncWaitUntil(
+        TransactionState::AwakeTimestamp nextAwakeningTimestamp);
+
+    void handleAwakening(
+        const boost::system::error_code &error);
 
     bool isTransactionInScheduler(
         BaseTransaction::Shared transaction);
@@ -85,9 +100,8 @@ private:
     ManagerCallback mManagerCallback;
     Logger *mLog;
 
-    as::deadline_timer *mProcessingTimer;
-    map<BaseTransaction::Shared, TransactionState::SharedConst> *mTransactions;
-
+    as::deadline_timer *mProcessingTimer; // todo: make unique_ptr
+    map<BaseTransaction::Shared, TransactionState::SharedConst> *mTransactions; // todo: make unique_ptr
 };
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H

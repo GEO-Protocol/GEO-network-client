@@ -1,5 +1,9 @@
 #include "TransactionsManager.h"
 
+/*!
+ *
+ * Throws RuntimeError in case if some internal components can't be initialised.
+ */
 TransactionsManager::TransactionsManager(
     NodeUUID &nodeUUID,
     as::io_service &IOService,
@@ -9,58 +13,61 @@ TransactionsManager::TransactionsManager(
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
-    mTrustLinesManager(trustLinesManager),
+    mTrustLines(trustLinesManager),
     mResultsInterface(resultsInterface),
-    mLog(logger) {
+    mLog(logger),
 
-    zeroPointers();
+    mStorage(new storage::UUIDMapBlockStorage(
+        "io/transactions",
+        "transactions.dat")
+    ),
 
-    try {
-        mStorage = new storage::UUIDMapBlockStorage(
-            "io/transactions",
-            "transactions.dat");
-
-        mTransactionsScheduler = new TransactionsScheduler(
-            mIOService,
-            mStorage,
-            boost::bind(&TransactionsManager::acceptCommandResult, this, ::_1),
-            mLog
-        );
-
-    } catch (std::bad_alloc &e) {
-        cleanupMemory();
-        throw MemoryError("TransactionsManager::TransactionsManager. "
-                              "Can not allocate memory for one of the transactions manager's component.");
-    }
+    mScheduler(new TransactionsScheduler(
+        mIOService,
+        mStorage.get(),
+        boost::bind(&TransactionsManager::processCommandResult, this, ::_1),
+        mLog)
+    ) {
 
     try {
         loadTransactions();
 
-    } catch (std::exception &e) {
-        mLog->logException("TransactionsManager", e);
+    } catch (exception &e) {
+        throw RuntimeError(e.what());
     }
 }
 
-TransactionsManager::~TransactionsManager() {
-
-    cleanupMemory();
-}
-
+/*!
+ *
+ * Throws ValueError in case if command is unexpected.
+ */
 void TransactionsManager::processCommand(
     BaseUserCommand::Shared command) {
 
-    if (command->commandIdentifier() == OpenTrustLineCommand::identifier()) {
-        createOpenTrustLineTransaction(command);
+    if (command->identifier() == OpenTrustLineCommand::identifier()) {
+        launchOpenTrustLineTransaction(
+            static_pointer_cast<OpenTrustLineCommand>(
+                command));
 
-    } else if (command->commandIdentifier() == CloseTrustLineCommand::identifier()) {
-        createCloseTrustLineTransaction(command);
+    } else if (command->identifier() == CloseTrustLineCommand::identifier()) {
+        launchCloseTrustLineTransaction(
+            static_pointer_cast<CloseTrustLineCommand>(
+                command));
 
-    } else if (command->commandIdentifier() == SetTrustLineCommand::identifier()) {
-        createSetTrustLineTransaction(command);
+    } else if (command->identifier() == SetTrustLineCommand::identifier()) {
+        launchSetTrustLineTransaction(
+            static_pointer_cast<SetTrustLineCommand>(
+                command));
+
+    /*} else if (command->identifier() == CreditUsageCommand::identifier()) {
+        launchCreditUsageTransaction(
+            static_pointer_cast<CreditUsageCommand>(
+                command));*/
 
     } else {
-        throw ConflictError("TransactionsManager::processCommand. "
-                                "Unexpected command identifier.");
+        throw ValueError(
+            "TransactionsManager::processCommand: "
+                "enexpected command identifier.");
     }
 }
 
@@ -68,32 +75,41 @@ void TransactionsManager::processMessage(
     Message::Shared message) {
 
     if (message->typeID() == Message::MessageTypeID::AcceptTrustLineMessageType) {
-        createAcceptTrustLineTransaction(message);
+        launchAcceptTrustLineTransaction(
+            static_pointer_cast<AcceptTrustLineMessage>(message));
 
     } else if (message->typeID() == Message::MessageTypeID::RejectTrustLineMessageType) {
-        createRejectTrustLineTransaction(message);
+        launchRejectTrustLineTransaction(
+            static_pointer_cast<RejectTrustLineMessage>(message));
 
     } else if (message->typeID() == Message::MessageTypeID::UpdateTrustLineMessageType) {
-        createUpdateTrustLineTransaction(message);
+        launchUpdateTrustLineTransaction(
+            static_pointer_cast<UpdateTrustLineMessage>(message));
 
     } else {
-        mTransactionsScheduler->handleMessage(message);
+        // todo: (hsc) add comment why is this so
+        mScheduler->handleMessage(message);
     }
 }
 
-void TransactionsManager::acceptCommandResult(
+/*!
+ * Writes received result to the outgoing results fifo.
+ *
+ * Throws RuntimError - in case if result can't be processed.
+ */
+void TransactionsManager::processCommandResult(
     CommandResult::SharedConst result) {
 
     try {
-        string message = result->serialize();
+        auto message = result->serialize();
         mResultsInterface->writeResult(
             message.c_str(),
-            message.size()
-        );
+            message.size());
 
     } catch (...) {
-        mLog->logError("Transactions manager::acceptCommandResult: ",
-                       "Error occurred when command result has accepted");
+        throw RuntimeError(
+            "TransactionsManager::processCommandResult: "
+                "Error occurred when command result has accepted");
     }
 }
 
@@ -101,334 +117,332 @@ void TransactionsManager::startRoutingTablesExchange(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) {
 
-    /*BaseTransaction *baseTransaction = new SendRoutingTablesTransaction(
+    /*BaseTransaction *transaction = new SendRoutingTablesTransaction(
         mNodeUUID,
         const_cast<NodeUUID&> (contractorUUID),
-        mTransactionsScheduler
+        mScheduler
     );
 
     baseTransaction->addOnMessageSendSlot(
         boost::bind(
-            &TransactionsManager::onMessageSend,
+            &TransactionsManager::onTransactionOutgoingMessageReady,
             this,
             _1,
             _2
         )
     );
 
-    mTransactionsScheduler->postponeRoutingTableTransaction(BaseTransaction::Shared(baseTransaction));*/
+    mScheduler->postponeRoutingTableTransaction(BaseTransaction::Shared(baseTransaction));*/
 
 }
 
 void TransactionsManager::loadTransactions() {
 
-    unique_ptr<const vector<storage::uuids::uuid>> uuidKeys = unique_ptr<const vector<storage::uuids::uuid>> (mStorage->keys());
-    if (uuidKeys->size() > 0) {
-        for (auto const &uuidKey : *uuidKeys) {
-            storage::Record::Shared record;
-            try {
-                record = mStorage->readFromFile(storage::uuids::uuid(uuidKey));
+    auto uuidKeys = unique_ptr<const vector<storage::uuids::uuid>>(mStorage->keys());
+    if (uuidKeys->size() == 0) {
+        return;
+    }
 
-            } catch(std::exception &e) {
-                throw IOError(e.what());
-            }
+    for (auto const &uuidKey : *uuidKeys) {
+        try {
+            auto record = mStorage->readByUUID(uuidKey);
 
-            byte *transactionBuffer = (byte *) calloc(record->bytesCount(), sizeof(byte));
+            BytesShared transactionBuffer = tryCalloc(record->bytesCount());
             memcpy(
-              transactionBuffer,
-              const_cast<byte *> (record->data()),
-              record->bytesCount()
+                transactionBuffer.get(),
+                const_cast<byte *> (record->data()),
+                record->bytesCount()
             );
 
-            BytesShared transactionBufferShared(transactionBuffer, free);
+            // Transaction parsing
+            BaseTransaction::SerialisedTransactionType *type = new (transactionBuffer.get()) uint16_t;
+            BaseTransaction::TransactionType transactionType = (BaseTransaction::TransactionType) *type;
 
-            BaseTransaction *baseTransaction = nullptr;
-            try{
-                uint16_t *type = new (transactionBufferShared.get()) uint16_t;
-                BaseTransaction::TransactionType transactionType = (BaseTransaction::TransactionType) *type;
-                switch (transactionType) {
-
-                    case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
-                        baseTransaction = new OpenTrustLineTransaction(
-                            transactionBufferShared,
-                            mTransactionsScheduler,
-                            mTrustLinesManager
-                        );
-                        break;
-                    }
-
-                    case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
-                        baseTransaction = new SetTrustLineTransaction(
-                            transactionBufferShared,
-                            mTransactionsScheduler,
-                            mTrustLinesManager
-                        );
-                        break;
-                    }
-
-                    case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
-                        baseTransaction = new CloseTrustLineTransaction(
-                            transactionBufferShared,
-                            mTransactionsScheduler,
-                            mTrustLinesManager
-                        );
-                        break;
-                    }
-
-                    case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
-                        baseTransaction = new AcceptTrustLineTransaction(
-                            transactionBufferShared,
-                            mTransactionsScheduler,
-                            mTrustLinesManager
-                        );
-                        break;
-                    }
-
-                    case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
-                        baseTransaction = new UpdateTrustLineTransaction(
-                            transactionBufferShared,
-                            mTransactionsScheduler,
-                            mTrustLinesManager
-                        );
-                        break;
-                    }
-
-                    case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
-                        baseTransaction = new RejectTrustLineTransaction(
-                            transactionBufferShared,
-                            mTransactionsScheduler,
-                            mTrustLinesManager
-                        );
-                        break;
-                    }
-
-                    default: {
-                        throw ConflictError("TransactionsManager::loadTransactions. "
-                                                "Unexpected transaction type identifier.");
-                    }
-
+            BaseTransaction *transaction;
+            switch (transactionType) {
+                case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
+                    transaction = new OpenTrustLineTransaction(
+                        transactionBuffer,
+                        mScheduler.get(),
+                        mTrustLines);
+                    break;
                 }
 
-            } catch (std::exception &e) {
-                throw Exception("TransactionsManager::loadTransactions. "
-                                    "Unable to create transaction instance from buffer.");
+                case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
+                    transaction = new SetTrustLineTransaction(
+                        transactionBuffer,
+                        mScheduler.get(),
+                        mTrustLines);
+                    break;
+                }
+
+                case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
+                    transaction = new CloseTrustLineTransaction(
+                        transactionBuffer,
+                        mScheduler.get(),
+                        mTrustLines);
+                    break;
+                }
+
+                case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
+                    transaction = new AcceptTrustLineTransaction(
+                        transactionBuffer,
+                        mScheduler.get(),
+                        mTrustLines);
+                    break;
+                }
+
+                case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
+                    transaction = new UpdateTrustLineTransaction(
+                        transactionBuffer,
+                        mScheduler.get(),
+                        mTrustLines);
+                    break;
+                }
+
+                case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
+                    transaction = new RejectTrustLineTransaction(
+                        transactionBuffer,
+                        mScheduler.get(),
+                        mTrustLines);
+                    break;
+                }
+
+                default: {
+                    throw RuntimeError(
+                        "TrustLinesManager::loadTransactions. "
+                            "unexpected transaction type identifier.");
+                }
             }
-            baseTransaction->addOnMessageSendSlot(
-                boost::bind(
-                    &TransactionsManager::onMessageSend,
-                    this,
-                    _1,
-                    _2
-                )
-            );
-            BaseTransaction::Shared baseTransactionShared(baseTransaction);
-            mTransactionsScheduler->scheduleTransaction(baseTransactionShared);
+
+            subscribeForOugtoingMessages(
+                transaction->outgoingMessageIsReadySignal);
+
+            mScheduler->scheduleTransaction(
+                BaseTransaction::Shared(transaction));
+
+            // todo: log newly launched transaction
+
+        } catch(IndexError &e) {
+            throw RuntimeError(
+                string(
+                    "TransactionsManager::loadTransactions: "
+                        "internal error: ") + e.what());
+
+        } catch (IOError &e) {
+            throw RuntimeError(
+                string(
+                    "TransactionsManager::loadTransactions: "
+                        "internal error: ") + e.what());
+
+        } catch (bad_alloc &) {
+            throw MemoryError(
+                "TransactionsManager::loadTransactions: bad alloc.");
         }
     }
 }
 
-void TransactionsManager::createOpenTrustLineTransaction(
-    BaseUserCommand::Shared command) {
-
-    OpenTrustLineCommand::Shared openTrustLineCommand = static_pointer_cast<OpenTrustLineCommand>(command);
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchOpenTrustLineTransaction(
+    OpenTrustLineCommand::Shared command) {
 
     try {
-        BaseTransaction *baseTransaction = new OpenTrustLineTransaction(
+        auto transaction = make_shared<OpenTrustLineTransaction>(
             mNodeUUID,
-            openTrustLineCommand,
-            mTransactionsScheduler,
-            mTrustLinesManager);
+            command,
+            mScheduler.get(),
+            mTrustLines);
 
-        baseTransaction->addOnMessageSendSlot(
-            boost::bind(
-                &TransactionsManager::onMessageSend,
-                this,
-                _1,
-                _2
-            )
-        );
+        subscribeForOugtoingMessages(
+            transaction->outgoingMessageIsReadySignal);
 
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+        mScheduler->scheduleTransaction(
+            transaction);
 
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createTrustLineTransaction. "
-                              "Can not allocate memory for transaction instance.");
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchOpenTrustLineTransaction: "
+                "can't allocate memory for transaction instance.");
     }
 }
 
-void TransactionsManager::createAcceptTrustLineTransaction(
-    Message::Shared message) {
-
-    AcceptTrustLineMessage::Shared acceptTrustLineMessage = static_pointer_cast<AcceptTrustLineMessage>(message);
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchAcceptTrustLineTransaction(
+    AcceptTrustLineMessage::Shared message) {
 
     try {
-        BaseTransaction *baseTransaction = new AcceptTrustLineTransaction(
+        auto transaction = make_shared<AcceptTrustLineTransaction>(
             mNodeUUID,
-            acceptTrustLineMessage,
-            mTransactionsScheduler,
-            mTrustLinesManager);
+            message,
+            mScheduler.get(),
+            mTrustLines);
 
-        baseTransaction->addOnMessageSendSlot(
-            boost::bind(
-                &TransactionsManager::onMessageSend,
-                this,
-                _1,
-                _2
-            )
-        );
+        subscribeForOugtoingMessages(
+            transaction->outgoingMessageIsReadySignal);
 
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+        mScheduler->scheduleTransaction(
+            transaction);
 
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createTrustLineTransaction. "
-                              "Can not allocate memory for transaction instance.");
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchAcceptTrustLineTransaction: "
+                "can't allocate memory for transaction instance.");
     }
 }
 
-void TransactionsManager::createCloseTrustLineTransaction(
-    BaseUserCommand::Shared command) {
-
-    CloseTrustLineCommand::Shared closeTrustLineCommand = static_pointer_cast<CloseTrustLineCommand>(command);
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchCloseTrustLineTransaction(
+    CloseTrustLineCommand::Shared command) {
 
     try {
-        BaseTransaction *baseTransaction = new CloseTrustLineTransaction(
+        auto transaction = make_shared<CloseTrustLineTransaction>(
             mNodeUUID,
-            closeTrustLineCommand,
-            mTransactionsScheduler,
-            mTrustLinesManager);
+            command,
+            mScheduler.get(),
+            mTrustLines);
 
-        baseTransaction->addOnMessageSendSlot(
-            boost::bind(
-                &TransactionsManager::onMessageSend,
-                this,
-                _1,
-                _2
-            )
-        );
+        subscribeForOugtoingMessages(
+            transaction->outgoingMessageIsReadySignal);
 
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+        mScheduler->scheduleTransaction(
+            transaction);
 
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createTrustLineTransaction. "
-                              "Can not allocate memory for transaction instance.");
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchCloseTrustLineTransaction: "
+                "can't allocate memory for transaction instance.");
     }
 }
 
-void TransactionsManager::createRejectTrustLineTransaction(
-    Message::Shared message) {
-
-    RejectTrustLineMessage::Shared rejectTrustLineMessage = static_pointer_cast<RejectTrustLineMessage>(message);
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchRejectTrustLineTransaction(
+    RejectTrustLineMessage::Shared message) {
 
     try {
-        BaseTransaction *baseTransaction = new RejectTrustLineTransaction(
+        auto transaction = make_shared<RejectTrustLineTransaction>(
             mNodeUUID,
-            rejectTrustLineMessage,
-            mTransactionsScheduler,
-            mTrustLinesManager);
+            message,
+            mScheduler.get(),
+            mTrustLines);
 
-        baseTransaction->addOnMessageSendSlot(
-            boost::bind(
-                &TransactionsManager::onMessageSend,
-                this,
-                _1,
-                _2
-            )
-        );
+        subscribeForOugtoingMessages(
+            transaction->outgoingMessageIsReadySignal);
 
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+        mScheduler->scheduleTransaction(
+            transaction);
 
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createTrustLineTransaction. "
-                              "Can not allocate memory for transaction instance.");
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchRejectTrustLineTransaction: "
+                "can't allocate memory for transaction instance.");
     }
 }
 
-void TransactionsManager::createSetTrustLineTransaction(
-    BaseUserCommand::Shared command) {
-
-    SetTrustLineCommand::Shared setTrustLineCommand = static_pointer_cast<SetTrustLineCommand>(command);
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchSetTrustLineTransaction(
+    SetTrustLineCommand::Shared command) {
 
     try {
-        BaseTransaction *baseTransaction = new SetTrustLineTransaction(
+        auto transaction = make_shared<SetTrustLineTransaction>(
             mNodeUUID,
-            setTrustLineCommand,
-            mTransactionsScheduler,
-            mTrustLinesManager);
+            command,
+            mScheduler.get(),
+            mTrustLines);
 
-        baseTransaction->addOnMessageSendSlot(
-            boost::bind(
-                &TransactionsManager::onMessageSend,
-                this,
-                _1,
-                _2
-            )
-        );
+        subscribeForOugtoingMessages(
+            transaction->outgoingMessageIsReadySignal);
 
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+        mScheduler->scheduleTransaction(
+            transaction);
 
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createTrustLineTransaction. "
-                              "Can not allocate memory for transaction instance.");
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchSetTrustLineTransaction: "
+                "can't allocate memory for transaction instance.");
     }
 }
 
-void TransactionsManager::createUpdateTrustLineTransaction(
-    Message::Shared message) {
-
-    UpdateTrustLineMessage::Shared updateTrustLineMessage = static_pointer_cast<UpdateTrustLineMessage>(message);
+void TransactionsManager::launchUpdateTrustLineTransaction(
+    UpdateTrustLineMessage::Shared message) {
 
     try {
-        BaseTransaction *baseTransaction = new UpdateTrustLineTransaction(
+        auto transaction = make_shared<UpdateTrustLineTransaction>(
             mNodeUUID,
-            updateTrustLineMessage,
-            mTransactionsScheduler,
-            mTrustLinesManager);
+            message,
+            mScheduler.get(),
+            mTrustLines);
 
-        baseTransaction->addOnMessageSendSlot(
-            boost::bind(
-                &TransactionsManager::onMessageSend,
-                this,
-                _1,
-                _2
-            )
-        );
+        subscribeForOugtoingMessages(
+            transaction->outgoingMessageIsReadySignal);
 
-        mTransactionsScheduler->scheduleTransaction(BaseTransaction::Shared(baseTransaction));
+        mScheduler->scheduleTransaction(
+            transaction);
 
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("TransactionsManager::createTrustLineTransaction. "
-                              "Can not allocate memory for transaction instance.");
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchUpdateTrustLineTransaction: "
+                "can't allocate memory for transaction instance.");
     }
 }
 
-void TransactionsManager::onMessageSend(
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchCreditUsageTransaction(
+    CreditUsageCommand::Shared command) {
+
+    /*try {
+        auto transaction = make_shared<CoordinatorPaymentTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines);
+
+        subscribeForOugtoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchUpdateTrustLineTransaction: "
+                "can't allocate memory for transaction instance.");
+    }*/
+
+}
+
+void TransactionsManager::onTransactionOutgoingMessageReady(
     Message::Shared message,
     const NodeUUID &contractorUUID) {
 
-    try {
-        sendMessageSignal(
-            message,
-            contractorUUID
-        );
-
-    } catch (exception &e) {
-        mLog->logException("TransactionsManager", e);
-    }
+    transactionOutgoingMessageReadySignal(
+        message,
+        contractorUUID);
 }
 
-void TransactionsManager::zeroPointers() {
+void TransactionsManager::subscribeForOugtoingMessages(
+    BaseTransaction::SendMessageSignal &signal) {
 
-    mStorage = nullptr;
-    mTransactionsScheduler = nullptr;
-}
-
-void TransactionsManager::cleanupMemory() {
-
-    if (mTransactionsScheduler != nullptr) {
-        delete mTransactionsScheduler;
-    }
-
-    if (mStorage != nullptr) {
-        delete mStorage;
-    }
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onTransactionOutgoingMessageReady,
+            this,
+            _1,
+            _2));
 }

@@ -2,11 +2,18 @@
 #define GEO_NETWORK_CLIENT_OPENTRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
+#include "../../CommandUUID.h"
+#include "../../../results_interface/result/CommandResult.h"
 
 #include "../../../../common/Types.h"
 #include "../../../../common/NodeUUID.h"
+#include "../../../../common/memory/MemoryUtils.h"
+#include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
 #include "../../../../common/exceptions/ValueError.h"
+
+#include <memory>
+#include <utility>
 
 using namespace std;
 
@@ -32,26 +39,24 @@ public:
 
     static const size_t kRequestedBufferSize();
 
-    const CommandResult *resultOk() const;
+    CommandResult::SharedConst resultOk() const;
 
-    const CommandResult *trustLineAlreadyPresentResult() const;
+    CommandResult::SharedConst trustLineAlreadyPresentResult() const;
 
-    const CommandResult *resultConflict() const;
+    CommandResult::SharedConst resultConflict() const;
 
-    const CommandResult *resultNoResponse() const;
+    CommandResult::SharedConst resultNoResponse() const;
 
-    const CommandResult *resultTransactionConflict() const;
+    CommandResult::SharedConst resultTransactionConflict() const;
 
 protected:
-    void deserialize(
-        const string &command);
-
     void deserializeFromBytes(
         BytesShared buffer);
 
-private:
-    const size_t kTrustLineAmountSize = 32;
+    void parse(
+        const string &command);
 
+private:
     NodeUUID mContractorUUID;
     TrustLineAmount mAmount;
 };

@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 3.6)
 project(geo_network_client)
 
+
 # todo: change in the release version
-add_definitions(-DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION)
+set(BUILD_CONFIGURATION "DEBUG")
+
+
+IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
+    add_definitions(-DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION)
+ENDIF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
+
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -18,6 +25,9 @@ find_package(Boost COMPONENTS system filesystem thread REQUIRED)
 #
 add_subdirectory(src/core/common/)
 add_subdirectory(src/core/common/exceptions)
+add_subdirectory(src/core/common/time)
+add_subdirectory(src/core/common/memory)
+add_subdirectory(src/core/common/multiprecision)
 add_subdirectory(src/core/db)
 #add_subdirectory(src/tests/db)
 add_subdirectory(src/core/io/routing_tables)
@@ -51,8 +61,11 @@ target_link_libraries(geo_network_client
         ${Boost_THREAD_LIBRARY}
         Boost::thread
 
-        common
-        exceptions
+#        common
+#        exceptions
+#        time
+#        memory
+#        multiprecision
         logger
         settings
         network

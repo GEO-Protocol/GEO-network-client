@@ -127,24 +127,30 @@ bool OpenTrustLineTransaction::checkSameTypeTransactions() {
 
             case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
                 OpenTrustLineTransaction::Shared openTrustLineTransaction = static_pointer_cast<OpenTrustLineTransaction>(it.first);
-                if (mCommand->contractorUUID() == openTrustLineTransaction->command()->contractorUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mCommand->contractorUUID() == openTrustLineTransaction->command()->contractorUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
 
             case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
                 SetTrustLineTransaction::Shared setTrustLineTransaction = static_pointer_cast<SetTrustLineTransaction>(it.first);
-                if (mCommand->contractorUUID() == setTrustLineTransaction->command()->contractorUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mCommand->contractorUUID() == setTrustLineTransaction->command()->contractorUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
 
             case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
                 CloseTrustLineTransaction::Shared closeTrustLineTransaction = static_pointer_cast<CloseTrustLineTransaction>(it.first);
-                if (mCommand->contractorUUID() == closeTrustLineTransaction->command()->contractorUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mCommand->contractorUUID() == closeTrustLineTransaction->command()->contractorUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
@@ -241,30 +247,30 @@ void OpenTrustLineTransaction::openTrustLine() {
 
 TransactionResult::Shared OpenTrustLineTransaction::resultOk() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultOk())));
+    return transactionResultFromCommand(mCommand->resultOk());
 }
 
 TransactionResult::Shared OpenTrustLineTransaction::trustLinePresentResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->trustLineAlreadyPresentResult())));
+    return transactionResultFromCommand(mCommand->trustLineAlreadyPresentResult());
 }
 
 TransactionResult::Shared OpenTrustLineTransaction::conflictErrorResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultConflict())));
+    return transactionResultFromCommand(mCommand->resultConflict());
 }
 
 TransactionResult::Shared OpenTrustLineTransaction::noResponseResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultNoResponse())));
+    return transactionResultFromCommand(mCommand->resultNoResponse());
 }
 
 TransactionResult::Shared OpenTrustLineTransaction::transactionConflictResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultTransactionConflict())));
+    return transactionResultFromCommand(mCommand->resultTransactionConflict());
 }
 
 TransactionResult::Shared OpenTrustLineTransaction::unexpectedErrorResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->unexpectedErrorResult())));
+    return transactionResultFromCommand(mCommand->unexpectedErrorResult());
 }

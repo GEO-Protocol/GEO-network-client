@@ -2,10 +2,17 @@
 #define GEO_NETWORK_CLIENT_CLOSETRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
+#include "../../CommandUUID.h"
+#include "../../../results_interface/result/CommandResult.h"
 
+#include "../../../../common/Types.h"
 #include "../../../../common/NodeUUID.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../common/exceptions/ValueError.h"
+
+#include <memory>
+#include <utility>
 
 class CloseTrustLineCommand: public BaseUserCommand {
 public:
@@ -27,22 +34,22 @@ public:
 
     static const size_t kRequestedBufferSize();
 
-    const CommandResult *resultOk() const;
+    CommandResult::SharedConst resultOk() const;
 
-    const CommandResult *trustLineIsAbsentResult() const;
+    CommandResult::SharedConst trustLineIsAbsentResult() const;
 
-    const CommandResult *resultConflict() const;
+    CommandResult::SharedConst resultConflict() const;
 
-    const CommandResult *resultNoResponse() const;
+    CommandResult::SharedConst resultNoResponse() const;
 
-    const CommandResult *resultTransactionConflict() const;
+    CommandResult::SharedConst resultTransactionConflict() const;
 
 private:
-    void deserialize(
-        const string &command);
-
     void deserializeFromBytes(
         BytesShared buffer);
+
+    void parse(
+        const string &command);
 
 private:
     NodeUUID mContractorUUID;

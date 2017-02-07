@@ -54,7 +54,7 @@ namespace db {
             void erase(
                 const uuids::uuid &uuid);
 
-            Record::Shared readFromFile(
+            Record::Shared readByUUID(
                 const uuids::uuid &uuid);
 
             const vector<uuids::uuid>* keys() const;

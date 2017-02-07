@@ -9,11 +9,13 @@ SetTrustLineCommand::SetTrustLineCommand(
     identifier()
     ) {
 
-    deserialize(commandBuffer);
+    parse(commandBuffer);
 }
 
 SetTrustLineCommand::SetTrustLineCommand(
-    BytesShared buffer) {
+    BytesShared buffer) :
+
+    BaseUserCommand(identifier()) {
 
     deserializeFromBytes(buffer);
 }
@@ -36,42 +38,37 @@ const TrustLineAmount &SetTrustLineCommand::newAmount() const {
 
 pair<BytesShared, size_t> SetTrustLineCommand::serializeToBytes() {
 
-    auto parentBytesAndCount = serializeParentToBytes();
+    auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
 
-    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize + kTrustLineAmountSize;
-    byte *data = (byte *) calloc(bytesCount, sizeof(byte));
+    size_t bytesCount = parentBytesAndCount.second +
+        NodeUUID::kBytesSize +
+        kTrustLineAmountBytesCount;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
     //----------------------------------------------------
     memcpy(
-        data,
+        dataBytesShared.get(),
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
+    dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     memcpy(
-        data + parentBytesAndCount.second,
+        dataBytesShared.get() + dataBytesOffset,
         mContractorUUID.data,
         NodeUUID::kBytesSize
     );
+    dataBytesOffset += NodeUUID::kBytesSize;
     //----------------------------------------------------
-    vector<byte> buffer;
-    buffer.reserve(kTrustLineAmountSize);
-    export_bits(
-        mNewAmount,
-        back_inserter(buffer),
-        8
-    );
-    size_t unusedBufferPlace = kTrustLineAmountSize - buffer.size();
-    for (size_t i = 0; i < unusedBufferPlace; ++i) {
-        buffer.push_back(0);
-    }
+    vector<byte> buffer = trustLineAmountToBytes(mNewAmount);
     memcpy(
-        data + parentBytesAndCount.second + NodeUUID::kBytesSize,
+        dataBytesShared.get() + dataBytesOffset,
         buffer.data(),
         buffer.size()
     );
     //----------------------------------------------------
     return make_pair(
-        BytesShared(data, free),
+        dataBytesShared,
         bytesCount
     );
 }
@@ -79,124 +76,121 @@ pair<BytesShared, size_t> SetTrustLineCommand::serializeToBytes() {
 void SetTrustLineCommand::deserializeFromBytes(
     BytesShared buffer) {
 
-    deserializeParentFromBytes(buffer);
+    BaseUserCommand::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = inheritED();
     //----------------------------------------------------
     memcpy(
         mContractorUUID.data,
-        buffer.get() + kOffsetToInheritBytes(),
+        buffer.get() + bytesBufferOffset,
         NodeUUID::kBytesSize
     );
+    bytesBufferOffset += NodeUUID::kBytesSize;
     //----------------------------------------------------
     vector<byte> amountBytes(
-        buffer.get() + kOffsetToInheritBytes() + NodeUUID::kBytesSize,
-        buffer.get() + kOffsetToInheritBytes() + NodeUUID::kBytesSize + kTrustLineAmountSize);
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
 
-    vector<byte> amountNotZeroBytes;
-    amountNotZeroBytes.reserve(kTrustLineAmountSize);
-
-    for (auto &item : amountBytes) {
-        if (item != 0) {
-            amountNotZeroBytes.push_back(item);
-        }
-    }
-
-    if (amountNotZeroBytes.size() > 0) {
-        import_bits(
-            mNewAmount,
-            amountNotZeroBytes.begin(),
-            amountNotZeroBytes.end()
-        );
-
-    } else {
-        import_bits(
-            mNewAmount,
-            amountBytes.begin(),
-            amountBytes.end()
-        );
-    }
+    mNewAmount = bytesToTrustLineAmount(amountBytes);
 }
 
-const size_t SetTrustLineCommand::kRequestedBufferSize() {
-
-    const size_t trustAmountBytesSize = 32;
-    static const size_t size = kOffsetToInheritBytes() + NodeUUID::kBytesSize + trustAmountBytesSize;
-    return size;
-}
-
-void SetTrustLineCommand::deserialize(
+void SetTrustLineCommand::parse(
     const string &command) {
 
     const auto amountTokenOffset = NodeUUID::kHexSize + 1;
     const auto minCommandLength = amountTokenOffset + 1;
 
     if (command.size() < minCommandLength) {
-        throw ValueError("SetTrustLineCommand::deserialize: "
+        throw ValueError("SetTrustLineCommand::parse: "
                              "Can't parse command. Received command is to short.");
     }
 
     try {
-        string hexUUID = command.substr(0, NodeUUID::kHexSize);
+        string hexUUID = command.substr(
+            0,
+            NodeUUID::kHexSize
+        );
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
-        throw ValueError("SetTrustLineCommand::deserialize: "
+        throw ValueError("SetTrustLineCommand::parse: "
                              "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 
     try {
         for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < command.length(); ++commandSeparatorPosition) {
             if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
-                mNewAmount = TrustLineAmount(command.substr(amountTokenOffset, commandSeparatorPosition - amountTokenOffset));
+                mNewAmount = TrustLineAmount(
+                    command.substr(
+                        amountTokenOffset,
+                        commandSeparatorPosition - amountTokenOffset
+                    )
+                );
             }
         }
 
     } catch (...) {
-        throw ValueError("SetTrustLineCommand::deserialize: "
+        throw ValueError("SetTrustLineCommand::parse: "
                              "Can't parse command. Error occurred while parsing 'New amount' token.");
     }
 
     if (mNewAmount == TrustLineAmount(0)){
-        throw ValueError("SetTrustLineCommand::deserialize: "
+        throw ValueError("SetTrustLineCommand::parse: "
                              "Can't parse command. Received 'New amount' can't be 0.");
     }
 }
 
-const CommandResult *SetTrustLineCommand::resultOk() const {
+const size_t SetTrustLineCommand::kRequestedBufferSize() {
 
-    return new CommandResult(
-        commandUUID(),
-        200
+    static const size_t size = inheritED() + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
+    return size;
+}
+
+CommandResult::SharedConst SetTrustLineCommand::resultOk() const {
+
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            200
+        )
     );
 }
 
-const CommandResult *SetTrustLineCommand::trustLineAbsentResult() const {
+CommandResult::SharedConst SetTrustLineCommand::trustLineAbsentResult() const {
 
-    return new CommandResult(
-        commandUUID(),
-        404
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            404
+        )
     );
 }
 
-const CommandResult *SetTrustLineCommand::resultConflict() const {
+CommandResult::SharedConst SetTrustLineCommand::resultConflict() const {
 
-    return new CommandResult(
-        commandUUID(),
-        429
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            429
+        )
     );
 }
 
-const CommandResult *SetTrustLineCommand::resultNoResponse() const {
+CommandResult::SharedConst SetTrustLineCommand::resultNoResponse() const {
 
-    return new CommandResult(
-        commandUUID(),
-        444
-    );
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            444
+        )
+    );;
 }
 
-const CommandResult *SetTrustLineCommand::resultTransactionConflict() const {
+CommandResult::SharedConst SetTrustLineCommand::resultTransactionConflict() const {
 
-    return new CommandResult(
-        commandUUID(),
-        500
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            500
+        )
     );
 }

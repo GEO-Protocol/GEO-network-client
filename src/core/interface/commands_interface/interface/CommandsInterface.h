@@ -9,6 +9,7 @@
 #include "../commands/trust_lines/OpenTrustLineCommand.h"
 #include "../commands/trust_lines/CloseTrustLineCommand.h"
 #include "../commands/trust_lines/SetTrustLineCommand.h"
+#include "../commands/payments/CreditUsageCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"
@@ -21,6 +22,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include <string>
+#include <memory>
 
 using namespace std;
 using namespace boost::uuids;
@@ -73,13 +75,15 @@ private:
     Logger *mLog;
 };
 
+
+// todo: refactor, use signals
+
 /**
  * User commands are transmitted via named pipe (FIFO on Linux).
  * This class is used to asynchronously receive them, parse,
  * and transfer for the further execution.
  */
 class CommandsInterface: public BaseFIFOInterface {
-
 public:
     explicit CommandsInterface(
         as::io_service &ioService,
@@ -91,8 +95,6 @@ public:
     void beginAcceptCommands();
 
 protected:
-    virtual const char* FIFOName() const;
-
     void asyncReceiveNextCommand();
 
     void handleReceivedInfo(
@@ -102,11 +104,13 @@ protected:
     void handleTimeout(
         const boost::system::error_code &error);
 
+    virtual const char* FIFOName() const;
+
 public:
     static const constexpr char *kFIFOName = "commands.fifo";
     static const constexpr unsigned int kPermissionsMask = 0755;
 
-private:
+protected:
     static const constexpr size_t kCommandBufferSize = 1024;
 
     as::io_service &mIOService;
@@ -114,9 +118,10 @@ private:
     Logger *mLog;
 
     as::streambuf mCommandBuffer;
-    as::posix::stream_descriptor *mFIFOStreamDescriptor;
-    as::deadline_timer *mReadTimeoutTimer;
-    CommandsParser *mCommandsParser;
+
+    unique_ptr<as::posix::stream_descriptor> mFIFOStreamDescriptor;
+    unique_ptr<as::deadline_timer> mReadTimeoutTimer;
+    unique_ptr<CommandsParser> mCommandsParser;
 };
 
 #endif //GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H

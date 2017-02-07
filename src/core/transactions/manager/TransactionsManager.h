@@ -1,6 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
+#include "../../common/Types.h"
+#include "../../common/memory/MemoryUtils.h"
+
 #include "../../common/NodeUUID.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
@@ -13,6 +16,7 @@
 #include "../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 
 #include "../../network/messages/Message.h"
 #include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
@@ -29,6 +33,7 @@
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
 #include "../transactions/unique/routing_tables/SendRoutingTablesTransaction.h"
+#include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -41,7 +46,7 @@ namespace signals = boost::signals2;
 class TransactionsManager {
     // todo: hsc: tests?
 public:
-    signals::signal<void(Message::Shared, const NodeUUID&)> sendMessageSignal;
+    signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
 
 public:
     TransactionsManager(
@@ -51,59 +56,65 @@ public:
         ResultsInterface *resultsInterface,
         Logger *logger);
 
-    ~TransactionsManager();
-
     void processCommand(
         BaseUserCommand::Shared command);
 
     void processMessage(
         Message::Shared message);
 
-    void acceptCommandResult(
+    void processCommandResult(
         CommandResult::SharedConst result);
 
     void startRoutingTablesExchange(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
-private:
+protected:
     void loadTransactions();
 
-    void createOpenTrustLineTransaction(
-        BaseUserCommand::Shared command);
+protected:
+    // Trust lines transactions
+    void launchOpenTrustLineTransaction(
+        OpenTrustLineCommand::Shared command);
 
-    void createAcceptTrustLineTransaction(
-        Message::Shared message);
+    void launchAcceptTrustLineTransaction(
+        AcceptTrustLineMessage::Shared message);
 
-    void createCloseTrustLineTransaction(
-        BaseUserCommand::Shared command);
+    void launchCloseTrustLineTransaction(
+        CloseTrustLineCommand::Shared command);
 
-    void createRejectTrustLineTransaction(
-        Message::Shared message);
+    void launchRejectTrustLineTransaction(
+        RejectTrustLineMessage::Shared message);
 
-    void createSetTrustLineTransaction(
-        BaseUserCommand::Shared command);
+    void launchSetTrustLineTransaction(
+        SetTrustLineCommand::Shared command);
 
-    void createUpdateTrustLineTransaction(
-        Message::Shared message);
+    void launchUpdateTrustLineTransaction(
+        UpdateTrustLineMessage::Shared message);
 
-    void onMessageSend(
+protected:
+    // Payment transactions
+    void launchCreditUsageTransaction(
+        CreditUsageCommand::Shared command);
+
+protected:
+    // Slots
+    void onTransactionOutgoingMessageReady(
         Message::Shared message,
         const NodeUUID &contractorUUID);
 
-    void zeroPointers();
-
-    void cleanupMemory();
+    void subscribeForOugtoingMessages(
+        BaseTransaction::SendMessageSignal &signal);
 
 private:
     NodeUUID &mNodeUUID;
     as::io_service &mIOService;
-    TrustLinesManager *mTrustLinesManager;
+    TrustLinesManager *mTrustLines;
     ResultsInterface *mResultsInterface;
     Logger *mLog;
 
-    storage::UUIDMapBlockStorage *mStorage;
-    TransactionsScheduler *mTransactionsScheduler;
+    unique_ptr<storage::UUIDMapBlockStorage> mStorage;
+    unique_ptr<TransactionsScheduler> mScheduler;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H

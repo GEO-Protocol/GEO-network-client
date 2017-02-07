@@ -13,7 +13,6 @@ RoutingTableIncomingMessage::RoutingTableIncomingMessage(
     deserialize(buffer);
 }
 
-RoutingTableIncomingMessage::~RoutingTableIncomingMessage() {}
 
 pair<ConstBytesShared, size_t> RoutingTableIncomingMessage::serialize() {
 
@@ -24,28 +23,8 @@ pair<ConstBytesShared, size_t> RoutingTableIncomingMessage::serialize() {
 void RoutingTableIncomingMessage::deserialize(
     byte *buffer) {
 
-    size_t bytesBufferOffset = 0;
-    //---------------------------------------------------
-    memcpy(
-        mSenderUUID.data,
-        buffer,
-        NodeUUID::kBytesSize
-    );
-    bytesBufferOffset += NodeUUID::kBytesSize;
-    //---------------------------------------------------
-    memcpy(
-        mTransactionUUID.data,
-        buffer + bytesBufferOffset,
-        TransactionUUID::kBytesSize
-    );
-    bytesBufferOffset += TransactionUUID::kBytesSize;
-    //---------------------------------------------------
-    memcpy(
-        mContractor.data,
-        buffer + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
-    bytesBufferOffset += NodeUUID::kBytesSize;
+    deserializeParentFromBytes(buffer);
+    size_t bytesBufferOffset = kOffsetToInheritBytes();
     //---------------------------------------------------
     uint32_t *recordsCount = new (buffer + bytesBufferOffset) uint32_t;
     bytesBufferOffset += sizeof(uint32_t);

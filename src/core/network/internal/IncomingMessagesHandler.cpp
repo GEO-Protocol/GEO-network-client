@@ -17,7 +17,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
     uint16_t *messageIdentifier = new (const_cast<byte *> (messagePart.get())) uint16_t;
     auto deserializedData = tryDeserializeRequest(
       *messageIdentifier,
-      messagePart.get() + sizeof(uint16_t)
+      messagePart.get()
     );
     return deserializedData;
 }

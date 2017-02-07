@@ -29,7 +29,7 @@ void TrustLinesManager::loadTrustLines() {
 
             storage::Record::Shared record;
             try {
-                record = mTrustLinesStorage->readFromFile(storage::uuids::uuid(item));
+                record = mTrustLinesStorage->readByUUID(storage::uuids::uuid(item));
 
             } catch(std::exception &e) {
                 throw IOError(e.what());
@@ -70,7 +70,7 @@ void TrustLinesManager::open(
         if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setOutgoingTrustAmount(amount);
             trustLine->activateOutgoingDirection();
-
+            saveToDisk(trustLine);
         } else {
             throw ConflictError(
                 "TrustLinesManager::open: "
@@ -125,6 +125,7 @@ void TrustLinesManager::close(
                             "Outgoing",
                             "Suspend"
                     );
+                    saveToDisk(trustLine);
                 }
 
             } else {
@@ -158,7 +159,7 @@ void TrustLinesManager::accept(
         if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setIncomingTrustAmount(amount);
             trustLine->activateIncomingDirection();
-
+            saveToDisk(trustLine);
         } else {
             throw ConflictError("TrustLinesManager::accept: "
                                     "Сan not accept incoming trust line. Incoming trust line to such contractor already exist.");
@@ -210,6 +211,7 @@ void TrustLinesManager::reject(
                             "Incoming",
                             "Suspend"
                     );
+                    saveToDisk(trustLine);
                 }
 
             } else {

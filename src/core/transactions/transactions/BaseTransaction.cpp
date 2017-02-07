@@ -7,12 +7,19 @@ BaseTransaction::BaseTransaction(
         mType(type),
         mNodeUUID(nodeUUID){}
 
+BaseTransaction::BaseTransaction(
+    BaseTransaction::TransactionType type) :
+
+    mType(type){
+
+}
+
 BaseTransaction::BaseTransaction() {}
 
 signals::connection BaseTransaction::addOnMessageSendSlot(
     const SendMessageSignal::slot_type &slot) const {
 
-    return sendMessageSignal.connect(slot);
+    return outgoingMessageIsReadySignal.connect(slot);
 }
 
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
@@ -25,7 +32,7 @@ const NodeUUID &BaseTransaction::nodeUUID() const {
     return mNodeUUID;
 }
 
-const TransactionUUID &BaseTransaction::transactionUUID() const {
+const TransactionUUID &BaseTransaction::UUID() const {
 
     return mTransactionUUID;
 }
@@ -44,7 +51,7 @@ void BaseTransaction::addMessage(
     Message::Shared message,
     const NodeUUID &nodeUUID) {
 
-    sendMessageSignal(
+    outgoingMessageIsReadySignal(
         message,
         nodeUUID
     );
@@ -145,9 +152,9 @@ const size_t BaseTransaction::kOffsetToDataBytes() {
 }
 
 TransactionResult::Shared BaseTransaction::transactionResultFromCommand(
-    CommandResult::Shared result) {
+    CommandResult::SharedConst result) {
 
     TransactionResult *transactionResult = new TransactionResult();
-    transactionResult->setCommandResult(CommandResult::Shared(result));
+    transactionResult->setCommandResult(result);
     return TransactionResult::Shared(transactionResult);
 }

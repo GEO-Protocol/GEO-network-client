@@ -3,16 +3,20 @@
 
 #include "../../../common/Types.h"
 
-#include "../Message.h"
+#include "../TrustLinesMessage.h"
 
 #include <memory>
+#include <utility>
+#include <stdint.h>
+#include <malloc.h>
 
 using namespace std;
 
-class Response : public Message {
+class Response : public TrustLinesMessage {
 public:
     typedef shared_ptr<Response> Shared;
 
+public:
     Response(
         byte* buffer);
 

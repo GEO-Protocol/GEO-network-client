@@ -3,21 +3,16 @@
 
 #include "../../common/Types.h"
 #include "../../common/NodeUUID.h"
+#include "../../trust_lines/TrustLineUUID.h"
 #include "../../transactions/TransactionUUID.h"
 
 #include "../../common/exceptions/Exception.h"
 #include "../../common/exceptions/MemoryError.h"
 
-#include <boost/crc.hpp>
-
-#include <stdint.h>
-#include <malloc.h>
-#include <vector>
-#include <cstdlib>
-#include <cstring>
 #include <memory>
 #include <utility>
-
+#include <stdint.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -26,7 +21,6 @@ class NotImplementedError : public Exception {
 };
 
 class Message {
-
 public:
     typedef shared_ptr<Message> Shared;
 
@@ -46,25 +40,32 @@ public:
     };
 
 public:
-    const NodeUUID &senderUUID() const { return mSenderUUID; }
+    virtual const MessageTypeID typeID() const = 0;
 
-    const TransactionUUID &transactionUUID() const { return mTransactionUUID; }
+    const NodeUUID &senderUUID() const{
+        return mSenderUUID;
+    }
+
+    virtual const TransactionUUID &transactionUUID() const = 0;
+
+    virtual const TrustLineUUID &trustLineUUID() const = 0;
 
     virtual pair<ConstBytesShared, size_t> serialize() = 0;
-
-    virtual const MessageTypeID typeID() const = 0;
 
 protected:
     Message() {};
 
-    Message(NodeUUID &sender, TransactionUUID &transactionUUID) : mSenderUUID(sender), mTransactionUUID(transactionUUID) {};
+    Message(
+        NodeUUID &senderUUID) :
+
+        mSenderUUID(senderUUID){}
 
     virtual void deserialize(
         byte *buffer) = 0;
 
 protected:
     NodeUUID mSenderUUID;
-    TransactionUUID mTransactionUUID;
+
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H

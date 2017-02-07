@@ -18,30 +18,27 @@ const NodeUUID &RejectTrustLineMessage::contractorUUID() const {
 
 pair<ConstBytesShared, size_t> RejectTrustLineMessage::serialize() {
 
-    size_t dataSize = NodeUUID::kBytesSize +
-                      TransactionUUID::kBytesSize +
-                      NodeUUID::kBytesSize;
-    byte *data = (byte *) calloc (dataSize, sizeof(byte));
-    //----------------------------
+    auto parentBytesAndCount = serializeParentToBytes();
+
+    size_t dataSize = parentBytesAndCount.second + NodeUUID::kBytesSize;
+
+    byte *data = (byte *) calloc(
+        dataSize,
+        sizeof(byte)
+    );
+
     memcpy(
         data,
-        mSenderUUID.data,
-        NodeUUID::kBytesSize
+        const_cast<byte *> (parentBytesAndCount.first.get()),
+        parentBytesAndCount.second
     );
     //----------------------------
     memcpy(
-        data + NodeUUID::kBytesSize,
-        mTransactionUUID.data,
-        TransactionUUID::kBytesSize
-    );
-    //----------------------------
-    memcpy(
-        data + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
+        data + parentBytesAndCount.second,
         mContractorUUID.data,
         NodeUUID::kBytesSize
     );
     //----------------------------
-
     return make_pair(
         ConstBytesShared(data, free),
         dataSize
@@ -51,29 +48,18 @@ pair<ConstBytesShared, size_t> RejectTrustLineMessage::serialize() {
 void RejectTrustLineMessage::deserialize(
     byte *buffer) {
 
-    //------------------------------
-    memcpy(
-        mSenderUUID.data,
-        buffer,
-        NodeUUID::kBytesSize
-    );
-    //------------------------------
-    memcpy(
-        mTransactionUUID.data,
-        buffer + NodeUUID::kBytesSize,
-        TransactionUUID::kBytesSize
-    );
+    deserializeParentFromBytes(buffer);
     //------------------------------
     memcpy(
         mContractorUUID.data,
-        buffer + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
+        buffer + kOffsetToInheritBytes(),
         NodeUUID::kBytesSize
     );
 }
 
 const size_t RejectTrustLineMessage::kRequestedBufferSize() {
 
-    static const size_t size = NodeUUID::kBytesSize + TransactionUUID::kBytesSize + NodeUUID::kBytesSize;
+    static const size_t size = kOffsetToInheritBytes() + NodeUUID::kBytesSize;
     return size;
 }
 

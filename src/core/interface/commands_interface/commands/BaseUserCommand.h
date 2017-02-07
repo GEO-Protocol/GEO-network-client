@@ -2,15 +2,17 @@
 #define GEO_NETWORK_CLIENT_COMMAND_H
 
 #include "../../../common/Types.h"
+#include "../../../common/time/TimeUtils.h"
+#include "../../../common/memory/MemoryUtils.h"
 
 #include "../CommandUUID.h"
-
 #include "../../results_interface/result/CommandResult.h"
 
 #include <boost/uuid/uuid.hpp>
 
 #include <string>
 #include <memory>
+#include <utility>
 
 namespace uuids = boost::uuids;
 
@@ -19,50 +21,39 @@ public:
     typedef shared_ptr<BaseUserCommand> Shared;
 
 public:
-    BaseUserCommand();
+    static const constexpr char kCommandsSeparator = '\n';
+    static const constexpr char kTokensSeparator = '\t';
+
+public:
+    BaseUserCommand(
+        const string& identifier);
 
     BaseUserCommand(
         const CommandUUID &commandUUID,
         const string& identifier);
 
-    const CommandUUID &commandUUID() const;
+    const CommandUUID &UUID() const;
 
-    const string &commandIdentifier() const;
+    const string &identifier() const;
 
     const Timestamp &timestampAccepted() const;
 
-    const CommandResult *unexpectedErrorResult();
+    CommandResult::SharedConst unexpectedErrorResult();
 
 protected:
-    virtual void deserialize(
-        const string &commandBuffer) = 0;
-
-    virtual pair<BytesShared, size_t> serializeToBytes() = 0;
+    virtual pair<BytesShared, size_t> serializeToBytes() const;
 
     virtual void deserializeFromBytes(
-        BytesShared buffer) = 0;
-
-    pair<BytesShared, size_t> serializeParentToBytes();
-
-    void deserializeParentFromBytes(
         BytesShared buffer);
 
-    static const size_t kOffsetToInheritBytes();
+    virtual void parse(
+        const string &commandBuffer) = 0;
 
-public:
-    static const constexpr char kCommandsSeparator = '\n';
-    static const constexpr char kTokensSeparator = '\t';
-
-protected:
-    CommandUUID mCommandUUID;
-    Timestamp mTimestampAccepted;
+    static const size_t inheritED();
 
 private:
-    static const Timestamp kEpoch();
-
+    CommandUUID mCommandUUID;
+    Timestamp mTimestampAccepted;
     const string mCommandIdentifier;
-
 };
-
-
 #endif //GEO_NETWORK_CLIENT_COMMAND_H

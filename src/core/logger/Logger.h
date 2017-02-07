@@ -63,6 +63,8 @@ public:
         const char *subsystem);
     LoggerStream error(
         const char *subsystem);
+    LoggerStream debug(
+        const char *subsystem);
 
 private:
     const string log_filename = "transactionlog.txt";

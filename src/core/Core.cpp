@@ -194,7 +194,7 @@ void Core::connectCommunicatorSignals() {
     );
 
     //transactions manager's to communicator slot
-    mTransactionsManager->sendMessageSignal.connect(
+    mTransactionsManager->transactionOutgoingMessageReadySignal.connect(
         boost::bind(
             &Core::onMessageSendSlot,
             this,

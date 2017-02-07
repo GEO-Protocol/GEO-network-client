@@ -3,6 +3,7 @@
 
 
 #include "../common/Types.h"
+#include "TrustLineUUID.h"
 #include "../common/NodeUUID.h"
 
 #include "../common/exceptions/RuntimeError.h"
@@ -53,6 +54,8 @@ public:
     void activateIncomingDirection();
 
     void suspendIncomingDirection();
+
+    const TrustLineUUID& trustLineUUID() const;
 
     const NodeUUID& contractorNodeUUID() const;
 
@@ -113,10 +116,12 @@ private:
         + kBalancePartSize
         + kSignBytePartSize;
 
-    NodeUUID mContractorNodeUuid;
+    TrustLineUUID mTrustLineUUID;
+    NodeUUID mContractorNodeUUID;
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
     TrustLineBalance mBalance;
+
     // <incoming direction state, outgoing direction state>
     pair<TrustState, TrustState> mTrustLineState;
 
