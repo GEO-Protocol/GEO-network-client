@@ -3,7 +3,7 @@
 
 #include "../UniqueTransaction.h"
 
-#include "../../../../network/messages/Message.h"
+#include "../../../../network/messages/Message.hpp"
 #include "../../../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 #include "../../../../network/messages/response/Response.h"
 
@@ -54,7 +54,7 @@ private:
         uint16_t code);
 
     TransactionResult::Shared makeResult(
-        MessageResult::Shared messageResult);
+        MessageResult::SharedConst messageResult);
 
 private:
     AcceptTrustLineMessage::Shared mMessage;

@@ -6,7 +6,7 @@
 #include "../../common/Types.h"
 #include "../../common/NodeUUID.h"
 
-#include "../../network/messages/Message.h"
+#include "../../network/messages/Message.hpp"
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 #include "result/TransactionResult.h"

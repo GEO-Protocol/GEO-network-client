@@ -1,16 +1,18 @@
 #ifndef GEO_NETWORK_CLIENT_REJECTTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_REJECTTRUSTLINEMESSAGE_H
 
-#include "../../TrustLinesMessage.h"
+#include "../../TrustLinesMessage.hpp"
+#include "../../result/MessageResult.h"
 
 #include "../../../../common/Types.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../result/MessageResult.h"
+#include "../../../../common/NodeUUID.h"
 
 #include <memory>
 #include <utility>
+#include <cstdlib>
 #include <stdint.h>
-#include <malloc.h>
 
 using namespace std;
 
@@ -20,25 +22,25 @@ public:
 
 public:
     RejectTrustLineMessage(
-        byte *buffer);
+        BytesShared buffer);
 
-    const MessageTypeID typeID() const;
+    const MessageType typeID() const;
 
     const NodeUUID &contractorUUID() const;
 
-    pair<ConstBytesShared, size_t> serialize();
+    pair<BytesShared, size_t> serializeToBytes();
 
     static const size_t kRequestedBufferSize();
 
-    MessageResult::Shared resultRejected();
+    MessageResult::SharedConst resultRejected();
 
-    MessageResult::Shared resultRejectDelayed();
+    MessageResult::SharedConst resultRejectDelayed();
 
-    MessageResult::Shared resultTransactionConflict() const;
+    MessageResult::SharedConst resultTransactionConflict() const;
 
 private:
-    void deserialize(
-        byte* buffer);
+    void deserializeFromBytes(
+        BytesShared buffer);
 
 public:
     static const uint16_t kResultCodeRejected = 200;

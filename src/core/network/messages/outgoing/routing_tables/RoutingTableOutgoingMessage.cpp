@@ -38,56 +38,56 @@ void RoutingTableOutgoingMessage::pushBack(
     }
 }
 
-pair<ConstBytesShared, size_t> RoutingTableOutgoingMessage::serialize() {
+pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = serializeParentToBytes();
-
-    size_t dataSize = parentBytesAndCount.second + (mRecords->size() * (NodeUUID::kBytesSize + sizeof(uint8_t)));
-    byte *data = (byte *) calloc(dataSize, sizeof(byte));
-
+    auto parentBytesAndCount = RoutingTablesMessage::serializeToBytes();
+    size_t bytesCount = (parentBytesAndCount.second + sizeof(uint32_t)) +
+        mRecords->size() * (NodeUUID::kBytesSize + sizeof(SerializedTrustLineDirection));
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+    //----------------------------------------------------
     memcpy(
-        data,
-        const_cast<byte *> (parentBytesAndCount.first.get()),
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
-    size_t dataBufferOffset = parentBytesAndCount.second;
-
+    dataBytesOffset += parentBytesAndCount.second;
     //---------------------------------------------------
-    uint32_t recordsCount = mRecords->size();
+    uint32_t recordsCount = (uint32_t) mRecords->size();
     memcpy(
-        data + dataBufferOffset,
+        dataBytesShared.get() + dataBytesOffset,
         &recordsCount,
         sizeof(uint32_t)
     );
-    dataBufferOffset += sizeof(uint32_t);
+    dataBytesOffset += sizeof(uint32_t);
     //---------------------------------------------------
     for (auto const &neighborAndDirect : *mRecords) {
         memcpy(
-          data + dataBufferOffset,
+          dataBytesShared.get() + dataBytesOffset,
           neighborAndDirect.first.data,
           NodeUUID::kBytesSize
         );
-        dataBufferOffset += NodeUUID::kBytesSize;
+        dataBytesOffset += NodeUUID::kBytesSize;
 
-        uint8_t direction = neighborAndDirect.second;
+        SerializedTrustLineDirection direction = neighborAndDirect.second;
         memcpy(
-          data + dataBufferOffset,
+          dataBytesShared.get() + dataBytesOffset,
           &direction,
-          sizeof(uint8_t)
+          sizeof(SerializedTrustLineDirection)
         );
-        dataBufferOffset += sizeof(uint8_t);
+        dataBytesOffset += sizeof(SerializedTrustLineDirection);
     }
     //---------------------------------------------------
     return make_pair(
-      ConstBytesShared(data, free),
-      dataSize
+      dataBytesShared,
+      bytesCount
     );
 
 }
 
-void RoutingTableOutgoingMessage::deserialize(
-    byte *buffer) {
+void RoutingTableOutgoingMessage::deserializeFromBytes(
+    BytesShared buffer) {
 
-    throw NotImplementedError("RoutingTableOutgoingMessage::deserialize: "
+    throw NotImplementedError("RoutingTableOutgoingMessage::deserializeFromBytes: "
                                   "Method not implemented.");
 }

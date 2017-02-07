@@ -21,7 +21,7 @@ public:
         TrustLineUUID &trustLineUUID);
 
 private:
-    const MessageTypeID typeID() const;
+    const MessageType typeID() const;
 };
 
 #endif //GEO_NETWORK_CLIENT_FIRSTLEVELROUTINGTABLEOUTGOINGMESSAGE_H

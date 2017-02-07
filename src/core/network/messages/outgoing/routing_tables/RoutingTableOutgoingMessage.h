@@ -1,9 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_ROUTINGTABLEOUTGOINGMESSAGE_H
 #define GEO_NETWORK_CLIENT_ROUTINGTABLEOUTGOINGMESSAGE_H
 
-#include "../../RoutingTablesMessage.h"
+#include "../../RoutingTablesMessage.hpp"
 
 #include "../../../../common/Types.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../common/NodeUUID.h"
 #include "../../../../trust_lines/TrustLineUUID.h"
@@ -13,7 +14,6 @@
 #include <memory>
 #include <utility>
 #include <stdint.h>
-#include <malloc.h>
 
 using namespace std;
 
@@ -26,19 +26,18 @@ public:
         NodeUUID &neighbor,
         TrustLineDirection direction);
 
+    pair<BytesShared, size_t> serializeToBytes();
+
 protected:
     RoutingTableOutgoingMessage(
         NodeUUID &senderUUID,
         NodeUUID &contractorUUID,
         TrustLineUUID &trustLineUUID);
 
-    virtual const MessageTypeID typeID() const = 0;
+    virtual const MessageType typeID() const = 0;
 
-private:
-    pair<ConstBytesShared, size_t> serialize();
-
-    void deserialize(
-        byte *buffer);
+    void deserializeFromBytes(
+        BytesShared buffer);
 
 protected:
     unique_ptr<map<NodeUUID, TrustLineDirection>> mRecords;

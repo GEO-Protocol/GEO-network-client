@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_OUTGOINGMESSAGESHANDLER_H
 #define GEO_NETWORK_CLIENT_OUTGOINGMESSAGESHANDLER_H
 
-#include "../messages/Message.h"
+#include "../messages/Message.hpp"
 
 #include "../channels/packet/PacketHeader.h"
 #include "../channels/packet/Packet.h"

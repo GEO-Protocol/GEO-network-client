@@ -8,7 +8,7 @@
 #include "../channels/channel/Channel.h"
 #include "../channels/manager/ChannelsManager.h"
 
-#include "../messages/Message.h"
+#include "../messages/Message.hpp"
 #include "../messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 #include "../messages/incoming/trust_lines/RejectTrustLineMessage.h"
 #include "../messages/incoming/trust_lines/UpdateTrustLineMessage.h"
@@ -17,7 +17,6 @@
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"
 
-#include <boost/date_time.hpp>
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
 
@@ -33,26 +32,26 @@ class MessagesParser {
 
 public:
     pair<bool, Message::Shared> processMessage(
-        ConstBytesShared messagePart,
+        BytesShared messagePart,
         const size_t receivedBytesCount);
 
 private:
     pair<bool, Message::Shared> tryDeserializeMessage(
-        ConstBytesShared messagePart);
+        BytesShared messagePart);
 
     pair<bool, Message::Shared> tryDeserializeRequest(
         const uint16_t messageIdentifier,
-        const byte *messagePart);
+        BytesShared messagePart);
 
     pair<bool, Message::Shared> tryDeserializeResponse(
         const uint16_t messageIdentifier,
-        const byte *messagePart);
+        BytesShared messagePart);
 
     pair<bool, Message::Shared> messageInvalidOrIncomplete();
 
 private:
     const size_t kMessageIdentifierSize = 2;
-    const size_t kMininalMessageSize = kMessageIdentifierSize + 1;
+    const size_t kMinimalMessageSize = kMessageIdentifierSize + 1;
 
 };
 
@@ -83,7 +82,6 @@ private:
     ChannelsManager *mChannelsManager;
 
     MessagesParser *mMessagesParser;
-
     vector<byte> mPacketsBuffer;
 };
 

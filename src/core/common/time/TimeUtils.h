@@ -13,10 +13,15 @@ inline const Timestamp epoch() {
     return Epoch;
 }
 
-inline const Timestamp geoEpoch(){
+inline const Timestamp geoEpoch() {
 
     static boost::posix_time::ptime GEOEpoch(boost::gregorian::date(2015, boost::gregorian::Feb, 2));
     return GEOEpoch;
+}
+
+inline Timestamp timestamp() {
+
+    return posix::microsec_clock::universal_time();
 }
 
 inline MicrosecondsTimestamp microsecondsTimestamp(

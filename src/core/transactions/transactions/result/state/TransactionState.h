@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 
-#include "../../../../network/messages/Message.h"
+#include "../../../../network/messages/Message.hpp"
 
 #include "boost/date_time.hpp"
 

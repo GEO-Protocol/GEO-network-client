@@ -1,9 +1,9 @@
 #include "Response.h"
 
 Response::Response(
-    byte *buffer) {
+    BytesShared buffer) {
 
-    deserialize(buffer);
+    deserializeFromBytes(buffer);
 }
 
 Response::Response(NodeUUID sender,
@@ -18,49 +18,49 @@ Response::Response(NodeUUID sender,
     mCode = code;
 }
 
+const Message::MessageType Response::typeID() const {
+
+    return Message::MessageTypeID::ResponseMessageType;
+}
+
 uint16_t Response::code() {
 
     return mCode;
 }
 
-pair<ConstBytesShared, size_t> Response::serialize() {
+pair<BytesShared, size_t> Response::serializeToBytes() {
 
-    auto parentBytesAndCount = serializeParentToBytes();
-
-    size_t dataSize = parentBytesAndCount.second + sizeof(uint16_t);
-
-    byte *data = (byte *) calloc(
-        dataSize,
-        sizeof(byte)
-    );
-
+    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second +
+                        TransactionUUID::kBytesSize;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+    //----------------------------------------------------
     memcpy(
-        data,
-        const_cast<byte *> (parentBytesAndCount.first.get()),
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
-    //----------------------------
+    dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------------------------------
     memcpy(
-        data + parentBytesAndCount.second,
+        dataBytesShared.get() + dataBytesOffset,
         &mCode,
         sizeof(uint16_t)
     );
     //----------------------------
     return make_pair(
-        ConstBytesShared(data, free),
-        dataSize
+        dataBytesShared,
+        bytesCount
     );
 }
 
-void Response::deserialize(byte *buffer) {
+void Response::deserializeFromBytes(
+    BytesShared buffer) {
 
-    deserializeParentFromBytes(buffer);
+    TrustLinesMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = TrustLinesMessage::inheritED();
     //------------------------------
-    uint16_t *code = new (buffer + kOffsetToInheritBytes()) uint16_t;
+    uint16_t *code = new (buffer.get() + bytesBufferOffset) uint16_t;
     mCode = *code;
-}
-
-const Message::MessageTypeID Response::typeID() const {
-
-    return Message::MessageTypeID::ResponseMessageType;
 }

@@ -5,7 +5,7 @@
 
 #include "../../../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 
-#include "../../../../network/messages/Message.h"
+#include "../../../../network/messages/Message.hpp"
 #include "../../../../network/messages/outgoing/trust_lines/SetTrustLineMessage.h"
 #include "../../../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 

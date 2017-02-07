@@ -7,41 +7,28 @@ void OutgoingMessagesHandler::processOutgoingMessage(
     uint16_t channelNumber,
     Channel::Shared channel) {
 
-    // Message's serialized data and data size
-    auto messageBytesAndCount = message->serialize();
+    auto messageBytesAndCount = message->serializeToBytes();
 
-
-    // Create crc packet and calculate packet's count
     auto crcPacketAndCount = makeCRCPacket(
         messageBytesAndCount,
         channelNumber
     );
 
-    // Remember packets count to be sended
     channel->setOutgoingPacketsCount(crcPacketAndCount.second);
 
-    // Push crc packet in incomingChannel
     channel->addPacket(
         Channel::kCRCPacketNumber(),
         crcPacketAndCount.first
     );
 
-    // Create other packages
-    byte *serializedMessageBuffer = const_cast<byte *> (messageBytesAndCount.first.get());
-    uint16_t dataPacketsCount = crcPacketAndCount.second - 1; // crc packet excluded
+    byte *serializedMessageBuffer = messageBytesAndCount.first.get();
+    uint16_t dataPacketsCount = (uint16_t) (crcPacketAndCount.second - 1);
 
     for (uint16_t packetNumber = 1; packetNumber <= dataPacketsCount; ++ packetNumber) {
         size_t packetSize;
         size_t offset = 0;
 
-        // Calculate size of next packet.
-        // If total data packets count greater than 1 -
-        // size of next packet will be calculate by nested 'if' statement.
-        // Else if have only one packet - packet size will be equals to size of message's data.
         if (dataPacketsCount > 1) {
-            // If iteration on last packet -
-            // size of next packet will be equals serialized message data - maximal packet's body size * packet sequence number.
-            // Else packet size will be equals to maximal packet's body size.
             if (packetNumber == dataPacketsCount) {
                 packetSize = messageBytesAndCount.second - kMaxPacketBodySize * packetNumber;
 
@@ -54,7 +41,6 @@ void OutgoingMessagesHandler::processOutgoingMessage(
             packetSize = messageBytesAndCount.second;
         }
 
-        // Calculate offset to next part of serialized data.
         if (packetNumber == 1) {
             offset = 0;
 
@@ -98,7 +84,7 @@ pair<Packet::Shared, uint16_t> OutgoingMessagesHandler::makeCRCPacket(
         messageBytesAndCount.first.get(),
         messageBytesAndCount.second
     );
-    uint32_t controlSum = crc.checksum();
+    uint32_t controlSum = (uint32_t) crc.checksum();
     byte *controlSumBytes = (byte *) malloc(kCRCDataSize);
     memset(
         controlSumBytes,
@@ -115,7 +101,7 @@ pair<Packet::Shared, uint16_t> OutgoingMessagesHandler::makeCRCPacket(
         channelNumber,
         kCRCPacketNumber,
         packetsCount,
-        PacketHeader::kHeaderSize + kCRCDataSize
+        (const uint16_t) (PacketHeader::kHeaderSize + kCRCDataSize)
     );
 
     Packet *packet = new Packet(
@@ -142,7 +128,7 @@ Packet::Shared OutgoingMessagesHandler::makePacket(
       channelNumber,
       packetNumber,
       packetsCount,
-      PacketHeader::kHeaderSize + bytesCount
+      (const uint16_t) (PacketHeader::kHeaderSize + bytesCount)
     );
 
     Packet *packet = new Packet(

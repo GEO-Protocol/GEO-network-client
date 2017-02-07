@@ -9,7 +9,7 @@ void TransactionResult::setCommandResult(
 }
 
 void TransactionResult::setMessageResult(
-    MessageResult::Shared messageResult) {
+    MessageResult::SharedConst messageResult) {
 
     mMessageResult = messageResult;
 }

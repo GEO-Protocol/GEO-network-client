@@ -11,7 +11,7 @@ FirstLevelRoutingTableOutgoingMessage::FirstLevelRoutingTableOutgoingMessage(
         trustLineUUID) {}
 
 
-const Message::MessageTypeID FirstLevelRoutingTableOutgoingMessage::typeID() const {
+const Message::MessageType FirstLevelRoutingTableOutgoingMessage::typeID() const {
 
     return Message::MessageTypeID::FirstLevelRoutingTableOutgoingMessageType;
 }

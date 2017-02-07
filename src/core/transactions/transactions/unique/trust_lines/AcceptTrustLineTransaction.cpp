@@ -33,7 +33,7 @@ AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
 pair<BytesShared, size_t> AcceptTrustLineTransaction::serializeToBytes() {
 
     auto parentBytesAndCount = serializeParentToBytes();
-    auto messageBytesAndCount = mMessage->serialize();
+    auto messageBytesAndCount = mMessage->serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +  messageBytesAndCount.second;
     byte *data = (byte *) calloc (
         bytesCount,
@@ -220,7 +220,7 @@ void AcceptTrustLineTransaction::sendResponse(
 }
 
 TransactionResult::Shared AcceptTrustLineTransaction::makeResult(
-    MessageResult::Shared messageResult) {
+    MessageResult::SharedConst messageResult) {
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setMessageResult(messageResult);

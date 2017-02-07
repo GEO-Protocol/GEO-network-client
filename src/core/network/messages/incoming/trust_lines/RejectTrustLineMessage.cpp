@@ -1,12 +1,12 @@
 #include "RejectTrustLineMessage.h"
 
 RejectTrustLineMessage::RejectTrustLineMessage(
-    byte *buffer) {
+    BytesShared buffer) {
 
-    deserialize(buffer);
+    deserializeFromBytes(buffer);
 }
 
-const Message::MessageTypeID RejectTrustLineMessage::typeID() const {
+const Message::MessageType RejectTrustLineMessage::typeID() const {
 
     return Message::MessageTypeID::RejectTrustLineMessageType;
 }
@@ -16,54 +16,53 @@ const NodeUUID &RejectTrustLineMessage::contractorUUID() const {
     return mContractorUUID;
 }
 
-pair<ConstBytesShared, size_t> RejectTrustLineMessage::serialize() {
+pair<BytesShared, size_t> RejectTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = serializeParentToBytes();
-
-    size_t dataSize = parentBytesAndCount.second + NodeUUID::kBytesSize;
-
-    byte *data = (byte *) calloc(
-        dataSize,
-        sizeof(byte)
-    );
-
+    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second +
+                        NodeUUID::kBytesSize;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+    //----------------------------------------------------
     memcpy(
-        data,
-        const_cast<byte *> (parentBytesAndCount.first.get()),
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
-    //----------------------------
+    dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------------------------------
     memcpy(
-        data + parentBytesAndCount.second,
+        dataBytesShared.get() + dataBytesOffset,
         mContractorUUID.data,
         NodeUUID::kBytesSize
     );
     //----------------------------
     return make_pair(
-        ConstBytesShared(data, free),
-        dataSize
+        dataBytesShared,
+        bytesCount
     );
 }
 
-void RejectTrustLineMessage::deserialize(
-    byte *buffer) {
+void RejectTrustLineMessage::deserializeFromBytes(
+    BytesShared buffer) {
 
-    deserializeParentFromBytes(buffer);
-    //------------------------------
+    TrustLinesMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = TrustLinesMessage::inheritED();
+    //----------------------------------------------------
     memcpy(
         mContractorUUID.data,
-        buffer + kOffsetToInheritBytes(),
+        buffer.get() + bytesBufferOffset,
         NodeUUID::kBytesSize
     );
 }
 
 const size_t RejectTrustLineMessage::kRequestedBufferSize() {
 
-    static const size_t size = kOffsetToInheritBytes() + NodeUUID::kBytesSize;
+    static const size_t size = TrustLinesMessage::inheritED() + NodeUUID::kBytesSize;
     return size;
 }
 
-MessageResult::Shared RejectTrustLineMessage::resultRejected() {
+MessageResult::SharedConst RejectTrustLineMessage::resultRejected() {
 
     return MessageResult::Shared(
         new MessageResult(
@@ -73,7 +72,7 @@ MessageResult::Shared RejectTrustLineMessage::resultRejected() {
     );
 }
 
-MessageResult::Shared RejectTrustLineMessage::resultRejectDelayed() {
+MessageResult::SharedConst RejectTrustLineMessage::resultRejectDelayed() {
 
     return MessageResult::Shared(
         new MessageResult(
@@ -83,7 +82,7 @@ MessageResult::Shared RejectTrustLineMessage::resultRejectDelayed() {
     );
 }
 
-MessageResult::Shared RejectTrustLineMessage::resultTransactionConflict() const {
+MessageResult::SharedConst RejectTrustLineMessage::resultTransactionConflict() const {
 
     return MessageResult::Shared(
         new MessageResult(

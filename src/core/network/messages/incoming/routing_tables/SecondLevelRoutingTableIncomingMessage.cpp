@@ -1,13 +1,13 @@
 #include "SecondLevelRoutingTableIncomingMessage.h"
 
 SecondLevelRoutingTableIncomingMessage::SecondLevelRoutingTableIncomingMessage(
-    byte *buffer) :
+    BytesShared buffer) :
 
     RoutingTableIncomingMessage(buffer) {
 
 }
 
-const Message::MessageTypeID SecondLevelRoutingTableIncomingMessage::typeID() const {
+const Message::MessageType SecondLevelRoutingTableIncomingMessage::typeID() const {
 
     return Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType;
 }

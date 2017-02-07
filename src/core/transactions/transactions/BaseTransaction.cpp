@@ -44,7 +44,7 @@ void BaseTransaction::setContext(
 }
 
 pair<ConstBytesShared, size_t> BaseTransaction::serializeContext() {
-    return mContext->serialize();
+    return mContext->serializeToBytes();
 }
 
 void BaseTransaction::addMessage(

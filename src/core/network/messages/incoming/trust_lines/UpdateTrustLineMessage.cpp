@@ -1,14 +1,14 @@
 #include "UpdateTrustLineMessage.h"
 
 UpdateTrustLineMessage::UpdateTrustLineMessage(
-    byte *buffer) {
+    BytesShared buffer) {
 
-    deserialize(buffer);
+    deserializeFromBytes(buffer);
 }
 
-const Message::MessageTypeID UpdateTrustLineMessage::typeID() const {
+const Message::MessageType UpdateTrustLineMessage::typeID() const {
 
-    return Message::MessageTypeID::UpdateTrustLineMessageType;
+    return Message::MessageTypeID::AcceptTrustLineMessageType;
 }
 
 const TrustLineAmount &UpdateTrustLineMessage::newAmount() const {
@@ -16,84 +16,49 @@ const TrustLineAmount &UpdateTrustLineMessage::newAmount() const {
     return mNewTrustLineAmount;
 }
 
-pair<ConstBytesShared, size_t> UpdateTrustLineMessage::serialize() {
+pair<BytesShared, size_t> UpdateTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = serializeParentToBytes();
-
-    size_t dataSize = parentBytesAndCount.second + kTrustLineAmountSize;
-
-    byte *data = (byte *) calloc(
-        dataSize,
-        sizeof(byte)
-    );
-
+    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second +
+                        kTrustLineAmountBytesCount;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+    //----------------------------------------------------
     memcpy(
-        data,
-        const_cast<byte *> (parentBytesAndCount.first.get()),
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
-    //----------------------------
-    vector<byte> trustAmountBytesBuffer;
-    trustAmountBytesBuffer.reserve(kTrustLineAmountSize);
-    export_bits(
-        mNewTrustLineAmount,
-        back_inserter(trustAmountBytesBuffer),
-        8
-    );
-    size_t unusedBufferPlace = kTrustLineAmountSize - trustAmountBytesBuffer.size();
-    for (size_t i = 0; i < unusedBufferPlace; ++i) {
-        trustAmountBytesBuffer.push_back(0);
-    }
+    dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------------------------------
+    vector<byte> buffer = trustLineAmountToBytes(mNewTrustLineAmount);
     memcpy(
-        data + parentBytesAndCount.second,
-        trustAmountBytesBuffer.data(),
-        trustAmountBytesBuffer.size()
+        dataBytesShared.get() + dataBytesOffset,
+        buffer.data(),
+        buffer.size()
     );
     //----------------------------
     return make_pair(
-        ConstBytesShared(data, free),
-        dataSize
+        dataBytesShared,
+        bytesCount
     );
 }
 
-void UpdateTrustLineMessage::deserialize(
-    byte *buffer) {
+void UpdateTrustLineMessage::deserializeFromBytes(
+    BytesShared buffer) {
 
-    deserializeParentFromBytes(buffer);
-    //------------------------------
+    TrustLinesMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = TrustLinesMessage::inheritED();
+    //----------------------------------------------------
     vector<byte> amountBytes(
-        buffer + kOffsetToInheritBytes(),
-        buffer + kOffsetToInheritBytes() + kTrustLineAmountSize);
-
-    vector<byte> amountNotZeroBytes;
-    amountNotZeroBytes.reserve(kTrustLineAmountSize);
-
-    for (auto &amountByte : amountBytes) {
-        if (amountByte != 0) {
-            amountNotZeroBytes.push_back(amountByte);
-        }
-    }
-
-    if (amountNotZeroBytes.size() > 0) {
-        import_bits(
-            mNewTrustLineAmount,
-            amountNotZeroBytes.begin(),
-            amountNotZeroBytes.end()
-        );
-
-    } else {
-        import_bits(
-            mNewTrustLineAmount,
-            amountBytes.begin(),
-            amountBytes.end()
-        );
-    }
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+    mNewTrustLineAmount = bytesToTrustLineAmount(amountBytes);
 }
 
 const size_t UpdateTrustLineMessage::kRequestedBufferSize() {
 
-    const size_t trustAmountBytesSize = 32;
-    static const size_t size = kOffsetToInheritBytes() + trustAmountBytesSize;
+    static const size_t size = TrustLinesMessage::inheritED() + kTrustLineAmountBytesCount;
     return size;
 }
 
@@ -117,7 +82,7 @@ MessageResult::Shared UpdateTrustLineMessage::resultRejected() const {
     );
 }
 
-MessageResult::Shared UpdateTrustLineMessage::resulConflict() const {
+MessageResult::Shared UpdateTrustLineMessage::resultConflict() const {
 
     return MessageResult::Shared(
         new MessageResult(

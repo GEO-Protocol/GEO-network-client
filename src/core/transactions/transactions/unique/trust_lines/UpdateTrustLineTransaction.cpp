@@ -33,7 +33,7 @@ UpdateTrustLineMessage::Shared UpdateTrustLineTransaction::message() const {
 pair<BytesShared, size_t> UpdateTrustLineTransaction::serializeToBytes() {
 
     auto parentBytesAndCount = serializeParentToBytes();
-    auto messageBytesAndCount = mMessage->serialize();
+    auto messageBytesAndCount = mMessage->serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +  messageBytesAndCount.second;
     byte *data = (byte *) calloc (
         bytesCount,
@@ -110,7 +110,7 @@ TransactionResult::Shared UpdateTrustLineTransaction::run() {
 
             } else {
                 sendResponse(UpdateTrustLineMessage::kResultCodeConflict);
-                return makeResult(mMessage->resulConflict());
+                return makeResult(mMessage->resultConflict());
             }
         }
 

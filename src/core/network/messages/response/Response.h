@@ -1,14 +1,14 @@
 #ifndef GEO_NETWORK_CLIENT_RESPONSE_H
 #define GEO_NETWORK_CLIENT_RESPONSE_H
 
-#include "../../../common/Types.h"
+#include "../TrustLinesMessage.hpp"
 
-#include "../TrustLinesMessage.h"
+#include "../../../common/Types.h"
+#include "../../../common/memory/MemoryUtils.h"
 
 #include <memory>
 #include <utility>
 #include <stdint.h>
-#include <malloc.h>
 
 using namespace std;
 
@@ -18,21 +18,22 @@ public:
 
 public:
     Response(
-        byte* buffer);
+        BytesShared buffer);
 
     Response(
         NodeUUID sender,
         TransactionUUID transactionUUID,
         uint16_t code);
 
+    const MessageType typeID() const;
+
     uint16_t code();
 
-    pair<ConstBytesShared, size_t> serialize();
+    pair<BytesShared, size_t> serializeToBytes();
 
-    void deserialize(
-        byte *buffer);
-
-    const MessageTypeID typeID() const;
+private:
+    void deserializeFromBytes(
+        BytesShared buffer);
 
 public:
     uint16_t mCode;

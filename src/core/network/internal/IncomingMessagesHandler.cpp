@@ -1,10 +1,10 @@
 #include "IncomingMessagesHandler.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
-    ConstBytesShared messagePart,
+    BytesShared messagePart,
     const size_t receivedBytesCount) {
 
-    if (receivedBytesCount < kMininalMessageSize || messagePart.get() == nullptr) {
+    if (receivedBytesCount < kMinimalMessageSize || messagePart.get() == nullptr) {
         return messageInvalidOrIncomplete();
     }
 
@@ -12,24 +12,24 @@ pair<bool, Message::Shared> MessagesParser::processMessage(
 }
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
-    ConstBytesShared messagePart) {
+    BytesShared messagePart) {
 
-    uint16_t *messageIdentifier = new (const_cast<byte *> (messagePart.get())) uint16_t;
+    uint16_t *messageIdentifier = new (messagePart.get()) uint16_t;
     auto deserializedData = tryDeserializeRequest(
       *messageIdentifier,
-      messagePart.get()
+      messagePart
     );
     return deserializedData;
 }
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
     const uint16_t messageIdentifier,
-    const byte *messagePart) {
+    BytesShared messagePart) {
 
     switch(messageIdentifier) {
 
         case Message::MessageTypeID::OpenTrustLineMessageType: {
-            Message *message = new AcceptTrustLineMessage(const_cast<byte *>(messagePart));
+            Message *message = new AcceptTrustLineMessage(messagePart);
             return make_pair(
                 true,
                 Message::Shared(message)
@@ -37,7 +37,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         }
 
         case Message::MessageTypeID::CloseTrustLineMessageType: {
-            Message *message = new RejectTrustLineMessage(const_cast<byte *>(messagePart));
+            Message *message = new RejectTrustLineMessage(messagePart);
             return make_pair(
                 true,
                 Message::Shared(message)
@@ -46,7 +46,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         }
 
         case Message::MessageTypeID::SetTrustLineMessageType: {
-            Message *message = new UpdateTrustLineMessage(const_cast<byte *>(messagePart));
+            Message *message = new UpdateTrustLineMessage(messagePart);
             return make_pair(
                 true,
                 Message::Shared(message)
@@ -66,12 +66,12 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeResponse(
     const uint16_t messageIdentifier,
-    const byte *messagePart) {
+    BytesShared messagePart) {
 
     switch(messageIdentifier) {
 
         case Message::MessageTypeID::ResponseMessageType: {
-            Message *message = new Response(const_cast<byte *>(messagePart));
+            Message *message = new Response(messagePart);
             return make_pair(
                 true,
                 Message::Shared(message)
@@ -103,7 +103,7 @@ IncomingMessagesHandler::IncomingMessagesHandler(
 
     } catch (std::bad_alloc &e) {
         throw MemoryError("IncomingMessagesHandler::IncomingMessagesHandler: "
-                              "Сant allocate enough memory for messages parser.");
+                              "Сan't allocate enough memory for messages parser.");
     }
 }
 
@@ -145,6 +145,10 @@ void IncomingMessagesHandler::tryCollectPacket(
         uint16_t *packageNumber = new (mPacketsBuffer.data() + Packet::kPackageNumberOffset) uint16_t;
         uint16_t *totalPacketsCount = new (mPacketsBuffer.data() + Packet::kTotalPacketsCountOffset) uint16_t;
 
+        auto channelAndEndpoint = mChannelsManager->incomingChannel(
+            *channelNumber,
+            clientEndpoint);
+
         PacketHeader *packetHeader = nullptr;
         try {
             packetHeader = new PacketHeader(
@@ -158,10 +162,6 @@ void IncomingMessagesHandler::tryCollectPacket(
             throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
                                   "Can not allocate memory for packet header instance.");
         }
-
-        auto channelAndEndpoint = mChannelsManager->incomingChannel(
-            packetHeader->channelNumber(),
-            clientEndpoint);
 
         Packet *packet = nullptr;
         try {

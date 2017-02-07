@@ -1,16 +1,17 @@
 #ifndef GEO_NETWORK_CLIENT_ACCEPTTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_ACCEPTTRUSTLINEMESSAGE_H
 
-#include "../../TrustLinesMessage.h"
+#include "../../TrustLinesMessage.hpp"
+#include "../../result/MessageResult.h"
 
 #include "../../../../common/Types.h"
-
-#include "../../result/MessageResult.h"
+#include "../../../../common/memory/MemoryUtils.h"
+#include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
 #include <memory>
 #include <utility>
+#include <cstdlib>
 #include <stdint.h>
-#include <malloc.h>
 
 using namespace std;
 
@@ -20,28 +21,28 @@ public:
 
 public:
     AcceptTrustLineMessage(
-        byte* buffer);
+        BytesShared buffer);
+
+    const MessageType typeID() const;
 
     const TrustLineAmount &amount() const;
 
-    const MessageTypeID typeID() const;
-
-    pair<ConstBytesShared, size_t> serialize();
+    pair<BytesShared, size_t> serializeToBytes();
 
     static const size_t kRequestedBufferSize();
 
-    MessageResult::Shared resultAccepted() const;
+    MessageResult::SharedConst resultAccepted() const;
 
-    MessageResult::Shared resultConflict() const;
+    MessageResult::SharedConst resultConflict() const;
 
-    MessageResult::Shared resultTransactionConflict() const;
+    MessageResult::SharedConst resultTransactionConflict() const;
 
-    MessageResult::Shared customCodeResult(
+    MessageResult::SharedConst customCodeResult(
         uint16_t code) const;
 
 private:
-    void deserialize(
-        byte* buffer);
+    void deserializeFromBytes(
+        BytesShared buffer);
 
 public:
     static const uint16_t kResultCodeAccepted = 200;
@@ -51,6 +52,4 @@ public:
 private:
     TrustLineAmount mTrustLineAmount;
 };
-
-
 #endif //GEO_NETWORK_CLIENT_ACCEPTTRUSTLINEMESSAGE_H

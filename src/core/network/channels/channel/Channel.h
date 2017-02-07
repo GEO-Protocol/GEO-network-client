@@ -34,7 +34,7 @@ public:
 
     bool checkConsistency();
 
-    pair<ConstBytesShared, size_t> data();
+    pair<BytesShared, size_t> data();
 
     const Timestamp creationTime() const;
 

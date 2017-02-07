@@ -3,7 +3,7 @@
 SetTrustLineMessage::SetTrustLineMessage(
     NodeUUID &sender,
     TransactionUUID &transactionUUID,
-    TrustLineAmount newAmount) :
+    TrustLineAmount &newAmount) :
 
     TrustLinesMessage(
         sender,
@@ -11,54 +11,42 @@ SetTrustLineMessage::SetTrustLineMessage(
     ),
     mNewTrustLineAmount(newAmount) {}
 
-const Message::MessageTypeID SetTrustLineMessage::typeID() const {
+const Message::MessageType SetTrustLineMessage::typeID() const {
 
     return Message::MessageTypeID::SetTrustLineMessageType;
 }
 
-pair<ConstBytesShared, size_t> SetTrustLineMessage::serialize() {
+pair<BytesShared, size_t> SetTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = serializeParentToBytes();
-
-    size_t dataSize = parentBytesAndCount.second + kTrustLineAmountSize;
-
-    byte *data = (byte *) calloc(
-        dataSize,
-        sizeof(byte)
-    );
-
+    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second +
+                        kTrustLineAmountBytesCount;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+    //----------------------------------------------------
     memcpy(
-        data,
-        const_cast<byte *> (parentBytesAndCount.first.get()),
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
-    //----------------------------
-    vector<byte> trustAmountBytesBuffer;
-    trustAmountBytesBuffer.reserve(kTrustLineAmountSize);
-    export_bits(
-        mNewTrustLineAmount,
-        back_inserter(trustAmountBytesBuffer),
-        8
-    );
-    size_t unusedBufferPlace = kTrustLineAmountSize - trustAmountBytesBuffer.size();
-    for (size_t i = 0; i < unusedBufferPlace; ++i) {
-        trustAmountBytesBuffer.push_back(0);
-    }
+    dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------------------------------
+    vector<byte> buffer = trustLineAmountToBytes(mNewTrustLineAmount);
     memcpy(
-        data + parentBytesAndCount.second,
-        trustAmountBytesBuffer.data(),
-        trustAmountBytesBuffer.size()
+        dataBytesShared.get() + dataBytesOffset,
+        buffer.data(),
+        buffer.size()
     );
     //----------------------------
     return make_pair(
-        ConstBytesShared(data, free),
-        dataSize
+        dataBytesShared,
+        bytesCount
     );
 }
 
-void SetTrustLineMessage::deserialize(
-    byte *buffer) {
+void SetTrustLineMessage::deserializeFromBytes(
+    BytesShared buffer) {
 
-    throw NotImplementedError("SetTrustLineMessage::deserialize: "
+    throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
                                   "Method not implemented.");
 }

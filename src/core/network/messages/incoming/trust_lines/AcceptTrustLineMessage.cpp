@@ -1,12 +1,12 @@
 #include "AcceptTrustLineMessage.h"
 
 AcceptTrustLineMessage::AcceptTrustLineMessage(
-    byte *buffer) {
+    BytesShared buffer) {
 
-    deserialize(buffer);
+    deserializeFromBytes(buffer);
 }
 
-const Message::MessageTypeID AcceptTrustLineMessage::typeID() const {
+const Message::MessageType AcceptTrustLineMessage::typeID() const {
 
     return Message::MessageTypeID::AcceptTrustLineMessageType;
 }
@@ -16,88 +16,53 @@ const TrustLineAmount &AcceptTrustLineMessage::amount() const {
     return mTrustLineAmount;
 }
 
-pair<ConstBytesShared, size_t> AcceptTrustLineMessage::serialize() {
+pair<BytesShared, size_t> AcceptTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = serializeParentToBytes();
-
-    size_t dataSize = parentBytesAndCount.second + kTrustLineAmountSize;
-
-    byte *data = (byte *) calloc(
-        dataSize,
-        sizeof(byte)
-    );
-
+    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second +
+                        kTrustLineAmountBytesCount;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+    //----------------------------------------------------
     memcpy(
-        data,
-        const_cast<byte *> (parentBytesAndCount.first.get()),
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
-    //----------------------------
-    vector<byte> trustAmountBytesBuffer;
-    trustAmountBytesBuffer.reserve(kTrustLineAmountSize);
-    export_bits(
-        mTrustLineAmount,
-        back_inserter(trustAmountBytesBuffer),
-        8
-    );
-    size_t unusedBufferPlace = kTrustLineAmountSize - trustAmountBytesBuffer.size();
-    for (size_t i = 0; i < unusedBufferPlace; ++i) {
-        trustAmountBytesBuffer.push_back(0);
-    }
+    dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------------------------------
+    vector<byte> buffer = trustLineAmountToBytes(mTrustLineAmount);
     memcpy(
-        data + parentBytesAndCount.second,
-        trustAmountBytesBuffer.data(),
-        trustAmountBytesBuffer.size()
+        dataBytesShared.get() + dataBytesOffset,
+        buffer.data(),
+        buffer.size()
     );
     //----------------------------
     return make_pair(
-        ConstBytesShared(data, free),
-        dataSize
+        dataBytesShared,
+        bytesCount
     );
 }
 
-void AcceptTrustLineMessage::deserialize(
-    byte *buffer) {
+void AcceptTrustLineMessage::deserializeFromBytes(
+    BytesShared buffer) {
 
-    deserializeParentFromBytes(buffer);
-    //------------------------------
+    TrustLinesMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = TrustLinesMessage::inheritED();
+    //----------------------------------------------------
     vector<byte> amountBytes(
-        buffer + kOffsetToInheritBytes(),
-        buffer + kOffsetToInheritBytes() + kTrustLineAmountSize);
-
-    vector<byte> amountNotZeroBytes;
-    amountNotZeroBytes.reserve(kTrustLineAmountSize);
-
-    for (auto &amountByte : amountBytes) {
-        if (amountByte != 0) {
-            amountNotZeroBytes.push_back(amountByte);
-        }
-    }
-
-    if (amountNotZeroBytes.size() > 0) {
-        import_bits(
-            mTrustLineAmount,
-            amountNotZeroBytes.begin(),
-            amountNotZeroBytes.end()
-        );
-
-    } else {
-        import_bits(
-            mTrustLineAmount,
-            amountBytes.begin(),
-            amountBytes.end()
-        );
-    }
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+    mTrustLineAmount = bytesToTrustLineAmount(amountBytes);
 }
 
 const size_t AcceptTrustLineMessage::kRequestedBufferSize() {
 
-    const size_t trustAmountBytesSize = 32;
-    static const size_t size = kOffsetToInheritBytes() + trustAmountBytesSize;
+    static const size_t size = TrustLinesMessage::inheritED() + kTrustLineAmountBytesCount;
     return size;
 }
 
-MessageResult::Shared AcceptTrustLineMessage::resultAccepted() const {
+MessageResult::SharedConst AcceptTrustLineMessage::resultAccepted() const {
 
     return MessageResult::Shared(
         new MessageResult(
@@ -107,7 +72,7 @@ MessageResult::Shared AcceptTrustLineMessage::resultAccepted() const {
     );
 }
 
-MessageResult::Shared AcceptTrustLineMessage::resultConflict() const {
+MessageResult::SharedConst AcceptTrustLineMessage::resultConflict() const {
 
     return MessageResult::Shared(
         new MessageResult(
@@ -117,7 +82,7 @@ MessageResult::Shared AcceptTrustLineMessage::resultConflict() const {
     );
 }
 
-MessageResult::Shared AcceptTrustLineMessage::resultTransactionConflict() const {
+MessageResult::SharedConst AcceptTrustLineMessage::resultTransactionConflict() const {
 
     return MessageResult::Shared(
         new MessageResult(
@@ -127,7 +92,7 @@ MessageResult::Shared AcceptTrustLineMessage::resultTransactionConflict() const 
     );
 }
 
-MessageResult::Shared AcceptTrustLineMessage::customCodeResult(
+MessageResult::SharedConst AcceptTrustLineMessage::customCodeResult(
     uint16_t code) const {
 
     return MessageResult::Shared(

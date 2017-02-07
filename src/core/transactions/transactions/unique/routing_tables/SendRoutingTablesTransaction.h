@@ -3,7 +3,7 @@
 
 #include "../UniqueTransaction.h"
 
-#include "../../../../network/messages/Message.h"
+#include "../../../../network/messages/Message.hpp"
 #include "../../../../network/messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
 #include "../../../../network/messages/outgoing/routing_tables/SecondLevelRoutingTableOutgoingMessage.h"
 

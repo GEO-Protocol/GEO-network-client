@@ -10,7 +10,7 @@ SecondLevelRoutingTableOutgoingMessage::SecondLevelRoutingTableOutgoingMessage(
         contractorUUID,
         trustLineUUID) {}
 
-const Message::MessageTypeID SecondLevelRoutingTableOutgoingMessage::typeID() const {
+const Message::MessageType SecondLevelRoutingTableOutgoingMessage::typeID() const {
 
     return Message::MessageTypeID::SecondLevelRoutingTableOutgoingMessageType;
 }

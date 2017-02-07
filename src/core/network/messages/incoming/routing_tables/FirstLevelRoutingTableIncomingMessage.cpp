@@ -1,11 +1,11 @@
 #include "FirstLevelRoutingTableIncomingMessage.h"
 
 FirstLevelRoutingTableIncomingMessage::FirstLevelRoutingTableIncomingMessage(
-    byte *buffer) :
+    BytesShared buffer) :
 
     RoutingTableIncomingMessage(buffer) {}
 
-const Message::MessageTypeID FirstLevelRoutingTableIncomingMessage::typeID() const {
+const Message::MessageType FirstLevelRoutingTableIncomingMessage::typeID() const {
 
     return Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType;
 }

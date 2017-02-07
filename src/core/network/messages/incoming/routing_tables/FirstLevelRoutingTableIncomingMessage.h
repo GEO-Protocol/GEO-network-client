@@ -13,10 +13,10 @@ public:
 
 public:
     FirstLevelRoutingTableIncomingMessage(
-        byte *buffer);
+        BytesShared buffer);
 
 private:
-    const MessageTypeID typeID() const;
+    const MessageType typeID() const;
 
 };
 

@@ -13,43 +13,41 @@ CloseTrustLineMessage::CloseTrustLineMessage(
 
 }
 
-const Message::MessageTypeID CloseTrustLineMessage::typeID() const {
+const Message::MessageType CloseTrustLineMessage::typeID() const {
 
-    return Message::MessageTypeID::CloseTrustLineMessageType;
+    return Message::MessageTypeID::SetTrustLineMessageType;
 }
 
-pair<ConstBytesShared, size_t> CloseTrustLineMessage::serialize() {
+pair<BytesShared, size_t> CloseTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = serializeParentToBytes();
-
-    size_t dataSize = parentBytesAndCount.second + NodeUUID::kBytesSize;
-
-    byte *data = (byte *) calloc(
-        dataSize,
-        sizeof(byte)
-    );
-
+    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second +
+                        kTrustLineAmountBytesCount;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+    //----------------------------------------------------
     memcpy(
-        data,
-        const_cast<byte *> (parentBytesAndCount.first.get()),
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
-    //----------------------------
+    dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------------------------------
     memcpy(
-        data + parentBytesAndCount.second,
+        dataBytesShared.get() + dataBytesOffset,
         mContractorUUID.data,
         NodeUUID::kBytesSize
     );
     //----------------------------
     return make_pair(
-        ConstBytesShared(data, free),
-        dataSize
+        dataBytesShared,
+        bytesCount
     );
 }
 
-void CloseTrustLineMessage::deserialize(
-    byte *buffer) {
+void CloseTrustLineMessage::deserializeFromBytes(
+    BytesShared buffer) {
 
-    throw NotImplementedError("CloseTrustLineMessage::deserialize: "
+    throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
                                   "Method not implemented.");
 }

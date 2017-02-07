@@ -34,7 +34,7 @@ RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
 pair<BytesShared, size_t> RejectTrustLineTransaction::serializeToBytes() {
 
     auto parentBytesAndCount = serializeParentToBytes();
-    auto messageBytesAndCount = mMessage->serialize();
+    auto messageBytesAndCount = mMessage->serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +  messageBytesAndCount.second;
     byte *data = (byte *) calloc (
         bytesCount,
