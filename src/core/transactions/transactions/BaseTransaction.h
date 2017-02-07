@@ -97,7 +97,7 @@ protected:
     const size_t kOffsetToDataBytes();
 
     TransactionResult::Shared transactionResultFromCommand(
-        CommandResult::Shared result) const;
+        CommandResult::SharedConst result);
 
 protected:
     TransactionType mType;

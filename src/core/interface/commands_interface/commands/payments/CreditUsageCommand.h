@@ -2,19 +2,26 @@
 #define GEO_NETWORK_CLIENT_CREDITUSAGECOMMAND_H
 
 #include "../BaseUserCommand.h"
+#include "../../CommandUUID.h"
+#include "../../../results_interface/result/CommandResult.h"
 
-#include "../../../../common/memory/memory.h"
+#include "../../../../common/Types.h"
+#include "../../../../common/NodeUUID.h"
+#include "../../../../common/memory/MemoryUtils.h"
+#include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
 #include "../../../../common/exceptions/ValueError.h"
 #include "../../../../common/exceptions/MemoryError.h"
 
+#include <memory>
+#include <utility>
 
-class CreditUsageCommand:
-    public BaseUserCommand {
+using namespace std;
+
+class CreditUsageCommand: public BaseUserCommand {
 
 public:
     typedef shared_ptr<CreditUsageCommand> Shared;
-    typedef shared_ptr<const CreditUsageCommand> ConstShared;
 
 public:
     CreditUsageCommand(
@@ -26,40 +33,29 @@ public:
 
     static const string &identifier();
 
-    const NodeUUID& contractorUUID() const;
+    const NodeUUID &contractorUUID() const;
 
-    const TrustLineAmount& amount() const;
+    const TrustLineAmount &amount() const;
 
-    const string& reason() const;
+    const string &reason() const;
 
     pair<BytesShared, size_t> serializeToBytes();
 
-    static const size_t kRequestedBufferSize();
+    static const size_t kMinRequestedBufferSize();
 
-    const CommandResult::Shared resultOk() const;
-//
-//    const CommandResult *trustLineAlreadyPresentResult() const;
-//
-//    const CommandResult *resultConflict() const;
-//
-//    const CommandResult *resultNoResponse() const;
-//
-//    const CommandResult *resultTransactionConflict() const;
+    CommandResult::SharedConst resultOk() const;
 
 protected:
-    // todo: (DM) rename "deserialize()" -> "parse()"
-    void deserialize(
-        const string &command);
-
     void deserializeFromBytes(
         BytesShared buffer);
+
+    void parse(
+        const string &command);
 
 private:
     NodeUUID mContractorUUID;
     TrustLineAmount mAmount;
-
-    // todo: utf-8 bugs are comming!!1
-    string mReason; // text description why this operation is performed.
+    string mReason;
 };
 
 #endif //GEO_NETWORK_CLIENT_CREDITUSAGECOMMAND_H

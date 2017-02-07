@@ -40,7 +40,9 @@ pair<BytesShared, size_t> SetTrustLineCommand::serializeToBytes() {
 
     auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
 
-    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
+    size_t bytesCount = parentBytesAndCount.second +
+        NodeUUID::kBytesSize +
+        kTrustLineAmountBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -75,16 +77,18 @@ void SetTrustLineCommand::deserializeFromBytes(
     BytesShared buffer) {
 
     BaseUserCommand::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = inheritED();
     //----------------------------------------------------
     memcpy(
         mContractorUUID.data,
-        buffer.get() + inheritED(),
+        buffer.get() + bytesBufferOffset,
         NodeUUID::kBytesSize
     );
+    bytesBufferOffset += NodeUUID::kBytesSize;
     //----------------------------------------------------
     vector<byte> amountBytes(
-        buffer.get() + inheritED() + NodeUUID::kBytesSize,
-        buffer.get() + inheritED() + NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
 
     mNewAmount = bytesToTrustLineAmount(amountBytes);
 }
@@ -101,7 +105,10 @@ void SetTrustLineCommand::parse(
     }
 
     try {
-        string hexUUID = command.substr(0, NodeUUID::kHexSize);
+        string hexUUID = command.substr(
+            0,
+            NodeUUID::kHexSize
+        );
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
@@ -112,7 +119,12 @@ void SetTrustLineCommand::parse(
     try {
         for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < command.length(); ++commandSeparatorPosition) {
             if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
-                mNewAmount = TrustLineAmount(command.substr(amountTokenOffset, commandSeparatorPosition - amountTokenOffset));
+                mNewAmount = TrustLineAmount(
+                    command.substr(
+                        amountTokenOffset,
+                        commandSeparatorPosition - amountTokenOffset
+                    )
+                );
             }
         }
 

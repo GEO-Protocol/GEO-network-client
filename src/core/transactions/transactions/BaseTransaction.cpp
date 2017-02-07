@@ -7,6 +7,13 @@ BaseTransaction::BaseTransaction(
         mType(type),
         mNodeUUID(nodeUUID){}
 
+BaseTransaction::BaseTransaction(
+    BaseTransaction::TransactionType type) :
+
+    mType(type){
+
+}
+
 BaseTransaction::BaseTransaction() {}
 
 signals::connection BaseTransaction::addOnMessageSendSlot(

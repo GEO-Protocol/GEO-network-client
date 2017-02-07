@@ -22,6 +22,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include <string>
+#include <memory>
 
 using namespace std;
 using namespace boost::uuids;
@@ -93,13 +94,7 @@ public:
 
     void beginAcceptCommands();
 
-public:
-    static const constexpr char *kFIFOName = "commands.fifo";
-    static const constexpr unsigned int kPermissionsMask = 0755;
-
 protected:
-    virtual const char* FIFOName() const;
-
     void asyncReceiveNextCommand();
 
     void handleReceivedInfo(
@@ -108,6 +103,12 @@ protected:
 
     void handleTimeout(
         const boost::system::error_code &error);
+
+    virtual const char* FIFOName() const;
+
+public:
+    static const constexpr char *kFIFOName = "commands.fifo";
+    static const constexpr unsigned int kPermissionsMask = 0755;
 
 protected:
     static const constexpr size_t kCommandBufferSize = 1024;
@@ -118,10 +119,9 @@ protected:
 
     as::streambuf mCommandBuffer;
 
-    // todo: use unique_ptr
-    as::posix::stream_descriptor *mFIFOStreamDescriptor;
-    as::deadline_timer *mReadTimeoutTimer;
-    CommandsParser *mCommandsParser;
+    unique_ptr<as::posix::stream_descriptor> mFIFOStreamDescriptor;
+    unique_ptr<as::deadline_timer> mReadTimeoutTimer;
+    unique_ptr<CommandsParser> mCommandsParser;
 };
 
 #endif //GEO_NETWORK_CLIENT_COMMANDSRECEIVER_H

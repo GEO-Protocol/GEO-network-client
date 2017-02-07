@@ -2,10 +2,17 @@
 #define GEO_NETWORK_CLIENT_CLOSETRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
+#include "../../CommandUUID.h"
+#include "../../../results_interface/result/CommandResult.h"
 
+#include "../../../../common/Types.h"
 #include "../../../../common/NodeUUID.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../common/exceptions/ValueError.h"
+
+#include <memory>
+#include <utility>
 
 class CloseTrustLineCommand: public BaseUserCommand {
 public:

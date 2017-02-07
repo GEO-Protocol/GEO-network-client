@@ -59,10 +59,10 @@ void TransactionsManager::processCommand(
             static_pointer_cast<SetTrustLineCommand>(
                 command));
 
-    } else if (command->commandIdentifier() == CreditUsageCommand::identifier()) {
+    /*} else if (command->identifier() == CreditUsageCommand::identifier()) {
         launchCreditUsageTransaction(
             static_pointer_cast<CreditUsageCommand>(
-                command));
+                command));*/
 
     } else {
         throw ValueError(
@@ -407,7 +407,7 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
 void TransactionsManager::launchCreditUsageTransaction(
     CreditUsageCommand::Shared command) {
 
-    try {
+    /*try {
         auto transaction = make_shared<CoordinatorPaymentTransaction>(
             mNodeUUID,
             command,
@@ -423,7 +423,7 @@ void TransactionsManager::launchCreditUsageTransaction(
         throw MemoryError(
             "TransactionsManager::launchUpdateTrustLineTransaction: "
                 "can't allocate memory for transaction instance.");
-    }
+    }*/
 
 }
 

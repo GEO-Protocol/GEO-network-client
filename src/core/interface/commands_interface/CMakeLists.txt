@@ -12,6 +12,8 @@ set(SOURCE_FILES
         commands/trust_lines/CloseTrustLineCommand.h
         commands/trust_lines/SetTrustLineCommand.cpp
         commands/trust_lines/SetTrustLineCommand.h
+        commands/payments/CreditUsageCommand.cpp
+        commands/payments/CreditUsageCommand.h
 
         interface/CommandsInterface.cpp
         interface/CommandsInterface.h

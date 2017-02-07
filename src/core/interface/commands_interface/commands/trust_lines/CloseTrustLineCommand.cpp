@@ -36,7 +36,9 @@ pair<BytesShared, size_t> CloseTrustLineCommand::serializeToBytes() {
 
     auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
 
-    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
+    size_t bytesCount = parentBytesAndCount.second +
+        NodeUUID::kBytesSize +
+        kTrustLineAmountBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -78,7 +80,10 @@ void CloseTrustLineCommand::parse(
     const string &command) {
 
     try {
-        string hexUUID = command.substr(0, CommandUUID::kHexSize);
+        string hexUUID = command.substr(
+            0,
+            CommandUUID::kHexSize
+        );
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {

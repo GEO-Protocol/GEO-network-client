@@ -168,7 +168,7 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
     } catch (bad_alloc &) {
         auto errors = mLog->error("CommandsParser::tryParseCommand");
-        errors << "Memory allocation error occured on command instance creation. "
+        errors << "Memory allocation error occurred on command instance creation. "
                << "Command was dropped. ";
 
         return commandIsInvalidOrIncomplete();
@@ -222,10 +222,6 @@ CommandsInterface::CommandsInterface(
     mTransactionsManager(transactionsHandler),
     mLog(logger){
 
-    if (!isFIFOExists()) {
-        createFIFO(kPermissionsMask);
-    }
-
     // Try to open FIFO file in non-blocking manner.
     // In case if this file will be opened in standard blocking manner -
     // it will freeze whole the process,
@@ -234,6 +230,10 @@ CommandsInterface::CommandsInterface(
     // For the server realisation this makes the process unusable,
     // because it can't be demonized, until the commands writer will
     // open the commands file for writing.
+    if (!isFIFOExists()) {
+        createFIFO(kPermissionsMask);
+    }
+
     mFIFODescriptor = open(
         FIFOFilePath().c_str(),
         O_RDONLY | O_NONBLOCK
@@ -245,10 +245,10 @@ CommandsInterface::CommandsInterface(
     }
 
     try {
-        mFIFOStreamDescriptor = new as::posix::stream_descriptor(
+        mFIFOStreamDescriptor = unique_ptr<as::posix::stream_descriptor> (new as::posix::stream_descriptor(
             mIOService,
             mFIFODescriptor
-        );
+        ));
         mFIFOStreamDescriptor->non_blocking(true);
 
     } catch (std::bad_alloc &) {
@@ -256,13 +256,11 @@ CommandsInterface::CommandsInterface(
                               "Can not allocate enough memory for fifo stream descriptor.");
     }
 
-    mCommandBuffer.prepare(kCommandBufferSize);
-
     try {
-        mReadTimeoutTimer = new as::deadline_timer(
+        mReadTimeoutTimer = unique_ptr<as::deadline_timer> (new as::deadline_timer(
             mIOService,
             boost::posix_time::seconds(2)
-        );
+        ));
 
     } catch (std::bad_alloc &) {
         throw MemoryError(
@@ -271,27 +269,22 @@ CommandsInterface::CommandsInterface(
     }
 
     try {
-        mCommandsParser = new CommandsParser(mLog);
+        mCommandsParser = unique_ptr<CommandsParser> (new CommandsParser(mLog));
 
     } catch (std::bad_alloc &) {
         throw MemoryError(
             "CommandsInterface::CommandsInterface: "
                 "Can not allocate enough memory for commands parser.");
     }
+
+    mCommandBuffer.prepare(kCommandBufferSize);
 }
 
 CommandsInterface::~CommandsInterface() {
 
-    // Cancel last delayed read;
     mFIFOStreamDescriptor->cancel();
-    delete mFIFOStreamDescriptor;
-
-    // Cancel last Timeout operation
     mReadTimeoutTimer->cancel();
-    delete mReadTimeoutTimer;
-
     close(mFIFODescriptor);
-    delete mCommandsParser;
 }
 
 void CommandsInterface::beginAcceptCommands() {
@@ -314,7 +307,7 @@ void CommandsInterface::asyncReceiveNextCommand() {
     );
 }
 
-/** Parse received commands data until parsing is successfull.
+/** Parse received commands data until parsing is successfully.
  *  (several commands may be read at once, so the parsing should be repeated
  *  until all the received data would be processed)
  *
@@ -322,7 +315,6 @@ void CommandsInterface::asyncReceiveNextCommand() {
  *  Next read attempt should be performed with a Timeout,
  *  to prevent heavy processor usage.
  */
-
 void CommandsInterface::handleReceivedInfo(
     const boost::system::error_code &error,
     const size_t bytesTransferred) {
@@ -337,12 +329,6 @@ void CommandsInterface::handleReceivedInfo(
         while (true) {
             auto flagAndCommand = mCommandsParser->processReceivedCommands();
             if (flagAndCommand.first){
-#ifdef DEBUG
-                auto debug = mLog->debug("CommandsInterface");
-                debug << "Command received: "
-                      << flagAndCommand.second->commandIdentifier();
-#endif
-
                 mTransactionsManager->processCommand(flagAndCommand.second);
 
             } else {
@@ -377,11 +363,6 @@ void CommandsInterface::handleReceivedInfo(
     }
 }
 
-const char *CommandsInterface::FIFOName() const {
-
-    return kFIFOName;
-}
-
 void CommandsInterface::handleTimeout(
     const boost::system::error_code &error) {
 
@@ -390,4 +371,9 @@ void CommandsInterface::handleTimeout(
     }
 
     asyncReceiveNextCommand();
+}
+
+const char *CommandsInterface::FIFOName() const {
+
+    return kFIFOName;
 }
