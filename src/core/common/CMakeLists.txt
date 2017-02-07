@@ -6,4 +6,3 @@ set(SOURCE_FILES
     Types.h)
 
 add_library(common ${SOURCE_FILES})
-target_link_libraries(common)

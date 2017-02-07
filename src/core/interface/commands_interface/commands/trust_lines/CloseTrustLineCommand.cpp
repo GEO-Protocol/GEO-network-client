@@ -9,11 +9,13 @@ CloseTrustLineCommand::CloseTrustLineCommand(
         identifier()
     ) {
 
-    deserialize(commandBuffer);
+    parse(commandBuffer);
 }
 
 CloseTrustLineCommand::CloseTrustLineCommand(
-    BytesShared buffer) {
+    BytesShared buffer):
+
+    BaseUserCommand(identifier()) {
 
     deserializeFromBytes(buffer);
 }
@@ -32,25 +34,27 @@ const NodeUUID &CloseTrustLineCommand::contractorUUID() const {
 
 pair<BytesShared, size_t> CloseTrustLineCommand::serializeToBytes() {
 
-    auto parentBytesAndCount = serializeParentToBytes();
+    auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
 
-    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize;
-    byte *data = (byte *) calloc(bytesCount, sizeof(byte));
+    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
     //----------------------------------------------------
     memcpy(
-        data,
+        dataBytesShared.get(),
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
+    dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     memcpy(
-        data + parentBytesAndCount.second,
+        dataBytesShared.get() + dataBytesOffset,
         mContractorUUID.data,
         NodeUUID::kBytesSize
     );
     //----------------------------------------------------
     return make_pair(
-        BytesShared(data, free),
+        dataBytesShared,
         bytesCount
     );
 }
@@ -58,72 +62,82 @@ pair<BytesShared, size_t> CloseTrustLineCommand::serializeToBytes() {
 void CloseTrustLineCommand::deserializeFromBytes(
     BytesShared buffer) {
 
-    deserializeParentFromBytes(buffer);
+    BaseUserCommand::deserializeFromBytes(buffer);
     //----------------------------------------------------
     memcpy(
         mContractorUUID.data,
-        buffer.get() + kOffsetToInheritBytes(),
+        buffer.get() + inheritED(),
         NodeUUID::kBytesSize
     );
-    //----------------------------------------------------
-}
-
-const size_t CloseTrustLineCommand::kRequestedBufferSize() {
-
-    static const size_t size = kOffsetToInheritBytes() + NodeUUID::kBytesSize;
-    return size;
 }
 
 /**
  * Throws ValueError if deserialization was unsuccessful.
  */
-void CloseTrustLineCommand::deserialize(const string &command) {
+void CloseTrustLineCommand::parse(
+    const string &command) {
 
     try {
         string hexUUID = command.substr(0, CommandUUID::kHexSize);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
-        throw ValueError("CloseTrustLineCommand::deserialize: "
+        throw ValueError("CloseTrustLineCommand::parse: "
                              "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 }
 
-const CommandResult *CloseTrustLineCommand::resultOk() const {
+const size_t CloseTrustLineCommand::kRequestedBufferSize() {
 
-    return new CommandResult(
-        commandUUID(),
-        200
-    );
-}
-const CommandResult *CloseTrustLineCommand::trustLineIsAbsentResult() const {
-
-    return new CommandResult(
-        commandUUID(),
-        404
-    );
+    static const size_t size = inheritED() + NodeUUID::kBytesSize;
+    return size;
 }
 
-const CommandResult *CloseTrustLineCommand::resultConflict() const {
+CommandResult::SharedConst CloseTrustLineCommand::resultOk() const {
 
-    return new CommandResult(
-        commandUUID(),
-        429
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            200
+        )
     );
 }
+CommandResult::SharedConst CloseTrustLineCommand::trustLineIsAbsentResult() const {
 
-const CommandResult *CloseTrustLineCommand::resultNoResponse() const {
-
-    return new CommandResult(
-        commandUUID(),
-        444
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            404
+        )
     );
 }
 
-const CommandResult *CloseTrustLineCommand::resultTransactionConflict() const {
+CommandResult::SharedConst CloseTrustLineCommand::resultConflict() const {
 
-    return new CommandResult(
-        commandUUID(),
-        500
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            429
+        )
+    );
+}
+
+CommandResult::SharedConst CloseTrustLineCommand::resultNoResponse() const {
+
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            444
+        )
+    );
+}
+
+CommandResult::SharedConst CloseTrustLineCommand::resultTransactionConflict() const {
+
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            500
+        )
     );
 }

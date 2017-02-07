@@ -236,30 +236,30 @@ void SetTrustLineTransaction::setOutgoingTrustAmount() {
 
 TransactionResult::Shared SetTrustLineTransaction::resultOk() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultOk())));
+    return transactionResultFromCommand(mCommand->resultOk());
 }
 
 TransactionResult::Shared SetTrustLineTransaction::trustLineAbsentResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->trustLineAbsentResult())));
+    return transactionResultFromCommand(mCommand->resultOk());
 }
 
 TransactionResult::Shared SetTrustLineTransaction::conflictErrorResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultConflict())));
+    return transactionResultFromCommand(mCommand->resultOk());
 }
 
 TransactionResult::Shared SetTrustLineTransaction::noResponseResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultNoResponse())));
+    return transactionResultFromCommand(mCommand->resultOk());
 }
 
 TransactionResult::Shared SetTrustLineTransaction::transactionConflictResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->resultTransactionConflict())));
+    return transactionResultFromCommand(mCommand->resultOk());
 }
 
 TransactionResult::Shared SetTrustLineTransaction::unexpectedErrorResult() {
 
-    return transactionResultFromCommand(CommandResult::Shared(const_cast<CommandResult *> (mCommand->unexpectedErrorResult())));
+    return transactionResultFromCommand(mCommand->resultOk());
 }

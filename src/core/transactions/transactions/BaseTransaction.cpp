@@ -145,9 +145,9 @@ const size_t BaseTransaction::kOffsetToDataBytes() {
 }
 
 TransactionResult::Shared BaseTransaction::transactionResultFromCommand(
-    CommandResult::Shared result) {
+    CommandResult::SharedConst result) {
 
     TransactionResult *transactionResult = new TransactionResult();
-    transactionResult->setCommandResult(CommandResult::Shared(result));
+    transactionResult->setCommandResult(result);
     return TransactionResult::Shared(transactionResult);
 }

@@ -70,7 +70,7 @@ void TrustLinesManager::open(
         if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setOutgoingTrustAmount(amount);
             trustLine->activateOutgoingDirection();
-
+            saveToDisk(trustLine);
         } else {
             throw ConflictError(
                 "TrustLinesManager::open: "
@@ -114,6 +114,7 @@ void TrustLinesManager::close(
                 } else {
                     trustLine->setOutgoingTrustAmount(0);
                     trustLine->suspendOutgoingDirection();
+                    saveToDisk(trustLine);
                 }
 
             } else {
@@ -147,7 +148,7 @@ void TrustLinesManager::accept(
         if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setIncomingTrustAmount(amount);
             trustLine->activateIncomingDirection();
-
+            saveToDisk(trustLine);
         } else {
             throw ConflictError("TrustLinesManager::accept: "
                                     "Сan not accept incoming trust line. Incoming trust line to such contractor already exist.");
@@ -190,6 +191,7 @@ void TrustLinesManager::reject(
                 } else {
                     trustLine->setIncomingTrustAmount(0);
                     trustLine->suspendIncomingDirection();
+                    saveToDisk(trustLine);
                 }
 
             } else {

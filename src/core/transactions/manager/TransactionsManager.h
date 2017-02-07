@@ -1,6 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
+#include "../../common/Types.h"
+#include "../../common/memory/MemoryUtils.h"
+
 #include "../../common/NodeUUID.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"

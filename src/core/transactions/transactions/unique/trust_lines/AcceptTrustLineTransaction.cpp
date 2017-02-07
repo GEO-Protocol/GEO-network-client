@@ -138,24 +138,30 @@ bool AcceptTrustLineTransaction::checkSameTypeTransactions() {
 
             case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
                 AcceptTrustLineTransaction::Shared acceptTrustLineTransaction = static_pointer_cast<AcceptTrustLineTransaction>(it.first);
-                if (mMessage->senderUUID() == acceptTrustLineTransaction->message()->senderUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mMessage->senderUUID() == acceptTrustLineTransaction->message()->senderUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
 
             case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
                 UpdateTrustLineTransaction::Shared updateTrustLineTransaction = static_pointer_cast<UpdateTrustLineTransaction>(it.first);
-                if (mMessage->senderUUID() == updateTrustLineTransaction->message()->senderUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mMessage->senderUUID() == updateTrustLineTransaction->message()->senderUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
 
             case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
                 RejectTrustLineTransaction::Shared rejectTrustLineTransaction = static_pointer_cast<RejectTrustLineTransaction>(it.first);
-                if (mMessage->senderUUID() == rejectTrustLineTransaction->message()->senderUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mMessage->senderUUID() == rejectTrustLineTransaction->message()->senderUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }

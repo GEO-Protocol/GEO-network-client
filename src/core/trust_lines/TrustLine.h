@@ -121,6 +121,7 @@ private:
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
     TrustLineBalance mBalance;
+
     // <incoming direction state, outgoing direction state>
     pair<TrustState, TrustState> mTrustLineState;
 

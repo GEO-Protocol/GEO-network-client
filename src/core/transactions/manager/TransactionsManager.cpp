@@ -19,13 +19,15 @@ TransactionsManager::TransactionsManager(
 
     mStorage(new storage::UUIDMapBlockStorage(
         "io/transactions",
-        "transactions.dat")),
+        "transactions.dat")
+    ),
 
     mScheduler(new TransactionsScheduler(
         mIOService,
         mStorage.get(),
         boost::bind(&TransactionsManager::processCommandResult, this, ::_1),
-        mLog)) {
+        mLog)
+    ) {
 
     try {
         loadTransactions();
@@ -42,17 +44,17 @@ TransactionsManager::TransactionsManager(
 void TransactionsManager::processCommand(
     BaseUserCommand::Shared command) {
 
-    if (command->commandIdentifier() == OpenTrustLineCommand::identifier()) {
+    if (command->identifier() == OpenTrustLineCommand::identifier()) {
         launchOpenTrustLineTransaction(
             static_pointer_cast<OpenTrustLineCommand>(
                 command));
 
-    } else if (command->commandIdentifier() == CloseTrustLineCommand::identifier()) {
+    } else if (command->identifier() == CloseTrustLineCommand::identifier()) {
         launchCloseTrustLineTransaction(
             static_pointer_cast<CloseTrustLineCommand>(
                 command));
 
-    } else if (command->commandIdentifier() == SetTrustLineCommand::identifier()) {
+    } else if (command->identifier() == SetTrustLineCommand::identifier()) {
         launchSetTrustLineTransaction(
             static_pointer_cast<SetTrustLineCommand>(
                 command));
@@ -132,20 +134,20 @@ void TransactionsManager::startRoutingTablesExchange(
 void TransactionsManager::loadTransactions() {
 
     auto uuidKeys = unique_ptr<const vector<storage::uuids::uuid>>(mStorage->keys());
-    if (uuidKeys->size() == 0)
+    if (uuidKeys->size() == 0) {
         return;
+    }
 
     for (auto const &uuidKey : *uuidKeys) {
         try {
             auto record = mStorage->readByUUID(uuidKey);
 
-            BytesShared transactionBuffer(
-                (byte*)calloc(record->bytesCount(), sizeof(byte)),
-                free);
-            if (transactionBuffer == nullptr) {
-                throw MemoryError(
-                    "TransactionsManager::loadTransactions: bad alloc.");
-            }
+            BytesShared transactionBuffer = tryCalloc(record->bytesCount());
+            memcpy(
+                transactionBuffer.get(),
+                const_cast<byte *> (record->data()),
+                record->bytesCount()
+            );
 
             // Transaction parsing
             BaseTransaction::SerialisedTransactionType *type = new (transactionBuffer.get()) uint16_t;

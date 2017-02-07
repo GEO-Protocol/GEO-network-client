@@ -12,12 +12,15 @@
 
 using namespace std;
 
+/*
+ * Byte
+ */
 typedef uint8_t byte;
 typedef std::shared_ptr<byte> BytesShared;
 typedef std::shared_ptr<const byte> ConstBytesShared;
 
 /*
- * Timestamps
+ * Timestamp
  */
 namespace posix = boost::posix_time;
 typedef posix::ptime Timestamp;
@@ -31,12 +34,12 @@ namespace multiprecision = boost::multiprecision;
 typedef multiprecision::checked_uint256_t TrustLineAmount;
 typedef shared_ptr<TrustLineAmount> SharedTrustLineAmount;
 typedef shared_ptr<const TrustLineAmount> ConstSharedTrustLineAmount;
-const byte kTrustLineAmountBytesCount = 32;
+const size_t kTrustLineAmountBytesCount = 32;
 
 typedef multiprecision::int256_t TrustLineBalance;
 typedef shared_ptr<TrustLineBalance> SharedTrustLineBalance;
 typedef shared_ptr<const TrustLineBalance> ConstSharedTrustLineBalance;
-const byte kTrustLineBalanceBytesCount = 32;
+const size_t kTrustLineBalanceBytesCount = 32;
 
 enum BalanceRange {
     Negative = 1,

@@ -2,15 +2,17 @@
 #define GEO_NETWORK_CLIENT_COMMAND_H
 
 #include "../../../common/Types.h"
+#include "../../../common/time/TimeUtils.h"
+#include "../../../common/memory/MemoryUtils.h"
 
 #include "../CommandUUID.h"
-
 #include "../../results_interface/result/CommandResult.h"
 
 #include <boost/uuid/uuid.hpp>
 
 #include <string>
 #include <memory>
+#include <utility>
 
 namespace uuids = boost::uuids;
 
@@ -23,54 +25,35 @@ public:
     static const constexpr char kTokensSeparator = '\t';
 
 public:
-    // todo: (DM) unused, may be removed
-    BaseUserCommand();
+    BaseUserCommand(
+        const string& identifier);
 
     BaseUserCommand(
         const CommandUUID &commandUUID,
         const string& identifier);
 
-    // todo: (DM) commandUUID() -> UUID()
-    const CommandUUID &commandUUID() const;
+    const CommandUUID &UUID() const;
 
-    // todo: (DM) commandIdentifier() -> identifier()
-    const string &commandIdentifier() const;
+    const string &identifier() const;
 
     const Timestamp &timestampAccepted() const;
 
-    // todo: (DM) shared?
-    const CommandResult *unexpectedErrorResult();
+    CommandResult::SharedConst unexpectedErrorResult();
 
 protected:
-    // todo: (DM) deserialize() -> parse()
-    virtual void deserialize(
-        const string &commandBuffer) = 0;
-
-    // todo: (DM) may be const
-    virtual pair<BytesShared, size_t> serializeToBytes() = 0;
+    virtual pair<BytesShared, size_t> serializeToBytes() const;
 
     virtual void deserializeFromBytes(
-        BytesShared buffer) = 0;
-
-    // todo: (DM) move logic from this into serializeToBytes()
-    // todo: (DM) into derived classes simply call BaseUserCommand::serializeToBytes()
-    pair<BytesShared, size_t> serializeParentToBytes();
-
-    // todo: (DM) similar to the serializeParentToBytes
-    void deserializeParentFromBytes(
         BytesShared buffer);
 
-    // todo: (DM) inheritED?
-    static const size_t kOffsetToInheritBytes();
+    virtual void parse(
+        const string &commandBuffer) = 0;
 
-
-protected:
-    CommandUUID mCommandUUID;
-    Timestamp mTimestampAccepted;
+    static const size_t inheritED();
 
 private:
-    static const Timestamp kEpoch();
-
+    CommandUUID mCommandUUID;
+    Timestamp mTimestampAccepted;
     const string mCommandIdentifier;
 };
 #endif //GEO_NETWORK_CLIENT_COMMAND_H

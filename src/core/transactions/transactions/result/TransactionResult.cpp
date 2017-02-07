@@ -3,7 +3,7 @@
 TransactionResult::TransactionResult() {}
 
 void TransactionResult::setCommandResult(
-    CommandResult::Shared commandResult){
+    CommandResult::SharedConst commandResult){
 
     mCommandResult = commandResult;
 }

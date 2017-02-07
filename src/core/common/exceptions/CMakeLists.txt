@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
-        CommandParsingError.h
-        ConflictError.h
         Exception.cpp
         Exception.h
+        CommandParsingError.h
+        ConflictError.h
         IndexError.h
         IOError.h
         MemoryError.h
@@ -13,4 +13,5 @@ set(SOURCE_FILES
         PreconditionFailedError.h
         RuntimeError.h
         ValueError.h)
+
 add_library(exceptions ${SOURCE_FILES})

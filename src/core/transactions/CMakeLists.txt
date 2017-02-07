@@ -39,6 +39,9 @@ set(SOURCE_FILES
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions
         common
+        memory
+        exceptions
+
         settings
         network
 

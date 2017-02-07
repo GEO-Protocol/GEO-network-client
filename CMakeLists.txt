@@ -20,6 +20,7 @@ add_subdirectory(src/core/common/)
 add_subdirectory(src/core/common/exceptions)
 add_subdirectory(src/core/common/time)
 add_subdirectory(src/core/common/memory)
+add_subdirectory(src/core/common/multiprecision)
 add_subdirectory(src/core/db)
 #add_subdirectory(src/tests/db)
 add_subdirectory(src/core/io/routing_tables)
@@ -53,10 +54,11 @@ target_link_libraries(geo_network_client
         ${Boost_THREAD_LIBRARY}
         Boost::thread
 
-        common
-        exceptions
-        time
-        memory
+#        common
+#        exceptions
+#        time
+#        memory
+#        multiprecision
         logger
         settings
         network

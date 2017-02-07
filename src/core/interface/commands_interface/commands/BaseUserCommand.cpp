@@ -1,6 +1,9 @@
 #include "BaseUserCommand.h"
 
-BaseUserCommand::BaseUserCommand() {}
+BaseUserCommand::BaseUserCommand(
+    const string& identifier) :
+
+    mCommandIdentifier(identifier){}
 
 BaseUserCommand::BaseUserCommand(
     const CommandUUID &commandUUID,
@@ -11,80 +14,74 @@ BaseUserCommand::BaseUserCommand(
     mTimestampAccepted(posix::microsec_clock::universal_time()) {}
 
 
-const CommandUUID &BaseUserCommand::commandUUID() const {
+const CommandUUID &BaseUserCommand::UUID() const {
+
     return mCommandUUID;
 }
 
-const string &BaseUserCommand::commandIdentifier() const {
+const string &BaseUserCommand::identifier() const {
+
     return mCommandIdentifier;
 }
 
 const Timestamp &BaseUserCommand::timestampAccepted() const {
+
     return mTimestampAccepted;
 }
 
-pair<BytesShared, size_t> BaseUserCommand::serializeParentToBytes() {
+pair<BytesShared, size_t> BaseUserCommand::serializeToBytes() const {
 
     size_t bytesCount = CommandUUID::kBytesSize + sizeof(MicrosecondsTimestamp);
-    byte *data = (byte *) calloc(bytesCount, sizeof(byte));
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
     //-----------------------------------------------------
     memcpy(
-        data,
+        dataBytesShared.get(),
         mCommandUUID.data,
         CommandUUID::kBytesSize
     );
+    dataBytesOffset += CommandUUID::kBytesSize;
     //-----------------------------------------------------
-    Duration commandAcceptedDuration = mTimestampAccepted - kEpoch();
-    MicrosecondsTimestamp commandAcceptedMicroseconds = (MicrosecondsTimestamp) commandAcceptedDuration.total_microseconds();
+    MicrosecondsTimestamp timestamp = microsecondsTimestamp(mTimestampAccepted);
     memcpy(
-        data + CommandUUID::kBytesSize,
-        &commandAcceptedMicroseconds,
+        dataBytesShared.get() + dataBytesOffset,
+        &timestamp,
         sizeof(MicrosecondsTimestamp)
     );
     //-----------------------------------------------------
     return make_pair(
-        BytesShared(data, free),
+        dataBytesShared,
         bytesCount
     );
 }
 
-void BaseUserCommand::deserializeParentFromBytes(
+void BaseUserCommand::deserializeFromBytes(
     BytesShared buffer) {
 
+    size_t bytesBufferOffset = 0;
     //-----------------------------------------------------
     memcpy(
         mCommandUUID.data,
         buffer.get(),
         CommandUUID::kBytesSize
     );
+    bytesBufferOffset += CommandUUID::kBytesSize;
     //-----------------------------------------------------
-    uint64_t *commandAcceptedTimestamp = new (buffer.get() + CommandUUID::kBytesSize) uint64_t;
-    uint32_t maxUINT32_T = std::numeric_limits<uint32_t >::max();
-    Timestamp accumulator = kEpoch();
-    while (*commandAcceptedTimestamp > maxUINT32_T) {
-        accumulator += posix::seconds(maxUINT32_T);
-        *commandAcceptedTimestamp -= maxUINT32_T;
-    }
-    accumulator += posix::microseconds(*commandAcceptedTimestamp);
-    mTimestampAccepted = accumulator;
+    uint64_t *commandAcceptedTimestamp = new (buffer.get() + bytesBufferOffset) uint64_t;
+    mTimestampAccepted = posixTimestamp((MicrosecondsTimestamp) *commandAcceptedTimestamp);
 }
 
-// todo: (DM) change this to the GEO epoch (see TransactionState)
-//
-// todo: (DM) BaseUserCommand should not be timestamp poin in the system.
-// todo: (DM) it's not a BaseUserCommand responsibility.
-const Timestamp BaseUserCommand::kEpoch() {
-    static const Timestamp epoch(boost::gregorian::date(1970, 1, 1));
-    return epoch;
-}
+const size_t BaseUserCommand::inheritED() {
 
-// todo: (DM) please, rename. it's not so obvious as it may be.
-const size_t BaseUserCommand::kOffsetToInheritBytes() {
     static const size_t offset = CommandUUID::kHexSize + sizeof(MicrosecondsTimestamp);
     return offset;
 }
 
-const CommandResult* BaseUserCommand::unexpectedErrorResult() {
-    CommandResult *result = new CommandResult(mCommandUUID, 501);
-    return result;
+CommandResult::SharedConst BaseUserCommand::unexpectedErrorResult() {
+    return CommandResult::Shared(
+        new CommandResult(
+            mCommandUUID,
+            501
+        )
+    );
 }

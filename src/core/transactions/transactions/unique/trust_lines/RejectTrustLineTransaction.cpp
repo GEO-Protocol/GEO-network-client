@@ -121,24 +121,30 @@ bool RejectTrustLineTransaction::checkSameTypeTransactions() {
 
             case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
                 AcceptTrustLineTransaction::Shared acceptTrustLineTransaction = static_pointer_cast<AcceptTrustLineTransaction>(it.first);
-                if (mMessage->senderUUID() == acceptTrustLineTransaction->message()->senderUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mMessage->senderUUID() == acceptTrustLineTransaction->message()->senderUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
 
             case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
                 UpdateTrustLineTransaction::Shared updateTrustLineTransaction = static_pointer_cast<UpdateTrustLineTransaction>(it.first);
-                if (mMessage->senderUUID() == updateTrustLineTransaction->message()->senderUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mMessage->senderUUID() == updateTrustLineTransaction->message()->senderUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
 
             case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
                 RejectTrustLineTransaction::Shared rejectTrustLineTransaction = static_pointer_cast<RejectTrustLineTransaction>(it.first);
-                if (mMessage->senderUUID() == rejectTrustLineTransaction->message()->senderUUID()) {
-                    return true;
+                if (mTransactionUUID != it.first->UUID()) {
+                    if (mMessage->senderUUID() == rejectTrustLineTransaction->message()->senderUUID()) {
+                        return true;
+                    }
                 }
                 break;
             }
@@ -156,18 +162,14 @@ bool RejectTrustLineTransaction::checkSameTypeTransactions() {
 
 bool RejectTrustLineTransaction::checkTrustLineDirectionExisting() {
 
-    return mTrustLinesManager->checkDirection(
-        mMessage->contractorUUID(),
-        TrustLineDirection::Incoming
-    );
+    return mTrustLinesManager->checkDirection(mMessage->contractorUUID(), TrustLineDirection::Incoming) ||
+        mTrustLinesManager->checkDirection(mMessage->contractorUUID(), TrustLineDirection::Both);
 }
 
 void RejectTrustLineTransaction::suspendTrustLineFromContractor() {
 
-    mTrustLinesManager->suspendDirection(
-        mMessage->contractorUUID(),
-        TrustLineDirection::Incoming
-    );
+    return mTrustLinesManager->suspendDirection(mMessage->contractorUUID(), TrustLineDirection::Incoming);
+
 }
 
 void RejectTrustLineTransaction::rejectTrustLine() {

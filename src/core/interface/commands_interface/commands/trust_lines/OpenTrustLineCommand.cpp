@@ -1,6 +1,5 @@
 #include "OpenTrustLineCommand.h"
 
-
 OpenTrustLineCommand::OpenTrustLineCommand(
     const CommandUUID &uuid,
     const string &commandBuffer):
@@ -10,11 +9,13 @@ OpenTrustLineCommand::OpenTrustLineCommand(
         identifier()
     ) {
 
-    deserialize(commandBuffer);
+    parse(commandBuffer);
 }
 
 OpenTrustLineCommand::OpenTrustLineCommand(
-    BytesShared buffer) {
+    BytesShared buffer) :
+
+    BaseUserCommand(identifier()) {
 
     deserializeFromBytes(buffer);
 }
@@ -37,42 +38,35 @@ const TrustLineAmount &OpenTrustLineCommand::amount() const {
 
 pair<BytesShared, size_t> OpenTrustLineCommand::serializeToBytes() {
 
-    auto parentBytesAndCount = serializeParentToBytes();
+    auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
 
-    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize + kTrustLineAmountSize;
-    byte *data = (byte *) calloc(bytesCount, sizeof(byte));
+    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
     //----------------------------------------------------
     memcpy(
-        data,
+        dataBytesShared.get(),
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
+    dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     memcpy(
-        data + parentBytesAndCount.second,
+        dataBytesShared.get() + dataBytesOffset,
         mContractorUUID.data,
         NodeUUID::kBytesSize
     );
+    dataBytesOffset += NodeUUID::kBytesSize;
     //----------------------------------------------------
-    vector<byte> buffer;
-    buffer.reserve(kTrustLineAmountSize);
-    export_bits(
-        mAmount,
-        back_inserter(buffer),
-        8
-    );
-    size_t unusedBufferPlace = kTrustLineAmountSize - buffer.size();
-    for (size_t i = 0; i < unusedBufferPlace; ++i) {
-        buffer.push_back(0);
-    }
+    vector<byte> buffer = trustLineAmountToBytes(mAmount);
     memcpy(
-        data + parentBytesAndCount.second + NodeUUID::kBytesSize,
+        dataBytesShared.get() + dataBytesOffset,
         buffer.data(),
         buffer.size()
     );
     //----------------------------------------------------
     return make_pair(
-        BytesShared(data, free),
+        dataBytesShared,
         bytesCount
     );
 }
@@ -80,61 +74,32 @@ pair<BytesShared, size_t> OpenTrustLineCommand::serializeToBytes() {
 void OpenTrustLineCommand::deserializeFromBytes(
     BytesShared buffer) {
 
-    deserializeParentFromBytes(buffer);
+    BaseUserCommand::deserializeFromBytes(buffer);
     //----------------------------------------------------
     memcpy(
         mContractorUUID.data,
-        buffer.get() + kOffsetToInheritBytes(),
+        buffer.get() + inheritED(),
         NodeUUID::kBytesSize
     );
     //----------------------------------------------------
     vector<byte> amountBytes(
-        buffer.get() + kOffsetToInheritBytes() + NodeUUID::kBytesSize,
-        buffer.get() + kOffsetToInheritBytes() + NodeUUID::kBytesSize + kTrustLineAmountSize);
+        buffer.get() + inheritED() + NodeUUID::kBytesSize,
+        buffer.get() + inheritED() + NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
 
-    vector<byte> amountNotZeroBytes;
-    amountNotZeroBytes.reserve(kTrustLineAmountSize);
-
-    for (auto &item : amountBytes) {
-        if (item != 0) {
-            amountNotZeroBytes.push_back(item);
-        }
-    }
-
-    if (amountNotZeroBytes.size() > 0) {
-        import_bits(
-            mAmount,
-            amountNotZeroBytes.begin(),
-            amountNotZeroBytes.end()
-        );
-
-    } else {
-        import_bits(
-            mAmount,
-            amountBytes.begin(),
-            amountBytes.end()
-        );
-    }
-}
-
-const size_t OpenTrustLineCommand::kRequestedBufferSize() {
-
-    const size_t trustAmountBytesSize = 32;
-    static const size_t size = kOffsetToInheritBytes() + NodeUUID::kBytesSize + trustAmountBytesSize;
-    return size;
+    mAmount = bytesToTrustLineAmount(amountBytes);
 }
 
 /**
  * Throws ValueError if deserialization was unsuccessful.
  */
-void OpenTrustLineCommand::deserialize(
+void OpenTrustLineCommand::parse(
     const string &command) {
 
     const auto amountTokenOffset = NodeUUID::kHexSize + 1;
     const auto minCommandLength = amountTokenOffset + 1;
 
     if (command.size() < minCommandLength) {
-        throw ValueError("OpenTrustLineCommand::deserialize: "
+        throw ValueError("OpenTrustLineCommand::parse: "
                              "Can't parse command. Received command is to short.");
     }
 
@@ -143,7 +108,7 @@ void OpenTrustLineCommand::deserialize(
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
-        throw ValueError("OpenTrustLineCommand::deserialize: "
+        throw ValueError("OpenTrustLineCommand::parse: "
                              "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 
@@ -155,52 +120,68 @@ void OpenTrustLineCommand::deserialize(
         }
 
     } catch (...) {
-        throw ValueError("OpenTrustLineCommand::deserialize: "
+        throw ValueError("OpenTrustLineCommand::parse: "
                              "Can't parse command. Error occurred while parsing 'Amount' token.");
     }
 
     if (mAmount == TrustLineAmount(0)){
-        throw ValueError("OpenTrustLineCommand::deserialize: "
+        throw ValueError("OpenTrustLineCommand::parse: "
                              "Can't parse command. Received 'Amount' can't be 0.");
     }
 }
 
-const CommandResult *OpenTrustLineCommand::resultOk() const{
+const size_t OpenTrustLineCommand::kRequestedBufferSize() {
 
-    return new CommandResult(
-        commandUUID(),
-        201
+    static const size_t size = inheritED() + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
+    return size;
+}
+
+CommandResult::SharedConst OpenTrustLineCommand::resultOk() const{
+
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            201
+        )
     );
 }
 
-const CommandResult *OpenTrustLineCommand::trustLineAlreadyPresentResult() const{
+CommandResult::SharedConst OpenTrustLineCommand::trustLineAlreadyPresentResult() const{
 
-    return new CommandResult(
-        commandUUID(),
-        409
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            409
+        )
     );
 }
 
-const CommandResult *OpenTrustLineCommand::resultConflict() const {
+CommandResult::SharedConst OpenTrustLineCommand::resultConflict() const {
 
-    return new CommandResult(
-        commandUUID(),
-        429
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            429
+        )
     );
 }
 
-const CommandResult *OpenTrustLineCommand::resultNoResponse() const {
+CommandResult::SharedConst OpenTrustLineCommand::resultNoResponse() const {
 
-    return new CommandResult(
-        commandUUID(),
-        444
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            444
+        )
     );
 }
 
-const CommandResult *OpenTrustLineCommand::resultTransactionConflict() const {
+CommandResult::SharedConst OpenTrustLineCommand::resultTransactionConflict() const {
 
-    return new CommandResult(
-        commandUUID(),
-        500
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            500
+        )
     );
 }
