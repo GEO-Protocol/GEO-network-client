@@ -111,11 +111,20 @@ void TrustLinesManager::close(
             if (trustLine->balance() <= TrustLine::kZeroBalance()) {
                 if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Both",
+                            "Close"
+                    );
 
                 } else {
                     trustLine->setOutgoingTrustAmount(0);
                     trustLine->suspendOutgoingDirection();
-
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Outgoing",
+                            "Suspend"
+                    );
                 }
 
             } else {
@@ -188,10 +197,19 @@ void TrustLinesManager::reject(
             if (trustLine->balance() >= TrustLine::kZeroBalance()) {
                 if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Both",
+                            "Close"
+                    );
                 } else {
                     trustLine->setIncomingTrustAmount(0);
                     trustLine->suspendIncomingDirection();
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Incoming",
+                            "Suspend"
+                    );
                 }
 
             } else {
