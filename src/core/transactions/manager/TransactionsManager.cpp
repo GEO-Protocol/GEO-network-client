@@ -59,6 +59,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<SetTrustLineCommand>(
                 command));
 
+    } else if (command->commandIdentifier() == CreditUsageCommand::identifier()) {
+        launchCreditUsageTransaction(
+            static_pointer_cast<CreditUsageCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -393,6 +398,33 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
             "TransactionsManager::launchUpdateTrustLineTransaction: "
                 "can't allocate memory for transaction instance.");
     }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchCreditUsageTransaction(
+    CreditUsageCommand::Shared command) {
+
+    try {
+        auto transaction = make_shared<CoordinatorPaymentTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines);
+
+        subscribeForOugtoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchUpdateTrustLineTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+
 }
 
 void TransactionsManager::onTransactionOutgoingMessageReady(

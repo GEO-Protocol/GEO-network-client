@@ -16,6 +16,7 @@
 #include "../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 
 #include "../../network/messages/Message.h"
 #include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
@@ -32,6 +33,7 @@
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
 #include "../transactions/unique/routing_tables/SendRoutingTablesTransaction.h"
+#include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -89,6 +91,11 @@ protected:
 
     void launchUpdateTrustLineTransaction(
         UpdateTrustLineMessage::Shared message);
+
+protected:
+    // Payment transactions
+    void launchCreditUsageTransaction(
+        CreditUsageCommand::Shared command);
 
 protected:
     // Slots
