@@ -15,7 +15,7 @@ void TransactionResult::setMessageResult(
 }
 
 void TransactionResult::setTransactionState(
-    TransactionState::Shared transactionState) {
+    TransactionState::SharedConst transactionState) {
 
     mTransactionState = transactionState;
 }

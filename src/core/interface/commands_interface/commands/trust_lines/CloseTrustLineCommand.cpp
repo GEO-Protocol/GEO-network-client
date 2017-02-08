@@ -65,10 +65,11 @@ void CloseTrustLineCommand::deserializeFromBytes(
     BytesShared buffer) {
 
     BaseUserCommand::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = BaseUserCommand::inheritED();
     //----------------------------------------------------
     memcpy(
         mContractorUUID.data,
-        buffer.get() + inheritED(),
+        buffer.get() + bytesBufferOffset,
         NodeUUID::kBytesSize
     );
 }

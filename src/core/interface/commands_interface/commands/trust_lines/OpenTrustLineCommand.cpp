@@ -77,7 +77,7 @@ void OpenTrustLineCommand::deserializeFromBytes(
     BytesShared buffer) {
 
     BaseUserCommand::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = inheritED();
+    size_t bytesBufferOffset = BaseUserCommand::inheritED();
     //----------------------------------------------------
     memcpy(
         mContractorUUID.data,

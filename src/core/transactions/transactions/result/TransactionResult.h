@@ -30,7 +30,7 @@ public:
         MessageResult::SharedConst messageResult);
 
     void setTransactionState(
-        TransactionState::Shared transactionState);
+        TransactionState::SharedConst transactionState);
 
     CommandResult::SharedConst commandResult() const;
 

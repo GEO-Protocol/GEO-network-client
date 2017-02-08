@@ -155,7 +155,7 @@ void TransactionsManager::loadTransactions() {
             );
 
             // Transaction parsing
-            BaseTransaction::SerialisedTransactionType *type = new (transactionBuffer.get()) uint16_t;
+            BaseTransaction::SerializedTransactionType *type = new (transactionBuffer.get()) uint16_t;
             BaseTransaction::TransactionType transactionType = (BaseTransaction::TransactionType) *type;
 
             BaseTransaction *transaction;

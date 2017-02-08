@@ -1,11 +1,6 @@
 #include "BaseTransaction.h"
 
-BaseTransaction::BaseTransaction(
-        BaseTransaction::TransactionType type,
-        NodeUUID &nodeUUID) :
-
-        mType(type),
-        mNodeUUID(nodeUUID){}
+BaseTransaction::BaseTransaction() {}
 
 BaseTransaction::BaseTransaction(
     BaseTransaction::TransactionType type) :
@@ -14,38 +9,12 @@ BaseTransaction::BaseTransaction(
 
 }
 
-BaseTransaction::BaseTransaction() {}
+BaseTransaction::BaseTransaction(
+        BaseTransaction::TransactionType type,
+        NodeUUID &nodeUUID) :
 
-signals::connection BaseTransaction::addOnMessageSendSlot(
-    const SendMessageSignal::slot_type &slot) const {
-
-    return outgoingMessageIsReadySignal.connect(slot);
-}
-
-const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
-
-    return mType;
-}
-
-const NodeUUID &BaseTransaction::nodeUUID() const {
-
-    return mNodeUUID;
-}
-
-const TransactionUUID &BaseTransaction::UUID() const {
-
-    return mTransactionUUID;
-}
-
-void BaseTransaction::setContext(
-    Message::Shared message) {
-
-    mContext = message;
-}
-
-pair<ConstBytesShared, size_t> BaseTransaction::serializeContext() {
-    return mContext->serializeToBytes();
-}
+        mType(type),
+        mNodeUUID(nodeUUID){}
 
 void BaseTransaction::addMessage(
     Message::Shared message,
@@ -62,96 +31,105 @@ void BaseTransaction::increaseStepsCounter() {
     mStep += 1;
 }
 
-void BaseTransaction::increaseRequestsCounter() {
+const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
 
-    mRequestCounter += 1;
+    return mType;
 }
 
-void BaseTransaction::resetRequestsCounter() {
+const TransactionUUID &BaseTransaction::UUID() const {
 
-    mRequestCounter = 0;
+    return mTransactionUUID;
 }
 
-pair<BytesShared, size_t> BaseTransaction::serializeParentToBytes() {
+const NodeUUID &BaseTransaction::nodeUUID() const {
 
-    size_t bytesCount = sizeof(uint16_t) +
+    return mNodeUUID;
+}
+
+void BaseTransaction::setContext(
+    Message::Shared message) {
+
+    mContext = message;
+}
+
+pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const {
+
+    size_t bytesCount = sizeof(SerializedTransactionType) +
         NodeUUID::kBytesSize +
         TransactionUUID::kBytesSize +
         sizeof(uint16_t) +
         sizeof(uint16_t);
-    byte *data = (byte *) calloc(
-        bytesCount,
-        sizeof(byte)
-    );
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
     //-----------------------------------------------------
     uint16_t transactionType = mType;
     memcpy(
-      data,
-      &transactionType,
-      sizeof(uint16_t)
+        dataBytesShared.get(),
+        &transactionType,
+        sizeof(SerializedTransactionType)
     );
+    dataBytesOffset += sizeof(SerializedTransactionType)
     //-----------------------------------------------------
     memcpy(
-        data + sizeof(uint16_t),
-        mNodeUUID.data,
-        NodeUUID::kBytesSize
-    );
-    //-----------------------------------------------------
-    memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize,
+        dataBytesShared.get() + dataBytesOffset,
         mTransactionUUID.data,
         TransactionUUID::kBytesSize
     );
+    dataBytesOffset += TransactionUUID::kBytesSize;
     //-----------------------------------------------------
     memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize,
+        dataBytesShared.get() + dataBytesOffset,
+        mNodeUUID.data,
+        NodeUUID::kBytesSize
+    );
+    dataBytesOffset += NodeUUID::kBytesSize;
+    //-----------------------------------------------------
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
         &mStep,
         sizeof(uint16_t)
     );
     //-----------------------------------------------------
-    memcpy(
-        data + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize + sizeof(uint16_t),
-        &mRequestCounter,
-        sizeof(uint16_t)
-    );
-    //-----------------------------------------------------
     return make_pair(
-        BytesShared(data, free),
+        dataBytesShared,
         bytesCount
     );
 }
 
-void BaseTransaction::deserializeParentFromBytes(
+void BaseTransaction::deserializeFromBytes(
     BytesShared buffer) {
 
-    uint16_t *transactionType = new (buffer.get()) uint16_t;
+    size_t bytesBufferOffset = 0;
+
+    SerializedTransactionType *transactionType = new (buffer.get()) SerializedTransactionType;
     mType = (TransactionType) *transactionType;
-    //-----------------------------------------------------
-    memcpy(
-        mNodeUUID.data,
-        buffer.get() + sizeof(uint16_t),
-        NodeUUID::kBytesSize
-    );
+    bytesBufferOffset += sizeof(SerializedTransactionType);
     //-----------------------------------------------------
     memcpy(
         mTransactionUUID.data,
-        buffer.get() + sizeof(uint16_t) + NodeUUID::kBytesSize,
+        buffer.get() + bytesBufferOffset,
         TransactionUUID::kBytesSize
     );
+    bytesBufferOffset += TransactionUUID::kBytesSize;
     //-----------------------------------------------------
-    uint16_t *step = new (buffer.get() + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize) uint16_t;
+    memcpy(
+        mNodeUUID.data,
+        buffer.get() + bytesBufferOffset,
+        NodeUUID::kBytesSize
+    );
+    bytesBufferOffset += NodeUUID::kBytesSize;
+    //-----------------------------------------------------
+    uint16_t *step = new (buffer.get() + bytesBufferOffset) uint16_t;
     mStep = *step;
-    //-----------------------------------------------------
-    uint16_t *requestCounter = new (buffer.get() + sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize + sizeof(uint16_t)) uint16_t;
-    mStep = *requestCounter;
 }
 
-const size_t BaseTransaction::kOffsetToDataBytes() {
+const size_t BaseTransaction::kOffsetToInheritedBytes() {
 
-    return sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize + sizeof(uint16_t) + sizeof(uint16_t);
+    static const size_t offset = sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize + sizeof(uint16_t);
+    return offset;
 }
 
-TransactionResult::Shared BaseTransaction::transactionResultFromCommand(
+TransactionResult::SharedConst BaseTransaction::transactionResultFromCommand(
     CommandResult::SharedConst result) {
 
     TransactionResult *transactionResult = new TransactionResult();

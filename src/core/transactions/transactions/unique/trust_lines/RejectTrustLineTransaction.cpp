@@ -69,7 +69,7 @@ void RejectTrustLineTransaction::deserializeFromBytes(
     );
     memcpy(
         commandBuffer,
-        buffer.get() + kOffsetToDataBytes(),
+        buffer.get() + kOffsetToInheritedBytes(),
         RejectTrustLineMessage::kRequestedBufferSize()
     );
     BytesShared commandBufferShared(commandBuffer, free);

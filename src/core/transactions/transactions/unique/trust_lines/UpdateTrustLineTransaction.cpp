@@ -68,7 +68,7 @@ void UpdateTrustLineTransaction::deserializeFromBytes(
     );
     memcpy(
         commandBuffer,
-        buffer.get() + kOffsetToDataBytes(),
+        buffer.get() + kOffsetToInheritedBytes(),
         UpdateTrustLineMessage::kRequestedBufferSize()
     );
     BytesShared commandBufferShared(commandBuffer, free);
