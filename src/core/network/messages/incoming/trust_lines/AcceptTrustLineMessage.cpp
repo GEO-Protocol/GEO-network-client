@@ -64,7 +64,7 @@ const size_t AcceptTrustLineMessage::kRequestedBufferSize() {
 
 MessageResult::SharedConst AcceptTrustLineMessage::resultAccepted() const {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
@@ -74,7 +74,7 @@ MessageResult::SharedConst AcceptTrustLineMessage::resultAccepted() const {
 
 MessageResult::SharedConst AcceptTrustLineMessage::resultConflict() const {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
@@ -84,7 +84,7 @@ MessageResult::SharedConst AcceptTrustLineMessage::resultConflict() const {
 
 MessageResult::SharedConst AcceptTrustLineMessage::resultTransactionConflict() const {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
@@ -95,7 +95,7 @@ MessageResult::SharedConst AcceptTrustLineMessage::resultTransactionConflict() c
 MessageResult::SharedConst AcceptTrustLineMessage::customCodeResult(
     uint16_t code) const {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,

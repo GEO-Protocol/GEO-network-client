@@ -62,9 +62,9 @@ const size_t UpdateTrustLineMessage::kRequestedBufferSize() {
     return size;
 }
 
-MessageResult::Shared UpdateTrustLineMessage::resultAccepted() const {
+MessageResult::SharedConst UpdateTrustLineMessage::resultAccepted() const {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
@@ -72,9 +72,9 @@ MessageResult::Shared UpdateTrustLineMessage::resultAccepted() const {
     );
 }
 
-MessageResult::Shared UpdateTrustLineMessage::resultRejected() const {
+MessageResult::SharedConst UpdateTrustLineMessage::resultRejected() const {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
@@ -82,9 +82,9 @@ MessageResult::Shared UpdateTrustLineMessage::resultRejected() const {
     );
 }
 
-MessageResult::Shared UpdateTrustLineMessage::resultConflict() const {
+MessageResult::SharedConst UpdateTrustLineMessage::resultConflict() const {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
@@ -92,9 +92,9 @@ MessageResult::Shared UpdateTrustLineMessage::resultConflict() const {
     );
 }
 
-MessageResult::Shared UpdateTrustLineMessage::resultTransactionConflict() const {
+MessageResult::SharedConst UpdateTrustLineMessage::resultTransactionConflict() const {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
@@ -102,9 +102,10 @@ MessageResult::Shared UpdateTrustLineMessage::resultTransactionConflict() const 
     );
 }
 
-MessageResult::Shared UpdateTrustLineMessage::customCodeResult(uint16_t code) const {
+MessageResult::SharedConst UpdateTrustLineMessage::customCodeResult(
+    uint16_t code) const {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,

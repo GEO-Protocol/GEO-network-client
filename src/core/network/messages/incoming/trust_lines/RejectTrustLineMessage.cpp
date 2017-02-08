@@ -64,7 +64,7 @@ const size_t RejectTrustLineMessage::kRequestedBufferSize() {
 
 MessageResult::SharedConst RejectTrustLineMessage::resultRejected() {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
@@ -74,7 +74,7 @@ MessageResult::SharedConst RejectTrustLineMessage::resultRejected() {
 
 MessageResult::SharedConst RejectTrustLineMessage::resultRejectDelayed() {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
@@ -84,7 +84,7 @@ MessageResult::SharedConst RejectTrustLineMessage::resultRejectDelayed() {
 
 MessageResult::SharedConst RejectTrustLineMessage::resultTransactionConflict() const {
 
-    return MessageResult::Shared(
+    return MessageResult::SharedConst(
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
