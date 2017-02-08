@@ -72,7 +72,7 @@ void UpdateTrustLineTransaction::deserializeFromBytes(
         UpdateTrustLineMessage::kRequestedBufferSize()
     );
     BytesShared commandBufferShared(commandBuffer, free);
-    UpdateTrustLineMessage *message = new UpdateTrustLineMessage(commandBufferShared.get());
+    UpdateTrustLineMessage *message = new UpdateTrustLineMessage(commandBufferShared);
     mMessage = UpdateTrustLineMessage::Shared(message);
 }
 
@@ -206,7 +206,7 @@ void UpdateTrustLineTransaction::sendResponse(
 }
 
 TransactionResult::Shared UpdateTrustLineTransaction::makeResult(
-    MessageResult::Shared messageResult) {
+    MessageResult::SharedConst messageResult) {
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setMessageResult(messageResult);

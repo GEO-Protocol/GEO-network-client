@@ -21,7 +21,7 @@ public:
     SetTrustLineMessage(
         NodeUUID &sender,
         TransactionUUID &transactionUUID,
-        TrustLineAmount &newAmount);
+        TrustLineAmount newAmount);
 
     const MessageType typeID() const;
 

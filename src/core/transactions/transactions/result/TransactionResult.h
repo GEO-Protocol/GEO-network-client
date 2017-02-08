@@ -43,7 +43,7 @@ public:
 
 private:
     CommandResult::SharedConst mCommandResult;
-    MessageResult::Shared mMessageResult;
+    MessageResult::SharedConst mMessageResult;
     TransactionState::Shared mTransactionState;
 };
 

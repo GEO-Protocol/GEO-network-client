@@ -55,7 +55,7 @@ private:
         uint16_t code);
 
     TransactionResult::Shared makeResult(
-        MessageResult::Shared messageResult);
+        MessageResult::SharedConst messageResult);
 
 private:
     RejectTrustLineMessage::Shared mMessage;

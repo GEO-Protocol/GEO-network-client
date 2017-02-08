@@ -3,7 +3,7 @@
 SetTrustLineMessage::SetTrustLineMessage(
     NodeUUID &sender,
     TransactionUUID &transactionUUID,
-    TrustLineAmount &newAmount) :
+    TrustLineAmount newAmount) :
 
     TrustLinesMessage(
         sender,

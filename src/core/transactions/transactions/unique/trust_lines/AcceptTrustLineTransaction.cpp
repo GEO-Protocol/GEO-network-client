@@ -72,7 +72,7 @@ void AcceptTrustLineTransaction::deserializeFromBytes(
         AcceptTrustLineMessage::kRequestedBufferSize()
     );
     BytesShared commandBufferShared(commandBuffer, free);
-    AcceptTrustLineMessage *message = new AcceptTrustLineMessage(commandBufferShared.get());
+    AcceptTrustLineMessage *message = new AcceptTrustLineMessage(commandBufferShared);
     mMessage = AcceptTrustLineMessage::Shared(message);
 }
 

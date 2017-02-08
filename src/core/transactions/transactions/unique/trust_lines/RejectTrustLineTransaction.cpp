@@ -73,7 +73,7 @@ void RejectTrustLineTransaction::deserializeFromBytes(
         RejectTrustLineMessage::kRequestedBufferSize()
     );
     BytesShared commandBufferShared(commandBuffer, free);
-    RejectTrustLineMessage *message = new RejectTrustLineMessage(commandBufferShared.get());
+    RejectTrustLineMessage *message = new RejectTrustLineMessage(commandBufferShared);
     mMessage = RejectTrustLineMessage::Shared(message);
 }
 
@@ -198,7 +198,7 @@ void RejectTrustLineTransaction::sendResponse(
 }
 
 TransactionResult::Shared RejectTrustLineTransaction::makeResult(
-    MessageResult::Shared messageResult) {
+    MessageResult::SharedConst messageResult) {
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setMessageResult(messageResult);

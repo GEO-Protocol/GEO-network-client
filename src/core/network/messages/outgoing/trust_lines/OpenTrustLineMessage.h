@@ -21,7 +21,7 @@ public:
     OpenTrustLineMessage(
         NodeUUID &sender,
         TransactionUUID &transactionUUID,
-        TrustLineAmount &amount);
+        TrustLineAmount amount);
 
     const MessageType typeID() const;
 

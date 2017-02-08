@@ -3,7 +3,7 @@
 OpenTrustLineMessage::OpenTrustLineMessage(
     NodeUUID &sender,
     TransactionUUID &transactionUUID,
-    TrustLineAmount &amount) :
+    TrustLineAmount amount) :
 
     TrustLinesMessage(
         sender,
