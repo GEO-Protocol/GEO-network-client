@@ -1,6 +1,5 @@
 #include "Communicator.h"
 
-
 Communicator::Communicator(
     as::io_service &ioService,
     NodeUUID &nodeUUID,
@@ -16,41 +15,48 @@ Communicator::Communicator(
     mPort(nodePort),
     mLog(logger){
 
-    zeroPointers();
-
     try {
-        mSocket = new udp::socket(
-            mIOService,
-            udp::endpoint(udp::v4(), nodePort)
+        mSocket = unique_ptr<udp::socket>(
+            new udp::socket(
+                mIOService,
+                udp::endpoint(
+                    udp::v4(),
+                    nodePort
+                )
+            )
         );
 
-        mUUID2AddressService = new UUID2Address(
-            ioService,
-            uuid2AddressHost,
-            uuid2AddressPort
+        mUUID2AddressService = unique_ptr<UUID2Address>(
+            new UUID2Address(
+                ioService,
+                uuid2AddressHost,
+                uuid2AddressPort
+            )
         );
 
-        mChannelsManager = new ChannelsManager(mIOService);
+        mChannelsManager = unique_ptr<ChannelsManager>(
+            new ChannelsManager(mIOService)
+        );
 
-        mIncomingMessagesHandler = new IncomingMessagesHandler(mChannelsManager);
+        mIncomingMessagesHandler = unique_ptr<IncomingMessagesHandler>(
+            new IncomingMessagesHandler(mChannelsManager.get())
+        );
 
-        mOutgoingMessagesHandler = new OutgoingMessagesHandler();
+        mOutgoingMessagesHandler = unique_ptr<OutgoingMessagesHandler>(
+            new OutgoingMessagesHandler()
+        );
 
-    } catch (std::bad_alloc &e) {
-        cleanupMemory();
+    } catch (std::bad_alloc &) {
         throw MemoryError("Communicator::Communicator: "
-                              "Сant allocate enough memory for one of the Communicator's component.");
+                              "Сan not allocate enough memory for one of the Communicator's component.");
     }
 
-    connectIncomingMessagesHanlderSignals();
+    connectIncomingMessagesHandlerSignals();
 }
 
-Communicator::~Communicator() {
+Communicator::~Communicator() {}
 
-    cleanupMemory();
-}
-
-void Communicator::connectIncomingMessagesHanlderSignals() {
+void Communicator::connectIncomingMessagesHandlerSignals() {
 
     mIncomingMessagesHandler->messageParsedSignal.connect(
         boost::bind(
@@ -59,6 +65,12 @@ void Communicator::connectIncomingMessagesHanlderSignals() {
             _1
         )
     );
+}
+
+void Communicator::onMessageParsedSlot(
+    Message::Shared message) {
+
+    messageReceivedSignal(message);
 }
 
 const NodeUUID &Communicator::nodeUUID() const {
@@ -75,7 +87,7 @@ void Communicator::beginAcceptMessages() {
             mPort
         );
 
-    } catch (std::exception &e) {
+    } catch (std::exception &) {
         throw RuntimeError("Communicator::beginAcceptMessages: "
                                "Can't register in global nodes addresses cache.");
     }
@@ -103,10 +115,10 @@ void Communicator::sendMessage(
 
     for (auto const &numberAndPacket : *numberAndChannel.second->packets()) {
         sendData(
-            numberAndPacket.second->packetBytes(),
             address,
-            numberAndChannel.second,
-            numberAndChannel.first
+            numberAndPacket.second->packetBytes(),
+            numberAndChannel.first,
+            numberAndChannel.second
         );
     }
 
@@ -115,7 +127,7 @@ void Communicator::sendMessage(
 void Communicator::asyncReceiveData() {
 
     mSocket->async_receive_from(
-        boost::asio::buffer(mRecvBuffer),
+        boost::asio::buffer(mReceiveBuffer),
         mRemoteEndpointBuffer,
         boost::bind(
             &Communicator::handleReceivedInfo,
@@ -136,9 +148,10 @@ void Communicator::handleReceivedInfo(
         try {
             mIncomingMessagesHandler->processIncomingMessage(
                 mRemoteEndpointBuffer,
-                mRecvBuffer.data(),
+                mReceiveBuffer.data(),
                 bytesTransferred
             );
+
         } catch (exception &e) {
 
             mLog->logError("Communicator", e.what());
@@ -155,14 +168,15 @@ void Communicator::handleReceivedInfo(
 }
 
 void Communicator::sendData(
+    pair <string, uint16_t> address,
     vector<byte> buffer,
-    pair<string, uint16_t> address,
-    Channel::Shared channel,
-    uint16_t channelNumber) {
+    uint16_t channelNumber,
+    Channel::Shared channel) {
 
     ip::udp::endpoint destination(
         ip::address::from_string(address.first),
-        address.second);
+        address.second
+    );
 
     mSocket->async_send_to(
         as::buffer(
@@ -175,8 +189,8 @@ void Communicator::sendData(
             this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred,
-            channel,
-            channelNumber
+            channelNumber,
+            channel
         )
     );
 }
@@ -184,10 +198,10 @@ void Communicator::sendData(
 void Communicator::handleSend(
     const boost::system::error_code &error,
     size_t bytesTransferred,
-    Channel::Shared channel,
-    uint16_t channelNumber) {
+    uint16_t channelNumber,
+    Channel::Shared channel) {
 
-    if (channel->increaseSendedPacketsCounter()) {
+    if (channel->increaseSentPacketsCounter()) {
         mChannelsManager->removeOutgoingChannel(channelNumber);
     }
 
@@ -201,43 +215,3 @@ void Communicator::handleSend(
                       string("Bytes transferred - ") + to_string(bytesTransferred));
     }
 }
-
-void Communicator::onMessageParsedSlot(
-    Message::Shared message) {
-
-    messageReceivedSignal(message);
-}
-
-void Communicator::zeroPointers() {
-
-    mSocket = nullptr;
-    mUUID2AddressService = nullptr;
-    mChannelsManager = nullptr;
-    mChannelsManager = nullptr;
-    mOutgoingMessagesHandler = nullptr;
-    mIncomingMessagesHandler = nullptr;
-}
-
-void Communicator::cleanupMemory() {
-
-    if (mSocket != nullptr) {
-        delete mSocket;
-    }
-
-    if (mUUID2AddressService != nullptr) {
-        delete mUUID2AddressService;
-    }
-
-    if (mChannelsManager != nullptr) {
-        delete mChannelsManager;
-    }
-
-    if (mOutgoingMessagesHandler != nullptr) {
-        delete mOutgoingMessagesHandler;
-    }
-
-    if (mIncomingMessagesHandler != nullptr) {
-        delete mIncomingMessagesHandler;
-    }
-}
-

@@ -43,32 +43,40 @@ const uint16_t PacketHeader::bodyBytesCount() const {
 
 pair<ConstBytesShared, size_t> PacketHeader::bytes() const {
 
-    byte * headerBytes = (byte *) calloc (kHeaderSize, sizeof(byte));
+    BytesShared headerBytes = tryCalloc(kHeaderSize);
+    size_t headerBytesOffset = 0;
+    //----------------------------------------------
     memcpy(
-        headerBytes,
+        headerBytes.get(),
         &mPacketBytesCount,
         kHeaderRecordSize
     );
-
+    headerBytesOffset += kHeaderRecordSize;
+    //----------------------------------------------
     memcpy(
-        headerBytes + kHeaderRecordSize,
+        headerBytes.get() + headerBytesOffset,
         &mChannel,
         kHeaderRecordSize
     );
-
+    headerBytesOffset += kHeaderRecordSize;
+    //----------------------------------------------
     memcpy(
-        headerBytes + kHeaderRecordSize * 2,
+        headerBytes.get() + headerBytesOffset,
         &mPacketNumber,
         kHeaderRecordSize
     );
-
+    headerBytesOffset += kHeaderRecordSize;
+    //----------------------------------------------
     memcpy(
-        headerBytes + kHeaderRecordSize * 3,
+        headerBytes.get() + headerBytesOffset,
         &mTotalPacketsCount,
         kHeaderRecordSize
     );
+    //----------------------------------------------
+    ConstBytesShared constHeaderBytes = const_pointer_cast<const byte>(headerBytes);
 
     return make_pair(
-        ConstBytesShared(headerBytes, free),
-        8);
+        constHeaderBytes,
+        kHeaderSize
+    );
 }

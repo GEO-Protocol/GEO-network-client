@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 
 #include "../../common/Types.h"
+#include "../../common/memory/MemoryUtils.h"
 
 #include "../channels/packet/PacketHeader.h"
 #include "../channels/packet/Packet.h"
@@ -20,6 +21,7 @@
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
 
+#include <memory>
 #include <vector>
 
 
@@ -75,13 +77,35 @@ private:
     void tryCollectPacket(
         udp::endpoint &clientEndpoint);
 
+    void tryCollectMessage(
+        uint16_t channelNumber,
+        Channel::Shared channel);
+
+    ConstBytesShared preparePacketBody(
+        byte *bodyPart,
+        size_t bodySize);
+
+    Packet::Shared makePacket(
+        uint16_t channelNumber,
+        uint16_t packetNumber,
+        uint16_t totalPacketsCount,
+        uint16_t totalBytesCount,
+        ConstBytesShared bytes
+    );
+
+    PacketHeader::Shared makePacketHeader(
+        uint16_t channelNumber,
+        uint16_t packetNumber,
+        uint16_t totalPacketsCount,
+        uint16_t totalBytesCount);
+
     void cutPacketFromBuffer(
         size_t bytesCount);
 
 private:
     ChannelsManager *mChannelsManager;
 
-    MessagesParser *mMessagesParser;
+    unique_ptr<MessagesParser> mMessagesParser;
     vector<byte> mPacketsBuffer;
 };
 

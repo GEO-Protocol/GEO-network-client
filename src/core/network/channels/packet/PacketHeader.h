@@ -2,8 +2,8 @@
 #define GEO_NETWORK_CLIENT_PACKETHEADER_H
 
 #include "../../../common/Types.h"
+#include "../../../common/memory/MemoryUtils.h"
 
-#include <malloc.h>
 #include <memory>
 #include <cstdint>
 #include <cstring>

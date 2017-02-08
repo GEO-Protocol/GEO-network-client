@@ -99,18 +99,17 @@ IncomingMessagesHandler::IncomingMessagesHandler(
     mChannelsManager(channelsManager) {
 
     try{
-        mMessagesParser = new MessagesParser();
+        mMessagesParser = unique_ptr<MessagesParser>(
+            new MessagesParser()
+        );
 
-    } catch (std::bad_alloc &e) {
+    } catch (std::bad_alloc &) {
         throw MemoryError("IncomingMessagesHandler::IncomingMessagesHandler: "
-                              "Сan't allocate enough memory for messages parser.");
+                              "Сan not allocate enough memory for messages parser.");
     }
 }
 
-IncomingMessagesHandler::~IncomingMessagesHandler() {
-
-    delete mMessagesParser;
-}
+IncomingMessagesHandler::~IncomingMessagesHandler() {}
 
 void IncomingMessagesHandler::processIncomingMessage(
     udp::endpoint &clientEndpoint,
@@ -123,7 +122,7 @@ void IncomingMessagesHandler::processIncomingMessage(
 
     if (messagePart == nullptr) {
         throw ValueError("IncomingMessagesHandler::processIncomingMessage: "
-                             "message part can't be null.");
+                             "Message part can't be null.");
     }
 
     mPacketsBuffer.reserve(mPacketsBuffer.size() + receivedBytesCount);
@@ -149,57 +148,108 @@ void IncomingMessagesHandler::tryCollectPacket(
             *channelNumber,
             clientEndpoint);
 
-        PacketHeader *packetHeader = nullptr;
+        auto bytesBodySharedConst = preparePacketBody(
+            mPacketsBuffer.data() + Packet::kPacketBodyOffset,
+            *bytesCount - (uint16_t)PacketHeader::kHeaderSize
+        );
+
+        Packet::Shared packet;
         try {
-            packetHeader = new PacketHeader(
+            packet = makePacket(
                 *channelNumber,
                 *packageNumber,
                 *totalPacketsCount,
-                *bytesCount
+                *bytesCount,
+                bytesBodySharedConst
             );
 
-        } catch (std::bad_alloc &e) {
+        } catch (bad_alloc &) {
             throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
-                                  "Can not allocate memory for packet header instance.");
+                                  "Can not allocate enough memory for incoming packet.");
         }
 
-        Packet *packet = nullptr;
-        try {
-            packet = new Packet(
-                packetHeader,
-                mPacketsBuffer.data() + Packet::kPacketBodyOffset,
-                (size_t) packetHeader->bodyBytesCount()
-            );
-
-        } catch (std::bad_alloc &e) {
-            throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "
-                                  "Can not allocate memory for packet instance.");
-        }
         channelAndEndpoint.first->addPacket(
-            packetHeader->packetNumber(),
+            packet->header()->packetNumber(),
             Packet::Shared(packet)
         );
 
         cutPacketFromBuffer(*bytesCount);
 
+        tryCollectMessage(
+            packet->header()->channelNumber(),
+            channelAndEndpoint.first
+        );
+    }
+}
 
-        if (channelAndEndpoint.first->expectedPacketsCount() == channelAndEndpoint.first->realPacketsCount()) {
-            if (channelAndEndpoint.first->checkConsistency()) {
-                auto bytesAndCount = channelAndEndpoint.first->data();
-                auto resultAndMessage = mMessagesParser->processMessage(
-                    bytesAndCount.first,
-                    bytesAndCount.second
-                );
-                if (resultAndMessage.first) {
-                    mChannelsManager->removeIncomingChannel(packetHeader->channelNumber());
-                    messageParsedSignal(resultAndMessage.second);
-                }
+void IncomingMessagesHandler::tryCollectMessage(
+    uint16_t channelNumber,
+    Channel::Shared channel) {
 
-            } else {
-                mChannelsManager->removeIncomingChannel(packetHeader->channelNumber());
+    if (channel->expectedPacketsCount() == channel->realPacketsCount()) {
+        if (channel->checkConsistency()) {
+            auto bytesAndCount = channel->data();
+            auto resultAndMessage = mMessagesParser->processMessage(
+                bytesAndCount.first,
+                bytesAndCount.second
+            );
+            if (resultAndMessage.first) {
+                mChannelsManager->removeIncomingChannel(channelNumber);
+                messageParsedSignal(resultAndMessage.second);
             }
+
+        } else {
+            mChannelsManager->removeIncomingChannel(channelNumber);
         }
     }
+}
+
+ConstBytesShared IncomingMessagesHandler::preparePacketBody(
+    byte *bodyPart,
+    size_t bodySize) {
+
+    BytesShared bytesBodyShared = tryCalloc(bodySize);
+    memcpy(
+        bytesBodyShared.get(),
+        bodyPart,
+        bodySize
+    );
+    return static_pointer_cast<const byte>(bytesBodyShared);
+}
+
+Packet::Shared IncomingMessagesHandler::makePacket(
+    uint16_t channelNumber,
+    uint16_t packetNumber,
+    uint16_t totalPacketsCount,
+    uint16_t totalBytesCount,
+    ConstBytesShared bytes) {
+
+    return Packet::Shared(
+        new Packet(
+            makePacketHeader(
+                channelNumber,
+                packetNumber,
+                totalPacketsCount,
+                totalBytesCount
+            ),
+            bytes
+        )
+    );
+}
+
+PacketHeader::Shared IncomingMessagesHandler::makePacketHeader(
+    uint16_t channelNumber,
+    uint16_t packetNumber,
+    uint16_t totalPacketsCount,
+    uint16_t totalBytesCount) {
+
+    return PacketHeader::Shared(
+        new PacketHeader(
+            channelNumber,
+            packetNumber,
+            totalPacketsCount,
+            totalBytesCount)
+    );
 }
 
 void IncomingMessagesHandler::cutPacketFromBuffer(

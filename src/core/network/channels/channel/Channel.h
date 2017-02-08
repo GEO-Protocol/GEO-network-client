@@ -1,19 +1,20 @@
 #ifndef GEO_NETWORK_CLIENT_CHANNEL_H
 #define GEO_NETWORK_CLIENT_CHANNEL_H
 
-#include "../../../common/Types.h"
-
 #include "../packet/Packet.h"
+
+#include "../../../common/Types.h"
+#include "../../../common/time/TimeUtils.h"
+#include "../../../common/memory/MemoryUtils.h"
 
 #include "../../../common/exceptions/ConflictError.h"
 #include "../../../common/exceptions/MemoryError.h"
 
 #include <boost/crc.hpp>
 
-#include <malloc.h>
-#include <memory>
 #include <map>
 #include <string>
+#include <memory>
 #include <cstring>
 #include <cstdint>
 
@@ -45,7 +46,7 @@ public:
     void setOutgoingPacketsCount(
         uint16_t packetsCount);
 
-    bool increaseSendedPacketsCounter();
+    bool increaseSentPacketsCounter();
 
     const map<uint16_t, Packet::Shared, less<uint16_t>> *packets() const;
 
@@ -57,11 +58,11 @@ private:
 private:
     Timestamp mCreationTime;
 
-    uint16_t mExpectedPacketsCount;
-    uint16_t mOutgoingPacketsCount;
-    uint16_t mSendedPacketsCount;
+    uint16_t mExpectedPacketsCount = 0;
+    uint16_t mOutgoingPacketsCount = 0;
+    uint16_t mSentPacketsCount = 0;
 
-    map<uint16_t, Packet::Shared, less<uint16_t>> *mPackets;
+    unique_ptr<map<uint16_t, Packet::Shared, less<uint16_t>>> mPackets;
 };
 
 

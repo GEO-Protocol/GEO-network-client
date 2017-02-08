@@ -14,9 +14,10 @@
 #include <boost/bind.hpp>
 #include <boost/signals2.hpp>
 
-#include <stdlib.h>
+#include <memory>
 #include <string>
 #include <vector>
+#include <stdlib.h>
 
 
 using namespace std;
@@ -50,7 +51,10 @@ public:
         const NodeUUID &contractorUUID);
 
 private:
-    void connectIncomingMessagesHanlderSignals();
+    void connectIncomingMessagesHandlerSignals();
+
+    void onMessageParsedSlot(
+        Message::Shared message);
 
     void asyncReceiveData();
 
@@ -59,23 +63,16 @@ private:
         size_t bytesTransferred);
 
     void sendData(
-        vector<byte> buffer,
         pair <string, uint16_t> address,
-        Channel::Shared channel,
-        uint16_t channelNumber);
+        vector<byte> buffer,
+        uint16_t channelNumber,
+        Channel::Shared channel);
 
     void handleSend(
         const boost::system::error_code &error,
         size_t bytesTransferred,
-        Channel::Shared channel,
-        uint16_t channelNumber);
-
-    void onMessageParsedSlot(
-        Message::Shared message);
-
-    void zeroPointers();
-
-    void cleanupMemory();
+        uint16_t channelNumber,
+        Channel::Shared channel);
 
 private:
     static const constexpr size_t kMaxIncomingBufferSize = 1000;
@@ -86,14 +83,14 @@ private:
     const uint16_t mPort;
     Logger *mLog;
 
-    udp::socket *mSocket;
+    unique_ptr<udp::socket> mSocket;
 
-    UUID2Address *mUUID2AddressService;
-    ChannelsManager *mChannelsManager;
-    IncomingMessagesHandler *mIncomingMessagesHandler;
-    OutgoingMessagesHandler *mOutgoingMessagesHandler;
+    unique_ptr<UUID2Address> mUUID2AddressService;
+    unique_ptr<ChannelsManager> mChannelsManager;
+    unique_ptr<IncomingMessagesHandler> mIncomingMessagesHandler;
+    unique_ptr<OutgoingMessagesHandler> mOutgoingMessagesHandler;
 
-    boost::array<byte, kMaxIncomingBufferSize> mRecvBuffer;
+    boost::array<byte, kMaxIncomingBufferSize> mReceiveBuffer;
     udp::endpoint mRemoteEndpointBuffer;
 };
 

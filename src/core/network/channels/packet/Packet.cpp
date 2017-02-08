@@ -1,20 +1,11 @@
 #include "Packet.h"
 
 Packet::Packet(
-    PacketHeader *packetHeader,
-    byte *bytes,
-    size_t bytesCount) :
+    PacketHeader::Shared packetHeader,
+    ConstBytesShared bytes) :
 
-    mPacketHeader(PacketHeader::Shared(packetHeader)){
-
-    byte *data = (byte *) malloc(bytesCount);
-    memcpy(
-        data,
-        bytes,
-        bytesCount
-    );
-
-    mBytes = BytesShared(data, free);
+    mPacketHeader(packetHeader),
+    mBytes(bytes){
 }
 
 Packet::~Packet() {}
@@ -31,24 +22,26 @@ ConstBytesShared Packet::body() const {
 
 vector<byte> Packet::packetBytes() const {
 
-    byte* packet = (byte *) malloc(mPacketHeader->packetBytesCount());
+    BytesShared packetBytes = tryCalloc(mPacketHeader->packetBytesCount());
+    size_t packetBytesOffset = 0;
+    //----------------------------------------------
     memcpy(
-      packet,
-      mPacketHeader->bytes().first.get(),
-      PacketHeader::kHeaderSize
+        packetBytes.get(),
+        const_cast<byte *> (mPacketHeader->bytes().first.get()),
+        PacketHeader::kHeaderSize
     );
-
+    packetBytesOffset += PacketHeader::kHeaderSize;
+    //----------------------------------------------
     memcpy(
-        packet + PacketHeader::kHeaderSize,
+        packetBytes.get() + packetBytesOffset,
         mBytes.get(),
         mPacketHeader->bodyBytesCount()
     );
-
+    //----------------------------------------------
     vector<byte> bytes;
     for (size_t i = 0; i < mPacketHeader->packetBytesCount(); ++i) {
-        bytes.push_back(packet[i]);
+        bytes.push_back(packetBytes.get()[i]);
     }
-    delete packet;
 
     return bytes;
 }

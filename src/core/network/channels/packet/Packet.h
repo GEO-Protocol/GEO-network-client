@@ -2,11 +2,12 @@
 #define GEO_NETWORK_CLIENT_PACKET_H
 
 #include "../../../common/Types.h"
+#include "../../../common/memory/MemoryUtils.h"
+
 #include "PacketHeader.h"
 
-#include <cstring>
 #include <memory>
-#include <malloc.h>
+#include <cstring>
 #include <cstdint>
 
 using namespace std;
@@ -19,9 +20,8 @@ public:
 
 public:
     Packet(
-        PacketHeader *packetHeader,
-        byte *bytes,
-        size_t bytesCount);
+        PacketHeader::Shared packetHeader,
+        ConstBytesShared bytes);
 
     ~Packet();
 
@@ -38,8 +38,8 @@ public:
     static const constexpr size_t kPacketBodyOffset = PacketHeader::kHeaderSize;
 
 private:
-    PacketHeader::Shared mPacketHeader;
-    BytesShared mBytes;
+    PacketHeader::SharedConst mPacketHeader;
+    ConstBytesShared mBytes;
 };
 
 

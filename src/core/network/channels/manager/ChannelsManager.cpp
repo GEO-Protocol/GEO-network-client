@@ -6,27 +6,40 @@ ChannelsManager::ChannelsManager(
     mIOService(ioService){
 
     try {
-        mProcessingTimer = unique_ptr<as::deadline_timer>(new as::deadline_timer(mIOService, boost::posix_time::milliseconds(2 * 1000)));
+        mProcessingTimer = unique_ptr<as::deadline_timer>(
+            new as::deadline_timer(
+                mIOService,
+                boost::posix_time::milliseconds(2 * 1000)
+            )
+        );
 
-    } catch (std::bad_alloc &e) {
+    } catch (std::bad_alloc &) {
         throw MemoryError("ChannelsManager::ChannelsManager: "
                               "Can not allocate memory for deadline timer instance.");
     }
 
     try {
-        mIncomingChannels = unique_ptr<map<uint16_t, Channel::Shared>>(new map<uint16_t, Channel::Shared>());
-        mOutgoingChannels = unique_ptr<map<uint16_t, Channel::Shared>>(new map<uint16_t, Channel::Shared>());
+        mIncomingChannels = unique_ptr<map<uint16_t, Channel::Shared>>(
+            new map<uint16_t, Channel::Shared>()
+        );
+        mOutgoingChannels = unique_ptr<map<uint16_t, Channel::Shared>>(
+            new map<uint16_t, Channel::Shared>()
+        );
 
-    } catch (std::bad_alloc &e) {
+    } catch (std::bad_alloc &) {
         throw MemoryError("ChannelsManager::ChannelsManager: "
                               "Can not allocate memory for channels container.");
     }
 
     try {
-        mIncomingEndpoints = unique_ptr<map<uint16_t, udp::endpoint>>(new map<uint16_t, udp::endpoint>());
-        mOutgoingEndpoints = unique_ptr<map<uint16_t, udp::endpoint>>(new map<uint16_t, udp::endpoint>());
+        mIncomingEndpoints = unique_ptr<map<uint16_t, udp::endpoint>>(
+            new map<uint16_t, udp::endpoint>()
+        );
+        mOutgoingEndpoints = unique_ptr<map<uint16_t, udp::endpoint>>(
+            new map<uint16_t, udp::endpoint>()
+        );
 
-    } catch (std::bad_alloc &e) {
+    } catch (std::bad_alloc &) {
         throw MemoryError("ChannelsManager::ChannelsManager: "
                               "Can not allocate memory for endpoint container.");
     }
@@ -62,9 +75,9 @@ pair<Channel::Shared, udp::endpoint> ChannelsManager::createIncomingChannel(
     try {
         channel = new Channel();
 
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("ChannelsManager::create: "
-                              "Can not allocate memory for incomingChannel instance.");
+    } catch (std::bad_alloc &) {
+        throw MemoryError("ChannelsManager::createIncomingChannel: "
+                              "Can not allocate memory for incoming channel instance.");
     }
     mIncomingChannels->insert(
         make_pair(
@@ -121,9 +134,9 @@ Channel::Shared ChannelsManager::createOutgoingChannel(
     try {
         channel = new Channel();
 
-    } catch (std::bad_alloc &e) {
-        throw MemoryError("ChannelsManager::create: "
-                              "Can not allocate memory for incomingChannel instance.");
+    } catch (std::bad_alloc &) {
+        throw MemoryError("ChannelsManager::createOutgoingChannel: "
+                              "Can not allocate memory for outgoing channel instance.");
     }
     mOutgoingChannels->insert(
         make_pair(
@@ -158,14 +171,14 @@ void ChannelsManager::removeOutgoingChannel(
 
 uint16_t ChannelsManager::unusedOutgoingChannelNumber() {
 
-    uint16_t miniamlRange = 0;
+    uint16_t minimalRange = 0;
     uint16_t maximalRange = 0;
     for (auto const &numberAndEndpoint : *mOutgoingChannels) {
         if (numberAndEndpoint.first > maximalRange) {
             maximalRange = numberAndEndpoint.first;
         }
     }
-    for (size_t number = miniamlRange; number < maximalRange; ++ number) {
+    for (uint16_t number = minimalRange; number < maximalRange; ++ number) {
         if (mOutgoingChannels->count(number) == 0) {
             return number;
         }
@@ -179,19 +192,19 @@ void ChannelsManager::removeDeprecatedIncomingChannels() {
     mProcessingTimer->expires_from_now(kIncomingChannelsCollectorTimeout());
     mProcessingTimer->async_wait(
         boost::bind(
-            &ChannelsManager::handleincomingChannelsCollector,
+            &ChannelsManager::handleIncomingChannelsCollector,
             this,
             as::placeholders::error
         )
     );
 }
 
-void ChannelsManager::handleincomingChannelsCollector(
+void ChannelsManager::handleIncomingChannelsCollector(
     const boost::system::error_code &error) {
 
     if (!error) {
         for (auto const &numberAndChannel : *mIncomingChannels) {
-            if ((posix::second_clock::universal_time() - numberAndChannel.second->creationTime()) > kIncomingChannelKeepAliveTimeout()) {
+            if ((posix::microsec_clock::universal_time() - numberAndChannel.second->creationTime()) > kIncomingChannelKeepAliveTimeout()) {
                 removeIncomingChannel(numberAndChannel.first);
             }
         }

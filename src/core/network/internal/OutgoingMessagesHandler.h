@@ -1,6 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_OUTGOINGMESSAGESHANDLER_H
 #define GEO_NETWORK_CLIENT_OUTGOINGMESSAGESHANDLER_H
 
+#include "../../common/Types.h"
+#include "../../common/memory/MemoryUtils.h"
+
 #include "../messages/Message.hpp"
 
 #include "../channels/packet/PacketHeader.h"
@@ -26,7 +29,7 @@ public:
 
 private:
     pair<Packet::Shared, uint16_t> makeCRCPacket(
-        pair<ConstBytesShared, size_t> messageBytesAndCount,
+        pair<BytesShared, size_t> messageBytesAndCount,
         uint16_t channelNumber);
 
     Packet::Shared makePacket(

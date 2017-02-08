@@ -3,21 +3,16 @@
 Channel::Channel() {
 
     try {
-        mPackets = new map<uint16_t, Packet::Shared, less<uint16_t>>();
+        mPackets = unique_ptr<map<uint16_t, Packet::Shared, less<uint16_t>>> (new map<uint16_t, Packet::Shared, less<uint16_t>>());
 
     } catch (std::bad_alloc&) {
         throw MemoryError("Channel::Channel: "
                               "Can not allocate memory for packets container.");
     }
     rememberCreationTime();
-    mExpectedPacketsCount, mOutgoingPacketsCount, mSendedPacketsCount = 0;
 }
 
-Channel::~Channel() {
-
-    mPackets->clear();
-    delete mPackets;
-}
+Channel::~Channel() {}
 
 void Channel::addPacket(
     uint16_t position,
@@ -66,16 +61,13 @@ pair<BytesShared, size_t> Channel::data() {
         }
     }
 
-    byte *data = (byte *) calloc(
-        totalBytesCount,
-        sizeof(byte)
-    );
+    BytesShared dataShared = tryCalloc(totalBytesCount);
 
     size_t nextPacketBytesOffset = 0;
     for (auto &numberAndChannel : *mPackets) {
         if (numberAndChannel.first != kCRCPacketNumber()) {
             memcpy(
-                data + nextPacketBytesOffset,
+                dataShared.get() + nextPacketBytesOffset,
                 const_cast<byte *>(numberAndChannel.second->body().get()),
                 (size_t) numberAndChannel.second->header()->bodyBytesCount()
             );
@@ -84,10 +76,7 @@ pair<BytesShared, size_t> Channel::data() {
     }
 
     return make_pair(
-        BytesShared(
-            data,
-            free
-        ),
+        dataShared,
         totalBytesCount
     );
 
@@ -95,7 +84,7 @@ pair<BytesShared, size_t> Channel::data() {
 
 void Channel::rememberCreationTime() {
 
-    mCreationTime = posix::second_clock::universal_time();
+    mCreationTime = timestamp();
 }
 
 const Timestamp Channel::creationTime() const {
@@ -119,15 +108,15 @@ void Channel::setOutgoingPacketsCount(
     mOutgoingPacketsCount = packetsCount;
 }
 
-bool Channel::increaseSendedPacketsCounter() {
+bool Channel::increaseSentPacketsCounter() {
 
-    mSendedPacketsCount += 1;
-    return mOutgoingPacketsCount == mSendedPacketsCount;
+    mSentPacketsCount += 1;
+    return mOutgoingPacketsCount == mSentPacketsCount;
 }
 
 const map<uint16_t, Packet::Shared> *Channel::packets() const {
 
-    return mPackets;
+    return mPackets.get();
 }
 
 const uint16_t Channel::kCRCPacketNumber() {

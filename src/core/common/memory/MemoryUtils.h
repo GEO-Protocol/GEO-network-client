@@ -41,6 +41,4 @@ inline BytesShared tryCalloc(
 
     return bytesShared;
 }
-
-
 #endif //GEO_NETWORK_CLIENT_MEMORYUTILS_H

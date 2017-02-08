@@ -1,9 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_CHANNELSMANAGER_H
 #define GEO_NETWORK_CLIENT_CHANNELSMANAGER_H
 
-#include "../../../common/Types.h"
-
 #include "../channel/Channel.h"
+
+#include "../../../common/Types.h"
 
 #include "../../../common/exceptions/IndexError.h"
 #include "../../../common/exceptions/MemoryError.h"
@@ -52,7 +52,7 @@ private:
 
     void removeDeprecatedIncomingChannels();
 
-    void handleincomingChannelsCollector(
+    void handleIncomingChannelsCollector(
         const boost::system::error_code &error);
 
     static const Duration kIncomingChannelsCollectorTimeout();
