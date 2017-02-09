@@ -30,6 +30,9 @@ set(SOURCE_FILES
         transactions/unique/routing_tables/SendRoutingTablesTransaction.cpp
         transactions/unique/routing_tables/SendRoutingTablesTransaction.h
 
+        transactions/regular/payments/CoordinatorPaymentTransaction.h
+        transactions/regular/payments/CoordinatorPaymentTransaction.cpp
+
         # todo: move this into separate library
         transactions/result/state/TransactionState.cpp
         transactions/result/state/TransactionState.h
@@ -38,6 +41,7 @@ set(SOURCE_FILES
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions
+        time
         common
         memory
         exceptions

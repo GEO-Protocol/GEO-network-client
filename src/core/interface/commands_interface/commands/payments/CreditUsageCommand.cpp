@@ -114,68 +114,54 @@ void CreditUsageCommand::deserializeFromBytes(
 void CreditUsageCommand::parse(
     const string &command) {
 
-    const auto amountTokenOffset = NodeUUID::kHexSize + 1;
-    const auto minCommandLength = amountTokenOffset + 1;
-
+    const auto minCommandLength = CommandUUID::kHexSize + 1;
     if (command.size() < minCommandLength) {
-        throw ValueError("CreditUsageCommand::parse: "
-                             "Can't parse command. Received command is to short.");
+        throw ValueError(
+            "CreditUsageCommand::deserialize: "
+                "can't parse command. Received command is too short.");
     }
 
     try {
-        string hexUUID = command.substr(
-            0,
-            NodeUUID::kHexSize
-        );
+        string hexUUID = command.substr(0, CommandUUID::kHexSize);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
-        throw ValueError("CreditUsageCommand::parse: "
-                             "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
+        throw ValueError(
+            "CreditUsageCommand::deserialize: "
+                "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 
-    size_t purposeTokenOffset = 0;
-    size_t amountTokenLength = 0;
-    try {
-        for (size_t separatorPosition = amountTokenOffset; separatorPosition < command.length(); ++separatorPosition) {
-            if (command.at(separatorPosition) == kCommandsSeparator || command.at(separatorPosition) == kTokensSeparator) {
 
-                string amountToken = command.substr(
-                    amountTokenOffset,
-                    separatorPosition - amountTokenOffset
-                );
+    size_t purposeTokenStartPosition;
+    for (size_t i = NodeUUID::kHexSize+1; i < command.length(); ++i) {
+        if (command.at(i) == kTokensSeparator ||
+            command.at(i) == kCommandsSeparator ||
+            i == command.length()-1) {
 
+            try {
                 mAmount = TrustLineAmount(
-                    amountToken
-                );
+                    command.substr(
+                        NodeUUID::kHexSize+1,
+                        i - NodeUUID::kHexSize-1));
 
-                amountTokenLength = amountToken.length();
+            } catch (...) {
+                throw ValueError(
+                    "CreditUsageCommand::deserialize: "
+                        "Can't parse command. Error occurred while parsing 'Amount' token.");
             }
-        }
 
-    } catch (...) {
-        throw ValueError("CreditUsageCommand::parse: "
-                             "Can't parse command. Error occurred while parsing 'Amount' token.");
-    }
-
-    if (mAmount == TrustLineAmount(0)){
-        throw ValueError("CreditUsageCommand::parse: "
-                             "Can't parse command. Received 'Amount' can't be 0.");
-    }
-
-    purposeTokenOffset = amountTokenOffset + amountTokenLength + 1;
-    if (command.at(purposeTokenOffset) == kTokensSeparator) {
-        for (size_t commandSeparatorPosition = purposeTokenOffset; commandSeparatorPosition < command.length(); ++ commandSeparatorPosition) {
-            if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
-                mReason = command.substr(
-                    purposeTokenOffset,
-                    commandSeparatorPosition - purposeTokenOffset
-                );
+            if (mAmount == TrustLineAmount(0)) {
+                throw ValueError(
+                    "CreditUsageCommand::deserialize: "
+                        "Received 'Amount' can't be 0.");
             }
+
+            purposeTokenStartPosition = i + 1;
+            break;
         }
     }
 
-
+    // todo: (hsc) add purpose parsing
 }
 
 const size_t CreditUsageCommand::kMinRequestedBufferSize() {

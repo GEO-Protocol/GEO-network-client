@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 3.6)
 project(geo_network_client)
 
 
+# Logs configuration
+add_definitions(-DTRANSACTIONS_LOG)
+
+
 # todo: change in the release version
+
+# Available options are: DEBUG | RELEASE | REALEASE_WITH_DEBUG_LOG
 set(BUILD_CONFIGURATION "DEBUG")
 
 
@@ -10,12 +16,26 @@ IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
     add_definitions(-DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION)
 ENDIF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
 
+IF (${BUILD_CONFIGURATION} MATCHES "REALEASE_WITH_DEBUG_LOG")
+    add_definitions(-DDEBUG_LOG)
+ENDIF (${BUILD_CONFIGURATION} MATCHES "REALEASE_WITH_DEBUG_LOG")
+
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
+    set(CMAKE_BUILD_TYPE "DEBUG")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+ENDIF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
 
-set(Boost_USE_STATIC_LIBS ON)
+IF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
+    set(CMAKE_BUILD_TYPE "RELEASE")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Os -s -fdata-sections -fmerge-all-constants")
+ENDIF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
+
+
+set(Boost_USE_SHARED_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS system filesystem thread REQUIRED)
 
@@ -39,6 +59,7 @@ add_subdirectory(src/core/logger)
 add_subdirectory(src/core/interface)
 add_subdirectory(src/core/network)
 add_subdirectory(src/core/settings)
+add_subdirectory(src/core/paths)
 add_subdirectory(src/core/transactions)
 add_subdirectory(src/core/trust_lines)
 
@@ -71,9 +92,11 @@ target_link_libraries(geo_network_client
         network
         interface__commands
         interface__results
+
         io__trust_lines_storage
         io__routing_tables_storage
 
+        paths
         trust_lines
         transactions
 )

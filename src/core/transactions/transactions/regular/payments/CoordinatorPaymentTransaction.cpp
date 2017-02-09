@@ -1,16 +1,17 @@
 #include "CoordinatorPaymentTransaction.h"
 
-
-
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     NodeUUID &currentNodeUUID,
     CreditUsageCommand::Shared command,
-    TrustLinesManager *trustLines) :
+    TrustLinesManager *trustLines,
+    Logger *log) :
 
     BaseTransaction(
         BaseTransaction::CoordinatorPaymentTransaction, currentNodeUUID),
+    mCommand(command),
     mTrustLines(trustLines),
-    mCommand(command) {}
+    mLog(log){
+}
 
 /*!
  * Deserialization constructor.
@@ -31,18 +32,51 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 
 TransactionResult::Shared CoordinatorPaymentTransaction::run() {
 
+    // todo: optimisation
+    // Check if total outgoing possibilities of this node
+    // are not smaller, than total operation amount.
+    // In case if so - there is no reason to begin the operation:
+    // current node would not be able to pay such an amount.
 
+    switch (mStep) {
+        case 1: {
 
-    if (mStep == 1) {
-        // Context-exchange stage
+#ifdef TRANSACTIONS_LOG
+            {
+                auto info = mLog->info("CoordinatorPaymentTransaction");
+                info << "(UUID: " << UUID() << ") "
+                     << "Initialising payment operation to node " << mCommand->contractorUUID();
+            }
+#endif
+            return initPaymentOperation();
+        }
 
-
-
-
-        cout << "started!";
+        case 2: {
+#ifdef TRANSACTIONS_LOG
+            {
+                auto info = mLog->info("CoordinatorPaymentTransaction");
+                info << "awakened";
+            }
+#endif
+        }
     }
 
     return resultOK();
+}
+
+
+TransactionResult::Shared CoordinatorPaymentTransaction::initPaymentOperation() {
+    auto message =
+        make_shared<ReceiverInitPaymentMessage>(
+            mCommand->amount());
+
+    addMessage(
+        message,
+        mCommand->contractorUUID());
+
+    mStep += 1;
+    return make_shared<TransactionResult>(
+        TransactionState::awakeAfterMilliseconds(100));
 }
 
 TransactionResult::Shared CoordinatorPaymentTransaction::resultOK() const {

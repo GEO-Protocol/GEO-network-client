@@ -2,6 +2,12 @@
 
 TransactionResult::TransactionResult() {}
 
+TransactionResult::TransactionResult(
+    TransactionState::Shared transactionState) {
+
+    setTransactionState(transactionState);
+}
+
 void TransactionResult::setCommandResult(
     CommandResult::SharedConst commandResult){
 

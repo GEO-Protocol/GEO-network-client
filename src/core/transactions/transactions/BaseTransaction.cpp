@@ -47,6 +47,7 @@ pair<ConstBytesShared, size_t> BaseTransaction::serializeContext() {
     return mContext->serializeToBytes();
 }
 
+// todo: (DM) maybe "sendMessage"?
 void BaseTransaction::addMessage(
     Message::Shared message,
     const NodeUUID &nodeUUID) {
@@ -151,8 +152,8 @@ const size_t BaseTransaction::kOffsetToDataBytes() {
     return sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize + sizeof(uint16_t) + sizeof(uint16_t);
 }
 
-TransactionResult::Shared BaseTransaction::transactionResultFromCommand(
-    CommandResult::SharedConst result) {
+TransactionResult::Shared BaseTransaction::transactionResultFromCommand (
+    CommandResult::SharedConst result) const {
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setCommandResult(result);

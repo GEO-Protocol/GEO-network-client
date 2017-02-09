@@ -27,8 +27,8 @@ public:
     static datetime::ptime& GEOEpoch();
 
     static TransactionState::Shared awakeAsFastAsPossible();
-    static TransactionState::Shared awakeAfterTimeout(
-        uint16_t microseconds);
+    static TransactionState::Shared awakeAfterMilliseconds(
+        uint16_t milliseconds);
 
 public:
     TransactionState(

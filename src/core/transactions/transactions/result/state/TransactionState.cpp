@@ -13,10 +13,10 @@ TransactionState::Shared TransactionState::awakeAsFastAsPossible() {
 /*!
  * Returns TransactionState with awakening timestamp set to current UTC + timeout;
  */
-TransactionState::Shared TransactionState::awakeAfterTimeout(
-    uint16_t microseconds) {
+TransactionState::Shared TransactionState::awakeAfterMilliseconds(
+    uint16_t milliseconds) {
 
-    auto t = datetime::microsec_clock::universal_time() + datetime::microseconds(microseconds);
+    auto t = datetime::microsec_clock::universal_time() + datetime::microseconds(milliseconds*1000);
     return make_shared<TransactionState>(
         timestampFromTheGEOEpoch(
             t));
