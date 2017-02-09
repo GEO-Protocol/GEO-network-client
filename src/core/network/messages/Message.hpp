@@ -103,7 +103,7 @@ protected:
         );
     }
 
-    static const size_t inheritED(){
+    static const size_t kOffsetToInheritedBytes(){
 
         static const size_t offset = sizeof(MessageType) + NodeUUID::kBytesSize;
         return offset;

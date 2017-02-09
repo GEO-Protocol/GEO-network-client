@@ -48,7 +48,7 @@ void AcceptTrustLineMessage::deserializeFromBytes(
     BytesShared buffer) {
 
     TrustLinesMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TrustLinesMessage::inheritED();
+    size_t bytesBufferOffset = TrustLinesMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     vector<byte> amountBytes(
         buffer.get() + bytesBufferOffset,
@@ -58,7 +58,7 @@ void AcceptTrustLineMessage::deserializeFromBytes(
 
 const size_t AcceptTrustLineMessage::kRequestedBufferSize() {
 
-    static const size_t size = TrustLinesMessage::inheritED() + kTrustLineAmountBytesCount;
+    static const size_t size = TrustLinesMessage::kOffsetToInheritedBytes() + kTrustLineAmountBytesCount;
     return size;
 }
 
@@ -91,16 +91,3 @@ MessageResult::SharedConst AcceptTrustLineMessage::resultTransactionConflict() c
             kResultCodeTransactionConflict)
     );
 }
-
-MessageResult::SharedConst AcceptTrustLineMessage::customCodeResult(
-    uint16_t code) const {
-
-    return MessageResult::SharedConst(
-        new MessageResult(
-            mSenderUUID,
-            mTransactionUUID,
-            code)
-    );
-}
-
-

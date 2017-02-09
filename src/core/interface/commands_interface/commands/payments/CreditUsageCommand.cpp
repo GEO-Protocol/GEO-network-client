@@ -92,7 +92,7 @@ void CreditUsageCommand::deserializeFromBytes(
     BytesShared buffer) {
 
     BaseUserCommand::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = inheritED();
+    size_t bytesBufferOffset = kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(
         mContractorUUID.data,
@@ -180,7 +180,7 @@ void CreditUsageCommand::parse(
 
 const size_t CreditUsageCommand::kMinRequestedBufferSize() {
 
-    static const size_t size = inheritED() + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
+    static const size_t size = kOffsetToInheritedBytes() + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
     return size;
 }
 

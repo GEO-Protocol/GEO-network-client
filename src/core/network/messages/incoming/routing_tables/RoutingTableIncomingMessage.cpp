@@ -24,7 +24,7 @@ void RoutingTableIncomingMessage::deserializeFromBytes(
     BytesShared buffer) {
 
     RoutingTablesMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = RoutingTablesMessage::inheritED();
+    size_t bytesBufferOffset = RoutingTablesMessage::kOffsetToInheritedBytes();
     //---------------------------------------------------
     uint32_t *recordsCount = new (buffer.get() + bytesBufferOffset) uint32_t;
     bytesBufferOffset += sizeof(uint32_t);

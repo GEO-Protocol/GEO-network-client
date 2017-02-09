@@ -47,7 +47,7 @@ void RejectTrustLineMessage::deserializeFromBytes(
     BytesShared buffer) {
 
     TrustLinesMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TrustLinesMessage::inheritED();
+    size_t bytesBufferOffset = TrustLinesMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(
         mContractorUUID.data,
@@ -58,7 +58,7 @@ void RejectTrustLineMessage::deserializeFromBytes(
 
 const size_t RejectTrustLineMessage::kRequestedBufferSize() {
 
-    static const size_t size = TrustLinesMessage::inheritED() + NodeUUID::kBytesSize;
+    static const size_t size = TrustLinesMessage::kOffsetToInheritedBytes() + NodeUUID::kBytesSize;
     return size;
 }
 

@@ -6,13 +6,13 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager) :
 
-    UniqueTransaction(
+    TrustLineTransaction(
         BaseTransaction::TransactionType::CloseTrustLineTransactionType,
         nodeUUID,
         scheduler
     ),
     mCommand(command),
-    mTrustLinesManager(manager){
+    mTrustLinesManager(manager) {
 
 }
 
@@ -21,8 +21,8 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager) :
 
-    UniqueTransaction(scheduler),
-    mTrustLinesManager(manager){
+    TrustLineTransaction(scheduler),
+    mTrustLinesManager(manager) {
 
     deserializeFromBytes(buffer);
 }
@@ -32,30 +32,28 @@ CloseTrustLineCommand::Shared CloseTrustLineTransaction::command() const {
     return mCommand;
 }
 
-pair<BytesShared, size_t> CloseTrustLineTransaction::serializeToBytes() {
+pair<BytesShared, size_t> CloseTrustLineTransaction::serializeToBytes() const{
 
-    auto parentBytesAndCount = serializeParentToBytes();
+    auto parentBytesAndCount = TrustLineTransaction::serializeToBytes();
     auto commandBytesAndCount = mCommand->serializeToBytes();
+
     size_t bytesCount = parentBytesAndCount.second +  commandBytesAndCount.second;
-    byte *data = (byte *) calloc (
-        bytesCount,
-        sizeof(byte)
-    );
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
     //-----------------------------------------------------
     memcpy(
-        data,
+        dataBytesShared.get(),
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
     //-----------------------------------------------------
     memcpy(
-        data + parentBytesAndCount.second,
+        dataBytesShared.get() + parentBytesAndCount.second,
         commandBytesAndCount.first.get(),
         commandBytesAndCount.second
     );
     //-----------------------------------------------------
     return make_pair(
-        BytesShared(data, free),
+        dataBytesShared,
         bytesCount
     );
 }
@@ -63,35 +61,36 @@ pair<BytesShared, size_t> CloseTrustLineTransaction::serializeToBytes() {
 void CloseTrustLineTransaction::deserializeFromBytes(
     BytesShared buffer) {
 
-    deserializeParentFromBytes(buffer);
-    byte *commandBuffer = (byte *) calloc(
-        CloseTrustLineCommand::kRequestedBufferSize(),
-        sizeof(byte)
-    );
+    TrustLineTransaction::deserializeFromBytes(buffer);
+    BytesShared commandBufferShared = tryCalloc(CloseTrustLineCommand::kRequestedBufferSize());
+    //-----------------------------------------------------
     memcpy(
-        commandBuffer,
-        buffer.get() + kOffsetToDataBytes(),
+        commandBufferShared.get(),
+        buffer.get() + TrustLineTransaction::kOffsetToDataBytes(),
         CloseTrustLineCommand::kRequestedBufferSize()
     );
-    BytesShared commandBufferShared(commandBuffer, free);
-    CloseTrustLineCommand *command = new CloseTrustLineCommand(commandBufferShared);
-    mCommand = CloseTrustLineCommand::Shared(command);
+    //-----------------------------------------------------
+    mCommand = CloseTrustLineCommand::Shared(
+        new CloseTrustLineCommand(
+            commandBufferShared
+        )
+    );
 
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::run() {
+TransactionResult::SharedConst CloseTrustLineTransaction::run() {
 
-    switch(mStep) {
+    switch (mStep) {
 
         case 1: {
-            if (checkSameTypeTransactions()) {
+            if (isTransactionToContractorUnique()) {
                 return conflictErrorResult();
             }
             increaseStepsCounter();
         }
 
         case 2: {
-            if (!checkTrustLineDirectionExisting()) {
+            if (!isOutgoingTrustLineDirectionExisting()) {
                 return trustLineAbsentResult();
             }
             increaseStepsCounter();
@@ -99,7 +98,7 @@ TransactionResult::Shared CloseTrustLineTransaction::run() {
 
         case 3: {
             if (checkDebt()) {
-                suspendTrustLineToContractor();
+                suspendTrustLineDirectionToContractor();
 
             } else {
                 closeTrustLine();
@@ -132,7 +131,7 @@ TransactionResult::Shared CloseTrustLineTransaction::run() {
 
 }
 
-bool CloseTrustLineTransaction::checkSameTypeTransactions() {
+bool CloseTrustLineTransaction::isTransactionToContractorUnique() {
 
     auto transactions = pendingTransactions();
     for (auto const &it : *transactions) {
@@ -180,10 +179,10 @@ bool CloseTrustLineTransaction::checkSameTypeTransactions() {
     return false;
 }
 
-bool CloseTrustLineTransaction::checkTrustLineDirectionExisting() {
+bool CloseTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
 
     return mTrustLinesManager->checkDirection(mCommand->contractorUUID(), TrustLineDirection::Outgoing) ||
-        mTrustLinesManager->checkDirection(mCommand->contractorUUID(), TrustLineDirection::Both);
+           mTrustLinesManager->checkDirection(mCommand->contractorUUID(), TrustLineDirection::Both);
 }
 
 bool CloseTrustLineTransaction::checkDebt() {
@@ -191,7 +190,7 @@ bool CloseTrustLineTransaction::checkDebt() {
     return mTrustLinesManager->balanceRange(mCommand->contractorUUID()) == BalanceRange::Positive;
 }
 
-void CloseTrustLineTransaction::suspendTrustLineToContractor() {
+void CloseTrustLineTransaction::suspendTrustLineDirectionToContractor() {
 
     mTrustLinesManager->suspendDirection(
         mCommand->contractorUUID(),
@@ -204,7 +203,7 @@ void CloseTrustLineTransaction::closeTrustLine() {
     mTrustLinesManager->close(mCommand->contractorUUID());
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::checkTransactionContext() {
+TransactionResult::SharedConst CloseTrustLineTransaction::checkTransactionContext() {
 
     if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
         Response::Shared response = static_pointer_cast<Response>(mContext);
@@ -222,7 +221,7 @@ TransactionResult::Shared CloseTrustLineTransaction::checkTransactionContext() {
                 return transactionConflictResult();
             }
 
-            default:{
+            default: {
                 return unexpectedErrorResult();
             }
         }
@@ -246,7 +245,7 @@ void CloseTrustLineTransaction::sendMessageToRemoteNode() {
     );
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::waitingForResponseState() {
+TransactionResult::SharedConst CloseTrustLineTransaction::waitingForResponseState() {
 
     TransactionState *transactionState = new TransactionState(
         kConnectionTimeout,
@@ -256,36 +255,36 @@ TransactionResult::Shared CloseTrustLineTransaction::waitingForResponseState() {
 
 
     TransactionResult *transactionResult = new TransactionResult();
-    transactionResult->setTransactionState(TransactionState::Shared(transactionState));
+    transactionResult->setTransactionState(TransactionState::SharedConst(transactionState));
     return TransactionResult::Shared(transactionResult);
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::resultOk() {
+TransactionResult::SharedConst CloseTrustLineTransaction::resultOk() {
 
     return transactionResultFromCommand(mCommand->resultOk());
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::trustLineAbsentResult() {
+TransactionResult::SharedConst CloseTrustLineTransaction::trustLineAbsentResult() {
 
     return transactionResultFromCommand(mCommand->trustLineIsAbsentResult());
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::conflictErrorResult() {
+TransactionResult::SharedConst CloseTrustLineTransaction::conflictErrorResult() {
 
     return transactionResultFromCommand(mCommand->resultConflict());
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::noResponseResult() {
+TransactionResult::SharedConst CloseTrustLineTransaction::noResponseResult() {
 
     return transactionResultFromCommand(mCommand->resultNoResponse());
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::transactionConflictResult() {
+TransactionResult::SharedConst CloseTrustLineTransaction::transactionConflictResult() {
 
     return transactionResultFromCommand(mCommand->resultTransactionConflict());
 }
 
-TransactionResult::Shared CloseTrustLineTransaction::unexpectedErrorResult() {
+TransactionResult::SharedConst CloseTrustLineTransaction::unexpectedErrorResult() {
 
     return transactionResultFromCommand(mCommand->unexpectedErrorResult());
 }

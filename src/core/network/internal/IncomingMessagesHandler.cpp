@@ -198,9 +198,8 @@ void IncomingMessagesHandler::tryCollectMessage(
                 messageParsedSignal(resultAndMessage.second);
             }
 
-        } else {
-            mChannelsManager->removeIncomingChannel(channelNumber);
         }
+        mChannelsManager->removeIncomingChannel(channelNumber);
     }
 }
 

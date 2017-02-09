@@ -49,7 +49,7 @@ protected:
     virtual void parse(
         const string &commandBuffer) = 0;
 
-    static const size_t inheritED();
+    static const size_t kOffsetToInheritedBytes();
 
 private:
     CommandUUID mCommandUUID;

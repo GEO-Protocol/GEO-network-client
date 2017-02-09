@@ -15,6 +15,8 @@ set(SOURCE_FILES
         transactions/BaseTransaction.h
         transactions/unique/UniqueTransaction.cpp
         transactions/unique/UniqueTransaction.h
+        transactions/unique/trust_lines/TrustLineTransaction.cpp
+        transactions/unique/trust_lines/TrustLineTransaction.h
         transactions/unique/trust_lines/OpenTrustLineTransaction.cpp
         transactions/unique/trust_lines/OpenTrustLineTransaction.h
         transactions/unique/trust_lines/AcceptTrustLineTransaction.cpp
@@ -27,8 +29,8 @@ set(SOURCE_FILES
         transactions/unique/trust_lines/SetTrustLineTransaction.h
         transactions/unique/trust_lines/UpdateTrustLineTransaction.cpp
         transactions/unique/trust_lines/UpdateTrustLineTransaction.h
-        transactions/unique/routing_tables/SendRoutingTablesTransaction.cpp
-        transactions/unique/routing_tables/SendRoutingTablesTransaction.h
+        transactions/regular/payments/CoordinatorPaymentTransaction.cpp
+        transactions/regular/payments/CoordinatorPaymentTransaction.h
 
         # todo: move this into separate library
         transactions/result/state/TransactionState.cpp

@@ -1,9 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_BASETRANSACTION_H
 #define GEO_NETWORK_CLIENT_BASETRANSACTION_H
 
-#include "../TransactionUUID.h"
-
 #include "../../common/Types.h"
+#include "../../common/memory/MemoryUtils.h"
+
+#include "../TransactionUUID.h"
 #include "../../common/NodeUUID.h"
 
 #include "../../network/messages/Message.hpp"
@@ -13,6 +14,9 @@
 
 #include <boost/signals2.hpp>
 
+#include <memory>
+#include <utility>
+#include <cstdint>
 
 namespace storage = db::uuid_map_block_storage;
 namespace signals = boost::signals2;
@@ -20,61 +24,45 @@ namespace signals = boost::signals2;
 class BaseTransaction {
 public:
     typedef shared_ptr<BaseTransaction> Shared;
+    typedef uint16_t SerializedTransactionType;
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
-    typedef uint16_t SerialisedTransactionType;
 
 public:
-    // todo: (DM): remove "..Type" from enum
     enum TransactionType {
-        // Trust lines operations
         OpenTrustLineTransactionType = 1,
         AcceptTrustLineTransactionType,
         SetTrustLineTransactionType,
+        UpdateTrustLineTransactionType,
         CloseTrustLineTransactionType,
         RejectTrustLineTransactionType,
-        UpdateTrustLineTransactionType,
-
-        // Routin table operations
         SendRoutingTablesTransactionType,
         AcceptRoutingTablesTransactionType,
-
-        // Payment operations
-        CoordinatorPaymentTransaction,
+        CoordinatorPaymentTransaction
     };
 
-    mutable SendMessageSignal outgoingMessageIsReadySignal;
-
 public:
-    // todo: DEPRECATED
-    signals::connection addOnMessageSendSlot(
-        const SendMessageSignal::slot_type &slot) const;
-
     const TransactionType transactionType() const;
 
-    const NodeUUID &nodeUUID() const;
-
     const TransactionUUID &UUID() const;
+
+    const NodeUUID &nodeUUID() const;
 
     void setContext(
         Message::Shared message);
 
-    // todo: (DM) DEPRECATED
-    pair<ConstBytesShared, size_t> serializeContext();
+    virtual pair<BytesShared, size_t> serializeToBytes() const;
 
-    // todo: (DM) may be const
-    virtual pair<BytesShared, size_t> serializeToBytes() = 0;
-
-    virtual TransactionResult::Shared run() = 0;
+    virtual TransactionResult::SharedConst run() = 0;
 
 protected:
     BaseTransaction();
 
     BaseTransaction(
-        TransactionType type,
-        NodeUUID &nodeUUID);
+        TransactionType type);
 
     BaseTransaction(
-        TransactionType type);
+        TransactionType type,
+        NodeUUID &nodeUUID);
 
     void addMessage(
         Message::Shared message,
@@ -82,33 +70,26 @@ protected:
 
     void increaseStepsCounter();
 
-    void increaseRequestsCounter();
-
-    void resetRequestsCounter();
-
-    pair<BytesShared, size_t> serializeParentToBytes();
-
-    void deserializeParentFromBytes(
+    virtual void deserializeFromBytes(
         BytesShared buffer);
 
-    virtual void deserializeFromBytes(
-        BytesShared buffer) = 0;
+    static const size_t kOffsetToInheritedBytes();
 
-    const size_t kOffsetToDataBytes();
-
-    TransactionResult::Shared transactionResultFromCommand(
+    TransactionResult::SharedConst transactionResultFromCommand(
         CommandResult::SharedConst result);
+
+    TransactionResult::SharedConst transactionResultFromMessage(
+        MessageResult::SharedConst result);
 
 protected:
     TransactionType mType;
-    NodeUUID mNodeUUID;
     TransactionUUID mTransactionUUID;
+    NodeUUID mNodeUUID;
     Message::Shared mContext;
 
     uint16_t mStep = 1;
 
-    // todo: (DM) move this to the trust lines transaction
-    uint16_t mRequestCounter = 0;
+    mutable SendMessageSignal outgoingMessageIsReadySignal;
 };
 
 
