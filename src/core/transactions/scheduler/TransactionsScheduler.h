@@ -71,6 +71,13 @@ private:
         BaseTransaction::Shared transaction,
         TransactionResult::Shared result);
 
+    void forgetTransaction(
+        BaseTransaction::Shared transaction);
+
+    void serializeTransaction(
+        BaseTransaction::Shared transaction);
+
+    void processNextTransactions();
 
     // todo: it should be removed in favour of transactionWithMinimalAwakeningTimestamp();
     pair<BaseTransaction::Shared, Duration> nextDelayedTransaction();

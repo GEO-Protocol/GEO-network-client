@@ -140,18 +140,16 @@ void TransactionsScheduler::launchTransaction(
 
     try {
         // Even if transaction will raise exception -
-        // it must not be thrown up to not to break transactions processing flow.
+        // it must not be thrown up,
+        // (to not to break transactions processing flow).
 
         auto result = transaction->run();
-
-        // todo: (DM) when transaction may be outside of the scheduler?
-        // todo: (DM) see run() and scheduleTransaction()
-        if (!isTransactionInScheduler(transaction)) {
-            mTransactions->insert(
-                make_pair(
-                    transaction,
-                    result->state()));
-        }
+//        if (!isTransactionInScheduler(transaction)) {
+//            mTransactions->insert(
+//                make_pair(
+//                    transaction,
+//                    result->state()));
+//        }
         handleTransactionResult(transaction, result);
 
     } catch (exception &e) {
@@ -164,68 +162,108 @@ void TransactionsScheduler::launchTransaction(
     }
 }
 
-/**
- * Handling transaction executing result.
- * Result consist of command result and transaction state.
- * If transaction executed successfully - result has reference to command result,
- * else - result has reference to transaction state.
- * If handler has transaction state, he checking if transaction is present in scheduler's map, change
- * her state in RAM and writing context in storage. Then looking for transaction, which state has minimal timeout for delay.
- * If handler has command result, he return result via transactions manager's callback and remove transaction from RAM and storage.
- * Then looking for transaction which state has minimal timeout for delay.
- * In both cases, if map is empty - scheduler loose control.
- *
- * throw ValueError - transaction has executed, but she's absent in map
- * throw ConflictError - transaction's result and state will could not been nullptr or ptr at the same time
- */
 void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,
     TransactionResult::Shared result) {
 
     if (result->messageResult() != nullptr) {
-        if (isTransactionInScheduler(transaction)) {
-            mTransactions->erase(transaction);
-            if (mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
-                mStorage->erase(
-                    storage::uuids::uuid(transaction->UUID())
-                );
-            }
-
-        } else {
-            throw ValueError("TransactionsManager::handleTransactionResult. "
-                                 "Transaction reference must be store in memory.");
-        }
-        //TODO:: journal
-
-    } else if (result->commandResult() == nullptr && result->state() != nullptr) {
-        if (isTransactionInScheduler(transaction)) {
-            auto transactionAndState = mTransactions->find(transaction);
-            transactionAndState->second = result->state();
-            if (transactionAndState->second->needSerialize()) {
-
-                auto transactionBytesAndCount = transaction->serializeToBytes();
-                if (!mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
-                    mStorage->write(
-                        storage::uuids::uuid(transaction->UUID()),
-                        transactionBytesAndCount.first.get(),
-                        transactionBytesAndCount.second
-                    );
-
-                } else {
-                    mStorage->rewrite(
-                        storage::uuids::uuid(transaction->UUID()),
-                        transactionBytesAndCount.first.get(),
-                        transactionBytesAndCount.second
-                    );
-                }
-            }
-
-        } else {
-            throw ValueError("TransactionsManager::TransactionsScheduler"
-                                 "Transaction reference must be store in memory");
+        if (result->state() != nullptr) {
+            throw ConflictError(
+                "TransactionsManager::handleTransactionResult. "
+                    "Transaction result must not contains message result and state at the same time.");
         }
 
-        for (size_t iteration=0; iteration<64; ++iteration){
+        // todo: write result code to the journal
+        forgetTransaction(transaction);
+        processNextTransactions();
+        return;
+    }
+
+    if (result->commandResult() != nullptr) {
+        if (result->state() != nullptr) {
+            throw ConflictError(
+                "TransactionsManager::handleTransactionResult. "
+                    "Transaction result must not contains command result and state at the same time.");
+        }
+
+#ifdef DEBUG
+        {
+            auto debug = mLog->debug("TransactionsScheduler");
+            debug << "Transaction result received: "
+                  << result->commandResult()->serialize();
+        }
+#endif
+
+        mManagerCallback(result->commandResult());
+        forgetTransaction(transaction);
+        processNextTransactions();
+        return;
+    }
+
+    if (result->state() != nullptr) {
+        if (result->commandResult() != nullptr) {
+            throw ConflictError(
+                "TransactionsManager::handleTransactionResult. "
+                    "Transaction result must not contains command result and state at the same time.");
+        }
+
+        if (result->messageResult() != nullptr) {
+            throw ConflictError(
+                "TransactionsManager::handleTransactionResult. "
+                    "Transaction result must not contains message result and state at the same time.");
+        }
+
+        if (result->state()->needSerialize()){
+            serializeTransaction(transaction);
+        }
+
+        if (result->state()->mustBeRescheduled()){
+            mTransactions->insert(
+                make_pair(
+                    transaction,
+                    result->state()));
+        } else {
+            forgetTransaction(transaction);
+        }
+
+        processNextTransactions();
+    }
+}
+
+void TransactionsScheduler::forgetTransaction(
+    BaseTransaction::Shared transaction) {
+
+    mTransactions->erase(transaction);
+
+    try {
+        mStorage->erase(
+            storage::uuids::uuid(transaction->UUID()));
+
+    } catch (IndexError &) {}
+}
+
+void TransactionsScheduler::serializeTransaction(
+    BaseTransaction::Shared transaction) {
+
+    auto transactionBytesAndCount = transaction->serializeToBytes();
+    if (!mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
+        mStorage->write(
+            storage::uuids::uuid(transaction->UUID()),
+            transactionBytesAndCount.first.get(),
+            transactionBytesAndCount.second);
+
+    } else {
+        mStorage->rewrite(
+            storage::uuids::uuid(transaction->UUID()),
+            transactionBytesAndCount.first.get(),
+            transactionBytesAndCount.second);
+    }
+}
+
+void TransactionsScheduler::processNextTransactions(){
+
+    for (size_t iteration=0; iteration<64; ++iteration){
+        try {
             auto transactionAndTimestamp = transactionWithMinimalAwakeningTimestamp();
 
             if (transactionAndTimestamp.second > now()) {
@@ -237,48 +275,15 @@ void TransactionsScheduler::handleTransactionResult(
                 // transaction may be launched directly;
                 //
                 // WARN:
-                // Iterations count is limited to prevent ignoring async loop and network messages:
+                // Iterations count is limited to prevent ignoring async loop (and network messages),
+                // and stack overflowing;
                 launchTransaction(transactionAndTimestamp.first);
             }
+
+        } catch (NotFoundError) {
+            // No delayed transaction is present.
+            break;
         }
-
-    } else if (result->state() == nullptr && result->commandResult() != nullptr) {
-
-#ifdef DEBUG
-        {
-            auto debug = mLog->debug("TransactionsScheduler");
-            debug << "Transaction result received: "
-                  << result->commandResult()->serialize();
-        }
-#endif
-
-        mManagerCallback(result->commandResult());
-        if (isTransactionInScheduler(transaction)) {
-            mTransactions->erase(transaction);
-            if (mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
-                mStorage->erase(
-                    storage::uuids::uuid(transaction->UUID())
-                );
-            }
-
-        } else {
-            throw ValueError("TransactionsManager::handleTransactionResult. "
-                                 "Transaction reference must be store in memory.");
-        }
-
-        // todo: (DM) use asyncWaitUntil()
-        Duration minimalDelay = nextDelayedTransaction().second;
-        if (minimalDelay > posix::milliseconds(0)) {
-            rescheduleNextInterruption(minimalDelay);
-        }
-
-    } else if (result->commandResult().get() == nullptr && result->state().get() == nullptr) {
-        throw ConflictError("TransactionsManager::handleTransactionResult. "
-                                "Command result and transaction state may not be null pointer references at the same time.");
-
-    } else if (result->commandResult().get() != nullptr && result->state().get() != nullptr) {
-        throw ConflictError("TransactionsManager::handleTransactionResult. "
-                                "Transaction cat not has command result and transaction state at the same time.");
     }
 }
 
@@ -313,12 +318,12 @@ pair<BaseTransaction::Shared, Duration> TransactionsScheduler::nextDelayedTransa
 }
 
 /*!
- * Returns transaction that is next in transactions queue (by the awake timestamps).
+ * Returns transaction that is next in transactions queue (by the awakening timestamps).
  *
  * WARN:
- * This method returns transaction even if it's awake timestamp has been not fired up.
+ * This method returns transaction even if it's awakening timestamp has been not fired up.
  * Transaction it returns must not be launched, if it's state prohibits it.
- * To get next trasnaction that must be launched by the timestap - use nextDelayedTransaction();
+ * To get next transaction that must be launched by the timestamp - use nextDelayedTransaction();
  *
  *
  * Throws NotFoundError in case if no transactions are delayed.
@@ -329,7 +334,7 @@ TransactionsScheduler::transactionWithMinimalAwakeningTimestamp() const {
     if (mTransactions->empty()) {
         throw NotFoundError(
             "TransactionsScheduler::transactionWithMinimalAwakeningTimestamp: "
-                "there is no delayed any tranactions.");
+                "there is no any delayed transactions are present.");
     }
 
     BaseTransaction::Shared transaction(nullptr);
