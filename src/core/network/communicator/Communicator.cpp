@@ -99,10 +99,13 @@ void Communicator::sendMessage(
     const NodeUUID &contractorUUID) {
 
     auto address = mUUID2AddressService->getNodeAddress(contractorUUID);
+    if (address.first == "localhost") {
+        address.first = "127.0.0.1";
+    }
+
     ip::udp::endpoint endpoint(
         ip::address::from_string(address.first),
-        address.second
-    );
+        address.second);
 
 
     auto numberAndChannel = mChannelsManager->outgoingChannel(endpoint);
@@ -110,16 +113,14 @@ void Communicator::sendMessage(
     mOutgoingMessagesHandler->processOutgoingMessage(
         message,
         numberAndChannel.first,
-        numberAndChannel.second
-    );
+        numberAndChannel.second);
 
     for (auto const &numberAndPacket : *numberAndChannel.second->packets()) {
         sendData(
             address,
             numberAndPacket.second->packetBytes(),
             numberAndChannel.first,
-            numberAndChannel.second
-        );
+            numberAndChannel.second);
     }
 
 }
