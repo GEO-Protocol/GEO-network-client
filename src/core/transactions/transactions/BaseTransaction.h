@@ -81,6 +81,9 @@ protected:
     TransactionResult::SharedConst transactionResultFromMessage(
         MessageResult::SharedConst result);
 
+public:
+    mutable SendMessageSignal outgoingMessageIsReadySignal;
+
 protected:
     TransactionType mType;
     TransactionUUID mTransactionUUID;
@@ -88,8 +91,6 @@ protected:
     Message::Shared mContext;
 
     uint16_t mStep = 1;
-
-    mutable SendMessageSignal outgoingMessageIsReadySignal;
 };
 
 

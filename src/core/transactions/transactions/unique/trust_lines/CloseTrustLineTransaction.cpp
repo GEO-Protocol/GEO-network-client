@@ -256,7 +256,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::waitingForResponseStat
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setTransactionState(TransactionState::SharedConst(transactionState));
-    return TransactionResult::Shared(transactionResult);
+    return TransactionResult::SharedConst(transactionResult);
 }
 
 TransactionResult::SharedConst CloseTrustLineTransaction::resultOk() {

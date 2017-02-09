@@ -61,49 +61,47 @@ public:
     void processMessage(
         Message::Shared message);
 
-    void processCommandResult(
-        CommandResult::SharedConst result);
-
-    void startRoutingTablesExchange(
+    // Invokes from Core
+    void launchRoutingTableExchangeTransaction(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
-protected:
+private:
     void loadTransactions();
 
-protected:
-    // Trust lines transactions
     void launchOpenTrustLineTransaction(
         OpenTrustLineCommand::Shared command);
-
-    void launchAcceptTrustLineTransaction(
-        AcceptTrustLineMessage::Shared message);
-
-    void launchCloseTrustLineTransaction(
-        CloseTrustLineCommand::Shared command);
-
-    void launchRejectTrustLineTransaction(
-        RejectTrustLineMessage::Shared message);
 
     void launchSetTrustLineTransaction(
         SetTrustLineCommand::Shared command);
 
+    void launchCloseTrustLineTransaction(
+        CloseTrustLineCommand::Shared command);
+
+    void launchAcceptTrustLineTransaction(
+        AcceptTrustLineMessage::Shared message);
+
     void launchUpdateTrustLineTransaction(
         UpdateTrustLineMessage::Shared message);
 
-protected:
-    // Payment transactions
+    void launchRejectTrustLineTransaction(
+        RejectTrustLineMessage::Shared message);
+
     void launchCreditUsageTransaction(
         CreditUsageCommand::Shared command);
 
-protected:
-    // Slots
+    void subscribeForOutgoingMessages(
+        BaseTransaction::SendMessageSignal &signal);
+
+    void subscribeForCommandResult(
+        TransactionsScheduler::CommandResultSignal &signal);
+
     void onTransactionOutgoingMessageReady(
         Message::Shared message,
         const NodeUUID &contractorUUID);
 
-    void subscribeForOugtoingMessages(
-        BaseTransaction::SendMessageSignal &signal);
+    void onCommandResultReady(
+        CommandResult::SharedConst result);
 
 private:
     NodeUUID &mNodeUUID;

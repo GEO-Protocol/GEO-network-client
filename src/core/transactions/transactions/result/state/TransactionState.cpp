@@ -1,7 +1,7 @@
 #include "TransactionState.h"
 
 TransactionState::TransactionState(
-    uint64_t awakeTimestamp,
+    MicrosecondsTimestamp awakeTimestamp,
     bool flushToPermanentStorage) :
 
     mAwakeningTimestamp(awakeTimestamp) {
@@ -18,7 +18,7 @@ TransactionState::TransactionState(
 }
 
 TransactionState::TransactionState(
-    uint64_t awakeTimestamp,
+    MicrosecondsTimestamp awakeTimestamp,
     Message::MessageTypeID requiredMessageType,
     bool flushToPermanentStorage) :
 
@@ -56,7 +56,7 @@ TransactionState::SharedConst TransactionState::awakeAfterTimeout(
     );
 }
 
-const uint64_t TransactionState::awakeningTimestamp() const {
+const MicrosecondsTimestamp TransactionState::awakeningTimestamp() const {
 
     return mAwakeningTimestamp;
 }

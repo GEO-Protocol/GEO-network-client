@@ -124,7 +124,7 @@ int Core::initResultsInterface() {
 
     try {
         mResultsInterface = new ResultsInterface(&mLog);
-        mLog.logSuccess("Core", "Results parseInterface is successfully initialised");
+        mLog.logSuccess("Core", "Results interface is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {
@@ -173,7 +173,7 @@ int Core::initCommandsInterface() {
             mTransactionsManager,
             &mLog
         );
-        mLog.logSuccess("Core", "Commands parseInterface is successfully initialised");
+        mLog.logSuccess("Core", "Commands interface is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {
@@ -253,7 +253,7 @@ void Core::onTrustLineCreatedSlot(
     const TrustLineDirection direction) {
 
     try{
-        mTransactionsManager->startRoutingTablesExchange(
+        mTransactionsManager->launchRoutingTableExchangeTransaction(
             contractorUUID,
             direction
         );

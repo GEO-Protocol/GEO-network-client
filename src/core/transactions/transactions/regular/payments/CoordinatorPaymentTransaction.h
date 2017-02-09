@@ -7,8 +7,7 @@
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 
 
-class CoordinatorPaymentTransaction:
-    public BaseTransaction {
+class CoordinatorPaymentTransaction: public BaseTransaction {
 
 public:
     typedef shared_ptr<CoordinatorPaymentTransaction> Shared;
@@ -24,19 +23,19 @@ public:
         BytesShared buffer,
         TrustLinesManager *trustLines);
 
-    TransactionResult::Shared run();
+    pair<BytesShared, size_t> serializeToBytes() const;
 
-    pair<BytesShared, size_t> serializeToBytes();
+    TransactionResult::SharedConst run();
+
+protected:
+    void deserializeFromBytes(
+        BytesShared buffer);
+
+    TransactionResult::SharedConst resultOK() const;
 
 protected:
     CreditUsageCommand::Shared mCommand;
     TrustLinesManager *mTrustLines;
-
-protected:
-    TransactionResult::Shared resultOK() const;
-
-    void deserializeFromBytes(
-        BytesShared buffer);
 };
 
 

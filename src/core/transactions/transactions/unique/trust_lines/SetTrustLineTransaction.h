@@ -60,7 +60,7 @@ private:
 
     void sendMessageToRemoteNode();
 
-    TransactionResult::Shared waitingForResponseState();
+    TransactionResult::SharedConst waitingForResponseState();
 
     void setOutgoingTrustAmount();
 
@@ -77,7 +77,7 @@ private:
     TransactionResult::SharedConst unexpectedErrorResult();
 
 private:
-    const uint64_t kConnectionTimeout = 2000;
+    const MicrosecondsTimestamp kConnectionTimeout = 2000;
     const uint16_t kMaxRequestsCount = 5;
 
     SetTrustLineCommand::Shared mCommand;

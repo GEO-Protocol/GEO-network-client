@@ -70,7 +70,7 @@ void RejectTrustLineTransaction::deserializeFromBytes(
     );
     //-----------------------------------------------------
     mMessage = RejectTrustLineMessage::Shared(
-        new AcceptTrustLineMessage(
+        new RejectTrustLineMessage(
             messageBufferShared
         )
     );

@@ -1,10 +1,11 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINE_H
 #define GEO_NETWORK_CLIENT_TRUSTLINE_H
 
+#include "TrustLineUUID.h"
 
 #include "../common/Types.h"
-#include "TrustLineUUID.h"
 #include "../common/NodeUUID.h"
+#include "../common/multiprecision/MultiprecisionUtils.h"
 
 #include "../common/exceptions/RuntimeError.h"
 #include "../common/exceptions/MemoryError.h"

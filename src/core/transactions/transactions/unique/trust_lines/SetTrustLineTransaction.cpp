@@ -220,7 +220,7 @@ TransactionResult::SharedConst SetTrustLineTransaction::waitingForResponseState(
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setTransactionState(TransactionState::SharedConst(transactionState));
-    return TransactionResult::Shared(transactionResult);
+    return TransactionResult::SharedConst(transactionResult);
 }
 
 void SetTrustLineTransaction::setOutgoingTrustAmount() {

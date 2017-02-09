@@ -16,7 +16,6 @@ class TransactionState {
 public:
     typedef shared_ptr<TransactionState> Shared;
     typedef shared_ptr<const TransactionState> SharedConst;
-    typedef uint64_t AwakeTimestamp;
 
 public:
     TransactionState(

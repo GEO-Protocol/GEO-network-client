@@ -7,8 +7,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     CreditUsageCommand::Shared command,
     TrustLinesManager *trustLines) :
 
-    BaseTransaction(
-        BaseTransaction::CoordinatorPaymentTransaction, currentNodeUUID),
+    BaseTransaction(BaseTransaction::CoordinatorPaymentTransaction, currentNodeUUID),
     mTrustLines(trustLines),
     mCommand(command) {}
 
@@ -22,38 +21,35 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLines) :
 
-    BaseTransaction(
-        BaseTransaction::CoordinatorPaymentTransaction),
+    BaseTransaction(BaseTransaction::CoordinatorPaymentTransaction),
     mTrustLines(trustLines) {
 
     throw ValueError("Not implemented");
 }
 
-TransactionResult::Shared CoordinatorPaymentTransaction::run() {
+pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() const  {
+
+    throw ValueError("Not implemented");
+}
+
+void CoordinatorPaymentTransaction::deserializeFromBytes(
+    BytesShared buffer) {
+
+    throw ValueError("Not implemented");
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::run() {
 
 
 
     if (mStep == 1) {
-        // Context-exchange stage
 
-
-
-
-        cout << "started!";
     }
 
     return resultOK();
 }
 
-TransactionResult::Shared CoordinatorPaymentTransaction::resultOK() const {
-    return transactionResultFromCommand(
-        mCommand->resultOk());
-}
+TransactionResult::SharedConst CoordinatorPaymentTransaction::resultOK() const {
 
-pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() {
-    throw ValueError("Not implemented");
-}
-
-void CoordinatorPaymentTransaction::deserializeFromBytes(BytesShared buffer) {
     throw ValueError("Not implemented");
 }

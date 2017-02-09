@@ -215,7 +215,7 @@ void OpenTrustLineTransaction::sendMessageToRemoteNode() {
     );
 }
 
-TransactionResult::Shared OpenTrustLineTransaction::waitingForResponseState() {
+TransactionResult::SharedConst OpenTrustLineTransaction::waitingForResponseState() {
 
     TransactionState *transactionState = new TransactionState(
         kConnectionTimeout,
@@ -226,7 +226,7 @@ TransactionResult::Shared OpenTrustLineTransaction::waitingForResponseState() {
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setTransactionState(TransactionState::SharedConst(transactionState));
-    return TransactionResult::Shared(transactionResult);
+    return TransactionResult::SharedConst(transactionResult);
 }
 
 void OpenTrustLineTransaction::openTrustLine() {
