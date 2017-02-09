@@ -7,15 +7,22 @@
 
 using namespace std;
 
+// DEPRECATED
 inline const Timestamp epoch() {
 
-    static const Timestamp Epoch(boost::gregorian::date(1970, boost::gregorian::Jan, 1));
+    static const Timestamp Epoch(
+        boost::gregorian::date(
+            1970, boost::gregorian::Jan, 1));
+
     return Epoch;
 }
 
 inline const Timestamp geoEpoch() {
 
-    static boost::posix_time::ptime GEOEpoch(boost::gregorian::date(2015, boost::gregorian::Feb, 2));
+    static boost::posix_time::ptime GEOEpoch(
+        boost::gregorian::date(
+            2015, boost::gregorian::Feb, 2));
+
     return GEOEpoch;
 }
 
