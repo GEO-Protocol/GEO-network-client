@@ -59,15 +59,15 @@ void TransactionsManager::processCommand(
             static_pointer_cast<SetTrustLineCommand>(
                 command));
 
-    /*} else if (command->identifier() == CreditUsageCommand::identifier()) {
+    } else if (command->identifier() == CreditUsageCommand::identifier()) {
         launchCreditUsageTransaction(
             static_pointer_cast<CreditUsageCommand>(
-                command));*/
+                command));
 
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
-                "enexpected command identifier.");
+                "unexpected command received.");
     }
 }
 
@@ -215,7 +215,7 @@ void TransactionsManager::loadTransactions() {
                 }
             }
 
-            subscribeForOugtoingMessages(
+            subscribeForOutgoingMessages(
                 transaction->outgoingMessageIsReadySignal);
 
             mScheduler->scheduleTransaction(
@@ -256,7 +256,7 @@ void TransactionsManager::launchOpenTrustLineTransaction(
             mScheduler.get(),
             mTrustLines);
 
-        subscribeForOugtoingMessages(
+        subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
 
         mScheduler->scheduleTransaction(
@@ -283,7 +283,7 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
             mScheduler.get(),
             mTrustLines);
 
-        subscribeForOugtoingMessages(
+        subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
 
         mScheduler->scheduleTransaction(
@@ -310,7 +310,7 @@ void TransactionsManager::launchCloseTrustLineTransaction(
             mScheduler.get(),
             mTrustLines);
 
-        subscribeForOugtoingMessages(
+        subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
 
         mScheduler->scheduleTransaction(
@@ -337,7 +337,7 @@ void TransactionsManager::launchRejectTrustLineTransaction(
             mScheduler.get(),
             mTrustLines);
 
-        subscribeForOugtoingMessages(
+        subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
 
         mScheduler->scheduleTransaction(
@@ -364,7 +364,7 @@ void TransactionsManager::launchSetTrustLineTransaction(
             mScheduler.get(),
             mTrustLines);
 
-        subscribeForOugtoingMessages(
+        subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
 
         mScheduler->scheduleTransaction(
@@ -387,7 +387,7 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
             mScheduler.get(),
             mTrustLines);
 
-        subscribeForOugtoingMessages(
+        subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
 
         mScheduler->scheduleTransaction(
@@ -407,13 +407,14 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
 void TransactionsManager::launchCreditUsageTransaction(
     CreditUsageCommand::Shared command) {
 
-    /*try {
+    try {
         auto transaction = make_shared<CoordinatorPaymentTransaction>(
             mNodeUUID,
             command,
-            mTrustLines);
+            mTrustLines,
+            mLog);
 
-        subscribeForOugtoingMessages(
+        subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
 
         mScheduler->scheduleTransaction(
@@ -421,10 +422,9 @@ void TransactionsManager::launchCreditUsageTransaction(
 
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchUpdateTrustLineTransaction: "
+            "TransactionsManager::launchCreditUsageTransaction: "
                 "can't allocate memory for transaction instance.");
-    }*/
-
+    }
 }
 
 void TransactionsManager::onTransactionOutgoingMessageReady(
@@ -436,7 +436,7 @@ void TransactionsManager::onTransactionOutgoingMessageReady(
         contractorUUID);
 }
 
-void TransactionsManager::subscribeForOugtoingMessages(
+void TransactionsManager::subscribeForOutgoingMessages(
     BaseTransaction::SendMessageSignal &signal) {
 
     signal.connect(

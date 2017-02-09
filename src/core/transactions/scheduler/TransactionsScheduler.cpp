@@ -157,7 +157,7 @@ void TransactionsScheduler::launchTransaction(
     } catch (exception &e) {
         // todo: add production log here
 
-        auto errors = mLog->error("TransactionsScheduler");
+        auto errors = mLog->error("TransactionsScheduler::launchTransaction");
         errors << "Transaction interrupted with exception: "
                << "transaction type: " << transaction->transactionType()
                << e.what();
@@ -225,10 +225,21 @@ void TransactionsScheduler::handleTransactionResult(
                                  "Transaction reference must be store in memory");
         }
 
-        // todo: (DM) use asyncWaitUntil()
-        Duration minimalDelay = nextDelayedTransaction().second;
-        if (minimalDelay > posix::milliseconds(0)) {
-            rescheduleNextInterruption(minimalDelay);
+        for (size_t iteration=0; iteration<64; ++iteration){
+            auto transactionAndTimestamp = transactionWithMinimalAwakeningTimestamp();
+
+            if (transactionAndTimestamp.second > now()) {
+                asyncWaitUntil(transactionAndTimestamp.second);
+
+            } else {
+                // Next transaction is ready to be executed.
+                // There is no reason to run one more async calls cycle:
+                // transaction may be launched directly;
+                //
+                // WARN:
+                // Iterations count is limited to prevent ignoring async loop and network messages:
+                launchTransaction(transactionAndTimestamp.first);
+            }
         }
 
     } else if (result->state() == nullptr && result->commandResult() != nullptr) {
@@ -368,7 +379,9 @@ void TransactionsScheduler::rescheduleNextInterruption(
 void TransactionsScheduler::handleAwakening(
     const boost::system::error_code &error) {
 
-    if (error) {
+    if (error &&
+        error != as::error::operation_aborted) {
+
         // todo: add production log here
 
 #ifdef DEBUG
@@ -379,7 +392,7 @@ void TransactionsScheduler::handleAwakening(
 
         throw RuntimeError(
             string("TransactionsScheduler::handleAwakening: "
-                "error occured: ") + error.message());
+                "error occurred: ") + error.message());
     }
 
     try {
@@ -397,6 +410,12 @@ bool TransactionsScheduler::isTransactionInScheduler(
     BaseTransaction::Shared transaction) {
 
     return mTransactions->count(transaction) != 0;
+}
+
+MicrosecondsTimestamp TransactionsScheduler::now() const {
+
+    return microsecondsTimestamp(
+        boost::posix_time::microsec_clock::universal_time());
 }
 
 const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(

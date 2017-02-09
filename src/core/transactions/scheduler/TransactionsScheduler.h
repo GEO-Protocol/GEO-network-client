@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
 
 #include "../../common/Types.h"
+#include "../../common/time/TimeUtils.h"
 
 #include "../transactions/BaseTransaction.h"
 #include "../transactions/result/TransactionResult.h"
@@ -91,6 +92,8 @@ private:
 
     bool isTransactionInScheduler(
         BaseTransaction::Shared transaction);
+
+    MicrosecondsTimestamp now() const;
 
 private:
     const uint64_t kPostponeMillisecondsTime = 500;

@@ -103,7 +103,7 @@ protected:
         Message::Shared message,
         const NodeUUID &contractorUUID);
 
-    void subscribeForOugtoingMessages(
+    void subscribeForOutgoingMessages(
         BaseTransaction::SendMessageSignal &signal);
 
 private:
