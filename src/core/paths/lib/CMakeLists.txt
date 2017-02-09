@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.6)
+
+set(SOURCE_FILES
+        PathsCollection.h
+        PathsCollection.cpp)
+
+add_library(slib_paths ${SOURCE_FILES})
+target_link_libraries(slib_paths
+        memory
+        common
+        exceptions)
