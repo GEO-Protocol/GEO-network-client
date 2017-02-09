@@ -98,7 +98,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
 
         case 3: {
             if (checkDebt()) {
-                suspendTrustLineToContractor();
+                suspendTrustLineDirectionToContractor();
 
             } else {
                 closeTrustLine();
@@ -190,7 +190,7 @@ bool CloseTrustLineTransaction::checkDebt() {
     return mTrustLinesManager->balanceRange(mCommand->contractorUUID()) == BalanceRange::Positive;
 }
 
-void CloseTrustLineTransaction::suspendTrustLineToContractor() {
+void CloseTrustLineTransaction::suspendTrustLineDirectionToContractor() {
 
     mTrustLinesManager->suspendDirection(
         mCommand->contractorUUID(),

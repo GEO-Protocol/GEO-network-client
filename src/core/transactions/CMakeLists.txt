@@ -29,8 +29,6 @@ set(SOURCE_FILES
         transactions/unique/trust_lines/SetTrustLineTransaction.h
         transactions/unique/trust_lines/UpdateTrustLineTransaction.cpp
         transactions/unique/trust_lines/UpdateTrustLineTransaction.h
-        transactions/unique/routing_tables/SendRoutingTablesTransaction.cpp
-        transactions/unique/routing_tables/SendRoutingTablesTransaction.h
         transactions/regular/payments/CoordinatorPaymentTransaction.cpp
         transactions/regular/payments/CoordinatorPaymentTransaction.h
 

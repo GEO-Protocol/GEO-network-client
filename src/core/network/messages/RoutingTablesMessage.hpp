@@ -83,7 +83,7 @@ protected:
         BytesShared buffer) {
 
         Message::deserializeFromBytes(buffer);
-        size_t bytesBufferOffset = Message::inheritED();
+        size_t bytesBufferOffset = Message::kOffsetToInheritedBytes();
         //----------------------------------------------------
         memcpy(
             mContractorUUID.data,
@@ -99,9 +99,9 @@ protected:
         );
     }
 
-    static const size_t inheritED() {
+    static const size_t kOffsetToInheritedBytes() {
 
-        static const size_t offset = Message::inheritED() + NodeUUID::kBytesSize + TrustLineUUID::kBytesSize;
+        static const size_t offset = Message::kOffsetToInheritedBytes() + NodeUUID::kBytesSize + TrustLineUUID::kBytesSize;
         return offset;
     }
 

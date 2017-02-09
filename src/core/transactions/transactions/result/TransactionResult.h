@@ -5,6 +5,8 @@
 #include "../../../network/messages/result/MessageResult.h"
 #include "state/TransactionState.h"
 
+#include "../../../common/exceptions/ConflictError.h"
+
 #include <memory>
 
 using namespace std;
@@ -17,7 +19,8 @@ public:
 public:
     enum ResultType {
         CommandResultType = 1,
-        MessageResultType = 2
+        MessageResultType = 2,
+        TransactionStateType = 3
     };
 
 public:
@@ -44,7 +47,7 @@ public:
 private:
     CommandResult::SharedConst mCommandResult;
     MessageResult::SharedConst mMessageResult;
-    TransactionState::Shared mTransactionState;
+    TransactionState::SharedConst mTransactionState;
 };
 
 

@@ -78,6 +78,9 @@ protected:
     TransactionResult::SharedConst transactionResultFromCommand(
         CommandResult::SharedConst result);
 
+    TransactionResult::SharedConst transactionResultFromMessage(
+        MessageResult::SharedConst result);
+
 protected:
     TransactionType mType;
     TransactionUUID mTransactionUUID;

@@ -68,7 +68,7 @@ pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const {
         &transactionType,
         sizeof(SerializedTransactionType)
     );
-    dataBytesOffset += sizeof(SerializedTransactionType)
+    dataBytesOffset += sizeof(SerializedTransactionType);
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
@@ -134,5 +134,13 @@ TransactionResult::SharedConst BaseTransaction::transactionResultFromCommand(
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setCommandResult(result);
-    return TransactionResult::Shared(transactionResult);
+    return TransactionResult::SharedConst(transactionResult);
+}
+
+TransactionResult::SharedConst BaseTransaction::transactionResultFromMessage(
+    MessageResult::SharedConst messageResult) {
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setMessageResult(messageResult);
+    return TransactionResult::SharedConst(transactionResult);
 }

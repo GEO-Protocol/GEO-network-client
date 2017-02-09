@@ -65,7 +65,7 @@ void CloseTrustLineCommand::deserializeFromBytes(
     BytesShared buffer) {
 
     BaseUserCommand::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = BaseUserCommand::inheritED();
+    size_t bytesBufferOffset = BaseUserCommand::kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(
         mContractorUUID.data,
@@ -95,7 +95,7 @@ void CloseTrustLineCommand::parse(
 
 const size_t CloseTrustLineCommand::kRequestedBufferSize() {
 
-    static const size_t size = inheritED() + NodeUUID::kBytesSize;
+    static const size_t size = kOffsetToInheritedBytes() + NodeUUID::kBytesSize;
     return size;
 }
 

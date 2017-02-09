@@ -39,9 +39,6 @@ public:
 
     MessageResult::SharedConst resultTransactionConflict() const;
 
-    MessageResult::SharedConst customCodeResult(
-        uint16_t code) const;
-
 private:
     void deserializeFromBytes(
         BytesShared buffer);

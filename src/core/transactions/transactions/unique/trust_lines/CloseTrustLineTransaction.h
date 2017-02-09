@@ -58,7 +58,7 @@ private:
 
     bool checkDebt();
 
-    void suspendTrustLineToContractor();
+    void suspendTrustLineDirectionToContractor();
 
     void closeTrustLine();
 
