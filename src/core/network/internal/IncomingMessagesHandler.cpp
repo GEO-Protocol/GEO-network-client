@@ -29,29 +29,31 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
     switch(messageIdentifier) {
 
         case Message::MessageTypeID::OpenTrustLineMessageType: {
-            Message *message = new AcceptTrustLineMessage(messagePart);
             return make_pair(
                 true,
-                Message::Shared(message)
-            );
+                static_pointer_cast<Message>(
+                    make_shared<AcceptTrustLineMessage>(messagePart)));
         }
 
         case Message::MessageTypeID::CloseTrustLineMessageType: {
-            Message *message = new RejectTrustLineMessage(messagePart);
             return make_pair(
                 true,
-                Message::Shared(message)
-            );
-
+                static_pointer_cast<Message>(
+                    make_shared<RejectTrustLineMessage>(messagePart)));
         }
 
         case Message::MessageTypeID::SetTrustLineMessageType: {
-            Message *message = new UpdateTrustLineMessage(messagePart);
             return make_pair(
                 true,
-                Message::Shared(message)
-            );
+                static_pointer_cast<Message>(
+                    make_shared<UpdateTrustLineMessage>(messagePart)));
+        }
 
+        case Message::MessageTypeID::ReceiverInitPaymentMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ReceiverInitPaymentMessage>(messagePart)));
         }
 
         default: {

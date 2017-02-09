@@ -13,19 +13,15 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mLog(log){
 }
 
-/*!
- * Deserialization constructor.
- * Sets "mCommand", "mNodeUUID" and other transaction specific fields from the bytes "buffer".
- *
- * "trustLines" is pointer and can't be deserialized.
- */
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BytesShared buffer,
-    TrustLinesManager *trustLines) :
+    TrustLinesManager *trustLines,
+    Logger *log) :
 
     BaseTransaction(
         BaseTransaction::CoordinatorPaymentTransaction),
-    mTrustLines(trustLines) {
+    mTrustLines(trustLines),
+    mLog(log){
 
     throw ValueError("Not implemented");
 }
@@ -52,6 +48,8 @@ TransactionResult::Shared CoordinatorPaymentTransaction::run() {
         }
 
         case 2: {
+            // todo: (hsc) retry if no response (but no more than 5 times)
+
 #ifdef TRANSACTIONS_LOG
             {
                 auto info = mLog->info("CoordinatorPaymentTransaction");
@@ -76,7 +74,7 @@ TransactionResult::Shared CoordinatorPaymentTransaction::initPaymentOperation() 
 
     mStep += 1;
     return make_shared<TransactionResult>(
-        TransactionState::awakeAfterMilliseconds(100));
+        TransactionState::awakeAfterMilliseconds(3000));
 }
 
 TransactionResult::Shared CoordinatorPaymentTransaction::resultOK() const {

@@ -1,6 +1,13 @@
 #include "TransactionState.h"
 
 /*!
+ * Returns TransactionState that simly closes the transaction.
+ */
+TransactionState::Shared TransactionState::exit() {
+    return make_shared<TransactionState>(0);
+}
+
+/*!
  * Returns TransactionState with awakening timestamp set to current UTC;
  */
 TransactionState::Shared TransactionState::awakeAsFastAsPossible() {
@@ -65,7 +72,9 @@ const bool TransactionState::needSerialize() const {
     return mFlushToPermanentStorage;
 }
 
-
+const bool TransactionState::mustBeRescheduled() const {
+    return (mAwakeningTimestamp != 0) || (acceptedMessagesTypes().size() > 0);
+}
 
 datetime::ptime &TransactionState::GEOEpoch() {
     static boost::posix_time::ptime GEOEpoch(

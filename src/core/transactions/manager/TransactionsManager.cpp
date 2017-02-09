@@ -60,7 +60,7 @@ void TransactionsManager::processCommand(
                 command));
 
     } else if (command->identifier() == CreditUsageCommand::identifier()) {
-        launchCreditUsageTransaction(
+        launchCoordinatorPaymentTransaction(
             static_pointer_cast<CreditUsageCommand>(
                 command));
 
@@ -85,6 +85,10 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::MessageTypeID::UpdateTrustLineMessageType) {
         launchUpdateTrustLineTransaction(
             static_pointer_cast<UpdateTrustLineMessage>(message));
+
+    } else if (message->typeID() == Message::MessageTypeID::ReceiverInitPaymentMessageType) {
+        launchReceiverPaymentTransaction(
+            static_pointer_cast<ReceiverInitPaymentMessage>(message));
 
     } else {
         // todo: (hsc) add comment why is this so
@@ -404,7 +408,7 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchCreditUsageTransaction(
+void TransactionsManager::launchCoordinatorPaymentTransaction(
     CreditUsageCommand::Shared command) {
 
     try {
@@ -422,7 +426,33 @@ void TransactionsManager::launchCreditUsageTransaction(
 
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchCreditUsageTransaction: "
+            "TransactionsManager::launchCoordinatorPaymentTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchReceiverPaymentTransaction(
+    ReceiverInitPaymentMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<ReceiverPaymentTransaction>(
+            message,
+            mTrustLines,
+            mLog);
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchReceiverPaymentTransaction: "
                 "can't allocate memory for transaction instance.");
     }
 }

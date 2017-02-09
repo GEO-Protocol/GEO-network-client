@@ -1,5 +1,6 @@
-#ifndef GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H
-#define GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H
+#ifndef GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
+#define GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
+
 
 #include "../../BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
@@ -9,21 +10,20 @@
 #include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentMessage.h"
 
 
-class CoordinatorPaymentTransaction:
+class ReceiverPaymentTransaction:
     public BaseTransaction {
 
 public:
-    typedef shared_ptr<CoordinatorPaymentTransaction> Shared;
-    typedef shared_ptr<const CoordinatorPaymentTransaction> ConstShared;
+    typedef shared_ptr<ReceiverPaymentTransaction> Shared;
+    typedef shared_ptr<const ReceiverPaymentTransaction> ConstShared;
 
 public:
-    CoordinatorPaymentTransaction(
-        NodeUUID &currentNodeUUID,
-        CreditUsageCommand::Shared command,
+    ReceiverPaymentTransaction(
+        ReceiverInitPaymentMessage::Shared message,
         TrustLinesManager *trustLines,
         Logger *log);
 
-    CoordinatorPaymentTransaction(
+    ReceiverPaymentTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLines,
         Logger *log);
@@ -33,19 +33,14 @@ public:
     pair<BytesShared, size_t> serializeToBytes();
 
 private:
-    TransactionResult::Shared initPaymentOperation();
-
-
-    TransactionResult::Shared resultOK() const;
-
     void deserializeFromBytes(
         BytesShared buffer);
 
 protected:
-    CreditUsageCommand::Shared mCommand;
+    ReceiverInitPaymentMessage::Shared mMessage;
     TrustLinesManager *mTrustLines;
     Logger *mLog;
 };
 
 
-#endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H
+#endif //GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H

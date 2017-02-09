@@ -20,12 +20,13 @@ public:
     typedef uint64_t AwakeTimestamp;
 
 public:
-    // Readble shortcats for states creation.
+    // Readable shortcats for states creation.
 
-    // todo: think to move this into seprate file,
+    // todo: think to move this into separate file,
     // todo: that would be available for the rest source files.
     static datetime::ptime& GEOEpoch();
 
+    static TransactionState::Shared exit();
     static TransactionState::Shared awakeAsFastAsPossible();
     static TransactionState::Shared awakeAfterMilliseconds(
         uint16_t milliseconds);
@@ -52,6 +53,8 @@ public:
     const vector<Message::MessageTypeID>& acceptedMessagesTypes() const;
 
     const bool needSerialize() const;
+
+    const bool mustBeRescheduled() const;
 
 private:
     static AwakeTimestamp timestampFromTheGEOEpoch(

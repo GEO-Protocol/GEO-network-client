@@ -13,6 +13,7 @@
 #include "../messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 #include "../messages/incoming/trust_lines/RejectTrustLineMessage.h"
 #include "../messages/incoming/trust_lines/UpdateTrustLineMessage.h"
+#include "../messages/outgoing/payments/ReceiverInitPaymentMessage.h"
 #include "../messages/response/Response.h"
 
 #include "../../common/exceptions/ValueError.h"

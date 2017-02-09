@@ -7,6 +7,12 @@ ReceiverInitPaymentMessage::ReceiverInitPaymentMessage(
     mTotalPaymentAmount(totalPaymentAmount){
 }
 
+ReceiverInitPaymentMessage::ReceiverInitPaymentMessage(
+    BytesShared buffer) {
+
+    deserializeFromBytes(buffer);
+}
+
 const Message::MessageType ReceiverInitPaymentMessage::typeID() const {
     return Message::ReceiverInitPaymentMessageType;
 }

@@ -37,7 +37,7 @@ set(SOURCE_FILES
         transactions/result/state/TransactionState.cpp
         transactions/result/state/TransactionState.h
         transactions/result/TransactionResult.cpp
-        transactions/result/TransactionResult.h)
+        transactions/result/TransactionResult.h transactions/regular/payments/ReceiverPaymentTransaction.cpp transactions/regular/payments/ReceiverPaymentTransaction.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions

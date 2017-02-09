@@ -40,6 +40,7 @@ public:
 
         // Payment operations
         CoordinatorPaymentTransaction,
+        ReceiverPaymentTransaction,
     };
 
     mutable SendMessageSignal outgoingMessageIsReadySignal;

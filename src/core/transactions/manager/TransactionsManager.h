@@ -34,6 +34,7 @@
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
 #include "../transactions/unique/routing_tables/SendRoutingTablesTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
+#include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -94,8 +95,11 @@ protected:
 
 protected:
     // Payment transactions
-    void launchCreditUsageTransaction(
+    void launchCoordinatorPaymentTransaction(
         CreditUsageCommand::Shared command);
+
+    void launchReceiverPaymentTransaction(
+        ReceiverInitPaymentMessage::Shared message);
 
 protected:
     // Slots
