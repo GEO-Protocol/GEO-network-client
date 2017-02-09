@@ -59,7 +59,7 @@ void Response::deserializeFromBytes(
     BytesShared buffer) {
 
     TrustLinesMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TrustLinesMessage::inheritED();
+    size_t bytesBufferOffset = TrustLinesMessage::kOffsetToInheritedBytes();
     //------------------------------
     uint16_t *code = new (buffer.get() + bytesBufferOffset) uint16_t;
     mCode = *code;

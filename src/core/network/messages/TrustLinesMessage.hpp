@@ -76,7 +76,7 @@ protected:
         BytesShared buffer){
 
         Message::deserializeFromBytes(buffer);
-        size_t bytesBufferOffset = Message::inheritED();
+        size_t bytesBufferOffset = Message::kOffsetToInheritedBytes();
         //----------------------------------------------------
         memcpy(
             mTransactionUUID.data,
@@ -87,7 +87,7 @@ protected:
 
     static const size_t inheritED() {
 
-        static const size_t offset = Message::inheritED() + TransactionUUID::kBytesSize;
+        static const size_t offset = Message::kOffsetToInheritedBytes() + TransactionUUID::kBytesSize;
         return offset;
     }
 

@@ -37,7 +37,10 @@ public:
         FirstLevelRoutingTableIncomingMessageType = 8,
         SecondLevelRoutingTableOutgoingMessageType = 9,
         SecondLevelRoutingTableIncomingMessageType = 10,
-        ResponseMessageType = 11
+
+        ReceiverInitPaymentMessageType,
+
+        ResponseMessageType = 1000
     };
     typedef uint16_t MessageType;
 
@@ -49,11 +52,13 @@ public:
         return mSenderUUID;
     }
 
+//    todo: (DM) move to another message
     virtual const TransactionUUID &transactionUUID() const = 0;
 
-    virtual const TrustLineUUID &trustLineUUID() const = 0;
+//    todo: (DM) move to another message
+//    virtual const TrustLineUUID &trustLineUUID() const = 0;
 
-    virtual pair<BytesShared, size_t> serializeToBytes(){
+    virtual pair<BytesShared, size_t> serializeToBytes() const {
 
         size_t bytesCount = sizeof(MessageType) +
             NodeUUID::kBytesSize;
@@ -103,7 +108,7 @@ protected:
         );
     }
 
-    static const size_t inheritED(){
+    static const size_t kOffsetToInheritedBytes(){
 
         static const size_t offset = sizeof(MessageType) + NodeUUID::kBytesSize;
         return offset;
