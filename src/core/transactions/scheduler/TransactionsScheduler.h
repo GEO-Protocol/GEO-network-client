@@ -75,9 +75,17 @@ private:
         BaseTransaction::Shared transaction,
         TransactionState::SharedConst state);
 
-    pair<BaseTransaction::Shared, MicrosecondsTimestamp> transactionWithMinimalAwakeningTimestamp() const;
+    void forgetTransaction(
+        BaseTransaction::Shared transaction);
+
+    void serializeTransaction(
+        BaseTransaction::Shared transaction);
+
+    void processNextTransactions();
 
     void adjustAwakeningToNextTransaction();
+
+    pair<BaseTransaction::Shared, MicrosecondsTimestamp> transactionWithMinimalAwakeningTimestamp() const;
 
     void asyncWaitUntil(
         MicrosecondsTimestamp nextAwakeningTimestamp);
@@ -86,12 +94,6 @@ private:
         const boost::system::error_code &error);
 
     bool isTransactionScheduled(
-        BaseTransaction::Shared transaction);
-
-    void processNextTransactions();
-    void serializeTransaction(
-        BaseTransaction::Shared transaction);
-    void forgetTransaction(
         BaseTransaction::Shared transaction);
 
 public:

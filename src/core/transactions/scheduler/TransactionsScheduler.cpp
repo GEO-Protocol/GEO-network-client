@@ -47,7 +47,9 @@ void TransactionsScheduler::scheduleTransaction(
     mTransactions->insert(
         make_pair(
             transaction,
-            TransactionState::awakeAsFastAsPossible()));
+            TransactionState::awakeAsFastAsPossible()
+        )
+    );
 
     adjustAwakeningToNextTransaction();
 }
@@ -76,12 +78,7 @@ void TransactionsScheduler::killTransaction(
 
     for (const auto &transactionAndState : *mTransactions) {
         if (transactionAndState.first->UUID() == transactionUUID) {
-            mTransactions->erase(transactionAndState.first);
-            mStorage->erase(
-                storage::uuids::uuid(
-                    transactionAndState.first.get()->UUID()
-                )
-            );
+           forgetTransaction(transactionAndState.first);
         }
     }
 }
@@ -97,7 +94,8 @@ void TransactionsScheduler::launchTransaction(
         auto result = transaction->run();
         handleTransactionResult(
             transaction,
-            result);
+            result
+        );
 
     } catch (exception &e) {
         // todo: add production log here. (this one is unusable)
@@ -117,19 +115,22 @@ void TransactionsScheduler::handleTransactionResult(
         case TransactionResult::ResultType::CommandResultType: {
             processCommandResult(
                 transaction,
-                result->commandResult());
+                result->commandResult()
+            );
         }
 
         case TransactionResult::ResultType::MessageResultType: {
             processMessageResult(
                 transaction,
-                result->messageResult());
+                result->messageResult()
+            );
         }
 
         case TransactionResult::ResultType::TransactionStateType: {
             processTransactionState(
                 transaction,
-                result->state());
+                result->state()
+            );
         }
     }
 
@@ -171,10 +172,74 @@ void TransactionsScheduler::processTransactionState(
     // Update state
     mTransactions->insert(
         make_pair(
-            transaction, state));
+            transaction,
+            state
+        )
+    );
 
-    if (state->needSerialize())
+    if (state->needSerialize()) {
         serializeTransaction(transaction);
+    }
+}
+
+void TransactionsScheduler::forgetTransaction(
+    BaseTransaction::Shared transaction) {
+
+    mTransactions->erase(transaction);
+
+    try {
+        mStorage->erase(
+            storage::uuids::uuid(transaction->UUID())
+        );
+
+    } catch (IndexError &) {}
+}
+
+void TransactionsScheduler::serializeTransaction(
+    BaseTransaction::Shared transaction) {
+
+    auto transactionBytesAndCount = transaction->serializeToBytes();
+    if (!mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
+        mStorage->write(
+            storage::uuids::uuid(transaction->UUID()),
+            transactionBytesAndCount.first.get(),
+            transactionBytesAndCount.second
+        );
+
+    } else {
+        mStorage->rewrite(
+            storage::uuids::uuid(transaction->UUID()),
+            transactionBytesAndCount.first.get(),
+            transactionBytesAndCount.second
+        );
+    }
+}
+
+void TransactionsScheduler::processNextTransactions(){
+
+    for (size_t iteration = 0; iteration < 64; ++iteration){
+        try {
+            auto transactionAndTimestamp = transactionWithMinimalAwakeningTimestamp();
+
+            if (transactionAndTimestamp.second >= microsecondsTimestamp(now())) {
+                asyncWaitUntil(transactionAndTimestamp.second);
+
+            } else {
+                // Next transaction is ready to be executed.
+                // There is no reason to run one more async calls cycle:
+                // transaction may be launched directly;
+                //
+                // WARN:
+                // Iterations count is limited to prevent ignoring async loop (and network messages),
+                // and stack overflowing;
+                launchTransaction(transactionAndTimestamp.first);
+            }
+
+        } catch (NotFoundError) {
+            // No delayed transaction is present.
+            break;
+        }
+    }
 }
 
 void TransactionsScheduler::adjustAwakeningToNextTransaction() {
@@ -221,12 +286,14 @@ void TransactionsScheduler::asyncWaitUntil(
 
     mProcessingTimer->cancel();
     mProcessingTimer->expires_at(
-        posixTimestamp(nextAwakeningTimestamp));
+        posixTimestamp(nextAwakeningTimestamp)
+    );
     mProcessingTimer->async_wait(
         boost::bind(
             &TransactionsScheduler::handleAwakening,
             this,
-            as::placeholders::error));
+            as::placeholders::error)
+    );
 }
 
 void TransactionsScheduler::handleAwakening(
@@ -234,8 +301,7 @@ void TransactionsScheduler::handleAwakening(
 
     static auto errorsCount = 0;
 
-    if (error &&
-        error != as::error::operation_aborted) {
+    if (error && error != as::error::operation_aborted) {
 
         auto errors = mLog->error("TransactionsScheduler::handleAwakening");
         if (errorsCount < 10) {
@@ -247,7 +313,10 @@ void TransactionsScheduler::handleAwakening(
             // (for cases when OS runs out of memory, or similar).
             asyncWaitUntil(
                 microsecondsTimestamp(
-                    now() + boost::posix_time::seconds(errorsCount)));
+                    now() +
+                    boost::posix_time::seconds(errorsCount)
+                )
+            );
 
         } else {
             errors << "Some error repeatedly occurs on planned awakening "
@@ -273,71 +342,14 @@ void TransactionsScheduler::handleAwakening(
     }
 }
 
-bool TransactionsScheduler::isTransactionScheduled(
-    BaseTransaction::Shared transaction) {
-
-    return mTransactions->count(transaction) != 0;
-}
-
 const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
     TransactionsScheduler *scheduler) {
 
     return scheduler->mTransactions.get();
 }
 
-void TransactionsScheduler::processNextTransactions(){
-
-    for (size_t iteration=0; iteration<64; ++iteration){
-        try {
-            auto transactionAndTimestamp = transactionWithMinimalAwakeningTimestamp();
-
-            if (transactionAndTimestamp.second >= microsecondsTimestamp(now())) {
-                asyncWaitUntil(transactionAndTimestamp.second);
-
-            } else {
-                // Next transaction is ready to be executed.
-                // There is no reason to run one more async calls cycle:
-                // transaction may be launched directly;
-                //
-                // WARN:
-                // Iterations count is limited to prevent ignoring async loop (and network messages),
-                // and stack overflowing;
-                launchTransaction(transactionAndTimestamp.first);
-            }
-
-        } catch (NotFoundError) {
-            // No delayed transaction is present.
-            break;
-        }
-    }
-}
-
-void TransactionsScheduler::forgetTransaction(
+bool TransactionsScheduler::isTransactionScheduled(
     BaseTransaction::Shared transaction) {
 
-    mTransactions->erase(transaction);
-
-    try {
-        mStorage->erase(
-            storage::uuids::uuid(transaction->UUID()));
-
-    } catch (IndexError &) {}
-}
-
-void TransactionsScheduler::serializeTransaction(
-    BaseTransaction::Shared transaction) {
-
-    auto transactionBytesAndCount = transaction->serializeToBytes();
-    if (!mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
-        mStorage->write(
-            storage::uuids::uuid(transaction->UUID()),
-            transactionBytesAndCount.first.get(),
-            transactionBytesAndCount.second);
-
-    } else {
-        mStorage->rewrite(
-            storage::uuids::uuid(transaction->UUID()),
-            transactionBytesAndCount.first.get(),
-            transactionBytesAndCount.second);
-    }
+    return mTransactions->count(transaction) != 0;
 }
