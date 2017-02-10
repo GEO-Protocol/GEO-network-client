@@ -8,7 +8,7 @@
 
 #include "../../common/NodeUUID.h"
 #include "../../trust_lines/TrustLineUUID.h"
-#include "../../transactions/transactions/base/TransactionUUID.h"
+#include "../../transactions/TransactionUUID.h"
 
 #include <memory>
 #include <utility>
@@ -99,10 +99,9 @@ protected:
         );
     }
 
-    static const size_t inheritED() {
+    static const size_t kOffsetToInheritedBytes() {
 
-        static const size_t offset =
-            Message::kOffsetToInheritedBytes() + NodeUUID::kBytesSize + TrustLineUUID::kBytesSize;
+        static const size_t offset = Message::kOffsetToInheritedBytes() + NodeUUID::kBytesSize + TrustLineUUID::kBytesSize;
         return offset;
     }
 

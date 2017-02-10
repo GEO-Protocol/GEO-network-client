@@ -16,6 +16,7 @@ TrustLine::TrustLine(
             throw ValueError("TrustLine::TrustLine: "
                                  "Balance can't be greater than incoming trust amount.");
         }
+
     } else {
         if (-mBalance > mOutgoingTrustAmount) {
             throw ValueError("TrustLine::TrustLine: "
@@ -196,7 +197,7 @@ const BalanceRange TrustLine::balanceRange() const{
 }
 
 /*!
- * Throws RuntimeError in case of unsucessfull serialization.
+ * Throws RuntimeError in case of unsuccessful serialization.
  */
 vector<byte> TrustLine::serialize() {
     vector<byte> buffer;
@@ -261,17 +262,12 @@ void TrustLine::trustAmountToBytes(
     const TrustLineAmount &amount,
     vector<byte> &buffer) {
 
-    size_t oldSize = buffer.size();
-    export_bits(
-        amount,
-        back_inserter(buffer),
-        8
+    vector<byte> bytes = trustLineAmountToBytes(const_cast<TrustLineAmount&>(amount));
+    buffer.insert(
+      buffer.end(),
+      bytes.begin(),
+      bytes.end()
     );
-
-    size_t newSize = buffer.size();
-    for (size_t i = 0; i < kTrustAmountPartSize - (newSize - oldSize); ++i) {
-        buffer.push_back(0);
-    }
 }
 
 /*!
@@ -281,23 +277,12 @@ void TrustLine::balanceToBytes(
     const TrustLineBalance &balance,
     vector<byte> &buffer) {
 
-    size_t oldSize = buffer.size();
-    export_bits(
-        balance,
-        back_inserter(buffer),
-        8
+    vector<byte> bytes = trustLineBalanceToBytes(const_cast<TrustLineBalance&>(balance));
+    buffer.insert(
+        buffer.end(),
+        bytes.begin(),
+        bytes.end()
     );
-
-    size_t newSize = buffer.size();
-    for (size_t i = 0; i < kBalancePartSize - (newSize - oldSize); ++i) {
-        buffer.push_back(0);
-    }
-
-    if (balance.sign() == -1) {
-        buffer.push_back(1);
-    } else {
-        buffer.push_back(0);
-    }
 }
 
 /*!
@@ -305,45 +290,17 @@ void TrustLine::balanceToBytes(
  *
  * Parses trust line amount from "buffer" into "variable".
  *
- * Throws MemoryError;
  */
 void TrustLine::parseTrustAmount(
     const byte *buffer,
     TrustLineAmount &variable) {
 
-    try {
-        vector<byte> bytesVector(
-            buffer,
-            buffer + kTrustAmountPartSize
-        );
+    vector<byte> bytesVector(
+        buffer,
+        buffer + kTrustAmountPartSize
+    );
 
-        vector<byte> notZeroBytesVector;
-        notZeroBytesVector.reserve(kTrustAmountPartSize);
-        for (auto &item : bytesVector) {
-            if (item != 0) {
-                notZeroBytesVector.push_back(item);
-            }
-        }
-
-        if (notZeroBytesVector.size() > 0) {
-            import_bits(
-                variable,
-                notZeroBytesVector.begin(),
-                notZeroBytesVector.end()
-            );
-
-        } else {
-            import_bits(
-                variable,
-                bytesVector.begin(),
-                bytesVector.end()
-            );
-        }
-
-    } catch (bad_alloc &){
-        throw MemoryError("TrustLine::parseTrustAmount: "
-                              "bad alloc.");
-    }
+    variable = bytesToTrustLineAmount(bytesVector);
 }
 
 /*!
@@ -351,52 +308,16 @@ void TrustLine::parseTrustAmount(
  *
  * Parses trust line balance from "buffer".
  *
- *
- * Throws MemoryError;
  */
 void TrustLine::parseBalance(
     const byte *buffer) {
 
-    try {
-        vector<byte> bytesVector(
-            buffer,
-            buffer + kTrustAmountPartSize
-        );
+    vector<byte> bytesVector(
+        buffer,
+        buffer + kBalancePartSize + kSignBytePartSize
+    );
 
-        vector<byte> notZeroBytesVector;
-        notZeroBytesVector.reserve(kTrustAmountPartSize);
-
-        byte sign = buffer[kBalancePartSize + kSignBytePartSize - 1];
-
-        for (auto &item : bytesVector) {
-            if (item != 0) {
-                notZeroBytesVector.push_back(item);
-            }
-        }
-
-        if (notZeroBytesVector.size() > 0) {
-            import_bits(
-                mBalance,
-                notZeroBytesVector.begin(),
-                notZeroBytesVector.end()
-            );
-
-        } else {
-            import_bits(
-                mBalance,
-                bytesVector.begin(),
-                bytesVector.end()
-            );
-        }
-
-        if (sign == 1) {
-            mBalance = mBalance * -1;
-        }
-
-    } catch (bad_alloc &) {
-        throw MemoryError("TrustLine::parseTrustAmount: "
-                              "bad alloc.");
-    }
+    mBalance = bytesToTrustLineBalance(bytesVector);
 }
 
 /*!

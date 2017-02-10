@@ -6,8 +6,8 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager) :
 
-    UniqueTransaction(
-        BaseTransaction::TransactionType::AcceptTrustLineTransactionType,
+    TrustLineTransaction(
+        BaseTransaction::TransactionType::RejectTrustLineTransactionType,
         nodeUUID,
         scheduler
     ),
@@ -20,7 +20,7 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager) :
 
-    UniqueTransaction(scheduler),
+    TrustLineTransaction(scheduler),
     mTrustLinesManager(manager){
 
     deserializeFromBytes(buffer);
@@ -31,30 +31,28 @@ RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
     return mMessage;
 }
 
-pair<BytesShared, size_t> RejectTrustLineTransaction::serializeToBytes() {
+pair<BytesShared, size_t> RejectTrustLineTransaction::serializeToBytes() const{
 
-    auto parentBytesAndCount = serializeParentToBytes();
+    auto parentBytesAndCount = TrustLineTransaction::serializeToBytes();
     auto messageBytesAndCount = mMessage->serializeToBytes();
+
     size_t bytesCount = parentBytesAndCount.second +  messageBytesAndCount.second;
-    byte *data = (byte *) calloc (
-        bytesCount,
-        sizeof(byte)
-    );
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
     //-----------------------------------------------------
     memcpy(
-        data,
+        dataBytesShared.get(),
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
     //-----------------------------------------------------
     memcpy(
-        data + parentBytesAndCount.second,
+        dataBytesShared.get() + parentBytesAndCount.second,
         messageBytesAndCount.first.get(),
         messageBytesAndCount.second
     );
     //-----------------------------------------------------
     return make_pair(
-        BytesShared(data, free),
+        dataBytesShared,
         bytesCount
     );
 }
@@ -62,44 +60,45 @@ pair<BytesShared, size_t> RejectTrustLineTransaction::serializeToBytes() {
 void RejectTrustLineTransaction::deserializeFromBytes(
     BytesShared buffer) {
 
-    deserializeParentFromBytes(buffer);
-    byte *commandBuffer = (byte *) calloc(
-        RejectTrustLineMessage::kRequestedBufferSize(),
-        sizeof(byte)
-    );
+    TrustLineTransaction::deserializeFromBytes(buffer);
+    BytesShared messageBufferShared = tryCalloc(RejectTrustLineMessage::kRequestedBufferSize());
+    //-----------------------------------------------------
     memcpy(
-        commandBuffer,
-        buffer.get() + kOffsetToDataBytes(),
+        messageBufferShared.get(),
+        buffer.get() + TrustLineTransaction::kOffsetToDataBytes(),
         RejectTrustLineMessage::kRequestedBufferSize()
     );
-    BytesShared commandBufferShared(commandBuffer, free);
-    RejectTrustLineMessage *message = new RejectTrustLineMessage(commandBufferShared);
-    mMessage = RejectTrustLineMessage::Shared(message);
+    //-----------------------------------------------------
+    mMessage = RejectTrustLineMessage::Shared(
+        new RejectTrustLineMessage(
+            messageBufferShared
+        )
+    );
 }
 
-TransactionResult::Shared RejectTrustLineTransaction::run() {
+TransactionResult::SharedConst RejectTrustLineTransaction::run() {
 
     switch(mStep) {
 
         case 1: {
-            if (checkSameTypeTransactions()) {
-                sendResponse(RejectTrustLineMessage::kResultCodeTransactionConflict);
-                return makeResult(mMessage->resultTransactionConflict());
+            if (isTransactionToContractorUnique()) {
+                sendResponseCodeToContractor(RejectTrustLineMessage::kResultCodeTransactionConflict);
+                return transactionResultFromMessage(mMessage->resultTransactionConflict());
             }
             increaseStepsCounter();
         }
 
         case 2: {
-            if (checkTrustLineDirectionExisting()) {
+            if (isIncomingTrustLineDirectionExisting()) {
                 if (checkDebt()) {
-                    suspendTrustLineFromContractor();
-                    sendResponse(RejectTrustLineMessage::kResultCodeRejectDelayed);
-                    return makeResult(mMessage->resultRejectDelayed());
+                    suspendTrustLineDirectionFromContractor();
+                    sendResponseCodeToContractor(RejectTrustLineMessage::kResultCodeRejectDelayed);
+                    return transactionResultFromMessage(mMessage->resultRejectDelayed());
 
                 } else {
                     rejectTrustLine();
-                    sendResponse(RejectTrustLineMessage::kResultCodeRejected);
-                    return makeResult(mMessage->resultRejected());
+                    sendResponseCodeToContractor(RejectTrustLineMessage::kResultCodeRejected);
+                    return transactionResultFromMessage(mMessage->resultRejected());
                 }
             }
         }
@@ -112,7 +111,7 @@ TransactionResult::Shared RejectTrustLineTransaction::run() {
     }
 }
 
-bool RejectTrustLineTransaction::checkSameTypeTransactions() {
+bool RejectTrustLineTransaction::isTransactionToContractorUnique() {
 
     auto *transactions = pendingTransactions();
     for (auto const &it : *transactions) {
@@ -160,15 +159,18 @@ bool RejectTrustLineTransaction::checkSameTypeTransactions() {
     return false;
 }
 
-bool RejectTrustLineTransaction::checkTrustLineDirectionExisting() {
+bool RejectTrustLineTransaction::isIncomingTrustLineDirectionExisting() {
 
     return mTrustLinesManager->checkDirection(mMessage->contractorUUID(), TrustLineDirection::Incoming) ||
         mTrustLinesManager->checkDirection(mMessage->contractorUUID(), TrustLineDirection::Both);
 }
 
-void RejectTrustLineTransaction::suspendTrustLineFromContractor() {
+void RejectTrustLineTransaction::suspendTrustLineDirectionFromContractor() {
 
-    return mTrustLinesManager->suspendDirection(mMessage->contractorUUID(), TrustLineDirection::Incoming);
+    return mTrustLinesManager->suspendDirection(
+        mMessage->contractorUUID(),
+        TrustLineDirection::Incoming
+    );
 
 }
 
@@ -182,7 +184,7 @@ bool RejectTrustLineTransaction::checkDebt() {
     return mTrustLinesManager->balanceRange(mMessage->contractorUUID()) == BalanceRange::Negative;
 }
 
-void RejectTrustLineTransaction::sendResponse(
+void RejectTrustLineTransaction::sendResponseCodeToContractor(
     uint16_t code) {
 
     Message *message = new Response(
@@ -195,12 +197,4 @@ void RejectTrustLineTransaction::sendResponse(
         Message::Shared(message),
         mMessage->senderUUID()
     );
-}
-
-TransactionResult::Shared RejectTrustLineTransaction::makeResult(
-    MessageResult::SharedConst messageResult) {
-
-    TransactionResult *transactionResult = new TransactionResult();
-    transactionResult->setMessageResult(messageResult);
-    return TransactionResult::Shared(transactionResult);
 }

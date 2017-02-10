@@ -48,27 +48,28 @@ void TransactionsManager::processCommand(
     if (command->identifier() == OpenTrustLineCommand::identifier()) {
         launchOpenTrustLineTransaction(
             static_pointer_cast<OpenTrustLineCommand>(
-                command));
+                command
+            )
+        );
 
     } else if (command->identifier() == CloseTrustLineCommand::identifier()) {
         launchCloseTrustLineTransaction(
             static_pointer_cast<CloseTrustLineCommand>(
-                command));
+                command
+            )
+        );
 
     } else if (command->identifier() == SetTrustLineCommand::identifier()) {
         launchSetTrustLineTransaction(
             static_pointer_cast<SetTrustLineCommand>(
-                command));
-
-    } else if (command->identifier() == CreditUsageCommand::identifier()) {
-        launchCoordinatorPaymentTransaction(
-            static_pointer_cast<CreditUsageCommand>(
-                command));
+                command
+            )
+        );
 
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
-                "unexpected command identifier.");
+                "Unexpected command identifier.");
     }
 }
 
@@ -367,54 +368,8 @@ void TransactionsManager::launchRejectTrustLineTransaction(
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchCoordinatorPaymentTransaction(
-    CreditUsageCommand::Shared command) {
-
-    try {
-        auto transaction = make_shared<CoordinatorPaymentTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mLog);
-
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchCoordinatorPaymentTransaction: "
-                "can't allocate memory for transaction instance.");
-    }
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchReceiverPaymentTransaction(
-    ReceiverInitPaymentMessage::Shared message) {
-
-    try {
-        auto transaction = make_shared<ReceiverPaymentTransaction>(
-            message,
-            mTrustLines,
-            mLog);
-
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchReceiverPaymentTransaction: "
-                "can't allocate memory for transaction instance.");
-    }
-}
+void TransactionsManager::launchCreditUsageTransaction(
+    CreditUsageCommand::Shared command) {}
 
 /*!
  *

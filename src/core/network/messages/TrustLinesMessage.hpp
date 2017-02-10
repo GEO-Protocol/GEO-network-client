@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_TRUSTLINESMESSAGE_H
 
 #include "Message.hpp"
+#include "result/MessageResult.h"
 
 #include "../../common/Types.h"
 #include "../../common/memory/MemoryUtils.h"
@@ -62,6 +63,17 @@ public:
         );
     }
 
+    MessageResult::SharedConst customCodeResult(
+        uint16_t code) const {
+
+        return MessageResult::SharedConst(
+            new MessageResult(
+                mSenderUUID,
+                mTransactionUUID,
+                code)
+        );
+    }
+
 protected:
     TrustLinesMessage() {};
 
@@ -85,7 +97,7 @@ protected:
         );
     }
 
-    static const size_t inheritED() {
+    static const size_t kOffsetToInheritedBytes() {
 
         static const size_t offset = Message::kOffsetToInheritedBytes() + TransactionUUID::kBytesSize;
         return offset;

@@ -71,7 +71,7 @@ void BaseUserCommand::deserializeFromBytes(
     mTimestampAccepted = posixTimestamp((MicrosecondsTimestamp) *commandAcceptedTimestamp);
 }
 
-const size_t BaseUserCommand::inheritED() {
+const size_t BaseUserCommand::kOffsetToInheritedBytes() {
 
     static const size_t offset = CommandUUID::kHexSize + sizeof(MicrosecondsTimestamp);
     return offset;

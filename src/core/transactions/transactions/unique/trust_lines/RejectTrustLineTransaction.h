@@ -1,7 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_REJECTTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_REJECTTRUSTLINETRANSACTION_H
 
-#include "../../base/UniqueTransaction.h"
+#include "TrustLineTransaction.h"
+
+#include "../../../../common/Types.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../network/messages/Message.hpp"
 #include "../../../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
@@ -13,8 +16,13 @@
 
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 
+#include "../../../../common/exceptions/ConflictError.h"
 
-class RejectTrustLineTransaction : public UniqueTransaction {
+#include <memory>
+#include <utility>
+#include <cstdint>
+
+class RejectTrustLineTransaction : public TrustLineTransaction {
 
 public:
     typedef shared_ptr<RejectTrustLineTransaction> Shared;
@@ -33,29 +41,26 @@ public:
 
     RejectTrustLineMessage::Shared message() const;
 
-    TransactionResult::Shared run();
+    pair<BytesShared, size_t> serializeToBytes() const;
+
+    TransactionResult::SharedConst run();
 
 private:
-    pair<BytesShared, size_t> serializeToBytes();
-
     void deserializeFromBytes(
         BytesShared buffer);
 
-    bool checkSameTypeTransactions();
+    bool isTransactionToContractorUnique();
 
-    bool checkTrustLineDirectionExisting();
+    bool isIncomingTrustLineDirectionExisting();
 
     bool checkDebt();
 
-    void suspendTrustLineFromContractor();
+    void suspendTrustLineDirectionFromContractor();
 
     void rejectTrustLine();
 
-    void sendResponse(
+    void sendResponseCodeToContractor(
         uint16_t code);
-
-    TransactionResult::Shared makeResult(
-        MessageResult::SharedConst messageResult);
 
 private:
     RejectTrustLineMessage::Shared mMessage;

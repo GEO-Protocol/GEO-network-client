@@ -101,14 +101,3 @@ MessageResult::SharedConst UpdateTrustLineMessage::resultTransactionConflict() c
             kResultCodeTransactionConflict)
     );
 }
-
-MessageResult::SharedConst UpdateTrustLineMessage::customCodeResult(
-    uint16_t code) const {
-
-    return MessageResult::SharedConst(
-        new MessageResult(
-            mSenderUUID,
-            mTransactionUUID,
-            code)
-    );
-}

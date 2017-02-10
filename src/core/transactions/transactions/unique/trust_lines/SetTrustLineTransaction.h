@@ -1,7 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_SETTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_SETTRUSTLINETRANSACTION_H
 
-#include "../../base/UniqueTransaction.h"
+#include "TrustLineTransaction.h"
+
+#include "../../../../common/Types.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 
@@ -16,10 +19,13 @@
 
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 
-
 #include "../../../../common/exceptions/ConflictError.h"
 
-class SetTrustLineTransaction : public UniqueTransaction {
+#include <memory>
+#include <utility>
+#include <cstdint>
+
+class SetTrustLineTransaction: public TrustLineTransaction {
 
 public:
     typedef shared_ptr<SetTrustLineTransaction> Shared;
@@ -38,40 +44,40 @@ public:
 
     SetTrustLineCommand::Shared command() const;
 
-    TransactionResult::Shared run();
+    pair<BytesShared, size_t> serializeToBytes() const;
+
+    TransactionResult::SharedConst run();
 
 private:
-    pair<BytesShared, size_t> serializeToBytes();
-
     void deserializeFromBytes(
         BytesShared buffer);
 
-    bool checkSameTypeTransactions();
+    bool isTransactionToContractorUnique();
 
-    bool checkTrustLineDirectionExisting();
+    bool isOutgoingTrustLineDirectionExisting();
 
-    TransactionResult::Shared checkTransactionContext();
+    TransactionResult::SharedConst checkTransactionContext();
 
     void sendMessageToRemoteNode();
 
-    TransactionResult::Shared waitingForResponseState();
+    TransactionResult::SharedConst waitingForResponseState();
 
     void setOutgoingTrustAmount();
 
-    TransactionResult::Shared resultOk();
+    TransactionResult::SharedConst resultOk();
 
-    TransactionResult::Shared trustLineAbsentResult();
+    TransactionResult::SharedConst trustLineAbsentResult();
 
-    TransactionResult::Shared conflictErrorResult();
+    TransactionResult::SharedConst conflictErrorResult();
 
-    TransactionResult::Shared noResponseResult();
+    TransactionResult::SharedConst noResponseResult();
 
-    TransactionResult::Shared transactionConflictResult();
+    TransactionResult::SharedConst transactionConflictResult();
 
-    TransactionResult::Shared unexpectedErrorResult();
+    TransactionResult::SharedConst unexpectedErrorResult();
 
 private:
-    const uint64_t kConnectionTimeout = 2000;
+    const MicrosecondsTimestamp kConnectionTimeout = 2000;
     const uint16_t kMaxRequestsCount = 5;
 
     SetTrustLineCommand::Shared mCommand;

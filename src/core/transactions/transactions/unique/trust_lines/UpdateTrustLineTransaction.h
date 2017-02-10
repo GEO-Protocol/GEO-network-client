@@ -1,7 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_UPDATETRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_UPDATETRUSTLINETRANSACTION_H
 
-#include "../../base/UniqueTransaction.h"
+#include "TrustLineTransaction.h"
+
+#include "../../../../common/Types.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../network/messages/Message.hpp"
 #include "../../../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
@@ -13,7 +16,13 @@
 
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 
-class UpdateTrustLineTransaction : public UniqueTransaction {
+#include "../../../../common/exceptions/ConflictError.h"
+
+#include <memory>
+#include <utility>
+#include <cstdint>
+
+class UpdateTrustLineTransaction : public TrustLineTransaction {
 
 public:
     typedef shared_ptr<UpdateTrustLineTransaction> Shared;
@@ -32,29 +41,26 @@ public:
 
     UpdateTrustLineMessage::Shared message() const;
 
-    TransactionResult::Shared run();
+    pair<BytesShared, size_t> serializeToBytes() const;
+
+    TransactionResult::SharedConst run();
 
 private:
-    pair<BytesShared, size_t> serializeToBytes();
-
     void deserializeFromBytes(
         BytesShared buffer);
 
     bool checkJournal();
 
-    bool checkSameTypeTransactions();
+    bool isTransactionToContractorUnique();
 
-    bool checkTrustLineDirectionExisting();
+    bool isIncomingTrustLineDirectionExisting();
 
-    bool checkTrustLineAmount();
+    bool isIncomingTrustLineCouldBeModified();
 
     void updateIncomingTrustAmount();
 
-    void sendResponse(
+    void sendResponseCodeToContractor(
         uint16_t code);
-
-    TransactionResult::Shared makeResult(
-        MessageResult::SharedConst messageResult);
 
 private:
     UpdateTrustLineMessage::Shared mMessage;
