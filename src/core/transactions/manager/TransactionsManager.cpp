@@ -267,32 +267,6 @@ void TransactionsManager::launchSetTrustLineTransaction(
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchAcceptTrustLineTransaction(
-    AcceptTrustLineMessage::Shared message) {
-
-    try {
-        auto transaction = make_shared<AcceptTrustLineTransaction>(
-            mNodeUUID,
-            message,
-            mScheduler.get(),
-            mTrustLines
-        );
-
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchAcceptTrustLineTransaction: "
-                "Can't allocate memory for transaction instance.");
-    }
-}
-
-/*!
- *
- * Throws MemoryError.
- */
 void TransactionsManager::launchCloseTrustLineTransaction(
     CloseTrustLineCommand::Shared command) {
 
@@ -311,6 +285,32 @@ void TransactionsManager::launchCloseTrustLineTransaction(
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchCloseTrustLineTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchAcceptTrustLineTransaction(
+    AcceptTrustLineMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<AcceptTrustLineTransaction>(
+            mNodeUUID,
+            message,
+            mScheduler.get(),
+            mTrustLines
+        );
+
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchAcceptTrustLineTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }

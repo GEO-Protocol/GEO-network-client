@@ -77,7 +77,7 @@ private:
     TransactionResult::SharedConst unexpectedErrorResult();
 
 private:
-    const MicrosecondsTimestamp kConnectionTimeout = 2000;
+    const Milliseconds kConnectionTimeout = 5000;
     const uint16_t kMaxRequestsCount = 5;
 
     OpenTrustLineCommand::Shared mCommand;

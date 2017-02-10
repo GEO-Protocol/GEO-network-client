@@ -29,9 +29,13 @@ public:
 
     const MessageType typeID() const;
 
+    const TransactionUUID &transactionUUID() const;
+
+    const TrustLineUUID &trustLineUUID() const;
+
     const OperationState state() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const;
+    pair<BytesShared, size_t> serializeToBytes();
 
 protected:
     void deserializeFromBytes(

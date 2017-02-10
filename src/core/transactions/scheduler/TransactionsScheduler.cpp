@@ -11,9 +11,11 @@ TransactionsScheduler::TransactionsScheduler(
 
     mTransactions(new map<BaseTransaction::Shared, TransactionState::SharedConst>()),
 
-    mProcessingTimer(new as::deadline_timer(
-        mIOService,
-        posix::milliseconds(2 * 1000))
+    mProcessingTimer(
+        new as::deadline_timer(
+            mIOService,
+            posix::milliseconds(2 * 1000)
+        )
     ) {
 }
 
@@ -117,6 +119,7 @@ void TransactionsScheduler::handleTransactionResult(
                 transaction,
                 result->commandResult()
             );
+            break;
         }
 
         case TransactionResult::ResultType::MessageResultType: {
@@ -124,6 +127,7 @@ void TransactionsScheduler::handleTransactionResult(
                 transaction,
                 result->messageResult()
             );
+            break;
         }
 
         case TransactionResult::ResultType::TransactionStateType: {
@@ -131,6 +135,7 @@ void TransactionsScheduler::handleTransactionResult(
                 transaction,
                 result->state()
             );
+            break;
         }
     }
 
@@ -232,6 +237,7 @@ void TransactionsScheduler::processNextTransactions(){
                 // WARN:
                 // Iterations count is limited to prevent ignoring async loop (and network messages),
                 // and stack overflowing;
+
                 launchTransaction(transactionAndTimestamp.first);
             }
 
@@ -263,21 +269,37 @@ pair<BaseTransaction::Shared, MicrosecondsTimestamp> TransactionsScheduler::tran
     }
 
     BaseTransaction::Shared transaction(nullptr);
-    MicrosecondsTimestamp awakeningTimestamp = 0;
+    MicrosecondsTimestamp minimalAwakeningTimestamp = 0;
+
 
     for (auto &transactionAndState : *mTransactions) {
         auto transactionState = transactionAndState.second;
         if (transactionState != nullptr) {
-            if (transactionState->awakeningTimestamp() < awakeningTimestamp) {
-                awakeningTimestamp = transactionState->awakeningTimestamp();
+            if (mTransactions->size() == 1) {
+                return make_pair(
+                    transactionAndState.first,
+                    transactionAndState.second->awakeningTimestamp()
+                );
+            }
+
+            minimalAwakeningTimestamp = transactionState->awakeningTimestamp();
+            break;
+        }
+    }
+
+    for (auto &transactionAndState : *mTransactions) {
+        auto transactionState = transactionAndState.second;
+        if (transactionState != nullptr) {
+            if (transactionState->awakeningTimestamp() < minimalAwakeningTimestamp) {
                 transaction = transactionAndState.first;
+                minimalAwakeningTimestamp = transactionState->awakeningTimestamp();
             }
         }
     }
 
     return make_pair(
         transaction,
-        awakeningTimestamp
+        minimalAwakeningTimestamp
     );
 }
 
@@ -292,7 +314,8 @@ void TransactionsScheduler::asyncWaitUntil(
         boost::bind(
             &TransactionsScheduler::handleAwakening,
             this,
-            as::placeholders::error)
+            as::placeholders::error
+        )
     );
 }
 

@@ -17,8 +17,7 @@
 
 using namespace std;
 
-class TransactionMessage:
-    public Message { // todo: change to message with sender
+class TransactionMessage: public Message { // todo: change to message with sender
 
 public:
     typedef shared_ptr<TransactionMessage> Shared;
@@ -28,41 +27,46 @@ public:
     virtual const MessageType typeID() const = 0;
 
     const TransactionUUID &transactionUUID() const {
+
         return mTransactionUUID;
+    }
+
+    const TrustLineUUID &trustLineUUID() const {
+
+        throw NotImplementedError("TransactionMessage: public Message::trustLineUUID:"
+                                      "Method not implemented.");
     }
 
     /*!
      *
      * Throws bad_alloc;
      */
-    virtual pair<BytesShared, size_t> serializeToBytes() const {
-        auto parentBytesAndCount = Message::serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() {
 
+        auto parentBytesAndCount = Message::serializeToBytes();
         size_t bytesCount =
             + parentBytesAndCount.second
             + TransactionUUID::kBytesSize;
-
-        BytesShared buffer =
-            tryMalloc(
-                bytesCount);
-
-        auto initialOffset = buffer.get();
+        BytesShared dataBytesShared = tryMalloc(bytesCount);
+        size_t dataBytesOffset = 0;
+        //----------------------------------------------------
         memcpy(
-            initialOffset,
+            dataBytesShared.get(),
             parentBytesAndCount.first.get(),
-            parentBytesAndCount.second);
-
-        auto transactionUUIDOffset =
-            initialOffset
-            + parentBytesAndCount.second;
+            parentBytesAndCount.second
+        );
+        dataBytesOffset += parentBytesAndCount.second;
+        //----------------------------------------------------
         memcpy(
-            transactionUUIDOffset,
+            dataBytesShared.get() + dataBytesOffset,
             mTransactionUUID.data,
-            TransactionUUID::kBytesSize);
-
+            TransactionUUID::kBytesSize
+        );
+        //----------------------------------------------------
         return make_pair(
-            buffer,
-            bytesCount);
+            dataBytesShared,
+            bytesCount
+        );
     }
 
 protected:
@@ -79,8 +83,8 @@ protected:
         BytesShared buffer){
 
         Message::deserializeFromBytes(buffer);
-
         size_t bytesBufferOffset = Message::kOffsetToInheritedBytes();
+        //----------------------------------------------------
         memcpy(
             mTransactionUUID.data,
             buffer.get() + bytesBufferOffset,

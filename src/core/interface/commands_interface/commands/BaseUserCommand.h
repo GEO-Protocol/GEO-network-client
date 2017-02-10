@@ -41,7 +41,7 @@ public:
     CommandResult::SharedConst unexpectedErrorResult();
 
 protected:
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
+    virtual pair<BytesShared, size_t> serializeToBytes();
 
     virtual void deserializeFromBytes(
         BytesShared buffer);

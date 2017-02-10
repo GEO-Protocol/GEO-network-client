@@ -29,7 +29,7 @@ const Timestamp &BaseUserCommand::timestampAccepted() const {
     return mTimestampAccepted;
 }
 
-pair<BytesShared, size_t> BaseUserCommand::serializeToBytes() const {
+pair<BytesShared, size_t> BaseUserCommand::serializeToBytes() {
 
     size_t bytesCount = CommandUUID::kBytesSize + sizeof(MicrosecondsTimestamp);
     BytesShared dataBytesShared = tryCalloc(bytesCount);

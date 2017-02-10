@@ -53,13 +53,11 @@ public:
         return mSenderUUID;
     }
 
-//    todo: (DM) move to another message
     virtual const TransactionUUID &transactionUUID() const = 0;
 
-//    todo: (DM) move to another message
-//    virtual const TrustLineUUID &trustLineUUID() const = 0;
+    virtual const TrustLineUUID &trustLineUUID() const = 0;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const {
+    virtual pair<BytesShared, size_t> serializeToBytes() {
 
         size_t bytesCount = sizeof(MessageType) +
             NodeUUID::kBytesSize;

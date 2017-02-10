@@ -36,7 +36,7 @@ const TrustLineAmount &OpenTrustLineCommand::amount() const {
     return mAmount;
 }
 
-pair<BytesShared, size_t> OpenTrustLineCommand::serializeToBytes() {
+pair<BytesShared, size_t> OpenTrustLineCommand::serializeToBytes(){
 
     auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
 

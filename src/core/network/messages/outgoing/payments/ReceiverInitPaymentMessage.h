@@ -23,7 +23,7 @@ public:
 
     const MessageType typeID() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const;
+    pair<BytesShared, size_t> serializeToBytes();
 
 protected:
     void deserializeFromBytes(

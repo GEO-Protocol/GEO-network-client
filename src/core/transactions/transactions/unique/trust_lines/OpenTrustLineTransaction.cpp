@@ -220,7 +220,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::waitingForResponseState
     TransactionState *transactionState = new TransactionState(
         kConnectionTimeout,
         Message::MessageTypeID::ResponseMessageType,
-        true
+        false
     );
 
 

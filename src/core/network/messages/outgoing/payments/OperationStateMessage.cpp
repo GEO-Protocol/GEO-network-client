@@ -16,6 +16,18 @@ const Message::MessageType OperationStateMessage::typeID() const {
     return Message::OperationStateMessageType;
 }
 
+const TransactionUUID &OperationStateMessage::transactionUUID() const {
+
+    throw NotImplementedError("OperationStateMessage: public Message::transactionUUID:"
+                                  "Method not implemented.");
+}
+
+const TrustLineUUID &OperationStateMessage::trustLineUUID() const {
+
+    throw NotImplementedError("OperationStateMessage: public Message::trustLineUUID:"
+                                  "Method not implemented.");
+}
+
 const OperationStateMessage::OperationState OperationStateMessage::state() const {
     return mState;
 }
@@ -24,7 +36,7 @@ const OperationStateMessage::OperationState OperationStateMessage::state() const
  *
  * Throws bad_alloc;
  */
-pair<BytesShared, size_t> OperationStateMessage::serializeToBytes() const {
+pair<BytesShared, size_t> OperationStateMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount =
         + parentBytesAndCount.second
@@ -60,5 +72,3 @@ void OperationStateMessage::deserializeFromBytes(BytesShared buffer) {
     auto stateOffset = buffer.get() + parentMessageOffset;
     mState = (OperationState)(SerializedOperationState(*stateOffset));
 }
-
-

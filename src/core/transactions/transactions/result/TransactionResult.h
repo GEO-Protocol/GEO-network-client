@@ -27,7 +27,7 @@ public:
     TransactionResult();
 
     TransactionResult(
-        TransactionState::Shared transactionState);
+        TransactionState::SharedConst transactionState);
 
     void setCommandResult(
         CommandResult::SharedConst commandResult);

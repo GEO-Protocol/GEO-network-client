@@ -21,7 +21,7 @@ const Message::MessageType ReceiverInitPaymentMessage::typeID() const {
  *
  * Throws bad_alloc;
  */
-pair<BytesShared, size_t> ReceiverInitPaymentMessage::serializeToBytes() const {
+pair<BytesShared, size_t> ReceiverInitPaymentMessage::serializeToBytes() {
 
     auto serializedPaymentAmount =
         trustLineAmountToBytes(

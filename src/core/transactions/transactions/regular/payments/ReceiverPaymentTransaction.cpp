@@ -42,7 +42,11 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run() {
 
     }
 
-    return make_shared<TransactionResult>(TransactionState::exit());
+    return TransactionResult::SharedConst(
+        new TransactionResult(
+            TransactionState::exit()
+        )
+    );
 }
 
 pair<BytesShared, size_t> ReceiverPaymentTransaction::serializeToBytes() {

@@ -3,7 +3,7 @@
 TransactionResult::TransactionResult() {}
 
 TransactionResult::TransactionResult(
-    TransactionState::Shared transactionState) {
+    TransactionState::SharedConst transactionState) {
 
     setTransactionState(transactionState);
 }

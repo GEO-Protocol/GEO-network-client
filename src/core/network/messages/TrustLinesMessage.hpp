@@ -36,7 +36,7 @@ public:
                                       "Method not implemented.");
     }
 
-    virtual pair<BytesShared, size_t> serializeToBytes(){
+    virtual pair<BytesShared, size_t> serializeToBytes() {
 
         auto parentBytesAndCount = Message::serializeToBytes();
         size_t bytesCount = parentBytesAndCount.second +

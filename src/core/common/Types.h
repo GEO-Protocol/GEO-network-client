@@ -26,6 +26,7 @@ namespace posix = boost::posix_time;
 typedef posix::ptime Timestamp;
 typedef posix::time_duration Duration;
 typedef uint64_t MicrosecondsTimestamp;
+typedef uint16_t Milliseconds;
 
 /*
  * Trust lines types
