@@ -7,7 +7,9 @@
 
 using namespace std;
 
-// DEPRECATED
+// todo: move thins into "time_utils" namespace;
+
+// todo: DEPRECATED
 inline const Timestamp epoch() {
 
     static const Timestamp Epoch(
@@ -26,7 +28,7 @@ inline const Timestamp geoEpoch() {
     return GEOEpoch;
 }
 
-inline Timestamp timestamp() {
+inline Timestamp now() {
 
     return posix::microsec_clock::universal_time();
 }

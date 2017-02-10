@@ -84,7 +84,7 @@ pair<BytesShared, size_t> Channel::data() {
 
 void Channel::rememberCreationTime() {
 
-    mCreationTime = timestamp();
+    mCreationTime = now();
 }
 
 const Timestamp Channel::creationTime() const {
