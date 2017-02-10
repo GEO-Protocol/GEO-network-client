@@ -237,7 +237,7 @@ pair<BaseTransaction::Shared, MicrosecondsTimestamp> TransactionsScheduler::tran
     for (auto &transactionAndState : *mTransactions) {
         auto transactionState = transactionAndState.second;
         if (transactionState != nullptr) {
-            if (transactionState->awakeningTimestamp() > 0) {
+            if (transactionState->awakeningTimestamp() < awakeningTimestamp) {
                 awakeningTimestamp = transactionState->awakeningTimestamp();
                 transaction = transactionAndState.first;
             }
