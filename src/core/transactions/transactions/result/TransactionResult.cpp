@@ -9,7 +9,7 @@ TransactionResult::TransactionResult(
 }
 
 void TransactionResult::setCommandResult(
-    CommandResult::SharedConst commandResult){
+    CommandResult::SharedConst commandResult) {
 
     mCommandResult = commandResult;
 }
@@ -43,9 +43,23 @@ TransactionState::SharedConst TransactionResult::state() const {
 
 TransactionResult::ResultType TransactionResult::resultType() const {
 
-    if (mMessageResult.get() != nullptr) {
+    if (mCommandResult != nullptr) {
+        if (mMessageResult != nullptr) {
+            throw ConflictError(
+                "TransactionResult::resultType: "
+                    "transaction result could't have message command result and message result at the same time.");
+        }
+        return ResultType::CommandResultType;
+    }
+
+    if (mMessageResult != nullptr) {
+        if (mCommandResult != nullptr) {
+            throw ConflictError(
+                "TransactionResult::resultType: "
+                    "transaction result could't have message result and command result at the same time.");
+        }
         return ResultType::MessageResultType;
     }
 
-    return ResultType::CommandResultType;
+    return ResultType::TransactionStateType;
 }

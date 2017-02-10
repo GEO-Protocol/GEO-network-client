@@ -57,8 +57,6 @@ TransactionResult::Shared ReceiverPaymentTransaction::initOperation() {
 
 #ifdef TRANSACTIONS_LOG
     auto info = mLog->info("ReceiverPaymentTransaction");
-    info << logHeader()
-         << "Initialising payment operation from node " << mMessage->senderUUID();
 #endif
 
     // todo: optimisation
@@ -77,7 +75,9 @@ TransactionResult::Shared ReceiverPaymentTransaction::initOperation() {
 
 #ifdef TRANSACTIONS_LOG
     info << logHeader()
-         << "Payment operation succesfully initialised";
+         << "Payment operation from node "
+         << mMessage->senderUUID()
+         << "succesfully initialised";
 #endif
 
     // Begin receiving amount locks,

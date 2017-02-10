@@ -33,7 +33,8 @@ public:
     pair<BytesShared, size_t> serializeToBytes();
 
 private:
-    TransactionResult::Shared initPaymentOperation();
+    TransactionResult::Shared initOperation();
+    TransactionResult::Shared processReceiverResponse();
 
 
     TransactionResult::Shared resultOK() const;

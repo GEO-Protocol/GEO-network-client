@@ -32,7 +32,6 @@
 #include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
-#include "../transactions/unique/routing_tables/SendRoutingTablesTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 
@@ -63,37 +62,33 @@ public:
     void processMessage(
         Message::Shared message);
 
-    void processCommandResult(
-        CommandResult::SharedConst result);
-
-    void startRoutingTablesExchange(
+    // Invokes from Core
+    void launchRoutingTableExchangeTransaction(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
-protected:
+private:
     void loadTransactions();
 
-protected:
-    // Trust lines transactions
     void launchOpenTrustLineTransaction(
         OpenTrustLineCommand::Shared command);
-
-    void launchAcceptTrustLineTransaction(
-        AcceptTrustLineMessage::Shared message);
-
-    void launchCloseTrustLineTransaction(
-        CloseTrustLineCommand::Shared command);
-
-    void launchRejectTrustLineTransaction(
-        RejectTrustLineMessage::Shared message);
 
     void launchSetTrustLineTransaction(
         SetTrustLineCommand::Shared command);
 
+    void launchCloseTrustLineTransaction(
+        CloseTrustLineCommand::Shared command);
+
+    void launchAcceptTrustLineTransaction(
+        AcceptTrustLineMessage::Shared message);
+
     void launchUpdateTrustLineTransaction(
         UpdateTrustLineMessage::Shared message);
 
-protected:
+    void launchRejectTrustLineTransaction(
+        RejectTrustLineMessage::Shared message);
+
+private:
     // Payment transactions
     void launchCoordinatorPaymentTransaction(
         CreditUsageCommand::Shared command);
@@ -101,14 +96,19 @@ protected:
     void launchReceiverPaymentTransaction(
         ReceiverInitPaymentMessage::Shared message);
 
-protected:
-    // Slots
+private:
+    void subscribeForOutgoingMessages(
+        BaseTransaction::SendMessageSignal &signal);
+
+    void subscribeForCommandResult(
+        TransactionsScheduler::CommandResultSignal &signal);
+
     void onTransactionOutgoingMessageReady(
         Message::Shared message,
         const NodeUUID &contractorUUID);
 
-    void subscribeForOutgoingMessages(
-        BaseTransaction::SendMessageSignal &signal);
+    void onCommandResultReady(
+        CommandResult::SharedConst result);
 
 private:
     NodeUUID &mNodeUUID;

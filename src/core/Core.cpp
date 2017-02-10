@@ -253,7 +253,7 @@ void Core::onTrustLineCreatedSlot(
     const TrustLineDirection direction) {
 
     try{
-        mTransactionsManager->startRoutingTablesExchange(
+        mTransactionsManager->launchRoutingTableExchangeTransaction(
             contractorUUID,
             direction
         );

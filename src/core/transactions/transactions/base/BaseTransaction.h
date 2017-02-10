@@ -21,7 +21,7 @@ class BaseTransaction {
 public:
     typedef shared_ptr<BaseTransaction> Shared;
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
-    typedef uint16_t SerialisedTransactionType;
+    typedef uint16_t SerializedTransactionType;
 
 public:
     // todo: (DM): remove "..Type" from enum

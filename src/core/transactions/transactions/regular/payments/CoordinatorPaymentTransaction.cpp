@@ -28,42 +28,35 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 
 TransactionResult::Shared CoordinatorPaymentTransaction::run() {
 
+    switch (mStep) {
+        case 1:
+            return initOperation();
+
+        case 2:
+            return processReceiverResponse();
+
+        default:
+            throw ValueError(
+                "CoordinatorPaymentTransaction::run(): "
+                    "invalid transaction step.");
+    }
+}
+
+
+TransactionResult::Shared CoordinatorPaymentTransaction::initOperation() {
+
+#ifdef TRANSACTIONS_LOG
+    auto info = mLog->info("CoordinatorPaymentTransaction");
+    info << logHeader()
+         << "Initialising payment operation to node " << mCommand->contractorUUID();
+#endif
+
     // todo: optimisation
     // Check if total outgoing possibilities of this node
     // are not smaller, than total operation amount.
     // In case if so - there is no reason to begin the operation:
     // current node would not be able to pay such an amount.
 
-    switch (mStep) {
-        case 1: {
-
-#ifdef TRANSACTIONS_LOG
-            {
-                auto info = mLog->info("CoordinatorPaymentTransaction");
-                info << "(UUID: " << UUID() << ") "
-                     << "Initialising payment operation to node " << mCommand->contractorUUID();
-            }
-#endif
-            return initPaymentOperation();
-        }
-
-        case 2: {
-            // todo: (hsc) retry if no response (but no more than 5 times)
-
-#ifdef TRANSACTIONS_LOG
-            {
-                auto info = mLog->info("CoordinatorPaymentTransaction");
-                info << "awakened";
-            }
-#endif
-        }
-    }
-
-    return resultOK();
-}
-
-
-TransactionResult::Shared CoordinatorPaymentTransaction::initPaymentOperation() {
     auto message =
         make_shared<ReceiverInitPaymentMessage>(
             mCommand->amount());
@@ -72,14 +65,31 @@ TransactionResult::Shared CoordinatorPaymentTransaction::initPaymentOperation() 
         message,
         mCommand->contractorUUID());
 
+    // todo: wait for incoming message from receiver
+
     mStep += 1;
     return make_shared<TransactionResult>(
         TransactionState::awakeAfterMilliseconds(3000));
 }
 
-TransactionResult::Shared CoordinatorPaymentTransaction::resultOK() const {
-    return transactionResultFromCommand(
-        mCommand->resultOk());
+TransactionResult::Shared CoordinatorPaymentTransaction::processReceiverResponse() {
+
+    // todo: (hsc) retry if no response (but no more than 5 times)
+
+#ifdef TRANSACTIONS_LOG
+    auto info = mLog->info("CoordinatorPaymentTransaction");
+#endif
+
+    // todo: process response if received
+
+#ifdef TRANSACTIONS_LOG
+    info << logHeader()
+         << "No receiver response received. "
+         << "Transaction will now be closed.";
+#endif
+
+    return make_shared<TransactionResult>(
+        TransactionState::exit());
 }
 
 pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() {
