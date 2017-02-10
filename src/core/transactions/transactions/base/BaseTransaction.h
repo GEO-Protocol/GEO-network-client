@@ -1,15 +1,15 @@
 #ifndef GEO_NETWORK_CLIENT_BASETRANSACTION_H
 #define GEO_NETWORK_CLIENT_BASETRANSACTION_H
 
-#include "../TransactionUUID.h"
+#include "TransactionUUID.h"
 
-#include "../../common/Types.h"
-#include "../../common/NodeUUID.h"
+#include "../../../common/Types.h"
+#include "../../../common/NodeUUID.h"
 
-#include "../../network/messages/Message.hpp"
-#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
+#include "../../../network/messages/Message.hpp"
+#include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
-#include "result/TransactionResult.h"
+#include "../result/TransactionResult.h"
 
 #include <boost/signals2.hpp>
 
@@ -99,6 +99,8 @@ protected:
 
     TransactionResult::Shared transactionResultFromCommand (
         CommandResult::SharedConst result) const;
+
+    virtual const string logHeader() const;
 
 protected:
     TransactionType mType;

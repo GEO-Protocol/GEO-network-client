@@ -24,8 +24,8 @@
 #include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../../network/messages/response/Response.h"
 
-#include "../transactions/BaseTransaction.h"
-#include "../transactions/unique/UniqueTransaction.h"
+#include "../transactions/base/BaseTransaction.h"
+#include "../transactions/base/UniqueTransaction.h"
 #include "../transactions/unique/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/AcceptTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/CloseTrustLineTransaction.h"

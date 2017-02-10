@@ -4,7 +4,7 @@
 
 #include "AmountReservation.h"
 #include "../../common/NodeUUID.h"
-#include "../../transactions/TransactionUUID.h"
+#include "../../transactions/transactions/base/TransactionUUID.h"
 #include "../../common/exceptions/MemoryError.h"
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/NotFoundError.h"

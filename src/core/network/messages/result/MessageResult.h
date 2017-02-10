@@ -4,7 +4,7 @@
 #include "../../../common/Types.h"
 
 #include "../../../common/NodeUUID.h"
-#include "../../../transactions/TransactionUUID.h"
+#include "../../../transactions/transactions/base/TransactionUUID.h"
 
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>

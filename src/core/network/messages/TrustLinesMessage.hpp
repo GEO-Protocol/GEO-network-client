@@ -8,7 +8,7 @@
 
 #include "../../common/NodeUUID.h"
 #include "../../trust_lines/TrustLineUUID.h"
-#include "../../transactions/TransactionUUID.h"
+#include "../../transactions/transactions/base/TransactionUUID.h"
 
 #include <memory>
 #include <utility>

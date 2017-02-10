@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_SENDROUTINGTABLESTRANSACTION_H
 #define GEO_NETWORK_CLIENT_SENDROUTINGTABLESTRANSACTION_H
 
-#include "../UniqueTransaction.h"
+#include "../../base/UniqueTransaction.h"
 
 #include "../../../../network/messages/Message.hpp"
 #include "../../../../network/messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"

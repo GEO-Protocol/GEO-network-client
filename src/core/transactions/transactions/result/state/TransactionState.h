@@ -30,6 +30,9 @@ public:
     static TransactionState::Shared awakeAsFastAsPossible();
     static TransactionState::Shared awakeAfterMilliseconds(
         uint16_t milliseconds);
+    static TransactionState::Shared waitForMessageTypes(
+        vector<Message::MessageTypeID> &&requiredMessageType,
+        uint16_t noLongerThanMilliseconds=0);
 
 public:
     TransactionState(

@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H
 #define GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H
 
-#include "../../BaseTransaction.h"
+#include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../logger/Logger.h"
 

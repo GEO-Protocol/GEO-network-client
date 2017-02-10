@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_SETTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_SETTRUSTLINETRANSACTION_H
 
-#include "../UniqueTransaction.h"
+#include "../../base/UniqueTransaction.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 

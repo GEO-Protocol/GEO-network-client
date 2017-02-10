@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_ACCEPTTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_ACCEPTTRUSTLINETRANSACTION_H
 
-#include "../UniqueTransaction.h"
+#include "../../base/UniqueTransaction.h"
 
 #include "../../../../network/messages/Message.hpp"
 #include "../../../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"

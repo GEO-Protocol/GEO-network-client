@@ -6,7 +6,7 @@
 
 #include "../../common/NodeUUID.h"
 #include "../../trust_lines/TrustLineUUID.h"
-#include "../../transactions/TransactionUUID.h"
+#include "../../transactions/transactions/base/TransactionUUID.h"
 
 #include "../../common/exceptions/Exception.h"
 
@@ -39,6 +39,7 @@ public:
         SecondLevelRoutingTableIncomingMessageType = 10,
 
         ReceiverInitPaymentMessageType,
+        OperationStateMessageType,
 
         ResponseMessageType = 1000
     };

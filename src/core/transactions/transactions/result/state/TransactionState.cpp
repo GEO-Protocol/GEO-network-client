@@ -1,7 +1,7 @@
 #include "TransactionState.h"
 
 /*!
- * Returns TransactionState that simly closes the transaction.
+ * Returns TransactionState that simply closes the transaction.
  */
 TransactionState::Shared TransactionState::exit() {
     return make_shared<TransactionState>(0);
@@ -27,6 +27,27 @@ TransactionState::Shared TransactionState::awakeAfterMilliseconds(
     return make_shared<TransactionState>(
         timestampFromTheGEOEpoch(
             t));
+}
+
+/*!
+ * Returns TransactionState that specifies what kind of mesages transaction is waiting and accepting.
+ * Optionally, may be initialised with deadline timeout.
+ */
+TransactionState::Shared TransactionState::waitForMessageTypes(
+    vector<Message::MessageTypeID> &&requiredMessageType,
+    uint16_t noLongerThanMilliseconds) {
+
+    TransactionState::Shared state;
+    if (noLongerThanMilliseconds == 0) {
+        state = TransactionState::exit();
+
+    } else {
+        state = TransactionState::awakeAfterMilliseconds(
+            noLongerThanMilliseconds);
+    }
+
+    state->mRequiredMessageTypes = requiredMessageType;
+    return state;
 }
 
 TransactionState::TransactionState(

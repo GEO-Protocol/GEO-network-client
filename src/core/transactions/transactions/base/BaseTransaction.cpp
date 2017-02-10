@@ -159,3 +159,9 @@ TransactionResult::Shared BaseTransaction::transactionResultFromCommand (
     transactionResult->setCommandResult(result);
     return TransactionResult::Shared(transactionResult);
 }
+
+const string BaseTransaction::logHeader() const {
+    stringstream s;
+    s << "[UUID = " << UUID() << "]: ";
+    return s.str();
+}

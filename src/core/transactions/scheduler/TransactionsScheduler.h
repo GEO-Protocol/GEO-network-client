@@ -4,7 +4,7 @@
 #include "../../common/Types.h"
 #include "../../common/time/TimeUtils.h"
 
-#include "../transactions/BaseTransaction.h"
+#include "../transactions/base/BaseTransaction.h"
 #include "../transactions/result/TransactionResult.h"
 #include "../../network/messages/response/Response.h"
 

@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONUUID_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONUUID_H
 
-#include "../common/NodeUUID.h"
+#include "../../../common/NodeUUID.h"
 
 
 /*

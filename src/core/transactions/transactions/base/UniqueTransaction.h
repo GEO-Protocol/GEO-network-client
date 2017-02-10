@@ -1,9 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_UNIQUETRANSACTION_H
 #define GEO_NETWORK_CLIENT_UNIQUETRANSACTION_H
 
-#include "../BaseTransaction.h"
+#include "BaseTransaction.h"
 
-#include "../../TransactionUUID.h"
+#include "TransactionUUID.h"
 #include "../../../common/NodeUUID.h"
 
 #include "../../scheduler/TransactionsScheduler.h"

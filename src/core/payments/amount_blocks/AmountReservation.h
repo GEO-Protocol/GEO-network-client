@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_AMOUNTBLOCK_H
 
 #include "../../common/Types.h"
-#include "../../transactions/TransactionUUID.h"
+#include "../../transactions/transactions/base/TransactionUUID.h"
 
 
 /*
