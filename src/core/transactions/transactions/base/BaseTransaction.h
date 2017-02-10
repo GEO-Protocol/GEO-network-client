@@ -1,16 +1,15 @@
 #ifndef GEO_NETWORK_CLIENT_BASETRANSACTION_H
 #define GEO_NETWORK_CLIENT_BASETRANSACTION_H
 
-#include "../../common/Types.h"
-#include "../../common/memory/MemoryUtils.h"
+#include "TransactionUUID.h"
+#include "../result/TransactionResult.h"
 
-#include "../TransactionUUID.h"
-#include "../../common/NodeUUID.h"
+#include "../../../common/NodeUUID.h"
+#include "../../../common/Types.h"
+#include "../../../common/memory/MemoryUtils.h"
 
-#include "../../network/messages/Message.hpp"
-#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
-
-#include "result/TransactionResult.h"
+#include "../../../network/messages/Message.hpp"
+#include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 #include <boost/signals2.hpp>
 
@@ -37,7 +36,10 @@ public:
         RejectTrustLineTransactionType,
         SendRoutingTablesTransactionType,
         AcceptRoutingTablesTransactionType,
-        CoordinatorPaymentTransaction
+
+        // Payments
+        CoordinatorPaymentTransaction,
+        ReceiverPaymentTransaction
     };
 
 public:

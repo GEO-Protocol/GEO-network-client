@@ -24,8 +24,8 @@
 #include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../../network/messages/response/Response.h"
 
-#include "../transactions/BaseTransaction.h"
-#include "../transactions/unique/UniqueTransaction.h"
+#include "../transactions/base/BaseTransaction.h"
+#include "../transactions/base/UniqueTransaction.h"
 #include "../transactions/unique/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/AcceptTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/CloseTrustLineTransaction.h"
@@ -33,6 +33,7 @@
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
+#include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -87,9 +88,15 @@ private:
     void launchRejectTrustLineTransaction(
         RejectTrustLineMessage::Shared message);
 
-    void launchCreditUsageTransaction(
+private:
+    // Payment transactions
+    void launchCoordinatorPaymentTransaction(
         CreditUsageCommand::Shared command);
 
+    void launchReceiverPaymentTransaction(
+        ReceiverInitPaymentMessage::Shared message);
+
+private:
     void subscribeForOutgoingMessages(
         BaseTransaction::SendMessageSignal &signal);
 

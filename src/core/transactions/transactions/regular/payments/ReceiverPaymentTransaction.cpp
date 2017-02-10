@@ -25,7 +25,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     deserializeFromBytes(buffer);
 }
 
-TransactionResult::Shared ReceiverPaymentTransaction::run() {
+TransactionResult::SharedConst ReceiverPaymentTransaction::run() {
 
     switch (mStep) {
         case 1: {
@@ -74,7 +74,7 @@ TransactionResult::Shared ReceiverPaymentTransaction::initOperation() {
     addMessage(message, mMessage->senderUUID());
 
 #ifdef TRANSACTIONS_LOG
-    info << logHeader()
+    info
          << "Payment operation from node "
          << mMessage->senderUUID()
          << "succesfully initialised";
@@ -96,7 +96,7 @@ TransactionResult::Shared ReceiverPaymentTransaction::processAmountBlockingStage
     // todo: check for amount blocking messages
 
 #ifdef TRANSACTIONS_LOG
-    info << logHeader()
+    info
          << "No amount block message was received. "
          << "Transaction is now would be closed.";
 #endif

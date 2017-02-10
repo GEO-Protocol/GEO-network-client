@@ -20,11 +20,14 @@ public:
     enum ResultType {
         CommandResultType = 1,
         MessageResultType = 2,
-        TransactionStateType = 3
+        TransactionStateType = 3,
     };
 
 public:
     TransactionResult();
+
+    TransactionResult(
+        TransactionState::Shared transactionState);
 
     void setCommandResult(
         CommandResult::SharedConst commandResult);
@@ -43,12 +46,9 @@ public:
 
     ResultType resultType() const;
 
-
 private:
     CommandResult::SharedConst mCommandResult;
     MessageResult::SharedConst mMessageResult;
     TransactionState::SharedConst mTransactionState;
 };
-
-
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONRESULT_H

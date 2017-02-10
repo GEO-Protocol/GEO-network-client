@@ -1,25 +1,42 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 
-#include "../../../../common/Types.h"
-#include "../../../../common/time/TimeUtils.h"
-
 #include "../../../../network/messages/Message.hpp"
+
+#include "boost/date_time.hpp"
 
 #include <stdint.h>
 #include <vector>
 
 
 using namespace std;
+namespace datetime = boost::posix_time;
+
 
 class TransactionState {
 public:
     typedef shared_ptr<TransactionState> Shared;
     typedef shared_ptr<const TransactionState> SharedConst;
+    typedef uint64_t AwakeTimestamp;
+
+public:
+    // Readable shortcats for states creation.
+
+    // todo: think to move this into separate file,
+    // todo: that would be available for the rest source files.
+    static datetime::ptime& GEOEpoch();
+
+    static TransactionState::Shared exit();
+    static TransactionState::Shared awakeAsFastAsPossible();
+    static TransactionState::Shared awakeAfterMilliseconds(
+        uint16_t milliseconds);
+    static TransactionState::Shared waitForMessageTypes(
+        vector<Message::MessageTypeID> &&requiredMessageType,
+        uint16_t noLongerThanMilliseconds=0);
 
 public:
     TransactionState(
-        MicrosecondsTimestamp awakeTimestamp,
+        uint64_t awakeTimestamp,
         bool flushToPermanentStorage = false);
 
     TransactionState(
@@ -27,26 +44,27 @@ public:
         bool flushToPermanentStorage = false);
 
     TransactionState(
-        MicrosecondsTimestamp awakeTimestamp,
+        uint64_t awakeTimestamp,
         Message::MessageTypeID requiredMessageType,
         bool flushToPermanentStorage = false);
 
     ~TransactionState();
 
 public:
-    static TransactionState::SharedConst awakeAsFastAsPossible();
+    const uint64_t awakeningTimestamp() const;
 
-    static TransactionState::SharedConst awakeAfterTimeout(
-        MicrosecondsTimestamp microseconds);
-
-    const MicrosecondsTimestamp awakeningTimestamp() const;
-
-    const vector<Message::MessageTypeID> &acceptedMessagesTypes() const;
+    const vector<Message::MessageTypeID>& acceptedMessagesTypes() const;
 
     const bool needSerialize() const;
 
+    const bool mustBeRescheduled() const;
+
 private:
-    MicrosecondsTimestamp mAwakeningTimestamp;
+    static AwakeTimestamp timestampFromTheGEOEpoch(
+        datetime::ptime &timestamp);
+
+private:
+    uint64_t mAwakeningTimestamp;
     vector<Message::MessageTypeID> mRequiredMessageTypes;
     bool mFlushToPermanentStorage;
 };

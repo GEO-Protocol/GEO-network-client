@@ -4,7 +4,7 @@
 #include "../../common/Types.h"
 #include "../../common/time/TimeUtils.h"
 
-#include "../transactions/BaseTransaction.h"
+#include "../transactions/base/BaseTransaction.h"
 #include "../transactions/result/TransactionResult.h"
 #include "../../network/messages/response/Response.h"
 
@@ -86,6 +86,12 @@ private:
         const boost::system::error_code &error);
 
     bool isTransactionScheduled(
+        BaseTransaction::Shared transaction);
+
+    void processNextTransactions();
+    void serializeTransaction(
+        BaseTransaction::Shared transaction);
+    void forgetTransaction(
         BaseTransaction::Shared transaction);
 
 public:

@@ -31,7 +31,7 @@ public:
         TrustLinesManager *trustLines,
         Logger *log);
 
-    TransactionResult::Shared run();
+    TransactionResult::SharedConst run();
 
     pair<BytesShared, size_t> serializeToBytes();
 
