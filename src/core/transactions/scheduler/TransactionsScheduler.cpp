@@ -90,16 +90,17 @@ void TransactionsScheduler::launchTransaction(
     BaseTransaction::Shared transaction) {
 
     try {
+        // Even if transaction will raise an exception -
+        // it must not be thrown up,
+        // to not to break transactions processing flow.
 
         auto result = transaction->run();
-
         handleTransactionResult(
             transaction,
-            result
-        );
+            result);
 
     } catch (exception &e) {
-
+        // todo: add production log here. (this one is unusable)
         auto errors = mLog->error("TransactionsScheduler");
         errors << "Transaction interrupted with exception: "
                << "transaction type: " << transaction->transactionType()
@@ -265,17 +266,43 @@ void TransactionsScheduler::asyncWaitUntil(
 void TransactionsScheduler::handleAwakening(
     const boost::system::error_code &error) {
 
-    if (error) {
-        throw RuntimeError(
-            string("TransactionsScheduler::handleAwakening: "
-                       "Error occurred: ") + error.message());
+    static auto errorsCount = 0;
+
+    if (error &&
+        error != as::error::operation_aborted) {
+
+        auto errors = mLog->error("TransactionsScheduler::handleAwakening");
+        if (errorsCount < 10) {
+            errors << "Error occurred on planned awakening. Details: " << error.message().c_str()
+                   << ". Next awakening would be scheduled for" << errorsCount << " seconds from now.";
+
+            // Transactions processing must not be cancelled.
+            // Next awakening would be delayed for 10 seconds
+            // (for cases when OS runs out of memory, or similar).
+            asyncWaitUntil(
+                microsecondsTimestamp(
+                    now() + boost::posix_time::seconds(errorsCount)));
+
+        } else {
+            errors << "Some error repeatedly occurs on planned awakening "
+                   << "and it seems that it can't be recovered automatically."
+                   << "Next awakening would not be planned.";
+
+            throw RuntimeError(
+                "TransactionsScheduler::handleAwakening: "
+                    "some error repeated too much times");
+        }
     }
 
     try {
         auto transactionAndState = transactionWithMinimalAwakeningTimestamp();
         launchTransaction(transactionAndState.first);
 
-    } catch (NotFoundError&) {
+        errorsCount = 0;
+
+    } catch (NotFoundError &) {
+        // There are no transactions left.
+        // Awakenings cycle reached the end.
         return;
     }
 }

@@ -19,7 +19,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-#include <boost/function.hpp>
+#include <boost/signals2.hpp>
 
 #include <map>
 #include <memory>
@@ -29,36 +29,28 @@ using namespace std;
 
 namespace as = boost::asio;
 namespace storage = db::uuid_map_block_storage;
+namespace signals = boost::signals2;
 
-// todo: (DM) is it really must be pubic for all the components?
-typedef boost::function<void(CommandResult::SharedConst)> ManagerCallback;
-
-// todo: hsc: thnk how to implement transactions uniqueness in scheduler logic.
 class TransactionsScheduler {
+public:
+    typedef signals::signal<void(CommandResult::SharedConst)> CommandResultSignal;
+
 public:
     TransactionsScheduler(
         as::io_service &IOService,
         storage::UUIDMapBlockStorage *storage,
-        ManagerCallback managerCallback,
         Logger *logger);
-
-    // todo: (DM) remove this in favour of unique_ptr
-    ~TransactionsScheduler();
 
     void run();
 
     void scheduleTransaction(
         BaseTransaction::Shared transaction);
 
-    void postponeRoutingTableTransaction(
-        BaseTransaction::Shared transaction);
-
-    // todo: (DM) is it really must be public?
-    void killTransaction(
-        const TransactionUUID &transactionUUID);
-
     void handleMessage(
         Message::Shared message);
+
+    void killTransaction(
+        const TransactionUUID &transactionUUID);
 
     friend const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
         TransactionsScheduler *scheduler);
@@ -69,49 +61,43 @@ private:
 
     void handleTransactionResult(
         BaseTransaction::Shared transaction,
-        TransactionResult::Shared result);
+        TransactionResult::SharedConst result);
 
-    void forgetTransaction(
-        BaseTransaction::Shared transaction);
+    void processCommandResult(
+        BaseTransaction::Shared transaction,
+        CommandResult::SharedConst result);
 
-    void serializeTransaction(
-        BaseTransaction::Shared transaction);
+    void processMessageResult(
+        BaseTransaction::Shared transaction,
+        MessageResult::SharedConst result);
 
-    void processNextTransactions();
+    void processTransactionState(
+        BaseTransaction::Shared transaction,
+        TransactionState::SharedConst state);
 
-    // todo: it should be removed in favour of transactionWithMinimalAwakeningTimestamp();
-    pair<BaseTransaction::Shared, Duration> nextDelayedTransaction();
-
-    pair<BaseTransaction::Shared, TransactionState::AwakeTimestamp> transactionWithMinimalAwakeningTimestamp() const;
+    pair<BaseTransaction::Shared, MicrosecondsTimestamp> transactionWithMinimalAwakeningTimestamp() const;
 
     void adjustAwakeningToNextTransaction();
 
-    // todo: (DM) remove this (see asyncWaitUntil);
-    // todo: (DM) this is renamed sleepFor()
-    void rescheduleNextInterruption(
-        Duration delay);
-
     void asyncWaitUntil(
-        TransactionState::AwakeTimestamp nextAwakeningTimestamp);
+        MicrosecondsTimestamp nextAwakeningTimestamp);
 
     void handleAwakening(
         const boost::system::error_code &error);
 
-    bool isTransactionInScheduler(
+    bool isTransactionScheduled(
         BaseTransaction::Shared transaction);
 
-    MicrosecondsTimestamp now() const;
+public:
+    mutable CommandResultSignal commandResultIsReadySignal;
 
 private:
-    const uint64_t kPostponeMillisecondsTime = 500;
-
     as::io_service &mIOService;
     storage::UUIDMapBlockStorage *mStorage;
-    ManagerCallback mManagerCallback;
     Logger *mLog;
 
-    as::deadline_timer *mProcessingTimer; // todo: make unique_ptr
-    map<BaseTransaction::Shared, TransactionState::SharedConst> *mTransactions; // todo: make unique_ptr
+    unique_ptr<as::deadline_timer> mProcessingTimer;
+    unique_ptr<map<BaseTransaction::Shared, TransactionState::SharedConst>> mTransactions;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
