@@ -88,6 +88,12 @@ private:
     bool isTransactionScheduled(
         BaseTransaction::Shared transaction);
 
+    void processNextTransactions();
+    void serializeTransaction(
+        BaseTransaction::Shared transaction);
+    void forgetTransaction(
+        BaseTransaction::Shared transaction);
+
 public:
     mutable CommandResultSignal commandResultIsReadySignal;
 

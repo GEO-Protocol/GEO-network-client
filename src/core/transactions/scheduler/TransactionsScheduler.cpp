@@ -117,98 +117,64 @@ void TransactionsScheduler::handleTransactionResult(
         case TransactionResult::ResultType::CommandResultType: {
             processCommandResult(
                 transaction,
-                result->commandResult()
-            );
+                result->commandResult());
         }
 
         case TransactionResult::ResultType::MessageResultType: {
             processMessageResult(
                 transaction,
-                result->messageResult()
-            );
+                result->messageResult());
         }
 
         case TransactionResult::ResultType::TransactionStateType: {
             processTransactionState(
                 transaction,
-                result->state()
-            );
-        }
-
-        default: {
-            break;
+                result->state());
         }
     }
 
+    processNextTransactions();
 }
 
 void TransactionsScheduler::processCommandResult(
     BaseTransaction::Shared transaction,
     CommandResult::SharedConst result) {
 
-    if (isTransactionScheduled(transaction)) {
-        commandResultIsReadySignal(result);
-        if (mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
-            mStorage->erase(
-                storage::uuids::uuid(transaction->UUID())
-            );
-        }
-        mTransactions->erase(transaction);
+#ifdef DEBUG
+    assert(isTransactionScheduled(transaction));
+#endif
 
-    } else {
-        throw ValueError("TransactionsManager::handleTransactionResult. "
-                             "Transaction reference must be store in memory.");
-    }
+    commandResultIsReadySignal(result);
+    forgetTransaction(transaction);
 }
 
 void TransactionsScheduler::processMessageResult(
     BaseTransaction::Shared transaction,
     MessageResult::SharedConst result) {
 
-    if (isTransactionScheduled(transaction)) {
-        if (mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
-            mStorage->erase(
-                storage::uuids::uuid(transaction->UUID())
-            );
-        }
-        mTransactions->erase(transaction);
+#ifdef DEBUG
+    assert(isTransactionScheduled(transaction));
+#endif
 
-    } else {
-        throw ValueError("TransactionsManager::processMessageResult. "
-                             "Transaction reference must be store in memory.");
-    }
+    // todo: add writing to remote transactions results log.
+    forgetTransaction(transaction);
 }
 
 void TransactionsScheduler::processTransactionState(
     BaseTransaction::Shared transaction,
     TransactionState::SharedConst state) {
 
-    if (isTransactionScheduled(transaction)) {
-        auto transactionAndState = mTransactions->find(transaction);
-        transactionAndState->second = state;
-        if (transactionAndState->second->needSerialize()) {
+#ifdef DEBUG
+    assert(isTransactionScheduled(transaction));
+#endif
 
-            auto transactionBytesAndCount = transaction->serializeToBytes();
-            if (!mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
-                mStorage->write(
-                    storage::uuids::uuid(transaction->UUID()),
-                    transactionBytesAndCount.first.get(),
-                    transactionBytesAndCount.second
-                );
+    // Update state
+    mTransactions->insert(
+        make_pair(
+            transaction, state));
 
-            } else {
-                mStorage->rewrite(
-                    storage::uuids::uuid(transaction->UUID()),
-                    transactionBytesAndCount.first.get(),
-                    transactionBytesAndCount.second
-                );
-            }
-        }
-
-    } else {
-        throw ValueError("TransactionsManager::TransactionsScheduler"
-                             "Transaction reference must be store in memory");
-    }
+    if (state->needSerialize())
+        serializeTransaction(transaction);
 }
 
 void TransactionsScheduler::adjustAwakeningToNextTransaction() {
@@ -317,4 +283,61 @@ const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
     TransactionsScheduler *scheduler) {
 
     return scheduler->mTransactions.get();
+}
+
+void TransactionsScheduler::processNextTransactions(){
+
+    for (size_t iteration=0; iteration<64; ++iteration){
+        try {
+            auto transactionAndTimestamp = transactionWithMinimalAwakeningTimestamp();
+
+            if (transactionAndTimestamp.second >= microsecondsTimestamp(now())) {
+                asyncWaitUntil(transactionAndTimestamp.second);
+
+            } else {
+                // Next transaction is ready to be executed.
+                // There is no reason to run one more async calls cycle:
+                // transaction may be launched directly;
+                //
+                // WARN:
+                // Iterations count is limited to prevent ignoring async loop (and network messages),
+                // and stack overflowing;
+                launchTransaction(transactionAndTimestamp.first);
+            }
+
+        } catch (NotFoundError) {
+            // No delayed transaction is present.
+            break;
+        }
+    }
+}
+
+void TransactionsScheduler::forgetTransaction(
+    BaseTransaction::Shared transaction) {
+
+    mTransactions->erase(transaction);
+
+    try {
+        mStorage->erase(
+            storage::uuids::uuid(transaction->UUID()));
+
+    } catch (IndexError &) {}
+}
+
+void TransactionsScheduler::serializeTransaction(
+    BaseTransaction::Shared transaction) {
+
+    auto transactionBytesAndCount = transaction->serializeToBytes();
+    if (!mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
+        mStorage->write(
+            storage::uuids::uuid(transaction->UUID()),
+            transactionBytesAndCount.first.get(),
+            transactionBytesAndCount.second);
+
+    } else {
+        mStorage->rewrite(
+            storage::uuids::uuid(transaction->UUID()),
+            transactionBytesAndCount.first.get(),
+            transactionBytesAndCount.second);
+    }
 }
