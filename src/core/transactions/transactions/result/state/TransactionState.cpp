@@ -97,6 +97,10 @@ const bool TransactionState::mustBeRescheduled() const {
     return (mAwakeningTimestamp != 0) || (acceptedMessagesTypes().size() > 0);
 }
 
+const bool TransactionState::mustExit() const {
+    return !mustBeRescheduled();
+}
+
 datetime::ptime &TransactionState::GEOEpoch() {
     static boost::posix_time::ptime GEOEpoch(
         boost::gregorian::date(2015, boost::gregorian::Feb, 2));

@@ -168,13 +168,16 @@ void TransactionsScheduler::processTransactionState(
     assert(isTransactionScheduled(transaction));
 #endif
 
-    // Update state
-    mTransactions->insert(
-        make_pair(
-            transaction, state));
+    if (state->mustBeRescheduled()){
+        if (state->needSerialize())
+            serializeTransaction(transaction);
 
-    if (state->needSerialize())
-        serializeTransaction(transaction);
+        mTransactions->insert(
+            make_pair(
+                transaction, state));
+    } else {
+        forgetTransaction(transaction);
+    }
 }
 
 void TransactionsScheduler::adjustAwakeningToNextTransaction() {
@@ -194,26 +197,37 @@ pair<BaseTransaction::Shared, MicrosecondsTimestamp> TransactionsScheduler::tran
     if (mTransactions->empty()) {
         throw NotFoundError(
             "TransactionsScheduler::transactionWithMinimalAwakeningTimestamp: "
-                "There is no delayed any transactions.");
+                "there are no any delayed transactions.");
     }
 
-    BaseTransaction::Shared transaction(nullptr);
-    MicrosecondsTimestamp awakeningTimestamp = 0;
+    auto nextTransactionAndState = mTransactions->cbegin();
+    for (auto it=(mTransactions->cbegin()++); it != mTransactions->cend(); ++it){
+        if (it->second == nullptr) {
+            // Transaction has no state, and, as a result, doesn't have timeout set.
+            // Therefore, it can't be considered for awakening by the timeout.
+            continue;
+        }
 
-    for (auto &transactionAndState : *mTransactions) {
-        auto transactionState = transactionAndState.second;
-        if (transactionState != nullptr) {
-            if (transactionState->awakeningTimestamp() < awakeningTimestamp) {
-                awakeningTimestamp = transactionState->awakeningTimestamp();
-                transaction = transactionAndState.first;
-            }
+        if (it->second->awakeningTimestamp() == 0) {
+            // Zero in transaction state indicates that this transaction must not be scheduled by the timeout.
+            // (it has state, and this state contains required messages types)
+            continue;
+        }
+
+        if (it->second->awakeningTimestamp() < nextTransactionAndState->second->awakeningTimestamp()){
+            nextTransactionAndState = it;
         }
     }
 
-    return make_pair(
-        transaction,
-        awakeningTimestamp
-    );
+    if (nextTransactionAndState->second->mustBeRescheduled()){
+        return make_pair(
+            nextTransactionAndState->first,
+            nextTransactionAndState->second->awakeningTimestamp());
+    }
+
+    throw NotFoundError(
+        "TransactionsScheduler::transactionWithMinimalAwakeningTimestamp: "
+            "there are no any delayed transactions.");
 }
 
 void TransactionsScheduler::asyncWaitUntil(

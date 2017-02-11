@@ -59,6 +59,8 @@ public:
 
     const bool mustBeRescheduled() const;
 
+    const bool mustExit() const;
+
 private:
     static AwakeTimestamp timestampFromTheGEOEpoch(
         datetime::ptime &timestamp);
