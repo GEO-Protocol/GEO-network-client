@@ -306,21 +306,25 @@ const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
 
 void TransactionsScheduler::processNextTransactions(){
 
-    for (size_t iteration=0; iteration<64; ++iteration){
+    const size_t maxTAWithoutInterruption = 64;
+    for (size_t iteration=0; iteration < maxTAWithoutInterruption; ++iteration){
         try {
             auto transactionAndTimestamp = transactionWithMinimalAwakeningTimestamp();
             if (microsecondsSinceGEOEpoch(utc_now()) >= transactionAndTimestamp.second) {
                 // Next transaction is ready to be executed.
-                // There is no reason to run one more async call:
-                // transaction may be launched directly;
+                // (there is no reason to run one more async call: next transaction may be launched directly).
                 //
-                // WARN:
-                // Iterations count is limited to prevent ignoring async loop (and network messages),
-                // and stack overflowing;
+                // Note:
+                // Transactions that may be launched in this manner is limited,
+                // to prevent ignoring async loop (and network messages)
+                // in case when node is executing huge amount of transactions;
                 launchTransaction(transactionAndTimestamp.first);
 
             } else {
                 asyncWaitUntil(transactionAndTimestamp.second);
+
+                // Note: asyncWaitUntil call will not block.
+                // "return" is needed to prevent multiple transactions scheduling.
                 return;
             }
 
