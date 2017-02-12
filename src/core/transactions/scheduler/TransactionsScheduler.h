@@ -75,12 +75,12 @@ private:
         BaseTransaction::Shared transaction,
         TransactionState::SharedConst state);
 
-    pair<BaseTransaction::Shared, MicrosecondsTimestamp> transactionWithMinimalAwakeningTimestamp() const;
+    pair<BaseTransaction::Shared, GEOEpochTimestamp> transactionWithMinimalAwakeningTimestamp() const;
 
     void adjustAwakeningToNextTransaction();
 
     void asyncWaitUntil(
-        MicrosecondsTimestamp nextAwakeningTimestamp);
+        GEOEpochTimestamp nextAwakeningTimestamp);
 
     void handleAwakening(
         const boost::system::error_code &error);

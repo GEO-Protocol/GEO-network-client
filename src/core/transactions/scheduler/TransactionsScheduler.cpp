@@ -10,11 +10,7 @@ TransactionsScheduler::TransactionsScheduler(
     mLog(logger),
 
     mTransactions(new map<BaseTransaction::Shared, TransactionState::SharedConst>()),
-
-    mProcessingTimer(new as::deadline_timer(
-        mIOService,
-        posix::milliseconds(2 * 1000))
-    ) {
+    mProcessingTimer(new as::deadline_timer(mIOService)) {
 }
 
 /*!
@@ -118,18 +114,21 @@ void TransactionsScheduler::handleTransactionResult(
             processCommandResult(
                 transaction,
                 result->commandResult());
+            break;
         }
 
         case TransactionResult::ResultType::MessageResultType: {
             processMessageResult(
                 transaction,
                 result->messageResult());
+            break;
         }
 
         case TransactionResult::ResultType::TransactionStateType: {
             processTransactionState(
                 transaction,
                 result->state());
+            break;
         }
     }
 
@@ -172,9 +171,16 @@ void TransactionsScheduler::processTransactionState(
         if (state->needSerialize())
             serializeTransaction(transaction);
 
-        mTransactions->insert(
-            make_pair(
-                transaction, state));
+        // From the c++ reference:
+        //
+        // std::map::insert:
+        // ... Because element keys in a map are unique,
+        // the insertion operation checks whether each inserted element has a key
+        // equivalent to the one of an element already in the container, and if so,
+        // the element is NOT INSERTED, ...
+        //
+        // So the [] operator must be used
+        (*mTransactions)[transaction] = state;
     } else {
         forgetTransaction(transaction);
     }
@@ -192,7 +198,7 @@ void TransactionsScheduler::adjustAwakeningToNextTransaction() {
  *
  * Throws NotFoundError in case if no transactions are delayed.
  */
-pair<BaseTransaction::Shared, MicrosecondsTimestamp> TransactionsScheduler::transactionWithMinimalAwakeningTimestamp() const {
+pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transactionWithMinimalAwakeningTimestamp() const {
 
     if (mTransactions->empty()) {
         throw NotFoundError(
@@ -205,12 +211,6 @@ pair<BaseTransaction::Shared, MicrosecondsTimestamp> TransactionsScheduler::tran
         if (it->second == nullptr) {
             // Transaction has no state, and, as a result, doesn't have timeout set.
             // Therefore, it can't be considered for awakening by the timeout.
-            continue;
-        }
-
-        if (it->second->awakeningTimestamp() == 0) {
-            // Zero in transaction state indicates that this transaction must not be scheduled by the timeout.
-            // (it has state, and this state contains required messages types)
             continue;
         }
 
@@ -231,11 +231,16 @@ pair<BaseTransaction::Shared, MicrosecondsTimestamp> TransactionsScheduler::tran
 }
 
 void TransactionsScheduler::asyncWaitUntil(
-    MicrosecondsTimestamp nextAwakeningTimestamp) {
+    GEOEpochTimestamp nextAwakeningTimestamp) {
+
+    auto awakeningDateTime =
+        dateTimeFromGEOEpochTimestamp(
+            nextAwakeningTimestamp);
 
     mProcessingTimer->cancel();
-    mProcessingTimer->expires_at(
-        posixTimestamp(nextAwakeningTimestamp));
+    mProcessingTimer->expires_from_now(
+        awakeningDateTime - utc_now());
+
     mProcessingTimer->async_wait(
         boost::bind(
             &TransactionsScheduler::handleAwakening,
@@ -260,12 +265,12 @@ void TransactionsScheduler::handleAwakening(
             // Next awakening would be delayed for 10 seconds
             // (for cases when OS runs out of memory, or similar).
             asyncWaitUntil(
-                microsecondsTimestamp(
-                    now() + boost::posix_time::seconds(errorsCount)));
+                microsecondsSinceGEOEpoch(
+                    utc_now() + pt::seconds(errorsCount)));
 
         } else {
-            errors << "Some error repeatedly occurs on planned awakening "
-                   << "and it seems that it can't be recovered automatically."
+            errors << "Some error repeatedly occurs on awakening. "
+                   << "It seems that it can't be recovered automatically."
                    << "Next awakening would not be planned.";
 
             throw RuntimeError(
@@ -304,25 +309,33 @@ void TransactionsScheduler::processNextTransactions(){
     for (size_t iteration=0; iteration<64; ++iteration){
         try {
             auto transactionAndTimestamp = transactionWithMinimalAwakeningTimestamp();
-
-            if (transactionAndTimestamp.second >= microsecondsTimestamp(now())) {
-                asyncWaitUntil(transactionAndTimestamp.second);
-
-            } else {
+            if (microsecondsSinceGEOEpoch(utc_now()) >= transactionAndTimestamp.second) {
                 // Next transaction is ready to be executed.
-                // There is no reason to run one more async calls cycle:
+                // There is no reason to run one more async call:
                 // transaction may be launched directly;
                 //
                 // WARN:
                 // Iterations count is limited to prevent ignoring async loop (and network messages),
                 // and stack overflowing;
                 launchTransaction(transactionAndTimestamp.first);
+
+            } else {
+                asyncWaitUntil(transactionAndTimestamp.second);
+                return;
             }
 
         } catch (NotFoundError) {
-            // No delayed transaction is present.
-            break;
+            // No delayed transactions are present.
+            return;
         }
+    }
+
+    // Transactions limit reached
+    // Force interruption to process sockets,
+    // but only if other transactions are present in queue.
+    if (mTransactions->size() > 0){
+        asyncWaitUntil(
+            TransactionState::awakeAfterMilliseconds(50)->awakeningTimestamp());
     }
 }
 

@@ -36,7 +36,7 @@ public:
 
     const string &identifier() const;
 
-    const Timestamp &timestampAccepted() const;
+    const DateTime &timestampAccepted() const;
 
     CommandResult::SharedConst unexpectedErrorResult();
 
@@ -53,7 +53,7 @@ protected:
 
 private:
     CommandUUID mCommandUUID;
-    Timestamp mTimestampAccepted;
+    DateTime mTimestampAccepted;
     const string mCommandIdentifier;
 };
 #endif //GEO_NETWORK_CLIENT_COMMAND_H

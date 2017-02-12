@@ -11,7 +11,7 @@ BaseUserCommand::BaseUserCommand(
 
     mCommandUUID(commandUUID),
     mCommandIdentifier(identifier),
-    mTimestampAccepted(posix::microsec_clock::universal_time()) {}
+    mTimestampAccepted(utc_now()) {}
 
 
 const CommandUUID &BaseUserCommand::UUID() const {
@@ -24,14 +24,14 @@ const string &BaseUserCommand::identifier() const {
     return mCommandIdentifier;
 }
 
-const Timestamp &BaseUserCommand::timestampAccepted() const {
+const DateTime &BaseUserCommand::timestampAccepted() const {
 
     return mTimestampAccepted;
 }
 
 pair<BytesShared, size_t> BaseUserCommand::serializeToBytes() const {
 
-    size_t bytesCount = CommandUUID::kBytesSize + sizeof(MicrosecondsTimestamp);
+    size_t bytesCount = CommandUUID::kBytesSize + sizeof(GEOEpochTimestamp);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //-----------------------------------------------------
@@ -42,11 +42,11 @@ pair<BytesShared, size_t> BaseUserCommand::serializeToBytes() const {
     );
     dataBytesOffset += CommandUUID::kBytesSize;
     //-----------------------------------------------------
-    MicrosecondsTimestamp timestamp = microsecondsTimestamp(mTimestampAccepted);
+    GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(mTimestampAccepted);
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &timestamp,
-        sizeof(MicrosecondsTimestamp)
+        sizeof(GEOEpochTimestamp)
     );
     //-----------------------------------------------------
     return make_pair(
@@ -68,12 +68,12 @@ void BaseUserCommand::deserializeFromBytes(
     bytesBufferOffset += CommandUUID::kBytesSize;
     //-----------------------------------------------------
     uint64_t *commandAcceptedTimestamp = new (buffer.get() + bytesBufferOffset) uint64_t;
-    mTimestampAccepted = posixTimestamp((MicrosecondsTimestamp) *commandAcceptedTimestamp);
+    mTimestampAccepted = dateTimeFromGEOEpochTimestamp((GEOEpochTimestamp) *commandAcceptedTimestamp);
 }
 
 const size_t BaseUserCommand::kOffsetToInheritedBytes() {
 
-    static const size_t offset = CommandUUID::kHexSize + sizeof(MicrosecondsTimestamp);
+    static const size_t offset = CommandUUID::kHexSize + sizeof(GEOEpochTimestamp);
     return offset;
 }
 

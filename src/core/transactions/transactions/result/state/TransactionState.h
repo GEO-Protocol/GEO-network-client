@@ -1,9 +1,8 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 
+#include "../../../../common/time/TimeUtils.h"
 #include "../../../../network/messages/Message.hpp"
-
-#include "boost/date_time.hpp"
 
 #include <stdint.h>
 #include <vector>
@@ -17,15 +16,9 @@ class TransactionState {
 public:
     typedef shared_ptr<TransactionState> Shared;
     typedef shared_ptr<const TransactionState> SharedConst;
-    typedef uint64_t AwakeTimestamp;
 
 public:
-    // Readable shortcats for states creation.
-
-    // todo: think to move this into separate file,
-    // todo: that would be available for the rest source files.
-    static datetime::ptime& GEOEpoch();
-
+    // Readable shortcuts for states creation.
     static TransactionState::Shared exit();
     static TransactionState::Shared awakeAsFastAsPossible();
     static TransactionState::Shared awakeAfterMilliseconds(
@@ -36,7 +29,7 @@ public:
 
 public:
     TransactionState(
-        uint64_t awakeTimestamp,
+        GEOEpochTimestamp awakeningTimestamp,
         bool flushToPermanentStorage = false);
 
     TransactionState(
@@ -44,14 +37,12 @@ public:
         bool flushToPermanentStorage = false);
 
     TransactionState(
-        uint64_t awakeTimestamp,
+        GEOEpochTimestamp awakeTimestamp,
         Message::MessageTypeID requiredMessageType,
         bool flushToPermanentStorage = false);
-
-    ~TransactionState();
 
 public:
-    const uint64_t awakeningTimestamp() const;
+    const GEOEpochTimestamp awakeningTimestamp() const;
 
     const vector<Message::MessageTypeID>& acceptedMessagesTypes() const;
 
@@ -62,11 +53,7 @@ public:
     const bool mustExit() const;
 
 private:
-    static AwakeTimestamp timestampFromTheGEOEpoch(
-        datetime::ptime &timestamp);
-
-private:
-    uint64_t mAwakeningTimestamp;
+    GEOEpochTimestamp mAwakeningTimestamp;
     vector<Message::MessageTypeID> mRequiredMessageTypes;
     bool mFlushToPermanentStorage;
 };

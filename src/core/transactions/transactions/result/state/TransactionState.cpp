@@ -4,16 +4,20 @@
  * Returns TransactionState that simply closes the transaction.
  */
 TransactionState::Shared TransactionState::exit() {
-    return make_shared<TransactionState>(0);
+    // WARN:
+    // Do not use 0 as value for awakeningTimestamp!
+    // It will break scheduler logic for choosing next transaction for execution.
+    return make_shared<TransactionState>(
+        numeric_limits<GEOEpochTimestamp>::max());
 }
 
 /*!
  * Returns TransactionState with awakening timestamp set to current UTC;
  */
 TransactionState::Shared TransactionState::awakeAsFastAsPossible() {
-    auto t = datetime::microsec_clock::universal_time();
+    auto t = utc_now();
     return make_shared<TransactionState>(
-        timestampFromTheGEOEpoch(
+        microsecondsSinceGEOEpoch(
             t));
 }
 
@@ -23,14 +27,14 @@ TransactionState::Shared TransactionState::awakeAsFastAsPossible() {
 TransactionState::Shared TransactionState::awakeAfterMilliseconds(
     uint16_t milliseconds) {
 
-    auto t = datetime::microsec_clock::universal_time() + datetime::microseconds(milliseconds*1000);
+    auto t = utc_now() + pt::microseconds(milliseconds*1000);
     return make_shared<TransactionState>(
-        timestampFromTheGEOEpoch(
+        microsecondsSinceGEOEpoch(
             t));
 }
 
 /*!
- * Returns TransactionState that specifies what kind of mesages transaction is waiting and accepting.
+ * Returns TransactionState that specifies what kind of messages transaction is waiting and accepting.
  * Optionally, may be initialised with deadline timeout.
  */
 TransactionState::Shared TransactionState::waitForMessageTypes(
@@ -51,10 +55,10 @@ TransactionState::Shared TransactionState::waitForMessageTypes(
 }
 
 TransactionState::TransactionState(
-    uint64_t awakeTimestamp,
+    GEOEpochTimestamp awakeningTimestamp,
     bool flushToPermanentStorage) :
 
-    mAwakeningTimestamp(awakeTimestamp) {
+    mAwakeningTimestamp(awakeningTimestamp) {
 
     mFlushToPermanentStorage = flushToPermanentStorage;
 }
@@ -68,20 +72,17 @@ TransactionState::TransactionState(
 }
 
 TransactionState::TransactionState(
-    uint64_t awakeTimestamp,
+    GEOEpochTimestamp awakeningTimestamp,
     Message::MessageTypeID requiredMessageType,
     bool flushToPermanentStorage) :
 
-        mAwakeningTimestamp(awakeTimestamp) {
+        mAwakeningTimestamp(awakeningTimestamp) {
 
     mRequiredMessageTypes.push_back(requiredMessageType);
     mFlushToPermanentStorage = flushToPermanentStorage;
 }
 
-TransactionState::~TransactionState() {
-}
-
-const uint64_t TransactionState::awakeningTimestamp() const {
+const GEOEpochTimestamp TransactionState::awakeningTimestamp() const {
     return mAwakeningTimestamp;
 }
 
@@ -94,31 +95,11 @@ const bool TransactionState::needSerialize() const {
 }
 
 const bool TransactionState::mustBeRescheduled() const {
-    return (mAwakeningTimestamp != 0) || (acceptedMessagesTypes().size() > 0);
+    return
+        (mAwakeningTimestamp != numeric_limits<GEOEpochTimestamp>::max()) ||
+        (acceptedMessagesTypes().size() > 0);
 }
 
 const bool TransactionState::mustExit() const {
     return !mustBeRescheduled();
 }
-
-datetime::ptime &TransactionState::GEOEpoch() {
-    static boost::posix_time::ptime GEOEpoch(
-        boost::gregorian::date(2015, boost::gregorian::Feb, 2));
-
-    return GEOEpoch;
-}
-
-TransactionState::AwakeTimestamp TransactionState::timestampFromTheGEOEpoch(
-    datetime::ptime &timestamp) {
-
-    datetime::time_duration diff = (timestamp - GEOEpoch());
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
-    return diff.total_microseconds();
-#pragma clang diagnostic pop
-}
-
-
-
-

@@ -19,13 +19,6 @@ typedef uint8_t byte;
 typedef std::shared_ptr<byte> BytesShared;
 typedef std::shared_ptr<const byte> ConstBytesShared;
 
-/*
- * Timestamp
- */
-namespace posix = boost::posix_time;
-typedef posix::ptime Timestamp;
-typedef posix::time_duration Duration;
-typedef uint64_t MicrosecondsTimestamp;
 
 /*
  * Trust lines types
