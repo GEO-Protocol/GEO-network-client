@@ -2,10 +2,6 @@
 #define GEO_NETWORK_CLIENT_TYPES_H
 
 #include <boost/multiprecision/cpp_int.hpp>
-#include <boost/date_time.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
-#include <boost/date_time/posix_time/conversion.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 #include <memory>
 #include <cstdint>
@@ -18,15 +14,6 @@ using namespace std;
 typedef uint8_t byte;
 typedef std::shared_ptr<byte> BytesShared;
 typedef std::shared_ptr<const byte> ConstBytesShared;
-
-/*
- * Timestamp
- */
-namespace posix = boost::posix_time;
-typedef posix::ptime Timestamp;
-typedef posix::time_duration Duration;
-typedef uint64_t MicrosecondsTimestamp;
-typedef uint16_t Milliseconds;
 
 /*
  * Trust lines types

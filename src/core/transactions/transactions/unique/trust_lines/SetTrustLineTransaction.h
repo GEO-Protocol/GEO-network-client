@@ -4,6 +4,7 @@
 #include "TrustLineTransaction.h"
 
 #include "../../../../common/Types.h"
+#include "../../../../common/time/TimeUtils.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
@@ -77,7 +78,7 @@ private:
     TransactionResult::SharedConst unexpectedErrorResult();
 
 private:
-    const Milliseconds kConnectionTimeout = 2000;
+    const uint16_t kConnectionTimeout = 2000;
     const uint16_t kMaxRequestsCount = 5;
 
     SetTrustLineCommand::Shared mCommand;

@@ -53,8 +53,10 @@ public:
         return mSenderUUID;
     }
 
+    //TODO:: move into another message
     virtual const TransactionUUID &transactionUUID() const = 0;
 
+    //TODO:: move into another message
     virtual const TrustLineUUID &trustLineUUID() const = 0;
 
     virtual pair<BytesShared, size_t> serializeToBytes() {

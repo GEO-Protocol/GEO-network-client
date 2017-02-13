@@ -37,7 +37,7 @@ public:
 
     pair<BytesShared, size_t> data();
 
-    const Timestamp creationTime() const;
+    const DateTime creationTime() const;
 
     const uint16_t expectedPacketsCount() const;
 
@@ -56,7 +56,7 @@ private:
     void rememberCreationTime();
 
 private:
-    Timestamp mCreationTime;
+    DateTime mCreationTime;
 
     uint16_t mExpectedPacketsCount = 0;
     uint16_t mOutgoingPacketsCount = 0;

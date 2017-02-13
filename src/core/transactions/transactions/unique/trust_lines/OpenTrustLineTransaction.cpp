@@ -218,7 +218,9 @@ void OpenTrustLineTransaction::sendMessageToRemoteNode() {
 TransactionResult::SharedConst OpenTrustLineTransaction::waitingForResponseState() {
 
     TransactionState *transactionState = new TransactionState(
-        kConnectionTimeout,
+        microsecondsSinceGEOEpoch(
+            utc_now() + pt::microseconds(kConnectionTimeout * 1000)
+        ),
         Message::MessageTypeID::ResponseMessageType,
         false
     );

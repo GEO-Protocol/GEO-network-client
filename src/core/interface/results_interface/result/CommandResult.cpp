@@ -5,7 +5,7 @@ CommandResult::CommandResult(
         const uint16_t resultCode) :
 
         mCommandUUID(commandUUID),
-        mTimestampCompleted(posix::microsec_clock::universal_time()) {
+        mTimestampCompleted(utc_now()) {
 
     mResultCode = resultCode;
 }
@@ -16,7 +16,7 @@ CommandResult::CommandResult(
         string &resultInformation) :
 
         mCommandUUID(commandUUID),
-        mTimestampCompleted(posix::microsec_clock::universal_time()),
+        mTimestampCompleted(utc_now()),
         mResultInformation(resultInformation) {
 
     mResultCode = resultCode;
@@ -32,13 +32,14 @@ const uint16_t CommandResult::resultCode() const {
     return mResultCode;
 }
 
-const Timestamp &CommandResult::timestampCompleted() const {
+const DateTime &CommandResult::timestampCompleted() const {
 
     return mTimestampCompleted;
 }
 
 const string CommandResult::serialize() const {
 
+    // todo: (DM) use tokens constants instead of "\t" and "\n".
     if (!mResultInformation.empty()) {
         return mCommandUUID.stringUUID() + "\t" +
                boost::lexical_cast<string>(mResultCode) + "\t" +

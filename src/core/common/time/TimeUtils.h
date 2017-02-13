@@ -1,57 +1,48 @@
 #ifndef GEO_NETWORK_CLIENT_TIME_UTILS_H
 #define GEO_NETWORK_CLIENT_TIME_UTILS_H
 
-#include "../Types.h"
+#include <boost/date_time.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/date_time/posix_time/conversion.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 #include <cstdint>
 
+
 using namespace std;
+namespace pt = boost::posix_time;
+namespace gt = boost::gregorian;
 
-// todo: move thins into "time_utils" namespace;
 
-// todo: DEPRECATED
-inline const Timestamp epoch() {
+typedef pt::ptime DateTime;
+typedef pt::time_duration Duration;
+typedef uint64_t GEOEpochTimestamp;
 
-    static const Timestamp Epoch(
-        boost::gregorian::date(
-            1970, boost::gregorian::Jan, 1));
 
-    return Epoch;
-}
+inline const DateTime GEOEpoch() {
 
-inline const Timestamp geoEpoch() {
-
-    static boost::posix_time::ptime GEOEpoch(
-        boost::gregorian::date(
-            2015, boost::gregorian::Feb, 2));
-
+    static pt::ptime GEOEpoch = pt::time_from_string("2016-02-02 00:00:00.000");
     return GEOEpoch;
 }
 
-inline Timestamp now() {
+inline DateTime utc_now() {
 
-    return posix::microsec_clock::universal_time();
+    return pt::microsec_clock::universal_time();
 }
 
-inline MicrosecondsTimestamp microsecondsTimestamp(
-    Timestamp posixTimestamp) {
+inline GEOEpochTimestamp microsecondsSinceGEOEpoch(
+    DateTime datetime) {
 
-    Duration duration = posixTimestamp - epoch();
-    return (MicrosecondsTimestamp) duration.total_microseconds();
+    Duration duration = datetime - GEOEpoch();
+    return duration.total_microseconds();
 }
 
-inline Timestamp posixTimestamp(
-    MicrosecondsTimestamp microsecondsTimestamp) {
+inline DateTime dateTimeFromGEOEpochTimestamp(
+    GEOEpochTimestamp timestamp) {
 
-    uint32_t max_uint32_t = std::numeric_limits<uint32_t>::max();
-    Timestamp accumulator = epoch();
-    while (microsecondsTimestamp > max_uint32_t) {
-        accumulator += posix::seconds(max_uint32_t);
-        microsecondsTimestamp -= max_uint32_t;
-    }
-    accumulator += posix::microseconds(microsecondsTimestamp);
-    return accumulator;
+    auto epoch = GEOEpoch();
+    DateTime t(epoch + pt::microseconds(timestamp));
+    return t;
 }
-
 
 #endif //GEO_NETWORK_CLIENT_TIME_UTILS_H

@@ -1,26 +1,29 @@
 #ifndef GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 
-#include "../../../../common/Types.h"
 #include "../../../../common/time/TimeUtils.h"
-
 #include "../../../../network/messages/Message.hpp"
+
+#include "boost/date_time.hpp"
 
 #include <stdint.h>
 #include <vector>
 
 
 using namespace std;
+namespace datetime = boost::posix_time;
 
 
 class TransactionState {
 public:
+    TransactionState(int awakeningTimestamp, bool flushToPermanentStorage);
+
     typedef shared_ptr<TransactionState> Shared;
     typedef shared_ptr<const TransactionState> SharedConst;
 
 public:
     TransactionState(
-        Milliseconds timeout,
+        GEOEpochTimestamp awakeningTimestamp,
         bool flushToPermanentStorage = false);
 
     TransactionState(
@@ -28,24 +31,23 @@ public:
         bool flushToPermanentStorage = false);
 
     TransactionState(
-        Milliseconds timeout,
+        GEOEpochTimestamp awakeTimestamp,
         Message::MessageTypeID requiredMessageType,
         bool flushToPermanentStorage = false);
 
-    ~TransactionState();
-
+    // Readable shortcuts for states creation.
     static TransactionState::SharedConst exit();
 
     static TransactionState::SharedConst awakeAsFastAsPossible();
 
     static TransactionState::SharedConst awakeAfterMilliseconds(
-        Milliseconds milliseconds);
+        uint16_t milliseconds);
 
     static TransactionState::SharedConst waitForMessageTypes(
         vector<Message::MessageTypeID> &&requiredMessageType,
-        Milliseconds noLongerThanMilliseconds=0);
+        uint16_t noLongerThanMilliseconds=0);
 
-    const MicrosecondsTimestamp awakeningTimestamp() const;
+    const GEOEpochTimestamp awakeningTimestamp() const;
 
     const vector<Message::MessageTypeID>& acceptedMessagesTypes() const;
 
@@ -53,10 +55,10 @@ public:
 
     const bool mustBeRescheduled() const;
 
-
+    const bool mustExit() const;
 
 private:
-    MicrosecondsTimestamp mAwakeningTimestamp;
+    GEOEpochTimestamp mAwakeningTimestamp;
     vector<Message::MessageTypeID> mRequiredMessageTypes;
     bool mFlushToPermanentStorage;
 };

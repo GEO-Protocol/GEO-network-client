@@ -9,6 +9,7 @@
 
 #include "../../../../common/exceptions/MemoryError.h"
 
+#include <map>
 #include <memory>
 #include <utility>
 #include <stdint.h>

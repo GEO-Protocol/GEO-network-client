@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_MESSAGEREUSLT_H
 
 #include "../../../common/Types.h"
+#include "../../../common/time/TimeUtils.h"
 
 #include "../../../common/NodeUUID.h"
 #include "../../../transactions/transactions/base/TransactionUUID.h"
@@ -32,7 +33,7 @@ public:
 
     const uint16_t resultCode() const;
 
-    const Timestamp &timestampCompleted() const;
+    const DateTime &timestampCompleted() const;
 
     const string serialize() const;
 
@@ -40,8 +41,7 @@ private:
     NodeUUID mSenderUUID;
     TransactionUUID mTransactionUUID;
     uint16_t mResultCode;
-    Timestamp mTimestampCompleted;
-
+    DateTime mTimestampCompleted;
 };
 
 

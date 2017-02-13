@@ -1,10 +1,10 @@
 #include "TransactionState.h"
 
 TransactionState::TransactionState(
-    Milliseconds timeout,
+    GEOEpochTimestamp awakeningTimestamp,
     bool flushToPermanentStorage) :
 
-    mAwakeningTimestamp(microsecondsTimestamp(now() + posix::microseconds(timeout * 1000))) {
+    mAwakeningTimestamp(awakeningTimestamp) {
 
     mFlushToPermanentStorage = flushToPermanentStorage;
 }
@@ -18,25 +18,27 @@ TransactionState::TransactionState(
 }
 
 TransactionState::TransactionState(
-    Milliseconds timeout,
+    GEOEpochTimestamp awakeningTimestamp,
     Message::MessageTypeID requiredMessageType,
     bool flushToPermanentStorage) :
 
-    mAwakeningTimestamp(microsecondsTimestamp(now() + posix::microseconds(timeout * 1000))) {
+    mAwakeningTimestamp(awakeningTimestamp) {
 
     mRequiredMessageTypes.push_back(requiredMessageType);
     mFlushToPermanentStorage = flushToPermanentStorage;
 }
 
-TransactionState::~TransactionState() {}
-
 /*!
  * Returns TransactionState that simply closes the transaction.
+ *
+ * WARNING:
+ * Do not use 0 as value for awakeningTimestamp.
+ * It will break scheduler logic for choosing next transaction for execution.
  */
 TransactionState::SharedConst TransactionState::exit() {
 
-    return TransactionState::SharedConst(
-        new TransactionState(0)
+    return make_shared<TransactionState>(
+        numeric_limits<GEOEpochTimestamp>::max()
     );
 }
 
@@ -45,8 +47,10 @@ TransactionState::SharedConst TransactionState::exit() {
  */
 TransactionState::SharedConst TransactionState::awakeAsFastAsPossible() {
 
-    return TransactionState::SharedConst(
-        new TransactionState(0)
+    return make_shared<TransactionState>(
+        microsecondsSinceGEOEpoch(
+            utc_now()
+        )
     );
 }
 
@@ -54,22 +58,22 @@ TransactionState::SharedConst TransactionState::awakeAsFastAsPossible() {
  * Returns TransactionState with awakening timestamp set to current UTC + timeout;
  */
 TransactionState::SharedConst TransactionState::awakeAfterMilliseconds(
-    Milliseconds milliseconds) {
+    uint16_t milliseconds) {
 
-    return TransactionState::SharedConst(
-        new TransactionState(
-            milliseconds
+    return make_shared<TransactionState>(
+        microsecondsSinceGEOEpoch(
+            utc_now() + pt::microseconds(milliseconds * 1000)
         )
     );
 }
 
 /*!
- * Returns TransactionState that specifies what kind of mesages transaction is waiting and accepting.
+ * Returns TransactionState that specifies what kind of messages transaction is waiting and accepting.
  * Optionally, may be initialised with deadline timeout.
  */
 TransactionState::SharedConst TransactionState::waitForMessageTypes(
     vector<Message::MessageTypeID> &&requiredMessageType,
-    Milliseconds noLongerThanMilliseconds) {
+    uint16_t noLongerThanMilliseconds) {
 
     TransactionState::Shared state;
     if (noLongerThanMilliseconds == 0) {
@@ -86,7 +90,7 @@ TransactionState::SharedConst TransactionState::waitForMessageTypes(
     return const_pointer_cast<const TransactionState>(state);
 }
 
-const MicrosecondsTimestamp TransactionState::awakeningTimestamp() const {
+const GEOEpochTimestamp TransactionState::awakeningTimestamp() const {
 
     return mAwakeningTimestamp;
 }
@@ -102,10 +106,12 @@ const bool TransactionState::needSerialize() const {
 }
 
 const bool TransactionState::mustBeRescheduled() const {
-
-    return (mAwakeningTimestamp != 0) || (acceptedMessagesTypes().size() > 0);
+    return
+        (mAwakeningTimestamp != numeric_limits<GEOEpochTimestamp>::max()) ||
+        (acceptedMessagesTypes().size() > 0);
 }
 
+const bool TransactionState::mustExit() const {
 
-
-
+    return !mustBeRescheduled();
+}

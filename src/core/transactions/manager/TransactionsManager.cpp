@@ -467,9 +467,16 @@ void TransactionsManager::onCommandResultReady(
 
     try {
         auto message = result->serialize();
+
+        mLog->logSuccess(
+            "Transactions manager::onCommandResultReady",
+            message
+        );
+
         mResultsInterface->writeResult(
             message.c_str(),
-            message.size());
+            message.size()
+        );
 
     } catch (...) {
         throw RuntimeError(
