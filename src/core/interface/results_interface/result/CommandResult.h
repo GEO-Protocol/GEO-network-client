@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_BASECOMMANDRESULT_H
 
 #include "../../../common/Types.h"
+#include "../../../common/time/TimeUtils.h"
 
 #include "../../commands_interface/CommandUUID.h"
 
@@ -36,16 +37,15 @@ public:
 
     const uint16_t resultCode() const;
 
-    const Timestamp &timestampCompleted() const;
+    const DateTime &timestampCompleted() const;
 
     const string serialize() const;
 
 private:
     CommandUUID mCommandUUID;
     uint16_t mResultCode;
-    Timestamp mTimestampCompleted;
+    DateTime mTimestampCompleted;
     string mResultInformation;
-
 };
 
 

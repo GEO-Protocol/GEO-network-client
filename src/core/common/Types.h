@@ -20,15 +20,6 @@ typedef std::shared_ptr<byte> BytesShared;
 typedef std::shared_ptr<const byte> ConstBytesShared;
 
 /*
- * Timestamp
- */
-namespace posix = boost::posix_time;
-typedef posix::ptime Timestamp;
-typedef posix::time_duration Duration;
-typedef uint64_t MicrosecondsTimestamp;
-typedef uint16_t Milliseconds;
-
-/*
  * Trust lines types
  */
 namespace multiprecision = boost::multiprecision;

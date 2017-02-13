@@ -204,7 +204,7 @@ void ChannelsManager::handleIncomingChannelsCollector(
 
     if (!error) {
         for (auto const &numberAndChannel : *mIncomingChannels) {
-            if ((posix::microsec_clock::universal_time() - numberAndChannel.second->creationTime()) > kIncomingChannelKeepAliveTimeout()) {
+            if ((utc_now() - numberAndChannel.second->creationTime()) > kIncomingChannelKeepAliveTimeout()) {
                 removeIncomingChannel(numberAndChannel.first);
             }
         }
@@ -213,12 +213,12 @@ void ChannelsManager::handleIncomingChannelsCollector(
 
 const Duration ChannelsManager::kIncomingChannelsCollectorTimeout() {
 
-    static const Duration timeout = posix::hours(1);
+    static const Duration timeout = pt::hours(1);
     return timeout;
 }
 
 const Duration ChannelsManager::kIncomingChannelKeepAliveTimeout() {
 
-    static const Duration timeout = posix::minutes(1);
+    static const Duration timeout = pt::minutes(1);
     return timeout;
 }

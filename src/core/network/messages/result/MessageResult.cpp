@@ -7,7 +7,7 @@ MessageResult::MessageResult(
 
     mSenderUUID(senderUUID),
     mTransactionUUID(transactionUUID),
-    mTimestampCompleted(boost::posix_time::microsec_clock::universal_time()) {
+    mTimestampCompleted(utc_now()) {
 
     mResultCode = resultCode;
 }
@@ -27,7 +27,7 @@ const uint16_t MessageResult::resultCode() const {
     return mResultCode;
 }
 
-const Timestamp &MessageResult::timestampCompleted() const {
+const DateTime &MessageResult::timestampCompleted() const {
 
     return mTimestampCompleted;
 }
