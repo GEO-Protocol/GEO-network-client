@@ -53,6 +53,14 @@ void ResultsInterface::writeResult(
                     "Can't write result to the disk.");
         }
     }
+    #ifdef TESTS__TRUSTLINES
+    Timestamp start_time_s = posix::microsec_clock::universal_time();
+    MicrosecondsTimestamp starttime_m = microsecondsTimestamp(start_time_s);
+
+    auto debug = mLog->debug("ResultsInterface");
+    debug << starttime_m;
+    #endif
+
 }
 
 const char *ResultsInterface::FIFOName() const {

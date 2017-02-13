@@ -17,7 +17,6 @@ int Core::run() {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
         return initCode;
     }
-
     try {
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
@@ -30,6 +29,7 @@ int Core::run() {
         mLog.logException("Core", e);
         return -1;
     }
+
 }
 
 int Core::initCoreComponents() {
@@ -136,7 +136,7 @@ int Core::initResultsInterface() {
 int Core::initTrustLinesManager() {
 
     try{
-        mTrustLinesManager = new TrustLinesManager();
+        mTrustLinesManager = new TrustLinesManager(&mLog);
         mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
         return 0;
 

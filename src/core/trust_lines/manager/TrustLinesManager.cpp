@@ -1,6 +1,6 @@
 #include "TrustLinesManager.h"
 
-TrustLinesManager::TrustLinesManager() {
+TrustLinesManager::TrustLinesManager(Logger *logger) : mlogger(logger){
     try {
         mTrustLinesStorage = unique_ptr<TrustLinesStorage>(new TrustLinesStorage("trust_lines.dat"));
 
@@ -91,6 +91,7 @@ void TrustLinesManager::open(
             throw MemoryError("TrustLinesManager::open: "
                                   "Can not allocate memory for new trust line instance.");
         }
+//        mlogger->logTruslineOperationStatus(trustLine->contractorNodeUUID(), amount, "open");
         saveToDisk(TrustLine::Shared(trustLine));
     }
 }
@@ -110,10 +111,20 @@ void TrustLinesManager::close(
             if (trustLine->balance() <= TrustLine::kZeroBalance()) {
                 if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Both",
+                            "Close"
+                    );
 
                 } else {
                     trustLine->setOutgoingTrustAmount(0);
                     trustLine->suspendOutgoingDirection();
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Outgoing",
+                            "Suspend"
+                    );
                     saveToDisk(trustLine);
                 }
 
@@ -187,10 +198,19 @@ void TrustLinesManager::reject(
             if (trustLine->balance() >= TrustLine::kZeroBalance()) {
                 if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Both",
+                            "Close"
+                    );
                 } else {
                     trustLine->setIncomingTrustAmount(0);
                     trustLine->suspendIncomingDirection();
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Incoming",
+                            "Suspend"
+                    );
                     saveToDisk(trustLine);
                 }
 
@@ -407,6 +427,13 @@ void TrustLinesManager::saveToDisk(
                                   "Can not reallocate STL container memory for new trust line instance.");
         }
     }
+    mlogger->logTruslineOperationStatus(
+            trustLine->contractorNodeUUID().stringUUID(),
+            trustLine->incomingTrustAmount(),
+            trustLine->outgoingTrustAmount(),
+            trustLine->balance(),
+            trustLine->direction()
+    );
     trustLineCreatedSignal(
         trustLine->contractorNodeUUID(),
         trustLine->direction()

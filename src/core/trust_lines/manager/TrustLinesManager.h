@@ -14,6 +14,7 @@
 #include "../../common/exceptions/ConflictError.h"
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
+#include "../../logger/Logger.h"
 
 #include <boost/signals2.hpp>
 
@@ -35,7 +36,7 @@ public:
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineCreatedSignal;
 
 public:
-    TrustLinesManager();
+    TrustLinesManager(Logger *logger);
 
     void loadTrustLines();
 
@@ -119,6 +120,7 @@ private:
 
     unique_ptr<TrustLinesStorage> mTrustLinesStorage;
     unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
+    Logger *mlogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H

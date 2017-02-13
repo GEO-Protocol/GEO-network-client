@@ -329,6 +329,16 @@ void CommandsInterface::handleReceivedInfo(
         while (true) {
             auto flagAndCommand = mCommandsParser->processReceivedCommands();
             if (flagAndCommand.first){
+
+                #ifndef TESTS__TRUSTLINES
+                Timestamp start_time_s = posix::microsec_clock::universal_time();
+                MicrosecondsTimestamp starttime_m = microsecondsTimestamp(start_time_s);
+
+
+                auto debug = mLog->debug("CommandsInterface");
+                debug << starttime_m;
+                endif;
+
                 mTransactionsManager->processCommand(flagAndCommand.second);
 
             } else {
