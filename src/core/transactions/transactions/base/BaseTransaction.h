@@ -34,7 +34,7 @@ public:
         UpdateTrustLineTransactionType,
         CloseTrustLineTransactionType,
         RejectTrustLineTransactionType,
-        SendRoutingTablesTransactionType,
+        PropagationRoutingTablesTransactionType,
         AcceptRoutingTablesTransactionType,
 
         // Payments

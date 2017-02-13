@@ -17,7 +17,6 @@ public:
 public:
     SecondLevelRoutingTableOutgoingMessage(
         NodeUUID &senderUUID,
-        NodeUUID &contractorUUID,
         TrustLineUUID &trustLineUUID);
 
 private:

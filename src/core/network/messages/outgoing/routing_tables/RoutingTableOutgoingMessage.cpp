@@ -2,47 +2,37 @@
 
 RoutingTableOutgoingMessage::RoutingTableOutgoingMessage(
     NodeUUID &senderUUID,
-    NodeUUID &contractorUUID,
     TrustLineUUID &trustLineUUID) :
 
     RoutingTablesMessage(
         senderUUID,
-        contractorUUID,
         trustLineUUID
-    ) {
-
-    try {
-        mRecords = unique_ptr<map<NodeUUID, TrustLineDirection>>(new map<NodeUUID, TrustLineDirection>);
-
-    } catch (std::bad_alloc&) {
-        throw MemoryError("RoutingTableOutgoingMessage::RoutingTableOutgoingMessage: "
-                              "Can not allocate memory for routing table records container.");
-    }
-}
+    ) {}
 
 void RoutingTableOutgoingMessage::pushBack(
-    NodeUUID &neighbor,
-    TrustLineDirection direction) {
+    const NodeUUID &neighbor,
+    vector<pair<NodeUUID, TrustLineDirection>> table) {
 
-    try {
-        mRecords->insert(
-            make_pair(
-                neighbor,
-                direction
-            )
-        );
-
-    } catch (std::bad_alloc&) {
-        throw MemoryError("RoutingTableOutgoingMessage::pushBack: "
-                              "Can not reallocate memory when insert new element in routing table container.");
-    }
+    mRecords.insert(
+        make_pair(
+            neighbor,
+            table
+        )
+    );
 }
 
 pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
 
     auto parentBytesAndCount = RoutingTablesMessage::serializeToBytes();
-    size_t bytesCount = (parentBytesAndCount.second + sizeof(uint32_t)) +
-        mRecords->size() * (NodeUUID::kBytesSize + sizeof(SerializedTrustLineDirection));
+    size_t bytesCount = parentBytesAndCount.second;
+
+    for (const auto &nodeAndRecord : mRecords) {
+        bytesCount += NodeUUID::kBytesSize + sizeof(RecordsCount);
+        for(const auto &neighborAndDirect : nodeAndRecord.second) {
+            bytesCount += NodeUUID::kBytesSize + sizeof(TrustLineDirection);
+        }
+    }
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -52,37 +42,46 @@ pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
         parentBytesAndCount.second
     );
     dataBytesOffset += parentBytesAndCount.second;
-    //---------------------------------------------------
-    uint32_t recordsCount = (uint32_t) mRecords->size();
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        &recordsCount,
-        sizeof(uint32_t)
-    );
-    dataBytesOffset += sizeof(uint32_t);
-    //---------------------------------------------------
-    for (auto const &neighborAndDirect : *mRecords) {
+    //----------------------------------------------------
+    for (const auto &nodeAndRecord : mRecords) {
         memcpy(
-          dataBytesShared.get() + dataBytesOffset,
-          neighborAndDirect.first.data,
-          NodeUUID::kBytesSize
+            dataBytesShared.get() + dataBytesOffset,
+            nodeAndRecord.first.data,
+            NodeUUID::kBytesSize
         );
         dataBytesOffset += NodeUUID::kBytesSize;
-
-        SerializedTrustLineDirection direction = neighborAndDirect.second;
+        //----------------------------------------------------
+        RecordsCount recordsCount = nodeAndRecord.second.size();
         memcpy(
-          dataBytesShared.get() + dataBytesOffset,
-          &direction,
-          sizeof(SerializedTrustLineDirection)
+            dataBytesShared.get() + dataBytesOffset,
+            &recordsCount,
+            sizeof(uint64_t)
         );
-        dataBytesOffset += sizeof(SerializedTrustLineDirection);
+        dataBytesOffset += sizeof(RecordsCount);
+        //----------------------------------------------------
+        for(const auto &neighborAndDirect : nodeAndRecord.second) {
+            memcpy(
+                dataBytesShared.get() + dataBytesOffset,
+                neighborAndDirect.first.data,
+                NodeUUID::kBytesSize
+            );
+            dataBytesOffset += NodeUUID::kBytesSize;
+            //----------------------------------------------------
+            SerializedTrustLineDirection direction = neighborAndDirect.second;
+            memcpy(
+                dataBytesShared.get() + dataBytesOffset,
+                &direction,
+                sizeof(SerializedTrustLineDirection)
+            );
+            dataBytesOffset += sizeof(SerializedTrustLineDirection);
+        }
+        //----------------------------------------------------
     }
-    //---------------------------------------------------
+    //----------------------------------------------------
     return make_pair(
-      dataBytesShared,
-      bytesCount
+        dataBytesShared,
+        bytesCount
     );
-
 }
 
 void RoutingTableOutgoingMessage::deserializeFromBytes(

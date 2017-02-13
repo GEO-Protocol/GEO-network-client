@@ -2,12 +2,10 @@
 
 FirstLevelRoutingTableOutgoingMessage::FirstLevelRoutingTableOutgoingMessage(
     NodeUUID &senderUUID,
-    NodeUUID &contractorUUID,
     TrustLineUUID &trustLineUUID) :
 
     RoutingTableOutgoingMessage(
         senderUUID,
-        contractorUUID,
         trustLineUUID) {}
 
 

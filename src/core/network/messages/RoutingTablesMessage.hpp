@@ -6,7 +6,6 @@
 #include "../../common/Types.h"
 #include "../../common/memory/MemoryUtils.h"
 
-#include "../../common/NodeUUID.h"
 #include "../../trust_lines/TrustLineUUID.h"
 #include "../../transactions/transactions/base/TransactionUUID.h"
 
@@ -18,6 +17,8 @@
 class RoutingTablesMessage : public Message {
 public:
     typedef shared_ptr<RoutingTablesMessage> Shared;
+    typedef uint64_t RecordsCount;
+
 
 public:
     virtual const MessageType typeID() const = 0;
@@ -50,13 +51,6 @@ public:
         //----------------------------------------------------
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            mContractorUUID.data,
-            NodeUUID::kBytesSize
-        );
-        dataBytesOffset += NodeUUID::kBytesSize;
-        //----------------------------------------------------
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
             mTrustLineUUID.data,
             NodeUUID::kBytesSize
         );
@@ -72,11 +66,9 @@ protected:
 
     RoutingTablesMessage(
         NodeUUID &senderUUID,
-        NodeUUID &contractorUUID,
         TrustLineUUID &trustLineUUID) :
 
         Message(senderUUID),
-        mContractorUUID(contractorUUID),
         mTrustLineUUID(trustLineUUID){}
 
     virtual void deserializeFromBytes(
@@ -84,13 +76,6 @@ protected:
 
         Message::deserializeFromBytes(buffer);
         size_t bytesBufferOffset = Message::kOffsetToInheritedBytes();
-        //----------------------------------------------------
-        memcpy(
-            mContractorUUID.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize
-        );
-        bytesBufferOffset += NodeUUID::kBytesSize;
         //----------------------------------------------------
         memcpy(
             mTrustLineUUID.data,
@@ -101,12 +86,11 @@ protected:
 
     static const size_t kOffsetToInheritedBytes() {
 
-        static const size_t offset = Message::kOffsetToInheritedBytes() + NodeUUID::kBytesSize + TrustLineUUID::kBytesSize;
+        static const size_t offset = Message::kOffsetToInheritedBytes() + TrustLineUUID::kBytesSize;
         return offset;
     }
 
 protected:
-    NodeUUID mContractorUUID;
     TrustLineUUID mTrustLineUUID;
 };
 
