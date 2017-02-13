@@ -217,7 +217,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::checkTransactionContex
                 return resultOk();
             }
 
-            case AcceptTrustLineMessage::kResultCodeTransactionConflict: {
+            case RejectTrustLineMessage::kResultCodeTransactionConflict: {
                 return transactionConflictResult();
             }
 
@@ -248,7 +248,9 @@ void CloseTrustLineTransaction::sendMessageToRemoteNode() {
 TransactionResult::SharedConst CloseTrustLineTransaction::waitingForResponseState() {
 
     TransactionState *transactionState = new TransactionState(
-        kConnectionTimeout,
+        microsecondsSinceGEOEpoch(
+            utc_now() + pt::microseconds(kConnectionTimeout * 1000)
+        ),
         Message::MessageTypeID::ResponseMessageType,
         false
     );

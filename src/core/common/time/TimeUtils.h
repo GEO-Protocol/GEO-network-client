@@ -1,7 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_TIME_UTILS_H
 #define GEO_NETWORK_CLIENT_TIME_UTILS_H
 
-#include "../Types.h"
+#include <boost/date_time.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/date_time/posix_time/conversion.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 #include <cstdint>
 
@@ -13,7 +16,7 @@ namespace gt = boost::gregorian;
 
 typedef pt::ptime DateTime;
 typedef pt::time_duration Duration;
-typedef int64_t GEOEpochTimestamp;
+typedef uint64_t GEOEpochTimestamp;
 
 
 inline const DateTime GEOEpoch() {

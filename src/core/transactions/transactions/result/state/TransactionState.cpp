@@ -35,7 +35,7 @@ TransactionState::TransactionState(
  * Do not use 0 as value for awakeningTimestamp.
  * It will break scheduler logic for choosing next transaction for execution.
  */
-TransactionState::Shared TransactionState::exit() {
+TransactionState::SharedConst TransactionState::exit() {
 
     return make_shared<TransactionState>(
         numeric_limits<GEOEpochTimestamp>::max()
@@ -45,7 +45,7 @@ TransactionState::Shared TransactionState::exit() {
 /*!
  * Returns TransactionState with awakening timestamp set to current UTC;
  */
-TransactionState::Shared TransactionState::awakeAsFastAsPossible() {
+TransactionState::SharedConst TransactionState::awakeAsFastAsPossible() {
 
     return make_shared<TransactionState>(
         microsecondsSinceGEOEpoch(
@@ -57,7 +57,7 @@ TransactionState::Shared TransactionState::awakeAsFastAsPossible() {
 /*!
  * Returns TransactionState with awakening timestamp set to current UTC + timeout;
  */
-TransactionState::Shared TransactionState::awakeAfterMilliseconds(
+TransactionState::SharedConst TransactionState::awakeAfterMilliseconds(
     uint16_t milliseconds) {
 
     return make_shared<TransactionState>(
@@ -71,22 +71,23 @@ TransactionState::Shared TransactionState::awakeAfterMilliseconds(
  * Returns TransactionState that specifies what kind of messages transaction is waiting and accepting.
  * Optionally, may be initialised with deadline timeout.
  */
-TransactionState::Shared TransactionState::waitForMessageTypes(
+TransactionState::SharedConst TransactionState::waitForMessageTypes(
     vector<Message::MessageTypeID> &&requiredMessageType,
     uint16_t noLongerThanMilliseconds) {
 
     TransactionState::Shared state;
     if (noLongerThanMilliseconds == 0) {
-        state = TransactionState::exit();
+        state = const_pointer_cast<TransactionState> (TransactionState::exit());
 
     } else {
-        state = TransactionState::awakeAfterMilliseconds(
+        state = const_pointer_cast<TransactionState> (TransactionState::awakeAfterMilliseconds(
             noLongerThanMilliseconds
-        );
+        ));
     }
 
     state->mRequiredMessageTypes = requiredMessageType;
-    return state;
+
+    return const_pointer_cast<const TransactionState>(state);
 }
 
 const GEOEpochTimestamp TransactionState::awakeningTimestamp() const {

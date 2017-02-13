@@ -212,7 +212,9 @@ void SetTrustLineTransaction::sendMessageToRemoteNode() {
 TransactionResult::SharedConst SetTrustLineTransaction::waitingForResponseState() {
 
     TransactionState *transactionState = new TransactionState(
-        kConnectionTimeout,
+        microsecondsSinceGEOEpoch(
+            utc_now() + pt::microseconds(kConnectionTimeout * 1000)
+        ),
         Message::MessageTypeID::ResponseMessageType,
         false
     );

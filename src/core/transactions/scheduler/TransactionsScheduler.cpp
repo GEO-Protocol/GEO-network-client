@@ -182,6 +182,7 @@ void TransactionsScheduler::processTransactionState(
         //
         // So the [] operator must be used
         (*mTransactions)[transaction] = state;
+
     } else {
         forgetTransaction(transaction);
     }
@@ -255,7 +256,8 @@ void TransactionsScheduler::processNextTransactions(){
     // but only if other transactions are present in queue.
     if (mTransactions->size() > 0){
         asyncWaitUntil(
-            TransactionState::awakeAfterMilliseconds(50)->awakeningTimestamp());
+            TransactionState::awakeAfterMilliseconds(50)->awakeningTimestamp()
+        );
     }
 }
 
@@ -295,7 +297,8 @@ pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transact
     if (nextTransactionAndState->second->mustBeRescheduled()){
         return make_pair(
             nextTransactionAndState->first,
-            nextTransactionAndState->second->awakeningTimestamp());
+            nextTransactionAndState->second->awakeningTimestamp()
+        );
     }
 
     throw NotFoundError(
@@ -312,13 +315,15 @@ void TransactionsScheduler::asyncWaitUntil(
 
     mProcessingTimer->cancel();
     mProcessingTimer->expires_from_now(
-        awakeningDateTime - utc_now());
+        awakeningDateTime - utc_now()
+    );
 
     mProcessingTimer->async_wait(
         boost::bind(
             &TransactionsScheduler::handleAwakening,
             this,
-            as::placeholders::error));
+            as::placeholders::error)
+    );
 }
 
 void TransactionsScheduler::handleAwakening(
@@ -326,8 +331,7 @@ void TransactionsScheduler::handleAwakening(
 
     static auto errorsCount = 0;
 
-    if (error &&
-        error != as::error::operation_aborted) {
+    if (error && error != as::error::operation_aborted) {
 
         auto errors = mLog->error("TransactionsScheduler::handleAwakening");
         if (errorsCount < 10) {
@@ -339,7 +343,9 @@ void TransactionsScheduler::handleAwakening(
             // (for cases when OS runs out of memory, or similar).
             asyncWaitUntil(
                 microsecondsSinceGEOEpoch(
-                    utc_now() + pt::seconds(errorsCount)));
+                    utc_now() + pt::seconds(errorsCount)
+                )
+            );
 
         } else {
             errors << "Some error repeatedly occurs on awakening. "
@@ -348,7 +354,7 @@ void TransactionsScheduler::handleAwakening(
 
             throw RuntimeError(
                 "TransactionsScheduler::handleAwakening: "
-                    "some error repeated too much times");
+                    "Some error repeated too much times");
         }
     }
 

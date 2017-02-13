@@ -81,7 +81,7 @@ private:
     TransactionResult::SharedConst unexpectedErrorResult();
 
 private:
-    const GEOEpochTimestamp kConnectionTimeout = 2000;
+    const uint16_t kConnectionTimeout = 2000;
     const uint16_t kMaxRequestsCount = 5;
 
     CloseTrustLineCommand::Shared mCommand;

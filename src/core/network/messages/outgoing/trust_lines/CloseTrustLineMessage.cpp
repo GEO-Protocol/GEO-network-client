@@ -15,7 +15,7 @@ CloseTrustLineMessage::CloseTrustLineMessage(
 
 const Message::MessageType CloseTrustLineMessage::typeID() const {
 
-    return Message::MessageTypeID::SetTrustLineMessageType;
+    return Message::MessageTypeID::CloseTrustLineMessageType;
 }
 
 pair<BytesShared, size_t> CloseTrustLineMessage::serializeToBytes() {
