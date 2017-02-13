@@ -3,6 +3,15 @@
 
 #define TESTS
 
+#define D_DEBUG
+#ifdef D_DEBUG
+#include "src/tests/trust_lines/TrustLinesManagerTests.h"
+{
+    TrustLineDirectionColumnTests tests;
+    tests.run();
+}
+
+#endif
 
 #ifdef TESTS
 //#define TESTS__DB__UUID_COLUMN
@@ -10,7 +19,6 @@
 #define TESTS__ROUTING_TABLE
 
 #endif
-
 
 // todo: move this into separate if..def
 //#include "src/tests/network/FileBackedMessagesQueueTests.cpp"
