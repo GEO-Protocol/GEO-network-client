@@ -9,7 +9,7 @@ add_subdirectory(transactions/unique/trust_lines)
 #add_subdirectory(transactions/unique/routing_tables)
 
 set(SOURCE_FILES
-        )
+        transactions/unique/cycles/GetTopologyAndBalancesTransaction.h transactions/unique/cycles/GetTopologyAndBalancesTransaction.cpp)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions
