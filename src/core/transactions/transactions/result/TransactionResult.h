@@ -27,7 +27,12 @@ public:
     TransactionResult();
 
     TransactionResult(
+        bool isFinishedSuccessful);
+
+    TransactionResult(
         TransactionState::SharedConst transactionState);
+
+    static TransactionResult::SharedConst finishSuccessfulWithoutResult();
 
     void setCommandResult(
         CommandResult::SharedConst commandResult);
@@ -44,11 +49,14 @@ public:
 
     TransactionState::SharedConst state() const;
 
+    const bool isFinishedSuccessfulWithoutResult() const;
+
     ResultType resultType() const;
 
 private:
     CommandResult::SharedConst mCommandResult;
     MessageResult::SharedConst mMessageResult;
     TransactionState::SharedConst mTransactionState;
+    bool mFinishedWithoutResult = false;
 };
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONRESULT_H

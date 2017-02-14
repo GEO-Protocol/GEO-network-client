@@ -6,7 +6,7 @@
 #include "../../../../common/Types.h"
 
 #include "../../../../common/NodeUUID.h"
-#include "../../../../transactions/transactions/base/TransactionUUID.h"
+#include "../../../../trust_lines/TrustLineUUID.h"
 
 #include <memory>
 

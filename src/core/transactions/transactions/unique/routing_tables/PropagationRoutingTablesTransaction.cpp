@@ -2,9 +2,10 @@
 
 PropagationRoutingTablesTransaction::PropagationRoutingTablesTransaction(
     NodeUUID &nodeUUID,
-    NodeUUID &contractorUUID,
-    TrustLineUUID &trustLineUUID,
-    TransactionsScheduler *scheduler) :
+    const NodeUUID &contractorUUID,
+    const TrustLineUUID &trustLineUUID,
+    TransactionsScheduler *scheduler,
+    TrustLinesManager *trustLinesManager) :
 
     UniqueTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
@@ -12,15 +13,18 @@ PropagationRoutingTablesTransaction::PropagationRoutingTablesTransaction(
         scheduler
     ),
     mContractorUUID(contractorUUID),
-    mTrustLineUUID(trustLineUUID) {}
+    mTrustLineUUID(trustLineUUID),
+    mTrustLinesManager(trustLinesManager) {}
 
 PropagationRoutingTablesTransaction::PropagationRoutingTablesTransaction(
     BytesShared buffer,
-    TransactionsScheduler *scheduler) :
+    TransactionsScheduler *scheduler,
+    TrustLinesManager *trustLinesManager) :
 
     UniqueTransaction(
         scheduler
-    ){
+    ),
+    mTrustLinesManager(trustLinesManager) {
 
     deserializeFromBytes(buffer);
 }
@@ -44,7 +48,7 @@ TransactionResult::SharedConst PropagationRoutingTablesTransaction::run() {
 
     switch(mStep) {
 
-        case 1:{
+        case 1: {
             auto flagAndTransactionUUID = isTransactionToContractorUnique();
             if (!flagAndTransactionUUID.first) {
                 killTransaction(flagAndTransactionUUID.second);
@@ -52,8 +56,30 @@ TransactionResult::SharedConst PropagationRoutingTablesTransaction::run() {
             increaseStepsCounter();
         }
 
+        case 2: {
+            if (mContext != nullptr) {
+                return checkFirstLevelRoutingTablePropagationContext();
+
+            } else {
+                if (mRequestCounter < kMaxRequestsCount) {
+                    if (!isContractorsCountEnoughForRoutingTablePropagation()) {
+                        return finishTransaction();
+                    }
+                    sendFirstLevelRoutingTableToContractor();
+                    if (mRequestCounter > 0) {
+                        mConnectionTimeout *= kConnectionProgression;
+                    }
+                    mRequestCounter ++;
+
+                } else {
+                    return breakTransaction();
+                }
+            }
+            return waitingForFirstLevelRoutingTablePropagationResponse();
+        }
+
         default: {
-            throw ConflictError("OpenTrustLineTransaction::run: "
+            throw ConflictError("PropagationRoutingTablesTransaction::run: "
                                     "Illegal step execution.");
         }
     }
@@ -97,29 +123,95 @@ pair<bool, const TransactionUUID> PropagationRoutingTablesTransaction::isTransac
     );
 }
 
+TransactionResult::SharedConst PropagationRoutingTablesTransaction::checkFirstLevelRoutingTablePropagationContext() {
+
+    if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
+        Response::Shared response = static_pointer_cast<Response>(mContext);
+        switch (response->code()) {
+
+            case 200: {
+                return finishTransaction();
+            }
+
+            default: {
+
+                return breakTransaction();
+            }
+        }
+    }
+
+    return breakTransaction();
+}
+
+bool PropagationRoutingTablesTransaction::isContractorsCountEnoughForRoutingTablePropagation() {
+
+    return mTrustLinesManager->trustLines().size() > 1;
+}
+
 void PropagationRoutingTablesTransaction::sendFirstLevelRoutingTableToContractor() {
 
     FirstLevelRoutingTableOutgoingMessage::Shared firstLevelMessage = make_shared<FirstLevelRoutingTableOutgoingMessage>(
         mNodeUUID,
-        mNodeUUID,
         mTrustLineUUID
     );
 
-    auto firstLevelRoutingTable = emulateFirstLevelRoutingTable();
+    vector<pair<NodeUUID, TrustLineDirection>> neighborsAndDirections;
+    for (const auto &contractorAndTrustLine : mTrustLinesManager->trustLines()) {
+        if (mContractorUUID == contractorAndTrustLine.first) {
+            continue;
+        }
 
-    for (const auto &neighborAndDirection : firstLevelRoutingTable) {
-        firstLevelMessage->pushBack(
-          neighborAndDirection.first,
-          neighborAndDirection.second
+        neighborsAndDirections.push_back(
+            make_pair(
+                contractorAndTrustLine.first,
+                mTrustLinesManager->trustLine(contractorAndTrustLine.first)->direction()
+            )
         );
     }
 
+    firstLevelMessage->pushBack(
+        mNodeUUID,
+        neighborsAndDirections
+    );
+
     Message::Shared message = dynamic_pointer_cast<Message>(firstLevelMessage);
+    addMessage(
+        message,
+        mContractorUUID
+    );
 }
 
-vector<pair<NodeUUID, TrustLineDirection>> PropagationRoutingTablesTransaction::emulateFirstLevelRoutingTable() {
+TransactionResult::SharedConst PropagationRoutingTablesTransaction::waitingForFirstLevelRoutingTablePropagationResponse() {
 
-    vector<pair<NodeUUID, TrustLineDirection>> firstLevelRoutingTable;
+    TransactionState *transactionState = new TransactionState(
+        microsecondsSinceGEOEpoch(
+            utc_now() + pt::microseconds(mConnectionTimeout * 1000)
+        ),
+        Message::MessageTypeID::ResponseMessageType,
+        false
+    );
+
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setTransactionState(TransactionState::SharedConst(transactionState));
+    return TransactionResult::SharedConst(transactionResult);
+}
+
+TransactionResult::SharedConst PropagationRoutingTablesTransaction::breakTransaction() {
+
+    return make_shared<const TransactionResult>(
+        TransactionState::exit()
+    );
+}
+
+TransactionResult::SharedConst PropagationRoutingTablesTransaction::finishTransaction() {
+
+    return TransactionResult::finishSuccessfulWithoutResult();
+}
+
+vector<pair<NodeUUID, TrustLineDirection>> PropagationRoutingTablesTransaction::emulateSecondLevelRoutingTable() {
+
+    vector<pair<NodeUUID, TrustLineDirection>> secondLevelRoutingTable;
     const int kMaxRandomValue = 2;
 
     for (size_t iterator = 0; iterator < 10000; ++iterator) {
@@ -146,7 +238,7 @@ vector<pair<NodeUUID, TrustLineDirection>> PropagationRoutingTablesTransaction::
             }
         }
 
-        firstLevelRoutingTable.push_back(
+        secondLevelRoutingTable.push_back(
           make_pair(
               contractorUUID,
               trustLineDirection
@@ -154,5 +246,5 @@ vector<pair<NodeUUID, TrustLineDirection>> PropagationRoutingTablesTransaction::
         );
     }
 
-    return firstLevelRoutingTable;
+    return secondLevelRoutingTable;
 }

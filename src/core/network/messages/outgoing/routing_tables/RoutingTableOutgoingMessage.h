@@ -27,8 +27,8 @@ public:
     virtual const MessageType typeID() const = 0;
 
     void pushBack(
-        const NodeUUID &neighbor,
-        vector<pair<NodeUUID, TrustLineDirection>> table);
+        const NodeUUID &node,
+        vector<pair<NodeUUID, TrustLineDirection>> &table);
 
     pair<BytesShared, size_t> serializeToBytes();
 

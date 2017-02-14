@@ -3,13 +3,6 @@
 RoutingTableIncomingMessage::RoutingTableIncomingMessage(
     BytesShared buffer) {
 
-    try {
-        mRecords = unique_ptr<map<NodeUUID, TrustLineDirection>>(new map<NodeUUID, TrustLineDirection>);
-
-    } catch (std::bad_alloc&) {
-        throw MemoryError("RoutingTableOutgoingMessage::RoutingTableOutgoingMessage: "
-                              "Can not allocate memory for routing table records container.");
-    }
     deserializeFromBytes(buffer);
 }
 
@@ -26,34 +19,49 @@ void RoutingTableIncomingMessage::deserializeFromBytes(
     RoutingTablesMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = RoutingTablesMessage::kOffsetToInheritedBytes();
     //---------------------------------------------------
-    uint32_t *recordsCount = new (buffer.get() + bytesBufferOffset) uint32_t;
-    bytesBufferOffset += sizeof(uint32_t);
+    RecordsCount *nodesCount = new (buffer.get() + bytesBufferOffset) RecordsCount;
+    bytesBufferOffset += sizeof(RecordsCount);
     //---------------------------------------------------
-    for (size_t counter = 0; counter < *recordsCount; ++counter) {
-        NodeUUID neighbor;
+    for (size_t nodesIterator = 0; nodesIterator < *nodesCount; ++nodesIterator) {
+        NodeUUID node;
         memcpy(
-            neighbor.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize
+          node.data,
+          buffer.get() + bytesBufferOffset,
+          NodeUUID::kBytesSize
         );
         bytesBufferOffset += NodeUUID::kBytesSize;
-
-        SerializedTrustLineDirection *direct = new (buffer.get() + bytesBufferOffset) SerializedTrustLineDirection;
-        bytesBufferOffset += sizeof(SerializedTrustLineDirection);
-
-        TrustLineDirection trustLineDirection = (TrustLineDirection) *direct;
-
-        try {
-            mRecords->insert(
+        //---------------------------------------------------
+        RecordsCount *recordsCount = new (buffer.get() + bytesBufferOffset) RecordsCount;
+        bytesBufferOffset += sizeof(RecordsCount);
+        //---------------------------------------------------
+        vector<pair<NodeUUID, TrustLineDirection>> records;
+        for (size_t recordsIterator = 0; recordsIterator < *recordsCount; ++recordsIterator) {
+            NodeUUID neighbor;
+            memcpy(
+              neighbor.data,
+              buffer.get() + bytesBufferOffset,
+              NodeUUID::kBytesSize
+            );
+            bytesBufferOffset += NodeUUID::kBytesSize;
+            //---------------------------------------------------
+            SerializedTrustLineDirection *direct = new (buffer.get() + bytesBufferOffset) SerializedTrustLineDirection;
+            bytesBufferOffset += sizeof(SerializedTrustLineDirection);
+            TrustLineDirection direction = (TrustLineDirection) *direct;
+            //---------------------------------------------------
+            records.push_back(
                 make_pair(
                     neighbor,
-                    trustLineDirection
+                    direction
                 )
             );
-
-        } catch (std::bad_alloc&) {
-            throw MemoryError("RoutingTableIncomingMessage::deserializeFromBytes: "
-                                  "Can not reallocate memory when insert new element in routing table container.");
         }
+        //---------------------------------------------------
+        mRecords.insert(
+            make_pair(
+                node,
+                records
+            )
+        );
     }
+    //---------------------------------------------------
 }
