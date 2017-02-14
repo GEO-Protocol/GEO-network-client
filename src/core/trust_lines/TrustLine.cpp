@@ -366,7 +366,7 @@ void TrustLine::parseBalance(
 TrustState TrustLine::parseDirectionState(
     const byte *buffer) {
 
-    SerializedTrustLineState *directionState = new (buffer) SerializedTrustLineState;
+    SerializedTrustLineState *directionState = new (const_cast<byte *> (buffer)) SerializedTrustLineState;
     return (TrustState) *directionState;
 }
 
