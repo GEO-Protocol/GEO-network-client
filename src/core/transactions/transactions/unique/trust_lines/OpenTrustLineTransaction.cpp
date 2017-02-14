@@ -77,43 +77,51 @@ void OpenTrustLineTransaction::deserializeFromBytes(
 
 TransactionResult::SharedConst OpenTrustLineTransaction::run() {
 
-    switch (mStep) {
+    try {
+        switch (mStep) {
 
-        case 1: {
-            if (isTransactionToContractorUnique()) {
-                return conflictErrorResult();
+            case 1: {
+                if (isTransactionToContractorUnique()) {
+                    return conflictErrorResult();
+                }
+                increaseStepsCounter();
             }
-            increaseStepsCounter();
-        }
 
-        case 2: {
-            if (isOutgoingTrustLineDirectionExisting()) {
-                return trustLinePresentResult();
+            case 2: {
+                if (isOutgoingTrustLineDirectionExisting()) {
+                    return trustLinePresentResult();
+                }
+                increaseStepsCounter();
             }
-            increaseStepsCounter();
-        }
 
-        case 3: {
-            if (mContext != nullptr) {
-                return checkTransactionContext();
-
-            } else {
-                if (mRequestCounter < kMaxRequestsCount) {
-                    sendMessageToRemoteNode();
-                    increaseRequestsCounter();
+            case 3: {
+                if (mContext != nullptr) {
+                    return checkTransactionContext();
 
                 } else {
-                    return noResponseResult();
+                    if (mRequestCounter < kMaxRequestsCount) {
+                        sendMessageToRemoteNode();
+                        increaseRequestsCounter();
+
+                    } else {
+                        return noResponseResult();
+                    }
                 }
+                return waitingForResponseState();
             }
-            return waitingForResponseState();
+
+            default: {
+                throw ConflictError("OpenTrustLineTransaction::run: "
+                                        "Illegal step execution.");
+            }
+
         }
 
-        default: {
-            throw ConflictError("OpenTrustLineTransaction::run: "
-                                    "Illegal step execution.");
-        }
-
+    } catch (exception &e){
+        throw RuntimeError("OpenTrustLineTransaction::run: "
+                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
+                               "Crashed at step -> " + to_string(mStep) + ". "
+                               "Message -> " + e.what());
     }
 }
 

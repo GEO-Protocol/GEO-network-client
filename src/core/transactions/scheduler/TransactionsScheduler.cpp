@@ -94,11 +94,17 @@ void TransactionsScheduler::launchTransaction(
         );
 
     } catch (exception &e) {
+        mLog->logException(
+            "TransactionScheduler::launchTransaction:",
+            e
+        );
+        forgetTransaction(transaction);
+        processNextTransactions();
         // todo: add production log here. (this one is unusable)
-        auto errors = mLog->error("TransactionsScheduler");
+        /*auto errors = mLog->error("TransactionsScheduler");
         errors << "Transaction interrupted with exception: "
                << "transaction type: " << transaction->transactionType()
-               << e.what();
+               << e.what();*/
     }
 }
 

@@ -77,42 +77,50 @@ void SetTrustLineTransaction::deserializeFromBytes(
 
 TransactionResult::SharedConst SetTrustLineTransaction::run() {
 
-    switch (mStep) {
+    try {
+        switch (mStep) {
 
-        case 1: {
-            if (isTransactionToContractorUnique()) {
-                return conflictErrorResult();
-            }
-            increaseStepsCounter();
-        }
-
-        case 2: {
-            if (!isOutgoingTrustLineDirectionExisting()) {
-                return trustLineAbsentResult();
-            }
-            increaseStepsCounter();
-        }
-
-        case 3: {
-            if (mContext.get() != nullptr) {
-                return checkTransactionContext();
-
-            } else {
-                if (mRequestCounter < kMaxRequestsCount) {
-                    increaseRequestsCounter();
-                    sendMessageToRemoteNode();
-                } else {
-                    return noResponseResult();
+            case 1: {
+                if (isTransactionToContractorUnique()) {
+                    return conflictErrorResult();
                 }
+                increaseStepsCounter();
             }
-            return waitingForResponseState();
+
+            case 2: {
+                if (!isOutgoingTrustLineDirectionExisting()) {
+                    return trustLineAbsentResult();
+                }
+                increaseStepsCounter();
+            }
+
+            case 3: {
+                if (mContext.get() != nullptr) {
+                    return checkTransactionContext();
+
+                } else {
+                    if (mRequestCounter < kMaxRequestsCount) {
+                        increaseRequestsCounter();
+                        sendMessageToRemoteNode();
+                    } else {
+                        return noResponseResult();
+                    }
+                }
+                return waitingForResponseState();
+            }
+
+            default: {
+                throw ConflictError("SetTrustLineTransaction::run: "
+                                        "Illegal step execution.");
+            }
+
         }
 
-        default: {
-            throw ConflictError("SetTrustLineTransaction::run: "
-                                    "Illegal step execution.");
-        }
-
+    } catch (exception &e) {
+        throw RuntimeError("SetTrustLineTransaction::run: "
+                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
+                               "Crashed at step -> " + to_string(mStep) + ". "
+                               "Message -> " + e.what());
     }
 }
 

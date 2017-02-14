@@ -218,6 +218,17 @@ vector<byte> TrustLine::serialize() {
             mBalance,
             buffer
         );
+
+        directionStateToBytes(
+            mTrustLineState.first,
+            buffer
+        );
+
+        directionStateToBytes(
+            mTrustLineState.second,
+            buffer
+        );
+
         // todo: (hsc) check if this serializes the sign
 
         return buffer;
@@ -235,18 +246,32 @@ void TrustLine::deserialize(
     const byte *buffer) {
 
     try {
+        size_t bufferOffset = 0;
+
         parseTrustAmount(
             buffer,
             mIncomingTrustAmount
         );
+        bufferOffset += kTrustAmountPartSize;
 
         parseTrustAmount(
-            buffer + kTrustAmountPartSize,
+            buffer + bufferOffset,
             mOutgoingTrustAmount
         );
+        bufferOffset += kTrustAmountPartSize;
 
         parseBalance(
-            buffer + kTrustAmountPartSize * 2
+            buffer + bufferOffset
+        );
+        bufferOffset += kBalancePartSize + kSignBytePartSize;
+
+        mTrustLineState.first = parseDirectionState(
+            buffer + bufferOffset
+        );
+        bufferOffset += sizeof(SerializedTrustLineState);
+
+        mTrustLineState.second = parseDirectionState(
+            buffer + bufferOffset
         );
 
     } catch (exception &e) {
@@ -285,6 +310,24 @@ void TrustLine::balanceToBytes(
     );
 }
 
+void TrustLine::directionStateToBytes(
+    TrustState state,
+    vector<byte> &buffer) {
+
+    SerializedTrustLineState directionState = (SerializedTrustLineState) state;
+
+    BytesShared dataBytesBuffer = tryCalloc(sizeof(SerializedTrustLineState));
+    memcpy(
+      dataBytesBuffer.get(),
+      &directionState,
+      sizeof(SerializedTrustLineState)
+    );
+
+    for (size_t it = 0; it < sizeof(SerializedTrustLineState); ++it) {
+        buffer.push_back(dataBytesBuffer.get()[it]);
+    }
+}
+
 /*!
  * todo: (hsc) think how to refactor this a little bit
  *
@@ -318,6 +361,13 @@ void TrustLine::parseBalance(
     );
 
     mBalance = bytesToTrustLineBalance(bytesVector);
+}
+
+TrustState TrustLine::parseDirectionState(
+    const byte *buffer) {
+
+    SerializedTrustLineState *directionState = new (buffer) SerializedTrustLineState;
+    return (TrustState) *directionState;
 }
 
 /*!

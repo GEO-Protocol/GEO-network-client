@@ -14,12 +14,17 @@ pair<bool, Message::Shared> MessagesParser::processMessage(
 pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
     BytesShared messagePart) {
 
-    uint16_t *messageIdentifier = new (messagePart.get()) uint16_t;
-    auto deserializedData = tryDeserializeRequest(
-      *messageIdentifier,
-      messagePart
-    );
-    return deserializedData;
+    try {
+        uint16_t *messageIdentifier = new (messagePart.get()) uint16_t;
+        auto deserializedData = tryDeserializeRequest(
+            *messageIdentifier,
+            messagePart
+        );
+        return deserializedData;
+
+    } catch (...) {
+        return messageInvalidOrIncomplete();
+    }
 }
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(

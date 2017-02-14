@@ -5,6 +5,7 @@
 
 #include "../common/Types.h"
 #include "../common/NodeUUID.h"
+#include "../common/memory/MemoryUtils.h"
 #include "../common/multiprecision/MultiprecisionUtils.h"
 
 #include "../common/exceptions/RuntimeError.h"
@@ -100,11 +101,18 @@ private:
         const TrustLineBalance &balance,
         vector<byte> &buffer);
 
+    void directionStateToBytes(
+        TrustState state,
+        vector<byte> &buffer);
+
     void parseTrustAmount(
         const byte *buffer,
         TrustLineAmount &variable);
 
     void parseBalance(
+        const byte *buffer);
+
+    TrustState parseDirectionState(
         const byte *buffer);
 
 private:
