@@ -107,7 +107,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
         }
 
         case 4: {
-            if (mContext.get() != nullptr) {
+            if (!mContext.empty()) {
                 return checkTransactionContext();
 
             } else {
@@ -205,30 +205,38 @@ void CloseTrustLineTransaction::closeTrustLine() {
 
 TransactionResult::SharedConst CloseTrustLineTransaction::checkTransactionContext() {
 
-    if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
-        Response::Shared response = static_pointer_cast<Response>(mContext);
-        switch (response->code()) {
+    if (mExpectationResponsesCount == mContext.size()) {
+        auto responseMessage = mContext[kResponsePosition];
+        if (responseMessage->typeID() == Message::MessageTypeID::ResponseMessageType) {
+            Response::Shared response = static_pointer_cast<Response>(responseMessage);
+            switch (response->code()) {
 
-            case RejectTrustLineMessage::kResultCodeRejected: {
-                return resultOk();
-            }
+                case RejectTrustLineMessage::kResultCodeRejected: {
+                    return resultOk();
+                }
 
-            case RejectTrustLineMessage::kResultCodeRejectDelayed: {
-                return resultOk();
-            }
+                case RejectTrustLineMessage::kResultCodeRejectDelayed: {
+                    return resultOk();
+                }
 
-            case RejectTrustLineMessage::kResultCodeTransactionConflict: {
-                return transactionConflictResult();
-            }
+                case RejectTrustLineMessage::kResultCodeTransactionConflict: {
+                    return transactionConflictResult();
+                }
 
-            default: {
-                return unexpectedErrorResult();
+                default: {
+                    return unexpectedErrorResult();
+                }
             }
         }
 
-    }
+        return unexpectedErrorResult();
 
-    return unexpectedErrorResult();
+    } else {
+        throw ConflictError("OpenTrustLineTransaction::checkTransactionContext: "
+                                "Transaction waiting responses count " + to_string(kResponsesCount) +
+                                " has " + to_string(mContext.size())
+        );
+    }
 }
 
 void CloseTrustLineTransaction::sendMessageToRemoteNode() {

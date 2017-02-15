@@ -8,12 +8,18 @@ TrustLineTransaction::TrustLineTransaction(
     UniqueTransaction(
         type,
         nodeUUID,
-        scheduler) {}
+        scheduler) {
+
+    setExpectationResponsesCounter(kResponsesCount);
+}
 
 TrustLineTransaction::TrustLineTransaction(
     TransactionsScheduler *scheduler) :
 
-    UniqueTransaction(scheduler) {}
+    UniqueTransaction(scheduler) {
+
+    setExpectationResponsesCounter(kResponsesCount);
+}
 
 void TrustLineTransaction::increaseRequestsCounter() {
 

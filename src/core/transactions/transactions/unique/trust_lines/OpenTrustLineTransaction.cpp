@@ -94,7 +94,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run() {
         }
 
         case 3: {
-            if (mContext != nullptr) {
+            if (!mContext.empty()) {
                 return checkTransactionContext();
 
             } else {
@@ -173,32 +173,40 @@ bool OpenTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
 
 TransactionResult::SharedConst OpenTrustLineTransaction::checkTransactionContext() {
 
-    if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
-        Response::Shared response = static_pointer_cast<Response>(mContext);
-        switch (response->code()) {
+    if (mExpectationResponsesCount == mContext.size()) {
+        auto responseMessage = mContext[kResponsePosition];
+        if (responseMessage->typeID() == Message::MessageTypeID::ResponseMessageType) {
+            Response::Shared response = static_pointer_cast<Response>(responseMessage);
+            switch (response->code()) {
 
-            case AcceptTrustLineMessage::kResultCodeAccepted: {
-                openTrustLine();
-                return resultOk();
-            }
+                case AcceptTrustLineMessage::kResultCodeAccepted: {
+                    openTrustLine();
+                    return resultOk();
+                }
 
-            case AcceptTrustLineMessage::kResultCodeConflict: {
-                return conflictErrorResult();
-            }
+                case AcceptTrustLineMessage::kResultCodeConflict: {
+                    return conflictErrorResult();
+                }
 
-            case AcceptTrustLineMessage::kResultCodeTransactionConflict: {
-                return transactionConflictResult();
-            }
+                case AcceptTrustLineMessage::kResultCodeTransactionConflict: {
+                    return transactionConflictResult();
+                }
 
-            default:{
-                return unexpectedErrorResult();
+                default:{
+                    return unexpectedErrorResult();
+                }
+
             }
         }
 
+        return unexpectedErrorResult();
+
+    } else {
+        throw ConflictError("OpenTrustLineTransaction::checkTransactionContext: "
+                                "Transaction waiting responses count " + to_string(kResponsesCount) +
+                                " has " + to_string(mContext.size())
+        );
     }
-
-    return unexpectedErrorResult();
-
 }
 
 void OpenTrustLineTransaction::sendMessageToRemoteNode() {

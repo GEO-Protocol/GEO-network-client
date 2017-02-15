@@ -57,7 +57,7 @@ TransactionResult::SharedConst PropagationRoutingTablesTransaction::run() {
         }
 
         case 2: {
-            if (mContext != nullptr) {
+            if (!mContext.empty()) {
                 return checkFirstLevelRoutingTablePropagationContext();
 
             } else {
@@ -124,21 +124,6 @@ pair<bool, const TransactionUUID> PropagationRoutingTablesTransaction::isTransac
 }
 
 TransactionResult::SharedConst PropagationRoutingTablesTransaction::checkFirstLevelRoutingTablePropagationContext() {
-
-    if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
-        Response::Shared response = static_pointer_cast<Response>(mContext);
-        switch (response->code()) {
-
-            case 200: {
-                return finishTransaction();
-            }
-
-            default: {
-
-                return breakTransaction();
-            }
-        }
-    }
 
     return breakTransaction();
 }

@@ -35,6 +35,8 @@ protected:
     static const size_t kOffsetToDataBytes();
 
 protected:
+    const uint16_t kResponsesCount = 1;
+    const uint16_t kResponsePosition = 0;
     uint16_t mRequestCounter = 0;
 };
 
