@@ -26,6 +26,7 @@ pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
     auto parentBytesAndCount = RoutingTablesMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second;
 
+    bytesCount += sizeof(RecordsCount);
     for (const auto &nodeAndRecord : mRecords) {
         bytesCount += NodeUUID::kBytesSize + sizeof(RecordsCount);
         for(const auto &neighborAndDirect : nodeAndRecord.second) {

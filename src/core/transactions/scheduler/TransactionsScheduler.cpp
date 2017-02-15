@@ -67,6 +67,11 @@ void TransactionsScheduler::handleMessage(
     Message::Shared message) {
 
     for (auto &transactionAndState : *mTransactions) {
+
+        if (mTransactions->empty()) {
+            break;
+        }
+
         if (transactionAndState.first->UUID() != message->transactionUUID()) {
             continue;
         }
@@ -211,14 +216,14 @@ void TransactionsScheduler::processTransactionState(
 void TransactionsScheduler::forgetTransaction(
     BaseTransaction::Shared transaction) {
 
-    mTransactions->erase(transaction);
-
     try {
         mStorage->erase(
             storage::uuids::uuid(transaction->UUID())
         );
 
     } catch (IndexError &) {}
+
+    mTransactions->erase(transaction);
 }
 
 void TransactionsScheduler::serializeTransaction(

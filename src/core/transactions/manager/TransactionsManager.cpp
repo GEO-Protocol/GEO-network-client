@@ -98,15 +98,7 @@ void TransactionsManager::processMessage(
         );
 
     } else if (message->typeID() == Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType) {
-        FirstLevelRoutingTableIncomingMessage::Shared rtMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message);
-        cout << "First level routing message received" << endl;
-        for (const auto &nodeAndRecord : rtMessage->mRecords) {
-            cout << "Node UUID -> " << nodeAndRecord.first.stringUUID() << endl;
-            for (const auto &neighborAndDirection : nodeAndRecord.second) {
-                cout << "Neighbor UUID -> " << neighborAndDirection.first.stringUUID() << endl;
-                cout << "Direction  -> " << neighborAndDirection.second << endl;
-            }
-        }
+        FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message);
 
     } else {
         mScheduler->handleMessage(message);
@@ -437,6 +429,7 @@ void TransactionsManager::launchRoutingTablePropagationTransaction(
     const TrustLineUUID &trustLineUUID) {
 
     try {
+
         auto transaction = make_shared<PropagationRoutingTablesTransaction>(
             mNodeUUID,
             contractorUUID,

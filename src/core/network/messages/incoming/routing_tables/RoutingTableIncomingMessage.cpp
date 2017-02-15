@@ -35,6 +35,7 @@ void RoutingTableIncomingMessage::deserializeFromBytes(
         bytesBufferOffset += sizeof(RecordsCount);
         //---------------------------------------------------
         vector<pair<NodeUUID, TrustLineDirection>> records;
+        records.clear();
         for (size_t recordsIterator = 0; recordsIterator < *recordsCount; ++recordsIterator) {
             NodeUUID neighbor;
             memcpy(
