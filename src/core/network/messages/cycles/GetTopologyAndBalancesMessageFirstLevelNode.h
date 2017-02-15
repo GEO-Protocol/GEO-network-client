@@ -36,16 +36,12 @@ private:
     void deserializeFromBytes(
             BytesShared buffer);
 
-    pair<BytesShared, size_t> serializedToBytes();
+    pair<BytesShared, size_t> serializeToBytes();
 
 private:
     vector<NodeUUID> mPath;
     TrustLineAmount mMaxFlow;
     byte mMax_depth;
-//    vector<pair<NodeUUID, TrustLineAmount>> mBoundary_nodes;
-//    const typeID();
-//    const transactionUUID;
-
 };
 
 
