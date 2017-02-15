@@ -80,6 +80,10 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
+    initCode = initDelayedTasks();
+    if (initCode != 0)
+        return initCode;
+
     connectSignalsToSlots();
 
     return 0;
@@ -215,11 +219,25 @@ void Core::connectTrustLinesManagerSignals() {
         )
     );
 }
-
+void Core::connectDelayedTasksSignals(){
+    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
+            boost::bind(
+                    &Core::onDelayedTaskCycleSixNodesSlot,
+                    this
+            )
+    );
+    mCyclesDelayedTasks->mFiveNodesCycleSignal.connect(
+            boost::bind(
+                    &Core::onDelayedTaskCycleFiveNodesSlot,
+                    this
+            )
+    );
+}
 void Core::connectSignalsToSlots() {
 
     connectCommunicatorSignals();
     connectTrustLinesManagerSignals();
+    connectDelayedTasksSignals();
 }
 
 void Core::onMessageReceivedSlot(
@@ -298,4 +316,30 @@ void Core::zeroPointers() {
     mResultsInterface = nullptr;
     mTrustLinesManager = nullptr;
     mTransactionsManager = nullptr;
+    mCyclesDelayedTasks = nullptr;
+}
+
+//void Core::initTimers() {
+//
+//}
+
+int Core::initDelayedTasks() {
+    try{
+        mCyclesDelayedTasks = new CyclesDelayedTasks(
+               mIOService
+        );
+    mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
+    return 0;
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+void Core::onDelayedTaskCycleSixNodesSlot() {
+    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
+}
+
+void Core::onDelayedTaskCycleFiveNodesSlot() {
+    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
 }

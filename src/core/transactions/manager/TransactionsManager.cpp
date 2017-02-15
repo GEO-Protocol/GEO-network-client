@@ -237,6 +237,7 @@ void TransactionsManager::launchOpenTrustLineTransaction(
     }
 }
 
+
 /*!
  *
  * Throws MemoryError.
@@ -482,5 +483,24 @@ void TransactionsManager::onCommandResultReady(
         throw RuntimeError(
             "TransactionsManager::onCommandResultReady: "
                 "Error occurred when command result has accepted");
+    }
+}
+
+
+void TransactionsManager::launchGetTopologyAndBalancesTransaction(){
+
+    try {
+//        auto transaction = make_shared<GetTopologyAndBalancesTransaction>(
+//                mScheduler.get()
+//        );
+//
+////        todo add body
+//
+//        mScheduler->scheduleTransaction(transaction);
+        cout << "launchGetTopologyAndBalancesTransaction" << endl;
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchOpenTrustLineTransaction: "
+                        "Can't allocate memory for transaction instance.");
     }
 }

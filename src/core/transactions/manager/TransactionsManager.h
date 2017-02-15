@@ -34,6 +34,7 @@
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
+#include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -67,6 +68,10 @@ public:
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
+public:
+    //  Cycles Transactions
+    void launchGetTopologyAndBalancesTransaction();
+
 private:
     void loadTransactions();
 
@@ -95,6 +100,7 @@ private:
 
     void launchReceiverPaymentTransaction(
         ReceiverInitPaymentMessage::Shared message);
+
 
 private:
     void subscribeForOutgoingMessages(
