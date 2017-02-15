@@ -33,10 +33,6 @@ private:
     vector<NodeUUID> mPath;
     TrustLineAmount mMaxFlow;
     byte mMax_depth;
-//    vector<pair<NodeUUID, TrustLineAmount>> mBoundary_nodes;
-//    const typeID();
-//    const transactionUUID;
-
 };
 
 
