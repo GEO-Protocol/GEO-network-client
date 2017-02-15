@@ -1,4 +1,5 @@
 #include "Core.h"
+#include "network/messages/cycles/GetTopologyAndBalancesMessageFirstLevelNode.h"
 
 Core::Core() {
 
@@ -342,4 +343,20 @@ void Core::onDelayedTaskCycleSixNodesSlot() {
 
 void Core::onDelayedTaskCycleFiveNodesSlot() {
     mTransactionsManager->launchGetTopologyAndBalancesTransaction();
+}
+
+void Core::JustToTestSomething() {
+    vector<NodeUUID> path;
+    path.push_back(mNodeUUID);
+    TrustLineAmount maxFlow = 50;
+    uint8_t max_depth = 2;
+    Message *message = new GetTopologyAndBalancesMessageFirstLevelNode(
+            maxFlow,
+            max_depth,
+            path
+    );
+    cout << "Lets see what we have " << endl;
+    auto messageBytesAndCount = message->serializeToBytes();
+    cout << messageBytesAndCount.second << endl;
+
 }

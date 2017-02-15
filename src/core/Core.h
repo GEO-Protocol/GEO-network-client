@@ -77,6 +77,7 @@ private:
 
     void cleanupMemory();
 
+    void JustToTestSomething();
 protected:
     Logger mLog;
 

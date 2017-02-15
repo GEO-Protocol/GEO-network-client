@@ -73,7 +73,7 @@ set(SOURCE_FILES
         src/core/Core.h
 
         # libs
-        src/libs/json/json.h)
+        src/libs/json/json.h src/core/delayed_tasks/Cycles.h src/core/delayed_tasks/Cycles.cpp)
 
 add_executable(geo_network_client ${SOURCE_FILES})
 

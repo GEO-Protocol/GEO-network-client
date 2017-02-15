@@ -1,4 +1,5 @@
 #include "Cycles.h"
+#include "../network/messages/cycles/GetTopologyAndBalancesMessageFirstLevelNode.h"
 
 void CyclesDelayedTasks::RunSignalFiveNodes(const boost::system::error_code &error) {
     cout << "RunSignalFiveNodes" << endl;
@@ -23,6 +24,7 @@ void CyclesDelayedTasks::RunSignalSixNodes(const boost::system::error_code &erro
 }
 
 CyclesDelayedTasks::CyclesDelayedTasks(as::io_service &ioService):mIOService(ioService){
+//    todo add set Time started to 60*6
     int TimeStarted = rand() % 15;
     mFiveNodesCycleTimer = unique_ptr<as::deadline_timer> (new as::deadline_timer(
             mIOService,
@@ -34,7 +36,8 @@ CyclesDelayedTasks::CyclesDelayedTasks(as::io_service &ioService):mIOService(ioS
             this,
             as::placeholders::error
     ));
-
+    //    todo add set Time started to 60*6
+    TimeStarted = rand() % 15;
     mSixNodesCycleTimer = unique_ptr<as::deadline_timer> (new as::deadline_timer(
             mIOService,
             boost::posix_time::seconds(2)
