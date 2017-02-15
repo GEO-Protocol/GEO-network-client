@@ -5,11 +5,11 @@
 
 #define D_DEBUG
 #ifdef D_DEBUG
-#include "src/tests/trust_lines/TrustLinesManagerTests.h"
+/*#include "src/tests/trust_lines/TrustLinesManagerTests.h"
 {
     TrustLineDirectionColumnTests tests;
     tests.run();
-}
+}*/
 
 #endif
 

@@ -19,24 +19,15 @@ public:
 
 
 public:
-    const TrustLineUUID &trustLineUUID() const {
-        throw NotImplementedError("TrustLinesMessage: public Message::trustLineUUID:"
-                                          "Method not implemented.");
-    }
-    const TransactionUUID &transactionUUID() const {
-        throw NotImplementedError("TrustLinesMessage: public Message::trustLineUUID:"
-                                          "Method not implemented.");
-    }
-    const MessageType typeID() const{
-        throw NotImplementedError("TrustLinesMessage: public Message::trustLineUUID:"
-                                          "Method not implemented.");
-    }
+    const TrustLineUUID &trustLineUUID() const;
+    const TransactionUUID &transactionUUID() const;
+    const MessageType typeID() const;
 
 private:
     void deserializeFromBytes(
             BytesShared buffer);
 
-    pair<BytesShared, size_t> serializedToBytes();
+    pair<BytesShared, size_t> serializeToBytes();
 
 private:
     vector<NodeUUID> mPath;

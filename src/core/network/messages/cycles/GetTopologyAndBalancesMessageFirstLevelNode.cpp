@@ -17,7 +17,7 @@ GetTopologyAndBalancesMessageFirstLevelNode::GetTopologyAndBalancesMessageFirstL
 
 }
 
-pair<BytesShared, size_t> GetTopologyAndBalancesMessageFirstLevelNode::serializedToBytes() {
+pair<BytesShared, size_t> GetTopologyAndBalancesMessageFirstLevelNode::serializeToBytes() {
     auto parentBytesAndCount = Message::serializeToBytes();
 
 
@@ -87,17 +87,18 @@ void GetTopologyAndBalancesMessageFirstLevelNode::deserializeFromBytes(
                                       "Method not implemented.");
 }
 
-const MessageType GetTopologyAndBalancesMessageFirstLevelNode::typeID() const {
+
+const Message::MessageType GetTopologyAndBalancesMessageFirstLevelNode::typeID() const {
     throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
                                       "Method not implemented.");
 }
 
-const TransactionUUID GetTopologyAndBalancesMessageFirstLevelNode::transactionUUID() const {
+const TransactionUUID &GetTopologyAndBalancesMessageFirstLevelNode::transactionUUID() const {
     throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
                                       "Method not implemented.");
 }
 
-const TrustLineUUID GetTopologyAndBalancesMessageFirstLevelNode::trustLineUUID() const {
+const TrustLineUUID &GetTopologyAndBalancesMessageFirstLevelNode::trustLineUUID() const {
     throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
                                       "Method not implemented.");
 }
