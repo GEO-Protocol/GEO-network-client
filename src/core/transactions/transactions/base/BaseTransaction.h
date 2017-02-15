@@ -13,6 +13,7 @@
 
 #include <boost/signals2.hpp>
 
+#include <vector>
 #include <memory>
 #include <utility>
 #include <cstdint>
@@ -34,7 +35,7 @@ public:
         UpdateTrustLineTransactionType,
         CloseTrustLineTransactionType,
         RejectTrustLineTransactionType,
-        SendRoutingTablesTransactionType,
+        PropagationRoutingTablesTransactionType,
         AcceptRoutingTablesTransactionType,
 
         // Payments
@@ -72,6 +73,11 @@ protected:
 
     void increaseStepsCounter();
 
+    void setExpectationResponsesCounter(
+        uint16_t count);
+
+    void resetExpectationResponsesCounter();
+
     virtual void deserializeFromBytes(
         BytesShared buffer);
 
@@ -90,7 +96,9 @@ protected:
     TransactionType mType;
     TransactionUUID mTransactionUUID;
     NodeUUID mNodeUUID;
-    Message::Shared mContext;
+
+    uint16_t mExpectationResponsesCount = 0;
+    vector<Message::Shared> mContext;
 
     uint16_t mStep = 1;
 };

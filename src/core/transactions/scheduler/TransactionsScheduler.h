@@ -46,6 +46,10 @@ public:
     void scheduleTransaction(
         BaseTransaction::Shared transaction);
 
+    void postponeTransaction(
+        BaseTransaction::Shared transaction,
+        uint16_t millisecondsDelay);
+
     void handleMessage(
         Message::Shared message);
 

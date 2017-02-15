@@ -6,10 +6,10 @@ add_subdirectory(transactions/result)
 add_subdirectory(transactions/base)
 add_subdirectory(transactions/regular/payments)
 add_subdirectory(transactions/unique/trust_lines)
-#add_subdirectory(transactions/unique/routing_tables)
+add_subdirectory(transactions/unique/routing_tables)
 
 set(SOURCE_FILES
-        )
+        transactions/unique/routing_tables/PropagationRoutingTablesTransaction.cpp transactions/unique/routing_tables/PropagationRoutingTablesTransaction.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions
@@ -18,7 +18,7 @@ target_link_libraries(transactions
 
         transactions__trustlines
         transactions__payments
-#        transactions__routing_tables
+        transactions__routing_tables
         transactions__result
 
         time

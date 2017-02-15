@@ -4,12 +4,14 @@
 #include "../../RoutingTablesMessage.hpp"
 
 #include "../../../../common/Types.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../common/NodeUUID.h"
 
 #include "../../../../common/exceptions/MemoryError.h"
 
 #include <map>
+#include <vector>
 #include <memory>
 #include <utility>
 #include <stdint.h>
@@ -21,19 +23,19 @@ public:
     typedef shared_ptr<RoutingTableIncomingMessage> Shared;
 
 public:
+    virtual const MessageType typeID() const = 0;
+
     pair<BytesShared, size_t> serializeToBytes();
 
 protected:
     RoutingTableIncomingMessage(
         BytesShared buffer);
 
-    virtual const MessageType typeID() const = 0;
-
     void deserializeFromBytes(
         BytesShared buffer);
 
-protected:
-    unique_ptr<map<NodeUUID, TrustLineDirection>> mRecords;
+public:
+    map<const NodeUUID, vector<pair<NodeUUID, TrustLineDirection>>> mRecords;
 
 };
 

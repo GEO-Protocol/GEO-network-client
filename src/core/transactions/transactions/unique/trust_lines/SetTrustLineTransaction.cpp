@@ -94,9 +94,9 @@ TransactionResult::SharedConst SetTrustLineTransaction::run() {
                 increaseStepsCounter();
             }
 
-            case 3: {
-                if (mContext.get() != nullptr) {
-                    return checkTransactionContext();
+        case 3: {
+            if (!mContext.empty()) {
+                return checkTransactionContext();
 
                 } else {
                     if (mRequestCounter < kMaxRequestsCount) {
@@ -174,33 +174,44 @@ bool SetTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
 
 TransactionResult::SharedConst SetTrustLineTransaction::checkTransactionContext() {
 
-    if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
-        Response::Shared response = static_pointer_cast<Response>(mContext);
-        switch (response->code()) {
+    if (mExpectationResponsesCount == mContext.size()) {
+        auto responseMessage = mContext[kResponsePosition];
+        if (responseMessage->typeID() == Message::MessageTypeID::ResponseMessageType) {
+            Response::Shared response = static_pointer_cast<Response>(responseMessage);
+            switch (response->code()) {
 
-            case UpdateTrustLineMessage::kResultCodeAccepted: {
-                setOutgoingTrustAmount();
-                return resultOk();
-            }
+                case UpdateTrustLineMessage::kResultCodeAccepted: {
+                    setOutgoingTrustAmount();
+                    return resultOk();
+                }
 
-            case UpdateTrustLineMessage::kResultCodeRejected: {
-                return trustLineAbsentResult();
-            }
+                case UpdateTrustLineMessage::kResultCodeRejected: {
+                    return trustLineAbsentResult();
+                }
 
-            case UpdateTrustLineMessage::kResultCodeConflict: {
-                return conflictErrorResult();
-            }
+                case UpdateTrustLineMessage::kResultCodeConflict: {
+                    return conflictErrorResult();
+                }
 
-            case UpdateTrustLineMessage::kResultCodeTransactionConflict: {
-                return transactionConflictResult();
-            }
+                case UpdateTrustLineMessage::kResultCodeTransactionConflict: {
+                    return transactionConflictResult();
+                }
 
-            default: {
-                return unexpectedErrorResult();
+                default: {
+                    return unexpectedErrorResult();
+                }
+
             }
         }
+
+        return unexpectedErrorResult();
+
+    } else {
+        throw ConflictError("SetTrustLineTransaction::checkTransactionContext: "
+                                "Transaction waiting responses count " + to_string(kResponsesCount) +
+                                " has " + to_string(mContext.size())
+        );
     }
-    return unexpectedErrorResult();
 }
 
 void SetTrustLineTransaction::sendMessageToRemoteNode() {

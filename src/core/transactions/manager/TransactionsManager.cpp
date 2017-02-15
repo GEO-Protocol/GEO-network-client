@@ -1,4 +1,5 @@
 #include "TransactionsManager.h"
+#include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 
 /*!
  *
@@ -95,6 +96,9 @@ void TransactionsManager::processMessage(
                 message
             )
         );
+
+    } else if (message->typeID() == Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType) {
+        FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message);
 
     } else {
         mScheduler->handleMessage(message);
@@ -420,9 +424,33 @@ void TransactionsManager::launchReceiverPaymentTransaction(
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchRoutingTableExchangeTransaction(
+void TransactionsManager::launchRoutingTablePropagationTransaction(
     const NodeUUID &contractorUUID,
-    const TrustLineDirection direction) {}
+    const TrustLineUUID &trustLineUUID) {
+
+    try {
+
+        auto transaction = make_shared<PropagationRoutingTablesTransaction>(
+            mNodeUUID,
+            contractorUUID,
+            trustLineUUID,
+            mScheduler.get(),
+            mTrustLines
+        );
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->postponeTransaction(
+            transaction,
+            5000);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchRoutingTablePropagationTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
 
 void TransactionsManager::subscribeForOutgoingMessages(
     BaseTransaction::SendMessageSignal &signal) {

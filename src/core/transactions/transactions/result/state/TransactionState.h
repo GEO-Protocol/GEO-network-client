@@ -16,8 +16,6 @@ namespace datetime = boost::posix_time;
 
 class TransactionState {
 public:
-    TransactionState(int awakeningTimestamp, bool flushToPermanentStorage);
-
     typedef shared_ptr<TransactionState> Shared;
     typedef shared_ptr<const TransactionState> SharedConst;
 
