@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_BASETRANSACTION_H
 
 #include "TransactionUUID.h"
-#include "../result/TransactionResult.h"
 
 #include "../../../common/NodeUUID.h"
 #include "../../../common/Types.h"
@@ -10,6 +9,11 @@
 
 #include "../../../network/messages/Message.hpp"
 #include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
+
+#include "../result/TransactionResult.h"
+#include "../../../interface/results_interface/result/CommandResult.h"
+#include "../../../network/messages/result/MessageResult.h"
+#include "../result/state/TransactionState.h"
 
 #include <boost/signals2.hpp>
 
@@ -37,8 +41,6 @@ public:
         RejectTrustLineTransactionType,
         PropagationRoutingTablesTransactionType,
         AcceptRoutingTablesTransactionType,
-
-        // Payments
         CoordinatorPaymentTransaction,
         ReceiverPaymentTransaction
     };
@@ -73,10 +75,14 @@ protected:
 
     void increaseStepsCounter();
 
+    void resetStepsCounter();
+
     void setExpectationResponsesCounter(
         uint16_t count);
 
     void resetExpectationResponsesCounter();
+
+    void clearContext();
 
     virtual void deserializeFromBytes(
         BytesShared buffer);
@@ -88,6 +94,9 @@ protected:
 
     TransactionResult::SharedConst transactionResultFromMessage(
         MessageResult::SharedConst result);
+
+    TransactionResult::SharedConst transactionResultFromState(
+        TransactionState::SharedConst state);
 
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;

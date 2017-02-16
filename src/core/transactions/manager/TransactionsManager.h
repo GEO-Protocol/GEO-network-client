@@ -23,6 +23,8 @@
 #include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 #include "../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
 #include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
+#include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
+#include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../network/messages/response/Response.h"
 
 #include "../transactions/base/BaseTransaction.h"
@@ -34,6 +36,7 @@
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
 #include "../transactions/unique/routing_tables/PropagationRoutingTablesTransaction.h"
+#include "../transactions/unique/routing_tables/AcceptRoutingTablesTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 
@@ -97,6 +100,9 @@ private:
 
     void launchReceiverPaymentTransaction(
         ReceiverInitPaymentMessage::Shared message);
+
+    void launchAcceptRoutingTablesTransaction(
+        FirstLevelRoutingTableIncomingMessage::Shared message);
 
     // Signals connection to manager's slots
     void subscribeForOutgoingMessages(

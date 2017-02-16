@@ -10,12 +10,13 @@
 #include "../../../scheduler/TransactionsScheduler.h"
 
 #include <cstdint>
+#include <utility>
 
 class TrustLineTransaction : public UniqueTransaction {
 
 protected:
     TrustLineTransaction(
-        TransactionType type,
+        BaseTransaction::TransactionType type,
         NodeUUID &nodeUUID,
         TransactionsScheduler *scheduler);
 

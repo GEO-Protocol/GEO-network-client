@@ -36,8 +36,7 @@ pair<BytesShared, size_t> TrustLineTransaction::serializeToBytes() const {
     auto parentBytesAndCount = BaseTransaction::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second +
-                        NodeUUID::kBytesSize +
-                        kTrustLineAmountBytesCount;
+                        sizeof(uint16_t);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------

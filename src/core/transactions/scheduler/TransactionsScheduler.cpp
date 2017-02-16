@@ -131,37 +131,30 @@ void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,
     TransactionResult::SharedConst result) {
 
-    if (!result->isFinishedSuccessfulWithoutResult()) {
-
-        switch (result->resultType()) {
-            case TransactionResult::ResultType::CommandResultType: {
-                processCommandResult(
-                    transaction,
-                    result->commandResult()
-                );
-                break;
-            }
-
-            case TransactionResult::ResultType::MessageResultType: {
-                processMessageResult(
-                    transaction,
-                    result->messageResult()
-                );
-                break;
-            }
-
-            case TransactionResult::ResultType::TransactionStateType: {
-                processTransactionState(
-                    transaction,
-                    result->state()
-                );
-                break;
-            }
+    switch (result->resultType()) {
+        case TransactionResult::ResultType::CommandResultType: {
+            processCommandResult(
+                transaction,
+                result->commandResult()
+            );
+            break;
         }
 
-    } else {
+        case TransactionResult::ResultType::MessageResultType: {
+            processMessageResult(
+                transaction,
+                result->messageResult()
+            );
+            break;
+        }
 
-        forgetTransaction(transaction);
+        case TransactionResult::ResultType::TransactionStateType: {
+            processTransactionState(
+                transaction,
+                result->state()
+            );
+            break;
+        }
     }
 
     processNextTransactions();

@@ -21,8 +21,8 @@ public:
         BytesShared buffer);
 
     Response(
-        NodeUUID sender,
-        TransactionUUID transactionUUID,
+        NodeUUID &sender,
+        TransactionUUID &transactionUUID,
         uint16_t code);
 
     const MessageType typeID() const;

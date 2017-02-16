@@ -197,7 +197,7 @@ void RejectTrustLineTransaction::sendResponseCodeToContractor(
 
     Message *message = new Response(
         mNodeUUID,
-        mMessage->transactionUUID(),
+        const_cast<TransactionUUID&> (mMessage->transactionUUID()),
         code
     );
 

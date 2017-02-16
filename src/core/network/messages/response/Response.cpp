@@ -6,8 +6,8 @@ Response::Response(
     deserializeFromBytes(buffer);
 }
 
-Response::Response(NodeUUID sender,
-                   TransactionUUID transactionUUID,
+Response::Response(NodeUUID &sender,
+                   TransactionUUID &transactionUUID,
                    uint16_t code) :
 
     TrustLinesMessage(

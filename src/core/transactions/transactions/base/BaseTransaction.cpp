@@ -26,22 +26,6 @@ void BaseTransaction::addMessage(
     );
 }
 
-void BaseTransaction::increaseStepsCounter() {
-
-    mStep += 1;
-}
-
-void BaseTransaction::setExpectationResponsesCounter(
-    uint16_t count) {
-
-    mExpectationResponsesCount = count;
-}
-
-void BaseTransaction::resetExpectationResponsesCounter() {
-
-    mExpectationResponsesCount = 0;
-}
-
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
 
     return mType;
@@ -57,10 +41,36 @@ const NodeUUID &BaseTransaction::nodeUUID() const {
     return mNodeUUID;
 }
 
+void BaseTransaction::increaseStepsCounter() {
+
+    mStep += 1;
+}
+
+void BaseTransaction::resetStepsCounter() {
+
+    mStep = 1;
+}
+
+void BaseTransaction::setExpectationResponsesCounter(
+    uint16_t count) {
+
+    mExpectationResponsesCount = count;
+}
+
+void BaseTransaction::resetExpectationResponsesCounter() {
+
+    mExpectationResponsesCount = 0;
+}
+
 void BaseTransaction::setContext(
     Message::Shared message) {
 
     mContext.push_back(message);
+}
+
+void BaseTransaction::clearContext() {
+
+    mContext.clear();
 }
 
 pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const {
@@ -68,7 +78,6 @@ pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const {
     size_t bytesCount = sizeof(SerializedTransactionType) +
         NodeUUID::kBytesSize +
         TransactionUUID::kBytesSize +
-        sizeof(uint16_t) +
         sizeof(uint16_t);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -153,5 +162,13 @@ TransactionResult::SharedConst BaseTransaction::transactionResultFromMessage(
 
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setMessageResult(messageResult);
+    return TransactionResult::SharedConst(transactionResult);
+}
+
+TransactionResult::SharedConst BaseTransaction::transactionResultFromState(
+    TransactionState::SharedConst state) {
+
+    TransactionResult *transactionResult = new TransactionResult();
+    transactionResult->setTransactionState(state);
     return TransactionResult::SharedConst(transactionResult);
 }

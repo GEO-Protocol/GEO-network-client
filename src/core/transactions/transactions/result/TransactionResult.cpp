@@ -3,22 +3,9 @@
 TransactionResult::TransactionResult() {}
 
 TransactionResult::TransactionResult(
-    bool isFinishedSuccessful) {
-
-    mFinishedWithoutResult = isFinishedSuccessful;
-}
-
-TransactionResult::TransactionResult(
     TransactionState::SharedConst transactionState) {
 
     setTransactionState(transactionState);
-}
-
-TransactionResult::SharedConst TransactionResult::finishSuccessfulWithoutResult() {
-
-    return make_shared<const TransactionResult>(
-        true
-    );
 }
 
 void TransactionResult::setCommandResult(
@@ -52,11 +39,6 @@ MessageResult::SharedConst TransactionResult::messageResult() const {
 TransactionState::SharedConst TransactionResult::state() const {
 
     return mTransactionState;
-}
-
-const bool TransactionResult::isFinishedSuccessfulWithoutResult() const {
-
-    return mFinishedWithoutResult;
 }
 
 TransactionResult::ResultType TransactionResult::resultType() const {

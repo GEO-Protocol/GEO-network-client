@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
+        RoutingTablesTransaction.cpp
+        RoutingTablesTransaction.h
         PropagationRoutingTablesTransaction.cpp
-        PropagationRoutingTablesTransaction.h)
+        PropagationRoutingTablesTransaction.h
+        AcceptRoutingTablesTransaction.cpp
+        AcceptRoutingTablesTransaction.h)
 
 add_library(transactions__routing_tables ${SOURCE_FILES})
 target_link_libraries(transactions__routing_tables

@@ -99,8 +99,16 @@ void TransactionsManager::processMessage(
 
     } else if (message->typeID() == Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType) {
         FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message);
+        launchAcceptRoutingTablesTransaction(
+            static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(
+                message
+            )
+        );
 
-    } else {
+    } else if (message->typeID() == Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType) {
+        mScheduler->handleMessage(message);
+
+    }else {
         mScheduler->handleMessage(message);
     }
 }
@@ -444,6 +452,30 @@ void TransactionsManager::launchRoutingTablePropagationTransaction(
         mScheduler->postponeTransaction(
             transaction,
             5000);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchRoutingTablePropagationTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchAcceptRoutingTablesTransaction(
+    FirstLevelRoutingTableIncomingMessage::Shared message) {
+
+    try {
+
+        auto transaction = make_shared<AcceptRoutingTablesTransaction>(
+            mNodeUUID,
+            message,
+            mScheduler.get()
+        );
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
