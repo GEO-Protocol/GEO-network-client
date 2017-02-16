@@ -1,16 +1,12 @@
 #include "GetTopologyAndBalancesMessageInBetweenNode.h"
 
-
-//void GetTopologyAndBalancesMessageInBetweenNode::deserializeFromBytes(BytesShared buffer) {
-//    Message::deserializeFromBytes(buffer);
-//}
-
 GetTopologyAndBalancesMessageInBetweenNode::GetTopologyAndBalancesMessageInBetweenNode(const TrustLineAmount maxFlow,
                                                                                          const byte max_depth,
                                                                                          vector<NodeUUID> &path) {
     mMaxFlow = maxFlow;
     mMax_depth = max_depth;
     mPath = path;
+    mNodesInPath = (uint8_t) mPath.size();
 }
 
 GetTopologyAndBalancesMessageInBetweenNode::GetTopologyAndBalancesMessageInBetweenNode(BytesShared buffer) {
@@ -22,13 +18,12 @@ pair<BytesShared, size_t> GetTopologyAndBalancesMessageInBetweenNode::serializeT
 
 
     vector<byte> MaxFlowBuffer = trustLineAmountToBytes(mMaxFlow);
-    uint8_t nodes_in_path = (uint8_t) mPath.size();
 
     size_t bytesCount = parentBytesAndCount.second +
                                 MaxFlowBuffer.size() +
                                 sizeof(mMax_depth) +
-                                sizeof(nodes_in_path) +
-                                nodes_in_path * NodeUUID::kBytesSize;
+                                sizeof(mNodesInPath) +
+                                mNodesInPath * NodeUUID::kBytesSize;
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -62,10 +57,10 @@ pair<BytesShared, size_t> GetTopologyAndBalancesMessageInBetweenNode::serializeT
     // Write vector size first
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            &nodes_in_path,
-            sizeof(nodes_in_path)
+            &mNodesInPath,
+            sizeof(mNodesInPath)
     );
-    dataBytesOffset += sizeof(nodes_in_path);
+    dataBytesOffset += sizeof(mNodesInPath);
     for(auto const& value: mPath) {
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
@@ -135,6 +130,13 @@ const TrustLineUUID &GetTopologyAndBalancesMessageInBetweenNode::trustLineUUID()
 
 const size_t GetTopologyAndBalancesMessageInBetweenNode::kOffsetToInheritedBytes() {
 //    todo add sizeof message
-    static const size_t offset = TransactionMessage::kOffsetToInheritedBytes();
+//    todo Ask about static for this object
+    static const size_t offset =
+            TransactionMessage::kOffsetToInheritedBytes()
+            + kTrustLineAmountBytesCount
+            + sizeof(mMax_depth)
+            + sizeof(uint8_t)
+            + NodeUUID::kBytesSize * mNodesInPath;
+    ;
     return offset;
 }

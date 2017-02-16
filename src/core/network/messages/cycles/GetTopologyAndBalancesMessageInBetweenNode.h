@@ -16,10 +16,9 @@ public:
             const byte max_depth,
             vector<NodeUUID> &path);
     GetTopologyAndBalancesMessageInBetweenNode(BytesShared buffer);
-    typedef uint16_t MessageType;
+
 public:
     typedef shared_ptr<GetTopologyAndBalancesMessageInBetweenNode> Shared;
-
 
 public:
     const TrustLineUUID &trustLineUUID() const;
@@ -30,14 +29,13 @@ protected:
     static const size_t kOffsetToInheritedBytes();
     void deserializeFromBytes(
             BytesShared buffer);
-
-private:
     pair<BytesShared, size_t> serializeToBytes();
 
-private:
+protected:
     vector<NodeUUID> mPath;
     TrustLineAmount mMaxFlow;
     uint8_t mMax_depth;
+    static uint8_t mNodesInPath;
 };
 
 
