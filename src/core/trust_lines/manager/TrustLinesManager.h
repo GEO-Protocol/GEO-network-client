@@ -33,7 +33,7 @@ class TrustLinesManager {
     friend class TrustLinesManagerTests;
 
 public:
-    signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineCreatedSignal;
+    signals::signal<void(const NodeUUID&, const TrustLineUUID&)> trustLineCreatedSignal;
 
 public:
     TrustLinesManager(Logger *logger);
@@ -104,6 +104,11 @@ public:
 
     void removeTrustLine(
         const NodeUUID &contractorUUID);
+
+    const TrustLine::Shared trustLine(
+        const NodeUUID &contractorUUID) const;
+
+    map<NodeUUID, TrustLine::Shared> &trustLines();
 
 private:
     static const size_t kTrustAmountPartSize = 32;

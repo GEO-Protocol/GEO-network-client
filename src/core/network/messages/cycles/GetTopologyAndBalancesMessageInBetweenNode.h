@@ -4,18 +4,21 @@
 #include "../../../common/Types.h"
 #include "../../../settings/Settings.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
+#include "../TransactionMessage.hpp"
 #include "../Message.hpp"
 
-class GetTopologyAndBalancesMessageFirstLevelNode: public Message {
+class GetTopologyAndBalancesMessageInBetweenNode:
+        public TransactionMessage {
 
 public:
-    GetTopologyAndBalancesMessageFirstLevelNode(
+    GetTopologyAndBalancesMessageInBetweenNode(
             const TrustLineAmount maxFlow,
             const byte max_depth,
             vector<NodeUUID> &path);
-    GetTopologyAndBalancesMessageFirstLevelNode(BytesShared buffer);
+    GetTopologyAndBalancesMessageInBetweenNode(BytesShared buffer);
+    typedef uint16_t MessageType;
 public:
-    typedef shared_ptr<GetTopologyAndBalancesMessageFirstLevelNode> Shared;
+    typedef shared_ptr<GetTopologyAndBalancesMessageInBetweenNode> Shared;
 
 
 public:
@@ -23,16 +26,18 @@ public:
     const TransactionUUID &transactionUUID() const;
     const MessageType typeID() const;
 
-private:
+protected:
+    static const size_t kOffsetToInheritedBytes();
     void deserializeFromBytes(
             BytesShared buffer);
 
+private:
     pair<BytesShared, size_t> serializeToBytes();
 
 private:
     vector<NodeUUID> mPath;
     TrustLineAmount mMaxFlow;
-    byte mMax_depth;
+    uint8_t mMax_depth;
 };
 
 

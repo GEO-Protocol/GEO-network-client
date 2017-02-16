@@ -436,7 +436,7 @@ void TrustLinesManager::saveToDisk(
     );
     trustLineCreatedSignal(
         trustLine->contractorNodeUUID(),
-        trustLine->direction()
+        trustLine->trustLineUUID()
     );
 }
 
@@ -464,4 +464,20 @@ void TrustLinesManager::removeTrustLine(
     }
 }
 
+const TrustLine::Shared TrustLinesManager::trustLine(
+    const NodeUUID &contractorUUID) const {
 
+    if (isTrustLineExist(contractorUUID)) {
+        return mTrustLines.at(contractorUUID);
+
+    } else {
+        throw NotFoundError(
+            "TrustLinesManager::removeTrustLine. "
+                "Trust line to such contractor does not exist.");
+    }
+}
+
+map<NodeUUID, TrustLine::Shared> &TrustLinesManager::trustLines() {
+
+    return mTrustLines;
+}

@@ -1,4 +1,5 @@
 #include "IncomingMessagesHandler.h"
+#include "../messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
     BytesShared messagePart,
@@ -14,12 +15,17 @@ pair<bool, Message::Shared> MessagesParser::processMessage(
 pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
     BytesShared messagePart) {
 
-    uint16_t *messageIdentifier = new (messagePart.get()) uint16_t;
-    auto deserializedData = tryDeserializeRequest(
-      *messageIdentifier,
-      messagePart
-    );
-    return deserializedData;
+    try {
+        uint16_t *messageIdentifier = new (messagePart.get()) uint16_t;
+        auto deserializedData = tryDeserializeRequest(
+            *messageIdentifier,
+            messagePart
+        );
+        return deserializedData;
+
+    } catch (...) {
+        return messageInvalidOrIncomplete();
+    }
 }
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
@@ -47,6 +53,13 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<UpdateTrustLineMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::FirstLevelRoutingTableOutgoingMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<FirstLevelRoutingTableIncomingMessage>(messagePart)));
         }
 
         case Message::MessageTypeID::ReceiverInitPaymentMessageType: {

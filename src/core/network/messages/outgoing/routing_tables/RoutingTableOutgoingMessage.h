@@ -12,6 +12,7 @@
 #include "../../../../common/exceptions/MemoryError.h"
 
 #include <map>
+#include <vector>
 #include <memory>
 #include <utility>
 #include <stdint.h>
@@ -23,25 +24,24 @@ public:
     typedef shared_ptr<RoutingTableOutgoingMessage> Shared;
 
 public:
+    virtual const MessageType typeID() const = 0;
+
     void pushBack(
-        NodeUUID &neighbor,
-        TrustLineDirection direction);
+        const NodeUUID &node,
+        vector<pair<NodeUUID, TrustLineDirection>> &table);
 
     pair<BytesShared, size_t> serializeToBytes();
 
 protected:
     RoutingTableOutgoingMessage(
         NodeUUID &senderUUID,
-        NodeUUID &contractorUUID,
         TrustLineUUID &trustLineUUID);
-
-    virtual const MessageType typeID() const = 0;
 
     void deserializeFromBytes(
         BytesShared buffer);
 
 protected:
-    unique_ptr<map<NodeUUID, TrustLineDirection>> mRecords;
+    map<const NodeUUID, vector<pair<NodeUUID, TrustLineDirection>>> mRecords;
 };
 
 

@@ -80,55 +80,62 @@ void CloseTrustLineTransaction::deserializeFromBytes(
 
 TransactionResult::SharedConst CloseTrustLineTransaction::run() {
 
-    switch (mStep) {
+    try {
+        switch (mStep) {
 
-        case 1: {
-            if (isTransactionToContractorUnique()) {
-                return conflictErrorResult();
+            case 1: {
+                if (isTransactionToContractorUnique()) {
+                    return conflictErrorResult();
+                }
+                increaseStepsCounter();
             }
-            increaseStepsCounter();
-        }
 
-        case 2: {
-            if (!isOutgoingTrustLineDirectionExisting()) {
-                return trustLineAbsentResult();
+            case 2: {
+                if (!isOutgoingTrustLineDirectionExisting()) {
+                    return trustLineAbsentResult();
+                }
+                increaseStepsCounter();
             }
-            increaseStepsCounter();
-        }
 
-        case 3: {
-            if (checkDebt()) {
-                suspendTrustLineDirectionToContractor();
-
-            } else {
-                closeTrustLine();
-            }
-            increaseStepsCounter();
-        }
-
-        case 4: {
-            if (mContext.get() != nullptr) {
-                return checkTransactionContext();
-
-            } else {
-                if (mRequestCounter < kMaxRequestsCount) {
-                    sendMessageToRemoteNode();
-                    increaseRequestsCounter();
+            case 3: {
+                if (checkDebt()) {
+                    suspendTrustLineDirectionToContractor();
 
                 } else {
-                    return noResponseResult();
+                    closeTrustLine();
                 }
+                increaseStepsCounter();
             }
-            return waitingForResponseState();
+
+        case 4: {
+            if (!mContext.empty()) {
+                return checkTransactionContext();
+
+                } else {
+                    if (mRequestCounter < kMaxRequestsCount) {
+                        sendMessageToRemoteNode();
+                        increaseRequestsCounter();
+
+                    } else {
+                        return noResponseResult();
+                    }
+                }
+                return waitingForResponseState();
+            }
+
+            default: {
+                throw ConflictError("CloseTrustLineTransaction::run: "
+                                        "Illegal step execution.");
+            }
+
         }
 
-        default: {
-            throw ConflictError("CloseTrustLineTransaction::run: "
-                                    "Illegal step execution.");
-        }
-
+    } catch (exception &e) {
+        throw RuntimeError("CloseTrustLineTransaction::run: "
+                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
+                               "Crashed at step -> " + to_string(mStep) + ". "
+                               "Message -> " + e.what());
     }
-
 }
 
 bool CloseTrustLineTransaction::isTransactionToContractorUnique() {
@@ -205,30 +212,38 @@ void CloseTrustLineTransaction::closeTrustLine() {
 
 TransactionResult::SharedConst CloseTrustLineTransaction::checkTransactionContext() {
 
-    if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
-        Response::Shared response = static_pointer_cast<Response>(mContext);
-        switch (response->code()) {
+    if (mExpectationResponsesCount == mContext.size()) {
+        auto responseMessage = mContext[kResponsePosition];
+        if (responseMessage->typeID() == Message::MessageTypeID::ResponseMessageType) {
+            Response::Shared response = static_pointer_cast<Response>(responseMessage);
+            switch (response->code()) {
 
-            case RejectTrustLineMessage::kResultCodeRejected: {
-                return resultOk();
-            }
+                case RejectTrustLineMessage::kResultCodeRejected: {
+                    return resultOk();
+                }
 
-            case RejectTrustLineMessage::kResultCodeRejectDelayed: {
-                return resultOk();
-            }
+                case RejectTrustLineMessage::kResultCodeRejectDelayed: {
+                    return resultOk();
+                }
 
-            case RejectTrustLineMessage::kResultCodeTransactionConflict: {
-                return transactionConflictResult();
-            }
+                case RejectTrustLineMessage::kResultCodeTransactionConflict: {
+                    return transactionConflictResult();
+                }
 
-            default: {
-                return unexpectedErrorResult();
+                default: {
+                    return unexpectedErrorResult();
+                }
             }
         }
 
-    }
+        return unexpectedErrorResult();
 
-    return unexpectedErrorResult();
+    } else {
+        throw ConflictError("OpenTrustLineTransaction::checkTransactionContext: "
+                                "Transaction waiting responses count " + to_string(kResponsesCount) +
+                                " has " + to_string(mContext.size())
+        );
+    }
 }
 
 void CloseTrustLineTransaction::sendMessageToRemoteNode() {

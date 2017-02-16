@@ -21,6 +21,7 @@
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 
 #include "../../../../common/exceptions/ConflictError.h"
+#include "../../../../common/exceptions/RuntimeError.h"
 
 #include <memory>
 #include <utility>

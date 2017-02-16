@@ -39,6 +39,7 @@ enum TrustState {
     Active = 1,
     Suspended = 2
 };
+typedef uint8_t SerializedTrustLineState;
 
 enum TrustLineDirection {
     Nowhere = 0,

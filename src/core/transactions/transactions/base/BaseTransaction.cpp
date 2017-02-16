@@ -31,6 +31,17 @@ void BaseTransaction::increaseStepsCounter() {
     mStep += 1;
 }
 
+void BaseTransaction::setExpectationResponsesCounter(
+    uint16_t count) {
+
+    mExpectationResponsesCount = count;
+}
+
+void BaseTransaction::resetExpectationResponsesCounter() {
+
+    mExpectationResponsesCount = 0;
+}
+
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
 
     return mType;
@@ -49,7 +60,7 @@ const NodeUUID &BaseTransaction::nodeUUID() const {
 void BaseTransaction::setContext(
     Message::Shared message) {
 
-    mContext = message;
+    mContext.push_back(message);
 }
 
 pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const {

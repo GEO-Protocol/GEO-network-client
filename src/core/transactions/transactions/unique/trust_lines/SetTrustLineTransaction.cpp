@@ -77,42 +77,50 @@ void SetTrustLineTransaction::deserializeFromBytes(
 
 TransactionResult::SharedConst SetTrustLineTransaction::run() {
 
-    switch (mStep) {
+    try {
+        switch (mStep) {
 
-        case 1: {
-            if (isTransactionToContractorUnique()) {
-                return conflictErrorResult();
+            case 1: {
+                if (isTransactionToContractorUnique()) {
+                    return conflictErrorResult();
+                }
+                increaseStepsCounter();
             }
-            increaseStepsCounter();
-        }
 
-        case 2: {
-            if (!isOutgoingTrustLineDirectionExisting()) {
-                return trustLineAbsentResult();
+            case 2: {
+                if (!isOutgoingTrustLineDirectionExisting()) {
+                    return trustLineAbsentResult();
+                }
+                increaseStepsCounter();
             }
-            increaseStepsCounter();
-        }
 
         case 3: {
-            if (mContext.get() != nullptr) {
+            if (!mContext.empty()) {
                 return checkTransactionContext();
 
-            } else {
-                if (mRequestCounter < kMaxRequestsCount) {
-                    increaseRequestsCounter();
-                    sendMessageToRemoteNode();
                 } else {
-                    return noResponseResult();
+                    if (mRequestCounter < kMaxRequestsCount) {
+                        increaseRequestsCounter();
+                        sendMessageToRemoteNode();
+                    } else {
+                        return noResponseResult();
+                    }
                 }
+                return waitingForResponseState();
             }
-            return waitingForResponseState();
+
+            default: {
+                throw ConflictError("SetTrustLineTransaction::run: "
+                                        "Illegal step execution.");
+            }
+
         }
 
-        default: {
-            throw ConflictError("SetTrustLineTransaction::run: "
-                                    "Illegal step execution.");
-        }
-
+    } catch (exception &e) {
+        throw RuntimeError("SetTrustLineTransaction::run: "
+                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
+                               "Crashed at step -> " + to_string(mStep) + ". "
+                               "Message -> " + e.what());
     }
 }
 
@@ -166,33 +174,44 @@ bool SetTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
 
 TransactionResult::SharedConst SetTrustLineTransaction::checkTransactionContext() {
 
-    if (mContext->typeID() == Message::MessageTypeID::ResponseMessageType) {
-        Response::Shared response = static_pointer_cast<Response>(mContext);
-        switch (response->code()) {
+    if (mExpectationResponsesCount == mContext.size()) {
+        auto responseMessage = mContext[kResponsePosition];
+        if (responseMessage->typeID() == Message::MessageTypeID::ResponseMessageType) {
+            Response::Shared response = static_pointer_cast<Response>(responseMessage);
+            switch (response->code()) {
 
-            case UpdateTrustLineMessage::kResultCodeAccepted: {
-                setOutgoingTrustAmount();
-                return resultOk();
-            }
+                case UpdateTrustLineMessage::kResultCodeAccepted: {
+                    setOutgoingTrustAmount();
+                    return resultOk();
+                }
 
-            case UpdateTrustLineMessage::kResultCodeRejected: {
-                return trustLineAbsentResult();
-            }
+                case UpdateTrustLineMessage::kResultCodeRejected: {
+                    return trustLineAbsentResult();
+                }
 
-            case UpdateTrustLineMessage::kResultCodeConflict: {
-                return conflictErrorResult();
-            }
+                case UpdateTrustLineMessage::kResultCodeConflict: {
+                    return conflictErrorResult();
+                }
 
-            case UpdateTrustLineMessage::kResultCodeTransactionConflict: {
-                return transactionConflictResult();
-            }
+                case UpdateTrustLineMessage::kResultCodeTransactionConflict: {
+                    return transactionConflictResult();
+                }
 
-            default: {
-                return unexpectedErrorResult();
+                default: {
+                    return unexpectedErrorResult();
+                }
+
             }
         }
+
+        return unexpectedErrorResult();
+
+    } else {
+        throw ConflictError("SetTrustLineTransaction::checkTransactionContext: "
+                                "Transaction waiting responses count " + to_string(kResponsesCount) +
+                                " has " + to_string(mContext.size())
+        );
     }
-    return unexpectedErrorResult();
 }
 
 void SetTrustLineTransaction::sendMessageToRemoteNode() {

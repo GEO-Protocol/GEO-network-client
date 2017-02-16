@@ -77,46 +77,55 @@ void UpdateTrustLineTransaction::deserializeFromBytes(
 
 TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
 
-    switch (mStep) {
+    try {
+        switch (mStep) {
 
-        case 1: {
-            if (checkJournal()) {
-                sendResponseCodeToContractor(400);
-                return transactionResultFromMessage(mMessage->customCodeResult(400));
+            case 1: {
+                if (checkJournal()) {
+                    sendResponseCodeToContractor(400);
+                    return transactionResultFromMessage(mMessage->customCodeResult(400));
+                }
+                increaseStepsCounter();
             }
-            increaseStepsCounter();
-        }
 
-        case 2: {
-            if (isTransactionToContractorUnique()) {
-                sendResponseCodeToContractor(AcceptTrustLineMessage::kResultCodeTransactionConflict);
-                return transactionResultFromMessage(mMessage->resultTransactionConflict());
+            case 2: {
+                if (isTransactionToContractorUnique()) {
+                    sendResponseCodeToContractor(AcceptTrustLineMessage::kResultCodeTransactionConflict);
+                    return transactionResultFromMessage(mMessage->resultTransactionConflict());
+                }
+                increaseStepsCounter();
             }
-            increaseStepsCounter();
-        }
 
-        case 3: {
-            if (isIncomingTrustLineDirectionExisting()) {
-                if (isIncomingTrustLineCouldBeModified()) {
-                    updateIncomingTrustAmount();
-                    sendResponseCodeToContractor(UpdateTrustLineMessage::kResultCodeAccepted);
-                    return transactionResultFromMessage(mMessage->resultAccepted());
+            case 3: {
+                if (isIncomingTrustLineDirectionExisting()) {
+                    if (isIncomingTrustLineCouldBeModified()) {
+                        updateIncomingTrustAmount();
+                        sendResponseCodeToContractor(UpdateTrustLineMessage::kResultCodeAccepted);
+                        return transactionResultFromMessage(mMessage->resultAccepted());
+
+                    } else {
+                        sendResponseCodeToContractor(UpdateTrustLineMessage::kResultCodeRejected);
+                        return transactionResultFromMessage(mMessage->resultRejected());
+                    }
 
                 } else {
-                    sendResponseCodeToContractor(UpdateTrustLineMessage::kResultCodeRejected);
-                    return transactionResultFromMessage(mMessage->resultRejected());
+                    sendResponseCodeToContractor(UpdateTrustLineMessage::kResultCodeConflict);
+                    return transactionResultFromMessage(mMessage->resultConflict());
                 }
-
-            } else {
-                sendResponseCodeToContractor(UpdateTrustLineMessage::kResultCodeConflict);
-                return transactionResultFromMessage(mMessage->resultConflict());
             }
+
+            default: {
+                throw ConflictError("UpdateTrustLineTransaction::run: "
+                                        "Illegal step execution.");
+            }
+
         }
 
-        default: {
-            throw ConflictError("UpdateTrustLineTransaction::run: "
-                                    "Illegal step execution.");
-        }
+    } catch (exception &e) {
+        throw RuntimeError("UpdateTrustLineTransaction::run: "
+                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
+                               "Crashed at step -> " + to_string(mStep) + ". "
+                               "Message -> " + e.what());
     }
 }
 

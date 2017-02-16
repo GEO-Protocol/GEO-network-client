@@ -17,7 +17,6 @@ public:
 public:
     FirstLevelRoutingTableOutgoingMessage(
         NodeUUID &senderUUID,
-        NodeUUID &contractorUUID,
         TrustLineUUID &trustLineUUID);
 
 private:

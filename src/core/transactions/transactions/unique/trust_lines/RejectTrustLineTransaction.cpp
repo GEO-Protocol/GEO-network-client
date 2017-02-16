@@ -78,36 +78,44 @@ void RejectTrustLineTransaction::deserializeFromBytes(
 
 TransactionResult::SharedConst RejectTrustLineTransaction::run() {
 
-    switch(mStep) {
+    try {
+        switch(mStep) {
 
-        case 1: {
-            if (isTransactionToContractorUnique()) {
-                sendResponseCodeToContractor(RejectTrustLineMessage::kResultCodeTransactionConflict);
-                return transactionResultFromMessage(mMessage->resultTransactionConflict());
+            case 1: {
+                if (isTransactionToContractorUnique()) {
+                    sendResponseCodeToContractor(RejectTrustLineMessage::kResultCodeTransactionConflict);
+                    return transactionResultFromMessage(mMessage->resultTransactionConflict());
+                }
+                increaseStepsCounter();
             }
-            increaseStepsCounter();
-        }
 
-        case 2: {
-            if (isIncomingTrustLineDirectionExisting()) {
-                if (checkDebt()) {
-                    suspendTrustLineDirectionFromContractor();
-                    sendResponseCodeToContractor(RejectTrustLineMessage::kResultCodeRejectDelayed);
-                    return transactionResultFromMessage(mMessage->resultRejectDelayed());
+            case 2: {
+                if (isIncomingTrustLineDirectionExisting()) {
+                    if (checkDebt()) {
+                        suspendTrustLineDirectionFromContractor();
+                        sendResponseCodeToContractor(RejectTrustLineMessage::kResultCodeRejectDelayed);
+                        return transactionResultFromMessage(mMessage->resultRejectDelayed());
 
-                } else {
-                    rejectTrustLine();
-                    sendResponseCodeToContractor(RejectTrustLineMessage::kResultCodeRejected);
-                    return transactionResultFromMessage(mMessage->resultRejected());
+                    } else {
+                        rejectTrustLine();
+                        sendResponseCodeToContractor(RejectTrustLineMessage::kResultCodeRejected);
+                        return transactionResultFromMessage(mMessage->resultRejected());
+                    }
                 }
             }
+
+            default: {
+                throw ConflictError("RejectTrustLineTransaction::run: "
+                                        "Illegal step execution.");
+            }
+
         }
 
-        default: {
-            throw ConflictError("RejectTrustLineTransaction::run: "
-                                    "Illegal step execution.");
-        }
-
+    } catch (exception &e) {
+        throw RuntimeError("RejectTrustLineTransaction::run: "
+                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
+                               "Crashed at step -> " + to_string(mStep) + ". "
+                               "Message -> " + e.what());
     }
 }
 

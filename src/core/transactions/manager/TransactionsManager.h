@@ -2,12 +2,13 @@
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
 #include "../../common/Types.h"
-#include "../../common/memory/MemoryUtils.h"
-
+#include "../../trust_lines/TrustLineUUID.h"
 #include "../../common/NodeUUID.h"
+#include "../../common/memory/MemoryUtils.h"
+#include "../../logger/Logger.h"
+
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
-#include "../../logger/Logger.h"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 #include "../scheduler/TransactionsScheduler.h"
@@ -32,6 +33,7 @@
 #include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
+#include "../transactions/unique/routing_tables/PropagationRoutingTablesTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 #include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
@@ -64,9 +66,9 @@ public:
         Message::Shared message);
 
     // Invokes from Core
-    void launchRoutingTableExchangeTransaction(
+    void launchRoutingTablePropagationTransaction(
         const NodeUUID &contractorUUID,
-        const TrustLineDirection direction);
+        const TrustLineUUID &trustLineUUID);
 
 public:
     //  Cycles Transactions
@@ -75,6 +77,7 @@ public:
 private:
     void loadTransactions();
 
+    // Trust line transactions
     void launchOpenTrustLineTransaction(
         OpenTrustLineCommand::Shared command);
 
@@ -93,7 +96,6 @@ private:
     void launchRejectTrustLineTransaction(
         RejectTrustLineMessage::Shared message);
 
-private:
     // Payment transactions
     void launchCoordinatorPaymentTransaction(
         CreditUsageCommand::Shared command);
@@ -101,14 +103,15 @@ private:
     void launchReceiverPaymentTransaction(
         ReceiverInitPaymentMessage::Shared message);
 
-
 private:
+    // Signals connection to manager's slots
     void subscribeForOutgoingMessages(
         BaseTransaction::SendMessageSignal &signal);
 
     void subscribeForCommandResult(
         TransactionsScheduler::CommandResultSignal &signal);
 
+    // Slots
     void onTransactionOutgoingMessageReady(
         Message::Shared message,
         const NodeUUID &contractorUUID);

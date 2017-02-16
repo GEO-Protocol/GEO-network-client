@@ -50,10 +50,28 @@ void TransactionsScheduler::scheduleTransaction(
     adjustAwakeningToNextTransaction();
 }
 
+void TransactionsScheduler::postponeTransaction(
+    BaseTransaction::Shared transaction,
+    uint16_t millisecondsDelay) {
+
+    mTransactions->insert(
+        make_pair(
+            transaction,
+            TransactionState::awakeAfterMilliseconds(millisecondsDelay)
+        )
+    );
+
+}
+
 void TransactionsScheduler::handleMessage(
     Message::Shared message) {
 
     for (auto &transactionAndState : *mTransactions) {
+
+        if (mTransactions->empty()) {
+            break;
+        }
+
         if (transactionAndState.first->UUID() != message->transactionUUID()) {
             continue;
         }
@@ -94,11 +112,17 @@ void TransactionsScheduler::launchTransaction(
         );
 
     } catch (exception &e) {
+        mLog->logException(
+            "TransactionScheduler::launchTransaction:",
+            e
+        );
+        forgetTransaction(transaction);
+        processNextTransactions();
         // todo: add production log here. (this one is unusable)
-        auto errors = mLog->error("TransactionsScheduler");
+        /*auto errors = mLog->error("TransactionsScheduler");
         errors << "Transaction interrupted with exception: "
                << "transaction type: " << transaction->transactionType()
-               << e.what();
+               << e.what();*/
     }
 }
 
@@ -107,30 +131,37 @@ void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,
     TransactionResult::SharedConst result) {
 
-    switch (result->resultType()) {
-        case TransactionResult::ResultType::CommandResultType: {
-            processCommandResult(
-                transaction,
-                result->commandResult()
-            );
-            break;
+    if (!result->isFinishedSuccessfulWithoutResult()) {
+
+        switch (result->resultType()) {
+            case TransactionResult::ResultType::CommandResultType: {
+                processCommandResult(
+                    transaction,
+                    result->commandResult()
+                );
+                break;
+            }
+
+            case TransactionResult::ResultType::MessageResultType: {
+                processMessageResult(
+                    transaction,
+                    result->messageResult()
+                );
+                break;
+            }
+
+            case TransactionResult::ResultType::TransactionStateType: {
+                processTransactionState(
+                    transaction,
+                    result->state()
+                );
+                break;
+            }
         }
 
-        case TransactionResult::ResultType::MessageResultType: {
-            processMessageResult(
-                transaction,
-                result->messageResult()
-            );
-            break;
-        }
+    } else {
 
-        case TransactionResult::ResultType::TransactionStateType: {
-            processTransactionState(
-                transaction,
-                result->state()
-            );
-            break;
-        }
+        forgetTransaction(transaction);
     }
 
     processNextTransactions();
@@ -191,14 +222,14 @@ void TransactionsScheduler::processTransactionState(
 void TransactionsScheduler::forgetTransaction(
     BaseTransaction::Shared transaction) {
 
-    mTransactions->erase(transaction);
-
     try {
         mStorage->erase(
             storage::uuids::uuid(transaction->UUID())
         );
 
     } catch (IndexError &) {}
+
+    mTransactions->erase(transaction);
 }
 
 void TransactionsScheduler::serializeTransaction(
