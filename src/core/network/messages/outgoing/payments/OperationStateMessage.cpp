@@ -22,12 +22,6 @@ const TransactionUUID &OperationStateMessage::transactionUUID() const {
                                   "Method not implemented.");
 }
 
-const TrustLineUUID &OperationStateMessage::trustLineUUID() const {
-
-    throw NotImplementedError("OperationStateMessage: public Message::trustLineUUID:"
-                                  "Method not implemented.");
-}
-
 const OperationStateMessage::OperationState OperationStateMessage::state() const {
     return mState;
 }

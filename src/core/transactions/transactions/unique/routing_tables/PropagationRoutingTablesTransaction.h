@@ -4,20 +4,18 @@
 #include "RoutingTablesTransaction.h"
 
 #include "../../../../common/Types.h"
+#include "../../../../common/NodeUUID.h"
 #include "../../../../common/time/TimeUtils.h"
 
-#include "../../../../common/NodeUUID.h"
-#include "../../../../trust_lines/TrustLineUUID.h"
+#include "../../../../network/messages/Message.hpp"
+#include "../../../../network/messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
+#include "../../../../network/messages/outgoing/routing_tables/SecondLevelRoutingTableOutgoingMessage.h"
+#include "../../../../network/messages/response/RoutingTablesResponse.h"
 
 #include "AcceptRoutingTablesTransaction.h"
 
 #include "../../../scheduler/TransactionsScheduler.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
-
-#include "../../../../network/messages/Message.hpp"
-#include "../../../../network/messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
-#include "../../../../network/messages/outgoing/routing_tables/SecondLevelRoutingTableOutgoingMessage.h"
-#include "../../../../network/messages/response/Response.h"
 
 #include "../../../../common/exceptions/ConflictError.h"
 
@@ -34,8 +32,7 @@ public:
 public:
     PropagationRoutingTablesTransaction(
         NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
-        const TrustLineUUID &trustLineUUID,
+        NodeUUID &contractorUUID,
         TransactionsScheduler *scheduler,
         TrustLinesManager *trustLinesManager);
 
@@ -49,26 +46,26 @@ public:
 private:
     pair<bool, const TransactionUUID> isTransactionToContractorUnique();
 
-    bool isContractorsCountEnoughForFirstLevelRoutingTablePropagationFromInitiatorToContractor();
+    bool isContractorsCountEnoughForRoutingTablePropagation();
 
-    pair<bool, TransactionResult::SharedConst> checkRoutingTablePropagationFromInitiatorToContractorContext();
+    pair<bool, TransactionResult::SharedConst> checkContext();
 
     //First level propagation
-    TransactionResult::SharedConst propagateFirstLevelRoutingTableFromInitiatorToContractor();
+    TransactionResult::SharedConst propagateFirstLevelRoutingTable();
 
-    TransactionResult::SharedConst trySendFirstLevelRoutingTableFromInitiatorToContractor();
+    TransactionResult::SharedConst trySendFirstLevelRoutingTable();
 
-    void sendFirstLevelRoutingTableFromInitiatorToContractor();
+    void sendFirstLevelRoutingTable();
 
     //Second level propagation
     TransactionResult::SharedConst propagateSecondLevelRoutingTable();
 
-    TransactionResult::SharedConst trySendSecondLevelRoutingTableFromInitiatorToContractor();
+    TransactionResult::SharedConst trySendSecondLevelRoutingTable();
 
-    void sendSecondLevelRoutingTableFromInitiatorToContractor();
+    void sendSecondLevelRoutingTable();
 
     //State for scheduler
-    TransactionResult::SharedConst waitingForRoutingTablePropagationResponseFromContractor();
+    TransactionResult::SharedConst waitingForRoutingTablePropagationResponse();
 
     //Reset transaction instance's state
     void prepareToNextStep();

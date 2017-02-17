@@ -8,8 +8,7 @@ AcceptRoutingTablesTransaction::AcceptRoutingTablesTransaction(
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
         nodeUUID,
-        message->senderUUID(),
-        message->trustLineUUID(),
+        const_cast<NodeUUID&> (message->senderUUID()),
         scheduler
     ),
 
@@ -28,10 +27,6 @@ FirstLevelRoutingTableIncomingMessage::Shared AcceptRoutingTablesTransaction::me
     return mFirstLevelMessage;
 }
 
-pair<BytesShared, size_t> AcceptRoutingTablesTransaction::serializeToBytes() const {}
-
-void AcceptRoutingTablesTransaction::deserializeFromBytes(BytesShared buffer) {}
-
 TransactionResult::SharedConst AcceptRoutingTablesTransaction::run() {
 
     if (!isUniqueWasChecked) {
@@ -47,7 +42,6 @@ TransactionResult::SharedConst AcceptRoutingTablesTransaction::run() {
         case RoutingTableLevelStepIdentifier::FirstLevelRoutingTableStep: {
             saveFirstLevelRoutingTable();
             sendResponseToContractor(
-                const_cast<TransactionUUID&> (mFirstLevelMessage->transactionUUID()),
                 const_cast<NodeUUID&> (mFirstLevelMessage->senderUUID()),
                 200
             );
@@ -82,11 +76,7 @@ pair<bool, const TransactionUUID> AcceptRoutingTablesTransaction::isTransactionT
                     continue;
                 }
 
-                if (mContractorUUID != propagationRoutingTableTransaction->contractorUUID()) {
-                    continue;
-                }
-
-                if (mTrustLineUUID == propagationRoutingTableTransaction->trustLineUUID()) {
+                if (mContractorUUID == propagationRoutingTableTransaction->contractorUUID()) {
                     continue;
                 }
 
@@ -104,11 +94,7 @@ pair<bool, const TransactionUUID> AcceptRoutingTablesTransaction::isTransactionT
                     continue;
                 }
 
-                if (mContractorUUID != acceptRoutingTableTransaction->contractorUUID()) {
-                    continue;
-                }
-
-                if (mTrustLineUUID == acceptRoutingTableTransaction->trustLineUUID()) {
+                if (mContractorUUID == acceptRoutingTableTransaction->contractorUUID()) {
                     continue;
                 }
 
@@ -137,7 +123,6 @@ void AcceptRoutingTablesTransaction::saveFirstLevelRoutingTable() {
 
     cout << "First level routing table message received " << endl;
     cout << "Sender UUID -> " << mFirstLevelMessage->senderUUID().stringUUID() << endl;
-    cout << "Trust line UUID -> " << mFirstLevelMessage->trustLineUUID().stringUUID() << endl;
     cout << "Routing table " << endl;
     for (const auto &nodeAndRecords : mFirstLevelMessage->mRecords) {
         cout << "Node UUID -> " << nodeAndRecords.first.stringUUID() << endl;
@@ -181,7 +166,6 @@ TransactionResult::SharedConst AcceptRoutingTablesTransaction::checkIncomingMess
         }
         saveSecondLevelRoutingTable(secondLevelMessage);
         sendResponseToContractor(
-            const_cast<TransactionUUID&> (secondLevelMessage->transactionUUID()),
             const_cast<NodeUUID&> (secondLevelMessage->senderUUID()),
             200
         );
@@ -198,7 +182,6 @@ void AcceptRoutingTablesTransaction::saveSecondLevelRoutingTable(
 
     cout << "Second level routing table message received " << endl;
     cout << "Sender UUID -> " << secondLevelMessage->senderUUID().stringUUID() << endl;
-    cout << "Trust line UUID -> " << secondLevelMessage->trustLineUUID().stringUUID() << endl;
     cout << "Routing table " << endl;
     for (const auto &nodeAndRecords : secondLevelMessage->mRecords) {
         cout << "Node UUID -> " << nodeAndRecords.first.stringUUID() << endl;
@@ -210,13 +193,12 @@ void AcceptRoutingTablesTransaction::saveSecondLevelRoutingTable(
 }
 
 void AcceptRoutingTablesTransaction::sendResponseToContractor(
-    TransactionUUID &transactionUUID,
     NodeUUID &contractorUUID,
     uint16_t code) {
 
-    Message *message = new Response(
+    Message *message = new RoutingTablesResponse(
         mNodeUUID,
-        transactionUUID,
+        contractorUUID,
         code
     );
 

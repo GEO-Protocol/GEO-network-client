@@ -48,7 +48,7 @@ public:
 public:
     const TransactionType transactionType() const;
 
-    const TransactionUUID &UUID() const;
+    virtual const TransactionUUID &UUID() const = 0;
 
     const NodeUUID &nodeUUID() const;
 

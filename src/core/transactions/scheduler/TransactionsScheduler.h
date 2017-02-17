@@ -53,6 +53,9 @@ public:
     void handleMessage(
         Message::Shared message);
 
+    void handleRoutingTableMessage(
+        Message::Shared message);
+
     void killTransaction(
         const TransactionUUID &transactionUUID);
 

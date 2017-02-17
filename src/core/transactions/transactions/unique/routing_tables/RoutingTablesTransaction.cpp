@@ -3,8 +3,7 @@
 RoutingTablesTransaction::RoutingTablesTransaction(
     BaseTransaction::TransactionType type,
     NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
-    const TrustLineUUID &trustLineUUID,
+    NodeUUID &contractorUUID,
     TransactionsScheduler *scheduler) :
 
     UniqueTransaction(
@@ -12,22 +11,8 @@ RoutingTablesTransaction::RoutingTablesTransaction(
         nodeUUID,
         scheduler
     ),
-    mContractorUUID(contractorUUID),
-    mTrustLineUUID(trustLineUUID) {}
+    mContractorUUID(contractorUUID) {}
 
-/**
- * @Deprecated
- */
-RoutingTablesTransaction::RoutingTablesTransaction(
-    BaseTransaction::TransactionType type,
-    NodeUUID &nodeUUID,
-    TransactionsScheduler *scheduler) :
-
-    UniqueTransaction(
-        type,
-        nodeUUID,
-        scheduler
-    ) {}
 
 RoutingTablesTransaction::RoutingTablesTransaction(
     BytesShared buffer,
@@ -38,15 +23,16 @@ RoutingTablesTransaction::RoutingTablesTransaction(
     deserializeFromBytes(buffer);
 }
 
+const TransactionUUID &RoutingTablesTransaction::UUID() const {
+
+    return (TransactionUUID&) mContractorUUID;
+}
+
 const NodeUUID &RoutingTablesTransaction::contractorUUID() const {
 
     return mContractorUUID;
 }
 
-const TrustLineUUID &RoutingTablesTransaction::trustLineUUID() const {
-
-    return mTrustLineUUID;
-}
 
 void RoutingTablesTransaction::increaseRequestsCounter() {
 

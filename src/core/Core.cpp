@@ -250,12 +250,12 @@ void Core::onMessageSendSlot(
 
 void Core::onTrustLineCreatedSlot(
     const NodeUUID &contractorUUID,
-    const TrustLineUUID &trustLineUUID) {
+    const TrustLineDirection direction) {
 
     try{
         mTransactionsManager->launchRoutingTablePropagationTransaction(
             contractorUUID,
-            trustLineUUID
+            direction
         );
 
     } catch (exception &e) {

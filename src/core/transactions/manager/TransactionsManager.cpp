@@ -98,7 +98,6 @@ void TransactionsManager::processMessage(
         );
 
     } else if (message->typeID() == Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType) {
-        FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message);
         launchAcceptRoutingTablesTransaction(
             static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(
                 message
@@ -106,9 +105,12 @@ void TransactionsManager::processMessage(
         );
 
     } else if (message->typeID() == Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType) {
-        mScheduler->handleMessage(message);
+        mScheduler->handleRoutingTableMessage(message);
 
-    }else {
+    } else if(message->typeID() == Message::MessageTypeID::RoutingTablesResponseMessageType) {
+        mScheduler->handleRoutingTableMessage(message);
+
+    } else {
         mScheduler->handleMessage(message);
     }
 }
@@ -434,14 +436,13 @@ void TransactionsManager::launchReceiverPaymentTransaction(
  */
 void TransactionsManager::launchRoutingTablePropagationTransaction(
     const NodeUUID &contractorUUID,
-    const TrustLineUUID &trustLineUUID) {
+    const TrustLineDirection direction) {
 
     try {
 
         auto transaction = make_shared<PropagationRoutingTablesTransaction>(
             mNodeUUID,
-            contractorUUID,
-            trustLineUUID,
+            const_cast<NodeUUID&> (contractorUUID),
             mScheduler.get(),
             mTrustLines
         );

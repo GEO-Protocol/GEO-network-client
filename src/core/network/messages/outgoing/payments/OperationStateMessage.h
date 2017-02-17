@@ -31,8 +31,6 @@ public:
 
     const TransactionUUID &transactionUUID() const;
 
-    const TrustLineUUID &trustLineUUID() const;
-
     const OperationState state() const;
 
     pair<BytesShared, size_t> serializeToBytes();

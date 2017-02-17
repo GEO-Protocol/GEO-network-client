@@ -8,7 +8,6 @@
 #include "../../common/memory/MemoryUtils.h"
 
 #include "../../common/NodeUUID.h"
-#include "../../trust_lines/TrustLineUUID.h"
 #include "../../transactions/transactions/base/TransactionUUID.h"
 
 #include <memory>
@@ -28,12 +27,6 @@ public:
     const TransactionUUID &transactionUUID() const {
 
         return mTransactionUUID;
-    }
-
-    const TrustLineUUID &trustLineUUID() const {
-
-        throw NotImplementedError("TrustLinesMessage: public Message::trustLineUUID:"
-                                      "Method not implemented.");
     }
 
     virtual pair<BytesShared, size_t> serializeToBytes() {

@@ -31,6 +31,8 @@ public:
         TrustLinesManager *trustLines,
         Logger *log);
 
+    const TransactionUUID &UUID() const;
+
     TransactionResult::SharedConst run();
 
     pair<BytesShared, size_t> serializeToBytes();

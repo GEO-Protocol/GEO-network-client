@@ -4,9 +4,8 @@
 #include "../../RoutingTablesMessage.hpp"
 
 #include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
-
 #include "../../../../common/NodeUUID.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../common/exceptions/MemoryError.h"
 

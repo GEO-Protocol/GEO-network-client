@@ -25,6 +25,11 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     deserializeFromBytes(buffer);
 }
 
+const TransactionUUID &ReceiverPaymentTransaction::UUID() const {
+
+    return mTransactionUUID;
+}
+
 TransactionResult::SharedConst ReceiverPaymentTransaction::run() {
 
     switch (mStep) {

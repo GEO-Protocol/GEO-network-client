@@ -26,6 +26,11 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     throw ValueError("Not implemented");
 }
 
+const TransactionUUID &CoordinatorPaymentTransaction::UUID() const {
+
+    return mTransactionUUID;
+}
+
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run() {
 
     switch (mStep) {

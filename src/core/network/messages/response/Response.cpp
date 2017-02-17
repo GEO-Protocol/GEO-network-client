@@ -31,8 +31,8 @@ uint16_t Response::code() {
 pair<BytesShared, size_t> Response::serializeToBytes() {
 
     auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second +
-                        TransactionUUID::kBytesSize;
+    size_t bytesCount = parentBytesAndCount.second
+                        + sizeof(uint16_t);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------

@@ -62,8 +62,8 @@ private:
         const NodeUUID &contractorUUID);
 
     void onTrustLineCreatedSlot(
-        const NodeUUID &contractorUUID,
-        const TrustLineUUID &trustLineUUID);
+        const NodeUUID &contractorUUID, 
+        const TrustLineDirection direction);
 
     void zeroPointers();
 

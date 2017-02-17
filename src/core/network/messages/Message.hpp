@@ -5,7 +5,6 @@
 #include "../../common/memory/MemoryUtils.h"
 
 #include "../../common/NodeUUID.h"
-#include "../../trust_lines/TrustLineUUID.h"
 #include "../../transactions/transactions/base/TransactionUUID.h"
 
 #include "../../common/exceptions/Exception.h"
@@ -41,7 +40,8 @@ public:
         ReceiverInitPaymentMessageType,
         OperationStateMessageType,
 
-        ResponseMessageType = 1000
+        ResponseMessageType = 1000,
+        RoutingTablesResponseMessageType
     };
     typedef uint16_t MessageType;
 
@@ -55,9 +55,6 @@ public:
 
     //TODO:: move into another message
     virtual const TransactionUUID &transactionUUID() const = 0;
-
-    //TODO:: move into another message
-    virtual const TrustLineUUID &trustLineUUID() const = 0;
 
     virtual pair<BytesShared, size_t> serializeToBytes() {
 

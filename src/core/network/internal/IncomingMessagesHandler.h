@@ -17,6 +17,7 @@
 #include "../messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentMessage.h"
 #include "../messages/response/Response.h"
+#include "../messages/response/RoutingTablesResponse.h"
 
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"

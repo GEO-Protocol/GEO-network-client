@@ -4,9 +4,7 @@
 #include "RoutingTableOutgoingMessage.h"
 
 #include "../../../../common/Types.h"
-
 #include "../../../../common/NodeUUID.h"
-#include "../../../../trust_lines/TrustLineUUID.h"
 
 #include <memory>
 
@@ -16,8 +14,7 @@ public:
 
 public:
     FirstLevelRoutingTableOutgoingMessage(
-        NodeUUID &senderUUID,
-        TrustLineUUID &trustLineUUID);
+        NodeUUID &senderUUID);
 
 private:
     const MessageType typeID() const;

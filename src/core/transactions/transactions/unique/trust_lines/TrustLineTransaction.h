@@ -14,6 +14,9 @@
 
 class TrustLineTransaction : public UniqueTransaction {
 
+public:
+    const TransactionUUID &UUID() const;
+
 protected:
     TrustLineTransaction(
         BaseTransaction::TransactionType type,

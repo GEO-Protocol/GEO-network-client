@@ -1,13 +1,10 @@
 #include "RoutingTableOutgoingMessage.h"
 
 RoutingTableOutgoingMessage::RoutingTableOutgoingMessage(
-    NodeUUID &senderUUID,
-    TrustLineUUID &trustLineUUID) :
+    NodeUUID &senderUUID) :
 
     RoutingTablesMessage(
-        senderUUID,
-        trustLineUUID
-    ) {}
+        senderUUID) {}
 
 void RoutingTableOutgoingMessage::pushBack(
     const NodeUUID &node,
@@ -23,7 +20,7 @@ void RoutingTableOutgoingMessage::pushBack(
 
 pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = RoutingTablesMessage::serializeToBytes();
+    auto parentBytesAndCount = Message::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second;
 
     bytesCount += sizeof(RecordsCount);

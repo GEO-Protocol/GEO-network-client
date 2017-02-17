@@ -99,6 +99,14 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeResponse(
             );
         }
 
+        case Message::MessageTypeID::RoutingTablesResponseMessageType: {
+            Message *message = new RoutingTablesResponse(messagePart);
+            return make_pair(
+                true,
+                Message::Shared(message)
+            );
+        }
+
         default: {
             return messageInvalidOrIncomplete();
         }

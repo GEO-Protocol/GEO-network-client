@@ -1,8 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINE_H
 #define GEO_NETWORK_CLIENT_TRUSTLINE_H
 
-#include "TrustLineUUID.h"
-
 #include "../common/Types.h"
 #include "../common/NodeUUID.h"
 #include "../common/memory/MemoryUtils.h"
@@ -56,8 +54,6 @@ public:
     void activateIncomingDirection();
 
     void suspendIncomingDirection();
-
-    const TrustLineUUID& trustLineUUID() const;
 
     const NodeUUID& contractorNodeUUID() const;
 
@@ -125,7 +121,6 @@ private:
         + kBalancePartSize
         + kSignBytePartSize;
 
-    TrustLineUUID mTrustLineUUID;
     NodeUUID mContractorNodeUUID;
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;

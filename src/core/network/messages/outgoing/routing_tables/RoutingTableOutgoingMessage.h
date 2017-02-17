@@ -4,10 +4,8 @@
 #include "../../RoutingTablesMessage.hpp"
 
 #include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
-
 #include "../../../../common/NodeUUID.h"
-#include "../../../../trust_lines/TrustLineUUID.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../common/exceptions/MemoryError.h"
 
@@ -34,8 +32,7 @@ public:
 
 protected:
     RoutingTableOutgoingMessage(
-        NodeUUID &senderUUID,
-        TrustLineUUID &trustLineUUID);
+        NodeUUID &senderUUID);
 
     void deserializeFromBytes(
         BytesShared buffer);

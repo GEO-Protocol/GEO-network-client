@@ -1,12 +1,10 @@
 #include "FirstLevelRoutingTableOutgoingMessage.h"
 
 FirstLevelRoutingTableOutgoingMessage::FirstLevelRoutingTableOutgoingMessage(
-    NodeUUID &senderUUID,
-    TrustLineUUID &trustLineUUID) :
+    NodeUUID &senderUUID) :
 
     RoutingTableOutgoingMessage(
-        senderUUID,
-        trustLineUUID) {}
+        senderUUID) {}
 
 
 const Message::MessageType FirstLevelRoutingTableOutgoingMessage::typeID() const {

@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
 #include "../../common/Types.h"
-#include "../../trust_lines/TrustLineUUID.h"
 #include "../../common/NodeUUID.h"
 #include "../../common/memory/MemoryUtils.h"
 #include "../../logger/Logger.h"
@@ -70,7 +69,7 @@ public:
     // Invokes from Core
     void launchRoutingTablePropagationTransaction(
         const NodeUUID &contractorUUID,
-        const TrustLineUUID &trustLineUUID);
+        const TrustLineDirection direction);
 
 private:
     void loadTransactions();

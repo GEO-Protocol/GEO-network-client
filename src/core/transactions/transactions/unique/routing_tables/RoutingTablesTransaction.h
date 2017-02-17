@@ -4,8 +4,8 @@
 #include "../../base/UniqueTransaction.h"
 
 #include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../common/NodeUUID.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../scheduler/TransactionsScheduler.h"
 
@@ -21,9 +21,9 @@ public:
     };
 
 public:
-    const NodeUUID &contractorUUID() const;
+    const TransactionUUID &UUID() const;
 
-    const TrustLineUUID &trustLineUUID() const;
+    const NodeUUID &contractorUUID() const;
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
@@ -31,13 +31,7 @@ protected:
     RoutingTablesTransaction(
         TransactionType type,
         NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
-        const TrustLineUUID &trustLineUUID,
-        TransactionsScheduler *scheduler);
-
-    RoutingTablesTransaction(
-        BaseTransaction::TransactionType type,
-        NodeUUID &nodeUUID,
+        NodeUUID &contractorUUID,
         TransactionsScheduler *scheduler);
 
     RoutingTablesTransaction(
@@ -70,7 +64,6 @@ protected:
     uint16_t mConnectionTimeout = kStandardConnectionTimeout;
 
     NodeUUID mContractorUUID;
-    TrustLineUUID mTrustLineUUID;
 };
 
 

@@ -4,18 +4,17 @@
 #include "RoutingTablesTransaction.h"
 
 #include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
-
 #include "../../../../common/NodeUUID.h"
-#include "../../../../trust_lines/TrustLineUUID.h"
-
-#include "PropagationRoutingTablesTransaction.h"
-
-#include "../../../scheduler/TransactionsScheduler.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../network/messages/Message.hpp"
 #include "../../../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 #include "../../../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
+#include "../../../../network/messages/response/RoutingTablesResponse.h"
+
+#include "PropagationRoutingTablesTransaction.h"
+
+#include "../../../scheduler/TransactionsScheduler.h"
 
 #include "../../../../common/exceptions/ConflictError.h"
 
@@ -39,14 +38,9 @@ public:
 
     FirstLevelRoutingTableIncomingMessage::Shared message() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const;
-
     TransactionResult::SharedConst run();
 
 private:
-    void deserializeFromBytes(
-        BytesShared buffer);
-
     pair<bool, const TransactionUUID> isTransactionToContractorUnique();
 
     void saveFirstLevelRoutingTable();
@@ -60,7 +54,6 @@ private:
     );
 
     void sendResponseToContractor(
-        TransactionUUID &transactionUUID,
         NodeUUID &contractorUUID,
         uint16_t code);
 

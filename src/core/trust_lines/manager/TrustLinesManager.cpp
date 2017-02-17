@@ -409,7 +409,7 @@ void TrustLinesManager::saveToDisk(
     }
     trustLineCreatedSignal(
         trustLine->contractorNodeUUID(),
-        trustLine->trustLineUUID()
+        trustLine->direction()
     );
 }
 

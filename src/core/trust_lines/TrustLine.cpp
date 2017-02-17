@@ -114,11 +114,6 @@ void TrustLine::suspendIncomingDirection() {
     mTrustLineState.first = TrustState::Suspended;
 }
 
-const TrustLineUUID &TrustLine::trustLineUUID() const {
-
-    return mTrustLineUUID;
-}
-
 const NodeUUID &TrustLine::contractorNodeUUID() const {
 
     return mContractorNodeUUID;
