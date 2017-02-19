@@ -10,22 +10,23 @@ class GetTopologyAndBalancesMessageBoundaryNode:
             const TrustLineAmount maxFlow,
             const byte max_depth,
             vector<NodeUUID> &path,
-            const BoundaryNodesType boundaryNodes
+            const vector<pair<NodeUUID, TrustLineAmount>> boundaryNodes
     );
     GetTopologyAndBalancesMessageBoundaryNode(BytesShared buffer);
 
 public:
     typedef shared_ptr<GetTopologyAndBalancesMessageInBetweenNode> Shared;
-    typedef vector<pair<NodeUUID, TrustLineAmount>> BoundaryNodesType;
+//    typedef vector<pair<NodeUUID, TrustLineAmount>> BoundaryNodesType;
 
 protected:
 //    static const size_t kOffsetToInheritedBytes();
     void deserializeFromBytes(
             BytesShared buffer);
 
-private:
+protected:
+
     pair<BytesShared, size_t> serializeToBytes();
-    BoundaryNodesType mBoundaryNodes;
+    vector<pair<NodeUUID, TrustLineAmount>> mBoundaryNodes;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETTOPOLOGYANDBALANCESBOUNDARYNODES_H

@@ -1,8 +1,12 @@
 #include "GetTopologyAndBalancesMessageInBetweenNode.h"
 
-GetTopologyAndBalancesMessageInBetweenNode::GetTopologyAndBalancesMessageInBetweenNode(const TrustLineAmount maxFlow,
-                                                                                         const byte max_depth,
-                                                                                         vector<NodeUUID> &path) {
+uint8_t GetTopologyAndBalancesMessageInBetweenNode::mNodesInPath;
+
+GetTopologyAndBalancesMessageInBetweenNode::GetTopologyAndBalancesMessageInBetweenNode(
+        const TrustLineAmount maxFlow,
+        const byte max_depth,
+        vector<NodeUUID> &path
+       ){
     mMaxFlow = maxFlow;
     mMax_depth = max_depth;
     mPath = path;
@@ -14,7 +18,7 @@ GetTopologyAndBalancesMessageInBetweenNode::GetTopologyAndBalancesMessageInBetwe
 }
 
 pair<BytesShared, size_t> GetTopologyAndBalancesMessageInBetweenNode::serializeToBytes() {
-    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+    auto parentBytesAndCount = Message::serializeToBytes();
 
 
     vector<byte> MaxFlowBuffer = trustLineAmountToBytes(mMaxFlow);
@@ -77,9 +81,9 @@ pair<BytesShared, size_t> GetTopologyAndBalancesMessageInBetweenNode::serializeT
 
 void GetTopologyAndBalancesMessageInBetweenNode::deserializeFromBytes(
         BytesShared buffer) {
-    TransactionMessage::deserializeFromBytes(buffer);
+    Message::deserializeFromBytes(buffer);
 //    Parent part of deserializeFromBytes
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    size_t bytesBufferOffset = Message::kOffsetToInheritedBytes();
     vector<byte> amountBytes(
             buffer.get() + bytesBufferOffset,
             buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
@@ -115,7 +119,7 @@ void GetTopologyAndBalancesMessageInBetweenNode::deserializeFromBytes(
 }
 
 const Message::MessageType GetTopologyAndBalancesMessageInBetweenNode::typeID() const {
-    return Message::GetTopologyAndBalancesMessageFirstLevelNode;
+    return Message::GetTopologyAndBalancesMessageInBetweenNode;
 }
 
 const TransactionUUID &GetTopologyAndBalancesMessageInBetweenNode::transactionUUID() const {
@@ -132,7 +136,7 @@ const size_t GetTopologyAndBalancesMessageInBetweenNode::kOffsetToInheritedBytes
 //    todo add sizeof message
 //    todo Ask about static for this object
     static const size_t offset =
-            TransactionMessage::kOffsetToInheritedBytes()
+            Message::kOffsetToInheritedBytes()
             + kTrustLineAmountBytesCount
             + sizeof(mMax_depth)
             + sizeof(uint8_t)

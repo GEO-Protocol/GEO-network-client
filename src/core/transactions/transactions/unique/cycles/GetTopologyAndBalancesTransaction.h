@@ -7,28 +7,44 @@
 
 #include "../../base/UniqueTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../network/messages/cycles/GetTopologyAndBalancesMessageInBetweenNode.h"
 
 
 class GetTopologyAndBalancesTransaction : public UniqueTransaction {
-
 
 public:
     typedef shared_ptr<GetTopologyAndBalancesTransaction> Shared;
 
 public:
-    GetTopologyAndBalancesTransaction(BaseTransaction::TransactionType type,
+    GetTopologyAndBalancesTransaction(TransactionType type,
                                       NodeUUID &nodeUUID,
-                                      TransactionsScheduler *scheduler1
-    );
-    GetTopologyAndBalancesTransaction(TransactionsScheduler *scheduler);
+                                      TransactionsScheduler *scheduler,
+                                      TrustLinesManager *manager,
+                                      Logger *logger);
+//    GetTopologyAndBalancesTransaction(BaseTransaction::TransactionType type,
+//                                      NodeUUID &nodeUUID,
+//                                      TransactionsScheduler *scheduler,
+//                                      TrustLinesManager *manager,
+//                                      Logger *logger
+//    );
+//    GetTopologyAndBalancesTransaction(TransactionsScheduler *scheduler);
+    ~GetTopologyAndBalancesTransaction();
+    pair<BytesShared, size_t> serializeToBytes() const;
 
+    TransactionResult::SharedConst run();
+    void deserializeFromBytes(
+            BytesShared buffer);
+private:
+//    vector<Message> getMessagesToSent();
 private:
     const uint16_t kConnectionTimeout = 2000;
     const uint16_t kMaxRequestsCount = 5;
 
-//    OpenTrustLineCommand::Shared mCommand;
-    TrustLinesManager *mTrustLinesManager;
-    Logger *mlogger;
+//    uint8_t mMax_depth = 2;
+//    NodeUUID &mNodeUUID;
+//    TrustLinesManager *mTrustLinesManager;
+//    Logger *mlogger;
+
 };
 
 

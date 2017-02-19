@@ -8,7 +8,7 @@
 #include "../Message.hpp"
 
 class GetTopologyAndBalancesMessageInBetweenNode:
-        public TransactionMessage {
+        public Message {
 
 public:
     GetTopologyAndBalancesMessageInBetweenNode(

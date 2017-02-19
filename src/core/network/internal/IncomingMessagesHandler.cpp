@@ -69,6 +69,19 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                     make_shared<ReceiverInitPaymentMessage>(messagePart)));
         }
 
+        case Message::MessageTypeID::GetTopologyAndBalancesMessageInBetweenNode: {
+            return make_pair(
+                    true,
+                    static_pointer_cast<Message>(
+                            make_shared<ReceiverInitPaymentMessage>(messagePart)));
+        }
+        case Message::MessageTypeID::GetTopologyAndBalancesMessageBoundaryNode: {
+            return make_pair(
+                    true,
+                    static_pointer_cast<Message>(
+                            make_shared<ReceiverInitPaymentMessage>(messagePart)));
+        }
+
         default: {
             return tryDeserializeResponse(
                 messageIdentifier,

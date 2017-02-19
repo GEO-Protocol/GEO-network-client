@@ -481,3 +481,39 @@ map<NodeUUID, TrustLine::Shared> &TrustLinesManager::trustLines() {
 
     return mTrustLines;
 }
+
+vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesForCycles() {
+    vector<pair<NodeUUID, TrustLineBalance>> Nodes;
+    for (auto const& x : mTrustLines){
+        cout << "TrustLine" << endl;
+        cout << x.first << endl;
+        cout << x.second->balance() << endl;
+        if (x.second->balance() != 0){
+            cout << x.second->balance() << endl;
+            Nodes.push_back(make_pair(x.first,  x.second->balance()));
+        }
+    }
+    return Nodes;
+}
+
+void TrustLinesManager::setSomeBalances() {
+//     this is debug method. have to be removed
+    NodeUUID contractor1;
+    NodeUUID contractor2;
+    TrustLine *first_trustline = nullptr;
+    TrustLine *second_trustline = nullptr;
+    first_trustline = new TrustLine(
+            contractor1,
+            100,
+            100,
+            50
+    );
+    second_trustline = new TrustLine(
+            contractor2,
+            200,
+            200,
+            111
+    );
+    saveToDisk(TrustLine::Shared(first_trustline));
+    saveToDisk(TrustLine::Shared(second_trustline));
+}

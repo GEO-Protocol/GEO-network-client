@@ -518,12 +518,16 @@ void TransactionsManager::onCommandResultReady(
 void TransactionsManager::launchGetTopologyAndBalancesTransaction(){
 
     try {
-//        auto transaction = make_shared<GetTopologyAndBalancesTransaction>(
-//                mScheduler.get()
-//        );
-//
-////        todo add body
-//
+        auto transaction = make_shared<GetTopologyAndBalancesTransaction>(
+                BaseTransaction::TransactionType::GetTopologyAndBalancesTransaction,
+                mNodeUUID,
+                mScheduler.get(),
+                mTrustLines,
+                mLog
+        );
+
+//        todo add body
+
 //        mScheduler->scheduleTransaction(transaction);
         cout << "launchGetTopologyAndBalancesTransaction" << endl;
     } catch (bad_alloc &) {

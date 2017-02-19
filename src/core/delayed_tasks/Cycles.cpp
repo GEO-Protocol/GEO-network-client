@@ -1,8 +1,7 @@
 #include "Cycles.h"
-#include "../network/messages/cycles/GetTopologyAndBalancesMessageFirstLevelNode.h"
+#include "../network/messages/cycles/GetTopologyAndBalancesMessageInBetweenNode.h"
 
 void CyclesDelayedTasks::RunSignalFiveNodes(const boost::system::error_code &error) {
-    cout << "RunSignalFiveNodes" << endl;
     if (error) {
         cout << error.message() << endl;
     }
@@ -17,7 +16,6 @@ void CyclesDelayedTasks::RunSignalFiveNodes(const boost::system::error_code &err
 }
 
 void CyclesDelayedTasks::RunSignalSixNodes(const boost::system::error_code &error) {
-    cout << "RunSignalSixNodes" << endl;
     if (error) {
         cout << error.message() << endl;
     }
@@ -33,24 +31,24 @@ void CyclesDelayedTasks::RunSignalSixNodes(const boost::system::error_code &erro
 
 CyclesDelayedTasks::CyclesDelayedTasks(as::io_service &ioService):mIOService(ioService){
 //    todo add set Time started to 60*6
-    int TimeStarted = rand() % 15;
+    int TimeStarted = rand() % 60 * 6;
     mFiveNodesCycleTimer = unique_ptr<as::deadline_timer> (new as::deadline_timer(
             mIOService,
-            boost::posix_time::seconds(2)
+            boost::posix_time::seconds(5)
     ));
-    mFiveNodesCycleTimer->expires_from_now(boost::posix_time::seconds(3));
+    mFiveNodesCycleTimer->expires_from_now(boost::posix_time::seconds(TimeStarted));
     mFiveNodesCycleTimer->async_wait(boost::bind(
             &CyclesDelayedTasks::RunSignalFiveNodes,
             this,
             as::placeholders::error
     ));
     //    todo add set Time started to 60*6
-    TimeStarted = rand() % 15;
+    TimeStarted = rand() % 60 * 6;
     mSixNodesCycleTimer = unique_ptr<as::deadline_timer> (new as::deadline_timer(
             mIOService,
             boost::posix_time::seconds(5)
     ));
-    mSixNodesCycleTimer->expires_from_now(boost::posix_time::seconds(5));
+    mSixNodesCycleTimer->expires_from_now(boost::posix_time::seconds(TimeStarted));
     mSixNodesCycleTimer->async_wait(boost::bind(
             &CyclesDelayedTasks::RunSignalSixNodes,
             this,

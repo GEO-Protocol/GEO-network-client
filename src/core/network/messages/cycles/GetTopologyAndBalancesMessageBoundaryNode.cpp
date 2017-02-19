@@ -5,7 +5,7 @@
 GetTopologyAndBalancesMessageBoundaryNode::GetTopologyAndBalancesMessageBoundaryNode(const TrustLineAmount maxFlow,
                                                                                      const byte max_depth,
                                                                                      vector<NodeUUID> &path,
-                                                                                     const BoundaryNodesType boundaryNodes)
+                                                                                     const vector<pair<NodeUUID, TrustLineAmount>> boundaryNodes)
         : GetTopologyAndBalancesMessageInBetweenNode(maxFlow, max_depth, path) {
     mBoundaryNodes = boundaryNodes;
 }
@@ -42,21 +42,23 @@ pair<BytesShared, size_t> GetTopologyAndBalancesMessageBoundaryNode::serializeTo
     dataBytesOffset += sizeof(boundaryNodesCount);
     vector<byte> stepObligationFlow;
     for(auto const &value: mBoundaryNodes){
-        memcpy(
-                dataBytesShared.get() + dataBytesOffset,
-                &value.first,
-                NodeUUID::kBytesSize
-        );
-        dataBytesOffset += NodeUUID::kBytesSize;
-        stepObligationFlow = trustLineAmountToBytes(value.second);
-        memcpy(
-                dataBytesShared.get() + dataBytesOffset,
-                stepObligationFlow.data(),
-                stepObligationFlow.size()
-        );
-        dataBytesOffset += stepObligationFlow.size();
-        stepObligationFlow.clear();
+        cout << "Lets see what we have in value" << endl;
     }
+//        memcpy(
+//                dataBytesShared.get() + dataBytesOffset,
+//                &value.first,
+//                NodeUUID::kBytesSize
+//        );
+//        dataBytesOffset += NodeUUID::kBytesSize;
+//        stepObligationFlow = trustLineAmountToBytes(value.second);
+//        memcpy(
+//                dataBytesShared.get() + dataBytesOffset,
+//                stepObligationFlow.data(),
+//                stepObligationFlow.size()
+//        );
+//        dataBytesOffset += stepObligationFlow.size();
+//        stepObligationFlow.clear();
+//    }
 
     return make_pair(
             dataBytesShared,
@@ -66,32 +68,32 @@ pair<BytesShared, size_t> GetTopologyAndBalancesMessageBoundaryNode::serializeTo
 void GetTopologyAndBalancesMessageBoundaryNode::deserializeFromBytes(BytesShared buffer) {
     GetTopologyAndBalancesMessageInBetweenNode::deserializeFromBytes(buffer);
     //    Parent part of deserializeFromBytes
-    size_t bytesBufferOffset = GetTopologyAndBalancesMessageInBetweenNode::kOffsetToInheritedBytes();
-    uint16_t boundaryNodesCount;
-    memcpy(
-            &boundaryNodesCount,
-            buffer.get() + bytesBufferOffset,
-            sizeof(boundaryNodesCount)
-    );
-    bytesBufferOffset += sizeof(boundaryNodesCount);
-
-    vector<byte> stepObligationFlowBytes;
-    NodeUUID stepNodeUUID;
-
-    for (uint16_t i=1; i<=boundaryNodesCount; i++){
-        memcpy(
-                stepNodeUUID.data,
-                buffer.get() + bytesBufferOffset,
-                NodeUUID::kBytesSize
-        );
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        memcpy(
-                stepObligationFlowBytes,
-                buffer.get(),
-                buffer.get() + kTrustLineAmountBytesCount
-        );
-        mBoundaryNodes.push_back(make_pair(stepNodeUUID, bytesToTrustLineAmount(stepObligationFlowBytes)));
-        bytesBufferOffset += kTrustLineAmountBytesCount;
-        stepObligationFlowBytes.clear();
-    };
+//    size_t bytesBufferOffset = GetTopologyAndBalancesMessageInBetweenNode::kOffsetToInheritedBytes();
+//    uint16_t boundaryNodesCount;
+//    memcpy(
+//            &boundaryNodesCount,
+//            buffer.get() + bytesBufferOffset,
+//            sizeof(boundaryNodesCount)
+//    );
+//    bytesBufferOffset += sizeof(boundaryNodesCount);
+//
+//    vector<byte> stepObligationFlowBytes;
+//    NodeUUID stepNodeUUID;
+//
+//    for (uint16_t i=1; i<=boundaryNodesCount; i++){
+//        memcpy(
+//                stepNodeUUID.data,
+//                buffer.get() + bytesBufferOffset,
+//                NodeUUID::kBytesSize
+//        );
+//        bytesBufferOffset += NodeUUID::kBytesSize;
+//        memcpy(
+//                &stepObligationFlowBytes,
+//                buffer.get(),
+//                buffer.get() + kTrustLineAmountBytesCount
+//        );
+//        mBoundaryNodes.push_back(make_pair(stepNodeUUID, bytesToTrustLineAmount(stepObligationFlowBytes)));
+//        bytesBufferOffset += kTrustLineAmountBytesCount;
+//        stepObligationFlowBytes.clear();
+//    };
 }
