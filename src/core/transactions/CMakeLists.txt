@@ -6,9 +6,11 @@ add_subdirectory(transactions/result)
 add_subdirectory(transactions/base)
 add_subdirectory(transactions/regular/payments)
 add_subdirectory(transactions/unique/trust_lines)
+add_subdirectory(transactions/max_flow_calculation)
 #add_subdirectory(transactions/unique/routing_tables)
 
 set(SOURCE_FILES
+      transactions/base/TransactionUUID.h
         )
 
 add_library(transactions ${SOURCE_FILES})
@@ -19,6 +21,7 @@ target_link_libraries(transactions
         transactions__trustlines
         transactions__payments
 #        transactions__routing_tables
+        transactions__max_flow_calculation
         transactions__result
 
         time

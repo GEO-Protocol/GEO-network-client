@@ -104,6 +104,14 @@ public:
     void removeTrustLine(
         const NodeUUID &contractorUUID);
 
+    vector<NodeUUID> getFirstLevelNeighborsWithOutgoingFlow();
+
+    vector<NodeUUID> getFirstLevelNeighborsWithIncomingFlow();
+
+    map<NodeUUID, TrustLineAmount> getIncomingFlows();
+
+    map<NodeUUID, TrustLineAmount> getOutgoingFlows();
+
 private:
     static const size_t kTrustAmountPartSize = 32;
     static const size_t kBalancePartSize = 32;

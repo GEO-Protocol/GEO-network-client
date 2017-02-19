@@ -39,7 +39,17 @@ public:
 
         // Payments
         CoordinatorPaymentTransaction,
-        ReceiverPaymentTransaction
+        ReceiverPaymentTransaction,
+
+        // Max flow calculation
+        InitiateMaxFlowCalculationTransactionType,
+        ReceiveMaxFlowCalculationOnTargetTransactionType,
+        ReceiveResultMaxFlowCalculationFromTargetTransactionType,
+        MaxFlowCalculationSourceFstLevelTransactionType,
+        MaxFlowCalculationTargetFstLevelTransactionType,
+        MaxFlowCalculationSourceSndLevelTransactionType,
+        MaxFlowCalculationTargetSndLevelTransactionType,
+        ReceiveResultMaxFlowCalculationFromSourceTransactionType
     };
 
 public:

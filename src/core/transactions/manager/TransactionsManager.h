@@ -17,12 +17,14 @@
 #include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
+#include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 #include "../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
 #include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../../network/messages/response/Response.h"
+#include "../../network/messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/base/UniqueTransaction.h"
@@ -34,6 +36,14 @@
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
+#include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
+#include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
+#include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationFromTargetTransaction.h"
+#include "../transactions/max_flow_calculation/MaxFlowCalculationSourceFstLevelTransaction.h"
+#include "../transactions/max_flow_calculation/MaxFlowCalculationTargetFstLevelTransaction.h"
+#include "../transactions/max_flow_calculation/MaxFlowCalculationSourceSndLevelTransaction.h"
+#include "../transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.h"
+#include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationFromSourceTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -79,6 +89,9 @@ private:
     void launchCloseTrustLineTransaction(
         CloseTrustLineCommand::Shared command);
 
+    void launchInitiateMaxFlowCalculatingTransaction(
+        InitiateMaxFlowCalculationCommand::Shared command);
+
     void launchAcceptTrustLineTransaction(
         AcceptTrustLineMessage::Shared message);
 
@@ -87,6 +100,27 @@ private:
 
     void launchRejectTrustLineTransaction(
         RejectTrustLineMessage::Shared message);
+
+    void launchReceiveMaxFlowCalculationTransaction(
+        ReceiveMaxFlowCalculationOnTargetMessage::Shared message);
+
+    void launchReceiveResultMaxFlowCalculationFromTargetTransaction(
+        ResultMaxFlowCalculationFromTargetMessage::Shared message);
+
+    void launchReceiveResultMaxFlowCalculationFromSourceTransaction(
+        ResultMaxFlowCalculationFromSourceMessage::Shared message);
+
+    void launchMaxFlowCalculationSourceFstLevelTransaction(
+        MaxFlowCalculationSourceFstLevelInMessage::Shared message);
+
+    void launchMaxFlowCalculationTargetFstLevelTransaction(
+        MaxFlowCalculationTargetFstLevelInMessage::Shared message);
+
+    void launchMaxFlowCalculationSourceSndLevelTransaction(
+        MaxFlowCalculationSourceSndLevelInMessage::Shared message);
+
+    void launchMaxFlowCalculationTargetSndLevelTransaction(
+        MaxFlowCalculationTargetSndLevelInMessage::Shared message);
 
 private:
     // Payment transactions

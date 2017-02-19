@@ -56,6 +56,55 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                     make_shared<ReceiverInitPaymentMessage>(messagePart)));
         }
 
+        case Message::MessageTypeID::InitiateMaxFlowCalculationMessageType: {
+            return make_pair (
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ReceiveMaxFlowCalculationOnTargetMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::SendResultMaxFlowCalculationFromTargetMessageType: {
+            return make_pair (
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ResultMaxFlowCalculationFromTargetMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::SendResultMaxFlowCalculationFromSourceMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ResultMaxFlowCalculationFromSourceMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::SendMaxFlowCalculationSourceFstLevelMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<MaxFlowCalculationSourceFstLevelInMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::SendMaxFlowCalculationTargetFstLevelMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<MaxFlowCalculationTargetFstLevelInMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::MaxFlowCalculationSourceFstLevelOutMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<MaxFlowCalculationSourceSndLevelInMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::MaxFlowCalculationTargetFstLevelOutMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<MaxFlowCalculationTargetSndLevelInMessage>(messagePart)));
+        }
+
         default: {
             return tryDeserializeResponse(
                 messageIdentifier,

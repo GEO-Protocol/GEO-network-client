@@ -10,6 +10,7 @@
 #include "../commands/trust_lines/CloseTrustLineCommand.h"
 #include "../commands/trust_lines/SetTrustLineCommand.h"
 #include "../commands/payments/CreditUsageCommand.h"
+#include "../commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"
