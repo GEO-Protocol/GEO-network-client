@@ -1,5 +1,5 @@
-#ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONMESSAGE_H
-#define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONMESSAGE_H
+#ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONRESULTMESSAGE_H
+#define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONRESULTMESSAGE_H
 
 #include "Message.hpp"
 #include "result/MessageResult.h"
@@ -18,14 +18,14 @@
 
 using namespace std;
 
-class MaxFlowCalculationMessage : public Message {
+class MaxFlowCalculationResultMessage : public Message {
 public:
-    typedef shared_ptr<MaxFlowCalculationMessage> Shared;
+    typedef shared_ptr<MaxFlowCalculationResultMessage> Shared;
 
 public:
     virtual const MessageType typeID() const = 0;
 
-    const NodeUUID &targetUUID() const {
+    const NodeUUID &senderUUID() const {
 
         return mmSenderUUID;
     }
@@ -37,7 +37,7 @@ public:
 
     const TrustLineUUID &trustLineUUID() const {
 
-        throw NotImplementedError("MaxFlowCalculationMessage: public Message::trustLineUUID:"
+        throw NotImplementedError("MaxFlowCalculationResultMessage: public Message::trustLineUUID:"
                                       "Method not implemented.");
     }
 
@@ -89,15 +89,15 @@ public:
 
 protected:
 
-    MaxFlowCalculationMessage(){}
+    MaxFlowCalculationResultMessage(){}
 
-    MaxFlowCalculationMessage(
+    MaxFlowCalculationResultMessage(
         NodeUUID &senderUUID,
-        NodeUUID &targetUUID,
+        NodeUUID &mSenderUUID,
         TransactionUUID &transactionUUID) :
 
         Message(senderUUID),
-        mmSenderUUID(targetUUID),
+        mmSenderUUID(mSenderUUID),
         mTransactionUUID(transactionUUID) {};
 
     virtual void deserializeFromBytes(
@@ -132,4 +132,4 @@ protected:
     NodeUUID mmSenderUUID;
 };
 
-#endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONMESSAGE_H
+#endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONRESULTMESSAGE_H

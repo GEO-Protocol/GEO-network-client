@@ -11,6 +11,7 @@ set(SOURCE_FILES
         RoutingTablesMessage.hpp
         TransactionMessage.hpp
         MaxFlowCalculationMessage.hpp
+        MaxFlowCalculationResultMessage.hpp
         )
 
 add_library(network__messages ${SOURCE_FILES})
