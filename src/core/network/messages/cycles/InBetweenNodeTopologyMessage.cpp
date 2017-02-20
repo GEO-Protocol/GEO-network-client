@@ -1,31 +1,31 @@
-#include "GetTopologyAndBalancesMessageInBetweenNode.h"
+#include "InBetweenNodeTopologyMessage.h"
 
-uint8_t GetTopologyAndBalancesMessageInBetweenNode::mNodesInPath;
+uint8_t InBetweenNodeTopologyMessage::mNodesInPath;
 
-GetTopologyAndBalancesMessageInBetweenNode::GetTopologyAndBalancesMessageInBetweenNode(
-        const TrustLineAmount maxFlow,
+InBetweenNodeTopologyMessage::InBetweenNodeTopologyMessage(
+        const TrustLineBalance maxFlow,
         const byte max_depth,
         vector<NodeUUID> &path
        ){
     mMaxFlow = maxFlow;
-    mMax_depth = max_depth;
+    mMaxDepth = max_depth;
     mPath = path;
     mNodesInPath = (uint8_t) mPath.size();
 }
 
-GetTopologyAndBalancesMessageInBetweenNode::GetTopologyAndBalancesMessageInBetweenNode(BytesShared buffer) {
+InBetweenNodeTopologyMessage::InBetweenNodeTopologyMessage(BytesShared buffer) {
     deserializeFromBytes(buffer);
 }
 
-pair<BytesShared, size_t> GetTopologyAndBalancesMessageInBetweenNode::serializeToBytes() {
+pair<BytesShared, size_t> InBetweenNodeTopologyMessage::serializeToBytes() {
     auto parentBytesAndCount = Message::serializeToBytes();
 
 
-    vector<byte> MaxFlowBuffer = trustLineAmountToBytes(mMaxFlow);
+    vector<byte> MaxFlowBuffer = trustLineBalanceToBytes(mMaxFlow);
 
     size_t bytesCount = parentBytesAndCount.second +
                                 MaxFlowBuffer.size() +
-                                sizeof(mMax_depth) +
+                                sizeof(mMaxDepth) +
                                 sizeof(mNodesInPath) +
                                 mNodesInPath * NodeUUID::kBytesSize;
 
@@ -52,10 +52,10 @@ pair<BytesShared, size_t> GetTopologyAndBalancesMessageInBetweenNode::serializeT
     // for max depth
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            &mMax_depth,
-            sizeof(mMax_depth)
+            &mMaxDepth,
+            sizeof(mMaxDepth)
     );
-    dataBytesOffset += sizeof(mMax_depth);
+    dataBytesOffset += sizeof(mMaxDepth);
     //----------------------------------------------------
     // For path
     // Write vector size first
@@ -79,7 +79,7 @@ pair<BytesShared, size_t> GetTopologyAndBalancesMessageInBetweenNode::serializeT
     );
 }
 
-void GetTopologyAndBalancesMessageInBetweenNode::deserializeFromBytes(
+void InBetweenNodeTopologyMessage::deserializeFromBytes(
         BytesShared buffer) {
     Message::deserializeFromBytes(buffer);
 //    Parent part of deserializeFromBytes
@@ -88,11 +88,11 @@ void GetTopologyAndBalancesMessageInBetweenNode::deserializeFromBytes(
             buffer.get() + bytesBufferOffset,
             buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
 //    Max flow
-    mMaxFlow = bytesToTrustLineAmount(amountBytes);
+    mMaxFlow = bytesToTrustLineBalance(amountBytes);
     bytesBufferOffset += kTrustLineAmountBytesCount;
 // for max depth
     memcpy(
-            &mMax_depth,
+            &mMaxDepth,
             buffer.get() + bytesBufferOffset,
             sizeof(uint8_t)
     );
@@ -118,29 +118,37 @@ void GetTopologyAndBalancesMessageInBetweenNode::deserializeFromBytes(
     }
 }
 
-const Message::MessageType GetTopologyAndBalancesMessageInBetweenNode::typeID() const {
-    return Message::GetTopologyAndBalancesMessageInBetweenNode;
+const Message::MessageType InBetweenNodeTopologyMessage::typeID() const {
+    return Message::InBetweenNodeTopologyMessage;
 }
 
-const TransactionUUID &GetTopologyAndBalancesMessageInBetweenNode::transactionUUID() const {
+const TransactionUUID &InBetweenNodeTopologyMessage::transactionUUID() const {
     throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
                                       "Method not implemented.");
 }
 
-const TrustLineUUID &GetTopologyAndBalancesMessageInBetweenNode::trustLineUUID() const {
+const TrustLineUUID &InBetweenNodeTopologyMessage::trustLineUUID() const {
     throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
                                       "Method not implemented.");
 }
 
-const size_t GetTopologyAndBalancesMessageInBetweenNode::kOffsetToInheritedBytes() {
+const size_t InBetweenNodeTopologyMessage::kOffsetToInheritedBytes() {
 //    todo add sizeof message
 //    todo Ask about static for this object
     static const size_t offset =
             Message::kOffsetToInheritedBytes()
             + kTrustLineAmountBytesCount
-            + sizeof(mMax_depth)
+            + sizeof(mMaxDepth)
             + sizeof(uint8_t)
             + NodeUUID::kBytesSize * mNodesInPath;
     ;
     return offset;
+}
+
+TrustLineBalance InBetweenNodeTopologyMessage::getMaxFlow() {
+    return mMaxFlow;
+}
+
+vector<NodeUUID> InBetweenNodeTopologyMessage::getPath() {
+    return vector<NodeUUID>();
 }

@@ -1,5 +1,4 @@
 #include "Core.h"
-#include "network/messages/cycles/GetTopologyAndBalancesMessageFirstLevelNode.h"
 
 Core::Core() {
 
@@ -18,6 +17,7 @@ int Core::run() {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
         return initCode;
     }
+    JustToTestSomething();
     try {
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
@@ -338,25 +338,28 @@ int Core::initDelayedTasks() {
 }
 
 void Core::onDelayedTaskCycleSixNodesSlot() {
-    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
+//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
 }
 
 void Core::onDelayedTaskCycleFiveNodesSlot() {
-    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
+//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
 }
 
 void Core::JustToTestSomething() {
+//    mTrustLinesManager->getFirstLevelNodesForCycles();
+//    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles();
     vector<NodeUUID> path;
     path.push_back(mNodeUUID);
-    TrustLineAmount maxFlow = 50;
-    uint8_t max_depth = 2;
-    Message *message = new GetTopologyAndBalancesMessageFirstLevelNode(
-            maxFlow,
-            max_depth,
-            path
-    );
-    cout << "Lets see what we have " << endl;
-    auto messageBytesAndCount = message->serializeToBytes();
-    cout << messageBytesAndCount.second << endl;
+    TrustLineBalance bal = 70;
+//    for(const auto &value: firstLevelNodes){
 
+//
+    auto message = Message::Shared(new InBetweenNodeTopologyMessage(
+            bal,
+            2,
+            path));
+    mTransactionsManager->launchGetTopologyAndBalancesTransaction(static_pointer_cast<InBetweenNodeTopologyMessage>(
+            message
+    )
+    );
 }

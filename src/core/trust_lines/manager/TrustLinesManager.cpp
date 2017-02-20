@@ -482,20 +482,6 @@ map<NodeUUID, TrustLine::Shared> &TrustLinesManager::trustLines() {
     return mTrustLines;
 }
 
-vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesForCycles() {
-    vector<pair<NodeUUID, TrustLineBalance>> Nodes;
-    for (auto const& x : mTrustLines){
-        cout << "TrustLine" << endl;
-        cout << x.first << endl;
-        cout << x.second->balance() << endl;
-        if (x.second->balance() != 0){
-            cout << x.second->balance() << endl;
-            Nodes.push_back(make_pair(x.first,  x.second->balance()));
-        }
-    }
-    return Nodes;
-}
-
 void TrustLinesManager::setSomeBalances() {
 //     this is debug method. have to be removed
     NodeUUID contractor1;
@@ -516,4 +502,27 @@ void TrustLinesManager::setSomeBalances() {
     );
     saveToDisk(TrustLine::Shared(first_trustline));
     saveToDisk(TrustLine::Shared(second_trustline));
+}
+
+vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxflow) {
+    vector<pair<NodeUUID, TrustLineBalance>> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (auto const& x : mTrustLines){
+        stepbalance = x.second->balance();
+        if (maxflow == zerobalance) {
+            if (stepbalance != zerobalance) {
+                Nodes.push_back(make_pair(x.first, stepbalance));
+                }
+        } else if(maxflow < zerobalance){
+            if (stepbalance < zerobalance) {
+                Nodes.push_back(make_pair(x.first, min(maxflow, stepbalance)));
+            }
+        } else {
+            if (stepbalance > zerobalance) {
+                Nodes.push_back(make_pair(x.first, min(maxflow, stepbalance)));
+            }
+        }
+    }
+    return Nodes;
 }

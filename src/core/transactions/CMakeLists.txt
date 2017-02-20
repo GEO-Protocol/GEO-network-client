@@ -7,6 +7,7 @@ add_subdirectory(transactions/base)
 add_subdirectory(transactions/regular/payments)
 add_subdirectory(transactions/unique/trust_lines)
 add_subdirectory(transactions/unique/routing_tables)
+add_subdirectory(transactions/unique/cycles)
 
 set(SOURCE_FILES
         transactions/unique/cycles/GetTopologyAndBalancesTransaction.h transactions/unique/cycles/GetTopologyAndBalancesTransaction.cpp
@@ -16,7 +17,7 @@ add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions
         transactions__manager
         transactions__scheduler
-
+        transactions__cycles
         transactions__trustlines
         transactions__payments
         transactions__routing_tables

@@ -73,6 +73,7 @@ public:
 public:
     //  Cycles Transactions
     void launchGetTopologyAndBalancesTransaction();
+    void launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message);
 
 private:
     void loadTransactions();

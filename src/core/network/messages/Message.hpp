@@ -37,8 +37,8 @@ public:
         FirstLevelRoutingTableIncomingMessageType = 8,
         SecondLevelRoutingTableOutgoingMessageType = 9,
         SecondLevelRoutingTableIncomingMessageType = 10,
-        GetTopologyAndBalancesMessageInBetweenNode = 11,
-        GetTopologyAndBalancesMessageBoundaryNode = 12,
+        InBetweenNodeTopologyMessage = 11,
+        BoundaryNodeTopolodyMessage = 12,
         ReceiverInitPaymentMessageType,
         OperationStateMessageType,
 

@@ -1,21 +1,21 @@
 #ifndef GEO_NETWORK_CLIENT_GETTOPOLOGYANDBALANCESBOUNDARYNODES_H
 #define GEO_NETWORK_CLIENT_GETTOPOLOGYANDBALANCESBOUNDARYNODES_H
 
-#include "GetTopologyAndBalancesMessageInBetweenNode.h"
+#include "InBetweenNodeTopologyMessage.h"
 
-class GetTopologyAndBalancesMessageBoundaryNode:
-        public GetTopologyAndBalancesMessageInBetweenNode {
+class BoundaryNodeTopolodyMessage:
+        public InBetweenNodeTopologyMessage {
 
-    GetTopologyAndBalancesMessageBoundaryNode(
+    BoundaryNodeTopolodyMessage(
             const TrustLineAmount maxFlow,
             const byte max_depth,
             vector<NodeUUID> &path,
             const vector<pair<NodeUUID, TrustLineAmount>> boundaryNodes
     );
-    GetTopologyAndBalancesMessageBoundaryNode(BytesShared buffer);
+    BoundaryNodeTopolodyMessage(BytesShared buffer);
 
 public:
-    typedef shared_ptr<GetTopologyAndBalancesMessageInBetweenNode> Shared;
+    typedef shared_ptr<BoundaryNodeTopolodyMessage> Shared;
 //    typedef vector<pair<NodeUUID, TrustLineAmount>> BoundaryNodesType;
 
 protected:

@@ -110,7 +110,7 @@ public:
 
     map<NodeUUID, TrustLine::Shared> &trustLines();
 
-    vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles();
+    vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(TrustLineBalance maxflow);
     void setSomeBalances();
 private:
     static const size_t kTrustAmountPartSize = 32;

@@ -7,8 +7,8 @@
 
 #include "../../base/UniqueTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../network/messages/cycles/GetTopologyAndBalancesMessageInBetweenNode.h"
-
+#include "../../../../network/messages/cycles/InBetweenNodeTopologyMessage.h"
+#include "../../../../network/messages/cycles/BoundaryNodeTopolodyMessage.h"
 
 class GetTopologyAndBalancesTransaction : public UniqueTransaction {
 
@@ -21,14 +21,22 @@ public:
                                       TransactionsScheduler *scheduler,
                                       TrustLinesManager *manager,
                                       Logger *logger);
-//    GetTopologyAndBalancesTransaction(BaseTransaction::TransactionType type,
-//                                      NodeUUID &nodeUUID,
-//                                      TransactionsScheduler *scheduler,
-//                                      TrustLinesManager *manager,
-//                                      Logger *logger
-//    );
-//    GetTopologyAndBalancesTransaction(TransactionsScheduler *scheduler);
-    ~GetTopologyAndBalancesTransaction();
+
+    GetTopologyAndBalancesTransaction(TransactionType type,
+                                      NodeUUID &nodeUUID,
+                                      InBetweenNodeTopologyMessage::Shared message,
+                                      TransactionsScheduler *scheduler,
+                                      TrustLinesManager *manager,
+                                      Logger *logger);
+
+    GetTopologyAndBalancesTransaction(TransactionType type,
+                                      NodeUUID &nodeUUID,
+                                      BoundaryNodeTopolodyMessage::Shared message,
+                                      TransactionsScheduler *scheduler,
+                                      TrustLinesManager *manager,
+                                      Logger *logger);
+
+    GetTopologyAndBalancesTransaction(TransactionsScheduler *scheduler);
     pair<BytesShared, size_t> serializeToBytes() const;
 
     TransactionResult::SharedConst run();
@@ -40,10 +48,11 @@ private:
     const uint16_t kConnectionTimeout = 2000;
     const uint16_t kMaxRequestsCount = 5;
 
-//    uint8_t mMax_depth = 2;
-//    NodeUUID &mNodeUUID;
-//    TrustLinesManager *mTrustLinesManager;
-//    Logger *mlogger;
+    uint8_t mMax_depth = 2;
+    TrustLinesManager *mTrustLinesManager;
+    Logger *mlogger;
+    InBetweenNodeTopologyMessage::Shared mInBetweeenMessage = nullptr;
+    BoundaryNodeTopolodyMessage::Shared mBoundaryMessage = nullptr;
 
 };
 

@@ -7,24 +7,27 @@
 #include "../TransactionMessage.hpp"
 #include "../Message.hpp"
 
-class GetTopologyAndBalancesMessageInBetweenNode:
+class InBetweenNodeTopologyMessage:
         public Message {
 
 public:
-    GetTopologyAndBalancesMessageInBetweenNode(
-            const TrustLineAmount maxFlow,
+    InBetweenNodeTopologyMessage(
+            const TrustLineBalance maxFlow,
             const byte max_depth,
             vector<NodeUUID> &path);
-    GetTopologyAndBalancesMessageInBetweenNode(BytesShared buffer);
+    InBetweenNodeTopologyMessage(BytesShared buffer);
 
 public:
-    typedef shared_ptr<GetTopologyAndBalancesMessageInBetweenNode> Shared;
+    typedef shared_ptr<InBetweenNodeTopologyMessage> Shared;
 
 public:
     const TrustLineUUID &trustLineUUID() const;
     const TransactionUUID &transactionUUID() const;
     const MessageType typeID() const;
 
+public:
+    TrustLineBalance getMaxFlow();
+    vector<NodeUUID> getPath();
 protected:
     static const size_t kOffsetToInheritedBytes();
     void deserializeFromBytes(
@@ -33,8 +36,8 @@ protected:
 
 protected:
     vector<NodeUUID> mPath;
-    TrustLineAmount mMaxFlow;
-    uint8_t mMax_depth;
+    TrustLineBalance mMaxFlow;
+    uint8_t mMaxDepth;
     static uint8_t mNodesInPath;
 };
 

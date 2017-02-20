@@ -1,5 +1,7 @@
 #include "IncomingMessagesHandler.h"
 #include "../messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
+#include "../messages/cycles/InBetweenNodeTopologyMessage.h"
+#include "../messages/cycles/BoundaryNodeTopolodyMessage.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
     BytesShared messagePart,
@@ -69,18 +71,18 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                     make_shared<ReceiverInitPaymentMessage>(messagePart)));
         }
 
-        case Message::MessageTypeID::GetTopologyAndBalancesMessageInBetweenNode: {
+        case Message::MessageTypeID::InBetweenNodeTopologyMessage: {
             return make_pair(
                     true,
                     static_pointer_cast<Message>(
-                            make_shared<ReceiverInitPaymentMessage>(messagePart)));
+                            make_shared<InBetweenNodeTopologyMessage>(messagePart)));
         }
-        case Message::MessageTypeID::GetTopologyAndBalancesMessageBoundaryNode: {
-            return make_pair(
-                    true,
-                    static_pointer_cast<Message>(
-                            make_shared<ReceiverInitPaymentMessage>(messagePart)));
-        }
+//        case Message::MessageTypeID::BoundaryNodeTopolodyMessage: {
+//            return make_pair(
+//                    true,
+//                    static_pointer_cast<Message>(
+//                            make_shared<BoundaryNodeTopolodyMessage>(messagePart)));
+//        }
 
         default: {
             return tryDeserializeResponse(

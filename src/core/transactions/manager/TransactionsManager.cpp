@@ -96,9 +96,22 @@ void TransactionsManager::processMessage(
                 message
             )
         );
-
+    } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage){
+        launchGetTopologyAndBalancesTransaction(
+                static_pointer_cast<InBetweenNodeTopologyMessage>(
+                        message
+                )
+        );
+//    } else if (message->typeID() == Message::MessageTypeID::BoundaryNodeTopolodyMessage){
+//        launchGetTopologyAndBalancesTransaction(
+//                static_pointer_cast<BoundaryNodeTopolodyMessage>(
+//                        message
+//                )
+//        );
     } else if (message->typeID() == Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType) {
-        FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message);
+        FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(
+                message);
+
 
     } else {
         mScheduler->handleMessage(message);
@@ -514,6 +527,27 @@ void TransactionsManager::onCommandResultReady(
     }
 }
 
+void TransactionsManager::launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message){
+    try {
+        auto transaction = make_shared<GetTopologyAndBalancesTransaction>(
+                BaseTransaction::TransactionType::GetTopologyAndBalancesTransaction,
+                mNodeUUID,
+                message,
+                mScheduler.get(),
+                mTrustLines,
+                mLog
+        );
+
+//        todo add body
+
+        mScheduler->scheduleTransaction(transaction);
+        cout << "launchGetTopologyAndBalancesTransaction" << endl;
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchOpenTrustLineTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
+}
 
 void TransactionsManager::launchGetTopologyAndBalancesTransaction(){
 
@@ -528,7 +562,7 @@ void TransactionsManager::launchGetTopologyAndBalancesTransaction(){
 
 //        todo add body
 
-//        mScheduler->scheduleTransaction(transaction);
+        mScheduler->scheduleTransaction(transaction);
         cout << "launchGetTopologyAndBalancesTransaction" << endl;
     } catch (bad_alloc &) {
         throw MemoryError(
