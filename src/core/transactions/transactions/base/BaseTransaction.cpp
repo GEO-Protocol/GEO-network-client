@@ -62,7 +62,7 @@ void BaseTransaction::resetExpectationResponsesCounter() {
     mExpectationResponsesCount = 0;
 }
 
-void BaseTransaction::setContext(
+void BaseTransaction::pushContext(
     Message::Shared message) {
 
     mContext.push_back(message);

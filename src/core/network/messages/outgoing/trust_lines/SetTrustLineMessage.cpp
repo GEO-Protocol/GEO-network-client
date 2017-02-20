@@ -1,9 +1,9 @@
 #include "SetTrustLineMessage.h"
 
 SetTrustLineMessage::SetTrustLineMessage(
-    NodeUUID &sender,
-    TransactionUUID &transactionUUID,
-    TrustLineAmount newAmount) :
+    const NodeUUID &sender,
+    const TransactionUUID &transactionUUID,
+    const TrustLineAmount &newAmount) :
 
     TrustLinesMessage(
         sender,
@@ -18,9 +18,11 @@ const Message::MessageType SetTrustLineMessage::typeID() const {
 
 pair<BytesShared, size_t> SetTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second +
-                        kTrustLineAmountBytesCount;
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+
+    size_t bytesCount = parentBytesAndCount.second
+                        + kTrustLineAmountBytesCount;
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -47,6 +49,6 @@ pair<BytesShared, size_t> SetTrustLineMessage::serializeToBytes() {
 void SetTrustLineMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
+    throw NotImplementedError("SetTrustLineMessage::deserializeFromBytes: "
                                   "Method not implemented.");
 }

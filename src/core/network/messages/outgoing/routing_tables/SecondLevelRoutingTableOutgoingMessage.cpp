@@ -1,7 +1,7 @@
 #include "SecondLevelRoutingTableOutgoingMessage.h"
 
 SecondLevelRoutingTableOutgoingMessage::SecondLevelRoutingTableOutgoingMessage(
-    NodeUUID &senderUUID) :
+    const NodeUUID &senderUUID) :
 
     RoutingTableOutgoingMessage(
         senderUUID) {}

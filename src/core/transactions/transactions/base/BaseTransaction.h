@@ -52,7 +52,7 @@ public:
 
     const NodeUUID &nodeUUID() const;
 
-    void setContext(
+    void pushContext(
         Message::Shared message);
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;

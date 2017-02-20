@@ -1,16 +1,16 @@
 #ifndef GEO_NETWORK_CLIENT_UPDATETRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_UPDATETRUSTLINEMESSAGE_H
 
-#include "../../TrustLinesMessage.hpp"
-#include "../../result/MessageResult.h"
+#include "../../base/trust_lines/TrustLinesMessage.h"
 
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
+#include "../../result/MessageResult.h"
+
 #include <memory>
 #include <utility>
-#include <cstdlib>
 #include <stdint.h>
 
 using namespace std;
@@ -23,13 +23,11 @@ public:
     UpdateTrustLineMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
-
     const TrustLineAmount &newAmount() const;
 
-    pair<BytesShared, size_t> serializeToBytes();
-
     static const size_t kRequestedBufferSize();
+
+    pair<BytesShared, size_t> serializeToBytes();
 
     MessageResult::SharedConst resultAccepted() const;
 
@@ -40,6 +38,8 @@ public:
     MessageResult::SharedConst resultTransactionConflict() const;
 
 private:
+    const MessageType typeID() const;
+
     void deserializeFromBytes(
         BytesShared buffer);
 

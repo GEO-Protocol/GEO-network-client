@@ -1,9 +1,9 @@
 #include "OpenTrustLineMessage.h"
 
 OpenTrustLineMessage::OpenTrustLineMessage(
-    NodeUUID &sender,
-    TransactionUUID &transactionUUID,
-    TrustLineAmount amount) :
+    const NodeUUID &sender,
+    const TransactionUUID &transactionUUID,
+    const TrustLineAmount &amount) :
 
     TrustLinesMessage(
         sender,
@@ -18,9 +18,11 @@ const Message::MessageType OpenTrustLineMessage::typeID() const {
 
 pair<BytesShared, size_t> OpenTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second +
-        kTrustLineAmountBytesCount;
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+
+    size_t bytesCount = parentBytesAndCount.second
+                        + kTrustLineAmountBytesCount;
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------

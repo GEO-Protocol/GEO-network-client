@@ -1,15 +1,16 @@
 #ifndef GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
 #define GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
 
-#include "../../TransactionMessage.hpp"
+#include "../../base/transaction/TransactionMessage.h"
 
 #include "../../../../common/Types.h"
-#include "../../../../common/multiprecision/MultiprecisionUtils.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
+#include <memory>
+#include <utility>
+#include <stdint.h>
 
-class OperationStateMessage:
-    public TransactionMessage {
-
+class OperationStateMessage: public TransactionMessage {
 public:
     enum OperationState {
         Accepted = 1,
@@ -27,21 +28,19 @@ public:
     OperationStateMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
-
     const TransactionUUID &transactionUUID() const;
 
     const OperationState state() const;
 
+private:
+    const MessageType typeID() const;
+
     pair<BytesShared, size_t> serializeToBytes();
 
-protected:
     void deserializeFromBytes(
         BytesShared buffer);
 
 private:
     mutable OperationState mState;
 };
-
-
 #endif //GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H

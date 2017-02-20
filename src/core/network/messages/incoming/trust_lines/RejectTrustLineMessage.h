@@ -1,17 +1,16 @@
 #ifndef GEO_NETWORK_CLIENT_REJECTTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_REJECTTRUSTLINEMESSAGE_H
 
-#include "../../TrustLinesMessage.hpp"
-#include "../../result/MessageResult.h"
+#include "../../base/trust_lines/TrustLinesMessage.h"
 
 #include "../../../../common/Types.h"
+#include "../../../../common/NodeUUID.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../common/NodeUUID.h"
+#include "../../result/MessageResult.h"
 
 #include <memory>
 #include <utility>
-#include <cstdlib>
 #include <stdint.h>
 
 using namespace std;
@@ -24,13 +23,11 @@ public:
     RejectTrustLineMessage(
         BytesShared buffer);
 
-    const MessageType typeID() const;
-
     const NodeUUID &contractorUUID() const;
 
-    pair<BytesShared, size_t> serializeToBytes();
-
     static const size_t kRequestedBufferSize();
+
+    pair<BytesShared, size_t> serializeToBytes();
 
     MessageResult::SharedConst resultRejected();
 
@@ -39,6 +36,8 @@ public:
     MessageResult::SharedConst resultTransactionConflict() const;
 
 private:
+    const MessageType typeID() const;
+
     void deserializeFromBytes(
         BytesShared buffer);
 

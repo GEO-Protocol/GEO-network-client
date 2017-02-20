@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_ROUTINGTABLESRESPONSE_H
 #define GEO_NETWORK_CLIENT_ROUTINGTABLESRESPONSE_H
 
-#include "../Message.hpp"
+#include "../base/abstract/SenderMessage.h"
 
 #include "../../../common/Types.h"
 #include "../../../common/NodeUUID.h"
@@ -13,38 +13,29 @@
 #include <utility>
 #include <stdint.h>
 
-class RoutingTablesResponse: public Message {
+class RoutingTablesResponse: public SenderMessage {
 public:
     typedef shared_ptr<RoutingTablesResponse> Shared;
 
 public:
     RoutingTablesResponse(
-        BytesShared buffer);
-
-    RoutingTablesResponse(
-        NodeUUID &sender,
-        NodeUUID &contractor,
+        const NodeUUID &sender,
         uint16_t code);
 
-    const MessageType typeID() const;
-
-    const NodeUUID &contractorUUID() const;
-
-    const TransactionUUID &transactionUUID() const;
+    RoutingTablesResponse(
+        BytesShared buffer);
 
     const uint16_t code() const;
 
+private:
+    const MessageType typeID() const;
+
     pair<BytesShared, size_t> serializeToBytes();
 
-private:
     void deserializeFromBytes(
         BytesShared buffer);
 
 public:
-    NodeUUID mContractorUUID;
     uint16_t mCode;
-
 };
-
-
 #endif //GEO_NETWORK_CLIENT_ROUTINGTABLESRESPONSE_H

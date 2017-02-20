@@ -16,8 +16,8 @@ pair<BytesShared, size_t> RoutingTableIncomingMessage::serializeToBytes() {
 void RoutingTableIncomingMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    Message::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = Message::kOffsetToInheritedBytes();
+    SenderMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //---------------------------------------------------
     RecordsCount *nodesCount = new (buffer.get() + bytesBufferOffset) RecordsCount;
     bytesBufferOffset += sizeof(RecordsCount);
@@ -34,7 +34,7 @@ void RoutingTableIncomingMessage::deserializeFromBytes(
         RecordsCount *recordsCount = new (buffer.get() + bytesBufferOffset) RecordsCount;
         bytesBufferOffset += sizeof(RecordsCount);
         //---------------------------------------------------
-        vector<pair<NodeUUID, TrustLineDirection>> records;
+        vector<pair<const NodeUUID, const TrustLineDirection>> records;
         records.clear();
         for (size_t recordsIterator = 0; recordsIterator < *recordsCount; ++recordsIterator) {
             NodeUUID neighbor;

@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_ROUTINGTABLEINCOMINGMESSAGE_H
 #define GEO_NETWORK_CLIENT_ROUTINGTABLEINCOMINGMESSAGE_H
 
-#include "../../RoutingTablesMessage.hpp"
+#include "../../base/routing_tables/RoutingTablesMessage.h"
 
 #include "../../../../common/Types.h"
 #include "../../../../common/NodeUUID.h"
@@ -21,22 +21,19 @@ class RoutingTableIncomingMessage : public RoutingTablesMessage {
 public:
     typedef shared_ptr<RoutingTableIncomingMessage> Shared;
 
-public:
-    virtual const MessageType typeID() const = 0;
-
-    pair<BytesShared, size_t> serializeToBytes();
-
 protected:
     RoutingTableIncomingMessage(
         BytesShared buffer);
+
+    virtual const MessageType typeID() const = 0;
+
+    pair<BytesShared, size_t> serializeToBytes();
 
     void deserializeFromBytes(
         BytesShared buffer);
 
 public:
-    map<const NodeUUID, vector<pair<NodeUUID, TrustLineDirection>>> mRecords;
+    map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> mRecords;
 
 };
-
-
 #endif //GEO_NETWORK_CLIENT_ROUTINGTABLEINCOMINGMESSAGE_H

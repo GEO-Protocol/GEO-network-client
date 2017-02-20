@@ -1,9 +1,9 @@
 #include "CloseTrustLineMessage.h"
 
 CloseTrustLineMessage::CloseTrustLineMessage(
-    NodeUUID &sender,
-    TransactionUUID &transactionUUID,
-    NodeUUID &contractorUUID) :
+    const NodeUUID &sender,
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &contractorUUID) :
 
     TrustLinesMessage(
         sender,
@@ -20,9 +20,11 @@ const Message::MessageType CloseTrustLineMessage::typeID() const {
 
 pair<BytesShared, size_t> CloseTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second +
-                        kTrustLineAmountBytesCount;
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+
+    size_t bytesCount = parentBytesAndCount.second
+                        + NodeUUID::kBytesSize;
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -48,6 +50,6 @@ pair<BytesShared, size_t> CloseTrustLineMessage::serializeToBytes() {
 void CloseTrustLineMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
+    throw NotImplementedError("CloseTrustLineMessage::deserializeFromBytes: "
                                   "Method not implemented.");
 }

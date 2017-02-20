@@ -200,7 +200,7 @@ void UpdateTrustLineTransaction::sendResponseCodeToContractor(
 
     Message *message = new Response(
         mNodeUUID,
-        const_cast<TransactionUUID&> (mMessage->transactionUUID()),
+        mMessage->transactionUUID(),
         code
     );
 

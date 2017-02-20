@@ -1,14 +1,14 @@
 #include "RoutingTableOutgoingMessage.h"
 
 RoutingTableOutgoingMessage::RoutingTableOutgoingMessage(
-    NodeUUID &senderUUID) :
+    const NodeUUID &senderUUID) :
 
     RoutingTablesMessage(
         senderUUID) {}
 
 void RoutingTableOutgoingMessage::pushBack(
     const NodeUUID &node,
-    vector<pair<NodeUUID, TrustLineDirection>> &table) {
+    vector<pair<const NodeUUID, const TrustLineDirection>> &table) {
 
     mRecords.insert(
         make_pair(
@@ -20,7 +20,7 @@ void RoutingTableOutgoingMessage::pushBack(
 
 pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = Message::serializeToBytes();
+    auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second;
 
     bytesCount += sizeof(RecordsCount);

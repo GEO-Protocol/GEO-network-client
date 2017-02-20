@@ -1,5 +1,4 @@
 #include "TransactionsManager.h"
-#include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 
 /*!
  *
@@ -440,7 +439,7 @@ void TransactionsManager::launchRoutingTablePropagationTransaction(
 
     try {
 
-        auto transaction = make_shared<PropagationRoutingTablesTransaction>(
+        auto transaction = make_shared<FromInitiatorToContractorRoutingTablePropagationTransaction>(
             mNodeUUID,
             const_cast<NodeUUID&> (contractorUUID),
             mScheduler.get(),
@@ -466,7 +465,7 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
 
     try {
 
-        auto transaction = make_shared<AcceptRoutingTablesTransaction>(
+        auto transaction = make_shared<FromInitiatorToContractorRoutingTablesAcceptTransaction>(
             mNodeUUID,
             message,
             mScheduler.get()

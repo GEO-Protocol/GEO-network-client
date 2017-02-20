@@ -12,7 +12,7 @@
 #include "../../../../network/messages/outgoing/routing_tables/SecondLevelRoutingTableOutgoingMessage.h"
 #include "../../../../network/messages/response/RoutingTablesResponse.h"
 
-#include "AcceptRoutingTablesTransaction.h"
+#include "FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
 
 #include "../../../scheduler/TransactionsScheduler.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
@@ -24,19 +24,19 @@
 
 using namespace std;
 
-class PropagationRoutingTablesTransaction : public RoutingTablesTransaction {
+class FromInitiatorToContractorRoutingTablePropagationTransaction : public RoutingTablesTransaction {
 
 public:
-    typedef shared_ptr<PropagationRoutingTablesTransaction> Shared;
+    typedef shared_ptr<FromInitiatorToContractorRoutingTablePropagationTransaction> Shared;
 
 public:
-    PropagationRoutingTablesTransaction(
+    FromInitiatorToContractorRoutingTablePropagationTransaction(
         NodeUUID &nodeUUID,
         NodeUUID &contractorUUID,
         TransactionsScheduler *scheduler,
         TrustLinesManager *trustLinesManager);
 
-    PropagationRoutingTablesTransaction(
+    FromInitiatorToContractorRoutingTablePropagationTransaction(
         BytesShared buffer,
         TransactionsScheduler *scheduler,
         TrustLinesManager *trustLinesManager);
@@ -46,12 +46,12 @@ public:
 private:
     pair<bool, const TransactionUUID> isTransactionToContractorUnique();
 
-    bool isContractorsCountEnoughForRoutingTablePropagation();
-
     pair<bool, TransactionResult::SharedConst> checkContext();
 
     //First level propagation
     TransactionResult::SharedConst propagateFirstLevelRoutingTable();
+
+    bool isContractorsCountEnoughForRoutingTablesPropagation();
 
     TransactionResult::SharedConst trySendFirstLevelRoutingTable();
 

@@ -12,7 +12,7 @@
 #include "../../../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../../../network/messages/response/RoutingTablesResponse.h"
 
-#include "PropagationRoutingTablesTransaction.h"
+#include "FromInitiatorToContractorRoutingTablePropagationTransaction.h"
 
 #include "../../../scheduler/TransactionsScheduler.h"
 
@@ -21,18 +21,18 @@
 #include <stdint.h>
 #include <utility>
 
-class AcceptRoutingTablesTransaction : public RoutingTablesTransaction {
+class FromInitiatorToContractorRoutingTablesAcceptTransaction : public RoutingTablesTransaction {
 
 public:
-    typedef shared_ptr<AcceptRoutingTablesTransaction> Shared;
+    typedef shared_ptr<FromInitiatorToContractorRoutingTablesAcceptTransaction> Shared;
 
 public:
-    AcceptRoutingTablesTransaction(
+    FromInitiatorToContractorRoutingTablesAcceptTransaction(
         NodeUUID &nodeUUID,
         FirstLevelRoutingTableIncomingMessage::Shared message,
         TransactionsScheduler *scheduler);
 
-    AcceptRoutingTablesTransaction(
+    FromInitiatorToContractorRoutingTablesAcceptTransaction(
         BytesShared buffer,
         TransactionsScheduler *scheduler);
 

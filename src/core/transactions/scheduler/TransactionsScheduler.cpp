@@ -72,16 +72,16 @@ void TransactionsScheduler::handleMessage(
             break;
         }
 
-        if (message->transactionUUID() != transactionAndState.first->UUID()) {
+        /*if (message->transactionUUID() != transactionAndState.first->UUID()) {
             continue;
-        }
+        }*/
 
         for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
             if (message->typeID() != messageType) {
                 continue;
             }
 
-            transactionAndState.first->setContext(message);
+            transactionAndState.first->pushContext(message);
             launchTransaction(transactionAndState.first);
         }
     }
@@ -97,16 +97,16 @@ void TransactionsScheduler::handleRoutingTableMessage(
         }
 
 
-        if (message->senderUUID() != (NodeUUID&) transactionAndState.first->UUID()) {
+        /*if (message->senderUUID() != (NodeUUID&) transactionAndState.first->UUID()) {
             continue;
-        }
+        }*/
 
         for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
             if (message->typeID() != messageType) {
                 continue;
             }
 
-            transactionAndState.first->setContext(message);
+            transactionAndState.first->pushContext(message);
             launchTransaction(transactionAndState.first);
         }
     }

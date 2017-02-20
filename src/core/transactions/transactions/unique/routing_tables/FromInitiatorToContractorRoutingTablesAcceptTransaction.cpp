@@ -1,6 +1,6 @@
-#include "AcceptRoutingTablesTransaction.h"
+#include "FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
 
-AcceptRoutingTablesTransaction::AcceptRoutingTablesTransaction(
+FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContractorRoutingTablesAcceptTransaction(
     NodeUUID &nodeUUID,
     FirstLevelRoutingTableIncomingMessage::Shared message,
     TransactionsScheduler *scheduler) :
@@ -14,7 +14,7 @@ AcceptRoutingTablesTransaction::AcceptRoutingTablesTransaction(
 
     mFirstLevelMessage(message) {}
 
-AcceptRoutingTablesTransaction::AcceptRoutingTablesTransaction(
+FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContractorRoutingTablesAcceptTransaction(
     BytesShared buffer,
     TransactionsScheduler *scheduler) :
 
@@ -22,12 +22,12 @@ AcceptRoutingTablesTransaction::AcceptRoutingTablesTransaction(
         buffer,
         scheduler) {}
 
-FirstLevelRoutingTableIncomingMessage::Shared AcceptRoutingTablesTransaction::message() const {
+FirstLevelRoutingTableIncomingMessage::Shared FromInitiatorToContractorRoutingTablesAcceptTransaction::message() const {
 
     return mFirstLevelMessage;
 }
 
-TransactionResult::SharedConst AcceptRoutingTablesTransaction::run() {
+TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::run() {
 
     if (!isUniqueWasChecked) {
         auto flagAndTransactionUUID = isTransactionToContractorUnique();
@@ -54,13 +54,14 @@ TransactionResult::SharedConst AcceptRoutingTablesTransaction::run() {
         }
 
         default: {
-            break;
+            throw ConflictError("FromInitiatorToContractorRoutingTablesAcceptTransaction::run: "
+                                    "Illegal step execution.");
         }
 
     }
 }
 
-pair<bool, const TransactionUUID> AcceptRoutingTablesTransaction::isTransactionToContractorUnique() {
+pair<bool, const TransactionUUID> FromInitiatorToContractorRoutingTablesAcceptTransaction::isTransactionToContractorUnique() {
 
     auto transactions = pendingTransactions();
     for (auto const &transactionsAndState : *transactions) {
@@ -71,7 +72,7 @@ pair<bool, const TransactionUUID> AcceptRoutingTablesTransaction::isTransactionT
 
             case BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType: {
 
-                PropagationRoutingTablesTransaction::Shared propagationRoutingTableTransaction = static_pointer_cast<PropagationRoutingTablesTransaction>(transaction);
+                FromInitiatorToContractorRoutingTablePropagationTransaction::Shared propagationRoutingTableTransaction = static_pointer_cast<FromInitiatorToContractorRoutingTablePropagationTransaction>(transaction);
                 if (mTransactionUUID != propagationRoutingTableTransaction->UUID()) {
                     continue;
                 }
@@ -89,7 +90,7 @@ pair<bool, const TransactionUUID> AcceptRoutingTablesTransaction::isTransactionT
 
             case BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType: {
 
-                AcceptRoutingTablesTransaction::Shared acceptRoutingTableTransaction = static_pointer_cast<AcceptRoutingTablesTransaction>(transaction);
+                FromInitiatorToContractorRoutingTablesAcceptTransaction::Shared acceptRoutingTableTransaction = static_pointer_cast<FromInitiatorToContractorRoutingTablesAcceptTransaction>(transaction);
                 if (mTransactionUUID != acceptRoutingTableTransaction->UUID()) {
                     continue;
                 }
@@ -119,7 +120,7 @@ pair<bool, const TransactionUUID> AcceptRoutingTablesTransaction::isTransactionT
     );
 }
 
-void AcceptRoutingTablesTransaction::saveFirstLevelRoutingTable() {
+void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRoutingTable() {
 
     cout << "First level routing table message received " << endl;
     cout << "Sender UUID -> " << mFirstLevelMessage->senderUUID().stringUUID() << endl;
@@ -133,7 +134,7 @@ void AcceptRoutingTablesTransaction::saveFirstLevelRoutingTable() {
     }
 }
 
-TransactionResult::SharedConst AcceptRoutingTablesTransaction::waitingForSecondLevelRoutingTableState() {
+TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::waitingForSecondLevelRoutingTableState() {
 
     TransactionState *transactionState = new TransactionState(
         microsecondsSinceGEOEpoch(
@@ -149,7 +150,7 @@ TransactionResult::SharedConst AcceptRoutingTablesTransaction::waitingForSecondL
     );
 }
 
-TransactionResult::SharedConst AcceptRoutingTablesTransaction::checkIncomingMessageForSecondLevelRoutingTable() {
+TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable() {
 
     if (!mContext.empty()) {
         SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage;
@@ -161,7 +162,7 @@ TransactionResult::SharedConst AcceptRoutingTablesTransaction::checkIncomingMess
         }
 
         if (secondLevelMessage == nullptr) {
-            throw ConflictError("AcceptRoutingTablesTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
+            throw ConflictError("FromInitiatorToContractorRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
                                     "Can not cast to SecondLevelRoutingTableIncomingMessage.");
         }
         saveSecondLevelRoutingTable(secondLevelMessage);
@@ -172,12 +173,12 @@ TransactionResult::SharedConst AcceptRoutingTablesTransaction::checkIncomingMess
         return finishTransaction();
 
     } else {
-        throw ConflictError("AcceptRoutingTablesTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
+        throw ConflictError("FromInitiatorToContractorRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
                                 "There are no incoming messages.");
     }
 }
 
-void AcceptRoutingTablesTransaction::saveSecondLevelRoutingTable(
+void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveSecondLevelRoutingTable(
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage) {
 
     cout << "Second level routing table message received " << endl;
@@ -192,13 +193,12 @@ void AcceptRoutingTablesTransaction::saveSecondLevelRoutingTable(
     }
 }
 
-void AcceptRoutingTablesTransaction::sendResponseToContractor(
+void FromInitiatorToContractorRoutingTablesAcceptTransaction::sendResponseToContractor(
     NodeUUID &contractorUUID,
     uint16_t code) {
 
     Message *message = new RoutingTablesResponse(
         mNodeUUID,
-        contractorUUID,
         code
     );
 

@@ -9,7 +9,8 @@ add_subdirectory(transactions/unique/trust_lines)
 add_subdirectory(transactions/unique/routing_tables)
 
 set(SOURCE_FILES
-        transactions/unique/routing_tables/PropagationRoutingTablesTransaction.cpp transactions/unique/routing_tables/PropagationRoutingTablesTransaction.h)
+        transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablePropagationTransaction.cpp
+        transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablePropagationTransaction.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions

@@ -2,16 +2,13 @@
 #define GEO_NETWORK_CLIENT_MESSAGEREUSLT_H
 
 #include "../../../common/Types.h"
+#include "../../../common/NodeUUID.h"
 #include "../../../common/time/TimeUtils.h"
 
-#include "../../../common/NodeUUID.h"
 #include "../../../transactions/transactions/base/TransactionUUID.h"
 
-#include <boost/date_time/posix_time/ptime.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
-#include <boost/date_time/posix_time/conversion.hpp>
-
 #include <memory>
+#include <stdint.h>
 
 using namespace std;
 

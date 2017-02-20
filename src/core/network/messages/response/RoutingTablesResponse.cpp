@@ -1,36 +1,23 @@
 #include "RoutingTablesResponse.h"
 
 RoutingTablesResponse::RoutingTablesResponse(
+    const NodeUUID &sender,
+    uint16_t code) :
+
+    SenderMessage(sender) {
+
+    mCode = code;
+}
+
+RoutingTablesResponse::RoutingTablesResponse(
     BytesShared buffer) {
 
     deserializeFromBytes(buffer);
 }
 
-RoutingTablesResponse::RoutingTablesResponse(
-    NodeUUID &sender,
-    NodeUUID &contractor,
-    uint16_t code) :
-
-    Message(sender),
-    mContractorUUID(contractor) {
-
-    mCode = code;
-}
-
 const Message::MessageType RoutingTablesResponse::typeID() const {
 
     return Message::MessageTypeID::RoutingTablesResponseMessageType;
-}
-
-const NodeUUID &RoutingTablesResponse::contractorUUID() const {
-
-    return mContractorUUID;
-}
-
-const TransactionUUID &RoutingTablesResponse::transactionUUID() const {
-
-    throw ConflictError("RoutingTablesResponse::transactionUUID: "
-                            "Method not implemented");
 }
 
 const uint16_t RoutingTablesResponse::code() const{
@@ -40,11 +27,11 @@ const uint16_t RoutingTablesResponse::code() const{
 
 pair<BytesShared, size_t> RoutingTablesResponse::serializeToBytes() {
 
-    auto parentBytesAndCount = Message::serializeToBytes();
+    auto parentBytesAndCount = SenderMessage::serializeToBytes();
+
     size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize
                         + sizeof(uint16_t);
-    ;
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -54,13 +41,6 @@ pair<BytesShared, size_t> RoutingTablesResponse::serializeToBytes() {
         parentBytesAndCount.second
     );
     dataBytesOffset += parentBytesAndCount.second;
-    //----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize
-    );
-    dataBytesOffset += NodeUUID::kBytesSize;
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
@@ -76,15 +56,8 @@ pair<BytesShared, size_t> RoutingTablesResponse::serializeToBytes() {
 
 void RoutingTablesResponse::deserializeFromBytes(BytesShared buffer) {
 
-    Message::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = Message::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    memcpy(
-      mContractorUUID.data,
-      buffer.get() + bytesBufferOffset,
-      NodeUUID::kBytesSize
-    );
-    bytesBufferOffset += NodeUUID::kBytesSize;
+    SenderMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     uint16_t *code = new (buffer.get() + bytesBufferOffset) uint16_t;
     mCode = *code;

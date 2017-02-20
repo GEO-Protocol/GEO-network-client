@@ -6,10 +6,14 @@ set(SOURCE_FILES
         RejectTrustLineMessage.h
         RejectTrustLineMessage.cpp
         UpdateTrustLineMessage.h
-        UpdateTrustLineMessage.cpp
-        )
+        UpdateTrustLineMessage.cpp)
 
 add_library(messages__incoming__trust_lines ${SOURCE_FILES})
 target_link_libraries(messages__incoming__trust_lines
+
+        messages__base__trust_lines
+
         common
-        exceptions)
+        exceptions
+        memory
+        multiprecision)

@@ -14,10 +14,9 @@ public:
 
 public:
     FirstLevelRoutingTableOutgoingMessage(
-        NodeUUID &senderUUID);
+        const NodeUUID &senderUUID);
 
 private:
     const MessageType typeID() const;
 };
-
 #endif //GEO_NETWORK_CLIENT_FIRSTLEVELROUTINGTABLEOUTGOINGMESSAGE_H

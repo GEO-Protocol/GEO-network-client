@@ -19,6 +19,4 @@ private:
     const MessageType typeID() const;
 
 };
-
-
 #endif //GEO_NETWORK_CLIENT_SECONDLEVELROUTINGTABLEINCOMINGMESSAGE_H

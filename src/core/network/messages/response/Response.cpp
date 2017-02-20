@@ -1,21 +1,21 @@
 #include "Response.h"
 
-Response::Response(
-    BytesShared buffer) {
+Response::Response(const NodeUUID &sender,
+                   const TransactionUUID &transactionUUID,
+                   const uint16_t code) :
 
-    deserializeFromBytes(buffer);
-}
-
-Response::Response(NodeUUID &sender,
-                   TransactionUUID &transactionUUID,
-                   uint16_t code) :
-
-    TrustLinesMessage(
+    TransactionMessage(
         sender,
         transactionUUID
     ) {
 
     mCode = code;
+}
+
+Response::Response(
+    BytesShared buffer) {
+
+    deserializeFromBytes(buffer);
 }
 
 const Message::MessageType Response::typeID() const {
@@ -30,9 +30,11 @@ uint16_t Response::code() {
 
 pair<BytesShared, size_t> Response::serializeToBytes() {
 
-    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(uint16_t);
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -58,8 +60,8 @@ pair<BytesShared, size_t> Response::serializeToBytes() {
 void Response::deserializeFromBytes(
     BytesShared buffer) {
 
-    TrustLinesMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TrustLinesMessage::kOffsetToInheritedBytes();
+    TransactionMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //------------------------------
     uint16_t *code = new (buffer.get() + bytesBufferOffset) uint16_t;
     mCode = *code;

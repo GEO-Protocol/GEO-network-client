@@ -34,8 +34,8 @@
 #include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
-#include "../transactions/unique/routing_tables/PropagationRoutingTablesTransaction.h"
-#include "../transactions/unique/routing_tables/AcceptRoutingTablesTransaction.h"
+#include "../transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablePropagationTransaction.h"
+#include "../transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 

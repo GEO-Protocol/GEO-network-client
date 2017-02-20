@@ -3,8 +3,7 @@
 OperationStateMessage::OperationStateMessage(
     const OperationState state) :
 
-    mState(state){
-}
+    mState(state) {}
 
 OperationStateMessage::OperationStateMessage(
     BytesShared buffer) {
@@ -13,56 +12,57 @@ OperationStateMessage::OperationStateMessage(
 }
 
 const Message::MessageType OperationStateMessage::typeID() const {
+
     return Message::OperationStateMessageType;
 }
 
 const TransactionUUID &OperationStateMessage::transactionUUID() const {
 
-    throw NotImplementedError("OperationStateMessage: public Message::transactionUUID:"
+    throw NotImplementedError("OperationStateMessage: public TransactionMessage::transactionUUID: "
                                   "Method not implemented.");
 }
 
 const OperationStateMessage::OperationState OperationStateMessage::state() const {
+
     return mState;
 }
 
-/*!
- *
- * Throws bad_alloc;
- */
 pair<BytesShared, size_t> OperationStateMessage::serializeToBytes() {
+
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
-    size_t bytesCount =
-        + parentBytesAndCount.second
-        + sizeof(SerializedOperationState);
 
-    BytesShared buffer =
-        tryMalloc(
-            bytesCount);
+    size_t bytesCount = parentBytesAndCount.second
+                        + sizeof(SerializedOperationState);
 
-    auto initialOffset = buffer.get();
+    BytesShared dataBytesShared = tryMalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+    //----------------------------------------------------
     memcpy(
-        initialOffset,
+        dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-
+        parentBytesAndCount.second
+    );
+    dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------------------------------
     SerializedOperationState state(mState);
-    auto stateOffset = initialOffset + parentBytesAndCount.second;
     memcpy(
-        stateOffset,
+        dataBytesShared.get() + dataBytesOffset,
         &state,
-        sizeof(SerializedOperationState));
-
+        sizeof(SerializedOperationState)
+    );
+    //----------------------------------------------------
     return make_pair(
-        buffer,
-        bytesCount);
+        dataBytesShared,
+        bytesCount
+    );
 }
 
-void OperationStateMessage::deserializeFromBytes(BytesShared buffer) {
+void OperationStateMessage::deserializeFromBytes(
+    BytesShared buffer) {
 
     TransactionMessage::deserializeFromBytes(buffer);
-
-    auto parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes();
-    auto stateOffset = buffer.get() + parentMessageOffset;
-    mState = (OperationState)(SerializedOperationState(*stateOffset));
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    //----------------------------------------------------
+    SerializedOperationState *state = new (buffer.get() + bytesBufferOffset) SerializedOperationState;
+    mState = (OperationState) (*state);
 }
