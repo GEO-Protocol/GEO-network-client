@@ -7,6 +7,8 @@
 
 #include "MaxFlowCalculationTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "algorithm/MaxFlowCalculationTrustLineManager.h"
+#include "algorithm/MaxFlowCalculationTrustLine.h"
 #include "../../../network/messages/incoming/max_flow_calculation/ResultMaxFlowCalculationFromTargetMessage.h"
 #include "../../scheduler/TransactionsScheduler.h"
 
@@ -20,11 +22,13 @@ public:
         NodeUUID &nodeUUID,
         ResultMaxFlowCalculationFromTargetMessage::Shared message,
         TrustLinesManager *manager,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         Logger *logger);
 
     ReceiveResultMaxFlowCalculationFromTargetTransaction(
         BytesShared buffer,
-        TrustLinesManager *manager);
+        TrustLinesManager *manager,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager);
 
     ResultMaxFlowCalculationFromTargetMessage::Shared message() const;
 
@@ -39,6 +43,7 @@ private:
 private:
     ResultMaxFlowCalculationFromTargetMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
+    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     Logger *mLog;
 
 };

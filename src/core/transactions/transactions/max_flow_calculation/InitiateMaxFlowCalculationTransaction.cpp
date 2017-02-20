@@ -8,6 +8,7 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
         NodeUUID &nodeUUID,
         InitiateMaxFlowCalculationCommand::Shared command,
         TrustLinesManager *manager,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         Logger *logger) :
 
         MaxFlowCalculationTransaction(
@@ -16,6 +17,7 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
         ),
         mCommand(command),
         mTrustLinesManager(manager),
+        mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
         mLog(logger){}
 
 InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
@@ -84,8 +86,13 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
                   "OutgoingFlows: " + to_string(mTrustLinesManager->getOutgoingFlows().size()));
     mLog->logInfo("InitiateMaxFlowCalculationTransaction->run",
                   "IncomingFlows: " + to_string(mTrustLinesManager->getIncomingFlows().size()));
+    mLog->logInfo("InitiateMaxFlowCalculationTransaction::run",
+                  "trustLineMap size: " + to_string(mMaxFlowCalculationTrustLineManager->mvTrustLines.size()));
     sendMessageToRemoteNode();
     sendMessageOnFirstLevel();
+
+
+
     return waitingForResponseState();
 
 }
@@ -107,7 +114,6 @@ void InitiateMaxFlowCalculationTransaction::sendMessageToRemoteNode() {
 void InitiateMaxFlowCalculationTransaction::sendMessageOnFirstLevel() {
 
     vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->getFirstLevelNeighborsWithOutgoingFlow();
-    mLog->logInfo("InitiateMaxFlowCalculationTransaction->sendFirst", to_string(outgoingFlowUuids.size()));
     for (auto const &it : outgoingFlowUuids) {
         Message *message = new SendMaxFlowCalculationSourceFstLevelMessage(
             mNodeUUID,

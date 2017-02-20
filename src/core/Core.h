@@ -11,6 +11,7 @@
 #include "interface/results_interface/interface/ResultsInterface.h"
 #include "trust_lines/manager/TrustLinesManager.h"
 #include "transactions/manager/TransactionsManager.h"
+#include "transactions/transactions/max_flow_calculation/algorithm/MaxFlowCalculationTrustLineManager.h"
 
 #include "logger/Logger.h"
 
@@ -45,6 +46,8 @@ private:
     int initResultsInterface();
 
     int initTrustLinesManager();
+
+    int initMaxFlowCalculationtrustLineManager();
 
     int initTransactionsManager();
 
@@ -81,6 +84,7 @@ protected:
     ResultsInterface *mResultsInterface;
     TrustLinesManager *mTrustLinesManager;
     TransactionsManager *mTransactionsManager;
+    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLimeManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

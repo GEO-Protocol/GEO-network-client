@@ -8,12 +8,14 @@ TransactionsManager::TransactionsManager(
     NodeUUID &nodeUUID,
     as::io_service &IOService,
     TrustLinesManager *trustLinesManager,
+    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     ResultsInterface *resultsInterface,
     Logger *logger) :
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
     mTrustLines(trustLinesManager),
+    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
     mResultsInterface(resultsInterface),
     mLog(logger),
 
@@ -355,6 +357,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
             mNodeUUID,
             command,
             mTrustLines,
+            mMaxFlowCalculationTrustLineManager,
             mLog
         );
 
@@ -535,6 +538,7 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationFromTargetTransac
             mNodeUUID,
             message,
             mTrustLines,
+            mMaxFlowCalculationTrustLineManager,
             mLog);
 
         subscribeForOutgoingMessages(
@@ -562,6 +566,7 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationFromSourceTransac
             mNodeUUID,
             message,
             mTrustLines,
+            mMaxFlowCalculationTrustLineManager,
             mLog);
 
         subscribeForOutgoingMessages(

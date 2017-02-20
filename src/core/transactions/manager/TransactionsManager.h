@@ -6,6 +6,7 @@
 
 #include "../../common/NodeUUID.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
+#include "../transactions/max_flow_calculation/algorithm/MaxFlowCalculationTrustLineManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../logger/Logger.h"
 
@@ -63,6 +64,7 @@ public:
         NodeUUID &nodeUUID,
         as::io_service &IOService,
         TrustLinesManager *trustLinesManager,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         ResultsInterface *resultsInterface,
         Logger *logger);
 
@@ -148,6 +150,7 @@ private:
     NodeUUID &mNodeUUID;
     as::io_service &mIOService;
     TrustLinesManager *mTrustLines;
+    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     ResultsInterface *mResultsInterface;
     Logger *mLog;
 
