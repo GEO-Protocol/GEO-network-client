@@ -1,3 +1,13 @@
 .idea/*
 uuid2address/
 bin/
+
+*.cmake
+*.a
+*CMake*
+*Makefile
+*.cbp
+
+tests/*
+
+geo_network_client

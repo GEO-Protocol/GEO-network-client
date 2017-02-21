@@ -1,4 +1,4 @@
-#include "TransactionsManager.h"
+﻿#include "TransactionsManager.h"
 #include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 
 /*!
@@ -76,31 +76,42 @@ void TransactionsManager::processCommand(
 void TransactionsManager::processMessage(
     Message::Shared message) {
 
-    if (message->typeID() == Message::MessageTypeID::AcceptTrustLineMessageType) {
+    /*
+     * Trust lines transaction initialisation messages
+     */
+    if (message->typeID() == Message::AcceptTrustLineMessageType) {
         launchAcceptTrustLineTransaction(
-            static_pointer_cast<AcceptTrustLineMessage>(
-                message
-            )
-        );
+            static_pointer_cast<AcceptTrustLineMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::RejectTrustLineMessageType) {
+    } else if (message->typeID() == Message::RejectTrustLineMessageType) {
         launchRejectTrustLineTransaction(
-            static_pointer_cast<RejectTrustLineMessage>(
-                message
-            )
-        );
+            static_pointer_cast<RejectTrustLineMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::UpdateTrustLineMessageType) {
+    } else if (message->typeID() == Message::UpdateTrustLineMessageType) {
         launchUpdateTrustLineTransaction(
-            static_pointer_cast<UpdateTrustLineMessage>(
-                message
-            )
-        );
+            static_pointer_cast<UpdateTrustLineMessage>(message));
+    }
 
-    } else if (message->typeID() == Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType) {
+    /*
+     * Trust lines transaction initialisation messages
+     */
+    else if (message->typeID() == Message::FirstLevelRoutingTableIncomingMessageType) {
         FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message);
+    }
 
-    } else {
+    /*
+     * Payments transaction initialisation messages
+     */
+    else if (message->typeID() == Message::Payments_ReceiverInitPayment) {
+        launchReceiverPaymentTransaction(
+            static_pointer_cast<ReceiverInitPaymentMessage>(message));
+    }
+
+    /*
+     * Transactions responses and other messages,
+     * that must be routed to transaction's context.
+     */
+    else {
         mScheduler->handleMessage(message);
     }
 }
@@ -401,23 +412,16 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
 void TransactionsManager::launchReceiverPaymentTransaction(
     ReceiverInitPaymentMessage::Shared message) {
 
-    try {
-        auto transaction = make_shared<ReceiverPaymentTransaction>(
-            message,
-            mTrustLines,
-            mLog);
+    auto transaction = make_shared<ReceiverPaymentTransaction>(
+        message,
+        mTrustLines,
+        mLog);
 
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
+    subscribeForOutgoingMessages(
+        transaction->outgoingMessageIsReadySignal);
 
-        mScheduler->scheduleTransaction(
-            transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchReceiverPaymentTransaction: "
-                "can't allocate memory for transaction instance.");
-    }
+    mScheduler->scheduleTransaction(
+        transaction);
 }
 
 /*!

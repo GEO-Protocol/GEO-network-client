@@ -1,9 +1,16 @@
-#include "ReceiverInitPaymentMessage.h"
+﻿#include "ReceiverInitPaymentMessage.h"
 
 
 ReceiverInitPaymentMessage::ReceiverInitPaymentMessage(
+    const NodeUUID &senderUUID,
+    const TransactionUUID &transactionUUID,
     const TrustLineAmount &totalPaymentAmount) :
 
+    // TODO: add "const" to constructor of the TransactionMessage;
+    // TODO: remove const_cast;
+    TransactionMessage(
+        const_cast<NodeUUID&>(senderUUID),
+        const_cast<TransactionUUID&>(transactionUUID)),
     mTotalPaymentAmount(totalPaymentAmount){
 }
 
@@ -14,7 +21,7 @@ ReceiverInitPaymentMessage::ReceiverInitPaymentMessage(
 }
 
 const Message::MessageType ReceiverInitPaymentMessage::typeID() const {
-    return Message::ReceiverInitPaymentMessageType;
+    return Message::Payments_ReceiverInitPayment;
 }
 
 /*!
@@ -25,7 +32,7 @@ pair<BytesShared, size_t> ReceiverInitPaymentMessage::serializeToBytes() {
 
     auto serializedPaymentAmount =
         trustLineAmountToBytes(
-            mTotalPaymentAmount); // todo: serialize only non-zero
+            mTotalPaymentAmount); // TODO: serialize only non-zero
 
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount =
@@ -59,7 +66,7 @@ void ReceiverInitPaymentMessage::deserializeFromBytes(BytesShared buffer) {
 
     auto parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes();
     auto amountOffset = buffer.get() + parentMessageOffset;
-    auto amountEndOffset = amountOffset + kTrustLineBalanceBytesCount; // todo: deserialize only non-zero
+    auto amountEndOffset = amountOffset + kTrustLineBalanceBytesCount; // TODO: deserialize only non-zero
     vector<byte> amountBytes(
         amountOffset,
         amountEndOffset);

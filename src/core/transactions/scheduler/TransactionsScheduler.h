@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
+﻿#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
 
 #include "../../common/Types.h"
@@ -6,7 +6,7 @@
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/result/TransactionResult.h"
-#include "../../network/messages/response/Response.h"
+#include "../../network/messages/TransactionMessage.hpp"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
@@ -51,7 +51,7 @@ public:
         uint16_t millisecondsDelay);
 
     void handleMessage(
-        Message::Shared message);
+        TransactionMessage::Shared message);
 
     void killTransaction(
         const TransactionUUID &transactionUUID);

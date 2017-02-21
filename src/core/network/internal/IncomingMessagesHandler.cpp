@@ -1,4 +1,4 @@
-#include "IncomingMessagesHandler.h"
+﻿#include "IncomingMessagesHandler.h"
 #include "../messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
@@ -34,40 +34,57 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
 
     switch(messageIdentifier) {
 
-        case Message::MessageTypeID::OpenTrustLineMessageType: {
+        /*
+         * Trust lines transactions messages
+         */
+        case Message::OpenTrustLineMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<AcceptTrustLineMessage>(messagePart)));
         }
 
-        case Message::MessageTypeID::CloseTrustLineMessageType: {
+        case Message::CloseTrustLineMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<RejectTrustLineMessage>(messagePart)));
         }
 
-        case Message::MessageTypeID::SetTrustLineMessageType: {
+        case Message::SetTrustLineMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<UpdateTrustLineMessage>(messagePart)));
         }
 
-        case Message::MessageTypeID::FirstLevelRoutingTableOutgoingMessageType: {
+        /*
+         * Routing tables transactions messages
+         */
+        case Message::FirstLevelRoutingTableOutgoingMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<FirstLevelRoutingTableIncomingMessage>(messagePart)));
         }
 
-        case Message::MessageTypeID::ReceiverInitPaymentMessageType: {
+        /*
+         * Payment transaction messages
+         */
+        case Message::Payments_ReceiverInitPayment: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<ReceiverInitPaymentMessage>(messagePart)));
         }
+
+        case Message::Payments_ReceiverApprove: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ReceiverApproveMessage>(messagePart)));
+        }
+
 
         default: {
             return tryDeserializeResponse(
@@ -76,8 +93,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
     }
-
-};
+}
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeResponse(
     const uint16_t messageIdentifier,

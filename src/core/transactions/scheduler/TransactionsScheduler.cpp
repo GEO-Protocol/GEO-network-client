@@ -1,4 +1,4 @@
-#include "TransactionsScheduler.h"
+﻿#include "TransactionsScheduler.h"
 
 TransactionsScheduler::TransactionsScheduler(
     as::io_service &IOService,
@@ -64,25 +64,27 @@ void TransactionsScheduler::postponeTransaction(
 }
 
 void TransactionsScheduler::handleMessage(
-    Message::Shared message) {
+    TransactionMessage::Shared message) {
 
-    for (auto &transactionAndState : *mTransactions) {
+    if (mTransactions->empty())
+        return;
 
-        if (mTransactions->empty()) {
-            break;
-        }
+    for (auto const &transactionAndState : *mTransactions) {
+        cout << transactionAndState.first->UUID().stringUUID();
+        cout << message->transactionUUID();
 
         if (transactionAndState.first->UUID() != message->transactionUUID()) {
             continue;
         }
 
-        for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
+        for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
             if (messageType != message->typeID()) {
                 continue;
             }
 
             transactionAndState.first->setContext(message);
             launchTransaction(transactionAndState.first);
+            return;
         }
     }
 }
@@ -106,6 +108,12 @@ void TransactionsScheduler::launchTransaction(
         // to not to break transactions processing flow.
 
         auto result = transaction->run();
+        if (result.get() == nullptr) {
+            throw ValueError(
+                "TransactionsScheduler::launchTransaction: "
+                "transaction->run() returned nullptr result.");
+        }
+
         handleTransactionResult(
             transaction,
             result

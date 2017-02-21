@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_MESSAGE_H
+﻿#ifndef GEO_NETWORK_CLIENT_MESSAGE_H
 #define GEO_NETWORK_CLIENT_MESSAGE_H
 
 #include "../../common/Types.h"
@@ -38,8 +38,8 @@ public:
         SecondLevelRoutingTableOutgoingMessageType = 9,
         SecondLevelRoutingTableIncomingMessageType = 10,
 
-        ReceiverInitPaymentMessageType,
-        OperationStateMessageType,
+        Payments_ReceiverInitPayment,
+        Payments_ReceiverApprove,
 
         ResponseMessageType = 1000
     };

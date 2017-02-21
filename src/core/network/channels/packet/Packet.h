@@ -9,6 +9,7 @@
 #include <memory>
 #include <cstring>
 #include <cstdint>
+#include <vector>
 
 using namespace std;
 

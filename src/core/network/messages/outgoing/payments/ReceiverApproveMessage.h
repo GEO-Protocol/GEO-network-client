@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
+﻿#ifndef GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
 #define GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
 
 #include "../../TransactionMessage.hpp"
@@ -6,8 +6,10 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
+#include "../../../../common/exceptions/ValueError.h"
 
-class OperationStateMessage:
+
+class ReceiverApproveMessage:
     public TransactionMessage {
 
 public:
@@ -17,25 +19,24 @@ public:
     };
 
     typedef byte SerializedOperationState;
-    typedef shared_ptr<OperationStateMessage> Shared;
-    typedef shared_ptr<const OperationStateMessage> ConstShared;
+    typedef shared_ptr<ReceiverApproveMessage> Shared;
+    typedef shared_ptr<const ReceiverApproveMessage> ConstShared;
 
 public:
-    OperationStateMessage(
+    ReceiverApproveMessage(
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
         const OperationState state);
 
-    OperationStateMessage(
+    ReceiverApproveMessage(
         BytesShared buffer);
 
+    pair<BytesShared, size_t> serializeToBytes();
     const MessageType typeID() const;
-
-    const TransactionUUID &transactionUUID() const;
-
-    const TrustLineUUID &trustLineUUID() const;
-
     const OperationState state() const;
 
-    pair<BytesShared, size_t> serializeToBytes();
+    const TransactionUUID &transactionUUID() const { throw ValueError("");}
+    const TrustLineUUID &trustLineUUID() const { throw ValueError("");}
 
 protected:
     void deserializeFromBytes(
