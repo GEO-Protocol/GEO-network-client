@@ -2,10 +2,10 @@
 #include "../../../common/Types.h"
 #include "BoundaryNodeTopolodyMessage.h"
 
-BoundaryNodeTopolodyMessage::BoundaryNodeTopolodyMessage(const TrustLineAmount maxFlow,
-                                                                                     const byte max_depth,
-                                                                                     vector<NodeUUID> &path,
-                                                                                     const vector<pair<NodeUUID, TrustLineAmount>> boundaryNodes)
+BoundaryNodeTopolodyMessage::BoundaryNodeTopolodyMessage(const TrustLineBalance maxFlow,
+                                                         const byte max_depth,
+                                                         vector<NodeUUID> &path,
+                                                         const vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes)
         : InBetweenNodeTopologyMessage(maxFlow, max_depth, path) {
     mBoundaryNodes = boundaryNodes;
 }
@@ -43,14 +43,13 @@ pair<BytesShared, size_t> BoundaryNodeTopolodyMessage::serializeToBytes() {
     vector<byte> stepObligationFlow;
     for(auto const &value: mBoundaryNodes){
         cout << "Lets see what we have in value" << endl;
-    }
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 &value.first,
                 NodeUUID::kBytesSize
         );
         dataBytesOffset += NodeUUID::kBytesSize;
-        stepObligationFlow = trustLineAmountToBytes(value.second);
+        stepObligationFlow = trustLineBalanceToBytes(value.second);
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 stepObligationFlow.data(),
@@ -92,7 +91,7 @@ void BoundaryNodeTopolodyMessage::deserializeFromBytes(BytesShared buffer) {
                 buffer.get() + bytesBufferOffset,
                 kTrustLineAmountBytesCount
         );
-        mBoundaryNodes.push_back(make_pair(stepNodeUUID, bytesToTrustLineAmount(stepObligationFlowBytes)));
+        mBoundaryNodes.push_back(make_pair(stepNodeUUID, bytesToTrustLineBalance(stepObligationFlowBytes)));
         bytesBufferOffset += kTrustLineAmountBytesCount;
         stepObligationFlowBytes.clear();
     };

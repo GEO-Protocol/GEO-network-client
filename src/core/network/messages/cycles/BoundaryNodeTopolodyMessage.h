@@ -6,11 +6,12 @@
 class BoundaryNodeTopolodyMessage:
         public InBetweenNodeTopologyMessage {
 
+public:
     BoundaryNodeTopolodyMessage(
-            const TrustLineAmount maxFlow,
+            const TrustLineBalance maxFlow,
             const byte max_depth,
             vector<NodeUUID> &path,
-            const vector<pair<NodeUUID, TrustLineAmount>> boundaryNodes
+            const vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes
     );
     BoundaryNodeTopolodyMessage(BytesShared buffer);
 
@@ -26,7 +27,7 @@ protected:
 protected:
 
     pair<BytesShared, size_t> serializeToBytes();
-    vector<pair<NodeUUID, TrustLineAmount>> mBoundaryNodes;
+    vector<pair<NodeUUID, TrustLineBalance>> mBoundaryNodes;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETTOPOLOGYANDBALANCESBOUNDARYNODES_H

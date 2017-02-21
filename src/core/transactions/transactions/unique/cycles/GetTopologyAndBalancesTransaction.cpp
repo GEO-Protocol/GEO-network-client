@@ -59,7 +59,7 @@ TransactionResult::SharedConst GetTopologyAndBalancesTransaction::run() {
                 );
             }
     } else if(mBoundaryMessage != nullptr){
-// todo add code to this part
+        NodeUUID initiatorNode = mBoundaryMessage->getPath().front();
     }
     else {
         vector<pair<NodeUUID, TrustLineBalance>> firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(0);

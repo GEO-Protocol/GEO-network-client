@@ -348,18 +348,26 @@ void Core::onDelayedTaskCycleFiveNodesSlot() {
 void Core::JustToTestSomething() {
 //    mTrustLinesManager->getFirstLevelNodesForCycles();
 //    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles();
-    vector<NodeUUID> path;
-    path.push_back(mNodeUUID);
     TrustLineBalance bal = 70;
+    TrustLineBalance max_flow = 30;
+    vector<NodeUUID> path;
+    vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes;
+    boundaryNodes.push_back(make_pair(mNodeUUID, bal ));
+    path.push_back(mNodeUUID);
 //    for(const auto &value: firstLevelNodes){
 
 //
-    auto message = Message::Shared(new InBetweenNodeTopologyMessage(
-            bal,
+    auto message = Message::Shared(new BoundaryNodeTopolodyMessage(
+            max_flow,
             2,
-            path));
-    mTransactionsManager->launchGetTopologyAndBalancesTransaction(static_pointer_cast<InBetweenNodeTopologyMessage>(
-            message
-    )
-    );
+            path,
+            boundaryNodes
+    ));
+    auto buffer = message->serializeToBytes();
+    auto new_message = new BoundaryNodeTopolodyMessage(buffer.first);
+    cout << "lets see what we have " << endl;
+    //    mTransactionsManager->launchGetTopologyAndBalancesTransaction(static_pointer_cast<BoundaryNodeTopolodyMessage>(
+//            message
+//    )
+//    );
 }

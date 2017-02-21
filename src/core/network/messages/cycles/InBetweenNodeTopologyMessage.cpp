@@ -86,10 +86,10 @@ void InBetweenNodeTopologyMessage::deserializeFromBytes(
     size_t bytesBufferOffset = Message::kOffsetToInheritedBytes();
     vector<byte> amountBytes(
             buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+            buffer.get() + bytesBufferOffset + kTrustLineBalanceBytesCount);
 //    Max flow
     mMaxFlow = bytesToTrustLineBalance(amountBytes);
-    bytesBufferOffset += kTrustLineAmountBytesCount;
+    bytesBufferOffset += kTrustLineBalanceBytesCount;
 // for max depth
     memcpy(
             &mMaxDepth,
@@ -137,7 +137,7 @@ const size_t InBetweenNodeTopologyMessage::kOffsetToInheritedBytes() {
 //    todo Ask about static for this object
     static const size_t offset =
             Message::kOffsetToInheritedBytes()
-            + kTrustLineAmountBytesCount
+            + kTrustLineBalanceBytesCount
             + sizeof(mMaxDepth)
             + sizeof(uint8_t)
             + NodeUUID::kBytesSize * mNodesInPath;
