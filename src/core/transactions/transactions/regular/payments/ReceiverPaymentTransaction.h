@@ -1,7 +1,5 @@
-#ifndef GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
+﻿#ifndef GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 #define GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
-
-#include "PaymentsCommonConstants.hpp"
 
 #include "../../base/BaseTransaction.h"
 #include "../../../../common/time/TimeUtils.h"
@@ -10,7 +8,7 @@
 
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentMessage.h"
-#include "../../../../network/messages/outgoing/payments/OperationStateMessage.h"
+#include "../../../../network/messages/outgoing/payments/ReceiverApproveMessage.h"
 
 
 class ReceiverPaymentTransaction:
@@ -35,12 +33,16 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes();
 
+protected:
+    // Stages handlers
+    TransactionResult::Shared initOperation();
+//    TransactionResult::Shared processAmountBlockingStage();
+
 private:
     void deserializeFromBytes(
         BytesShared buffer);
 
-    TransactionResult::Shared initOperation();
-    TransactionResult::Shared processAmountBlockingStage();
+    const string logHeader() const;
 
 protected:
     ReceiverInitPaymentMessage::Shared mMessage;

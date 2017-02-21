@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_TRANSACTIONMESSAGE_H
+﻿#ifndef GEO_NETWORK_CLIENT_TRANSACTIONMESSAGE_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONMESSAGE_H
 
 #include "Message.hpp"
@@ -17,7 +17,8 @@
 
 using namespace std;
 
-class TransactionMessage: public Message { // todo: change to message with sender
+class TransactionMessage:
+    public Message { // TODO: change to SenderMessage
 
 public:
     typedef shared_ptr<TransactionMessage> Shared;

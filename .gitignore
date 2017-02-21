@@ -9,3 +9,5 @@ bin/
 *.cbp
 
 tests/*
+
+geo_network_client

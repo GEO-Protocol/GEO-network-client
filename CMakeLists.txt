@@ -1,9 +1,12 @@
-cmake_minimum_required(VERSION 3.6)
+﻿cmake_minimum_required(VERSION 3.6)
 project(geo_network_client)
 
 
 # Logs configuration
 add_definitions(-DTRANSACTIONS_LOG)
+
+# Debug logs configuration
+add_definitions(-DNETWORK_DEBUG_LOG)
 
 
 # todo: change in the release version
@@ -22,7 +25,7 @@ ENDIF (${BUILD_CONFIGURATION} MATCHES "REALEASE_WITH_DEBUG_LOG")
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 
 IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")

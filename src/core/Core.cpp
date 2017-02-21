@@ -1,4 +1,4 @@
-#include "Core.h"
+﻿#include "Core.h"
 
 Core::Core() {
 
@@ -225,12 +225,12 @@ void Core::connectSignalsToSlots() {
 void Core::onMessageReceivedSlot(
     Message::Shared message) {
 
-    try {
+//    try {
         mTransactionsManager->processMessage(message);
 
-    } catch(exception &e) {
-        mLog.logException("Core", e);
-    }
+//    } catch(exception &e) {
+//        mLog.logException("Core", e);
+//    }
 }
 
 void Core::onMessageSendSlot(

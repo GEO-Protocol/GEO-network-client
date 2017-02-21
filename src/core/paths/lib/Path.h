@@ -1,11 +1,26 @@
-#ifndef PATH_H
+﻿#ifndef PATH_H
 #define PATH_H
 
+#include "../../common/NodeUUID.h"
 
-class Path
-{
+#include <vector>
+#include <sstream>
+
+
+class Path {
 public:
-    Path();
+    Path(
+        NodeUUID &source,
+        NodeUUID &destination,
+        vector<NodeUUID> &&intermediateNodes);
+
+    const bool containsIntermediateNodes() const;
+    const string toString() const;
+
+protected:
+    NodeUUID &mSource;
+    NodeUUID &mDestination;
+    vector<NodeUUID>& mIntermediateNodes;
 };
 
 #endif // PATH_H

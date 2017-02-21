@@ -1,4 +1,4 @@
-#include "BaseTransaction.h"
+﻿#include "BaseTransaction.h"
 
 BaseTransaction::BaseTransaction() {}
 
@@ -7,6 +7,14 @@ BaseTransaction::BaseTransaction(
 
     mType(type){
 
+}
+
+BaseTransaction::BaseTransaction(
+    const TransactionType type,
+    const TransactionUUID &transactionUUID) :
+
+    mType(type),
+    mTransactionUUID(transactionUUID){
 }
 
 BaseTransaction::BaseTransaction(
@@ -154,4 +162,9 @@ TransactionResult::SharedConst BaseTransaction::transactionResultFromMessage(
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setMessageResult(messageResult);
     return TransactionResult::SharedConst(transactionResult);
+}
+
+const string BaseTransaction::logHeader() const
+{
+    // todo: must be marked as "=0" in header;
 }

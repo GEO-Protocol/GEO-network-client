@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_LOGGER_H
+﻿#ifndef GEO_NETWORK_CLIENT_LOGGER_H
 #define GEO_NETWORK_CLIENT_LOGGER_H
 
 #include "../common/exceptions/Exception.h"
@@ -20,13 +20,19 @@ public:
         Logger *logger,
         const char *group,
         const char *subsystem);
+
+    explicit LoggerStream(
+        Logger *logger,
+        const char *group,
+        const string &subsystem);
+
     LoggerStream(const LoggerStream &other);
     ~LoggerStream();
 
 private:
     Logger *mLogger;
-    const char *mGroup;
-    const char *mSubsystem;
+    const string mGroup;
+    const string mSubsystem;
 };
 
 
@@ -51,11 +57,11 @@ public:
         const string &message);
 
     LoggerStream info(
-        const char *subsystem);
+        const string &subsystem);
     LoggerStream error(
-        const char *subsystem);
+        const string &subsystem);
     LoggerStream debug(
-        const char *subsystem);
+        const string &subsystem);
 
 private:
     const string formatMessage(

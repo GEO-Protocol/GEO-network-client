@@ -1,4 +1,4 @@
-#include "Communicator.h"
+﻿#include "Communicator.h"
 
 Communicator::Communicator(
     as::io_service &ioService,
@@ -144,8 +144,14 @@ void Communicator::handleReceivedInfo(
     size_t bytesTransferred) {
 
     if (!error || error == boost::asio::error::message_size) {
-        mLog->logInfo("Communicator::handleReceivedInfo: ",
-                      string("Bytes received - ") + to_string(bytesTransferred));
+
+#ifdef NETWORK_DEBUG_LOG
+        {
+            auto info = mLog->info("Communicator");
+            info << bytesTransferred << " bytes received";
+        }
+#endif
+
         try {
             mIncomingMessagesHandler->processIncomingMessage(
                 mRemoteEndpointBuffer,
@@ -207,12 +213,15 @@ void Communicator::handleSend(
     }
 
     if (error) {
-        mLog->logError("Communicator::handleSend:",
-                       error.message()
-        );
+        auto errors = mLog->error("Communicator");
+        errors << error.message();
 
     } else {
-        mLog->logInfo("Communicator::handleSend: ",
-                      string("Bytes transferred - ") + to_string(bytesTransferred));
+
+#ifdef NETWORK_DEBUG_LOG
+        auto debug = mLog->debug("Communicator");
+        debug << bytesTransferred << " bytes transferred";
+#endif
+
     }
 }

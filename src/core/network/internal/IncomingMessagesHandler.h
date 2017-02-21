@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
+﻿#ifndef GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 #define GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 
 #include "../../common/Types.h"
@@ -15,6 +15,7 @@
 #include "../messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentMessage.h"
+#include "../messages/outgoing/payments/ReceiverApproveMessage.h"
 #include "../messages/response/Response.h"
 
 #include "../../common/exceptions/ValueError.h"
