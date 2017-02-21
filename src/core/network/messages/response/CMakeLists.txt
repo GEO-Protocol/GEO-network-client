@@ -9,7 +9,6 @@ set(SOURCE_FILES
 add_library(messages__response ${SOURCE_FILES})
 target_link_libraries(messages__response
 
-        messages__base__abstract
         messages__base__transaction
 
         common

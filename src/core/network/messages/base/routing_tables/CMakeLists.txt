@@ -7,7 +7,5 @@ set(SOURCE_FILES
 add_library(messages__base__routing_tables ${SOURCE_FILES})
 target_link_libraries(messages__base__routing_tables
 
-        messages__base__abstract
-
         common
         exceptions)

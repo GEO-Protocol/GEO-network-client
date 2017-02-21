@@ -97,17 +97,11 @@ void TransactionsManager::processMessage(
         );
 
     } else if (message->typeID() == Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType) {
-        launchAcceptRoutingTablesTransaction(
+        launchAcceptFromInitiatorToContractorRoutingTablesTransaction(
             static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(
                 message
             )
         );
-
-    } else if (message->typeID() == Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType) {
-        mScheduler->handleRoutingTableMessage(message);
-
-    } else if(message->typeID() == Message::MessageTypeID::RoutingTablesResponseMessageType) {
-        mScheduler->handleRoutingTableMessage(message);
 
     } else {
         mScheduler->handleMessage(message);
@@ -433,7 +427,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchRoutingTablePropagationTransaction(
+void TransactionsManager::launchFromInitiatorToContractorRoutingTablePropagationTransaction(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) {
 
@@ -455,12 +449,12 @@ void TransactionsManager::launchRoutingTablePropagationTransaction(
 
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchRoutingTablePropagationTransaction: "
+            "TransactionsManager::launchFromInitiatorToContractorRoutingTablePropagationTransaction: "
                 "can't allocate memory for transaction instance.");
     }
 }
 
-void TransactionsManager::launchAcceptRoutingTablesTransaction(
+void TransactionsManager::launchAcceptFromInitiatorToContractorRoutingTablesTransaction(
     FirstLevelRoutingTableIncomingMessage::Shared message) {
 
     try {
@@ -479,7 +473,7 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
 
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchRoutingTablePropagationTransaction: "
+            "TransactionsManager::launchAcceptFromInitiatorToContractorRoutingTablesTransaction: "
                 "can't allocate memory for transaction instance.");
     }
 }

@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_ROUTINGTABLESRESPONSE_H
 #define GEO_NETWORK_CLIENT_ROUTINGTABLESRESPONSE_H
 
-#include "../base/abstract/SenderMessage.h"
+#include "../SenderMessage.h"
 
 #include "../../../common/Types.h"
 #include "../../../common/NodeUUID.h"

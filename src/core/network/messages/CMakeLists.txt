@@ -7,12 +7,13 @@ add_subdirectory(response)
 add_subdirectory(result)
 
 set(SOURCE_FILES
-        Message.hpp)
+        Message.hpp
+        SenderMessage.cpp
+        SenderMessage.h)
 
 add_library(network__messages ${SOURCE_FILES})
 
 target_link_libraries(network__messages
-        messages__base__abstract
         messages__base__routing_tables
         messages__base__transaction
         messages__base__trust_lines

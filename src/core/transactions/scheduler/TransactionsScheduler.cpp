@@ -66,50 +66,31 @@ void TransactionsScheduler::postponeTransaction(
 void TransactionsScheduler::handleMessage(
     Message::Shared message) {
 
-    for (auto &transactionAndState : *mTransactions) {
+    switch (message->typeID()) {
 
-        if (mTransactions->empty()) {
+        case Message::MessageTypeID::ResponseMessageType: {
+            processResponse(
+                static_pointer_cast<Response>(message)
+            );
+        }
+
+        case Message::MessageTypeID::RoutingTablesResponseMessageType: {
+            processRoutingTableResponse(
+                static_pointer_cast<RoutingTablesResponse>(message)
+            );
+        }
+
+        case Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType: {
+            processSecondLevelRoutingTableMessage(
+                static_pointer_cast<SecondLevelRoutingTableIncomingMessage>(message)
+            );
+        }
+
+        default: {
             break;
         }
-
-        /*if (message->transactionUUID() != transactionAndState.first->UUID()) {
-            continue;
-        }*/
-
-        for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
-            if (message->typeID() != messageType) {
-                continue;
-            }
-
-            transactionAndState.first->pushContext(message);
-            launchTransaction(transactionAndState.first);
-        }
     }
-}
 
-void TransactionsScheduler::handleRoutingTableMessage(
-    Message::Shared message) {
-
-    for (auto &transactionAndState : *mTransactions) {
-
-        if (mTransactions->empty()) {
-            break;
-        }
-
-
-        /*if (message->senderUUID() != (NodeUUID&) transactionAndState.first->UUID()) {
-            continue;
-        }*/
-
-        for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
-            if (message->typeID() != messageType) {
-                continue;
-            }
-
-            transactionAndState.first->pushContext(message);
-            launchTransaction(transactionAndState.first);
-        }
-    }
 }
 
 void TransactionsScheduler::killTransaction(
@@ -142,7 +123,6 @@ void TransactionsScheduler::launchTransaction(
             e
         );
         forgetTransaction(transaction);
-        processNextTransactions();
         // todo: add production log here. (this one is unusable)
         /*auto errors = mLog->error("TransactionsScheduler");
         errors << "Transaction interrupted with exception: "
@@ -151,6 +131,78 @@ void TransactionsScheduler::launchTransaction(
     }
 }
 
+
+void TransactionsScheduler::processResponse(
+    Response::Shared response) {
+
+    for (auto &transactionAndState : *mTransactions) {
+
+        if (mTransactions->empty()) {
+            break;
+        }
+
+        if (response->transactionUUID() != transactionAndState.first->UUID()) {
+            continue;
+        }
+
+        for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
+            if (Message::MessageTypeID::ResponseMessageType != messageType) {
+                continue;
+            }
+
+            transactionAndState.first->pushContext(response);
+            launchTransaction(transactionAndState.first);
+        }
+    }
+}
+
+void TransactionsScheduler::processRoutingTableResponse(
+    RoutingTablesResponse::Shared response) {
+
+    for (auto &transactionAndState : *mTransactions) {
+
+        if (mTransactions->empty()) {
+            break;
+        }
+
+        if (response->senderUUID() != (NodeUUID&) transactionAndState.first->UUID()) {
+            continue;
+        }
+
+        for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
+            if (Message::MessageTypeID::RoutingTablesResponseMessageType != messageType) {
+                continue;
+            }
+
+            transactionAndState.first->pushContext(response);
+            launchTransaction(transactionAndState.first);
+        }
+    }
+}
+
+void TransactionsScheduler::processSecondLevelRoutingTableMessage(
+    SecondLevelRoutingTableIncomingMessage::Shared message) {
+
+    for (auto &transactionAndState : *mTransactions) {
+
+        if (mTransactions->empty()) {
+            break;
+        }
+
+        if (message->senderUUID() != (NodeUUID&) transactionAndState.first->UUID()) {
+            continue;
+        }
+
+        for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
+            if (Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType != messageType) {
+                continue;
+            }
+
+            transactionAndState.first->pushContext(message);
+            launchTransaction(transactionAndState.first);
+        }
+    }
+}
 
 void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,
@@ -182,16 +234,11 @@ void TransactionsScheduler::handleTransactionResult(
         }
     }
 
-    processNextTransactions();
 }
 
 void TransactionsScheduler::processCommandResult(
     BaseTransaction::Shared transaction,
     CommandResult::SharedConst result) {
-
-#ifdef DEBUG
-    assert(isTransactionScheduled(transaction));
-#endif
 
     commandResultIsReadySignal(result);
     forgetTransaction(transaction);
@@ -201,10 +248,6 @@ void TransactionsScheduler::processMessageResult(
     BaseTransaction::Shared transaction,
     MessageResult::SharedConst result) {
 
-#ifdef DEBUG
-    assert(isTransactionScheduled(transaction));
-#endif
-
     // todo: add writing to remote transactions results log.
     forgetTransaction(transaction);
 }
@@ -212,10 +255,6 @@ void TransactionsScheduler::processMessageResult(
 void TransactionsScheduler::processTransactionState(
     BaseTransaction::Shared transaction,
     TransactionState::SharedConst state) {
-
-#ifdef DEBUG
-    assert(isTransactionScheduled(transaction));
-#endif
 
     if (state->mustBeRescheduled()){
         if (state->needSerialize())
@@ -235,19 +274,6 @@ void TransactionsScheduler::processTransactionState(
     } else {
         forgetTransaction(transaction);
     }
-}
-
-void TransactionsScheduler::forgetTransaction(
-    BaseTransaction::Shared transaction) {
-
-    try {
-        mStorage->erase(
-            storage::uuids::uuid(transaction->UUID())
-        );
-
-    } catch (IndexError &) {}
-
-    mTransactions->erase(transaction);
 }
 
 void TransactionsScheduler::serializeTransaction(
@@ -270,44 +296,17 @@ void TransactionsScheduler::serializeTransaction(
     }
 }
 
-void TransactionsScheduler::processNextTransactions(){
+void TransactionsScheduler::forgetTransaction(
+    BaseTransaction::Shared transaction) {
 
-    const size_t maxTAWithoutInterruption = 64;
-    for (size_t iteration=0; iteration < maxTAWithoutInterruption; ++iteration){
-        try {
-            auto transactionAndTimestamp = transactionWithMinimalAwakeningTimestamp();
-            if (microsecondsSinceGEOEpoch(utc_now()) >= transactionAndTimestamp.second) {
-                // Next transaction is ready to be executed.
-                // (there is no reason to run one more async call: next transaction may be launched directly).
-                //
-                // Note:
-                // Transactions that may be launched in this manner is limited,
-                // to prevent ignoring async loop (and network messages)
-                // in case when node is executing huge amount of transactions;
-                launchTransaction(transactionAndTimestamp.first);
-
-            } else {
-                asyncWaitUntil(transactionAndTimestamp.second);
-
-                // Note: asyncWaitUntil call will not block.
-                // "return" is needed to prevent multiple transactions scheduling.
-                return;
-            }
-
-        } catch (NotFoundError) {
-            // No delayed transactions are present.
-            return;
-        }
-    }
-
-    // Transactions limit reached
-    // Force interruption to process sockets,
-    // but only if other transactions are present in queue.
-    if (mTransactions->size() > 0){
-        asyncWaitUntil(
-            TransactionState::awakeAfterMilliseconds(50)->awakeningTimestamp()
+    try {
+        mStorage->erase(
+            storage::uuids::uuid(transaction->UUID())
         );
-    }
+
+    } catch (IndexError &) {}
+
+    mTransactions->erase(transaction);
 }
 
 void TransactionsScheduler::adjustAwakeningToNextTransaction() {
@@ -371,7 +370,8 @@ void TransactionsScheduler::asyncWaitUntil(
         boost::bind(
             &TransactionsScheduler::handleAwakening,
             this,
-            as::placeholders::error)
+            as::placeholders::error
+        )
     );
 }
 
@@ -412,6 +412,8 @@ void TransactionsScheduler::handleAwakening(
         launchTransaction(transactionAndState.first);
 
         errorsCount = 0;
+
+        adjustAwakeningToNextTransaction();
 
     } catch (NotFoundError &) {
         // There are no transactions left.

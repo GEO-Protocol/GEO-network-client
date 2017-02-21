@@ -173,8 +173,8 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
         return finishTransaction();
 
     } else {
-        throw ConflictError("FromInitiatorToContractorRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
-                                "There are no incoming messages.");
+        cout << "TRY RECEIVE SECOND LEVEL ROUTING TABLE AGAIN" << endl;
+        return waitingForSecondLevelRoutingTableState();
     }
 }
 

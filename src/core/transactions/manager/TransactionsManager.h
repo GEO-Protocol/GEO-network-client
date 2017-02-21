@@ -67,7 +67,7 @@ public:
         Message::Shared message);
 
     // Invokes from Core
-    void launchRoutingTablePropagationTransaction(
+    void launchFromInitiatorToContractorRoutingTablePropagationTransaction(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
@@ -100,7 +100,7 @@ private:
     void launchReceiverPaymentTransaction(
         ReceiverInitPaymentMessage::Shared message);
 
-    void launchAcceptRoutingTablesTransaction(
+    void launchAcceptFromInitiatorToContractorRoutingTablesTransaction(
         FirstLevelRoutingTableIncomingMessage::Shared message);
 
     // Signals connection to manager's slots

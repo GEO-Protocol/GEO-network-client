@@ -6,7 +6,10 @@
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/result/TransactionResult.h"
+
 #include "../../network/messages/response/Response.h"
+#include "../../network/messages/response/RoutingTablesResponse.h"
+#include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
@@ -53,9 +56,6 @@ public:
     void handleMessage(
         Message::Shared message);
 
-    void handleRoutingTableMessage(
-        Message::Shared message);
-
     void killTransaction(
         const TransactionUUID &transactionUUID);
 
@@ -65,6 +65,15 @@ public:
 private:
     void launchTransaction(
         BaseTransaction::Shared transaction);
+
+    void processResponse(
+        Response::Shared response);
+
+    void processRoutingTableResponse(
+        RoutingTablesResponse::Shared response);
+
+    void processSecondLevelRoutingTableMessage(
+        SecondLevelRoutingTableIncomingMessage::Shared message);
 
     void handleTransactionResult(
         BaseTransaction::Shared transaction,
@@ -82,13 +91,11 @@ private:
         BaseTransaction::Shared transaction,
         TransactionState::SharedConst state);
 
-    void forgetTransaction(
-        BaseTransaction::Shared transaction);
-
     void serializeTransaction(
         BaseTransaction::Shared transaction);
 
-    void processNextTransactions();
+    void forgetTransaction(
+        BaseTransaction::Shared transaction);
 
     void adjustAwakeningToNextTransaction();
 
@@ -102,7 +109,6 @@ private:
 
     bool isTransactionScheduled(
         BaseTransaction::Shared transaction);
-
 
 public:
     mutable CommandResultSignal commandResultIsReadySignal;

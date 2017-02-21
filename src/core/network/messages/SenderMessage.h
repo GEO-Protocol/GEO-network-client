@@ -1,11 +1,11 @@
 #ifndef GEO_NETWORK_CLIENT_SENDERMESSAGE_H
 #define GEO_NETWORK_CLIENT_SENDERMESSAGE_H
 
-#include "../../Message.hpp"
+#include "Message.hpp"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/NodeUUID.h"
-#include "../../../../common/memory/MemoryUtils.h"
+#include "../../common/Types.h"
+#include "../../common/NodeUUID.h"
+#include "../../common/memory/MemoryUtils.h"
 
 #include <memory>
 #include <utility>
