@@ -4,13 +4,13 @@
 
 #include "MaxFlowCalculationTrustLineManager.h"
 
-void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLine *trustLine) {
+void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine) {
     auto it = mvTrustLines.find(trustLine->getSourceUUID());
     if (it == mvTrustLines.end()) {
         vector<MaxFlowCalculationTrustLine::Shared> newVect;
-        newVect.push_back(MaxFlowCalculationTrustLine::Shared(trustLine));
+        newVect.push_back(trustLine);
         mvTrustLines.insert(make_pair(trustLine->getSourceUUID(), newVect));
     } else {
-        it->second.push_back(MaxFlowCalculationTrustLine::Shared(trustLine));
+        it->second.push_back(trustLine);
     }
 }

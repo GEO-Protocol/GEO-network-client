@@ -22,7 +22,7 @@ pair<BytesShared, size_t> SendResultMaxFlowCalculationFromTargetMessage::seriali
 
     auto parentBytesAndCount = MaxFlowCalculationMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + sizeof(uint32_t) +
-                        /*+ mIncomingFlows.size() * */(NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
+                        + mIncomingFlows.size() * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------

@@ -95,10 +95,13 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationFromTargetTransact
         TrustLineAmount trustLineAmount = it.second;
         mLog->logInfo("ReceiveResultMaxFlowCalculationFromTargetTransaction::run",
                       it.first.stringUUID() + " " + to_string((uint32_t)trustLineAmount));
-        MaxFlowCalculationTrustLine *trustLine = new MaxFlowCalculationTrustLine(
+
+        auto trustLine = make_shared<MaxFlowCalculationTrustLine>(
             it.first,
             mMessage->senderUUID(),
-            it.second);
+            it.second
+        );
+
         mMaxFlowCalculationTrustLineManager->addTrustLine(trustLine);
     }
 

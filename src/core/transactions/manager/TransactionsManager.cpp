@@ -207,29 +207,11 @@ void TransactionsManager::loadTransactions() {
                     break;
                 }
 
-                case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
-                    transaction = new AcceptTrustLineTransaction(
+                case BaseTransaction::TransactionType ::InitiateMaxFlowCalculationTransactionType: {
+                    transaction = new InitiateMaxFlowCalculationTransaction(
                         transactionBuffer,
-                        mScheduler.get(),
-                        mTrustLines
-                    );
-                    break;
-                }
-
-                case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
-                    transaction = new UpdateTrustLineTransaction(
-                        transactionBuffer,
-                        mScheduler.get(),
-                        mTrustLines
-                    );
-                    break;
-                }
-
-                case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
-                    transaction = new RejectTrustLineTransaction(
-                        transactionBuffer,
-                        mScheduler.get(),
-                        mTrustLines
+                        mTrustLines,
+                        mMaxFlowCalculationTrustLineManager
                     );
                     break;
                 }

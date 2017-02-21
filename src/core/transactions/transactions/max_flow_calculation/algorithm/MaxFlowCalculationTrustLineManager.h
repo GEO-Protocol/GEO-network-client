@@ -11,12 +11,14 @@
 #include <map>
 #include <vector>
 
+#include "boost/container/flat_set.hpp"
+
 using namespace std;
 class MaxFlowCalculationTrustLineManager {
 
 public:
 
-    void addTrustLine(MaxFlowCalculationTrustLine *trustLine);
+    void addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine);
 
 // todo make private after testing
 public:

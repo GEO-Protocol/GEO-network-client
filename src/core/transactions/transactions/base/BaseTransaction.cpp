@@ -1,3 +1,4 @@
+
 #include "BaseTransaction.h"
 
 BaseTransaction::BaseTransaction() {}

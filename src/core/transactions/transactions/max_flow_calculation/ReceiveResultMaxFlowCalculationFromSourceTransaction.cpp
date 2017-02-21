@@ -66,6 +66,7 @@ void ReceiveResultMaxFlowCalculationFromSourceTransaction::deserializeFromBytes(
 
     MaxFlowCalculationTransaction::deserializeFromBytes(buffer);
     //BytesShared messageBufferShared = tryCalloc(ResultMaxFlowCalculationFromSourceMessage::kRequestedBufferSize());
+    // todo продумати архітектуру серіалізації - десеріалізаціїї меседжів змінної довжини
     BytesShared messageBufferShared = tryCalloc(ResultMaxFlowCalculationFromSourceMessage::kRequestedBufferSize(
         buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes()));
     //-----------------------------------------------------
@@ -96,10 +97,12 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationFromSourceTransact
         mLog->logInfo("ReceiveResultMaxFlowCalculationFromSourceTransaction::run",
                       it.first.stringUUID() + " " + to_string((uint32_t)trustLineAmount));
 
-        MaxFlowCalculationTrustLine *trustLine = new MaxFlowCalculationTrustLine(
+        auto trustLine = make_shared<MaxFlowCalculationTrustLine>(
             mMessage->senderUUID(),
             it.first,
-            it.second);
+            it.second
+        );
+
         mMaxFlowCalculationTrustLineManager->addTrustLine(trustLine);
     }
 

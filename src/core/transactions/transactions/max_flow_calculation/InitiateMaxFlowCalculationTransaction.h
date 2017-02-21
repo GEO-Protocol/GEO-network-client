@@ -29,7 +29,8 @@ public:
 
     InitiateMaxFlowCalculationTransaction(
             BytesShared buffer,
-            TrustLinesManager *manager);
+            TrustLinesManager *manager,
+            MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager);
 
     InitiateMaxFlowCalculationCommand::Shared command() const;
 

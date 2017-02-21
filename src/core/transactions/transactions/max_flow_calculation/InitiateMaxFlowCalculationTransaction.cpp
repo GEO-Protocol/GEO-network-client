@@ -22,9 +22,11 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
 
 InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
         BytesShared buffer,
-        TrustLinesManager *manager) :
+        TrustLinesManager *manager,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager) :
 
-    mTrustLinesManager(manager){
+    mTrustLinesManager(manager),
+    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager){
 
     deserializeFromBytes(buffer);
 }
