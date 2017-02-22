@@ -440,7 +440,8 @@ void TrustLinesManager::removeTrustLine(
 vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithOutgoingFlow() {
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountPtr = nodeUUIDAndTrustLine.second->availableAmount().get();
+        auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableAmount();
+        auto trustLineAmountPtr = trustLineAmountShared.get();
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(nodeUUIDAndTrustLine.first);
         }
@@ -451,7 +452,8 @@ vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithOutgoingFlow() {
 vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithIncomingFlow() {
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountPtr = nodeUUIDAndTrustLine.second->availableIncomingAmount().get();
+        auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableIncomingAmount();
+        auto trustLineAmountPtr = trustLineAmountShared.get();
 
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(nodeUUIDAndTrustLine.first);
@@ -463,7 +465,8 @@ vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithIncomingFlow() {
 map<NodeUUID, TrustLineAmount> TrustLinesManager::getIncomingFlows() {
     map<NodeUUID, TrustLineAmount> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountPtr = nodeUUIDAndTrustLine.second->availableIncomingAmount().get();
+        auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableIncomingAmount();
+        auto trustLineAmountPtr = trustLineAmountShared.get();
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.insert(
                 make_pair(
@@ -479,8 +482,8 @@ map<NodeUUID, TrustLineAmount> TrustLinesManager::getIncomingFlows() {
 map<NodeUUID, TrustLineAmount> TrustLinesManager::getOutgoingFlows() {
     map<NodeUUID, TrustLineAmount> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        cout << *(nodeUUIDAndTrustLine.second->availableAmount().get());
-        auto trustLineAmountPtr = nodeUUIDAndTrustLine.second->availableAmount().get();
+        auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableAmount();
+        auto trustLineAmountPtr = trustLineAmountShared.get();
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.insert(
                 make_pair(

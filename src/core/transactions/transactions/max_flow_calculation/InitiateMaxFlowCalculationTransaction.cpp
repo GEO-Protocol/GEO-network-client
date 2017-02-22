@@ -92,14 +92,9 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
     for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->getOutgoingFlows()) {
         {
             auto info = mLog->info("InitiateMaxFlowCalculationTransaction->run");
-            info << nodeUUIDAndTrustLine.first.stringUUID() << "  " <<  nodeUUIDAndTrustLine.second << "\n"
-                 << "in amount " << mTrustLinesManager->incomingTrustAmount(nodeUUIDAndTrustLine.first) << "\n"
-                 << "out amount " << mTrustLinesManager->outgoingTrustAmount(nodeUUIDAndTrustLine.first) << "\n";
+            info << "out flow " << nodeUUIDAndTrustLine.first.stringUUID() << "  " <<  nodeUUIDAndTrustLine.second << "\n";
         }
 
-
-       /* mLog->logInfo("InitiateMaxFlowCalculationTransaction->run", "out flow: " + nodeUUIDAndTrustLine.first.stringUUID() +
-            " " + to_string(nodeUUIDAndTrustLine.second));*/
     }
     mLog->logInfo("InitiateMaxFlowCalculationTransaction->run",
                   "IncomingFlows: " + to_string(mTrustLinesManager->getIncomingFlows().size()));

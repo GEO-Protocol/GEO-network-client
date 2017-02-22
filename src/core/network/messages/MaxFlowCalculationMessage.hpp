@@ -27,7 +27,7 @@ public:
 
     const NodeUUID &targetUUID() const {
 
-        return mmSenderUUID;
+        return mTargetUUID;
     }
 
     const TransactionUUID &transactionUUID() const {
@@ -59,7 +59,7 @@ public:
         //----------------------------------------------------
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            mmSenderUUID.data,
+            mTargetUUID.data,
             NodeUUID::kBytesSize
         );
         dataBytesOffset += NodeUUID::kBytesSize;
@@ -97,7 +97,7 @@ protected:
         TransactionUUID &transactionUUID) :
 
         Message(senderUUID),
-        mmSenderUUID(targetUUID),
+        mTargetUUID(targetUUID),
         mTransactionUUID(transactionUUID) {};
 
     virtual void deserializeFromBytes(
@@ -107,7 +107,7 @@ protected:
         size_t bytesBufferOffset = Message::kOffsetToInheritedBytes();
         //----------------------------------------------------
         memcpy(
-            mmSenderUUID.data,
+            mTargetUUID.data,
             buffer.get() + bytesBufferOffset,
             NodeUUID::kBytesSize
         );
@@ -129,7 +129,7 @@ protected:
 
 protected:
     TransactionUUID mTransactionUUID;
-    NodeUUID mmSenderUUID;
+    NodeUUID mTargetUUID;
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONMESSAGE_H
