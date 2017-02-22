@@ -9,12 +9,14 @@ TransactionsManager::TransactionsManager(
     NodeUUID &nodeUUID,
     as::io_service &IOService,
     TrustLinesManager *trustLinesManager,
+    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     ResultsInterface *resultsInterface,
     Logger *logger) :
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
     mTrustLines(trustLinesManager),
+    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
     mResultsInterface(resultsInterface),
     mLog(logger),
 
@@ -66,6 +68,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<CreditUsageCommand>(
                 command));
 
+    } else if (command->identifier() == InitiateMaxFlowCalculationCommand::identifier()){
+        launchInitiateMaxFlowCalculatingTransaction(
+            static_pointer_cast<InitiateMaxFlowCalculationCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -97,16 +104,81 @@ void TransactionsManager::processMessage(
      */
     else if (message->typeID() == Message::FirstLevelRoutingTableIncomingMessageType) {
         FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message);
-    }
 
+//    Cycles messages
+    } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage){
+        launchGetTopologyAndBalancesTransaction(
+                static_pointer_cast<InBetweenNodeTopologyMessage>(
+                        message
+                )
+        );
+    } else if (message->typeID() == Message::MessageTypeID::BoundaryNodeTopologyMessage){
+        launchGetTopologyAndBalancesTransaction(
+                static_pointer_cast<BoundaryNodeTopologyMessage>(
+                        message
+                )
+        );
+    } else if (message->typeID() == Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType) {
+        FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(
+                message);
+    }
     /*
      * Payments transaction initialisation messages
      */
     else if (message->typeID() == Message::Payments_ReceiverInitPayment) {
         launchReceiverPaymentTransaction(
             static_pointer_cast<ReceiverInitPaymentMessage>(message));
-    }
 
+    } else if (message->typeID() == Message::MessageTypeID::ReceiveMaxFlowCalculationOnTargetMessageType) {
+        launchReceiveMaxFlowCalculationTransaction(
+            static_pointer_cast<ReceiveMaxFlowCalculationOnTargetMessage>(
+                message
+            )
+        );
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultMaxFlowCalculationFromTargetMessageType) {
+        launchReceiveResultMaxFlowCalculationFromTargetTransaction(
+            static_pointer_cast<ResultMaxFlowCalculationFromTargetMessage>(
+                message
+            )
+        );
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultMaxFlowCalculationFromSourceMessageType) {
+        launchReceiveResultMaxFlowCalculationFromSourceTransaction(
+            static_pointer_cast<ResultMaxFlowCalculationFromSourceMessage>(
+                message
+            )
+        );
+
+    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationSourceFstLevelInMessageType) {
+        launchMaxFlowCalculationSourceFstLevelTransaction(
+            static_pointer_cast<MaxFlowCalculationSourceFstLevelInMessage>(
+                message
+            )
+        );
+
+    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationTargetFstLevelInMessageType) {
+        launchMaxFlowCalculationTargetFstLevelTransaction(
+            static_pointer_cast<MaxFlowCalculationTargetFstLevelInMessage>(
+                message
+            )
+        );
+
+    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationSourceSndLevelInMessageType) {
+        launchMaxFlowCalculationSourceSndLevelTransaction(
+            static_pointer_cast<MaxFlowCalculationSourceSndLevelInMessage>(
+                message
+            )
+        );
+
+    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationTargetSndLevelInMessageType) {
+        launchMaxFlowCalculationTargetSndLevelTransaction(
+            static_pointer_cast<MaxFlowCalculationTargetSndLevelInMessage>(
+                message
+            )
+        );
+
+    }
     /*
      * Transactions responses and other messages,
      * that must be routed to transaction's context.
@@ -166,29 +238,11 @@ void TransactionsManager::loadTransactions() {
                     break;
                 }
 
-                case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
-                    transaction = new AcceptTrustLineTransaction(
+                case BaseTransaction::TransactionType ::InitiateMaxFlowCalculationTransactionType: {
+                    transaction = new InitiateMaxFlowCalculationTransaction(
                         transactionBuffer,
-                        mScheduler.get(),
-                        mTrustLines
-                    );
-                    break;
-                }
-
-                case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
-                    transaction = new UpdateTrustLineTransaction(
-                        transactionBuffer,
-                        mScheduler.get(),
-                        mTrustLines
-                    );
-                    break;
-                }
-
-                case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
-                    transaction = new RejectTrustLineTransaction(
-                        transactionBuffer,
-                        mScheduler.get(),
-                        mTrustLines
+                        mTrustLines,
+                        mMaxFlowCalculationTrustLineManager
                     );
                     break;
                 }
@@ -252,6 +306,7 @@ void TransactionsManager::launchOpenTrustLineTransaction(
     }
 }
 
+
 /*!
  *
  * Throws MemoryError.
@@ -291,6 +346,33 @@ void TransactionsManager::launchCloseTrustLineTransaction(
             command,
             mScheduler.get(),
             mTrustLines
+        );
+
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchCloseTrustLineTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
+    InitiateMaxFlowCalculationCommand::Shared command) {
+
+    try {
+        auto transaction = make_shared<InitiateMaxFlowCalculationTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mMaxFlowCalculationTrustLineManager,
+            mLog
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -456,6 +538,197 @@ void TransactionsManager::launchRoutingTablePropagationTransaction(
     }
 }
 
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchReceiveMaxFlowCalculationTransaction(
+    ReceiveMaxFlowCalculationOnTargetMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<ReceiveMaxFlowCalculationOnTargetTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mLog);
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchReceiverPaymentTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchReceiveResultMaxFlowCalculationFromTargetTransaction(
+    ResultMaxFlowCalculationFromTargetMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<ReceiveResultMaxFlowCalculationFromTargetTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mMaxFlowCalculationTrustLineManager,
+            mLog);
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchReceiveResultMaxFlowCalculationFromTargetTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchReceiveResultMaxFlowCalculationFromSourceTransaction(
+    ResultMaxFlowCalculationFromSourceMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<ReceiveResultMaxFlowCalculationFromSourceTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mMaxFlowCalculationTrustLineManager,
+            mLog);
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchReceiveResultMaxFlowCalculationFromSourceTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
+    MaxFlowCalculationSourceFstLevelInMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<MaxFlowCalculationSourceFstLevelTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mLog);
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
+    MaxFlowCalculationTargetFstLevelInMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<MaxFlowCalculationTargetFstLevelTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mLog);
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
+    MaxFlowCalculationSourceSndLevelInMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<MaxFlowCalculationSourceSndLevelTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mLog);
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
+    MaxFlowCalculationTargetSndLevelInMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<MaxFlowCalculationTargetSndLevelTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mLog);
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
+
 void TransactionsManager::subscribeForOutgoingMessages(
     BaseTransaction::SendMessageSignal &signal) {
 
@@ -514,5 +787,49 @@ void TransactionsManager::onCommandResultReady(
         throw RuntimeError(
             "TransactionsManager::onCommandResultReady: "
                 "Error occurred when command result has accepted");
+    }
+}
+
+void TransactionsManager::launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message){
+    try {
+        auto transaction = make_shared<GetTopologyAndBalancesTransaction>(
+                BaseTransaction::TransactionType::GetTopologyAndBalancesTransaction,
+                mNodeUUID,
+                message,
+                mScheduler.get(),
+                mTrustLines,
+                mLog
+        );
+
+//        todo add body
+
+        mScheduler->scheduleTransaction(transaction);
+        cout << "launchGetTopologyAndBalancesTransaction" << endl;
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchOpenTrustLineTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchGetTopologyAndBalancesTransaction(){
+
+    try {
+        auto transaction = make_shared<GetTopologyAndBalancesTransaction>(
+                BaseTransaction::TransactionType::GetTopologyAndBalancesTransaction,
+                mNodeUUID,
+                mScheduler.get(),
+                mTrustLines,
+                mLog
+        );
+
+//        todo add body
+
+        mScheduler->scheduleTransaction(transaction);
+        cout << "launchGetTopologyAndBalancesTransaction" << endl;
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchOpenTrustLineTransaction: "
+                        "Can't allocate memory for transaction instance.");
     }
 }

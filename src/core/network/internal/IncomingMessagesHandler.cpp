@@ -1,5 +1,7 @@
 ﻿#include "IncomingMessagesHandler.h"
 #include "../messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
+#include "../messages/cycles/InBetweenNodeTopologyMessage.h"
+#include "../messages/cycles/BoundaryNodeTopologyMessage.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
     BytesShared messagePart,
@@ -77,7 +79,6 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                 static_pointer_cast<Message>(
                     make_shared<ReceiverInitPaymentMessage>(messagePart)));
         }
-
         case Message::Payments_ReceiverApprove: {
             return make_pair(
                 true,
@@ -85,6 +86,67 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                     make_shared<ReceiverApproveMessage>(messagePart)));
         }
 
+        case Message::MessageTypeID::InBetweenNodeTopologyMessage: {
+            return make_pair(
+                    true,
+                    static_pointer_cast<Message>(
+                            make_shared<InBetweenNodeTopologyMessage>(messagePart)));
+        }
+        case Message::MessageTypeID::BoundaryNodeTopologyMessage: {
+            return make_pair(
+                    true,
+                    static_pointer_cast<Message>(
+                            make_shared<BoundaryNodeTopologyMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::InitiateMaxFlowCalculationMessageType: {
+            return make_pair (
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ReceiveMaxFlowCalculationOnTargetMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::SendResultMaxFlowCalculationFromTargetMessageType: {
+            return make_pair (
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ResultMaxFlowCalculationFromTargetMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::SendResultMaxFlowCalculationFromSourceMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ResultMaxFlowCalculationFromSourceMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::SendMaxFlowCalculationSourceFstLevelMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<MaxFlowCalculationSourceFstLevelInMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::SendMaxFlowCalculationTargetFstLevelMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<MaxFlowCalculationTargetFstLevelInMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::MaxFlowCalculationSourceFstLevelOutMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<MaxFlowCalculationSourceSndLevelInMessage>(messagePart)));
+        }
+
+        case Message::MessageTypeID::MaxFlowCalculationTargetFstLevelOutMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<MaxFlowCalculationTargetSndLevelInMessage>(messagePart)));
+        }
 
         default: {
             return tryDeserializeResponse(

@@ -254,10 +254,10 @@ void OpenTrustLineTransaction::openTrustLine() {
             mCommand->contractorUUID(),
             mCommand->amount()
         );
-
     } catch (std::exception &e) {
         throw Exception(e.what());
     }
+
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::resultOk() {

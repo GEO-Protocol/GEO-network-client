@@ -14,6 +14,7 @@
 #include "../../common/exceptions/ConflictError.h"
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
+#include "../../logger/Logger.h"
 
 #include <boost/signals2.hpp>
 
@@ -35,7 +36,7 @@ public:
     signals::signal<void(const NodeUUID&, const TrustLineUUID&)> trustLineCreatedSignal;
 
 public:
-    TrustLinesManager();
+    TrustLinesManager(Logger *logger);
 
     void loadTrustLines();
 
@@ -104,11 +105,21 @@ public:
     void removeTrustLine(
         const NodeUUID &contractorUUID);
 
+    vector<NodeUUID> getFirstLevelNeighborsWithOutgoingFlow();
+
+    vector<NodeUUID> getFirstLevelNeighborsWithIncomingFlow();
+
+    map<NodeUUID, TrustLineAmount> getIncomingFlows();
+
+    map<NodeUUID, TrustLineAmount> getOutgoingFlows();
+
     const TrustLine::Shared trustLine(
         const NodeUUID &contractorUUID) const;
 
     map<NodeUUID, TrustLine::Shared> &trustLines();
 
+    vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(TrustLineBalance maxflow);
+    void setSomeBalances();
 private:
     static const size_t kTrustAmountPartSize = 32;
     static const size_t kBalancePartSize = 32;
@@ -124,6 +135,7 @@ private:
 
     unique_ptr<TrustLinesStorage> mTrustLinesStorage;
     unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
+    Logger *mlogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H

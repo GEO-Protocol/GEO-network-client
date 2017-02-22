@@ -11,6 +11,8 @@
 #include "interface/results_interface/interface/ResultsInterface.h"
 #include "trust_lines/manager/TrustLinesManager.h"
 #include "transactions/manager/TransactionsManager.h"
+#include "delayed_tasks/Cycles.h"
+#include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 
 #include "logger/Logger.h"
 
@@ -46,13 +48,23 @@ private:
 
     int initTrustLinesManager();
 
+    int initMaxFlowCalculationtrustLineManager();
+
     int initTransactionsManager();
+
+    int initDelayedTasks();
 
     void connectCommunicatorSignals();
 
     void connectTrustLinesManagerSignals();
 
     void connectSignalsToSlots();
+
+    void connectDelayedTasksSignals();
+
+    void onDelayedTaskCycleSixNodesSlot();
+
+    void onDelayedTaskCycleFiveNodesSlot();
 
     void onMessageReceivedSlot(
         Message::Shared message);
@@ -69,6 +81,7 @@ private:
 
     void cleanupMemory();
 
+    void JustToTestSomething();
 protected:
     Logger mLog;
 
@@ -81,6 +94,8 @@ protected:
     ResultsInterface *mResultsInterface;
     TrustLinesManager *mTrustLinesManager;
     TransactionsManager *mTransactionsManager;
+    CyclesDelayedTasks *mCyclesDelayedTasks;
+    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLimeManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

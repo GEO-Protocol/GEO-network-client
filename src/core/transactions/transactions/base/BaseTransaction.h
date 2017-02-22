@@ -39,10 +39,21 @@ public:
         RejectTrustLineTransactionType,
         PropagationRoutingTablesTransactionType,
         AcceptRoutingTablesTransactionType,
+        GetTopologyAndBalancesTransaction,
 
         // Payments
         CoordinatorPaymentTransaction,
-        ReceiverPaymentTransaction
+        ReceiverPaymentTransaction,
+
+        // Max flow calculation
+        InitiateMaxFlowCalculationTransactionType,
+        ReceiveMaxFlowCalculationOnTargetTransactionType,
+        ReceiveResultMaxFlowCalculationFromTargetTransactionType,
+        MaxFlowCalculationSourceFstLevelTransactionType,
+        MaxFlowCalculationTargetFstLevelTransactionType,
+        MaxFlowCalculationSourceSndLevelTransactionType,
+        MaxFlowCalculationTargetSndLevelTransactionType,
+        ReceiveResultMaxFlowCalculationFromSourceTransactionType
     };
 
 public:

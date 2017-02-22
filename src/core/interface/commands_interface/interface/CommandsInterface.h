@@ -10,6 +10,7 @@
 #include "../commands/trust_lines/CloseTrustLineCommand.h"
 #include "../commands/trust_lines/SetTrustLineCommand.h"
 #include "../commands/payments/CreditUsageCommand.h"
+#include "../commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"
@@ -23,6 +24,12 @@
 
 #include <string>
 #include <memory>
+
+#ifndef TESTS__TRUSTLINES
+#include "../../../common/Types.h"
+#include "../../../common/time/TimeUtils.h"
+#endif
+
 
 using namespace std;
 using namespace boost::uuids;

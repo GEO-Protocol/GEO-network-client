@@ -12,6 +12,11 @@
 
 #include <string>
 
+#ifndef TESTS__TRUSTLINES
+#include "../../../common/Types.h"
+#include "../../../common/time/TimeUtils.h"
+#endif
+
 using namespace std;
 
 class ResultsInterface: public BaseFIFOInterface {

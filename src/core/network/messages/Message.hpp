@@ -32,9 +32,27 @@ public:
         FirstLevelRoutingTableIncomingMessageType = 8,
         SecondLevelRoutingTableOutgoingMessageType = 9,
         SecondLevelRoutingTableIncomingMessageType = 10,
-
+        InBetweenNodeTopologyMessage = 11,
+        BoundaryNodeTopologyMessage = 12,
         Payments_ReceiverInitPayment,
         Payments_ReceiverApprove,
+        ReceiverInitPaymentMessageType,
+        OperationStateMessageType,
+
+        InitiateMaxFlowCalculationMessageType,
+        ReceiveMaxFlowCalculationOnTargetMessageType,
+        ResultMaxFlowCalculationFromTargetMessageType,
+        SendResultMaxFlowCalculationFromTargetMessageType,
+        SendMaxFlowCalculationSourceFstLevelMessageType,
+        MaxFlowCalculationSourceFstLevelInMessageType,
+        SendMaxFlowCalculationTargetFstLevelMessageType,
+        MaxFlowCalculationTargetFstLevelInMessageType,
+        MaxFlowCalculationSourceFstLevelOutMessageType,
+        MaxFlowCalculationSourceSndLevelInMessageType,
+        MaxFlowCalculationTargetFstLevelOutMessageType,
+        MaxFlowCalculationTargetSndLevelInMessageType,
+        SendResultMaxFlowCalculationFromSourceMessageType,
+        ResultMaxFlowCalculationFromSourceMessageType,
 
         ResponseMessageType = 1000
     };

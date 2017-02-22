@@ -15,6 +15,13 @@
 #include "../messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentMessage.h"
+#include "../messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
+#include "../messages/incoming/max_flow_calculation/ResultMaxFlowCalculationFromTargetMessage.h"
+#include "../messages/incoming/max_flow_calculation/MaxFlowCalculationSourceFstLevelInMessage.h"
+#include "../messages/incoming/max_flow_calculation/MaxFlowCalculationTargetFstLevelInMessage.h"
+#include "../messages/incoming/max_flow_calculation/MaxFlowCalculationSourceSndLevelInMessage.h"
+#include "../messages/incoming/max_flow_calculation/MaxFlowCalculationTargetSndLevelInMessage.h"
+#include "../messages/incoming/max_flow_calculation/ResultMaxFlowCalculationFromSourceMessage.h"
 #include "../messages/outgoing/payments/ReceiverApproveMessage.h"
 #include "../messages/response/Response.h"
 
@@ -44,6 +51,7 @@ private:
     pair<bool, Message::Shared> tryDeserializeMessage(
         BytesShared messagePart);
 
+    // todo: (dm) rename to tryDeserializeMessage
     pair<bool, Message::Shared> tryDeserializeRequest(
         const uint16_t messageIdentifier,
         BytesShared messagePart);
