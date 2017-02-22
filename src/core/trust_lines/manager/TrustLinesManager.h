@@ -105,6 +105,14 @@ public:
     void removeTrustLine(
         const NodeUUID &contractorUUID);
 
+    vector<NodeUUID> getFirstLevelNeighborsWithOutgoingFlow();
+
+    vector<NodeUUID> getFirstLevelNeighborsWithIncomingFlow();
+
+    map<NodeUUID, TrustLineAmount> getIncomingFlows();
+
+    map<NodeUUID, TrustLineAmount> getOutgoingFlows();
+
     const TrustLine::Shared trustLine(
         const NodeUUID &contractorUUID) const;
 

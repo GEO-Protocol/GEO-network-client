@@ -466,6 +466,56 @@ void TrustLinesManager::removeTrustLine(
 
 const TrustLine::Shared TrustLinesManager::trustLine(
     const NodeUUID &contractorUUID) const {
+vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithOutgoingFlow() {
+    vector<NodeUUID> result;
+    for (auto const &it : mTrustLines) {
+        if (it.second->outgoingTrustAmount() > TrustLine::kZeroAmount()) {
+            result.push_back(it.first);
+        }
+    }
+    return result;
+}
+
+vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithIncomingFlow() {
+    vector<NodeUUID> result;
+    for (auto const &it : mTrustLines) {
+        if (it.second->incomingTrustAmount() > TrustLine::kZeroAmount()) {
+            result.push_back(it.first);
+        }
+    }
+    return result;
+}
+
+map<NodeUUID, TrustLineAmount> TrustLinesManager::getIncomingFlows() {
+    map<NodeUUID, TrustLineAmount> result;
+    for (auto const &it : mTrustLines) {
+        if (it.second->incomingTrustAmount() > TrustLine::kZeroAmount()) {
+            result.insert(
+                make_pair(
+                    it.first,
+                    it.second->incomingTrustAmount()
+                )
+            );
+        }
+    }
+    return result;
+}
+
+map<NodeUUID, TrustLineAmount> TrustLinesManager::getOutgoingFlows() {
+    map<NodeUUID, TrustLineAmount> result;
+    for (auto const &it : mTrustLines) {
+        if (it.second->outgoingTrustAmount() > TrustLine::kZeroAmount()) {
+            result.insert(
+                make_pair(
+                    it.first,
+                    it.second->outgoingTrustAmount()
+                )
+            );
+        }
+    }
+    return result;
+}
+
 
     if (isTrustLineExist(contractorUUID)) {
         return mTrustLines.at(contractorUUID);

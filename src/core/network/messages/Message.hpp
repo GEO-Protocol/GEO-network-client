@@ -39,6 +39,21 @@ public:
         ReceiverInitPaymentMessageType,
         OperationStateMessageType,
 
+        InitiateMaxFlowCalculationMessageType,
+        ReceiveMaxFlowCalculationOnTargetMessageType,
+        ResultMaxFlowCalculationFromTargetMessageType,
+        SendResultMaxFlowCalculationFromTargetMessageType,
+        SendMaxFlowCalculationSourceFstLevelMessageType,
+        MaxFlowCalculationSourceFstLevelInMessageType,
+        SendMaxFlowCalculationTargetFstLevelMessageType,
+        MaxFlowCalculationTargetFstLevelInMessageType,
+        MaxFlowCalculationSourceFstLevelOutMessageType,
+        MaxFlowCalculationSourceSndLevelInMessageType,
+        MaxFlowCalculationTargetFstLevelOutMessageType,
+        MaxFlowCalculationTargetSndLevelInMessageType,
+        SendResultMaxFlowCalculationFromSourceMessageType,
+        ResultMaxFlowCalculationFromSourceMessageType,
+
         ResponseMessageType = 1000
     };
 

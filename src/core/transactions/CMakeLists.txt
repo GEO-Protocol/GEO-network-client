@@ -8,8 +8,11 @@ add_subdirectory(transactions/regular/payments)
 add_subdirectory(transactions/unique/trust_lines)
 add_subdirectory(transactions/unique/routing_tables)
 add_subdirectory(transactions/unique/cycles)
+add_subdirectory(transactions/max_flow_calculation)
 
-set(SOURCE_FILES)
+set(SOURCE_FILES
+      transactions/base/TransactionUUID.h
+        )
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions

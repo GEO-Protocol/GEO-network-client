@@ -87,6 +87,8 @@ int Core::initCoreComponents() {
 
     connectSignalsToSlots();
 
+
+
     return 0;
 }
 
@@ -116,7 +118,7 @@ int Core::initCommunicator(
             mSettings->uuid2addressPort(&conf),
             &mLog
         );
-        mLog.logSuccess("Core", "NetworkSlots communicator is successfully initialised");
+        mLog.logSuccess("Core", "Network communicator is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {

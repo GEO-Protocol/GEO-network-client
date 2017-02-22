@@ -160,6 +160,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == InitiateMaxFlowCalculationCommand::identifier()) {
+            command = new InitiateMaxFlowCalculationCommand(
+                uuid,
+                buffer);
+
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "
