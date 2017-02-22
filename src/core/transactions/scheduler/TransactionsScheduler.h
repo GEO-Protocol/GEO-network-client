@@ -6,7 +6,7 @@
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/result/TransactionResult.h"
-#include "../../network/messages/TransactionMessage.hpp"
+#include "../../network/messages/base/transaction/TransactionMessage.h"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 

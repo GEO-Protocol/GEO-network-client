@@ -1,7 +1,7 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_ROUTINGTABLEOUTGOINGMESSAGE_H
 #define GEO_NETWORK_CLIENT_ROUTINGTABLEOUTGOINGMESSAGE_H
 
-#include "../../RoutingTablesMessage.hpp"
+#include "../../base/routing_tables/RoutingTablesMessage.h"
 
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"

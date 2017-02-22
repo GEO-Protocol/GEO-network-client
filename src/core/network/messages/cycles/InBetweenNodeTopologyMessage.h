@@ -4,7 +4,7 @@
 #include "../../../common/Types.h"
 #include "../../../settings/Settings.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
-#include "../TransactionMessage.hpp"
+#include "../base/transaction/TransactionMessage.h"
 #include "../Message.hpp"
 
 class InBetweenNodeTopologyMessage:

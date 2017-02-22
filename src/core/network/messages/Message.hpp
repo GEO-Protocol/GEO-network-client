@@ -3,17 +3,18 @@
 
 
 #include "../../common/Types.h"
-#include "../../common/NodeUUID.h"
-#include "../../common/memory/MemoryUtils.h"
 
-// TODO: remove this imports
 #include "../../common/exceptions/Exception.h"
-#include "../../trust_lines/TrustLineUUID.h"
-#include "../../transactions/transactions/base/TransactionUUID.h"
 
+#include <memory>
+#include <utility>
+#include <stdint.h>
 
 using namespace std;
 
+class NotImplementedError : public Exception {
+    using Exception::Exception;
+};
 
 class Message {
 public:
@@ -23,22 +24,21 @@ public:
     // TODO: cut "..MessageType" from all enum records
     enum MessageTypeID {
         OpenTrustLineMessageType = 1,
-        AcceptTrustLineMessageType = 2,
-        SetTrustLineMessageType = 3,
-        CloseTrustLineMessageType = 4,
-        RejectTrustLineMessageType = 5,
-        UpdateTrustLineMessageType = 6,
-        FirstLevelRoutingTableOutgoingMessageType = 7,
-        FirstLevelRoutingTableIncomingMessageType = 8,
-        SecondLevelRoutingTableOutgoingMessageType = 9,
-        SecondLevelRoutingTableIncomingMessageType = 10,
-        InBetweenNodeTopologyMessage = 11,
-        BoundaryNodeTopologyMessage = 12,
+        AcceptTrustLineMessageType,
+        SetTrustLineMessageType,
+        CloseTrustLineMessageType,
+        RejectTrustLineMessageType,
+        UpdateTrustLineMessageType,
+        FirstLevelRoutingTableOutgoingMessageType,
+        FirstLevelRoutingTableIncomingMessageType,
+        SecondLevelRoutingTableOutgoingMessageType,
+        SecondLevelRoutingTableIncomingMessageType,
+        InBetweenNodeTopologyMessage,
+        BoundaryNodeTopologyMessage,
         Payments_ReceiverInitPayment,
         Payments_ReceiverApprove,
         ReceiverInitPaymentMessageType,
         OperationStateMessageType,
-
         InitiateMaxFlowCalculationMessageType,
         ReceiveMaxFlowCalculationOnTargetMessageType,
         ResultMaxFlowCalculationFromTargetMessageType,
@@ -54,15 +54,13 @@ public:
         SendResultMaxFlowCalculationFromSourceMessageType,
         ResultMaxFlowCalculationFromSourceMessageType,
 
-        ResponseMessageType = 1000
+        ResponseMessageType = 1000,
+        RoutingTablesResponseMessageType
     };
-
     // TODO: (DM) rename to "SerializedMessageType"
     typedef uint16_t MessageType;
 
 public:
-    virtual const MessageType typeID() const = 0;
-
     /*
      * Base "Message" is abstract.
      * Some of it's derived classes are used for various transactions responses.
@@ -84,93 +82,31 @@ public:
      * Derived classes of specific responses must override one of this methods.
      */
     virtual const bool isTransactionMessage() const {
+
         return false;
     }
     virtual const bool isRoutingTableResponseMessage() const {
+
         return false;
     }
     virtual const bool isMaxFlowCalculationResponseMessage() const {
+
         return false;
     }
     virtual const bool isCyclesDiscoveringResponseMessage() const {
+
         return false;
     }
 
-    //TODO:: move into another message
-    const NodeUUID &senderUUID() const {
-        return mSenderUUID;
-    }
+    virtual const MessageType typeID() const = 0;
 
-    //TODO:: move into another message
-    virtual const TransactionUUID &transactionUUID() const = 0;
-
-    //TODO:: move into another message
-    virtual const TrustLineUUID &trustLineUUID() const = 0;
-
-    /**
-     *
-     * @throws bad_alloc;
-     */
-    virtual pair<BytesShared, size_t> serializeToBytes() {
-
-        size_t bytesCount =
-            + sizeof(MessageType)
-            + NodeUUID::kBytesSize;
-
-        BytesShared dataBytesShared = tryMalloc(bytesCount);
-        size_t dataBytesOffset = 0;
-        //-----------------------------------------------------
-        MessageType type = typeID();
-        memcpy(
-            dataBytesShared.get(),
-            &type,
-            sizeof(MessageType)
-        );
-        dataBytesOffset += sizeof(MessageType);
-        //-----------------------------------------------------
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            mSenderUUID.data,
-            NodeUUID::kBytesSize
-        );
-        //-----------------------------------------------------
-        return make_pair(
-            dataBytesShared,
-            bytesCount
-        );
-    }
+    virtual pair<BytesShared, size_t> serializeToBytes() = 0;
 
 protected:
-    // TODO: (DM) empty constructor is bad by design. Try to remove it.
     Message() {};
 
-    Message(
-        NodeUUID &senderUUID) :
-        mSenderUUID(senderUUID){}
-
     virtual void deserializeFromBytes(
-        BytesShared buffer){
-
-        size_t bytesBufferOffset = 0;
-
-        MessageType *messageType = new (buffer.get()) MessageType;
-        bytesBufferOffset += sizeof(MessageType);
-        //-----------------------------------------------------
-        memcpy(
-          mSenderUUID.data,
-          buffer.get() + bytesBufferOffset,
-          NodeUUID::kBytesSize
-        );
-    }
-
-    static const size_t kOffsetToInheritedBytes(){
-
-        static const size_t offset = sizeof(MessageType) + NodeUUID::kBytesSize;
-        return offset;
-    }
-
-protected:
-    NodeUUID mSenderUUID;
+        BytesShared buffer) = 0;
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H

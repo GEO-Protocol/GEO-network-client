@@ -5,7 +5,7 @@
 #ifndef GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONFROMTARGETMESSAGE_H
 #define GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONFROMTARGETMESSAGE_H
 
-#include "../../MaxFlowCalculationResultMessage.hpp"
+#include "../../base/max_flow_calculation_result/MaxFlowCalculationResultMessage.h"
 #include "../../result/MessageResult.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 

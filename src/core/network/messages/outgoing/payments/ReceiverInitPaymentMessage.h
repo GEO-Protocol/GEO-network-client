@@ -1,7 +1,7 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_RECEIVERINITPAYMENTMESSAGE_H
 #define GEO_NETWORK_CLIENT_RECEIVERINITPAYMENTMESSAGE_H
 
-#include "../../TransactionMessage.hpp"
+#include "../../base/transaction/TransactionMessage.h"
 
 #include "../../../../common/Types.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"

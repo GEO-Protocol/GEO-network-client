@@ -1,7 +1,7 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_OPENTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_OPENTRUSTLINEMESSAGE_H
 
-#include "../../TrustLinesMessage.hpp"
+#include "../../base/trust_lines/TrustLinesMessage.h"
 
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"

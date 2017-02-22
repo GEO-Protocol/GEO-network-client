@@ -1,7 +1,7 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_UPDATETRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_UPDATETRUSTLINEMESSAGE_H
 
-#include "../../TrustLinesMessage.hpp"
+#include "../../base/trust_lines/TrustLinesMessage.h"
 #include "../../result/MessageResult.h"
 
 #include "../../../../common/Types.h"

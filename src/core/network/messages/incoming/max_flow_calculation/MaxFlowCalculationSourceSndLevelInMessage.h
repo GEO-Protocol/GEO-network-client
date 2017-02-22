@@ -5,7 +5,7 @@
 #ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCESNDLEVELINMESSAGE_H
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCESNDLEVELINMESSAGE_H
 
-#include "../../MaxFlowCalculationMessage.hpp"
+#include "../../base/max_flow_calculation/MaxFlowCalculationMessage.h"
 
 class MaxFlowCalculationSourceSndLevelInMessage : public MaxFlowCalculationMessage {
 
