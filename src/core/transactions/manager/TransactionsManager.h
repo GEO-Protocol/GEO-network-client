@@ -6,7 +6,7 @@
 
 #include "../../common/NodeUUID.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
-#include "../transactions/max_flow_calculation/algorithm/MaxFlowCalculationTrustLineManager.h"
+#include "../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../logger/Logger.h"
 

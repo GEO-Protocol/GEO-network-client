@@ -11,7 +11,7 @@
 #include "interface/results_interface/interface/ResultsInterface.h"
 #include "trust_lines/manager/TrustLinesManager.h"
 #include "transactions/manager/TransactionsManager.h"
-#include "transactions/transactions/max_flow_calculation/algorithm/MaxFlowCalculationTrustLineManager.h"
+#include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 
 #include "logger/Logger.h"
 

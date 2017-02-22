@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
 
-add_subdirectory(algorithm)
-
 set(SOURCE_FILES
         InitiateMaxFlowCalculationTransaction.h
         InitiateMaxFlowCalculationTransaction.cpp
@@ -25,8 +23,8 @@ set(SOURCE_FILES
 add_library(transactions__max_flow_calculation ${SOURCE_FILES})
 
 target_link_libraries(transactions__max_flow_calculation
-        transactions__max_flow_calculation__algorithm
         ${Boost_SYSTEM_LIBRARY}
+        max_flow_calculation
         transactions__base
 
         common

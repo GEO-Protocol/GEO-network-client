@@ -66,7 +66,10 @@ public:
 
     const TrustLineBalance& balance() const;
 
+    //todo rename availableOutgoingAmount
     ConstSharedTrustLineAmount availableAmount() const;
+
+    ConstSharedTrustLineAmount availableIncomingAmount() const;
 
     const TrustLineDirection direction() const;
 
@@ -117,6 +120,7 @@ private:
         + kBalancePartSize
         + kSignBytePartSize;
 
+    // todo remove from here
     TrustLineUUID mTrustLineUUID;
     NodeUUID mContractorNodeUUID;
     TrustLineAmount mIncomingTrustAmount;

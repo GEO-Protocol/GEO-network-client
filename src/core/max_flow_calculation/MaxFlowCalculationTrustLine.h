@@ -5,9 +5,9 @@
 #ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINE_H
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINE_H
 
-#include "../../../../common/Types.h"
-#include "../../../../common/NodeUUID.h"
-#include "../../../../trust_lines/TrustLine.h"
+#include "../common/Types.h"
+#include "../common/NodeUUID.h"
+#include "../trust_lines/TrustLine.h"
 
 class MaxFlowCalculationTrustLine {
 

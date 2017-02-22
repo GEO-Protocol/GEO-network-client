@@ -7,8 +7,8 @@
 
 #include "MaxFlowCalculationTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "algorithm/MaxFlowCalculationTrustLineManager.h"
-#include "algorithm/MaxFlowCalculationTrustLine.h"
+#include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
+#include "../../../max_flow_calculation/MaxFlowCalculationTrustLine.h"
 #include "../../../network/messages/incoming/max_flow_calculation/ResultMaxFlowCalculationFromSourceMessage.h"
 #include "../../scheduler/TransactionsScheduler.h"
 
