@@ -82,12 +82,31 @@ void InitiateMaxFlowCalculationTransaction::deserializeFromBytes(
 }
 
 TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
+
+
+
     mLog->logInfo("InitiateMaxFlowCalculationTransaction->run", "initiator: " + mNodeUUID.stringUUID());
     mLog->logInfo("InitiateMaxFlowCalculationTransaction->run", "target: " + mCommand->contractorUUID().stringUUID());
     mLog->logInfo("InitiateMaxFlowCalculationTransaction->run",
                   "OutgoingFlows: " + to_string(mTrustLinesManager->getOutgoingFlows().size()));
+    for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->getOutgoingFlows()) {
+        {
+            auto info = mLog->info("InitiateMaxFlowCalculationTransaction->run");
+            info << nodeUUIDAndTrustLine.first.stringUUID() << "  " <<  nodeUUIDAndTrustLine.second << "\n"
+                 << "in amount " << mTrustLinesManager->incomingTrustAmount(nodeUUIDAndTrustLine.first) << "\n"
+                 << "out amount " << mTrustLinesManager->outgoingTrustAmount(nodeUUIDAndTrustLine.first) << "\n";
+        }
+
+
+       /* mLog->logInfo("InitiateMaxFlowCalculationTransaction->run", "out flow: " + nodeUUIDAndTrustLine.first.stringUUID() +
+            " " + to_string(nodeUUIDAndTrustLine.second));*/
+    }
     mLog->logInfo("InitiateMaxFlowCalculationTransaction->run",
                   "IncomingFlows: " + to_string(mTrustLinesManager->getIncomingFlows().size()));
+    for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->getIncomingFlows()) {
+        mLog->logInfo("InitiateMaxFlowCalculationTransaction->run", "in flow: " + nodeUUIDAndTrustLine.first.stringUUID()
+                                                                    + "  " + to_string((uint32_t)nodeUUIDAndTrustLine.second));
+    }
     mLog->logInfo("InitiateMaxFlowCalculationTransaction::run",
                   "trustLineMap size: " + to_string(mMaxFlowCalculationTrustLineManager->mvTrustLines.size()));
     sendMessageToRemoteNode();

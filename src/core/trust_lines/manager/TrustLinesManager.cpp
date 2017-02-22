@@ -440,8 +440,8 @@ void TrustLinesManager::removeTrustLine(
 vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithOutgoingFlow() {
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLinePtr = nodeUUIDAndTrustLine.second->availableIncomingAmount().get();
-        if (*trustLinePtr > TrustLine::kZeroAmount()) {
+        auto trustLineAmountPtr = nodeUUIDAndTrustLine.second->availableAmount().get();
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(nodeUUIDAndTrustLine.first);
         }
     }
@@ -451,9 +451,9 @@ vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithOutgoingFlow() {
 vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithIncomingFlow() {
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLinePtr = nodeUUIDAndTrustLine.second->availableAmount().get();
+        auto trustLineAmountPtr = nodeUUIDAndTrustLine.second->availableIncomingAmount().get();
 
-        if (*trustLinePtr > TrustLine::kZeroAmount()) {
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(nodeUUIDAndTrustLine.first);
         }
     }
@@ -463,12 +463,12 @@ vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithIncomingFlow() {
 map<NodeUUID, TrustLineAmount> TrustLinesManager::getIncomingFlows() {
     map<NodeUUID, TrustLineAmount> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLinePtr = nodeUUIDAndTrustLine.second->availableIncomingAmount().get();
-        if (*trustLinePtr > TrustLine::kZeroAmount()) {
+        auto trustLineAmountPtr = nodeUUIDAndTrustLine.second->availableIncomingAmount().get();
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.insert(
                 make_pair(
                     nodeUUIDAndTrustLine.first,
-                    *trustLinePtr
+                    *trustLineAmountPtr
                 )
             );
         }
@@ -479,12 +479,13 @@ map<NodeUUID, TrustLineAmount> TrustLinesManager::getIncomingFlows() {
 map<NodeUUID, TrustLineAmount> TrustLinesManager::getOutgoingFlows() {
     map<NodeUUID, TrustLineAmount> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLinePtr = nodeUUIDAndTrustLine.second->availableIncomingAmount().get();
-        if (*trustLinePtr > TrustLine::kZeroAmount()) {
+        cout << *(nodeUUIDAndTrustLine.second->availableAmount().get());
+        auto trustLineAmountPtr = nodeUUIDAndTrustLine.second->availableAmount().get();
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.insert(
                 make_pair(
                     nodeUUIDAndTrustLine.first,
-                    *trustLinePtr
+                    *trustLineAmountPtr
                 )
             );
         }
