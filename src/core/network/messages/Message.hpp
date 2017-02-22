@@ -32,9 +32,12 @@ public:
         FirstLevelRoutingTableIncomingMessageType = 8,
         SecondLevelRoutingTableOutgoingMessageType = 9,
         SecondLevelRoutingTableIncomingMessageType = 10,
-
+        InBetweenNodeTopologyMessage = 11,
+        BoundaryNodeTopologyMessage = 12,
         Payments_ReceiverInitPayment,
         Payments_ReceiverApprove,
+        ReceiverInitPaymentMessageType,
+        OperationStateMessageType,
 
         ResponseMessageType = 1000
     };

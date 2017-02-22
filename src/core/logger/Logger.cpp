@@ -1,4 +1,7 @@
-﻿#include "Logger.h"
+#include "Logger.h"
+#include <fstream>
+#include <iostream>
+#include "../settings/Settings.h"
 
 LoggerStream::LoggerStream(
     Logger *logger,
@@ -116,3 +119,28 @@ void Logger::logRecord(
          << formatMessage(message) << endl;
     cout.flush();
 }
+
+void Logger::logTustlineState(const NodeUUID &conractorUUID, string direction, string status){
+    ofstream logfile;
+//    stringstream ss;
+//    ss << mTruststate.first << "\t" << mTruststate.second << "\n";
+//    logfile.open(log_filename);
+    logfile << conractorUUID.stringUUID() << "\t" << direction << "\t" << status << "\n";
+    logfile.close();
+}
+
+void Logger::logTruslineOperationStatus(
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &incoming_amount,
+        const TrustLineAmount &outgoing_amount,
+        const TrustLineBalance &balance,
+        const TrustLineDirection &direction
+){
+    ofstream logfile;
+    logfile.open(log_filename);
+    stringstream ss;
+    ss << contractorUUID.stringUUID() << "\t" << incoming_amount << "\t" << outgoing_amount << "\t" << balance << "\t";
+    logfile << ss.str() << endl;
+    logfile.close();
+}
+

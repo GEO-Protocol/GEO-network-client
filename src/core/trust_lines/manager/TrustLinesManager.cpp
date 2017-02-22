@@ -1,6 +1,6 @@
 #include "TrustLinesManager.h"
 
-TrustLinesManager::TrustLinesManager() {
+TrustLinesManager::TrustLinesManager(Logger *logger) : mlogger(logger){
     try {
         mTrustLinesStorage = unique_ptr<TrustLinesStorage>(new TrustLinesStorage("trust_lines.dat"));
 
@@ -91,6 +91,7 @@ void TrustLinesManager::open(
             throw MemoryError("TrustLinesManager::open: "
                                   "Can not allocate memory for new trust line instance.");
         }
+//        mlogger->logTruslineOperationStatus(trustLine->contractorNodeUUID(), amount, "open");
         saveToDisk(TrustLine::Shared(trustLine));
     }
 }
@@ -110,10 +111,20 @@ void TrustLinesManager::close(
             if (trustLine->balance() <= TrustLine::kZeroBalance()) {
                 if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Both",
+                            "Close"
+                    );
 
                 } else {
                     trustLine->setOutgoingTrustAmount(0);
                     trustLine->suspendOutgoingDirection();
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Outgoing",
+                            "Suspend"
+                    );
                     saveToDisk(trustLine);
                 }
 
@@ -187,10 +198,19 @@ void TrustLinesManager::reject(
             if (trustLine->balance() >= TrustLine::kZeroBalance()) {
                 if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Both",
+                            "Close"
+                    );
                 } else {
                     trustLine->setIncomingTrustAmount(0);
                     trustLine->suspendIncomingDirection();
+                    mlogger->logTustlineState(
+                            contractorUUID,
+                            "Incoming",
+                            "Suspend"
+                    );
                     saveToDisk(trustLine);
                 }
 
@@ -407,6 +427,13 @@ void TrustLinesManager::saveToDisk(
                                   "Can not reallocate STL container memory for new trust line instance.");
         }
     }
+    mlogger->logTruslineOperationStatus(
+            trustLine->contractorNodeUUID().stringUUID(),
+            trustLine->incomingTrustAmount(),
+            trustLine->outgoingTrustAmount(),
+            trustLine->balance(),
+            trustLine->direction()
+    );
     trustLineCreatedSignal(
         trustLine->contractorNodeUUID(),
         trustLine->trustLineUUID()
@@ -453,4 +480,49 @@ const TrustLine::Shared TrustLinesManager::trustLine(
 map<NodeUUID, TrustLine::Shared> &TrustLinesManager::trustLines() {
 
     return mTrustLines;
+}
+
+void TrustLinesManager::setSomeBalances() {
+//     this is debug method. have to be removed
+    NodeUUID contractor1;
+    NodeUUID contractor2;
+    TrustLine *first_trustline = nullptr;
+    TrustLine *second_trustline = nullptr;
+    first_trustline = new TrustLine(
+            contractor1,
+            100,
+            100,
+            50
+    );
+    second_trustline = new TrustLine(
+            contractor2,
+            200,
+            200,
+            111
+    );
+    saveToDisk(TrustLine::Shared(first_trustline));
+    saveToDisk(TrustLine::Shared(second_trustline));
+}
+
+vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxflow) {
+    vector<pair<NodeUUID, TrustLineBalance>> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (auto const& x : mTrustLines){
+        stepbalance = x.second->balance();
+        if (maxflow == zerobalance) {
+            if (stepbalance != zerobalance) {
+                Nodes.push_back(make_pair(x.first, stepbalance));
+                }
+        } else if(maxflow < zerobalance){
+            if (stepbalance < zerobalance) {
+                Nodes.push_back(make_pair(x.first, min(maxflow, stepbalance)));
+            }
+        } else {
+            if (stepbalance > zerobalance) {
+                Nodes.push_back(make_pair(x.first, min(maxflow, stepbalance)));
+            }
+        }
+    }
+    return Nodes;
 }

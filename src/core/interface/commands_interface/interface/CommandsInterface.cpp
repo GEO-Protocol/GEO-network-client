@@ -330,7 +330,6 @@ void CommandsInterface::handleReceivedInfo(
             auto flagAndCommand = mCommandsParser->processReceivedCommands();
             if (flagAndCommand.first){
                 mTransactionsManager->processCommand(flagAndCommand.second);
-
             } else {
                 break;
             }

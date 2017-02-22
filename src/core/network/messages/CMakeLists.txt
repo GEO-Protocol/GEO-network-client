@@ -9,7 +9,7 @@ set(SOURCE_FILES
         Message.hpp
         TrustLinesMessage.hpp
         RoutingTablesMessage.hpp
-        TransactionMessage.hpp)
+        TransactionMessage.hpp cycles/InBetweenNodeTopologyMessage.h cycles/InBetweenNodeTopologyMessage.cpp cycles/BoundaryNodeTopologyMessage.h cycles/BoundaryNodeTopologyMessage.cpp)
 
 add_library(network__messages ${SOURCE_FILES})
 target_link_libraries(network__messages

@@ -17,7 +17,7 @@ int Core::run() {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
         return initCode;
     }
-
+    JustToTestSomething();
     try {
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
@@ -30,6 +30,7 @@ int Core::run() {
         mLog.logException("Core", e);
         return -1;
     }
+
 }
 
 int Core::initCoreComponents() {
@@ -77,6 +78,10 @@ int Core::initCoreComponents() {
         return initCode;
 
     initCode = initCommandsInterface();
+    if (initCode != 0)
+        return initCode;
+
+    initCode = initDelayedTasks();
     if (initCode != 0)
         return initCode;
 
@@ -136,7 +141,7 @@ int Core::initResultsInterface() {
 int Core::initTrustLinesManager() {
 
     try{
-        mTrustLinesManager = new TrustLinesManager();
+        mTrustLinesManager = new TrustLinesManager(&mLog);
         mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
         return 0;
 
@@ -215,11 +220,25 @@ void Core::connectTrustLinesManagerSignals() {
         )
     );
 }
-
+void Core::connectDelayedTasksSignals(){
+    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
+            boost::bind(
+                    &Core::onDelayedTaskCycleSixNodesSlot,
+                    this
+            )
+    );
+    mCyclesDelayedTasks->mFiveNodesCycleSignal.connect(
+            boost::bind(
+                    &Core::onDelayedTaskCycleFiveNodesSlot,
+                    this
+            )
+    );
+}
 void Core::connectSignalsToSlots() {
 
     connectCommunicatorSignals();
     connectTrustLinesManagerSignals();
+    connectDelayedTasksSignals();
 }
 
 void Core::onMessageReceivedSlot(
@@ -298,4 +317,57 @@ void Core::zeroPointers() {
     mResultsInterface = nullptr;
     mTrustLinesManager = nullptr;
     mTransactionsManager = nullptr;
+    mCyclesDelayedTasks = nullptr;
+}
+
+//void Core::initTimers() {
+//
+//}
+
+int Core::initDelayedTasks() {
+    try{
+        mCyclesDelayedTasks = new CyclesDelayedTasks(
+               mIOService
+        );
+    mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
+    return 0;
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+void Core::onDelayedTaskCycleSixNodesSlot() {
+//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
+}
+
+void Core::onDelayedTaskCycleFiveNodesSlot() {
+//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
+}
+
+void Core::JustToTestSomething() {
+//    mTrustLinesManager->getFirstLevelNodesForCycles();
+//    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles();
+//    TrustLineBalance bal = 70;
+//    TrustLineBalance max_flow = 30;
+//    vector<NodeUUID> path;
+//    vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes;
+//    boundaryNodes.push_back(make_pair(mNodeUUID, bal ));
+//    path.push_back(mNodeUUID);
+////    for(const auto &value: firstLevelNodes){
+//
+////
+//    auto message = Message::Shared(new BoundaryNodeTopolodyMessage(
+//            max_flow,
+//            2,
+//            path,
+//            boundaryNodes
+//    ));
+//    auto buffer = message->serializeToBytes();
+//    auto new_message = new BoundaryNodeTopolodyMessage(buffer.first);
+//    cout << "lets see what we have " << endl;
+    //    mTransactionsManager->launchGetTopologyAndBalancesTransaction(static_pointer_cast<BoundaryNodeTopologyMessage>(
+//            message
+//    )
+//    );
 }

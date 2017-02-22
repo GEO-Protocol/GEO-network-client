@@ -39,6 +39,7 @@ public:
         RejectTrustLineTransactionType,
         PropagationRoutingTablesTransactionType,
         AcceptRoutingTablesTransactionType,
+        GetTopologyAndBalancesTransaction,
 
         // Payments
         CoordinatorPaymentTransaction,

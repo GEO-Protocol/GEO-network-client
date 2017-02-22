@@ -24,6 +24,12 @@
 #include <string>
 #include <memory>
 
+#ifndef TESTS__TRUSTLINES
+#include "../../../common/Types.h"
+#include "../../../common/time/TimeUtils.h"
+#endif
+
+
 using namespace std;
 using namespace boost::uuids;
 

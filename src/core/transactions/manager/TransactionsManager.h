@@ -36,6 +36,7 @@
 #include "../transactions/unique/routing_tables/PropagationRoutingTablesTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
+#include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -69,6 +70,11 @@ public:
         const NodeUUID &contractorUUID,
         const TrustLineUUID &trustLineUUID);
 
+public:
+    //  Cycles Transactions
+    void launchGetTopologyAndBalancesTransaction();
+    void launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message);
+
 private:
     void loadTransactions();
 
@@ -98,6 +104,7 @@ private:
     void launchReceiverPaymentTransaction(
         ReceiverInitPaymentMessage::Shared message);
 
+private:
     // Signals connection to manager's slots
     void subscribeForOutgoingMessages(
         BaseTransaction::SendMessageSignal &signal);

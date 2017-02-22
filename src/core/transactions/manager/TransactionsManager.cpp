@@ -97,8 +97,24 @@ void TransactionsManager::processMessage(
      */
     else if (message->typeID() == Message::FirstLevelRoutingTableIncomingMessageType) {
         FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message);
-    }
 
+//    Cycles messages
+    } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage){
+        launchGetTopologyAndBalancesTransaction(
+                static_pointer_cast<InBetweenNodeTopologyMessage>(
+                        message
+                )
+        );
+    } else if (message->typeID() == Message::MessageTypeID::BoundaryNodeTopologyMessage){
+        launchGetTopologyAndBalancesTransaction(
+                static_pointer_cast<BoundaryNodeTopologyMessage>(
+                        message
+                )
+        );
+    } else if (message->typeID() == Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType) {
+        FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(
+                message);
+    }
     /*
      * Payments transaction initialisation messages
      */
@@ -251,6 +267,7 @@ void TransactionsManager::launchOpenTrustLineTransaction(
                 "Can't allocate memory for transaction instance.");
     }
 }
+
 
 /*!
  *
@@ -514,5 +531,49 @@ void TransactionsManager::onCommandResultReady(
         throw RuntimeError(
             "TransactionsManager::onCommandResultReady: "
                 "Error occurred when command result has accepted");
+    }
+}
+
+void TransactionsManager::launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message){
+    try {
+        auto transaction = make_shared<GetTopologyAndBalancesTransaction>(
+                BaseTransaction::TransactionType::GetTopologyAndBalancesTransaction,
+                mNodeUUID,
+                message,
+                mScheduler.get(),
+                mTrustLines,
+                mLog
+        );
+
+//        todo add body
+
+        mScheduler->scheduleTransaction(transaction);
+        cout << "launchGetTopologyAndBalancesTransaction" << endl;
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchOpenTrustLineTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchGetTopologyAndBalancesTransaction(){
+
+    try {
+        auto transaction = make_shared<GetTopologyAndBalancesTransaction>(
+                BaseTransaction::TransactionType::GetTopologyAndBalancesTransaction,
+                mNodeUUID,
+                mScheduler.get(),
+                mTrustLines,
+                mLog
+        );
+
+//        todo add body
+
+        mScheduler->scheduleTransaction(transaction);
+        cout << "launchGetTopologyAndBalancesTransaction" << endl;
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchOpenTrustLineTransaction: "
+                        "Can't allocate memory for transaction instance.");
     }
 }
