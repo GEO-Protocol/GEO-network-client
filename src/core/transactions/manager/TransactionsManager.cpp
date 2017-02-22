@@ -128,7 +128,6 @@ void TransactionsManager::processMessage(
     else if (message->typeID() == Message::Payments_ReceiverInitPayment) {
         launchReceiverPaymentTransaction(
             static_pointer_cast<ReceiverInitPaymentMessage>(message));
-    }
 
     } else if (message->typeID() == Message::MessageTypeID::ReceiveMaxFlowCalculationOnTargetMessageType) {
         launchReceiveMaxFlowCalculationTransaction(
@@ -179,7 +178,7 @@ void TransactionsManager::processMessage(
             )
         );
 
-    } else {
+    }
     /*
      * Transactions responses and other messages,
      * that must be routed to transaction's context.

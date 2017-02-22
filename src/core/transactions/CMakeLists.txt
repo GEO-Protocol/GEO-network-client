@@ -23,6 +23,7 @@ target_link_libraries(transactions
         transactions__payments
         transactions__routing_tables
         transactions__result
+        transactions__max_flow_calculation
 
         time
         common

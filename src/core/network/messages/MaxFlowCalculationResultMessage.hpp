@@ -5,6 +5,7 @@
 #include "result/MessageResult.h"
 
 #include "../../common/Types.h"
+#include "../../common/exceptions/Exception.h"
 #include "../../common/memory/MemoryUtils.h"
 
 #include "../../common/NodeUUID.h"
@@ -37,7 +38,7 @@ public:
 
     const TrustLineUUID &trustLineUUID() const {
 
-        throw NotImplementedError("MaxFlowCalculationResultMessage: public Message::trustLineUUID:"
+        throw Exception("MaxFlowCalculationResultMessage: public Message::trustLineUUID:"
                                       "Method not implemented.");
     }
 

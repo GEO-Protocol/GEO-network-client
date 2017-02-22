@@ -466,6 +466,17 @@ void TrustLinesManager::removeTrustLine(
 
 const TrustLine::Shared TrustLinesManager::trustLine(
     const NodeUUID &contractorUUID) const {
+    if (isTrustLineExist(contractorUUID)) {
+        return mTrustLines.at(contractorUUID);
+
+    } else {
+        throw NotFoundError(
+            "TrustLinesManager::removeTrustLine. "
+                "Trust line to such contractor does not exist.");
+    }
+}
+
+
 vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithOutgoingFlow() {
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
@@ -523,17 +534,6 @@ map<NodeUUID, TrustLineAmount> TrustLinesManager::getOutgoingFlows() {
         }
     }
     return result;
-}
-
-
-    if (isTrustLineExist(contractorUUID)) {
-        return mTrustLines.at(contractorUUID);
-
-    } else {
-        throw NotFoundError(
-            "TrustLinesManager::removeTrustLine. "
-                "Trust line to such contractor does not exist.");
-    }
 }
 
 map<NodeUUID, TrustLine::Shared> &TrustLinesManager::trustLines() {
