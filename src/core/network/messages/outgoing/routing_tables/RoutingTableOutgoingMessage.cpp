@@ -1,4 +1,4 @@
-#include "RoutingTableOutgoingMessage.h"
+﻿#include "RoutingTableOutgoingMessage.h"
 
 RoutingTableOutgoingMessage::RoutingTableOutgoingMessage(
     NodeUUID &senderUUID,
@@ -96,6 +96,6 @@ pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
 void RoutingTableOutgoingMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    throw NotImplementedError("RoutingTableOutgoingMessage::deserializeFromBytes: "
+    throw Exception("RoutingTableOutgoingMessage::deserializeFromBytes: "
                                   "Method not implemented.");
 }

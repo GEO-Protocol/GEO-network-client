@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_TRUSTLINESMESSAGE_H
+﻿#ifndef GEO_NETWORK_CLIENT_TRUSTLINESMESSAGE_H
 #define GEO_NETWORK_CLIENT_TRUSTLINESMESSAGE_H
 
 #include "Message.hpp"
@@ -32,7 +32,7 @@ public:
 
     const TrustLineUUID &trustLineUUID() const {
 
-        throw NotImplementedError("TrustLinesMessage: public Message::trustLineUUID:"
+        throw Exception("TrustLinesMessage: public Message::trustLineUUID:"
                                       "Method not implemented.");
     }
 

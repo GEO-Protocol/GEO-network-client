@@ -1,4 +1,4 @@
-#include "CloseTrustLineMessage.h"
+﻿#include "CloseTrustLineMessage.h"
 
 CloseTrustLineMessage::CloseTrustLineMessage(
     NodeUUID &sender,
@@ -48,6 +48,6 @@ pair<BytesShared, size_t> CloseTrustLineMessage::serializeToBytes() {
 void CloseTrustLineMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
+    throw Exception("OpenTrustLineMessage::deserializeFromBytes: "
                                   "Method not implemented.");
 }

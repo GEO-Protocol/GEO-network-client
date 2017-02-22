@@ -3,17 +3,21 @@
 
 #include "Message.hpp"
 
-#include "../../common/Types.h"
-#include "../../common/memory/MemoryUtils.h"
+#include "../../common/exceptions/Exception.h"
 
-#include "../../common/NodeUUID.h"
-#include "../../trust_lines/TrustLineUUID.h"
-#include "../../transactions/transactions/base/TransactionUUID.h"
+//#include "../../common/Types.h"
+//#include "../../common/memory/MemoryUtils.h"
 
-#include <memory>
-#include <utility>
-#include <cstdlib>
-#include <stdint.h>
+
+//// TODO:  remove this
+//#include "../../common/NodeUUID.h"
+//#include "../../trust_lines/TrustLineUUID.h"
+//#include "../../transactions/transactions/base/TransactionUUID.h"
+
+//#include <memory>
+//#include <utility>
+//#include <cstdlib>
+//#include <stdint.h>
 
 using namespace std;
 
@@ -32,9 +36,13 @@ public:
         return mTransactionUUID;
     }
 
+    virtual const bool isTransactionMessage() const {
+        return true;
+    }
+
     const TrustLineUUID &trustLineUUID() const {
 
-        throw NotImplementedError("TransactionMessage: public Message::trustLineUUID:"
+        throw Exception("TransactionMessage: public Message::trustLineUUID:"
                                       "Method not implemented.");
     }
 

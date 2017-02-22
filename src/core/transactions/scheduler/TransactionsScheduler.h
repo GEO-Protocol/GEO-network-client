@@ -50,8 +50,13 @@ public:
         BaseTransaction::Shared transaction,
         uint16_t millisecondsDelay);
 
+    // TODO: rename to "tryAttachMessageToTransaction"
+    // TODO: add error log if unsuccessfull
+    // TODO: throw exception on failure,
+    //       so the communicator would be able to know
+    //       if contractor node doesn't follows the protocol.
     void handleMessage(
-        TransactionMessage::Shared message);
+        Message::Shared message);
 
     void killTransaction(
         const TransactionUUID &transactionUUID);

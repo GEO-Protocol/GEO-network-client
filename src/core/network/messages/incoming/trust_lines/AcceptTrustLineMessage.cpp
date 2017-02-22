@@ -1,4 +1,4 @@
-#include "AcceptTrustLineMessage.h"
+﻿#include "AcceptTrustLineMessage.h"
 
 AcceptTrustLineMessage::AcceptTrustLineMessage(
     BytesShared buffer) {

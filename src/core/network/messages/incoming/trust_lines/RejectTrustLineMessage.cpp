@@ -1,4 +1,4 @@
-#include "RejectTrustLineMessage.h"
+﻿#include "RejectTrustLineMessage.h"
 
 RejectTrustLineMessage::RejectTrustLineMessage(
     BytesShared buffer) {

@@ -64,28 +64,39 @@ void TransactionsScheduler::postponeTransaction(
 }
 
 void TransactionsScheduler::handleMessage(
-    TransactionMessage::Shared message) {
+    Message::Shared message) {
 
     if (mTransactions->empty())
         return;
 
-    for (auto const &transactionAndState : *mTransactions) {
-        cout << transactionAndState.first->UUID().stringUUID();
-        cout << message->transactionUUID();
+    if (message->isTransactionMessage()) {
+        // Transactions messages (and responses) must be attached to the transactions in case
+        // if transactionUUID from the message is equal to the UUID of the transaction itself.
 
-        if (transactionAndState.first->UUID() != message->transactionUUID()) {
-            continue;
-        }
+        for (auto const &transactionAndState : *mTransactions) {
+            cout << transactionAndState.first->UUID().stringUUID();
+            cout << message->transactionUUID();
 
-        for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
-            if (messageType != message->typeID()) {
+            if (transactionAndState.first->UUID() != message->transactionUUID()) {
                 continue;
             }
 
-            transactionAndState.first->setContext(message);
-            launchTransaction(transactionAndState.first);
-            return;
+            for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
+                if (messageType != message->typeID()) {
+                    continue;
+                }
+
+                transactionAndState.first->setContext(message);
+                launchTransaction(transactionAndState.first);
+                return;
+            }
         }
+    }
+
+    else {
+        throw ValueError(
+            "TransactionsScheduler::handleMessage: "
+            "invalid/unexpected message/response received");
     }
 }
 

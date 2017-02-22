@@ -1,18 +1,8 @@
-#ifndef GEO_NETWORK_CLIENT_ROUTINGTABLESMESSAGE_H
+﻿#ifndef GEO_NETWORK_CLIENT_ROUTINGTABLESMESSAGE_H
 #define GEO_NETWORK_CLIENT_ROUTINGTABLESMESSAGE_H
 
 #include "Message.hpp"
 
-#include "../../common/Types.h"
-#include "../../common/memory/MemoryUtils.h"
-
-#include "../../trust_lines/TrustLineUUID.h"
-#include "../../transactions/transactions/base/TransactionUUID.h"
-
-#include <memory>
-#include <utility>
-#include <cstdlib>
-#include <stdint.h>
 
 class RoutingTablesMessage : public Message {
 public:
@@ -25,7 +15,7 @@ public:
 
     const TransactionUUID &transactionUUID() const {
 
-        throw NotImplementedError("RoutingTablesMessage: public Message::transactionUUID:"
+        throw Exception("RoutingTablesMessage: public Message::transactionUUID:"
                                       "Method not implemented.");
     }
 

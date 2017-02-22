@@ -1,4 +1,4 @@
-#include "OpenTrustLineMessage.h"
+﻿#include "OpenTrustLineMessage.h"
 
 OpenTrustLineMessage::OpenTrustLineMessage(
     NodeUUID &sender,
@@ -47,6 +47,6 @@ pair<BytesShared, size_t> OpenTrustLineMessage::serializeToBytes() {
 void OpenTrustLineMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
+    throw Exception("OpenTrustLineMessage::deserializeFromBytes: "
                                   "Method not implemented.");
 }
