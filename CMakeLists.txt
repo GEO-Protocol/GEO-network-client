@@ -66,6 +66,7 @@ add_subdirectory(src/core/settings)
 add_subdirectory(src/core/paths)
 add_subdirectory(src/core/transactions)
 add_subdirectory(src/core/trust_lines)
+add_subdirectory(src/core/max_flow_calculation)
 
 add_subdirectory(src/core/payments/amount_blocks)
 
@@ -102,5 +103,6 @@ target_link_libraries(geo_network_client
 
         paths
         trust_lines
+        max_flow_calculation
         transactions
 )

@@ -73,6 +73,10 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
+    initCode = initMaxFlowCalculationtrustLineManager();
+    if (initCode != 0)
+        return initCode;
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
@@ -153,6 +157,19 @@ int Core::initTrustLinesManager() {
     }
 }
 
+int Core::initMaxFlowCalculationtrustLineManager() {
+
+    try{
+        mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager;
+        mLog.logSuccess("Core", "Max flow calculation Trust lines manager is successfully initialised");
+        return 0;
+
+    }catch(const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
 int Core::initTransactionsManager() {
 
     try {
@@ -160,6 +177,7 @@ int Core::initTransactionsManager() {
             mNodeUUID,
             mIOService,
             mTrustLinesManager,
+            mMaxFlowCalculationTrustLimeManager,
             mResultsInterface,
             &mLog
         );

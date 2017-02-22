@@ -12,6 +12,8 @@
 #include "trust_lines/manager/TrustLinesManager.h"
 #include "transactions/manager/TransactionsManager.h"
 #include "delayed_tasks/Cycles.h"
+#include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
+
 #include "logger/Logger.h"
 
 #include <boost/bind.hpp>
@@ -45,6 +47,8 @@ private:
     int initResultsInterface();
 
     int initTrustLinesManager();
+
+    int initMaxFlowCalculationtrustLineManager();
 
     int initTransactionsManager();
 
@@ -91,6 +95,7 @@ protected:
     TrustLinesManager *mTrustLinesManager;
     TransactionsManager *mTransactionsManager;
     CyclesDelayedTasks *mCyclesDelayedTasks;
+    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLimeManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

@@ -87,7 +87,6 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
                   "IncomingFlows: " + to_string(mTrustLinesManager->getIncomingFlows().size()));
 
     vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->getFirstLevelNeighborsWithOutgoingFlow();
-    mLog->logInfo("MaxFlowCalculationSourceFstLevelTransaction->sendFirst", to_string(outgoingFlowUuids.size()));
     NodeUUID targetUUID = mMessage->targetUUID();
     for (auto const &it : outgoingFlowUuids) {
         if (it == targetUUID) {

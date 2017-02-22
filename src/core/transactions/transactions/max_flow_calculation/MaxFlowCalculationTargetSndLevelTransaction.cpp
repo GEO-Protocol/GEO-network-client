@@ -97,6 +97,12 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
                   "IncomingFlows: " + to_string(mTrustLinesManager->getIncomingFlows().size()));
 
     map<NodeUUID, TrustLineAmount> incomingFlows = mTrustLinesManager->getIncomingFlows();
+
+    for (auto const &it : incomingFlows) {
+        TrustLineAmount trustLineAmount = it.second;
+        mLog->logInfo("MaxFlowCalculationSourceSndLevelTransaction::sendResult", it.first.stringUUID());
+    }
+
     Message *message = new SendResultMaxFlowCalculationFromTargetMessage(
         mNodeUUID,
         mNodeUUID,
