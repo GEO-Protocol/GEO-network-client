@@ -24,7 +24,7 @@ public:
         BytesShared buffer);
 
     const MessageType typeID() const;
-
+    TrustLineAmount& amount() const;
     pair<BytesShared, size_t> serializeToBytes();
 
 protected:

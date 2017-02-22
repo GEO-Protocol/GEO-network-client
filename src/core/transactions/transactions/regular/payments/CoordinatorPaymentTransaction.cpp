@@ -114,8 +114,15 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::initTransaction() 
 #ifdef TRANSACTIONS_LOG
     {
         auto info = mLog->info(logHeader());
-        info << "Init operation to (" << mCommand->contractorUUID() << "). "
-             << "Operation amount: " << mCommand->amount();
+        info << "Init operation to node (" << mCommand->contractorUUID() << ")";
+    }
+    {
+        auto info = mLog->info(logHeader());
+        info << "Command UUID: " << mCommand->UUID();
+    }
+    {
+        auto info = mLog->info(logHeader());
+        info << "Operation amount: " << mCommand->amount();
     }
 #endif
 
@@ -301,8 +308,7 @@ void CoordinatorPaymentTransaction::deserializeFromBytes(BytesShared buffer) {
 const string CoordinatorPaymentTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CoordinatorPaymentTA: " << UUID().stringUUID() << ", "
-      << "Command: " << mCommand->UUID() << "] ";
+    s << "[CoordinatorPaymentTA: " << UUID().stringUUID() << "] ";
 
     return s.str();
 }

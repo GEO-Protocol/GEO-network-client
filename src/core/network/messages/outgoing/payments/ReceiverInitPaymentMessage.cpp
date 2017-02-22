@@ -24,6 +24,10 @@ const Message::MessageType ReceiverInitPaymentMessage::typeID() const {
     return Message::Payments_ReceiverInitPayment;
 }
 
+TrustLineAmount&ReceiverInitPaymentMessage::amount() const {
+    return mTotalPaymentAmount;
+}
+
 /*!
  *
  * Throws bad_alloc;

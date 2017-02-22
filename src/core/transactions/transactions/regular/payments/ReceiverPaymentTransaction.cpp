@@ -61,8 +61,11 @@ TransactionResult::Shared ReceiverPaymentTransaction::initOperation() {
 #ifdef TRANSACTIONS_LOG
     {
         auto info = mLog->info(logHeader());
-        info << "Init. payment op. from"
-             << " (" << mMessage->senderUUID() << ")";
+        info << "Init. payment op. from (" << mMessage->senderUUID() << ")";
+    }
+    {
+        auto info = mLog->info(logHeader());
+        info << "Operation amount: " << mMessage->amount();
     }
 #endif
 

@@ -112,7 +112,7 @@ void Logger::logRecord(
     const char *subsystem,
     const string &message) {
     cout << recordPrefix(group)
-         << subsystem << "\t\t"
+         << subsystem << "\t"
          << formatMessage(message) << endl;
     cout.flush();
 }
