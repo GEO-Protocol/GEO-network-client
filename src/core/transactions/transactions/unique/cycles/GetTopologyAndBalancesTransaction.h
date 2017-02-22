@@ -8,7 +8,7 @@
 #include "../../base/UniqueTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../network/messages/cycles/InBetweenNodeTopologyMessage.h"
-#include "../../../../network/messages/cycles/BoundaryNodeTopolodyMessage.h"
+#include "../../../../network/messages/cycles/BoundaryNodeTopologyMessage.h"
 
 class GetTopologyAndBalancesTransaction : public UniqueTransaction {
 
@@ -31,7 +31,7 @@ public:
 
     GetTopologyAndBalancesTransaction(TransactionType type,
                                       NodeUUID &nodeUUID,
-                                      BoundaryNodeTopolodyMessage::Shared message,
+                                      BoundaryNodeTopologyMessage::Shared message,
                                       TransactionsScheduler *scheduler,
                                       TrustLinesManager *manager,
                                       Logger *logger);
@@ -52,7 +52,7 @@ private:
     TrustLinesManager *mTrustLinesManager;
     Logger *mlogger;
     InBetweenNodeTopologyMessage::Shared mInBetweeenMessage = nullptr;
-    BoundaryNodeTopolodyMessage::Shared mBoundaryMessage = nullptr;
+    BoundaryNodeTopologyMessage::Shared mBoundaryMessage = nullptr;
 
 };
 

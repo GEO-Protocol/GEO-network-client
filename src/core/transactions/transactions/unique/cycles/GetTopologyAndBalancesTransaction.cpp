@@ -27,7 +27,7 @@ GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(Transaction
 
 GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(TransactionType type,
                                                                      NodeUUID &nodeUUID,
-                                                                     BoundaryNodeTopolodyMessage::Shared message,
+                                                                     BoundaryNodeTopologyMessage::Shared message,
                                                                      TransactionsScheduler *scheduler,
                                                                      TrustLinesManager *manager, Logger *logger)
         : UniqueTransaction(type, nodeUUID, scheduler),

@@ -102,9 +102,9 @@ void TransactionsManager::processMessage(
                         message
                 )
         );
-//    } else if (message->typeID() == Message::MessageTypeID::BoundaryNodeTopolodyMessage){
+//    } else if (message->typeID() == Message::MessageTypeID::BoundaryNodeTopologyMessage){
 //        launchGetTopologyAndBalancesTransaction(
-//                static_pointer_cast<BoundaryNodeTopolodyMessage>(
+//                static_pointer_cast<BoundaryNodeTopologyMessage>(
 //                        message
 //                )
 //        );

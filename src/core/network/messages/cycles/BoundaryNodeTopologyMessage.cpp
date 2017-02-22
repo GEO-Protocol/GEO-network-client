@@ -1,8 +1,8 @@
 
 #include "../../../common/Types.h"
-#include "BoundaryNodeTopolodyMessage.h"
+#include "BoundaryNodeTopologyMessage.h"
 
-BoundaryNodeTopolodyMessage::BoundaryNodeTopolodyMessage(const TrustLineBalance maxFlow,
+BoundaryNodeTopologyMessage::BoundaryNodeTopologyMessage(const TrustLineBalance maxFlow,
                                                          const byte max_depth,
                                                          vector<NodeUUID> &path,
                                                          const vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes)
@@ -10,16 +10,22 @@ BoundaryNodeTopolodyMessage::BoundaryNodeTopolodyMessage(const TrustLineBalance 
     mBoundaryNodes = boundaryNodes;
 }
 
-BoundaryNodeTopolodyMessage::BoundaryNodeTopolodyMessage(BytesShared buffer)
+BoundaryNodeTopologyMessage::BoundaryNodeTopologyMessage(BytesShared buffer)
         : InBetweenNodeTopologyMessage(buffer) {
     deserializeFromBytes(buffer);
 }
 
-pair<BytesShared, size_t> BoundaryNodeTopolodyMessage::serializeToBytes() {
+pair<BytesShared, size_t> BoundaryNodeTopologyMessage::serializeToBytes() {
     auto parentBytesAndCount = InBetweenNodeTopologyMessage::serializeToBytes();
-
+    size_t bytesBufferOffset = InBetweenNodeTopologyMessage::kOffsetToInheritedBytes();
+    cout << "InBetweenNodeTopologyMessage serealize " << endl;
+    cout << parentBytesAndCount.second << endl;
+    cout << bytesBufferOffset << endl;
+    uint16_t boundaryNodesCount = (uint16_t) mBoundaryNodes.size();
     size_t bytesCount =
-            parentBytesAndCount.second + (NodeUUID::kBytesSize + kTrustLineAmountBytesCount) * mBoundaryNodes.size();
+            parentBytesAndCount.second +
+            (NodeUUID::kBytesSize + kTrustLineBalanceSerializeBytesCount) * boundaryNodesCount +
+            sizeof(boundaryNodesCount);
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -33,7 +39,7 @@ pair<BytesShared, size_t> BoundaryNodeTopolodyMessage::serializeToBytes() {
     dataBytesOffset += parentBytesAndCount.second;
 //    todo ask about type for count of first level nodes
 //    for BoundaryNodes
-    uint16_t boundaryNodesCount = (uint16_t) mBoundaryNodes.size();
+//    uint16_t boundaryNodesCount = (uint16_t) mBoundaryNodes.size();
     memcpy(
       dataBytesShared.get() + dataBytesOffset,
       &boundaryNodesCount,
@@ -41,7 +47,7 @@ pair<BytesShared, size_t> BoundaryNodeTopolodyMessage::serializeToBytes() {
     );
     dataBytesOffset += sizeof(boundaryNodesCount);
     vector<byte> stepObligationFlow;
-    for(auto const &value: mBoundaryNodes){
+    for(auto &value: mBoundaryNodes){
         cout << "Lets see what we have in value" << endl;
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
@@ -64,15 +70,17 @@ pair<BytesShared, size_t> BoundaryNodeTopolodyMessage::serializeToBytes() {
             bytesCount
     );
 }
-void BoundaryNodeTopolodyMessage::deserializeFromBytes(BytesShared buffer) {
+void BoundaryNodeTopologyMessage::deserializeFromBytes(BytesShared buffer) {
     InBetweenNodeTopologyMessage::deserializeFromBytes(buffer);
 //        Parent part of deserializeFromBytes
     size_t bytesBufferOffset = InBetweenNodeTopologyMessage::kOffsetToInheritedBytes();
+    cout << "InBetweenNodeTopologyMessage deserealize" << endl;
+//    cout << parentBytesAndCount.second << endl;
     uint16_t boundaryNodesCount;
     memcpy(
             &boundaryNodesCount,
             buffer.get() + bytesBufferOffset,
-            sizeof(boundaryNodesCount)
+            2
     );
     bytesBufferOffset += sizeof(boundaryNodesCount);
 
@@ -89,10 +97,10 @@ void BoundaryNodeTopolodyMessage::deserializeFromBytes(BytesShared buffer) {
         memcpy(
                 &stepObligationFlowBytes,
                 buffer.get() + bytesBufferOffset,
-                kTrustLineAmountBytesCount
+                kTrustLineBalanceSerializeBytesCount
         );
         mBoundaryNodes.push_back(make_pair(stepNodeUUID, bytesToTrustLineBalance(stepObligationFlowBytes)));
-        bytesBufferOffset += kTrustLineAmountBytesCount;
+        bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
         stepObligationFlowBytes.clear();
     };
 }

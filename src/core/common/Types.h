@@ -28,6 +28,8 @@ typedef multiprecision::int256_t TrustLineBalance;
 typedef shared_ptr<TrustLineBalance> SharedTrustLineBalance;
 typedef shared_ptr<const TrustLineBalance> ConstSharedTrustLineBalance;
 const size_t kTrustLineBalanceBytesCount = 32;
+const size_t kTrustLineBalanceSerializeBytesCount = 33;
+
 
 enum BalanceRange {
     Negative = 1,
