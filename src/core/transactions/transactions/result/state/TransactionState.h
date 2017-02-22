@@ -11,7 +11,6 @@
 
 
 using namespace std;
-namespace datetime = boost::posix_time;
 
 
 class TransactionState {

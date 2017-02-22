@@ -29,6 +29,14 @@ FirstLevelRoutingTableIncomingMessage::Shared FromInitiatorToContractorRoutingTa
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::run() {
 
+    cout << "FromInitiatorToContractorRoutingTablesAcceptTransaction" << endl;
+    cout << "Waking up now -> " << microsecondsSinceGEOEpoch(utc_now()) << endl;
+    if (!mContext.empty()) {
+        cout << "Waking up from incoming message" << endl;
+    } else {
+        cout << "Waking up from scheduler" << endl;
+    }
+
     if (!isUniqueWasChecked) {
         auto flagAndTransactionUUID = isTransactionToContractorUnique();
         if (!flagAndTransactionUUID.first) {
@@ -136,17 +144,20 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRout
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::waitingForSecondLevelRoutingTableState() {
 
-    TransactionState *transactionState = new TransactionState(
-        microsecondsSinceGEOEpoch(
-            utc_now() + pt::microseconds(mConnectionTimeout * 1000)
-        ),
-        Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType,
-        false
+    auto state = TransactionState::waitForMessageTypes(
+        {Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType},
+        mConnectionTimeout
     );
 
+    cout << "FromInitiatorToContractorRoutingTablesAcceptTransaction return state" << endl;
+    cout << "Awakening timestamp in micros -> " << state->awakeningTimestamp() << endl;
+    cout << "Waiting for such messages type as" << endl;
+    for (const auto &i : state->acceptedMessagesTypes()) {
+        cout << "-> " << i << endl;
+    }
 
     return transactionResultFromState(
-        TransactionState::SharedConst(transactionState)
+        state
     );
 }
 
@@ -173,8 +184,9 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
         return finishTransaction();
 
     } else {
-        cout << "TRY RECEIVE SECOND LEVEL ROUTING TABLE AGAIN" << endl;
-        return waitingForSecondLevelRoutingTableState();
+
+        throw ConflictError("FromInitiatorToContractorRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
+                                "There are no incoming messages.");
     }
 }
 

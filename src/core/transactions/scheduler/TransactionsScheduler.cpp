@@ -271,6 +271,15 @@ void TransactionsScheduler::processTransactionState(
         // So the [] operator must be used
         (*mTransactions)[transaction] = state;
 
+        if (transaction->transactionType() == BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType) {
+            cout << "FromInitiatorToContractorRoutingTablesAcceptTransaction process state" << endl;
+            cout << "Awakening timestamp in micros -> " << (*mTransactions)[transaction]->awakeningTimestamp() << endl;
+            cout << "Waiting for such messages type as" << endl;
+            for (const auto &i : (*mTransactions)[transaction]->acceptedMessagesTypes()) {
+                cout << "-> " << i << endl;
+            }
+        }
+
     } else {
         forgetTransaction(transaction);
     }
@@ -329,7 +338,7 @@ pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transact
                 "There are no any delayed transactions.");
     }
 
-    auto nextTransactionAndState = mTransactions->cbegin();
+    /*auto nextTransactionAndState = mTransactions->cbegin();
     for (auto it=(mTransactions->cbegin()++); it != mTransactions->cend(); ++it){
         if (it->second == nullptr) {
             // Transaction has no state, and, as a result, doesn't have timeout set.
@@ -351,20 +360,76 @@ pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transact
 
     throw NotFoundError(
         "TransactionsScheduler::transactionWithMinimalAwakeningTimestamp: "
-            "there are no any delayed transactions.");
+            "there are no any delayed transactions.");*/
+
+    if (mTransactions->size() == 1) {
+        return make_pair(
+            mTransactions->cbegin()->first,
+            mTransactions->cbegin()->second->awakeningTimestamp()
+        );
+
+    } else {
+        GEOEpochTimestamp awakeningTimestamp = 0;
+        for (auto transactionAndState = (mTransactions->cbegin()++); transactionAndState != mTransactions->cend(); ++transactionAndState) {
+            if (transactionAndState->second == nullptr) {
+                continue;
+
+            }
+            awakeningTimestamp = transactionAndState->second->awakeningTimestamp();
+            break;
+        }
+
+        if (awakeningTimestamp == 0) {
+            throw NotFoundError(
+                "TransactionsScheduler::transactionWithMinimalAwakeningTimestamp: "
+                    "There is no acceptable awakening timestamp.");
+        }
+
+        for (auto transactionAndState = (mTransactions->cbegin()++); transactionAndState != mTransactions->cend(); ++transactionAndState) {
+            if (transactionAndState->second == nullptr) {
+                continue;
+            }
+
+            if (transactionAndState->second->awakeningTimestamp() < awakeningTimestamp) {
+                awakeningTimestamp = transactionAndState->second->awakeningTimestamp();
+            }
+
+            return make_pair(
+              transactionAndState->first,
+              awakeningTimestamp
+            );
+        }
+    }
+
+    throw NotFoundError(
+        "TransactionsScheduler::transactionWithMinimalAwakeningTimestamp: "
+            "There is no acceptable awakening timestamp.");
 }
 
 void TransactionsScheduler::asyncWaitUntil(
     GEOEpochTimestamp nextAwakeningTimestamp) {
 
-    auto awakeningDateTime =
-        dateTimeFromGEOEpochTimestamp(
-            nextAwakeningTimestamp);
+    cout << "ASYNC WAIT UNTIL " << nextAwakeningTimestamp << endl;
+    GEOEpochTimestamp microsecondsDelay = 0;
+    if (nextAwakeningTimestamp > microsecondsSinceGEOEpoch(utc_now())) {
+        microsecondsDelay = nextAwakeningTimestamp - microsecondsSinceGEOEpoch(utc_now());
+    }
+
 
     mProcessingTimer->cancel();
-    mProcessingTimer->expires_from_now(
-        awakeningDateTime - utc_now()
-    );
+
+    if (microsecondsDelay > 18000000) {
+        cout << "SLEEP FOR HARDCODED 10 SECONDS" << endl;
+        mProcessingTimer->expires_from_now(
+            pt::seconds(10)
+        );
+    } else {
+        mProcessingTimer->expires_from_now(
+            pt::microsec(microsecondsDelay)
+        );
+    }
+
+    cout << "HOW LONG ASLEEP EXECUTION IN MICROSECONDS " << microsecondsDelay << endl;
 
     mProcessingTimer->async_wait(
         boost::bind(
@@ -379,6 +444,10 @@ void TransactionsScheduler::handleAwakening(
     const boost::system::error_code &error) {
 
     static auto errorsCount = 0;
+
+    if (error) {
+        cout << "TIMER HANDLER ERROR " << error.message() << endl;
+    }
 
     if (error && error != as::error::operation_aborted) {
 
@@ -408,8 +477,8 @@ void TransactionsScheduler::handleAwakening(
     }
 
     try {
-        auto transactionAndState = transactionWithMinimalAwakeningTimestamp();
-        launchTransaction(transactionAndState.first);
+        auto transactionAndDelay = transactionWithMinimalAwakeningTimestamp();
+        launchTransaction(transactionAndDelay.first);
 
         errorsCount = 0;
 
