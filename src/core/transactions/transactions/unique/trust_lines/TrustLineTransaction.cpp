@@ -21,11 +21,6 @@ TrustLineTransaction::TrustLineTransaction(
     setExpectationResponsesCounter(kResponsesCount);
 }
 
-const TransactionUUID &TrustLineTransaction::UUID() const {
-
-    return mTransactionUUID;
-}
-
 void TrustLineTransaction::increaseRequestsCounter() {
 
     mRequestCounter += 1;

@@ -21,8 +21,6 @@ public:
     };
 
 public:
-    const TransactionUUID &UUID() const;
-
     const NodeUUID &contractorUUID() const;
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;

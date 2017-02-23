@@ -26,9 +26,11 @@ public:
     ReceiverInitPaymentMessage(
         BytesShared buffer);
 
+    TrustLineAmount& amount() const;
+
 private:
     const MessageType typeID() const;
-    TrustLineAmount& amount() const;
+
     pair<BytesShared, size_t> serializeToBytes();
 
     void deserializeFromBytes(

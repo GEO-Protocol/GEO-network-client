@@ -188,7 +188,7 @@ void TransactionsManager::processMessage(
      * that must be routed to transaction's context.
      */
     else {
-        mScheduler->handleMessage(message);
+        mScheduler->tryAttachMessageToTransaction(message);
     }
 }
 

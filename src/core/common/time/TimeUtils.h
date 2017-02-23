@@ -16,7 +16,7 @@ namespace gt = boost::gregorian;
 
 typedef pt::ptime DateTime;
 typedef pt::time_duration Duration;
-typedef uint64_t GEOEpochTimestamp;
+typedef int64_t GEOEpochTimestamp;
 
 
 inline const DateTime GEOEpoch() {

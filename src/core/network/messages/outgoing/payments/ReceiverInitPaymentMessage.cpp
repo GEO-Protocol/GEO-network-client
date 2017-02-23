@@ -1,4 +1,4 @@
-﻿﻿#include "ReceiverInitPaymentMessage.h"
+﻿#include "ReceiverInitPaymentMessage.h"
 
 
 ReceiverInitPaymentMessage::ReceiverInitPaymentMessage(
@@ -24,7 +24,7 @@ const Message::MessageType ReceiverInitPaymentMessage::typeID() const {
     return Message::Payments_ReceiverInitPayment;
 }
 
-TrustLineAmount&ReceiverInitPaymentMessage::amount() const {
+TrustLineAmount &ReceiverInitPaymentMessage::amount() const {
     return mTotalPaymentAmount;
 }
 

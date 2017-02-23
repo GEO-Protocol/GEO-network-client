@@ -60,37 +60,6 @@ void TransactionsScheduler::postponeTransaction(
             TransactionState::awakeAfterMilliseconds(millisecondsDelay)
         )
     );
-
-}
-
-void TransactionsScheduler::handleMessage(
-    Message::Shared message) {
-
-    switch (message->typeID()) {
-
-        case Message::MessageTypeID::ResponseMessageType: {
-            processResponse(
-                static_pointer_cast<Response>(message)
-            );
-        }
-
-        case Message::MessageTypeID::RoutingTablesResponseMessageType: {
-            processRoutingTableResponse(
-                static_pointer_cast<RoutingTablesResponse>(message)
-            );
-        }
-
-        case Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType: {
-            processSecondLevelRoutingTableMessage(
-                static_pointer_cast<SecondLevelRoutingTableIncomingMessage>(message)
-            );
-        }
-
-        default: {
-            break;
-        }
-    }
-
 }
 
 void TransactionsScheduler::killTransaction(
@@ -98,9 +67,39 @@ void TransactionsScheduler::killTransaction(
 
     for (const auto &transactionAndState : *mTransactions) {
         if (transactionAndState.first->UUID() == transactionUUID) {
-           forgetTransaction(transactionAndState.first);
+            forgetTransaction(transactionAndState.first);
         }
     }
+}
+
+void TransactionsScheduler::tryAttachMessageToTransaction(
+    Message::Shared message) {
+
+    if (message->isTransactionMessage()) {
+
+        for (auto const &transactionAndState : *mTransactions) {
+
+            if (static_pointer_cast<TransactionMessage>(message)->transactionUUID() != transactionAndState.first->UUID()) {
+                    continue;
+            }
+
+            for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
+                if (messageType != message->typeID()) {
+                    continue;
+                }
+
+                transactionAndState.first->pushContext(message);
+                launchTransaction(transactionAndState.first);
+                return;
+            }
+        }
+
+    } else {
+        throw ValueError(
+            "TransactionsScheduler::handleMessage: "
+                "invalid/unexpected message/response received");
+    }
+
 }
 
 void TransactionsScheduler::launchTransaction(
@@ -137,78 +136,6 @@ void TransactionsScheduler::launchTransaction(
     }
 }
 
-
-void TransactionsScheduler::processResponse(
-    Response::Shared response) {
-
-    for (auto &transactionAndState : *mTransactions) {
-
-        if (mTransactions->empty()) {
-            break;
-        }
-
-        if (response->transactionUUID() != transactionAndState.first->UUID()) {
-            continue;
-        }
-
-        for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
-            if (Message::MessageTypeID::ResponseMessageType != messageType) {
-                continue;
-            }
-
-            transactionAndState.first->pushContext(response);
-            launchTransaction(transactionAndState.first);
-        }
-    }
-}
-
-void TransactionsScheduler::processRoutingTableResponse(
-    RoutingTablesResponse::Shared response) {
-
-    for (auto &transactionAndState : *mTransactions) {
-
-        if (mTransactions->empty()) {
-            break;
-        }
-
-        if (response->senderUUID() != (NodeUUID&) transactionAndState.first->UUID()) {
-            continue;
-        }
-
-        for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
-            if (Message::MessageTypeID::RoutingTablesResponseMessageType != messageType) {
-                continue;
-            }
-
-            transactionAndState.first->pushContext(response);
-            launchTransaction(transactionAndState.first);
-        }
-    }
-}
-
-void TransactionsScheduler::processSecondLevelRoutingTableMessage(
-    SecondLevelRoutingTableIncomingMessage::Shared message) {
-
-    for (auto &transactionAndState : *mTransactions) {
-
-        if (mTransactions->empty()) {
-            break;
-        }
-
-        if (message->senderUUID() != (NodeUUID&) transactionAndState.first->UUID()) {
-            continue;
-        }
-
-        for (auto &messageType : transactionAndState.second->acceptedMessagesTypes()) {
-            if (Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType != messageType) {
-                continue;
-            }
-
-            transactionAndState.first->pushContext(message);
-            launchTransaction(transactionAndState.first);
-        }
-    }
-}
 
 void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,

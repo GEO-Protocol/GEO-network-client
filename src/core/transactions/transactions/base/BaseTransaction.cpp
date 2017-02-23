@@ -39,10 +39,10 @@ const BaseTransaction::TransactionType BaseTransaction::transactionType() const 
     return mType;
 }
 
-/*const TransactionUUID &BaseTransaction::UUID() const {
+const TransactionUUID &BaseTransaction::UUID() const {
 
     return mTransactionUUID;
-}*/
+}
 
 const NodeUUID &BaseTransaction::nodeUUID() const {
 

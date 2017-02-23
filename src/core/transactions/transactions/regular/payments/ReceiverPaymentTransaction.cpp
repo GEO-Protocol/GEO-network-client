@@ -1,4 +1,4 @@
-﻿﻿#include "ReceiverPaymentTransaction.h"
+﻿#include "ReceiverPaymentTransaction.h"
 
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     ReceiverInitPaymentMessage::Shared message,

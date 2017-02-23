@@ -23,16 +23,11 @@ RoutingTablesTransaction::RoutingTablesTransaction(
     deserializeFromBytes(buffer);
 }
 
-const TransactionUUID &RoutingTablesTransaction::UUID() const {
-
-    return (TransactionUUID&) mContractorUUID;
-}
 
 const NodeUUID &RoutingTablesTransaction::contractorUUID() const {
 
     return mContractorUUID;
 }
-
 
 void RoutingTablesTransaction::increaseRequestsCounter() {
 

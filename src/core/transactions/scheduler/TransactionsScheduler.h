@@ -4,6 +4,9 @@
 #include "../../common/Types.h"
 #include "../../common/time/TimeUtils.h"
 
+#include "../../network/messages/Message.hpp"
+#include "../../network/messages/base/transaction/TransactionMessage.h"
+
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/result/TransactionResult.h"
 
@@ -53,16 +56,16 @@ public:
         BaseTransaction::Shared transaction,
         uint16_t millisecondsDelay);
 
+    void killTransaction(
+        const TransactionUUID &transactionUUID);
+
     // TODO: rename to "tryAttachMessageToTransaction"
-    // TODO: add error log if unsuccessfull
+    // TODO: add error log if unsuccessful
     // TODO: throw exception on failure,
     //       so the communicator would be able to know
     //       if contractor node doesn't follows the protocol.
-    void handleMessage(
+    void tryAttachMessageToTransaction(
         Message::Shared message);
-
-    void killTransaction(
-        const TransactionUUID &transactionUUID);
 
     friend const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
         TransactionsScheduler *scheduler);
@@ -70,15 +73,6 @@ public:
 private:
     void launchTransaction(
         BaseTransaction::Shared transaction);
-
-    void processResponse(
-        Response::Shared response);
-
-    void processRoutingTableResponse(
-        RoutingTablesResponse::Shared response);
-
-    void processSecondLevelRoutingTableMessage(
-        SecondLevelRoutingTableIncomingMessage::Shared message);
 
     void handleTransactionResult(
         BaseTransaction::Shared transaction,

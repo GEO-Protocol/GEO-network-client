@@ -1,4 +1,4 @@
-﻿﻿#include "CoordinatorPaymentTransaction.h"
+﻿#include "CoordinatorPaymentTransaction.h"
 
 PaymentPath::PaymentPath(
     Path& path,
