@@ -4,7 +4,6 @@ bin/
 
 *.cmake
 *.a
-*CMake*
 *Makefile
 *.cbp
 
