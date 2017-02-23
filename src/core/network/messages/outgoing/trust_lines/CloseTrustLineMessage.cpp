@@ -20,7 +20,7 @@ const Message::MessageType CloseTrustLineMessage::typeID() const {
 
 pair<BytesShared, size_t> CloseTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +
                         kTrustLineAmountBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);

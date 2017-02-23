@@ -16,8 +16,8 @@ pair<BytesShared, size_t> RoutingTableIncomingMessage::serializeToBytes() {
 void RoutingTableIncomingMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    RoutingTablesMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = RoutingTablesMessage::kOffsetToInheritedBytes();
+    SenderMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //---------------------------------------------------
     RecordsCount *nodesCount = new (buffer.get() + bytesBufferOffset) RecordsCount;
     bytesBufferOffset += sizeof(RecordsCount);

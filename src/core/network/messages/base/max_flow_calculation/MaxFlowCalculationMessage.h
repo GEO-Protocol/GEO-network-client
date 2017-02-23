@@ -22,6 +22,8 @@ public:
 public:
     const NodeUUID &targetUUID() const;
 
+    virtual pair<BytesShared, size_t> serializeToBytes();
+
 protected:
     MaxFlowCalculationMessage();
 
@@ -31,8 +33,6 @@ protected:
         const TransactionUUID &transactionUUID);
 
     virtual const MessageType typeID() const = 0;
-
-    virtual pair<BytesShared, size_t> serializeToBytes();
 
     virtual void deserializeFromBytes(
         BytesShared buffer);

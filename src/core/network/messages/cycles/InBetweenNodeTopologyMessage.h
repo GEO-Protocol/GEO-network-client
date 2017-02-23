@@ -23,7 +23,7 @@ public:
     InBetweenNodeTopologyMessage(
             const TrustLineBalance maxFlow, //TODO:: (D.V.) TrustLineBalance is non primitive type, use address, don't copies tmp value in constructor anymore.
             const byte max_depth,
-            vector<NodeUUID> &path); //TODO:: (D.V.) Try to use move semantic.
+            vector<NodeUUID> &path); //TODO:: (D.V.) (Recommendation) Try to use move semantic.
 
     // TODO:: Constructor's or function's parameters starts from new line
     InBetweenNodeTopologyMessage(

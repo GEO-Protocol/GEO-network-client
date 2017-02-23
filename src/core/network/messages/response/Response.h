@@ -1,10 +1,13 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_RESPONSE_H
 #define GEO_NETWORK_CLIENT_RESPONSE_H
 
-#include "../base/trust_lines/TrustLinesMessage.h"
+#include "../base/transaction/TransactionMessage.h"
 
 #include "../../../common/Types.h"
+#include "../../../common/NodeUUID.h"
 #include "../../../common/memory/MemoryUtils.h"
+
+#include "../../../transactions/transactions/base/TransactionUUID.h"
 
 #include <memory>
 #include <utility>
@@ -12,32 +15,30 @@
 
 using namespace std;
 
-class Response : public TrustLinesMessage {
+class Response : public TransactionMessage {
 public:
     typedef shared_ptr<Response> Shared;
-
 public:
     Response(
-        BytesShared buffer);
+        const NodeUUID &sender,
+        const TransactionUUID &transactionUUID,
+        const uint16_t code);
 
     Response(
-        NodeUUID sender,
-        TransactionUUID transactionUUID,
-        uint16_t code);
-
-    const MessageType typeID() const;
+        BytesShared buffer);
 
     uint16_t code();
 
+private:
+    const MessageType typeID() const;
+
     pair<BytesShared, size_t> serializeToBytes();
 
-private:
     void deserializeFromBytes(
         BytesShared buffer);
 
-public:
+private:
     uint16_t mCode;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_RESPONSE_H

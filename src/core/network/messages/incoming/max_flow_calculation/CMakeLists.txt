@@ -18,5 +18,9 @@ set(SOURCE_FILES
 
 add_library(messages__incoming__max_flow_calculation ${SOURCE_FILES})
 target_link_libraries(messages__incoming__max_flow_calculation
+
+        messages__base__max_flow_calculation
+        messages__base__max_flow_calculation_result
+
         common
         exceptions)

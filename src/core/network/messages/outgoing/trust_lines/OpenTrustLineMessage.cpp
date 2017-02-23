@@ -18,7 +18,7 @@ const Message::MessageType OpenTrustLineMessage::typeID() const {
 
 pair<BytesShared, size_t> OpenTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +
         kTrustLineAmountBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);

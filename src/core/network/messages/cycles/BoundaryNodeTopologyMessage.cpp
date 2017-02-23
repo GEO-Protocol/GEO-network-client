@@ -5,16 +5,29 @@
 BoundaryNodeTopologyMessage::BoundaryNodeTopologyMessage(const TrustLineBalance maxFlow,
                                                          const byte max_depth,
                                                          vector<NodeUUID> &path,
-                                                         const vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes)
-        : InBetweenNodeTopologyMessage(maxFlow, max_depth, path) {
+                                                         const vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes) :
+
+    InBetweenNodeTopologyMessage(
+        maxFlow,
+        max_depth,
+        path
+    ) {
+
+    //TODO:: (D.V.) Init field before constructor's body. Example in InBetweenNodeTopologyMessage class-file.
     mBoundaryNodes = boundaryNodes;
 }
 
-BoundaryNodeTopologyMessage::BoundaryNodeTopologyMessage(BytesShared buffer)
-        : InBetweenNodeTopologyMessage(buffer) {
+BoundaryNodeTopologyMessage::BoundaryNodeTopologyMessage(
+    BytesShared buffer) :
+
+    InBetweenNodeTopologyMessage(buffer) {
+
     deserializeFromBytes(buffer);
 }
 
+
+//TODO:: (D.V.) How do you think, could somebody else quickly understand this code?
+//TODO:: Please, format this.
 pair<BytesShared, size_t> BoundaryNodeTopologyMessage::serializeToBytes() {
     auto parentBytesAndCount = InBetweenNodeTopologyMessage::serializeToBytes();
     size_t bytesBufferOffset = InBetweenNodeTopologyMessage::kOffsetToInheritedBytes();

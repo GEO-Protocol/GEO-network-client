@@ -7,28 +7,29 @@
 #include "InBetweenNodeTopologyMessage.h"
 
 class BoundaryNodeTopologyMessage: public InBetweenNodeTopologyMessage {
+public:
+    typedef shared_ptr<BoundaryNodeTopologyMessage> Shared;
 
 public:
     BoundaryNodeTopologyMessage(
-            const TrustLineBalance maxFlow,
+            const TrustLineBalance maxFlow, //TODO:: (D.V.) TrustLineBalance is non primitive type, use address, don't copies tmp value in constructor anymore.
             const byte max_depth,
-            vector<NodeUUID> &path,
-            const vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes
-    );
+            vector<NodeUUID> &path, //TODO:: (D.V.) (Recommendation) Try to use move semantic.
+            const vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes); //TODO:: Seriously, copy??
 
-    BoundaryNodeTopologyMessage(BytesShared buffer);
+    // TODO:: Constructor's or function's parameters starts from new line
+    BoundaryNodeTopologyMessage(
+        BytesShared buffer);
 
-public:
-    typedef shared_ptr<BoundaryNodeTopologyMessage> Shared;
-//    typedef vector<pair<NodeUUID, TrustLineAmount>> BoundaryNodesType;
-
+    // TODO:: (D.V.) If this class is a last inherit, change access modifiers to private.
 protected:
-//    static const size_t kOffsetToInheritedBytes();
+    pair<BytesShared, size_t> serializeToBytes();
+
     void deserializeFromBytes(
             BytesShared buffer);
 
-protected:
-    pair<BytesShared, size_t> serializeToBytes();
+    //TODO:: (D.V.) Separate members from methods!
+private:
     vector<pair<NodeUUID, TrustLineBalance>> mBoundaryNodes;
 };
 

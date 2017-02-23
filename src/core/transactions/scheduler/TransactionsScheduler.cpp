@@ -74,12 +74,11 @@ void TransactionsScheduler::handleMessage(
         // if transactionUUID from the message is equal to the UUID of the transaction itself.
 
         for (auto const &transactionAndState : *mTransactions) {
-            cout << transactionAndState.first->UUID().stringUUID();
-            cout << message->transactionUUID();
 
-            if (transactionAndState.first->UUID() != message->transactionUUID()) {
+
+            /*if (transactionAndState.first->UUID() != message->transactionUUID()) {
                 continue;
-            }
+            }*/
 
             for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
                 if (messageType != message->typeID()) {

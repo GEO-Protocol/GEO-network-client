@@ -22,7 +22,7 @@ void RoutingTableOutgoingMessage::pushBack(
 
 pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = RoutingTablesMessage::serializeToBytes();
+    auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second;
 
     bytesCount += sizeof(RecordsCount);

@@ -18,7 +18,7 @@ const TrustLineAmount &UpdateTrustLineMessage::newAmount() const {
 
 pair<BytesShared, size_t> UpdateTrustLineMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = TrustLinesMessage::serializeToBytes();
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +
                         kTrustLineAmountBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -47,8 +47,8 @@ pair<BytesShared, size_t> UpdateTrustLineMessage::serializeToBytes() {
 void UpdateTrustLineMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    TrustLinesMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TrustLinesMessage::kOffsetToInheritedBytes();
+    TransactionMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     vector<byte> amountBytes(
         buffer.get() + bytesBufferOffset,
@@ -58,7 +58,7 @@ void UpdateTrustLineMessage::deserializeFromBytes(
 
 const size_t UpdateTrustLineMessage::kRequestedBufferSize() {
 
-    static const size_t size = TrustLinesMessage::kOffsetToInheritedBytes() + kTrustLineAmountBytesCount;
+    static const size_t size = TransactionMessage::kOffsetToInheritedBytes() + kTrustLineAmountBytesCount;
     return size;
 }
 

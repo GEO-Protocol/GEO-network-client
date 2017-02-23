@@ -4,10 +4,14 @@ set(SOURCE_FILES
         ReceiverInitPaymentMessage.h
         ReceiverInitPaymentMessage.cpp
         ReceiverApproveMessage.cpp
-        ReceiverApproveMessage.h
-        )
+        ReceiverApproveMessage.h)
 
 add_library(messages__outgoing__payments ${SOURCE_FILES})
 target_link_libraries(messages__outgoing__payments
+
+        messages__base__transaction
+
         common
-        exceptions)
+        exceptions
+        memory
+        multiprecision)
