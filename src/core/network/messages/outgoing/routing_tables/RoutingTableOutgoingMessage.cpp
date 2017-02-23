@@ -5,8 +5,7 @@ RoutingTableOutgoingMessage::RoutingTableOutgoingMessage(
     TrustLineUUID &trustLineUUID) :
 
     RoutingTablesMessage(
-        senderUUID,
-        trustLineUUID
+        senderUUID
     ) {}
 
 void RoutingTableOutgoingMessage::pushBack(

@@ -36,7 +36,6 @@ public:
     const OperationState state() const;
 
     const TransactionUUID &transactionUUID() const { throw ValueError("");}
-    const TrustLineUUID &trustLineUUID() const { throw ValueError("");}
 
 protected:
     void deserializeFromBytes(
