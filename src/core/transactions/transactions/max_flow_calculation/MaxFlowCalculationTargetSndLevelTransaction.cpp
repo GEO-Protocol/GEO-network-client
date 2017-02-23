@@ -91,6 +91,8 @@ TransactionResult::SharedConst MaxFlowCalculationTargetSndLevelTransaction::run(
 
 void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
 
+    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendResultToInitiator",
+                  "send to " + mMessage->targetUUID().stringUUID());
     mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendResult",
                   "OutgoingFlows: " + to_string(mTrustLinesManager->getOutgoingFlows().size()));
     mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendResult",
@@ -104,7 +106,6 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
     }
 
     Message *message = new SendResultMaxFlowCalculationFromTargetMessage(
-        mNodeUUID,
         mNodeUUID,
         mTransactionUUID,
         incomingFlows

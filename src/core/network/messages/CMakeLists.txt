@@ -17,7 +17,6 @@ add_library(network__messages ${SOURCE_FILES})
 target_link_libraries(network__messages
 
         messages__base__max_flow_calculation
-        messages__base__max_flow_calculation_result
 
         messages__base__routing_tables
         messages__base__transaction

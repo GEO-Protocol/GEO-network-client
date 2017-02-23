@@ -5,11 +5,11 @@
 #ifndef GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONFROMSOURCEMESSAGE_H
 #define GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONFROMSOURCEMESSAGE_H
 
-#include "../../base/max_flow_calculation_result/MaxFlowCalculationResultMessage.h"
 #include "../../result/MessageResult.h"
+#include "../../base/transaction/TransactionMessage.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
-class ResultMaxFlowCalculationFromSourceMessage : public MaxFlowCalculationResultMessage {
+class ResultMaxFlowCalculationFromSourceMessage : public TransactionMessage {
 
 public:
     typedef shared_ptr<ResultMaxFlowCalculationFromSourceMessage> Shared;

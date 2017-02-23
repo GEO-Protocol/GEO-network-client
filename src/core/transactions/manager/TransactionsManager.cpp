@@ -81,7 +81,6 @@ void TransactionsManager::processCommand(
 
 void TransactionsManager::processMessage(
     Message::Shared message) {
-
     /*
      * Trust lines transaction initialisation messages
      */
@@ -133,7 +132,12 @@ void TransactionsManager::processMessage(
         launchReceiverPaymentTransaction(
             static_pointer_cast<ReceiverInitPaymentMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::ReceiveMaxFlowCalculationOnTargetMessageType) {
+    }
+
+    /*
+     * Max transaction flow calculation transaction initialisation messages
+     */
+    else if (message->typeID() == Message::MessageTypeID::ReceiveMaxFlowCalculationOnTargetMessageType) {
         launchReceiveMaxFlowCalculationTransaction(
             static_pointer_cast<ReceiveMaxFlowCalculationOnTargetMessage>(
                 message

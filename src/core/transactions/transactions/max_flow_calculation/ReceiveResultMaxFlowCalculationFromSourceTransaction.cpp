@@ -65,7 +65,6 @@ void ReceiveResultMaxFlowCalculationFromSourceTransaction::deserializeFromBytes(
     BytesShared buffer) {
 
     MaxFlowCalculationTransaction::deserializeFromBytes(buffer);
-    //BytesShared messageBufferShared = tryCalloc(ResultMaxFlowCalculationFromSourceMessage::kRequestedBufferSize());
     // todo продумати архітектуру серіалізації - десеріалізаціїї меседжів змінної довжини
     BytesShared messageBufferShared = tryCalloc(ResultMaxFlowCalculationFromSourceMessage::kRequestedBufferSize(
         buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes()));
@@ -73,7 +72,6 @@ void ReceiveResultMaxFlowCalculationFromSourceTransaction::deserializeFromBytes(
     memcpy(
         messageBufferShared.get(),
         buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes(),
-        //ResultMaxFlowCalculationFromSourceMessage::kRequestedBufferSize()
         ResultMaxFlowCalculationFromSourceMessage::kRequestedBufferSize(
             buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes())
     );

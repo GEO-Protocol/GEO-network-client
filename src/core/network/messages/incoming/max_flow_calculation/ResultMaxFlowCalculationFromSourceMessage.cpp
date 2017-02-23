@@ -17,7 +17,7 @@ const Message::MessageType ResultMaxFlowCalculationFromSourceMessage::typeID() c
 
 pair<BytesShared, size_t> ResultMaxFlowCalculationFromSourceMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = MaxFlowCalculationResultMessage::serializeToBytes();
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + sizeof(uint32_t) +
                         + mOutgoingFlows.size() * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -64,8 +64,8 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationFromSourceMessage::serializeTo
 void ResultMaxFlowCalculationFromSourceMessage::deserializeFromBytes(
     BytesShared buffer){
 
-    MaxFlowCalculationResultMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = MaxFlowCalculationResultMessage::kOffsetToInheritedBytes();
+    TransactionMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     uint32_t *trustLinesCount = new (buffer.get() + bytesBufferOffset) uint32_t;
     bytesBufferOffset += sizeof(uint32_t);
@@ -92,16 +92,16 @@ void ResultMaxFlowCalculationFromSourceMessage::deserializeFromBytes(
 
 const size_t ResultMaxFlowCalculationFromSourceMessage::kRequestedBufferSize() {
 
-    static const size_t size = MaxFlowCalculationResultMessage::kOffsetToInheritedBytes()
+    static const size_t size = TransactionMessage::kOffsetToInheritedBytes()
                                + sizeof(uint32_t) + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
     return size;
 }
 
 const size_t ResultMaxFlowCalculationFromSourceMessage::kRequestedBufferSize(unsigned char* buffer) {
 
-    size_t bytesBufferOffset = MaxFlowCalculationResultMessage::kOffsetToInheritedBytes();
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     uint32_t *trustLinesCount = new (buffer + bytesBufferOffset) uint32_t;
-    static const size_t size = MaxFlowCalculationResultMessage::kOffsetToInheritedBytes()
+    static const size_t size = TransactionMessage::kOffsetToInheritedBytes()
                                + sizeof(uint32_t) + *trustLinesCount *
                                                     (NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
     return size;
