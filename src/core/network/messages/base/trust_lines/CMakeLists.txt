@@ -7,6 +7,8 @@ set(SOURCE_FILES
 add_library(messages__base__trust_lines ${SOURCE_FILES})
 target_link_libraries(messages__base__trust_lines
 
+        messages__base__transaction
+
         common
         exceptions
         memory

@@ -1,9 +1,12 @@
-cmake_minimum_required(VERSION 3.6)
+﻿cmake_minimum_required(VERSION 3.6)
 project(geo_network_client)
 
 
 # Logs configuration
 add_definitions(-DTRANSACTIONS_LOG)
+
+# Debug logs configuration
+add_definitions(-DNETWORK_DEBUG_LOG)
 
 
 # todo: change in the release version
@@ -22,7 +25,7 @@ ENDIF (${BUILD_CONFIGURATION} MATCHES "REALEASE_WITH_DEBUG_LOG")
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 
 IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
@@ -63,6 +66,7 @@ add_subdirectory(src/core/settings)
 add_subdirectory(src/core/paths)
 add_subdirectory(src/core/transactions)
 add_subdirectory(src/core/trust_lines)
+add_subdirectory(src/core/max_flow_calculation)
 
 add_subdirectory(src/core/payments/amount_blocks)
 
@@ -73,7 +77,7 @@ set(SOURCE_FILES
         src/core/Core.h
 
         # libs
-        src/libs/json/json.h)
+        src/libs/json/json.h src/core/delayed_tasks/Cycles.h src/core/delayed_tasks/Cycles.cpp)
 
 add_executable(geo_network_client ${SOURCE_FILES})
 
@@ -99,5 +103,6 @@ target_link_libraries(geo_network_client
 
         paths
         trust_lines
+        max_flow_calculation
         transactions
 )

@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
+﻿#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSTATE_H
 
 #include "../../../../common/time/TimeUtils.h"
@@ -20,6 +20,20 @@ public:
     typedef shared_ptr<const TransactionState> SharedConst;
 
 public:
+    // Readable shortcuts for states creation.
+    static TransactionState::SharedConst exit();
+    static TransactionState::SharedConst flushAndContinue();
+    static TransactionState::SharedConst awakeAsFastAsPossible();
+    static TransactionState::SharedConst awakeAfterMilliseconds(
+        uint16_t milliseconds);
+
+    static TransactionState::SharedConst waitForMessageTypes(
+        vector<Message::MessageTypeID> &&requiredMessageType,
+        uint16_t noLongerThanMilliseconds=0);
+
+
+
+public:
     TransactionState(
         GEOEpochTimestamp awakeningTimestamp,
         bool flushToPermanentStorage = false);
@@ -33,17 +47,7 @@ public:
         Message::MessageTypeID requiredMessageType,
         bool flushToPermanentStorage = false);
 
-    // Readable shortcuts for states creation.
-    static TransactionState::SharedConst exit();
 
-    static TransactionState::SharedConst awakeAsFastAsPossible();
-
-    static TransactionState::SharedConst awakeAfterMilliseconds(
-        uint16_t milliseconds);
-
-    static TransactionState::SharedConst waitForMessageTypes(
-        vector<Message::MessageTypeID> &&requiredMessageType,
-        uint16_t noLongerThanMilliseconds=0);
 
     const GEOEpochTimestamp awakeningTimestamp() const;
 

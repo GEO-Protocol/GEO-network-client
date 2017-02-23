@@ -1,4 +1,4 @@
-#include "TransactionState.h"
+﻿#include "TransactionState.h"
 
 TransactionState::TransactionState(
     GEOEpochTimestamp awakeningTimestamp,
@@ -38,8 +38,15 @@ TransactionState::TransactionState(
 TransactionState::SharedConst TransactionState::exit() {
 
     return make_shared<TransactionState>(
-        numeric_limits<GEOEpochTimestamp>::max()
-    );
+        numeric_limits<GEOEpochTimestamp>::max());
+}
+
+TransactionState::SharedConst TransactionState::flushAndContinue() {
+
+    return make_shared<TransactionState>(
+        microsecondsSinceGEOEpoch(
+            utc_now()),
+        true);
 }
 
 /*!

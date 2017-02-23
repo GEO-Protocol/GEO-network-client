@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
+﻿#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
 
 #include "../../common/Types.h"
@@ -53,6 +53,11 @@ public:
         BaseTransaction::Shared transaction,
         uint16_t millisecondsDelay);
 
+    // TODO: rename to "tryAttachMessageToTransaction"
+    // TODO: add error log if unsuccessfull
+    // TODO: throw exception on failure,
+    //       so the communicator would be able to know
+    //       if contractor node doesn't follows the protocol.
     void handleMessage(
         Message::Shared message);
 

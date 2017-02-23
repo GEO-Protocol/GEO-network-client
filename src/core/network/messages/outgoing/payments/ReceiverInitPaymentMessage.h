@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_RECEIVERINITPAYMENTMESSAGE_H
+﻿#ifndef GEO_NETWORK_CLIENT_RECEIVERINITPAYMENTMESSAGE_H
 #define GEO_NETWORK_CLIENT_RECEIVERINITPAYMENTMESSAGE_H
 
 #include "../../base/transaction/TransactionMessage.h"
@@ -19,6 +19,8 @@ public:
 
 public:
     ReceiverInitPaymentMessage(
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
         const TrustLineAmount &totalPaymentAmount);
 
     ReceiverInitPaymentMessage(
@@ -26,7 +28,7 @@ public:
 
 private:
     const MessageType typeID() const;
-
+    TrustLineAmount& amount() const;
     pair<BytesShared, size_t> serializeToBytes();
 
     void deserializeFromBytes(

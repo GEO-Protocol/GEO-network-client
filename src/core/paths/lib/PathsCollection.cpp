@@ -1,80 +1,80 @@
-#include "PathsCollection.h"
+﻿//#include "PathsCollection.h"
 
-PathsCollection::PathsCollection(
-    const NodeUUID &sourceNode,
-    const NodeUUID &destinationNode,
-    bool isDirectPathPresent) :
 
-    mSourceNode(sourceNode),
-    mDestinationNode(destinationNode),
-    mIsDirectPathPresent(isDirectPathPresent){
-}
+//PathsCollection::PathsCollection() :
+//    mIsDirectPathPresent(false) {
 
-void PathsCollection::addPath(
-    PathsCollection::SharedIntermediateNodes intermediateNodes) {
+//}
 
-    mPaths.push_back(intermediateNodes);
-}
+//void PathsCollection::add(
+//    Path &path) {
 
-PathsCollection::Path::Path(
-    const NodeUUID &sourceNode,
-    const NodeUUID &destinationNode,
-    const PathsCollection::SharedIntermediateNodes intermediateNodes) :
+//    if (path.containsIntermediateNodes()) {
+//        mIsDirectPathPresent = true;
+//    }
 
-    mSourceNode(sourceNode),
-    mDestinationNode(destinationNode),
-    mIntermediateNodes(intermediateNodes) {
-}
+//    mPaths.push_back(intermediateNodes);
+//}
 
-/*!
- *
- * Throws bad_alloc
- */
-BytesShared PathsCollection::Path::serialize() const {
+//PathsCollection::Path::Path(
+//    const NodeUUID &sourceNode,
+//    const NodeUUID &destinationNode,
+//    const PathsCollection::SharedIntermediateNodes intermediateNodes) :
 
-    const auto sourceNodeSize = NodeUUID::kBytesSize;
-    const auto destinationNodeSize = NodeUUID::kBytesSize;
-    const auto intermediateNodesCount = mIntermediateNodes->size();
-    const auto intermediateNodesSize = intermediateNodesCount * NodeUUID::kBytesSize;
+//    mSourceNode(sourceNode),
+//    mDestinationNode(destinationNode),
+//    mIntermediateNodes(intermediateNodes) {
+//}
 
-    const auto bufferSize =
-        + sourceNodeSize
-        + intermediateNodesSize
-        + destinationNodeSize;
+///*!
+// *
+// * Throws bad_alloc
+// */
+//BytesShared PathsCollection::Path::serialize() const {
 
-    auto buffer = tryMalloc(bufferSize);
+//    const auto sourceNodeSize = NodeUUID::kBytesSize;
+//    const auto destinationNodeSize = NodeUUID::kBytesSize;
+//    const auto intermediateNodesCount = mIntermediateNodes->size();
+//    const auto intermediateNodesSize = intermediateNodesCount * NodeUUID::kBytesSize;
 
-    auto sourceNodeOffset = buffer.get();
-    auto intermediateNodesOffset = buffer.get() + sourceNodeSize;
-    auto destinationNodeOffset = intermediateNodesOffset + sourceNodeSize;
+//    const auto bufferSize =
+//        + sourceNodeSize
+//        + intermediateNodesSize
+//        + destinationNodeSize;
 
-    memcpy(sourceNodeOffset, mSourceNode.data, sourceNodeSize);
-    memcpy(intermediateNodesOffset, mIntermediateNodes->data(), intermediateNodesSize);
-    memcpy(destinationNodeOffset, mSourceNode.data, destinationNodeSize);
+//    auto buffer = tryMalloc(bufferSize);
 
-    return buffer;
-}
+//    auto sourceNodeOffset = buffer.get();
+//    auto intermediateNodesOffset = buffer.get() + sourceNodeSize;
+//    auto destinationNodeOffset = intermediateNodesOffset + sourceNodeSize;
 
-PathsCollection::Iterator::Iterator(
-    NodeUUID &sourceNode,
-    NodeUUID &destinationNode,
-    const vector<SharedIntermediateNodes> &paths) :
+//    memcpy(sourceNodeOffset, mSourceNode.data, sourceNodeSize);
+//    memcpy(intermediateNodesOffset, mIntermediateNodes->data(), intermediateNodesSize);
+//    memcpy(destinationNodeOffset, mSourceNode.data, destinationNodeSize);
 
-    mCurrentPathIndex(0),
-    mSourceNode(sourceNode),
-    mDestinationNode(destinationNode),
-    mPaths(paths){
-}
+//    return buffer;
+//}
 
-PathsCollection::Path PathsCollection::Iterator::next() {
+//PathsCollection::Iterator::Iterator(
+//    NodeUUID &sourceNode,
+//    NodeUUID &destinationNode,
+//    const vector<SharedIntermediateNodes> &paths) :
 
-    if (mPaths.size() <= mCurrentPathIndex) {
-        Path path(mSourceNode, mDestinationNode, mPaths[mCurrentPathIndex++]);
-        return path;
+//    mCurrentPathIndex(0),
+//    mSourceNode(sourceNode),
+//    mDestinationNode(destinationNode),
+//    mPaths(paths){
+//}
 
-    } else {
-        throw IndexError(
-            "PathsCollection::Iterator: "
-                "no paths are available");
-    }
-}
+//PathsCollection::Path PathsCollection::Iterator::next() {
+
+//    if (mPaths.size() <= mCurrentPathIndex) {
+//        Path path(mSourceNode, mDestinationNode, mPaths[mCurrentPathIndex++]);
+//        return path;
+
+//    } else {
+//        throw IndexError(
+//            "PathsCollection::Iterator: "
+//                "no paths are available");
+//    }
+//}

@@ -1,34 +1,36 @@
-#include "OperationStateMessage.h"
+﻿#include "ReceiverApproveMessage.h"
 
-OperationStateMessage::OperationStateMessage(
+ReceiverApproveMessage::ReceiverApproveMessage(
+    const NodeUUID& senderUUID,
+    const TransactionUUID& transactionUUID,
     const OperationState state) :
 
-    mState(state) {}
+    // TODO: make TransactionMessage accept const
+    TransactionMessage(
+        const_cast<NodeUUID&>(senderUUID),
+        const_cast<TransactionUUID&>(transactionUUID)),
+    mState(state){
+}
 
-OperationStateMessage::OperationStateMessage(
+ReceiverApproveMessage::ReceiverApproveMessage(
     BytesShared buffer) {
 
     deserializeFromBytes(buffer);
 }
 
-const Message::MessageType OperationStateMessage::typeID() const {
-
-    return Message::OperationStateMessageType;
+const Message::MessageType ReceiverApproveMessage::typeID() const {
+    return Message::Payments_ReceiverApprove;
 }
 
-const TransactionUUID &OperationStateMessage::transactionUUID() const {
-
-    throw NotImplementedError("OperationStateMessage: public TransactionMessage::transactionUUID: "
-                                  "Method not implemented.");
-}
-
-const OperationStateMessage::OperationState OperationStateMessage::state() const {
-
+const ReceiverApproveMessage::OperationState ReceiverApproveMessage::state() const {
     return mState;
 }
 
-pair<BytesShared, size_t> OperationStateMessage::serializeToBytes() {
-
+/**
+ *
+ * @throws bad_alloc;
+ */
+pair<BytesShared, size_t> ReceiverApproveMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
@@ -57,8 +59,7 @@ pair<BytesShared, size_t> OperationStateMessage::serializeToBytes() {
     );
 }
 
-void OperationStateMessage::deserializeFromBytes(
-    BytesShared buffer) {
+void ReceiverApproveMessage::deserializeFromBytes(BytesShared buffer) {
 
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();

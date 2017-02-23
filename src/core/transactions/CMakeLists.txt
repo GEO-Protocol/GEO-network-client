@@ -7,20 +7,23 @@ add_subdirectory(transactions/base)
 add_subdirectory(transactions/regular/payments)
 add_subdirectory(transactions/unique/trust_lines)
 add_subdirectory(transactions/unique/routing_tables)
+add_subdirectory(transactions/unique/cycles)
+add_subdirectory(transactions/max_flow_calculation)
 
 set(SOURCE_FILES
         transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablePropagationTransaction.cpp
-        transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablePropagationTransaction.h)
+        transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablePropagationTransaction.h transactions/base/TransactionUUID.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions
         transactions__manager
         transactions__scheduler
-
+        transactions__cycles
         transactions__trustlines
         transactions__payments
         transactions__routing_tables
         transactions__result
+        transactions__max_flow_calculation
 
         time
         common

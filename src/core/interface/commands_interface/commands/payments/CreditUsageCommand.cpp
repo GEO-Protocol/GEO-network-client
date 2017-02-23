@@ -1,4 +1,4 @@
-#include "CreditUsageCommand.h"
+﻿#include "CreditUsageCommand.h"
 
 CreditUsageCommand::CreditUsageCommand(
     const CommandUUID &uuid,
@@ -21,7 +21,7 @@ CreditUsageCommand::CreditUsageCommand(
 
 const string &CreditUsageCommand::identifier() {
 
-    static const string identifier = "CREATE:contractors/transactions";
+    static const string identifier = "CREATE:payments/transactions";
     return identifier;
 }
 
@@ -35,57 +35,57 @@ const TrustLineAmount &CreditUsageCommand::amount() const {
     return mAmount;
 }
 
-const string &CreditUsageCommand::reason() const {
-
-    return mReason;
-}
 
 /**
  * @Throw std::bad_alloc;
  */
 pair<BytesShared, size_t> CreditUsageCommand::serializeToBytes() {
 
-    auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second +
-        NodeUUID::kBytesSize +
-        kTrustLineAmountBytesCount +
-        mReason.size();
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-    //----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
-    dataBytesOffset += parentBytesAndCount.second;
-    //----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize);
-    dataBytesOffset += NodeUUID::kBytesSize;
-    //----------------------------------------------------
-    vector<byte> buffer = trustLineAmountToBytes(mAmount);
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        buffer.data(),
-        buffer.size()
-    );
-    dataBytesOffset += kTrustLineAmountBytesCount;
-    //----------------------------------------------------
-    if (!mReason.empty()) {
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            mReason.c_str(),
-            mReason.size()
-        );
-    }
-    //----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount
-    );
+    throw ValueError(
+        "CreditUsageCommand::serializeToBytes: "
+        "not implemented");
+
+//    auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
+//    size_t bytesCount = parentBytesAndCount.second +
+//        NodeUUID::kBytesSize +
+//        kTrustLineAmountBytesCount +
+//        mReason.size();
+//    BytesShared dataBytesShared = tryCalloc(bytesCount);
+//    size_t dataBytesOffset = 0;
+//    //----------------------------------------------------
+//    memcpy(
+//        dataBytesShared.get(),
+//        parentBytesAndCount.first.get(),
+//        parentBytesAndCount.second
+//    );
+//    dataBytesOffset += parentBytesAndCount.second;
+//    //----------------------------------------------------
+//    memcpy(
+//        dataBytesShared.get() + dataBytesOffset,
+//        mContractorUUID.data,
+//        NodeUUID::kBytesSize);
+//    dataBytesOffset += NodeUUID::kBytesSize;
+//    //----------------------------------------------------
+//    vector<byte> buffer = trustLineAmountToBytes(mAmount);
+//    memcpy(
+//        dataBytesShared.get() + dataBytesOffset,
+//        buffer.data(),
+//        buffer.size()
+//    );
+//    dataBytesOffset += kTrustLineAmountBytesCount;
+//    //----------------------------------------------------
+//    if (!mReason.empty()) {
+//        memcpy(
+//            dataBytesShared.get() + dataBytesOffset,
+//            mReason.c_str(),
+//            mReason.size()
+//        );
+//    }
+//    //----------------------------------------------------
+//    return make_pair(
+//        dataBytesShared,
+//        bytesCount
+//    );
 }
 
 void CreditUsageCommand::deserializeFromBytes(
@@ -107,17 +107,15 @@ void CreditUsageCommand::deserializeFromBytes(
 
     mAmount = bytesToTrustLineAmount(amountBytes);
     bytesBufferOffset += kTrustLineAmountBytesCount;
-    //----------------------------------------------------
-    mReason = string(reinterpret_cast<char *>(buffer.get() + bytesBufferOffset));
 }
 
 void CreditUsageCommand::parse(
     const string &command) {
 
-    const auto minCommandLength = CommandUUID::kHexSize + 1;
+    static const auto minCommandLength = CommandUUID::kHexSize + 1;
     if (command.size() < minCommandLength) {
         throw ValueError(
-            "CreditUsageCommand::deserialize: "
+            "CreditUsageCommand::parse: "
                 "can't parse command. Received command is too short.");
     }
 
@@ -160,8 +158,6 @@ void CreditUsageCommand::parse(
             break;
         }
     }
-
-    // todo: (hsc) add purpose parsing
 }
 
 const size_t CreditUsageCommand::kMinRequestedBufferSize() {
@@ -170,12 +166,33 @@ const size_t CreditUsageCommand::kMinRequestedBufferSize() {
     return size;
 }
 
-CommandResult::SharedConst CreditUsageCommand::resultOk() const {
+CommandResult::SharedConst CreditUsageCommand::resultOK() const {
 
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),
-            201
-        )
-    );
+            CommandResult::OK));
+}
+
+CommandResult::SharedConst CreditUsageCommand::resultNoPaths() const {
+
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            CommandResult::NoPaths));
+}
+
+CommandResult::SharedConst CreditUsageCommand::resultNoResponse() const {
+
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            CommandResult::RemoteNodeIsInaccessible));
+}
+
+CommandResult::SharedConst CreditUsageCommand::resultProtocolError() const {
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            CommandResult::ProtocolError));
 }

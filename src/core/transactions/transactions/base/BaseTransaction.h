@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_BASETRANSACTION_H
+﻿#ifndef GEO_NETWORK_CLIENT_BASETRANSACTION_H
 #define GEO_NETWORK_CLIENT_BASETRANSACTION_H
 
 #include "TransactionUUID.h"
@@ -21,6 +21,8 @@
 #include <memory>
 #include <utility>
 #include <cstdint>
+#include <sstream>
+
 
 namespace storage = db::uuid_map_block_storage;
 namespace signals = boost::signals2;
@@ -41,8 +43,21 @@ public:
         RejectTrustLineTransactionType,
         PropagationRoutingTablesTransactionType,
         AcceptRoutingTablesTransactionType,
+        GetTopologyAndBalancesTransaction,
+
+        // Payments
         CoordinatorPaymentTransaction,
-        ReceiverPaymentTransaction
+        ReceiverPaymentTransaction,
+
+        // Max flow calculation
+        InitiateMaxFlowCalculationTransactionType,
+        ReceiveMaxFlowCalculationOnTargetTransactionType,
+        ReceiveResultMaxFlowCalculationFromTargetTransactionType,
+        MaxFlowCalculationSourceFstLevelTransactionType,
+        MaxFlowCalculationTargetFstLevelTransactionType,
+        MaxFlowCalculationSourceSndLevelTransactionType,
+        MaxFlowCalculationTargetSndLevelTransactionType,
+        ReceiveResultMaxFlowCalculationFromSourceTransactionType
     };
 
 public:
@@ -60,11 +75,19 @@ public:
     virtual TransactionResult::SharedConst run() = 0;
 
 protected:
+    // TODO: Remove this constructor.
+    // Transaction must not be created empty.
     BaseTransaction();
 
+    // TODO: add const to type
     BaseTransaction(
         TransactionType type);
 
+    BaseTransaction(
+        const TransactionType type,
+        const TransactionUUID &transactionUUID);
+
+    // TODO: add const to type
     BaseTransaction(
         TransactionType type,
         NodeUUID &nodeUUID);
@@ -97,6 +120,8 @@ protected:
 
     TransactionResult::SharedConst transactionResultFromState(
         TransactionState::SharedConst state);
+
+    virtual const string logHeader() const;
 
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;

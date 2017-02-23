@@ -1,4 +1,7 @@
 #include "Logger.h"
+#include <fstream>
+#include <iostream>
+#include "../settings/Settings.h"
 
 LoggerStream::LoggerStream(
     Logger *logger,
@@ -8,10 +11,21 @@ LoggerStream::LoggerStream(
     mGroup(group),
     mSubsystem(subsystem){}
 
+LoggerStream::LoggerStream(
+    Logger* logger,
+    const char* group,
+    const string& subsystem):
+    mLogger(logger),
+    mGroup(group),
+    mSubsystem(subsystem){}
+
 LoggerStream::~LoggerStream() {
     auto message = this->str();
     if (message.size() > 0) {
-        mLogger->logRecord(mGroup, mSubsystem, message);
+        mLogger->logRecord(
+            mGroup.c_str(),
+            mSubsystem.c_str(),
+            message);
     }
 }
 
@@ -58,18 +72,17 @@ void Logger::logFatal(
 }
 
 LoggerStream Logger::info(
-    const char *subsystem){
-
+    const string &subsystem){
     return LoggerStream(this, "INFO", subsystem);
 }
 
 LoggerStream Logger::error(
-    const char *subsystem) {
+    const string &subsystem) {
     return LoggerStream(this, "ERROR", subsystem);
 }
 
 LoggerStream Logger::debug(
-    const char *subsystem) {
+    const string &subsystem) {
     return LoggerStream(this, "DEBUG", subsystem);
 }
 
@@ -93,8 +106,8 @@ const string Logger::formatMessage(
 
 const string Logger::recordPrefix(
     const char *group) {
-    // todo: add AwakeTimestamp
-    return string(group) + string("\t\t");
+    // TODO: add timestamp
+    return string(group) + string("\t");
 }
 
 void Logger::logRecord(
@@ -102,7 +115,32 @@ void Logger::logRecord(
     const char *subsystem,
     const string &message) {
     cout << recordPrefix(group)
-         << subsystem << "\t\t\t"
+         << subsystem << "\t"
          << formatMessage(message) << endl;
     cout.flush();
 }
+
+void Logger::logTustlineState(const NodeUUID &conractorUUID, string direction, string status){
+    ofstream logfile;
+//    stringstream ss;
+//    ss << mTruststate.first << "\t" << mTruststate.second << "\n";
+//    logfile.open(log_filename);
+    logfile << conractorUUID.stringUUID() << "\t" << direction << "\t" << status << "\n";
+    logfile.close();
+}
+
+void Logger::logTruslineOperationStatus(
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &incoming_amount,
+        const TrustLineAmount &outgoing_amount,
+        const TrustLineBalance &balance,
+        const TrustLineDirection &direction
+){
+    ofstream logfile;
+    logfile.open(log_filename);
+    stringstream ss;
+    ss << contractorUUID.stringUUID() << "\t" << incoming_amount << "\t" << outgoing_amount << "\t" << balance << "\t";
+    logfile << ss.str() << endl;
+    logfile.close();
+}
+

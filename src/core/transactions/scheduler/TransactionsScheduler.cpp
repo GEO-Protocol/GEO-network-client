@@ -1,4 +1,4 @@
-#include "TransactionsScheduler.h"
+﻿#include "TransactionsScheduler.h"
 
 TransactionsScheduler::TransactionsScheduler(
     as::io_service &IOService,
@@ -112,6 +112,12 @@ void TransactionsScheduler::launchTransaction(
         // to not to break transactions processing flow.
 
         auto result = transaction->run();
+        if (result.get() == nullptr) {
+            throw ValueError(
+                "TransactionsScheduler::launchTransaction: "
+                "transaction->run() returned nullptr result.");
+        }
+
         handleTransactionResult(
             transaction,
             result

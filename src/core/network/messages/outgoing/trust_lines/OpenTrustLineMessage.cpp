@@ -1,4 +1,4 @@
-#include "OpenTrustLineMessage.h"
+﻿#include "OpenTrustLineMessage.h"
 
 OpenTrustLineMessage::OpenTrustLineMessage(
     const NodeUUID &sender,

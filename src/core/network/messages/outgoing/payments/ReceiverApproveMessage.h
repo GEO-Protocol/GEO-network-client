@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
+﻿#ifndef GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
 #define GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
 
 #include "../../base/transaction/TransactionMessage.h"
@@ -6,11 +6,16 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
+#include "../../../../common/exceptions/ValueError.h"
+
 #include <memory>
 #include <utility>
 #include <stdint.h>
 
-class OperationStateMessage: public TransactionMessage {
+
+class ReceiverApproveMessage:
+    public TransactionMessage {
+
 public:
     enum OperationState {
         Accepted = 1,
@@ -18,17 +23,17 @@ public:
     };
 
     typedef byte SerializedOperationState;
-    typedef shared_ptr<OperationStateMessage> Shared;
-    typedef shared_ptr<const OperationStateMessage> ConstShared;
+    typedef shared_ptr<ReceiverApproveMessage> Shared;
+    typedef shared_ptr<const ReceiverApproveMessage> ConstShared;
 
 public:
-    OperationStateMessage(
+    ReceiverApproveMessage(
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
         const OperationState state);
 
-    OperationStateMessage(
+    ReceiverApproveMessage(
         BytesShared buffer);
-
-    const TransactionUUID &transactionUUID() const;
 
     const OperationState state() const;
 

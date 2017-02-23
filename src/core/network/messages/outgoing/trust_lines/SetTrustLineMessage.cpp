@@ -1,4 +1,4 @@
-#include "SetTrustLineMessage.h"
+﻿#include "SetTrustLineMessage.h"
 
 SetTrustLineMessage::SetTrustLineMessage(
     const NodeUUID &sender,

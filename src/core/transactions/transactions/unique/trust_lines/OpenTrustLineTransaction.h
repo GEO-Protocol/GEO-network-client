@@ -84,6 +84,7 @@ private:
 
     OpenTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
+    Logger *mlogger;
 };
 
 

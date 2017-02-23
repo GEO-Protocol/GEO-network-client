@@ -1,4 +1,4 @@
-#include "RoutingTableIncomingMessage.h"
+﻿#include "RoutingTableIncomingMessage.h"
 
 RoutingTableIncomingMessage::RoutingTableIncomingMessage(
     BytesShared buffer) {
@@ -9,7 +9,7 @@ RoutingTableIncomingMessage::RoutingTableIncomingMessage(
 
 pair<BytesShared, size_t> RoutingTableIncomingMessage::serializeToBytes() {
 
-    throw NotImplementedError("RoutingTableIncomingMessage::serializeToBytes: "
+    throw Exception("RoutingTableIncomingMessage::serializeToBytes: "
                                   "Method not implemented.");
 }
 

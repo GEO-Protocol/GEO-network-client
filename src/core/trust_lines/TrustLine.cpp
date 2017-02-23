@@ -162,6 +162,34 @@ ConstSharedTrustLineAmount TrustLine::availableAmount() const {
     );
 }
 
+/*!
+ * Returns amount that is availale to use on the trust line from contractor node.
+ */
+ConstSharedTrustLineAmount TrustLine::availableIncomingAmount() const {
+
+    if (mBalance >= kZeroBalance()){
+        if (mOutgoingTrustAmount > kZeroAmount()) {
+            return ConstSharedTrustLineAmount(
+                new TrustLineAmount(
+                    mOutgoingTrustAmount - TrustLineAmount(mBalance)
+                )
+            );
+        }
+
+        return ConstSharedTrustLineAmount(
+            new TrustLineAmount(
+                mBalance
+            )
+        );
+    }
+
+    return ConstSharedTrustLineAmount(
+        new TrustLineAmount(
+            mOutgoingTrustAmount + mBalance
+        )
+    );
+}
+
 const TrustLineDirection TrustLine::direction() const {
 
     if (mOutgoingTrustAmount > kZeroAmount() && mIncomingTrustAmount > kZeroAmount()) {

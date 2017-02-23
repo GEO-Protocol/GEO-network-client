@@ -1,4 +1,4 @@
-#include "CloseTrustLineMessage.h"
+﻿#include "CloseTrustLineMessage.h"
 
 CloseTrustLineMessage::CloseTrustLineMessage(
     const NodeUUID &sender,

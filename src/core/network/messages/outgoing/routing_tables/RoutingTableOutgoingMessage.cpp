@@ -1,4 +1,4 @@
-#include "RoutingTableOutgoingMessage.h"
+﻿#include "RoutingTableOutgoingMessage.h"
 
 RoutingTableOutgoingMessage::RoutingTableOutgoingMessage(
     const NodeUUID &senderUUID) :

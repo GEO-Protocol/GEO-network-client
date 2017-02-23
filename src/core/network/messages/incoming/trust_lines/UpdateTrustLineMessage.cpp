@@ -1,4 +1,4 @@
-#include "UpdateTrustLineMessage.h"
+﻿#include "UpdateTrustLineMessage.h"
 
 UpdateTrustLineMessage::UpdateTrustLineMessage(
     BytesShared buffer) {

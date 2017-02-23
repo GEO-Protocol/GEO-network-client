@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_CREDITUSAGECOMMAND_H
+﻿#ifndef GEO_NETWORK_CLIENT_CREDITUSAGECOMMAND_H
 #define GEO_NETWORK_CLIENT_CREDITUSAGECOMMAND_H
 
 #include "../BaseUserCommand.h"
@@ -18,10 +18,15 @@
 
 using namespace std;
 
-class CreditUsageCommand: public BaseUserCommand {
+class CreditUsageCommand:
+    public BaseUserCommand {
 
 public:
     typedef shared_ptr<CreditUsageCommand> Shared;
+
+public:
+    static const string &identifier();
+    static const size_t kMinRequestedBufferSize();
 
 public:
     CreditUsageCommand(
@@ -31,19 +36,16 @@ public:
     CreditUsageCommand(
         BytesShared buffer);
 
-    static const string &identifier();
-
+    pair<BytesShared, size_t> serializeToBytes();
+    const TrustLineAmount &amount() const;
     const NodeUUID &contractorUUID() const;
 
-    const TrustLineAmount &amount() const;
-
-    const string &reason() const;
-
-    pair<BytesShared, size_t> serializeToBytes();
-
-    static const size_t kMinRequestedBufferSize();
-
-    CommandResult::SharedConst resultOk() const;
+public:
+    // Results handlers
+    CommandResult::SharedConst resultOK() const;
+    CommandResult::SharedConst resultNoPaths() const;
+    CommandResult::SharedConst resultNoResponse() const;
+    CommandResult::SharedConst resultProtocolError() const;
 
 protected:
     void deserializeFromBytes(
@@ -55,7 +57,6 @@ protected:
 private:
     NodeUUID mContractorUUID;
     TrustLineAmount mAmount;
-    string mReason;
 };
 
 #endif //GEO_NETWORK_CLIENT_CREDITUSAGECOMMAND_H

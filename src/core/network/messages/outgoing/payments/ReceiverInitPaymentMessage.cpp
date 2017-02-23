@@ -1,8 +1,16 @@
-#include "ReceiverInitPaymentMessage.h"
+﻿﻿#include "ReceiverInitPaymentMessage.h"
+
 
 ReceiverInitPaymentMessage::ReceiverInitPaymentMessage(
+    const NodeUUID &senderUUID,
+    const TransactionUUID &transactionUUID,
     const TrustLineAmount &totalPaymentAmount) :
 
+    // TODO: add "const" to constructor of the TransactionMessage;
+    // TODO: remove const_cast;
+    TransactionMessage(
+        const_cast<NodeUUID&>(senderUUID),
+        const_cast<TransactionUUID&>(transactionUUID)),
     mTotalPaymentAmount(totalPaymentAmount){
 }
 
@@ -13,52 +21,59 @@ ReceiverInitPaymentMessage::ReceiverInitPaymentMessage(
 }
 
 const Message::MessageType ReceiverInitPaymentMessage::typeID() const {
-
-    return Message::ReceiverInitPaymentMessageType;
+    return Message::Payments_ReceiverInitPayment;
 }
 
+TrustLineAmount&ReceiverInitPaymentMessage::amount() const {
+    return mTotalPaymentAmount;
+}
+
+/*!
+ *
+ * Throws bad_alloc;
+ */
 pair<BytesShared, size_t> ReceiverInitPaymentMessage::serializeToBytes() {
 
+    auto serializedPaymentAmount =
+        trustLineAmountToBytes(
+            mTotalPaymentAmount); // TODO: serialize only non-zero
+
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+    size_t bytesCount =
+        + parentBytesAndCount.second
+        + kTrustLineAmountBytesCount;
 
-    size_t bytesCount = parentBytesAndCount.second
-                        + kTrustLineAmountBytesCount;
+    BytesShared buffer =
+        tryMalloc(
+            bytesCount);
 
-    BytesShared dataBytesShared = tryMalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-    //----------------------------------------------------
+    auto initialOffset = buffer.get();
     memcpy(
-        dataBytesShared.get(),
+        initialOffset,
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
-    dataBytesOffset += parentBytesAndCount.second;
-    //----------------------------------------------------
-    // todo: serialize only non-zero
-    auto serializedPaymentAmount = trustLineAmountToBytes(mTotalPaymentAmount);
+        parentBytesAndCount.second);
+
+    auto amountOffset = initialOffset + parentBytesAndCount.second;
     memcpy(
-        dataBytesShared.get() + dataBytesOffset,
+        amountOffset,
         serializedPaymentAmount.data(),
-        kTrustLineAmountBytesCount
-    );
-    //----------------------------------------------------
+        kTrustLineAmountBytesCount);
+
     return make_pair(
-        dataBytesShared,
-        bytesCount
-    );
+        buffer,
+        bytesCount);
 }
 
-void ReceiverInitPaymentMessage::deserializeFromBytes(
-    BytesShared buffer) {
+void ReceiverInitPaymentMessage::deserializeFromBytes(BytesShared buffer) {
 
     TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    // todo: deserialize only non-zero
+
+    auto parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes();
+    auto amountOffset = buffer.get() + parentMessageOffset;
+    auto amountEndOffset = amountOffset + kTrustLineBalanceBytesCount; // TODO: deserialize only non-zero
     vector<byte> amountBytes(
-        buffer.get() + bytesBufferOffset,
-        buffer.get() + bytesBufferOffset + kTrustLineBalanceBytesCount
-    );
+        amountOffset,
+        amountEndOffset);
 
     mTotalPaymentAmount = bytesToTrustLineAmount(amountBytes);
 }

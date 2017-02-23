@@ -1,4 +1,4 @@
-#include "Response.h"
+﻿#include "Response.h"
 
 Response::Response(const NodeUUID &sender,
                    const TransactionUUID &transactionUUID,
