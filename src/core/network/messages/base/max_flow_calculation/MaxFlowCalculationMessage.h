@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONMESSAGE_H
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONMESSAGE_H
 
-#include "../transaction/TransactionMessage.h"
+#include "../../Message.hpp"
 
 #include "../../../../common/Types.h"
 #include "../../../../common/NodeUUID.h"
@@ -15,7 +15,7 @@
 
 using namespace std;
 
-class MaxFlowCalculationMessage : public TransactionMessage {
+class MaxFlowCalculationMessage : public Message {
 public:
     typedef shared_ptr<MaxFlowCalculationMessage> Shared;
 
@@ -28,9 +28,7 @@ protected:
     MaxFlowCalculationMessage();
 
     MaxFlowCalculationMessage(
-        const NodeUUID &senderUUID,
-        const NodeUUID &targetUUID,
-        const TransactionUUID &transactionUUID);
+        const NodeUUID &targetUUID);
 
     virtual const MessageType typeID() const = 0;
 

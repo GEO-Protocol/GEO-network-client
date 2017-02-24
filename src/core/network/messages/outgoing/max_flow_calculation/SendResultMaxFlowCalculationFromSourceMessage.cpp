@@ -6,10 +6,9 @@
 
 SendResultMaxFlowCalculationFromSourceMessage::SendResultMaxFlowCalculationFromSourceMessage(
     NodeUUID &senderUUID,
-    TransactionUUID &transactionUUID,
     map<NodeUUID, TrustLineAmount> &outgoingFlows) :
 
-    TransactionMessage(senderUUID, transactionUUID),
+    SenderMessage(senderUUID),
     mOutgoingFlows(outgoingFlows){};
 
 const Message::MessageType SendResultMaxFlowCalculationFromSourceMessage::typeID() const {
@@ -19,7 +18,7 @@ const Message::MessageType SendResultMaxFlowCalculationFromSourceMessage::typeID
 
 pair<BytesShared, size_t> SendResultMaxFlowCalculationFromSourceMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+    auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + sizeof(uint32_t) +
                         + mOutgoingFlows.size() * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -67,8 +66,8 @@ pair<BytesShared, size_t> SendResultMaxFlowCalculationFromSourceMessage::seriali
 void SendResultMaxFlowCalculationFromSourceMessage::deserializeFromBytes(
     BytesShared buffer){
 
-    TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    SenderMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //-----------------------------------------------------
     uint32_t *trustLinesCount = new (buffer.get() + bytesBufferOffset) uint32_t;
     bytesBufferOffset += sizeof(uint32_t);

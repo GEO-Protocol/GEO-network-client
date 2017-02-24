@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONTRANSACTION_H
 #define GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONTRANSACTION_H
 
-#include "MaxFlowCalculationTransaction.h"
+#include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 
 #include "../../scheduler/TransactionsScheduler.h"
@@ -10,7 +10,7 @@
 #include "../../../network/messages/outgoing/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/SendMaxFlowCalculationSourceFstLevelMessage.h"
 
-class InitiateMaxFlowCalculationTransaction : public MaxFlowCalculationTransaction {
+class InitiateMaxFlowCalculationTransaction : public BaseTransaction {
 
 public:
     typedef shared_ptr<InitiateMaxFlowCalculationTransaction> Shared;

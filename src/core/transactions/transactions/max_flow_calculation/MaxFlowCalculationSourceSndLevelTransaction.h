@@ -5,13 +5,13 @@
 #ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCESNDLEVELTRANSACTION_H
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCESNDLEVELTRANSACTION_H
 
-#include "MaxFlowCalculationTransaction.h"
+#include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../network/messages/incoming/max_flow_calculation/MaxFlowCalculationSourceSndLevelInMessage.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/SendResultMaxFlowCalculationFromSourceMessage.h"
 #include "../../scheduler/TransactionsScheduler.h"
 
-class MaxFlowCalculationSourceSndLevelTransaction : public MaxFlowCalculationTransaction {
+class MaxFlowCalculationSourceSndLevelTransaction : public BaseTransaction {
 
 public:
     typedef shared_ptr<MaxFlowCalculationSourceSndLevelTransaction> Shared;

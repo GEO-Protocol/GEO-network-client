@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.6)
 set(SOURCE_FILES
         InitiateMaxFlowCalculationTransaction.h
         InitiateMaxFlowCalculationTransaction.cpp
-        MaxFlowCalculationTransaction.cpp
-        MaxFlowCalculationTransaction.h
         ReceiveMaxFlowCalculationOnTargetTransaction.cpp
         ReceiveMaxFlowCalculationOnTargetTransaction.h
         ReceiveResultMaxFlowCalculationFromTargetTransaction.cpp

@@ -14,9 +14,7 @@ public:
 
 public:
     MaxFlowCalculationTargetFstLevelOutMessage(
-        NodeUUID &senderUUID,
-        NodeUUID &targetUUID,
-        TransactionUUID &transactionUUID);
+        NodeUUID &targetUUID);
 
     const MessageType typeID() const;
 

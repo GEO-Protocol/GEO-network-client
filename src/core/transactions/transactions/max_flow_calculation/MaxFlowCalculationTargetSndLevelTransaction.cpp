@@ -10,7 +10,7 @@ MaxFlowCalculationTargetSndLevelTransaction::MaxFlowCalculationTargetSndLevelTra
     TrustLinesManager *manager,
     Logger *logger) :
 
-    MaxFlowCalculationTransaction(
+    BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationTargetSndLevelTransactionType,
         nodeUUID),
     mMessage(message),
@@ -33,7 +33,7 @@ MaxFlowCalculationTargetSndLevelInMessage::Shared MaxFlowCalculationTargetSndLev
 
 pair<BytesShared, size_t> MaxFlowCalculationTargetSndLevelTransaction::serializeToBytes() const {
 
-    auto parentBytesAndCount = MaxFlowCalculationTransaction::serializeToBytes();
+    auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     auto messageBytesAndCount = mMessage->serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second + messageBytesAndCount.second;
@@ -42,44 +42,38 @@ pair<BytesShared, size_t> MaxFlowCalculationTargetSndLevelTransaction::serialize
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + parentBytesAndCount.second,
         messageBytesAndCount.first.get(),
-        messageBytesAndCount.second
-    );
+        messageBytesAndCount.second);
     //-----------------------------------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 void MaxFlowCalculationTargetSndLevelTransaction::deserializeFromBytes(
     BytesShared buffer) {
 
-    MaxFlowCalculationTransaction::deserializeFromBytes(buffer);
+    BaseTransaction::deserializeFromBytes(buffer);
     BytesShared messageBufferShared = tryCalloc(MaxFlowCalculationTargetSndLevelInMessage::kRequestedBufferSize());
     //-----------------------------------------------------
     memcpy(
         messageBufferShared.get(),
-        buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes(),
-        MaxFlowCalculationTargetSndLevelInMessage::kRequestedBufferSize()
-    );
+        buffer.get() + BaseTransaction::kOffsetToInheritedBytes(),
+        MaxFlowCalculationTargetSndLevelInMessage::kRequestedBufferSize());
     //-----------------------------------------------------
     mMessage = MaxFlowCalculationTargetSndLevelInMessage::Shared(
         new MaxFlowCalculationTargetSndLevelInMessage(
-            messageBufferShared
-        )
-    );
+            messageBufferShared));
 }
 
 TransactionResult::SharedConst MaxFlowCalculationTargetSndLevelTransaction::run() {
 
     mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->run", "Iam: " + mNodeUUID.stringUUID());
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->run", "sender: " + mMessage->senderUUID().stringUUID());
+    //mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->run", "sender: " + mMessage->senderUUID().stringUUID());
     mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->run", "target: " + mMessage->targetUUID().stringUUID());
 
     sendResultToInitiator();
@@ -107,12 +101,9 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
 
     Message *message = new SendResultMaxFlowCalculationFromTargetMessage(
         mNodeUUID,
-        mTransactionUUID,
-        incomingFlows
-    );
+        incomingFlows);
 
     addMessage(
         Message::Shared(message),
-        mMessage->targetUUID()
-    );
+        mMessage->targetUUID());
 }

@@ -6,10 +6,10 @@
 #define GEO_NETWORK_CLIENT_SENDRESULTMAXFLOWCALCULATIONFROMSOURCEMESSAGE_H
 
 #include "../../result/MessageResult.h"
-#include "../../base/transaction/TransactionMessage.h"
+#include "../../SenderMessage.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
-class SendResultMaxFlowCalculationFromSourceMessage : public TransactionMessage {
+class SendResultMaxFlowCalculationFromSourceMessage : public SenderMessage {
 
 public:
     typedef shared_ptr<SendResultMaxFlowCalculationFromSourceMessage> Shared;
@@ -18,7 +18,6 @@ public:
 
     SendResultMaxFlowCalculationFromSourceMessage(
         NodeUUID &senderUUID,
-        TransactionUUID &transactionUUID,
         map<NodeUUID, TrustLineAmount> &outgoingFlows);
 
     const MessageType typeID() const;

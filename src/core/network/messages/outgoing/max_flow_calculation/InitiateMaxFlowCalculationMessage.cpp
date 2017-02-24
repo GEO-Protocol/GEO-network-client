@@ -5,11 +5,9 @@
 #include "InitiateMaxFlowCalculationMessage.h"
 
 InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
-        NodeUUID &senderUUID,
-        NodeUUID &targetUUID,
-        TransactionUUID &transactionUUID) :
+        NodeUUID &targetUUID) :
 
-    MaxFlowCalculationMessage(senderUUID, targetUUID, transactionUUID) {};
+    MaxFlowCalculationMessage(targetUUID) {};
 
 const Message::MessageType InitiateMaxFlowCalculationMessage::typeID() const {
 

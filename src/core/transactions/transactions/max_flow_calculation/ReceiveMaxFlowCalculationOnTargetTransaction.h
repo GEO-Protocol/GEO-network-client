@@ -5,14 +5,14 @@
 #ifndef GEO_NETWORK_CLIENT_RECEIVEMAXFLOWCALCULATIONTRANSACTION_H
 #define GEO_NETWORK_CLIENT_RECEIVEMAXFLOWCALCULATIONTRANSACTION_H
 
-#include "MaxFlowCalculationTransaction.h"
+#include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../network/messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/SendResultMaxFlowCalculationFromTargetMessage.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/SendMaxFlowCalculationTargetFstLevelMessage.h"
 #include "../../scheduler/TransactionsScheduler.h"
 
-class ReceiveMaxFlowCalculationOnTargetTransaction : public MaxFlowCalculationTransaction {
+class ReceiveMaxFlowCalculationOnTargetTransaction : public BaseTransaction {
 
 public:
     typedef shared_ptr<ReceiveMaxFlowCalculationOnTargetTransaction> Shared;

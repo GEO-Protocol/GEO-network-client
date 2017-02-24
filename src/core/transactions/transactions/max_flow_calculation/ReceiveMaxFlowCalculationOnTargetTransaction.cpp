@@ -10,7 +10,7 @@ ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetT
         TrustLinesManager *manager,
         Logger *logger) :
 
-        MaxFlowCalculationTransaction(
+        BaseTransaction(
                 BaseTransaction::TransactionType::ReceiveMaxFlowCalculationOnTargetTransactionType,
                 nodeUUID),
         mMessage(message),
@@ -33,7 +33,7 @@ ReceiveMaxFlowCalculationOnTargetMessage::Shared ReceiveMaxFlowCalculationOnTarg
 
 pair<BytesShared, size_t> ReceiveMaxFlowCalculationOnTargetTransaction::serializeToBytes() const {
 
-    auto parentBytesAndCount = MaxFlowCalculationTransaction::serializeToBytes();
+    auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     auto messageBytesAndCount = mMessage->serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second + messageBytesAndCount.second;
@@ -42,44 +42,38 @@ pair<BytesShared, size_t> ReceiveMaxFlowCalculationOnTargetTransaction::serializ
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + parentBytesAndCount.second,
         messageBytesAndCount.first.get(),
-        messageBytesAndCount.second
-    );
+        messageBytesAndCount.second);
     //-----------------------------------------------------
     return make_pair(
             dataBytesShared,
-            bytesCount
-    );
+            bytesCount);
 }
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::deserializeFromBytes(
         BytesShared buffer) {
 
-    MaxFlowCalculationTransaction::deserializeFromBytes(buffer);
+    BaseTransaction::deserializeFromBytes(buffer);
     BytesShared messageBufferShared = tryCalloc(ReceiveMaxFlowCalculationOnTargetMessage::kRequestedBufferSize());
     //-----------------------------------------------------
     memcpy(
         messageBufferShared.get(),
-        buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes(),
-        ReceiveMaxFlowCalculationOnTargetMessage::kRequestedBufferSize()
-    );
+        buffer.get() + BaseTransaction::kOffsetToInheritedBytes(),
+        ReceiveMaxFlowCalculationOnTargetMessage::kRequestedBufferSize());
     //-----------------------------------------------------
     mMessage = ReceiveMaxFlowCalculationOnTargetMessage::Shared(
         new ReceiveMaxFlowCalculationOnTargetMessage(
-            messageBufferShared
-        )
-    );
+            messageBufferShared));
 }
 
 TransactionResult::SharedConst ReceiveMaxFlowCalculationOnTargetTransaction::run() {
 
     mLog->logInfo("ReceiveMaxFlowCalculationTransaction->run", "target: " + mNodeUUID.stringUUID());
-    mLog->logInfo("ReceiveMaxFlowCalculationTransaction->run", "initiator: " + mMessage->senderUUID().stringUUID());
+    mLog->logInfo("ReceiveMaxFlowCalculationTransaction->run", "initiator: " + mMessage->targetUUID().stringUUID());
     mLog->logInfo("ReceiveMaxFlowCalculationTransaction->run",
                   "OutgoingFlows: " + to_string(mTrustLinesManager->getOutgoingFlows().size()));
     mLog->logInfo("ReceiveMaxFlowCalculationTransaction->run",
@@ -97,16 +91,14 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator() {
     map<NodeUUID, TrustLineAmount> incomingFlows = mTrustLinesManager->getIncomingFlows();
     Message *message = new SendResultMaxFlowCalculationFromTargetMessage(
             mNodeUUID,
-            mTransactionUUID,
-            incomingFlows
-    );
+            incomingFlows);
 
     addMessage(
             Message::Shared(message),
-            mMessage->senderUUID()
+            mMessage->targetUUID()
     );
     mLog->logInfo("ReceiveMaxFlowCalculationOnTargetTransaction->sendResultToInitiator",
-                  "send to " + mMessage->senderUUID().stringUUID());
+                  "send to " + mMessage->targetUUID().stringUUID());
 }
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel() {
@@ -115,16 +107,12 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel() {
     for (auto const &it : incomingFlowUuids) {
         NodeUUID targetUUID = mMessage->targetUUID();
         Message *message = new SendMaxFlowCalculationTargetFstLevelMessage(
-            mNodeUUID,
-            targetUUID,
-            mTransactionUUID
-        );
+            targetUUID);
 
         mLog->logInfo("ReceiveMaxFlowCalculationOnTargetTransaction->sendFirst", ((NodeUUID)it).stringUUID());
         addMessage(
             Message::Shared(message),
-            it
-        );
+            it);
     }
 
 }

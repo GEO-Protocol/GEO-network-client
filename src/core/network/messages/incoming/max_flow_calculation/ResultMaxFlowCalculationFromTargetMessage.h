@@ -5,11 +5,11 @@
 #ifndef GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONFROMTARGETMESSAGE_H
 #define GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONFROMTARGETMESSAGE_H
 
-#include "../../base/transaction/TransactionMessage.h"
+#include "../../SenderMessage.h"
 #include "../../result/MessageResult.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
-class ResultMaxFlowCalculationFromTargetMessage : public TransactionMessage {
+class ResultMaxFlowCalculationFromTargetMessage : public SenderMessage {
 
 public:
     typedef shared_ptr<ResultMaxFlowCalculationFromTargetMessage> Shared;

@@ -3,13 +3,9 @@
 MaxFlowCalculationMessage::MaxFlowCalculationMessage() {}
 
 MaxFlowCalculationMessage::MaxFlowCalculationMessage(
-    const NodeUUID &senderUUID,
-    const NodeUUID &targetUUID,
-    const TransactionUUID &transactionUUID) :
+    const NodeUUID &targetUUID) :
 
-    TransactionMessage(
-    senderUUID,
-    transactionUUID),
+    Message(),
 
     mTargetUUID(targetUUID){}
 
@@ -20,49 +16,43 @@ const NodeUUID &MaxFlowCalculationMessage::targetUUID() const {
 
 pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second +
-                        NodeUUID::kBytesSize;
+    size_t bytesCount = sizeof(MessageType) + NodeUUID::kBytesSize;
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
+    MessageType type = typeID();
     memcpy(
         dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
-    dataBytesOffset += parentBytesAndCount.second;
+        &type,
+        sizeof(MessageType));
+    dataBytesOffset += sizeof(MessageType);
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         mTargetUUID.data,
-        NodeUUID::kBytesSize
-    );
+        NodeUUID::kBytesSize);
     //----------------------------------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 void MaxFlowCalculationMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    size_t bytesBufferOffset = 0;
+    MessageType *messageType = new (buffer.get()) MessageType;
+    bytesBufferOffset += sizeof(MessageType);
     //----------------------------------------------------
     memcpy(
         mTargetUUID.data,
         buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
+        NodeUUID::kBytesSize);
 }
 
 const size_t MaxFlowCalculationMessage::kOffsetToInheritedBytes() {
 
-    static const size_t offset = TransactionMessage::kOffsetToInheritedBytes()
-                                 + NodeUUID::kBytesSize;
+    static const size_t offset = sizeof(MessageType) + NodeUUID::kBytesSize;
     return offset;
 }

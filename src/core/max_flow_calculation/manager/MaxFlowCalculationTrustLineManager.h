@@ -7,6 +7,7 @@
 
 #include "../../common/NodeUUID.h"
 #include "../MaxFlowCalculationTrustLine.h"
+#include "../MaxFlowCalculationNodeEntity.h"
 
 #include <map>
 #include <vector>
@@ -20,9 +21,25 @@ public:
 
     void addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine);
 
+    void addIncomingFlow(
+        const NodeUUID& node1UUID,
+        const NodeUUID& node2UUID,
+        const TrustLineAmount& flow);
+
+    void addOutgoingFlow(
+        const NodeUUID& node1UUID,
+        const NodeUUID& node2UUID,
+        const TrustLineAmount& flow);
+
+    void addFlow(
+        const NodeUUID& node1UUID,
+        const NodeUUID& node2UUID,
+        const TrustLineAmount& flow);
+
 // todo make private after testing
 public:
     map<NodeUUID, vector<MaxFlowCalculationTrustLine::Shared>> mvTrustLines;
+    map<NodeUUID, MaxFlowCalculationNodeEntity::Shared> mEntities;
 
 };
 

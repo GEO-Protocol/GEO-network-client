@@ -11,7 +11,7 @@ ReceiveResultMaxFlowCalculationFromTargetTransaction::ReceiveResultMaxFlowCalcul
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     Logger *logger) :
 
-    MaxFlowCalculationTransaction(
+    BaseTransaction(
         BaseTransaction::TransactionType::ReceiveResultMaxFlowCalculationFromTargetTransactionType,
         nodeUUID),
     mMessage(message),
@@ -37,7 +37,7 @@ ResultMaxFlowCalculationFromTargetMessage::Shared ReceiveResultMaxFlowCalculatio
 
 pair<BytesShared, size_t> ReceiveResultMaxFlowCalculationFromTargetTransaction::serializeToBytes() const {
 
-    auto parentBytesAndCount = MaxFlowCalculationTransaction::serializeToBytes();
+    auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     auto messageBytesAndCount = mMessage->serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second + messageBytesAndCount.second;
@@ -46,42 +46,36 @@ pair<BytesShared, size_t> ReceiveResultMaxFlowCalculationFromTargetTransaction::
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + parentBytesAndCount.second,
         messageBytesAndCount.first.get(),
-        messageBytesAndCount.second
-    );
+        messageBytesAndCount.second);
     //-----------------------------------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 void ReceiveResultMaxFlowCalculationFromTargetTransaction::deserializeFromBytes(
     BytesShared buffer) {
 
-    MaxFlowCalculationTransaction::deserializeFromBytes(buffer);
+    BaseTransaction::deserializeFromBytes(buffer);
     //BytesShared messageBufferShared = tryCalloc(ResultMaxFlowCalculationFromTargetMessage::kRequestedBufferSize());
     BytesShared messageBufferShared = tryCalloc(ResultMaxFlowCalculationFromTargetMessage::kRequestedBufferSize(
-        buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes()));
+        buffer.get() + BaseTransaction::kOffsetToInheritedBytes()));
     //-----------------------------------------------------
     memcpy(
         messageBufferShared.get(),
-        buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes(),
+        buffer.get() + BaseTransaction::kOffsetToInheritedBytes(),
         //ResultMaxFlowCalculationFromTargetMessage::kRequestedBufferSize()
         ResultMaxFlowCalculationFromTargetMessage::kRequestedBufferSize(
-            buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes())
-    );
+            buffer.get() + BaseTransaction::kOffsetToInheritedBytes()));
     //-----------------------------------------------------
     mMessage = ResultMaxFlowCalculationFromTargetMessage::Shared(
         new ResultMaxFlowCalculationFromTargetMessage(
-            messageBufferShared
-        )
-    );
+            messageBufferShared));
 }
 
 TransactionResult::SharedConst ReceiveResultMaxFlowCalculationFromTargetTransaction::run() {
@@ -103,6 +97,7 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationFromTargetTransact
         );
 
         mMaxFlowCalculationTrustLineManager->addTrustLine(trustLine);
+        mMaxFlowCalculationTrustLineManager->addFlow(it.first, mMessage->senderUUID(),  it.second);
     }
 
     mLog->logInfo("ReceiveResultMaxFlowCalculationFromTargetTransaction::run",
@@ -115,6 +110,25 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationFromTargetTransact
             mLog->logInfo("ReceiveResultMaxFlowCalculationFromSourceTransaction::run",
                           "value: " + trustLine->getTargetUUID().stringUUID() + " "
                           + to_string((uint32_t)trustLine->getAmount()));
+        }
+    }
+
+    mLog->logInfo("ReceiveResultMaxFlowCalculationFromTargetTransaction::run",
+                  "entityMap size: " + to_string(mMaxFlowCalculationTrustLineManager->mEntities.size()));
+    for (const auto &it : mMaxFlowCalculationTrustLineManager->mEntities) {
+        mLog->logInfo("ReceiveResultMaxFlowCalculationFromSourceTransaction::run",
+                      "key: " + ((NodeUUID)it.first).stringUUID());
+
+        for (const auto &it1 : it.second->mIncomingFlows) {
+            mLog->logInfo("ReceiveResultMaxFlowCalculationFromSourceTransaction::run",
+                          "inflow: " + ((NodeUUID) it1.first).stringUUID() + " "
+                          + to_string((uint32_t)it1.second));
+        }
+
+        for (const auto &it1 : it.second->mOutgoingFlows) {
+            mLog->logInfo("ReceiveResultMaxFlowCalculationFromSourceTransaction::run",
+                          "outflow: " + ((NodeUUID) it1.first).stringUUID() + " "
+                          + to_string((uint32_t)it1.second));
         }
     }
 
