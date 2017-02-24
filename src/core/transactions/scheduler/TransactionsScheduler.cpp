@@ -56,36 +56,6 @@ void TransactionsScheduler::postponeTransaction(
     adjustAwakeningToNextTransaction();
 }
 
-void TransactionsScheduler::handleMessage(
-    Message::Shared message) {
-
-    switch (message->typeID()) {
-
-        case Message::MessageTypeID::ResponseMessageType: {
-            processResponse(
-                static_pointer_cast<Response>(message)
-            );
-        }
-
-        case Message::MessageTypeID::RoutingTablesResponseMessageType: {
-            processRoutingTableResponse(
-                static_pointer_cast<RoutingTablesResponse>(message)
-            );
-        }
-
-        case Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType: {
-            processSecondLevelRoutingTableMessage(
-                static_pointer_cast<SecondLevelRoutingTableIncomingMessage>(message)
-            );
-        }
-
-        default: {
-            break;
-        }
-    }
-
-}
-
 void TransactionsScheduler::killTransaction(
     const TransactionUUID &transactionUUID) {
 
@@ -367,6 +337,7 @@ pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transact
 
 void TransactionsScheduler::asyncWaitUntil(
     GEOEpochTimestamp nextAwakeningTimestamp) {
+
 
     GEOEpochTimestamp microsecondsDelay = 0;
     GEOEpochTimestamp now = microsecondsSinceGEOEpoch(utc_now());
