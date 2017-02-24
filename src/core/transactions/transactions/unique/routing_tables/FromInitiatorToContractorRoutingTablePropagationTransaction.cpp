@@ -317,17 +317,12 @@ void FromInitiatorToContractorRoutingTablePropagationTransaction::sendSecondLeve
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationTransaction::waitingForRoutingTablePropagationResponse() {
 
-    TransactionState *transactionState = new TransactionState(
-        microsecondsSinceGEOEpoch(
-            utc_now() + pt::microseconds(mConnectionTimeout * 1000)
-        ),
-        Message::MessageTypeID::RoutingTablesResponseMessageType,
-        false
-    );
-
 
     return transactionResultFromState(
-        TransactionState::SharedConst(transactionState)
+        TransactionState::waitForMessageTypes(
+            {Message::MessageTypeID::RoutingTablesResponseMessageType},
+            mConnectionTimeout
+        )
     );
 }
 

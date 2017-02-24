@@ -1,4 +1,4 @@
-#include "TransactionsManager.h"
+﻿#include "TransactionsManager.h"
 
 /*!
  *
@@ -123,8 +123,6 @@ void TransactionsManager::processMessage(
                 message
             )
         );
-        FirstLevelRoutingTableIncomingMessage::Shared routingTableMessage = static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(
-                message);
     }
     /*
      * Payments transaction initialisation messages
@@ -498,16 +496,23 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
 void TransactionsManager::launchReceiverPaymentTransaction(
     ReceiverInitPaymentMessage::Shared message) {
 
-    auto transaction = make_shared<ReceiverPaymentTransaction>(
-        message,
-        mTrustLines,
-        mLog);
+    try {
+        auto transaction = make_shared<ReceiverPaymentTransaction>(
+            message,
+            mTrustLines,
+            mLog);
 
-    subscribeForOutgoingMessages(
-        transaction->outgoingMessageIsReadySignal);
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
 
-    mScheduler->scheduleTransaction(
-        transaction);
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchReceiverPaymentTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
 }
 
 /*!

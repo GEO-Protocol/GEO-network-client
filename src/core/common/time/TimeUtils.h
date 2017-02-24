@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_TIME_UTILS_H
+﻿#ifndef GEO_NETWORK_CLIENT_TIME_UTILS_H
 #define GEO_NETWORK_CLIENT_TIME_UTILS_H
 
 #include <boost/date_time.hpp>

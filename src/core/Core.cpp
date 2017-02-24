@@ -57,7 +57,7 @@ int Core::initCoreComponents() {
         mNodeUUID = mSettings->nodeUUID(&conf);
 
     } catch (RuntimeError &) {
-        mLog.logFatal("Core", "Can't read transactionUUID of the node from the settings.");
+        mLog.logFatal("Core", "Can't read UUID of the node from the settings.");
         return -1;
     }
 
@@ -291,7 +291,7 @@ void Core::onTrustLineCreatedSlot(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) {
 
-    try{
+    try {
         mTransactionsManager->launchFromInitiatorToContractorRoutingTablePropagationTransaction(
             contractorUUID,
             direction
