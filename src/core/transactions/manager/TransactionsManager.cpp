@@ -1,4 +1,4 @@
-#include "TransactionsManager.h"
+﻿#include "TransactionsManager.h"
 
 /*!
  *
@@ -431,27 +431,19 @@ void TransactionsManager::launchFromInitiatorToContractorRoutingTablePropagation
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) {
 
-    try {
+    auto transaction = make_shared<FromInitiatorToContractorRoutingTablePropagationTransaction>(
+        mNodeUUID,
 
-        auto transaction = make_shared<FromInitiatorToContractorRoutingTablePropagationTransaction>(
-            mNodeUUID,
-            const_cast<NodeUUID&> (contractorUUID),
-            mScheduler.get(),
-            mTrustLines
-        );
+        // TODO: prevent this ugly const cast
+        const_cast<NodeUUID&>(contractorUUID),
+        mScheduler.get(),
+        mTrustLines);
 
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
+    subscribeForOutgoingMessages(
+        transaction->outgoingMessageIsReadySignal);
 
-        mScheduler->postponeTransaction(
-            transaction,
-            5000);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchFromInitiatorToContractorRoutingTablePropagationTransaction: "
-                "can't allocate memory for transaction instance.");
-    }
+    mScheduler->scheduleTransaction(
+        transaction);
 }
 
 void TransactionsManager::launchAcceptFromInitiatorToContractorRoutingTablesTransaction(
@@ -522,10 +514,10 @@ void TransactionsManager::onCommandResultReady(
     try {
         auto message = result->serialize();
 
-        mLog->logSuccess(
-            "Transactions manager::onCommandResultReady",
-            message
-        );
+//        mLog->logSuccess(
+//            "Transactions manager::onCommandResultReady",
+//            message
+//        );
 
         mResultsInterface->writeResult(
             message.c_str(),

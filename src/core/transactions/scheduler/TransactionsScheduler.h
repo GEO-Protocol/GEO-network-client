@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
+﻿#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
 
 #include "../../common/Types.h"
@@ -21,8 +21,10 @@
 #include "../../logger/Logger.h"
 
 #include <boost/asio.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/bind.hpp>
 #include <boost/signals2.hpp>
+#include <chrono>
 
 #include <map>
 #include <memory>
@@ -51,8 +53,11 @@ public:
 
     void postponeTransaction(
         BaseTransaction::Shared transaction,
+
+        // TODO: uint16_t -> uint32_t, otherwise max delay would be 1 minute.
         uint16_t millisecondsDelay);
 
+    // TODO: rename to "routeIncommingMessage"
     void handleMessage(
         Message::Shared message);
 
@@ -118,7 +123,7 @@ private:
     storage::UUIDMapBlockStorage *mStorage;
     Logger *mLog;
 
-    unique_ptr<as::deadline_timer> mProcessingTimer;
+    unique_ptr<as::steady_timer> mProcessingTimer;
     unique_ptr<map<BaseTransaction::Shared, TransactionState::SharedConst>> mTransactions;
 };
 

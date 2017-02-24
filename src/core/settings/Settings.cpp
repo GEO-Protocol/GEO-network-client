@@ -1,4 +1,4 @@
-#include "Settings.h"
+﻿#include "Settings.h"
 
 json Settings::loadParsedJSON() const {
     string buffer;
@@ -93,6 +93,6 @@ const NodeUUID Settings::nodeUUID(const json *conf) const {
         return NodeUUID(hexUUID);
     } catch (...) {
         throw RuntimeError(
-            "Settings::nodeUUID: can't read node interface settings.");
+            "Settings::nodeUUID: can't read node uuid.");
     }
 }

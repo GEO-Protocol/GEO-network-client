@@ -1,4 +1,4 @@
-#include "Communicator.h"
+﻿#include "Communicator.h"
 
 Communicator::Communicator(
     as::io_service &ioService,
@@ -144,8 +144,8 @@ void Communicator::handleReceivedInfo(
     size_t bytesTransferred) {
 
     if (!error || error == boost::asio::error::message_size) {
-        mLog->logInfo("Communicator::handleReceivedInfo: ",
-                      string("Bytes received - ") + to_string(bytesTransferred));
+//        mLog->logInfo("Communicator::handleReceivedInfo: ",
+//                      string("Bytes received - ") + to_string(bytesTransferred));
         try {
             mIncomingMessagesHandler->processIncomingMessage(
                 mRemoteEndpointBuffer,
@@ -155,12 +155,12 @@ void Communicator::handleReceivedInfo(
 
         } catch (exception &e) {
 
-            mLog->logError("Communicator", e.what());
+//            mLog->logError("Communicator", e.what());
         }
 
     } else {
-        mLog->logError("Communicator::handleReceivedInfo:",
-                       error.message());
+//        mLog->logError("Communicator::handleReceivedInfo:",
+//                       error.message());
     }
 
     // In all cases - messages receiving should be continued.
@@ -207,12 +207,12 @@ void Communicator::handleSend(
     }
 
     if (error) {
-        mLog->logError("Communicator::handleSend:",
-                       error.message()
-        );
+//        mLog->logError("Communicator::handleSend:",
+//                       error.message()
+//        );
 
     } else {
-        mLog->logInfo("Communicator::handleSend: ",
-                      string("Bytes transferred - ") + to_string(bytesTransferred));
+//        mLog->logInfo("Communicator::handleSend: ",
+//                      string("Bytes transferred - ") + to_string(bytesTransferred));
     }
 }

@@ -252,7 +252,7 @@ void Core::onTrustLineCreatedSlot(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) {
 
-    try{
+    try {
         mTransactionsManager->launchFromInitiatorToContractorRoutingTablePropagationTransaction(
             contractorUUID,
             direction
