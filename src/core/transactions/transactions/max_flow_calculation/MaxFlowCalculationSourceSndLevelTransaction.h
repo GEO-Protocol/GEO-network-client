@@ -1,7 +1,3 @@
-//
-// Created by mc on 17.02.17.
-//
-
 #ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCESNDLEVELTRANSACTION_H
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCESNDLEVELTRANSACTION_H
 
@@ -18,7 +14,7 @@ public:
 
 public:
     MaxFlowCalculationSourceSndLevelTransaction(
-        NodeUUID &nodeUUID,
+        const NodeUUID &nodeUUID,
         MaxFlowCalculationSourceSndLevelInMessage::Shared message,
         TrustLinesManager *manager,
         Logger *logger);

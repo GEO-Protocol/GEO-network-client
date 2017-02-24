@@ -1,28 +1,31 @@
 #include "InitiateMaxFlowCalculationTransaction.h"
 
 InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
-        NodeUUID &nodeUUID,
-        InitiateMaxFlowCalculationCommand::Shared command,
-        TrustLinesManager *manager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-        Logger *logger) :
+    const NodeUUID &nodeUUID,
+    InitiateMaxFlowCalculationCommand::Shared command,
+    TrustLinesManager *trustLinesManager,
+    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+    Logger *logger) :
 
-        MaxFlowCalculationTransaction(
-                BaseTransaction::TransactionType::InitiateMaxFlowCalculationTransactionType,
-                nodeUUID
-        ),
-        mCommand(command),
-        mTrustLinesManager(manager),
-        mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
-        mLog(logger){}
+    MaxFlowCalculationTransaction(
+        BaseTransaction::TransactionType::InitiateMaxFlowCalculationTransactionType,
+        nodeUUID
+    ),
+    mCommand(command),
+    mTrustLinesManager(trustLinesManager),
+    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
+    mLog(logger) {}
 
 InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
-        BytesShared buffer,
-        TrustLinesManager *manager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager) :
+    BytesShared buffer,
+    TrustLinesManager *trustLinesManager,
+    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager) :
 
-    mTrustLinesManager(manager),
-    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager){
+    MaxFlowCalculationTransaction(
+        BaseTransaction::TransactionType::InitiateMaxFlowCalculationTransactionType
+    ),
+    mTrustLinesManager(trustLinesManager),
+    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager) {
 
     deserializeFromBytes(buffer);
 }
@@ -37,7 +40,9 @@ pair<BytesShared, size_t> InitiateMaxFlowCalculationTransaction::serializeToByte
     auto parentBytesAndCount = MaxFlowCalculationTransaction::serializeToBytes();
     auto commandBytesAndCount = mCommand->serializeToBytes();
 
-    size_t bytesCount = parentBytesAndCount.second +  commandBytesAndCount.second;
+    size_t bytesCount = parentBytesAndCount.second
+                        + commandBytesAndCount.second;
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     //-----------------------------------------------------
     memcpy(
@@ -65,15 +70,15 @@ void InitiateMaxFlowCalculationTransaction::deserializeFromBytes(
     BytesShared commandBufferShared = tryCalloc(InitiateMaxFlowCalculationCommand::kRequestedBufferSize());
     //-----------------------------------------------------
     memcpy(
-            commandBufferShared.get(),
-            buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes(),
-            InitiateMaxFlowCalculationCommand::kRequestedBufferSize()
+        commandBufferShared.get(),
+        buffer.get() + MaxFlowCalculationTransaction::kOffsetToDataBytes(),
+        InitiateMaxFlowCalculationCommand::kRequestedBufferSize()
     );
     //-----------------------------------------------------
     mCommand = InitiateMaxFlowCalculationCommand::Shared(
-            new InitiateMaxFlowCalculationCommand(
-                    commandBufferShared
-            )
+        new InitiateMaxFlowCalculationCommand(
+            commandBufferShared
+        )
     );
 }
 

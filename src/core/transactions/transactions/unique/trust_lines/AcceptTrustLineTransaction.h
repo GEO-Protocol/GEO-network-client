@@ -10,7 +10,6 @@
 #include "../../../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 #include "../../../../network/messages/response/Response.h"
 
-#include "../../../scheduler/TransactionsScheduler.h"
 #include "RejectTrustLineTransaction.h"
 #include "UpdateTrustLineTransaction.h"
 
@@ -29,14 +28,12 @@ public:
 
 public:
     AcceptTrustLineTransaction(
-        NodeUUID &nodeUUID,
+        const NodeUUID &nodeUUID,
         AcceptTrustLineMessage::Shared message,
-        TransactionsScheduler *scheduler,
         TrustLinesManager *manager);
 
     AcceptTrustLineTransaction(
         BytesShared buffer,
-        TransactionsScheduler *scheduler,
         TrustLinesManager *manager);
 
     AcceptTrustLineMessage::Shared message() const;

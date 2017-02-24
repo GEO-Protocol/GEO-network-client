@@ -65,7 +65,7 @@ TransactionState::SharedConst TransactionState::awakeAsFastAsPossible() {
  * Returns TransactionState with awakening timestamp set to current UTC + timeout;
  */
 TransactionState::SharedConst TransactionState::awakeAfterMilliseconds(
-    uint16_t milliseconds) {
+    uint32_t milliseconds) {
 
     return make_shared<TransactionState>(
         microsecondsSinceGEOEpoch(

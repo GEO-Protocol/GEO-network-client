@@ -1,24 +1,24 @@
 #include "RoutingTablesTransaction.h"
 
 RoutingTablesTransaction::RoutingTablesTransaction(
-    BaseTransaction::TransactionType type,
-    NodeUUID &nodeUUID,
-    NodeUUID &contractorUUID,
-    TransactionsScheduler *scheduler) :
+    const BaseTransaction::TransactionType type,
+    const NodeUUID &nodeUUID,
+    const NodeUUID &contractorUUID) :
 
-    UniqueTransaction(
+    BaseTransaction(
         type,
-        nodeUUID,
-        scheduler
+        nodeUUID
     ),
     mContractorUUID(contractorUUID) {}
 
 
 RoutingTablesTransaction::RoutingTablesTransaction(
-    BytesShared buffer,
-    TransactionsScheduler *scheduler) :
+    const TransactionType type,
+    BytesShared buffer) :
 
-    UniqueTransaction(scheduler) {
+    BaseTransaction(
+        type
+    ) {
 
     deserializeFromBytes(buffer);
 }

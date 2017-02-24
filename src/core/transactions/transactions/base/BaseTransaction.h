@@ -3,8 +3,8 @@
 
 #include "TransactionUUID.h"
 
-#include "../../../common/NodeUUID.h"
 #include "../../../common/Types.h"
+#include "../../../common/NodeUUID.h"
 #include "../../../common/memory/MemoryUtils.h"
 
 #include "../../../network/messages/Message.hpp"
@@ -75,22 +75,16 @@ public:
     virtual TransactionResult::SharedConst run() = 0;
 
 protected:
-    // TODO: Remove this constructor.
-    // Transaction must not be created empty.
-    BaseTransaction();
-
-    // TODO: add const to type
     BaseTransaction(
-        TransactionType type);
+        const TransactionType type);
 
     BaseTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID);
 
-    // TODO: add const to type
     BaseTransaction(
-        TransactionType type,
-        NodeUUID &nodeUUID);
+        const TransactionType type,
+        const NodeUUID &nodeUUID);
 
     void addMessage(
         Message::Shared message,

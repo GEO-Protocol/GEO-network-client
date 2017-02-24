@@ -1,8 +1,8 @@
 #include "UniqueTransaction.h"
 
 UniqueTransaction::UniqueTransaction(
-    BaseTransaction::TransactionType type,
-    NodeUUID &nodeUUID,
+    const BaseTransaction::TransactionType type,
+    const NodeUUID &nodeUUID,
     TransactionsScheduler *scheduler) :
 
     BaseTransaction(
@@ -12,8 +12,12 @@ UniqueTransaction::UniqueTransaction(
     mTransactionsScheduler(scheduler) {}
 
 UniqueTransaction::UniqueTransaction(
+    const BaseTransaction::TransactionType type,
     TransactionsScheduler *scheduler) :
 
+    BaseTransaction(
+        type
+    ),
     mTransactionsScheduler(scheduler) {}
 
 

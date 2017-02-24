@@ -28,21 +28,17 @@ public:
 
 public:
     FromInitiatorToContractorRoutingTablesAcceptTransaction(
-        NodeUUID &nodeUUID,
-        FirstLevelRoutingTableIncomingMessage::Shared message,
-        TransactionsScheduler *scheduler);
+        const NodeUUID &nodeUUID,
+        FirstLevelRoutingTableIncomingMessage::Shared message);
 
     FromInitiatorToContractorRoutingTablesAcceptTransaction(
-        BytesShared buffer,
-        TransactionsScheduler *scheduler);
+        BytesShared buffer);
 
     FirstLevelRoutingTableIncomingMessage::Shared message() const;
 
     TransactionResult::SharedConst run();
 
 private:
-    pair<bool, const TransactionUUID> isTransactionToContractorUnique();
-
     void saveFirstLevelRoutingTable();
 
     TransactionResult::SharedConst waitingForSecondLevelRoutingTableState();

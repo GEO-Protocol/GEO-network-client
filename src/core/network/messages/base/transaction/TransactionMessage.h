@@ -40,6 +40,9 @@ protected:
 
     static const size_t kOffsetToInheritedBytes();
 
+private:
+    const bool isTransactionMessage() const;
+
 protected:
     TransactionUUID mTransactionUUID;
 };

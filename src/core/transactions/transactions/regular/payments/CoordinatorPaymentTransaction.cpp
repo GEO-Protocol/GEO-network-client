@@ -60,7 +60,7 @@ const bool PaymentPathsHandler::empty() const {
 }
 
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
-    NodeUUID &currentNodeUUID,
+    const NodeUUID &currentNodeUUID,
     CreditUsageCommand::Shared command,
     TrustLinesManager *trustLines,
     Logger *log) :

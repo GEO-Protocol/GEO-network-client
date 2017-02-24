@@ -2,13 +2,21 @@
 #define GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONTRANSACTION_H
 
 #include "MaxFlowCalculationTransaction.h"
-#include "../../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 
-#include "../../scheduler/TransactionsScheduler.h"
-#include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
+#include "../../../common/Types.h"
+#include "../../../common/NodeUUID.h"
+
+#include "../../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/SendMaxFlowCalculationSourceFstLevelMessage.h"
+
+#include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
+#include "../../../logger/Logger.h"
+
+#include <memory>
+#include <utility>
+#include <stdint.h>
 
 class InitiateMaxFlowCalculationTransaction : public MaxFlowCalculationTransaction {
 
@@ -17,15 +25,15 @@ public:
 
 public:
     InitiateMaxFlowCalculationTransaction(
-            NodeUUID &nodeUUID,
+            const NodeUUID &nodeUUID,
             InitiateMaxFlowCalculationCommand::Shared command,
-            TrustLinesManager *manager,
+            TrustLinesManager *trustLinesManager,
             MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
             Logger *logger);
 
     InitiateMaxFlowCalculationTransaction(
             BytesShared buffer,
-            TrustLinesManager *manager,
+            TrustLinesManager *trustLinesManager,
             MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager);
 
     InitiateMaxFlowCalculationCommand::Shared command() const;
@@ -45,7 +53,6 @@ private:
     TransactionResult::SharedConst waitingForResponseState();
 
 private:
-
     InitiateMaxFlowCalculationCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;

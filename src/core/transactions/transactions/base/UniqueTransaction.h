@@ -12,11 +12,12 @@ class UniqueTransaction : public BaseTransaction{
 
 protected:
     UniqueTransaction(
-        TransactionType type,
-        NodeUUID &nodeUUID,
+        const TransactionType type,
+        const NodeUUID &nodeUUID,
         TransactionsScheduler *scheduler);
 
     UniqueTransaction(
+        const TransactionType type,
         TransactionsScheduler *scheduler);
 
     void killTransaction(

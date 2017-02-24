@@ -5,7 +5,7 @@
 #include "ReceiveResultMaxFlowCalculationFromTargetTransaction.h"
 
 ReceiveResultMaxFlowCalculationFromTargetTransaction::ReceiveResultMaxFlowCalculationFromTargetTransaction(
-    NodeUUID &nodeUUID,
+    const NodeUUID &nodeUUID,
     ResultMaxFlowCalculationFromTargetMessage::Shared message,
     TrustLinesManager *manager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
@@ -13,7 +13,8 @@ ReceiveResultMaxFlowCalculationFromTargetTransaction::ReceiveResultMaxFlowCalcul
 
     MaxFlowCalculationTransaction(
         BaseTransaction::TransactionType::ReceiveResultMaxFlowCalculationFromTargetTransactionType,
-        nodeUUID),
+        nodeUUID
+    ),
     mMessage(message),
     mTrustLinesManager(manager),
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
@@ -24,6 +25,9 @@ ReceiveResultMaxFlowCalculationFromTargetTransaction::ReceiveResultMaxFlowCalcul
     TrustLinesManager *manager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager) :
 
+    MaxFlowCalculationTransaction(
+        BaseTransaction::TransactionType::ReceiveResultMaxFlowCalculationFromTargetTransactionType
+    ),
     mTrustLinesManager(manager),
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager){
 

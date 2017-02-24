@@ -1,28 +1,23 @@
 ﻿#include "BaseTransaction.h"
 
-BaseTransaction::BaseTransaction() {}
-
 BaseTransaction::BaseTransaction(
-    BaseTransaction::TransactionType type) :
+    const BaseTransaction::TransactionType type) :
 
-    mType(type){
-
-}
+    mType(type) {}
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID) :
 
     mType(type),
-    mTransactionUUID(transactionUUID){
-}
+    mTransactionUUID(transactionUUID) {}
 
 BaseTransaction::BaseTransaction(
-        BaseTransaction::TransactionType type,
-        NodeUUID &nodeUUID) :
+    const TransactionType type,
+    const NodeUUID &nodeUUID) :
 
-        mType(type),
-        mNodeUUID(nodeUUID){}
+    mType(type),
+    mNodeUUID(nodeUUID) {}
 
 void BaseTransaction::addMessage(
     Message::Shared message,

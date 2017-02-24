@@ -40,18 +40,16 @@ void TransactionsScheduler::run() {
 void TransactionsScheduler::scheduleTransaction(
     BaseTransaction::Shared transaction) {
 
-    (*mTransactions)[transaction] =
-        TransactionState::awakeAsFastAsPossible();
+    (*mTransactions)[transaction] = TransactionState::awakeAsFastAsPossible();
 
     adjustAwakeningToNextTransaction();
 }
 
 void TransactionsScheduler::postponeTransaction(
     BaseTransaction::Shared transaction,
-    uint16_t millisecondsDelay) {
+    uint32_t millisecondsDelay) {
 
-    (*mTransactions)[transaction] =
-        TransactionState::awakeAfterMilliseconds(millisecondsDelay);
+    (*mTransactions)[transaction] = TransactionState::awakeAfterMilliseconds(millisecondsDelay);
 
     adjustAwakeningToNextTransaction();
 }
@@ -69,31 +67,34 @@ void TransactionsScheduler::killTransaction(
 void TransactionsScheduler::tryAttachMessageToTransaction(
     Message::Shared message) {
 
-    if (message->isTransactionMessage()) {
+    for (auto const &transactionAndState : *mTransactions) {
 
-        for (auto const &transactionAndState : *mTransactions) {
-
+        if (message->isTransactionMessage()) {
             if (static_pointer_cast<TransactionMessage>(message)->transactionUUID() != transactionAndState.first->UUID()) {
-                    continue;
-            }
-
-            for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
-                if (messageType != message->typeID()) {
-                    continue;
-                }
-
-                transactionAndState.first->pushContext(message);
-                launchTransaction(transactionAndState.first);
-                return;
+                continue;
             }
         }
 
-    } else {
-        throw ValueError(
-            "TransactionsScheduler::handleMessage: "
-                "invalid/unexpected message/response received");
+        if (message->isRoutingTableMessage()) {
+            if (static_pointer_cast<RoutingTablesMessage>(message)->senderUUID() != static_pointer_cast<RoutingTablesTransaction>(transactionAndState.first)->contractorUUID()) {
+                continue;
+            }
+        }
+
+        for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
+            if (message->typeID() != messageType) {
+                continue;
+            }
+
+            transactionAndState.first->pushContext(message);
+            launchTransaction(transactionAndState.first);
+            return;
+        }
     }
 
+    throw ValueError(
+        "TransactionsScheduler::handleMessage: "
+            "invalid/unexpected message/response received");
 }
 
 void TransactionsScheduler::launchTransaction(
@@ -198,15 +199,6 @@ void TransactionsScheduler::processTransactionState(
         // So the [] operator must be used
         (*mTransactions)[transaction] = state;
 
-        if (transaction->transactionType() == BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType) {
-            cout << "FromInitiatorToContractorRoutingTablesAcceptTransaction process state" << endl;
-            cout << "Awakening timestamp in micros -> " << (*mTransactions)[transaction]->awakeningTimestamp() << endl;
-            cout << "Waiting for such messages type as" << endl;
-            for (const auto &i : (*mTransactions)[transaction]->acceptedMessagesTypes()) {
-                cout << "-> " << i << endl;
-            }
-        }
-
     } else {
         forgetTransaction(transaction);
     }
@@ -290,89 +282,24 @@ pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transact
     throw NotFoundError(
         "TransactionsScheduler::transactionWithMinimalAwakeningTimestamp: "
             "there are no any delayed transactions.");
-
-//    if (mTransactions->size() == 1) {
-//        return make_pair(
-//            mTransactions->cbegin()->first,
-//            mTransactions->cbegin()->second->awakeningTimestamp()
-//        );
-
-//    } else {
-//        GEOEpochTimestamp awakeningTimestamp = 0;
-//        for (auto transactionAndState = (mTransactions->cbegin()++); transactionAndState != mTransactions->cend(); ++transactionAndState) {
-//            if (transactionAndState->second == nullptr) {
-//                continue;
-
-//            }
-//            awakeningTimestamp = transactionAndState->second->awakeningTimestamp();
-//            break;
-//        }
-
-//        if (awakeningTimestamp == 0) {
-//            throw NotFoundError(
-//                "TransactionsScheduler::transactionWithMinimalAwakeningTimestamp: "
-//                    "There is no acceptable awakening timestamp.");
-//        }
-
-//        for (auto transactionAndState = (mTransactions->cbegin()++); transactionAndState != mTransactions->cend(); ++transactionAndState) {
-//            if (transactionAndState->second == nullptr) {
-//                continue;
-//            }
-
-//            if (transactionAndState->second->awakeningTimestamp() < awakeningTimestamp) {
-//                awakeningTimestamp = transactionAndState->second->awakeningTimestamp();
-//            }
-
-//            return make_pair(
-//              transactionAndState->first,
-//              awakeningTimestamp
-//            );
-//        }
-//    }
-//
-//    throw NotFoundError(
-//        "TransactionsScheduler::transactionWithMinimalAwakeningTimestamp: "
-//            "There is no acceptable awakening timestamp.");
 }
 
 void TransactionsScheduler::asyncWaitUntil(
     GEOEpochTimestamp nextAwakeningTimestamp) {
 
-
     GEOEpochTimestamp microsecondsDelay = 0;
     GEOEpochTimestamp now = microsecondsSinceGEOEpoch(utc_now());
     if (nextAwakeningTimestamp > now) {
         // NOTE: "now" is used twice:
-        //in comparison and in delay calculation.
+        // in comparison and in delay calculation.
         //
         // It is important to use THE SAME timestamp in comparison and subtraction,
         // so it must not be replaced with 2 calls to microsecondsSinceGEOEpoch(utc_now())
         microsecondsDelay = nextAwakeningTimestamp - now;
     }
 
-    cout << microsecondsSinceGEOEpoch(utc_now()) << ": ASYNC WAIT \t\t" << nextAwakeningTimestamp << endl;
-
-
-
-//    mProcessingTimer->cancel();
-
-
     mProcessingTimer->expires_from_now(
         chrono::microseconds(microsecondsDelay));
-
-//    if (microsecondsDelay > 18000000) {
-//        cout << "SLEEP FOR HARDCODED 10 SECONDS" << endl;
-//        mProcessingTimer->expires_from_now(
-//            pt::seconds(10)
-//        );
-//    } else {
-//        mProcessingTimer->expires_from_now(
-//            pt::microsec(microsecondsDelay)
-//        );
-//    }
-
-//    mProcessingTimer->wait();
-//    handleAwakening(0);
 
     mProcessingTimer->async_wait(
         boost::bind(
@@ -387,7 +314,6 @@ void TransactionsScheduler::handleAwakening(
     static auto errorsCount = 0;
 
     if (error && error == as::error::operation_aborted) {
-        cout << microsecondsSinceGEOEpoch(utc_now()) << ": AWAKENED AT \t\t" << microsecondsSinceGEOEpoch(utc_now()) << " BUT OPERATION WAS CANCELLED" << endl;
         return;
     }
 
@@ -419,8 +345,6 @@ void TransactionsScheduler::handleAwakening(
     }
 
     try {
-        cout << microsecondsSinceGEOEpoch(utc_now()) << ": AWAKENED AT \t\t" << microsecondsSinceGEOEpoch(utc_now()) << endl;
-
         auto transactionAndDelay = transactionWithMinimalAwakeningTimestamp();
         if (microsecondsSinceGEOEpoch(utc_now()) >= transactionAndDelay.second) {
             launchTransaction(transactionAndDelay.first);
@@ -434,12 +358,6 @@ void TransactionsScheduler::handleAwakening(
         // Awakenings cycle reached the end.
         return;
     }
-}
-
-bool TransactionsScheduler::isTransactionScheduled(
-    BaseTransaction::Shared transaction) {
-
-    return mTransactions->count(transaction) != 0;
 }
 
 const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(

@@ -39,9 +39,9 @@
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
 #include "../transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablePropagationTransaction.h"
 #include "../transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
+#include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
-#include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationFromTargetTransaction.h"
@@ -84,12 +84,8 @@ public:
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
-public:
-    //  Cycles Transactions
-    void launchGetTopologyAndBalancesTransaction();
-    void launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message);
-
 private:
+    // Transactions from storage
     void loadTransactions();
 
     // Trust line transactions
@@ -102,9 +98,6 @@ private:
     void launchCloseTrustLineTransaction(
         CloseTrustLineCommand::Shared command);
 
-    void launchInitiateMaxFlowCalculatingTransaction(
-        InitiateMaxFlowCalculationCommand::Shared command);
-
     void launchAcceptTrustLineTransaction(
         AcceptTrustLineMessage::Shared message);
 
@@ -113,6 +106,14 @@ private:
 
     void launchRejectTrustLineTransaction(
         RejectTrustLineMessage::Shared message);
+
+    // Routing tables transactions
+    void launchAcceptFromInitiatorToContractorRoutingTablesTransaction(
+        FirstLevelRoutingTableIncomingMessage::Shared message);
+
+    // Max flow transactions
+    void launchInitiateMaxFlowCalculatingTransaction(
+        InitiateMaxFlowCalculationCommand::Shared command);
 
     void launchReceiveMaxFlowCalculationTransaction(
         ReceiveMaxFlowCalculationOnTargetMessage::Shared message);
@@ -135,7 +136,6 @@ private:
     void launchMaxFlowCalculationTargetSndLevelTransaction(
         MaxFlowCalculationTargetSndLevelInMessage::Shared message);
 
-private:
     // Payment transactions
     void launchCoordinatorPaymentTransaction(
         CreditUsageCommand::Shared command);
@@ -143,10 +143,12 @@ private:
     void launchReceiverPaymentTransaction(
         ReceiverInitPaymentMessage::Shared message);
 
-    void launchAcceptFromInitiatorToContractorRoutingTablesTransaction(
-        FirstLevelRoutingTableIncomingMessage::Shared message);
+    // Topology transactions
+    void launchGetTopologyAndBalancesTransaction();
 
-private:
+    void launchGetTopologyAndBalancesTransaction(
+        InBetweenNodeTopologyMessage::Shared message);
+
     // Signals connection to manager's slots
     void subscribeForOutgoingMessages(
         BaseTransaction::SendMessageSignal &signal);

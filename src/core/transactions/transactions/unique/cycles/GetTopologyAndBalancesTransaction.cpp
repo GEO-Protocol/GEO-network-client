@@ -1,8 +1,8 @@
 #include "GetTopologyAndBalancesTransaction.h"
 #include "../../base/UniqueTransaction.cpp"
 
-GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(TransactionType type,
-                                                                     NodeUUID &nodeUUID,
+GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(const TransactionType type,
+                                                                     const NodeUUID &nodeUUID,
                                                                      TransactionsScheduler *scheduler,
                                                                      TrustLinesManager *manager,
                                                                      Logger *logger
@@ -14,8 +14,8 @@ GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(Transaction
 
 };
 
-GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(TransactionType type,
-                                                                     NodeUUID &nodeUUID,
+GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(const TransactionType type,
+                                                                     const NodeUUID &nodeUUID,
                                                                      InBetweenNodeTopologyMessage::Shared message,
                                                                      TransactionsScheduler *scheduler,
                                                                      TrustLinesManager *manager, Logger *logger)
@@ -25,8 +25,8 @@ GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(Transaction
           mlogger(logger){
 }
 
-GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(TransactionType type,
-                                                                     NodeUUID &nodeUUID,
+GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(const TransactionType type,
+                                                                     const NodeUUID &nodeUUID,
                                                                      BoundaryNodeTopologyMessage::Shared message,
                                                                      TransactionsScheduler *scheduler,
                                                                      TrustLinesManager *manager, Logger *logger)
@@ -37,7 +37,7 @@ GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(Transaction
 }
 
 GetTopologyAndBalancesTransaction::GetTopologyAndBalancesTransaction(TransactionsScheduler *scheduler)
-        : UniqueTransaction(scheduler) {
+        : UniqueTransaction(BaseTransaction::TransactionType::GetTopologyAndBalancesTransaction, scheduler) {
 
 }
 

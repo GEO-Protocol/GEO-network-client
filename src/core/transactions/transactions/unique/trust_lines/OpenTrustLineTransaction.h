@@ -13,7 +13,6 @@
 #include "../../../../network/messages/outgoing/trust_lines/OpenTrustLineMessage.h"
 #include "../../../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 
-#include "../../../scheduler/TransactionsScheduler.h"
 #include "AcceptTrustLineTransaction.h"
 #include "SetTrustLineTransaction.h"
 #include "CloseTrustLineTransaction.h"
@@ -34,14 +33,12 @@ public:
 
 public:
     OpenTrustLineTransaction(
-        NodeUUID &nodeUUID,
+        const NodeUUID &nodeUUID,
         OpenTrustLineCommand::Shared command,
-        TransactionsScheduler *scheduler,
         TrustLinesManager *manager);
 
     OpenTrustLineTransaction(
         BytesShared buffer,
-        TransactionsScheduler *scheduler,
         TrustLinesManager *manager);
 
     OpenTrustLineCommand::Shared command() const;

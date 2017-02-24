@@ -19,7 +19,7 @@ public:
 
 public:
     ReceiveMaxFlowCalculationOnTargetTransaction(
-            NodeUUID &nodeUUID,
+            const NodeUUID &nodeUUID,
             ReceiveMaxFlowCalculationOnTargetMessage::Shared message,
             TrustLinesManager *manager,
             Logger *logger);

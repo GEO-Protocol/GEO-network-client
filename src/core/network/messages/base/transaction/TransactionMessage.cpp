@@ -9,6 +9,11 @@ TransactionMessage::TransactionMessage(
     SenderMessage(senderUUID),
     mTransactionUUID(transactionUUID) {}
 
+const bool TransactionMessage::isTransactionMessage() const {
+
+    return true;
+}
+
 const TransactionUUID &TransactionMessage::transactionUUID() const {
 
     return mTransactionUUID;

@@ -74,7 +74,7 @@ public:
 
 public:
     CoordinatorPaymentTransaction(
-        NodeUUID &currentNodeUUID,
+        const NodeUUID &currentNodeUUID,
         CreditUsageCommand::Shared command,
         TrustLinesManager *trustLines,
         Logger *log);

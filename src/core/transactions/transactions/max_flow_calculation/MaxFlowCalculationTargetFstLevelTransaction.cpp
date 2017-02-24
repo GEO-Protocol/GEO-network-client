@@ -5,14 +5,15 @@
 #include "MaxFlowCalculationTargetFstLevelTransaction.h"
 
 MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTransaction(
-    NodeUUID &nodeUUID,
+    const NodeUUID &nodeUUID,
     MaxFlowCalculationTargetFstLevelInMessage::Shared message,
     TrustLinesManager *manager,
     Logger *logger) :
 
     MaxFlowCalculationTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationTargetFstLevelTransactionType,
-        nodeUUID),
+        nodeUUID
+    ),
     mMessage(message),
     mTrustLinesManager(manager),
     mLog(logger){}
@@ -21,6 +22,9 @@ MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTra
     BytesShared buffer,
     TrustLinesManager *manager) :
 
+    MaxFlowCalculationTransaction(
+        BaseTransaction::TransactionType::MaxFlowCalculationTargetFstLevelTransactionType
+    ),
     mTrustLinesManager(manager){
 
     deserializeFromBytes(buffer);

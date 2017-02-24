@@ -1,22 +1,20 @@
 #include "TrustLineTransaction.h"
 
 TrustLineTransaction::TrustLineTransaction(
-    BaseTransaction::TransactionType type,
-    NodeUUID &nodeUUID,
-    TransactionsScheduler *scheduler) :
+    const BaseTransaction::TransactionType type,
+    const NodeUUID &nodeUUID) :
 
-    UniqueTransaction(
+    BaseTransaction(
         type,
-        nodeUUID,
-        scheduler) {
+        nodeUUID) {
 
     setExpectationResponsesCounter(kResponsesCount);
 }
 
 TrustLineTransaction::TrustLineTransaction(
-    TransactionsScheduler *scheduler) :
+    const BaseTransaction::TransactionType type) :
 
-    UniqueTransaction(scheduler) {
+    BaseTransaction(type) {
 
     setExpectationResponsesCounter(kResponsesCount);
 }
@@ -37,6 +35,7 @@ pair<BytesShared, size_t> TrustLineTransaction::serializeToBytes() const {
 
     size_t bytesCount = parentBytesAndCount.second +
                         sizeof(uint16_t);
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------

@@ -1,26 +1,22 @@
 #include "FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
 
 FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContractorRoutingTablesAcceptTransaction(
-    NodeUUID &nodeUUID,
-    FirstLevelRoutingTableIncomingMessage::Shared message,
-    TransactionsScheduler *scheduler) :
+    const NodeUUID &nodeUUID,
+    FirstLevelRoutingTableIncomingMessage::Shared message) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
         nodeUUID,
-        const_cast<NodeUUID&> (message->senderUUID()),
-        scheduler
+        message->senderUUID()
     ),
-
     mFirstLevelMessage(message) {}
 
 FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContractorRoutingTablesAcceptTransaction(
-    BytesShared buffer,
-    TransactionsScheduler *scheduler) :
+    BytesShared buffer) :
 
     RoutingTablesTransaction(
-        buffer,
-        scheduler) {}
+        BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
+        buffer) {}
 
 FirstLevelRoutingTableIncomingMessage::Shared FromInitiatorToContractorRoutingTablesAcceptTransaction::message() const {
 
@@ -28,22 +24,6 @@ FirstLevelRoutingTableIncomingMessage::Shared FromInitiatorToContractorRoutingTa
 }
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::run() {
-
-    cout << "FromInitiatorToContractorRoutingTablesAcceptTransaction" << endl;
-    cout << "Waking up now -> " << microsecondsSinceGEOEpoch(utc_now()) << endl;
-    if (!mContext.empty()) {
-        cout << "Waking up from incoming message" << endl;
-    } else {
-        cout << "Waking up from scheduler" << endl;
-    }
-
-    if (!isUniqueWasChecked) {
-        auto flagAndTransactionUUID = isTransactionToContractorUnique();
-        if (!flagAndTransactionUUID.first) {
-            killTransaction(flagAndTransactionUUID.second);
-        }
-        isUniqueWasChecked = true;
-    }
 
     switch (mStep) {
 
@@ -67,65 +47,6 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
         }
 
     }
-}
-
-pair<bool, const TransactionUUID> FromInitiatorToContractorRoutingTablesAcceptTransaction::isTransactionToContractorUnique() {
-
-    auto transactions = pendingTransactions();
-    for (auto const &transactionsAndState : *transactions) {
-
-        auto transaction = transactionsAndState.first;
-
-        switch (transaction->transactionType()) {
-
-            case BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType: {
-
-                FromInitiatorToContractorRoutingTablePropagationTransaction::Shared propagationRoutingTableTransaction = static_pointer_cast<FromInitiatorToContractorRoutingTablePropagationTransaction>(transaction);
-                if (mTransactionUUID != propagationRoutingTableTransaction->UUID()) {
-                    continue;
-                }
-
-                if (mContractorUUID == propagationRoutingTableTransaction->contractorUUID()) {
-                    continue;
-                }
-
-                return make_pair(
-                    false,
-                    transaction->UUID()
-                );
-
-            }
-
-            case BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType: {
-
-                FromInitiatorToContractorRoutingTablesAcceptTransaction::Shared acceptRoutingTableTransaction = static_pointer_cast<FromInitiatorToContractorRoutingTablesAcceptTransaction>(transaction);
-                if (mTransactionUUID != acceptRoutingTableTransaction->UUID()) {
-                    continue;
-                }
-
-                if (mContractorUUID == acceptRoutingTableTransaction->contractorUUID()) {
-                    continue;
-                }
-
-                return make_pair(
-                    false,
-                    transaction->UUID()
-                );
-
-            }
-
-            default: {
-                break;
-            }
-
-        }
-
-    }
-
-    return make_pair(
-        true,
-        TransactionUUID()
-    );
 }
 
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRoutingTable() {

@@ -18,7 +18,7 @@ public:
 
 public:
     MaxFlowCalculationTargetFstLevelTransaction(
-        NodeUUID &nodeUUID,
+        const NodeUUID &nodeUUID,
         MaxFlowCalculationTargetFstLevelInMessage::Shared message,
         TrustLinesManager *manager,
         Logger *logger);

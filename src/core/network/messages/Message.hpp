@@ -84,14 +84,22 @@ public:
 
         return false;
     }
+
+    virtual const bool isRoutingTableMessage() const {
+
+        return false;
+    }
+
     virtual const bool isRoutingTableResponseMessage() const {
 
         return false;
     }
+
     virtual const bool isMaxFlowCalculationResponseMessage() const {
 
         return false;
     }
+
     virtual const bool isCyclesDiscoveringResponseMessage() const {
 
         return false;

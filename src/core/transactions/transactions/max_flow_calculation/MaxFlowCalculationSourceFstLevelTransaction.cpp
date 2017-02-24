@@ -1,27 +1,27 @@
-//
-// Created by mc on 16.02.17.
-//
-
 #include "MaxFlowCalculationSourceFstLevelTransaction.h"
 
 MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTransaction(
-    NodeUUID &nodeUUID,
+    const NodeUUID &nodeUUID,
     MaxFlowCalculationSourceFstLevelInMessage::Shared message,
-    TrustLinesManager *manager,
+    TrustLinesManager *trustLinesManager,
     Logger *logger) :
 
     MaxFlowCalculationTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationSourceFstLevelTransactionType,
-        nodeUUID),
+        nodeUUID
+    ),
     mMessage(message),
-    mTrustLinesManager(manager),
+    mTrustLinesManager(trustLinesManager),
     mLog(logger){}
 
 MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTransaction(
     BytesShared buffer,
-    TrustLinesManager *manager) :
+    TrustLinesManager *trustLinesManager) :
 
-    mTrustLinesManager(manager){
+    MaxFlowCalculationTransaction(
+        BaseTransaction::TransactionType::MaxFlowCalculationSourceFstLevelTransactionType
+    ),
+    mTrustLinesManager(trustLinesManager){
 
     deserializeFromBytes(buffer);
 }
