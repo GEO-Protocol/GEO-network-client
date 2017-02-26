@@ -1,7 +1,3 @@
-//
-// Created by mc on 17.02.17.
-//
-
 #ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTARGETFSTLEVELOUTMESSAGE_H
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTARGETFSTLEVELOUTMESSAGE_H
 
@@ -14,7 +10,8 @@ public:
 
 public:
     MaxFlowCalculationTargetFstLevelOutMessage(
-        NodeUUID &targetUUID);
+        const NodeUUID& senderUUID,
+        const NodeUUID& targetUUID);
 
     const MessageType typeID() const;
 

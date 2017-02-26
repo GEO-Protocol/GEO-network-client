@@ -1,7 +1,3 @@
-//
-// Created by mc on 14.02.17.
-//
-
 #ifndef GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONMESSAGE_H
 #define GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONMESSAGE_H
 
@@ -15,7 +11,8 @@ public:
 
 public:
     InitiateMaxFlowCalculationMessage(
-            NodeUUID &targetUUID);
+        const NodeUUID& senderUUID,
+        const NodeUUID& targetUUID);
 
     const MessageType typeID() const;
 

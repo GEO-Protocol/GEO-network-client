@@ -90,6 +90,7 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
             continue;
         }
         Message *message = new MaxFlowCalculationSourceFstLevelOutMessage(
+            mNodeUUID,
             targetUUID);
 
         mLog->logInfo("MaxFlowCalculationSourceFstLevelTransaction->sendFirst", ((NodeUUID)it).stringUUID());

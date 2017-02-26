@@ -8,7 +8,7 @@
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../network/messages/incoming/max_flow_calculation/MaxFlowCalculationSourceSndLevelInMessage.h"
-#include "../../../network/messages/outgoing/max_flow_calculation/SendResultMaxFlowCalculationFromSourceMessage.h"
+#include "../../../network/messages/outgoing/max_flow_calculation/SendResultMaxFlowCalculationMessage.h"
 #include "../../scheduler/TransactionsScheduler.h"
 
 class MaxFlowCalculationSourceSndLevelTransaction : public BaseTransaction {

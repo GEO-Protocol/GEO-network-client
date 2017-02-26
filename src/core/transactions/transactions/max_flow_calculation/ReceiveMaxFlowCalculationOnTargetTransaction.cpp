@@ -88,10 +88,17 @@ TransactionResult::SharedConst ReceiveMaxFlowCalculationOnTargetTransaction::run
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator() {
 
-    map<NodeUUID, TrustLineAmount> incomingFlows = mTrustLinesManager->getIncomingFlows();
-    Message *message = new SendResultMaxFlowCalculationFromTargetMessage(
-            mNodeUUID,
-            incomingFlows);
+    map<NodeUUID, TrustLineAmount> outgoingFlows;
+    map<NodeUUID, TrustLineAmount> incomingFlows;
+    for (auto const &it : mTrustLinesManager->getIncomingFlows()) {
+        // todo if
+        incomingFlows.insert(it);
+    }
+
+    Message *message = new SendResultMaxFlowCalculationMessage(
+        mNodeUUID,
+        outgoingFlows,
+        incomingFlows);
 
     addMessage(
             Message::Shared(message),
@@ -107,6 +114,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel() {
     for (auto const &it : incomingFlowUuids) {
         NodeUUID targetUUID = mMessage->targetUUID();
         Message *message = new SendMaxFlowCalculationTargetFstLevelMessage(
+            mNodeUUID,
             targetUUID);
 
         mLog->logInfo("ReceiveMaxFlowCalculationOnTargetTransaction->sendFirst", ((NodeUUID)it).stringUUID());

@@ -52,12 +52,11 @@ public:
         // Max flow calculation
         InitiateMaxFlowCalculationTransactionType,
         ReceiveMaxFlowCalculationOnTargetTransactionType,
-        ReceiveResultMaxFlowCalculationFromTargetTransactionType,
         MaxFlowCalculationSourceFstLevelTransactionType,
         MaxFlowCalculationTargetFstLevelTransactionType,
         MaxFlowCalculationSourceSndLevelTransactionType,
         MaxFlowCalculationTargetSndLevelTransactionType,
-        ReceiveResultMaxFlowCalculationFromSourceTransactionType
+        ReceiveResultMaxFlowCalculationTransactionType
     };
 
 public:

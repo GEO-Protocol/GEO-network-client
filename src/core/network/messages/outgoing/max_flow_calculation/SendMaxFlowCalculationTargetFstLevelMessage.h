@@ -1,7 +1,3 @@
-//
-// Created by mc on 16.02.17.
-//
-
 #ifndef GEO_NETWORK_CLIENT_SENDMAXFLOWCALCULATIONTARGETFSTLEVELMESSAGE_H
 #define GEO_NETWORK_CLIENT_SENDMAXFLOWCALCULATIONTARGETFSTLEVELMESSAGE_H
 
@@ -14,7 +10,8 @@ public:
 
 public:
     SendMaxFlowCalculationTargetFstLevelMessage(
-        NodeUUID &targetUUID);
+        const NodeUUID& senderUUID,
+        const NodeUUID& targetUUID);
 
     const MessageType typeID() const;
 

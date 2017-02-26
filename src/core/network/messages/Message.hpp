@@ -40,8 +40,6 @@ public:
         OperationStateMessageType,
         InitiateMaxFlowCalculationMessageType,
         ReceiveMaxFlowCalculationOnTargetMessageType,
-        ResultMaxFlowCalculationFromTargetMessageType,
-        SendResultMaxFlowCalculationFromTargetMessageType,
         SendMaxFlowCalculationSourceFstLevelMessageType,
         MaxFlowCalculationSourceFstLevelInMessageType,
         SendMaxFlowCalculationTargetFstLevelMessageType,
@@ -50,8 +48,8 @@ public:
         MaxFlowCalculationSourceSndLevelInMessageType,
         MaxFlowCalculationTargetFstLevelOutMessageType,
         MaxFlowCalculationTargetSndLevelInMessageType,
-        SendResultMaxFlowCalculationFromSourceMessageType,
-        ResultMaxFlowCalculationFromSourceMessageType,
+        SendResultMaxFlowCalculationMessageType,
+        ResultMaxFlowCalculationMessageType,
 
         ResponseMessageType = 1000,
         RoutingTablesResponseMessageType

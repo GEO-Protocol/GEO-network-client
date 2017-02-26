@@ -84,6 +84,7 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
     NodeUUID targetUUID = mMessage->targetUUID();
     for (auto const &it : incomingFlowUuids) {
         Message *message = new MaxFlowCalculationTargetFstLevelOutMessage(
+            mNodeUUID,
             targetUUID);
 
         mLog->logInfo("MaxFlowCalculationTargetFstLevelTransaction->sendFirst", ((NodeUUID)it).stringUUID());

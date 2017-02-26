@@ -1,11 +1,12 @@
 #include "MaxFlowCalculationMessage.h"
 
-MaxFlowCalculationMessage::MaxFlowCalculationMessage() {}
+MaxFlowCalculationMessage::MaxFlowCalculationMessage() : SenderMessage() {}
 
 MaxFlowCalculationMessage::MaxFlowCalculationMessage(
-    const NodeUUID &targetUUID) :
+    const NodeUUID& senderUUID,
+    const NodeUUID& targetUUID) :
 
-    Message(),
+    SenderMessage(senderUUID),
 
     mTargetUUID(targetUUID){}
 
@@ -16,17 +17,17 @@ const NodeUUID &MaxFlowCalculationMessage::targetUUID() const {
 
 pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() {
 
-    size_t bytesCount = sizeof(MessageType) + NodeUUID::kBytesSize;
+    auto parentBytesAndCount = SenderMessage::serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize;
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
-    MessageType type = typeID();
     memcpy(
         dataBytesShared.get(),
-        &type,
-        sizeof(MessageType));
-    dataBytesOffset += sizeof(MessageType);
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second);
+    dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
@@ -41,9 +42,8 @@ pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() {
 void MaxFlowCalculationMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    size_t bytesBufferOffset = 0;
-    MessageType *messageType = new (buffer.get()) MessageType;
-    bytesBufferOffset += sizeof(MessageType);
+    SenderMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(
         mTargetUUID.data,

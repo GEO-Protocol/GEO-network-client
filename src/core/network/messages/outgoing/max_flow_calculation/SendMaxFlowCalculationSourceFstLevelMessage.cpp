@@ -5,9 +5,10 @@
 #include "SendMaxFlowCalculationSourceFstLevelMessage.h"
 
 SendMaxFlowCalculationSourceFstLevelMessage::SendMaxFlowCalculationSourceFstLevelMessage(
-    NodeUUID &targetUUID) :
+    const NodeUUID& senderUUID,
+    const NodeUUID& targetUUID) :
 
-    MaxFlowCalculationMessage(targetUUID) {};
+    MaxFlowCalculationMessage(senderUUID, targetUUID) {};
 
 const Message::MessageType SendMaxFlowCalculationSourceFstLevelMessage::typeID() const {
 

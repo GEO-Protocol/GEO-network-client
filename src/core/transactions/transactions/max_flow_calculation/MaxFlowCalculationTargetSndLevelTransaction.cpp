@@ -92,15 +92,25 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
     mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendResult",
                   "IncomingFlows: " + to_string(mTrustLinesManager->getIncomingFlows().size()));
 
-    map<NodeUUID, TrustLineAmount> incomingFlows = mTrustLinesManager->getIncomingFlows();
+    map<NodeUUID, TrustLineAmount> outgoingFlows;
+    for (auto const &it : mTrustLinesManager->getOutgoingFlows()) {
+        // todo if
+        outgoingFlows.insert(it);
+    }
+    map<NodeUUID, TrustLineAmount> incomingFlows;
+    for (auto const &it : mTrustLinesManager->getIncomingFlows()) {
+        // todo if
+        incomingFlows.insert(it);
+    }
 
     for (auto const &it : incomingFlows) {
         TrustLineAmount trustLineAmount = it.second;
         mLog->logInfo("MaxFlowCalculationSourceSndLevelTransaction::sendResult", it.first.stringUUID());
     }
 
-    Message *message = new SendResultMaxFlowCalculationFromTargetMessage(
+    Message *message = new SendResultMaxFlowCalculationMessage(
         mNodeUUID,
+        outgoingFlows,
         incomingFlows);
 
     addMessage(

@@ -122,20 +122,11 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
-        case Message::SendResultMaxFlowCalculationFromTargetMessageType: {
+        case Message::SendResultMaxFlowCalculationMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<ResultMaxFlowCalculationFromTargetMessage>(messagePart)
-                )
-            );
-        }
-
-        case Message::SendResultMaxFlowCalculationFromSourceMessageType: {
-            return make_pair(
-                true,
-                static_pointer_cast<Message>(
-                    make_shared<ResultMaxFlowCalculationFromSourceMessage>(messagePart)
+                    make_shared<ResultMaxFlowCalculationMessage>(messagePart)
                 )
             );
         }

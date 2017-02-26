@@ -44,12 +44,11 @@
 #include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
-#include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationFromTargetTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationSourceFstLevelTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetFstLevelTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationSourceSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.h"
-#include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationFromSourceTransaction.h"
+#include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -117,11 +116,8 @@ private:
     void launchReceiveMaxFlowCalculationTransaction(
         ReceiveMaxFlowCalculationOnTargetMessage::Shared message);
 
-    void launchReceiveResultMaxFlowCalculationFromTargetTransaction(
-        ResultMaxFlowCalculationFromTargetMessage::Shared message);
-
     void launchReceiveResultMaxFlowCalculationFromSourceTransaction(
-        ResultMaxFlowCalculationFromSourceMessage::Shared message);
+        ResultMaxFlowCalculationMessage::Shared message);
 
     void launchMaxFlowCalculationSourceFstLevelTransaction(
         MaxFlowCalculationSourceFstLevelInMessage::Shared message);

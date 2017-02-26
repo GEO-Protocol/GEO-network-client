@@ -5,9 +5,10 @@
 #include "MaxFlowCalculationTargetFstLevelOutMessage.h"
 
 MaxFlowCalculationTargetFstLevelOutMessage::MaxFlowCalculationTargetFstLevelOutMessage(
-    NodeUUID &targetUUID) :
+    const NodeUUID& senderUUID,
+    const NodeUUID& targetUUID) :
 
-    MaxFlowCalculationMessage(targetUUID) {};
+    MaxFlowCalculationMessage(senderUUID, targetUUID) {};
 
 const Message::MessageType MaxFlowCalculationTargetFstLevelOutMessage::typeID() const {
 
