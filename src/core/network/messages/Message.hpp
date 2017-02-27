@@ -107,13 +107,38 @@ public:
 
     virtual const MessageType typeID() const = 0;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() = 0;
+    virtual pair<BytesShared, size_t> serializeToBytes() {
+
+        size_t bytesCount = sizeof(MessageType);
+        BytesShared bytesBuffer = tryCalloc(bytesCount);
+        //----------------------------------------------------
+        MessageType type = typeID();
+        memcpy(
+            bytesBuffer,
+            &type,
+            sizeof(MessageType)
+        );
+        //----------------------------------------------------
+        return make_pair(
+            bytesBuffer,
+            bytesCount
+        );
+    }
 
 protected:
     Message() {};
 
     virtual void deserializeFromBytes(
-        BytesShared buffer) = 0;
+        BytesShared buffer) {
+
+        MessageType *type = new (buffer) MessageType;
+    }
+
+    static const size_t kOffsetToInheritedBytes() {
+
+        static const size_t offset = sizeof(MessageType);
+        return offset;
+    }
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H

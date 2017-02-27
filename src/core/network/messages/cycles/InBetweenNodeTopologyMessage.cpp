@@ -42,14 +42,12 @@ vector<NodeUUID> InBetweenNodeTopologyMessage::getPath() {
 
 pair<BytesShared, size_t> InBetweenNodeTopologyMessage::serializeToBytes() {
 
-    //TODO:: (D.V.) How can you call Message's method serializeToBytes() if you don't set him field-members ??!!
-    //TODO:: But now this is doesn't matter. Messages hierarchy has changed. I will comment this part of code.
-
-    //auto parentBytesAndCount = Message::serializeToBytes();
+    auto parentBytesAndCount = Message::serializeToBytes();
 
     vector<byte> MaxFlowBuffer = trustLineBalanceToBytes(mMaxFlow);
 
-    size_t bytesCount = MaxFlowBuffer.size()
+    size_t bytesCount = parentBytesAndCount.second
+                        + MaxFlowBuffer.size()
                         + sizeof(mMaxDepth)
                         + sizeof(mNodesInPath)
                         + mNodesInPath * NodeUUID::kBytesSize;
@@ -59,12 +57,12 @@ pair<BytesShared, size_t> InBetweenNodeTopologyMessage::serializeToBytes() {
 
     // for parent node
     //----------------------------------------------------
-    /*memcpy(
+    memcpy(
             dataBytesShared.get(),
             parentBytesAndCount.first.get(),
             parentBytesAndCount.second
     );
-    dataBytesOffset += parentBytesAndCount.second;*/
+    dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     // for max flow
     memcpy(
