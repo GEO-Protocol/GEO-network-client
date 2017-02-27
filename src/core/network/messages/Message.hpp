@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_MESSAGE_H
 
 #include "../../common/Types.h"
+#include "../../common/memory/MemoryUtils.h"
 
 #include "../../common/exceptions/Exception.h"
 
@@ -110,11 +111,11 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() {
 
         size_t bytesCount = sizeof(MessageType);
-        BytesShared bytesBuffer = tryCalloc(bytesCount);
+        BytesShared bytesBuffer = tryMalloc(bytesCount);
         //----------------------------------------------------
         MessageType type = typeID();
         memcpy(
-            bytesBuffer,
+            bytesBuffer.get(),
             &type,
             sizeof(MessageType)
         );
@@ -129,7 +130,7 @@ protected:
     virtual void deserializeFromBytes(
         BytesShared buffer) {
 
-        MessageType *type = new (buffer) MessageType;
+        MessageType *type = new (buffer.get()) MessageType;
     }
 
     static const size_t kOffsetToInheritedBytes() {

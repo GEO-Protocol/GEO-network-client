@@ -26,7 +26,7 @@ pair<BytesShared, size_t> SenderMessage::serializeToBytes() {
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get(),
-        parentBytesAndCount.first,
+        parentBytesAndCount.first.get(),
         parentBytesAndCount.second
     );
     dataBytesOffset += parentBytesAndCount.second;

@@ -1,17 +1,17 @@
 #ifndef GEO_NETWORK_CLIENT_FROMCONTRACTORTOFIRSTLEVELROUTINGTABLEACCEPTTRANSACTION_H
 #define GEO_NETWORK_CLIENT_FROMCONTRACTORTOFIRSTLEVELROUTINGTABLEACCEPTTRANSACTION_H
 
-#include "RoutingTablesTransaction.h"
+#include "../RoutingTablesTransaction.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/NodeUUID.h"
+#include "../../../../../common/Types.h"
+#include "../../../../../common/NodeUUID.h"
 
-#include "../../../../network/messages/Message.hpp"
-#include "../../../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
-#include "../../../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
-#include "../../../../network/messages/response/RoutingTablesResponse.h"
+#include "../../../../../network/messages/Message.hpp"
+#include "../../../../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
+#include "../../../../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
+#include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
-#include "../../../../common/exceptions/ConflictError.h"
+#include "../../../../../common/exceptions/ConflictError.h"
 
 #include <stdint.h>
 #include <utility>
@@ -40,12 +40,11 @@ private:
     TransactionResult::SharedConst checkIncomingMessageForSecondLevelRoutingTable();
 
     void saveSecondLevelRoutingTable(
-        SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage
-    );
+        SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage);
 
     void sendResponseToContractor(
-        NodeUUID &contractorUUID,
-        uint16_t code);
+        const NodeUUID &contractorUUID,
+        const uint16_t code);
 
 private:
     FirstLevelRoutingTableIncomingMessage::Shared mFirstLevelMessage;

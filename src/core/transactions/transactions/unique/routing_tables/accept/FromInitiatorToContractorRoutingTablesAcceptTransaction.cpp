@@ -30,8 +30,8 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
         case RoutingTableLevelStepIdentifier::FirstLevelRoutingTableStep: {
             saveFirstLevelRoutingTable();
             sendResponseToContractor(
-                const_cast<NodeUUID&> (mFirstLevelMessage->senderUUID()),
-                200
+                mFirstLevelMessage->senderUUID(),
+                kResponseCodeSuccess
             );
             increaseStepsCounter();
             return waitingForSecondLevelRoutingTableState();
@@ -65,20 +65,11 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRout
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::waitingForSecondLevelRoutingTableState() {
 
-    auto state = TransactionState::waitForMessageTypes(
-        {Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType},
-        mConnectionTimeout
-    );
-
-    cout << "FromInitiatorToContractorRoutingTablesAcceptTransaction return state" << endl;
-    cout << "Awakening timestamp in micros -> " << state->awakeningTimestamp() << endl;
-    cout << "Waiting for such messages type as" << endl;
-    for (const auto &i : state->acceptedMessagesTypes()) {
-        cout << "-> " << i << endl;
-    }
-
     return transactionResultFromState(
-        state
+        TransactionState::waitForMessageTypes(
+            {Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType},
+            mConnectionTimeout
+        )
     );
 }
 
@@ -88,24 +79,27 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
         SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage;
 
         for (const auto& incomingMessage : mContext) {
+
             if (incomingMessage->typeID() == Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType) {
                 secondLevelMessage = static_pointer_cast<SecondLevelRoutingTableIncomingMessage>(incomingMessage);
             }
+
         }
 
         if (secondLevelMessage == nullptr) {
             throw ConflictError("FromInitiatorToContractorRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
                                     "Can not cast to SecondLevelRoutingTableIncomingMessage.");
         }
+
         saveSecondLevelRoutingTable(secondLevelMessage);
         sendResponseToContractor(
-            const_cast<NodeUUID&> (secondLevelMessage->senderUUID()),
-            200
+            secondLevelMessage->senderUUID(),
+            kResponseCodeSuccess
         );
+
         return finishTransaction();
 
     } else {
-
         throw ConflictError("FromInitiatorToContractorRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
                                 "There are no incoming messages.");
     }
@@ -127,8 +121,8 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveSecondLevelRou
 }
 
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::sendResponseToContractor(
-    NodeUUID &contractorUUID,
-    uint16_t code) {
+    const NodeUUID &contractorUUID,
+    const uint16_t code) {
 
     Message *message = new RoutingTablesResponse(
         mNodeUUID,

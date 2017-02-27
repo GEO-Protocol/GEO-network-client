@@ -33,7 +33,7 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablePropagation
         case RoutingTableLevelStepIdentifier::FirstLevelRoutingTableStep: {
             // Try send messages with information about link between nodes A and B (initiator and contractor).
             // If messages were sent to nodes of B1 level, transaction must wait for responses from nodes of B1 level.
-            // So returns result with state back to scheduler and he asleep current transaction.
+            // Returns result with state back to scheduler and he asleep current transaction.
             // After some time current transaction wake up and check if all responses was received.
             // Execution will be resume from step 'FirstLevelRoutingTableStep'.
             // If all responses was received, transaction continue execution from second step 'SecondLevelRoutingTableStep',
@@ -44,7 +44,7 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablePropagation
                 return initiatorAndContractorLinkPropagationResult;
 
 
-            } else if (initiatorAndContractorLinkPropagationResult->resultType() == TransactionResult::ResultType::MessageResultType) {
+            } else {
                 prepareToNextStep();
                 increaseStepsCounter();
             }
@@ -95,23 +95,11 @@ pair<bool, TransactionResult::SharedConst> FromContractorToFirstLevelRoutingTabl
         );
 
     } else {
-        // If some of the remote nodes are offline, wait for response some more time.
-        // But no more than 10 attempts.
-        // Between every attempt using less timeout than when try to wait for responses after sending.
-        if (mReWaitingAttemptsCount < kMaxReWaitingAttemptsCount) {
-            mReWaitingAttemptsCount += 1;
-            return make_pair(
-                false,
-                waitingForRoutingTablePropagationResponse(kReWaitingTimeout)
-            );
-
-        } else {
-            // If some of the remote nodes are still offline, returns false flag.
-            return make_pair(
-                false,
-                TransactionResult::Shared(nullptr)
-            );
-        }
+        // If some of the remote nodes are still offline, returns false flag.
+        return make_pair(
+            false,
+            TransactionResult::Shared(nullptr)
+        );
     }
 }
 
@@ -131,9 +119,11 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablePropagation
         } else {
             // If responses were not received completely - maybe need await some more time
             if (flagAndResult.second != nullptr) {
+
                 if (flagAndResult.second->resultType() == TransactionResult::ResultType::TransactionStateType) {
                     return flagAndResult.second;
                 }
+
             }
             // If transaction still can't collect all responses, try send message again.
             return trySendLinkBetweenInitiatorAndContractor();
@@ -156,9 +146,11 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablePropagation
 
     if (mRequestCounter < kMaxRequestsCount) {
         sendLinkBetweenInitiatorAndContractor();
+
         if (mRequestCounter > 0) {
             progressConnectionTimeout();
         }
+
         increaseRequestsCounter();
 
     } else {
@@ -175,6 +167,7 @@ void FromContractorToFirstLevelRoutingTablePropagation::sendLinkBetweenInitiator
     // Information about relationships with node A.
     vector<pair<const NodeUUID, const TrustLineDirection>> linkWithInitiator;
     linkWithInitiator.push_back(mLinkWithInitiator);
+
     firstLevelMessage->pushBack(
         mNodeUUID,
         linkWithInitiator
@@ -186,6 +179,7 @@ void FromContractorToFirstLevelRoutingTablePropagation::sendLinkBetweenInitiator
     // Node A is also at B1 level for node B. So excludes node A from receivers.
     // Node A is initiator, B is a contractor, so UUID of node A presents in 'mLinkWithInitiator'.
     for (const auto &contractorAndTrustLine : mTrustLinesManager->trustLines()) {
+
         if (contractorAndTrustLine.first == mLinkWithInitiator.first) {
             continue;
         }
@@ -202,15 +196,11 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablePropagation
 
     if (!mContext.empty()) {
         auto flagAndResult = checkContext();
+
         if (flagAndResult.first) {
             return flagAndResult.second;
 
         } else {
-            if (flagAndResult.second != nullptr) {
-                if (flagAndResult.second->resultType() == TransactionResult::ResultType::TransactionStateType) {
-                    return flagAndResult.second;
-                }
-            }
             return trySendSecondLevelRoutingTable();
         }
 
@@ -225,14 +215,17 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablePropagation
 
     if (mRequestCounter < kMaxRequestsCount) {
         sendSecondLevelRoutingTable();
+
         if (mRequestCounter > 0) {
             progressConnectionTimeout();
         }
+
         increaseRequestsCounter();
 
     } else {
         return finishTransaction();
     }
+
     return waitingForRoutingTablePropagationResponse(mConnectionTimeout);
 }
 
@@ -246,7 +239,6 @@ void FromContractorToFirstLevelRoutingTablePropagation::sendSecondLevelRoutingTa
     );
 
     Message::Shared message = dynamic_pointer_cast<Message>(secondLevelMessage);
-
 
     // Sending received second level routing table from initiator to nodes of B1 level.
     // Node A is also at B1 level for node B. So excludes node A from receivers.

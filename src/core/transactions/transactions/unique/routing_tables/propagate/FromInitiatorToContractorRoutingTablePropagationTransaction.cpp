@@ -98,6 +98,7 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
 
     if (!mContext.empty()) {
         auto flagAndResult = checkContext();
+
         if (flagAndResult.first) {
             return flagAndResult.second;
 
@@ -121,9 +122,11 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
 
     if (mRequestCounter < kMaxRequestsCount) {
         sendFirstLevelRoutingTable();
+
         if (mRequestCounter > 0) {
             progressConnectionTimeout();
         }
+
         increaseRequestsCounter();
 
     } else {
@@ -138,6 +141,7 @@ void FromInitiatorToContractorRoutingTablePropagationTransaction::sendFirstLevel
 
     vector<pair<const NodeUUID, const TrustLineDirection>> neighborsAndDirections;
     for (const auto &contractorAndTrustLine : mTrustLinesManager->trustLines()) {
+
         if (mContractorUUID == contractorAndTrustLine.first) {
             continue;
         }
@@ -148,6 +152,7 @@ void FromInitiatorToContractorRoutingTablePropagationTransaction::sendFirstLevel
                 mTrustLinesManager->trustLine(contractorAndTrustLine.first)->direction()
             )
         );
+
     }
 
     firstLevelMessage->pushBack(
@@ -166,6 +171,7 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
 
     if (!mContext.empty()) {
         auto flagAndResult = checkContext();
+
         if (flagAndResult.first) {
             return flagAndResult.second;
 
@@ -184,9 +190,11 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
 
     if (mRequestCounter < kMaxRequestsCount) {
         sendSecondLevelRoutingTable();
+
         if (mRequestCounter > 0) {
             progressConnectionTimeout();
         }
+
         increaseRequestsCounter();
 
     } else {

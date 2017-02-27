@@ -1,18 +1,18 @@
 #ifndef GEO_NETWORK_CLIENT_FROMCONTRACTORTOFIRSTLEVELROUTINGTABLEPROPAGATION_H
 #define GEO_NETWORK_CLIENT_FROMCONTRACTORTOFIRSTLEVELROUTINGTABLEPROPAGATION_H
 
-#include "RoutingTablesTransaction.h"
+#include "../RoutingTablesTransaction.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/NodeUUID.h"
+#include "../../../../../common/Types.h"
+#include "../../../../../common/NodeUUID.h"
 
-#include "../../../../network/messages/Message.hpp"
-#include "../../../../network/messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
-#include "../../../../network/messages/outgoing/routing_tables/SecondLevelRoutingTableOutgoingMessage.h"
-#include "../../../../network/messages/response/RoutingTablesResponse.h"
+#include "../../../../../network/messages/Message.hpp"
+#include "../../../../../network/messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
+#include "../../../../../network/messages/outgoing/routing_tables/SecondLevelRoutingTableOutgoingMessage.h"
+#include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
-#include "../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../common/exceptions/ConflictError.h"
+#include "../../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../../common/exceptions/ConflictError.h"
 
 #include <memory>
 #include <utility>
@@ -42,7 +42,7 @@ public:
 private:
     pair<bool, TransactionResult::SharedConst> checkContext();
 
-    //Relationships with initiator propagation to B1 level
+    // Relationships with initiator propagation to B1 level
     TransactionResult::SharedConst propagateRelationshipsBetweenInitiatorAndContractor();
 
     bool isContractorsCountEnoughForRoutingTablesPropagation();
@@ -51,26 +51,21 @@ private:
 
     void sendLinkBetweenInitiatorAndContractor();
 
-    //Propagation second level routing table received from initiator to B1 level
+    // Propagation second level routing table received from initiator to B1 level
     TransactionResult::SharedConst propagateSecondLevelRoutingTable();
 
     TransactionResult::SharedConst trySendSecondLevelRoutingTable();
 
     void sendSecondLevelRoutingTable();
 
-    //State for scheduler
+    // State for scheduler
     TransactionResult::SharedConst waitingForRoutingTablePropagationResponse(
         uint32_t connectionTimeout);
 
-    //Reset transaction instance's state
+    // Reset transaction instance's state
     void prepareToNextStep();
 
 private:
-    const uint32_t kReWaitingTimeout = 3000;
-    const uint8_t kMaxReWaitingAttemptsCount = 5;
-
-    uint8_t mReWaitingAttemptsCount = 0;
-
     pair<const NodeUUID, const TrustLineDirection> mLinkWithInitiator;
     vector<pair<const NodeUUID, const TrustLineDirection>> mSecondLevelRoutingTable;
     TrustLinesManager *mTrustLinesManager;

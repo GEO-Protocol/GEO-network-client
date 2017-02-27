@@ -1,20 +1,20 @@
 #ifndef GEO_NETWORK_CLIENT_PROPAGATIONROUTINGTABLESTRANSACTION_H
 #define GEO_NETWORK_CLIENT_PROPAGATIONROUTINGTABLESTRANSACTION_H
 
-#include "RoutingTablesTransaction.h"
+#include "../RoutingTablesTransaction.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/NodeUUID.h"
-#include "../../../../common/time/TimeUtils.h"
+#include "../../../../../common/Types.h"
+#include "../../../../../common/NodeUUID.h"
+#include "../../../../../common/time/TimeUtils.h"
 
-#include "../../../../network/messages/Message.hpp"
-#include "../../../../network/messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
-#include "../../../../network/messages/outgoing/routing_tables/SecondLevelRoutingTableOutgoingMessage.h"
-#include "../../../../network/messages/response/RoutingTablesResponse.h"
+#include "../../../../../network/messages/Message.hpp"
+#include "../../../../../network/messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
+#include "../../../../../network/messages/outgoing/routing_tables/SecondLevelRoutingTableOutgoingMessage.h"
+#include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
-#include "../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../../trust_lines/manager/TrustLinesManager.h"
 
-#include "../../../../common/exceptions/ConflictError.h"
+#include "../../../../../common/exceptions/ConflictError.h"
 
 #include <memory>
 #include <vector>

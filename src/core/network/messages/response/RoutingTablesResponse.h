@@ -20,7 +20,7 @@ public:
 public:
     RoutingTablesResponse(
         const NodeUUID &sender,
-        uint16_t code);
+        const uint16_t code);
 
     RoutingTablesResponse(
         BytesShared buffer);

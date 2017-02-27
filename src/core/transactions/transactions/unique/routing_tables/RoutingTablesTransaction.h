@@ -7,7 +7,6 @@
 #include "../../../../common/NodeUUID.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../scheduler/TransactionsScheduler.h"
 
 #include <stdint.h>
 #include <utility>
