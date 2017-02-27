@@ -12,20 +12,17 @@
 #include "../../../../network/messages/outgoing/routing_tables/SecondLevelRoutingTableOutgoingMessage.h"
 #include "../../../../network/messages/response/RoutingTablesResponse.h"
 
-#include "FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
-
-#include "../../../scheduler/TransactionsScheduler.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 
 #include "../../../../common/exceptions/ConflictError.h"
 
+#include <memory>
 #include <vector>
 #include <stdint.h>
 
 using namespace std;
 
 class FromInitiatorToContractorRoutingTablePropagationTransaction : public RoutingTablesTransaction {
-
 public:
     typedef shared_ptr<FromInitiatorToContractorRoutingTablePropagationTransaction> Shared;
 

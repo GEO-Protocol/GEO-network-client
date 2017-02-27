@@ -55,30 +55,31 @@ pair<bool, TransactionResult::SharedConst> FromInitiatorToContractorRoutingTable
     if (mExpectationResponsesCount == mContext.size()) {
 
         for (const auto& responseMessage : mContext) {
+
             if (responseMessage->typeID() != Message::MessageTypeID::RoutingTablesResponseMessageType) {
                 throw ConflictError("FromInitiatorToContractorRoutingTablePropagationTransaction::checkContext: "
                                         "Illegal message type in context.");
             }
+
             RoutingTablesResponse::Shared response = static_pointer_cast<RoutingTablesResponse>(responseMessage);
-            if (response->code() != 200) {
+            if (response->code() != kResponseCodeSuccess) {
                 return make_pair(
                     false,
                     TransactionResult::Shared(nullptr)
                 );
             }
-        }
 
-        MessageResult::Shared messageResult = MessageResult::Shared(
-            new MessageResult(
-                mContractorUUID,
-                mTransactionUUID,
-                200
-            )
-        );
+        }
 
         return make_pair(
             true,
-            transactionResultFromMessage(messageResult)
+            transactionResultFromMessage(
+                make_shared<MessageResult>(
+                    mContractorUUID,
+                    mTransactionUUID,
+                    kResponseCodeSuccess
+                )
+            )
         );
 
     } else {

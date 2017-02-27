@@ -6,7 +6,9 @@ set(SOURCE_FILES
         FromInitiatorToContractorRoutingTablePropagationTransaction.cpp
         FromInitiatorToContractorRoutingTablePropagationTransaction.h
         FromInitiatorToContractorRoutingTablesAcceptTransaction.cpp
-        FromInitiatorToContractorRoutingTablesAcceptTransaction.h)
+        FromInitiatorToContractorRoutingTablesAcceptTransaction.h
+        FromContractorToFirstLevelRoutingTablePropagation.cpp
+        FromContractorToFirstLevelRoutingTablePropagation.h FromContractorToFirstLevelRoutingTableAcceptTransaction.cpp FromContractorToFirstLevelRoutingTableAcceptTransaction.h)
 
 add_library(transactions__routing_tables ${SOURCE_FILES})
 target_link_libraries(transactions__routing_tables

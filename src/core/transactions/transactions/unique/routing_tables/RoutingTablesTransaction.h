@@ -51,12 +51,13 @@ protected:
     static const size_t kOffsetToDataBytes();
 
 protected:
+    const uint16_t kResponseCodeSuccess = 200;
     const uint16_t kMaxRequestsCount = 5;
-    const uint16_t kConnectionProgression = 2;
-    const uint16_t kStandardConnectionTimeout = 20000;
+    const uint8_t kConnectionProgression = 2;
+    const uint32_t kStandardConnectionTimeout = 20000;
 
     uint16_t mRequestCounter = 0;
-    uint16_t mConnectionTimeout = kStandardConnectionTimeout;
+    uint32_t mConnectionTimeout = kStandardConnectionTimeout;
 
     NodeUUID mContractorUUID;
 };

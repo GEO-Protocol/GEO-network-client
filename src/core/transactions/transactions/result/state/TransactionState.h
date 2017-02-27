@@ -21,16 +21,17 @@ public:
 public:
     // Readable shortcuts for states creation.
     static TransactionState::SharedConst exit();
+
     static TransactionState::SharedConst flushAndContinue();
+
     static TransactionState::SharedConst awakeAsFastAsPossible();
+
     static TransactionState::SharedConst awakeAfterMilliseconds(
         uint32_t milliseconds);
 
     static TransactionState::SharedConst waitForMessageTypes(
         vector<Message::MessageTypeID> &&requiredMessageType,
-        uint16_t noLongerThanMilliseconds=0);
-
-
+        uint32_t noLongerThanMilliseconds = 0);
 
 public:
     TransactionState(
@@ -45,7 +46,6 @@ public:
         GEOEpochTimestamp awakeTimestamp,
         Message::MessageTypeID requiredMessageType,
         bool flushToPermanentStorage = false);
-
 
 
     const GEOEpochTimestamp awakeningTimestamp() const;

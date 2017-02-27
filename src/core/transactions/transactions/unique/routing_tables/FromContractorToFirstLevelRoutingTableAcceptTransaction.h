@@ -1,5 +1,5 @@
-#ifndef GEO_NETWORK_CLIENT_ACCEPTROUTINGTABLESTRANSACTION_H
-#define GEO_NETWORK_CLIENT_ACCEPTROUTINGTABLESTRANSACTION_H
+#ifndef GEO_NETWORK_CLIENT_FROMCONTRACTORTOFIRSTLEVELROUTINGTABLEACCEPTTRANSACTION_H
+#define GEO_NETWORK_CLIENT_FROMCONTRACTORTOFIRSTLEVELROUTINGTABLEACCEPTTRANSACTION_H
 
 #include "RoutingTablesTransaction.h"
 
@@ -16,16 +16,16 @@
 #include <stdint.h>
 #include <utility>
 
-class FromInitiatorToContractorRoutingTablesAcceptTransaction : public RoutingTablesTransaction {
+class FromContractorToFirstLevelRoutingTableAcceptTransaction : public RoutingTablesTransaction  {
 public:
-    typedef shared_ptr<FromInitiatorToContractorRoutingTablesAcceptTransaction> Shared;
+    typedef shared_ptr<FromContractorToFirstLevelRoutingTableAcceptTransaction> Shared;
 
 public:
-    FromInitiatorToContractorRoutingTablesAcceptTransaction(
+    FromContractorToFirstLevelRoutingTableAcceptTransaction(
         const NodeUUID &nodeUUID,
         FirstLevelRoutingTableIncomingMessage::Shared message);
 
-    FromInitiatorToContractorRoutingTablesAcceptTransaction(
+    FromContractorToFirstLevelRoutingTableAcceptTransaction(
         BytesShared buffer);
 
     FirstLevelRoutingTableIncomingMessage::Shared message() const;
@@ -33,7 +33,7 @@ public:
     TransactionResult::SharedConst run();
 
 private:
-    void saveFirstLevelRoutingTable();
+    void saveLinkBetweenInitiatorAndContractor();
 
     TransactionResult::SharedConst waitingForSecondLevelRoutingTableState();
 
@@ -51,4 +51,4 @@ private:
     FirstLevelRoutingTableIncomingMessage::Shared mFirstLevelMessage;
 };
 
-#endif //GEO_NETWORK_CLIENT_ACCEPTROUTINGTABLESTRANSACTION_H
+#endif //GEO_NETWORK_CLIENT_FROMCONTRACTORTOFIRSTLEVELROUTINGTABLEACCEPTTRANSACTION_H

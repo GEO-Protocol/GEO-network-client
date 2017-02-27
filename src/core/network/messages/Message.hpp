@@ -126,8 +126,6 @@ public:
     }
 
 protected:
-    Message() {};
-
     virtual void deserializeFromBytes(
         BytesShared buffer) {
 
