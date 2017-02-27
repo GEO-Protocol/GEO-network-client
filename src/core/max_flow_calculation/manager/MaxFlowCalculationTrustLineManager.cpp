@@ -5,7 +5,7 @@
 #include "MaxFlowCalculationTrustLineManager.h"
 
 void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine) {
-    auto it = mvTrustLines.find(trustLine->getSourceUUID());
+    auto const &it = mvTrustLines.find(trustLine->getSourceUUID());
     if (it == mvTrustLines.end()) {
         vector<MaxFlowCalculationTrustLine::Shared> newVect;
         newVect.push_back(trustLine);
@@ -20,7 +20,7 @@ void MaxFlowCalculationTrustLineManager::addIncomingFlow(
     const NodeUUID &node2UUID,
     const TrustLineAmount &flow) {
 
-    auto it = mEntities.find(node1UUID);
+    auto const &it = mEntities.find(node1UUID);
     if (it == mEntities.end()) {
         auto newEntity = make_shared<MaxFlowCalculationNodeEntity>(
             node1UUID);
@@ -36,7 +36,7 @@ void MaxFlowCalculationTrustLineManager::addOutgoingFlow(
     const NodeUUID &node2UUID,
     const TrustLineAmount &flow) {
 
-    auto it = mEntities.find(node1UUID);
+    auto const &it = mEntities.find(node1UUID);
     if (it == mEntities.end()) {
         auto newEntity = make_shared<MaxFlowCalculationNodeEntity>(
             node1UUID);
@@ -56,4 +56,31 @@ void MaxFlowCalculationTrustLineManager::addFlow(
     addOutgoingFlow(node2UUID, node1UUID, TrustLineAmount(0));
     addIncomingFlow(node2UUID, node1UUID, flow);
     addIncomingFlow(node1UUID, node2UUID, TrustLineAmount(0));
+}
+
+vector<MaxFlowCalculationTrustLine::Shared> MaxFlowCalculationTrustLineManager::getSortedTrustLines(
+    const NodeUUID& nodeUUID) {
+
+    vector<MaxFlowCalculationTrustLine::Shared> result;
+    auto const &nodeUUIDAndVector = mvTrustLines.find(nodeUUID);
+    if (nodeUUIDAndVector == mvTrustLines.end()) {
+        return result;
+    }
+
+    for (auto const &trustLine : nodeUUIDAndVector->second) {
+        result.push_back(trustLine);
+    }
+
+    // sort using a custom function object
+    struct {
+        bool operator()(
+            MaxFlowCalculationTrustLine::Shared a,
+            MaxFlowCalculationTrustLine::Shared b) {
+            auto aTrustLineFreeAmountPtr = a.get()->getFreeAmount();
+            auto bTrustLineFreeAmountPtr = b.get()->getFreeAmount();
+            return *aTrustLineFreeAmountPtr > *bTrustLineFreeAmountPtr;
+        }
+    } customLess;
+    std::sort(result.begin(), result.end(), customLess);
+    return result;
 }

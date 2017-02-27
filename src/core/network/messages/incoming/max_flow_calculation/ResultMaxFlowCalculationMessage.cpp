@@ -37,14 +37,14 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() {
         sizeof(uint32_t));
     dataBytesOffset += sizeof(uint32_t);
     //----------------------------------------------------
-    for (auto const &it : mOutgoingFlows) {
+    for (auto const &outgoingFlow : mOutgoingFlows) {
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            it.first.data,
+            outgoingFlow.first.data,
             NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
         //------------------------------------------------
-        TrustLineAmount trustLineAmount = it.second;
+        TrustLineAmount trustLineAmount = outgoingFlow.second;
         vector<byte> buffer = trustLineAmountToBytes(trustLineAmount);
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
@@ -60,14 +60,14 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() {
         sizeof(uint32_t));
     dataBytesOffset += sizeof(uint32_t);
     //----------------------------------------------------
-    for (auto const &it : mIncomingFlows) {
+    for (auto const &incomingFlow : mIncomingFlows) {
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            it.first.data,
+            incomingFlow.first.data,
             NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
         //------------------------------------------------
-        TrustLineAmount trustLineAmount = it.second;
+        TrustLineAmount trustLineAmount = incomingFlow.second;
         vector<byte> buffer = trustLineAmountToBytes(trustLineAmount);
         memcpy(
             dataBytesShared.get() + dataBytesOffset,

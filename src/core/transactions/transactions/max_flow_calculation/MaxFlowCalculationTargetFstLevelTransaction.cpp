@@ -82,15 +82,15 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
 
     vector<NodeUUID> incomingFlowUuids = mTrustLinesManager->getFirstLevelNeighborsWithIncomingFlow();
     NodeUUID targetUUID = mMessage->targetUUID();
-    for (auto const &it : incomingFlowUuids) {
+    for (auto const &nodeUUIDIncomingFlow : incomingFlowUuids) {
         Message *message = new MaxFlowCalculationTargetFstLevelOutMessage(
             mNodeUUID,
             targetUUID);
 
-        mLog->logInfo("MaxFlowCalculationTargetFstLevelTransaction->sendFirst", ((NodeUUID)it).stringUUID());
+        mLog->logInfo("MaxFlowCalculationTargetFstLevelTransaction->sendFirst", ((NodeUUID)nodeUUIDIncomingFlow).stringUUID());
         addMessage(
             Message::Shared(message),
-            it);
+            nodeUUIDIncomingFlow);
     }
 
     return make_shared<const TransactionResult>(

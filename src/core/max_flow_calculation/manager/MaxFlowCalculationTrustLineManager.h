@@ -32,6 +32,8 @@ public:
         const NodeUUID& node2UUID,
         const TrustLineAmount& flow);
 
+    vector<MaxFlowCalculationTrustLine::Shared> getSortedTrustLines(const NodeUUID& nodeUUID);
+
 // todo make private after testing
 public:
     map<NodeUUID, vector<MaxFlowCalculationTrustLine::Shared>> mvTrustLines;

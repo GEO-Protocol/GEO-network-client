@@ -42,7 +42,17 @@ private:
 
     void sendMessageOnFirstLevel();
 
-    TransactionResult::SharedConst waitingForResponseState();
+    TrustLineAmount calculateMaxFlow(const NodeUUID& nodeUUID);
+
+    TrustLineAmount calculateOneNode(
+        const NodeUUID& nodeUUID,
+        const TrustLineAmount& currentFlow,
+        int level,
+        const NodeUUID& targetUUID,
+        const NodeUUID& sourceUUID);
+
+    void testCompare(MaxFlowCalculationTrustLine::Shared a,
+                     MaxFlowCalculationTrustLine::Shared b);
 
 private:
 

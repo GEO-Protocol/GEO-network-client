@@ -42,19 +42,16 @@ pair<BytesShared, size_t> MaxFlowCalculationSourceFstLevelTransaction::serialize
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + parentBytesAndCount.second,
         messageBytesAndCount.first.get(),
-        messageBytesAndCount.second
-    );
+        messageBytesAndCount.second);
     //-----------------------------------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 void MaxFlowCalculationSourceFstLevelTransaction::deserializeFromBytes(
@@ -85,19 +82,18 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
 
     vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->getFirstLevelNeighborsWithOutgoingFlow();
     NodeUUID targetUUID = mMessage->targetUUID();
-    for (auto const &it : outgoingFlowUuids) {
-        if (it == targetUUID) {
+    for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
+        if (nodeUUIDOutgoingFlow == targetUUID) {
             continue;
         }
         Message *message = new MaxFlowCalculationSourceFstLevelOutMessage(
             mNodeUUID,
             targetUUID);
 
-        mLog->logInfo("MaxFlowCalculationSourceFstLevelTransaction->sendFirst", ((NodeUUID)it).stringUUID());
+        mLog->logInfo("MaxFlowCalculationSourceFstLevelTransaction->sendFirst", ((NodeUUID)nodeUUIDOutgoingFlow).stringUUID());
         addMessage(
             Message::Shared(message),
-            it
-        );
+            nodeUUIDOutgoingFlow);
     }
 
     return make_shared<const TransactionResult>(

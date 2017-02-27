@@ -90,9 +90,10 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator() {
 
     map<NodeUUID, TrustLineAmount> outgoingFlows;
     map<NodeUUID, TrustLineAmount> incomingFlows;
-    for (auto const &it : mTrustLinesManager->getIncomingFlows()) {
-        // todo if
-        incomingFlows.insert(it);
+    for (auto const &incomingFlow : mTrustLinesManager->getIncomingFlows()) {
+        if (incomingFlow.first != mMessage->senderUUID()) {
+            incomingFlows.insert(incomingFlow);
+        }
     }
 
     Message *message = new SendResultMaxFlowCalculationMessage(
@@ -101,26 +102,27 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator() {
         incomingFlows);
 
     addMessage(
-            Message::Shared(message),
-            mMessage->targetUUID()
+        Message::Shared(message),
+        mMessage->senderUUID()
     );
     mLog->logInfo("ReceiveMaxFlowCalculationOnTargetTransaction->sendResultToInitiator",
-                  "send to " + mMessage->targetUUID().stringUUID());
+                  "send to " + mMessage->senderUUID().stringUUID());
 }
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel() {
 
     vector<NodeUUID> incomingFlowUuids = mTrustLinesManager->getFirstLevelNeighborsWithIncomingFlow();
-    for (auto const &it : incomingFlowUuids) {
+    for (auto const &nodeUUIDIncomingFlow : incomingFlowUuids) {
         NodeUUID targetUUID = mMessage->targetUUID();
         Message *message = new SendMaxFlowCalculationTargetFstLevelMessage(
             mNodeUUID,
             targetUUID);
 
-        mLog->logInfo("ReceiveMaxFlowCalculationOnTargetTransaction->sendFirst", ((NodeUUID)it).stringUUID());
+        mLog->logInfo("ReceiveMaxFlowCalculationOnTargetTransaction->sendFirst",
+                      ((NodeUUID)nodeUUIDIncomingFlow).stringUUID());
         addMessage(
             Message::Shared(message),
-            it);
+            nodeUUIDIncomingFlow);
     }
 
 }

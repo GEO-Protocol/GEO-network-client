@@ -40,6 +40,15 @@ private:
     void deserializeFromBytes(
         BytesShared buffer);
 
+    TrustLineAmount calculateMaxFlow(const NodeUUID& nodeUUID);
+
+    TrustLineAmount calculateOneNode(
+        const NodeUUID& nodeUUID,
+        const TrustLineAmount& currentFlow,
+        int level,
+        const NodeUUID& targetUUID,
+        const NodeUUID& sourceUUID);
+
 private:
     ResultMaxFlowCalculationMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
