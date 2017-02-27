@@ -1,7 +1,3 @@
-//
-// Created by mc on 16.02.17.
-//
-
 #include "MaxFlowCalculationTargetFstLevelInMessage.h"
 
 MaxFlowCalculationTargetFstLevelInMessage::MaxFlowCalculationTargetFstLevelInMessage(

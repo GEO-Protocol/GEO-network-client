@@ -117,7 +117,7 @@ private:
     void launchReceiveMaxFlowCalculationTransaction(
         ReceiveMaxFlowCalculationOnTargetMessage::Shared message);
 
-    void launchReceiveResultMaxFlowCalculationFromSourceTransaction(
+    void launchReceiveResultMaxFlowCalculationTransaction(
         ResultMaxFlowCalculationMessage::Shared message);
 
     void launchMaxFlowCalculationSourceFstLevelTransaction(

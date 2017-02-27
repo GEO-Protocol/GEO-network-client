@@ -1,7 +1,3 @@
-//
-// Created by mc on 15.02.17.
-//
-
 #include "ReceiveMaxFlowCalculationOnTargetMessage.h"
 
 ReceiveMaxFlowCalculationOnTargetMessage::ReceiveMaxFlowCalculationOnTargetMessage(

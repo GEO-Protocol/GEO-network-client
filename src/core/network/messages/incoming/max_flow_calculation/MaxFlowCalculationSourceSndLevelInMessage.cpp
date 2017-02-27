@@ -1,7 +1,3 @@
-//
-// Created by mc on 17.02.17.
-//
-
 #include "MaxFlowCalculationSourceSndLevelInMessage.h"
 
 MaxFlowCalculationSourceSndLevelInMessage::MaxFlowCalculationSourceSndLevelInMessage(

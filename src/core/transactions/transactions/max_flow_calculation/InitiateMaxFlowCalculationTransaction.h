@@ -23,20 +23,11 @@ public:
             MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
             Logger *logger);
 
-    InitiateMaxFlowCalculationTransaction(
-            BytesShared buffer,
-            TrustLinesManager *manager,
-            MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager);
-
     InitiateMaxFlowCalculationCommand::Shared command() const;
-
-    pair<BytesShared, size_t> serializeToBytes() const;
 
     TransactionResult::SharedConst run();
 
 private:
-    void deserializeFromBytes(
-            BytesShared buffer);
 
     void sendMessageToRemoteNode();
 
@@ -53,6 +44,10 @@ private:
 
     void testCompare(MaxFlowCalculationTrustLine::Shared a,
                      MaxFlowCalculationTrustLine::Shared b);
+
+private:
+
+    static const byte kMaxFlowLength=6;
 
 private:
 

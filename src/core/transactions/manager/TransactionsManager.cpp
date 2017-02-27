@@ -1,4 +1,4 @@
-﻿﻿#include "TransactionsManager.h"
+﻿#include "TransactionsManager.h"
 
 /*!
  *
@@ -83,15 +83,6 @@ void TransactionsManager::loadTransactions() {
                     transaction = new CloseTrustLineTransaction(
                         transactionBuffer,
                         mTrustLines
-                    );
-                    break;
-                }
-
-                case BaseTransaction::TransactionType ::InitiateMaxFlowCalculationTransactionType: {
-                    transaction = new InitiateMaxFlowCalculationTransaction(
-                        transactionBuffer,
-                        mTrustLines,
-                        mMaxFlowCalculationTrustLineManager
                     );
                     break;
                 }
@@ -192,13 +183,9 @@ void TransactionsManager::processMessage(
         launchReceiveMaxFlowCalculationTransaction(
             static_pointer_cast<ReceiveMaxFlowCalculationOnTargetMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::ResultMaxFlowCalculationFromTargetMessageType) {
-        launchReceiveResultMaxFlowCalculationFromTargetTransaction(
-            static_pointer_cast<ResultMaxFlowCalculationFromTargetMessage>(message));
-
-    } else if (message->typeID() == Message::MessageTypeID::ResultMaxFlowCalculationFromSourceMessageType) {
-        launchReceiveResultMaxFlowCalculationFromSourceTransaction(
-            static_pointer_cast<ResultMaxFlowCalculationFromSourceMessage>(message));
+    } else if (message->typeID() == Message::MessageTypeID::ResultMaxFlowCalculationMessageType) {
+        launchReceiveResultMaxFlowCalculationTransaction(
+            static_pointer_cast<ResultMaxFlowCalculationMessage>(message));
 
     } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationSourceFstLevelInMessageType) {
         launchMaxFlowCalculationSourceFstLevelTransaction(
@@ -491,11 +478,11 @@ void TransactionsManager::launchReceiveMaxFlowCalculationTransaction(
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchReceiveResultMaxFlowCalculationFromTargetTransaction(
-    ResultMaxFlowCalculationFromTargetMessage::Shared message) {
+void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
+    ResultMaxFlowCalculationMessage::Shared message) {
 
     try {
-        auto transaction = make_shared<ReceiveResultMaxFlowCalculationFromTargetTransaction>(
+        auto transaction = make_shared<ReceiveResultMaxFlowCalculationTransaction>(
             mNodeUUID,
             message,
             mTrustLines,
@@ -510,35 +497,7 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationFromTargetTransac
 
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchReceiveResultMaxFlowCalculationFromTargetTransaction: "
-                "can't allocate memory for transaction instance.");
-    }
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchReceiveResultMaxFlowCalculationFromSourceTransaction(
-    ResultMaxFlowCalculationFromSourceMessage::Shared message) {
-
-    try {
-        auto transaction = make_shared<ReceiveResultMaxFlowCalculationFromSourceTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mMaxFlowCalculationTrustLineManager,
-            mLog);
-
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchReceiveResultMaxFlowCalculationFromSourceTransaction: "
+            "TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction: "
                 "can't allocate memory for transaction instance.");
     }
 }

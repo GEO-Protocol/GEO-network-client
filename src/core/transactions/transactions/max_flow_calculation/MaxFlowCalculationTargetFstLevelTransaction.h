@@ -1,7 +1,3 @@
-//
-// Created by mc on 16.02.17.
-//
-
 #ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTARGETFSTLEVELTRANSACTION_H
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTARGETFSTLEVELTRANSACTION_H
 
@@ -23,19 +19,9 @@ public:
         TrustLinesManager *manager,
         Logger *logger);
 
-    MaxFlowCalculationTargetFstLevelTransaction(
-        BytesShared buffer,
-        TrustLinesManager *manager);
-
     MaxFlowCalculationTargetFstLevelInMessage::Shared message() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const;
-
     TransactionResult::SharedConst run();
-
-private:
-    void deserializeFromBytes(
-        BytesShared buffer);
 
 private:
     MaxFlowCalculationTargetFstLevelInMessage::Shared mMessage;

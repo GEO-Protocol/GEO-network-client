@@ -1,7 +1,3 @@
-//
-// Created by mc on 15.02.17.
-//
-
 #include "ReceiveMaxFlowCalculationOnTargetTransaction.h"
 
 ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetTransaction(
@@ -18,60 +14,9 @@ ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetT
         mTrustLinesManager(manager),
         mLog(logger){}
 
-ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetTransaction(
-        BytesShared buffer,
-        TrustLinesManager *manager) :
-
-    MaxFlowCalculationTransaction(
-        BaseTransaction::TransactionType::ReceiveMaxFlowCalculationOnTargetTransactionType
-    ),
-    mTrustLinesManager(manager){
-
-    deserializeFromBytes(buffer);
-}
-
 ReceiveMaxFlowCalculationOnTargetMessage::Shared ReceiveMaxFlowCalculationOnTargetTransaction::message() const {
 
     return mMessage;
-}
-
-pair<BytesShared, size_t> ReceiveMaxFlowCalculationOnTargetTransaction::serializeToBytes() const {
-
-    auto parentBytesAndCount = BaseTransaction::serializeToBytes();
-    auto messageBytesAndCount = mMessage->serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second + messageBytesAndCount.second;
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + parentBytesAndCount.second,
-        messageBytesAndCount.first.get(),
-        messageBytesAndCount.second);
-    //-----------------------------------------------------
-    return make_pair(
-            dataBytesShared,
-            bytesCount);
-}
-
-void ReceiveMaxFlowCalculationOnTargetTransaction::deserializeFromBytes(
-        BytesShared buffer) {
-
-    BaseTransaction::deserializeFromBytes(buffer);
-    BytesShared messageBufferShared = tryCalloc(ReceiveMaxFlowCalculationOnTargetMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    memcpy(
-        messageBufferShared.get(),
-        buffer.get() + BaseTransaction::kOffsetToInheritedBytes(),
-        ReceiveMaxFlowCalculationOnTargetMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    mMessage = ReceiveMaxFlowCalculationOnTargetMessage::Shared(
-        new ReceiveMaxFlowCalculationOnTargetMessage(
-            messageBufferShared));
 }
 
 TransactionResult::SharedConst ReceiveMaxFlowCalculationOnTargetTransaction::run() {

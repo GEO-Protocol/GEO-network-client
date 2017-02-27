@@ -1,7 +1,3 @@
-//
-// Created by mc on 15.02.17.
-//
-
 #ifndef GEO_NETWORK_CLIENT_RECEIVEMAXFLOWCALCULATIONTRANSACTION_H
 #define GEO_NETWORK_CLIENT_RECEIVEMAXFLOWCALCULATIONTRANSACTION_H
 
@@ -24,19 +20,11 @@ public:
             TrustLinesManager *manager,
             Logger *logger);
 
-    ReceiveMaxFlowCalculationOnTargetTransaction(
-            BytesShared buffer,
-            TrustLinesManager *manager);
-
     ReceiveMaxFlowCalculationOnTargetMessage::Shared message() const;
-
-    pair<BytesShared, size_t> serializeToBytes() const;
 
     TransactionResult::SharedConst run();
 
 private:
-    void deserializeFromBytes(
-            BytesShared buffer);
 
     void sendMessagesOnFirstLevel();
 

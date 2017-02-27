@@ -19,19 +19,9 @@ public:
         TrustLinesManager *trustLinesManager,
         Logger *logger);
 
-    MaxFlowCalculationSourceFstLevelTransaction(
-        BytesShared buffer,
-        TrustLinesManager *trustLinesManager);
-
     MaxFlowCalculationSourceFstLevelInMessage::Shared message() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const;
-
     TransactionResult::SharedConst run();
-
-private:
-    void deserializeFromBytes(
-        BytesShared buffer);
 
 private:
     MaxFlowCalculationSourceFstLevelInMessage::Shared mMessage;

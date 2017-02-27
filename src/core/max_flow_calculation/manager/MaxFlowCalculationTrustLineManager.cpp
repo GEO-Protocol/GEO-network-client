@@ -71,16 +71,6 @@ vector<MaxFlowCalculationTrustLine::Shared> MaxFlowCalculationTrustLineManager::
         result.push_back(trustLine);
     }
 
-    // sort using a custom function object
-    struct {
-        bool operator()(
-            MaxFlowCalculationTrustLine::Shared a,
-            MaxFlowCalculationTrustLine::Shared b) {
-            auto aTrustLineFreeAmountPtr = a.get()->getFreeAmount();
-            auto bTrustLineFreeAmountPtr = b.get()->getFreeAmount();
-            return *aTrustLineFreeAmountPtr > *bTrustLineFreeAmountPtr;
-        }
-    } customLess;
     std::sort(result.begin(), result.end(), customLess);
     return result;
 }

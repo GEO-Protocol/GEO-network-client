@@ -14,66 +14,15 @@ MaxFlowCalculationSourceSndLevelTransaction::MaxFlowCalculationSourceSndLevelTra
     mTrustLinesManager(manager),
     mLog(logger) {}
 
-MaxFlowCalculationSourceSndLevelTransaction::MaxFlowCalculationSourceSndLevelTransaction(
-    BytesShared buffer,
-    TrustLinesManager *manager) :
-
-    MaxFlowCalculationTransaction(
-        BaseTransaction::TransactionType::MaxFlowCalculationSourceSndLevelTransactionType
-    ),
-    mTrustLinesManager(manager){
-
-    deserializeFromBytes(buffer);
-}
-
 MaxFlowCalculationSourceSndLevelInMessage::Shared MaxFlowCalculationSourceSndLevelTransaction::message() const {
 
     return mMessage;
 }
 
-pair<BytesShared, size_t> MaxFlowCalculationSourceSndLevelTransaction::serializeToBytes() const {
-
-    auto parentBytesAndCount = BaseTransaction::serializeToBytes();
-    auto messageBytesAndCount = mMessage->serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second + messageBytesAndCount.second;
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + parentBytesAndCount.second,
-        messageBytesAndCount.first.get(),
-        messageBytesAndCount.second);
-    //-----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
-}
-
-void MaxFlowCalculationSourceSndLevelTransaction::deserializeFromBytes(
-    BytesShared buffer) {
-
-    BaseTransaction::deserializeFromBytes(buffer);
-    BytesShared messageBufferShared = tryCalloc(MaxFlowCalculationSourceSndLevelInMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    memcpy(
-        messageBufferShared.get(),
-        buffer.get() + BaseTransaction::kOffsetToInheritedBytes(),
-        MaxFlowCalculationSourceSndLevelInMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    mMessage = MaxFlowCalculationSourceSndLevelInMessage::Shared(
-        new MaxFlowCalculationSourceSndLevelInMessage(
-            messageBufferShared));
-}
-
 TransactionResult::SharedConst MaxFlowCalculationSourceSndLevelTransaction::run() {
 
     mLog->logInfo("MaxFlowCalculationSourceSndLevelTransaction->run", "Iam: " + mNodeUUID.stringUUID());
-    //mLog->logInfo("MaxFlowCalculationSourceSndLevelTransaction->run", "sender: " + mMessage->senderUUID().stringUUID());
+    mLog->logInfo("MaxFlowCalculationSourceSndLevelTransaction->run", "sender: " + mMessage->senderUUID().stringUUID());
     mLog->logInfo("MaxFlowCalculationSourceSndLevelTransaction->run", "target: " + mMessage->targetUUID().stringUUID());
 
     sendResultToInitiator();

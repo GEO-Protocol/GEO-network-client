@@ -19,18 +19,11 @@ public:
         TrustLinesManager *manager,
         Logger *logger);
 
-    MaxFlowCalculationSourceSndLevelTransaction(
-        BytesShared buffer,
-        TrustLinesManager *manager);
-
     MaxFlowCalculationSourceSndLevelInMessage::Shared message() const;
-
-    pair<BytesShared, size_t> serializeToBytes() const;
 
     TransactionResult::SharedConst run();
 
 private:
-    void deserializeFromBytes(BytesShared buffer);
 
     void sendResultToInitiator();
 

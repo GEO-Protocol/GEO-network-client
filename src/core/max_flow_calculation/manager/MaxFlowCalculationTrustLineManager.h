@@ -34,6 +34,18 @@ public:
 
     vector<MaxFlowCalculationTrustLine::Shared> getSortedTrustLines(const NodeUUID& nodeUUID);
 
+private:
+    // sort using a custom function object
+    struct {
+        bool operator()(
+            MaxFlowCalculationTrustLine::Shared a,
+            MaxFlowCalculationTrustLine::Shared b) {
+            auto aTrustLineFreeAmountPtr = a.get()->getFreeAmount();
+            auto bTrustLineFreeAmountPtr = b.get()->getFreeAmount();
+            return *aTrustLineFreeAmountPtr > *bTrustLineFreeAmountPtr;
+        }
+    } customLess;
+
 // todo make private after testing
 public:
     map<NodeUUID, vector<MaxFlowCalculationTrustLine::Shared>> mvTrustLines;
