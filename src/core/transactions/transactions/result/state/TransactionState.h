@@ -11,7 +11,6 @@
 
 
 using namespace std;
-namespace datetime = boost::posix_time;
 
 
 class TransactionState {
@@ -25,7 +24,7 @@ public:
     static TransactionState::SharedConst flushAndContinue();
     static TransactionState::SharedConst awakeAsFastAsPossible();
     static TransactionState::SharedConst awakeAfterMilliseconds(
-        uint16_t milliseconds);
+        uint32_t milliseconds);
 
     static TransactionState::SharedConst waitForMessageTypes(
         vector<Message::MessageTypeID> &&requiredMessageType,

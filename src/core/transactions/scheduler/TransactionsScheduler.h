@@ -6,13 +6,13 @@
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/base/transaction/TransactionMessage.h"
-
-#include "../transactions/base/BaseTransaction.h"
-#include "../transactions/result/TransactionResult.h"
-
+#include "../../network/messages/base/routing_tables/RoutingTablesMessage.h"
 #include "../../network/messages/response/Response.h"
 #include "../../network/messages/response/RoutingTablesResponse.h"
-#include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
+
+#include "../transactions/base/BaseTransaction.h"
+#include "../transactions/unique/routing_tables/RoutingTablesTransaction.h"
+#include "../transactions/result/TransactionResult.h"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
@@ -24,8 +24,10 @@
 #include "../../logger/Logger.h"
 
 #include <boost/asio.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/bind.hpp>
 #include <boost/signals2.hpp>
+#include <chrono>
 
 #include <map>
 #include <memory>
@@ -54,12 +56,11 @@ public:
 
     void postponeTransaction(
         BaseTransaction::Shared transaction,
-        uint16_t millisecondsDelay);
+        uint32_t millisecondsDelay);
 
     void killTransaction(
         const TransactionUUID &transactionUUID);
 
-    // TODO: rename to "tryAttachMessageToTransaction"
     // TODO: add error log if unsuccessful
     // TODO: throw exception on failure,
     //       so the communicator would be able to know
@@ -106,9 +107,6 @@ private:
     void handleAwakening(
         const boost::system::error_code &error);
 
-    bool isTransactionScheduled(
-        BaseTransaction::Shared transaction);
-
 public:
     mutable CommandResultSignal commandResultIsReadySignal;
 
@@ -117,7 +115,7 @@ private:
     storage::UUIDMapBlockStorage *mStorage;
     Logger *mLog;
 
-    unique_ptr<as::deadline_timer> mProcessingTimer;
+    unique_ptr<as::steady_timer> mProcessingTimer;
     unique_ptr<map<BaseTransaction::Shared, TransactionState::SharedConst>> mTransactions;
 };
 

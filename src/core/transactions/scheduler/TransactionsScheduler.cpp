@@ -10,7 +10,7 @@ TransactionsScheduler::TransactionsScheduler(
     mLog(logger),
 
     mTransactions(new map<BaseTransaction::Shared, TransactionState::SharedConst>()),
-    mProcessingTimer(new as::deadline_timer(mIOService)) {
+    mProcessingTimer(new as::steady_timer(mIOService)) {
 }
 
 /*!
@@ -40,26 +40,18 @@ void TransactionsScheduler::run() {
 void TransactionsScheduler::scheduleTransaction(
     BaseTransaction::Shared transaction) {
 
-    mTransactions->insert(
-        make_pair(
-            transaction,
-            TransactionState::awakeAsFastAsPossible()
-        )
-    );
+    (*mTransactions)[transaction] = TransactionState::awakeAsFastAsPossible();
 
     adjustAwakeningToNextTransaction();
 }
 
 void TransactionsScheduler::postponeTransaction(
     BaseTransaction::Shared transaction,
-    uint16_t millisecondsDelay) {
+    uint32_t millisecondsDelay) {
 
-    mTransactions->insert(
-        make_pair(
-            transaction,
-            TransactionState::awakeAfterMilliseconds(millisecondsDelay)
-        )
-    );
+    (*mTransactions)[transaction] = TransactionState::awakeAfterMilliseconds(millisecondsDelay);
+
+    adjustAwakeningToNextTransaction();
 }
 
 void TransactionsScheduler::killTransaction(
@@ -75,31 +67,34 @@ void TransactionsScheduler::killTransaction(
 void TransactionsScheduler::tryAttachMessageToTransaction(
     Message::Shared message) {
 
-    if (message->isTransactionMessage()) {
+    for (auto const &transactionAndState : *mTransactions) {
 
-        for (auto const &transactionAndState : *mTransactions) {
-
+        if (message->isTransactionMessage()) {
             if (static_pointer_cast<TransactionMessage>(message)->transactionUUID() != transactionAndState.first->UUID()) {
-                    continue;
-            }
-
-            for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
-                if (messageType != message->typeID()) {
-                    continue;
-                }
-
-                transactionAndState.first->pushContext(message);
-                launchTransaction(transactionAndState.first);
-                return;
+                continue;
             }
         }
 
-    } else {
-        throw ValueError(
-            "TransactionsScheduler::handleMessage: "
-                "invalid/unexpected message/response received");
+        if (message->isRoutingTableMessage()) {
+            if (static_pointer_cast<RoutingTablesMessage>(message)->senderUUID() != static_pointer_cast<RoutingTablesTransaction>(transactionAndState.first)->contractorUUID()) {
+                continue;
+            }
+        }
+
+        for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
+            if (message->typeID() != messageType) {
+                continue;
+            }
+
+            transactionAndState.first->pushContext(message);
+            launchTransaction(transactionAndState.first);
+            return;
+        }
     }
 
+    throw ValueError(
+        "TransactionsScheduler::handleMessage: "
+            "invalid/unexpected message/response received");
 }
 
 void TransactionsScheduler::launchTransaction(
@@ -193,7 +188,7 @@ void TransactionsScheduler::processTransactionState(
         if (state->needSerialize())
             serializeTransaction(transaction);
 
-        // From the c++ reference:
+        // From the C++ reference:
         //
         // std::map::insert:
         // ... Because element keys in a map are unique,
@@ -245,7 +240,8 @@ void TransactionsScheduler::forgetTransaction(
 void TransactionsScheduler::adjustAwakeningToNextTransaction() {
 
     try {
-        asyncWaitUntil(transactionWithMinimalAwakeningTimestamp().second);
+        asyncWaitUntil(
+            transactionWithMinimalAwakeningTimestamp().second);
 
     } catch (NotFoundError &e) {}
 }
@@ -263,23 +259,24 @@ pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transact
     }
 
     auto nextTransactionAndState = mTransactions->cbegin();
-    for (auto it=(mTransactions->cbegin()++); it != mTransactions->cend(); ++it){
-        if (it->second == nullptr) {
-            // Transaction has no state, and, as a result, doesn't have timeout set.
-            // Therefore, it can't be considered for awakening by the timeout.
-            continue;
-        }
+    if (mTransactions->size() > 1) {
+        for (auto it=(mTransactions->cbegin()++); it != mTransactions->cend(); ++it){
+            if (it->second == nullptr) {
+                // Transaction has no state, and, as a result, doesn't have timeout set.
+                // Therefore, it can't be considered for awakening by the timeout.
+                continue;
+            }
 
-        if (it->second->awakeningTimestamp() < nextTransactionAndState->second->awakeningTimestamp()){
-            nextTransactionAndState = it;
+            if (it->second->awakeningTimestamp() < nextTransactionAndState->second->awakeningTimestamp()){
+                nextTransactionAndState = it;
+            }
         }
     }
 
     if (nextTransactionAndState->second->mustBeRescheduled()){
         return make_pair(
             nextTransactionAndState->first,
-            nextTransactionAndState->second->awakeningTimestamp()
-        );
+            nextTransactionAndState->second->awakeningTimestamp());
     }
 
     throw NotFoundError(
@@ -290,28 +287,35 @@ pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transact
 void TransactionsScheduler::asyncWaitUntil(
     GEOEpochTimestamp nextAwakeningTimestamp) {
 
-    auto awakeningDateTime =
-        dateTimeFromGEOEpochTimestamp(
-            nextAwakeningTimestamp);
+    GEOEpochTimestamp microsecondsDelay = 0;
+    GEOEpochTimestamp now = microsecondsSinceGEOEpoch(utc_now());
+    if (nextAwakeningTimestamp > now) {
+        // NOTE: "now" is used twice:
+        // in comparison and in delay calculation.
+        //
+        // It is important to use THE SAME timestamp in comparison and subtraction,
+        // so it must not be replaced with 2 calls to microsecondsSinceGEOEpoch(utc_now())
+        microsecondsDelay = nextAwakeningTimestamp - now;
+    }
 
-    mProcessingTimer->cancel();
     mProcessingTimer->expires_from_now(
-        awakeningDateTime - utc_now()
-    );
+        chrono::microseconds(microsecondsDelay));
 
     mProcessingTimer->async_wait(
         boost::bind(
             &TransactionsScheduler::handleAwakening,
             this,
-            as::placeholders::error
-        )
-    );
+            as::placeholders::error));
 }
 
 void TransactionsScheduler::handleAwakening(
     const boost::system::error_code &error) {
 
     static auto errorsCount = 0;
+
+    if (error && error == as::error::operation_aborted) {
+        return;
+    }
 
     if (error && error != as::error::operation_aborted) {
 
@@ -341,10 +345,11 @@ void TransactionsScheduler::handleAwakening(
     }
 
     try {
-        auto transactionAndState = transactionWithMinimalAwakeningTimestamp();
-        launchTransaction(transactionAndState.first);
-
-        errorsCount = 0;
+        auto transactionAndDelay = transactionWithMinimalAwakeningTimestamp();
+        if (microsecondsSinceGEOEpoch(utc_now()) >= transactionAndDelay.second) {
+            launchTransaction(transactionAndDelay.first);
+            errorsCount = 0;
+        }
 
         adjustAwakeningToNextTransaction();
 
@@ -353,12 +358,6 @@ void TransactionsScheduler::handleAwakening(
         // Awakenings cycle reached the end.
         return;
     }
-}
-
-bool TransactionsScheduler::isTransactionScheduled(
-    BaseTransaction::Shared transaction) {
-
-    return mTransactions->count(transaction) != 0;
 }
 
 const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(

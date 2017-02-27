@@ -1,27 +1,24 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_TRUSTLINETRANSACTION_H
 
-#include "../../base/UniqueTransaction.h"
+#include "../../base/BaseTransaction.h"
 
 #include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../common/NodeUUID.h"
+#include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../scheduler/TransactionsScheduler.h"
-
-#include <cstdint>
 #include <utility>
+#include <stdint.h>
 
-class TrustLineTransaction : public UniqueTransaction {
+class TrustLineTransaction : public BaseTransaction {
 
 protected:
     TrustLineTransaction(
-        BaseTransaction::TransactionType type,
-        NodeUUID &nodeUUID,
-        TransactionsScheduler *scheduler);
+        const BaseTransaction::TransactionType type,
+        const NodeUUID &nodeUUID);
 
     TrustLineTransaction(
-        TransactionsScheduler *scheduler);
+        const BaseTransaction::TransactionType type);
 
     void increaseRequestsCounter();
 
@@ -38,6 +35,7 @@ protected:
 protected:
     const uint16_t kResponsesCount = 1;
     const uint16_t kResponsePosition = 0;
+
     uint16_t mRequestCounter = 0;
 };
 

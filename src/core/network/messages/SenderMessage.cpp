@@ -16,19 +16,20 @@ const NodeUUID &SenderMessage::senderUUID() const {
 
 pair<BytesShared, size_t> SenderMessage::serializeToBytes() {
 
-    size_t bytesCount = sizeof(MessageType)
+    auto parentBytesAndCount = Message::serializeToBytes();
+
+    size_t bytesCount = parentBytesAndCount.second
                         + NodeUUID::kBytesSize;
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //-----------------------------------------------------
-    MessageType type = typeID();
     memcpy(
         dataBytesShared.get(),
-        &type,
-        sizeof(MessageType)
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second
     );
-    dataBytesOffset += sizeof(MessageType);
+    dataBytesOffset += parentBytesAndCount.second;
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
@@ -47,8 +48,8 @@ void SenderMessage::deserializeFromBytes(
 
     size_t bytesBufferOffset = 0;
 
-    MessageType *messageType = new (buffer.get()) MessageType;
-    bytesBufferOffset += sizeof(MessageType);
+    Message::deserializeFromBytes(buffer);
+    bytesBufferOffset += Message::kOffsetToInheritedBytes();
     //-----------------------------------------------------
     memcpy(
         mSenderUUID.data,
@@ -59,7 +60,7 @@ void SenderMessage::deserializeFromBytes(
 
 const size_t SenderMessage::kOffsetToInheritedBytes() {
 
-    static const size_t offset = sizeof(MessageType)
+    static const size_t offset = Message::kOffsetToInheritedBytes()
                                  + NodeUUID::kBytesSize;
 
     return offset;

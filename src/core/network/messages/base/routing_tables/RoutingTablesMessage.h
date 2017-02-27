@@ -16,7 +16,6 @@ public:
     typedef shared_ptr<RoutingTablesMessage> Shared;
     typedef uint64_t RecordsCount;
 
-
 protected:
     RoutingTablesMessage();
 
@@ -29,6 +28,9 @@ protected:
 
     virtual void deserializeFromBytes(
         BytesShared buffer) = 0;
+
+private:
+    const bool isRoutingTableMessage() const;
 
 };
 #endif //GEO_NETWORK_CLIENT_ROUTINGTABLESMESSAGE_H

@@ -1,15 +1,13 @@
 #include "RejectTrustLineTransaction.h"
 
 RejectTrustLineTransaction::RejectTrustLineTransaction(
-    NodeUUID &nodeUUID,
+    const NodeUUID &nodeUUID,
     RejectTrustLineMessage::Shared message,
-    TransactionsScheduler *scheduler,
     TrustLinesManager *manager) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::RejectTrustLineTransactionType,
-        nodeUUID,
-        scheduler
+        nodeUUID
     ),
     mMessage(message),
     mTrustLinesManager(manager) {}
@@ -17,10 +15,11 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
 
 RejectTrustLineTransaction::RejectTrustLineTransaction(
     BytesShared buffer,
-    TransactionsScheduler *scheduler,
     TrustLinesManager *manager) :
 
-    TrustLineTransaction(scheduler),
+    TrustLineTransaction(
+        BaseTransaction::TransactionType::RejectTrustLineTransactionType
+    ),
     mTrustLinesManager(manager){
 
     deserializeFromBytes(buffer);
@@ -82,7 +81,7 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run() {
         switch(mStep) {
 
             case 1: {
-                if (isTransactionToContractorUnique()) {
+                if (!isTransactionToContractorUnique()) {
                     sendResponseCodeToContractor(RejectTrustLineMessage::kResultCodeTransactionConflict);
                     return transactionResultFromMessage(mMessage->resultTransactionConflict());
                 }
@@ -121,50 +120,7 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run() {
 
 bool RejectTrustLineTransaction::isTransactionToContractorUnique() {
 
-    auto *transactions = pendingTransactions();
-    for (auto const &it : *transactions) {
-
-        switch (it.first->transactionType()) {
-
-            case BaseTransaction::TransactionType::AcceptTrustLineTransactionType: {
-                AcceptTrustLineTransaction::Shared acceptTrustLineTransaction = static_pointer_cast<AcceptTrustLineTransaction>(it.first);
-                if (mTransactionUUID != it.first->UUID()) {
-                    if (mMessage->senderUUID() == acceptTrustLineTransaction->message()->senderUUID()) {
-                        return true;
-                    }
-                }
-                break;
-            }
-
-            case BaseTransaction::TransactionType::UpdateTrustLineTransactionType: {
-                UpdateTrustLineTransaction::Shared updateTrustLineTransaction = static_pointer_cast<UpdateTrustLineTransaction>(it.first);
-                if (mTransactionUUID != it.first->UUID()) {
-                    if (mMessage->senderUUID() == updateTrustLineTransaction->message()->senderUUID()) {
-                        return true;
-                    }
-                }
-                break;
-            }
-
-            case BaseTransaction::TransactionType::RejectTrustLineTransactionType: {
-                RejectTrustLineTransaction::Shared rejectTrustLineTransaction = static_pointer_cast<RejectTrustLineTransaction>(it.first);
-                if (mTransactionUUID != it.first->UUID()) {
-                    if (mMessage->senderUUID() == rejectTrustLineTransaction->message()->senderUUID()) {
-                        return true;
-                    }
-                }
-                break;
-            }
-
-            default: {
-                break;
-            }
-
-        }
-
-    }
-
-    return false;
+    return true;
 }
 
 bool RejectTrustLineTransaction::isIncomingTrustLineDirectionExisting() {

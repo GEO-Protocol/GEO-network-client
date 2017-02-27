@@ -1,26 +1,22 @@
 #include "FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
 
 FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContractorRoutingTablesAcceptTransaction(
-    NodeUUID &nodeUUID,
-    FirstLevelRoutingTableIncomingMessage::Shared message,
-    TransactionsScheduler *scheduler) :
+    const NodeUUID &nodeUUID,
+    FirstLevelRoutingTableIncomingMessage::Shared message) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
         nodeUUID,
-        const_cast<NodeUUID&> (message->senderUUID()),
-        scheduler
+        message->senderUUID()
     ),
-
     mFirstLevelMessage(message) {}
 
 FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContractorRoutingTablesAcceptTransaction(
-    BytesShared buffer,
-    TransactionsScheduler *scheduler) :
+    BytesShared buffer) :
 
     RoutingTablesTransaction(
-        buffer,
-        scheduler) {}
+        BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
+        buffer) {}
 
 FirstLevelRoutingTableIncomingMessage::Shared FromInitiatorToContractorRoutingTablesAcceptTransaction::message() const {
 
@@ -28,14 +24,6 @@ FirstLevelRoutingTableIncomingMessage::Shared FromInitiatorToContractorRoutingTa
 }
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::run() {
-
-    if (!isUniqueWasChecked) {
-        auto flagAndTransactionUUID = isTransactionToContractorUnique();
-        if (!flagAndTransactionUUID.first) {
-            killTransaction(flagAndTransactionUUID.second);
-        }
-        isUniqueWasChecked = true;
-    }
 
     switch (mStep) {
 
@@ -61,65 +49,6 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
     }
 }
 
-pair<bool, const TransactionUUID> FromInitiatorToContractorRoutingTablesAcceptTransaction::isTransactionToContractorUnique() {
-
-    auto transactions = pendingTransactions();
-    for (auto const &transactionsAndState : *transactions) {
-
-        auto transaction = transactionsAndState.first;
-
-        switch (transaction->transactionType()) {
-
-            case BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType: {
-
-                FromInitiatorToContractorRoutingTablePropagationTransaction::Shared propagationRoutingTableTransaction = static_pointer_cast<FromInitiatorToContractorRoutingTablePropagationTransaction>(transaction);
-                if (mTransactionUUID != propagationRoutingTableTransaction->UUID()) {
-                    continue;
-                }
-
-                if (mContractorUUID == propagationRoutingTableTransaction->contractorUUID()) {
-                    continue;
-                }
-
-                return make_pair(
-                    false,
-                    transaction->UUID()
-                );
-
-            }
-
-            case BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType: {
-
-                FromInitiatorToContractorRoutingTablesAcceptTransaction::Shared acceptRoutingTableTransaction = static_pointer_cast<FromInitiatorToContractorRoutingTablesAcceptTransaction>(transaction);
-                if (mTransactionUUID != acceptRoutingTableTransaction->UUID()) {
-                    continue;
-                }
-
-                if (mContractorUUID == acceptRoutingTableTransaction->contractorUUID()) {
-                    continue;
-                }
-
-                return make_pair(
-                    false,
-                    transaction->UUID()
-                );
-
-            }
-
-            default: {
-                break;
-            }
-
-        }
-
-    }
-
-    return make_pair(
-        true,
-        TransactionUUID()
-    );
-}
-
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRoutingTable() {
 
     cout << "First level routing table message received " << endl;
@@ -136,17 +65,20 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRout
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::waitingForSecondLevelRoutingTableState() {
 
-    TransactionState *transactionState = new TransactionState(
-        microsecondsSinceGEOEpoch(
-            utc_now() + pt::microseconds(mConnectionTimeout * 1000)
-        ),
-        Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType,
-        false
+    auto state = TransactionState::waitForMessageTypes(
+        {Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType},
+        mConnectionTimeout
     );
 
+    cout << "FromInitiatorToContractorRoutingTablesAcceptTransaction return state" << endl;
+    cout << "Awakening timestamp in micros -> " << state->awakeningTimestamp() << endl;
+    cout << "Waiting for such messages type as" << endl;
+    for (const auto &i : state->acceptedMessagesTypes()) {
+        cout << "-> " << i << endl;
+    }
 
     return transactionResultFromState(
-        TransactionState::SharedConst(transactionState)
+        state
     );
 }
 
@@ -173,8 +105,9 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
         return finishTransaction();
 
     } else {
-        cout << "TRY RECEIVE SECOND LEVEL ROUTING TABLE AGAIN" << endl;
-        return waitingForSecondLevelRoutingTableState();
+
+        throw ConflictError("FromInitiatorToContractorRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
+                                "There are no incoming messages.");
     }
 }
 

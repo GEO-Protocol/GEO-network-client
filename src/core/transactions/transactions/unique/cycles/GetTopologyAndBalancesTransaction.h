@@ -16,21 +16,21 @@ public:
     typedef shared_ptr<GetTopologyAndBalancesTransaction> Shared;
 
 public:
-    GetTopologyAndBalancesTransaction(TransactionType type,
-                                      NodeUUID &nodeUUID,
+    GetTopologyAndBalancesTransaction(const TransactionType type,
+                                      const NodeUUID &nodeUUID,
                                       TransactionsScheduler *scheduler,
                                       TrustLinesManager *manager,
                                       Logger *logger);
 
-    GetTopologyAndBalancesTransaction(TransactionType type,
-                                      NodeUUID &nodeUUID,
+    GetTopologyAndBalancesTransaction(const TransactionType type,
+                                      const NodeUUID &nodeUUID,
                                       InBetweenNodeTopologyMessage::Shared message,
                                       TransactionsScheduler *scheduler,
                                       TrustLinesManager *manager,
                                       Logger *logger);
 
-    GetTopologyAndBalancesTransaction(TransactionType type,
-                                      NodeUUID &nodeUUID,
+    GetTopologyAndBalancesTransaction(const TransactionType type,
+                                      const NodeUUID &nodeUUID,
                                       BoundaryNodeTopologyMessage::Shared message,
                                       TransactionsScheduler *scheduler,
                                       TrustLinesManager *manager,

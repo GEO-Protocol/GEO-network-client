@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_ROUTINGTABLETRANSACTION_H
 #define GEO_NETWORK_CLIENT_ROUTINGTABLETRANSACTION_H
 
-#include "../../base/UniqueTransaction.h"
+#include "../../base/BaseTransaction.h"
 
 #include "../../../../common/Types.h"
 #include "../../../../common/NodeUUID.h"
@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <utility>
 
-class RoutingTablesTransaction : public UniqueTransaction {
+class RoutingTablesTransaction : public BaseTransaction {
 
 public:
     enum RoutingTableLevelStepIdentifier {
@@ -27,14 +27,13 @@ public:
 
 protected:
     RoutingTablesTransaction(
-        TransactionType type,
-        NodeUUID &nodeUUID,
-        NodeUUID &contractorUUID,
-        TransactionsScheduler *scheduler);
+        const TransactionType type,
+        const NodeUUID &nodeUUID,
+        const NodeUUID &contractorUUID);
 
     RoutingTablesTransaction(
-        BytesShared buffer,
-        TransactionsScheduler *scheduler);
+        const TransactionType type,
+        BytesShared buffer);
 
     void increaseRequestsCounter();
 
@@ -55,8 +54,6 @@ protected:
     const uint16_t kMaxRequestsCount = 5;
     const uint16_t kConnectionProgression = 2;
     const uint16_t kStandardConnectionTimeout = 20000;
-
-    bool isUniqueWasChecked = false;
 
     uint16_t mRequestCounter = 0;
     uint16_t mConnectionTimeout = kStandardConnectionTimeout;

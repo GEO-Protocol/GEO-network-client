@@ -144,14 +144,8 @@ void Communicator::handleReceivedInfo(
     size_t bytesTransferred) {
 
     if (!error || error == boost::asio::error::message_size) {
-
-#ifdef NETWORK_DEBUG_LOG
-        {
-            auto info = mLog->info("Communicator");
-            info << bytesTransferred << " bytes received";
-        }
-#endif
-
+        mLog->logInfo("Communicator::handleReceivedInfo: ",
+                      string("Bytes received - ") + to_string(bytesTransferred));
         try {
             mIncomingMessagesHandler->processIncomingMessage(
                 mRemoteEndpointBuffer,
@@ -213,15 +207,12 @@ void Communicator::handleSend(
     }
 
     if (error) {
-        auto errors = mLog->error("Communicator");
-        errors << error.message();
+        mLog->logError("Communicator::handleSend:",
+                       error.message()
+        );
 
     } else {
-
-#ifdef NETWORK_DEBUG_LOG
-        auto debug = mLog->debug("Communicator");
-        debug << bytesTransferred << " bytes transferred";
-#endif
-
+        mLog->logInfo("Communicator::handleSend: ",
+                      string("Bytes transferred - ") + to_string(bytesTransferred));
     }
 }

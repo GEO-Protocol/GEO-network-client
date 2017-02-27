@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_MESSAGE_H
 
 #include "../../common/Types.h"
+#include "../../common/memory/MemoryUtils.h"
 
 #include "../../common/exceptions/Exception.h"
 
@@ -82,14 +83,22 @@ public:
 
         return false;
     }
+
+    virtual const bool isRoutingTableMessage() const {
+
+        return false;
+    }
+
     virtual const bool isRoutingTableResponseMessage() const {
 
         return false;
     }
+
     virtual const bool isMaxFlowCalculationResponseMessage() const {
 
         return false;
     }
+
     virtual const bool isCyclesDiscoveringResponseMessage() const {
 
         return false;
@@ -97,13 +106,38 @@ public:
 
     virtual const MessageType typeID() const = 0;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() = 0;
+    virtual pair<BytesShared, size_t> serializeToBytes() {
+
+        size_t bytesCount = sizeof(MessageType);
+        BytesShared bytesBuffer = tryMalloc(bytesCount);
+        //----------------------------------------------------
+        MessageType type = typeID();
+        memcpy(
+            bytesBuffer.get(),
+            &type,
+            sizeof(MessageType)
+        );
+        //----------------------------------------------------
+        return make_pair(
+            bytesBuffer,
+            bytesCount
+        );
+    }
 
 protected:
     Message() {};
 
     virtual void deserializeFromBytes(
-        BytesShared buffer) = 0;
+        BytesShared buffer) {
+
+        MessageType *type = new (buffer.get()) MessageType;
+    }
+
+    static const size_t kOffsetToInheritedBytes() {
+
+        static const size_t offset = sizeof(MessageType);
+        return offset;
+    }
 };
 
 #endif //GEO_NETWORK_CLIENT_MESSAGE_H

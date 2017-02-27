@@ -1,15 +1,13 @@
 #include "CloseTrustLineTransaction.h"
 
 CloseTrustLineTransaction::CloseTrustLineTransaction(
-    NodeUUID &nodeUUID,
+    const NodeUUID &nodeUUID,
     CloseTrustLineCommand::Shared command,
-    TransactionsScheduler *scheduler,
     TrustLinesManager *manager) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::CloseTrustLineTransactionType,
-        nodeUUID,
-        scheduler
+        nodeUUID
     ),
     mCommand(command),
     mTrustLinesManager(manager) {
@@ -18,10 +16,11 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
 
 CloseTrustLineTransaction::CloseTrustLineTransaction(
     BytesShared buffer,
-    TransactionsScheduler *scheduler,
     TrustLinesManager *manager) :
 
-    TrustLineTransaction(scheduler),
+    TrustLineTransaction(
+        BaseTransaction::TransactionType::CloseTrustLineTransactionType
+    ),
     mTrustLinesManager(manager) {
 
     deserializeFromBytes(buffer);
@@ -84,7 +83,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
         switch (mStep) {
 
             case 1: {
-                if (isTransactionToContractorUnique()) {
+                if (!isTransactionToContractorUnique()) {
                     return conflictErrorResult();
                 }
                 increaseStepsCounter();
@@ -140,50 +139,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
 
 bool CloseTrustLineTransaction::isTransactionToContractorUnique() {
 
-    auto transactions = pendingTransactions();
-    for (auto const &it : *transactions) {
-
-        switch (it.first->transactionType()) {
-
-            case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
-                OpenTrustLineTransaction::Shared openTrustLineTransaction = static_pointer_cast<OpenTrustLineTransaction>(it.first);
-                if (mTransactionUUID != it.first->UUID()) {
-                    if (mCommand->contractorUUID() == openTrustLineTransaction->command()->contractorUUID()) {
-                        return true;
-                    }
-                }
-                break;
-            }
-
-            case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
-                SetTrustLineTransaction::Shared setTrustLineTransaction = static_pointer_cast<SetTrustLineTransaction>(it.first);
-                if (mTransactionUUID != it.first->UUID()) {
-                    if (mCommand->contractorUUID() == setTrustLineTransaction->command()->contractorUUID()) {
-                        return true;
-                    }
-                }
-                break;
-            }
-
-            case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
-                CloseTrustLineTransaction::Shared closeTrustLineTransaction = static_pointer_cast<CloseTrustLineTransaction>(it.first);
-                if (mTransactionUUID != it.first->UUID()) {
-                    if (mCommand->contractorUUID() == closeTrustLineTransaction->command()->contractorUUID()) {
-                        return true;
-                    }
-                }
-                break;
-            }
-
-            default: {
-                break;
-            }
-
-        }
-
-    }
-
-    return false;
+    return true;
 }
 
 bool CloseTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {

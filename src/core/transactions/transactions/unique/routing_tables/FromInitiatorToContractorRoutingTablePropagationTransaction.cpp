@@ -1,39 +1,28 @@
 #include "FromInitiatorToContractorRoutingTablePropagationTransaction.h"
 
 FromInitiatorToContractorRoutingTablePropagationTransaction::FromInitiatorToContractorRoutingTablePropagationTransaction(
-    NodeUUID &nodeUUID,
-    NodeUUID &contractorUUID,
-    TransactionsScheduler *scheduler,
+    const NodeUUID &nodeUUID,
+    const NodeUUID &contractorUUID,
     TrustLinesManager *trustLinesManager) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
         nodeUUID,
-        contractorUUID,
-        scheduler
+        contractorUUID
     ),
     mTrustLinesManager(trustLinesManager) {}
 
 FromInitiatorToContractorRoutingTablePropagationTransaction::FromInitiatorToContractorRoutingTablePropagationTransaction(
     BytesShared buffer,
-    TransactionsScheduler *scheduler,
     TrustLinesManager *trustLinesManager) :
 
     RoutingTablesTransaction(
-        buffer,
-        scheduler
+        BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
+        buffer
     ),
     mTrustLinesManager(trustLinesManager) {}
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationTransaction::run() {
-
-    if (!isUniqueWasChecked) {
-        auto flagAndTransactionUUID = isTransactionToContractorUnique();
-        if (!flagAndTransactionUUID.first) {
-            killTransaction(flagAndTransactionUUID.second);
-        }
-        isUniqueWasChecked = true;
-    }
 
     switch (mStep) {
 
@@ -59,65 +48,6 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
         }
 
     }
-}
-
-pair<bool, const TransactionUUID> FromInitiatorToContractorRoutingTablePropagationTransaction::isTransactionToContractorUnique() {
-
-    auto transactions = pendingTransactions();
-    for (auto const &transactionsAndState : *transactions) {
-
-        auto transaction = transactionsAndState.first;
-
-        switch (transaction->transactionType()) {
-
-            case BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType: {
-
-                FromInitiatorToContractorRoutingTablePropagationTransaction::Shared propagationRoutingTableTransaction = static_pointer_cast<FromInitiatorToContractorRoutingTablePropagationTransaction>(transaction);
-                if (mTransactionUUID != propagationRoutingTableTransaction->UUID()) {
-                    continue;
-                }
-
-                if (mContractorUUID == propagationRoutingTableTransaction->contractorUUID()) {
-                    continue;
-                }
-
-                return make_pair(
-                    false,
-                    transaction->UUID()
-                );
-
-            }
-
-            case BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType: {
-
-                FromInitiatorToContractorRoutingTablesAcceptTransaction::Shared acceptRoutingTableTransaction = static_pointer_cast<FromInitiatorToContractorRoutingTablesAcceptTransaction>(transaction);
-                if (mTransactionUUID != acceptRoutingTableTransaction->UUID()) {
-                    continue;
-                }
-
-                if (mContractorUUID == acceptRoutingTableTransaction->contractorUUID()) {
-                    continue;
-                }
-
-                return make_pair(
-                    false,
-                    transaction->UUID()
-                );
-
-            }
-
-            default: {
-                break;
-            }
-
-        }
-
-    }
-
-    return make_pair(
-        true,
-        TransactionUUID()
-    );
 }
 
 pair<bool, TransactionResult::SharedConst> FromInitiatorToContractorRoutingTablePropagationTransaction::checkContext() {
@@ -317,17 +247,12 @@ void FromInitiatorToContractorRoutingTablePropagationTransaction::sendSecondLeve
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationTransaction::waitingForRoutingTablePropagationResponse() {
 
-    TransactionState *transactionState = new TransactionState(
-        microsecondsSinceGEOEpoch(
-            utc_now() + pt::microseconds(mConnectionTimeout * 1000)
-        ),
-        Message::MessageTypeID::RoutingTablesResponseMessageType,
-        false
-    );
-
 
     return transactionResultFromState(
-        TransactionState::SharedConst(transactionState)
+        TransactionState::waitForMessageTypes(
+            {Message::MessageTypeID::RoutingTablesResponseMessageType},
+            mConnectionTimeout
+        )
     );
 }
 

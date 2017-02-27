@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_PACKET_H
+﻿#ifndef GEO_NETWORK_CLIENT_PACKET_H
 #define GEO_NETWORK_CLIENT_PACKET_H
 
 #include "../../../common/Types.h"

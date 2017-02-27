@@ -31,21 +31,17 @@ public:
 
 public:
     FromInitiatorToContractorRoutingTablePropagationTransaction(
-        NodeUUID &nodeUUID,
-        NodeUUID &contractorUUID,
-        TransactionsScheduler *scheduler,
+        const NodeUUID &nodeUUID,
+        const NodeUUID &contractorUUID,
         TrustLinesManager *trustLinesManager);
 
     FromInitiatorToContractorRoutingTablePropagationTransaction(
         BytesShared buffer,
-        TransactionsScheduler *scheduler,
         TrustLinesManager *trustLinesManager);
 
     TransactionResult::SharedConst run();
 
 private:
-    pair<bool, const TransactionUUID> isTransactionToContractorUnique();
-
     pair<bool, TransactionResult::SharedConst> checkContext();
 
     //First level propagation

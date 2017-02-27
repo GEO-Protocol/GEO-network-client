@@ -5,14 +5,15 @@
 #include "ReceiveMaxFlowCalculationOnTargetTransaction.h"
 
 ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetTransaction(
-        NodeUUID &nodeUUID,
+        const NodeUUID &nodeUUID,
         ReceiveMaxFlowCalculationOnTargetMessage::Shared message,
         TrustLinesManager *manager,
         Logger *logger) :
 
         BaseTransaction(
                 BaseTransaction::TransactionType::ReceiveMaxFlowCalculationOnTargetTransactionType,
-                nodeUUID),
+                nodeUUID
+        ),
         mMessage(message),
         mTrustLinesManager(manager),
         mLog(logger){}
@@ -21,9 +22,12 @@ ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetT
         BytesShared buffer,
         TrustLinesManager *manager) :
 
-        mTrustLinesManager(manager){
+    MaxFlowCalculationTransaction(
+        BaseTransaction::TransactionType::ReceiveMaxFlowCalculationOnTargetTransactionType
+    ),
+    mTrustLinesManager(manager){
 
-        deserializeFromBytes(buffer);
+    deserializeFromBytes(buffer);
 }
 
 ReceiveMaxFlowCalculationOnTargetMessage::Shared ReceiveMaxFlowCalculationOnTargetTransaction::message() const {
