@@ -7,10 +7,14 @@ set(SOURCE_FILES
         propagate/FromInitiatorToContractorRoutingTablePropagationTransaction.h
         accept/FromInitiatorToContractorRoutingTablesAcceptTransaction.cpp
         accept/FromInitiatorToContractorRoutingTablesAcceptTransaction.h
-        propagate/FromContractorToFirstLevelRoutingTablePropagation.cpp
-        propagate/FromContractorToFirstLevelRoutingTablePropagation.h
+        propagate/FromContractorToFirstLevelRoutingTablePropagationTransaction.cpp
+        propagate/FromContractorToFirstLevelRoutingTablePropagationTransaction.h
         accept/FromContractorToFirstLevelRoutingTableAcceptTransaction.cpp
-        accept/FromContractorToFirstLevelRoutingTableAcceptTransaction.h)
+        accept/FromContractorToFirstLevelRoutingTableAcceptTransaction.h
+        propagate/FromFirstLevelToSecondLevelRoutingTablePropagationTransaction.cpp
+        propagate/FromFirstLevelToSecondLevelRoutingTablePropagationTransaction.h
+        accept/FromFirstLevelToSecondLevelRoutingTableTransaction.cpp
+        accept/FromFirstLevelToSecondLevelRoutingTableTransaction.h)
 
 add_library(transactions__routing_tables ${SOURCE_FILES})
 target_link_libraries(transactions__routing_tables

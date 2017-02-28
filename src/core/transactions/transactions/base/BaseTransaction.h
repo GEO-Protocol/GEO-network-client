@@ -32,6 +32,7 @@ public:
     typedef shared_ptr<BaseTransaction> Shared;
     typedef uint16_t SerializedTransactionType;
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
+    typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
 
 public:
     enum TransactionType {
@@ -90,6 +91,9 @@ protected:
         Message::Shared message,
         const NodeUUID &nodeUUID);
 
+    void launchSubsidiaryTransaction(
+      BaseTransaction::Shared transaction);
+
     void increaseStepsCounter();
 
     void resetStepsCounter();
@@ -119,6 +123,7 @@ protected:
 
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
+    mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
 
 protected:
     TransactionType mType;

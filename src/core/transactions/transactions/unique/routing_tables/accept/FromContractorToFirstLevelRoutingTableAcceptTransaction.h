@@ -11,6 +11,9 @@
 #include "../../../../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
+#include "../propagate/FromFirstLevelToSecondLevelRoutingTablePropagationTransaction.h"
+
+#include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../common/exceptions/ConflictError.h"
 
 #include <stdint.h>
@@ -23,10 +26,12 @@ public:
 public:
     FromContractorToFirstLevelRoutingTableAcceptTransaction(
         const NodeUUID &nodeUUID,
-        FirstLevelRoutingTableIncomingMessage::Shared message);
+        FirstLevelRoutingTableIncomingMessage::Shared relationshipsBetweenInitiatorAndContractor,
+        TrustLinesManager *trustLinesManager);
 
     FromContractorToFirstLevelRoutingTableAcceptTransaction(
-        BytesShared buffer);
+        BytesShared buffer,
+        TrustLinesManager *trustLinesManager);
 
     FirstLevelRoutingTableIncomingMessage::Shared message() const;
 
@@ -46,8 +51,12 @@ private:
         const NodeUUID &contractorUUID,
         const uint16_t code);
 
+    void createFromFirstLevelToSecondLevelRoutingTablesPropagationTransaction();
+
 private:
-    FirstLevelRoutingTableIncomingMessage::Shared mFirstLevelMessage;
+    FirstLevelRoutingTableIncomingMessage::Shared mLinkBetweenInitiatorAndContractor;
+
+    TrustLinesManager *mTrustLinesManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_FROMCONTRACTORTOFIRSTLEVELROUTINGTABLEACCEPTTRANSACTION_H

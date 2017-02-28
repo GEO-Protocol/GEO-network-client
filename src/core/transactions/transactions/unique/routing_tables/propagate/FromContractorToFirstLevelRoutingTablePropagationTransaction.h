@@ -7,6 +7,7 @@
 #include "../../../../../common/NodeUUID.h"
 
 #include "../../../../../network/messages/Message.hpp"
+#include "../../../../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../../../../network/messages/outgoing/routing_tables/FirstLevelRoutingTableOutgoingMessage.h"
 #include "../../../../../network/messages/outgoing/routing_tables/SecondLevelRoutingTableOutgoingMessage.h"
 #include "../../../../../network/messages/response/RoutingTablesResponse.h"
@@ -16,24 +17,25 @@
 
 #include <memory>
 #include <utility>
+#include <map>
 #include <vector>
 #include <stdint.h>
 
 using namespace std;
 
-class FromContractorToFirstLevelRoutingTablePropagation: public RoutingTablesTransaction {
+class FromContractorToFirstLevelRoutingTablePropagationTransaction: public RoutingTablesTransaction {
 public:
-    typedef shared_ptr<FromContractorToFirstLevelRoutingTablePropagation> Shared;
+    typedef shared_ptr<FromContractorToFirstLevelRoutingTablePropagationTransaction> Shared;
 
 public:
-    FromContractorToFirstLevelRoutingTablePropagation(
+    FromContractorToFirstLevelRoutingTablePropagationTransaction(
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
-        pair<const NodeUUID, const TrustLineDirection> &&relationshipsBetweenInitiatorAndContractor,
-        vector<pair<const NodeUUID, const TrustLineDirection>> &&secondLevelRoutingTableFromInitiator,
+        const pair<const NodeUUID, const TrustLineDirection> &relationshipsBetweenInitiatorAndContractor,
+        SecondLevelRoutingTableIncomingMessage::Shared secondLevelRoutingTableFromInitiator,
         TrustLinesManager *trustLinesManager);
 
-    FromContractorToFirstLevelRoutingTablePropagation(
+    FromContractorToFirstLevelRoutingTablePropagationTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLinesManager);
 
@@ -67,7 +69,7 @@ private:
 
 private:
     pair<const NodeUUID, const TrustLineDirection> mLinkWithInitiator;
-    vector<pair<const NodeUUID, const TrustLineDirection>> mSecondLevelRoutingTable;
+    SecondLevelRoutingTableIncomingMessage::Shared mSecondLevelRoutingTableFromInitiator;
     TrustLinesManager *mTrustLinesManager;
 };
 

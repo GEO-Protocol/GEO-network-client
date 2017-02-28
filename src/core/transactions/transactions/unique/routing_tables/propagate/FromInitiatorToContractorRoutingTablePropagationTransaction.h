@@ -28,8 +28,8 @@ public:
 
 public:
     FromInitiatorToContractorRoutingTablePropagationTransaction(
-        const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
+        const NodeUUID &nodeUUID, // Current node (A)
+        const NodeUUID &contractorUUID, // Contractor with newly created trust line (B)
         TrustLinesManager *trustLinesManager);
 
     FromInitiatorToContractorRoutingTablePropagationTransaction(

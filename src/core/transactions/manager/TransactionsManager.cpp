@@ -417,8 +417,12 @@ void TransactionsManager::launchAcceptFromInitiatorToContractorRoutingTablesTran
 
         auto transaction = make_shared<FromInitiatorToContractorRoutingTablesAcceptTransaction>(
             mNodeUUID,
-            message
+            message,
+            mTrustLines
         );
+
+        subscribeForSubsidiaryTransactions(
+            transaction->runSubsidiaryTransactionSignal);
 
         subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
@@ -751,6 +755,18 @@ void TransactionsManager::launchGetTopologyAndBalancesTransaction(){
     }
 }
 
+void TransactionsManager::subscribeForSubsidiaryTransactions(
+    BaseTransaction::LaunchSubsidiaryTransactionSignal &signal) {
+
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onSubsidiaryTransactionReady,
+            this,
+            _1
+        )
+    );
+}
+
 void TransactionsManager::subscribeForOutgoingMessages(
     BaseTransaction::SendMessageSignal &signal) {
 
@@ -759,7 +775,8 @@ void TransactionsManager::subscribeForOutgoingMessages(
             &TransactionsManager::onTransactionOutgoingMessageReady,
             this,
             _1,
-            _2)
+            _2
+        )
     );
 }
 
@@ -810,4 +827,21 @@ void TransactionsManager::onCommandResultReady(
             "TransactionsManager::onCommandResultReady: "
                 "Error occurred when command result has accepted");
     }
+}
+
+void TransactionsManager::onSubsidiaryTransactionReady(
+    BaseTransaction::Shared transaction) {
+
+    subscribeForSubsidiaryTransactions(
+        transaction->runSubsidiaryTransactionSignal
+    );
+
+    subscribeForOutgoingMessages(
+        transaction->outgoingMessageIsReadySignal
+    );
+
+    mScheduler->postponeTransaction(
+        transaction,
+        5000
+    );
 }

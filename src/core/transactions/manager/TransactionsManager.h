@@ -150,6 +150,9 @@ private:
         InBetweenNodeTopologyMessage::Shared message);
 
     // Signals connection to manager's slots
+    void subscribeForSubsidiaryTransactions(
+        BaseTransaction::LaunchSubsidiaryTransactionSignal &signal);
+
     void subscribeForOutgoingMessages(
         BaseTransaction::SendMessageSignal &signal);
 
@@ -157,6 +160,9 @@ private:
         TransactionsScheduler::CommandResultSignal &signal);
 
     // Slots
+    void onSubsidiaryTransactionReady(
+        BaseTransaction::Shared transaction);
+
     void onTransactionOutgoingMessageReady(
         Message::Shared message,
         const NodeUUID &contractorUUID);

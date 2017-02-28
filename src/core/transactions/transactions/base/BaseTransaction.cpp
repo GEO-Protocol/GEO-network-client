@@ -29,6 +29,14 @@ void BaseTransaction::addMessage(
     );
 }
 
+void BaseTransaction::launchSubsidiaryTransaction(
+    BaseTransaction::Shared transaction) {
+
+    runSubsidiaryTransactionSignal(
+        transaction
+    );
+}
+
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
 
     return mType;

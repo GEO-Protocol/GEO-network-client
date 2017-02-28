@@ -211,7 +211,7 @@ void FromInitiatorToContractorRoutingTablePropagationTransaction::sendSecondLeve
 
 #ifdef DEBUG
     for (size_t i = 0; i < 10; ++ i) {
-        NodeUUID neighbor;
+        NodeUUID secondLevelContractor;
         TrustLineDirection direction;
 
         int randomValue = rand() % 2;
@@ -235,15 +235,17 @@ void FromInitiatorToContractorRoutingTablePropagationTransaction::sendSecondLeve
 
         neighborsAndDirections.push_back(
             make_pair(
-                neighbor,
+                secondLevelContractor,
                 direction
             )
         );
+
     }
 #endif
 
+    NodeUUID randomFirstLevelNeighbor;
     secondLevelMessage->pushBack(
-        mNodeUUID,
+        randomFirstLevelNeighbor,
         neighborsAndDirections
     );
 
