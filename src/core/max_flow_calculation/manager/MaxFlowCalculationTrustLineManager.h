@@ -3,36 +3,22 @@
 
 #include "../../common/NodeUUID.h"
 #include "../MaxFlowCalculationTrustLine.h"
-#include "../MaxFlowCalculationNodeEntity.h"
 
 #include <map>
 #include <vector>
 
 #include "boost/container/flat_set.hpp"
 
-using namespace std;
+//using namespace std;
 class MaxFlowCalculationTrustLineManager {
 
 public:
 
     void addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine);
 
-    void addIncomingFlow(
-        const NodeUUID& node1UUID,
-        const NodeUUID& node2UUID,
-        const TrustLineAmount& flow);
+    vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines(const NodeUUID &nodeUUID);
 
-    void addOutgoingFlow(
-        const NodeUUID& node1UUID,
-        const NodeUUID& node2UUID,
-        const TrustLineAmount& flow);
-
-    void addFlow(
-        const NodeUUID& node1UUID,
-        const NodeUUID& node2UUID,
-        const TrustLineAmount& flow);
-
-    vector<MaxFlowCalculationTrustLine::Shared> getSortedTrustLines(const NodeUUID& nodeUUID);
+    void resetAllUsedAmounts();
 
 private:
     // sort using a custom function object
@@ -40,8 +26,8 @@ private:
         bool operator()(
             MaxFlowCalculationTrustLine::Shared a,
             MaxFlowCalculationTrustLine::Shared b) {
-            auto aTrustLineFreeAmountPtr = a.get()->getFreeAmount();
-            auto bTrustLineFreeAmountPtr = b.get()->getFreeAmount();
+            auto aTrustLineFreeAmountPtr = a.get()->freeAmount();
+            auto bTrustLineFreeAmountPtr = b.get()->freeAmount();
             return *aTrustLineFreeAmountPtr > *bTrustLineFreeAmountPtr;
         }
     } customLess;
@@ -49,7 +35,6 @@ private:
 // todo make private after testing
 public:
     map<NodeUUID, vector<MaxFlowCalculationTrustLine::Shared>> mvTrustLines;
-    map<NodeUUID, MaxFlowCalculationNodeEntity::Shared> mEntities;
 
 };
 

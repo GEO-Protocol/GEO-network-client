@@ -8,6 +8,7 @@
 
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
+#include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
@@ -69,6 +70,7 @@ public:
         as::io_service &IOService,
         TrustLinesManager *trustLinesManager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResultsInterface *resultsInterface,
         Logger *logger);
 
@@ -114,7 +116,7 @@ private:
     void launchInitiateMaxFlowCalculatingTransaction(
         InitiateMaxFlowCalculationCommand::Shared command);
 
-    void launchReceiveMaxFlowCalculationTransaction(
+    void launchReceiveMaxFlowCalculationOnTargetTransaction(
         ReceiveMaxFlowCalculationOnTargetMessage::Shared message);
 
     void launchReceiveResultMaxFlowCalculationTransaction(
@@ -165,6 +167,7 @@ private:
     as::io_service &mIOService;
     TrustLinesManager *mTrustLines;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     ResultsInterface *mResultsInterface;
     Logger *mLog;
 

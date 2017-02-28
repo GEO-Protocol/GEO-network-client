@@ -6,7 +6,7 @@
 #include "../../../network/messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/SendResultMaxFlowCalculationMessage.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/SendMaxFlowCalculationTargetFstLevelMessage.h"
-#include "../../scheduler/TransactionsScheduler.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 class ReceiveMaxFlowCalculationOnTargetTransaction : public BaseTransaction {
 
@@ -18,6 +18,7 @@ public:
             const NodeUUID &nodeUUID,
             ReceiveMaxFlowCalculationOnTargetMessage::Shared message,
             TrustLinesManager *manager,
+            MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
             Logger *logger);
 
     ReceiveMaxFlowCalculationOnTargetMessage::Shared message() const;
@@ -30,9 +31,12 @@ private:
 
     void sendResultToInitiator();
 
+    void sendCachedResultToInitiator();
+
 private:
     ReceiveMaxFlowCalculationOnTargetMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     Logger *mLog;
 };
 

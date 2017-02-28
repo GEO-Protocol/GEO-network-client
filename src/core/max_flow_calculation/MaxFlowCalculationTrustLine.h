@@ -17,13 +17,13 @@ public:
         const NodeUUID &targetUUID,
         const TrustLineAmount &amount);
 
-    const NodeUUID& getSourceUUID() const;
+    const NodeUUID& sourceUUID() const;
 
-    const NodeUUID& getTargetUUID() const;
+    const NodeUUID& targetUUID() const;
 
-    const TrustLineAmount& getAmount() const;
+    const TrustLineAmount& amount() const;
 
-    ConstSharedTrustLineAmount getFreeAmount() const;
+    ConstSharedTrustLineAmount freeAmount() const;
 
     void addUsedAmount(TrustLineAmount amount);
 

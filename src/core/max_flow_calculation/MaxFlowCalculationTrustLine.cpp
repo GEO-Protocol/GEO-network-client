@@ -20,19 +20,19 @@ MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine(
     }
 }
 
-const NodeUUID& MaxFlowCalculationTrustLine::getSourceUUID() const {
+const NodeUUID& MaxFlowCalculationTrustLine::sourceUUID() const {
     return mSourceUUID;
 }
 
-const NodeUUID& MaxFlowCalculationTrustLine::getTargetUUID() const {
+const NodeUUID& MaxFlowCalculationTrustLine::targetUUID() const {
     return mTargetUUID;
 }
 
-const TrustLineAmount& MaxFlowCalculationTrustLine::getAmount() const {
+const TrustLineAmount& MaxFlowCalculationTrustLine::amount() const {
     return mAmount;
 }
 
-ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::getFreeAmount() const {
+ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::freeAmount() const {
     return ConstSharedTrustLineAmount(
         new TrustLineAmount(
             mAmount - mUsedAmount

@@ -77,6 +77,11 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
+    initCode = initMaxFlowCalculationCacheManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
@@ -170,6 +175,18 @@ int Core::initMaxFlowCalculationtrustLineManager() {
     }
 }
 
+int Core::initMaxFlowCalculationCacheManager() {
+
+    try {
+        mMaxFlowCalculationCacheManager = new MaxFlowCalculationCacheManager;
+        mLog.logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
+        return 0;
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
 int Core::initTransactionsManager() {
 
     try {
@@ -178,6 +195,7 @@ int Core::initTransactionsManager() {
             mIOService,
             mTrustLinesManager,
             mMaxFlowCalculationTrustLimeManager,
+            mMaxFlowCalculationCacheManager,
             mResultsInterface,
             &mLog
         );

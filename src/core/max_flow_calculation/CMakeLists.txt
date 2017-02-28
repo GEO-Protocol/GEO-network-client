@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.6)
 set(SOURCE_FILES
         MaxFlowCalculationTrustLine.cpp
         MaxFlowCalculationTrustLine.h
-        MaxFlowCalculationNodeEntity.cpp
-        MaxFlowCalculationNodeEntity.h
         manager/MaxFlowCalculationTrustLineManager.cpp
-        manager/MaxFlowCalculationTrustLineManager.h)
+        manager/MaxFlowCalculationTrustLineManager.h
+        cashe/MaxFlowCalculationCache.cpp
+        cashe/MaxFlowCalculationCache.h cashe/MaxFlowCalculationCacheManager.cpp cashe/MaxFlowCalculationCacheManager.h)
 
 add_library(max_flow_calculation ${SOURCE_FILES})

@@ -9,6 +9,7 @@ TransactionsManager::TransactionsManager(
     as::io_service &IOService,
     TrustLinesManager *trustLinesManager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResultsInterface *resultsInterface,
     Logger *logger) :
 
@@ -16,6 +17,7 @@ TransactionsManager::TransactionsManager(
     mIOService(IOService),
     mTrustLines(trustLinesManager),
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mResultsInterface(resultsInterface),
     mLog(logger),
 
@@ -180,7 +182,7 @@ void TransactionsManager::processMessage(
             static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message));
 
     } else if (message->typeID() == Message::MessageTypeID::ReceiveMaxFlowCalculationOnTargetMessageType) {
-        launchReceiveMaxFlowCalculationTransaction(
+        launchReceiveMaxFlowCalculationOnTargetTransaction(
             static_pointer_cast<ReceiveMaxFlowCalculationOnTargetMessage>(message));
 
     } else if (message->typeID() == Message::MessageTypeID::ResultMaxFlowCalculationMessageType) {
@@ -451,7 +453,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchReceiveMaxFlowCalculationTransaction(
+void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
     ReceiveMaxFlowCalculationOnTargetMessage::Shared message) {
 
     try {
@@ -459,6 +461,7 @@ void TransactionsManager::launchReceiveMaxFlowCalculationTransaction(
             mNodeUUID,
             message,
             mTrustLines,
+            mMaxFlowCalculationCacheManager,
             mLog);
 
         subscribeForOutgoingMessages(
@@ -568,6 +571,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
             mNodeUUID,
             message,
             mTrustLines,
+            mMaxFlowCalculationCacheManager,
             mLog);
 
         subscribeForOutgoingMessages(
@@ -595,6 +599,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
             mNodeUUID,
             message,
             mTrustLines,
+            mMaxFlowCalculationCacheManager,
             mLog);
 
         subscribeForOutgoingMessages(
