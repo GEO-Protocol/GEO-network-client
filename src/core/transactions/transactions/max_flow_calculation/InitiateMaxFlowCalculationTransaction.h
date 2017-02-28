@@ -9,6 +9,8 @@
 #include "../../../network/messages/outgoing/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/SendMaxFlowCalculationSourceFstLevelMessage.h"
 
+#include <set>
+
 class InitiateMaxFlowCalculationTransaction : public BaseTransaction {
 
 public:
@@ -39,7 +41,8 @@ private:
         const TrustLineAmount& currentFlow,
         byte level,
         const NodeUUID& targetUUID,
-        const NodeUUID& sourceUUID);
+        const NodeUUID& sourceUUID,
+        set<NodeUUID> forbiddenUUIDs);
 
     void testCompare(MaxFlowCalculationTrustLine::Shared a,
                      MaxFlowCalculationTrustLine::Shared b);

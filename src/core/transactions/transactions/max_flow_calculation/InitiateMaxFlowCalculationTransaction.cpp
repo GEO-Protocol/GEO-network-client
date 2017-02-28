@@ -145,12 +145,14 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(const No
             /*mLog->logInfo("InitiateMaxFlowCalculationTransaction->calculateMaxFlow",
                           "go in: " + trustLine.get()->sourceUUID().stringUUID() + "->"
                           + trustLine.get()->targetUUID().stringUUID() + " " + to_string((uint32_t)*trustLineAmountPtr));*/
+            set<NodeUUID> forbiddenUUIDs;
             TrustLineAmount flow = calculateOneNode(
                 trustLine.get()->targetUUID(),
                 *trustLineAmountPtr,
                 1,
                 nodeUUID,
-                mNodeUUID);
+                mNodeUUID,
+                forbiddenUUIDs);
             if (flow > TrustLine::kZeroAmount()) {
                 mLog->logInfo("InitiateMaxFlowCalculationTransaction->calculateMaxFlow",
                               "used flow: " + trustLine.get()->sourceUUID().stringUUID() + "->"
@@ -179,11 +181,14 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     const TrustLineAmount& currentFlow,
     byte level,
     const NodeUUID& targetUUID,
-    const NodeUUID& sourceUUID) {
+    const NodeUUID& sourceUUID,
+    set<NodeUUID> forbiddenNodeUUIDs) {
 
     mLog->logInfo("InitiateMaxFlowCalculationTransaction->calculateMaxFlow",
                   "go in: " + nodeUUID.stringUUID() + "->"
                   + to_string((uint32_t)currentFlow) + "->" + to_string(level));
+    mLog->logInfo("InitiateMaxFlowCalculationTransaction->calculateMaxFlow",
+                  "forbidden nodes: " + to_string(forbiddenNodeUUIDs.size()));
     if (nodeUUID == targetUUID) {
         return currentFlow;
     }
@@ -196,7 +201,10 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
         return 0;
     }
     for (auto &trustLine : sortedTrustLines) {
-        if (trustLine.get()->sourceUUID() == sourceUUID) {
+        if (trustLine.get()->targetUUID() == sourceUUID) {
+            continue;
+        }
+        if (forbiddenNodeUUIDs.find(trustLine.get()->targetUUID()) != forbiddenNodeUUIDs.end()) {
             continue;
         }
         TrustLineAmount nextFlow = currentFlow;
@@ -208,12 +216,15 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
         if (nextFlow == TrustLine::kZeroAmount()) {
             continue;
         }
+        forbiddenNodeUUIDs.insert(nodeUUID);
         TrustLineAmount calcFlow = calculateOneNode(
             trustLine.get()->targetUUID(),
             nextFlow,
             level + 1,
             targetUUID,
-            sourceUUID);
+            sourceUUID,
+            forbiddenNodeUUIDs);
+        forbiddenNodeUUIDs.erase(nodeUUID);
         if (calcFlow > TrustLine::kZeroAmount()) {
             mLog->logInfo("InitiateMaxFlowCalculationTransaction->calculateMaxFlow",
                           "used flow: " + trustLine.get()->sourceUUID().stringUUID() + "->"
