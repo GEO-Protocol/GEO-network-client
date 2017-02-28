@@ -89,8 +89,8 @@ pair<BytesShared, size_t> CreditUsageCommand::serializeToBytes() {
 }
 
 void CreditUsageCommand::deserializeFromBytes(
-    BytesShared buffer) {
-
+    BytesShared buffer)
+{
     BaseUserCommand::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = kOffsetToInheritedBytes();
     //----------------------------------------------------
@@ -110,8 +110,8 @@ void CreditUsageCommand::deserializeFromBytes(
 }
 
 void CreditUsageCommand::parse(
-    const string &command) {
-
+    const string &command)
+{
     static const auto minCommandLength = CommandUUID::kHexSize + 1;
     if (command.size() < minCommandLength) {
         throw ValueError(
@@ -160,39 +160,52 @@ void CreditUsageCommand::parse(
     }
 }
 
-const size_t CreditUsageCommand::kMinRequestedBufferSize() {
+const size_t CreditUsageCommand::kMinRequestedBufferSize()
+{
+    static const size_t size =
+            kOffsetToInheritedBytes()
+            + NodeUUID::kBytesSize
+            + kTrustLineAmountBytesCount;
 
-    static const size_t size = kOffsetToInheritedBytes() + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
     return size;
 }
 
-CommandResult::SharedConst CreditUsageCommand::resultOK() const {
-
+CommandResult::SharedConst CreditUsageCommand::resultOK() const
+{
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),
-            CommandResult::OK));
+            CreditUsageCommand::OK));
 }
 
-CommandResult::SharedConst CreditUsageCommand::resultNoPaths() const {
-
+CommandResult::SharedConst CreditUsageCommand::resultNoPaths() const
+{
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),
-            CommandResult::NoPaths));
+            CreditUsageCommand::NoPaths));
 }
 
-CommandResult::SharedConst CreditUsageCommand::resultNoResponse() const {
-
+CommandResult::SharedConst CreditUsageCommand::resultNoResponse() const
+{
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),
-            CommandResult::RemoteNodeIsInaccessible));
+            CreditUsageCommand::RemoteNodeIsInaccessible));
 }
 
-CommandResult::SharedConst CreditUsageCommand::resultProtocolError() const {
+CommandResult::SharedConst CreditUsageCommand::resultProtocolError() const
+{
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),
-            CommandResult::ProtocolError));
+            CreditUsageCommand::ProtocolError));
+}
+
+CommandResult::SharedConst CreditUsageCommand::resultInsufficientFundsError() const
+{
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            CreditUsageCommand::InsufficientFunds));
 }

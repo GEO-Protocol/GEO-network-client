@@ -3,8 +3,10 @@
 set(SOURCE_FILES
         ReceiverInitPaymentMessage.h
         ReceiverInitPaymentMessage.cpp
-        ReceiverApproveMessage.cpp
-        ReceiverApproveMessage.h)
+        ReceiverApprovePaymentMessage.cpp
+        ReceiverApprovePaymentMessage.h
+        ReserveBalanceRequestMessage.h
+        ReserveBalanceRequestMessage.cpp)
 
 add_library(messages__outgoing__payments ${SOURCE_FILES})
 target_link_libraries(messages__outgoing__payments

@@ -3,17 +3,8 @@
 
 #include "../../base/transaction/TransactionMessage.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../common/exceptions/ValueError.h"
-
-#include <memory>
-#include <utility>
-#include <stdint.h>
-
-
-class ReceiverApproveMessage:
+class ReceiverApprovePaymentMessage:
     public TransactionMessage {
 
 public:
@@ -23,16 +14,16 @@ public:
     };
 
     typedef byte SerializedOperationState;
-    typedef shared_ptr<ReceiverApproveMessage> Shared;
-    typedef shared_ptr<const ReceiverApproveMessage> ConstShared;
+    typedef shared_ptr<ReceiverApprovePaymentMessage> Shared;
+    typedef shared_ptr<const ReceiverApprovePaymentMessage> ConstShared;
 
 public:
-    ReceiverApproveMessage(
+    ReceiverApprovePaymentMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const OperationState state);
 
-    ReceiverApproveMessage(
+    ReceiverApprovePaymentMessage(
         BytesShared buffer);
 
     const OperationState state() const;

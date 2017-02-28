@@ -23,7 +23,7 @@
 #include "../messages/incoming/max_flow_calculation/MaxFlowCalculationTargetSndLevelInMessage.h"
 #include "../messages/incoming/max_flow_calculation/ResultMaxFlowCalculationFromSourceMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentMessage.h"
-#include "../messages/outgoing/payments/ReceiverApproveMessage.h"
+#include "../messages/outgoing/payments/ReceiverApprovePaymentMessage.h"
 #include "../messages/cycles/InBetweenNodeTopologyMessage.h"
 #include "../messages/cycles/BoundaryNodeTopologyMessage.h"
 #include "../messages/response/Response.h"

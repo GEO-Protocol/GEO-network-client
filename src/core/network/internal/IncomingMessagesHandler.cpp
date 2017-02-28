@@ -90,7 +90,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<ReceiverApproveMessage>(messagePart)
+                    make_shared<ReceiverApprovePaymentMessage>(messagePart)
                 )
             );
         }

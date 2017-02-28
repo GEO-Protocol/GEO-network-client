@@ -1,6 +1,6 @@
-﻿#include "ReceiverApproveMessage.h"
+﻿#include "ReceiverApprovePaymentMessage.h"
 
-ReceiverApproveMessage::ReceiverApproveMessage(
+ReceiverApprovePaymentMessage::ReceiverApprovePaymentMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const OperationState state) :
@@ -12,17 +12,17 @@ ReceiverApproveMessage::ReceiverApproveMessage(
     mState(state){
 }
 
-ReceiverApproveMessage::ReceiverApproveMessage(
+ReceiverApprovePaymentMessage::ReceiverApprovePaymentMessage(
     BytesShared buffer) {
 
     deserializeFromBytes(buffer);
 }
 
-const Message::MessageType ReceiverApproveMessage::typeID() const {
+const Message::MessageType ReceiverApprovePaymentMessage::typeID() const {
     return Message::Payments_ReceiverApprove;
 }
 
-const ReceiverApproveMessage::OperationState ReceiverApproveMessage::state() const {
+const ReceiverApprovePaymentMessage::OperationState ReceiverApprovePaymentMessage::state() const {
     return mState;
 }
 
@@ -30,7 +30,7 @@ const ReceiverApproveMessage::OperationState ReceiverApproveMessage::state() con
  *
  * @throws bad_alloc;
  */
-pair<BytesShared, size_t> ReceiverApproveMessage::serializeToBytes() {
+pair<BytesShared, size_t> ReceiverApprovePaymentMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
@@ -59,7 +59,7 @@ pair<BytesShared, size_t> ReceiverApproveMessage::serializeToBytes() {
     );
 }
 
-void ReceiverApproveMessage::deserializeFromBytes(BytesShared buffer) {
+void ReceiverApprovePaymentMessage::deserializeFromBytes(BytesShared buffer) {
 
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();

@@ -68,7 +68,6 @@ TransactionResult::Shared ReceiverPaymentTransaction::initOperation() {
         info << "Operation amount: " << mMessage->amount();
     }
 #endif
-
     // TODO: (optimisation)
     // Check if total incoming possibilities of the node are <= of the payment amount.
     // If not - there is no reason to process the operation at all.
@@ -76,16 +75,17 @@ TransactionResult::Shared ReceiverPaymentTransaction::initOperation() {
 
 
     // Inform the coordinator about initialised operation
-    auto message = make_shared<ReceiverApproveMessage>(
+    auto message = make_shared<ReceiverApprovePaymentMessage>(
         nodeUUID(),
         UUID(),
-        ReceiverApproveMessage::Accepted);
+        ReceiverApprovePaymentMessage::Accepted);
 
     addMessage(message, mMessage->senderUUID());
 
 
 
 
+    // TODO: Exit if no amount reservatio is accepted at least 6 * deadline timeouts for one node
 
 
     // Begin receiving amount locks,

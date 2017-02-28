@@ -35,10 +35,16 @@ public:
         SecondLevelRoutingTableIncomingMessageType,
         InBetweenNodeTopologyMessage,
         BoundaryNodeTopologyMessage,
+
+        /*
+         * Payments
+         */
         Payments_ReceiverInitPayment,
         Payments_ReceiverApprove,
-        ReceiverInitPaymentMessageType,
-        OperationStateMessageType,
+        Payments_ReserveBalanceRequest,
+        Payments_ReserveBalanceResponse,
+
+
         InitiateMaxFlowCalculationMessageType,
         ReceiveMaxFlowCalculationOnTargetMessageType,
         ResultMaxFlowCalculationFromTargetMessageType,

@@ -5,22 +5,30 @@
 
 #include <vector>
 #include <sstream>
-
+#include <algorithm>
 
 class Path {
 public:
     Path(
-        NodeUUID &source,
-        NodeUUID &destination,
-        vector<NodeUUID> &&intermediateNodes);
+        const NodeUUID &source,
+        const NodeUUID &destination,
+        const vector<NodeUUID> &&intermediateNodes);
 
-    const bool containsIntermediateNodes() const;
+    const size_t nodesCount() const;
+    const size_t intermediateNodesCount() const;
+
+    const vector<NodeUUID>& intermediateNodes() const;
+
     const string toString() const;
 
+    friend bool operator== (
+        const Path &p1,
+        const Path &p2);
+
 protected:
-    NodeUUID &mSource;
-    NodeUUID &mDestination;
-    vector<NodeUUID>& mIntermediateNodes;
+    const NodeUUID mSource;
+    const NodeUUID mDestination;
+    const vector<NodeUUID> mIntermediateNodes;
 };
 
 #endif // PATH_H

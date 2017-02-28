@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
+﻿#ifndef GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 #define GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 
 
@@ -105,12 +105,18 @@ public:
     void removeTrustLine(
         const NodeUUID &contractorUUID);
 
+    // TODO: cut "get" from method name;
     vector<NodeUUID> getFirstLevelNeighborsWithOutgoingFlow();
 
+    // TODO: cut "get" from method name;
     vector<NodeUUID> getFirstLevelNeighborsWithIncomingFlow();
 
+    // TODO: cut "get" from method name;
+    // TODO: TrustLineAmount takes 32 bytes. Are you shure you need a COPY here?
     map<NodeUUID, TrustLineAmount> getIncomingFlows();
 
+    // TODO: cut "get" from method name;
+    // TODO: TrustLineAmount takes 32 bytes. Are you shure you need a COPY here?
     map<NodeUUID, TrustLineAmount> getOutgoingFlows();
 
     const TrustLine::Shared trustLine(
@@ -118,7 +124,10 @@ public:
 
     map<NodeUUID, TrustLine::Shared> &trustLines();
 
+    // TODO: TrustLineBalance takes 32 bytes. Are you shure you need a COPY here?
     vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(TrustLineBalance maxflow);
+
+    // TODO: It's a debug I think
     void setSomeBalances();
 private:
     static const size_t kTrustAmountPartSize = 32;

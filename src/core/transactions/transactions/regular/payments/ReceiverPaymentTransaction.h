@@ -8,7 +8,7 @@
 
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentMessage.h"
-#include "../../../../network/messages/outgoing/payments/ReceiverApproveMessage.h"
+#include "../../../../network/messages/outgoing/payments/ReceiverApprovePaymentMessage.h"
 
 
 class ReceiverPaymentTransaction:

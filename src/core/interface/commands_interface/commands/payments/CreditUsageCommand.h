@@ -22,6 +22,15 @@ class CreditUsageCommand:
     public BaseUserCommand {
 
 public:
+    enum ResultCodes {
+        OK = 200,
+        ProtocolError = 401,
+        InsufficientFunds = 412,
+        RemoteNodeIsInaccessible = 444,
+        NoPaths = 462,
+    };
+
+public:
     typedef shared_ptr<CreditUsageCommand> Shared;
 
 public:
@@ -46,6 +55,7 @@ public:
     CommandResult::SharedConst resultNoPaths() const;
     CommandResult::SharedConst resultNoResponse() const;
     CommandResult::SharedConst resultProtocolError() const;
+    CommandResult::SharedConst resultInsufficientFundsError() const;
 
 protected:
     void deserializeFromBytes(

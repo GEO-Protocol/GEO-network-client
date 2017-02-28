@@ -1,16 +1,28 @@
 ﻿#include "Path.h"
 
-Path::Path(NodeUUID& source,
-    NodeUUID& destination,
-    vector<NodeUUID>&& intermediateNodes) :
+Path::Path(
+    const NodeUUID& source,
+    const NodeUUID& destination,
+    const vector<NodeUUID>&& intermediateNodes) :
 
     mSource(source),
     mDestination(destination),
     mIntermediateNodes(intermediateNodes) {
 }
 
-const bool Path::containsIntermediateNodes() const {
-    return mIntermediateNodes.size() != 0;
+const size_t Path::nodesCount() const
+{
+    return intermediateNodesCount() + 2;
+}
+
+const size_t Path::intermediateNodesCount() const
+{
+    return mIntermediateNodes.size();
+}
+
+const vector<NodeUUID>& Path::intermediateNodes() const
+{
+    return mIntermediateNodes;
 }
 
 const string Path::toString() const
@@ -24,4 +36,14 @@ const string Path::toString() const
     s << "-(" << mDestination.stringUUID() << ")";
 
     return s.str();
+}
+
+bool operator== (
+    const Path& p1,
+    const Path& p2)
+{
+    return
+        p1.mDestination == p2.mDestination  &&
+        p1.mSource != p2.mSource            &&
+        p1.mIntermediateNodes == p2.mIntermediateNodes;
 }

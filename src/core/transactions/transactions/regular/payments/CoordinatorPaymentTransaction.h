@@ -10,59 +10,9 @@
 
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentMessage.h"
+#include "../../../../network/messages/outgoing/payments/ReserveBalanceRequestMessage.h"
 
 #include <map>
-
-
-/**
- * Contains path and max capabilities amount
- * that is common for all the nodes in this path.
- */
-class PaymentPath {
-public:
-    typedef unique_ptr<PaymentPath> Unique;
-    typedef uint16_t Identifier; // TODO: change me to sha256
-
-public:
-    PaymentPath(
-        Path &path,
-        Identifier identifier);
-
-    const bool wasUsedForAmountReservation() const;
-
-protected:
-    Path mPath;
-
-    // Identifies payment path within payment operation.
-    //
-    // It's common for the payment operation to
-    // contains several (thousands?) payment paths.
-    //
-    // Paths must be distinquished by the sha256 hash.
-    // sha256 must be gnerated from the nodes uuids and random salt.
-    // Initiator must not accept responses from the intermediate node,
-    // in case if previous attempt was invalid (protocol error).
-    Identifier mIdentifier;
-
-    // "true" if this path was already used for amount blocking.
-    // "false" - otherwise.
-    bool mIsAmountBlocksSent;
-
-    TrustLineAmount mMaxCommonCapabilities;
-};
-
-
-class PaymentPathsHandler {
-public:
-    void add(
-        Path &path);
-
-    const PaymentPath& nextNotReservedPaymentPath() const;
-    const bool empty() const;
-
-protected:
-    vector<PaymentPath::Unique> mPaths;
-};
 
 
 class CoordinatorPaymentTransaction:
@@ -90,6 +40,41 @@ public:
     const string logHeader() const;
 
 protected:
+    // Typedefs
+    typedef boost::uuids::uuid PathUUID;
+
+protected:
+    class PathStats {
+    public:
+        enum NodeState {
+            ReservationRequestDoesntSent = 0,
+            ReservationRequestSent,
+            ReservationApproved,
+            ReservationDisaproved,
+        };
+
+    public:
+        PathStats(
+            const Path &path);
+
+        void setNodeState(
+            const uint8_t positionInPath,
+            const NodeState state);
+
+        const Path& path() const;
+        const pair<NodeUUID, uint8_t> nextIntermediateNodeAndPos() const;
+        const bool reservationRequestSentToAllNodes() const;
+        const bool isWaitingForReservationResponse() const;
+        const bool isReadyToSendNextReservationRequest() const;
+        const bool isLastIntermediateNodeProcessed() const;
+
+    protected:
+        const Path mPath;
+        vector<NodeState> mNodesStates;
+        TrustLineAmount mMaxPathFlow;
+    };
+
+protected:
     // Stages handlers
     TransactionResult::SharedConst initTransaction();
     TransactionResult::SharedConst processReceiverResponse();
@@ -100,17 +85,44 @@ protected:
     TransactionResult::SharedConst resultOK();
     TransactionResult::SharedConst resultNoPaths();
     TransactionResult::SharedConst resultProtocolError();
+    TransactionResult::SharedConst resultInsufficientFundsError();
 
+protected:
+    // Init operation helpers
+    void addPathForFurtherProcessing(
+        const Path& path);
+
+    // Amounts reservation helpers
+    void initAmountsReservationOnNextPath();
+
+    PathStats* currentAmountReservationPathStats();
+
+    TransactionResult::SharedConst sendNextAmountReservationRequest(
+        PathStats* path);
+
+    TransactionResult::SharedConst processRemoteNodeResponse();
+
+    // Other
     void deserializeFromBytes(
         BytesShared buffer);
 
 protected:
-//    void tryBlockAmountsOnIntermediateNodes();
+    // local
+    CreditUsageCommand::Shared mCommand;
+    map<PathUUID, unique_ptr<PathStats>> mPathsStats;
+
+    // Used in amount reservations stage.
+    // Contains identifier of the path,
+    // that was processed last, and potenially,
+    // is waiting for request appriving.
+    PathUUID mCurrentAmountReservingPathIdentifier;
+    byte mCurrentAmountReservingPathIdentifierIndex;
+
+    byte mReservationsStage;
+    TrustLineAmount mAlreadyReservedAmountOnAllPaths;
 
 protected:
-    CreditUsageCommand::Shared mCommand;
-    PaymentPathsHandler mPaymentPaths;
-
+    // shared
     TrustLinesManager *mTrustLines;
     Logger *mLog;
 };
