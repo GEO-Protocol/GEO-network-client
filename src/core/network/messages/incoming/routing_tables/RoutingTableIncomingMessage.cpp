@@ -19,6 +19,10 @@ void RoutingTableIncomingMessage::deserializeFromBytes(
     SenderMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //---------------------------------------------------
+    SerializedPropagationStep *propagationStep = new (buffer.get() + bytesBufferOffset) SerializedPropagationStep;
+    bytesBufferOffset += sizeof(SerializedPropagationStep);
+    mPropagationStep = (RoutingTablesMessage::PropagationStep) *propagationStep;
+    //---------------------------------------------------
     RecordsCount *nodesCount = new (buffer.get() + bytesBufferOffset) RecordsCount;
     bytesBufferOffset += sizeof(RecordsCount);
     //---------------------------------------------------

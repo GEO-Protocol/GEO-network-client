@@ -11,7 +11,7 @@
 #include "../../../../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
-#include "../propagate/FromFirstLevelToSecondLevelRoutingTablePropagationTransaction.h"
+#include "../propagate/FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../common/exceptions/ConflictError.h"
@@ -19,17 +19,17 @@
 #include <stdint.h>
 #include <utility>
 
-class FromContractorToFirstLevelRoutingTableAcceptTransaction : public RoutingTablesTransaction  {
+class FromContractorToFirstLevelRoutingTablesAcceptTransaction : public RoutingTablesTransaction  {
 public:
-    typedef shared_ptr<FromContractorToFirstLevelRoutingTableAcceptTransaction> Shared;
+    typedef shared_ptr<FromContractorToFirstLevelRoutingTablesAcceptTransaction> Shared;
 
 public:
-    FromContractorToFirstLevelRoutingTableAcceptTransaction(
+    FromContractorToFirstLevelRoutingTablesAcceptTransaction(
         const NodeUUID &nodeUUID,
         FirstLevelRoutingTableIncomingMessage::Shared relationshipsBetweenInitiatorAndContractor,
         TrustLinesManager *trustLinesManager);
 
-    FromContractorToFirstLevelRoutingTableAcceptTransaction(
+    FromContractorToFirstLevelRoutingTablesAcceptTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLinesManager);
 

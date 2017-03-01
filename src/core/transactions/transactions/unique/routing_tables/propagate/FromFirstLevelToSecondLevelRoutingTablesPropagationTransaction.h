@@ -19,18 +19,18 @@
 #include <vector>
 #include <stdint.h>
 
-class FromFirstLevelToSecondLevelRoutingTablePropagationTransaction : public RoutingTablesTransaction {
+class FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction : public RoutingTablesTransaction {
 public:
-    typedef shared_ptr<FromFirstLevelToSecondLevelRoutingTablePropagationTransaction> Shared;
+    typedef shared_ptr<FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction> Shared;
 
 public:
-    FromFirstLevelToSecondLevelRoutingTablePropagationTransaction(
+    FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction(
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
         FirstLevelRoutingTableIncomingMessage::Shared relationshipsBetweenInitiatorAndContractor,
         TrustLinesManager *trustLinesManager);
 
-    FromFirstLevelToSecondLevelRoutingTablePropagationTransaction(
+    FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLinesManager);
 

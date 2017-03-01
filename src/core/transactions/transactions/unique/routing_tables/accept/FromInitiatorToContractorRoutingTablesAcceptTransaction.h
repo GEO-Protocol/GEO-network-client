@@ -11,7 +11,7 @@
 #include "../../../../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
-#include "../propagate/FromContractorToFirstLevelRoutingTablePropagationTransaction.h"
+#include "../propagate/FromContractorToFirstLevelRoutingTablesPropagationTransaction.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../common/exceptions/ConflictError.h"

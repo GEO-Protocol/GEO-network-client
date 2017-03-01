@@ -59,7 +59,7 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRout
     cout << "Sender UUID -> " << mFirstLevelMessage->senderUUID().stringUUID() << endl;
     cout << "Routing table " << endl;
 
-    for (const auto &nodeAndRecords : mFirstLevelMessage->mRecords) {
+    for (const auto &nodeAndRecords : mFirstLevelMessage->records()) {
 
         cout << "Initiator UUID -> " << nodeAndRecords.first.stringUUID() << endl;
 
@@ -121,11 +121,11 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveSecondLevelRoutingTable(
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage) {
 
-    cout << "Second level routing table message received " << endl;
+    cout << "From initiator second level routing table message received " << endl;
     cout << "Sender UUID -> " << secondLevelMessage->senderUUID().stringUUID() << endl;
     cout << "Routing table " << endl;
 
-    for (const auto &nodeAndRecords : secondLevelMessage->mRecords) {
+    for (const auto &nodeAndRecords : secondLevelMessage->records()) {
 
         cout << "Node UUID -> " << nodeAndRecords.first.stringUUID() << endl;
 
@@ -163,7 +163,7 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::createFromContract
         direction
     );
 
-    BaseTransaction::Shared transaction = make_shared<FromContractorToFirstLevelRoutingTablePropagationTransaction>(
+    BaseTransaction::Shared transaction = make_shared<FromContractorToFirstLevelRoutingTablesPropagationTransaction>(
       mNodeUUID,
       mContractorUUID,
       relationshipsBetweenInitiatorAndContractor,

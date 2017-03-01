@@ -31,9 +31,5 @@ protected:
 
     void deserializeFromBytes(
         BytesShared buffer);
-
-public:
-    map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> mRecords;
-
 };
 #endif //GEO_NETWORK_CLIENT_ROUTINGTABLEINCOMINGMESSAGE_H

@@ -1,6 +1,6 @@
-#include "FromContractorToFirstLevelRoutingTableAcceptTransaction.h"
+#include "FromContractorToFirstLevelRoutingTablesAcceptTransaction.h"
 
-FromContractorToFirstLevelRoutingTableAcceptTransaction::FromContractorToFirstLevelRoutingTableAcceptTransaction(
+FromContractorToFirstLevelRoutingTablesAcceptTransaction::FromContractorToFirstLevelRoutingTablesAcceptTransaction(
     const NodeUUID &nodeUUID,
     FirstLevelRoutingTableIncomingMessage::Shared relationshipsBetweenInitiatorAndContractor,
     TrustLinesManager *trustLinesManager) :
@@ -13,7 +13,7 @@ FromContractorToFirstLevelRoutingTableAcceptTransaction::FromContractorToFirstLe
     mLinkBetweenInitiatorAndContractor(relationshipsBetweenInitiatorAndContractor),
     mTrustLinesManager(trustLinesManager) {}
 
-FromContractorToFirstLevelRoutingTableAcceptTransaction::FromContractorToFirstLevelRoutingTableAcceptTransaction(
+FromContractorToFirstLevelRoutingTablesAcceptTransaction::FromContractorToFirstLevelRoutingTablesAcceptTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLinesManager)  :
 
@@ -22,12 +22,12 @@ FromContractorToFirstLevelRoutingTableAcceptTransaction::FromContractorToFirstLe
         buffer),
     mTrustLinesManager(trustLinesManager) {}
 
-FirstLevelRoutingTableIncomingMessage::Shared FromContractorToFirstLevelRoutingTableAcceptTransaction::message() const {
+FirstLevelRoutingTableIncomingMessage::Shared FromContractorToFirstLevelRoutingTablesAcceptTransaction::message() const {
 
     return mLinkBetweenInitiatorAndContractor;
 }
 
-TransactionResult::SharedConst FromContractorToFirstLevelRoutingTableAcceptTransaction::run() {
+TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTransaction::run() {
 
     switch (mStep) {
 
@@ -46,20 +46,20 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTableAcceptTrans
         }
 
         default: {
-            throw ConflictError("FromContractorToFirstLevelRoutingTableAcceptTransaction::run: "
+            throw ConflictError("FromContractorToFirstLevelRoutingTablesAcceptTransaction::run: "
                                     "Illegal step execution.");
         }
 
     }
 }
 
-void FromContractorToFirstLevelRoutingTableAcceptTransaction::saveLinkBetweenInitiatorAndContractor() {
+void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveLinkBetweenInitiatorAndContractor() {
 
     cout << "Message with relationships between initiator and contractor from contractor received " << endl;
     cout << "Sender UUID -> " << mLinkBetweenInitiatorAndContractor->senderUUID().stringUUID() << endl;
     cout << "Routing table " << endl;
 
-    for (const auto &nodeAndRecords : mLinkBetweenInitiatorAndContractor->mRecords) {
+    for (const auto &nodeAndRecords : mLinkBetweenInitiatorAndContractor->records()) {
 
         cout << "Contractor UUID -> " << nodeAndRecords.first.stringUUID() << endl;
 
@@ -73,7 +73,7 @@ void FromContractorToFirstLevelRoutingTableAcceptTransaction::saveLinkBetweenIni
     }
 }
 
-TransactionResult::SharedConst FromContractorToFirstLevelRoutingTableAcceptTransaction::waitingForSecondLevelRoutingTableState() {
+TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTransaction::waitingForSecondLevelRoutingTableState() {
 
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
@@ -83,7 +83,7 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTableAcceptTrans
     );
 }
 
-TransactionResult::SharedConst FromContractorToFirstLevelRoutingTableAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable() {
+TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable() {
 
     if (!mContext.empty()) {
         SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage;
@@ -96,7 +96,7 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTableAcceptTrans
         }
 
         if (secondLevelMessage == nullptr) {
-            throw ConflictError("FromContractorToFirstLevelRoutingTableAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
+            throw ConflictError("FromContractorToFirstLevelRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
                                     "Can not cast to SecondLevelRoutingTableIncomingMessage.");
         }
 
@@ -114,19 +114,19 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTableAcceptTrans
         return finishTransaction();
 
     } else {
-        throw ConflictError("FromContractorToFirstLevelRoutingTableAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
+        throw ConflictError("FromContractorToFirstLevelRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
                                 "There are no incoming messages.");
     }
 }
 
-void FromContractorToFirstLevelRoutingTableAcceptTransaction::saveSecondLevelRoutingTable(
+void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveSecondLevelRoutingTable(
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage) {
 
     cout << "Second level routing table message received " << endl;
     cout << "Sender UUID -> " << secondLevelMessage->senderUUID().stringUUID() << endl;
     cout << "Routing table " << endl;
 
-    for (const auto &nodeAndRecords : secondLevelMessage->mRecords) {
+    for (const auto &nodeAndRecords : secondLevelMessage->records()) {
 
         cout << "Node UUID -> " << nodeAndRecords.first.stringUUID() << endl;
 
@@ -140,7 +140,7 @@ void FromContractorToFirstLevelRoutingTableAcceptTransaction::saveSecondLevelRou
     }
 }
 
-void FromContractorToFirstLevelRoutingTableAcceptTransaction::sendResponseToContractor(
+void FromContractorToFirstLevelRoutingTablesAcceptTransaction::sendResponseToContractor(
     const NodeUUID &contractorUUID,
     const uint16_t code) {
 
@@ -156,14 +156,14 @@ void FromContractorToFirstLevelRoutingTableAcceptTransaction::sendResponseToCont
 }
 
 
-void FromContractorToFirstLevelRoutingTableAcceptTransaction::createFromFirstLevelToSecondLevelRoutingTablesPropagationTransaction() {
+void FromContractorToFirstLevelRoutingTablesAcceptTransaction::createFromFirstLevelToSecondLevelRoutingTablesPropagationTransaction() {
 
-    if (mLinkBetweenInitiatorAndContractor->mRecords.size() > 1) {
-        throw ConflictError("FromContractorToFirstLevelRoutingTableAcceptTransaction::createFromFirstLevelToSecondLevelRoutingTablesPropagationTransaction: "
+    if (mLinkBetweenInitiatorAndContractor->records().size() > 1) {
+        throw ConflictError("FromContractorToFirstLevelRoutingTablesAcceptTransaction::createFromFirstLevelToSecondLevelRoutingTablesPropagationTransaction: "
                                 "Transaction must contains only one record in first level routing table message.");
     }
 
-    BaseTransaction::Shared transaction = make_shared<FromFirstLevelToSecondLevelRoutingTablePropagationTransaction>(
+    BaseTransaction::Shared transaction = make_shared<FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction>(
         mNodeUUID,
         mContractorUUID,
         mLinkBetweenInitiatorAndContractor,

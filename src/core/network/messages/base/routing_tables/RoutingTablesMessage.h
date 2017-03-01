@@ -7,6 +7,7 @@
 #include "../../../../common/NodeUUID.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
+#include <map>
 #include <memory>
 #include <utility>
 #include <stdint.h>
@@ -15,6 +16,20 @@ class RoutingTablesMessage : public SenderMessage {
 public:
     typedef shared_ptr<RoutingTablesMessage> Shared;
     typedef uint64_t RecordsCount;
+
+public:
+    enum PropagationStep {
+        WithoutStep = 0,
+        FromInitiatorToContractor,
+        FromContractorToFirstLevel,
+        FromFirstLevelToSecondLevel
+    };
+    typedef uint8_t SerializedPropagationStep;
+
+public:
+    const RoutingTablesMessage::PropagationStep propagationStep() const;
+
+    const map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>>& records() const;
 
 protected:
     RoutingTablesMessage();
@@ -32,5 +47,8 @@ protected:
 private:
     const bool isRoutingTableMessage() const;
 
+protected:
+    map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> mRecords;
+    RoutingTablesMessage::PropagationStep mPropagationStep = RoutingTablesMessage::PropagationStep::WithoutStep;
 };
 #endif //GEO_NETWORK_CLIENT_ROUTINGTABLESMESSAGE_H

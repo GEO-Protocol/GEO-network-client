@@ -15,6 +15,11 @@ RoutingTablesResponse::RoutingTablesResponse(
     deserializeFromBytes(buffer);
 }
 
+const bool RoutingTablesResponse::isRoutingTableResponseMessage() const {
+
+    return true;
+}
+
 const Message::MessageType RoutingTablesResponse::typeID() const {
 
     return Message::MessageTypeID::RoutingTablesResponseMessageType;

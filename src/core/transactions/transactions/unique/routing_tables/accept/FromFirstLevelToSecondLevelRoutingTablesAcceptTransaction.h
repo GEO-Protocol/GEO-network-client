@@ -15,16 +15,16 @@
 #include <stdint.h>
 #include <utility>
 
-class FromFirstLevelToSecondLevelRoutingTableTransaction : public RoutingTablesTransaction {
+class FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction : public RoutingTablesTransaction {
 public:
-    typedef shared_ptr<FromFirstLevelToSecondLevelRoutingTableTransaction> Shared;
+    typedef shared_ptr<FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction> Shared;
 
 public:
-    FromFirstLevelToSecondLevelRoutingTableTransaction(
+    FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction(
         const NodeUUID &nodeUUID,
         FirstLevelRoutingTableIncomingMessage::Shared message);
 
-    FromFirstLevelToSecondLevelRoutingTableTransaction(
+    FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction(
         BytesShared buffer);
 
     FirstLevelRoutingTableIncomingMessage::Shared message() const;
@@ -42,6 +42,5 @@ private:
     FirstLevelRoutingTableIncomingMessage::Shared mFirstLevelMessage;
 
 };
-
 
 #endif //GEO_NETWORK_CLIENT_FROMFIRSTLEVELTOSECONDLEVELROUTINGTABLETRANSACTION_H

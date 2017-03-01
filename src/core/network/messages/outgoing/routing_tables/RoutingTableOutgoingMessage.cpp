@@ -6,6 +6,12 @@ RoutingTableOutgoingMessage::RoutingTableOutgoingMessage(
     RoutingTablesMessage(
         senderUUID) {}
 
+void RoutingTableOutgoingMessage::setPropagationStep(
+    RoutingTablesMessage::PropagationStep propagationStep) {
+
+    mPropagationStep = propagationStep;
+}
+
 void RoutingTableOutgoingMessage::pushBack(
     const NodeUUID &node,
     vector<pair<const NodeUUID, const TrustLineDirection>> &table) {
@@ -23,6 +29,7 @@ pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second;
 
+    bytesCount += sizeof(SerializedPropagationStep);
     bytesCount += sizeof(RecordsCount);
     for (const auto &nodeAndRecord : mRecords) {
         bytesCount += NodeUUID::kBytesSize + sizeof(RecordsCount);
@@ -31,7 +38,7 @@ pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
         }
     }
 
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    BytesShared dataBytesShared = tryMalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
     memcpy(
@@ -40,6 +47,14 @@ pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
         parentBytesAndCount.second
     );
     dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------------------------------
+    SerializedPropagationStep propagationStep = (SerializedPropagationStep) mPropagationStep;
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &propagationStep,
+        sizeof(SerializedPropagationStep)
+    );
+    dataBytesOffset += sizeof(SerializedPropagationStep);
     //----------------------------------------------------
     RecordsCount nodesCount = mRecords.size();
     memcpy(

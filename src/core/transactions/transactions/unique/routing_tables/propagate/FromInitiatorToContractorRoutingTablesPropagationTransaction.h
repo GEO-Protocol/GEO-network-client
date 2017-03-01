@@ -19,20 +19,21 @@
 #include <memory>
 #include <vector>
 #include <stdint.h>
+#include <time.h>
 
 using namespace std;
 
-class FromInitiatorToContractorRoutingTablePropagationTransaction : public RoutingTablesTransaction {
+class FromInitiatorToContractorRoutingTablesPropagationTransaction : public RoutingTablesTransaction {
 public:
-    typedef shared_ptr<FromInitiatorToContractorRoutingTablePropagationTransaction> Shared;
+    typedef shared_ptr<FromInitiatorToContractorRoutingTablesPropagationTransaction> Shared;
 
 public:
-    FromInitiatorToContractorRoutingTablePropagationTransaction(
-        const NodeUUID &nodeUUID, // Current node (A)
-        const NodeUUID &contractorUUID, // Contractor with newly created trust line (B)
+    FromInitiatorToContractorRoutingTablesPropagationTransaction(
+        const NodeUUID &nodeUUID,
+        const NodeUUID &contractorUUID,
         TrustLinesManager *trustLinesManager);
 
-    FromInitiatorToContractorRoutingTablePropagationTransaction(
+    FromInitiatorToContractorRoutingTablesPropagationTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLinesManager);
 

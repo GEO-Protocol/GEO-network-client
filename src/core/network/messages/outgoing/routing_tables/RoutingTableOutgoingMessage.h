@@ -22,6 +22,9 @@ public:
     typedef shared_ptr<RoutingTableOutgoingMessage> Shared;
 
 public:
+    void setPropagationStep(
+        RoutingTablesMessage::PropagationStep propagationStep);
+
     void pushBack(
         const NodeUUID &node,
         vector<pair<const NodeUUID, const TrustLineDirection>> &table);
@@ -37,7 +40,5 @@ protected:
     void deserializeFromBytes(
         BytesShared buffer);
 
-protected:
-    map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> mRecords;
 };
 #endif //GEO_NETWORK_CLIENT_ROUTINGTABLEOUTGOINGMESSAGE_H

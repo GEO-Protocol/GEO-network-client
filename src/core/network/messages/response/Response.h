@@ -31,6 +31,8 @@ public:
     uint16_t code();
 
 private:
+    const bool isTransactionMessage() const;
+
     const MessageType typeID() const;
 
     pair<BytesShared, size_t> serializeToBytes();

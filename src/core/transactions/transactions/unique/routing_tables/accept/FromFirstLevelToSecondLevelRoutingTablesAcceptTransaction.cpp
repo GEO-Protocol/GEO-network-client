@@ -1,6 +1,6 @@
-#include "FromFirstLevelToSecondLevelRoutingTableTransaction.h"
+#include "FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction.h"
 
-FromFirstLevelToSecondLevelRoutingTableTransaction::FromFirstLevelToSecondLevelRoutingTableTransaction(
+FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction(
     const NodeUUID &nodeUUID,
     FirstLevelRoutingTableIncomingMessage::Shared message) :
 
@@ -11,19 +11,19 @@ FromFirstLevelToSecondLevelRoutingTableTransaction::FromFirstLevelToSecondLevelR
     ),
     mFirstLevelMessage(message) {}
 
-FromFirstLevelToSecondLevelRoutingTableTransaction::FromFirstLevelToSecondLevelRoutingTableTransaction(
+FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction(
     BytesShared buffer) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
         buffer) {}
 
-FirstLevelRoutingTableIncomingMessage::Shared FromFirstLevelToSecondLevelRoutingTableTransaction::message() const {
+FirstLevelRoutingTableIncomingMessage::Shared FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::message() const {
 
     return mFirstLevelMessage;
 }
 
-TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTableTransaction::run() {
+TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::run() {
 
     saveFirstLevelRoutingTable();
 
@@ -35,26 +35,26 @@ TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTableTransactio
     return finishTransaction();
 }
 
-void FromFirstLevelToSecondLevelRoutingTableTransaction::saveFirstLevelRoutingTable() {
+void FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::saveFirstLevelRoutingTable() {
 
-    cout << "First level routing table message received " << endl;
+    cout << "Link between initiator and contractor received " << endl;
     cout << "Sender UUID -> " << mFirstLevelMessage->senderUUID().stringUUID() << endl;
     cout << "Routing table " << endl;
 
-    for (const auto &nodeAndRecords : mFirstLevelMessage->mRecords) {
+    for (const auto &nodeAndRecords : mFirstLevelMessage->records()) {
 
-        cout << "Node UUID -> " << nodeAndRecords.first.stringUUID() << endl;
+        cout << "Contractor UUID -> " << nodeAndRecords.first.stringUUID() << endl;
 
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
-            cout << "Neighbor UUID -> " << neighborAndDirect.first.stringUUID() << endl;
+            cout << "Initiator UUID -> " << neighborAndDirect.first.stringUUID() << endl;
             cout << "Direction -> " << neighborAndDirect.second << endl;
 
         }
     }
 }
 
-void FromFirstLevelToSecondLevelRoutingTableTransaction::sendResponseToContractor(
+void FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::sendResponseToContractor(
     const NodeUUID &contractorUUID,
     const uint16_t code) {
 

@@ -26,8 +26,8 @@
 #include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 #include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
-#include "../../network/messages/response/Response.h"
 #include "../../network/messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
+#include "../../network/messages/response/Response.h"
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/base/UniqueTransaction.h"
@@ -37,8 +37,10 @@
 #include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
-#include "../transactions/unique/routing_tables/propagate/FromInitiatorToContractorRoutingTablePropagationTransaction.h"
+#include "../transactions/unique/routing_tables/propagate/FromInitiatorToContractorRoutingTablesPropagationTransaction.h"
 #include "../transactions/unique/routing_tables/accept/FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
+#include "../transactions/unique/routing_tables/accept/FromContractorToFirstLevelRoutingTablesAcceptTransaction.h"
+#include "../transactions/unique/routing_tables/accept/FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction.h"
 #include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
@@ -108,7 +110,7 @@ private:
         RejectTrustLineMessage::Shared message);
 
     // Routing tables transactions
-    void launchAcceptFromInitiatorToContractorRoutingTablesTransaction(
+    void launchAcceptRoutingTablesTransaction(
         FirstLevelRoutingTableIncomingMessage::Shared message);
 
     // Max flow transactions

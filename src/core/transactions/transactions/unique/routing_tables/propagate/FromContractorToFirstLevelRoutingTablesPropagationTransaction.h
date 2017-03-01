@@ -23,19 +23,19 @@
 
 using namespace std;
 
-class FromContractorToFirstLevelRoutingTablePropagationTransaction: public RoutingTablesTransaction {
+class FromContractorToFirstLevelRoutingTablesPropagationTransaction: public RoutingTablesTransaction {
 public:
-    typedef shared_ptr<FromContractorToFirstLevelRoutingTablePropagationTransaction> Shared;
+    typedef shared_ptr<FromContractorToFirstLevelRoutingTablesPropagationTransaction> Shared;
 
 public:
-    FromContractorToFirstLevelRoutingTablePropagationTransaction(
+    FromContractorToFirstLevelRoutingTablesPropagationTransaction(
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
         const pair<const NodeUUID, const TrustLineDirection> &relationshipsBetweenInitiatorAndContractor,
         SecondLevelRoutingTableIncomingMessage::Shared secondLevelRoutingTableFromInitiator,
         TrustLinesManager *trustLinesManager);
 
-    FromContractorToFirstLevelRoutingTablePropagationTransaction(
+    FromContractorToFirstLevelRoutingTablesPropagationTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLinesManager);
 
