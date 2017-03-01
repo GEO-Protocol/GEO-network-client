@@ -21,7 +21,7 @@ public:
     void resetAllUsedAmounts();
 
 private:
-    // sort using a custom function object
+    // comparing two trustLines for sorting
     struct {
         bool operator()(
             MaxFlowCalculationTrustLine::Shared a,

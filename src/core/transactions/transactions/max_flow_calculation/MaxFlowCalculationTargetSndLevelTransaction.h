@@ -28,7 +28,8 @@ private:
 
     void sendResultToInitiator();
 
-    void sendCachedResultToInitiator();
+    void sendCachedResultToInitiator(
+        MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr);
 
 private:
     MaxFlowCalculationTargetSndLevelInMessage::Shared mMessage;

@@ -9,21 +9,33 @@ class MaxFlowCalculationCacheManager {
 public:
     void addCache(MaxFlowCalculationCache::Shared cache);
 
-    bool containsNodeUUID(const NodeUUID& nodeUUID) const;
-
-    bool containsIncomingFlow(
-        const NodeUUID& fstNodeUUID,
-        const NodeUUID& sndNodeUUID) const;
-
-    bool containsOutgoingFlow(
-        const NodeUUID& fstNodeUUID,
-        const NodeUUID& sndNodeUUID) const;
+    MaxFlowCalculationCache::Shared cacheByNode(
+        const NodeUUID &nodeUUID) const;
 
     void updateCaches();
+
+private:
+    static const byte kTimeHours = 0;
+    static const byte kTimeMinutes = 0;
+    static const byte kTimeSeconds = 2;
+    //static const Duration duration(kTimeHours, kTimeMinutes, kTimeSeconds);
+
+private:
+    // comparing two DateTimes for storing in set
+    struct {
+        bool operator()(
+            pair<NodeUUID, DateTime> a,
+            pair<NodeUUID, DateTime> b) {
+            return a.second < b.second;
+        }
+    } customLess;
+
+    void testSet();
 
 // todo make private after testing
 public:
     map<NodeUUID, MaxFlowCalculationCache::Shared> mCaches;
+    set<pair<NodeUUID, DateTime>, customLess> msCache;
 
 };
 

@@ -477,7 +477,7 @@ const TrustLine::Shared TrustLinesManager::trustLine(
 }
 
 
-vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithOutgoingFlow() {
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() {
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableAmount();
@@ -489,7 +489,7 @@ vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithOutgoingFlow() {
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithIncomingFlow() {
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() {
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableIncomingAmount();
@@ -502,7 +502,7 @@ vector<NodeUUID> TrustLinesManager::getFirstLevelNeighborsWithIncomingFlow() {
     return result;
 }
 
-map<NodeUUID, TrustLineAmount> TrustLinesManager::getIncomingFlows() {
+map<NodeUUID, TrustLineAmount> TrustLinesManager::incomingFlows() {
     map<NodeUUID, TrustLineAmount> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableIncomingAmount();
@@ -519,7 +519,7 @@ map<NodeUUID, TrustLineAmount> TrustLinesManager::getIncomingFlows() {
     return result;
 }
 
-map<NodeUUID, TrustLineAmount> TrustLinesManager::getOutgoingFlows() {
+map<NodeUUID, TrustLineAmount> TrustLinesManager::outgoingFlows() {
     map<NodeUUID, TrustLineAmount> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableAmount();

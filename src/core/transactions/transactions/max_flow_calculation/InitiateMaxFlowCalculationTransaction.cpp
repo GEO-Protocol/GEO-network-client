@@ -26,7 +26,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
     mLog->logInfo("InitiateMaxFlowCalculationTransaction->run", "initiator: " + mNodeUUID.stringUUID());
     mLog->logInfo("InitiateMaxFlowCalculationTransaction->run", "target: " + mCommand->contractorUUID().stringUUID());
     /*mLog->logInfo("InitiateMaxFlowCalculationTransaction->run",
-                  "OutgoingFlows: " + to_string(mTrustLinesManager->getOutgoingFlows().size()));
+                  "OutgoingFlows: " + to_string(mTrustLinesManager->outgoingFlows().size()));
     for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->outgoingFlows()) {
         {
             auto info = mLog->info("InitiateMaxFlowCalculationTransaction->run");
@@ -36,12 +36,12 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
 
     mLog->logInfo("InitiateMaxFlowCalculationTransaction->run",
                   "IncomingFlows: " + to_string(mTrustLinesManager->getIncomingFlows().size()));
-    for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->getIncomingFlows()) {
+    for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->incomingFlows()) {
         mLog->logInfo("InitiateMaxFlowCalculationTransaction->run", "in flow: " + nodeUUIDAndTrustLine.first.stringUUID()
                                                                     + "  " + to_string((uint32_t)nodeUUIDAndTrustLine.second));
     }*/
 
-    for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->getOutgoingFlows()) {
+    for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->outgoingFlows()) {
         mMaxFlowCalculationTrustLineManager->addTrustLine(
             make_shared<MaxFlowCalculationTrustLine>(
                 mNodeUUID,
@@ -102,7 +102,7 @@ void InitiateMaxFlowCalculationTransaction::sendMessageToRemoteNode() {
 
 void InitiateMaxFlowCalculationTransaction::sendMessageOnFirstLevel() {
 
-    vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->getFirstLevelNeighborsWithOutgoingFlow();
+    vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
     for (auto const &it : outgoingFlowUuids) {
         Message *message = new SendMaxFlowCalculationSourceFstLevelMessage(
             mNodeUUID,
@@ -128,7 +128,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(const No
             return result;
         }
         /*MaxFlowCalculationTrustLine::Shared &trustLineMax = sortedTrustLines.front();
-        auto trustLineFreeAmountPtr = trustLineMax.get()->getFreeAmount();
+        auto trustLineFreeAmountPtr = trustLineMax.get()->freeAmount();
         if (*trustLineFreeAmountPtr == TrustLine::kZeroAmount()) {
             return result;
         }

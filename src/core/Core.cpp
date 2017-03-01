@@ -349,6 +349,18 @@ void Core::cleanupMemory() {
     if (mCommandsInterface != nullptr) {
         delete mCommandsInterface;
     }
+
+    if (mMaxFlowCalculationTrustLimeManager != nullptr) {
+        delete mMaxFlowCalculationTrustLimeManager;
+    }
+
+    if (mMaxFlowCalculationCacheManager != nullptr) {
+        delete mMaxFlowCalculationCacheManager;
+    }
+
+    if (mMaxFlowCalculationCacheUpdateDelayedTask != nullptr) {
+        delete mMaxFlowCalculationCacheUpdateDelayedTask;
+    }
 }
 
 void Core::zeroPointers() {
@@ -360,6 +372,9 @@ void Core::zeroPointers() {
     mTrustLinesManager = nullptr;
     mTransactionsManager = nullptr;
     mCyclesDelayedTasks = nullptr;
+    mMaxFlowCalculationTrustLimeManager = nullptr;
+    mMaxFlowCalculationCacheManager = nullptr;
+    mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
 }
 
 //void Core::initTimers() {

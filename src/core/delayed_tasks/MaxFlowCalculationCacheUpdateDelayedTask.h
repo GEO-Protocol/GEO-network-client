@@ -24,7 +24,7 @@ public:
 
 private:
     as::io_service &mIOService;
-    const int mSignalRepeatTimeSeconds = 10;
+    const uint32_t mSignalRepeatTimeSeconds = 20;
 
     unique_ptr<as::deadline_timer> mMaxFlowCalculationCacheUpdateTimer;
 };

@@ -14,6 +14,7 @@ MaxFlowCalculationCacheUpdateTransaction::MaxFlowCalculationCacheUpdateTransacti
 
 TransactionResult::SharedConst MaxFlowCalculationCacheUpdateTransaction::run() {
 
+    mLog->logInfo("MaxFlowCalculationCacheUpdateTransaction", "update cache");
     mMaxFlowCalculationCacheManager->updateCaches();
 
 }
