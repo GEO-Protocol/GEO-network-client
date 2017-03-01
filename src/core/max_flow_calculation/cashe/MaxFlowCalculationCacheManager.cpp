@@ -35,3 +35,10 @@ bool MaxFlowCalculationCacheManager::containsIncomingFlow(
     }
     return nodeUUIDAndCache->second->containsIncomingUUID(sndNodeUUID);
 }
+
+void MaxFlowCalculationCacheManager::updateCaches() {
+    for (auto nodeUUIDAndCache : mCaches) {
+        // todo if time out duration
+        mCaches.erase(nodeUUIDAndCache.first);
+    }
+}

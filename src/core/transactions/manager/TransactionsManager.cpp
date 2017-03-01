@@ -615,6 +615,27 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
     }
 }
 
+void TransactionsManager::launchMaxFlowCalculationCacheUpdateTransaction() {
+
+    try {
+        auto transaction = make_shared<MaxFlowCalculationCacheUpdateTransaction>(
+            mNodeUUID,
+            mMaxFlowCalculationCacheManager,
+            mLog);
+
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(
+            transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchMaxFlowCalculationCacheUpdateTransaction: "
+                "can't allocate memory for transaction instance.");
+    }
+}
+
 /*!
  *
  * Throws MemoryError.

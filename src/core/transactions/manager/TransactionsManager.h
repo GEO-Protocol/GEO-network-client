@@ -50,6 +50,7 @@
 #include "../transactions/max_flow_calculation/MaxFlowCalculationSourceSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.h"
+#include "../transactions/max_flow_calculation/MaxFlowCalculationCacheUpdateTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -84,6 +85,8 @@ public:
     void launchFromInitiatorToContractorRoutingTablePropagationTransaction(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
+
+    void launchMaxFlowCalculationCacheUpdateTransaction();
 
 private:
     // Transactions from storage

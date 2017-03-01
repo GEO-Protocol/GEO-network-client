@@ -19,6 +19,8 @@ public:
         const NodeUUID& fstNodeUUID,
         const NodeUUID& sndNodeUUID) const;
 
+    void updateCaches();
+
 // todo make private after testing
 public:
     map<NodeUUID, MaxFlowCalculationCache::Shared> mCaches;

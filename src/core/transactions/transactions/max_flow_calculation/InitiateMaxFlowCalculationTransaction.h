@@ -44,9 +44,6 @@ private:
         const NodeUUID& sourceUUID,
         set<NodeUUID> forbiddenUUIDs);
 
-    void testCompare(MaxFlowCalculationTrustLine::Shared a,
-                     MaxFlowCalculationTrustLine::Shared b);
-
 private:
 
     static const byte kMaxFlowLength=6;

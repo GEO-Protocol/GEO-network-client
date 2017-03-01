@@ -56,7 +56,8 @@ public:
         MaxFlowCalculationTargetFstLevelTransactionType,
         MaxFlowCalculationSourceSndLevelTransactionType,
         MaxFlowCalculationTargetSndLevelTransactionType,
-        ReceiveResultMaxFlowCalculationTransactionType
+        ReceiveResultMaxFlowCalculationTransactionType,
+        MaxFlowCalculationCacheUpdateTransactionType
     };
 
 public:

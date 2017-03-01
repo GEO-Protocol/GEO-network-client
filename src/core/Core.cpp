@@ -271,6 +271,10 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
+    mMaxFlowCalculationCacheUpdateDelayedTask->mMaxFlowCalculationCacheUpdateSignal.connect(
+        boost::bind(
+            &Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot,
+            this));
 }
 void Core::connectSignalsToSlots() {
 
@@ -367,6 +371,8 @@ int Core::initDelayedTasks() {
         mCyclesDelayedTasks = new CyclesDelayedTasks(
                mIOService
         );
+        mMaxFlowCalculationCacheUpdateDelayedTask = new MaxFlowCalculationCacheUpdateDelayedTask(
+            mIOService);
     mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
     return 0;
     } catch (const std::exception &e) {
@@ -408,4 +414,8 @@ void Core::JustToTestSomething() {
 //            message
 //    )
 //    );
+}
+
+void Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot() {
+    mTransactionsManager->launchMaxFlowCalculationCacheUpdateTransaction();
 }
