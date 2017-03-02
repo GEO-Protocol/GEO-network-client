@@ -92,7 +92,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
         mLog->logInfo("InitiateMaxFlowCalculationTransaction::run",
                       "max flow: " + to_string((uint32_t)maxFlow));
         resetStepsCounter();
-        return make_shared<TransactionResult>(TransactionState::exit());
+        return resultOk(maxFlow);//make_shared<TransactionResult>(TransactionState::exit());
     }
 
 }
@@ -246,4 +246,10 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
         }
     }
     return 0;
+}
+
+TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultOk(TrustLineAmount &maxFlowAmount) {
+
+    string maxFlowAmountStr = to_string((uint32_t)maxFlowAmount);
+    return transactionResultFromCommand(mCommand->resultOk(maxFlowAmountStr));
 }

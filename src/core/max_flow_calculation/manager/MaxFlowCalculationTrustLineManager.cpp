@@ -1,7 +1,3 @@
-//
-// Created by mc on 19.02.17.
-//
-
 #include "MaxFlowCalculationTrustLineManager.h"
 
 void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine) {
@@ -47,6 +43,22 @@ void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts() {
     for (auto &nodeUUIDAndTrustLine : mvTrustLines) {
         for (auto &trustLine : nodeUUIDAndTrustLine.second) {
             trustLine->setUsedAmount(0);
+        }
+    }
+}
+
+void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines() {
+
+    for (auto &nodeUUIDAndTrustLine : mvTrustLines) {
+        vector<MaxFlowCalculationTrustLine::Shared> vTrustLines = nodeUUIDAndTrustLine.second;
+        for (auto trustLine = vTrustLines.begin(); trustLine != vTrustLines.end(); ++trustLine) {
+            if (utc_now() - (*trustLine)->timeInserted() >
+                Duration(kResetTrustLinesHours, kResetTrustLinesMinutes, kResetTrustLinesSeconds)) {
+                nodeUUIDAndTrustLine.second.erase(trustLine);
+            }
+        }
+        if (nodeUUIDAndTrustLine.second.size() == 0) {
+            mvTrustLines.erase(nodeUUIDAndTrustLine.first);
         }
     }
 }

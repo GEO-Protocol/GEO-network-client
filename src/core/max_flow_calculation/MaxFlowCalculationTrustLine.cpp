@@ -1,7 +1,3 @@
-//
-// Created by mc on 19.02.17.
-//
-
 #include "MaxFlowCalculationTrustLine.h"
 
 MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine(
@@ -12,7 +8,8 @@ MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine(
     mSourceUUID(sourceUUID),
     mTargetUUID(targetUUID),
     mAmount(amount),
-    mUsedAmount(0) {
+    mUsedAmount(0),
+    mTimeInserted(utc_now()){
 
     if (amount < TrustLine::kZeroAmount()) {
         throw ValueError("MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine: "
@@ -40,10 +37,14 @@ ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::freeAmount() const {
     );
 }
 
-void MaxFlowCalculationTrustLine::addUsedAmount(TrustLineAmount amount) {
+void MaxFlowCalculationTrustLine::addUsedAmount(const TrustLineAmount &amount) {
     mUsedAmount = mUsedAmount + amount;
 }
 
-void MaxFlowCalculationTrustLine::setUsedAmount(TrustLineAmount amount) {
+void MaxFlowCalculationTrustLine::setUsedAmount(const TrustLineAmount &amount) {
     mUsedAmount = amount;
+}
+
+const DateTime & MaxFlowCalculationTrustLine::timeInserted() const {
+    return mTimeInserted;
 }

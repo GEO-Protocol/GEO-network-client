@@ -46,6 +46,8 @@ private:
         const NodeUUID& sourceUUID,
         set<NodeUUID> forbiddenUUIDs);
 
+    TransactionResult::SharedConst resultOk(TrustLineAmount &maxFlowAmount);
+
 private:
 
     static const byte kMaxFlowLength=6;

@@ -3,13 +3,11 @@
 
 #include "../../common/NodeUUID.h"
 #include "../MaxFlowCalculationTrustLine.h"
+#include "../../common/time/TimeUtils.h"
 
 #include <map>
 #include <vector>
 
-#include "boost/container/flat_set.hpp"
-
-//using namespace std;
 class MaxFlowCalculationTrustLineManager {
 
 public:
@@ -19,6 +17,8 @@ public:
     vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines(const NodeUUID &nodeUUID);
 
     void resetAllUsedAmounts();
+
+    void deleteLegacyTrustLines();
 
 private:
     // comparing two trustLines for sorting
@@ -31,6 +31,12 @@ private:
             return *aTrustLineFreeAmountPtr > *bTrustLineFreeAmountPtr;
         }
     } customLess;
+
+private:
+
+    static const byte kResetTrustLinesHours = 0;
+    static const byte kResetTrustLinesMinutes = 0;
+    static const byte kResetTrustLinesSeconds = 2;
 
 // todo make private after testing
 public:

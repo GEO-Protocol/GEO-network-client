@@ -28,7 +28,7 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes();
 
-    static const size_t kRequestedBufferSize();
+    CommandResult::SharedConst resultOk(string &maxFlowAmount) const;
 
 protected:
     void deserializeFromBytes(
