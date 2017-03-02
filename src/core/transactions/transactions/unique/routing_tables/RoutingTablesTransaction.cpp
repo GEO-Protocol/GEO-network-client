@@ -1,6 +1,25 @@
 #include "RoutingTablesTransaction.h"
 
 RoutingTablesTransaction::RoutingTablesTransaction(
+    const TransactionType type,
+    BytesShared buffer) :
+
+    BaseTransaction(
+        type
+    ) {
+
+    deserializeFromBytes(buffer);
+}
+
+RoutingTablesTransaction::RoutingTablesTransaction(
+    const BaseTransaction::TransactionType type,
+    const NodeUUID &nodeUUID) :
+
+    BaseTransaction(
+        type, nodeUUID
+    ) {}
+
+RoutingTablesTransaction::RoutingTablesTransaction(
     const BaseTransaction::TransactionType type,
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID) :
@@ -12,21 +31,14 @@ RoutingTablesTransaction::RoutingTablesTransaction(
     mContractorUUID(contractorUUID) {}
 
 
-RoutingTablesTransaction::RoutingTablesTransaction(
-    const TransactionType type,
-    BytesShared buffer) :
-
-    BaseTransaction(
-        type
-    ) {
-
-    deserializeFromBytes(buffer);
-}
-
-
 const NodeUUID &RoutingTablesTransaction::contractorUUID() const {
 
     return mContractorUUID;
+}
+
+const vector<NodeUUID> &RoutingTablesTransaction::contractorsUUIDs() const {
+
+    return mContractorsUUIDs;
 }
 
 void RoutingTablesTransaction::increaseRequestsCounter() {

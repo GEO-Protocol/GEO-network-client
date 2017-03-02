@@ -34,7 +34,7 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
         case RoutingTableLevelStepIdentifier::FirstLevelRoutingTableStep: {
             saveFirstLevelRoutingTable();
             sendResponseToContractor(
-                mFirstLevelMessage->senderUUID(),
+                mContractorUUID,
                 kResponseCodeSuccess
             );
             increaseStepsCounter();
@@ -100,16 +100,26 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
                                     "Can not cast to SecondLevelRoutingTableIncomingMessage.");
         }
 
+        if (mContractorUUID != secondLevelMessage->senderUUID()) {
+            throw ConflictError("FromInitiatorToContractorRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
+                                    "Sender UUID from second level routing table message differs from sender UUID from first level routing table message.");
+        }
+
+        mContractorUUID = secondLevelMessage->senderUUID();
+
         saveSecondLevelRoutingTable(
             secondLevelMessage
         );
+
         sendResponseToContractor(
-            secondLevelMessage->senderUUID(),
+            mContractorUUID,
             kResponseCodeSuccess
         );
+
         createFromContractorToFirstLevelRoutingTablesPropagationTransaction(
             secondLevelMessage
         );
+
         return finishTransaction();
 
     } else {
@@ -159,13 +169,12 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::createFromContract
 
     const TrustLineDirection direction = TrustLineDirection::Incoming;
     auto relationshipsBetweenInitiatorAndContractor = make_pair(
-        mFirstLevelMessage->senderUUID(),
+        mContractorUUID,
         direction
     );
 
     BaseTransaction::Shared transaction = make_shared<FromContractorToFirstLevelRoutingTablesPropagationTransaction>(
       mNodeUUID,
-      mContractorUUID,
       relationshipsBetweenInitiatorAndContractor,
       secondLevelMessage,
       mTrustLinesManager

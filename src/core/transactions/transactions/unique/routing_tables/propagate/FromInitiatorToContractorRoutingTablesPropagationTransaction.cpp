@@ -7,10 +7,12 @@ FromInitiatorToContractorRoutingTablesPropagationTransaction::FromInitiatorToCon
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        nodeUUID,
-        contractorUUID
+        nodeUUID
     ),
-    mTrustLinesManager(trustLinesManager) {}
+    mTrustLinesManager(trustLinesManager) {
+
+    mContractorsUUIDs.push_back(contractorUUID);
+}
 
 FromInitiatorToContractorRoutingTablesPropagationTransaction::FromInitiatorToContractorRoutingTablesPropagationTransaction(
     BytesShared buffer,
@@ -75,7 +77,7 @@ pair<bool, TransactionResult::SharedConst> FromInitiatorToContractorRoutingTable
             true,
             transactionResultFromMessage(
                 make_shared<MessageResult>(
-                    mContractorUUID,
+                    *mContractorsUUIDs.begin(),
                     mTransactionUUID,
                     kResponseCodeSuccess
                 )
@@ -144,7 +146,7 @@ void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendFirstLeve
     vector<pair<const NodeUUID, const TrustLineDirection>> neighborsAndDirections;
     for (const auto &contractorAndTrustLine : mTrustLinesManager->trustLines()) {
 
-        if (mContractorUUID == contractorAndTrustLine.first) {
+        if (mContractorsUUIDs[0] == contractorAndTrustLine.first) {
             continue;
         }
 
@@ -165,7 +167,7 @@ void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendFirstLeve
     Message::Shared message = dynamic_pointer_cast<Message>(firstLevelMessage);
     addMessage(
         message,
-        mContractorUUID
+        mContractorsUUIDs[0]
     );
 }
 
@@ -217,20 +219,23 @@ void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendSecondLev
         TrustLineDirection direction;
 
         srand(
-            time(NULL)
-        );
+            time(NULL));
+
         int randomValue = rand() % 2;
         switch (randomValue) {
             case 0: {
                 direction = TrustLineDirection::Outgoing;
+                break;
             }
 
             case 1: {
                 direction = TrustLineDirection::Incoming;
+                break;
             }
 
             case 2: {
                 direction = TrustLineDirection::Both;
+                break;
             }
 
             default: {
@@ -257,7 +262,7 @@ void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendSecondLev
     Message::Shared message = dynamic_pointer_cast<Message>(secondLevelMessage);
     addMessage(
         message,
-        mContractorUUID
+        mContractorsUUIDs[0]
     );
 }
 

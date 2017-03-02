@@ -82,9 +82,17 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
         }
 
         if (message->isRoutingTableResponseMessage()) {
-            if (static_pointer_cast<RoutingTablesResponse>(message)->senderUUID() != static_pointer_cast<RoutingTablesTransaction>(transactionAndState.first)->contractorUUID()) {
-                continue;
+
+            for (const auto &contractor : static_pointer_cast<RoutingTablesTransaction>(transactionAndState.first)->contractorsUUIDs()) {
+                if (static_pointer_cast<RoutingTablesMessage>(message)->senderUUID() != contractor) {
+                    continue;
+
+                } else {
+                    break;
+                }
             }
+
+
         }
 
         for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {

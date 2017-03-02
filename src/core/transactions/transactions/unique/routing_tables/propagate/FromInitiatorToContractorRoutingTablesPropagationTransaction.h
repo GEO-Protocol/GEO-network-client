@@ -42,7 +42,6 @@ public:
 private:
     pair<bool, TransactionResult::SharedConst> checkContext();
 
-    //First level propagation
     TransactionResult::SharedConst propagateFirstLevelRoutingTable();
 
     bool isContractorsCountEnoughForRoutingTablesPropagation();
@@ -51,17 +50,14 @@ private:
 
     void sendFirstLevelRoutingTable();
 
-    //Second level propagation
     TransactionResult::SharedConst propagateSecondLevelRoutingTable();
 
     TransactionResult::SharedConst trySendSecondLevelRoutingTable();
 
     void sendSecondLevelRoutingTable();
 
-    //State for scheduler
     TransactionResult::SharedConst waitingForRoutingTablePropagationResponse();
 
-    //Reset transaction instance's state
     void prepareToNextStep();
 
 private:

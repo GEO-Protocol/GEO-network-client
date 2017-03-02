@@ -34,7 +34,7 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTran
         case RoutingTableLevelStepIdentifier::FirstLevelRoutingTableStep: {
             saveLinkBetweenInitiatorAndContractor();
             sendResponseToContractor(
-                mLinkBetweenInitiatorAndContractor->senderUUID(),
+                mContractorUUID,
                 kResponseCodeSuccess
             );
             increaseStepsCounter();
@@ -100,12 +100,17 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTran
                                     "Can not cast to SecondLevelRoutingTableIncomingMessage.");
         }
 
+        if (mContractorUUID != secondLevelMessage->senderUUID()) {
+            throw ConflictError("FromContractorToFirstLevelRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable: "
+                                    "Sender UUID from second level routing table message differs from sender UUID from first level routing table message.");
+        }
+
         saveSecondLevelRoutingTable(
             secondLevelMessage
         );
 
         sendResponseToContractor(
-            secondLevelMessage->senderUUID(),
+            mContractorUUID,
             kResponseCodeSuccess
         );
 

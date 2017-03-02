@@ -53,7 +53,7 @@ pair<bool, TransactionResult::SharedConst> FromFirstLevelToSecondLevelRoutingTab
             true,
             transactionResultFromMessage(
                 make_shared<MessageResult>(
-                    mContractorUUID,
+                    *mContractorsUUIDs.begin(),
                     mTransactionUUID,
                     kResponseCodeSuccess
                 )
@@ -155,9 +155,7 @@ void FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::sendLinkBet
 
     }
 
-
     Message::Shared message = dynamic_pointer_cast<Message>(firstLevelMessage);
-
 
     for (const auto &contractorAndTrustLine : mTrustLinesManager->trustLines()) {
 
@@ -168,6 +166,9 @@ void FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::sendLinkBet
         if (contractorAndTrustLine.first == initiator) {
             continue;
         }
+
+        mContractorsUUIDs.push_back(
+            contractorAndTrustLine.first);
 
         addMessage(
             message,

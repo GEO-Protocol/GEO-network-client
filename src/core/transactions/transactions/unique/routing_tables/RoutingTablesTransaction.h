@@ -10,6 +10,9 @@
 
 #include <stdint.h>
 #include <utility>
+#include <vector>
+
+using namespace std;
 
 class RoutingTablesTransaction : public BaseTransaction {
 
@@ -22,17 +25,23 @@ public:
 public:
     const NodeUUID &contractorUUID() const;
 
+    const vector<NodeUUID> &contractorsUUIDs() const;
+
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
 protected:
     RoutingTablesTransaction(
         const TransactionType type,
-        const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID);
+        BytesShared buffer);
 
     RoutingTablesTransaction(
         const TransactionType type,
-        BytesShared buffer);
+        const NodeUUID &nodeUUID);
+
+    RoutingTablesTransaction(
+        const TransactionType type,
+        const NodeUUID &nodeUUID,
+        const NodeUUID &contractorUUID);
 
     void increaseRequestsCounter();
 
@@ -59,6 +68,7 @@ protected:
     uint32_t mConnectionTimeout = kStandardConnectionTimeout;
 
     NodeUUID mContractorUUID;
+    vector<NodeUUID> mContractorsUUIDs;
 };
 
 

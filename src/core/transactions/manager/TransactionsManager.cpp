@@ -428,6 +428,7 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                         mTrustLines
                     )
                 );
+                break;
             }
 
             case RoutingTablesMessage::PropagationStep::FromContractorToFirstLevel: {
@@ -439,6 +440,7 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                         mTrustLines
                     )
                 );
+                break;
             }
 
             case RoutingTablesMessage::PropagationStep::FromFirstLevelToSecondLevel: {
@@ -449,7 +451,7 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                         message
                     )
                 );
-
+                break;
             }
 
             default: {

@@ -30,7 +30,6 @@ public:
 public:
     FromContractorToFirstLevelRoutingTablesPropagationTransaction(
         const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
         const pair<const NodeUUID, const TrustLineDirection> &relationshipsBetweenInitiatorAndContractor,
         SecondLevelRoutingTableIncomingMessage::Shared secondLevelRoutingTableFromInitiator,
         TrustLinesManager *trustLinesManager);
@@ -44,7 +43,6 @@ public:
 private:
     pair<bool, TransactionResult::SharedConst> checkContext();
 
-    // Relationships with initiator propagation to B1 level
     TransactionResult::SharedConst propagateRelationshipsBetweenInitiatorAndContractor();
 
     bool isContractorsCountEnoughForRoutingTablesPropagation();
@@ -53,18 +51,15 @@ private:
 
     void sendLinkBetweenInitiatorAndContractor();
 
-    // Propagation second level routing table received from initiator to B1 level
     TransactionResult::SharedConst propagateSecondLevelRoutingTable();
 
     TransactionResult::SharedConst trySendSecondLevelRoutingTable();
 
     void sendSecondLevelRoutingTable();
 
-    // State for scheduler
     TransactionResult::SharedConst waitingForRoutingTablePropagationResponse(
         uint32_t connectionTimeout);
 
-    // Reset transaction instance's state
     void prepareToNextStep();
 
 private:

@@ -2,15 +2,13 @@
 
 FromContractorToFirstLevelRoutingTablesPropagationTransaction::FromContractorToFirstLevelRoutingTablesPropagationTransaction(
     const NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
     const pair<const NodeUUID, const TrustLineDirection> &relationshipsBetweenInitiatorAndContractor,
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelRoutingTableFromInitiator,
     TrustLinesManager *trustLinesManager) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        nodeUUID,
-        contractorUUID
+        nodeUUID
     ),
     mLinkWithInitiator(relationshipsBetweenInitiatorAndContractor),
     mSecondLevelRoutingTableFromInitiator(secondLevelRoutingTableFromInitiator),
@@ -80,7 +78,7 @@ pair<bool, TransactionResult::SharedConst> FromContractorToFirstLevelRoutingTabl
             true,
             transactionResultFromMessage(
                 make_shared<MessageResult>(
-                    mContractorUUID,
+                    *mContractorsUUIDs.begin(),
                     mTransactionUUID,
                     kResponseCodeSuccess
                 )
@@ -164,6 +162,9 @@ void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendLinkBetw
             continue;
         }
 
+        mContractorsUUIDs.push_back(
+            contractorAndTrustLine.first);
+
         addMessage(
             message,
             contractorAndTrustLine.first
@@ -236,15 +237,11 @@ void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendSecondLe
 
     Message::Shared message = dynamic_pointer_cast<Message>(secondLevelMessage);
 
-    for (const auto &contractorAndTrustLine : mTrustLinesManager->trustLines()) {
-
-        if (contractorAndTrustLine.first == mLinkWithInitiator.first) {
-            continue;
-        }
+    for (const auto &contractor : mContractorsUUIDs) {
 
         addMessage(
             message,
-            contractorAndTrustLine.first
+            contractor
         );
 
     }
