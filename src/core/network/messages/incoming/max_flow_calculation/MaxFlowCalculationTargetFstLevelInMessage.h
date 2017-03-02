@@ -14,8 +14,6 @@ public:
 
     const MessageType typeID() const;
 
-    static const size_t kRequestedBufferSize();
-
 };
 
 

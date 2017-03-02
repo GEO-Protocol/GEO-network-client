@@ -21,6 +21,8 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes();
 
+    const bool isMaxFlowCalculationResponseMessage() const;
+
 private:
 
     void deserializeFromBytes(BytesShared buffer);

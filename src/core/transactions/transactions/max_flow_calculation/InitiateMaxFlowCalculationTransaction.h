@@ -8,6 +8,7 @@
 #include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/outgoing/max_flow_calculation/SendMaxFlowCalculationSourceFstLevelMessage.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 #include <set>
 
@@ -22,6 +23,7 @@ public:
             InitiateMaxFlowCalculationCommand::Shared command,
             TrustLinesManager *manager,
             MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+            MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
             Logger *logger);
 
     InitiateMaxFlowCalculationCommand::Shared command() const;
@@ -32,7 +34,7 @@ private:
 
     void sendMessageToRemoteNode();
 
-    void sendMessageOnFirstLevel();
+    void sendMessagesOnFirstLevel();
 
     TrustLineAmount calculateMaxFlow(const NodeUUID& nodeUUID);
 
@@ -47,12 +49,14 @@ private:
 private:
 
     static const byte kMaxFlowLength=6;
+    static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 3000;
 
 private:
 
     InitiateMaxFlowCalculationCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     Logger *mLog;
 
 };

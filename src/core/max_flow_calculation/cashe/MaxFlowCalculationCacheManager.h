@@ -3,10 +3,20 @@
 
 #include "../../common/NodeUUID.h"
 #include "MaxFlowCalculationCache.h"
+#include "../../common/time/TimeUtils.h"
+
+#include <map>
+#include <set>
+/*#include <boost/date_time.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/date_time/posix_time/conversion.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>*/
 
 class MaxFlowCalculationCacheManager {
 
 public:
+    MaxFlowCalculationCacheManager();
+
     void addCache(MaxFlowCalculationCache::Shared cache);
 
     MaxFlowCalculationCache::Shared cacheByNode(
@@ -14,29 +24,37 @@ public:
 
     void updateCaches();
 
+    void setInitiatorCache();
+
+    bool isInitiatorCached();
+
+    void testSet();
+
 private:
-    static const byte kTimeHours = 0;
-    static const byte kTimeMinutes = 0;
-    static const byte kTimeSeconds = 2;
-    //static const Duration duration(kTimeHours, kTimeMinutes, kTimeSeconds);
+    static const byte kResetCacheHours = 0;
+    static const byte kResetCacheMinutes = 0;
+    static const byte kResetCacheSeconds = 2;
+    //static const Duration duration(kResetCacheHours, kResetCacheMinutes, kResetCacheSeconds);
+
+    static const byte kResetInitiatorCacheHours = 0;
+    static const byte kResetInitiatorCacheMinutes = 0;
+    static const byte kResetInitiatorCacheSeconds = 2;
 
 private:
     // comparing two DateTimes for storing in set
-    struct {
+    struct customLess{
         bool operator()(
-            pair<NodeUUID, DateTime> a,
-            pair<NodeUUID, DateTime> b) {
+            const pair<NodeUUID, DateTime> a,
+            const pair<NodeUUID, DateTime> b) const {
             return a.second < b.second;
         }
-    } customLess;
-
-    void testSet();
+    };
 
 // todo make private after testing
 public:
     map<NodeUUID, MaxFlowCalculationCache::Shared> mCaches;
     set<pair<NodeUUID, DateTime>, customLess> msCache;
-
+    pair<bool, DateTime> mInitiatorCache;
 };
 
 

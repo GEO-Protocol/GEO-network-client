@@ -130,3 +130,7 @@ void SendResultMaxFlowCalculationMessage::deserializeFromBytes(
         mIncomingFlows.insert(make_pair(nodeUUID, trustLineAmount));
     }
 }
+
+const bool SendResultMaxFlowCalculationMessage::isMaxFlowCalculationResponseMessage() const {
+    return true;
+}

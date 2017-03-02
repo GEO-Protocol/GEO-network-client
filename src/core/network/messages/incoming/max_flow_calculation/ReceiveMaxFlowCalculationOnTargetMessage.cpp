@@ -10,9 +10,3 @@ const Message::MessageType ReceiveMaxFlowCalculationOnTargetMessage::typeID() co
 
     return Message::MessageTypeID::ReceiveMaxFlowCalculationOnTargetMessageType;
 }
-
-const size_t ReceiveMaxFlowCalculationOnTargetMessage::kRequestedBufferSize() {
-
-    static const size_t size = MaxFlowCalculationMessage::kOffsetToInheritedBytes();
-    return size;
-}

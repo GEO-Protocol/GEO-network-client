@@ -134,10 +134,10 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
     mLog->logInfo("MaxFlowCalculationSourceSndLevelTransaction->sendCachedResult",
                   "IncomingFlows: " + to_string(incomingFlows.size()));
 
-    for (auto const &it : outgoingFlows) {
+    /*for (auto const &it : outgoingFlows) {
         TrustLineAmount trustLineAmount = it.second;
         mLog->logInfo("MaxFlowCalculationSourceSndLevelTransaction::sendCachedResult", it.first.stringUUID());
-    }
+    }*/
 
     if (outgoingFlows.size() > 0 || incomingFlows.size() > 0) {
         Message *message = new SendResultMaxFlowCalculationMessage(
@@ -148,5 +148,13 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
         addMessage(
             Message::Shared(message),
             mMessage->targetUUID());
+    }
+
+    for (auto const &outgoingFlow : outgoingFlows) {
+        maxFlowCalculationCachePtr->addOutgoingUUID(outgoingFlow.first);
+    }
+
+    for (auto const &incomingFlow : incomingFlows) {
+        maxFlowCalculationCachePtr->addIncomingUUID(incomingFlow.first);
     }
 }

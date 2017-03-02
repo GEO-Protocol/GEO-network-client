@@ -130,6 +130,10 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
             Message::Shared(message),
             mMessage->targetUUID());
     }
+
+    for (auto const &incomingFlow : incomingFlows) {
+        maxFlowCalculationCachePtr->addIncomingUUID(incomingFlow.first);
+    }
 }
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel() {

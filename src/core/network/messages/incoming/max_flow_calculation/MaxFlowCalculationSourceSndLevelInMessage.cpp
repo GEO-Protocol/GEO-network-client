@@ -10,9 +10,3 @@ const Message::MessageType MaxFlowCalculationSourceSndLevelInMessage::typeID() c
 
     return Message::MessageTypeID::MaxFlowCalculationSourceSndLevelInMessageType;
 }
-
-const size_t MaxFlowCalculationSourceSndLevelInMessage::kRequestedBufferSize() {
-
-    static const size_t size = MaxFlowCalculationMessage::kOffsetToInheritedBytes();
-    return size;
-}

@@ -26,6 +26,8 @@ public:
 
     const map<NodeUUID, TrustLineAmount> incomingFlows() const;
 
+    const bool isMaxFlowCalculationResponseMessage() const;
+
 private:
 
     void deserializeFromBytes(

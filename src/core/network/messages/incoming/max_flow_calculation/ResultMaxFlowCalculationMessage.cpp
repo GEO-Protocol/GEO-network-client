@@ -150,3 +150,7 @@ const map<NodeUUID, TrustLineAmount> ResultMaxFlowCalculationMessage::outgoingFl
 const map<NodeUUID, TrustLineAmount> ResultMaxFlowCalculationMessage::incomingFlows() const {
     return mIncomingFlows;
 }
+
+const bool ResultMaxFlowCalculationMessage::isMaxFlowCalculationResponseMessage() const {
+    return true;
+}

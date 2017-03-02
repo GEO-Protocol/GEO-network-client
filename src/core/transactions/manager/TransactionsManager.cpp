@@ -435,6 +435,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
             command,
             mTrustLines,
             mMaxFlowCalculationTrustLineManager,
+            mMaxFlowCalculationCacheManager,
             mLog
         );
 

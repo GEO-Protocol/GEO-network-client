@@ -14,7 +14,6 @@ public:
 
     const MessageType typeID() const;
 
-    static const size_t kRequestedBufferSize();
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCEFSTLEVELINMESSAGE_H

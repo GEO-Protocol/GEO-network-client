@@ -24,6 +24,8 @@ public:
 
     virtual pair<BytesShared, size_t> serializeToBytes();
 
+    const bool isMaxFlowCalculationResponseMessage() const;
+
 protected:
     MaxFlowCalculationMessage();
 
