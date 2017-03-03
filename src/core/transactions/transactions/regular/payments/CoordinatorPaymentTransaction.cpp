@@ -86,7 +86,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     TrustLinesManager *trustLines,
     Logger *log) :
 
-    BaseTransaction(
+    BasePaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction, currentNodeUUID),
     mCommand(command),
     mTrustLines(trustLines),
@@ -101,7 +101,8 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     TrustLinesManager *trustLines,
     Logger *log) :
 
-    BaseTransaction(
+    // TODO: call deserialization base constructor
+    BasePaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction),
     mTrustLines(trustLines),
     mLog(log){

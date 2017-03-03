@@ -1,12 +1,8 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H
 #define GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H
 
-#include "../../../../common/Types.h"
-#include "../../../../paths/lib/Path.h"
 
-#include "../../base/BaseTransaction.h"
-#include "../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../logger/Logger.h"
+#include "base/BasePaymentTransaction.h"
 
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentMessage.h"
@@ -16,7 +12,7 @@
 
 
 class CoordinatorPaymentTransaction:
-    public BaseTransaction {
+    public BasePaymentTransaction {
 
 public:
     typedef shared_ptr<CoordinatorPaymentTransaction> Shared;
@@ -40,10 +36,12 @@ public:
     const string logHeader() const;
 
 protected:
-    // Typedefs
     typedef boost::uuids::uuid PathUUID;
 
 protected:
+    /**
+     * Describes payment path, it's nodes states, and max flow through it.
+     */
     class PathStats {
     public:
         enum NodeState {

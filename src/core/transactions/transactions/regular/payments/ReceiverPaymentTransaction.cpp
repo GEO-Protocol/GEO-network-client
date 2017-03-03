@@ -5,7 +5,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     TrustLinesManager *trustLines,
     Logger *log) :
 
-    BaseTransaction(
+    BasePaymentTransaction(
         BaseTransaction::ReceiverPaymentTransaction,
         message->transactionUUID()),
     mMessage(message),
@@ -18,7 +18,8 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     TrustLinesManager *trustLines,
     Logger *log) :
 
-    BaseTransaction(
+    // TODO: use deserialization constructor
+    BasePaymentTransaction(
         BaseTransaction::ReceiverPaymentTransaction),
     mTrustLines(trustLines),
     mLog(log){
@@ -29,8 +30,16 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 TransactionResult::SharedConst ReceiverPaymentTransaction::run() {
 
     switch (mStep) {
-        case 1:
-            return initOperation();
+    case 1:
+        return initOperation();
+
+    case 2:
+        return processAmountReservationStage();
+
+    default:
+        throw ValueError(
+            "ReceiverPaymentTransaction::run(): "
+            "invalid stage number occurred");
     }
 
     // TODO: remove this
@@ -79,36 +88,30 @@ TransactionResult::Shared ReceiverPaymentTransaction::initOperation() {
         nodeUUID(),
         UUID(),
         ReceiverApprovePaymentMessage::Accepted);
-
     addMessage(message, mMessage->senderUUID());
 
+    increaseStepsCounter();
 
-
-
-    // TODO: Exit if no amount reservatio is accepted at least 6 * deadline timeouts for one node
-
-
-    // Begin receiving amount locks,
-    // but no longer than 3s for first payment operation.
-    mStep += 1;
+    const auto maxWaitTimeout = kMaxNodesCount * kMaxMessageTransferLagMSec;
     return make_shared<TransactionResult>(
-        TransactionState::waitForMessageTypes({}, 3*1000));
+        TransactionState::waitForMessageTypes({}, maxWaitTimeout));
 }
 
-//TransactionResult::Shared ReceiverPaymentTransaction::processAmountBlockingStage() {
+TransactionResult::Shared ReceiverPaymentTransaction::processAmountReservationStage() {
 
-//#ifdef TRANSACTIONS_LOG
-//    auto info = mLog->info("ReceiverPaymentTransaction");
-//#endif
+    if (mContext.empty()) {
+#ifdef TRANSACTIONS_LOG
+        {
+            auto info = mLog->info(logHeader());
+            info << "No amount reservation request received. "
+                    "Transaction may not be proceed. Stoping";
+        }
 
-//    // todo: check for amount blocking messages
+        return make_shared<TransactionResult>(
+            TransactionState::exit());
+#endif
+    }
 
-//#ifdef TRANSACTIONS_LOG
-//    info
-//         << "No amount block message was received. "
-//         << "Transaction is now would be closed.";
-//#endif
-
-//    return make_shared<TransactionResult>(
-//        TransactionState::exit());
-//}
+    return make_shared<TransactionResult>(
+        TransactionState::exit());
+}

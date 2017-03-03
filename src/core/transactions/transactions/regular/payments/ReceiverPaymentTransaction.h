@@ -1,18 +1,15 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 #define GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 
-#include "../../base/BaseTransaction.h"
-#include "../../../../common/time/TimeUtils.h"
-#include "../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../logger/Logger.h"
 
-#include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
+#include "base/BasePaymentTransaction.h"
+
 #include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentMessage.h"
 #include "../../../../network/messages/outgoing/payments/ReceiverApprovePaymentMessage.h"
 
 
 class ReceiverPaymentTransaction:
-    public BaseTransaction {
+    public BasePaymentTransaction {
 
 public:
     typedef shared_ptr<ReceiverPaymentTransaction> Shared;
@@ -36,7 +33,7 @@ public:
 protected:
     // Stages handlers
     TransactionResult::Shared initOperation();
-//    TransactionResult::Shared processAmountBlockingStage();
+    TransactionResult::Shared processAmountReservationStage();
 
 private:
     void deserializeFromBytes(
