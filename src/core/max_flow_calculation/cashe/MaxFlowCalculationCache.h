@@ -5,7 +5,7 @@
 #include "../../common/NodeUUID.h"
 #include "../../common/time/TimeUtils.h"
 
-#include <set>
+#include <map>
 
 class MaxFlowCalculationCache {
 
@@ -14,26 +14,24 @@ public:
 
     MaxFlowCalculationCache(
         const NodeUUID& nodeUUID,
-        const set<NodeUUID> outgoingUUIDs,
-        const set<NodeUUID> incomingUUIDs);
+        const map<NodeUUID, TrustLineAmount> outgoingUUIDs,
+        const map<NodeUUID, TrustLineAmount> incomingUUIDs);
 
     const NodeUUID& nodeUUID() const;
 
-    const DateTime& timeStampCreated() const;
+    bool containsIncomingFlow(
+        const NodeUUID &nodeUUID,
+        const TrustLineAmount &flow);
 
-    bool containsIncomingUUID(const NodeUUID& nodeUUID) const;
-
-    bool containsOutgoingUUID(const NodeUUID& nodeUUID) const;
-
-    void addIncomingUUID(const NodeUUID& nodeUUID);
-
-    void addOutgoingUUID(const NodeUUID& nodeUUID);
+    bool containsOutgoingFlow(
+        const NodeUUID &nodeUUID,
+        const TrustLineAmount &flow);
 
 // todo change on private after testing
 public:
     NodeUUID mNodeUUID;
-    set<NodeUUID> mIncomingUUIDs;
-    set<NodeUUID> mOutgoingUUIDs;
+    map<NodeUUID, TrustLineAmount> mIncomingFlows;
+    map<NodeUUID, TrustLineAmount> mOutgoingFlows;
     DateTime mTimeStampCreated;
 };
 

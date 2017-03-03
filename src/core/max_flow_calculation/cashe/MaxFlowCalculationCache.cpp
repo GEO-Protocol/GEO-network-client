@@ -2,49 +2,62 @@
 
 MaxFlowCalculationCache::MaxFlowCalculationCache(
     const NodeUUID &nodeUUID,
-    const set<NodeUUID> outgoingUUIDs,
-    const set<NodeUUID> incomingUUIDs) :
+    const map<NodeUUID, TrustLineAmount> outgoingUUIDs,
+    const map<NodeUUID, TrustLineAmount> incomingUUIDs) :
 
     mNodeUUID(nodeUUID),
-    mOutgoingUUIDs(outgoingUUIDs),
-    mIncomingUUIDs(incomingUUIDs),
+    mOutgoingFlows(outgoingUUIDs),
+    mIncomingFlows(incomingUUIDs),
     mTimeStampCreated(utc_now()) {}
 
-void MaxFlowCalculationCache::addIncomingUUID(
-    const NodeUUID &nodeUUID) {
+bool MaxFlowCalculationCache::containsIncomingFlow(
+    const NodeUUID &nodeUUID,
+    const TrustLineAmount &flow) {
 
-    mIncomingUUIDs.insert(nodeUUID);
-}
-
-void MaxFlowCalculationCache::addOutgoingUUID(
-    const NodeUUID &nodeUUID) {
-
-    mOutgoingUUIDs.insert(nodeUUID);
-}
-
-bool MaxFlowCalculationCache::containsIncomingUUID(
-    const NodeUUID& nodeUUID) const {
-
-    if (mIncomingUUIDs.find(nodeUUID) == mIncomingUUIDs.end()) {
+    auto nodeUUIDAndFlow = mIncomingFlows.find(nodeUUID);
+    if (nodeUUIDAndFlow == mIncomingFlows.end()) {
+        mIncomingFlows.insert(
+            make_pair(
+                nodeUUID,
+                flow));
         return false;
     } else {
-        return true;
+        if ((*nodeUUIDAndFlow).second != flow) {
+            mIncomingFlows.erase(nodeUUIDAndFlow);
+            mIncomingFlows.insert(
+                make_pair(
+                    nodeUUID,
+                    flow));
+            return false;
+        } else {
+            return true;
+        }
     }
 }
 
-bool MaxFlowCalculationCache::containsOutgoingUUID(
-    const NodeUUID& nodeUUID) const {
+bool MaxFlowCalculationCache::containsOutgoingFlow(
+    const NodeUUID &nodeUUID,
+    const TrustLineAmount &flow) {
 
-    if (mOutgoingUUIDs.find(nodeUUID) == mOutgoingUUIDs.end()) {
+    auto nodeUUIDAndFlow = mOutgoingFlows.find(nodeUUID);
+    if (nodeUUIDAndFlow == mOutgoingFlows.end()) {
+        mOutgoingFlows.insert(
+            make_pair(
+                nodeUUID,
+                flow));
         return false;
     } else {
-        return true;
+        if ((*nodeUUIDAndFlow).second != flow) {
+            mOutgoingFlows.erase(nodeUUIDAndFlow);
+            mOutgoingFlows.insert(
+                make_pair(
+                    nodeUUID,
+                    flow));
+            return false;
+        } else {
+            return true;
+        }
     }
-}
-
-const DateTime& MaxFlowCalculationCache::timeStampCreated() const {
-
-    return mTimeStampCreated;
 }
 
 const NodeUUID& MaxFlowCalculationCache::nodeUUID() const {

@@ -23,9 +23,10 @@ public:
         const boost::system::error_code &error);
 
 private:
-    as::io_service &mIOService;
-    const uint32_t mSignalRepeatTimeSeconds = 20;
+    const uint32_t kSignalRepeatTimeSeconds = 40;
 
+private:
+    as::io_service &mIOService;
     unique_ptr<as::deadline_timer> mMaxFlowCalculationCacheUpdateTimer;
 };
 

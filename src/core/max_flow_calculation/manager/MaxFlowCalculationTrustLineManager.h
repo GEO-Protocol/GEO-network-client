@@ -36,7 +36,15 @@ private:
 
     static const byte kResetTrustLinesHours = 0;
     static const byte kResetTrustLinesMinutes = 0;
-    static const byte kResetTrustLinesSeconds = 2;
+    static const byte kResetTrustLinesSeconds = 10;
+
+    static Duration& kResetTrustLinesDuration() {
+        static auto duration = Duration(
+            kResetTrustLinesHours,
+            kResetTrustLinesMinutes,
+            kResetTrustLinesSeconds);
+        return duration;
+    }
 
 // todo make private after testing
 public:

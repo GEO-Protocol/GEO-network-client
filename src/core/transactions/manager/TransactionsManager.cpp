@@ -436,8 +436,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
             mTrustLines,
             mMaxFlowCalculationTrustLineManager,
             mMaxFlowCalculationCacheManager,
-            mLog
-        );
+            mLog);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -622,6 +621,7 @@ void TransactionsManager::launchMaxFlowCalculationCacheUpdateTransaction() {
         auto transaction = make_shared<MaxFlowCalculationCacheUpdateTransaction>(
             mNodeUUID,
             mMaxFlowCalculationCacheManager,
+            mMaxFlowCalculationTrustLineManager,
             mLog);
 
         subscribeForOutgoingMessages(

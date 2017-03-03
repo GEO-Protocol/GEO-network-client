@@ -4,6 +4,7 @@
 #include "../../../logger/Logger.h"
 #include "../base/BaseTransaction.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 
 class MaxFlowCalculationCacheUpdateTransaction : public BaseTransaction {
 
@@ -15,6 +16,7 @@ public:
     MaxFlowCalculationCacheUpdateTransaction(
         NodeUUID &nodeUUID,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         Logger *logger);
 
     TransactionResult::SharedConst run();
@@ -22,6 +24,7 @@ public:
 private:
 
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     Logger *mLog;
 
 };

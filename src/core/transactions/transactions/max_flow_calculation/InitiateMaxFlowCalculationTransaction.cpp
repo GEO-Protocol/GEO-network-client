@@ -66,6 +66,9 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
     /*mMaxFlowCalculationCacheManager->testSet();
     return make_shared<TransactionResult>(TransactionState::exit());*/
 
+    /*mMaxFlowCalculationCacheManager->testMap();
+    return make_shared<TransactionResult>(TransactionState::exit());*/
+
     if (mStep == 1) {
         if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
             for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->outgoingFlows()) {
@@ -92,7 +95,8 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
         mLog->logInfo("InitiateMaxFlowCalculationTransaction::run",
                       "max flow: " + to_string((uint32_t)maxFlow));
         resetStepsCounter();
-        return resultOk(maxFlow);//make_shared<TransactionResult>(TransactionState::exit());
+        //return resultOk(maxFlow);
+        return make_shared<TransactionResult>(TransactionState::exit());
     }
 
 }
@@ -135,17 +139,14 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(const No
         if (sortedTrustLines.size() == 0) {
             return result;
         }
-        /*MaxFlowCalculationTrustLine::Shared &trustLineMax = sortedTrustLines.front();
+        MaxFlowCalculationTrustLine::Shared &trustLineMax = *sortedTrustLines.begin();
         auto trustLineFreeAmountPtr = trustLineMax.get()->freeAmount();
         if (*trustLineFreeAmountPtr == TrustLine::kZeroAmount()) {
             return result;
         }
         mLog->logInfo("InitiateMaxFlowCalculationTransaction->calculateMaxFlow",
                       "1st max flow: " + to_string((uint32_t)*trustLineFreeAmountPtr));
-        trustLineMax = sortedTrustLines.back();
-        trustLineFreeAmountPtr = trustLineMax.get()->freeAmount();
-        mLog->logInfo("InitiateMaxFlowCalculationTransaction->calculateMaxFlow",
-                      "1st max flow: " + to_string((uint32_t)*trustLineFreeAmountPtr));*/
+
         TrustLineAmount currentFlow = 0;
         for (auto &trustLine : sortedTrustLines) {
             auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
