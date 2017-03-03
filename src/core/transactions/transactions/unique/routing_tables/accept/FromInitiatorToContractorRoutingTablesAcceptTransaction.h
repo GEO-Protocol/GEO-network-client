@@ -11,6 +11,7 @@
 #include "../../../../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
+#include "../propagate/FromInitiatorToContractorRoutingTablesPropagationTransaction.h"
 #include "../propagate/FromContractorToFirstLevelRoutingTablesPropagationTransaction.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
@@ -53,6 +54,8 @@ private:
 
     void createFromContractorToFirstLevelRoutingTablesPropagationTransaction(
         SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage);
+
+    void createFromContractorToInitiatorReverseRoutingTablesPropagationTransaction();
 
 private:
     FirstLevelRoutingTableIncomingMessage::Shared mFirstLevelMessage;
