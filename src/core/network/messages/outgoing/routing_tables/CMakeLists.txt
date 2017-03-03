@@ -6,7 +6,7 @@ set(SOURCE_FILES
         FirstLevelRoutingTableOutgoingMessage.cpp
         FirstLevelRoutingTableOutgoingMessage.h
         SecondLevelRoutingTableOutgoingMessage.cpp
-        SecondLevelRoutingTableOutgoingMessage.h)
+        SecondLevelRoutingTableOutgoingMessage.h RoutingTableUpdateOutgoingMessage.cpp RoutingTableUpdateOutgoingMessage.h)
 
 add_library(messages__outgoing__routing_tables ${SOURCE_FILES})
 target_link_libraries(messages__outgoing__routing_tables

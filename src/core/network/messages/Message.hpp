@@ -33,6 +33,8 @@ public:
         FirstLevelRoutingTableIncomingMessageType,
         SecondLevelRoutingTableOutgoingMessageType,
         SecondLevelRoutingTableIncomingMessageType,
+        RoutingTableUpdateOutgoingMessageType,
+        RoutingTableUpdateIncomingMessageType,
         InBetweenNodeTopologyMessage,
         BoundaryNodeTopologyMessage,
         Payments_ReceiverInitPayment,
