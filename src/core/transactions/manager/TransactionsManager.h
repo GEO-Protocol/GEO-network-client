@@ -18,30 +18,41 @@
 #include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
+
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 
-#include "../../network/messages/Message.hpp"
-#include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
-#include "../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
-#include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
-#include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
-#include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
+//#include "../../network/messages/Message.hpp"
 #include "../../network/messages/response/Response.h"
-#include "../../network/messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
+
+//#include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
+//#include "../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
+//#include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
+
+//#include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
+//#include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
+
+
+//#include "../../network/messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/base/UniqueTransaction.h"
+
 #include "../transactions/unique/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/AcceptTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/CloseTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
+
 #include "../transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablePropagationTransaction.h"
 #include "../transactions/unique/routing_tables/FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
+
 #include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
+
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
+#include "../transactions/regular/payments/IntermediateNodePaymentTransaction.h"
+
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationFromTargetTransaction.h"
@@ -143,6 +154,9 @@ private:
     void launchReceiverPaymentTransaction(
         ReceiverInitPaymentMessage::Shared message);
 
+    void launchIntermediateNodePaymentTransaction(
+        ReserveBalanceRequestMessage::Shared message);
+
     // Topology transactions
     void launchGetTopologyAndBalancesTransaction();
 
@@ -163,6 +177,9 @@ private:
 
     void onCommandResultReady(
         CommandResult::SharedConst result);
+
+    void prepeareAndSchedule(
+        BaseTransaction::Shared transaction);
 
 private:
     NodeUUID &mNodeUUID;

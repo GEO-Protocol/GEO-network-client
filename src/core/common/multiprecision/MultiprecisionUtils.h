@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_MULTIPRECISIONUTILS_H
+﻿#ifndef GEO_NETWORK_CLIENT_MULTIPRECISIONUTILS_H
 #define GEO_NETWORK_CLIENT_MULTIPRECISIONUTILS_H
 
 #include "../Types.h"
@@ -8,7 +8,7 @@
 using namespace std;
 
 inline vector<byte> trustLineAmountToBytes(
-    TrustLineAmount &amount) {
+    const TrustLineAmount &amount) {
 
     vector<byte> buffer;
 
@@ -27,14 +27,14 @@ inline vector<byte> trustLineAmountToBytes(
 }
 
 inline TrustLineAmount bytesToTrustLineAmount(
-    vector<byte> amountBytes) {
+    const vector<byte> &amountBytes) {
 
     TrustLineAmount amount;
 
     vector<byte> amountNotZeroBytes;
     amountNotZeroBytes.reserve(kTrustLineAmountBytesCount);
 
-    for (auto &item : amountBytes) {
+    for (const auto &item : amountBytes) {
         if (item != 0) {
             amountNotZeroBytes.push_back(item);
         }
@@ -59,7 +59,7 @@ inline TrustLineAmount bytesToTrustLineAmount(
 }
 
 inline vector<byte> trustLineBalanceToBytes(
-    TrustLineBalance &balance) {
+    TrustLineBalance balance) {
 
     vector<byte> buffer;
 
@@ -91,7 +91,7 @@ inline vector<byte> trustLineBalanceToBytes(
 }
 
 inline TrustLineBalance bytesToTrustLineBalance(
-    vector<byte> balanceBytes) {
+    const vector<byte> balanceBytes) {
 
     TrustLineBalance balance;
 

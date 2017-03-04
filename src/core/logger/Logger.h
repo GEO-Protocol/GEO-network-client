@@ -17,15 +17,23 @@ class LoggerStream:
     public stringstream {
 
 public:
+    enum StreamType {
+        Standard = 0,
+        Transaction,
+    };
+
+public:
     explicit LoggerStream(
         Logger *logger,
         const char *group,
-        const char *subsystem);
+        const char *subsystem,
+        const StreamType type = Standard);
 
     explicit LoggerStream(
         Logger *logger,
         const char *group,
-        const string &subsystem);
+        const string &subsystem,
+        const StreamType type = Standard);
 
     LoggerStream(const LoggerStream &other);
     ~LoggerStream();
@@ -34,6 +42,7 @@ private:
     Logger *mLogger;
     const string mGroup;
     const string mSubsystem;
+    const StreamType mType;
 };
 
 

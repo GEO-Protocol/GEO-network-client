@@ -220,6 +220,10 @@ void TransactionsManager::processMessage(
         launchReceiverPaymentTransaction(
             static_pointer_cast<ReceiverInitPaymentMessage>(message));
 
+    } else if (message->typeID() == Message::Payments_ReserveBalanceRequest) {
+        launchIntermediateNodePaymentTransaction(
+            static_pointer_cast<ReserveBalanceRequestMessage>(message));
+
     } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage){
         launchGetTopologyAndBalancesTransaction(
             static_pointer_cast<InBetweenNodeTopologyMessage>(message));
@@ -687,9 +691,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
 
     try {
         auto transaction = make_shared<ReceiverPaymentTransaction>(
-            message,
-            mTrustLines,
-            mLog);
+            ReceiverPaymentTransaction(mNodeUUID, message, mTrustLines, mLog));
 
         subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
@@ -702,6 +704,17 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             "TransactionsManager::launchReceiverPaymentTransaction: "
                 "can't allocate memory for transaction instance.");
     }
+}
+
+void TransactionsManager::launchIntermediateNodePaymentTransaction(
+    ReserveBalanceRequestMessage::Shared message)
+{
+    prepeareAndSchedule(
+        make_shared<IntermediateNodePaymentTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mLog));
 }
 
 void TransactionsManager::launchGetTopologyAndBalancesTransaction(
@@ -810,4 +823,18 @@ void TransactionsManager::onCommandResultReady(
             "TransactionsManager::onCommandResultReady: "
                 "Error occurred when command result has accepted");
     }
+}
+
+/**
+ *
+ * @throws bad_alloc;
+ */
+void TransactionsManager::prepeareAndSchedule(
+    BaseTransaction::Shared transaction)
+{
+    subscribeForOutgoingMessages(
+        transaction->outgoingMessageIsReadySignal);
+
+    mScheduler->scheduleTransaction(
+        transaction);
 }

@@ -7,7 +7,9 @@ set(SOURCE_FILES
         CoordinatorPaymentTransaction.h
         CoordinatorPaymentTransaction.cpp
         ReceiverPaymentTransaction.cpp
-        ReceiverPaymentTransaction.h)
+        ReceiverPaymentTransaction.h
+        IntermediateNodePaymentTransaction.h
+        IntermediateNodePaymentTransaction.cpp)
 
 add_library(transactions__payments ${SOURCE_FILES})
 target_link_libraries(transactions__payments

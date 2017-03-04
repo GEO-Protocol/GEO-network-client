@@ -5,30 +5,33 @@
 
 #include <vector>
 #include <sstream>
-#include <algorithm>
+
 
 class Path {
 public:
+    typedef shared_ptr<Path> Shared;
+    typedef shared_ptr<const Path> ConstShared;
+
+public:
+    Path(
+        const NodeUUID &source,
+        const NodeUUID &destination,
+        const vector<NodeUUID> &intermediateNodes);
+
     Path(
         const NodeUUID &source,
         const NodeUUID &destination,
         const vector<NodeUUID> &&intermediateNodes);
 
-    const size_t nodesCount() const;
-    const size_t intermediateNodesCount() const;
-
-    const vector<NodeUUID>& intermediateNodes() const;
-
+    const size_t length() const;
     const string toString() const;
 
     friend bool operator== (
         const Path &p1,
         const Path &p2);
 
-protected:
-    const NodeUUID mSource;
-    const NodeUUID mDestination;
-    const vector<NodeUUID> mIntermediateNodes;
+public:
+    const vector<NodeUUID> nodes;
 };
 
 #endif // PATH_H

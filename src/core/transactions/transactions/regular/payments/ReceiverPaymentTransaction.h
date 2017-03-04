@@ -17,7 +17,8 @@ public:
 
 public:
     ReceiverPaymentTransaction(
-        ReceiverInitPaymentMessage::Shared message,
+        const NodeUUID &currentNodeUUID,
+        ReceiverInitPaymentMessage::ConstShared message,
         TrustLinesManager *trustLines,
         Logger *log);
 
@@ -42,7 +43,7 @@ private:
     const string logHeader() const;
 
 protected:
-    ReceiverInitPaymentMessage::Shared mMessage;
+    ReceiverInitPaymentMessage::ConstShared mMessage;
     TrustLinesManager *mTrustLines;
     Logger *mLog;
 };

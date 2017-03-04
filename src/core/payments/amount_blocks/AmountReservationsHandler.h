@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_AMOUNTBLOCKSHANDLER_H
+﻿#ifndef GEO_NETWORK_CLIENT_AMOUNTBLOCKSHANDLER_H
 #define GEO_NETWORK_CLIENT_AMOUNTBLOCKSHANDLER_H
 
 
@@ -38,7 +38,7 @@ protected:
     //
     // Blocks container would be requested from the map very often,
     // but map's iterator returns copy of the object,
-    // so the unique_ptr<vector> is used to get the container withoud it's copying.
+    // so the unique_ptr<vector> is used to get the container withoud copying it.
     //
     // unique_ptr is used because reservations will never be transafered outside of this class.
     map<NodeUUID, unique_ptr<vector<AmountReservation::ConstShared>>> mReservations;

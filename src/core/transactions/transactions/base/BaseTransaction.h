@@ -7,6 +7,8 @@
 #include "../../../common/NodeUUID.h"
 #include "../../../common/memory/MemoryUtils.h"
 
+#include "../../../logger/Logger.h"
+
 #include "../../../network/messages/Message.hpp"
 #include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
@@ -48,6 +50,7 @@ public:
         // Payments
         CoordinatorPaymentTransaction,
         ReceiverPaymentTransaction,
+        IntermediateNodePaymentTransaction,
 
         // Max flow calculation
         InitiateMaxFlowCalculationTransactionType,
@@ -75,18 +78,36 @@ public:
     virtual TransactionResult::SharedConst run() = 0;
 
 protected:
-    BaseTransaction(
-        const TransactionType type);
-
+    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
-        const TransactionUUID &transactionUUID);
+        Logger *log=nullptr);
 
+    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
+        const TransactionUUID &transactionUUID,
+        Logger *log=nullptr);
+
+    [[deprecated("Use constructor with currentNodeUUID instead.")]]
+    BaseTransaction(
+        const TransactionType type,
+        const NodeUUID &nodeUUID,
+        Logger *log=nullptr);
+
+    // TODO: make logger REQUIRED
+    BaseTransaction(
+        const TransactionType type,
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &nodeUUID,
+        Logger *log=nullptr);
+
+    [[deprecated("Use sendMessage() instead.")]]
+    void addMessage(
+        Message::Shared message,
         const NodeUUID &nodeUUID);
 
-    void addMessage(
+    void sendMessage(
         Message::Shared message,
         const NodeUUID &nodeUUID);
 
@@ -116,6 +137,9 @@ protected:
         TransactionState::SharedConst state);
 
     virtual const string logHeader() const;
+    LoggerStream info() const;
+    LoggerStream error() const;
+    LoggerStream debug() const;
 
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
@@ -129,6 +153,9 @@ protected:
     vector<Message::Shared> mContext;
 
     uint16_t mStep = 1;
+
+protected:
+    Logger *mLog;
 };
 
 

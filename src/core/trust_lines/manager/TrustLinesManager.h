@@ -99,6 +99,9 @@ public:
     const bool isTrustLineExist(
         const NodeUUID &contractorUUID) const;
 
+    const bool isNeighbor(
+        const NodeUUID &node) const;
+
     void saveToDisk(
         TrustLine::Shared trustLine);
 
@@ -119,10 +122,15 @@ public:
     // TODO: TrustLineAmount takes 32 bytes. Are you shure you need a COPY here?
     map<NodeUUID, TrustLineAmount> getOutgoingFlows();
 
+    [[deprecated("Manager must only returns const trust lines")]]
     const TrustLine::Shared trustLine(
         const NodeUUID &contractorUUID) const;
 
+    const TrustLine::ConstShared trustLineReadOnly(
+        const NodeUUID &contractorUUID) const;
+
     map<NodeUUID, TrustLine::Shared> &trustLines();
+
 
     // TODO: TrustLineBalance takes 32 bytes. Are you shure you need a COPY here?
     vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(TrustLineBalance maxflow);

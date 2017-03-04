@@ -78,23 +78,27 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
+        /*
+         * Payment operations messages
+         */
         case Message::Payments_ReceiverInitPayment: {
-            return make_pair(
-                true,
-                static_pointer_cast<Message>(
-                    make_shared<ReceiverInitPaymentMessage>(messagePart)
-                )
-            );
-        }
-        case Message::Payments_ReceiverApprove: {
-            return make_pair(
-                true,
-                static_pointer_cast<Message>(
-                    make_shared<ReceiverApprovePaymentMessage>(messagePart)
-                )
-            );
+            return messageCollected(
+                make_shared<ReceiverInitPaymentMessage>(messagePart));
         }
 
+        case Message::Payments_ReceiverApprove: {
+            return messageCollected(
+                make_shared<ReceiverApprovePaymentMessage>(messagePart));
+        }
+
+        case Message::Payments_ReserveBalanceRequest: {
+            return messageCollected(
+                make_shared<ReserveBalanceRequestMessage>(messagePart));
+        }
+
+        /*
+         * Cycles processing messages
+         */
         case Message::InBetweenNodeTopologyMessage: {
             return make_pair(
                 true,
@@ -113,6 +117,9 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
+        /*
+         * Max flow calculation messages
+         */
         case Message::InitiateMaxFlowCalculationMessageType: {
             return make_pair(
                 true,
@@ -221,7 +228,15 @@ pair<bool, Message::Shared> MessagesParser::messageInvalidOrIncomplete() {
     return make_pair(
         false,
         Message::Shared(nullptr)
-    );
+                );
+}
+
+pair<bool, Message::Shared> MessagesParser::messageCollected(
+    Message::Shared message) const
+{
+    return make_pair(
+        true,
+        static_pointer_cast<Message>(message));
 }
 
 

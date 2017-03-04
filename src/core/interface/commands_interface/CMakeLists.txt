@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+﻿cmake_minimum_required(VERSION 3.6)
 
 find_package(Boost COMPONENTS system REQUIRED)
 
@@ -18,7 +18,7 @@ set(SOURCE_FILES
         interface/CommandsInterface.cpp
         interface/CommandsInterface.h
 
-        CommandUUID.h
+#        CommandUUID.h
         commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.cpp
         commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h)
 

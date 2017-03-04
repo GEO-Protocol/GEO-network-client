@@ -3,15 +3,11 @@
 
 #include "../../base/transaction/TransactionMessage.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
-#include <memory>
-#include <utility>
-#include <stdint.h>
 
-class ReceiverInitPaymentMessage: public TransactionMessage {
+class ReceiverInitPaymentMessage:
+    public TransactionMessage {
 
 public:
     typedef shared_ptr<ReceiverInitPaymentMessage> Shared;
@@ -26,7 +22,7 @@ public:
     ReceiverInitPaymentMessage(
         BytesShared buffer);
 
-    TrustLineAmount& amount() const;
+    const TrustLineAmount& amount() const;
 
 private:
     const MessageType typeID() const;
@@ -37,6 +33,6 @@ private:
         BytesShared buffer);
 
 private:
-    mutable TrustLineAmount mTotalPaymentAmount;
+    TrustLineAmount mTotalPaymentAmount;
 };
 #endif //GEO_NETWORK_CLIENT_RECEIVERINITPAYMENTMESSAGE_H

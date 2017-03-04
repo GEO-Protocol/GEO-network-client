@@ -24,6 +24,7 @@
 #include "../messages/incoming/max_flow_calculation/ResultMaxFlowCalculationFromSourceMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentMessage.h"
 #include "../messages/outgoing/payments/ReceiverApprovePaymentMessage.h"
+#include "../messages/outgoing/payments/ReserveBalanceRequestMessage.h"
 #include "../messages/cycles/InBetweenNodeTopologyMessage.h"
 #include "../messages/cycles/BoundaryNodeTopologyMessage.h"
 #include "../messages/response/Response.h"
@@ -65,6 +66,10 @@ private:
         BytesShared messagePart);
 
     pair<bool, Message::Shared> messageInvalidOrIncomplete();
+
+    pair<bool, Message::Shared> messageCollected(
+        Message::Shared message) const;
+
 
 private:
     const size_t kMessageIdentifierSize = 2;

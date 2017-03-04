@@ -1,23 +1,45 @@
 ﻿#include "BaseTransaction.h"
 
-BaseTransaction::BaseTransaction(
-    const BaseTransaction::TransactionType type) :
 
-    mType(type) {}
+BaseTransaction::BaseTransaction(
+    const BaseTransaction::TransactionType type,
+    Logger *log) :
+
+    mType(type),
+    mLog(log)
+{}
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
-    const TransactionUUID &transactionUUID) :
+    const TransactionUUID &transactionUUID,
+    Logger *log) :
 
     mType(type),
-    mTransactionUUID(transactionUUID) {}
+    mLog(log),
+    mTransactionUUID(transactionUUID)
+{}
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
-    const NodeUUID &nodeUUID) :
+    const NodeUUID &nodeUUID,
+    Logger *log) :
 
     mType(type),
-    mNodeUUID(nodeUUID) {}
+    mLog(log),
+    mNodeUUID(nodeUUID)
+{}
+
+BaseTransaction::BaseTransaction(
+    const TransactionType type,
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &nodeUUID,
+    Logger *log) :
+
+    mType(type),
+    mLog(log),
+    mTransactionUUID(transactionUUID),
+    mNodeUUID(nodeUUID)
+{}
 
 void BaseTransaction::addMessage(
     Message::Shared message,
@@ -25,8 +47,16 @@ void BaseTransaction::addMessage(
 
     outgoingMessageIsReadySignal(
         message,
-        nodeUUID
-    );
+        nodeUUID);
+}
+
+void BaseTransaction::sendMessage(
+    Message::Shared message,
+    const NodeUUID& nodeUUID)
+{
+    outgoingMessageIsReadySignal(
+        message,
+        nodeUUID);
 }
 
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
@@ -179,4 +209,31 @@ TransactionResult::SharedConst BaseTransaction::transactionResultFromState(
 const string BaseTransaction::logHeader() const
 {
     // todo: must be marked as "=0" in header;
+}
+
+LoggerStream BaseTransaction::info() const
+{
+    // TODO: remove me. Logger must be initialised in constructor by default
+    if (nullptr == mLog)
+        throw Exception("logger is not initialised");
+
+    return mLog->info(logHeader());
+}
+
+LoggerStream BaseTransaction::error() const
+{
+    // TODO: remove me. Logger must be initialised in constructor by default
+    if (nullptr == mLog)
+        throw Exception("logger is not initialised");
+
+    return mLog->error(logHeader());
+}
+
+LoggerStream BaseTransaction::debug() const
+{
+    // TODO: remove me. Logger must be initialised in constructor by default
+    if (nullptr == mLog)
+        throw Exception("logger is not initialised");
+
+    return mLog->debug(logHeader());
 }

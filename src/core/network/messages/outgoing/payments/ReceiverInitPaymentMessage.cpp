@@ -6,25 +6,25 @@ ReceiverInitPaymentMessage::ReceiverInitPaymentMessage(
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &totalPaymentAmount) :
 
-    // TODO: add "const" to constructor of the TransactionMessage;
-    // TODO: remove const_cast;
     TransactionMessage(
-        const_cast<NodeUUID&>(senderUUID),
-        const_cast<TransactionUUID&>(transactionUUID)),
-    mTotalPaymentAmount(totalPaymentAmount){
+        senderUUID,
+        transactionUUID),
+    mTotalPaymentAmount(totalPaymentAmount)
+{
 }
 
 ReceiverInitPaymentMessage::ReceiverInitPaymentMessage(
-    BytesShared buffer) {
-
+    BytesShared buffer)
+{
     deserializeFromBytes(buffer);
 }
 
-const Message::MessageType ReceiverInitPaymentMessage::typeID() const {
+const Message::MessageType ReceiverInitPaymentMessage::typeID() const
+{
     return Message::Payments_ReceiverInitPayment;
 }
 
-TrustLineAmount &ReceiverInitPaymentMessage::amount() const {
+const TrustLineAmount &ReceiverInitPaymentMessage::amount() const {
     return mTotalPaymentAmount;
 }
 

@@ -31,9 +31,7 @@ public:
         Logger *log);
 
     TransactionResult::SharedConst run();
-
     pair<BytesShared, size_t> serializeToBytes();
-    const string logHeader() const;
 
 protected:
     typedef boost::uuids::uuid PathUUID;
@@ -53,13 +51,13 @@ protected:
 
     public:
         PathStats(
-            const Path &path);
+            Path::ConstShared path);
 
         void setNodeState(
             const uint8_t positionInPath,
             const NodeState state);
 
-        const Path& path() const;
+        const Path::ConstShared path() const;
         const pair<NodeUUID, uint8_t> nextIntermediateNodeAndPos() const;
         const bool reservationRequestSentToAllNodes() const;
         const bool isWaitingForReservationResponse() const;
@@ -67,8 +65,8 @@ protected:
         const bool isLastIntermediateNodeProcessed() const;
 
     protected:
-        const Path mPath;
-        vector<NodeState> mNodesStates;
+        Path::ConstShared mPath;
+        vector<NodeState> mIntermediateNodesStates;
         TrustLineAmount mMaxPathFlow;
     };
 
@@ -76,19 +74,22 @@ protected:
     // Stages handlers
     TransactionResult::SharedConst initTransaction();
     TransactionResult::SharedConst processReceiverResponse();
-    TransactionResult::SharedConst tryBlockAmounts();
+    TransactionResult::SharedConst tryReserveAmounts();
 
 protected:
     // Results handlers
     TransactionResult::SharedConst resultOK();
-    TransactionResult::SharedConst resultNoPaths();
+    TransactionResult::SharedConst resultNoPathsError();
     TransactionResult::SharedConst resultProtocolError();
+    TransactionResult::SharedConst resultNoResponseError();
     TransactionResult::SharedConst resultInsufficientFundsError();
 
 protected:
+    const string logHeader() const;
+
     // Init operation helpers
     void addPathForFurtherProcessing(
-        const Path& path);
+        Path::ConstShared path);
 
     // Amounts reservation helpers
     void initAmountsReservationOnNextPath();
@@ -118,10 +119,5 @@ protected:
 
     byte mReservationsStage;
     TrustLineAmount mAlreadyReservedAmountOnAllPaths;
-
-protected:
-    // shared
-    TrustLinesManager *mTrustLines;
-    Logger *mLog;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

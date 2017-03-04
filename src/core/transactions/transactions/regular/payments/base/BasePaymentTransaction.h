@@ -15,7 +15,24 @@ class BasePaymentTransaction:
     public BaseTransaction {
 
 public:
-    using BaseTransaction::BaseTransaction;
+    BasePaymentTransaction(
+        const TransactionType type,
+        const NodeUUID &currentNodeUUID,
+        TrustLinesManager *trustLines,
+        Logger *log);
+
+    BasePaymentTransaction(
+        const TransactionType type,
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &currentNodeUUID,
+        TrustLinesManager *trustLines,
+        Logger *log);
+
+    BasePaymentTransaction(
+        const TransactionType type,
+        BytesShared buffer,
+        TrustLinesManager *trustLines,
+        Logger *log);
 
 protected:
     // Specifies how long node must wait for the response from the remote node.
@@ -25,6 +42,9 @@ protected:
     static const auto kMaxMessageTransferLagMSec = 1500; // msec
 
     static const auto kMaxNodesCount = 6;
+
+protected:
+    TrustLinesManager *mTrustLines;
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

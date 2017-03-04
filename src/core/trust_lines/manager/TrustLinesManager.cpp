@@ -1,4 +1,4 @@
-#include "TrustLinesManager.h"
+﻿#include "TrustLinesManager.h"
 
 TrustLinesManager::TrustLinesManager(Logger *logger) : mlogger(logger){
     try {
@@ -319,33 +319,31 @@ const TrustLineBalance &TrustLinesManager::balance(
 }
 
 /*!
- *
- *
  * @param contractor - uuid of the contractor to which the trust line should be reserved.
  * @param transactionUUID - uuid of the transaction, which reserves the amount.
  * @param amount
  *
  *
- * Throws ValueError in case, if trust line hasn't enought free amount;
- * Throws ValueError in case, if trust "amount" == 0;
- * Throws MemoryError;
+ * @throws NotFoundError in case if no trust line against contractor UUID is present.
+ * @throws ValueError in case, if trust line hasn't enought free amount;
+ * @throws ValueError in case, if outgoing trust amount == 0;
+ * @throws MemoryError;
  */
 AmountReservation::ConstShared TrustLinesManager::reserveAmount(
     const NodeUUID &contractor,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount) {
 
-    // todo: ensure reservations
-
-    if (*mTrustLines.at(contractor)->availableAmount() >= amount) {
+    auto tl = trustLineReadOnly(contractor);
+    if (*tl->availableAmount() >= amount) {
         return mAmountBlocksHandler->reserve(
             contractor,
             transactionUUID,
-            amount
-        );
+            amount);
     }
-    throw ValueError("TrustLinesManager::reserveAmount: "
-                         "Trust line has not enought amount.");
+    throw ValueError(
+            "TrustLinesManager::reserveAmount: "
+            "Trust line has not enought amount.");
 }
 
 AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
@@ -536,9 +534,36 @@ map<NodeUUID, TrustLineAmount> TrustLinesManager::getOutgoingFlows() {
     return result;
 }
 
+/**
+ * @throws NotFoundError
+ */
+const TrustLine::ConstShared TrustLinesManager::trustLineReadOnly(
+    const NodeUUID& contractorUUID) const
+{
+    if (isTrustLineExist(contractorUUID)) {
+        return static_pointer_cast<const TrustLine>(
+            mTrustLines.at(contractorUUID));
+
+    } else {
+        throw NotFoundError(
+            "TrustLinesManager::trustLineReadOnly: "
+            "Trust line to such an contractor does not exists.");
+    }
+}
+
 map<NodeUUID, TrustLine::Shared> &TrustLinesManager::trustLines() {
 
     return mTrustLines;
+}
+
+/**
+ * @returns "true" if "node" is listed into the trustlines,
+ * otherwise - returns "false".
+ */
+const bool TrustLinesManager::isNeighbor(
+    const NodeUUID& node) const
+{
+    return mTrustLines.count(node) == 1;
 }
 
 void TrustLinesManager::setSomeBalances() {

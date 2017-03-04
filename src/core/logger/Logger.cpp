@@ -1,4 +1,4 @@
-#include "Logger.h"
+﻿#include "Logger.h"
 #include <fstream>
 #include <iostream>
 #include "../settings/Settings.h"
@@ -6,20 +6,34 @@
 LoggerStream::LoggerStream(
     Logger *logger,
     const char *group,
-    const char *subsystem):
+    const char *subsystem,
+    const StreamType type) :
+
     mLogger(logger),
     mGroup(group),
-    mSubsystem(subsystem){}
+    mSubsystem(subsystem),
+    mType(type)
+{}
 
 LoggerStream::LoggerStream(
     Logger* logger,
     const char* group,
-    const string& subsystem):
+    const string& subsystem,
+    const StreamType type) :
+
     mLogger(logger),
     mGroup(group),
-    mSubsystem(subsystem){}
+    mSubsystem(subsystem),
+    mType(type)
+{}
 
 LoggerStream::~LoggerStream() {
+    if (mType == Transaction) {
+#ifndef TRANSACTIONS_LOG
+        return;
+#endif
+    }
+
     auto message = this->str();
     if (message.size() > 0) {
         mLogger->logRecord(
@@ -29,10 +43,14 @@ LoggerStream::~LoggerStream() {
     }
 }
 
-LoggerStream::LoggerStream(const LoggerStream &other):
+LoggerStream::LoggerStream(
+    const LoggerStream &other) :
+
     mLogger(other.mLogger),
     mGroup(other.mGroup),
-    mSubsystem(other.mSubsystem){}
+    mSubsystem(other.mSubsystem),
+    mType(other.mType)
+{}
 
 
 void Logger::logException(
