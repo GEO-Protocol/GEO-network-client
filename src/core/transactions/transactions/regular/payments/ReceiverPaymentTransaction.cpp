@@ -91,9 +91,11 @@ TransactionResult::Shared ReceiverPaymentTransaction::initOperation() {
 
 TransactionResult::Shared ReceiverPaymentTransaction::processAmountReservationStage()
 {
+    // Check if no reservation requests received.
+    // In that case - operation must be stopped.
     if (mContext.empty()) {
         info() << "No amount reservation request received. "
-                  "Transaction may not be proceed. Stoping";
+                  "Transaction may not be proceed. Canceling";
 
         // By the protocol, receiver node must not retunr anything or log something.
         // So, it simply stops the transaction.

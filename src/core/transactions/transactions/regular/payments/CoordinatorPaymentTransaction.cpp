@@ -168,19 +168,18 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::initTransaction()
     NodeUUID receiver("13e5cf8c-5834-4e52-b65b-f9281dd1ff03");
 
     auto p1 = make_shared<const Path>(
-        Path(sender, receiver, {b}));
-    auto p2 = make_shared<const Path>(
-        Path(sender, receiver, {c}));
+        Path(sender, receiver, {b, c}));
+//    auto p2 = make_shared<const Path>(
+//        Path(sender, receiver, {c}));
 
     addPathForFurtherProcessing(p1);
-    addPathForFurtherProcessing(p2);
+//    addPathForFurtherProcessing(p2);
 
 
-    info() << "Collected paths: [";
+    info() << "Collected paths: ";
     for (const auto &identifierAndStats : mPathsStats) {
         info() << "{" << identifierAndStats.second->path()->toString() << "}; ";
     }
-    info() << "]";
 
 
     // If there is no one path to the receiver -
@@ -251,7 +250,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmounts(
     case 1: {
             auto path = currentAmountReservationPathStats();
             if (path->isReadyToSendNextReservationRequest()) {
-                return sendNextAmountReservationRequest(path);
+                return tryReserveNextNodeAmount(path);
 
             } else if (path->isWaitingForReservationResponse())
                 return processRemoteNodeResponse();
@@ -332,41 +331,140 @@ void CoordinatorPaymentTransaction::initAmountsReservationOnNextPath()
     mCurrentAmountReservingPathIdentifier = mPathsStats.begin()->first;
 }
 
-TransactionResult::SharedConst CoordinatorPaymentTransaction::sendNextAmountReservationRequest(
+TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveNextNodeAmount(
     PathStats* pathStats)
 {
-    const auto remoteNodeAndPos = pathStats->nextIntermediateNodeAndPos();
-    const auto nextNodeInPathPos = remoteNodeAndPos.second+1;
-    const auto nextNodeInPath = pathStats->path()->nodes[nextNodeInPathPos];
+    if (mAlreadyReservedAmountOnAllPaths == mCommand->amount()){
+        // Internal process error.
+        // No next path must be selected.
+        // Transaction execution must be cancelled.
 
-    auto reservationAmount = mCommand->amount() - mAlreadyReservedAmountOnAllPaths;
+        throw RuntimeError(
+            "CoordinatorPaymentTransaction::tryReserveNextNodeAmount: "
+            "no additional reservation is required");
+    }
+
+
+    /*
+     * Nodes scheme:
+     *  C - current node;
+     *  R - remote node;
+     *  S - next node in path after remote one;
+     */
+
+    const auto C_UUID = nodeUUID();
+
+    const auto R_UUIDAndPos = pathStats->nextIntermediateNodeAndPos();
+    const auto R_UUID = R_UUIDAndPos.first;
+    const auto R_PathPosition = R_UUIDAndPos.second;
+
+    const auto S_PathPosition = R_PathPosition + 1;
+    const auto S_UUID = pathStats->path()->nodes[S_PathPosition];
+
+
+    // If next node is first in path -
+    // coordinator must reserve amount on it's side first.
+    if (R_PathPosition == 1) {
+
+        if (! mTrustLines->isNeighbor(R_UUID)){
+            error() << "Invalid path occured. "
+                       "Node (" << R_UUID << ") is not listed in first level contractors list.";
+            error() << "This may signal about protocol/data manipulations.";
+
+            return tryProcessNextPath();
+        }
+
+        info() << "Processing first node in path: (" << R_UUID << ").";
+
+        const auto reservationAmount = availableAmount(R_UUID);
+        if (*reservationAmount == 0) {
+            // Coordinator has no ability to pay this node.
+            // This path can'e be used any more.
+
+            info() << "No amount is available against (" << R_UUID << ")."
+                      "Switching to another path.";
+
+            return tryProcessNextPath();
+        }
+
+        info() << "Amount reserved locally: " << *reservationAmount;
+        return sendReservationRequest(
+            pathStats,
+            R_UUID,
+            R_PathPosition,
+            S_UUID,
+            *reservationAmount);
+    }
+
+
+    // Next node is not first in path
+    auto reservationAmount =
+        mCommand->amount() - mAlreadyReservedAmountOnAllPaths;
+
+    if (reservationAmount == 0){
+        // Internal process error.
+        // No next path must be selected.
+        // Transaction execution must be cancelled.
+
+        throw RuntimeError(
+            "CoordinatorPaymentTransaction::tryReserveNextNodeAmount: "
+            "Reservation amount == 0, but it must be greater than 0. "
+            "This may signal about protocol/data modifications during execution.");
+    }
+
+    if (reservationAmount > mCommand->amount()) {
+        // Internal process error.
+        // No next path must be selected.
+        // Transaction execution must be cancelled.
+
+        throw RuntimeError(
+            "CoordinatorPaymentTransaction::tryReserveNextNodeAmount: "
+            "Data overflow prevented. "
+            "Already reserved amount is greater than transaction amount. "
+            "This may signal about protocol/data modifications during execution.");
+    }
+
+    return sendReservationRequest(
+        pathStats,
+        R_UUID,
+        R_PathPosition,
+        S_UUID,
+        reservationAmount);
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::sendReservationRequest(
+    PathStats *pathStats,
+    const NodeUUID &remoteNode,
+    const byte remoteNodePosition,
+    const NodeUUID &nextNodeAfterRemote,
+    const TrustLineAmount& amount)
+{
+
+#define CURRENT_NODE_UUID nodeUUID()
+#define TRANSACTION_UUID UUID()
+
     sendMessage(
         make_shared<ReserveBalanceRequestMessage>(
-            nodeUUID(),
-            UUID(),
-            reservationAmount,
-            nextNodeInPath),
-        remoteNodeAndPos.first);
+            CURRENT_NODE_UUID,
+            TRANSACTION_UUID,
+            amount,
+            nextNodeAfterRemote),
+        remoteNode);
 
     pathStats->setNodeState(
-        remoteNodeAndPos.second,
+        remoteNodePosition,
         PathStats::ReservationRequestSent);
 
-    info() << "Amount reservation request sent to the node: "
-           << remoteNodeAndPos.first.stringUUID();
-
-    info() << "Requested reservation amount is: "
-           << reservationAmount;
-
-    info() << "Next path node is : "
-           << nextNodeInPath.stringUUID();
+    info() << "Amount reservation request sent to the node: " << remoteNode.stringUUID();
+    info() << "Requested reservation amount is: " << amount;
+    info() << "Next path node is : " << nextNodeAfterRemote.stringUUID();
 
     // Response from te remote node will go throught other nodes in the path.
     // So them would be able to shortage it's reservations (if needed).
     // Total wait timeout must take note of this.
-    const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodeAndPos.second;
+    const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodePosition;
 
-    info() << "The node is " << int(remoteNodeAndPos.second) << " in path. "
+    info() << "The node is " << int(remoteNodePosition) << " in path. "
            << "Timeout for response from it: " << kTimeout << " msecs";
 
     return make_shared<TransactionResult>(
@@ -392,17 +490,41 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             info() << "No remote node response was received. "
                       "Switching to another path";
 
-            initAmountsReservationOnNextPath();
-            return tryReserveAmounts();
+            return tryProcessNextPath();
         }
     }
 
     return resultOK();
 }
 
+TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath()
+{
+    try {
+        switchToNextPath();
+        return tryReserveAmounts();
+
+    } catch (Exception &e) {
+        info() << "No another paths are available. Canceling.";
+        return resultInsufficientFundsError();
+    }
+}
+
 CoordinatorPaymentTransaction::PathStats* CoordinatorPaymentTransaction::currentAmountReservationPathStats()
 {
     return mPathsStats[mCurrentAmountReservingPathIdentifier].get();
+}
+
+void CoordinatorPaymentTransaction::switchToNextPath()
+{
+    if (mPathsStats.size() > 0)
+        mPathsStats.erase(mPathsStats.cbegin());
+
+    if (mPathsStats.size() == 0)
+        throw NotFoundError(
+            "CoordinatorPaymentTransaction::switchToNextPath: "
+            "no paths are available");
+
+    mCurrentAmountReservingPathIdentifier = mPathsStats.begin()->first;
 }
 
 ///**

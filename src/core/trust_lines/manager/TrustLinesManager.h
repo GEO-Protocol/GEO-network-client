@@ -82,7 +82,13 @@ public:
     const TrustLineBalance &balance(
         const NodeUUID &contractorUUID);
 
+    // TODO: rename to "reserveOutgoingAmount"
     AmountReservation::ConstShared reserveAmount(
+        const NodeUUID &contractor,
+        const TransactionUUID &transactionUUID,
+        const TrustLineAmount &amount);
+
+    AmountReservation::ConstShared reserveIncomingAmount(
         const NodeUUID &contractor,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);

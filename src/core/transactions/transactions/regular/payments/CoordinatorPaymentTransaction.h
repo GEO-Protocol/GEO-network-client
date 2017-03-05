@@ -92,14 +92,23 @@ protected:
         Path::ConstShared path);
 
     // Amounts reservation helpers
+    TransactionResult::SharedConst tryReserveNextNodeAmount(
+        PathStats* path);
+
+    TransactionResult::SharedConst sendReservationRequest(
+        PathStats *pathStats,
+        const NodeUUID &remoteNode,
+        const byte remoteNodePosition,
+        const NodeUUID &nextNodeAfterRemote,
+        const TrustLineAmount &amount);
+
+    TransactionResult::SharedConst processRemoteNodeResponse();
+    TransactionResult::SharedConst tryProcessNextPath();
+
     void initAmountsReservationOnNextPath();
 
     PathStats* currentAmountReservationPathStats();
-
-    TransactionResult::SharedConst sendNextAmountReservationRequest(
-        PathStats* path);
-
-    TransactionResult::SharedConst processRemoteNodeResponse();
+    void switchToNextPath();
 
     // Other
     void deserializeFromBytes(

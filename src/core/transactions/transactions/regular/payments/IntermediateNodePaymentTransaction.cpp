@@ -48,67 +48,72 @@ pair<BytesShared, size_t> IntermediateNodePaymentTransaction::serializeToBytes()
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::initOperation()
 {
+#define COORDINATOR_UUID mMessage->senderUUID()
+
+    info() << "Init. intermediate payment operation. "
+              "Initilizer node - (" << COORDINATOR_UUID << ")";
+
     // Note:
     // Order is necessary:
     // coordinator request must be processed in first order.
     if (! mTrustLines->isNeighbor(mMessage->senderUUID()))
-        return processReservationRequestFromCoordinator();
-     else
-        return processReservationRequestFromNeighbour();
+        return processReservationAssumingCoordinatorIsRemoteNode();
+
+    return processReservationAssumingCoordiinatorIsNeighbour();
+
+#undef COORDINATOR_UUID
 }
 
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::processReservationRequestFromNeighbour()
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::processReservationAssumingCoordiinatorIsNeighbour()
 {
-    const auto neighbourUUID = mMessage->senderUUID();
+    const auto kCoordinator = mMessage->senderUUID();
 
-    info() << "Init. intermediate payment operation: ";
-    info() << "Initialised by the neighbor (" << neighbourUUID << ")";
 
-    auto tl = mTrustLines->trustLineReadOnly(neighbourUUID);
+    info() << "Processing reservation request assuming coordinator is neighbor.";
+
+    if (! mTrustLines->isNeighbor(kCoordinator)) {
+        error() << "No trustline to the contractor is present.";
+        error() << "This may signal about process/data modification during execution, "
+                   "or protocol error of the communicator node.";
+
+        // Request must be ignored
+        return exit();
+    }
+
+
+    // note: don't delete this (copy of shared pointer is required)
+    const auto incomingAmount = availableIncomingAmount(kCoordinator);
     TrustLineAmount reservationAmount =
-        min(mMessage->amount(), *tl->availableAmount());
+        min(mMessage->amount(), *incomingAmount);
 
     if (0 == reservationAmount) {
         info() << "Max amount against neighbour is " << reservationAmount;
         info() << "No reservation is posible. Stopping.";
 
-        // TODO: Send cancel message
-        return make_shared<TransactionResult>(
-            TransactionState::exit());
+        return rejectRequest();
     }
 
-    try {
-        mTrustLines->reserveAmount(
-            neighbourUUID,
-            UUID(),
-            reservationAmount);
+    if (! reserveIncomingAmount(kCoordinator, reservationAmount)) {
+        error() << "Can't reserve incoming amount " << reservationAmount;
+        error() << "Transaction may not be proceed. Stopping.";
 
-        info() << "Successfully reserved " << reservationAmount << "against neighbour.";
-
-        // TODO: Send approve message
-        return make_shared<TransactionResult>(
-            TransactionState::exit());
-
-    } catch (exception &e) {
-        // TODO: log full transaction info
-
-        error() << "Unexpected error occurred on amount reservation: "
-                << e.what()
-                << "No amount reservation was done. Operation can't be proceed";
-
-        // TODO: Send cancel message
-        return make_shared<TransactionResult>(
-            TransactionState::exit());
+        return rejectRequest();
     }
+
+    info() << "Successfully reserved " << reservationAmount;
+    info() << "Waiting for prolongation message or commit command.";
+    return acceptRequest();
 }
 
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::processReservationRequestFromCoordinator()
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::processReservationAssumingCoordinatorIsRemoteNode()
 {
     const auto coordinatorUUID = mMessage->senderUUID();
     const auto nextNodeUUID = mMessage->nextNodeInThePathUUID();
 
+
     info() << "Init. intermediate payment operation. ";
     info() << "Initialised by the coordinator (" << coordinatorUUID << ")";
+
 
     try {
         auto tl = mTrustLines->trustLineReadOnly(nextNodeUUID);
@@ -161,6 +166,31 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::processReserv
         return make_shared<TransactionResult>(
             TransactionState::exit());
     }
+}
+
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::rejectRequest()
+{
+    sendMessage(
+        make_shared<IntermediateNodeReservationResponse>(
+            nodeUUID(),
+            UUID(),
+            IntermediateNodeReservationResponse::Rejected),
+        mMessage->senderUUID());
+
+    return exit();
+}
+
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::acceptRequest()
+{
+    sendMessage(
+        make_shared<IntermediateNodeReservationResponse>(
+            nodeUUID(),
+            UUID(),
+            IntermediateNodeReservationResponse::Accepted),
+        mMessage->senderUUID());
+
+    // TODO: Wait for prolongation message
+    return exit();
 }
 
 

@@ -17,7 +17,8 @@ public:
     AmountReservation::ConstShared reserve(
         const NodeUUID &trustLineContractor,
         const TransactionUUID &transactionUUID,
-        const TrustLineAmount &amount);
+        const TrustLineAmount &amount,
+        const AmountReservation::ReservationDirection direction);
 
     AmountReservation::ConstShared updateReservation(
         const NodeUUID &trustLineContractor,
@@ -30,6 +31,7 @@ public:
 
     ConstSharedTrustLineAmount totalReserved(
         const NodeUUID &trustLineContractor,
+        const AmountReservation::ReservationDirection direction,
         const TransactionUUID *transactionUUID = nullptr) const;
 
 protected:

@@ -7,9 +7,11 @@ add_definitions(-DTRANSACTIONS_LOG)
 
 # Debug logs configuration
 add_definitions(-DNETWORK_DEBUG_LOG)
-
-# Scheduler debug log
 add_definitions(-DSCHEDULER_DEBUG_LOG)
+
+
+# Subsystems configuration
+add_definitions(-DROUTING_TABLES_PROPAGATION_DISABLED)
 
 # todo: change in the release version
 

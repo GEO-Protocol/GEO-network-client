@@ -43,6 +43,7 @@ public:
         Payments_ReceiverApprove,
         Payments_ReserveBalanceRequest,
         Payments_ReserveBalanceResponse,
+        Payments_IntermediateNodeReservationResponse,
 
 
         InitiateMaxFlowCalculationMessageType,

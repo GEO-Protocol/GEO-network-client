@@ -6,7 +6,9 @@ set(SOURCE_FILES
         ReceiverApprovePaymentMessage.cpp
         ReceiverApprovePaymentMessage.h
         ReserveBalanceRequestMessage.h
-        ReserveBalanceRequestMessage.cpp)
+        ReserveBalanceRequestMessage.cpp
+        IntermediateNodeReservationResponse.h
+        IntermediateNodeReservationResponse.cpp)
 
 add_library(messages__outgoing__payments ${SOURCE_FILES})
 target_link_libraries(messages__outgoing__payments

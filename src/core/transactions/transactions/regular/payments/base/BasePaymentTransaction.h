@@ -11,6 +11,7 @@
 #include "../../../../../logger/Logger.h"
 
 
+// TODO: Add restoring of the reservations after transaction deserialization.
 class BasePaymentTransaction:
     public BaseTransaction {
 
@@ -33,6 +34,25 @@ public:
         BytesShared buffer,
         TrustLinesManager *trustLines,
         Logger *log);
+
+protected:
+    // Useful shortcuts for transaction exit
+    TransactionResult::SharedConst exit() const;
+
+protected:
+    ConstSharedTrustLineAmount availableAmount(
+        const NodeUUID &neighborNode);
+
+    ConstSharedTrustLineAmount availableIncomingAmount(
+        const NodeUUID &neighborNode);
+
+    const bool reserveAmount(
+        const NodeUUID &neighborNode,
+        const TrustLineAmount& amount);
+
+    const bool reserveIncomingAmount(
+        const NodeUUID &neighborNode,
+        const TrustLineAmount& amount);
 
 protected:
     // Specifies how long node must wait for the response from the remote node.

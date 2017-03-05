@@ -5,6 +5,7 @@
 #include "base/BasePaymentTransaction.h"
 
 #include "../../../../network/messages/outgoing/payments/ReserveBalanceRequestMessage.h"
+#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponse.h"
 
 
 class IntermediateNodePaymentTransaction:
@@ -35,8 +36,10 @@ protected:
     TransactionResult::SharedConst initOperation();
 
 protected:
-    TransactionResult::SharedConst processReservationRequestFromNeighbour();
-    TransactionResult::SharedConst processReservationRequestFromCoordinator();
+    TransactionResult::SharedConst processReservationAssumingCoordiinatorIsNeighbour();
+    TransactionResult::SharedConst processReservationAssumingCoordinatorIsRemoteNode();
+    TransactionResult::SharedConst rejectRequest();
+    TransactionResult::SharedConst acceptRequest();
 
 private:
     void deserializeFromBytes(

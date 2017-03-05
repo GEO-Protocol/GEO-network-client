@@ -43,7 +43,7 @@ const string Path::toString() const
     for (auto it=(++nodes.cbegin()); it != (--nodes.cend()); ++it) {
         s << "-(" << it->stringUUID() << ")";
     }
-    s << "-(" << nodes.cend()->stringUUID() << ")";
+    s << "-(" << (--nodes.cend())->stringUUID() << ")";
 
     return s.str();
 }

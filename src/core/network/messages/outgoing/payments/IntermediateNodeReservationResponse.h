@@ -1,10 +1,11 @@
-﻿#ifndef GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
-#define GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
+﻿#ifndef INTERMEDIATENODERESERVATIONRESPONSE_H
+#define INTERMEDIATENODERESERVATIONRESPONSE_H
+
 
 #include "../../base/transaction/TransactionMessage.h"
 
 
-class ReceiverApprovePaymentMessage:
+class IntermediateNodeReservationResponse:
     public TransactionMessage {
 
 public:
@@ -14,16 +15,16 @@ public:
     };
 
     typedef byte SerializedOperationState;
-    typedef shared_ptr<ReceiverApprovePaymentMessage> Shared;
-    typedef shared_ptr<const ReceiverApprovePaymentMessage> ConstShared;
+    typedef shared_ptr<IntermediateNodeReservationResponse> Shared;
+    typedef shared_ptr<const IntermediateNodeReservationResponse> ConstShared;
 
 public:
-    ReceiverApprovePaymentMessage(
+    IntermediateNodeReservationResponse(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const OperationState state);
 
-    ReceiverApprovePaymentMessage(
+    IntermediateNodeReservationResponse(
         BytesShared buffer);
 
     const OperationState state() const;
@@ -40,4 +41,4 @@ private:
     mutable OperationState mState;
 };
 
-#endif //GEO_NETWORK_CLIENT_RECEIVEROPERATIONSTATUSMESSAGE_H
+#endif // INTERMEDIATENODERESERVATIONRESPONSE_H

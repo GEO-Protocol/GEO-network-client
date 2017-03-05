@@ -1,4 +1,4 @@
-#include "AmountReservationsHandler.h"
+﻿#include "AmountReservationsHandler.h"
 
 
 /*!
@@ -11,45 +11,44 @@
  *
  *
  * Throws ValueError in case if "amount" == 0;
- * Throws MemoryError;
+ * Throws bad_alloc;
  */
 AmountReservation::ConstShared AmountReservationsHandler::reserve(
     const NodeUUID &trustLineContractor,
     const TransactionUUID &transactionUUID,
-    const TrustLineAmount &amount) {
-
+    const TrustLineAmount &amount,
+    const AmountReservation::ReservationDirection direction)
+{
     if (amount == 0) {
         throw ValueError(
-            "AmountReservationsHandler::reserve: 'amount' can't be 0");
+            "AmountReservationsHandler::reserve: 'amount' can't be 0.");
     }
 
-    try {
-        auto reservation = AmountReservation::ConstShared(
-            new AmountReservation(transactionUUID, amount));
+    auto reservation = AmountReservation::ConstShared(
+        new AmountReservation(
+            transactionUUID,
+            amount,
+            direction));
 
-        auto iterator = mReservations.find(trustLineContractor);
-        if (iterator != mReservations.end()) {
-            // Trying to insert "reservation" into the reservations container.
-            auto reservations = (*iterator).second.get();
-            reservations->push_back(reservation);
-            return reservation;
+    auto iterator = mReservations.find(trustLineContractor);
+    if (iterator != mReservations.end()) {
+        // Trying to insert "reservation" into the reservations container.
+        auto reservations = (*iterator).second.get();
+        reservations->push_back(reservation);
+        return reservation;
 
-        } else {
-            // Reservations container is absent and should be created.
-            unique_ptr<vector<AmountReservation::ConstShared>> reservationsContainer(
-                new vector<AmountReservation::ConstShared>(1));
+    } else {
+        // Reservations container is absent and should be created.
+        unique_ptr<vector<AmountReservation::ConstShared>> reservationsContainer(
+            new vector<AmountReservation::ConstShared>(1));
 
-            reservationsContainer->push_back(reservation);
-            mReservations.insert(
-                make_pair(
-                    trustLineContractor, move(
-                        reservationsContainer)));
-            return reservation;
-        }
+        reservationsContainer->push_back(reservation);
+        mReservations.insert(
+            make_pair(
+                trustLineContractor,
+                    move(reservationsContainer)));
 
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "AmountReservationsHandler::reserve: bad alloc.");
+        return reservation;
     }
 }
 
@@ -79,7 +78,8 @@ AmountReservation::ConstShared AmountReservationsHandler::updateReservation(
         auto newReservation = AmountReservation::ConstShared(
             new AmountReservation(
                 reservation->transactionUUID(),
-                newAmount));
+                newAmount,
+                reservation->direction()));
 
         auto iterator = mReservations.find(trustLineContractor);
         if (iterator == mReservations.end()) {
@@ -143,13 +143,15 @@ void AmountReservationsHandler::free(
  */
 ConstSharedTrustLineAmount AmountReservationsHandler::totalReserved(
     const NodeUUID &trustLineContractor,
+    const AmountReservation::ReservationDirection direction,
     const TransactionUUID *transactionUUID) const {
 
     SharedTrustLineAmount amount(new TrustLineAmount(0));
 
     auto reservationsVector = reservations(trustLineContractor, transactionUUID);
     for (auto lock : reservationsVector){
-        (*amount) += (*lock).amount();
+        if (lock->direction() == direction)
+            (*amount) += (*lock).amount();
     }
 
     return amount;

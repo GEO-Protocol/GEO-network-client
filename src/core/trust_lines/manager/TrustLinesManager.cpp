@@ -319,6 +319,8 @@ const TrustLineBalance &TrustLinesManager::balance(
 }
 
 /*!
+ * Reserves payment amount FROM this node TO the contractor.
+ *
  * @param contractor - uuid of the contractor to which the trust line should be reserved.
  * @param transactionUUID - uuid of the transaction, which reserves the amount.
  * @param amount
@@ -332,18 +334,50 @@ const TrustLineBalance &TrustLinesManager::balance(
 AmountReservation::ConstShared TrustLinesManager::reserveAmount(
     const NodeUUID &contractor,
     const TransactionUUID &transactionUUID,
-    const TrustLineAmount &amount) {
-
-    auto tl = trustLineReadOnly(contractor);
+    const TrustLineAmount &amount)
+{
+    const auto tl = trustLineReadOnly(contractor);
     if (*tl->availableAmount() >= amount) {
         return mAmountBlocksHandler->reserve(
             contractor,
             transactionUUID,
-            amount);
+            amount,
+            AmountReservation::Ougoing);
     }
     throw ValueError(
-            "TrustLinesManager::reserveAmount: "
-            "Trust line has not enought amount.");
+        "TrustLinesManager::reserveAmount: "
+        "Trust line has not enought amount.");
+}
+
+/*!
+ * Reserves payment amount TO this node FROM the contractor.
+ *
+ * @param contractor - uuid of the contractor to which the trust line should be reserved.
+ * @param transactionUUID - uuid of the transaction, which reserves the amount.
+ * @param amount
+ *
+ *
+ * @throws NotFoundError in case if no trust line against contractor UUID is present.
+ * @throws ValueError in case, if trust line hasn't enought free amount;
+ * @throws ValueError in case, if outgoing trust amount == 0;
+ * @throws MemoryError;
+ */
+AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmount(
+    const NodeUUID& contractor,
+    const TransactionUUID& transactionUUID,
+    const TrustLineAmount& amount)
+{
+    const auto tl = trustLineReadOnly(contractor);
+    if (*tl->availableIncomingAmount() >= amount) {
+        return mAmountBlocksHandler->reserve(
+            contractor,
+            transactionUUID,
+            amount,
+            AmountReservation::Incoming);
+    }
+    throw ValueError(
+        "TrustLinesManager::reserveIncomingAmount: "
+        "Trust line has not enought amount.");
 }
 
 AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(

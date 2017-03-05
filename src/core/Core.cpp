@@ -92,6 +92,24 @@ int Core::initCoreComponents() {
     connectSignalsToSlots();
 
 
+    // TODO: Remove me
+    if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff00")) {
+        // coordinator
+        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(100));
+
+    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff01")) {
+        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff00"), TrustLineAmount(100));
+        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(100));
+
+    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff02")) {
+        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(100));
+        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff03"), TrustLineAmount(100));
+
+    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff03")) {
+        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(100));
+
+    }
+
 
     return 0;
 }
@@ -290,6 +308,11 @@ void Core::onMessageSendSlot(
 void Core::onTrustLineCreatedSlot(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) {
+
+#ifdef ROUTING_TABLES_PROPAGATION_DISABLED
+    return;
+#endif
+
 
     try {
         mTransactionsManager->launchFromInitiatorToContractorRoutingTablePropagationTransaction(

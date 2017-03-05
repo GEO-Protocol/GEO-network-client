@@ -1,7 +1,7 @@
-﻿#include "ReceiverApprovePaymentMessage.h"
+﻿#include "IntermediateNodeReservationResponse.h"
 
 
-ReceiverApprovePaymentMessage::ReceiverApprovePaymentMessage(
+IntermediateNodeReservationResponse::IntermediateNodeReservationResponse(
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const OperationState state) :
@@ -9,21 +9,21 @@ ReceiverApprovePaymentMessage::ReceiverApprovePaymentMessage(
     TransactionMessage(
         senderUUID,
         transactionUUID),
-    mState(state){
-}
+    mState(state)
+{}
 
-ReceiverApprovePaymentMessage::ReceiverApprovePaymentMessage(
+IntermediateNodeReservationResponse::IntermediateNodeReservationResponse(
     BytesShared buffer)
 {
     deserializeFromBytes(buffer);
 }
 
-const Message::MessageType ReceiverApprovePaymentMessage::typeID() const
+const Message::MessageType IntermediateNodeReservationResponse::typeID() const
 {
-    return Message::Payments_ReceiverApprove;
+    return Message::Payments_IntermediateNodeReservationResponse;
 }
 
-const ReceiverApprovePaymentMessage::OperationState ReceiverApprovePaymentMessage::state() const
+const IntermediateNodeReservationResponse::OperationState IntermediateNodeReservationResponse::state() const
 {
     return mState;
 }
@@ -32,7 +32,7 @@ const ReceiverApprovePaymentMessage::OperationState ReceiverApprovePaymentMessag
  *
  * @throws bad_alloc;
  */
-pair<BytesShared, size_t> ReceiverApprovePaymentMessage::serializeToBytes()
+pair<BytesShared, size_t> IntermediateNodeReservationResponse::serializeToBytes()
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
@@ -59,7 +59,7 @@ pair<BytesShared, size_t> ReceiverApprovePaymentMessage::serializeToBytes()
         bytesCount);
 }
 
-void ReceiverApprovePaymentMessage::deserializeFromBytes(BytesShared buffer)
+void IntermediateNodeReservationResponse::deserializeFromBytes(BytesShared buffer)
 {
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
