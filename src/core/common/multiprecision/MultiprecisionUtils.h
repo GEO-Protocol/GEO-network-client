@@ -87,6 +87,8 @@ inline vector<byte> trustLineBalanceToBytes(
         buffer.push_back(0);
     }
 
+    balance = balance * -1;
+
     return buffer;
 }
 
