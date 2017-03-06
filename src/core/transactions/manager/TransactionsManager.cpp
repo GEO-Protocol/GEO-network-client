@@ -188,6 +188,10 @@ void TransactionsManager::processMessage(
         launchAcceptRoutingTablesTransaction(
             static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message));
 
+    } else if (message->typeID() == Message::MessageTypeID::RoutingTableUpdateIncomingMessageType) {
+        launchAcceptRoutingTablesUpdatesTransaction(
+            static_pointer_cast<RoutingTableUpdateIncomingMessage>(message));
+
     } else if (message->typeID() == Message::MessageTypeID::ReceiveMaxFlowCalculationOnTargetMessageType) {
         launchReceiveMaxFlowCalculationTransaction(
             static_pointer_cast<ReceiveMaxFlowCalculationOnTargetMessage>(message));
@@ -476,6 +480,47 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
             "TransactionsManager::launchAcceptRoutingTablesTransaction: "
                 "can't allocate memory for transaction instance.");
     }
+}
+
+void TransactionsManager::launchRoutingTablesUpdatingTransactionsFactory(
+    const NodeUUID &contractorUUID,
+    const TrustLineDirection direction) {
+
+    auto transaction = dynamic_pointer_cast<BaseTransaction>(
+        make_shared<RoutingTablesUpdateTransactionsFactory>(
+            mNodeUUID,
+            contractorUUID,
+            direction,
+            mTrustLines));
+
+    subscribeForSubsidiaryTransactions(
+        transaction->runSubsidiaryTransactionSignal);
+
+    subscribeForOutgoingMessages(
+        transaction->outgoingMessageIsReadySignal);
+
+    mScheduler->postponeTransaction(
+        transaction,
+        5000);
+}
+
+void TransactionsManager::launchAcceptRoutingTablesUpdatesTransaction(
+    RoutingTableUpdateIncomingMessage::Shared message) {
+
+    auto transaction = dynamic_pointer_cast<BaseTransaction>(
+        make_shared<AcceptRoutingTablesUpdatesTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines));
+
+    subscribeForSubsidiaryTransactions(
+        transaction->runSubsidiaryTransactionSignal);
+
+    subscribeForOutgoingMessages(
+        transaction->outgoingMessageIsReadySignal);
+
+    mScheduler->scheduleTransaction(
+        transaction);
 }
 
 /*!

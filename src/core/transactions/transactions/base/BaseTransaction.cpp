@@ -184,6 +184,13 @@ TransactionResult::SharedConst BaseTransaction::transactionResultFromState(
     return TransactionResult::SharedConst(transactionResult);
 }
 
+TransactionResult::SharedConst BaseTransaction::finishTransaction() {
+
+    return make_shared<const TransactionResult>(
+        TransactionState::exit()
+    );
+}
+
 const string BaseTransaction::logHeader() const
 {
     // todo: must be marked as "=0" in header;

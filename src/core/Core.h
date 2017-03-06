@@ -48,7 +48,7 @@ private:
 
     int initTrustLinesManager();
 
-    int initMaxFlowCalculationtrustLineManager();
+    int initMaxFlowCalculationTrustLineManager();
 
     int initTransactionsManager();
 
@@ -75,6 +75,10 @@ private:
 
     void onTrustLineCreatedSlot(
         const NodeUUID &contractorUUID, 
+        const TrustLineDirection direction);
+
+    void onTrustLineStateModifiedSlot(
+        const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
     void zeroPointers();

@@ -51,8 +51,6 @@ protected:
 
     void restoreStandardConnectionTimeout();
 
-    TransactionResult::SharedConst finishTransaction();
-
     virtual void deserializeFromBytes(
         BytesShared buffer);
 

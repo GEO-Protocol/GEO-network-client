@@ -44,6 +44,9 @@ public:
         RejectTrustLineTransactionType,
         PropagationRoutingTablesTransactionType,
         AcceptRoutingTablesTransactionType,
+        RoutingTablesUpdatesFactoryTransactionType,
+        PropagateRoutingTablesUpdatesTransactionType,
+        AcceptRoutingTablesUpdatesTransactionType,
         GetTopologyAndBalancesTransaction,
 
         // Payments
@@ -118,6 +121,8 @@ protected:
 
     TransactionResult::SharedConst transactionResultFromState(
         TransactionState::SharedConst state);
+
+    TransactionResult::SharedConst finishTransaction();
 
     virtual const string logHeader() const;
 

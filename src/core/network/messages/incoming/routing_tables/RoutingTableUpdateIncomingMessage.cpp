@@ -8,7 +8,7 @@ RoutingTableUpdateIncomingMessage::RoutingTableUpdateIncomingMessage(
 
 const Message::MessageType RoutingTableUpdateIncomingMessage::typeID() const {
 
-    Message::MessageTypeID::RoutingTableUpdateIncomingMessageType;
+    return Message::MessageTypeID::RoutingTableUpdateIncomingMessageType;
 }
 
 const NodeUUID& RoutingTableUpdateIncomingMessage::initiatorUUID() const {
@@ -26,6 +26,11 @@ const TrustLineDirection RoutingTableUpdateIncomingMessage::direction() const {
     return mDirection;
 }
 
+const RoutingTableUpdateOutgoingMessage::UpdatingStep RoutingTableUpdateIncomingMessage::updatingStep() const {
+
+    return mUpdatingStep;
+}
+
 pair<BytesShared, size_t> RoutingTableUpdateIncomingMessage::serializeToBytes() {
 
     throw NotImplementedError("RoutingTableUpdateIncomingMessage::serializeToBytes: "
@@ -35,8 +40,8 @@ pair<BytesShared, size_t> RoutingTableUpdateIncomingMessage::serializeToBytes() 
 void RoutingTableUpdateIncomingMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    SenderMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
+    TransactionMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
     memcpy(
         mInitiatorUUID.data,
@@ -54,4 +59,8 @@ void RoutingTableUpdateIncomingMessage::deserializeFromBytes(
 
     SerializedTrustLineDirection *direction = new (buffer.get() + bytesBufferOffset) SerializedTrustLineDirection;
     mDirection = (TrustLineDirection) *direction;
+    bytesBufferOffset += sizeof(SerializedTrustLineDirection);
+
+    RoutingTableUpdateOutgoingMessage::SerializedUpdatingStep *step = new (buffer.get() + bytesBufferOffset) RoutingTableUpdateOutgoingMessage::SerializedUpdatingStep;
+    mUpdatingStep = (RoutingTableUpdateOutgoingMessage::UpdatingStep) *step;
 }

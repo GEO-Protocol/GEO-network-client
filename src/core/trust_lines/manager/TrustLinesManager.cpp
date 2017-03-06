@@ -390,7 +390,10 @@ void TrustLinesManager::saveToDisk(
 
     vector<byte> trustLineData = trustLine->serialize();
 
+    bool alreadyExisted = false;
+
     if (isTrustLineExist(trustLine->contractorNodeUUID())) {
+        alreadyExisted = true;
         try {
             mTrustLinesStorage->rewrite(
                 storage::uuids::uuid(trustLine->contractorNodeUUID()),
@@ -427,6 +430,7 @@ void TrustLinesManager::saveToDisk(
                                   "Can not reallocate STL container memory for new trust line instance.");
         }
     }
+
     mlogger->logTruslineOperationStatus(
             trustLine->contractorNodeUUID().stringUUID(),
             trustLine->incomingTrustAmount(),
@@ -434,10 +438,19 @@ void TrustLinesManager::saveToDisk(
             trustLine->balance(),
             trustLine->direction()
     );
-    trustLineCreatedSignal(
-        trustLine->contractorNodeUUID(),
-        trustLine->direction()
-    );
+
+    if (alreadyExisted) {
+        trustLineStateModifiedSignal(
+            trustLine->contractorNodeUUID(),
+            trustLine->direction()
+        );
+
+    } else {
+        trustLineCreatedSignal(
+            trustLine->contractorNodeUUID(),
+            trustLine->direction()
+        );
+    }
 }
 
 /**
@@ -456,6 +469,11 @@ void TrustLinesManager::removeTrustLine(
                               "Can't remove trust line from file.");
         }
         mTrustLines.erase(contractorUUID);
+
+        trustLineStateModifiedSignal(
+            contractorUUID,
+            TrustLineDirection::Nowhere
+        );
 
     } else {
         throw NotFoundError(
@@ -563,23 +581,23 @@ void TrustLinesManager::setSomeBalances() {
     saveToDisk(TrustLine::Shared(second_trustline));
 }
 
-vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxflow) {
+vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxFlow) {
     vector<pair<NodeUUID, TrustLineBalance>> Nodes;
     TrustLineBalance zerobalance = 0;
     TrustLineBalance stepbalance;
     for (auto const& x : mTrustLines){
         stepbalance = x.second->balance();
-        if (maxflow == zerobalance) {
+        if (maxFlow == zerobalance) {
             if (stepbalance != zerobalance) {
                 Nodes.push_back(make_pair(x.first, stepbalance));
                 }
-        } else if(maxflow < zerobalance){
+        } else if(maxFlow < zerobalance){
             if (stepbalance < zerobalance) {
-                Nodes.push_back(make_pair(x.first, min(maxflow, stepbalance)));
+                Nodes.push_back(make_pair(x.first, min(maxFlow, stepbalance)));
             }
         } else {
             if (stepbalance > zerobalance) {
-                Nodes.push_back(make_pair(x.first, min(maxflow, stepbalance)));
+                Nodes.push_back(make_pair(x.first, min(maxFlow, stepbalance)));
             }
         }
     }

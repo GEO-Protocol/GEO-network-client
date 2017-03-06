@@ -2,45 +2,36 @@
 
 RoutingTableUpdateOutgoingMessage::RoutingTableUpdateOutgoingMessage(
     const NodeUUID &senderUUID,
+    const TransactionUUID &transactionUUID,
     const NodeUUID &initiatorUUID,
     const NodeUUID &contractorUUID,
-    const TrustLineDirection direction) :
+    const TrustLineDirection direction,
+    const UpdatingStep updatingStep) :
 
-    SenderMessage(senderUUID),
+    TransactionMessage(
+        senderUUID,
+        transactionUUID),
     mInitiatorUUID(initiatorUUID),
     mContractorUUID(contractorUUID) {
 
     mDirection = direction;
+    mUpdatingStep = updatingStep;
 }
 
 const Message::MessageType RoutingTableUpdateOutgoingMessage::typeID() const {
 
-    Message::MessageTypeID::RoutingTableUpdateOutgoingMessageType;
-}
-
-const NodeUUID& RoutingTableUpdateOutgoingMessage::initiatorUUID() const {
-
-    return mInitiatorUUID;
-}
-
-const NodeUUID& RoutingTableUpdateOutgoingMessage::contractorUUID() const {
-
-    return mContractorUUID;
-}
-
-const TrustLineDirection RoutingTableUpdateOutgoingMessage::direction() const {
-
-    return mDirection;
+    return Message::MessageTypeID::RoutingTableUpdateOutgoingMessageType;
 }
 
 pair<BytesShared, size_t> RoutingTableUpdateOutgoingMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = SenderMessage::serializeToBytes();
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t dataBytesCount = parentBytesAndCount.second
                             + NodeUUID::kBytesSize
                             + NodeUUID::kBytesSize
-                            + sizeof(SerializedTrustLineDirection);
+                            + sizeof(SerializedTrustLineDirection)
+                            + sizeof(SerializedUpdatingStep);
 
     auto dataBytesBuffer = tryMalloc(dataBytesCount);
 
@@ -67,6 +58,13 @@ pair<BytesShared, size_t> RoutingTableUpdateOutgoingMessage::serializeToBytes() 
         dataBytesBuffer.get() + bytesBufferOffset,
         &direction,
         sizeof(SerializedTrustLineDirection));
+    bytesBufferOffset += sizeof(SerializedTrustLineDirection);
+
+    SerializedUpdatingStep step = (SerializedUpdatingStep) mUpdatingStep;
+    memcpy(
+        dataBytesBuffer.get() + bytesBufferOffset,
+        &step,
+        sizeof(SerializedUpdatingStep));
 
     return make_pair(
         dataBytesBuffer,

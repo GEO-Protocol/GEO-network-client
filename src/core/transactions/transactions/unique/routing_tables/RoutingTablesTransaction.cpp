@@ -61,13 +61,6 @@ void RoutingTablesTransaction::restoreStandardConnectionTimeout() {
     mConnectionTimeout = kStandardConnectionTimeout;
 }
 
-TransactionResult::SharedConst RoutingTablesTransaction::finishTransaction() {
-
-    return make_shared<const TransactionResult>(
-        TransactionState::exit()
-    );
-}
-
 pair<BytesShared, size_t> RoutingTablesTransaction::serializeToBytes() const {}
 
 void RoutingTablesTransaction::deserializeFromBytes(

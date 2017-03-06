@@ -14,7 +14,11 @@ set(SOURCE_FILES
         propagate/FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction.cpp
         propagate/FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction.h
         accept/FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction.cpp
-        accept/FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction.h)
+        accept/FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction.h
+        update/RoutingTablesUpdateTransactionsFactory.cpp
+        update/RoutingTablesUpdateTransactionsFactory.h
+        update/PropagateRoutingTablesUpdatesTransaction.cpp
+        update/PropagateRoutingTablesUpdatesTransaction.h update/AcceptRoutingTablesUpdatesTransaction.cpp update/AcceptRoutingTablesUpdatesTransaction.h)
 
 add_library(transactions__routing_tables ${SOURCE_FILES})
 target_link_libraries(transactions__routing_tables

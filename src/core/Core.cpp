@@ -73,7 +73,7 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
-    initCode = initMaxFlowCalculationtrustLineManager();
+    initCode = initMaxFlowCalculationTrustLineManager();
     if (initCode != 0)
         return initCode;
 
@@ -157,7 +157,7 @@ int Core::initTrustLinesManager() {
     }
 }
 
-int Core::initMaxFlowCalculationtrustLineManager() {
+int Core::initMaxFlowCalculationTrustLineManager() {
 
     try{
         mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager;
@@ -239,6 +239,15 @@ void Core::connectTrustLinesManagerSignals() {
             _2
         )
     );
+
+    mTrustLinesManager->trustLineStateModifiedSignal.connect(
+        boost::bind(
+            &Core::onTrustLineStateModifiedSlot,
+            this,
+            _1,
+            _2
+        )
+    );
 }
 void Core::connectDelayedTasksSignals(){
     mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
@@ -300,6 +309,21 @@ void Core::onTrustLineCreatedSlot(
     } catch (exception &e) {
         mLog.logException("Core", e);
     }
+}
+
+void Core::onTrustLineStateModifiedSlot(
+    const NodeUUID &contractorUUID,
+    const TrustLineDirection direction) {
+
+    try {
+        mTransactionsManager->launchRoutingTablesUpdatingTransactionsFactory(
+            contractorUUID,
+            direction);
+
+    } catch (exception &e) {
+        mLog.logException("Core", e);
+    }
+
 }
 
 void Core::cleanupMemory() {

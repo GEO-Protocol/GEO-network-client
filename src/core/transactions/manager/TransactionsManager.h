@@ -26,6 +26,7 @@
 #include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 #include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
+#include "../../network/messages/incoming/routing_tables/RoutingTableUpdateIncomingMessage.h"
 #include "../../network/messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
 #include "../../network/messages/response/Response.h"
 
@@ -41,6 +42,8 @@
 #include "../transactions/unique/routing_tables/accept/FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
 #include "../transactions/unique/routing_tables/accept/FromContractorToFirstLevelRoutingTablesAcceptTransaction.h"
 #include "../transactions/unique/routing_tables/accept/FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction.h"
+#include "../transactions/unique/routing_tables/update/RoutingTablesUpdateTransactionsFactory.h"
+#include "../transactions/unique/routing_tables/update/AcceptRoutingTablesUpdatesTransaction.h"
 #include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
@@ -86,6 +89,10 @@ public:
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
+    void launchRoutingTablesUpdatingTransactionsFactory(
+        const NodeUUID &contractorUUID,
+        const TrustLineDirection direction);
+
 private:
     // Transactions from storage
     void loadTransactions();
@@ -112,6 +119,9 @@ private:
     // Routing tables transactions
     void launchAcceptRoutingTablesTransaction(
         FirstLevelRoutingTableIncomingMessage::Shared message);
+
+    void launchAcceptRoutingTablesUpdatesTransaction(
+        RoutingTableUpdateIncomingMessage::Shared message);
 
     // Max flow transactions
     void launchInitiateMaxFlowCalculatingTransaction(
