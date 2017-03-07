@@ -69,6 +69,9 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
     /*mMaxFlowCalculationCacheManager->testMap();
     return make_shared<TransactionResult>(TransactionState::exit());*/
 
+    /*mMaxFlowCalculationCacheManager->testMap1();
+    return make_shared<TransactionResult>(TransactionState::exit());*/
+
     if (mStep == 1) {
         if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
             for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->outgoingFlows()) {
@@ -95,8 +98,8 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
         mLog->logInfo("InitiateMaxFlowCalculationTransaction::run",
                       "max flow: " + to_string((uint32_t)maxFlow));
         resetStepsCounter();
-        //return resultOk(maxFlow);
-        return make_shared<TransactionResult>(TransactionState::exit());
+        return resultOk(maxFlow);
+        //return make_shared<TransactionResult>(TransactionState::exit());
     }
 
 }
@@ -116,7 +119,7 @@ void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel() {
 
     vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
     for (auto const &it : outgoingFlowUuids) {
-        Message *message = new SendMaxFlowCalculationSourceFstLevelMessage(
+        Message *message = new MaxFlowCalculationSourceFstLevelMessage(
             mNodeUUID,
             mNodeUUID);
 

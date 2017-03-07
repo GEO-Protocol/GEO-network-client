@@ -6,6 +6,8 @@ set(SOURCE_FILES
         manager/MaxFlowCalculationTrustLineManager.cpp
         manager/MaxFlowCalculationTrustLineManager.h
         cashe/MaxFlowCalculationCache.cpp
-        cashe/MaxFlowCalculationCache.h cashe/MaxFlowCalculationCacheManager.cpp cashe/MaxFlowCalculationCacheManager.h)
+        cashe/MaxFlowCalculationCache.h
+        cashe/MaxFlowCalculationCacheManager.cpp
+        cashe/MaxFlowCalculationCacheManager.h)
 
 add_library(max_flow_calculation ${SOURCE_FILES})

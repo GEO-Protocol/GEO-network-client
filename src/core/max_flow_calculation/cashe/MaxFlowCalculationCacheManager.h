@@ -4,8 +4,10 @@
 #include "../../common/NodeUUID.h"
 #include "MaxFlowCalculationCache.h"
 #include "../../common/time/TimeUtils.h"
+#include "../manager/MaxFlowCalculationTrustLineManager.h"
 
 #include <map>
+#include <unordered_map>
 #include <set>
 
 class MaxFlowCalculationCacheManager {
@@ -27,6 +29,8 @@ public:
     void testSet();
 
     void testMap();
+
+    void testMap1();
 
 private:
     static const byte kResetCacheHours = 0;
@@ -65,8 +69,8 @@ private:
 
 // todo make private after testing
 public:
-    map<NodeUUID, MaxFlowCalculationCache::Shared> mCaches;
-    set<pair<NodeUUID, DateTime>, customLess> msCache;
+    unordered_map<NodeUUID, MaxFlowCalculationCache::Shared> mCaches;
+    map<DateTime, NodeUUID*> msCache;
     pair<bool, DateTime> mInitiatorCache;
 };
 

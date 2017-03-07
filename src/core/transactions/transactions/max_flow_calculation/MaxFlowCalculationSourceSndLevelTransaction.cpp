@@ -2,7 +2,7 @@
 
 MaxFlowCalculationSourceSndLevelTransaction::MaxFlowCalculationSourceSndLevelTransaction(
     const NodeUUID &nodeUUID,
-    MaxFlowCalculationSourceSndLevelInMessage::Shared message,
+    MaxFlowCalculationSourceSndLevelMessage::Shared message,
     TrustLinesManager *manager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
@@ -16,7 +16,7 @@ MaxFlowCalculationSourceSndLevelTransaction::MaxFlowCalculationSourceSndLevelTra
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mLog(logger) {}
 
-MaxFlowCalculationSourceSndLevelInMessage::Shared MaxFlowCalculationSourceSndLevelTransaction::message() const {
+MaxFlowCalculationSourceSndLevelMessage::Shared MaxFlowCalculationSourceSndLevelTransaction::message() const {
 
     return mMessage;
 }
@@ -67,7 +67,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator() {
         mLog->logInfo("MaxFlowCalculationSourceSndLevelTransaction::sendResult", it.first.stringUUID());
     }*/
 
-    Message *message = new SendResultMaxFlowCalculationMessage(
+    Message *message = new ResultMaxFlowCalculationMessage(
         mNodeUUID,
         outgoingFlows,
         incomingFlows);
@@ -130,7 +130,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
     }*/
 
     if (outgoingFlowsForSending.size() > 0 || incomingFlowsForSending.size() > 0) {
-        Message *message = new SendResultMaxFlowCalculationMessage(
+        Message *message = new ResultMaxFlowCalculationMessage(
             mNodeUUID,
             outgoingFlowsForSending,
             incomingFlowsForSending);

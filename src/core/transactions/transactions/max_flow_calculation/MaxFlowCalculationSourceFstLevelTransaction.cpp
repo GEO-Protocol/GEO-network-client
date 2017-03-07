@@ -2,7 +2,7 @@
 
 MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTransaction(
     const NodeUUID &nodeUUID,
-    MaxFlowCalculationSourceFstLevelInMessage::Shared message,
+    MaxFlowCalculationSourceFstLevelMessage::Shared message,
     TrustLinesManager *trustLinesManager,
     Logger *logger) :
 
@@ -14,7 +14,7 @@ MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTra
     mTrustLinesManager(trustLinesManager),
     mLog(logger){}
 
-MaxFlowCalculationSourceFstLevelInMessage::Shared MaxFlowCalculationSourceFstLevelTransaction::message() const {
+MaxFlowCalculationSourceFstLevelMessage::Shared MaxFlowCalculationSourceFstLevelTransaction::message() const {
 
     return mMessage;
 }
@@ -34,7 +34,7 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
         if (nodeUUIDOutgoingFlow == mMessage->targetUUID() || nodeUUIDOutgoingFlow == mMessage->senderUUID()) {
             continue;
         }
-        Message *message = new MaxFlowCalculationSourceFstLevelOutMessage(
+        Message *message = new MaxFlowCalculationSourceSndLevelMessage(
             mNodeUUID,
             mMessage->targetUUID());
 

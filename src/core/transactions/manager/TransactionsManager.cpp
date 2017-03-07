@@ -181,29 +181,29 @@ void TransactionsManager::processMessage(
         launchAcceptFromInitiatorToContractorRoutingTablesTransaction(
             static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::ReceiveMaxFlowCalculationOnTargetMessageType) {
+    } else if (message->typeID() == Message::MessageTypeID::InitiateMaxFlowCalculationMessageType) {
         launchReceiveMaxFlowCalculationOnTargetTransaction(
-            static_pointer_cast<ReceiveMaxFlowCalculationOnTargetMessage>(message));
+            static_pointer_cast<InitiateMaxFlowCalculationMessage>(message));
 
     } else if (message->typeID() == Message::MessageTypeID::ResultMaxFlowCalculationMessageType) {
         launchReceiveResultMaxFlowCalculationTransaction(
             static_pointer_cast<ResultMaxFlowCalculationMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationSourceFstLevelInMessageType) {
+    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationSourceFstLevelMessageType) {
         launchMaxFlowCalculationSourceFstLevelTransaction(
-            static_pointer_cast<MaxFlowCalculationSourceFstLevelInMessage>(message));
+            static_pointer_cast<MaxFlowCalculationSourceFstLevelMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationTargetFstLevelInMessageType) {
+    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationTargetFstLevelMessageType) {
         launchMaxFlowCalculationTargetFstLevelTransaction(
-            static_pointer_cast<MaxFlowCalculationTargetFstLevelInMessage>(message));
+            static_pointer_cast<MaxFlowCalculationTargetFstLevelMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationSourceSndLevelInMessageType) {
+    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationSourceSndLevelMessageType) {
         launchMaxFlowCalculationSourceSndLevelTransaction(
-            static_pointer_cast<MaxFlowCalculationSourceSndLevelInMessage>(message));
+            static_pointer_cast<MaxFlowCalculationSourceSndLevelMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationTargetSndLevelInMessageType) {
+    } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationTargetSndLevelMessageType) {
         launchMaxFlowCalculationTargetSndLevelTransaction(
-            static_pointer_cast<MaxFlowCalculationTargetSndLevelInMessage>(message));
+            static_pointer_cast<MaxFlowCalculationTargetSndLevelMessage>(message));
 
     } else if (message->typeID() == Message::Payments_ReceiverInitPayment) {
         launchReceiverPaymentTransaction(
@@ -454,7 +454,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
-    ReceiveMaxFlowCalculationOnTargetMessage::Shared message) {
+        InitiateMaxFlowCalculationMessage::Shared message) {
 
     try {
         auto transaction = make_shared<ReceiveMaxFlowCalculationOnTargetTransaction>(
@@ -510,7 +510,7 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
-    MaxFlowCalculationSourceFstLevelInMessage::Shared message) {
+    MaxFlowCalculationSourceFstLevelMessage::Shared message) {
 
     try {
         auto transaction = make_shared<MaxFlowCalculationSourceFstLevelTransaction>(
@@ -537,7 +537,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
-    MaxFlowCalculationTargetFstLevelInMessage::Shared message) {
+    MaxFlowCalculationTargetFstLevelMessage::Shared message) {
 
     try {
         auto transaction = make_shared<MaxFlowCalculationTargetFstLevelTransaction>(
@@ -564,7 +564,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
-    MaxFlowCalculationSourceSndLevelInMessage::Shared message) {
+    MaxFlowCalculationSourceSndLevelMessage::Shared message) {
 
     try {
         auto transaction = make_shared<MaxFlowCalculationSourceSndLevelTransaction>(
@@ -592,7 +592,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
-    MaxFlowCalculationTargetSndLevelInMessage::Shared message) {
+    MaxFlowCalculationTargetSndLevelMessage::Shared message) {
 
     try {
         auto transaction = make_shared<MaxFlowCalculationTargetSndLevelTransaction>(

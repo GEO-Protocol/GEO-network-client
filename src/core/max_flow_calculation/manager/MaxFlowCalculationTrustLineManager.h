@@ -5,8 +5,18 @@
 #include "../MaxFlowCalculationTrustLine.h"
 #include "../../common/time/TimeUtils.h"
 
-#include <map>
+#include <unordered_map>
 #include <vector>
+
+namespace std {
+    template <>
+    class hash<NodeUUID>{
+    public :
+        size_t operator()(const NodeUUID &nodeUUID) const{
+            return hash<size_t>()(nodeUUID.kBytesSize);
+        }
+    };
+}
 
 class MaxFlowCalculationTrustLineManager {
 
@@ -48,9 +58,8 @@ private:
 
 // todo make private after testing
 public:
-    map<NodeUUID, vector<MaxFlowCalculationTrustLine::Shared>> mvTrustLines;
+    unordered_map<NodeUUID, vector<MaxFlowCalculationTrustLine::Shared>> mvTrustLines;
 
 };
-
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H

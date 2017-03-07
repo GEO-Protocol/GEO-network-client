@@ -1,9 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONMESSAGE_H
 #define GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONMESSAGE_H
 
-#include "../../result/MessageResult.h"
-#include "../../SenderMessage.h"
-#include "../../../../common/multiprecision/MultiprecisionUtils.h"
+#include "../result/MessageResult.h"
+#include "../SenderMessage.h"
+#include "../../../common/multiprecision/MultiprecisionUtils.h"
 
 class ResultMaxFlowCalculationMessage : public SenderMessage {
 
@@ -11,16 +11,18 @@ public:
     typedef shared_ptr<ResultMaxFlowCalculationMessage> Shared;
 
 public:
+
+    ResultMaxFlowCalculationMessage(
+            const NodeUUID& senderUUID,
+            map<NodeUUID, TrustLineAmount> &outgoingFlows,
+            map<NodeUUID, TrustLineAmount> &incomingFlows);
+
     ResultMaxFlowCalculationMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
 
     pair<BytesShared, size_t> serializeToBytes();
-
-    static const size_t kRequestedBufferSize();
-
-    static const size_t kRequestedBufferSize(unsigned char* buffer);
 
     const map<NodeUUID, TrustLineAmount> outgoingFlows() const;
 

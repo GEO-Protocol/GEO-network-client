@@ -6,6 +6,12 @@ InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
 
     MaxFlowCalculationMessage(senderUUID, targetUUID) {};
 
+InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
+        BytesShared buffer) {
+
+    deserializeFromBytes(buffer);
+}
+
 const Message::MessageType InitiateMaxFlowCalculationMessage::typeID() const {
 
     return Message::MessageTypeID::InitiateMaxFlowCalculationMessageType;

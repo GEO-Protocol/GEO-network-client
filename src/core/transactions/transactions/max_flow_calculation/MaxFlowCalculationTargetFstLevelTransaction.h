@@ -3,8 +3,8 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../network/messages/incoming/max_flow_calculation/MaxFlowCalculationTargetFstLevelInMessage.h"
-#include "../../../network/messages/outgoing/max_flow_calculation/MaxFlowCalculationTargetFstLevelOutMessage.h"
+#include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetFstLevelMessage.h"
+#include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.h"
 
 class MaxFlowCalculationTargetFstLevelTransaction : public BaseTransaction {
 
@@ -14,16 +14,16 @@ public:
 public:
     MaxFlowCalculationTargetFstLevelTransaction(
         const NodeUUID &nodeUUID,
-        MaxFlowCalculationTargetFstLevelInMessage::Shared message,
+        MaxFlowCalculationTargetFstLevelMessage::Shared message,
         TrustLinesManager *manager,
         Logger *logger);
 
-    MaxFlowCalculationTargetFstLevelInMessage::Shared message() const;
+    MaxFlowCalculationTargetFstLevelMessage::Shared message() const;
 
     TransactionResult::SharedConst run();
 
 private:
-    MaxFlowCalculationTargetFstLevelInMessage::Shared mMessage;
+    MaxFlowCalculationTargetFstLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
     Logger *mLog;
 

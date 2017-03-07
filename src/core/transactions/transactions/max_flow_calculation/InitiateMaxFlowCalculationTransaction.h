@@ -6,8 +6,8 @@
 
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
-#include "../../../network/messages/outgoing/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
-#include "../../../network/messages/outgoing/max_flow_calculation/SendMaxFlowCalculationSourceFstLevelMessage.h"
+#include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
+#include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 #include <set>
@@ -51,7 +51,7 @@ private:
 private:
 
     static const byte kMaxFlowLength=6;
-    static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 3000;
+    static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 2000;
 
 private:
 

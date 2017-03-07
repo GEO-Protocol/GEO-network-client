@@ -5,7 +5,7 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../../max_flow_calculation/MaxFlowCalculationTrustLine.h"
-#include "../../../network/messages/incoming/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
+#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 
 class ReceiveResultMaxFlowCalculationTransaction : public BaseTransaction {
 

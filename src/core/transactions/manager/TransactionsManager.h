@@ -28,7 +28,6 @@
 #include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 #include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../network/messages/response/Response.h"
-#include "../../network/messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/base/UniqueTransaction.h"
@@ -120,22 +119,22 @@ private:
         InitiateMaxFlowCalculationCommand::Shared command);
 
     void launchReceiveMaxFlowCalculationOnTargetTransaction(
-        ReceiveMaxFlowCalculationOnTargetMessage::Shared message);
+            InitiateMaxFlowCalculationMessage::Shared message);
 
     void launchReceiveResultMaxFlowCalculationTransaction(
         ResultMaxFlowCalculationMessage::Shared message);
 
     void launchMaxFlowCalculationSourceFstLevelTransaction(
-        MaxFlowCalculationSourceFstLevelInMessage::Shared message);
+        MaxFlowCalculationSourceFstLevelMessage::Shared message);
 
     void launchMaxFlowCalculationTargetFstLevelTransaction(
-        MaxFlowCalculationTargetFstLevelInMessage::Shared message);
+        MaxFlowCalculationTargetFstLevelMessage::Shared message);
 
     void launchMaxFlowCalculationSourceSndLevelTransaction(
-        MaxFlowCalculationSourceSndLevelInMessage::Shared message);
+        MaxFlowCalculationSourceSndLevelMessage::Shared message);
 
     void launchMaxFlowCalculationTargetSndLevelTransaction(
-        MaxFlowCalculationTargetSndLevelInMessage::Shared message);
+        MaxFlowCalculationTargetSndLevelMessage::Shared message);
 
     // Payment transactions
     void launchCoordinatorPaymentTransaction(

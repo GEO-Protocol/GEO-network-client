@@ -17,7 +17,7 @@ public:
         const map<NodeUUID, TrustLineAmount> outgoingUUIDs,
         const map<NodeUUID, TrustLineAmount> incomingUUIDs);
 
-    const NodeUUID& nodeUUID() const;
+    NodeUUID& nodeUUID();
 
     bool containsIncomingFlow(
         const NodeUUID &nodeUUID,
@@ -32,7 +32,6 @@ public:
     NodeUUID mNodeUUID;
     map<NodeUUID, TrustLineAmount> mIncomingFlows;
     map<NodeUUID, TrustLineAmount> mOutgoingFlows;
-    DateTime mTimeStampCreated;
 };
 
 

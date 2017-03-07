@@ -7,8 +7,7 @@ MaxFlowCalculationCache::MaxFlowCalculationCache(
 
     mNodeUUID(nodeUUID),
     mOutgoingFlows(outgoingUUIDs),
-    mIncomingFlows(incomingUUIDs),
-    mTimeStampCreated(utc_now()) {}
+    mIncomingFlows(incomingUUIDs) {}
 
 bool MaxFlowCalculationCache::containsIncomingFlow(
     const NodeUUID &nodeUUID,
@@ -60,7 +59,7 @@ bool MaxFlowCalculationCache::containsOutgoingFlow(
     }
 }
 
-const NodeUUID& MaxFlowCalculationCache::nodeUUID() const {
+NodeUUID& MaxFlowCalculationCache::nodeUUID() {
 
     return mNodeUUID;
 }
