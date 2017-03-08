@@ -37,21 +37,28 @@ TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTablesAcceptTra
 
 void FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::saveFirstLevelRoutingTable() {
 
+    string logLine;
     cout << "Link between initiator and contractor received " << endl;
+    logLine = "SenderUUID:" + mFirstLevelMessage->senderUUID().stringUUID() + "::";
     cout << "Sender UUID -> " << mFirstLevelMessage->senderUUID().stringUUID() << endl;
     cout << "Routing table " << endl;
 
     for (const auto &nodeAndRecords : mFirstLevelMessage->records()) {
 
+        logLine += "ContractorUUID:" + nodeAndRecords.first.stringUUID() + "::";
         cout << "Contractor UUID -> " << nodeAndRecords.first.stringUUID() << endl;
 
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
+            logLine += "InitiatorUUID:" + neighborAndDirect.first.stringUUID() + "::";
             cout << "Initiator UUID -> " << neighborAndDirect.first.stringUUID() << endl;
+            logLine += "Direction:" + to_string(neighborAndDirect.second);
             cout << "Direction -> " << neighborAndDirect.second << endl;
 
         }
     }
+
+    //mFileLogger->addLine(logLine.c_str());
 }
 
 void FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::sendResponseToContractor(

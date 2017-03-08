@@ -3,21 +3,30 @@
 BaseTransaction::BaseTransaction(
     const BaseTransaction::TransactionType type) :
 
-    mType(type) {}
+    mType(type) {
+
+    mFileLogger = unique_ptr<FileLogger>(new FileLogger);
+}
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID) :
 
     mType(type),
-    mTransactionUUID(transactionUUID) {}
+    mTransactionUUID(transactionUUID) {
+
+    mFileLogger = unique_ptr<FileLogger>(new FileLogger);
+}
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const NodeUUID &nodeUUID) :
 
     mType(type),
-    mNodeUUID(nodeUUID) {}
+    mNodeUUID(nodeUUID) {
+
+    mFileLogger = unique_ptr<FileLogger>(new FileLogger);
+}
 
 void BaseTransaction::addMessage(
     Message::Shared message,

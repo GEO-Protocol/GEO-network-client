@@ -86,9 +86,7 @@ pair<bool, TransactionResult::SharedConst> FromInitiatorToContractorRoutingTable
 
     } else {
         throw ConflictError("FromInitiatorToContractorRoutingTablesPropagationTransaction::checkContext: "
-                                "Transaction waiting responses count " + to_string(1) +
-                                " has " + to_string(mContext.size())
-        );
+                                "Unexpected context size.");
     }
 }
 

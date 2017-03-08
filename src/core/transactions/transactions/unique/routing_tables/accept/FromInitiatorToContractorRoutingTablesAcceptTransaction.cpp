@@ -55,21 +55,28 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
 
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRoutingTable() {
 
+    string logLine;
     cout << "From initiator first level routing table message received " << endl;
+    logLine = "SenderUUID:" + mFirstLevelMessage->senderUUID().stringUUID() + "::";
     cout << "Sender UUID -> " << mFirstLevelMessage->senderUUID().stringUUID() << endl;
     cout << "Routing table " << endl;
 
     for (const auto &nodeAndRecords : mFirstLevelMessage->records()) {
 
         cout << "Initiator UUID -> " << nodeAndRecords.first.stringUUID() << endl;
+        logLine += "InitiatorUUID:" + nodeAndRecords.first.stringUUID() + "::";
 
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
+            logLine += "NeighborUUID:" + neighborAndDirect.first.stringUUID() + "::";
             cout << "Neighbor UUID -> " << neighborAndDirect.first.stringUUID() << endl;
+            logLine += "Direction:" + to_string(neighborAndDirect.second);
             cout << "Direction -> " << neighborAndDirect.second << endl;
 
         }
     }
+
+    //mFileLogger->addLine(logLine.c_str());
 }
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::waitingForSecondLevelRoutingTableState() {
@@ -131,22 +138,29 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveSecondLevelRoutingTable(
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage) {
 
+    string logLine;
     cout << "From initiator second level routing table message received " << endl;
+    logLine = "SenderUUID:" + mFirstLevelMessage->senderUUID().stringUUID() + "::";
     cout << "Sender UUID -> " << secondLevelMessage->senderUUID().stringUUID() << endl;
     cout << "Routing table " << endl;
 
     for (const auto &nodeAndRecords : secondLevelMessage->records()) {
 
+        logLine += "NodeUUID:" + nodeAndRecords.first.stringUUID() + "::";
         cout << "Node UUID -> " << nodeAndRecords.first.stringUUID() << endl;
 
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
+            logLine += "NeighborUUID:" + neighborAndDirect.first.stringUUID() + "::";
             cout << "Neighbor UUID -> " << neighborAndDirect.first.stringUUID() << endl;
+            logLine += "Direction:" + to_string(neighborAndDirect.second);
             cout << "Direction -> " << neighborAndDirect.second << endl;
 
         }
 
     }
+
+    //mFileLogger->addLine(logLine.c_str());
 }
 
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::sendResponseToContractor(

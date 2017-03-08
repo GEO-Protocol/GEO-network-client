@@ -14,40 +14,6 @@ namespace fs = boost::filesystem;
 
 class FileLogger {
 
-private:
-    const string kModeCreate = "w+";
-    const string kModeUpdate = "r+";
-
-private:
-    FILE *mFileDescriptor;
-    string kFileName = "logs/system_log.txt";
-
-private:
-    const bool isFileExist(){
-        return fs::exists(fs::path(kFileName.c_str()));
-    }
-
-    void checkFileDescriptor(bool wasExist) {
-        if (mFileDescriptor == NULL) {
-            throw IOError(string("Unable to obtain file descriptor.").c_str());
-        }
-        if (wasExist) {
-            fseek(mFileDescriptor, 0, SEEK_END);
-            fputs("\n\n\n", mFileDescriptor);
-            fflush(mFileDescriptor);
-        }
-    }
-
-    void obtainFileDescriptor() {
-        if (isFileExist()) {
-            mFileDescriptor = fopen(kFileName.c_str(), kModeUpdate.c_str());
-            checkFileDescriptor(true);
-        } else {
-            mFileDescriptor = fopen(kFileName.c_str(), kModeCreate.c_str());
-            checkFileDescriptor(false);
-        }
-    }
-
 public:
     FileLogger(){
         obtainFileDescriptor();
@@ -59,8 +25,10 @@ public:
         }
     }
 
-    void writeLine(const char *sentence){
+    void addLine(const char *sentence){
+        fseek(mFileDescriptor, 0, SEEK_END);
         fputs(sentence, mFileDescriptor);
+        fputs("\n", mFileDescriptor);
         fflush(mFileDescriptor);
     }
 
@@ -70,6 +38,35 @@ public:
         }
         fflush(mFileDescriptor);
     }
+
+private:
+    void obtainFileDescriptor() {
+        if (isFileExist()) {
+            mFileDescriptor = fopen(kFileName.c_str(), kModeUpdate.c_str());
+
+        } else {
+            mFileDescriptor = fopen(kFileName.c_str(), kModeCreate.c_str());
+        }
+        checkFileDescriptor();
+    }
+
+    const bool isFileExist(){
+        return fs::exists(fs::path(kFileName.c_str()));
+    }
+
+    void checkFileDescriptor() {
+        if (mFileDescriptor == NULL) {
+            throw IOError(string("Unable to obtain file descriptor.").c_str());
+        }
+    }
+
+private:
+    const string kModeCreate = "w+";
+    const string kModeUpdate = "r+";
+
+private:
+    FILE *mFileDescriptor;
+    string kFileName = "routing_tables_log.txt";
 
 };
 

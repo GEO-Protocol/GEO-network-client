@@ -6,6 +6,7 @@
 #include "../../../common/Types.h"
 #include "../../../common/NodeUUID.h"
 #include "../../../common/memory/MemoryUtils.h"
+#include "../../../logger/FileLogger.h"
 
 #include "../../../network/messages/Message.hpp"
 #include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
@@ -139,6 +140,8 @@ protected:
     vector<Message::Shared> mContext;
 
     uint16_t mStep = 1;
+
+    unique_ptr<FileLogger> mFileLogger;
 };
 
 
