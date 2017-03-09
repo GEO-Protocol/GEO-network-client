@@ -2,3 +2,4 @@ cmake_minimum_required(VERSION 3.6)
 
 add_subdirectory(fields)
 add_subdirectory(uuid_map_block_storage)
+add_subdirectory(operations_history_storage)

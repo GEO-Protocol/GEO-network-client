@@ -19,8 +19,9 @@ void Channel::addPacket(
     Packet::Shared packet) {
 
     if (mPackets->count(position) != 0) {
-        throw ConflictError("Channel::addPacket: "
-                         "Packet with same position is already exist.");
+        /*throw ConflictError("Channel::addPacket: "
+                         "Packet with same position is already exist.");*/
+        (*mPackets)[position] = packet;
     }
 
     mExpectedPacketsCount = packet->header()->totalPacketsCount();
