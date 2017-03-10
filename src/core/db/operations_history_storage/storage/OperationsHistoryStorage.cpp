@@ -107,6 +107,10 @@ namespace db {
 
                 reverseOffset -= Record::kRecordBytesSize;
 
+                if (records.size() == recordsCount) {
+                    break;
+                }
+
 
             }
 
