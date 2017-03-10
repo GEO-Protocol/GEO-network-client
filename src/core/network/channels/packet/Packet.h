@@ -24,8 +24,6 @@ public:
         PacketHeader::Shared packetHeader,
         ConstBytesShared bytes);
 
-    ~Packet();
-
     PacketHeader::SharedConst header() const;
 
     ConstBytesShared body() const;

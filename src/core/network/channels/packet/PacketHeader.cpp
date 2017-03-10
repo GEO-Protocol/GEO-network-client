@@ -14,8 +14,6 @@ PacketHeader::PacketHeader(const uint16_t channel,
     mBodyBytesCount = mPacketBytesCount - (uint16_t)kHeaderSize;
 }
 
-PacketHeader::~PacketHeader() {}
-
 const uint16_t PacketHeader::channelNumber() const {
 
     return mChannel;
@@ -44,40 +42,37 @@ const uint16_t PacketHeader::bodyBytesCount() const {
 pair<ConstBytesShared, size_t> PacketHeader::bytes() const {
 
     size_t headerBytesSize = kHeaderSize;
-    BytesShared headerBytes = tryCalloc(headerBytesSize);
+
+    BytesShared headerBytes = tryCalloc(
+        headerBytesSize);
     size_t headerBytesOffset = 0;
     //----------------------------------------------
     memcpy(
         headerBytes.get(),
         &mPacketBytesCount,
-        kHeaderRecordSize
-    );
+        kHeaderRecordSize);
     headerBytesOffset += kHeaderRecordSize;
     //----------------------------------------------
     memcpy(
         headerBytes.get() + headerBytesOffset,
         &mChannel,
-        kHeaderRecordSize
-    );
+        kHeaderRecordSize);
     headerBytesOffset += kHeaderRecordSize;
     //----------------------------------------------
     memcpy(
         headerBytes.get() + headerBytesOffset,
         &mPacketNumber,
-        kHeaderRecordSize
-    );
+        kHeaderRecordSize);
     headerBytesOffset += kHeaderRecordSize;
     //----------------------------------------------
     memcpy(
         headerBytes.get() + headerBytesOffset,
         &mTotalPacketsCount,
-        kHeaderRecordSize
-    );
+        kHeaderRecordSize);
     //----------------------------------------------
     ConstBytesShared constHeaderBytes = const_pointer_cast<const byte>(headerBytes);
 
     return make_pair(
         constHeaderBytes,
-        headerBytesSize
-    );
+        headerBytesSize);
 }
