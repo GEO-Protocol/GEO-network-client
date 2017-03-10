@@ -108,13 +108,13 @@ namespace db {
                 reverseOffset -= Record::kRecordBytesSize;
 
                 if (records.size() == recordsCount) {
-                    break;
+                    return records;
                 }
-
 
             }
 
-            return records;
+            throw RuntimeError("OperationsHistoryStorage::recordsStack. "
+                                   "Can't complete operation.");
         }
 
         int64_t OperationsHistoryStorage::reverseOffsetToRequestedRecord(
