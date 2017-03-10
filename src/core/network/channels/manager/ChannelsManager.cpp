@@ -132,7 +132,7 @@ Channel::Shared ChannelsManager::createOutgoingChannel(
                                  "Outgoing endpoint with such number does not exist when outgoing channel with such number is exist.");
         }
 
-        (*mOutgoingChannels)[number] = channel;
+        (*mOutgoingChannels)[number] = Channel::Shared(channel);
         (*mOutgoingEndpoints)[number] = endpoint;
 
     } else {
