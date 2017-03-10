@@ -135,10 +135,12 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel() {
 
     vector<NodeUUID> incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
     for (auto const &nodeUUIDIncomingFlow : incomingFlowUuids) {
-        NodeUUID targetUUID = mMessage->targetUUID();
+        if (nodeUUIDIncomingFlow == mMessage->targetUUID()) {
+            continue;
+        }
         Message *message = new MaxFlowCalculationTargetFstLevelMessage(
             mNodeUUID,
-            targetUUID);
+            mMessage->targetUUID());
 
         mLog->logInfo("ReceiveMaxFlowCalculationOnTargetTransaction->sendFirst",
                       ((NodeUUID)nodeUUIDIncomingFlow).stringUUID());

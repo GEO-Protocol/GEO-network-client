@@ -31,6 +31,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
                   "trustLineMap size: " + to_string(mMaxFlowCalculationTrustLineManager->msTrustLines.size()));
 
     if (mStep == 1) {
+        mLog->logInfo("InitiateMaxFlowCalculationTransaction->start", "");
         if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
             for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->outgoingFlows()) {
                 mMaxFlowCalculationTrustLineManager->addTrustLine(
@@ -73,15 +74,15 @@ void InitiateMaxFlowCalculationTransaction::sendMessageToRemoteNode() {
 void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel() {
 
     vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
-    for (auto const &it : outgoingFlowUuids) {
+    for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
         Message *message = new MaxFlowCalculationSourceFstLevelMessage(
             mNodeUUID,
             mNodeUUID);
 
-        mLog->logInfo("InitiateMaxFlowCalculationTransaction->sendFirst", ((NodeUUID)it).stringUUID());
+        mLog->logInfo("InitiateMaxFlowCalculationTransaction->sendFirst", ((NodeUUID)nodeUUIDOutgoingFlow).stringUUID());
         addMessage(
             Message::Shared(message),
-            it);
+            nodeUUIDOutgoingFlow);
     }
 
 }
