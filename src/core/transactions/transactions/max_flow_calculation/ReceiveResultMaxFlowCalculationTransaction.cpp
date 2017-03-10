@@ -55,36 +55,17 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
     }
 
     mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
-                  "trustLineMap size: " + to_string(mMaxFlowCalculationTrustLineManager->mvTrustLines.size()));
-    for (const auto &nodeUUIDAndTrustLines : mMaxFlowCalculationTrustLineManager->mvTrustLines) {
+                  "trustLineMap size: " + to_string(mMaxFlowCalculationTrustLineManager->msTrustLines.size()));
+    for (const auto &nodeUUIDAndTrustLines : mMaxFlowCalculationTrustLineManager->msTrustLines) {
         mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
                       "key: " + ((NodeUUID)nodeUUIDAndTrustLines.first).stringUUID());
-        for (const auto &itTrustLine : nodeUUIDAndTrustLines.second) {
-            MaxFlowCalculationTrustLine::Shared trustLine = itTrustLine;
+        for (auto &itTrustLine : *nodeUUIDAndTrustLines.second) {
+            MaxFlowCalculationTrustLine::Shared trustLine = itTrustLine->maxFlowCalculationtrustLine();
             mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
                           "value: " + trustLine->targetUUID().stringUUID() + " "
                           + to_string((uint32_t) trustLine->amount()));
         }
     }
-
-    /*mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
-                  "entityMap size: " + to_string(mMaxFlowCalculationTrustLineManager->mEntities.size()));
-    for (const auto &it : mMaxFlowCalculationTrustLineManager->mEntities) {
-        mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
-                      "key: " + ((NodeUUID)it.first).stringUUID());
-
-        for (const auto &it1 : it.second->mIncomingFlows) {
-            mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
-                          "inflow: " + ((NodeUUID) it1.first).stringUUID() + " "
-                          + to_string((uint32_t)it1.second));
-        }
-
-        for (const auto &it1 : it.second->mOutgoingFlows) {
-            mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
-                          "outflow: " + ((NodeUUID) it1.first).stringUUID() + " "
-                          + to_string((uint32_t)it1.second));
-        }
-    }*/
 
     return make_shared<const TransactionResult>(
         TransactionState::exit());

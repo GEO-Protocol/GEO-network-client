@@ -8,8 +8,7 @@ MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine(
     mSourceUUID(sourceUUID),
     mTargetUUID(targetUUID),
     mAmount(amount),
-    mUsedAmount(0),
-    mTimeInserted(utc_now()){
+    mUsedAmount(0) {
 
     if (amount < TrustLine::kZeroAmount()) {
         throw ValueError("MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine: "
@@ -32,9 +31,7 @@ const TrustLineAmount& MaxFlowCalculationTrustLine::amount() const {
 ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::freeAmount() const {
     return ConstSharedTrustLineAmount(
         new TrustLineAmount(
-            mAmount - mUsedAmount
-        )
-    );
+            mAmount - mUsedAmount));
 }
 
 void MaxFlowCalculationTrustLine::addUsedAmount(const TrustLineAmount &amount) {
@@ -45,6 +42,6 @@ void MaxFlowCalculationTrustLine::setUsedAmount(const TrustLineAmount &amount) {
     mUsedAmount = amount;
 }
 
-const DateTime & MaxFlowCalculationTrustLine::timeInserted() const {
-    return mTimeInserted;
+void MaxFlowCalculationTrustLine::setAmount(const TrustLineAmount& amount) {
+    mAmount = amount;
 }

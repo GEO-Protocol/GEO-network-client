@@ -3,22 +3,16 @@
 
 #include "../../common/NodeUUID.h"
 #include "../MaxFlowCalculationTrustLine.h"
+#include "MaxFlowCalculationTrustLineWithPtr.h"
 #include "../../common/time/TimeUtils.h"
 
 #include <unordered_map>
-#include <vector>
-
-namespace std {
-    template <>
-    class hash<NodeUUID>{
-    public :
-        size_t operator()(const NodeUUID &nodeUUID) const{
-            return hash<size_t>()(nodeUUID.kBytesSize);
-        }
-    };
-}
+#include <unordered_set>
 
 class MaxFlowCalculationTrustLineManager {
+
+public:
+    typedef unordered_set<MaxFlowCalculationTrustLineWithPtr*> trustLineWithPtrHashSet;
 
 public:
 
@@ -58,7 +52,8 @@ private:
 
 // todo make private after testing
 public:
-    unordered_map<NodeUUID, vector<MaxFlowCalculationTrustLine::Shared>> mvTrustLines;
+    unordered_map<NodeUUID, trustLineWithPtrHashSet*> msTrustLines;
+    map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
 
 };
 

@@ -1,34 +1,43 @@
 #include "MaxFlowCalculationTrustLineManager.h"
 
 void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine) {
-    auto const &it = mvTrustLines.find(trustLine->sourceUUID());
-    if (it == mvTrustLines.end()) {
-        vector<MaxFlowCalculationTrustLine::Shared> newVect;
-        newVect.push_back(trustLine);
-        mvTrustLines.insert(make_pair(trustLine->sourceUUID(), newVect));
+    auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
+    if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+        auto newHashSet = new unordered_set<MaxFlowCalculationTrustLineWithPtr*>();
+        auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(trustLine, newHashSet);
+        newHashSet->insert(newTrustLineWithPtr);
+        msTrustLines.insert(make_pair(trustLine->sourceUUID(), newHashSet));
+        mtTrustLines.insert(make_pair(utc_now(), newTrustLineWithPtr));
     } else {
-        for (auto trLine = it->second.begin(); trLine != it->second.end(); trLine++) {
-            if ((*trLine)->sourceUUID() == trustLine->sourceUUID()
-                && (*trLine)->targetUUID() == trustLine->targetUUID()) {
-                it->second.erase(trLine);
+        auto hashSet = nodeUUIDAndSetFlows->second;
+        auto trLineWithPtr = hashSet->begin();
+        while (trLineWithPtr != hashSet->end()) {
+            if ((*trLineWithPtr)->maxFlowCalculationtrustLine()->sourceUUID() == trustLine->sourceUUID()
+                && (*trLineWithPtr)->maxFlowCalculationtrustLine()->targetUUID() == trustLine->targetUUID()) {
+                (*trLineWithPtr)->maxFlowCalculationtrustLine()->setAmount(trustLine->amount());
                 break;
             }
+            trLineWithPtr++;
         }
-        it->second.push_back(trustLine);
+        if (trLineWithPtr == hashSet->end()) {
+            auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(trustLine, hashSet);
+            hashSet->insert(newTrustLineWithPtr);
+            mtTrustLines.insert(make_pair(utc_now(), newTrustLineWithPtr));
+        }
     }
 }
 
 vector<MaxFlowCalculationTrustLine::Shared> MaxFlowCalculationTrustLineManager::sortedTrustLines(
-    const NodeUUID &nodeUUID) {
+        const NodeUUID &nodeUUID) {
 
     vector<MaxFlowCalculationTrustLine::Shared> result;
-    auto const &nodeUUIDAndVector = mvTrustLines.find(nodeUUID);
-    if (nodeUUIDAndVector == mvTrustLines.end()) {
+    auto const &nodeUUIDAndSetFlows = msTrustLines.find(nodeUUID);
+    if (nodeUUIDAndSetFlows == msTrustLines.end()) {
         return result;
     }
 
-    for (auto const &trustLine : nodeUUIDAndVector->second) {
-        result.push_back(trustLine);
+    for (auto trustLineAndPtr : *nodeUUIDAndSetFlows->second) {
+        result.push_back(trustLineAndPtr->maxFlowCalculationtrustLine());
     }
 
     std::sort(result.begin(), result.end(), customLess);
@@ -37,42 +46,48 @@ vector<MaxFlowCalculationTrustLine::Shared> MaxFlowCalculationTrustLineManager::
 
 void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts() {
 
-    for (auto &nodeUUIDAndTrustLine : mvTrustLines) {
-        for (auto &trustLine : nodeUUIDAndTrustLine.second) {
-            trustLine->setUsedAmount(0);
+    for (auto &nodeUUIDAndTrustLine : msTrustLines) {
+        for (auto &trustLine : *nodeUUIDAndTrustLine.second) {
+            trustLine->maxFlowCalculationtrustLine()->setUsedAmount(0);
         }
     }
 }
 
 void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines() {
 
-    cout << "delete legacy trustLines:\n";
+    cout << "delete legacy trustLines set:\n";
 
     cout << "cached trustLines:\n";
-    for (auto &nodeUUIDAndTrustLine : mvTrustLines) {
+    for (auto &nodeUUIDAndTrustLine : msTrustLines) {
         cout << "key: " << nodeUUIDAndTrustLine.first.stringUUID() << "\n";
-        for (auto trustLine = nodeUUIDAndTrustLine.second.begin();
-             trustLine != nodeUUIDAndTrustLine.second.end(); ++trustLine) {
-            cout << "\tvalue: " << (*trustLine)->sourceUUID() << "->" << (*trustLine)->targetUUID() <<
-                                " " << (*trustLine)->amount() << " " << (*trustLine)->timeInserted() <<"\n";
+        for (auto trustLine = nodeUUIDAndTrustLine.second->begin();
+             trustLine != nodeUUIDAndTrustLine.second->end(); ++trustLine) {
+            cout << "\tvalue: " << (*trustLine)->maxFlowCalculationtrustLine()->sourceUUID() << "->" << (*trustLine)->maxFlowCalculationtrustLine()->targetUUID() <<
+                 " " << (*trustLine)->maxFlowCalculationtrustLine()->amount() <<"\n";
         }
     }
 
-    for (auto &nodeUUIDAndTrustLine : mvTrustLines) {
-        auto trustLine = nodeUUIDAndTrustLine.second.begin();
-        while (trustLine != nodeUUIDAndTrustLine.second.end()) {
-            if (utc_now() - (*trustLine)->timeInserted() > kResetTrustLinesDuration()) {
-                cout << "remove trustLine: " << (*trustLine)->sourceUUID() << "->" << (*trustLine)->targetUUID() <<
-                     " " << (*trustLine)->amount() << "\n";
-                nodeUUIDAndTrustLine.second.erase(trustLine);
-            } else {
-                trustLine++;
+    cout << "deleteion\n";
+    for (auto &timeAndTrustLineWithPtr : mtTrustLines) {
+        cout << "time created: " << timeAndTrustLineWithPtr.first << "\n";
+        if (utc_now() - timeAndTrustLineWithPtr.first > kResetTrustLinesDuration()) {
+            auto trustLineWithPtr = timeAndTrustLineWithPtr.second;
+            cout << ((NodeUUID) trustLineWithPtr->maxFlowCalculationtrustLine()->sourceUUID()).stringUUID() << " " <<
+                 ((NodeUUID) trustLineWithPtr->maxFlowCalculationtrustLine()->targetUUID()).stringUUID() << " " <<
+                 trustLineWithPtr->maxFlowCalculationtrustLine()->amount() <<"\n";
+            auto hashSetPtr = trustLineWithPtr->hashSetPtr();
+            hashSetPtr->erase(trustLineWithPtr);
+            if (hashSetPtr->size() == 0) {
+                NodeUUID keyUUID = trustLineWithPtr->maxFlowCalculationtrustLine()->sourceUUID();
+                cout << "remove all trustLines for node: " << keyUUID.stringUUID() << "\n";
+                msTrustLines.erase(keyUUID);
+                delete hashSetPtr;
             }
-        }
-        if (nodeUUIDAndTrustLine.second.size() == 0) {
-            cout << "remove all trustLines for node: " << nodeUUIDAndTrustLine.first.stringUUID() << "\n";
-            mvTrustLines.erase(nodeUUIDAndTrustLine.first);
+            delete trustLineWithPtr;
+            mtTrustLines.erase(timeAndTrustLineWithPtr.first);
+        } else {
+            break;
         }
     }
-    cout << "map size after deleting: " << mvTrustLines.size() << "\n";
+    cout << "map size after deleting: " << msTrustLines.size() << "\n";
 }

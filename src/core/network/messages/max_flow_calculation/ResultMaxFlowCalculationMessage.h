@@ -5,6 +5,8 @@
 #include "../SenderMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
+#include <vector>
+
 class ResultMaxFlowCalculationMessage : public SenderMessage {
 
 public:
@@ -14,8 +16,8 @@ public:
 
     ResultMaxFlowCalculationMessage(
             const NodeUUID& senderUUID,
-            map<NodeUUID, TrustLineAmount> &outgoingFlows,
-            map<NodeUUID, TrustLineAmount> &incomingFlows);
+            vector<pair<NodeUUID, TrustLineAmount>> &outgoingFlows,
+            vector<pair<NodeUUID, TrustLineAmount>> &incomingFlows);
 
     ResultMaxFlowCalculationMessage(
         BytesShared buffer);
@@ -24,9 +26,9 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes();
 
-    const map<NodeUUID, TrustLineAmount> outgoingFlows() const;
+    const vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows() const;
 
-    const map<NodeUUID, TrustLineAmount> incomingFlows() const;
+    const vector<pair<NodeUUID, TrustLineAmount>> incomingFlows() const;
 
     const bool isMaxFlowCalculationResponseMessage() const;
 
@@ -36,8 +38,8 @@ private:
         BytesShared buffer);
 
 private:
-    map<NodeUUID, TrustLineAmount> mOutgoingFlows;
-    map<NodeUUID, TrustLineAmount> mIncomingFlows;
+    vector<pair<NodeUUID, TrustLineAmount>> mOutgoingFlows;
+    vector<pair<NodeUUID, TrustLineAmount>> mIncomingFlows;
 
 };
 

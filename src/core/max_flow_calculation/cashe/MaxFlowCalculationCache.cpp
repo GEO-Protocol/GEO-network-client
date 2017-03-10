@@ -2,12 +2,19 @@
 
 MaxFlowCalculationCache::MaxFlowCalculationCache(
     const NodeUUID &nodeUUID,
-    const map<NodeUUID, TrustLineAmount> outgoingUUIDs,
-    const map<NodeUUID, TrustLineAmount> incomingUUIDs) :
+    const vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows,
+    const vector<pair<NodeUUID, TrustLineAmount>> incomingFlows) :
 
     mNodeUUID(nodeUUID),
-    mOutgoingFlows(outgoingUUIDs),
-    mIncomingFlows(incomingUUIDs) {}
+    mTimeStampCreated(utc_now()) {
+
+    for (auto &nodeUUIDAndFlow : outgoingFlows) {
+        mOutgoingFlows.insert(nodeUUIDAndFlow);
+    }
+    for (auto &nodeUUIDAndFlow : incomingFlows) {
+        mIncomingFlows.insert(nodeUUIDAndFlow);
+    }
+}
 
 bool MaxFlowCalculationCache::containsIncomingFlow(
     const NodeUUID &nodeUUID,

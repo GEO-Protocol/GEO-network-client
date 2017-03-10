@@ -45,6 +45,9 @@ private:
     const size_t kCRCDataSize = 4;
     const uint16_t kCRCPacketNumber = 0;
 
+private:
+    size_t mMaxFlowCalculationTraffic;
+
 };
 
 

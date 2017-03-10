@@ -24,21 +24,19 @@ public:
 
     const TrustLineAmount& amount() const;
 
+    void setAmount(const TrustLineAmount& amount);
+
     ConstSharedTrustLineAmount freeAmount() const;
 
     void addUsedAmount(const TrustLineAmount &amount);
 
     void setUsedAmount(const TrustLineAmount &amount);
 
-    const DateTime& timeInserted() const;
-
 private:
     NodeUUID mSourceUUID;
     NodeUUID mTargetUUID;
     TrustLineAmount mAmount;
     TrustLineAmount mUsedAmount;
-    DateTime mTimeInserted;
-
 };
 
 

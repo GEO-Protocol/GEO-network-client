@@ -5,7 +5,8 @@
 #include "../../common/NodeUUID.h"
 #include "../../common/time/TimeUtils.h"
 
-#include <map>
+#include <unordered_map>
+#include <vector>
 
 class MaxFlowCalculationCache {
 
@@ -14,8 +15,8 @@ public:
 
     MaxFlowCalculationCache(
         const NodeUUID& nodeUUID,
-        const map<NodeUUID, TrustLineAmount> outgoingUUIDs,
-        const map<NodeUUID, TrustLineAmount> incomingUUIDs);
+        const vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows,
+        const vector<pair<NodeUUID, TrustLineAmount>> incomingFlows);
 
     NodeUUID& nodeUUID();
 
@@ -30,8 +31,9 @@ public:
 // todo change on private after testing
 public:
     NodeUUID mNodeUUID;
-    map<NodeUUID, TrustLineAmount> mIncomingFlows;
-    map<NodeUUID, TrustLineAmount> mOutgoingFlows;
+    unordered_map<NodeUUID, TrustLineAmount> mIncomingFlows;
+    unordered_map<NodeUUID, TrustLineAmount> mOutgoingFlows;
+    DateTime mTimeStampCreated;
 };
 
 

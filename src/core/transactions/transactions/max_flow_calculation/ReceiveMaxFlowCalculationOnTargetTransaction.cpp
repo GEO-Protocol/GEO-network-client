@@ -45,11 +45,11 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator() {
         return;
     }
 
-    map<NodeUUID, TrustLineAmount> outgoingFlows;
-    map<NodeUUID, TrustLineAmount> incomingFlows;
+    vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows;
+    vector<pair<NodeUUID, TrustLineAmount>> incomingFlows;
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
         if (incomingFlow.first != mMessage->senderUUID()) {
-            incomingFlows.insert(incomingFlow);
+            incomingFlows.push_back(incomingFlow);
         }
     }
 
@@ -98,13 +98,13 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
                       "in uuid: " + it.first.stringUUID());
     }
 
-    map<NodeUUID, TrustLineAmount> outgoingFlowsForSending;
+    vector<pair<NodeUUID, TrustLineAmount>> outgoingFlowsForSending;
 
-    map<NodeUUID, TrustLineAmount> incomingFlowsForSending;
+    vector<pair<NodeUUID, TrustLineAmount>> incomingFlowsForSending;
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
         if (incomingFlow.first != mMessage->senderUUID()
             && !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
-            incomingFlowsForSending.insert(incomingFlow);
+            incomingFlowsForSending.push_back(incomingFlow);
         }
     }
     mLog->logInfo("ReceiveMaxFlowCalculationOnTargetTransaction->sendCachedResult",

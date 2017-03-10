@@ -105,13 +105,13 @@ public:
     void removeTrustLine(
         const NodeUUID &contractorUUID);
 
-    vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow();
+    vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
 
-    vector<NodeUUID> firstLevelNeighborsWithIncomingFlow();
+    vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
 
-    map<NodeUUID, TrustLineAmount> incomingFlows();
+    vector<pair<NodeUUID, TrustLineAmount>> incomingFlows() const;
 
-    map<NodeUUID, TrustLineAmount> outgoingFlows();
+    vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows() const;
 
     const TrustLine::Shared trustLine(
         const NodeUUID &contractorUUID) const;

@@ -4,7 +4,6 @@
 #include "../../common/NodeUUID.h"
 #include "MaxFlowCalculationCache.h"
 #include "../../common/time/TimeUtils.h"
-#include "../manager/MaxFlowCalculationTrustLineManager.h"
 
 #include <map>
 #include <unordered_map>
@@ -25,12 +24,6 @@ public:
     void setInitiatorCache();
 
     bool isInitiatorCached();
-
-    void testSet();
-
-    void testMap();
-
-    void testMap1();
 
 private:
     static const byte kResetCacheHours = 0;

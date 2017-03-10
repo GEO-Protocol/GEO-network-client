@@ -2,8 +2,8 @@
 
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
         const NodeUUID& senderUUID,
-        map<NodeUUID, TrustLineAmount> &outgoingFlows,
-        map<NodeUUID, TrustLineAmount> &incomingFlows) :
+        vector<pair<NodeUUID, TrustLineAmount>> &outgoingFlows,
+        vector<pair<NodeUUID, TrustLineAmount>> &incomingFlows) :
 
         SenderMessage(senderUUID),
         mOutgoingFlows(outgoingFlows),
@@ -110,7 +110,7 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
         bytesBufferOffset += kTrustLineAmountBytesCount;
         //---------------------------------------------------
         TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
-        mOutgoingFlows.insert(make_pair(nodeUUID, trustLineAmount));
+        mOutgoingFlows.push_back(make_pair(nodeUUID, trustLineAmount));
     }
     //----------------------------------------------------
     uint32_t *trustLinesInCount = new (buffer.get() + bytesBufferOffset) uint32_t;
@@ -131,15 +131,15 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
         bytesBufferOffset += kTrustLineAmountBytesCount;
         //---------------------------------------------------
         TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
-        mIncomingFlows.insert(make_pair(nodeUUID, trustLineAmount));
+        mIncomingFlows.push_back(make_pair(nodeUUID, trustLineAmount));
     }
 }
 
-const map<NodeUUID, TrustLineAmount> ResultMaxFlowCalculationMessage::outgoingFlows() const {
+const vector<pair<NodeUUID, TrustLineAmount>> ResultMaxFlowCalculationMessage::outgoingFlows() const {
     return mOutgoingFlows;
 }
 
-const map<NodeUUID, TrustLineAmount> ResultMaxFlowCalculationMessage::incomingFlows() const {
+const vector<pair<NodeUUID, TrustLineAmount>> ResultMaxFlowCalculationMessage::incomingFlows() const {
     return mIncomingFlows;
 }
 
