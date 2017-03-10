@@ -1,12 +1,8 @@
 #include "MaxFlowCalculationCache.h"
 
 MaxFlowCalculationCache::MaxFlowCalculationCache(
-    const NodeUUID &nodeUUID,
     const vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows,
-    const vector<pair<NodeUUID, TrustLineAmount>> incomingFlows) :
-
-    mNodeUUID(nodeUUID),
-    mTimeStampCreated(utc_now()) {
+    const vector<pair<NodeUUID, TrustLineAmount>> incomingFlows) {
 
     for (auto &nodeUUIDAndFlow : outgoingFlows) {
         mOutgoingFlows.insert(nodeUUIDAndFlow);
@@ -64,9 +60,4 @@ bool MaxFlowCalculationCache::containsOutgoingFlow(
             return true;
         }
     }
-}
-
-NodeUUID& MaxFlowCalculationCache::nodeUUID() {
-
-    return mNodeUUID;
 }

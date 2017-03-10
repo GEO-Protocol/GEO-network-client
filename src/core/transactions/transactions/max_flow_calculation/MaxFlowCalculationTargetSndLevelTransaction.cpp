@@ -74,11 +74,12 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
         mMessage->targetUUID());
 
     auto maxFlowCalculationCache = make_shared<MaxFlowCalculationCache>(
-        mMessage->targetUUID(),
         outgoingFlows,
         incomingFlows);
 
-    mMaxFlowCalculationCacheManager->addCache(maxFlowCalculationCache);
+    mMaxFlowCalculationCacheManager->addCache(
+            mMessage->targetUUID(),
+            maxFlowCalculationCache);
 }
 
 void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(

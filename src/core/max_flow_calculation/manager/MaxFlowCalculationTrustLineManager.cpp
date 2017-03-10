@@ -12,8 +12,7 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLin
         auto hashSet = nodeUUIDAndSetFlows->second;
         auto trLineWithPtr = hashSet->begin();
         while (trLineWithPtr != hashSet->end()) {
-            if ((*trLineWithPtr)->maxFlowCalculationtrustLine()->sourceUUID() == trustLine->sourceUUID()
-                && (*trLineWithPtr)->maxFlowCalculationtrustLine()->targetUUID() == trustLine->targetUUID()) {
+            if ((*trLineWithPtr)->maxFlowCalculationtrustLine()->targetUUID() == trustLine->targetUUID()) {
                 (*trLineWithPtr)->maxFlowCalculationtrustLine()->setAmount(trustLine->amount());
                 break;
             }

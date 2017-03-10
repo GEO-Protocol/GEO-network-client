@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H
 
 #include "../../common/NodeUUID.h"
-#include "../MaxFlowCalculationTrustLine.h"
 #include "MaxFlowCalculationTrustLineWithPtr.h"
 #include "../../common/time/TimeUtils.h"
 

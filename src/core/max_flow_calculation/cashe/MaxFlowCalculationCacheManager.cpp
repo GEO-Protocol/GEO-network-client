@@ -4,10 +4,10 @@ MaxFlowCalculationCacheManager::MaxFlowCalculationCacheManager() {
     mInitiatorCache.first = false;
 }
 
-void MaxFlowCalculationCacheManager::addCache(MaxFlowCalculationCache::Shared cache) {
+void MaxFlowCalculationCacheManager::addCache(const NodeUUID &keyUUID, MaxFlowCalculationCache::Shared cache) {
 
-    mCaches.insert(make_pair(cache->nodeUUID(), cache));
-    NodeUUID* nodeUUIDPtr = &(cache->nodeUUID());
+    NodeUUID* nodeUUIDPtr = new NodeUUID(keyUUID);
+    mCaches.insert(make_pair(*nodeUUIDPtr, cache));
     msCache.insert(make_pair(utc_now(), nodeUUIDPtr));
 }
 
@@ -28,9 +28,11 @@ void MaxFlowCalculationCacheManager::updateCaches() {
 
     for (auto &timeAndNodeUUID : msCache) {
         if (utc_now() - timeAndNodeUUID.first > kResetCacheDuration()) {
-            cout << ((NodeUUID) *timeAndNodeUUID.second).stringUUID() << "\n";
-            mCaches.erase(*timeAndNodeUUID.second);
+            NodeUUID* keyUUIDPtr = timeAndNodeUUID.second;
+            cout << ((NodeUUID) *keyUUIDPtr).stringUUID() << "\n";
+            mCaches.erase(*keyUUIDPtr);
             msCache.erase(timeAndNodeUUID.first);
+            delete keyUUIDPtr;
         } else {
             break;
         }

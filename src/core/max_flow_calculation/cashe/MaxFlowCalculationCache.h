@@ -14,11 +14,8 @@ public:
     typedef shared_ptr<MaxFlowCalculationCache> Shared;
 
     MaxFlowCalculationCache(
-        const NodeUUID& nodeUUID,
         const vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows,
         const vector<pair<NodeUUID, TrustLineAmount>> incomingFlows);
-
-    NodeUUID& nodeUUID();
 
     bool containsIncomingFlow(
         const NodeUUID &nodeUUID,
@@ -30,10 +27,8 @@ public:
 
 // todo change on private after testing
 public:
-    NodeUUID mNodeUUID;
     unordered_map<NodeUUID, TrustLineAmount> mIncomingFlows;
     unordered_map<NodeUUID, TrustLineAmount> mOutgoingFlows;
-    DateTime mTimeStampCreated;
 };
 
 

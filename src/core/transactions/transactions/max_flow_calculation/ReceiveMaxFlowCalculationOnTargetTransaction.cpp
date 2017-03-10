@@ -71,11 +71,12 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator() {
                   "IncomingFlows: " + to_string(incomingFlows.size()));
 
     auto maxFlowCalculationCache = make_shared<MaxFlowCalculationCache>(
-        mMessage->senderUUID(),
         outgoingFlows,
         incomingFlows);
 
-    mMaxFlowCalculationCacheManager->addCache(maxFlowCalculationCache);
+    mMaxFlowCalculationCacheManager->addCache(
+            mMessage->senderUUID(),
+            maxFlowCalculationCache);
 }
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
