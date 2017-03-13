@@ -1,4 +1,4 @@
-#include "TrustLine.h"
+﻿#include "TrustLine.h"
 
 TrustLine::TrustLine(
     const NodeUUID &nodeUUID,
@@ -137,57 +137,36 @@ const TrustLineBalance &TrustLine::balance() const {
 /*!
  * Returns amount that is availale to use on the trust line.
  */
-ConstSharedTrustLineAmount TrustLine::availableAmount() const {
-
+ConstSharedTrustLineAmount TrustLine::availableAmount() const
+{
     if (mBalance >= kZeroBalance()){
         if (mIncomingTrustAmount > kZeroAmount()) {
-            return ConstSharedTrustLineAmount(
-                new TrustLineAmount(
-                    mIncomingTrustAmount - TrustLineAmount(mBalance)
-                )
-            );
+            return make_shared<const TrustLineAmount>(
+                mIncomingTrustAmount - TrustLineAmount(mBalance));
         }
-
-        return ConstSharedTrustLineAmount(
-            new TrustLineAmount(
-                mBalance
-            )
-        );
+        return make_shared<const TrustLineAmount>(mBalance);
     }
 
-    return ConstSharedTrustLineAmount(
-        new TrustLineAmount(
-            mIncomingTrustAmount + mBalance
-        )
-    );
+    return make_shared<const TrustLineAmount>(
+        mIncomingTrustAmount + mBalance);
 }
 
 /*!
  * Returns amount that is availale to use on the trust line from contractor node.
  */
-ConstSharedTrustLineAmount TrustLine::availableIncomingAmount() const {
-
+ConstSharedTrustLineAmount TrustLine::availableIncomingAmount() const
+{
     if (mBalance >= kZeroBalance()){
         if (mOutgoingTrustAmount > kZeroAmount()) {
-            return ConstSharedTrustLineAmount(
-                new TrustLineAmount(
-                    mOutgoingTrustAmount - TrustLineAmount(mBalance)
-                )
-            );
+            return make_shared<const TrustLineAmount>(
+                mOutgoingTrustAmount - TrustLineAmount(mBalance));
         }
 
-        return ConstSharedTrustLineAmount(
-            new TrustLineAmount(
-                mBalance
-            )
-        );
+        return make_shared<const TrustLineAmount>(mBalance);
     }
 
-    return ConstSharedTrustLineAmount(
-        new TrustLineAmount(
-            mOutgoingTrustAmount + mBalance
-        )
-    );
+    return make_shared<const TrustLineAmount>(
+        mOutgoingTrustAmount + mBalance);
 }
 
 const TrustLineDirection TrustLine::direction() const {

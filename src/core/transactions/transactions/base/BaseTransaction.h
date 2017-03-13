@@ -8,6 +8,8 @@
 #include "../../../common/memory/MemoryUtils.h"
 #include "../../../logger/FileLogger.h"
 
+#include "../../../logger/Logger.h"
+
 #include "../../../network/messages/Message.hpp"
 #include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
@@ -19,7 +21,7 @@
 #include <boost/signals2.hpp>
 
 #include <vector>
-#include <memory>
+#include <deque>
 #include <utility>
 #include <cstdint>
 #include <sstream>
@@ -36,6 +38,16 @@ public:
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
 
 public:
+    // TODO: add othe states shortcuts here
+    TransactionResult::Shared resultExit();
+    TransactionResult::Shared resultFlushAndContinue();
+    TransactionResult::Shared resultWaitForMessageTypes(
+        vector<Message::MessageTypeID> &&requiredMessagesTypes,
+        uint16_t noLongerThanMilliseconds);
+
+public:
+    ~BaseTransaction() = default;
+
     enum TransactionType {
         OpenTrustLineTransactionType = 1,
         AcceptTrustLineTransactionType,
@@ -53,6 +65,7 @@ public:
         // Payments
         CoordinatorPaymentTransaction,
         ReceiverPaymentTransaction,
+        IntermediateNodePaymentTransaction,
 
         // Max flow calculation
         InitiateMaxFlowCalculationTransactionType,
@@ -79,26 +92,63 @@ public:
     virtual TransactionResult::SharedConst run() = 0;
 
 protected:
-    BaseTransaction(
-        const TransactionType type);
-
+    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
-        const TransactionUUID &transactionUUID);
+        Logger *log=nullptr);
 
+    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
-        const NodeUUID &nodeUUID);
+        const TransactionUUID &transactionUUID,
+        Logger *log=nullptr);
 
+    [[deprecated("Use constructor with currentNodeUUID instead.")]]
+    BaseTransaction(
+        const TransactionType type,
+        const NodeUUID &nodeUUID,
+        Logger *log=nullptr);
+
+    // TODO: make logger REQUIRED
+    BaseTransaction(
+        const TransactionType type,
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &nodeUUID,
+        Logger *log=nullptr);
+
+    [[deprecated("Use sendMessage() instead.")]]
     void addMessage(
         Message::Shared message,
         const NodeUUID &nodeUUID);
 
+    // TODO: convert to hpp?
+    template <typename ContextMessageType>
+    inline shared_ptr<ContextMessageType> popNextMessage()
+    {
+        const auto message = static_pointer_cast<ContextMessageType>(mContext.front());
+        mContext.pop_front();
+        return message;
+    }
+
+    // TODO: convert to hpp?
+    template <typename MessageType, typename... Args>
+    inline void sendMessage(
+        const NodeUUID &addressee,
+        Args&&... args)
+    {
+        const auto message = make_shared<MessageType>(args...);
+        outgoingMessageIsReadySignal(
+            message,
+            addressee);
+    }
+
     void launchSubsidiaryTransaction(
       BaseTransaction::Shared transaction);
 
+    [[deprecated("Use stages enum instead. See payment operations as example")]]
     void increaseStepsCounter();
 
+    [[deprecated("Use stages enum instead. See payment operations as example")]]
     void resetStepsCounter();
 
     void setExpectationResponsesCounter(
@@ -125,6 +175,9 @@ protected:
     TransactionResult::SharedConst finishTransaction();
 
     virtual const string logHeader() const;
+    LoggerStream info() const;
+    LoggerStream error() const;
+    LoggerStream debug() const;
 
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
@@ -136,10 +189,14 @@ protected:
     NodeUUID mNodeUUID;
 
     uint16_t mExpectationResponsesCount = 0;
-    vector<Message::Shared> mContext;
+    deque<Message::Shared> mContext;
 
     uint16_t mStep = 1;
 
+protected:
+    Logger *mLog;
+
+    [[deprecated("Use logger instead")]]
     unique_ptr<FileLogger> mFileLogger;
 };
 

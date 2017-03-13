@@ -9,18 +9,29 @@
 
 class Path {
 public:
-    Path(
-        NodeUUID &source,
-        NodeUUID &destination,
-        vector<NodeUUID> &&intermediateNodes);
+    typedef shared_ptr<Path> Shared;
+    typedef shared_ptr<const Path> ConstShared;
 
-    const bool containsIntermediateNodes() const;
+public:
+    Path(
+        const NodeUUID &source,
+        const NodeUUID &destination,
+        const vector<NodeUUID> &intermediateNodes);
+
+    Path(
+        const NodeUUID &source,
+        const NodeUUID &destination,
+        const vector<NodeUUID> &&intermediateNodes);
+
+    const size_t length() const;
     const string toString() const;
 
-protected:
-    NodeUUID &mSource;
-    NodeUUID &mDestination;
-    vector<NodeUUID>& mIntermediateNodes;
+    friend bool operator== (
+        const Path &p1,
+        const Path &p2);
+
+public:
+    const vector<NodeUUID> nodes;
 };
 
 #endif // PATH_H

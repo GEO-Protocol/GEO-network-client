@@ -14,9 +14,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         trustLines,
         log),
     mMessage(message)
-{
-    cout << "\n\n P:" << mTrustLines << "\n\n" << endl;
-}
+{}
 
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     BytesShared buffer,

@@ -1,40 +1,44 @@
-﻿#include "ReceiverApproveMessage.h"
+﻿#include "ResponseMessage.h"
 
-ReceiverApproveMessage::ReceiverApproveMessage(
+
+ResponseMessage::ResponseMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const OperationState state) :
 
-    // TODO: make TransactionMessage accept const
     TransactionMessage(
-        const_cast<NodeUUID&>(senderUUID),
-        const_cast<TransactionUUID&>(transactionUUID)),
-    mState(state){
-}
+        senderUUID,
+        transactionUUID),
+    mState(state)
+{}
 
-ReceiverApproveMessage::ReceiverApproveMessage(
-    BytesShared buffer) {
-
+ResponseMessage::ResponseMessage(
+    BytesShared buffer)
+{
     deserializeFromBytes(buffer);
 }
 
-const Message::MessageType ReceiverApproveMessage::typeID() const {
-    return Message::Payments_ReceiverApprove;
+const ResponseMessage::OperationState ResponseMessage::state() const
+{
+    return mState;
 }
 
-const ReceiverApproveMessage::OperationState ReceiverApproveMessage::state() const {
-    return mState;
+const size_t ResponseMessage::kOffsetToInheritedBytes()
+{
+    return TransactionMessage::kOffsetToInheritedBytes() + sizeof(SerializedOperationState);
 }
 
 /**
  *
  * @throws bad_alloc;
  */
-pair<BytesShared, size_t> ReceiverApproveMessage::serializeToBytes() {
+pair<BytesShared, size_t> ResponseMessage::serializeToBytes()
+{
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(SerializedOperationState);
+    size_t bytesCount =
+        parentBytesAndCount.second
+        + sizeof(SerializedOperationState);
 
     BytesShared dataBytesShared = tryMalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -42,25 +46,22 @@ pair<BytesShared, size_t> ReceiverApproveMessage::serializeToBytes() {
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     SerializedOperationState state(mState);
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &state,
-        sizeof(SerializedOperationState)
-    );
+        sizeof(SerializedOperationState));
     //----------------------------------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
-void ReceiverApproveMessage::deserializeFromBytes(BytesShared buffer) {
-
+void ResponseMessage::deserializeFromBytes(BytesShared buffer)
+{
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------

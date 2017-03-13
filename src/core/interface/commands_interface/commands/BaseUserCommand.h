@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_COMMAND_H
+﻿#ifndef GEO_NETWORK_CLIENT_COMMAND_H
 #define GEO_NETWORK_CLIENT_COMMAND_H
 
 #include "../../../common/Types.h"
@@ -31,6 +31,8 @@ public:
     BaseUserCommand(
         const CommandUUID &commandUUID,
         const string& identifier);
+
+    virtual ~BaseUserCommand() = default;
 
     const CommandUUID &UUID() const;
 

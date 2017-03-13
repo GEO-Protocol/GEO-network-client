@@ -37,10 +37,21 @@ public:
         RoutingTableUpdateIncomingMessageType,
         InBetweenNodeTopologyMessage,
         BoundaryNodeTopologyMessage,
-        Payments_ReceiverInitPayment,
-        Payments_ReceiverApprove,
-        ReceiverInitPaymentMessageType,
-        OperationStateMessageType,
+
+        /*
+         * Payments
+         */
+        Payments_ReceiverInitPaymentRequest,
+        Payments_ReceiverInitPaymentResponse,
+
+        Payments_CoordinatorReservationRequest,
+        Payments_CoordinatorReservationResponse,
+
+        Payments_IntermediateNodeReservationRequest,
+        Payments_IntermediateNodeReservationResponse,
+
+
+
         InitiateMaxFlowCalculationMessageType,
         ReceiveMaxFlowCalculationOnTargetMessageType,
         SendMaxFlowCalculationSourceFstLevelMessageType,
@@ -61,6 +72,8 @@ public:
     typedef uint16_t MessageType;
 
 public:
+    ~Message() = default;
+
     /*
      * Base "Message" is abstract.
      * Some of it's derived classes are used for various transactions responses.
