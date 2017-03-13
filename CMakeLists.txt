@@ -2,11 +2,15 @@
 project(geo_network_client)
 
 
+#SET(CMAKE_C_COMPILER "distcc")
+#SET(CMAKE_CXX_COMPILER "distcc")
+
+
 # Logs configuration
 add_definitions(-DTRANSACTIONS_LOG)
 
 # Debug logs configuration
-add_definitions(-DNETWORK_DEBUG_LOG)
+#add_definitions(-DNETWORK_DEBUG_LOG)
 add_definitions(-DSCHEDULER_DEBUG_LOG)
 
 
@@ -38,7 +42,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
     set(CMAKE_BUILD_TYPE "DEBUG")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -lboost_date_time")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lboost_date_time -fsanitize=address -g")
 ENDIF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
 
 IF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
