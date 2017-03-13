@@ -57,13 +57,7 @@ namespace db {
         pair<BytesShared, size_t> TrustLineRecord::serializeToBytes() {
 
             auto parentBytesAndCount = Record::serializeToBytes();
-            size_t bytesCount = parentBytesAndCount.second
-                                + sizeof(SerializedTrustLineOperationType)
-                                + NodeUUID::kBytesSize;
-
-            if (mTrustLineOperationType != TrustLineRecord::TrustLineOperationType::Closing) {
-                bytesCount += kTrustLineAmountBytesCount;
-            }
+            size_t bytesCount = kRecordBytesSize;
 
             BytesShared bytesBuffer = tryCalloc(
                 kRecordBytesSize);

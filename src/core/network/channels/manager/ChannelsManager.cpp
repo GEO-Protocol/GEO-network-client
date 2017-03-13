@@ -7,186 +7,149 @@ ChannelsManager::ChannelsManager(
     mProcessingTimer(new as::steady_timer(mIOService)) {
 
     try {
-        mIncomingChannels = unique_ptr<map<uint16_t, Channel::Shared>>(
-            new map<uint16_t, Channel::Shared>());
+        mIncomingChannels = unique_ptr<map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>>(
+            new map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>());
 
-        mOutgoingChannels = unique_ptr<map<uint16_t, Channel::Shared>>(
-            new map<uint16_t, Channel::Shared>());
+        mOutgoingChannels = unique_ptr<map<udp::endpoint, pair<uint16_t, Channel::Shared>>>();
 
     } catch (std::bad_alloc &) {
         throw MemoryError("ChannelsManager::ChannelsManager: "
                               "Can not allocate memory for channels container.");
     }
 
-    try {
-        mIncomingEndpoints = unique_ptr<map<uint16_t, udp::endpoint>>(
-            new map<uint16_t, udp::endpoint>());
-
-        mOutgoingEndpoints = unique_ptr<map<uint16_t, udp::endpoint>>(
-            new map<uint16_t, udp::endpoint>());
-
-    } catch (std::bad_alloc &) {
-        throw MemoryError("ChannelsManager::ChannelsManager: "
-                              "Can not allocate memory for endpoint container.");
-    }
-
     removeDeprecatedIncomingChannels();
 }
 
 pair<Channel::Shared, udp::endpoint> ChannelsManager::incomingChannel(
-    uint16_t number,
-    udp::endpoint endpoint) {
+    const uint16_t number,
+    const udp::endpoint &endpoint) {
 
-    if (mIncomingChannels->count(number) != 0){
-        return make_pair(
-            mIncomingChannels->at(
-                number),
-            mIncomingEndpoints->at(
-                number));
+    Channel::Shared incomingChannel = make_shared<Channel>();
+
+    if (mIncomingChannels->count(endpoint) != 0){
+
+        auto endpointAndVectorOfNumberAndChannelPairs = mIncomingChannels->find(endpoint);
+        endpointAndVectorOfNumberAndChannelPairs->second.push_back(
+            make_pair(
+                number,
+                incomingChannel));
 
     } else {
-        return createIncomingChannel(
-            number,
-            endpoint);
+
+        vector<pair<uint16_t, Channel::Shared>> numbersAndChannels;
+        numbersAndChannels.reserve(1);
+        numbersAndChannels.push_back(
+            make_pair(
+                number,
+                incomingChannel));
+
+        mIncomingChannels->insert(
+            make_pair(
+                endpoint,
+                numbersAndChannels
+            )
+        );
+
     }
-}
-
-pair<Channel::Shared, udp::endpoint> ChannelsManager::createIncomingChannel(
-    uint16_t number,
-    udp::endpoint endpoint) {
-
-    Channel *channel = nullptr;
-    try {
-        channel = new Channel();
-
-    } catch (std::bad_alloc &) {
-        throw MemoryError("ChannelsManager::createIncomingChannel: "
-                              "Can not allocate memory for incoming channel instance.");
-    }
-    mIncomingChannels->insert(
-        make_pair(
-            number,
-            Channel::Shared(channel)));
-
-    mIncomingEndpoints->insert(
-        make_pair(
-            number,
-            endpoint));
 
     return make_pair(
-        mIncomingChannels->at(
-            number),
-        mIncomingEndpoints->at(
-            number));
+        incomingChannel,
+        endpoint);
 }
 
 void ChannelsManager::removeIncomingChannel(
-    uint16_t number) {
+    const udp::endpoint &endpoint,
+    const uint16_t channelNumber) {
 
-    if (mIncomingChannels->count(number) != 0) {
+    if (mIncomingChannels->count(endpoint) != 0) {
 
-        auto itChannel = mIncomingChannels->find(
-            number);
-        mIncomingChannels->erase(
-            itChannel);
+        auto endpointAndVectorOfNumberAndChannelPairs = mIncomingChannels->find(endpoint);
 
-        auto itEndpoint = mIncomingEndpoints->find(
-            number);
-        mIncomingEndpoints->erase(
-            itEndpoint);
+        for (size_t position = 0; position < endpointAndVectorOfNumberAndChannelPairs->second.size(); ++ position) {
+
+            if (channelNumber == endpointAndVectorOfNumberAndChannelPairs->second.at(position).first) {
+                endpointAndVectorOfNumberAndChannelPairs->second.erase(
+                    endpointAndVectorOfNumberAndChannelPairs->second.begin() + position);
+            }
+
+        }
 
     } else {
         throw IndexError("ChannelsManager::removeIncomingChannel: "
-                             "Channel with such number does not exist.");
+                             "Incoming channels for such endpoint does not exists.");
     }
 }
 
 pair<uint16_t, Channel::Shared> ChannelsManager::outgoingChannel(
-    udp::endpoint endpoint) {
+    const udp::endpoint &endpoint) {
 
-    unusedOutgoingChannelNumber();
+    uint16_t channelNumber = unusedOutgoingChannelNumber(
+        endpoint);
+
     return make_pair(
-        mNextOutgoingChannelNumber,
+        channelNumber,
         createOutgoingChannel(
-            mNextOutgoingChannelNumber,
+            channelNumber,
             endpoint));
 }
 
 Channel::Shared ChannelsManager::createOutgoingChannel(
-    uint16_t number,
-    udp::endpoint endpoint) {
+    const uint16_t number,
+    const udp::endpoint &endpoint) {
 
-    Channel *channel = nullptr;
-    try {
-        channel = new Channel();
+    Channel::Shared channel = make_shared<Channel>();
 
-    } catch (std::bad_alloc &) {
-        throw MemoryError("ChannelsManager::createOutgoingChannel: "
-                              "Can not allocate memory for outgoing channel instance.");
-    }
+    if (mOutgoingChannels->count(endpoint) != 0) {
 
-    if (mOutgoingChannels->count(number) != 0) {
-
-        if (mOutgoingEndpoints->count(number) == 0) {
-            throw ConflictError("ChannelsManager::createOutgoingChannel: "
-                                 "Outgoing endpoint with such number does not exist when outgoing channel with such number is exist.");
-        }
-
-        (*mOutgoingChannels)[number] = Channel::Shared(channel);
-        (*mOutgoingEndpoints)[number] = endpoint;
+        (*mOutgoingChannels)[endpoint] = make_pair(
+            number,
+            make_shared<Channel>());
 
     } else {
-
-        if (mOutgoingEndpoints->count(number) != 0) {
-            throw ConflictError("ChannelsManager::createOutgoingChannel: "
-                                 "Outgoing endpoint with such number is exist when outgoing channel with such number does not exist.");
-        }
-
         mOutgoingChannels->insert(
             make_pair(
-                number,
-                Channel::Shared(channel)));
-
-        mOutgoingEndpoints->insert(
-            make_pair(
-                number,
-                endpoint));
-
+                endpoint,
+                make_pair(
+                    number,
+                    make_shared<Channel>())));
     }
 
-    return mOutgoingChannels->at(
-        number);
+    return Channel::Shared(
+        mOutgoingChannels->at(
+            endpoint).second);
 }
 
 
-void ChannelsManager::unusedOutgoingChannelNumber() {
+uint16_t ChannelsManager::unusedOutgoingChannelNumber(
+    const udp::endpoint &endpoint) {
 
     uint16_t maximalPossibleOutgoingChannelNumber = std::numeric_limits<uint16_t>::max();
 
-    if (mNextOutgoingChannelNumber == maximalPossibleOutgoingChannelNumber) {
+    if (mOutgoingChannels->count(endpoint) != 0) {
 
-        mNextOutgoingChannelNumber = 0;
+        const auto endpointAndChannel = mOutgoingChannels->find(
+            endpoint);
 
-    } else {
-        mNextOutgoingChannelNumber += 1;
+        if (endpointAndChannel->second.first < maximalPossibleOutgoingChannelNumber) {
+
+            uint16_t channelNumber = endpointAndChannel->second.first + 1;
+            return channelNumber;
+        }
+
     }
 
+    return 0;
 }
 
 void ChannelsManager::removeOutgoingChannel(
-    uint16_t number) {
+    const udp::endpoint &endpoint) {
 
-    if (mOutgoingChannels->count(number) != 0) {
+    if (mOutgoingChannels->count(endpoint) != 0) {
 
         auto itChannel = mOutgoingChannels->find(
-            number);
+            endpoint);
         mOutgoingChannels->erase(
             itChannel);
-
-        auto itEndpoint = mOutgoingEndpoints->find(
-            number);
-        mOutgoingEndpoints->erase(
-            itEndpoint);
 
     } else {
         throw IndexError("ChannelsManager::removeOutgoingChannel: "
@@ -212,11 +175,18 @@ void ChannelsManager::handleIncomingChannelsCollector(
     const boost::system::error_code &error) {
 
     if (!error) {
-        for (auto const &numberAndChannel : *mIncomingChannels) {
 
-            if ((utc_now() - numberAndChannel.second->creationTime()) > kIncomingChannelKeepAliveTimeout()) {
-                removeIncomingChannel(
-                    numberAndChannel.first);
+        for (const auto &endpointAndVectorOfNumberAndChannelPairs : *mIncomingChannels) {
+
+            for (const auto &numberAndChannel : endpointAndVectorOfNumberAndChannelPairs.second) {
+
+                if ((utc_now() - numberAndChannel.second->creationTime()) > kIncomingChannelKeepAliveTimeout()) {
+                    removeIncomingChannel(
+                        endpointAndVectorOfNumberAndChannelPairs.first,
+                        numberAndChannel.first);
+
+                }
+
             }
 
         }

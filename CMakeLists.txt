@@ -59,7 +59,7 @@ add_subdirectory(src/core/common/time)
 add_subdirectory(src/core/common/memory)
 add_subdirectory(src/core/common/multiprecision)
 add_subdirectory(src/core/db)
-#add_subdirectory(src/tests/db)
+# add_subdirectory(src/tests/db)
 add_subdirectory(src/core/io/routing_tables)
 add_subdirectory(src/tests/io/routing_tables)
 
@@ -107,6 +107,7 @@ target_link_libraries(geo_network_client
         interface__results
 
         db__operations_history_storage
+#        db_tests
 
         io__trust_lines_storage
         io__routing_tables_storage

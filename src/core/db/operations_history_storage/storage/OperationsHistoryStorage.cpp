@@ -40,12 +40,14 @@ namespace db {
             syncData();
         }
 
-        vector<Record::Shared> OperationsHistoryStorage::recordsStack(
+        template<class T>
+        vector<shared_ptr<T>> OperationsHistoryStorage::recordsStack(
             Record::RecordType recordType,
             size_t recordsCount,
             size_t fromRecord) {
 
-            vector<Record::Shared> records;
+            vector<shared_ptr<T>> records;
+            records.reserve(recordsCount);
 
             int64_t reverseOffset = reverseOffsetToRequestedRecord(
                 recordType,
@@ -71,7 +73,7 @@ namespace db {
                 Record::SerializedRecordType *fetchedRecordType = new (recordBytesBuffer.get()) Record::SerializedRecordType;
                 if (recordType == (Record::RecordType) *fetchedRecordType) {
 
-                    Record::Shared record;
+                    shared_ptr<T> record;
 
                     if (recordType == Record::RecordType::TrustLineRecordType) {
 
@@ -113,6 +115,10 @@ namespace db {
 
             }
 
+            if (!records.empty()) {
+                return records;
+            }
+
             throw RuntimeError("OperationsHistoryStorage::recordsStack. "
                                    "Can't complete operation.");
         }
@@ -150,9 +156,9 @@ namespace db {
                         return reverseOffset;
                     }
 
-                }
+                    typesMatchingCounter += 1;
 
-                typesMatchingCounter += 1;
+                }
 
             }
 

@@ -308,6 +308,7 @@ void IncomingMessagesHandler::tryCollectPacket(
         cutPacketFromBuffer(*bytesCount);
 
         tryCollectMessage(
+            channelAndEndpoint.second,
             packet->header()->channelNumber(),
             channelAndEndpoint.first
         );
@@ -315,6 +316,7 @@ void IncomingMessagesHandler::tryCollectPacket(
 }
 
 void IncomingMessagesHandler::tryCollectMessage(
+    udp::endpoint endpoint,
     uint16_t channelNumber,
     Channel::Shared channel) {
 
@@ -326,15 +328,21 @@ void IncomingMessagesHandler::tryCollectMessage(
                 bytesAndCount.second
             );
             if (resultAndMessage.first) {
-                mChannelsManager->removeIncomingChannel(channelNumber);
+                mChannelsManager->removeIncomingChannel(
+                    endpoint,
+                    channelNumber);
                 messageParsedSignal(resultAndMessage.second);
 
             } else {
-                mChannelsManager->removeIncomingChannel(channelNumber);
+                mChannelsManager->removeIncomingChannel(
+                    endpoint,
+                    channelNumber);
             }
 
         } else {
-            mChannelsManager->removeIncomingChannel(channelNumber);
+            mChannelsManager->removeIncomingChannel(
+                endpoint,
+                channelNumber);
         }
     }
 }

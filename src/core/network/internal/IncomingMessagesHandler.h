@@ -93,6 +93,7 @@ private:
         udp::endpoint &clientEndpoint);
 
     void tryCollectMessage(
+        udp::endpoint endpoint,
         uint16_t channelNumber,
         Channel::Shared channel);
 
