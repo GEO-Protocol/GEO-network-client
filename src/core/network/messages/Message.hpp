@@ -33,6 +33,8 @@ public:
         FirstLevelRoutingTableIncomingMessageType,
         SecondLevelRoutingTableOutgoingMessageType,
         SecondLevelRoutingTableIncomingMessageType,
+        RoutingTableUpdateOutgoingMessageType,
+        RoutingTableUpdateIncomingMessageType,
         InBetweenNodeTopologyMessage,
         BoundaryNodeTopologyMessage,
         Payments_ReceiverInitPayment,
@@ -125,8 +127,6 @@ public:
     }
 
 protected:
-    Message() {};
-
     virtual void deserializeFromBytes(
         BytesShared buffer) {
 

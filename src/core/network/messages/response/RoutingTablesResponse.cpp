@@ -2,7 +2,7 @@
 
 RoutingTablesResponse::RoutingTablesResponse(
     const NodeUUID &sender,
-    uint16_t code) :
+    const uint16_t code) :
 
     SenderMessage(sender) {
 
@@ -13,6 +13,11 @@ RoutingTablesResponse::RoutingTablesResponse(
     BytesShared buffer) {
 
     deserializeFromBytes(buffer);
+}
+
+const bool RoutingTablesResponse::isRoutingTableResponseMessage() const {
+
+    return true;
 }
 
 const Message::MessageType RoutingTablesResponse::typeID() const {

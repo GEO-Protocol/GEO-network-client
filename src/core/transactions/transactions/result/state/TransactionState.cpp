@@ -80,7 +80,7 @@ TransactionState::SharedConst TransactionState::awakeAfterMilliseconds(
  */
 TransactionState::SharedConst TransactionState::waitForMessageTypes(
     vector<Message::MessageTypeID> &&requiredMessageType,
-    uint16_t noLongerThanMilliseconds) {
+    uint32_t noLongerThanMilliseconds) {
 
     TransactionState::Shared state;
     if (noLongerThanMilliseconds == 0) {

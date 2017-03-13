@@ -7,13 +7,16 @@
 
 #include "../../../common/exceptions/IndexError.h"
 #include "../../../common/exceptions/MemoryError.h"
+#include "../../../common/exceptions/ConflictError.h"
 
 #include <boost/asio.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/bind.hpp>
 
-#include <cstdint>
 #include <map>
 #include <memory>
+#include <chrono>
+#include <cstdint>
 
 using namespace std;
 using namespace boost::asio::ip;
@@ -23,8 +26,6 @@ class ChannelsManager {
 public:
     ChannelsManager(
         as::io_service &ioService);
-
-    ~ChannelsManager();
 
     pair<Channel::Shared, udp::endpoint> incomingChannel(
         uint16_t number,
@@ -44,24 +45,24 @@ private:
         uint16_t number,
         udp::endpoint endpoint);
 
+    void unusedOutgoingChannelNumber();
+
     Channel::Shared createOutgoingChannel(
         uint16_t number,
         udp::endpoint endpoint);
-
-    uint16_t unusedOutgoingChannelNumber();
 
     void removeDeprecatedIncomingChannels();
 
     void handleIncomingChannelsCollector(
         const boost::system::error_code &error);
 
-    static const Duration kIncomingChannelsCollectorTimeout();
+    static const chrono::hours kIncomingChannelsCollectorTimeout();
 
     static const Duration kIncomingChannelKeepAliveTimeout();
 
 private:
     as::io_service &mIOService;
-    unique_ptr<as::deadline_timer> mProcessingTimer;
+    unique_ptr<as::steady_timer> mProcessingTimer;
 
     // <number, channel>
     unique_ptr<map<uint16_t, Channel::Shared>> mIncomingChannels;
@@ -70,6 +71,8 @@ private:
     // <number, endpoint>
     unique_ptr<map<uint16_t, udp::endpoint>> mIncomingEndpoints;
     unique_ptr<map<uint16_t, udp::endpoint>> mOutgoingEndpoints;
+
+    uint16_t mNextOutgoingChannelNumber = 0;
 };
 
 

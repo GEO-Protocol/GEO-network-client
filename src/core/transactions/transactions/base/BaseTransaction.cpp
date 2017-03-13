@@ -3,21 +3,30 @@
 BaseTransaction::BaseTransaction(
     const BaseTransaction::TransactionType type) :
 
-    mType(type) {}
+    mType(type) {
+
+    mFileLogger = unique_ptr<FileLogger>(new FileLogger);
+}
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID) :
 
     mType(type),
-    mTransactionUUID(transactionUUID) {}
+    mTransactionUUID(transactionUUID) {
+
+    mFileLogger = unique_ptr<FileLogger>(new FileLogger);
+}
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const NodeUUID &nodeUUID) :
 
     mType(type),
-    mNodeUUID(nodeUUID) {}
+    mNodeUUID(nodeUUID) {
+
+    mFileLogger = unique_ptr<FileLogger>(new FileLogger);
+}
 
 void BaseTransaction::addMessage(
     Message::Shared message,
@@ -26,6 +35,14 @@ void BaseTransaction::addMessage(
     outgoingMessageIsReadySignal(
         message,
         nodeUUID
+    );
+}
+
+void BaseTransaction::launchSubsidiaryTransaction(
+    BaseTransaction::Shared transaction) {
+
+    runSubsidiaryTransactionSignal(
+        transaction
     );
 }
 
@@ -174,6 +191,13 @@ TransactionResult::SharedConst BaseTransaction::transactionResultFromState(
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setTransactionState(state);
     return TransactionResult::SharedConst(transactionResult);
+}
+
+TransactionResult::SharedConst BaseTransaction::finishTransaction() {
+
+    return make_shared<const TransactionResult>(
+        TransactionState::exit()
+    );
 }
 
 const string BaseTransaction::logHeader() const

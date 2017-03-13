@@ -15,6 +15,7 @@
 #include "../messages/incoming/trust_lines/RejectTrustLineMessage.h"
 #include "../messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 #include "../messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
+#include "../messages/incoming/routing_tables/RoutingTableUpdateIncomingMessage.h"
 #include "../messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
 #include "../messages/incoming/max_flow_calculation/MaxFlowCalculationSourceFstLevelInMessage.h"
 #include "../messages/incoming/max_flow_calculation/MaxFlowCalculationTargetFstLevelInMessage.h"

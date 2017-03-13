@@ -18,6 +18,11 @@ Response::Response(
     deserializeFromBytes(buffer);
 }
 
+const bool Response::isTransactionMessage() const {
+
+    return true;
+}
+
 const Message::MessageType Response::typeID() const {
 
     return Message::MessageTypeID::ResponseMessageType;

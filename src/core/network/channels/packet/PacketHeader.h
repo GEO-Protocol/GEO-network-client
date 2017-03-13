@@ -24,8 +24,6 @@ public:
                  const uint16_t totalPacketsCount,
                  const uint16_t bytesCount);
 
-    ~PacketHeader();
-
     const uint16_t channelNumber() const;
 
     const uint16_t packetNumber() const;

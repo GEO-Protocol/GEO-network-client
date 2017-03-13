@@ -170,8 +170,7 @@ TransactionResult::SharedConst SetTrustLineTransaction::checkTransactionContext(
 
     } else {
         throw ConflictError("SetTrustLineTransaction::checkTransactionContext: "
-                                "Transaction waiting responses count " + to_string(kResponsesCount) +
-                                " has " + to_string(mContext.size())
+                                "Unexpected context size."
         );
     }
 }

@@ -1,18 +1,20 @@
-#include "FromInitiatorToContractorRoutingTablePropagationTransaction.h"
+#include "FromInitiatorToContractorRoutingTablesPropagationTransaction.h"
 
-FromInitiatorToContractorRoutingTablePropagationTransaction::FromInitiatorToContractorRoutingTablePropagationTransaction(
+FromInitiatorToContractorRoutingTablesPropagationTransaction::FromInitiatorToContractorRoutingTablesPropagationTransaction(
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,
     TrustLinesManager *trustLinesManager) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        nodeUUID,
-        contractorUUID
+        nodeUUID
     ),
-    mTrustLinesManager(trustLinesManager) {}
+    mTrustLinesManager(trustLinesManager) {
 
-FromInitiatorToContractorRoutingTablePropagationTransaction::FromInitiatorToContractorRoutingTablePropagationTransaction(
+    mContractorsUUIDs.push_back(contractorUUID);
+}
+
+FromInitiatorToContractorRoutingTablesPropagationTransaction::FromInitiatorToContractorRoutingTablesPropagationTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLinesManager) :
 
@@ -22,7 +24,7 @@ FromInitiatorToContractorRoutingTablePropagationTransaction::FromInitiatorToCont
     ),
     mTrustLinesManager(trustLinesManager) {}
 
-TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationTransaction::run() {
+TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagationTransaction::run() {
 
     switch (mStep) {
 
@@ -43,53 +45,52 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
         }
 
         default: {
-            throw ConflictError("FromInitiatorToContractorRoutingTablePropagationTransaction::run: "
+            throw ConflictError("FromInitiatorToContractorRoutingTablesPropagationTransaction::run: "
                                     "Illegal step execution.");
         }
 
     }
 }
 
-pair<bool, TransactionResult::SharedConst> FromInitiatorToContractorRoutingTablePropagationTransaction::checkContext() {
+pair<bool, TransactionResult::SharedConst> FromInitiatorToContractorRoutingTablesPropagationTransaction::checkContext() {
 
     if (mExpectationResponsesCount == mContext.size()) {
 
         for (const auto& responseMessage : mContext) {
+
             if (responseMessage->typeID() != Message::MessageTypeID::RoutingTablesResponseMessageType) {
-                throw ConflictError("FromInitiatorToContractorRoutingTablePropagationTransaction::checkContext: "
+                throw ConflictError("FromInitiatorToContractorRoutingTablesPropagationTransaction::checkContext: "
                                         "Illegal message type in context.");
             }
+
             RoutingTablesResponse::Shared response = static_pointer_cast<RoutingTablesResponse>(responseMessage);
-            if (response->code() != 200) {
+            if (response->code() != kResponseCodeSuccess) {
                 return make_pair(
                     false,
                     TransactionResult::Shared(nullptr)
                 );
             }
-        }
 
-        MessageResult::Shared messageResult = MessageResult::Shared(
-            new MessageResult(
-                mContractorUUID,
-                mTransactionUUID,
-                200
-            )
-        );
+        }
 
         return make_pair(
             true,
-            transactionResultFromMessage(messageResult)
+            transactionResultFromMessage(
+                make_shared<MessageResult>(
+                    *mContractorsUUIDs.begin(),
+                    mTransactionUUID,
+                    kResponseCodeSuccess
+                )
+            )
         );
 
     } else {
-        throw ConflictError("FromInitiatorToContractorRoutingTablePropagationTransaction::checkContext: "
-                                "Transaction waiting responses count " + to_string(1) +
-                                " has " + to_string(mContext.size())
-        );
+        throw ConflictError("FromInitiatorToContractorRoutingTablesPropagationTransaction::checkContext: "
+                                "Unexpected context size.");
     }
 }
 
-TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationTransaction::propagateFirstLevelRoutingTable() {
+TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagationTransaction::propagateFirstLevelRoutingTable() {
 
     if (!isContractorsCountEnoughForRoutingTablesPropagation()) {
         return finishTransaction();
@@ -97,6 +98,7 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
 
     if (!mContext.empty()) {
         auto flagAndResult = checkContext();
+
         if (flagAndResult.first) {
             return flagAndResult.second;
 
@@ -109,20 +111,22 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
     }
 }
 
-bool FromInitiatorToContractorRoutingTablePropagationTransaction::isContractorsCountEnoughForRoutingTablesPropagation() {
+bool FromInitiatorToContractorRoutingTablesPropagationTransaction::isContractorsCountEnoughForRoutingTablesPropagation() {
 
     return mTrustLinesManager->trustLines().size() > 1;
 }
 
-TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationTransaction::trySendFirstLevelRoutingTable() {
+TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagationTransaction::trySendFirstLevelRoutingTable() {
 
     setExpectationResponsesCounter(1);
 
     if (mRequestCounter < kMaxRequestsCount) {
         sendFirstLevelRoutingTable();
+
         if (mRequestCounter > 0) {
             progressConnectionTimeout();
         }
+
         increaseRequestsCounter();
 
     } else {
@@ -131,13 +135,16 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
     return waitingForRoutingTablePropagationResponse();
 }
 
-void FromInitiatorToContractorRoutingTablePropagationTransaction::sendFirstLevelRoutingTable() {
+void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendFirstLevelRoutingTable() {
 
     FirstLevelRoutingTableOutgoingMessage::Shared firstLevelMessage = make_shared<FirstLevelRoutingTableOutgoingMessage>(mNodeUUID);
+    firstLevelMessage->setPropagationStep(
+        RoutingTablesMessage::PropagationStep::FromInitiatorToContractor);
 
     vector<pair<const NodeUUID, const TrustLineDirection>> neighborsAndDirections;
     for (const auto &contractorAndTrustLine : mTrustLinesManager->trustLines()) {
-        if (mContractorUUID == contractorAndTrustLine.first) {
+
+        if (mContractorsUUIDs[0] == contractorAndTrustLine.first) {
             continue;
         }
 
@@ -147,6 +154,7 @@ void FromInitiatorToContractorRoutingTablePropagationTransaction::sendFirstLevel
                 mTrustLinesManager->trustLine(contractorAndTrustLine.first)->direction()
             )
         );
+
     }
 
     firstLevelMessage->pushBack(
@@ -157,14 +165,15 @@ void FromInitiatorToContractorRoutingTablePropagationTransaction::sendFirstLevel
     Message::Shared message = dynamic_pointer_cast<Message>(firstLevelMessage);
     addMessage(
         message,
-        mContractorUUID
+        mContractorsUUIDs[0]
     );
 }
 
-TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationTransaction::propagateSecondLevelRoutingTable() {
+TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagationTransaction::propagateSecondLevelRoutingTable() {
 
     if (!mContext.empty()) {
         auto flagAndResult = checkContext();
+
         if (flagAndResult.first) {
             return flagAndResult.second;
 
@@ -177,15 +186,17 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
     }
 }
 
-TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationTransaction::trySendSecondLevelRoutingTable() {
+TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagationTransaction::trySendSecondLevelRoutingTable() {
 
     setExpectationResponsesCounter(1);
 
     if (mRequestCounter < kMaxRequestsCount) {
         sendSecondLevelRoutingTable();
+
         if (mRequestCounter > 0) {
             progressConnectionTimeout();
         }
+
         increaseRequestsCounter();
 
     } else {
@@ -194,7 +205,7 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
     return waitingForRoutingTablePropagationResponse();
 }
 
-void FromInitiatorToContractorRoutingTablePropagationTransaction::sendSecondLevelRoutingTable() {
+void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendSecondLevelRoutingTable() {
 
     SecondLevelRoutingTableOutgoingMessage::Shared secondLevelMessage = make_shared<SecondLevelRoutingTableOutgoingMessage>(mNodeUUID);
 
@@ -202,21 +213,27 @@ void FromInitiatorToContractorRoutingTablePropagationTransaction::sendSecondLeve
 
 #ifdef DEBUG
     for (size_t i = 0; i < 10; ++ i) {
-        NodeUUID neighbor;
+        NodeUUID secondLevelContractor;
         TrustLineDirection direction;
+
+        srand(
+            time(NULL));
 
         int randomValue = rand() % 2;
         switch (randomValue) {
             case 0: {
                 direction = TrustLineDirection::Outgoing;
+                break;
             }
 
             case 1: {
                 direction = TrustLineDirection::Incoming;
+                break;
             }
 
             case 2: {
                 direction = TrustLineDirection::Both;
+                break;
             }
 
             default: {
@@ -226,26 +243,28 @@ void FromInitiatorToContractorRoutingTablePropagationTransaction::sendSecondLeve
 
         neighborsAndDirections.push_back(
             make_pair(
-                neighbor,
+                secondLevelContractor,
                 direction
             )
         );
+
     }
 #endif
 
+    NodeUUID randomFirstLevelNeighbor;
     secondLevelMessage->pushBack(
-        mNodeUUID,
+        randomFirstLevelNeighbor,
         neighborsAndDirections
     );
 
     Message::Shared message = dynamic_pointer_cast<Message>(secondLevelMessage);
     addMessage(
         message,
-        mContractorUUID
+        mContractorsUUIDs[0]
     );
 }
 
-TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationTransaction::waitingForRoutingTablePropagationResponse() {
+TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagationTransaction::waitingForRoutingTablePropagationResponse() {
 
 
     return transactionResultFromState(
@@ -256,7 +275,7 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablePropagationT
     );
 }
 
-void FromInitiatorToContractorRoutingTablePropagationTransaction::prepareToNextStep() {
+void FromInitiatorToContractorRoutingTablesPropagationTransaction::prepareToNextStep() {
 
     resetRequestsCounter();
     restoreStandardConnectionTimeout();

@@ -6,6 +6,7 @@
 #include "../../../common/Types.h"
 #include "../../../common/NodeUUID.h"
 #include "../../../common/memory/MemoryUtils.h"
+#include "../../../logger/FileLogger.h"
 
 #include "../../../network/messages/Message.hpp"
 #include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
@@ -32,6 +33,7 @@ public:
     typedef shared_ptr<BaseTransaction> Shared;
     typedef uint16_t SerializedTransactionType;
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
+    typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
 
 public:
     enum TransactionType {
@@ -43,6 +45,9 @@ public:
         RejectTrustLineTransactionType,
         PropagationRoutingTablesTransactionType,
         AcceptRoutingTablesTransactionType,
+        RoutingTablesUpdatesFactoryTransactionType,
+        PropagateRoutingTablesUpdatesTransactionType,
+        AcceptRoutingTablesUpdatesTransactionType,
         GetTopologyAndBalancesTransaction,
 
         // Payments
@@ -89,6 +94,9 @@ protected:
         Message::Shared message,
         const NodeUUID &nodeUUID);
 
+    void launchSubsidiaryTransaction(
+      BaseTransaction::Shared transaction);
+
     void increaseStepsCounter();
 
     void resetStepsCounter();
@@ -114,10 +122,13 @@ protected:
     TransactionResult::SharedConst transactionResultFromState(
         TransactionState::SharedConst state);
 
+    TransactionResult::SharedConst finishTransaction();
+
     virtual const string logHeader() const;
 
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
+    mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
 
 protected:
     TransactionType mType;
@@ -128,6 +139,8 @@ protected:
     vector<Message::Shared> mContext;
 
     uint16_t mStep = 1;
+
+    unique_ptr<FileLogger> mFileLogger;
 };
 
 

@@ -155,7 +155,7 @@ void TransactionsManager::processCommand(
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
-                "unexpected command identifier.");
+                "Unexpected command identifier.");
     }
 }
 
@@ -176,8 +176,12 @@ void TransactionsManager::processMessage(
             static_pointer_cast<UpdateTrustLineMessage>(message));
 
     } else if (message->typeID() == Message::MessageTypeID::FirstLevelRoutingTableIncomingMessageType) {
-        launchAcceptFromInitiatorToContractorRoutingTablesTransaction(
+        launchAcceptRoutingTablesTransaction(
             static_pointer_cast<FirstLevelRoutingTableIncomingMessage>(message));
+
+    } else if (message->typeID() == Message::MessageTypeID::RoutingTableUpdateIncomingMessageType) {
+        launchAcceptRoutingTablesUpdatesTransaction(
+            static_pointer_cast<RoutingTableUpdateIncomingMessage>(message));
 
     } else if (message->typeID() == Message::MessageTypeID::ReceiveMaxFlowCalculationOnTargetMessageType) {
         launchReceiveMaxFlowCalculationTransaction(
@@ -377,7 +381,7 @@ void TransactionsManager::launchFromInitiatorToContractorRoutingTablePropagation
 
     try {
 
-        auto transaction = make_shared<FromInitiatorToContractorRoutingTablePropagationTransaction>(
+        auto transaction = make_shared<FromInitiatorToContractorRoutingTablesPropagationTransaction>(
             mNodeUUID,
             contractorUUID,
             mTrustLines
@@ -397,15 +401,60 @@ void TransactionsManager::launchFromInitiatorToContractorRoutingTablePropagation
     }
 }
 
-void TransactionsManager::launchAcceptFromInitiatorToContractorRoutingTablesTransaction(
+void TransactionsManager::launchAcceptRoutingTablesTransaction(
     FirstLevelRoutingTableIncomingMessage::Shared message) {
 
     try {
 
-        auto transaction = make_shared<FromInitiatorToContractorRoutingTablesAcceptTransaction>(
-            mNodeUUID,
-            message
-        );
+        BaseTransaction::Shared transaction;
+
+        switch(message->propagationStep()) {
+
+            case RoutingTablesMessage::PropagationStep::FromInitiatorToContractor: {
+
+                transaction = dynamic_pointer_cast<BaseTransaction>(
+                    make_shared<FromInitiatorToContractorRoutingTablesAcceptTransaction>(
+                        mNodeUUID,
+                        message,
+                        mTrustLines
+                    )
+                );
+                break;
+            }
+
+            case RoutingTablesMessage::PropagationStep::FromContractorToFirstLevel: {
+
+                transaction = dynamic_pointer_cast<BaseTransaction>(
+                    make_shared<FromContractorToFirstLevelRoutingTablesAcceptTransaction>(
+                        mNodeUUID,
+                        message,
+                        mTrustLines
+                    )
+                );
+                break;
+            }
+
+            case RoutingTablesMessage::PropagationStep::FromFirstLevelToSecondLevel: {
+
+                transaction = dynamic_pointer_cast<BaseTransaction>(
+                    make_shared<FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction>(
+                        mNodeUUID,
+                        message
+                    )
+                );
+                break;
+            }
+
+            default: {
+                throw ValueError(
+                    "TransactionsManager::launchAcceptRoutingTablesTransaction: "
+                        "Unexpected routing table propagation step.");
+            }
+
+        }
+
+        subscribeForSubsidiaryTransactions(
+            transaction->runSubsidiaryTransactionSignal);
 
         subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
@@ -415,9 +464,50 @@ void TransactionsManager::launchAcceptFromInitiatorToContractorRoutingTablesTran
 
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchAcceptFromInitiatorToContractorRoutingTablesTransaction: "
+            "TransactionsManager::launchAcceptRoutingTablesTransaction: "
                 "can't allocate memory for transaction instance.");
     }
+}
+
+void TransactionsManager::launchRoutingTablesUpdatingTransactionsFactory(
+    const NodeUUID &contractorUUID,
+    const TrustLineDirection direction) {
+
+    auto transaction = dynamic_pointer_cast<BaseTransaction>(
+        make_shared<RoutingTablesUpdateTransactionsFactory>(
+            mNodeUUID,
+            contractorUUID,
+            direction,
+            mTrustLines));
+
+    subscribeForSubsidiaryTransactions(
+        transaction->runSubsidiaryTransactionSignal);
+
+    subscribeForOutgoingMessages(
+        transaction->outgoingMessageIsReadySignal);
+
+    mScheduler->postponeTransaction(
+        transaction,
+        5000);
+}
+
+void TransactionsManager::launchAcceptRoutingTablesUpdatesTransaction(
+    RoutingTableUpdateIncomingMessage::Shared message) {
+
+    auto transaction = dynamic_pointer_cast<BaseTransaction>(
+        make_shared<AcceptRoutingTablesUpdatesTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines));
+
+    subscribeForSubsidiaryTransactions(
+        transaction->runSubsidiaryTransactionSignal);
+
+    subscribeForOutgoingMessages(
+        transaction->outgoingMessageIsReadySignal);
+
+    mScheduler->scheduleTransaction(
+        transaction);
 }
 
 /*!
@@ -710,6 +800,18 @@ void TransactionsManager::launchGetTopologyAndBalancesTransaction(){
     }
 }
 
+void TransactionsManager::subscribeForSubsidiaryTransactions(
+    BaseTransaction::LaunchSubsidiaryTransactionSignal &signal) {
+
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onSubsidiaryTransactionReady,
+            this,
+            _1
+        )
+    );
+}
+
 void TransactionsManager::subscribeForOutgoingMessages(
     BaseTransaction::SendMessageSignal &signal) {
 
@@ -718,7 +820,8 @@ void TransactionsManager::subscribeForOutgoingMessages(
             &TransactionsManager::onTransactionOutgoingMessageReady,
             this,
             _1,
-            _2)
+            _2
+        )
     );
 }
 
@@ -769,4 +872,21 @@ void TransactionsManager::onCommandResultReady(
             "TransactionsManager::onCommandResultReady: "
                 "Error occurred when command result has accepted");
     }
+}
+
+void TransactionsManager::onSubsidiaryTransactionReady(
+    BaseTransaction::Shared transaction) {
+
+    subscribeForSubsidiaryTransactions(
+        transaction->runSubsidiaryTransactionSignal
+    );
+
+    subscribeForOutgoingMessages(
+        transaction->outgoingMessageIsReadySignal
+    );
+
+    mScheduler->postponeTransaction(
+        transaction,
+        5000
+    );
 }

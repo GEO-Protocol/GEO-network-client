@@ -8,8 +8,6 @@ Packet::Packet(
     mBytes(bytes){
 }
 
-Packet::~Packet() {}
-
 PacketHeader::SharedConst Packet::header() const {
 
     return mPacketHeader;
@@ -22,25 +20,26 @@ ConstBytesShared Packet::body() const {
 
 vector<byte> Packet::packetBytes() const {
 
-    BytesShared packetBytes = tryCalloc(mPacketHeader->packetBytesCount());
+    BytesShared packetBytes = tryCalloc(
+        mPacketHeader->packetBytesCount());
+
     size_t packetBytesOffset = 0;
     //----------------------------------------------
     memcpy(
         packetBytes.get(),
         const_cast<byte *> (mPacketHeader->bytes().first.get()),
-        PacketHeader::kHeaderSize
-    );
+        PacketHeader::kHeaderSize);
     packetBytesOffset += PacketHeader::kHeaderSize;
     //----------------------------------------------
     memcpy(
         packetBytes.get() + packetBytesOffset,
         mBytes.get(),
-        mPacketHeader->bodyBytesCount()
-    );
+        mPacketHeader->bodyBytesCount());
     //----------------------------------------------
     vector<byte> bytes;
     for (size_t i = 0; i < mPacketHeader->packetBytesCount(); ++i) {
-        bytes.push_back(packetBytes.get()[i]);
+        bytes.push_back(
+            packetBytes.get()[i]);
     }
 
     return bytes;

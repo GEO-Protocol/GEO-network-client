@@ -7,10 +7,12 @@
 #include "../../../../common/NodeUUID.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../scheduler/TransactionsScheduler.h"
 
 #include <stdint.h>
 #include <utility>
+#include <vector>
+
+using namespace std;
 
 class RoutingTablesTransaction : public BaseTransaction {
 
@@ -23,17 +25,23 @@ public:
 public:
     const NodeUUID &contractorUUID() const;
 
+    const vector<NodeUUID> &contractorsUUIDs() const;
+
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
 protected:
     RoutingTablesTransaction(
         const TransactionType type,
-        const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID);
+        BytesShared buffer);
 
     RoutingTablesTransaction(
         const TransactionType type,
-        BytesShared buffer);
+        const NodeUUID &nodeUUID);
+
+    RoutingTablesTransaction(
+        const TransactionType type,
+        const NodeUUID &nodeUUID,
+        const NodeUUID &contractorUUID);
 
     void increaseRequestsCounter();
 
@@ -43,22 +51,22 @@ protected:
 
     void restoreStandardConnectionTimeout();
 
-    TransactionResult::SharedConst finishTransaction();
-
     virtual void deserializeFromBytes(
         BytesShared buffer);
 
     static const size_t kOffsetToDataBytes();
 
 protected:
+    const uint16_t kResponseCodeSuccess = 200;
     const uint16_t kMaxRequestsCount = 5;
-    const uint16_t kConnectionProgression = 2;
-    const uint16_t kStandardConnectionTimeout = 20000;
+    const uint8_t kConnectionProgression = 2;
+    const uint32_t kStandardConnectionTimeout = 20000;
 
     uint16_t mRequestCounter = 0;
-    uint16_t mConnectionTimeout = kStandardConnectionTimeout;
+    uint32_t mConnectionTimeout = kStandardConnectionTimeout;
 
     NodeUUID mContractorUUID;
+    vector<NodeUUID> mContractorsUUIDs;
 };
 
 

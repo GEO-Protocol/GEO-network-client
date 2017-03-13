@@ -34,6 +34,7 @@ class TrustLinesManager {
 
 public:
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineCreatedSignal;
+    signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineStateModifiedSignal;
 
 public:
     TrustLinesManager(Logger *logger);
@@ -118,8 +119,11 @@ public:
 
     map<NodeUUID, TrustLine::Shared> &trustLines();
 
-    vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(TrustLineBalance maxflow);
+    vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(
+        TrustLineBalance maxFlow);
+
     void setSomeBalances();
+
 private:
     static const size_t kTrustAmountPartSize = 32;
     static const size_t kBalancePartSize = 32;

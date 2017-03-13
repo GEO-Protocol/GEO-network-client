@@ -78,6 +78,15 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
+        case Message::RoutingTableUpdateOutgoingMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<RoutingTableUpdateIncomingMessage>(messagePart)
+                )
+            );
+        }
+
         case Message::Payments_ReceiverInitPayment: {
             return make_pair(
                 true,

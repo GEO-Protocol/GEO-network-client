@@ -81,6 +81,20 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
             }
         }
 
+        if (message->isRoutingTableResponseMessage()) {
+
+            for (const auto &contractor : static_pointer_cast<RoutingTablesTransaction>(transactionAndState.first)->contractorsUUIDs()) {
+                if (static_pointer_cast<RoutingTablesMessage>(message)->senderUUID() != contractor) {
+                    continue;
+
+                } else {
+                    break;
+                }
+            }
+
+
+        }
+
         for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
             if (message->typeID() != messageType) {
                 continue;
