@@ -1,18 +1,17 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 #define GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 
-#include "../../base/BaseTransaction.h"
-#include "../../../../common/time/TimeUtils.h"
-#include "../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../logger/Logger.h"
 
-#include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
-#include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentMessage.h"
-#include "../../../../network/messages/outgoing/payments/ReceiverApproveMessage.h"
+#include "base/BasePaymentTransaction.h"
+
+#include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
+#include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
+#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
+#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
 
 
 class ReceiverPaymentTransaction:
-    public BaseTransaction {
+    public BasePaymentTransaction {
 
 public:
     typedef shared_ptr<ReceiverPaymentTransaction> Shared;
@@ -20,7 +19,8 @@ public:
 
 public:
     ReceiverPaymentTransaction(
-        ReceiverInitPaymentMessage::Shared message,
+        const NodeUUID &currentNodeUUID,
+        ReceiverInitPaymentRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
         Logger *log);
 
@@ -34,9 +34,13 @@ public:
     pair<BytesShared, size_t> serializeToBytes();
 
 protected:
-    // Stages handlers
+    enum Stages {
+        CoordinatorRequestApprooving = 1,
+        AmountReservationsProcessing,
+    };
+
     TransactionResult::Shared initOperation();
-//    TransactionResult::Shared processAmountBlockingStage();
+    TransactionResult::Shared processAmountReservationStage();
 
 private:
     void deserializeFromBytes(
@@ -45,8 +49,7 @@ private:
     const string logHeader() const;
 
 protected:
-    ReceiverInitPaymentMessage::Shared mMessage;
-    TrustLinesManager *mTrustLines;
+    ReceiverInitPaymentRequestMessage::ConstShared mMessage;
     Logger *mLog;
 };
 

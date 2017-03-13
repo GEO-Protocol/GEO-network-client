@@ -67,6 +67,7 @@ void TransactionsScheduler::killTransaction(
 void TransactionsScheduler::tryAttachMessageToTransaction(
     Message::Shared message) {
 
+    // TODO: check the message type before the loop
     for (auto const &transactionAndState : *mTransactions) {
 
         if (message->isTransactionMessage()) {
@@ -106,7 +107,7 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
         }
     }
 
-    throw ValueError(
+    throw NotFoundError(
         "TransactionsScheduler::handleMessage: "
             "invalid/unexpected message/response received");
 }

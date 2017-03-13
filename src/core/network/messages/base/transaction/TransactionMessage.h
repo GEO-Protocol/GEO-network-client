@@ -31,6 +31,9 @@ protected:
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID);
 
+    TransactionMessage(
+        BytesShared bufer);
+
     virtual const MessageType typeID() const = 0;
 
     virtual pair<BytesShared, size_t> serializeToBytes();

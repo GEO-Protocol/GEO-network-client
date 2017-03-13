@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_TRUSTLINE_H
+﻿#ifndef GEO_NETWORK_CLIENT_TRUSTLINE_H
 #define GEO_NETWORK_CLIENT_TRUSTLINE_H
 
 #include "../common/Types.h"
@@ -20,7 +20,10 @@ using namespace std;
 class TrustLine {
 public:
     typedef shared_ptr<TrustLine> Shared;
+
+    [[deprecated]]
     typedef shared_ptr<const TrustLine> SharedConst;
+    typedef shared_ptr<const TrustLine> ConstShared;
 
 public:
     TrustLine(

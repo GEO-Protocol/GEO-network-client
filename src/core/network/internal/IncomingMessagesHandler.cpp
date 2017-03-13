@@ -94,16 +94,36 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                     make_shared<ReceiverInitPaymentMessage>(messagePart)
                 )
             );
-        }
-        case Message::Payments_ReceiverApprove: {
-            return make_pair(
-                true,
-                static_pointer_cast<Message>(
-                    make_shared<ReceiverApproveMessage>(messagePart)
-                )
-            );
+        /*
+         * Payment operations messages
+         */
+        case Message::Payments_CoordinatorReservationRequest: {
+            return messageCollected<CoordinatorReservationRequestMessage>(messagePart);
         }
 
+        case Message::Payments_CoordinatorReservationResponse: {
+            return messageCollected<CoordinatorReservationResponseMessage>(messagePart);
+        }
+
+        case Message::Payments_ReceiverInitPaymentRequest: {
+            return messageCollected<ReceiverInitPaymentRequestMessage>(messagePart);
+        }
+
+        case Message::Payments_ReceiverInitPaymentResponse: {
+            return messageCollected<ReceiverInitPaymentResponseMessage>(messagePart);
+        }
+
+        case Message::Payments_IntermediateNodeReservationRequest: {
+            return messageCollected<IntermediateNodeReservationRequestMessage>(messagePart);
+        }
+
+        case Message::Payments_IntermediateNodeReservationResponse: {
+            return messageCollected<IntermediateNodeReservationResponseMessage>(messagePart);
+        }
+
+        /*
+         * Cycles processing messages
+         */
         case Message::InBetweenNodeTopologyMessage: {
             return make_pair(
                 true,
@@ -122,6 +142,9 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
+        /*
+         * Max flow calculation messages
+         */
         case Message::InitiateMaxFlowCalculationMessageType: {
             return make_pair(
                 true,
@@ -221,7 +244,17 @@ pair<bool, Message::Shared> MessagesParser::messageInvalidOrIncomplete() {
     return make_pair(
         false,
         Message::Shared(nullptr)
-    );
+                );
+}
+
+template <class CollectedMessageType>
+pair<bool, Message::Shared> MessagesParser::messageCollected(
+    CollectedMessageType message) const
+{
+    return make_pair(
+        true,
+        static_pointer_cast<Message>(
+            make_shared<CollectedMessageType>(message)));
 }
 
 

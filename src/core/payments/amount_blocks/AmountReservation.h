@@ -1,4 +1,4 @@
-#ifndef GEO_NETWORK_CLIENT_AMOUNTBLOCK_H
+﻿#ifndef GEO_NETWORK_CLIENT_AMOUNTBLOCK_H
 #define GEO_NETWORK_CLIENT_AMOUNTBLOCK_H
 
 #include "../../common/Types.h"
@@ -15,12 +15,20 @@ public:
     typedef shared_ptr<const AmountReservation> ConstShared;
 
 public:
+    enum ReservationDirection {
+        Outgoing,
+        Incoming
+    };
+
+public:
     AmountReservation(
         const TransactionUUID &transactionUUID,
-        const TrustLineAmount &amount);
+        const TrustLineAmount &amount,
+        const ReservationDirection direction);
 
     const TrustLineAmount& amount() const;
     const TransactionUUID& transactionUUID() const;
+    const ReservationDirection direction() const;
 
     void operator= (const AmountReservation &rhs);
     bool operator==(const AmountReservation &rhs) const;
@@ -29,6 +37,7 @@ public:
 protected:
     TrustLineAmount mBlockedAmount;
     TransactionUUID mTransactionUUID;
+    ReservationDirection mDirection;
 };
 
 

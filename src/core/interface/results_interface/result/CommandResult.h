@@ -20,10 +20,6 @@ public:
     enum CommandResultCode {
         OK = 200,
 
-        ProtocolError = 401,
-        RemoteNodeIsInaccessible = 444,
-        NoPaths = 462,
-
         // todo: add codes from specification
     };
 
