@@ -82,12 +82,11 @@ inline vector<byte> trustLineBalanceToBytes(
 
     if (isSignNegative) {
         buffer.push_back(1);
+        balance = balance * -1;
 
     } else {
         buffer.push_back(0);
     }
-
-    balance = balance * -1;
 
     return buffer;
 }
