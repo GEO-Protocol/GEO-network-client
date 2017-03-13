@@ -50,13 +50,26 @@ void BaseTransaction::addMessage(
         nodeUUID);
 }
 
-void BaseTransaction::sendMessage(
-    Message::Shared message,
-    const NodeUUID& nodeUUID)
+TransactionResult::Shared BaseTransaction::resultExit()
 {
-    outgoingMessageIsReadySignal(
-        message,
-        nodeUUID);
+    return make_shared<TransactionResult>(
+        TransactionState::exit());
+}
+
+TransactionResult::Shared BaseTransaction::resultFlushAndContinue()
+{
+    return make_shared<TransactionResult>(
+        TransactionState::flushAndContinue());
+}
+
+TransactionResult::Shared BaseTransaction::resultWaitForMessageTypes(
+    vector<Message::MessageTypeID> &&requiredMessagesTypes,
+    uint16_t noLongerThanMilliseconds)
+{
+    return make_shared<TransactionResult>(
+        TransactionState::waitForMessageTypes(
+            move(requiredMessagesTypes),
+            noLongerThanMilliseconds));
 }
 
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {

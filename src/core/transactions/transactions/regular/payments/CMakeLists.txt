@@ -14,10 +14,6 @@ set(SOURCE_FILES
 add_library(transactions__payments ${SOURCE_FILES})
 target_link_libraries(transactions__payments
         transactions__base
+        network__messages
 
-        common
-        time
-        exceptions
-        paths
-
-        network__messages)
+        paths)

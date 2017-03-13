@@ -153,7 +153,7 @@ void TransactionsManager::processCommand(
 
     } else if (command->identifier() == CreditUsageCommand::identifier()) {
         launchCoordinatorPaymentTransaction(
-            static_pointer_cast<CreditUsageCommand>(
+            dynamic_pointer_cast<CreditUsageCommand>(
                 command));
 
     } else if (command->identifier() == InitiateMaxFlowCalculationCommand::identifier()){
@@ -216,13 +216,25 @@ void TransactionsManager::processMessage(
         launchMaxFlowCalculationTargetSndLevelTransaction(
             static_pointer_cast<MaxFlowCalculationTargetSndLevelInMessage>(message));
 
-    } else if (message->typeID() == Message::Payments_ReceiverInitPayment) {
+    /*
+     * Payments
+     */
+    } else if (message->typeID() == Message::Payments_ReceiverInitPaymentRequest) {
         launchReceiverPaymentTransaction(
-            static_pointer_cast<ReceiverInitPaymentMessage>(message));
+            static_pointer_cast<ReceiverInitPaymentRequestMessage>(message));
 
-    } else if (message->typeID() == Message::Payments_ReserveBalanceRequest) {
-        launchIntermediateNodePaymentTransaction(
-            static_pointer_cast<ReserveBalanceRequestMessage>(message));
+    } else if (message->typeID() == Message::Payments_IntermediateNodeReservationRequest) {
+        // It is possible, that transaction was already initialised
+        // by the ReceiverInitPaymentRequest.
+        // In this case - message must be simply attached to it,
+        // no new transaction must be launched.
+        try {
+            mScheduler->tryAttachMessageToTransaction(message);
+
+        } catch (NotFoundError &) {
+            launchIntermediateNodePaymentTransaction(
+                static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
+        }
 
     } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage){
         launchGetTopologyAndBalancesTransaction(
@@ -682,32 +694,19 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
     }
 }
 
-/*!
- *
- * Throws MemoryError.
- */
 void TransactionsManager::launchReceiverPaymentTransaction(
-    ReceiverInitPaymentMessage::Shared message) {
-
-    try {
-        auto transaction = make_shared<ReceiverPaymentTransaction>(
-            ReceiverPaymentTransaction(mNodeUUID, message, mTrustLines, mLog));
-
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchReceiverPaymentTransaction: "
-                "can't allocate memory for transaction instance.");
-    }
+    ReceiverInitPaymentRequestMessage::Shared message)
+{
+    prepeareAndSchedule(
+        make_shared<ReceiverPaymentTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mLog));
 }
 
 void TransactionsManager::launchIntermediateNodePaymentTransaction(
-    ReserveBalanceRequestMessage::Shared message)
+    IntermediateNodeReservationRequestMessage::Shared message)
 {
     prepeareAndSchedule(
         make_shared<IntermediateNodePaymentTransaction>(

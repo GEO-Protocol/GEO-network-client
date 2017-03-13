@@ -81,19 +81,28 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         /*
          * Payment operations messages
          */
-        case Message::Payments_ReceiverInitPayment: {
-            return messageCollected(
-                make_shared<ReceiverInitPaymentMessage>(messagePart));
+        case Message::Payments_CoordinatorReservationRequest: {
+            return messageCollected<CoordinatorReservationRequestMessage>(messagePart);
         }
 
-        case Message::Payments_ReceiverApprove: {
-            return messageCollected(
-                make_shared<ReceiverApprovePaymentMessage>(messagePart));
+        case Message::Payments_CoordinatorReservationResponse: {
+            return messageCollected<CoordinatorReservationResponseMessage>(messagePart);
         }
 
-        case Message::Payments_ReserveBalanceRequest: {
-            return messageCollected(
-                make_shared<ReserveBalanceRequestMessage>(messagePart));
+        case Message::Payments_ReceiverInitPaymentRequest: {
+            return messageCollected<ReceiverInitPaymentRequestMessage>(messagePart);
+        }
+
+        case Message::Payments_ReceiverInitPaymentResponse: {
+            return messageCollected<ReceiverInitPaymentResponseMessage>(messagePart);
+        }
+
+        case Message::Payments_IntermediateNodeReservationRequest: {
+            return messageCollected<IntermediateNodeReservationRequestMessage>(messagePart);
+        }
+
+        case Message::Payments_IntermediateNodeReservationResponse: {
+            return messageCollected<IntermediateNodeReservationResponseMessage>(messagePart);
         }
 
         /*
@@ -231,12 +240,14 @@ pair<bool, Message::Shared> MessagesParser::messageInvalidOrIncomplete() {
                 );
 }
 
+template <class CollectedMessageType>
 pair<bool, Message::Shared> MessagesParser::messageCollected(
-    Message::Shared message) const
+    CollectedMessageType message) const
 {
     return make_pair(
         true,
-        static_pointer_cast<Message>(message));
+        static_pointer_cast<Message>(
+            make_shared<CollectedMessageType>(message)));
 }
 
 

@@ -2,8 +2,9 @@
 #define GEO_NETWORK_CLIENT_LOGGER_H
 
 #include "../common/exceptions/Exception.h"
-#include "../common/NodeUUID.h"
-#include "../common/Types.h"
+//#include "../common/NodeUUID.h"
+//#include "../common/Types.h"
+#include "../common/time/TimeUtils.h"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -24,14 +25,8 @@ public:
 
 public:
     explicit LoggerStream(
-        Logger *logger,
-        const char *group,
-        const char *subsystem,
-        const StreamType type = Standard);
-
-    explicit LoggerStream(
-        Logger *logger,
-        const char *group,
+        Logger &logger,
+        const string &group,
         const string &subsystem,
         const StreamType type = Standard);
 
@@ -39,7 +34,7 @@ public:
     ~LoggerStream();
 
 private:
-    Logger *mLogger;
+    Logger &mLogger;
     const string mGroup;
     const string mSubsystem;
     const StreamType mType;
@@ -51,28 +46,24 @@ class Logger {
 
 public:
     void logException(
-        const char *subsystem,
+        const string &subsystem,
         const exception &e);
+
     void logInfo(
-        const char *subsystem,
+        const string &subsystem,
         const string &message);
+
     void logSuccess(
-        const char *subsystem,
+        const string &subsystem,
         const string &message);
+
     void logError(
-        const char *subsystem,
+        const string &subsystem,
         const string &message);
+
     void logFatal(
-        const char *subsystem,
+        const string &subsystem,
         const string &message);
-    void logTustlineState(const NodeUUID &conractorUUID, string direction, string status);
-    void logTruslineOperationStatus(
-            const NodeUUID &contractorUUID,
-            const TrustLineAmount &incoming_amount,
-            const TrustLineAmount &outgoing_amount,
-            const TrustLineBalance &balance,
-            const TrustLineDirection &direction
-    );
 
     LoggerStream info(
         const string &subsystem);
@@ -82,16 +73,16 @@ public:
         const string &subsystem);
 
 private:
-    const string log_filename = "transactionlog.txt";
+//    const string log_filename = "transactionlog.txt";
     const string formatMessage(
         const string &message) const;
+
     const string recordPrefix(
-        const char *group);
+        const string &group);
+
     void logRecord(
-        const char *group,
-        const char *subsystem,
+        const string &group,
+        const string &subsystem,
         const string &message);
 };
-
-
 #endif //GEO_NETWORK_CLIENT_LOGGER_H

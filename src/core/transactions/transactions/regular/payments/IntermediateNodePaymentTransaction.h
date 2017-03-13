@@ -4,8 +4,10 @@
 
 #include "base/BasePaymentTransaction.h"
 
-#include "../../../../network/messages/outgoing/payments/ReserveBalanceRequestMessage.h"
-#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponse.h"
+#include "../../../../network/messages/outgoing/payments/CoordinatorReservationRequestMessage.h"
+#include "../../../../network/messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
+#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
+#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
 
 
 class IntermediateNodePaymentTransaction:
@@ -18,7 +20,7 @@ public:
 public:
     IntermediateNodePaymentTransaction(
         const NodeUUID &currentNodeUUID,
-        ReserveBalanceRequestMessage::ConstShared message,
+        IntermediateNodeReservationRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
         Logger *log);
 
@@ -32,14 +34,22 @@ public:
     pair<BytesShared, size_t> serializeToBytes();
 
 protected:
-    // Stages handlers
-    TransactionResult::SharedConst initOperation();
+    // Used as timeout for asking coordinator about what to do with reservation:
+    // prolong or drop and exit.
+    static const uint16_t kCoordinatorPingTimeoutMSec = 3000;
 
 protected:
-    TransactionResult::SharedConst processReservationAssumingCoordiinatorIsNeighbour();
-    TransactionResult::SharedConst processReservationAssumingCoordinatorIsRemoteNode();
-    TransactionResult::SharedConst rejectRequest();
-    TransactionResult::SharedConst acceptRequest();
+    enum Stages {
+        PreviousNeighborRequestProcessing = 1,
+        CoordinatorRequestProcessing,
+        NextNeighborResponseProcessing,
+        ReservationProlongation,
+    };
+
+    TransactionResult::SharedConst processPreviousNeighborRequest();
+    TransactionResult::SharedConst processCoordinatorRequest();
+    TransactionResult::SharedConst processNextNeighborResponse();
+    TransactionResult::SharedConst processReservationProlongation();
 
 private:
     void deserializeFromBytes(
@@ -48,7 +58,9 @@ private:
     const string logHeader() const;
 
 protected:
-    const ReserveBalanceRequestMessage::ConstShared mMessage;
+    const IntermediateNodeReservationRequestMessage::ConstShared mMessage;
+    NodeUUID mCoordinator;
+    TrustLineAmount mLastReservedAmount;
 };
 
 

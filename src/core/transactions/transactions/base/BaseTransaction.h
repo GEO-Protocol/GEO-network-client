@@ -20,7 +20,7 @@
 #include <boost/signals2.hpp>
 
 #include <vector>
-#include <memory>
+#include <deque>
 #include <utility>
 #include <cstdint>
 #include <sstream>
@@ -36,6 +36,16 @@ public:
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
 
 public:
+    // TODO: add othe states shortcuts here
+    TransactionResult::Shared resultExit();
+    TransactionResult::Shared resultFlushAndContinue();
+    TransactionResult::Shared resultWaitForMessageTypes(
+        vector<Message::MessageTypeID> &&requiredMessagesTypes,
+        uint16_t noLongerThanMilliseconds);
+
+public:
+    ~BaseTransaction() = default;
+
     enum TransactionType {
         OpenTrustLineTransactionType = 1,
         AcceptTrustLineTransactionType,
@@ -107,10 +117,28 @@ protected:
         Message::Shared message,
         const NodeUUID &nodeUUID);
 
-    void sendMessage(
-        Message::Shared message,
-        const NodeUUID &nodeUUID);
+    // TODO: convert to hpp?
+    template <typename ContextMessageType>
+    inline shared_ptr<ContextMessageType> popNextMessage()
+    {
+        const auto message = static_pointer_cast<ContextMessageType>(mContext.front());
+        mContext.pop_front();
+        return message;
+    }
 
+    // TODO: convert to hpp?
+    template <typename MessageType, typename... Args>
+    inline void sendMessage(
+        const NodeUUID &addressee,
+        Args&&... args)
+    {
+        const auto message = make_shared<MessageType>(args...);
+        outgoingMessageIsReadySignal(
+            message,
+            addressee);
+    }
+
+    [[deprecated("Use stages enum instead. See payment operations as example")]]
     void increaseStepsCounter();
 
     void resetStepsCounter();
@@ -150,7 +178,7 @@ protected:
     NodeUUID mNodeUUID;
 
     uint16_t mExpectationResponsesCount = 0;
-    vector<Message::Shared> mContext;
+    deque<Message::Shared> mContext;
 
     uint16_t mStep = 1;
 

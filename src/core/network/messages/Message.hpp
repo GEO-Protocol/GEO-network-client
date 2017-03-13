@@ -39,11 +39,15 @@ public:
         /*
          * Payments
          */
-        Payments_ReceiverInitPayment,
-        Payments_ReceiverApprove,
-        Payments_ReserveBalanceRequest,
-        Payments_ReserveBalanceResponse,
+        Payments_ReceiverInitPaymentRequest,
+        Payments_ReceiverInitPaymentResponse,
+
+        Payments_CoordinatorReservationRequest,
+        Payments_CoordinatorReservationResponse,
+
+        Payments_IntermediateNodeReservationRequest,
         Payments_IntermediateNodeReservationResponse,
+
 
 
         InitiateMaxFlowCalculationMessageType,
@@ -68,6 +72,8 @@ public:
     typedef uint16_t MessageType;
 
 public:
+    ~Message() = default;
+
     /*
      * Base "Message" is abstract.
      * Some of it's derived classes are used for various transactions responses.

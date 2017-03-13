@@ -111,20 +111,20 @@ void TrustLinesManager::close(
             if (trustLine->balance() <= TrustLine::kZeroBalance()) {
                 if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-                    mlogger->logTustlineState(
-                            contractorUUID,
-                            "Both",
-                            "Close"
-                    );
+//                    mlogger->logTustlineState(
+//                            contractorUUID,
+//                            "Both",
+//                            "Close"
+//                    );
 
                 } else {
                     trustLine->setOutgoingTrustAmount(0);
                     trustLine->suspendOutgoingDirection();
-                    mlogger->logTustlineState(
-                            contractorUUID,
-                            "Outgoing",
-                            "Suspend"
-                    );
+//                    mlogger->logTustlineState(
+//                            contractorUUID,
+//                            "Outgoing",
+//                            "Suspend"
+//                    );
                     saveToDisk(trustLine);
                 }
 
@@ -198,19 +198,19 @@ void TrustLinesManager::reject(
             if (trustLine->balance() >= TrustLine::kZeroBalance()) {
                 if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-                    mlogger->logTustlineState(
-                            contractorUUID,
-                            "Both",
-                            "Close"
-                    );
+//                    mlogger->logTustlineState(
+//                            contractorUUID,
+//                            "Both",
+//                            "Close"
+//                    );
                 } else {
                     trustLine->setIncomingTrustAmount(0);
                     trustLine->suspendIncomingDirection();
-                    mlogger->logTustlineState(
-                            contractorUUID,
-                            "Incoming",
-                            "Suspend"
-                    );
+//                    mlogger->logTustlineState(
+//                            contractorUUID,
+//                            "Incoming",
+//                            "Suspend"
+//                    );
                     saveToDisk(trustLine);
                 }
 
@@ -336,17 +336,27 @@ AmountReservation::ConstShared TrustLinesManager::reserveAmount(
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount)
 {
-    const auto tl = trustLineReadOnly(contractor);
-    if (*tl->availableAmount() >= amount) {
+    const auto kTL = trustLineReadOnly(contractor);
+    const auto kAvailableAmount = kTL->availableAmount();
+    const auto kAlreadyReservedAmount =
+        mAmountBlocksHandler->totalReserved(
+            contractor, AmountReservation::Outgoing);
+
+    if (*kAlreadyReservedAmount > *kAvailableAmount) {
+        throw ValueError(
+            "TrustLinesManager::reserveAmount: amount overflow prevented.");
+    }
+
+    if (*kAvailableAmount >= amount) {
         return mAmountBlocksHandler->reserve(
             contractor,
             transactionUUID,
             amount,
-            AmountReservation::Ougoing);
+            AmountReservation::Outgoing);
     }
     throw ValueError(
         "TrustLinesManager::reserveAmount: "
-        "Trust line has not enought amount.");
+        "there is no enough amount on the trust line.");
 }
 
 /*!
@@ -367,8 +377,18 @@ AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmount(
     const TransactionUUID& transactionUUID,
     const TrustLineAmount& amount)
 {
-    const auto tl = trustLineReadOnly(contractor);
-    if (*tl->availableIncomingAmount() >= amount) {
+    const auto kTL = trustLineReadOnly(contractor);
+    const auto kAvailableAmount = kTL->availableIncomingAmount();
+    const auto kAlreadyReservedAmount =
+        mAmountBlocksHandler->totalReserved(
+            contractor, AmountReservation::Incoming);
+
+    if (*kAlreadyReservedAmount > *kAvailableAmount) {
+        throw ValueError(
+            "TrustLinesManager::reserveAmount: amount overflow prevented.");
+    }
+
+    if (*kAvailableAmount >= amount) {
         return mAmountBlocksHandler->reserve(
             contractor,
             transactionUUID,
@@ -376,8 +396,8 @@ AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmount(
             AmountReservation::Incoming);
     }
     throw ValueError(
-        "TrustLinesManager::reserveIncomingAmount: "
-        "Trust line has not enought amount.");
+        "TrustLinesManager::reserveAmount: "
+        "there is no enough amount on the trust line.");
 }
 
 AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
@@ -404,8 +424,38 @@ void TrustLinesManager::dropAmountReservation(
 
     mAmountBlocksHandler->free(
         contractor,
-        reservation
-    );
+        reservation);
+}
+
+ConstSharedTrustLineAmount TrustLinesManager::availableOutgoingAmount(
+    const NodeUUID& contractor)
+{
+    const auto kTL = trustLineReadOnly(contractor);
+    const auto kAvailableAmount = kTL->availableAmount();
+
+    const auto kAlreadyReservedAmount = mAmountBlocksHandler->totalReserved(
+        contractor, AmountReservation::Outgoing);
+
+    if (*kAlreadyReservedAmount >= *kAvailableAmount) {
+        return make_shared<const TrustLineAmount>(0);
+    }
+    return make_shared<const TrustLineAmount>(
+        *kAvailableAmount - *kAlreadyReservedAmount);
+}
+
+ConstSharedTrustLineAmount TrustLinesManager::availableIncomingAmount(
+    const NodeUUID& contractor)
+{
+    const auto kTL = trustLineReadOnly(contractor);
+    const auto kAvailableAmount = kTL->availableIncomingAmount();
+    const auto kAlreadyReservedAmount = mAmountBlocksHandler->totalReserved(
+        contractor, AmountReservation::Incoming);
+
+    if (*kAlreadyReservedAmount >= *kAvailableAmount) {
+        return make_shared<const TrustLineAmount>(0);
+    }
+    return make_shared<const TrustLineAmount>(
+        *kAvailableAmount - *kAlreadyReservedAmount);
 }
 
 const bool TrustLinesManager::isTrustLineExist(
@@ -459,13 +509,13 @@ void TrustLinesManager::saveToDisk(
                                   "Can not reallocate STL container memory for new trust line instance.");
         }
     }
-    mlogger->logTruslineOperationStatus(
-            trustLine->contractorNodeUUID().stringUUID(),
-            trustLine->incomingTrustAmount(),
-            trustLine->outgoingTrustAmount(),
-            trustLine->balance(),
-            trustLine->direction()
-    );
+//    mlogger->logTruslineOperationStatus(
+//            trustLine->contractorNodeUUID().stringUUID(),
+//            trustLine->incomingTrustAmount(),
+//            trustLine->outgoingTrustAmount(),
+//            trustLine->balance(),
+//            trustLine->direction()
+//    );
     trustLineCreatedSignal(
         trustLine->contractorNodeUUID(),
         trustLine->direction()
@@ -569,14 +619,25 @@ map<NodeUUID, TrustLineAmount> TrustLinesManager::getOutgoingFlows() {
 }
 
 /**
- * @throws NotFoundError
+ *
+ * @throws NotFoundError - in case if no trust line with exact contractor.
  */
 const TrustLine::ConstShared TrustLinesManager::trustLineReadOnly(
     const NodeUUID& contractorUUID) const
 {
     if (isTrustLineExist(contractorUUID)) {
-        return static_pointer_cast<const TrustLine>(
+        // Since c++11, a return value is an rvalue.
+        //
+        // -> mTrustLines.at(contractorUUID)
+        //
+        // In this case, there will be no shared_ptr copy done due to RVO.
+        // But thi copy is strongly needed here:
+        // othervise, moved shared_ptr would try to free the memory,
+        // that is also used by the shared_ptr in the map.
+        // As a result - map corruption has place.
+        const auto temp = const_pointer_cast<const TrustLine>(
             mTrustLines.at(contractorUUID));
+        return temp;
 
     } else {
         throw NotFoundError(
@@ -620,6 +681,14 @@ void TrustLinesManager::setSomeBalances() {
     );
     saveToDisk(TrustLine::Shared(first_trustline));
     saveToDisk(TrustLine::Shared(second_trustline));
+}
+
+void TrustLinesManager::debug()
+{
+    // TODO: DEBUG, memory corruption
+    for (const auto &tl : mTrustLines) {
+        cout << "\n\n " << tl.second.get() << ": " << tl.second.use_count() <<  " \n\n" << endl;
+    }
 }
 
 vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxflow) {

@@ -5,8 +5,13 @@
 #include "base/BasePaymentTransaction.h"
 
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
-#include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentMessage.h"
-#include "../../../../network/messages/outgoing/payments/ReserveBalanceRequestMessage.h"
+
+#include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
+#include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
+#include "../../../../network/messages/outgoing/payments/CoordinatorReservationRequestMessage.h"
+#include "../../../../network/messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
+#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
+#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
 
 #include <map>
 
@@ -31,6 +36,7 @@ public:
         Logger *log);
 
     TransactionResult::SharedConst run();
+
     pair<BytesShared, size_t> serializeToBytes();
 
 protected:
@@ -44,9 +50,13 @@ protected:
     public:
         enum NodeState {
             ReservationRequestDoesntSent = 0,
+
+            NeighbourReservationRequestSent,
+            NeighbourReservationApproved,
+
             ReservationRequestSent,
             ReservationApproved,
-            ReservationDisaproved,
+            ReservationRejected,
         };
 
     public:
@@ -57,22 +67,44 @@ protected:
             const uint8_t positionInPath,
             const NodeState state);
 
+        const TrustLineAmount& maxFlow() const;
+        void setMaxFlow(
+             const TrustLineAmount &amount);
+
         const Path::ConstShared path() const;
+        const pair<NodeUUID, uint8_t> currentIntermediateNodeAndPos() const;
         const pair<NodeUUID, uint8_t> nextIntermediateNodeAndPos() const;
         const bool reservationRequestSentToAllNodes() const;
+
+        const bool isNeighborAmountReserved() const;
+        const bool isWaitingForNeighborReservationResponse() const;
+        const bool isWaitingForNeighborReservationPropagationResponse() const;
         const bool isWaitingForReservationResponse() const;
+
         const bool isReadyToSendNextReservationRequest() const;
         const bool isLastIntermediateNodeProcessed() const;
+
+        const bool isValid() const;
+        void setUnusable();
 
     protected:
         Path::ConstShared mPath;
         vector<NodeState> mIntermediateNodesStates;
         TrustLineAmount mMaxPathFlow;
+        bool mIsValid;
     };
 
 protected:
+    enum Stages {
+        ReceiverPaymentInitialisation = 1,
+        ReceiverResponseProcessing,
+        AmountReservation,
+        ApprovesCollecting,
+    };
+
+
     // Stages handlers
-    TransactionResult::SharedConst initTransaction();
+    TransactionResult::SharedConst initPaymentOperation();
     TransactionResult::SharedConst processReceiverResponse();
     TransactionResult::SharedConst tryReserveAmounts();
 
@@ -85,34 +117,46 @@ protected:
     TransactionResult::SharedConst resultInsufficientFundsError();
 
 protected:
-    const string logHeader() const;
-
     // Init operation helpers
     void addPathForFurtherProcessing(
         Path::ConstShared path);
 
     // Amounts reservation helpers
-    TransactionResult::SharedConst tryReserveNextNodeAmount(
-        PathStats* path);
+    void initAmountsReservationOnNextPath();
+    void switchToNextPath();
 
-    TransactionResult::SharedConst sendReservationRequest(
+    PathStats* currentAmountReservationPathStats();
+    TransactionResult::SharedConst tryProcessNextPath();
+
+    TransactionResult::SharedConst tryReserveNextNodeAmount(
+        PathStats* pathStats);
+
+    TransactionResult::SharedConst askNeighborToReserveAmount(
+        const NodeUUID &neighbor,
+        PathStats *pathStats);
+
+    TransactionResult::SharedConst processNeighborAmountReservationResponse();
+
+    TransactionResult::SharedConst askNeighborToApproveFurtherNodeReservation(
+        const NodeUUID &neighbor,
+        PathStats *pathStats);
+
+    TransactionResult::SharedConst processNeighborFurtherReservationResponse();
+
+    TransactionResult::SharedConst askRemoteNodeToApproveReservation(
         PathStats *pathStats,
         const NodeUUID &remoteNode,
         const byte remoteNodePosition,
-        const NodeUUID &nextNodeAfterRemote,
-        const TrustLineAmount &amount);
+        const NodeUUID &nextNodeAfterRemote);
 
     TransactionResult::SharedConst processRemoteNodeResponse();
-    TransactionResult::SharedConst tryProcessNextPath();
 
-    void initAmountsReservationOnNextPath();
-
-    PathStats* currentAmountReservationPathStats();
-    void switchToNextPath();
-
-    // Other
+protected:
+    const string logHeader() const;
     void deserializeFromBytes(
         BytesShared buffer);
+
+    TrustLineAmount totalReservedByAllPaths() const;
 
 protected:
     // local
@@ -124,9 +168,8 @@ protected:
     // that was processed last, and potenially,
     // is waiting for request appriving.
     PathUUID mCurrentAmountReservingPathIdentifier;
-    byte mCurrentAmountReservingPathIdentifierIndex;
+//    byte mCurrentAmountReservingPathIdentifierIndex;
 
     byte mReservationsStage;
-    TrustLineAmount mAlreadyReservedAmountOnAllPaths;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

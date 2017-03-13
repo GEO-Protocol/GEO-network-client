@@ -22,9 +22,12 @@
 #include "../messages/incoming/max_flow_calculation/MaxFlowCalculationSourceSndLevelInMessage.h"
 #include "../messages/incoming/max_flow_calculation/MaxFlowCalculationTargetSndLevelInMessage.h"
 #include "../messages/incoming/max_flow_calculation/ResultMaxFlowCalculationFromSourceMessage.h"
-#include "../messages/outgoing/payments/ReceiverInitPaymentMessage.h"
-#include "../messages/outgoing/payments/ReceiverApprovePaymentMessage.h"
-#include "../messages/outgoing/payments/ReserveBalanceRequestMessage.h"
+#include "../messages/outgoing/payments/CoordinatorReservationRequestMessage.h"
+#include "../messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
+#include "../messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
+#include "../messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
+#include "../messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
+#include "../messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
 #include "../messages/cycles/InBetweenNodeTopologyMessage.h"
 #include "../messages/cycles/BoundaryNodeTopologyMessage.h"
 #include "../messages/response/Response.h"
@@ -67,9 +70,9 @@ private:
 
     pair<bool, Message::Shared> messageInvalidOrIncomplete();
 
+    template <class CollectedMessageType>
     pair<bool, Message::Shared> messageCollected(
-        Message::Shared message) const;
-
+        CollectedMessageType message) const;
 
 private:
     const size_t kMessageIdentifierSize = 2;

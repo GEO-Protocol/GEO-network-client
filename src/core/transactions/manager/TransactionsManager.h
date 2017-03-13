@@ -18,21 +18,7 @@
 #include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
-
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
-
-//#include "../../network/messages/Message.hpp"
-#include "../../network/messages/response/Response.h"
-
-//#include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
-//#include "../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
-//#include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
-
-//#include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
-//#include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
-
-
-//#include "../../network/messages/incoming/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetMessage.h"
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/base/UniqueTransaction.h"
@@ -152,10 +138,10 @@ private:
         CreditUsageCommand::Shared command);
 
     void launchReceiverPaymentTransaction(
-        ReceiverInitPaymentMessage::Shared message);
+        ReceiverInitPaymentRequestMessage::Shared message);
 
     void launchIntermediateNodePaymentTransaction(
-        ReserveBalanceRequestMessage::Shared message);
+        IntermediateNodeReservationRequestMessage::Shared message);
 
     // Topology transactions
     void launchGetTopologyAndBalancesTransaction();

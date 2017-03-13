@@ -24,11 +24,10 @@ AmountReservation::ConstShared AmountReservationsHandler::reserve(
             "AmountReservationsHandler::reserve: 'amount' can't be 0.");
     }
 
-    auto reservation = AmountReservation::ConstShared(
-        new AmountReservation(
-            transactionUUID,
-            amount,
-            direction));
+    auto reservation = make_shared<AmountReservation>(
+        transactionUUID,
+        amount,
+        direction);
 
     auto iterator = mReservations.find(trustLineContractor);
     if (iterator != mReservations.end()) {
@@ -179,7 +178,7 @@ vector<AmountReservation::ConstShared> AmountReservationsHandler::reservations(
 
         if (transactionUUID == nullptr) {
             // No additional filtering is needed.
-            return (*(*iterator).second);
+            return *(iterator->second);
 
         } else {
             // Additional filtering by the "transactionUUID" should be applied.

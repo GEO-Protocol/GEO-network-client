@@ -1,4 +1,4 @@
-#include "TransactionMessage.h"
+﻿#include "TransactionMessage.h"
 
 TransactionMessage::TransactionMessage() {}
 
@@ -8,6 +8,12 @@ TransactionMessage::TransactionMessage(
 
     SenderMessage(senderUUID),
     mTransactionUUID(transactionUUID) {}
+
+TransactionMessage::TransactionMessage(
+        BytesShared bufer)
+{
+    deserializeFromBytes(bufer);
+}
 
 const bool TransactionMessage::isTransactionMessage() const {
 

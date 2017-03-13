@@ -11,7 +11,9 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines)
-{}
+{
+    cout << "\n\n BASE: " << mTrustLines << "\n\n" << endl;
+}
 
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
@@ -26,7 +28,9 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines)
-{}
+{
+    cout << "\n\n BASE: " << mTrustLines << "\n\n" << endl;
+}
 
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
@@ -38,32 +42,8 @@ BasePaymentTransaction::BasePaymentTransaction(
         type,
         log),
     mTrustLines(trustLines)
-{}
-
-ConstSharedTrustLineAmount BasePaymentTransaction::availableAmount(
-    const NodeUUID& neighborNode)
 {
-    try {
-        const auto tl = mTrustLines->trustLineReadOnly(neighborNode);
-        return tl->availableAmount();
-
-    } catch (NotFoundError &) {
-        static auto zero = make_shared<const TrustLineAmount>(0);
-        return zero;
-    }
-}
-
-ConstSharedTrustLineAmount BasePaymentTransaction::availableIncomingAmount(
-    const NodeUUID& neighborNode)
-{
-    try {
-        const auto tl = mTrustLines->trustLineReadOnly(neighborNode);
-        return tl->availableIncomingAmount();
-
-    } catch (NotFoundError &) {
-        static auto zero = make_shared<const TrustLineAmount>(0);
-        return zero;
-    }
+    cout << "\n\n BASE: " << mTrustLines << "\n\n" << endl;
 }
 
 const bool BasePaymentTransaction::reserveAmount(
@@ -71,15 +51,13 @@ const bool BasePaymentTransaction::reserveAmount(
     const TrustLineAmount& amount)
 {
     try {
-        const auto a = availableAmount(neighborNode);
-        if (*a >= amount) {
-            // TODO: store reservation into internal storage to be able to serialize/deserialize it.
-            mTrustLines->reserveAmount(
-                neighborNode,
-                UUID(),
-                amount);
-            return true;
-        }
+        // TODO: store reservation into internal storage to be able to serialize/deserialize it.
+        mTrustLines->reserveAmount(
+            neighborNode,
+            UUID(),
+            amount);
+        return true;
+
     } catch (Exception &) {}
 
     return false;
@@ -90,22 +68,34 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
     const TrustLineAmount& amount)
 {
     try {
-        const auto a = availableIncomingAmount(neighborNode);
-        if (*a >= amount) {
-            // TODO: store reservation into internal storage to be able to serialize/deserialize it.
-            mTrustLines->reserveIncomingAmount(
-                neighborNode,
-                UUID(),
-                amount);
-            return true;
-        }
+        // TODO: store reservation into internal storage to be able to serialize/deserialize it.
+        mTrustLines->reserveIncomingAmount(
+            neighborNode,
+            UUID(),
+            amount);
+        return true;
+
     } catch (Exception &) {}
 
     return false;
 }
 
-TransactionResult::SharedConst BasePaymentTransaction::exit() const
+const bool BasePaymentTransaction::validateContext(
+    Message::MessageTypeID messageType) const
 {
-    return make_shared<TransactionResult>(
-        TransactionState::exit());
+    if (mContext.empty()) {
+        error() <<"Transaction context is empty. No messages was received. Canceling.";
+        return false;
+    }
+
+
+    if (mContext.size() > 1 || mContext.at(0)->typeID() != messageType) {
+        error() << "Unexpected message received. "
+                   "It seems that remote node doesn't follows the protocol. "
+                   "Canceling.";
+
+        return false;
+    }
+
+    return true;
 }

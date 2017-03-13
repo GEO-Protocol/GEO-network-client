@@ -36,15 +36,11 @@ public:
         Logger *log);
 
 protected:
-    // Useful shortcuts for transaction exit
-    TransactionResult::SharedConst exit() const;
+//    ConstSharedTrustLineAmount availableAmount(
+//        const NodeUUID &neighborNode);
 
-protected:
-    ConstSharedTrustLineAmount availableAmount(
-        const NodeUUID &neighborNode);
-
-    ConstSharedTrustLineAmount availableIncomingAmount(
-        const NodeUUID &neighborNode);
+//    ConstSharedTrustLineAmount availableIncomingAmount(
+//        const NodeUUID &neighborNode);
 
     const bool reserveAmount(
         const NodeUUID &neighborNode,
@@ -53,6 +49,9 @@ protected:
     const bool reserveIncomingAmount(
         const NodeUUID &neighborNode,
         const TrustLineAmount& amount);
+
+    const bool validateContext(
+        Message::MessageTypeID messageType) const;
 
 protected:
     // Specifies how long node must wait for the response from the remote node.

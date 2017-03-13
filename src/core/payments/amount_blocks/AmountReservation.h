@@ -16,7 +16,7 @@ public:
 
 public:
     enum ReservationDirection {
-        Ougoing,
+        Outgoing,
         Incoming
     };
 

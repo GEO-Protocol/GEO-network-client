@@ -22,6 +22,9 @@
 #include <vector>
 #include <malloc.h>
 
+// TODO: remove me
+#include <iostream>
+
 
 using namespace std;
 namespace storage = db::uuid_map_block_storage;
@@ -102,6 +105,12 @@ public:
         const NodeUUID &contractor,
         const AmountReservation::ConstShared reservation);
 
+    ConstSharedTrustLineAmount availableOutgoingAmount(
+        const NodeUUID &contractor);
+
+    ConstSharedTrustLineAmount availableIncomingAmount(
+        const NodeUUID &contractor);
+
     const bool isTrustLineExist(
         const NodeUUID &contractorUUID) const;
 
@@ -128,7 +137,7 @@ public:
     // TODO: TrustLineAmount takes 32 bytes. Are you shure you need a COPY here?
     map<NodeUUID, TrustLineAmount> getOutgoingFlows();
 
-    [[deprecated("Manager must only returns const trust lines")]]
+    [[deprecated("Buggy function. Use trustLineReadOnly instead")]]
     const TrustLine::Shared trustLine(
         const NodeUUID &contractorUUID) const;
 
@@ -143,6 +152,10 @@ public:
 
     // TODO: It's a debug I think
     void setSomeBalances();
+
+
+    void debug();
+
 private:
     static const size_t kTrustAmountPartSize = 32;
     static const size_t kBalancePartSize = 32;
