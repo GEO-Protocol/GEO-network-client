@@ -9,9 +9,6 @@ BaseTransaction::BaseTransaction(
     mLog(log)
 {}
 
-    mFileLogger = unique_ptr<FileLogger>(new FileLogger);
-}
-
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
@@ -21,9 +18,6 @@ BaseTransaction::BaseTransaction(
     mLog(log),
     mTransactionUUID(transactionUUID)
 {}
-
-    mFileLogger = unique_ptr<FileLogger>(new FileLogger);
-}
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
