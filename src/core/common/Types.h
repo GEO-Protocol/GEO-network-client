@@ -38,6 +38,7 @@ enum BalanceRange {
 };
 
 enum TrustState {
+    NonActivated = 0,
     Active = 1,
     Suspended = 2
 };

@@ -121,11 +121,14 @@ private:
     const size_t kTrustAmountPartSize = 32;
     const size_t kBalancePartSize = 32;
     const size_t kSignBytePartSize = 1;
+    const size_t kTrustStatePartSize = 1;
     const size_t kRecordSize =
         + kTrustAmountPartSize
         + kTrustAmountPartSize
         + kBalancePartSize
-        + kSignBytePartSize;
+        + kSignBytePartSize
+        + kTrustStatePartSize
+        + kTrustStatePartSize;
 
     NodeUUID mContractorNodeUUID;
     TrustLineAmount mIncomingTrustAmount;
