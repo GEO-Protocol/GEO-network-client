@@ -65,13 +65,12 @@ private:
     void sendData(
         pair <string, uint16_t> address,
         vector<byte> buffer,
-        uint16_t channelNumber,
         Channel::Shared channel);
 
     void handleSend(
         const boost::system::error_code &error,
         size_t bytesTransferred,
-        uint16_t channelNumber,
+        udp::endpoint endpoint,
         Channel::Shared channel);
 
 private:

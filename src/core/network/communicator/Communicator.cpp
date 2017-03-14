@@ -119,7 +119,6 @@ void Communicator::sendMessage(
         sendData(
             address,
             numberAndPacket.second->packetBytes(),
-            numberAndChannel.first,
             numberAndChannel.second);
     }
 
@@ -173,9 +172,8 @@ void Communicator::handleReceivedInfo(
 }
 
 void Communicator::sendData(
-    pair <string, uint16_t> address,
+    pair<string, uint16_t> address,
     vector<byte> buffer,
-    uint16_t channelNumber,
     Channel::Shared channel) {
 
     ip::udp::endpoint destination(
@@ -194,7 +192,7 @@ void Communicator::sendData(
             this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred,
-            channelNumber,
+            destination,
             channel
         )
     );
@@ -203,11 +201,11 @@ void Communicator::sendData(
 void Communicator::handleSend(
     const boost::system::error_code &error,
     size_t bytesTransferred,
-    uint16_t channelNumber,
+    udp::endpoint endpoint,
     Channel::Shared channel) {
 
     if (channel->increaseSentPacketsCounter()) {
-        mChannelsManager->removeOutgoingChannel(channelNumber);
+        mChannelsManager->removeOutgoingChannel(endpoint);
     }
 
     if (error) {

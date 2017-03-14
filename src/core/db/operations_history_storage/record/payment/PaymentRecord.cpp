@@ -46,10 +46,7 @@ namespace db {
         pair<BytesShared, size_t> PaymentRecord::serializeToBytes() {
 
             auto parentBytesAndCount = Record::serializeToBytes();
-            size_t bytesCount = parentBytesAndCount.second
-                                + sizeof(SerializedPaymentOperationType)
-                                + NodeUUID::kBytesSize
-                                + kTrustLineAmountBytesCount;
+            size_t bytesCount = kRecordBytesSize;
 
             BytesShared bytesBuffer = tryCalloc(
                 kRecordBytesSize);

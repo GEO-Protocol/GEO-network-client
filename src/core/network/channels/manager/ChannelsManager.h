@@ -14,9 +14,11 @@
 #include <boost/bind.hpp>
 
 #include <map>
+#include <vector>
+#include <utility>
 #include <memory>
 #include <chrono>
-#include <cstdint>
+#include <stdint.h>
 
 using namespace std;
 using namespace boost::asio::ip;
@@ -28,28 +30,26 @@ public:
         as::io_service &ioService);
 
     pair<Channel::Shared, udp::endpoint> incomingChannel(
-        uint16_t number,
-        udp::endpoint endpoint);
+        const uint16_t number,
+        const udp::endpoint &endpoint);
 
     void removeIncomingChannel(
-        uint16_t number);
+        const udp::endpoint &endpoint,
+        const uint16_t channelNumber);
 
     pair<uint16_t, Channel::Shared> outgoingChannel(
-        udp::endpoint endpoint);
+        const udp::endpoint &endpoint);
 
     void removeOutgoingChannel(
-        uint16_t number);
+        const udp::endpoint &endpoint);
 
 private:
-    pair<Channel::Shared, udp::endpoint> createIncomingChannel(
-        uint16_t number,
-        udp::endpoint endpoint);
-
-    void unusedOutgoingChannelNumber();
+    uint16_t unusedOutgoingChannelNumber(
+        const udp::endpoint &endpoint);
 
     Channel::Shared createOutgoingChannel(
-        uint16_t number,
-        udp::endpoint endpoint);
+        const uint16_t number,
+        const udp::endpoint &endpoint);
 
     void removeDeprecatedIncomingChannels();
 
@@ -64,15 +64,10 @@ private:
     as::io_service &mIOService;
     unique_ptr<as::steady_timer> mProcessingTimer;
 
-    // <number, channel>
-    unique_ptr<map<uint16_t, Channel::Shared>> mIncomingChannels;
-    unique_ptr<map<uint16_t, Channel::Shared>> mOutgoingChannels;
+    // <endpoint, <channel number, channel>>
+    unique_ptr<map<udp::endpoint, pair<uint16_t, Channel::Shared>>> mOutgoingChannels;
+    unique_ptr<map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>> mIncomingChannels;
 
-    // <number, endpoint>
-    unique_ptr<map<uint16_t, udp::endpoint>> mIncomingEndpoints;
-    unique_ptr<map<uint16_t, udp::endpoint>> mOutgoingEndpoints;
-
-    uint16_t mNextOutgoingChannelNumber = 0;
 };
 
 
