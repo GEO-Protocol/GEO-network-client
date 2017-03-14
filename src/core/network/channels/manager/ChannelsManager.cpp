@@ -10,7 +10,8 @@ ChannelsManager::ChannelsManager(
         mIncomingChannels = unique_ptr<map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>>(
             new map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>());
 
-        mOutgoingChannels = unique_ptr<map<udp::endpoint, pair<uint16_t, Channel::Shared>>>();
+        mOutgoingChannels = unique_ptr<map<udp::endpoint, pair<uint16_t, Channel::Shared>>>(
+            new map<udp::endpoint, pair<uint16_t, Channel::Shared>>());
 
     } catch (std::bad_alloc &) {
         throw MemoryError("ChannelsManager::ChannelsManager: "
@@ -24,37 +25,52 @@ pair<Channel::Shared, udp::endpoint> ChannelsManager::incomingChannel(
     const uint16_t number,
     const udp::endpoint &endpoint) {
 
-    Channel::Shared incomingChannel = make_shared<Channel>();
-
     if (mIncomingChannels->count(endpoint) != 0){
 
         auto endpointAndVectorOfNumberAndChannelPairs = mIncomingChannels->find(endpoint);
+        for (const auto &numberAndChannel : endpointAndVectorOfNumberAndChannelPairs->second) {
+
+            if (number != numberAndChannel.first) {
+                continue;
+            }
+
+            return make_pair(
+                numberAndChannel.second,
+                endpoint);
+
+        }
+
+        Channel::Shared channel = make_shared<Channel>();
         endpointAndVectorOfNumberAndChannelPairs->second.push_back(
             make_pair(
                 number,
-                incomingChannel));
+                channel)
+        );
+
+        return make_pair(
+            channel,
+            endpoint);
 
     } else {
 
+        Channel::Shared channel = make_shared<Channel>();
         vector<pair<uint16_t, Channel::Shared>> numbersAndChannels;
         numbersAndChannels.reserve(1);
         numbersAndChannels.push_back(
             make_pair(
                 number,
-                incomingChannel));
+                channel));
 
         mIncomingChannels->insert(
             make_pair(
                 endpoint,
-                numbersAndChannels
-            )
-        );
+                numbersAndChannels));
+
+        return make_pair(
+            channel,
+            endpoint);
 
     }
-
-    return make_pair(
-        incomingChannel,
-        endpoint);
 }
 
 void ChannelsManager::removeIncomingChannel(
