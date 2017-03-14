@@ -197,6 +197,7 @@ int Core::initTransactionsManager() {
             mTrustLinesManager,
             mMaxFlowCalculationTrustLimeManager,
             mResultsInterface,
+            mOperationsHistoryStorage,
             &mLog
         );
         mLog.logSuccess("Core", "Transactions handler is successfully initialised");
