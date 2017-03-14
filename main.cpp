@@ -1,6 +1,5 @@
 #include "src/core/Core.h"
 
-
 #define TESTS
 
 #define D_DEBUG

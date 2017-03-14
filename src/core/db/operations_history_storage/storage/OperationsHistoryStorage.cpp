@@ -40,13 +40,12 @@ namespace db {
             syncData();
         }
 
-        template<class T>
-        vector<shared_ptr<T>> OperationsHistoryStorage::recordsStack(
+        vector<Record::Shared> OperationsHistoryStorage::recordsStack(
             Record::RecordType recordType,
             size_t recordsCount,
             size_t fromRecord) {
 
-            vector<shared_ptr<T>> records;
+            vector<Record::Shared> records;
             records.reserve(recordsCount);
 
             int64_t reverseOffset = reverseOffsetToRequestedRecord(
@@ -73,7 +72,7 @@ namespace db {
                 Record::SerializedRecordType *fetchedRecordType = new (recordBytesBuffer.get()) Record::SerializedRecordType;
                 if (recordType == (Record::RecordType) *fetchedRecordType) {
 
-                    shared_ptr<T> record;
+                    Record::Shared record;
 
                     if (recordType == Record::RecordType::TrustLineRecordType) {
 
@@ -110,12 +109,18 @@ namespace db {
                 reverseOffset -= Record::kRecordBytesSize;
 
                 if (records.size() == recordsCount) {
+                    reverse(
+                        records.begin(),
+                        records.end());
                     return records;
                 }
 
             }
 
             if (!records.empty()) {
+                reverse(
+                    records.begin(),
+                    records.end());
                 return records;
             }
 

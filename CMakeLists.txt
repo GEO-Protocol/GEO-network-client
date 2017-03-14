@@ -65,7 +65,7 @@ add_subdirectory(src/core/common/time)
 add_subdirectory(src/core/common/memory)
 add_subdirectory(src/core/common/multiprecision)
 add_subdirectory(src/core/db)
-# add_subdirectory(src/tests/db)
+#add_subdirectory(src/tests/db)
 add_subdirectory(src/core/io/routing_tables)
 add_subdirectory(src/tests/io/routing_tables)
 
