@@ -72,7 +72,7 @@ public:
     typedef uint16_t MessageType;
 
 public:
-    ~Message() = default;
+    virtual ~Message() = default;
 
     /*
      * Base "Message" is abstract.
