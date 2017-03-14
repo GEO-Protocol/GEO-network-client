@@ -29,12 +29,13 @@ class OperationsHistoryStorageTest {
 public:
     OperationsHistoryStorageTest();
 
-    void addFewRecords(
-        uint8_t count);
+    st::Record::Shared createTrustLineRecord(
+        st::TrustLineRecord::TrustLineOperationType operationType,
+        TrustLineAmount amount);
 
-    vector<st::Record::Shared> fetchRecords(st::Record::RecordType recordType,
-                                                 size_t recordsCount,
-                                                 size_t fromRecord);
+    st::Record::Shared createPaymentRecord(
+        st::PaymentRecord::PaymentOperationType operationType,
+        TrustLineAmount amount);
 
     void compareDataTestCase();
 
@@ -42,9 +43,7 @@ public:
 
 private:
     unique_ptr<st::OperationsHistoryStorage> mStorage;
-
-    vector<uuids::uuid> mOperationsUUIDs;
-    vector<NodeUUID> mContractorsUUIDs;
+    vector<st::Record::Shared> mRecords;
 };
 
 

@@ -7,108 +7,122 @@ OperationsHistoryStorageTest::OperationsHistoryStorageTest() {
         "operations_history.dat"));
 }
 
-void OperationsHistoryStorageTest::addFewRecords(
-    uint8_t count) {
+st::Record::Shared OperationsHistoryStorageTest::createTrustLineRecord(
+    st::TrustLineRecord::TrustLineOperationType operationType,
+    TrustLineAmount amount) {
 
-    for (uint8_t number = 0; number < count; ++number) {
+    uuids::uuid operationUUID;
+    NodeUUID contractorUUID;
 
-        uuids::uuid operationUUID;
-        NodeUUID contractorUUID;
+    return dynamic_pointer_cast<st::Record>(
+        make_shared<st::TrustLineRecord>(
+            operationUUID,
+            operationType,
+            contractorUUID,
+            amount));
+}
+
+st::Record::Shared OperationsHistoryStorageTest::createPaymentRecord(st::PaymentRecord::PaymentOperationType operationType,
+                                                                     TrustLineAmount amount) {
+
+    uuids::uuid operationUUID;
+    NodeUUID contractorUUID;
+
+    return dynamic_pointer_cast<st::Record>(
+        make_shared<st::PaymentRecord>(
+            operationUUID,
+            operationType,
+            contractorUUID,
+            amount));
+}
+
+void OperationsHistoryStorageTest::compareDataTestCase() {
+
+    for (uint8_t number = 1; number <= 10; ++number) {
 
         st::Record::Shared record;
 
-        if (number % 2 > 0) {
-            record = make_shared<st::TrustLineRecord>(
-                operationUUID,
-                st::TrustLineRecord::TrustLineOperationType::Opening,
-                contractorUUID,
-                TrustLineAmount(500));
+        if (number <= 3) {
 
-        } else {
-            record = make_shared<st::PaymentRecord>(
-                operationUUID,
-                st::PaymentRecord::PaymentOperationType::IncomingPaymentType,
-                contractorUUID,
-                TrustLineAmount(500));
+            record = createTrustLineRecord(
+                st::TrustLineRecord::TrustLineOperationType::Opening,
+                TrustLineAmount(500 + number));
+
         }
 
-        mOperationsUUIDs.push_back(
-            operationUUID);
-        mContractorsUUIDs.push_back(
-            contractorUUID);
+        if (number > 3 && number <= 6) {
+
+            record = createPaymentRecord(
+                st::PaymentRecord::PaymentOperationType::IncomingPaymentType,
+                TrustLineAmount(500 + number));
+
+        }
+
+        if (number > 6 && number <= 8) {
+
+            record = createTrustLineRecord(
+                st::TrustLineRecord::TrustLineOperationType::Closing,
+                TrustLineAmount(500 + number));
+
+        }
+
+        if (number > 8 && number <= 10) {
+
+            record = createPaymentRecord(
+                st::PaymentRecord::PaymentOperationType::OutgoingPaymentType,
+                TrustLineAmount(500 + number));
+
+        }
+
+        mRecords.push_back(record);
 
         mStorage->addRecord(
             record);
 
     }
-}
 
-vector<st::Record::Shared> OperationsHistoryStorageTest::fetchRecords(st::Record::RecordType recordType,
-                                                                           size_t recordsCount,
-                                                                           size_t fromRecord) {
-
-    /*return mStorage->recordsStack(
-        recordType,
-        recordsCount,
-        fromRecord);*/
-}
-
-void OperationsHistoryStorageTest::compareDataTestCase() {
-
-    const uint8_t trustLineRecordsCount = 3;
-    const uint8_t paymentRecordsCount = 2;
-    uint8_t totalRecordsCount = trustLineRecordsCount + paymentRecordsCount;
-
-    addFewRecords(
-        totalRecordsCount);
-
-    auto trustRecords = fetchRecords(
+    auto trustLineRecords = mStorage->recordsStack(
         st::Record::RecordType::TrustLineRecordType,
-        3,
+        5,
         0);
 
-    auto paymentRecords = fetchRecords(
+    auto paymentRecords = mStorage->recordsStack(
         st::Record::RecordType::PaymentRecordType,
-        2,
+        5,
         0);
 
-    assert(trustRecords.size() == trustLineRecordsCount);
-    assert(paymentRecords.size() == paymentRecordsCount);
+    assert(trustLineRecords.size() == 5);
+    assert(paymentRecords.size() == 5);
 
-    for (const auto record : trustRecords) {
+    assert(mRecords.at(0)->recordType() == trustLineRecords.at(0)->recordType());
+    assert(mRecords.at(0)->operationUUID() == trustLineRecords.at(0)->operationUUID());
 
-        if (record->recordType() != st::Record::RecordType::TrustLineRecordType) {
-            assert(false);
-        }
+    assert(mRecords.at(1)->recordType() == trustLineRecords.at(1)->recordType());
+    assert(mRecords.at(1)->operationUUID() == trustLineRecords.at(1)->operationUUID());
 
-        auto trustLineRecord = dynamic_pointer_cast<st::TrustLineRecord>(record);
+    assert(mRecords.at(2)->recordType() == trustLineRecords.at(2)->recordType());
+    assert(mRecords.at(2)->operationUUID() == trustLineRecords.at(2)->operationUUID());
 
-        bool wasMatching = false;
-        for (const auto& operationUUID : mOperationsUUIDs) {
+    assert(mRecords.at(3)->recordType() == paymentRecords.at(0)->recordType());
+    assert(mRecords.at(3)->operationUUID() == paymentRecords.at(0)->operationUUID());
 
-            if (operationUUID == trustLineRecord->operationUUID()) {
-                wasMatching = true;
-                break;
-            }
+    assert(mRecords.at(4)->recordType() == paymentRecords.at(1)->recordType());
+    assert(mRecords.at(4)->operationUUID() == paymentRecords.at(1)->operationUUID());
 
-        }
-        assert(wasMatching);
+    assert(mRecords.at(5)->recordType() == paymentRecords.at(2)->recordType());
+    assert(mRecords.at(5)->operationUUID() == paymentRecords.at(2)->operationUUID());
 
-        wasMatching = false;
-        for (const auto& contractorUUID : mContractorsUUIDs) {
+    assert(mRecords.at(6)->recordType() == trustLineRecords.at(3)->recordType());
+    assert(mRecords.at(6)->operationUUID() == trustLineRecords.at(3)->operationUUID());
 
-            if (contractorUUID == trustLineRecord->contractorUUID()) {
-                wasMatching = true;
-                break;
-            }
+    assert(mRecords.at(7)->recordType() == trustLineRecords.at(4)->recordType());
+    assert(mRecords.at(7)->operationUUID() == trustLineRecords.at(4)->operationUUID());
 
-        }
-        assert(wasMatching);
+    assert(mRecords.at(8)->recordType() == paymentRecords.at(3)->recordType());
+    assert(mRecords.at(8)->operationUUID() == paymentRecords.at(3)->operationUUID());
 
-        assert(trustLineRecord->trustLineOperationType() == st::PaymentRecord::PaymentOperationType::IncomingPaymentType);
-        assert(trustLineRecord->amount() == TrustLineAmount(500));
-
-    }
+    assert(mRecords.at(9)->recordType() == paymentRecords.at(4)->recordType());
+    assert(mRecords.at(9)->operationUUID() == paymentRecords.at(4)->operationUUID());
 
 }
 
