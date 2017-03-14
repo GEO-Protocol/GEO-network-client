@@ -24,6 +24,8 @@ namespace db {
         public:
             enum TrustLineOperationType {
                 Opening = 1,
+                Accepting,
+                Setting,
                 Updating,
                 Closing,
             };

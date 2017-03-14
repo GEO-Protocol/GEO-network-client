@@ -3,25 +3,28 @@
 OpenTrustLineTransaction::OpenTrustLineTransaction(
     const NodeUUID &nodeUUID,
     OpenTrustLineCommand::Shared command,
-    TrustLinesManager *manager) :
+    TrustLinesManager *manager,
+    OperationsHistoryStorage *historyStorage) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::OpenTrustLineTransactionType,
-        nodeUUID
-    ),
+        nodeUUID),
     mCommand(command),
-    mTrustLinesManager(manager) {}
+    mTrustLinesManager(manager),
+    mOperationsHistoryStorage(historyStorage) {}
 
 OpenTrustLineTransaction::OpenTrustLineTransaction(
     BytesShared buffer,
-    TrustLinesManager *manager) :
+    TrustLinesManager *manager,
+    OperationsHistoryStorage *historyStorage) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::OpenTrustLineTransactionType
-    ),
-    mTrustLinesManager(manager) {
+        BaseTransaction::TransactionType::OpenTrustLineTransactionType),
+    mTrustLinesManager(manager),
+    mOperationsHistoryStorage(historyStorage) {
 
-    deserializeFromBytes(buffer);
+    deserializeFromBytes(
+        buffer);
 }
 
 OpenTrustLineCommand::Shared OpenTrustLineTransaction::command() const {
@@ -34,44 +37,43 @@ pair<BytesShared, size_t> OpenTrustLineTransaction::serializeToBytes() const {
     auto parentBytesAndCount = TrustLineTransaction::serializeToBytes();
     auto commandBytesAndCount = mCommand->serializeToBytes();
 
-    size_t bytesCount = parentBytesAndCount.second +  commandBytesAndCount.second;
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t bytesCount = parentBytesAndCount.second
+                        + commandBytesAndCount.second;
+
+    BytesShared dataBytesShared = tryMalloc(
+        bytesCount);
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + parentBytesAndCount.second,
         commandBytesAndCount.first.get(),
-        commandBytesAndCount.second
-    );
+        commandBytesAndCount.second);
     //-----------------------------------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 void OpenTrustLineTransaction::deserializeFromBytes(
     BytesShared buffer) {
 
-    TrustLineTransaction::deserializeFromBytes(buffer);
-    BytesShared commandBufferShared = tryCalloc(OpenTrustLineCommand::kRequestedBufferSize());
+    TrustLineTransaction::deserializeFromBytes(
+        buffer);
+
+    BytesShared commandBufferShared = tryMalloc(
+        OpenTrustLineCommand::kRequestedBufferSize());
     //-----------------------------------------------------
     memcpy(
         commandBufferShared.get(),
         buffer.get() + TrustLineTransaction::kOffsetToDataBytes(),
-        OpenTrustLineCommand::kRequestedBufferSize()
-    );
+        OpenTrustLineCommand::kRequestedBufferSize());
     //-----------------------------------------------------
-    mCommand = OpenTrustLineCommand::Shared(
-        new OpenTrustLineCommand(
-            commandBufferShared
-        )
-    );
+    mCommand = make_shared<OpenTrustLineCommand>(
+        commandBufferShared);
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::run() {
@@ -79,25 +81,28 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run() {
     try {
         switch (mStep) {
 
-            case 1: {
+            case Stages::CheckUnicity: {
                 if (!isTransactionToContractorUnique()) {
                     return conflictErrorResult();
                 }
-                increaseStepsCounter();
+
+                mStep = Stages::CheckOutgoingDirection;
             }
 
-            case 2: {
+            case Stages::CheckOutgoingDirection: {
                 if (isOutgoingTrustLineDirectionExisting()) {
                     return trustLinePresentResult();
                 }
-                increaseStepsCounter();
+
+                mStep = Stages::CheckContext;
             }
 
-        case 3: {
+        case Stages::CheckContext: {
             if (!mContext.empty()) {
                 return checkTransactionContext();
 
                 } else {
+
                     if (mRequestCounter < kMaxRequestsCount) {
                         sendMessageToRemoteNode();
                         increaseRequestsCounter();
@@ -105,6 +110,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run() {
                     } else {
                         return noResponseResult();
                     }
+
                 }
                 return waitingForResponseState();
             }
@@ -138,13 +144,18 @@ bool OpenTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
 TransactionResult::SharedConst OpenTrustLineTransaction::checkTransactionContext() {
 
     if (mExpectationResponsesCount == mContext.size()) {
-        auto responseMessage = mContext[kResponsePosition];
+        auto responseMessage = *mContext.begin();
+
         if (responseMessage->typeID() == Message::MessageTypeID::ResponseMessageType) {
-            Response::Shared response = static_pointer_cast<Response>(responseMessage);
+            Response::Shared response = static_pointer_cast<Response>(
+                responseMessage);
+
             switch (response->code()) {
 
                 case AcceptTrustLineMessage::kResultCodeAccepted: {
                     openTrustLine();
+                    logOpeningTrustLineOperation();
+
                     return resultOk();
                 }
 
@@ -161,86 +172,92 @@ TransactionResult::SharedConst OpenTrustLineTransaction::checkTransactionContext
                 }
 
             }
+
         }
 
         return unexpectedErrorResult();
 
     } else {
         throw ConflictError("OpenTrustLineTransaction::checkTransactionContext: "
-                                "Unexpected context size."
-        );
+                                "Unexpected context size.");
     }
 }
 
 void OpenTrustLineTransaction::sendMessageToRemoteNode() {
 
-    Message *message = new OpenTrustLineMessage(
+
+    sendMessage<OpenTrustLineMessage>(
+        mCommand->contractorUUID(),
         mNodeUUID,
         mTransactionUUID,
-        mCommand->amount()
-    );
-
-    addMessage(
-        Message::Shared(message),
-        mCommand->contractorUUID()
-    );
+        mCommand->amount());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::waitingForResponseState() {
 
     TransactionState *transactionState = new TransactionState(
         microsecondsSinceGEOEpoch(
-            utc_now() + pt::microseconds(kConnectionTimeout * 1000)
-        ),
+            utc_now() + pt::microseconds(kConnectionTimeout * 1000)),
         Message::MessageTypeID::ResponseMessageType,
-        false
-    );
+        false);
 
-
-    TransactionResult *transactionResult = new TransactionResult();
-    transactionResult->setTransactionState(TransactionState::SharedConst(transactionState));
-    return TransactionResult::SharedConst(transactionResult);
+    return transactionResultFromState(
+        TransactionState::SharedConst(
+            transactionState));
 }
 
 void OpenTrustLineTransaction::openTrustLine() {
 
-    try {
-        mTrustLinesManager->open(
-            mCommand->contractorUUID(),
-            mCommand->amount()
-        );
-    } catch (std::exception &e) {
-        throw Exception(e.what());
-    }
+    mTrustLinesManager->open(
+        mCommand->contractorUUID(),
+        mCommand->amount());
 
+}
+
+void OpenTrustLineTransaction::logOpeningTrustLineOperation() {
+
+    Record::Shared record = make_shared<TrustLineRecord>(
+        uuid(mTransactionUUID),
+        TrustLineRecord::TrustLineOperationType::Opening,
+        mCommand->contractorUUID(),
+        mCommand->amount());
+
+    mOperationsHistoryStorage->addRecord(
+        record);
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::resultOk() {
 
-    return transactionResultFromCommand(mCommand->resultOk());
+    return transactionResultFromCommand(
+        mCommand->resultOk());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::trustLinePresentResult() {
 
-    return transactionResultFromCommand(mCommand->trustLineAlreadyPresentResult());
+    return transactionResultFromCommand(
+        mCommand->trustLineAlreadyPresentResult());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::conflictErrorResult() {
 
-    return transactionResultFromCommand(mCommand->resultConflict());
+    return transactionResultFromCommand(
+        mCommand->resultConflict());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::noResponseResult() {
 
-    return transactionResultFromCommand(mCommand->resultNoResponse());
+    return transactionResultFromCommand(
+        mCommand->resultNoResponse());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::transactionConflictResult() {
 
-    return transactionResultFromCommand(mCommand->resultTransactionConflict());
+    return transactionResultFromCommand(
+        mCommand->resultTransactionConflict());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::unexpectedErrorResult() {
 
-    return transactionResultFromCommand(mCommand->unexpectedErrorResult());
+    return transactionResultFromCommand(
+        mCommand->unexpectedErrorResult());
 }

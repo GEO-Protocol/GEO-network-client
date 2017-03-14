@@ -4,12 +4,13 @@
 #include "../../common/Types.h"
 #include "../../common/NodeUUID.h"
 #include "../../common/memory/MemoryUtils.h"
-#include "../../logger/Logger.h"
 
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
+#include "../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
+#include "../../logger/Logger.h"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 #include "../scheduler/TransactionsScheduler.h"
@@ -65,6 +66,7 @@
 
 using namespace std;
 namespace storage = db::uuid_map_block_storage;
+namespace history = db::operations_history_storage;
 namespace signals = boost::signals2;
 
 class TransactionsManager {
@@ -80,6 +82,7 @@ public:
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResultsInterface *resultsInterface,
+        history::OperationsHistoryStorage *operationsHistoryStorage,
         Logger *logger);
 
     void processCommand(
@@ -198,6 +201,7 @@ private:
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     ResultsInterface *mResultsInterface;
+    history::OperationsHistoryStorage *mOperationsHistoryStorage;
     Logger *mLog;
 
     unique_ptr<storage::UUIDMapBlockStorage> mStorage;

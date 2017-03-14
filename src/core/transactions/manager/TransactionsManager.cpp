@@ -11,6 +11,7 @@ TransactionsManager::TransactionsManager(
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResultsInterface *resultsInterface,
+    history::OperationsHistoryStorage *operationsHistoryStorage,
     Logger *logger) :
 
     mNodeUUID(nodeUUID),
@@ -19,6 +20,7 @@ TransactionsManager::TransactionsManager(
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mResultsInterface(resultsInterface),
+    mOperationsHistoryStorage(operationsHistoryStorage),
     mLog(logger),
 
     mStorage(new storage::UUIDMapBlockStorage(
@@ -68,7 +70,8 @@ void TransactionsManager::loadTransactions() {
                 case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
                     transaction = new OpenTrustLineTransaction(
                         transactionBuffer,
-                        mTrustLines
+                        mTrustLines,
+                        mOperationsHistoryStorage
                     );
                     break;
                 }
@@ -76,7 +79,8 @@ void TransactionsManager::loadTransactions() {
                 case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
                     transaction = new SetTrustLineTransaction(
                         transactionBuffer,
-                        mTrustLines
+                        mTrustLines,
+                        mOperationsHistoryStorage
                     );
                     break;
                 }
@@ -253,7 +257,8 @@ void TransactionsManager::launchOpenTrustLineTransaction(
         auto transaction = make_shared<OpenTrustLineTransaction>(
             mNodeUUID,
             command,
-            mTrustLines
+            mTrustLines,
+            mOperationsHistoryStorage
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -279,7 +284,8 @@ void TransactionsManager::launchSetTrustLineTransaction(
         auto transaction = make_shared<SetTrustLineTransaction>(
             mNodeUUID,
             command,
-            mTrustLines
+            mTrustLines,
+            mOperationsHistoryStorage
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -329,7 +335,8 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
         auto transaction = make_shared<AcceptTrustLineTransaction>(
             mNodeUUID,
             message,
-            mTrustLines
+            mTrustLines,
+            mOperationsHistoryStorage
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -350,7 +357,8 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
         auto transaction = make_shared<UpdateTrustLineTransaction>(
             mNodeUUID,
             message,
-            mTrustLines
+            mTrustLines,
+            mOperationsHistoryStorage
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
