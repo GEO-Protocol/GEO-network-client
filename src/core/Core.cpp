@@ -73,9 +73,14 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
-    initCode = initMaxFlowCalculationTrustLineManager();
+    initCode = initMaxFlowCalculationtrustLineManager();
     if (initCode != 0)
         return initCode;
+
+    initCode = initMaxFlowCalculationCacheManager();
+    if (initCode != 0) {
+        return initCode;
+    }
 
     initCode = initTransactionsManager();
     if (initCode != 0)
@@ -175,7 +180,7 @@ int Core::initTrustLinesManager() {
     }
 }
 
-int Core::initMaxFlowCalculationTrustLineManager() {
+int Core::initMaxFlowCalculationtrustLineManager() {
 
     try{
         mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager;
@@ -183,6 +188,18 @@ int Core::initMaxFlowCalculationTrustLineManager() {
         return 0;
 
     }catch(const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initMaxFlowCalculationCacheManager() {
+
+    try {
+        mMaxFlowCalculationCacheManager = new MaxFlowCalculationCacheManager(&mLog);
+        mLog.logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
+        return 0;
+    } catch (const std::exception &e) {
         mLog.logException("Core", e);
         return -1;
     }
@@ -196,6 +213,7 @@ int Core::initTransactionsManager() {
             mIOService,
             mTrustLinesManager,
             mMaxFlowCalculationTrustLimeManager,
+            mMaxFlowCalculationCacheManager,
             mResultsInterface,
             &mLog
         );
@@ -280,6 +298,10 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
+    mMaxFlowCalculationCacheUpdateDelayedTask->mMaxFlowCalculationCacheUpdateSignal.connect(
+        boost::bind(
+            &Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot,
+            this));
 }
 void Core::connectSignalsToSlots() {
 
@@ -374,6 +396,18 @@ void Core::cleanupMemory() {
     if (mCommandsInterface != nullptr) {
         delete mCommandsInterface;
     }
+
+    if (mMaxFlowCalculationTrustLimeManager != nullptr) {
+        delete mMaxFlowCalculationTrustLimeManager;
+    }
+
+    if (mMaxFlowCalculationCacheManager != nullptr) {
+        delete mMaxFlowCalculationCacheManager;
+    }
+
+    if (mMaxFlowCalculationCacheUpdateDelayedTask != nullptr) {
+        delete mMaxFlowCalculationCacheUpdateDelayedTask;
+    }
 }
 
 void Core::zeroPointers() {
@@ -385,6 +419,9 @@ void Core::zeroPointers() {
     mTrustLinesManager = nullptr;
     mTransactionsManager = nullptr;
     mCyclesDelayedTasks = nullptr;
+    mMaxFlowCalculationTrustLimeManager = nullptr;
+    mMaxFlowCalculationCacheManager = nullptr;
+    mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
 }
 
 //void Core::initTimers() {
@@ -396,6 +433,8 @@ int Core::initDelayedTasks() {
         mCyclesDelayedTasks = new CyclesDelayedTasks(
                mIOService
         );
+        mMaxFlowCalculationCacheUpdateDelayedTask = new MaxFlowCalculationCacheUpdateDelayedTask(
+            mIOService);
     mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
     return 0;
     } catch (const std::exception &e) {
@@ -437,4 +476,8 @@ void Core::JustToTestSomething() {
 //            message
 //    )
 //    );
+}
+
+void Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot() {
+    mTransactionsManager->launchMaxFlowCalculationCacheUpdateTransaction();
 }

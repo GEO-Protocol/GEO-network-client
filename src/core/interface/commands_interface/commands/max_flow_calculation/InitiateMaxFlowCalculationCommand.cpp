@@ -5,23 +5,22 @@
 #include "InitiateMaxFlowCalculationCommand.h"
 
 InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
-        const CommandUUID &uuid,
-        const string &commandBuffer):
+    const CommandUUID &uuid,
+    const string &commandBuffer):
 
-        BaseUserCommand(
-                uuid,
-                identifier()
-        ) {
+    BaseUserCommand(
+        uuid,
+        identifier()) {
 
     parse(commandBuffer);
 }
 
 InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
-        BytesShared buffer) :
+    BytesShared buffer) :
 
-        BaseUserCommand(identifier()) {
+    BaseUserCommand(identifier()) {
 
-        deserializeFromBytes(buffer);
+    deserializeFromBytes(buffer);
 }
 
 const string &InitiateMaxFlowCalculationCommand::identifier() {
@@ -54,13 +53,11 @@ pair<BytesShared, size_t> InitiateMaxFlowCalculationCommand::serializeToBytes(){
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
             mContractorUUID.data,
-            NodeUUID::kBytesSize
-    );
+            NodeUUID::kBytesSize);
     //----------------------------------------------------
     return make_pair(
             dataBytesShared,
-            bytesCount
-    );
+            bytesCount);
 }
 
 void InitiateMaxFlowCalculationCommand::deserializeFromBytes(
@@ -72,8 +69,7 @@ void InitiateMaxFlowCalculationCommand::deserializeFromBytes(
     memcpy(
             mContractorUUID.data,
             buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize
-    );
+            NodeUUID::kBytesSize);
 }
 
 /**
@@ -93,8 +89,7 @@ void InitiateMaxFlowCalculationCommand::parse(
     try {
         string hexUUID = command.substr(
                 0,
-                NodeUUID::kHexSize
-        );
+                NodeUUID::kHexSize);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
@@ -103,9 +98,13 @@ void InitiateMaxFlowCalculationCommand::parse(
     }
 }
 
-const size_t InitiateMaxFlowCalculationCommand::kRequestedBufferSize() {
+CommandResult::SharedConst InitiateMaxFlowCalculationCommand::resultOk(string &maxFlowAmount) const {
 
-    static const size_t size = kOffsetToInheritedBytes() + NodeUUID::kBytesSize;
-    return size;
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            200,
+            maxFlowAmount));
 }
+
 

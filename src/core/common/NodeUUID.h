@@ -53,4 +53,18 @@ public:
     const string stringUUID() const;
 };
 
+namespace std {
+    template <>
+    class hash<NodeUUID>{
+    public :
+        size_t operator()(const NodeUUID &nodeUUID) const{
+            size_t result = 0;
+            for (int idx = 0; idx < 8; idx++) {
+                result += hash<uint8_t>()(nodeUUID.data[idx*2] << (idx*8));
+            }
+            return result;
+        }
+    };
+}
+
 #endif //GEO_NETWORK_CLIENT_NODEUUID_H

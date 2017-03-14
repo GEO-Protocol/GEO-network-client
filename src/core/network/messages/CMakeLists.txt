@@ -6,6 +6,7 @@ add_subdirectory(outgoing)
 add_subdirectory(response)
 add_subdirectory(result)
 add_subdirectory(cycles)
+add_subdirectory(max_flow_calculation)
 
 set(SOURCE_FILES
         SenderMessage.cpp
@@ -23,15 +24,14 @@ target_link_libraries(network__messages
         messages__base__trust_lines
 
         messages__cycles
+        messages__max_flow_calculation
 
         messages__incoming__routing_tables
         messages__incoming__trust_lines
-        messages__incoming__max_flow_calculation
 
         messages__outgoing__payments
         messages__outgoing__trust_lines
         messages__outgoing__routing_tables
-        messages__outgoing__max_flow_calculation
 
         messages__result
         messages__response)

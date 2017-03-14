@@ -124,19 +124,15 @@ public:
     void removeTrustLine(
         const NodeUUID &contractorUUID);
 
-    // TODO: cut "get" from method name;
-    vector<NodeUUID> getFirstLevelNeighborsWithOutgoingFlow();
+    vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
 
-    // TODO: cut "get" from method name;
-    vector<NodeUUID> getFirstLevelNeighborsWithIncomingFlow();
+    vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
 
-    // TODO: cut "get" from method name;
     // TODO: TrustLineAmount takes 32 bytes. Are you shure you need a COPY here?
-    map<NodeUUID, TrustLineAmount> getIncomingFlows();
+    vector<pair<NodeUUID, TrustLineAmount>> incomingFlows() const;
 
-    // TODO: cut "get" from method name;
     // TODO: TrustLineAmount takes 32 bytes. Are you shure you need a COPY here?
-    map<NodeUUID, TrustLineAmount> getOutgoingFlows();
+    vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows() const;
 
     [[deprecated("Buggy function. Use trustLineReadOnly instead")]]
     const TrustLine::Shared trustLine(

@@ -53,16 +53,10 @@ public:
 
 
         InitiateMaxFlowCalculationMessageType,
-        ReceiveMaxFlowCalculationOnTargetMessageType,
-        SendMaxFlowCalculationSourceFstLevelMessageType,
-        MaxFlowCalculationSourceFstLevelInMessageType,
-        SendMaxFlowCalculationTargetFstLevelMessageType,
-        MaxFlowCalculationTargetFstLevelInMessageType,
-        MaxFlowCalculationSourceFstLevelOutMessageType,
-        MaxFlowCalculationSourceSndLevelInMessageType,
-        MaxFlowCalculationTargetFstLevelOutMessageType,
-        MaxFlowCalculationTargetSndLevelInMessageType,
-        SendResultMaxFlowCalculationMessageType,
+        MaxFlowCalculationSourceFstLevelMessageType,
+        MaxFlowCalculationTargetFstLevelMessageType,
+        MaxFlowCalculationSourceSndLevelMessageType,
+        MaxFlowCalculationTargetSndLevelMessageType,
         ResultMaxFlowCalculationMessageType,
 
         ResponseMessageType = 1000,

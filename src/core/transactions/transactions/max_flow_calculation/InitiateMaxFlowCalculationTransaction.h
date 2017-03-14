@@ -4,11 +4,13 @@
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 
-#include "../../scheduler/TransactionsScheduler.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
-#include "../../../network/messages/outgoing/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
-#include "../../../network/messages/outgoing/max_flow_calculation/SendMaxFlowCalculationSourceFstLevelMessage.h"
+#include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
+#include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+
+#include <set>
 
 class InitiateMaxFlowCalculationTransaction : public BaseTransaction {
 
@@ -21,6 +23,7 @@ public:
             InitiateMaxFlowCalculationCommand::Shared command,
             TrustLinesManager *manager,
             MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+            MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
             Logger *logger);
 
     InitiateMaxFlowCalculationCommand::Shared command() const;
@@ -31,29 +34,31 @@ private:
 
     void sendMessageToRemoteNode();
 
-    void sendMessageOnFirstLevel();
+    void sendMessagesOnFirstLevel();
 
     TrustLineAmount calculateMaxFlow(const NodeUUID& nodeUUID);
 
     TrustLineAmount calculateOneNode(
         const NodeUUID& nodeUUID,
         const TrustLineAmount& currentFlow,
-        int level,
+        byte level,
         const NodeUUID& targetUUID,
-        const NodeUUID& sourceUUID);
+        const NodeUUID& sourceUUID,
+        set<NodeUUID> forbiddenUUIDs);
 
-    void testCompare(MaxFlowCalculationTrustLine::Shared a,
-                     MaxFlowCalculationTrustLine::Shared b);
+    TransactionResult::SharedConst resultOk(TrustLineAmount &maxFlowAmount);
 
 private:
 
     static const byte kMaxFlowLength=6;
+    static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 2000;
 
 private:
 
     InitiateMaxFlowCalculationCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     Logger *mLog;
 
 };
