@@ -189,10 +189,6 @@ void TransactionsManager::processMessage(
         launchReceiveMaxFlowCalculationOnTargetTransaction(
             static_pointer_cast<InitiateMaxFlowCalculationMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::ReceiveMaxFlowCalculationOnTargetMessageType) {
-        launchReceiveMaxFlowCalculationTransaction(
-            static_pointer_cast<ReceiveMaxFlowCalculationOnTargetMessage>(message));
-
     } else if (message->typeID() == Message::MessageTypeID::ResultMaxFlowCalculationMessageType) {
         launchReceiveResultMaxFlowCalculationTransaction(
             static_pointer_cast<ResultMaxFlowCalculationMessage>(message));

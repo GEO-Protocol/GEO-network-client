@@ -9,12 +9,11 @@ MaxFlowCalculationTargetSndLevelTransaction::MaxFlowCalculationTargetSndLevelTra
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationTargetSndLevelTransactionType,
-        nodeUUID
-    ),
+        nodeUUID,
+        logger),
     mMessage(message),
     mTrustLinesManager(manager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mLog(logger){}
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager) {}
 
 MaxFlowCalculationTargetSndLevelMessage::Shared MaxFlowCalculationTargetSndLevelTransaction::message() const {
 
@@ -23,9 +22,9 @@ MaxFlowCalculationTargetSndLevelMessage::Shared MaxFlowCalculationTargetSndLevel
 
 TransactionResult::SharedConst MaxFlowCalculationTargetSndLevelTransaction::run() {
 
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->run", "Iam: " + mNodeUUID.stringUUID());
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->run", "sender: " + mMessage->senderUUID().stringUUID());
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->run", "target: " + mMessage->targetUUID().stringUUID());
+    info() << "run\t" << "Iam: " << mNodeUUID.stringUUID();
+    info() << "run\t" << "sender: " << mMessage->senderUUID().stringUUID();
+    info() << "run\t" << "target: " << mMessage->targetUUID().stringUUID();
 
     sendResultToInitiator();
 
@@ -57,21 +56,15 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
         }
     }
 
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendResultToInitiator",
-                  "send to " + mMessage->targetUUID().stringUUID());
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendResult",
-                  "OutgoingFlows: " + to_string(outgoingFlows.size()));
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendResult",
-                  "IncomingFlows: " + to_string(incomingFlows.size()));
+    info() << "sendResultToInitiator\t" << "send to " << mMessage->targetUUID().stringUUID();
+    info() << "sendResultToInitiator\t" << "OutgoingFlows: " << outgoingFlows.size();
+    info() << "sendResultToInitiator\t" << "IncomingFlows: " << incomingFlows.size();
 
-    Message *message = new ResultMaxFlowCalculationMessage(
-        mNodeUUID,
-        outgoingFlows,
-        incomingFlows);
-
-    addMessage(
-        Message::Shared(message),
-        mMessage->targetUUID());
+    sendMessage<ResultMaxFlowCalculationMessage>(
+            mMessage->targetUUID(),
+            mNodeUUID,
+            outgoingFlows,
+            incomingFlows);
 
     auto maxFlowCalculationCache = make_shared<MaxFlowCalculationCache>(
         outgoingFlows,
@@ -85,21 +78,16 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
 void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
     MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr) {
 
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendCachedResultToInitiator",
-                  "send to " + mMessage->targetUUID().stringUUID());
+    info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID().stringUUID();
 
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendCachedResultToInitiator", "cache:");
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendCachedResultToInitiator",
-                  "outgoing: " + to_string(maxFlowCalculationCachePtr->mOutgoingFlows.size()));
+    info() << "sendCachedResultToInitiator\t" << "cache:";
+    info() << "sendCachedResultToInitiator\t" << "outgoing: " << maxFlowCalculationCachePtr->mOutgoingFlows.size();
     for (auto const &it : maxFlowCalculationCachePtr->mOutgoingFlows) {
-        mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendCachedResultToInitiator",
-                      "out uuid: " + it.first.stringUUID());
+        info() << "sendCachedResultToInitiator\t" << "out uuid: " << it.first.stringUUID();
     }
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendCachedResultToInitiator",
-                  "incoming: " + to_string(maxFlowCalculationCachePtr->mIncomingFlows.size()));
+    info() << "sendCachedResultToInitiator\t" << "incoming: " << maxFlowCalculationCachePtr->mIncomingFlows.size();
     for (auto const &it : maxFlowCalculationCachePtr->mIncomingFlows) {
-        mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendCachedResultToInitiator",
-                      "in uuid: " + it.first.stringUUID());
+        info() << "sendCachedResultToInitiator\t" << "in uuid: " << it.first.stringUUID();
     }
 
     vector<pair<NodeUUID, TrustLineAmount>> outgoingFlowsForSending;
@@ -117,19 +105,23 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
             incomingFlowsForSending.push_back(incomingFlow);
         }
     }
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendCachedResult",
-                  "OutgoingFlows: " + to_string(outgoingFlowsForSending.size()));
-    mLog->logInfo("MaxFlowCalculationTargetSndLevelTransaction->sendCachedResult",
-                  "IncomingFlows: " + to_string(incomingFlowsForSending.size()));
+    info() << "sendCachedResultToInitiator\t" << "OutgoingFlows: " << outgoingFlowsForSending.size();
+    info() << "sendCachedResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
 
     if (outgoingFlowsForSending.size() > 0 || incomingFlowsForSending.size() > 0) {
-        Message *message = new ResultMaxFlowCalculationMessage(
-            mNodeUUID,
-            outgoingFlowsForSending,
-            incomingFlowsForSending);
 
-        addMessage(
-            Message::Shared(message),
-            mMessage->targetUUID());
+        sendMessage<ResultMaxFlowCalculationMessage>(
+                mMessage->targetUUID(),
+                mNodeUUID,
+                outgoingFlowsForSending,
+                incomingFlowsForSending);
     }
+}
+
+const string MaxFlowCalculationTargetSndLevelTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[MaxFlowCalculationTargetSndLevelTA]";
+
+    return s.str();
 }

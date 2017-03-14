@@ -30,6 +30,15 @@ public:
 
     TransactionResult::SharedConst run();
 
+protected:
+    enum Stages {
+        SendRequestForCollectingTopology = 1,
+        CalculateMaxTransactionFlow
+    };
+
+protected:
+    const string logHeader() const;
+
 private:
 
     void sendMessageToRemoteNode();
@@ -59,7 +68,6 @@ private:
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    Logger *mLog;
 
 };
 

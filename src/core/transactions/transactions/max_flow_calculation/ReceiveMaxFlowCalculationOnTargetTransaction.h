@@ -25,6 +25,9 @@ public:
 
     TransactionResult::SharedConst run();
 
+protected:
+    const string logHeader() const;
+
 private:
 
     void sendMessagesOnFirstLevel();
@@ -38,7 +41,6 @@ private:
     InitiateMaxFlowCalculationMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    Logger *mLog;
 };
 
 

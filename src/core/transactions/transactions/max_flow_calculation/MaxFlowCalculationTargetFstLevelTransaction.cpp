@@ -8,11 +8,10 @@ MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTra
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationTargetFstLevelTransactionType,
-        nodeUUID
-    ),
+        nodeUUID,
+        logger),
     mMessage(message),
-    mTrustLinesManager(manager),
-    mLog(logger){}
+    mTrustLinesManager(manager) {}
 
 MaxFlowCalculationTargetFstLevelMessage::Shared MaxFlowCalculationTargetFstLevelTransaction::message() const {
 
@@ -21,30 +20,35 @@ MaxFlowCalculationTargetFstLevelMessage::Shared MaxFlowCalculationTargetFstLevel
 
 TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run() {
 
-    mLog->logInfo("MaxFlowCalculationTargetFstLevelTransaction->run", "Iam: " + mNodeUUID.stringUUID());
-    mLog->logInfo("MaxFlowCalculationTargetFstLevelTransaction->run", "sender: " + mMessage->senderUUID().stringUUID());
-    mLog->logInfo("MaxFlowCalculationTargetFstLevelTransaction->run", "target: " + mMessage->targetUUID().stringUUID());
-    mLog->logInfo("MaxFlowCalculationTargetFstLevelTransaction->run",
-                  "OutgoingFlows: " + to_string(mTrustLinesManager->outgoingFlows().size()));
-    mLog->logInfo("MaxFlowCalculationTargetFstLevelTransaction->run",
-                  "IncomingFlows: " + to_string(mTrustLinesManager->incomingFlows().size()));
+    info() << "run\t" << "Iam: " << mNodeUUID.stringUUID();
+    info() << "run\t" << "sender: " << mMessage->senderUUID().stringUUID();
+    info() << "run\t" << "target: " << mMessage->targetUUID().stringUUID();
+    info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
+    info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 
     vector<NodeUUID> incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
     for (auto const &nodeUUIDIncomingFlow : incomingFlowUuids) {
         if (nodeUUIDIncomingFlow == mMessage->senderUUID() || nodeUUIDIncomingFlow == mMessage->targetUUID()) {
             continue;
         }
-        Message *message = new MaxFlowCalculationTargetSndLevelMessage(
-            mNodeUUID,
-            mMessage->targetUUID());
 
-        mLog->logInfo("MaxFlowCalculationTargetFstLevelTransaction->sendFirst", ((NodeUUID)nodeUUIDIncomingFlow).stringUUID());
-        addMessage(
-            Message::Shared(message),
-            nodeUUIDIncomingFlow);
+        info() << "sendFirst\t" << nodeUUIDIncomingFlow.stringUUID();
+
+        sendMessage<MaxFlowCalculationTargetSndLevelMessage>(
+                nodeUUIDIncomingFlow,
+                mNodeUUID,
+                mMessage->targetUUID());
     }
 
     return make_shared<const TransactionResult>(
         TransactionState::exit());
 
+}
+
+const string MaxFlowCalculationTargetFstLevelTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[MaxFlowCalculationTargetFstLevelTA]";
+
+    return s.str();
 }

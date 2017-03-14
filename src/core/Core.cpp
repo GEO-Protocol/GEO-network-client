@@ -183,7 +183,7 @@ int Core::initTrustLinesManager() {
 int Core::initMaxFlowCalculationTrustLineManager() {
 
     try{
-        mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager;
+        mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager(&mLog);
         mLog.logSuccess("Core", "Max flow calculation Trust lines manager is successfully initialised");
         return 0;
 
@@ -229,11 +229,11 @@ int Core::initTransactionsManager() {
 int Core::initDelayedTasks() {
     try{
         mCyclesDelayedTasks = new CyclesDelayedTasks(
-            mIOService);
-
+                mIOService);
+        mMaxFlowCalculationCacheUpdateDelayedTask = new MaxFlowCalculationCacheUpdateDelayedTask(
+                mIOService);
         mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
         return 0;
-
     } catch (const std::exception &e) {
         mLog.logException("Core", e);
         return -1;
@@ -455,29 +455,6 @@ void Core::zeroPointers() {
 //void Core::initTimers() {
 //
 //}
-
-int Core::initDelayedTasks() {
-    try{
-        mCyclesDelayedTasks = new CyclesDelayedTasks(
-               mIOService
-        );
-        mMaxFlowCalculationCacheUpdateDelayedTask = new MaxFlowCalculationCacheUpdateDelayedTask(
-            mIOService);
-    mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
-    return 0;
-    } catch (const std::exception &e) {
-        mLog.logException("Core", e);
-        return -1;
-    }
-}
-
-void Core::onDelayedTaskCycleSixNodesSlot() {
-//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
-}
-
-void Core::onDelayedTaskCycleFiveNodesSlot() {
-//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
-}
 
 void Core::JustToTestSomething() {
 //    mTrustLinesManager->getFirstLevelNodesForCycles();

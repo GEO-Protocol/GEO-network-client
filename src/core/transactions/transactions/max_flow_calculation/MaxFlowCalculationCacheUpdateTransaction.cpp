@@ -8,17 +8,25 @@ MaxFlowCalculationCacheUpdateTransaction::MaxFlowCalculationCacheUpdateTransacti
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationCacheUpdateTransactionType,
-        nodeUUID),
+        nodeUUID,
+        logger),
 
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
-    mLog(logger) {}
+    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager) {}
 
 TransactionResult::SharedConst MaxFlowCalculationCacheUpdateTransaction::run() {
 
-    mLog->logInfo("MaxFlowCalculationCacheUpdateTransaction", "update cache");
+    info() << "update cache";
     mMaxFlowCalculationCacheManager->updateCaches();
     mMaxFlowCalculationTrustLineManager->deleteLegacyTrustLines();
     return make_shared<TransactionResult>(TransactionState::exit());
 
+}
+
+const string MaxFlowCalculationCacheUpdateTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[MaxFlowCalculationCacheUpdateTA]";
+
+    return s.str();
 }

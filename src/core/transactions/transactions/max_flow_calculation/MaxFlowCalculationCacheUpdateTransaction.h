@@ -21,11 +21,13 @@ public:
 
     TransactionResult::SharedConst run();
 
+protected:
+    const string logHeader() const;
+
 private:
 
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
-    Logger *mLog;
 
 };
 

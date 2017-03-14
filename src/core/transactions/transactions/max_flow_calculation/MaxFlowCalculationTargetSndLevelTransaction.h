@@ -24,6 +24,9 @@ public:
 
     TransactionResult::SharedConst run();
 
+protected:
+    const string logHeader() const;
+
 private:
 
     void sendResultToInitiator();
@@ -35,7 +38,6 @@ private:
     MaxFlowCalculationTargetSndLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    Logger *mLog;
 
 };
 

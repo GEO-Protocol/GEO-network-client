@@ -22,10 +22,12 @@ public:
 
     TransactionResult::SharedConst run();
 
+protected:
+    const string logHeader() const;
+
 private:
     MaxFlowCalculationTargetFstLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLog;
 
 };
 
