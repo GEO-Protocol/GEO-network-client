@@ -165,7 +165,7 @@ int Core::initTrustLinesManager() {
 int Core::initMaxFlowCalculationtrustLineManager() {
 
     try{
-        mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager;
+        mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager(&mLog);
         mLog.logSuccess("Core", "Max flow calculation Trust lines manager is successfully initialised");
         return 0;
 
@@ -178,7 +178,7 @@ int Core::initMaxFlowCalculationtrustLineManager() {
 int Core::initMaxFlowCalculationCacheManager() {
 
     try {
-        mMaxFlowCalculationCacheManager = new MaxFlowCalculationCacheManager;
+        mMaxFlowCalculationCacheManager = new MaxFlowCalculationCacheManager(&mLog);
         mLog.logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
         return 0;
     } catch (const std::exception &e) {

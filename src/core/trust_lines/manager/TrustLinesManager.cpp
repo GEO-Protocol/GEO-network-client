@@ -511,9 +511,7 @@ vector<pair<NodeUUID, TrustLineAmount>> TrustLinesManager::incomingFlows() const
             result.push_back(
                 make_pair(
                     nodeUUIDAndTrustLine.first,
-                    *trustLineAmountPtr
-                )
-            );
+                    *trustLineAmountPtr));
         }
     }
     return result;
@@ -528,9 +526,7 @@ vector<pair<NodeUUID, TrustLineAmount>> TrustLinesManager::outgoingFlows() const
             result.push_back(
                 make_pair(
                     nodeUUIDAndTrustLine.first,
-                    *trustLineAmountPtr
-                )
-            );
+                    *trustLineAmountPtr));
         }
     }
     return result;

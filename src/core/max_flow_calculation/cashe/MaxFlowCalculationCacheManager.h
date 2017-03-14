@@ -4,6 +4,7 @@
 #include "../../common/NodeUUID.h"
 #include "MaxFlowCalculationCache.h"
 #include "../../common/time/TimeUtils.h"
+#include "../../logger/Logger.h"
 
 #include <map>
 #include <unordered_map>
@@ -12,7 +13,7 @@
 class MaxFlowCalculationCacheManager {
 
 public:
-    MaxFlowCalculationCacheManager();
+    MaxFlowCalculationCacheManager(Logger *logger);
 
     void addCache(const NodeUUID &keyUUID, MaxFlowCalculationCache::Shared cache);
 
@@ -65,6 +66,7 @@ public:
     unordered_map<NodeUUID, MaxFlowCalculationCache::Shared> mCaches;
     map<DateTime, NodeUUID*> msCache;
     pair<bool, DateTime> mInitiatorCache;
+    Logger *mLog;
 };
 
 

@@ -1,6 +1,7 @@
 #include "MaxFlowCalculationCacheManager.h"
 
-MaxFlowCalculationCacheManager::MaxFlowCalculationCacheManager() {
+MaxFlowCalculationCacheManager::MaxFlowCalculationCacheManager(Logger *logger):
+    mLog(logger) {
     mInitiatorCache.first = false;
 }
 
@@ -22,14 +23,13 @@ MaxFlowCalculationCache::Shared MaxFlowCalculationCacheManager::cacheByNode(
 }
 
 void MaxFlowCalculationCacheManager::updateCaches() {
-    cout << "in MaxFlowCalculationCacheManager" << "\n";
-    cout << "mCaches size: " << mCaches.size() << "\n";
-    cout << "msCaches size: " << msCache.size() << "\n";
+    mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", "mCaches size: " + to_string(mCaches.size()));
+    mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", "msCaches size: " + to_string(msCache.size()));
 
     for (auto &timeAndNodeUUID : msCache) {
         if (utc_now() - timeAndNodeUUID.first > kResetCacheDuration()) {
             NodeUUID* keyUUIDPtr = timeAndNodeUUID.second;
-            cout << ((NodeUUID) *keyUUIDPtr).stringUUID() << "\n";
+            mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", ((NodeUUID) *keyUUIDPtr).stringUUID());
             mCaches.erase(*keyUUIDPtr);
             msCache.erase(timeAndNodeUUID.first);
             delete keyUUIDPtr;
@@ -39,7 +39,7 @@ void MaxFlowCalculationCacheManager::updateCaches() {
     }
 
     if (mInitiatorCache.first && utc_now() - mInitiatorCache.second > kResetInitiatorCacheDuration()) {
-        cout << "reset Initiator cache" << "\n";
+        mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", "reset Initiator cache");
         mInitiatorCache.first = false;
     }
 }

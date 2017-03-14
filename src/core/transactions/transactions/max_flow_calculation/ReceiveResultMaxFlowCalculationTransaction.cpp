@@ -22,15 +22,24 @@ ResultMaxFlowCalculationMessage::Shared ReceiveResultMaxFlowCalculationTransacti
 
 TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run() {
 
-    mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction->run", "initiator: " + mNodeUUID.stringUUID());
-    mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction->run", "sender: " + mMessage->senderUUID().stringUUID());
+    mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run", "initiator: " + mNodeUUID.stringUUID());
+    mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run", "sender: " + mMessage->senderUUID().stringUUID());
+
+//#ifdef TESTS
+    uint32_t countTrustLinesBeforeInsert = 0;
+    for (const auto &nodeUUIDAndTrustLines : mMaxFlowCalculationTrustLineManager->msTrustLines) {
+        countTrustLinesBeforeInsert += (nodeUUIDAndTrustLines.second)->size();
+    }
+    mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run", "beforeInsert mapTrustLinesCount: " + to_string(countTrustLinesBeforeInsert));
+//#endif
 
     mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
-                  "received trustLines out: " + to_string(mMessage->outgoingFlows().size()));
+                  "receivedTrustLinesOut: " + to_string(mMessage->outgoingFlows().size()));
     for (auto const &outgoingFlow : mMessage->outgoingFlows()) {
         TrustLineAmount trustLineAmount = outgoingFlow.second;
         mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
                       outgoingFlow.first.stringUUID() + " " + to_string((uint32_t)trustLineAmount));
+
 
         auto trustLine = make_shared<MaxFlowCalculationTrustLine>(
             mMessage->senderUUID(),
@@ -40,7 +49,7 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
         mMaxFlowCalculationTrustLineManager->addTrustLine(trustLine);
     }
     mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
-                  "received trustLines in: " + to_string(mMessage->incomingFlows().size()));
+                  "receivedTrustLinesIn: " + to_string(mMessage->incomingFlows().size()));
     for (auto const &incomingFlow : mMessage->incomingFlows()) {
         TrustLineAmount trustLineAmount = incomingFlow.second;
         mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
@@ -53,6 +62,14 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
 
         mMaxFlowCalculationTrustLineManager->addTrustLine(trustLine);
     }
+
+//#ifdef TESTS
+    uint32_t countTrustLinesAfterInsert = 0;
+    for (const auto &nodeUUIDAndTrustLines : mMaxFlowCalculationTrustLineManager->msTrustLines) {
+        countTrustLinesAfterInsert += (nodeUUIDAndTrustLines.second)->size();
+    }
+    mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run", "afterInsert mapTrustLinesCount: " + to_string(countTrustLinesAfterInsert));
+//#endif
 
     mLog->logInfo("ReceiveResultMaxFlowCalculationTransaction::run",
                   "trustLineMap size: " + to_string(mMaxFlowCalculationTrustLineManager->msTrustLines.size()));

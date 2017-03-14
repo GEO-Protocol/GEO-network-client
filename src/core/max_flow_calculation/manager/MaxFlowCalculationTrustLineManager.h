@@ -4,6 +4,7 @@
 #include "../../common/NodeUUID.h"
 #include "MaxFlowCalculationTrustLineWithPtr.h"
 #include "../../common/time/TimeUtils.h"
+#include "../../logger/Logger.h"
 
 #include <unordered_map>
 #include <unordered_set>
@@ -14,6 +15,8 @@ public:
     typedef unordered_set<MaxFlowCalculationTrustLineWithPtr*> trustLineWithPtrHashSet;
 
 public:
+
+    MaxFlowCalculationTrustLineManager(Logger *logger);
 
     void addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine);
 
@@ -53,6 +56,7 @@ private:
 public:
     unordered_map<NodeUUID, trustLineWithPtrHashSet*> msTrustLines;
     map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
+    Logger *mLog;
 
 };
 
