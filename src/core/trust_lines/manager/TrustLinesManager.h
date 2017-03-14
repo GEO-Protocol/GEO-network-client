@@ -152,11 +152,14 @@ private:
     static const size_t kTrustAmountPartSize = 32;
     static const size_t kBalancePartSize = 32;
     static const size_t kSignBytePartSize = 1;
+    static const size_t kTrustStatePartSize = 1;
     static const size_t kRecordSize =
         + kTrustAmountPartSize
         + kTrustAmountPartSize
         + kBalancePartSize
-        + kSignBytePartSize;
+        + kSignBytePartSize
+        + kTrustStatePartSize
+        + kTrustStatePartSize;
 
     // Contractor UUID -> trust line to the contractor.
     map<NodeUUID, TrustLine::Shared> mTrustLines;

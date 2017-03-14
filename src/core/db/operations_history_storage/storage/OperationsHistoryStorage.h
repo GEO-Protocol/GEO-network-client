@@ -39,8 +39,7 @@ namespace db {
             void addRecord(
                 Record::Shared record);
 
-            template<class T>
-            vector<shared_ptr<T>> recordsStack(
+            vector<Record::Shared> recordsStack(
                 Record::RecordType recordType,
                 size_t recordsCount,
                 size_t fromRecord);

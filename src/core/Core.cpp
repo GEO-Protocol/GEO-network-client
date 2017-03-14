@@ -17,7 +17,6 @@ int Core::run() {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
         return initCode;
     }
-    JustToTestSomething();
     try {
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
@@ -61,6 +60,10 @@ int Core::initCoreComponents() {
         return -1;
     }
 
+    initCode = initOperationsHistoryStorage();
+    if (initCode != 0)
+        return initCode;
+
     initCode = initCommunicator(conf);
     if (initCode != 0)
         return initCode;
@@ -73,7 +76,7 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
-    initCode = initMaxFlowCalculationtrustLineManager();
+    initCode = initMaxFlowCalculationTrustLineManager();
     if (initCode != 0)
         return initCode;
 
@@ -96,26 +99,6 @@ int Core::initCoreComponents() {
 
     connectSignalsToSlots();
 
-
-    // TODO: Remove me
-    // This scheme is needd for payments tests
-    // Please, do no remove it untile payments would be done
-
-//    if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff00")) {
-//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(100));
-
-//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff01")) {
-//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff00"), TrustLineAmount(100));
-//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(90));
-
-//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff02")) {
-//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(90));
-//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff03"), TrustLineAmount(80));
-
-//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff03")) {
-//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(80));
-//    }
-
     return 0;
 }
 
@@ -130,6 +113,23 @@ int Core::initSettings() {
         mLog.logException("Core", e);
         return -1;
     }
+}
+
+int Core::initOperationsHistoryStorage() {
+
+    try{
+        mOperationsHistoryStorage = new history::OperationsHistoryStorage(
+            "io",
+            "operations_history_storage.dat");
+
+        mLog.logSuccess("Core", "Operations history storage is successfully initialised");
+        return 0;
+
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+
 }
 
 int Core::initCommunicator(
@@ -180,7 +180,7 @@ int Core::initTrustLinesManager() {
     }
 }
 
-int Core::initMaxFlowCalculationtrustLineManager() {
+int Core::initMaxFlowCalculationTrustLineManager() {
 
     try{
         mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager;
@@ -218,6 +218,20 @@ int Core::initTransactionsManager() {
             &mLog
         );
         mLog.logSuccess("Core", "Transactions handler is successfully initialised");
+        return 0;
+
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initDelayedTasks() {
+    try{
+        mCyclesDelayedTasks = new CyclesDelayedTasks(
+            mIOService);
+
+        mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {
@@ -303,6 +317,7 @@ void Core::connectDelayedTasksSignals(){
             &Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot,
             this));
 }
+
 void Core::connectSignalsToSlots() {
 
     connectCommunicatorSignals();
@@ -371,10 +386,22 @@ void Core::onTrustLineStateModifiedSlot(
 
 }
 
+void Core::onDelayedTaskCycleSixNodesSlot() {
+//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
+}
+
+void Core::onDelayedTaskCycleFiveNodesSlot() {
+//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
+}
+
 void Core::cleanupMemory() {
 
     if (mSettings != nullptr) {
         delete mSettings;
+    }
+
+    if (mOperationsHistoryStorage != nullptr) {
+        delete mOperationsHistoryStorage;
     }
 
     if (mCommunicator != nullptr) {
@@ -413,6 +440,7 @@ void Core::cleanupMemory() {
 void Core::zeroPointers() {
 
     mSettings = nullptr;
+    mOperationsHistoryStorage = nullptr;
     mCommunicator = nullptr;
     mCommandsInterface = nullptr;
     mResultsInterface = nullptr;

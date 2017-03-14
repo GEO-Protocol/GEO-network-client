@@ -23,6 +23,9 @@ TrustLine::TrustLine(
                                  "Balance can't be less than outgoing trust amount.");
         }
     }
+
+    mTrustLineState.first = TrustState::NonActivated;
+    mTrustLineState.second = TrustState::NonActivated;
 }
 
 TrustLine::TrustLine(
@@ -33,13 +36,20 @@ TrustLine::TrustLine(
     mContractorNodeUUID(nodeUUID),
     mIncomingTrustAmount(incomingAmount),
     mOutgoingTrustAmount(outgoingAmount),
-    mBalance(0) {}
+    mBalance(0) {
+
+    mTrustLineState.first = TrustState::NonActivated;
+    mTrustLineState.second = TrustState::NonActivated;
+}
 
 TrustLine::TrustLine(
     const byte *buffer,
     const NodeUUID &contractorUUID) :
 
     mContractorNodeUUID(contractorUUID) {
+
+    mTrustLineState.first = TrustState::NonActivated;
+    mTrustLineState.second = TrustState::NonActivated;
     deserialize(buffer);
 }
 
@@ -318,7 +328,7 @@ void TrustLine::directionStateToBytes(
 
     SerializedTrustLineState directionState = (SerializedTrustLineState) state;
 
-    BytesShared dataBytesBuffer = tryCalloc(sizeof(SerializedTrustLineState));
+    BytesShared dataBytesBuffer = tryMalloc(sizeof(SerializedTrustLineState));
     memcpy(
       dataBytesBuffer.get(),
       &directionState,
@@ -369,7 +379,7 @@ TrustState TrustLine::parseDirectionState(
     const byte *buffer) {
 
     SerializedTrustLineState *directionState = new (const_cast<byte *> (buffer)) SerializedTrustLineState;
-    return (TrustState) *directionState;
+    return static_cast<TrustState>(*directionState);
 }
 
 /*!
