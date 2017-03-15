@@ -158,6 +158,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<InitiateMaxFlowCalculationCommand>(
                 command));
 
+    } else if (command->identifier() == TotalBalancesCommand::identifier()){
+        launchTotalBalancesTransaction(
+            static_pointer_cast<TotalBalancesCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -844,6 +849,31 @@ void TransactionsManager::launchGetTopologyAndBalancesTransaction(){
         throw MemoryError(
             "TransactionsManager::launchOpenTrustLineTransaction: "
                 "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchTotalBalancesTransaction(
+        TotalBalancesCommand::Shared command) {
+
+    try {
+        auto transaction = make_shared<TotalBalancesTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mLog);
+
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchTotalBalancesTransaction: "
+                        "Can't allocate memory for transaction instance.");
     }
 }
 

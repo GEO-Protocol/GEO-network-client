@@ -71,6 +71,10 @@ public:
 
     ConstSharedTrustLineAmount availableIncomingAmount() const;
 
+    ConstSharedTrustLineAmount usedIncomingAmount() const;
+
+    ConstSharedTrustLineAmount usedOutgoingAmount() const;
+
     const TrustLineDirection direction() const;
 
     const BalanceRange balanceRange() const;

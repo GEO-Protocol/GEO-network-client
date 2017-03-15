@@ -1,36 +1,36 @@
-#include "InitiateMaxFlowCalculationCommand.h"
+#include "TotalBalanceRemouteNodeCommand.h"
 
-InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
-    const CommandUUID &uuid,
-    const string &commandBuffer):
+TotalBalanceRemouteNodeCommand::TotalBalanceRemouteNodeCommand(
+        const CommandUUID &uuid,
+        const string &commandBuffer):
 
-    BaseUserCommand(
-        uuid,
-        identifier()) {
+        BaseUserCommand(
+                uuid,
+                identifier()) {
 
     parse(commandBuffer);
 }
 
-InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
-    BytesShared buffer) :
+TotalBalanceRemouteNodeCommand::TotalBalanceRemouteNodeCommand(
+        BytesShared buffer) :
 
-    BaseUserCommand(identifier()) {
+        BaseUserCommand(identifier()) {
 
     deserializeFromBytes(buffer);
 }
 
-const string &InitiateMaxFlowCalculationCommand::identifier() {
+const string &TotalBalanceRemouteNodeCommand::identifier() {
 
-    static const string identifier = "GET:contractors/transactions/max";
+    static const string identifier = "GET:nodes/stats/balances/total/";
     return identifier;
 }
 
-const NodeUUID &InitiateMaxFlowCalculationCommand::contractorUUID() const {
+const NodeUUID &TotalBalanceRemouteNodeCommand::contractorUUID() const {
 
     return mContractorUUID;
 }
 
-pair<BytesShared, size_t> InitiateMaxFlowCalculationCommand::serializeToBytes(){
+pair<BytesShared, size_t> TotalBalanceRemouteNodeCommand::serializeToBytes(){
 
     auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
 
@@ -46,17 +46,12 @@ pair<BytesShared, size_t> InitiateMaxFlowCalculationCommand::serializeToBytes(){
     );
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
-    memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            mContractorUUID.data,
-            NodeUUID::kBytesSize);
-    //----------------------------------------------------
     return make_pair(
             dataBytesShared,
             bytesCount);
 }
 
-void InitiateMaxFlowCalculationCommand::deserializeFromBytes(
+void TotalBalanceRemouteNodeCommand::deserializeFromBytes(
         BytesShared buffer) {
 
     BaseUserCommand::deserializeFromBytes(buffer);
@@ -71,14 +66,14 @@ void InitiateMaxFlowCalculationCommand::deserializeFromBytes(
 /**
  * Throws ValueError if deserialization was unsuccessful.
  */
-void InitiateMaxFlowCalculationCommand::parse(
+void TotalBalanceRemouteNodeCommand::parse(
         const string &command) {
 
     const auto amountTokenOffset = NodeUUID::kHexSize + 1;
     const auto minCommandLength = amountTokenOffset;
 
     if (command.size() < minCommandLength) {
-        throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
+        throw ValueError("TotalBalanceRemouteNodeCommand::parse: "
                                  "Can't parse command. Received command is to short.");
     }
 
@@ -89,18 +84,16 @@ void InitiateMaxFlowCalculationCommand::parse(
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
-        throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
+        throw ValueError("TotalBalanceRemouteNodeCommand::parse: "
                                  "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 }
 
-CommandResult::SharedConst InitiateMaxFlowCalculationCommand::resultOk(string &maxFlowAmount) const {
+CommandResult::SharedConst TotalBalanceRemouteNodeCommand::resultOk(string &totalBalancesStr) const {
 
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),
             200,
-            maxFlowAmount));
+            totalBalancesStr));
 }
-
-
