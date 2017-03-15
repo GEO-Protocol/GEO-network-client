@@ -69,7 +69,7 @@ private:
     void logAcceptingTrustLineOperation();
 
     void sendResponseCodeToContractor(
-        uint16_t code);
+        const uint16_t code);
 
 private:
     AcceptTrustLineMessage::Shared mMessage;

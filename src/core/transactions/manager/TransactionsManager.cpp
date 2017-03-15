@@ -86,7 +86,8 @@ void TransactionsManager::loadTransactions() {
                 case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
                     transaction = new CloseTrustLineTransaction(
                         transactionBuffer,
-                        mTrustLines
+                        mTrustLines,
+                        mOperationsHistoryStorage
                     );
                     break;
                 }
@@ -308,7 +309,8 @@ void TransactionsManager::launchCloseTrustLineTransaction(
         auto transaction = make_shared<CloseTrustLineTransaction>(
             mNodeUUID,
             command,
-            mTrustLines
+            mTrustLines,
+            mOperationsHistoryStorage
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -381,7 +383,8 @@ void TransactionsManager::launchRejectTrustLineTransaction(
         auto transaction = make_shared<RejectTrustLineTransaction>(
             mNodeUUID,
             message,
-            mTrustLines
+            mTrustLines,
+            mOperationsHistoryStorage
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);

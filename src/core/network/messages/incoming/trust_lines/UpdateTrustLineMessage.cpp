@@ -8,7 +8,7 @@ UpdateTrustLineMessage::UpdateTrustLineMessage(
 
 const Message::MessageType UpdateTrustLineMessage::typeID() const {
 
-    return Message::MessageTypeID::AcceptTrustLineMessageType;
+    return Message::MessageTypeID::UpdateTrustLineMessageType;
 }
 
 const TrustLineAmount &UpdateTrustLineMessage::newAmount() const {

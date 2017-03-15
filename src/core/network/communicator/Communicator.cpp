@@ -35,7 +35,9 @@ Communicator::Communicator(
         );
 
         mChannelsManager = unique_ptr<ChannelsManager>(
-            new ChannelsManager(mIOService)
+            new ChannelsManager(
+                mIOService,
+                mLog)
         );
 
         mIncomingMessagesHandler = unique_ptr<IncomingMessagesHandler>(

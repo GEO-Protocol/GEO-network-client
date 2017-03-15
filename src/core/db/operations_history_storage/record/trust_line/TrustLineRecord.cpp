@@ -83,7 +83,8 @@ namespace db {
                 NodeUUID::kBytesSize);
             bytesBufferOffset += NodeUUID::kBytesSize;
 
-            if (mTrustLineOperationType != TrustLineRecord::TrustLineOperationType::Closing) {
+            if (mTrustLineOperationType != TrustLineRecord::TrustLineOperationType::Closing &&
+                mTrustLineOperationType != TrustLineRecord::TrustLineOperationType::Rejecting) {
                 auto trustAmountBytes = trustLineAmountToBytes(
                     mAmount);
 

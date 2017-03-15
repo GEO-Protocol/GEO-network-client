@@ -6,6 +6,9 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
+#include "../../../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
+#include "../../../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
+
 #include "../../../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 
 #include "../../../../network/messages/Message.hpp"
@@ -13,8 +16,6 @@
 #include "../../../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
 
 #include "RejectTrustLineTransaction.h"
-#include "OpenTrustLineTransaction.h"
-#include "SetTrustLineTransaction.h"
 
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 
@@ -24,20 +25,31 @@
 #include <utility>
 #include <cstdint>
 
-class CloseTrustLineTransaction: public TrustLineTransaction {
+using namespace db::operations_history_storage;
 
+class CloseTrustLineTransaction: public TrustLineTransaction {
 public:
     typedef shared_ptr<CloseTrustLineTransaction> Shared;
+
+private:
+    enum Stages {
+        CheckUnicity = 1,
+        CheckOutgoingDirection,
+        CheckDebt,
+        CheckContext
+    };
 
 public:
     CloseTrustLineTransaction(
         const NodeUUID &nodeUUID,
         CloseTrustLineCommand::Shared command,
-        TrustLinesManager *manager);
+        TrustLinesManager *manager,
+        OperationsHistoryStorage *historyStorage);
 
     CloseTrustLineTransaction(
         BytesShared buffer,
-        TrustLinesManager *manager);
+        TrustLinesManager *manager,
+        OperationsHistoryStorage *historyStorage);
 
     CloseTrustLineCommand::Shared command() const;
 
@@ -58,6 +70,8 @@ private:
     void suspendTrustLineDirectionToContractor();
 
     void closeTrustLine();
+
+    void logClosingTrustLineOperation();
 
     TransactionResult::SharedConst checkTransactionContext();
 
@@ -83,7 +97,7 @@ private:
 
     CloseTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-
+    OperationsHistoryStorage *mOperationsHistoryStorage;
 };
 
 

@@ -28,6 +28,7 @@ namespace db {
                 Setting,
                 Updating,
                 Closing,
+                Rejecting
             };
             typedef uint8_t SerializedTrustLineOperationType;
 

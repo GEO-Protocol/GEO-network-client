@@ -185,7 +185,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::checkTransactionContext
 
 void OpenTrustLineTransaction::sendMessageToRemoteNode() {
 
-
     sendMessage<OpenTrustLineMessage>(
         mCommand->contractorUUID(),
         mNodeUUID,

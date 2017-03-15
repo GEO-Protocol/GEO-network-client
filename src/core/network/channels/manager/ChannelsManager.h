@@ -4,6 +4,7 @@
 #include "../channel/Channel.h"
 
 #include "../../../common/Types.h"
+#include "../../../logger/Logger.h"
 
 #include "../../../common/exceptions/IndexError.h"
 #include "../../../common/exceptions/MemoryError.h"
@@ -27,7 +28,8 @@ namespace as = boost::asio;
 class ChannelsManager {
 public:
     ChannelsManager(
-        as::io_service &ioService);
+        as::io_service &ioService,
+        Logger *logger);
 
     pair<Channel::Shared, udp::endpoint> incomingChannel(
         const uint16_t number,
@@ -68,6 +70,7 @@ private:
     unique_ptr<map<udp::endpoint, pair<uint16_t, Channel::Shared>>> mOutgoingChannels;
     unique_ptr<map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>> mIncomingChannels;
 
+    Logger *mLog;
 };
 
 

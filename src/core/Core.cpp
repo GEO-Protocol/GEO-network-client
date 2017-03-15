@@ -114,8 +114,8 @@ int Core::initOperationsHistoryStorage() {
 
     try{
         mOperationsHistoryStorage = new history::OperationsHistoryStorage(
-            "io",
-            "operations_history_storage.dat");
+            "io/history",
+            "operations_storage.dat");
 
         mLog.logSuccess("Core", "Operations history storage is successfully initialised");
         return 0;

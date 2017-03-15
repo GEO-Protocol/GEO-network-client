@@ -23,7 +23,8 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     mTrustLinesManager(manager),
     mOperationsHistoryStorage(historyStorage) {
 
-    deserializeFromBytes(buffer);
+    deserializeFromBytes(
+        buffer);
 }
 
 AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
@@ -191,7 +192,7 @@ void AcceptTrustLineTransaction::logAcceptingTrustLineOperation() {
 }
 
 void AcceptTrustLineTransaction::sendResponseCodeToContractor(
-    uint16_t code) {
+    const uint16_t code) {
 
     sendMessage<Response>(
         mMessage->senderUUID(),

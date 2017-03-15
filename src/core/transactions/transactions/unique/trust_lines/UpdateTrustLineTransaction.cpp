@@ -192,7 +192,7 @@ void UpdateTrustLineTransaction::logUpdatingTrustLineOperation() {
 }
 
 void UpdateTrustLineTransaction::sendResponseCodeToContractor(
-    uint16_t code) {
+    const uint16_t code) {
 
     sendMessage<Response>(
         mMessage->senderUUID(),
