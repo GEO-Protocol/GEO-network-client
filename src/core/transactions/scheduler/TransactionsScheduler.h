@@ -31,6 +31,7 @@
 #include <chrono>
 #include <map>
 #include <memory>
+#include <stdint.h>
 
 
 using namespace std;

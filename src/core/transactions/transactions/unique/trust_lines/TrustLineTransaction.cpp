@@ -36,32 +36,32 @@ pair<BytesShared, size_t> TrustLineTransaction::serializeToBytes() const {
     size_t bytesCount = parentBytesAndCount.second +
                         sizeof(uint16_t);
 
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    BytesShared dataBytesShared = tryMalloc(
+        bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &mRequestCounter,
-        sizeof(uint16_t)
-    );
+        sizeof(uint16_t));
     //----------------------------------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 void TrustLineTransaction::deserializeFromBytes(
     BytesShared buffer) {
 
-    BaseTransaction::deserializeFromBytes(buffer);
+    BaseTransaction::deserializeFromBytes(
+        buffer);
+
     size_t bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
     //----------------------------------------------------
     uint16_t *requestsCounter = new (buffer.get() + bytesBufferOffset) uint16_t;
@@ -70,6 +70,7 @@ void TrustLineTransaction::deserializeFromBytes(
 
 const size_t TrustLineTransaction::kOffsetToDataBytes() {
 
-    static const size_t offset = BaseTransaction::kOffsetToInheritedBytes() + sizeof(uint16_t);
+    static const size_t offset = BaseTransaction::kOffsetToInheritedBytes()
+                                 + sizeof(uint16_t);
     return offset;
 }

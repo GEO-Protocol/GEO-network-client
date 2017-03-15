@@ -130,7 +130,7 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run() {
         throw RuntimeError("RejectTrustLineTransaction::run: "
                                "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
                                "Crashed at step -> " + to_string(mStep) + ". "
-                               "Message -> " + e.what());
+                               "Message -> " + string(e.what()));
     }
 }
 

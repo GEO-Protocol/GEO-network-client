@@ -140,7 +140,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
         throw RuntimeError("CloseTrustLineTransaction::run: "
                                "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
                                "Crashed at step -> " + to_string(mStep) + ". "
-                               "Message -> " + e.what());
+                               "Message -> " + string(e.what()));
     }
 }
 
