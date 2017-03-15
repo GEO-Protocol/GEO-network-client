@@ -1,19 +1,20 @@
-#ifndef GEO_NETWORK_CLIENT_TOTALBALANCEREMOUTENODECOMMAND_H
-#define GEO_NETWORK_CLIENT_TOTALBALANCEREMOUTENODECOMMAND_H
+#ifndef GEO_NETWORK_CLIENT_TOTALBALANCESREMOUTENODECOMMAND_H
+#define GEO_NETWORK_CLIENT_TOTALBALANCESREMOUTENODECOMMAND_H
 
 #include "../BaseUserCommand.h"
+#include "../../../../common/exceptions/ValueError.h"
 
-class TotalBalanceRemouteNodeCommand : public BaseUserCommand {
-
-public:
-    typedef shared_ptr<TotalBalanceRemouteNodeCommand> Shared;
+class TotalBalancesRemouteNodeCommand : public BaseUserCommand {
 
 public:
-    TotalBalanceRemouteNodeCommand(
+    typedef shared_ptr<TotalBalancesRemouteNodeCommand> Shared;
+
+public:
+    TotalBalancesRemouteNodeCommand(
             const CommandUUID &uuid,
             const string &commandBuffer);
 
-    TotalBalanceRemouteNodeCommand(
+    TotalBalancesRemouteNodeCommand(
             BytesShared buffer);
 
     static const string &identifier();
@@ -23,6 +24,8 @@ public:
     pair<BytesShared, size_t> serializeToBytes();
 
     CommandResult::SharedConst resultOk(string &totalBalancesStr) const;
+
+    CommandResult::SharedConst resultNoResponse() const;
 
 protected:
     void deserializeFromBytes(
@@ -37,4 +40,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_TOTALBALANCEREMOUTENODECOMMAND_H
+#endif //GEO_NETWORK_CLIENT_TOTALBALANCESREMOUTENODECOMMAND_H

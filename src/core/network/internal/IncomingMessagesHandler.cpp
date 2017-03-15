@@ -142,54 +142,49 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<InitiateMaxFlowCalculationMessage>(messagePart)
-                )
-            );
+                    make_shared<InitiateMaxFlowCalculationMessage>(messagePart)));
         }
 
         case Message::ResultMaxFlowCalculationMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<ResultMaxFlowCalculationMessage>(messagePart)
-                )
-            );
+                    make_shared<ResultMaxFlowCalculationMessage>(messagePart)));
         }
 
         case Message::MaxFlowCalculationSourceFstLevelMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<MaxFlowCalculationSourceFstLevelMessage>(messagePart)
-                )
-            );
+                    make_shared<MaxFlowCalculationSourceFstLevelMessage>(messagePart)));
         }
 
         case Message::MaxFlowCalculationTargetFstLevelMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<MaxFlowCalculationTargetFstLevelMessage>(messagePart)
-                )
-            );
+                    make_shared<MaxFlowCalculationTargetFstLevelMessage>(messagePart)));
         }
 
         case Message::MaxFlowCalculationSourceSndLevelMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<MaxFlowCalculationSourceSndLevelMessage>(messagePart)
-                )
-            );
+                    make_shared<MaxFlowCalculationSourceSndLevelMessage>(messagePart)));
         }
 
         case Message::MaxFlowCalculationTargetSndLevelMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<MaxFlowCalculationTargetSndLevelMessage>(messagePart)
-                )
-            );
+                    make_shared<MaxFlowCalculationTargetSndLevelMessage>(messagePart)));
+        }
+
+        case Message::InitiateTotalBalancesMessageType: {
+            return make_pair(
+                    true,
+                    static_pointer_cast<Message>(
+                            make_shared<InitiateTotalBalancesMessage>(messagePart)));
         }
 
         default: {

@@ -170,6 +170,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == TotalBalancesRemouteNodeCommand::identifier()) {
+            command = new TotalBalancesRemouteNodeCommand(
+                    uuid,
+                    buffer);
+
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "

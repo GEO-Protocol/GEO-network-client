@@ -32,6 +32,7 @@
 #include "../messages/cycles/BoundaryNodeTopologyMessage.h"
 #include "../messages/response/Response.h"
 #include "../messages/response/RoutingTablesResponse.h"
+#include "../messages/total_balances/InitiateTotalBalancesMessage.h"
 
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"

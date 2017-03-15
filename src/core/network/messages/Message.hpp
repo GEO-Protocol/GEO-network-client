@@ -59,6 +59,9 @@ public:
         MaxFlowCalculationTargetSndLevelMessageType,
         ResultMaxFlowCalculationMessageType,
 
+        InitiateTotalBalancesMessageType,
+        TotalBalancesResultMessageType,
+
         ResponseMessageType = 1000,
         RoutingTablesResponseMessageType
     };

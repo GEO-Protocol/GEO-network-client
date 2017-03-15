@@ -1,6 +1,6 @@
-#include "TotalBalanceRemouteNodeCommand.h"
+#include "TotalBalancesRemouteNodeCommand.h"
 
-TotalBalanceRemouteNodeCommand::TotalBalanceRemouteNodeCommand(
+TotalBalancesRemouteNodeCommand::TotalBalancesRemouteNodeCommand(
         const CommandUUID &uuid,
         const string &commandBuffer):
 
@@ -11,7 +11,7 @@ TotalBalanceRemouteNodeCommand::TotalBalanceRemouteNodeCommand(
     parse(commandBuffer);
 }
 
-TotalBalanceRemouteNodeCommand::TotalBalanceRemouteNodeCommand(
+TotalBalancesRemouteNodeCommand::TotalBalancesRemouteNodeCommand(
         BytesShared buffer) :
 
         BaseUserCommand(identifier()) {
@@ -19,18 +19,18 @@ TotalBalanceRemouteNodeCommand::TotalBalanceRemouteNodeCommand(
     deserializeFromBytes(buffer);
 }
 
-const string &TotalBalanceRemouteNodeCommand::identifier() {
+const string &TotalBalancesRemouteNodeCommand::identifier() {
 
-    static const string identifier = "GET:nodes/stats/balances/total/";
+    static const string identifier = "GET:nodes/stats/balances/total";
     return identifier;
 }
 
-const NodeUUID &TotalBalanceRemouteNodeCommand::contractorUUID() const {
+const NodeUUID &TotalBalancesRemouteNodeCommand::contractorUUID() const {
 
     return mContractorUUID;
 }
 
-pair<BytesShared, size_t> TotalBalanceRemouteNodeCommand::serializeToBytes(){
+pair<BytesShared, size_t> TotalBalancesRemouteNodeCommand::serializeToBytes(){
 
     auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
 
@@ -51,7 +51,7 @@ pair<BytesShared, size_t> TotalBalanceRemouteNodeCommand::serializeToBytes(){
             bytesCount);
 }
 
-void TotalBalanceRemouteNodeCommand::deserializeFromBytes(
+void TotalBalancesRemouteNodeCommand::deserializeFromBytes(
         BytesShared buffer) {
 
     BaseUserCommand::deserializeFromBytes(buffer);
@@ -66,14 +66,14 @@ void TotalBalanceRemouteNodeCommand::deserializeFromBytes(
 /**
  * Throws ValueError if deserialization was unsuccessful.
  */
-void TotalBalanceRemouteNodeCommand::parse(
+void TotalBalancesRemouteNodeCommand::parse(
         const string &command) {
 
     const auto amountTokenOffset = NodeUUID::kHexSize + 1;
     const auto minCommandLength = amountTokenOffset;
 
     if (command.size() < minCommandLength) {
-        throw ValueError("TotalBalanceRemouteNodeCommand::parse: "
+        throw ValueError("TotalBalancesRemouteNodeCommand::parse: "
                                  "Can't parse command. Received command is to short.");
     }
 
@@ -84,16 +84,24 @@ void TotalBalanceRemouteNodeCommand::parse(
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
-        throw ValueError("TotalBalanceRemouteNodeCommand::parse: "
+        throw ValueError("TotalBalancesRemouteNodeCommand::parse: "
                                  "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 }
 
-CommandResult::SharedConst TotalBalanceRemouteNodeCommand::resultOk(string &totalBalancesStr) const {
+CommandResult::SharedConst TotalBalancesRemouteNodeCommand::resultOk(string &totalBalancesStr) const {
 
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),
             200,
             totalBalancesStr));
+}
+
+CommandResult::SharedConst TotalBalancesRemouteNodeCommand::resultNoResponse() const {
+
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            444));
 }

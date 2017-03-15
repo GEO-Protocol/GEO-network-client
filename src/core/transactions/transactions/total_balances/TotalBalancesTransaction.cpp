@@ -1,27 +1,48 @@
 #include "TotalBalancesTransaction.h"
 
 TotalBalancesTransaction::TotalBalancesTransaction(
-        NodeUUID &nodeUUID,
-        TotalBalancesCommand::Shared command,
-        TrustLinesManager *manager,
-        Logger *logger) :
+    NodeUUID &nodeUUID,
+    TotalBalancesCommand::Shared command,
+    TrustLinesManager *manager,
+    Logger *logger) :
 
-        BaseTransaction(
-                BaseTransaction::TransactionType::TotalBalancesTransactionType,
-                nodeUUID,
-                logger),
-        mCommand(command),
-        mTrustLinesManager(manager) {}
+    BaseTransaction(
+        BaseTransaction::TransactionType::TotalBalancesTransactionType,
+        nodeUUID,
+        logger),
+    mCommand(command),
+    mMessage(nullptr),
+    mTrustLinesManager(manager) {}
+
+TotalBalancesTransaction::TotalBalancesTransaction(
+    NodeUUID &nodeUUID,
+    InitiateTotalBalancesMessage::Shared message,
+    TrustLinesManager *manager,
+    Logger *logger):
+
+    BaseTransaction(
+        BaseTransaction::TransactionType::TotalBalancesTransactionType,
+        nodeUUID,
+        logger),
+    mCommand(nullptr),
+    mMessage(message),
+    mTrustLinesManager(manager) {}
 
 TotalBalancesCommand::Shared TotalBalancesTransaction::command() const {
 
     return mCommand;
 }
 
+InitiateTotalBalancesMessage::Shared TotalBalancesTransaction::message() const {
+
+    return  mMessage;
+}
+
 TransactionResult::SharedConst TotalBalancesTransaction::run() {
 
     info() << "run\t";
 
+    info() << "run\t" << mTrustLinesManager->trustLines().size();
     TrustLineAmount totalIncomingTrust = 0;
     TrustLineAmount totalIncomingTrustUsed = 0;
     TrustLineAmount totalOutgoingTrust = 0;
@@ -36,20 +57,35 @@ TransactionResult::SharedConst TotalBalancesTransaction::run() {
         totalOutgoingTrustUsed += *totalOutgoingTrustUsedShared.get();
     }
 
-    return resultOk(
+    if (mCommand != nullptr) {
+        info() << "internal command";
+        return resultOk(
             totalIncomingTrust,
             totalIncomingTrustUsed,
             totalOutgoingTrust,
             totalOutgoingTrustUsed);
-    //return make_shared<TransactionResult>(TransactionState::exit());
-
+    }
+    if (mMessage != nullptr) {
+        info() << "external message\t" << totalIncomingTrust << "\t" << totalIncomingTrustUsed
+               << "\t" << totalOutgoingTrust << "\t" << totalOutgoingTrustUsed;
+        sendMessage<TotalBalancesResultMessage>(
+            mMessage->senderUUID(),
+            mNodeUUID,
+            totalIncomingTrust,
+            totalIncomingTrustUsed,
+            totalOutgoingTrust,
+            totalOutgoingTrustUsed);
+        return make_shared<TransactionResult>(TransactionState::exit());
+    }
+    info() << "something wrong: command and message are nulls";
+    return make_shared<TransactionResult>(TransactionState::exit());
 }
 
 TransactionResult::SharedConst TotalBalancesTransaction::resultOk(
-        TrustLineAmount &totalIncomingTrust,
-        TrustLineAmount &totalIncomingTrustUsed,
-        TrustLineAmount &totalOutgoingTrust,
-        TrustLineAmount &totalOutgoingTrustUsed) {
+    const TrustLineAmount &totalIncomingTrust,
+    const TrustLineAmount &totalIncomingTrustUsed,
+    const TrustLineAmount &totalOutgoingTrust,
+    const TrustLineAmount &totalOutgoingTrustUsed) {
 
     stringstream s;
     s << totalIncomingTrust << "\t" << totalIncomingTrustUsed << "\t" << totalOutgoingTrust << "\t" << totalOutgoingTrustUsed;

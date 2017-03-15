@@ -78,7 +78,9 @@ public:
         MaxFlowCalculationCacheUpdateTransactionType,
 
         // TotalBalances
-        TotalBalancesTransactionType
+        TotalBalancesTransactionType,
+        InitiateTotalBalancesFromRemoutNodeTransactionType
+
     };
 
 public:

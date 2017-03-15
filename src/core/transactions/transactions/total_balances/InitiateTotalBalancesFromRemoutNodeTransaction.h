@@ -2,7 +2,9 @@
 #define GEO_NETWORK_CLIENT_INITIATETOTALBALANCESFROMREMOUTNODETRANSACTION_H
 
 #include "../base/BaseTransaction.h"
-#include "../../../interface/commands_interface/commands/total_balances/TotalBalanceRemouteNodeCommand.h"
+#include "../../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
+#include "../../../network/messages/total_balances/InitiateTotalBalancesMessage.h"
+#include "../../../network/messages/total_balances/TotalBalancesResultMessage.h"
 
 class InitiateTotalBalancesFromRemoutNodeTransaction : public BaseTransaction {
 
@@ -12,10 +14,10 @@ public:
 public:
     InitiateTotalBalancesFromRemoutNodeTransaction(
         NodeUUID &nodeUUID,
-        TotalBalanceRemouteNodeCommand::Shared command,
+        TotalBalancesRemouteNodeCommand::Shared command,
         Logger *logger);
 
-    TotalBalanceRemouteNodeCommand::Shared command() const;
+    TotalBalancesRemouteNodeCommand::Shared command() const;
 
     TransactionResult::SharedConst run();
 
@@ -24,15 +26,31 @@ protected:
 
 private:
 
+    void sendMessageToRemoteNode();
+
+    void increaseRequestsCounter();
+
+    TransactionResult::SharedConst waitingForResponseState();
+
+    TransactionResult::SharedConst noResponseResult();
+
+    TransactionResult::SharedConst checkTransactionContext();
+
     TransactionResult::SharedConst resultOk(
-            TrustLineAmount &totalIncomingTrust,
-            TrustLineAmount &totalIncomingTrustUsed,
-            TrustLineAmount &totalOutgoingTrust,
-            TrustLineAmount &totalOutgoingTrustUsed);
+            const TrustLineAmount &totalIncomingTrust,
+            const TrustLineAmount &totalIncomingTrustUsed,
+            const TrustLineAmount &totalOutgoingTrust,
+            const TrustLineAmount &totalOutgoingTrustUsed);
+
+    TransactionResult::SharedConst unexpectedErrorResult();
 
 private:
+    const uint16_t kConnectionTimeout = 2000;
+    const uint16_t kMaxRequestsCount = 5;
 
-    TotalBalanceRemouteNodeCommand::Shared mCommand;
+private:
+    TotalBalancesRemouteNodeCommand::Shared mCommand;
+    uint16_t mRequestCounter;
 
 };
 

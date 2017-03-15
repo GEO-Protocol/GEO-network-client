@@ -3,7 +3,6 @@
 
 
 #include "../BaseUserCommand.h"
-
 #include "../../../../common/exceptions/ValueError.h"
 
 class InitiateMaxFlowCalculationCommand : public BaseUserCommand {

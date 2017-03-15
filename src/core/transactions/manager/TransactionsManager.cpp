@@ -1,4 +1,5 @@
 ﻿#include "TransactionsManager.h"
+#include "../../network/messages/total_balances/InitiateTotalBalancesMessage.h"
 
 /*!
  *
@@ -163,6 +164,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<TotalBalancesCommand>(
                 command));
 
+    } else if (command->identifier() == TotalBalancesRemouteNodeCommand::identifier()){
+        launchTotalBalancesRemouteNodeTransaction(
+                static_pointer_cast<TotalBalancesRemouteNodeCommand>(
+                        command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -216,7 +222,14 @@ void TransactionsManager::processMessage(
 
     } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationTargetSndLevelMessageType) {
         launchMaxFlowCalculationTargetSndLevelTransaction(
-            static_pointer_cast<MaxFlowCalculationTargetSndLevelMessage>(message));
+                static_pointer_cast<MaxFlowCalculationTargetSndLevelMessage>(message));
+
+    /*
+    * Total balances
+    */
+    } else if (message->typeID() == Message::MessageTypeID::InitiateTotalBalancesMessageType) {
+        launchTotalBalancesTransaction(
+                static_pointer_cast<InitiateTotalBalancesMessage>(message));
 
     /*
      * Payments
@@ -873,6 +886,55 @@ void TransactionsManager::launchTotalBalancesTransaction(
     } catch (bad_alloc &) {
         throw MemoryError(
                 "TransactionsManager::launchTotalBalancesTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchTotalBalancesTransaction(
+        InitiateTotalBalancesMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<TotalBalancesTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mLog);
+
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchTotalBalancesTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchTotalBalancesRemouteNodeTransaction(
+        TotalBalancesRemouteNodeCommand::Shared command) {
+
+    try {
+        auto transaction = make_shared<InitiateTotalBalancesFromRemoutNodeTransaction>(
+                mNodeUUID,
+                command,
+                mLog);
+
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+
+        mScheduler->scheduleTransaction(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchTotalBalancesRemouteNodeTransaction: "
                         "Can't allocate memory for transaction instance.");
     }
 }

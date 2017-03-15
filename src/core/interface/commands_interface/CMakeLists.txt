@@ -23,8 +23,8 @@ set(SOURCE_FILES
         commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h
         commands/total_balances/TotalBalancesCommand.cpp
         commands/total_balances/TotalBalancesCommand.h
-        commands/total_balances/TotalBalanceRemouteNodeCommand.cpp
-        commands/total_balances/TotalBalanceRemouteNodeCommand.h)
+        commands/total_balances/TotalBalancesRemouteNodeCommand.cpp
+        commands/total_balances/TotalBalancesRemouteNodeCommand.h)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands
