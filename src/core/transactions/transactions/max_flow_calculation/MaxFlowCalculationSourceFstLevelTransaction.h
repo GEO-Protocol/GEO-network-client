@@ -3,9 +3,8 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../network/messages/incoming/max_flow_calculation/MaxFlowCalculationSourceFstLevelInMessage.h"
-#include "../../../network/messages/outgoing/max_flow_calculation/MaxFlowCalculationSourceFstLevelOutMessage.h"
-#include "../../scheduler/TransactionsScheduler.h"
+#include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
+#include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceSndLevelMessage.h"
 
 class MaxFlowCalculationSourceFstLevelTransaction : public BaseTransaction  {
 
@@ -15,18 +14,20 @@ public:
 public:
     MaxFlowCalculationSourceFstLevelTransaction(
         const NodeUUID &nodeUUID,
-        MaxFlowCalculationSourceFstLevelInMessage::Shared message,
+        MaxFlowCalculationSourceFstLevelMessage::Shared message,
         TrustLinesManager *trustLinesManager,
         Logger *logger);
 
-    MaxFlowCalculationSourceFstLevelInMessage::Shared message() const;
+    MaxFlowCalculationSourceFstLevelMessage::Shared message() const;
 
     TransactionResult::SharedConst run();
 
+protected:
+    const string logHeader() const;
+
 private:
-    MaxFlowCalculationSourceFstLevelInMessage::Shared mMessage;
+    MaxFlowCalculationSourceFstLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLog;
 };
 
 

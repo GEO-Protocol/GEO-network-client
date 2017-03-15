@@ -4,6 +4,7 @@
 #include "../common/Types.h"
 #include "../common/NodeUUID.h"
 #include "../trust_lines/TrustLine.h"
+#include "../common/time/TimeUtils.h"
 
 class MaxFlowCalculationTrustLine {
 
@@ -17,24 +18,25 @@ public:
         const NodeUUID &targetUUID,
         const TrustLineAmount &amount);
 
-    const NodeUUID& getSourceUUID() const;
+    const NodeUUID& sourceUUID() const;
 
-    const NodeUUID& getTargetUUID() const;
+    const NodeUUID& targetUUID() const;
 
-    const TrustLineAmount& getAmount() const;
+    const TrustLineAmount& amount() const;
 
-    ConstSharedTrustLineAmount getFreeAmount() const;
+    void setAmount(const TrustLineAmount& amount);
 
-    void addUsedAmount(TrustLineAmount amount);
+    ConstSharedTrustLineAmount freeAmount() const;
 
-    void setUsedAmount(TrustLineAmount amount);
+    void addUsedAmount(const TrustLineAmount &amount);
+
+    void setUsedAmount(const TrustLineAmount &amount);
 
 private:
     NodeUUID mSourceUUID;
     NodeUUID mTargetUUID;
     TrustLineAmount mAmount;
     TrustLineAmount mUsedAmount;
-
 };
 
 

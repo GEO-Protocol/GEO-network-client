@@ -2,56 +2,62 @@
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H
 
 #include "../../common/NodeUUID.h"
-#include "../MaxFlowCalculationTrustLine.h"
-#include "../MaxFlowCalculationNodeEntity.h"
+#include "MaxFlowCalculationTrustLineWithPtr.h"
+#include "../../common/time/TimeUtils.h"
+#include "../../logger/Logger.h"
 
-#include <map>
-#include <vector>
+#include <unordered_map>
+#include <unordered_set>
 
-#include "boost/container/flat_set.hpp"
-
-using namespace std;
 class MaxFlowCalculationTrustLineManager {
 
 public:
+    typedef unordered_set<MaxFlowCalculationTrustLineWithPtr*> trustLineWithPtrHashSet;
+
+public:
+
+    MaxFlowCalculationTrustLineManager(Logger *logger);
 
     void addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine);
 
-    void addIncomingFlow(
-        const NodeUUID& node1UUID,
-        const NodeUUID& node2UUID,
-        const TrustLineAmount& flow);
+    vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines(const NodeUUID &nodeUUID);
 
-    void addOutgoingFlow(
-        const NodeUUID& node1UUID,
-        const NodeUUID& node2UUID,
-        const TrustLineAmount& flow);
+    void resetAllUsedAmounts();
 
-    void addFlow(
-        const NodeUUID& node1UUID,
-        const NodeUUID& node2UUID,
-        const TrustLineAmount& flow);
-
-    vector<MaxFlowCalculationTrustLine::Shared> getSortedTrustLines(const NodeUUID& nodeUUID);
+    void deleteLegacyTrustLines();
 
 private:
-    // sort using a custom function object
+    // comparing two trustLines for sorting
     struct {
         bool operator()(
             MaxFlowCalculationTrustLine::Shared a,
             MaxFlowCalculationTrustLine::Shared b) {
-            auto aTrustLineFreeAmountPtr = a.get()->getFreeAmount();
-            auto bTrustLineFreeAmountPtr = b.get()->getFreeAmount();
+            auto aTrustLineFreeAmountPtr = a.get()->freeAmount();
+            auto bTrustLineFreeAmountPtr = b.get()->freeAmount();
             return *aTrustLineFreeAmountPtr > *bTrustLineFreeAmountPtr;
         }
     } customLess;
 
+private:
+
+    static const byte kResetTrustLinesHours = 0;
+    static const byte kResetTrustLinesMinutes = 0;
+    static const byte kResetTrustLinesSeconds = 10;
+
+    static Duration& kResetTrustLinesDuration() {
+        static auto duration = Duration(
+            kResetTrustLinesHours,
+            kResetTrustLinesMinutes,
+            kResetTrustLinesSeconds);
+        return duration;
+    }
+
 // todo make private after testing
 public:
-    map<NodeUUID, vector<MaxFlowCalculationTrustLine::Shared>> mvTrustLines;
-    map<NodeUUID, MaxFlowCalculationNodeEntity::Shared> mEntities;
+    unordered_map<NodeUUID, trustLineWithPtrHashSet*> msTrustLines;
+    map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
+    Logger *mLog;
 
 };
-
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H

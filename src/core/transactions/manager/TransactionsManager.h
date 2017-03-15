@@ -7,6 +7,7 @@
 
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
+#include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
 #include "../../logger/Logger.h"
@@ -20,6 +21,14 @@
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
+
+#include "../../network/messages/Message.hpp"
+#include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
+#include "../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
+#include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
+#include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
+#include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
+#include "../../network/messages/response/Response.h"
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/base/UniqueTransaction.h"
@@ -49,6 +58,7 @@
 #include "../transactions/max_flow_calculation/MaxFlowCalculationSourceSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.h"
+#include "../transactions/max_flow_calculation/MaxFlowCalculationCacheUpdateTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -70,6 +80,7 @@ public:
         as::io_service &IOService,
         TrustLinesManager *trustLinesManager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResultsInterface *resultsInterface,
         history::OperationsHistoryStorage *operationsHistoryStorage,
         Logger *logger);
@@ -88,6 +99,8 @@ public:
     void launchRoutingTablesUpdatingTransactionsFactory(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
+
+    void launchMaxFlowCalculationCacheUpdateTransaction();
 
 private:
     // Transactions from storage
@@ -123,23 +136,23 @@ private:
     void launchInitiateMaxFlowCalculatingTransaction(
         InitiateMaxFlowCalculationCommand::Shared command);
 
-    void launchReceiveMaxFlowCalculationTransaction(
-        ReceiveMaxFlowCalculationOnTargetMessage::Shared message);
+    void launchReceiveMaxFlowCalculationOnTargetTransaction(
+            InitiateMaxFlowCalculationMessage::Shared message);
 
     void launchReceiveResultMaxFlowCalculationTransaction(
         ResultMaxFlowCalculationMessage::Shared message);
 
     void launchMaxFlowCalculationSourceFstLevelTransaction(
-        MaxFlowCalculationSourceFstLevelInMessage::Shared message);
+        MaxFlowCalculationSourceFstLevelMessage::Shared message);
 
     void launchMaxFlowCalculationTargetFstLevelTransaction(
-        MaxFlowCalculationTargetFstLevelInMessage::Shared message);
+        MaxFlowCalculationTargetFstLevelMessage::Shared message);
 
     void launchMaxFlowCalculationSourceSndLevelTransaction(
-        MaxFlowCalculationSourceSndLevelInMessage::Shared message);
+        MaxFlowCalculationSourceSndLevelMessage::Shared message);
 
     void launchMaxFlowCalculationTargetSndLevelTransaction(
-        MaxFlowCalculationTargetSndLevelInMessage::Shared message);
+        MaxFlowCalculationTargetSndLevelMessage::Shared message);
 
     // Payment transactions
     void launchCoordinatorPaymentTransaction(
@@ -186,6 +199,7 @@ private:
     as::io_service &mIOService;
     TrustLinesManager *mTrustLines;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     ResultsInterface *mResultsInterface;
     history::OperationsHistoryStorage *mOperationsHistoryStorage;
     Logger *mLog;

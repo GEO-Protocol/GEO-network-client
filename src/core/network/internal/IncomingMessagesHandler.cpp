@@ -142,12 +142,12 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<ReceiveMaxFlowCalculationOnTargetMessage>(messagePart)
+                    make_shared<InitiateMaxFlowCalculationMessage>(messagePart)
                 )
             );
         }
 
-        case Message::SendResultMaxFlowCalculationMessageType: {
+        case Message::ResultMaxFlowCalculationMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
@@ -156,38 +156,38 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
-        case Message::SendMaxFlowCalculationSourceFstLevelMessageType: {
+        case Message::MaxFlowCalculationSourceFstLevelMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<MaxFlowCalculationSourceFstLevelInMessage>(messagePart)
+                    make_shared<MaxFlowCalculationSourceFstLevelMessage>(messagePart)
                 )
             );
         }
 
-        case Message::SendMaxFlowCalculationTargetFstLevelMessageType: {
+        case Message::MaxFlowCalculationTargetFstLevelMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<MaxFlowCalculationTargetFstLevelInMessage>(messagePart)
+                    make_shared<MaxFlowCalculationTargetFstLevelMessage>(messagePart)
                 )
             );
         }
 
-        case Message::MaxFlowCalculationSourceFstLevelOutMessageType: {
+        case Message::MaxFlowCalculationSourceSndLevelMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<MaxFlowCalculationSourceSndLevelInMessage>(messagePart)
+                    make_shared<MaxFlowCalculationSourceSndLevelMessage>(messagePart)
                 )
             );
         }
 
-        case Message::MaxFlowCalculationTargetFstLevelOutMessageType: {
+        case Message::MaxFlowCalculationTargetSndLevelMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<MaxFlowCalculationTargetSndLevelInMessage>(messagePart)
+                    make_shared<MaxFlowCalculationTargetSndLevelMessage>(messagePart)
                 )
             );
         }
@@ -326,6 +326,8 @@ void IncomingMessagesHandler::tryCollectPacket(
                                   "Can not allocate enough memory for incoming packet.");
         }
 
+        // TODO: catch conflict error and log it
+        // is needed for network stack analising
         channelAndEndpoint.first->addPacket(
             packet->header()->packetNumber(),
             Packet::Shared(packet)

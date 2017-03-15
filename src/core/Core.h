@@ -14,6 +14,8 @@
 #include "transactions/manager/TransactionsManager.h"
 #include "delayed_tasks/Cycles.h"
 #include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
+#include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
 
 #include "logger/Logger.h"
 
@@ -54,6 +56,8 @@ private:
 
     int initMaxFlowCalculationTrustLineManager();
 
+    int initMaxFlowCalculationCacheManager();
+
     int initTransactionsManager();
 
     int initDelayedTasks();
@@ -89,6 +93,10 @@ private:
 
     void cleanupMemory();
 
+    void JustToTestSomething();
+
+    void onDelayedTaskMaxFlowCalculationCacheUpdateSlot();
+
 protected:
     Logger mLog;
 
@@ -104,6 +112,8 @@ protected:
     TransactionsManager *mTransactionsManager;
     CyclesDelayedTasks *mCyclesDelayedTasks;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLimeManager;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    MaxFlowCalculationCacheUpdateDelayedTask *mMaxFlowCalculationCacheUpdateDelayedTask;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

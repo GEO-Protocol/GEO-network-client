@@ -1,7 +1,3 @@
-//
-// Created by mc on 19.02.17.
-//
-
 #include "MaxFlowCalculationTrustLine.h"
 
 MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine(
@@ -20,30 +16,32 @@ MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine(
     }
 }
 
-const NodeUUID& MaxFlowCalculationTrustLine::getSourceUUID() const {
+const NodeUUID& MaxFlowCalculationTrustLine::sourceUUID() const {
     return mSourceUUID;
 }
 
-const NodeUUID& MaxFlowCalculationTrustLine::getTargetUUID() const {
+const NodeUUID& MaxFlowCalculationTrustLine::targetUUID() const {
     return mTargetUUID;
 }
 
-const TrustLineAmount& MaxFlowCalculationTrustLine::getAmount() const {
+const TrustLineAmount& MaxFlowCalculationTrustLine::amount() const {
     return mAmount;
 }
 
-ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::getFreeAmount() const {
+ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::freeAmount() const {
     return ConstSharedTrustLineAmount(
         new TrustLineAmount(
-            mAmount - mUsedAmount
-        )
-    );
+            mAmount - mUsedAmount));
 }
 
-void MaxFlowCalculationTrustLine::addUsedAmount(TrustLineAmount amount) {
+void MaxFlowCalculationTrustLine::addUsedAmount(const TrustLineAmount &amount) {
     mUsedAmount = mUsedAmount + amount;
 }
 
-void MaxFlowCalculationTrustLine::setUsedAmount(TrustLineAmount amount) {
+void MaxFlowCalculationTrustLine::setUsedAmount(const TrustLineAmount &amount) {
     mUsedAmount = amount;
+}
+
+void MaxFlowCalculationTrustLine::setAmount(const TrustLineAmount& amount) {
+    mAmount = amount;
 }

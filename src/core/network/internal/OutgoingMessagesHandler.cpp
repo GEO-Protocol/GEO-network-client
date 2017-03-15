@@ -24,6 +24,10 @@ void OutgoingMessagesHandler::processOutgoingMessage(
     byte *serializedMessageBuffer = messageBytesAndCount.first.get();
     uint16_t dataPacketsCount = (uint16_t) (crcPacketAndCount.second - 1);
 
+    if (message->isMaxFlowCalculationResponseMessage()) {
+        mMaxFlowCalculationTraffic += messageBytesAndCount.second + crcPacketAndCount.second;
+    }
+
     for (uint16_t packetNumber = 1; packetNumber <= dataPacketsCount; ++ packetNumber) {
         size_t packetSize;
         size_t offset = 0;
@@ -148,4 +152,5 @@ Packet::Shared OutgoingMessagesHandler::makePacket(
 
     return packetShared;
 }
+
 

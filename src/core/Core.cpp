@@ -80,6 +80,11 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
+    initCode = initMaxFlowCalculationCacheManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
@@ -178,11 +183,23 @@ int Core::initTrustLinesManager() {
 int Core::initMaxFlowCalculationTrustLineManager() {
 
     try{
-        mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager;
+        mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager(&mLog);
         mLog.logSuccess("Core", "Max flow calculation Trust lines manager is successfully initialised");
         return 0;
 
     }catch(const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initMaxFlowCalculationCacheManager() {
+
+    try {
+        mMaxFlowCalculationCacheManager = new MaxFlowCalculationCacheManager(&mLog);
+        mLog.logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
+        return 0;
+    } catch (const std::exception &e) {
         mLog.logException("Core", e);
         return -1;
     }
@@ -196,6 +213,7 @@ int Core::initTransactionsManager() {
             mIOService,
             mTrustLinesManager,
             mMaxFlowCalculationTrustLimeManager,
+            mMaxFlowCalculationCacheManager,
             mResultsInterface,
             mOperationsHistoryStorage,
             &mLog
@@ -212,11 +230,11 @@ int Core::initTransactionsManager() {
 int Core::initDelayedTasks() {
     try{
         mCyclesDelayedTasks = new CyclesDelayedTasks(
-            mIOService);
-
+                mIOService);
+        mMaxFlowCalculationCacheUpdateDelayedTask = new MaxFlowCalculationCacheUpdateDelayedTask(
+                mIOService);
         mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
         return 0;
-
     } catch (const std::exception &e) {
         mLog.logException("Core", e);
         return -1;
@@ -295,6 +313,10 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
+    mMaxFlowCalculationCacheUpdateDelayedTask->mMaxFlowCalculationCacheUpdateSignal.connect(
+        boost::bind(
+            &Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot,
+            this));
 }
 
 void Core::connectSignalsToSlots() {
@@ -402,6 +424,18 @@ void Core::cleanupMemory() {
     if (mCommandsInterface != nullptr) {
         delete mCommandsInterface;
     }
+
+    if (mMaxFlowCalculationTrustLimeManager != nullptr) {
+        delete mMaxFlowCalculationTrustLimeManager;
+    }
+
+    if (mMaxFlowCalculationCacheManager != nullptr) {
+        delete mMaxFlowCalculationCacheManager;
+    }
+
+    if (mMaxFlowCalculationCacheUpdateDelayedTask != nullptr) {
+        delete mMaxFlowCalculationCacheUpdateDelayedTask;
+    }
 }
 
 void Core::zeroPointers() {
@@ -414,4 +448,42 @@ void Core::zeroPointers() {
     mTrustLinesManager = nullptr;
     mTransactionsManager = nullptr;
     mCyclesDelayedTasks = nullptr;
+    mMaxFlowCalculationTrustLimeManager = nullptr;
+    mMaxFlowCalculationCacheManager = nullptr;
+    mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
+}
+
+//void Core::initTimers() {
+//
+//}
+
+void Core::JustToTestSomething() {
+//    mTrustLinesManager->getFirstLevelNodesForCycles();
+//    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles();
+//    TrustLineBalance bal = 70;
+//    TrustLineBalance max_flow = 30;
+//    vector<NodeUUID> path;
+//    vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes;
+//    boundaryNodes.push_back(make_pair(mNodeUUID, bal ));
+//    path.push_back(mNodeUUID);
+////    for(const auto &value: firstLevelNodes){
+//
+////
+//    auto message = Message::Shared(new BoundaryNodeTopolodyMessage(
+//            max_flow,
+//            2,
+//            path,
+//            boundaryNodes
+//    ));
+//    auto buffer = message->serializeToBytes();
+//    auto new_message = new BoundaryNodeTopolodyMessage(buffer.first);
+//    cout << "lets see what we have " << endl;
+    //    mTransactionsManager->launchGetTopologyAndBalancesTransaction(static_pointer_cast<BoundaryNodeTopologyMessage>(
+//            message
+//    )
+//    );
+}
+
+void Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot() {
+    mTransactionsManager->launchMaxFlowCalculationCacheUpdateTransaction();
 }

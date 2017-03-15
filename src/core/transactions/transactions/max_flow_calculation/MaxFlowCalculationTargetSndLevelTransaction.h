@@ -3,9 +3,9 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../network/messages/incoming/max_flow_calculation/MaxFlowCalculationTargetSndLevelInMessage.h"
-#include "../../../network/messages/outgoing/max_flow_calculation/SendResultMaxFlowCalculationMessage.h"
-#include "../../scheduler/TransactionsScheduler.h"
+#include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.h"
+#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 class MaxFlowCalculationTargetSndLevelTransaction : public BaseTransaction {
 
@@ -15,22 +15,29 @@ public:
 public:
     MaxFlowCalculationTargetSndLevelTransaction(
         const NodeUUID &nodeUUID,
-        MaxFlowCalculationTargetSndLevelInMessage::Shared message,
+        MaxFlowCalculationTargetSndLevelMessage::Shared message,
         TrustLinesManager *manager,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *logger);
 
-    MaxFlowCalculationTargetSndLevelInMessage::Shared message() const;
+    MaxFlowCalculationTargetSndLevelMessage::Shared message() const;
 
     TransactionResult::SharedConst run();
+
+protected:
+    const string logHeader() const;
 
 private:
 
     void sendResultToInitiator();
 
+    void sendCachedResultToInitiator(
+        MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr);
+
 private:
-    MaxFlowCalculationTargetSndLevelInMessage::Shared mMessage;
+    MaxFlowCalculationTargetSndLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLog;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 
 };
 

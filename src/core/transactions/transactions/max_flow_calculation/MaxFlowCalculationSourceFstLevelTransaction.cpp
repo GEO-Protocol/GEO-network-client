@@ -2,50 +2,53 @@
 
 MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTransaction(
     const NodeUUID &nodeUUID,
-    MaxFlowCalculationSourceFstLevelInMessage::Shared message,
+    MaxFlowCalculationSourceFstLevelMessage::Shared message,
     TrustLinesManager *trustLinesManager,
     Logger *logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationSourceFstLevelTransactionType,
-        nodeUUID
-    ),
+        nodeUUID,
+        logger),
     mMessage(message),
-    mTrustLinesManager(trustLinesManager),
-    mLog(logger){}
+    mTrustLinesManager(trustLinesManager) {}
 
-MaxFlowCalculationSourceFstLevelInMessage::Shared MaxFlowCalculationSourceFstLevelTransaction::message() const {
+MaxFlowCalculationSourceFstLevelMessage::Shared MaxFlowCalculationSourceFstLevelTransaction::message() const {
 
     return mMessage;
 }
 
 TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run() {
 
-    mLog->logInfo("MaxFlowCalculationSourceFstLevelTransaction->run", "Iam: " + mNodeUUID.stringUUID());
-    mLog->logInfo("MaxFlowCalculationSourceFstLevelTransaction->run", "sender: " + mMessage->senderUUID().stringUUID());
-    mLog->logInfo("MaxFlowCalculationSourceFstLevelTransaction->run", "target: " + mMessage->targetUUID().stringUUID());
-    mLog->logInfo("MaxFlowCalculationSourceFstLevelTransaction->run",
-                  "OutgoingFlows: " + to_string(mTrustLinesManager->getOutgoingFlows().size()));
-    mLog->logInfo("MaxFlowCalculationSourceFstLevelTransaction->run",
-                  "IncomingFlows: " + to_string(mTrustLinesManager->getIncomingFlows().size()));
+    info() << "run\t" << "Iam: " << mNodeUUID.stringUUID();
+    info() << "run\t" << "sender: " << mMessage->senderUUID().stringUUID();
+    info() << "run\t" << "target: " << mMessage->targetUUID().stringUUID();
+    info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
+    info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 
-    vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->getFirstLevelNeighborsWithOutgoingFlow();
-    NodeUUID targetUUID = mMessage->targetUUID();
+    vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
     for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
-        if (nodeUUIDOutgoingFlow == targetUUID) {
+        if (nodeUUIDOutgoingFlow == mMessage->targetUUID() || nodeUUIDOutgoingFlow == mMessage->senderUUID()) {
             continue;
         }
-        Message *message = new MaxFlowCalculationSourceFstLevelOutMessage(
-            mNodeUUID,
-            targetUUID);
 
-        mLog->logInfo("MaxFlowCalculationSourceFstLevelTransaction->sendFirst", ((NodeUUID)nodeUUIDOutgoingFlow).stringUUID());
-        addMessage(
-            Message::Shared(message),
-            nodeUUIDOutgoingFlow);
+        info() << "sendFirst\t" << nodeUUIDOutgoingFlow.stringUUID();
+
+        sendMessage<MaxFlowCalculationSourceSndLevelMessage>(
+                nodeUUIDOutgoingFlow,
+                mNodeUUID,
+                mMessage->targetUUID());
     }
 
     return make_shared<const TransactionResult>(
         TransactionState::exit());
 
+}
+
+const string MaxFlowCalculationSourceFstLevelTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[MaxFlowCalculationSourceFstLevelTA]";
+
+    return s.str();
 }
