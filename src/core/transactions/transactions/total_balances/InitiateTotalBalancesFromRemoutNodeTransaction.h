@@ -38,9 +38,9 @@ private:
 
     TransactionResult::SharedConst resultOk(
             const TrustLineAmount &totalIncomingTrust,
-            const TrustLineAmount &totalIncomingTrustUsed,
+            const TrustLineAmount &totalTrustUsedByContractor,
             const TrustLineAmount &totalOutgoingTrust,
-            const TrustLineAmount &totalOutgoingTrustUsed);
+            const TrustLineAmount &totalTrustUsedBySelf);
 
     TransactionResult::SharedConst unexpectedErrorResult();
 
@@ -49,6 +49,7 @@ private:
     const uint16_t kMaxRequestsCount = 5;
 
 private:
+    // TODO: discuss
     uint16_t mExpectationResponsesCount = 1;
     TotalBalancesRemouteNodeCommand::Shared mCommand;
     uint16_t mRequestCounter;

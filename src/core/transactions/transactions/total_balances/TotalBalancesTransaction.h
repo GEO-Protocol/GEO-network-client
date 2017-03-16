@@ -38,9 +38,9 @@ private:
 
     TransactionResult::SharedConst resultOk(
         const TrustLineAmount &totalIncomingTrust,
-        const TrustLineAmount &totalIncomingTrustUsed,
+        const TrustLineAmount &totalTrustUsedByContractor,
         const TrustLineAmount &totalOutgoingTrust,
-        const TrustLineAmount &totalOutgoingTrustUsed);
+        const TrustLineAmount &totalTrustUsedBySelf);
 
 private:
 

@@ -50,9 +50,9 @@ TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::c
 
             return resultOk(
                 response->totalIncomingTrust(),
-                response->totalIncomingTrustUsed(),
+                response->totalTrustUsedByContractor(),
                 response->totalOutgoingTrust(),
-                response->totalOutgoingTrustUsed());
+                response->totalTrustUsedBySelf());
         }
 
         return unexpectedErrorResult();
@@ -93,12 +93,12 @@ void InitiateTotalBalancesFromRemoutNodeTransaction::increaseRequestsCounter() {
 
 TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::resultOk(
         const TrustLineAmount &totalIncomingTrust,
-        const TrustLineAmount &totalIncomingTrustUsed,
+        const TrustLineAmount &totalTrustUsedByContractor,
         const TrustLineAmount &totalOutgoingTrust,
-        const TrustLineAmount &totalOutgoingTrustUsed) {
+        const TrustLineAmount &totalTrustUsedBySelf) {
 
     stringstream s;
-    s << totalIncomingTrust << "\t" << totalIncomingTrustUsed << "\t" << totalOutgoingTrust << "\t" << totalOutgoingTrustUsed;
+    s << totalIncomingTrust << "\t" << totalTrustUsedByContractor << "\t" << totalOutgoingTrust << "\t" << totalTrustUsedBySelf;
     string totalBalancesStrResult = s.str();
     info() << "resultOk\t" << totalBalancesStrResult;
     return transactionResultFromCommand(mCommand->resultOk(totalBalancesStrResult));

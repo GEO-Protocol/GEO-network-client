@@ -71,9 +71,9 @@ public:
 
     ConstSharedTrustLineAmount availableIncomingAmount() const;
 
-    ConstSharedTrustLineAmount usedIncomingAmount() const;
+    ConstSharedTrustLineAmount usedAmountByContractor() const;
 
-    ConstSharedTrustLineAmount usedOutgoingAmount() const;
+    ConstSharedTrustLineAmount usedAmountBySelf() const;
 
     const TrustLineDirection direction() const;
 

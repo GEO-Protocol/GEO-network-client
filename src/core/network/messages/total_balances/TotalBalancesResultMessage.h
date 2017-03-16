@@ -15,9 +15,9 @@ public:
         const NodeUUID& senderUUID,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &totalIncomingTrust,
-        const TrustLineAmount &totalIncomingTrustUsed,
+        const TrustLineAmount &totalTrustUsedByContractor,
         const TrustLineAmount &totalOutgoingTrust,
-        const TrustLineAmount &totalOutgoingTrustUsed);
+        const TrustLineAmount &totalTrustUsedBySelf);
 
     TotalBalancesResultMessage(
             BytesShared buffer);
@@ -30,11 +30,11 @@ public:
 
     const TrustLineAmount& totalIncomingTrust() const;
 
-    const TrustLineAmount& totalIncomingTrustUsed() const;
+    const TrustLineAmount& totalTrustUsedByContractor() const;
 
     const TrustLineAmount& totalOutgoingTrust() const;
 
-    const TrustLineAmount& totalOutgoingTrustUsed() const;
+    const TrustLineAmount& totalTrustUsedBySelf() const;
 
 private:
     void deserializeFromBytes(
@@ -42,9 +42,9 @@ private:
 
 private:
     TrustLineAmount mTotalIncomingTrust;
-    TrustLineAmount mTotalIncomingTrustUsed;
+    TrustLineAmount mTotalTrustUsedByContractor;
     TrustLineAmount mTotalOutgoingTrust;
-    TrustLineAmount mTotalOutgoingTrustUsed;
+    TrustLineAmount mTotalTrustUsedBySelf;
 
 };
 

@@ -10,24 +10,17 @@ public:
 
 public:
     TotalBalancesCommand(
-            const CommandUUID &uuid,
-            const string &commandBuffer);
-
-    TotalBalancesCommand(
-            BytesShared buffer);
+        const CommandUUID &uuid,
+        const string &commandBuffer);
 
     static const string &identifier();
-
-    pair<BytesShared, size_t> serializeToBytes();
 
     CommandResult::SharedConst resultOk(string &totalBalancesStr) const;
 
 protected:
-    void deserializeFromBytes(
-            BytesShared buffer);
 
     void parse(
-            const string &command);
+        const string &command);
 
 };
 

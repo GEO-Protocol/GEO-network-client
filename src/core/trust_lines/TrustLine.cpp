@@ -179,7 +179,7 @@ ConstSharedTrustLineAmount TrustLine::availableIncomingAmount() const
         mOutgoingTrustAmount + mBalance);
 }
 
-ConstSharedTrustLineAmount TrustLine::usedIncomingAmount() const {
+ConstSharedTrustLineAmount TrustLine::usedAmountByContractor() const {
     if (mBalance >= kZeroBalance()) {
         return make_shared<const TrustLineAmount>(mBalance);
     } else {
@@ -187,7 +187,7 @@ ConstSharedTrustLineAmount TrustLine::usedIncomingAmount() const {
     }
 }
 
-ConstSharedTrustLineAmount TrustLine::usedOutgoingAmount() const {
+ConstSharedTrustLineAmount TrustLine::usedAmountBySelf() const {
     if (mBalance <= kZeroBalance()) {
         return make_shared<const TrustLineAmount>(-mBalance);
     } else {

@@ -1,22 +1,14 @@
 #include "TotalBalancesRemouteNodeCommand.h"
 
 TotalBalancesRemouteNodeCommand::TotalBalancesRemouteNodeCommand(
-        const CommandUUID &uuid,
-        const string &commandBuffer):
+    const CommandUUID &uuid,
+    const string &commandBuffer):
 
-        BaseUserCommand(
-                uuid,
-                identifier()) {
+    BaseUserCommand(
+        uuid,
+        identifier()) {
 
     parse(commandBuffer);
-}
-
-TotalBalancesRemouteNodeCommand::TotalBalancesRemouteNodeCommand(
-        BytesShared buffer) :
-
-        BaseUserCommand(identifier()) {
-
-    deserializeFromBytes(buffer);
 }
 
 const string &TotalBalancesRemouteNodeCommand::identifier() {
@@ -28,39 +20,6 @@ const string &TotalBalancesRemouteNodeCommand::identifier() {
 const NodeUUID &TotalBalancesRemouteNodeCommand::contractorUUID() const {
 
     return mContractorUUID;
-}
-
-pair<BytesShared, size_t> TotalBalancesRemouteNodeCommand::serializeToBytes(){
-
-    auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second +
-                        NodeUUID::kBytesSize;
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-    //----------------------------------------------------
-    memcpy(
-            dataBytesShared.get(),
-            parentBytesAndCount.first.get(),
-            parentBytesAndCount.second
-    );
-    dataBytesOffset += parentBytesAndCount.second;
-    //----------------------------------------------------
-    return make_pair(
-            dataBytesShared,
-            bytesCount);
-}
-
-void TotalBalancesRemouteNodeCommand::deserializeFromBytes(
-        BytesShared buffer) {
-
-    BaseUserCommand::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = BaseUserCommand::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    memcpy(
-            mContractorUUID.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
 }
 
 /**
@@ -103,5 +62,5 @@ CommandResult::SharedConst TotalBalancesRemouteNodeCommand::resultNoResponse() c
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),
-            444));
+            501));
 }
