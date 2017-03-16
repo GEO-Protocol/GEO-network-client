@@ -26,18 +26,11 @@ TransactionResult::SharedConst AcceptRoutingTablesUpdatesTransaction::run() {
 
 void AcceptRoutingTablesUpdatesTransaction::updateRoutingTable() {
 
-    string logLine;
     cout << "Update routing table message received" << endl;
-    logLine = "SenderUUID:" + mMessage->senderUUID().stringUUID() + "::";
     cout << "Sender UUID -> " << mMessage->senderUUID() << endl;
-    logLine += "InitiatorUUID:" + mMessage->initiatorUUID().stringUUID() + "::";
     cout << "Initiator UUID -> " << mMessage->initiatorUUID() << endl;
-    logLine += "ContractorUUID:" + mMessage->contractorUUID().stringUUID() + "::";
     cout << "Contractor UUID -> " << mMessage->contractorUUID() << endl;
-    logLine += "Direction:" + to_string(mMessage->direction());
     cout << "Direction -> " << mMessage->direction() << endl;
-
-    mFileLogger->addLine(logLine.c_str());
 }
 
 void AcceptRoutingTablesUpdatesTransaction::tryCreateNextUpdatingTransactionsPool() {
