@@ -75,7 +75,12 @@ public:
         MaxFlowCalculationSourceSndLevelTransactionType,
         MaxFlowCalculationTargetSndLevelTransactionType,
         ReceiveResultMaxFlowCalculationTransactionType,
-        MaxFlowCalculationCacheUpdateTransactionType
+        MaxFlowCalculationCacheUpdateTransactionType,
+
+        // TotalBalances
+        TotalBalancesTransactionType,
+        InitiateTotalBalancesFromRemoutNodeTransactionType
+
     };
 
 public:

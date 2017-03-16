@@ -21,6 +21,8 @@
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
+#include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
+#include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
@@ -59,6 +61,9 @@
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationCacheUpdateTransaction.h"
+
+#include "../transactions/total_balances/TotalBalancesTransaction.h"
+#include "../transactions/total_balances/InitiateTotalBalancesFromRemoutNodeTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -169,6 +174,16 @@ private:
 
     void launchGetTopologyAndBalancesTransaction(
         InBetweenNodeTopologyMessage::Shared message);
+
+    // Total balances transaction
+    void launchTotalBalancesTransaction(
+            TotalBalancesCommand::Shared command);
+
+    void launchTotalBalancesTransaction(
+            InitiateTotalBalancesMessage::Shared message);
+
+    void launchTotalBalancesRemouteNodeTransaction(
+            TotalBalancesRemouteNodeCommand::Shared command);
 
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(

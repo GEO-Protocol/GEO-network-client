@@ -11,6 +11,8 @@
 #include "../commands/trust_lines/SetTrustLineCommand.h"
 #include "../commands/payments/CreditUsageCommand.h"
 #include "../commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
+#include "../commands/total_balances/TotalBalancesCommand.h"
+#include "../commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"
