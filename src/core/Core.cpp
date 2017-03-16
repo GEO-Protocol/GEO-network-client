@@ -318,7 +318,6 @@ void Core::connectDelayedTasksSignals(){
             &Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot,
             this));
 }
-
 void Core::connectSignalsToSlots() {
 
     connectCommunicatorSignals();
@@ -330,8 +329,7 @@ void Core::onMessageReceivedSlot(
     Message::Shared message) {
 
 //    try {
-        mTransactionsManager->processMessage(message);
-
+    mTransactionsManager->processMessage(message);
 //    } catch(exception &e) {
 //        mLog.logException("Core", e);
 //    }
@@ -385,14 +383,6 @@ void Core::onTrustLineStateModifiedSlot(
         mLog.logException("Core", e);
     }
 
-}
-
-void Core::onDelayedTaskCycleSixNodesSlot() {
-//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
-}
-
-void Core::onDelayedTaskCycleFiveNodesSlot() {
-//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
 }
 
 void Core::cleanupMemory() {
@@ -451,37 +441,15 @@ void Core::zeroPointers() {
     mMaxFlowCalculationTrustLimeManager = nullptr;
     mMaxFlowCalculationCacheManager = nullptr;
     mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
+
 }
 
-//void Core::initTimers() {
-//
-//}
+void Core::onDelayedTaskCycleSixNodesSlot() {
+    mTransactionsManager->launchGetTopologyAndBalancesTransactionSixNodes();
+}
 
-void Core::JustToTestSomething() {
-//    mTrustLinesManager->getFirstLevelNodesForCycles();
-//    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles();
-//    TrustLineBalance bal = 70;
-//    TrustLineBalance max_flow = 30;
-//    vector<NodeUUID> path;
-//    vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes;
-//    boundaryNodes.push_back(make_pair(mNodeUUID, bal ));
-//    path.push_back(mNodeUUID);
-////    for(const auto &value: firstLevelNodes){
-//
-////
-//    auto message = Message::Shared(new BoundaryNodeTopolodyMessage(
-//            max_flow,
-//            2,
-//            path,
-//            boundaryNodes
-//    ));
-//    auto buffer = message->serializeToBytes();
-//    auto new_message = new BoundaryNodeTopolodyMessage(buffer.first);
-//    cout << "lets see what we have " << endl;
-    //    mTransactionsManager->launchGetTopologyAndBalancesTransaction(static_pointer_cast<BoundaryNodeTopologyMessage>(
-//            message
-//    )
-//    );
+void Core::onDelayedTaskCycleFiveNodesSlot() {
+    mTransactionsManager->launchGetTopologyAndBalancesTransactionFiveNodes();
 }
 
 void Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot() {

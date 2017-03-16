@@ -9,6 +9,8 @@
 #include "../../network/messages/base/routing_tables/RoutingTablesMessage.h"
 #include "../../network/messages/response/Response.h"
 #include "../../network/messages/response/RoutingTablesResponse.h"
+#include "../../network/messages/cycles/BoundaryNodeTopologyMessage.h"
+
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/unique/routing_tables/RoutingTablesTransaction.h"

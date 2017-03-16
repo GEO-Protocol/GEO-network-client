@@ -61,7 +61,8 @@ public:
         PropagateRoutingTablesUpdatesTransactionType,
         AcceptRoutingTablesUpdatesTransactionType,
         GetTopologyAndBalancesTransaction,
-
+        SixNodesTopologyTransaction,
+        FiveNodesTopologyTransaction,
         // Payments
         CoordinatorPaymentTransaction,
         ReceiverPaymentTransaction,
@@ -79,7 +80,7 @@ public:
     };
 
 public:
-    const TransactionType transactionType() const;
+    virtual const TransactionType transactionType() const;
 
     const TransactionUUID &UUID() const;
 

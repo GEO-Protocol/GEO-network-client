@@ -46,7 +46,8 @@
 #include "../transactions/unique/routing_tables/update/RoutingTablesUpdateTransactionsFactory.h"
 #include "../transactions/unique/routing_tables/update/AcceptRoutingTablesUpdatesTransaction.h"
 #include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
-
+#include "../transactions/unique/cycles/FiveNodesTopologyTransaction.h"
+#include "../transactions/unique/cycles/SixNodesTopologyTransaction.h"
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 #include "../transactions/regular/payments/IntermediateNodePaymentTransaction.h"
@@ -95,6 +96,13 @@ public:
     void launchFromInitiatorToContractorRoutingTablePropagationTransaction(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
+
+
+    void launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message);
+    //  Cycles Transactions
+
+    void launchGetTopologyAndBalancesTransactionFiveNodes();
+    void launchGetTopologyAndBalancesTransactionSixNodes();
 
     void launchRoutingTablesUpdatingTransactionsFactory(
         const NodeUUID &contractorUUID,
@@ -163,12 +171,6 @@ private:
 
     void launchIntermediateNodePaymentTransaction(
         IntermediateNodeReservationRequestMessage::Shared message);
-
-    // Topology transactions
-    void launchGetTopologyAndBalancesTransaction();
-
-    void launchGetTopologyAndBalancesTransaction(
-        InBetweenNodeTopologyMessage::Shared message);
 
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(

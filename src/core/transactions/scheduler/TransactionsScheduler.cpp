@@ -81,6 +81,25 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
                 continue;
             }
         }
+//       Check if this is CycleTransaction
+        if(transactionAndState.first->transactionType() == BaseTransaction::TransactionType::SixNodesTopologyTransaction){
+            if(message->isCyclesDiscoveringResponseMessage()){
+                if (static_pointer_cast<BoundaryNodeTopologyMessage>(message)->cycleType() ==
+                    InBetweenNodeTopologyMessage::CycleTypeID::CycleForSixNodes) {
+                    transactionAndState.first->pushContext(message);
+                    return;
+                }
+            }
+        }
+        if(transactionAndState.first->transactionType() == BaseTransaction::TransactionType::FiveNodesTopologyTransaction){
+            if(message->isCyclesDiscoveringResponseMessage()){
+                if (static_pointer_cast<BoundaryNodeTopologyMessage>(message)->cycleType() ==
+                    InBetweenNodeTopologyMessage::CycleTypeID::CycleForFiveNodes) {
+                    transactionAndState.first->pushContext(message);
+                    return;
+                }
+            }
+        }
 
         if (message->isRoutingTableResponseMessage()) {
 
@@ -106,7 +125,6 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
             return;
         }
     }
-
     throw NotFoundError(
         "TransactionsScheduler::handleMessage: "
             "invalid/unexpected message/response received");

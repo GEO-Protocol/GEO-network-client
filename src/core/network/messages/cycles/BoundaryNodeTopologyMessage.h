@@ -1,9 +1,5 @@
 #ifndef GEO_NETWORK_CLIENT_GETTOPOLOGYANDBALANCESBOUNDARYNODES_H
 #define GEO_NETWORK_CLIENT_GETTOPOLOGYANDBALANCESBOUNDARYNODES_H
-
-//TODO:: (D.V.) Of course I understand that all imports already included in parent class,
-//TODO:: but in OOP, every class is independent and self-sufficient entity, so please,
-//TODO:: include here all dependencies that this class will be using.
 #include "InBetweenNodeTopologyMessage.h"
 
 class BoundaryNodeTopologyMessage: public InBetweenNodeTopologyMessage {
@@ -12,23 +8,27 @@ public:
 
 public:
     BoundaryNodeTopologyMessage(
-            const TrustLineBalance maxFlow, //TODO:: (D.V.) TrustLineBalance is non primitive type, use address, don't copies tmp value in constructor anymore.
-            const byte max_depth,
-            vector<NodeUUID> &path, //TODO:: (D.V.) (Recommendation) Try to use move semantic.
-            const vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes); //TODO:: Seriously, copy??
+            const CycleType cycleType,
+            const TrustLineBalance &maxFlow,
+            const byte &max_depth,
+            vector<NodeUUID> &path,
+            const vector<pair<NodeUUID, TrustLineBalance>> &boundaryNodes);
 
-    // TODO:: Constructor's or function's parameters starts from new line
     BoundaryNodeTopologyMessage(
         BytesShared buffer);
 
-    // TODO:: (D.V.) If this class is a last inherit, change access modifiers to private.
+    const MessageType typeID() const;
+    const bool isCyclesDiscoveringResponseMessage() const;
+    const vector<pair<NodeUUID, TrustLineBalance>> BoundaryNodes() const;
+
+
 protected:
     pair<BytesShared, size_t> serializeToBytes();
 
     void deserializeFromBytes(
             BytesShared buffer);
 
-    //TODO:: (D.V.) Separate members from methods!
+
 private:
     vector<pair<NodeUUID, TrustLineBalance>> mBoundaryNodes;
 };

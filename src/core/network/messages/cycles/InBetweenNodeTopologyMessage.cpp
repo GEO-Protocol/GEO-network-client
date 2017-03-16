@@ -2,16 +2,21 @@
 
 uint8_t InBetweenNodeTopologyMessage::mNodesInPath;
 
+InBetweenNodeTopologyMessage::InBetweenNodeTopologyMessage() {
+
+}
+
 InBetweenNodeTopologyMessage::InBetweenNodeTopologyMessage(
-        const TrustLineBalance maxFlow, //TODO:: (D.V.) TrustLineBalance is non primitive type, use address, don't copy tmp value in constructor anymore.
+        const CycleType cycleType,
+        const TrustLineBalance& maxFlow,
         const byte max_depth,
-        vector<NodeUUID> &path) : //TODO:: (D.V.) Try to use move semantic.
-
-    mMaxFlow(maxFlow) { //TODO:: (D.V.) You can do like this.
-
-    mMaxDepth = max_depth;
-    mPath = path;
-    mNodesInPath = (uint8_t) mPath.size(); //TODO:: Are you really sure that this value always will be in range of uint_8 type?
+        vector<NodeUUID> &path) :
+    mCycleType(cycleType),
+    mMaxDepth(max_depth),
+    mMaxFlow(maxFlow),
+    mPath(path)
+{
+    mNodesInPath = (uint8_t) mPath.size();
 }
 
 InBetweenNodeTopologyMessage::InBetweenNodeTopologyMessage(
@@ -25,48 +30,37 @@ const Message::MessageType InBetweenNodeTopologyMessage::typeID() const {
     return Message::InBetweenNodeTopologyMessage;
 }
 
-//TODO:: (D.V.) In most cases, "getter" returns const value, and address, not copy.
-//TODO:: Also, getter must be declared as a const function. It's deny to modify inner object state.
-TrustLineBalance InBetweenNodeTopologyMessage::getMaxFlow() {
-
-    return mMaxFlow;
-}
-
-//TODO:: (D.V.) In most cases, "getter" returns const value, and address, not copy.
-//TODO:: Also, getter must be declared as a const function. It's deny to modify inner object state.
-vector<NodeUUID> InBetweenNodeTopologyMessage::getPath() {
-
-    //TODO:: (D.V.) Empty vector?
-    return vector<NodeUUID>();
-}
-
 pair<BytesShared, size_t> InBetweenNodeTopologyMessage::serializeToBytes() {
-
-    auto parentBytesAndCount = Message::serializeToBytes();
 
     vector<byte> MaxFlowBuffer = trustLineBalanceToBytes(mMaxFlow);
 
-    size_t bytesCount = parentBytesAndCount.second
-                        + MaxFlowBuffer.size()
+    size_t bytesCount = MaxFlowBuffer.size()
+                        + sizeof(MessageType)
+                        + sizeof(CycleType)
                         + sizeof(mMaxDepth)
                         + sizeof(mNodesInPath)
                         + mNodesInPath * NodeUUID::kBytesSize;
-
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
 
-    // for parent node
-    //----------------------------------------------------
+//    MessageType
+    MessageType messageType = (MessageType) typeID();
     memcpy(
             dataBytesShared.get(),
-            parentBytesAndCount.first.get(),
-            parentBytesAndCount.second
+            &messageType,
+            sizeof(MessageType)
     );
-    dataBytesOffset += parentBytesAndCount.second;
-    //----------------------------------------------------
+    dataBytesOffset += sizeof(MessageType);
+    // CycleType
+    memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            &mCycleType,
+            sizeof(uint8_t)
+    );
+    dataBytesOffset += sizeof(uint8_t);
     // for max flow
     memcpy(
-        dataBytesShared.get(),
+        dataBytesShared.get() + dataBytesOffset,
         MaxFlowBuffer.data(),
         MaxFlowBuffer.size()
     );
@@ -95,7 +89,7 @@ pair<BytesShared, size_t> InBetweenNodeTopologyMessage::serializeToBytes() {
             &value,
             NodeUUID::kBytesSize
         );
-        //dataBytesOffset += NodeUUID::kBytesSize;
+        dataBytesOffset += NodeUUID::kBytesSize;
     }
     //----------------------------------------------------
     return make_pair(
@@ -107,18 +101,25 @@ pair<BytesShared, size_t> InBetweenNodeTopologyMessage::serializeToBytes() {
 void InBetweenNodeTopologyMessage::deserializeFromBytes(
         BytesShared buffer) {
 
-    //TODO:: (D.V.) Same problem when you invoke serializeToBytes().
-    //Message::deserializeFromBytes(buffer);
-    // Parent part of deserializeFromBytes
-    //size_t bytesBufferOffset = Message::kOffsetToInheritedBytes();
-
+// Message Type
+    size_t bytesBufferOffset = 0;
+    MessageType *messageType = new (buffer.get()) MessageType;
+    bytesBufferOffset += sizeof(uint16_t);
+//   Cycle Type
+    memcpy(
+     &mCycleType,
+     buffer.get() + bytesBufferOffset,
+     sizeof(uint8_t)
+    );
+    bytesBufferOffset += sizeof(uint8_t);
+//
     vector<byte> amountBytes(
-            buffer.get(),
-            buffer.get() + kTrustLineBalanceSerializeBytesCount);
+            buffer.get() + bytesBufferOffset,
+            buffer.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
 
     // Max flow
     mMaxFlow = bytesToTrustLineBalance(amountBytes);
-    size_t bytesBufferOffset = kTrustLineBalanceSerializeBytesCount;
+    bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
 
     // for max depth
     memcpy(
@@ -129,16 +130,15 @@ void InBetweenNodeTopologyMessage::deserializeFromBytes(
     bytesBufferOffset += sizeof(uint8_t);
 
     // path
-    uint8_t nodes_in_path;
     memcpy(
-            &nodes_in_path,
+            &mNodesInPath,
             buffer.get() + bytesBufferOffset,
             sizeof(uint8_t)
     );
     bytesBufferOffset += sizeof(uint8_t);
 
-    NodeUUID stepNode;
-    for (uint8_t i = 1; i <= nodes_in_path; ++i) {
+    for (uint8_t i = 1; i <= mNodesInPath; ++i) {
+        NodeUUID stepNode;
         memcpy(
             stepNode.data,
             buffer.get() + bytesBufferOffset,
@@ -150,14 +150,33 @@ void InBetweenNodeTopologyMessage::deserializeFromBytes(
 }
 
 const size_t InBetweenNodeTopologyMessage::kOffsetToInheritedBytes() {
-
-// todo add sizeof message
-// todo Ask about static for this object
     static const size_t offset =
             + kTrustLineBalanceSerializeBytesCount
             + sizeof(mMaxDepth)
+//            node in path
             + sizeof(uint8_t)
-            + NodeUUID::kBytesSize * mNodesInPath;
-
+            + NodeUUID::kBytesSize * mNodesInPath
+            + sizeof(MessageType)
+            + sizeof(CycleType);
     return offset;
+}
+
+const TrustLineBalance& InBetweenNodeTopologyMessage::maxFlow() const {
+    return mMaxFlow;
+}
+
+const uint8_t InBetweenNodeTopologyMessage::maxDepth() const {
+    return mMaxDepth;
+}
+
+NodeUUID &InBetweenNodeTopologyMessage::getLastUUIDFromPath() {
+    return mPath.back();
+}
+
+const InBetweenNodeTopologyMessage::CycleType InBetweenNodeTopologyMessage::cycleType() const {
+    return mCycleType;
+}
+
+const vector<NodeUUID> InBetweenNodeTopologyMessage::Path() const {
+    return mPath;
 }
