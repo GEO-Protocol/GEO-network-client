@@ -25,8 +25,8 @@ public:
 
 private:
     as::io_service &mIOService;
-    const int mSignalRepeatTimeSeconds = 8000;
-    const int mSignalRepeatTimeSeconds1 = 8000;
+    const int mSixNodesSignalRepeatTimeSeconds = 8000;
+    const int mFiveNodesSignalRepeatTimeSeconds = 8000;
 
 
     unique_ptr<as::deadline_timer> mSixNodesCycleTimer;

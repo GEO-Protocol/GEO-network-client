@@ -5,7 +5,6 @@
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../network/messages/cycles/InBetweenNodeTopologyMessage.h"
 #include "../../../../network/messages/cycles/BoundaryNodeTopologyMessage.h"
-#include "../../../../cycles/CyclesCalculation.h"
 
 class GetTopologyAndBalancesTransaction : public UniqueTransaction {
 

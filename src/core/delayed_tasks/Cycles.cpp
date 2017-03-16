@@ -6,7 +6,7 @@ void CyclesDelayedTasks::RunSignalFiveNodes(const boost::system::error_code &err
         cout << error.message() << endl;
     }
     mFiveNodesCycleTimer->cancel();
-    mFiveNodesCycleTimer->expires_from_now(boost::posix_time::seconds(mSignalRepeatTimeSeconds));
+    mFiveNodesCycleTimer->expires_from_now(boost::posix_time::seconds(mSixNodesSignalRepeatTimeSeconds));
     mFiveNodesCycleTimer->async_wait(boost::bind(
             &CyclesDelayedTasks::RunSignalFiveNodes,
             this,
@@ -20,7 +20,7 @@ void CyclesDelayedTasks::RunSignalSixNodes(const boost::system::error_code &erro
         cout << error.message() << endl;
     }
     mSixNodesCycleTimer->cancel();
-    mSixNodesCycleTimer->expires_from_now(boost::posix_time::seconds(mSignalRepeatTimeSeconds));
+    mSixNodesCycleTimer->expires_from_now(boost::posix_time::seconds(mFiveNodesSignalRepeatTimeSeconds));
     mSixNodesCycleTimer->async_wait(boost::bind(
             &CyclesDelayedTasks::RunSignalSixNodes,
             this,
