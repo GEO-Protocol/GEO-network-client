@@ -45,10 +45,11 @@ private:
     TransactionResult::SharedConst unexpectedErrorResult();
 
 private:
-    const uint16_t kConnectionTimeout = 2000;
+    const uint16_t kConnectionTimeout = 500;
     const uint16_t kMaxRequestsCount = 5;
 
 private:
+    uint16_t mExpectationResponsesCount = 1;
     TotalBalancesRemouteNodeCommand::Shared mCommand;
     uint16_t mRequestCounter;
 

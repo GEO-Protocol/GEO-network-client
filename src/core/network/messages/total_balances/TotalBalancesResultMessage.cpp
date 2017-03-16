@@ -2,12 +2,15 @@
 
 TotalBalancesResultMessage::TotalBalancesResultMessage(
     const NodeUUID& senderUUID,
+    const TransactionUUID &transactionUUID,
     const TrustLineAmount &totalIncomingTrust,
     const TrustLineAmount &totalIncomingTrustUsed,
     const TrustLineAmount &totalOutgoingTrust,
     const TrustLineAmount &totalOutgoingTrustUsed):
 
-    SenderMessage(senderUUID),
+    TransactionMessage(
+        senderUUID,
+        transactionUUID),
     mTotalIncomingTrust(totalIncomingTrust),
     mTotalIncomingTrustUsed(totalIncomingTrustUsed),
     mTotalOutgoingTrust(totalOutgoingTrust),
@@ -26,7 +29,7 @@ const Message::MessageType TotalBalancesResultMessage::typeID() const {
 
 pair<BytesShared, size_t> TotalBalancesResultMessage::serializeToBytes() {
 
-    auto parentBytesAndCount = SenderMessage::serializeToBytes();
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + 4 * kTrustLineAmountBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -73,8 +76,8 @@ pair<BytesShared, size_t> TotalBalancesResultMessage::serializeToBytes() {
 void TotalBalancesResultMessage::deserializeFromBytes(
         BytesShared buffer){
 
-    SenderMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
+    TransactionMessage::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     vector<byte> bufferTotalIncomingTrust(
             buffer.get() + bytesBufferOffset,

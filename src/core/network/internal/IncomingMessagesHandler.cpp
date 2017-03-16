@@ -182,9 +182,16 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
 
         case Message::InitiateTotalBalancesMessageType: {
             return make_pair(
-                    true,
-                    static_pointer_cast<Message>(
-                            make_shared<InitiateTotalBalancesMessage>(messagePart)));
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<InitiateTotalBalancesMessage>(messagePart)));
+        }
+
+        case Message::TotalBalancesResultMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<TotalBalancesResultMessage>(messagePart)));
         }
 
         default: {

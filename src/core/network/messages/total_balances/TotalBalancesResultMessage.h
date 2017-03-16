@@ -1,10 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_TOTALBALANCESRESULTMESSAGE_H
 #define GEO_NETWORK_CLIENT_TOTALBALANCESRESULTMESSAGE_H
 
-#import "../SenderMessage.h"
+#import "../base/transaction/TransactionMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
-class TotalBalancesResultMessage : public SenderMessage {
+class TotalBalancesResultMessage : public TransactionMessage {
 
 public:
     typedef shared_ptr<TotalBalancesResultMessage> Shared;
@@ -13,6 +13,7 @@ public:
 
     TotalBalancesResultMessage(
         const NodeUUID& senderUUID,
+        const TransactionUUID &transactionUUID,
         const TrustLineAmount &totalIncomingTrust,
         const TrustLineAmount &totalIncomingTrustUsed,
         const TrustLineAmount &totalOutgoingTrust,

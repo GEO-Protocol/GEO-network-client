@@ -19,7 +19,7 @@ TotalBalancesRemouteNodeCommand::Shared InitiateTotalBalancesFromRemoutNodeTrans
 
 TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::run() {
 
-    info() << "run\t";
+    info() << "run\t" << UUID();
 
     if (!mContext.empty()) {
         return checkTransactionContext();
@@ -40,6 +40,7 @@ TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::r
 
 TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::checkTransactionContext() {
 
+    info() << "context size\t" << mContext.size();
     if (mExpectationResponsesCount == mContext.size()) {
         auto responseMessage = *mContext.begin();
 
@@ -66,7 +67,8 @@ void InitiateTotalBalancesFromRemoutNodeTransaction::sendMessageToRemoteNode() {
 
     sendMessage<InitiateTotalBalancesMessage>(
         mCommand->contractorUUID(),
-        mNodeUUID);
+        mNodeUUID,
+        UUID());
 }
 
 TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::waitingForResponseState() {

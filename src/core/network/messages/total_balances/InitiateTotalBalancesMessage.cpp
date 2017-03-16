@@ -1,12 +1,15 @@
 #include "InitiateTotalBalancesMessage.h"
 
 InitiateTotalBalancesMessage::InitiateTotalBalancesMessage(
-        const NodeUUID& senderUUID) :
+    const NodeUUID& senderUUID,
+    const TransactionUUID &transactionUUID) :
 
-        SenderMessage(senderUUID) {};
+    TransactionMessage(
+        senderUUID,
+        transactionUUID) {};
 
 InitiateTotalBalancesMessage::InitiateTotalBalancesMessage(
-        BytesShared buffer) {
+    BytesShared buffer) {
 
     deserializeFromBytes(buffer);
 }

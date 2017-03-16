@@ -1,10 +1,10 @@
 #ifndef GEO_NETWORK_CLIENT_INITIATETOTALBALANCESMESSAGE_H
 #define GEO_NETWORK_CLIENT_INITIATETOTALBALANCESMESSAGE_H
 
-#include "../SenderMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
+#include "../base/transaction/TransactionMessage.h"
 
-class InitiateTotalBalancesMessage : public SenderMessage {
+class InitiateTotalBalancesMessage : public TransactionMessage {
 
 public:
     typedef shared_ptr<InitiateTotalBalancesMessage> Shared;
@@ -12,10 +12,11 @@ public:
 public:
 
     InitiateTotalBalancesMessage(
-            const NodeUUID& senderUUID);
+        const NodeUUID& senderUUID,
+        const TransactionUUID &transactionUUID);
 
     InitiateTotalBalancesMessage(
-            BytesShared buffer);
+        BytesShared buffer);
 
     const MessageType typeID() const;
 

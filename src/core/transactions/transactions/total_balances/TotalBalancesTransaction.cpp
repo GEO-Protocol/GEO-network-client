@@ -68,9 +68,11 @@ TransactionResult::SharedConst TotalBalancesTransaction::run() {
     if (mMessage != nullptr) {
         info() << "external message\t" << totalIncomingTrust << "\t" << totalIncomingTrustUsed
                << "\t" << totalOutgoingTrust << "\t" << totalOutgoingTrustUsed;
+        info() << "transactionUUID\t" << mMessage->transactionUUID();
         sendMessage<TotalBalancesResultMessage>(
             mMessage->senderUUID(),
             mNodeUUID,
+            mMessage->transactionUUID(),
             totalIncomingTrust,
             totalIncomingTrustUsed,
             totalOutgoingTrust,
