@@ -79,7 +79,11 @@ public:
 
         // TotalBalances
         TotalBalancesTransactionType,
-        InitiateTotalBalancesFromRemoutNodeTransactionType
+        InitiateTotalBalancesFromRemoutNodeTransactionType,
+
+        // History
+        HistoryPaymentsTransactionType,
+        HistoryTrustLinesTransactionType
 
     };
 

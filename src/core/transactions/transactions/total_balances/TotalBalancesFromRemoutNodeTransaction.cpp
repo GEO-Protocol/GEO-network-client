@@ -1,6 +1,6 @@
-#include "InitiateTotalBalancesFromRemoutNodeTransaction.h"
+#include "TotalBalancesFromRemoutNodeTransaction.h"
 
-InitiateTotalBalancesFromRemoutNodeTransaction::InitiateTotalBalancesFromRemoutNodeTransaction(
+TotalBalancesFromRemoutNodeTransaction::TotalBalancesFromRemoutNodeTransaction(
     NodeUUID &nodeUUID,
     TotalBalancesRemouteNodeCommand::Shared command,
     Logger *logger) :
@@ -12,12 +12,12 @@ InitiateTotalBalancesFromRemoutNodeTransaction::InitiateTotalBalancesFromRemoutN
     mCommand(command),
     mRequestCounter(0) {}
 
-TotalBalancesRemouteNodeCommand::Shared InitiateTotalBalancesFromRemoutNodeTransaction::command() const {
+TotalBalancesRemouteNodeCommand::Shared TotalBalancesFromRemoutNodeTransaction::command() const {
 
     return mCommand;
 }
 
-TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::run() {
+TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::run() {
 
     info() << "run\t" << UUID();
 
@@ -38,7 +38,7 @@ TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::r
 
 }
 
-TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::checkTransactionContext() {
+TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::checkTransactionContext() {
 
     info() << "context size\t" << mContext.size();
     if (mExpectationResponsesCount == mContext.size()) {
@@ -58,12 +58,12 @@ TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::c
         return unexpectedErrorResult();
 
     } else {
-        throw ConflictError("InitiateTotalBalancesFromRemoutNodeTransaction::checkTransactionContext: "
+        throw ConflictError("TotalBalancesFromRemoutNodeTransaction::checkTransactionContext: "
                                     "Unexpected context size.");
     }
 }
 
-void InitiateTotalBalancesFromRemoutNodeTransaction::sendMessageToRemoteNode() {
+void TotalBalancesFromRemoutNodeTransaction::sendMessageToRemoteNode() {
 
     sendMessage<InitiateTotalBalancesMessage>(
         mCommand->contractorUUID(),
@@ -71,7 +71,7 @@ void InitiateTotalBalancesFromRemoutNodeTransaction::sendMessageToRemoteNode() {
         UUID());
 }
 
-TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::waitingForResponseState() {
+TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::waitingForResponseState() {
 
     info() << "waitingForResponseState";
     TransactionState *transactionState = new TransactionState(
@@ -85,13 +85,13 @@ TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::w
             transactionState));
 }
 
-void InitiateTotalBalancesFromRemoutNodeTransaction::increaseRequestsCounter() {
+void TotalBalancesFromRemoutNodeTransaction::increaseRequestsCounter() {
 
     mRequestCounter += 1;
     info() << "increaseRequestsCounter\t" << mRequestCounter;
 }
 
-TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::resultOk(
+TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::resultOk(
         const TrustLineAmount &totalIncomingTrust,
         const TrustLineAmount &totalTrustUsedByContractor,
         const TrustLineAmount &totalOutgoingTrust,
@@ -104,23 +104,23 @@ TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::r
     return transactionResultFromCommand(mCommand->resultOk(totalBalancesStrResult));
 }
 
-TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::noResponseResult() {
+TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::noResponseResult() {
 
     info() << "noResponseResult";
     return transactionResultFromCommand(
             mCommand->resultNoResponse());
 }
 
-TransactionResult::SharedConst InitiateTotalBalancesFromRemoutNodeTransaction::unexpectedErrorResult() {
+TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::unexpectedErrorResult() {
 
     return transactionResultFromCommand(
             mCommand->unexpectedErrorResult());
 }
 
-const string InitiateTotalBalancesFromRemoutNodeTransaction::logHeader() const
+const string TotalBalancesFromRemoutNodeTransaction::logHeader() const
 {
     stringstream s;
-    s << "[InitiateTotalBalancesFromRemoutNodeTA]";
+    s << "[TotalBalancesFromRemoutNodeTA]";
 
     return s.str();
 }

@@ -44,6 +44,14 @@ namespace db {
                 size_t recordsCount,
                 size_t fromRecord);
 
+            vector<PaymentRecord::Shared> paymentRecordsStack(
+                size_t recordsCount,
+                size_t fromRecord);
+
+            vector<TrustLineRecord::Shared> trustLineRecordsStack(
+                size_t recordsCount,
+                size_t fromRecord);
+
         private:
             int64_t reverseOffsetToRequestedRecord(
                 Record::RecordType recordType,

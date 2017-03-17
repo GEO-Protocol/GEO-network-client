@@ -170,6 +170,16 @@ void TransactionsManager::processCommand(
                 static_pointer_cast<TotalBalancesRemouteNodeCommand>(
                         command));
 
+    } else if (command->identifier() == HistoryPaymentsCommand::identifier()){
+        launchHistoryPaymentsTransaction(
+            static_pointer_cast<HistoryPaymentsCommand>(
+                command));
+
+    } else if (command->identifier() == HistoryTrustLinesCommand::identifier()){
+        launchHistoryTrustLinesTransaction(
+            static_pointer_cast<HistoryTrustLinesCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -882,8 +892,8 @@ void TransactionsManager::launchTotalBalancesTransaction(
 
     } catch (bad_alloc &) {
         throw MemoryError(
-                "TransactionsManager::launchTotalBalancesTransaction: "
-                        "Can't allocate memory for transaction instance.");
+            "TransactionsManager::launchTotalBalancesTransaction: "
+                "Can't allocate memory for transaction instance.");
     }
 }
 
@@ -895,7 +905,7 @@ void TransactionsManager::launchTotalBalancesRemouteNodeTransaction(
         TotalBalancesRemouteNodeCommand::Shared command) {
 
     try {
-        auto transaction = make_shared<InitiateTotalBalancesFromRemoutNodeTransaction>(
+        auto transaction = make_shared<TotalBalancesFromRemoutNodeTransaction>(
             mNodeUUID,
             command,
             mLog);
@@ -904,8 +914,50 @@ void TransactionsManager::launchTotalBalancesRemouteNodeTransaction(
 
     } catch (bad_alloc &) {
         throw MemoryError(
-                "TransactionsManager::launchTotalBalancesRemouteNodeTransaction: "
-                        "Can't allocate memory for transaction instance.");
+            "TransactionsManager::launchTotalBalancesRemouteNodeTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchHistoryPaymentsTransaction(HistoryPaymentsCommand::Shared command) {
+    try {
+        auto transaction = make_shared<HistoryPaymentsTransaction>(
+            mNodeUUID,
+            command,
+            mOperationsHistoryStorage,
+            mLog);
+
+        prepeareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchHistoryPaymentsTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCommand::Shared command) {
+    try {
+        auto transaction = make_shared<HistoryTrustLinesTransaction>(
+            mNodeUUID,
+            command,
+            mOperationsHistoryStorage,
+            mLog);
+
+        prepeareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchHistoryTrustLinesTransaction: "
+                "Can't allocate memory for transaction instance.");
     }
 }
 

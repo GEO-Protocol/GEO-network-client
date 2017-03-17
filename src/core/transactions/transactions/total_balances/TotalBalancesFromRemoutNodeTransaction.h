@@ -1,18 +1,18 @@
-#ifndef GEO_NETWORK_CLIENT_INITIATETOTALBALANCESFROMREMOUTNODETRANSACTION_H
-#define GEO_NETWORK_CLIENT_INITIATETOTALBALANCESFROMREMOUTNODETRANSACTION_H
+#ifndef GEO_NETWORK_CLIENT_TOTALBALANCESFROMREMOUTNODETRANSACTION_H
+#define GEO_NETWORK_CLIENT_TOTALBALANCESFROMREMOUTNODETRANSACTION_H
 
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../../network/messages/total_balances/InitiateTotalBalancesMessage.h"
 #include "../../../network/messages/total_balances/TotalBalancesResultMessage.h"
 
-class InitiateTotalBalancesFromRemoutNodeTransaction : public BaseTransaction {
+class TotalBalancesFromRemoutNodeTransaction : public BaseTransaction {
 
 public:
-    typedef shared_ptr<InitiateTotalBalancesFromRemoutNodeTransaction> Shared;
+    typedef shared_ptr<TotalBalancesFromRemoutNodeTransaction> Shared;
 
 public:
-    InitiateTotalBalancesFromRemoutNodeTransaction(
+    TotalBalancesFromRemoutNodeTransaction(
         NodeUUID &nodeUUID,
         TotalBalancesRemouteNodeCommand::Shared command,
         Logger *logger);
@@ -57,4 +57,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_INITIATETOTALBALANCESFROMREMOUTNODETRANSACTION_H
+#endif //GEO_NETWORK_CLIENT_TOTALBALANCESFROMREMOUTNODETRANSACTION_H

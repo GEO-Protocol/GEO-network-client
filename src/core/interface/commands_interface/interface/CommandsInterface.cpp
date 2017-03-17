@@ -172,8 +172,18 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
         } else if (identifier == TotalBalancesRemouteNodeCommand::identifier()) {
             command = new TotalBalancesRemouteNodeCommand(
-                    uuid,
-                    buffer);
+                uuid,
+                buffer);
+
+        } else if (identifier == HistoryPaymentsCommand::identifier()) {
+            command = new HistoryPaymentsCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == HistoryTrustLinesCommand::identifier()) {
+            command = new HistoryTrustLinesCommand(
+                uuid,
+                buffer);
 
         } else {
             throw RuntimeError(

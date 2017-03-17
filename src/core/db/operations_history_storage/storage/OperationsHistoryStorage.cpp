@@ -40,6 +40,55 @@ namespace db {
             syncData();
         }
 
+        vector<PaymentRecord::Shared> OperationsHistoryStorage::paymentRecordsStack(
+            size_t recordsCount,
+            size_t fromRecord) {
+
+            vector<PaymentRecord::Shared> result;
+
+            try {
+                vector<Record::Shared> paymentRecords = recordsStack(
+                    Record::RecordType::PaymentRecordType,
+                    recordsCount,
+                    fromRecord);
+
+                result.reserve(paymentRecords.size());
+
+                for (auto &record : paymentRecords) {
+                    result.push_back(static_pointer_cast<PaymentRecord>(record));
+                }
+
+                return result;
+
+            } catch (NotFoundError) {
+                return result;
+            }
+        }
+
+        vector<TrustLineRecord::Shared> OperationsHistoryStorage::trustLineRecordsStack(
+                size_t recordsCount,
+                size_t fromRecord) {
+
+            vector<TrustLineRecord::Shared> result;
+
+            try {
+                vector<Record::Shared> paymentRecords = recordsStack(
+                    Record::RecordType::TrustLineRecordType,
+                    recordsCount,
+                    fromRecord);
+                result.reserve(paymentRecords.size());
+
+                for (auto &record : paymentRecords) {
+                    result.push_back(static_pointer_cast<TrustLineRecord>(record));
+                }
+
+                return result;
+
+            } catch (NotFoundError) {
+                return result;
+            }
+        }
+
         vector<Record::Shared> OperationsHistoryStorage::recordsStack(
             Record::RecordType recordType,
             size_t recordsCount,
@@ -134,6 +183,11 @@ namespace db {
 
             int64_t reverseOffset = 0;
             size_t typesMatchingCounter = 0;
+
+            fseek(
+                mFileDescriptor,
+                0,
+                SEEK_END);
 
             while (ftell(mFileDescriptor) != 0) {
 
