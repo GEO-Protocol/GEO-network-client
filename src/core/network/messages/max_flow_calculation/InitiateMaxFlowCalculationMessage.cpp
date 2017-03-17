@@ -1,10 +1,9 @@
 #include "InitiateMaxFlowCalculationMessage.h"
 
 InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
-    const NodeUUID& senderUUID,
-    const NodeUUID& targetUUID) :
+    const NodeUUID& senderUUID) :
 
-    MaxFlowCalculationMessage(senderUUID, targetUUID) {};
+    SenderMessage(senderUUID) {};
 
 InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
         BytesShared buffer) {
