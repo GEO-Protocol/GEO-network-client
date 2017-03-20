@@ -208,7 +208,7 @@ void Communicator::handleSend(
     udp::endpoint endpoint,
     Channel::Shared channel) {
 
-    if (channel->increaseSentPacketsCounter()) {
+    if (channel->isChannelCanBeRemoved()) {
         mChannelsManager->removeOutgoingChannel(endpoint);
     }
 
