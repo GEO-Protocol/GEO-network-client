@@ -17,7 +17,10 @@ int Core::run() {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
         return initCode;
     }
+
     try {
+        writePIDFile();
+
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
 
@@ -486,4 +489,17 @@ void Core::JustToTestSomething() {
 
 void Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot() {
     mTransactionsManager->launchMaxFlowCalculationCacheUpdateTransaction();
+}
+
+void Core::writePIDFile()
+{
+    try {
+        std::ofstream pidFile("process.pid");
+        pidFile << ::getpid() << std::endl;
+        pidFile.close();
+
+    } catch (std::exception &e) {
+        auto errors = mLog.error("Core");
+        errors << "Can't write/update pid file. Error message is: " << e.what();
+    }
 }
