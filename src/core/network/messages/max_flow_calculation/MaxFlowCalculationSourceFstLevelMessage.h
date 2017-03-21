@@ -1,9 +1,9 @@
 #ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCEFSTLEVELMESSAGE_H
 #define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCEFSTLEVELMESSAGE_H
 
-#include "../base/max_flow_calculation/MaxFlowCalculationMessage.h"
+#include "../SenderMessage.h"
 
-class MaxFlowCalculationSourceFstLevelMessage : public MaxFlowCalculationMessage {
+class MaxFlowCalculationSourceFstLevelMessage : public SenderMessage {
 
 public:
     typedef shared_ptr<MaxFlowCalculationSourceFstLevelMessage> Shared;
@@ -11,8 +11,7 @@ public:
 public:
 
     MaxFlowCalculationSourceFstLevelMessage(
-            const NodeUUID& senderUUID,
-            const NodeUUID& targetUUID);
+        const NodeUUID& senderUUID);
 
     MaxFlowCalculationSourceFstLevelMessage(
         BytesShared buffer);

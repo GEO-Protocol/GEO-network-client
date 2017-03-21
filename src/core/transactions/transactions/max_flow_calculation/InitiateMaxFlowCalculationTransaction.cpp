@@ -34,10 +34,10 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
             if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
                 for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->outgoingFlows()) {
                     mMaxFlowCalculationTrustLineManager->addTrustLine(
-                            make_shared<MaxFlowCalculationTrustLine>(
-                                    mNodeUUID,
-                                    nodeUUIDAndTrustLine.first,
-                                    nodeUUIDAndTrustLine.second));
+                        make_shared<MaxFlowCalculationTrustLine>(
+                            mNodeUUID,
+                            nodeUUIDAndTrustLine.first,
+                            nodeUUIDAndTrustLine.second));
                 }
                 sendMessagesOnFirstLevel();
                 mMaxFlowCalculationCacheManager->setInitiatorCache();
@@ -53,7 +53,6 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
             info() << "run\t" << "max flow: " << maxFlow;
             mStep = Stages::SendRequestForCollectingTopology;
             return resultOk(maxFlow);
-            //return make_shared<TransactionResult>(TransactionState::exit());
     }
 
 }
@@ -61,9 +60,8 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
 void InitiateMaxFlowCalculationTransaction::sendMessageToRemoteNode() {
 
     sendMessage<InitiateMaxFlowCalculationMessage>(
-            mCommand->contractorUUID(),
-            mNodeUUID,
-            mNodeUUID);
+        mCommand->contractorUUID(),
+        mNodeUUID);
 }
 
 void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel() {
@@ -74,9 +72,8 @@ void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel() {
         info() << "sendFirst\t" << nodeUUIDOutgoingFlow.stringUUID();
 
         sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
-                nodeUUIDOutgoingFlow,
-                mNodeUUID,
-                mNodeUUID);
+            nodeUUIDOutgoingFlow,
+            mNodeUUID);
     }
 
 }

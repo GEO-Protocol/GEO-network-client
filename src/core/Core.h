@@ -1,4 +1,4 @@
-
+﻿
 #ifndef GEO_NETWORK_CLIENT_CORE_H
 #define GEO_NETWORK_CLIENT_CORE_H
 
@@ -96,6 +96,8 @@ private:
     void JustToTestSomething();
 
     void onDelayedTaskMaxFlowCalculationCacheUpdateSlot();
+
+    void writePIDFile();
 
 protected:
     Logger mLog;

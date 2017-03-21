@@ -40,24 +40,80 @@ namespace db {
             syncData();
         }
 
+        vector<PaymentRecord::Shared> OperationsHistoryStorage::paymentRecordsStack(
+            size_t recordsCount,
+            size_t fromRecord) {
+
+            vector<PaymentRecord::Shared> result;
+
+            try {
+                vector<Record::Shared> paymentRecords = recordsStack(
+                    Record::RecordType::PaymentRecordType,
+                    recordsCount,
+                    fromRecord);
+
+                result.reserve(paymentRecords.size());
+
+                for (auto &record : paymentRecords) {
+                    result.push_back(static_pointer_cast<PaymentRecord>(record));
+                }
+
+                return result;
+
+            } catch (NotFoundError) {
+                return result;
+            }
+        }
+
+        vector<TrustLineRecord::Shared> OperationsHistoryStorage::trustLineRecordsStack(
+                size_t recordsCount,
+                size_t fromRecord) {
+
+            vector<TrustLineRecord::Shared> result;
+
+            try {
+                vector<Record::Shared> paymentRecords = recordsStack(
+                    Record::RecordType::TrustLineRecordType,
+                    recordsCount,
+                    fromRecord);
+                result.reserve(paymentRecords.size());
+
+                for (auto &record : paymentRecords) {
+                    result.push_back(static_pointer_cast<TrustLineRecord>(record));
+                }
+
+                return result;
+
+            } catch (NotFoundError) {
+                return result;
+            }
+        }
+
         vector<Record::Shared> OperationsHistoryStorage::recordsStack(
             Record::RecordType recordType,
             size_t recordsCount,
             size_t fromRecord) {
 
             vector<Record::Shared> records;
-            records.reserve(recordsCount);
+            records.reserve(
+                recordsCount);
 
             int64_t reverseOffset = reverseOffsetToRequestedRecord(
                 recordType,
                 fromRecord);
 
-            while (ftell(mFileDescriptor) != 0) {
+            uint64_t findingRecordsCount = 0;
+            int64_t currentCursorPosition = 0;
+            bool isStartOfFile = false;
+
+            while (!isStartOfFile) {
 
                 fseek(
                     mFileDescriptor,
                     reverseOffset,
                     SEEK_END);
+
+                currentCursorPosition = ftell(mFileDescriptor);
 
                 BytesShared recordBytesBuffer = tryMalloc(
                     Record::kRecordBytesSize);
@@ -101,23 +157,30 @@ namespace db {
                                                 "Unexpected record type.");
                     }
 
+                    findingRecordsCount += 1;
                     records.push_back(
                         record);
 
                 }
 
-                reverseOffset -= Record::kRecordBytesSize;
-
-                if (records.size() == recordsCount) {
+                if (findingRecordsCount == recordsCount) {
                     reverse(
                         records.begin(),
                         records.end());
                     return records;
                 }
 
+                reverseOffset -= Record::kRecordBytesSize;
+
+                if (currentCursorPosition == 0) {
+                    isStartOfFile = true;
+                }
+
             }
 
             if (!records.empty()) {
+                records.resize(
+                    findingRecordsCount);
                 reverse(
                     records.begin(),
                     records.end());
@@ -134,8 +197,14 @@ namespace db {
 
             int64_t reverseOffset = 0;
             size_t typesMatchingCounter = 0;
+            bool isStartOfFile = false;
 
-            while (ftell(mFileDescriptor) != 0) {
+            fseek(
+                mFileDescriptor,
+                0,
+                SEEK_END);
+
+            while (!isStartOfFile) {
 
                 reverseOffset -= Record::kRecordBytesSize;
 
@@ -144,12 +213,16 @@ namespace db {
                     reverseOffset,
                     SEEK_END);
 
+                if (ftell(mFileDescriptor) == 0) {
+                    isStartOfFile = true;
+                }
+
                 BytesShared recordBytesBuffer = tryCalloc(
                     Record::kRecordBytesSize);
 
                 if (fread(recordBytesBuffer.get(), 1, Record::kRecordBytesSize, mFileDescriptor) != Record::kRecordBytesSize){
                     if (fread(recordBytesBuffer.get(), 1, Record::kRecordBytesSize, mFileDescriptor) != Record::kRecordBytesSize){
-                        throw IOError("OperationsHistoryStorage::recordsStack. "
+                        throw IOError("OperationsHistoryStorage::reverseOffsetToRequestedRecord. "
                                           "Can't read next record from file.");
                     }
                 }

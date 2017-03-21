@@ -1,5 +1,6 @@
 ﻿#include "TransactionsManager.h"
 #include "../transactions/unique/cycles/ThreeNodes/GetNeighborBalancesTransaction.h"
+#include "../../network/messages/total_balances/InitiateTotalBalancesMessage.h"
 
 /*!
  *
@@ -160,6 +161,26 @@ void TransactionsManager::processCommand(
             static_pointer_cast<InitiateMaxFlowCalculationCommand>(
                 command));
 
+    } else if (command->identifier() == TotalBalancesCommand::identifier()){
+        launchTotalBalancesTransaction(
+            static_pointer_cast<TotalBalancesCommand>(
+                command));
+
+    } else if (command->identifier() == TotalBalancesRemouteNodeCommand::identifier()){
+        launchTotalBalancesRemouteNodeTransaction(
+                static_pointer_cast<TotalBalancesRemouteNodeCommand>(
+                        command));
+
+    } else if (command->identifier() == HistoryPaymentsCommand::identifier()){
+        launchHistoryPaymentsTransaction(
+            static_pointer_cast<HistoryPaymentsCommand>(
+                command));
+
+    } else if (command->identifier() == HistoryTrustLinesCommand::identifier()){
+        launchHistoryTrustLinesTransaction(
+            static_pointer_cast<HistoryTrustLinesCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -212,7 +233,17 @@ void TransactionsManager::processMessage(
 
     } else if (message->typeID() == Message::MessageTypeID::MaxFlowCalculationTargetSndLevelMessageType) {
         launchMaxFlowCalculationTargetSndLevelTransaction(
-            static_pointer_cast<MaxFlowCalculationTargetSndLevelMessage>(message));
+                static_pointer_cast<MaxFlowCalculationTargetSndLevelMessage>(message));
+
+    /*
+    * Total balances
+    */
+    } else if (message->typeID() == Message::MessageTypeID::InitiateTotalBalancesMessageType) {
+        launchTotalBalancesTransaction(
+                static_pointer_cast<InitiateTotalBalancesMessage>(message));
+
+    } else if (message->typeID() == Message::MessageTypeID::TotalBalancesResultMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
 
     /*
      * Payments
@@ -553,9 +584,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(transaction);
+        prepeareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -579,11 +608,7 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
+        prepeareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -607,11 +632,7 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
             mMaxFlowCalculationTrustLineManager,
             mLog);
 
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
+        prepeareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -634,11 +655,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
             mTrustLines,
             mLog);
 
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
+        prepeareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -661,11 +678,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
             mTrustLines,
             mLog);
 
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
+        prepeareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -689,11 +702,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
+        prepeareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -717,11 +726,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
+        prepeareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -739,11 +744,7 @@ void TransactionsManager::launchMaxFlowCalculationCacheUpdateTransaction() {
             mMaxFlowCalculationTrustLineManager,
             mLog);
 
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
+        prepeareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -830,6 +831,116 @@ void TransactionsManager::launchGetTopologyAndBalancesTransaction(
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchOpenTrustLineTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchTotalBalancesTransaction(
+        TotalBalancesCommand::Shared command) {
+
+    try {
+        auto transaction = make_shared<TotalBalancesTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mLog);
+
+        prepeareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchTotalBalancesTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchTotalBalancesTransaction(
+        InitiateTotalBalancesMessage::Shared message) {
+
+    try {
+        auto transaction = make_shared<TotalBalancesTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mLog);
+
+        prepeareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchTotalBalancesTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchTotalBalancesRemouteNodeTransaction(
+        TotalBalancesRemouteNodeCommand::Shared command) {
+
+    try {
+        auto transaction = make_shared<TotalBalancesFromRemoutNodeTransaction>(
+            mNodeUUID,
+            command,
+            mLog);
+
+        prepeareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchTotalBalancesRemouteNodeTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchHistoryPaymentsTransaction(HistoryPaymentsCommand::Shared command) {
+    try {
+        auto transaction = make_shared<HistoryPaymentsTransaction>(
+            mNodeUUID,
+            command,
+            mOperationsHistoryStorage,
+            mLog);
+
+        prepeareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchHistoryPaymentsTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCommand::Shared command) {
+    try {
+        auto transaction = make_shared<HistoryTrustLinesTransaction>(
+            mNodeUUID,
+            command,
+            mOperationsHistoryStorage,
+            mLog);
+
+        prepeareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchHistoryTrustLinesTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }

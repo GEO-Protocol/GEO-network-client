@@ -21,6 +21,10 @@
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
+#include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
+#include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
+#include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
+#include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
@@ -62,6 +66,12 @@
 #include "../transactions/max_flow_calculation/MaxFlowCalculationCacheUpdateTransaction.h"
 #include "../../network/messages/cycles/ThreeNodes/BalancesRequestMessage.h"
 
+#include "../transactions/total_balances/TotalBalancesTransaction.h"
+#include "../transactions/total_balances/TotalBalancesFromRemoutNodeTransaction.h"
+
+#include "../transactions/history/HistoryPaymentsTransaction.h"
+#include "../transactions/history/HistoryTrustLinesTransaction.h"
+
 #include <boost/signals2.hpp>
 
 #include <string>
@@ -98,15 +108,16 @@ public:
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
-
-    void launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message);
     //  Cycles Transactions
+// -------------------------------------------------------------------------------
+    void launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message);
 
     void launchGetTopologyAndBalancesTransactionFiveNodes();
     void launchGetTopologyAndBalancesTransactionSixNodes();
 
     void launchGetNeighborBalancesTransaction(NodeUUID &contractorUUID);
     void launchGetNeighborBalancesTransaction(BalancesRequestMessage::Shared message);
+//    ----------------------------------------------------------
 
     void launchRoutingTablesUpdatingTransactionsFactory(
         const NodeUUID &contractorUUID,
@@ -175,6 +186,23 @@ private:
 
     void launchIntermediateNodePaymentTransaction(
         IntermediateNodeReservationRequestMessage::Shared message);
+
+    // Total balances transaction
+    void launchTotalBalancesTransaction(
+            TotalBalancesCommand::Shared command);
+
+    void launchTotalBalancesTransaction(
+        InitiateTotalBalancesMessage::Shared message);
+
+    void launchTotalBalancesRemouteNodeTransaction(
+        TotalBalancesRemouteNodeCommand::Shared command);
+
+    // History transactions
+    void launchHistoryPaymentsTransaction(
+        HistoryPaymentsCommand::Shared command);
+
+    void launchHistoryTrustLinesTransaction(
+            HistoryTrustLinesCommand::Shared command);
 
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(

@@ -209,10 +209,10 @@ void ChannelsManager::removeOutgoingChannel(
         mOutgoingChannels->erase(
             itChannel);
 
-    } else {
+    } /*else {
         throw IndexError("ChannelsManager::removeOutgoingChannel: "
                              "Channel with such number does not exist.");
-    }
+    }*/
 }
 
 void ChannelsManager::removeDeprecatedIncomingChannels() {

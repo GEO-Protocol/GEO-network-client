@@ -141,7 +141,8 @@ public:
     const TrustLine::ConstShared trustLineReadOnly(
         const NodeUUID &contractorUUID) const;
 
-    map<NodeUUID, TrustLine::Shared> &trustLines();
+    // todo: return const shared
+    map<NodeUUID, TrustLine::Shared>& trustLines();
 
     vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(
         TrustLineBalance maxFlow);

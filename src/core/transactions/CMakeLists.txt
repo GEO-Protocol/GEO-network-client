@@ -9,6 +9,8 @@ add_subdirectory(transactions/unique/trust_lines)
 add_subdirectory(transactions/unique/routing_tables)
 add_subdirectory(transactions/unique/cycles)
 add_subdirectory(transactions/max_flow_calculation)
+add_subdirectory(transactions/total_balances)
+add_subdirectory(transactions/history)
 
 set(SOURCE_FILES
         transactions/base/TransactionUUID.h)
@@ -24,6 +26,8 @@ target_link_libraries(transactions
         transactions__payments
         transactions__cycles
         transactions__result
+        transactions__total_balances
+        transactions__history
 
         common
         time

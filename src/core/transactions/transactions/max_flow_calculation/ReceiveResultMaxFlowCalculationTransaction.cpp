@@ -25,13 +25,14 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
     info() << "run\t" << "initiator: " << mNodeUUID.stringUUID();
     info() << "run\t" << "sender: " << mMessage->senderUUID().stringUUID();
 
-#ifdef TESTS
+// TODO: uncomment when will know how it use
+//#ifdef TESTS
     uint32_t countTrustLinesBeforeInsert = 0;
     for (const auto &nodeUUIDAndTrustLines : mMaxFlowCalculationTrustLineManager->msTrustLines) {
         countTrustLinesBeforeInsert += (nodeUUIDAndTrustLines.second)->size();
     }
     info() << "run\t" << "beforeInsert mapTrustLinesCount: " << countTrustLinesBeforeInsert;
-#endif
+//#endif
 
     info() << "run\t" << "receivedTrustLinesOut: " << mMessage->outgoingFlows().size();
     for (auto const &outgoingFlow : mMessage->outgoingFlows()) {
@@ -59,13 +60,14 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
         mMaxFlowCalculationTrustLineManager->addTrustLine(trustLine);
     }
 
-#ifdef TESTS
+// TODO: uncomment when will know how it use
+//#ifdef TESTS
     uint32_t countTrustLinesAfterInsert = 0;
     for (const auto &nodeUUIDAndTrustLines : mMaxFlowCalculationTrustLineManager->msTrustLines) {
         countTrustLinesAfterInsert += (nodeUUIDAndTrustLines.second)->size();
     }
     info() << "run\t" << "afterInsert mapTrustLinesCount: " << countTrustLinesAfterInsert;
-#endif
+//#endif
 
     info() << "run\t" << "trustLineMap size: " << mMaxFlowCalculationTrustLineManager->msTrustLines.size();
     for (const auto &nodeUUIDAndTrustLines : mMaxFlowCalculationTrustLineManager->msTrustLines) {

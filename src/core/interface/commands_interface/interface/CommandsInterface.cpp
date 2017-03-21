@@ -165,6 +165,26 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == TotalBalancesCommand::identifier()) {
+            command = new TotalBalancesCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == TotalBalancesRemouteNodeCommand::identifier()) {
+            command = new TotalBalancesRemouteNodeCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == HistoryPaymentsCommand::identifier()) {
+            command = new HistoryPaymentsCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == HistoryTrustLinesCommand::identifier()) {
+            command = new HistoryTrustLinesCommand(
+                uuid,
+                buffer);
+
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "

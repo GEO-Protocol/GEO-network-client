@@ -116,7 +116,7 @@ void Channel::setOutgoingPacketsCount(
     mOutgoingPacketsCount = packetsCount;
 }
 
-bool Channel::increaseSentPacketsCounter() {
+bool Channel::isChannelCanBeRemoved() {
 
     mSentPacketsCount += 1;
     return mOutgoingPacketsCount == mSentPacketsCount;
