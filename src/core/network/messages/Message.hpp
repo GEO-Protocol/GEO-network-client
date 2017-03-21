@@ -37,6 +37,8 @@ public:
         RoutingTableUpdateIncomingMessageType,
         InBetweenNodeTopologyMessage,
         BoundaryNodeTopologyMessage,
+        BalancesRequestMessage,
+        BalancesResponseMessage,
 
         /*
          * Payments

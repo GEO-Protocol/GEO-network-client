@@ -112,12 +112,12 @@ void InBetweenNodeTopologyMessage::deserializeFromBytes(
      sizeof(uint8_t)
     );
     bytesBufferOffset += sizeof(uint8_t);
-//
+//   // Max flow
     vector<byte> amountBytes(
             buffer.get() + bytesBufferOffset,
             buffer.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
 
-    // Max flow
+
     mMaxFlow = bytesToTrustLineBalance(amountBytes);
     bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
 

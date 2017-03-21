@@ -60,9 +60,11 @@ public:
         RoutingTablesUpdatesFactoryTransactionType,
         PropagateRoutingTablesUpdatesTransactionType,
         AcceptRoutingTablesUpdatesTransactionType,
+//        Cycles
         GetTopologyAndBalancesTransaction,
         SixNodesTopologyTransaction,
         FiveNodesTopologyTransaction,
+        GetNeighborBalancesTransaction,
         // Payments
         CoordinatorPaymentTransaction,
         ReceiverPaymentTransaction,

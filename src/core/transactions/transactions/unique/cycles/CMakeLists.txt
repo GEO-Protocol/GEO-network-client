@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
+        ThreeNodes/GetNeighborBalancesTransaction.cpp
+        ThreeNodes/GetNeighborBalancesTransaction.h
         GetTopologyAndBalancesTransaction.cpp
         GetTopologyAndBalancesTransaction.h
         FiveNodesTopologyTransaction.h

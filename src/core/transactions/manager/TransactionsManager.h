@@ -60,6 +60,7 @@
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationCacheUpdateTransaction.h"
+#include "../../network/messages/cycles/ThreeNodes/BalancesRequestMessage.h"
 
 #include <boost/signals2.hpp>
 
@@ -103,6 +104,9 @@ public:
 
     void launchGetTopologyAndBalancesTransactionFiveNodes();
     void launchGetTopologyAndBalancesTransactionSixNodes();
+
+    void launchGetNeighborBalancesTransaction(NodeUUID &contractorUUID);
+    void launchGetNeighborBalancesTransaction(BalancesRequestMessage::Shared message);
 
     void launchRoutingTablesUpdatingTransactionsFactory(
         const NodeUUID &contractorUUID,

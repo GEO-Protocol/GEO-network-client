@@ -1,4 +1,5 @@
 ﻿#include "TransactionsManager.h"
+#include "../transactions/unique/cycles/ThreeNodes/GetNeighborBalancesTransaction.h"
 
 /*!
  *
@@ -233,10 +234,12 @@ void TransactionsManager::processMessage(
                 static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
         }
 
-    } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage){
+    } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage) {
         launchGetTopologyAndBalancesTransaction(
-            static_pointer_cast<InBetweenNodeTopologyMessage>(message));
-
+                static_pointer_cast<InBetweenNodeTopologyMessage>(message));
+    }else if(message->typeID() == Message::MessageTypeID::BalancesRequestMessage){
+        launchGetNeighborBalancesTransaction(
+                static_pointer_cast<BalancesRequestMessage>(message));
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
@@ -970,5 +973,43 @@ void TransactionsManager::prepeareAndSchedule(
 
     mScheduler->scheduleTransaction(
         transaction);
+}
+
+void TransactionsManager::launchGetNeighborBalancesTransaction(NodeUUID &contractorUUID) {
+    try {
+        auto transaction = make_shared<GetNeighborBalancesTransaction>(
+                BaseTransaction::TransactionType::GetNeighborBalancesTransaction,
+                mNodeUUID,
+                contractorUUID,
+                mScheduler.get(),
+                mTrustLines,
+                mLog
+        );
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        mScheduler->scheduleTransaction(transaction);
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchOpenTrustLineTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchGetNeighborBalancesTransaction(BalancesRequestMessage::Shared message) {
+    try {
+        auto transaction = make_shared<GetNeighborBalancesTransaction>(
+                BaseTransaction::TransactionType::GetNeighborBalancesTransaction,
+                mNodeUUID,
+                message,
+                mScheduler.get(),
+                mTrustLines,
+                mLog
+        );
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        mScheduler->scheduleTransaction(transaction);
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchOpenTrustLineTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
 }
 
