@@ -35,11 +35,13 @@ public:
         SecondLevelRoutingTableIncomingMessageType,
         RoutingTableUpdateOutgoingMessageType,
         RoutingTableUpdateIncomingMessageType,
+//        Cycles messages
         InBetweenNodeTopologyMessage,
         BoundaryNodeTopologyMessage,
-        BalancesRequestMessage,
-        BalancesResponseMessage,
-
+        ThreeNodesBalancesRequestMessage,
+        ThreeNodesBalancesResponseMessage,
+        FourNodesBalancesRequestMessage,
+        FourNodesBalancesResponseMessage,
         /*
          * Payments
          */

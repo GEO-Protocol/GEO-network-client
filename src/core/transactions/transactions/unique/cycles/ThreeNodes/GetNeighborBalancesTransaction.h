@@ -3,8 +3,8 @@
 
 #include "../../../base/UniqueTransaction.h"
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../../network/messages/cycles/ThreeNodes/BalancesRequestMessage.h"
-#include "../../../../../network/messages/cycles/ThreeNodes/BalancesResponseMessage.h"
+#include "../../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesRequestMessage.h"
+#include "../../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesResponseMessage.h"
 
 class GetNeighborBalancesTransaction : public UniqueTransaction {
 
@@ -20,7 +20,7 @@ public:
     GetNeighborBalancesTransaction(
             const TransactionType type,
             const NodeUUID &nodeUUID,
-            BalancesRequestMessage::Shared message,
+            ThreeNodesBalancesRequestMessage::Shared message,
             TransactionsScheduler *scheduler,
             TrustLinesManager *manager,
             Logger *logger);
@@ -41,7 +41,7 @@ private:
     uint16_t mRequestCounter = 0;
     uint32_t mConnectionTimeout = kStandardConnectionTimeout;
 //    Nodes Balances that are mutual between core node and contract node
-    BalancesRequestMessage::Shared mRequestMessage = nullptr;
+    ThreeNodesBalancesRequestMessage::Shared mRequestMessage = nullptr;
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     Logger *mlogger;

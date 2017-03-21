@@ -64,7 +64,7 @@
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationCacheUpdateTransaction.h"
-#include "../../network/messages/cycles/ThreeNodes/BalancesRequestMessage.h"
+#include "../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesRequestMessage.h"
 
 #include "../transactions/total_balances/TotalBalancesTransaction.h"
 #include "../transactions/total_balances/TotalBalancesFromRemoutNodeTransaction.h"
@@ -116,7 +116,7 @@ public:
     void launchGetTopologyAndBalancesTransactionSixNodes();
 
     void launchGetNeighborBalancesTransaction(NodeUUID &contractorUUID);
-    void launchGetNeighborBalancesTransaction(BalancesRequestMessage::Shared message);
+    void launchGetNeighborBalancesTransaction(ThreeNodesBalancesRequestMessage::Shared message);
 //    ----------------------------------------------------------
 
     void launchRoutingTablesUpdatingTransactionsFactory(

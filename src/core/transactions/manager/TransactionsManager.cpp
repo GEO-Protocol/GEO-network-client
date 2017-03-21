@@ -268,9 +268,9 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage) {
         launchGetTopologyAndBalancesTransaction(
                 static_pointer_cast<InBetweenNodeTopologyMessage>(message));
-    }else if(message->typeID() == Message::MessageTypeID::BalancesRequestMessage){
+    }else if(message->typeID() == Message::MessageTypeID::ThreeNodesBalancesRequestMessage){
         launchGetNeighborBalancesTransaction(
-                static_pointer_cast<BalancesRequestMessage>(message));
+                static_pointer_cast<ThreeNodesBalancesRequestMessage>(message));
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
@@ -1105,7 +1105,7 @@ void TransactionsManager::launchGetNeighborBalancesTransaction(NodeUUID &contrac
     }
 }
 
-void TransactionsManager::launchGetNeighborBalancesTransaction(BalancesRequestMessage::Shared message) {
+void TransactionsManager::launchGetNeighborBalancesTransaction(ThreeNodesBalancesRequestMessage::Shared message) {
     try {
         auto transaction = make_shared<GetNeighborBalancesTransaction>(
                 BaseTransaction::TransactionType::GetNeighborBalancesTransaction,

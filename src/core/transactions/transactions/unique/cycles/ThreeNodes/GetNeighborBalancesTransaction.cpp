@@ -22,7 +22,7 @@ GetNeighborBalancesTransaction::GetNeighborBalancesTransaction(
 
 GetNeighborBalancesTransaction::GetNeighborBalancesTransaction(const BaseTransaction::TransactionType type,
                                                                const NodeUUID &nodeUUID,
-                                                               BalancesRequestMessage::Shared message,
+                                                               ThreeNodesBalancesRequestMessage::Shared message,
                                                                TransactionsScheduler *scheduler,
                                                                TrustLinesManager *manager, Logger *logger)
         : UniqueTransaction(type, nodeUUID, scheduler),
@@ -35,7 +35,7 @@ GetNeighborBalancesTransaction::GetNeighborBalancesTransaction(const BaseTransac
 TransactionResult::SharedConst GetNeighborBalancesTransaction::run() {
 //    Check if something in context
     if (mContext.size() > 0){
-        auto message = static_pointer_cast<BalancesResponseMessage>(*mContext.begin());
+        auto message = static_pointer_cast<ThreeNodesBalancesResponseMessage>(*mContext.begin());
         vector <pair<NodeUUID, TrustLineBalance>> neighborsAndBalances = message->NeighborsAndBalances();
         for(auto &value:neighborsAndBalances ){
             vector<NodeUUID> cycle;
@@ -49,7 +49,7 @@ TransactionResult::SharedConst GetNeighborBalancesTransaction::run() {
     } else if(mRequestMessage == nullptr){
     TrustLineBalance maxFlow = mTrustLinesManager->balance(mContractorUUID);
     vector<NodeUUID> neighbors;
-        sendMessage<BalancesRequestMessage>(
+        sendMessage<ThreeNodesBalancesRequestMessage>(
                 mContractorUUID,
                 maxFlow,
                 neighbors

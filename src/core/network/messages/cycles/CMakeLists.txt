@@ -5,10 +5,14 @@ set(SOURCE_FILES
         BoundaryNodeTopologyMessage.cpp
         InBetweenNodeTopologyMessage.h
         InBetweenNodeTopologyMessage.cpp
-        ThreeNodes/BalancesRequestMessage.h
-        ThreeNodes/BalancesRequestMessage.cpp
-        ThreeNodes/BalancesResponseMessage.h
-        ThreeNodes/BalancesResponseMessage.cpp
+        ThreeNodes/ThreeNodesBalancesRequestMessage.h
+        ThreeNodes/ThreeNodesBalancesRequestMessage.cpp
+        ThreeNodes/ThreeNodesBalancesResponseMessage.h
+        ThreeNodes/ThreeNodesBalancesResponseMessage.cpp
+        FourNodes/FourNodesBalancesRequestMessage.h
+        FourNodes/FourNodesBalancesRequestMessage.cpp
+        FourNodes/FourNodesBalancesResponseMessage.h
+        FourNodes/FourNodesBalancesResponseMessage.cpp
         )
 
 add_library(messages__cycles ${SOURCE_FILES})

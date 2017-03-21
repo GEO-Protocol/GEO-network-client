@@ -8,16 +8,16 @@
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../base/transaction/TransactionMessage.h"
 
-class BalancesRequestMessage: public TransactionMessage {
+class ThreeNodesBalancesRequestMessage: public TransactionMessage {
 public:
-    typedef shared_ptr<BalancesRequestMessage> Shared;
+    typedef shared_ptr<ThreeNodesBalancesRequestMessage> Shared;
 public:
-    BalancesRequestMessage();
-    BalancesRequestMessage(
+    ThreeNodesBalancesRequestMessage();
+    ThreeNodesBalancesRequestMessage(
             const TrustLineBalance& maxFlow,
             vector<NodeUUID> &neighbors);
 
-    BalancesRequestMessage(
+    ThreeNodesBalancesRequestMessage(
             BytesShared buffer);
 
     const MessageType typeID() const;

@@ -1,6 +1,6 @@
-#include "BalancesResponseMessage.h"
+#include "FourNodesBalancesResponseMessage.h"
 
-std::pair<BytesShared, size_t> BalancesResponseMessage::serializeToBytes() {
+std::pair<BytesShared, size_t> ThreeNodesBalancesResponseMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     uint16_t boundaryNodesCount = (uint16_t) mNeighborsBalances.size();
@@ -49,24 +49,24 @@ std::pair<BytesShared, size_t> BalancesResponseMessage::serializeToBytes() {
     );
 }
 
-const Message::MessageType BalancesResponseMessage::typeID() const {
-    return Message::MessageTypeID::BalancesResponseMessage;
+const Message::MessageType ThreeNodesBalancesResponseMessage::typeID() const {
+    return Message::MessageTypeID::ThreeNodesBalancesResponseMessage;
 }
 
-BalancesResponseMessage::BalancesResponseMessage() {
-
-}
-
-BalancesResponseMessage::BalancesResponseMessage(const TrustLineBalance &maxFlow,
-                                                 vector<pair<NodeUUID, TrustLineBalance>> &neighbors) {
+ThreeNodesBalancesResponseMessage::ThreeNodesBalancesResponseMessage() {
 
 }
 
-BalancesResponseMessage::BalancesResponseMessage(BytesShared buffer) {
+ThreeNodesBalancesResponseMessage::ThreeNodesBalancesResponseMessage(const TrustLineBalance &maxFlow,
+                                                                     vector<pair<NodeUUID, TrustLineBalance>> &neighbors) {
+
+}
+
+ThreeNodesBalancesResponseMessage::ThreeNodesBalancesResponseMessage(BytesShared buffer) {
     deserializeFromBytes(buffer);
 }
 
-void BalancesResponseMessage::deserializeFromBytes(BytesShared buffer) {
+void ThreeNodesBalancesResponseMessage::deserializeFromBytes(BytesShared buffer) {
     SenderMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
@@ -98,10 +98,14 @@ void BalancesResponseMessage::deserializeFromBytes(BytesShared buffer) {
     };
 }
 
-const size_t BalancesResponseMessage::kOffsetToInheritedBytes() {
+const size_t ThreeNodesBalancesResponseMessage::kOffsetToInheritedBytes() {
     return 0;
 }
 
-vector<pair<NodeUUID, TrustLineBalance>> BalancesResponseMessage::NeighborsAndBalances() {
+vector<pair<NodeUUID, TrustLineBalance>> ThreeNodesBalancesResponseMessage::NeighborsAndBalances() {
     return mNeighborsBalances;
+}
+
+const bool ThreeNodesBalancesResponseMessage::isTransactionMessage() const {
+    return  true;
 }

@@ -1,6 +1,6 @@
-#include "BalancesRequestMessage.h"
+#include "ThreeNodesBalancesRequestMessage.h"
 
-pair<BytesShared, size_t> BalancesRequestMessage::serializeToBytes() {
+pair<BytesShared, size_t> ThreeNodesBalancesRequestMessage::serializeToBytes() {
     vector<byte> MaxFlowBuffer = trustLineBalanceToBytes(mMaxFlow);
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     uint16_t neighborsCount = mNeighbors.size();
@@ -48,7 +48,7 @@ pair<BytesShared, size_t> BalancesRequestMessage::serializeToBytes() {
     );
 }
 
-void BalancesRequestMessage::deserializeFromBytes(
+void ThreeNodesBalancesRequestMessage::deserializeFromBytes(
         BytesShared buffer) {
 
     SenderMessage::deserializeFromBytes(buffer);
@@ -83,29 +83,29 @@ void BalancesRequestMessage::deserializeFromBytes(
     }
 }
 
-const Message::MessageType BalancesRequestMessage::typeID() const {
-    return Message::MessageTypeID::BalancesRequestMessage;
+const Message::MessageType ThreeNodesBalancesRequestMessage::typeID() const {
+    return Message::MessageTypeID::ThreeNodesBalancesRequestMessage;
 }
 
-BalancesRequestMessage::BalancesRequestMessage() {
+ThreeNodesBalancesRequestMessage::ThreeNodesBalancesRequestMessage() {
 
 }
 
-BalancesRequestMessage::BalancesRequestMessage(BytesShared buffer) {
+ThreeNodesBalancesRequestMessage::ThreeNodesBalancesRequestMessage(BytesShared buffer) {
     deserializeFromBytes(buffer);
 }
 
-const size_t BalancesRequestMessage::kOffsetToInheritedBytes() {
+const size_t ThreeNodesBalancesRequestMessage::kOffsetToInheritedBytes() {
     return 0;
 }
 
-BalancesRequestMessage::BalancesRequestMessage(const TrustLineBalance &maxFlow, vector<NodeUUID> &neighbors):
+ThreeNodesBalancesRequestMessage::ThreeNodesBalancesRequestMessage(const TrustLineBalance &maxFlow, vector<NodeUUID> &neighbors):
         mNeighbors(neighbors),
         mMaxFlow(maxFlow)
 {
 
 }
 
-vector<NodeUUID> BalancesRequestMessage::Neighbors() {
+vector<NodeUUID> ThreeNodesBalancesRequestMessage::Neighbors() {
     return mNeighbors;
 }
