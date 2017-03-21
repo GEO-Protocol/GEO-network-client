@@ -27,15 +27,15 @@ public:
     bool isInitiatorCached();
 
 private:
-    static const byte kResetCacheHours = 0;
-    static const byte kResetCacheMinutes = 0;
-    static const byte kResetCacheSeconds = 10;
+    static const byte kResetSenderCacheHours = 0;
+    static const byte kResetSenderCacheMinutes = 1;
+    static const byte kResetSenderCacheSeconds = 0;
 
-    static Duration& kResetCacheDuration() {
+    static Duration& kResetSenderCacheDuration() {
         static auto duration = Duration(
-            kResetCacheHours,
-            kResetCacheMinutes,
-            kResetCacheSeconds);
+            kResetSenderCacheHours,
+            kResetSenderCacheMinutes,
+            kResetSenderCacheSeconds);
         return duration;
     }
 
@@ -61,8 +61,12 @@ private:
         }
     };
 
-// todo make private after testing
-public:
+private:
+    LoggerStream info() const;
+
+    const string logHeader() const;
+
+private:
     unordered_map<NodeUUID, MaxFlowCalculationCache::Shared> mCaches;
     map<DateTime, NodeUUID*> msCache;
     pair<bool, DateTime> mInitiatorCache;

@@ -25,8 +25,7 @@ public:
         const NodeUUID &nodeUUID,
         const TrustLineAmount &flow);
 
-// todo change on private after testing
-public:
+private:
     unordered_map<NodeUUID, TrustLineAmount> mIncomingFlows;
     unordered_map<NodeUUID, TrustLineAmount> mOutgoingFlows;
 };

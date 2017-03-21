@@ -9,6 +9,9 @@ add_definitions(-DTRANSACTIONS_LOG)
 #add_definitions(-DNETWORK_DEBUG_LOG)
 add_definitions(-DSCHEDULER_DEBUG_LOG)
 
+# debug max flow calculation logs
+add_definitions(-DMAX_FLOW_CALCULATION_TEST)
+
 
 # Subsystems configuration
 add_definitions(-DROUTING_TABLES_PROPAGATION_DISABLED)

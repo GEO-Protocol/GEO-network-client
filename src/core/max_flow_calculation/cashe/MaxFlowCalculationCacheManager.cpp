@@ -23,13 +23,13 @@ MaxFlowCalculationCache::Shared MaxFlowCalculationCacheManager::cacheByNode(
 }
 
 void MaxFlowCalculationCacheManager::updateCaches() {
-    mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", "mCaches size: " + to_string(mCaches.size()));
-    mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", "msCaches size: " + to_string(msCache.size()));
+    info() << "updateCaches\t" << "mCaches size: " << mCaches.size();
+    info() << "updateCaches\t" << "msCaches size: " << msCache.size();
 
     for (auto &timeAndNodeUUID : msCache) {
-        if (utc_now() - timeAndNodeUUID.first > kResetCacheDuration()) {
+        if (utc_now() - timeAndNodeUUID.first > kResetSenderCacheDuration()) {
             NodeUUID* keyUUIDPtr = timeAndNodeUUID.second;
-            mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", ((NodeUUID) *keyUUIDPtr).stringUUID());
+            info() << "updateCaches\t" << *keyUUIDPtr;
             mCaches.erase(*keyUUIDPtr);
             msCache.erase(timeAndNodeUUID.first);
             delete keyUUIDPtr;
@@ -39,7 +39,7 @@ void MaxFlowCalculationCacheManager::updateCaches() {
     }
 
     if (mInitiatorCache.first && utc_now() - mInitiatorCache.second > kResetInitiatorCacheDuration()) {
-        mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", "reset Initiator cache");
+        info() << "updateCaches\t" << "reset Initiator cache";
         mInitiatorCache.first = false;
     }
 }
@@ -51,4 +51,20 @@ void MaxFlowCalculationCacheManager::setInitiatorCache() {
 
 bool MaxFlowCalculationCacheManager::isInitiatorCached() {
     return mInitiatorCache.first;
+}
+
+LoggerStream MaxFlowCalculationCacheManager::info() const {
+
+    if (nullptr == mLog)
+        throw Exception("logger is not initialised");
+
+    return mLog->info(logHeader());
+}
+
+const string MaxFlowCalculationCacheManager::logHeader() const {
+
+    stringstream s;
+    s << "[MaxFlowCalculationCacheManager]";
+
+    return s.str();
 }

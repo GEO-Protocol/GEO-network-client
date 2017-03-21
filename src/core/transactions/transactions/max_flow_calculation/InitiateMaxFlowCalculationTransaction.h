@@ -45,15 +45,12 @@ private:
 
     void sendMessagesOnFirstLevel();
 
-    TrustLineAmount calculateMaxFlow(const NodeUUID& nodeUUID);
+    TrustLineAmount calculateMaxFlow();
 
     TrustLineAmount calculateOneNode(
         const NodeUUID& nodeUUID,
         const TrustLineAmount& currentFlow,
-        byte level,
-        const NodeUUID& targetUUID,
-        const NodeUUID& sourceUUID,
-        set<NodeUUID> forbiddenUUIDs);
+        byte level);
 
     TransactionResult::SharedConst resultOk(TrustLineAmount &maxFlowAmount);
 
@@ -68,6 +65,7 @@ private:
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    set<NodeUUID> forbiddenNodeUUIDs;
 
 };
 
