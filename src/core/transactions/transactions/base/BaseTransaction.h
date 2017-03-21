@@ -152,6 +152,15 @@ protected:
             addressee);
     }
 
+    inline void sendMessage(
+        const NodeUUID &addressee,
+        const Message::Shared message)
+    {
+        outgoingMessageIsReadySignal(
+            message,
+            addressee);
+    }
+
     void launchSubsidiaryTransaction(
       BaseTransaction::Shared transaction);
 
