@@ -1,13 +1,27 @@
 #include "FourNodesBalancesResponseMessage.h"
 
-std::pair<BytesShared, size_t> ThreeNodesBalancesResponseMessage::serializeToBytes() {
+FourNodesBalancesResponseMessage::FourNodesBalancesResponseMessage(const TrustLineBalance &maxFlow,
+                                                                   vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalancesCreditors,
+                                                                   vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalancesDebtors):
+        mNeighborsBalancesCreditors(neighborsBalancesCreditors),
+        mNeighborsBalancesDebtors(neighborsBalancesDebtors),
+        mMaxFlow(maxFlow)
+{
+
+}
+
+std::pair<BytesShared, size_t> FourNodesBalancesResponseMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    uint16_t boundaryNodesCount = (uint16_t) mNeighborsBalances.size();
+    uint16_t neighborsDebtorsNodesCount = (uint16_t) mNeighborsBalancesDebtors.size();
+    uint16_t neighborsCreditorsNodesCount = (uint16_t) mNeighborsBalancesCreditors.size();
     size_t bytesCount =
             parentBytesAndCount.second +
-            (NodeUUID::kBytesSize + kTrustLineBalanceSerializeBytesCount) * boundaryNodesCount +
-            sizeof(boundaryNodesCount);
+            (NodeUUID::kBytesSize + kTrustLineBalanceSerializeBytesCount) * neighborsCreditorsNodesCount +
+            (NodeUUID::kBytesSize + kTrustLineBalanceSerializeBytesCount) * neighborsDebtorsNodesCount +
+            sizeof(neighborsCreditorsNodesCount) +
+            sizeof(neighborsDebtorsNodesCount);
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     // for parent node
@@ -18,15 +32,15 @@ std::pair<BytesShared, size_t> ThreeNodesBalancesResponseMessage::serializeToByt
             parentBytesAndCount.second
     );
     dataBytesOffset += parentBytesAndCount.second;
-//    for mNeighborsBalances
+//    for mNeighborsCreditorsNodes
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            &boundaryNodesCount,
+            &neighborsCreditorsNodesCount,
             sizeof(uint16_t)
     );
     dataBytesOffset += sizeof(uint16_t);
     vector<byte> stepObligationFlow;
-    for(auto &value: mNeighborsBalances){
+    for(auto &value: mNeighborsBalancesCreditors){
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 &value.first,
@@ -42,47 +56,61 @@ std::pair<BytesShared, size_t> ThreeNodesBalancesResponseMessage::serializeToByt
         dataBytesOffset += stepObligationFlow.size();
         stepObligationFlow.clear();
     }
-
+// for mNeighborsBalancesDebtors
+    memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            &neighborsDebtorsNodesCount,
+            sizeof(uint16_t)
+    );
+    dataBytesOffset += sizeof(uint16_t);
+    for(auto &value: mNeighborsBalancesDebtors){
+        memcpy(
+                dataBytesShared.get() + dataBytesOffset,
+                &value.first,
+                NodeUUID::kBytesSize
+        );
+        dataBytesOffset += NodeUUID::kBytesSize;
+        stepObligationFlow = trustLineBalanceToBytes(value.second);
+        memcpy(
+                dataBytesShared.get() + dataBytesOffset,
+                stepObligationFlow.data(),
+                stepObligationFlow.size()
+        );
+        dataBytesOffset += stepObligationFlow.size();
+        stepObligationFlow.clear();
+    }
     return make_pair(
             dataBytesShared,
             bytesCount
     );
 }
 
-const Message::MessageType ThreeNodesBalancesResponseMessage::typeID() const {
-    return Message::MessageTypeID::ThreeNodesBalancesResponseMessage;
+const Message::MessageType FourNodesBalancesResponseMessage::typeID() const {
+    return Message::MessageTypeID::FourNodesBalancesResponseMessage;
 }
 
-ThreeNodesBalancesResponseMessage::ThreeNodesBalancesResponseMessage() {
-
-}
-
-ThreeNodesBalancesResponseMessage::ThreeNodesBalancesResponseMessage(const TrustLineBalance &maxFlow,
-                                                                     vector<pair<NodeUUID, TrustLineBalance>> &neighbors) {
-
-}
-
-ThreeNodesBalancesResponseMessage::ThreeNodesBalancesResponseMessage(BytesShared buffer) {
+FourNodesBalancesResponseMessage::FourNodesBalancesResponseMessage(BytesShared buffer) {
     deserializeFromBytes(buffer);
 }
 
-void ThreeNodesBalancesResponseMessage::deserializeFromBytes(BytesShared buffer) {
-    SenderMessage::deserializeFromBytes(buffer);
+void FourNodesBalancesResponseMessage::deserializeFromBytes(BytesShared buffer) {
+    TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
-//    Get NodesCount
-    uint16_t boundaryNodesCount;
+    vector<byte> *stepObligationFlowBytes;
+    NodeUUID stepNodeUUID;
+    TrustLineBalance stepBalance;
+
+    //    Get neighborsDebtorsNodesCount
+    uint16_t neighborsCreditorsNodesCount;
     memcpy(
-            &boundaryNodesCount,
+            &neighborsCreditorsNodesCount,
             buffer.get() + bytesBufferOffset,
             sizeof(uint16_t)
     );
     bytesBufferOffset += sizeof(uint16_t);
-//    Parse boundary nodes
-    vector<byte> *stepObligationFlowBytes;
-    NodeUUID stepNodeUUID;
-    TrustLineBalance stepBalance;
-    for (uint16_t i=1; i<=boundaryNodesCount; i++){
+//  Parse mNeighborsBalancesCreditors
+    for (uint16_t i=1; i<=neighborsCreditorsNodesCount; i++){
         memcpy(
                 stepNodeUUID.data,
                 buffer.get() + bytesBufferOffset,
@@ -93,19 +121,44 @@ void ThreeNodesBalancesResponseMessage::deserializeFromBytes(BytesShared buffer)
                 buffer.get() + bytesBufferOffset,
                 buffer.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
         stepBalance = bytesToTrustLineBalance(*stepObligationFlowBytes);
-        mNeighborsBalances.push_back(make_pair(stepNodeUUID, stepBalance));
+        mNeighborsBalancesCreditors.push_back(make_pair(stepNodeUUID, stepBalance));
+        bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
+    };
+
+
+    //    Get neighborsDebtorsNodesCount
+    uint16_t neighborsDebtorsNodesCount;
+    memcpy(
+            &neighborsDebtorsNodesCount,
+            buffer.get() + bytesBufferOffset,
+            sizeof(uint16_t)
+    );
+    bytesBufferOffset += sizeof(uint16_t);
+//    Parse mNeighborsBalancesDebtors
+    for (uint16_t i=1; i<=neighborsDebtorsNodesCount; i++){
+        memcpy(
+                stepNodeUUID.data,
+                buffer.get() + bytesBufferOffset,
+                NodeUUID::kBytesSize
+        );
+        bytesBufferOffset += NodeUUID::kBytesSize;
+        stepObligationFlowBytes = new vector<byte>(
+                buffer.get() + bytesBufferOffset,
+                buffer.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
+        stepBalance = bytesToTrustLineBalance(*stepObligationFlowBytes);
+        mNeighborsBalancesDebtors.push_back(make_pair(stepNodeUUID, stepBalance));
         bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
     };
 }
 
-const size_t ThreeNodesBalancesResponseMessage::kOffsetToInheritedBytes() {
-    return 0;
-}
-
-vector<pair<NodeUUID, TrustLineBalance>> ThreeNodesBalancesResponseMessage::NeighborsAndBalances() {
-    return mNeighborsBalances;
-}
-
-const bool ThreeNodesBalancesResponseMessage::isTransactionMessage() const {
+const bool FourNodesBalancesResponseMessage::isTransactionMessage() const {
     return  true;
+}
+
+vector<pair<NodeUUID, TrustLineBalance>> FourNodesBalancesResponseMessage::NeighborsBalancesDebtors() {
+    return mNeighborsBalancesDebtors;
+}
+
+vector<pair<NodeUUID, TrustLineBalance>> FourNodesBalancesResponseMessage::NeighborsBalancesCreditors() {
+    return mNeighborsBalancesCreditors;
 }
