@@ -24,7 +24,7 @@ ParticipantsApprovingMessage::ParticipantsApprovingMessage(
 void ParticipantsApprovingMessage::addParticipant(
     const NodeUUID &participant)
 {
-    mVotes[participant] = false;
+    mVotes[participant] = Uncertain;
 }
 
 /**
@@ -36,13 +36,13 @@ void ParticipantsApprovingMessage::addParticipant(
 const NodeUUID& ParticipantsApprovingMessage::nextParticipant(
     const NodeUUID& currentNodeUUID) const
 {
-    const auto kNextNodeUUID = mVotes.find(currenNodeUUID);
+    const auto kNextNodeUUID = mVotes.find(currentNodeUUID);
     if (kNextNodeUUID == mVotes.end())
         throw NotFoundError(
             "ParticipantsApprovingMessage::nextParticipant: "
             "there are no nodes left in votes list.");
 
-    return kNextNodeUUID;
+    return kNextNodeUUID->first;
 }
 
 /**
@@ -51,14 +51,14 @@ const NodeUUID& ParticipantsApprovingMessage::nextParticipant(
  *
  * @throws NotFoundError in case if no nodes are present yet.
  */
-const NodeUUID&ParticipantsApprovingMessage::firstParticipant() const
+const NodeUUID& ParticipantsApprovingMessage::firstParticipant() const
 {
     if (mVotes.empty())
         throw NotFoundError(
             "ParticipantsApprovingMessage::firstParticipant: "
             "there are no nodes in votes list yet");
 
-    return *(mVotes.cbegin());
+    return mVotes.cbegin()->first;
 }
 
 /**
@@ -72,7 +72,7 @@ ParticipantsApprovingMessage::Vote ParticipantsApprovingMessage::vote(
     if (mVotes.count(participant) == 0)
         throw NotFoundError("");
 
-    return mVotes[participant];
+    return mVotes.at(participant);
 }
 
 const Message::MessageType ParticipantsApprovingMessage::typeID() const
@@ -187,10 +187,10 @@ void ParticipantsApprovingMessage::deserializeFromBytes(
             currentOffset,
             NodeUUID::kBytesSize);
 
-        const bool kVote =
+        const byte kVote =
             *(currentOffset + NodeUUID::kBytesSize);
 
-        mVotes[participantUUID] = kVote;
+        mVotes[participantUUID] = Vote(kVote);
         currentOffset += kParticipantRecordSize;
     }
 }
