@@ -20,8 +20,6 @@ public:
 
     CommandResult::SharedConst resultOk(string &totalBalancesStr) const;
 
-    CommandResult::SharedConst resultNoResponse() const;
-
 protected:
 
     void parse(

@@ -173,28 +173,3 @@ void CreditUsageCommand::parse(
 //
 //    return size;
 //}
-
-CommandResult::SharedConst CreditUsageCommand::responseOK() const
-{
-    return makeResult(200);
-}
-
-CommandResult::SharedConst CreditUsageCommand::responseProtocolError() const
-{
-    return makeResult(401);
-}
-
-CommandResult::SharedConst CreditUsageCommand::responseInsufficientFunds() const
-{
-    return makeResult(412);
-}
-
-CommandResult::SharedConst CreditUsageCommand::responseRemoteNodeIsInaccessible() const
-{
-    return makeResult(444);
-}
-
-CommandResult::SharedConst CreditUsageCommand::responseNoRoutes() const
-{
-    return makeResult(462);
-}
