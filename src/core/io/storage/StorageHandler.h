@@ -32,6 +32,10 @@ public:
 
     RoutingTablesHandler *routingTablesHandler() const;
 
+    vector<NodeUUID> leftNodesRT2() const;
+
+    vector<NodeUUID> leftNodesRT3() const;
+
 private:
 
     void openConnection();

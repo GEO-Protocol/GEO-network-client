@@ -34,13 +34,19 @@ public:
         const NodeUUID &rightNode,
         DirectionType directionType);
 
+    vector<NodeUUID> leftNodes();
+
 private:
 
     const string createTableQuery() const;
 
     const string createIndexQuery(string fieldName) const;
 
-    const string insertQuery() const;
+    const string insertHeaderQuery() const;
+
+    const string insertBodyQuery() const;
+
+    const string selectQuery() const;
 
     LoggerStream info() const;
 
@@ -54,9 +60,9 @@ private:
     string mTableName;
     sqlite3_stmt *stmt;
     Logger *mLog;
-    vector<NodeUUID> leftNodes;
-    vector<NodeUUID> rightNodes;
-    vector<DirectionType> directions;
+    vector<NodeUUID> mLeftNodes;
+    vector<NodeUUID> mRightNodes;
+    vector<DirectionType> mDirections;
 
 };
 

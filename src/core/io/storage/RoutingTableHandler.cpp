@@ -12,7 +12,7 @@ RoutingTableHandler::RoutingTableHandler(
     info() << "creating table " << mTableName;
     string query = createTableQuery();
     info() << "query " << query;
-    int rc = rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         error() << "Can't create table " << mTableName << " : " << sqlite3_errmsg(mDataBase);
     }
@@ -60,41 +60,59 @@ void RoutingTableHandler::insert(
         const NodeUUID &rightNode,
         DirectionType direction) {
 
-    info() << "inserting";
-    string query = insertQuery();
-    info() << "query " << query;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        error() << "Can't insert: " << sqlite3_errmsg(mDataBase);
-    }
-    rc = sqlite3_bind_blob( stmt, 1, leftNode.data, -1, 0 );
-    if (rc != SQLITE_OK) {
-        error() << "bind left node failed: " << sqlite3_errmsg(mDataBase);
-    }
-    rc = sqlite3_bind_blob(stmt, 2, rightNode.data, 16, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        error() << "bind right node failed: " << sqlite3_errmsg(mDataBase);
-    }
-    switch (direction) {
-        case DirectionType::Incoming:
-            rc = sqlite3_bind_blob(stmt, 3, "I", 1, SQLITE_STATIC);
-            break;
-        case DirectionType::Outgoing:
-            rc = sqlite3_bind_blob(stmt, 3, "O", 1, SQLITE_STATIC);
-            break;
-        case DirectionType::Both:
-            rc = sqlite3_bind_blob(stmt, 3, "B", 1, SQLITE_STATIC);
-            break;
-    }
-    if (rc != SQLITE_OK) {
-        error() << "bind direction failed: " << sqlite3_errmsg(mDataBase);
-    }
+    mLeftNodes.push_back(leftNode);
+    mRightNodes.push_back(rightNode);
+    mDirections.push_back(direction);
 }
 
 void RoutingTableHandler::commit() {
 
     info() << "commit";
-    int rc = sqlite3_step(stmt);
+
+    if (mLeftNodes.size() == 0) {
+        info() << "no data for inserting";
+        return;
+    }
+
+    string query = insertHeaderQuery();
+    for (int idx = 0; idx < mLeftNodes.size() - 1; idx++) {
+        query = query + insertBodyQuery() + ",";
+    }
+    query = query + insertBodyQuery() + ";";
+    info() << "query: " << query;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        error() << "Bad insert query: " << sqlite3_errmsg(mDataBase);
+    }
+
+    int idxParam = 1;
+    for (uint32_t idx = 0; idx < mLeftNodes.size(); idx++) {
+        rc = sqlite3_bind_blob(stmt, idxParam++, mLeftNodes.at(idx).data, NodeUUID::kBytesSize, SQLITE_STATIC);
+        if (rc != SQLITE_OK) {
+            error() << "bind left node failed: " << sqlite3_errmsg(mDataBase);
+        }
+        rc = sqlite3_bind_blob(stmt, idxParam++, mRightNodes.at(idx).data, NodeUUID::kBytesSize, SQLITE_STATIC);
+        if (rc != SQLITE_OK) {
+            error() << "bind right node failed: " << sqlite3_errmsg(mDataBase);
+        }
+        switch (mDirections.at(idx)) {
+            case DirectionType::Incoming:
+                rc = sqlite3_bind_blob(stmt, idxParam++, "I", 1, SQLITE_STATIC);
+                break;
+            case DirectionType::Outgoing:
+                rc = sqlite3_bind_blob(stmt, idxParam++, "O", 1, SQLITE_STATIC);
+                break;
+            case DirectionType::Both:
+                rc = sqlite3_bind_blob(stmt, idxParam++, "B", 1, SQLITE_STATIC);
+                break;
+        }
+        if (rc != SQLITE_OK) {
+            error() << "bind direction failed: " << sqlite3_errmsg(mDataBase);
+        }
+    }
+
+
+    rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
         info() << "inserting is completed successfully";
     } else {
@@ -107,15 +125,44 @@ void RoutingTableHandler::commit() {
 void RoutingTableHandler::rollBack() {
 
     info() << "rollback";
-    sqlite3_reset(stmt);
+    mLeftNodes.clear();
+    mRightNodes.clear();
+    mDirections.clear();
+    //sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
 }
 
 void RoutingTableHandler::prepareInsertred() {
 
     info() << "prepare inserting";
+    mLeftNodes.clear();
+    mRightNodes.clear();
+    mDirections.clear();
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
+}
+
+vector<NodeUUID> RoutingTableHandler::leftNodes() {
+
+    vector<NodeUUID> result;
+    info() << "selecting";
+    string query = selectQuery();
+    info() << "query: " << query;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        error() << "Bad select query: " << sqlite3_errmsg(mDataBase);
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+        NodeUUID leftNode;
+        memcpy(
+            leftNode.data,
+            sqlite3_column_blob(stmt, 0),
+            NodeUUID::kBytesSize);
+        result.push_back(leftNode);
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
 }
 
 const string RoutingTableHandler::createTableQuery() const {
@@ -137,11 +184,25 @@ const string RoutingTableHandler::createIndexQuery(string fieldName) const {
     return s.str();
 }
 
-const string RoutingTableHandler::insertQuery() const {
+const string RoutingTableHandler::insertHeaderQuery() const {
 
     stringstream s;
     s << "INSERT INTO " << mTableName.c_str() <<
-            "(left_node, right_node, direction) VALUES (?, ?, ?)";
+            "(left_node, right_node, direction) VALUES";
+    return s.str();
+}
+
+const string RoutingTableHandler::insertBodyQuery() const {
+
+    stringstream s;
+    s <<  "(?, ?, ?)";
+    return s.str();
+}
+
+const string RoutingTableHandler::selectQuery() const {
+
+    stringstream s;
+    s <<  "SELECT left_node, right_node, direction FROM " << mTableName.c_str();
     return s.str();
 }
 

@@ -67,6 +67,16 @@ RoutingTablesHandler* StorageHandler::routingTablesHandler() const {
     return mRoutingTablesHandler;
 }
 
+vector<NodeUUID> StorageHandler::leftNodesRT2() const {
+
+    return mRoutingTablesHandler->routingTable2Level()->leftNodes();
+}
+
+vector<NodeUUID> StorageHandler::leftNodesRT3() const {
+
+    return mRoutingTablesHandler->routingTable3Level()->leftNodes();
+}
+
 void StorageHandler::closeConnection() {
     sqlite3_close(mDataBase);
     info() << "Connection closed";

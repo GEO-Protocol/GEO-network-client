@@ -19,11 +19,15 @@ int Core::run() {
     }
 
     StorageHandler *storageHandler = new StorageHandler(&mLog);
-    //NodeUUID *leftNode = new NodeUUID("t13e5cf8c-5834-4e52-b65b-f9281dd1ff91");
-    //NodeUUID *rightNode = new NodeUUID("t13e5cf8c-5834-4e52-b65b-f9281dd1ff92");
+    cout << mNodeUUID << endl;
     storageHandler->insertRT2(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Both);
+    storageHandler->rollback();
     storageHandler->insertRT2(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Incoming);
     storageHandler->commit();
+
+    vector<NodeUUID> leftNodes = storageHandler->leftNodesRT2();
+    cout << leftNodes.size() << endl;
+    cout << leftNodes.at(0).stringUUID() << endl;
     delete storageHandler;
     try {
         writePIDFile();
