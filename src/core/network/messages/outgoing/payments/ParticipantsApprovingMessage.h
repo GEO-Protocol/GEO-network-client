@@ -50,8 +50,6 @@ protected:
     virtual void deserializeFromBytes(
         BytesShared buffer);
 
-    static size_t kOffsetToInheritedBytes();
-
 protected:
     /*
      * It is necessary to use flat map here:
