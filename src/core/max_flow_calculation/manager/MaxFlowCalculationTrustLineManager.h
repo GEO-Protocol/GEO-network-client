@@ -45,8 +45,8 @@ private:
 private:
 
     static const byte kResetTrustLinesHours = 0;
-    static const byte kResetTrustLinesMinutes = 1;
-    static const byte kResetTrustLinesSeconds = 10;
+    static const byte kResetTrustLinesMinutes = 20;
+    static const byte kResetTrustLinesSeconds = 0;
 
     static Duration& kResetTrustLinesDuration() {
         static auto duration = Duration(

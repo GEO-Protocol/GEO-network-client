@@ -16,7 +16,9 @@ MaxFlowCalculationCacheUpdateTransaction::MaxFlowCalculationCacheUpdateTransacti
 
 TransactionResult::SharedConst MaxFlowCalculationCacheUpdateTransaction::run() {
 
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "update cache";
+#endif
     mMaxFlowCalculationCacheManager->updateCaches();
     mMaxFlowCalculationTrustLineManager->deleteLegacyTrustLines();
     return make_shared<TransactionResult>(TransactionState::exit());

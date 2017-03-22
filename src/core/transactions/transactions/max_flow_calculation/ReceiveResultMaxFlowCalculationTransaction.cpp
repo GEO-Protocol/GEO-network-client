@@ -55,7 +55,7 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
 
     info() << "run\t" << "afterInsert mapTrustLinesCount: " << mMaxFlowCalculationTrustLineManager->trustLinesCounts();
 
-#ifdef MAX_FLOW_CALCULATION_TEST
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     mMaxFlowCalculationTrustLineManager->printTrustLines();
 #endif
 
