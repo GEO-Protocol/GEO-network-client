@@ -39,15 +39,13 @@ public:
 
     static const size_t kRequestedBufferSize();
 
-    CommandResult::SharedConst resultOk() const;
+    CommandResult::SharedConst createdResponse() const;
 
-    CommandResult::SharedConst trustLineAlreadyPresentResult() const;
+    CommandResult::SharedConst trustLineIsAlreadyPresentResponse() const;
 
-    CommandResult::SharedConst resultConflict() const;
+    CommandResult::SharedConst conflictWithOtherOperation() const;
 
-    CommandResult::SharedConst resultNoResponse() const;
-
-    CommandResult::SharedConst resultTransactionConflict() const;
+    CommandResult::SharedConst remoteNodeIsInaccessibleResponse() const;
 
 protected:
     void deserializeFromBytes(

@@ -228,25 +228,25 @@ void OpenTrustLineTransaction::logOpeningTrustLineOperation() {
 TransactionResult::SharedConst OpenTrustLineTransaction::resultOk() {
 
     return transactionResultFromCommand(
-        mCommand->resultOk());
+            mCommand->createdResponse());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::trustLinePresentResult() {
 
     return transactionResultFromCommand(
-        mCommand->trustLineAlreadyPresentResult());
+            mCommand->trustLineIsAlreadyPresentResponse());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::conflictErrorResult() {
 
     return transactionResultFromCommand(
-        mCommand->resultConflict());
+            mCommand->conflictWithOtherOperation());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::noResponseResult() {
 
     return transactionResultFromCommand(
-        mCommand->resultNoResponse());
+            mCommand->remoteNodeIsInaccessibleResponse());
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::transactionConflictResult() {

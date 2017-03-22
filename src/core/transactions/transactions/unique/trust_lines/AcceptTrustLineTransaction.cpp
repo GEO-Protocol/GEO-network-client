@@ -151,12 +151,12 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
 }
 
 bool AcceptTrustLineTransaction::checkJournal() {
-
+//  todo add check journal method
     return false;
 }
 
 bool AcceptTrustLineTransaction::isTransactionToContractorUnique() {
-
+//    todo  CheckTransactionOnUnique
     return true;
 }
 

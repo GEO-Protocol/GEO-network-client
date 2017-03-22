@@ -148,7 +148,7 @@ const size_t OpenTrustLineCommand::kRequestedBufferSize() {
     return size;
 }
 
-CommandResult::SharedConst OpenTrustLineCommand::resultOk() const{
+CommandResult::SharedConst OpenTrustLineCommand::createdResponse() const{
 
     return CommandResult::SharedConst(
         new CommandResult(
@@ -158,7 +158,7 @@ CommandResult::SharedConst OpenTrustLineCommand::resultOk() const{
     );
 }
 
-CommandResult::SharedConst OpenTrustLineCommand::trustLineAlreadyPresentResult() const{
+CommandResult::SharedConst OpenTrustLineCommand::trustLineIsAlreadyPresentResponse() const{
 
     return CommandResult::SharedConst(
         new CommandResult(
@@ -168,7 +168,7 @@ CommandResult::SharedConst OpenTrustLineCommand::trustLineAlreadyPresentResult()
     );
 }
 
-CommandResult::SharedConst OpenTrustLineCommand::resultConflict() const {
+CommandResult::SharedConst OpenTrustLineCommand::conflictWithOtherOperation() const {
 
     return CommandResult::SharedConst(
         new CommandResult(
@@ -178,22 +178,12 @@ CommandResult::SharedConst OpenTrustLineCommand::resultConflict() const {
     );
 }
 
-CommandResult::SharedConst OpenTrustLineCommand::resultNoResponse() const {
+CommandResult::SharedConst OpenTrustLineCommand::remoteNodeIsInaccessibleResponse() const {
 
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),
             444
-        )
-    );
-}
-
-CommandResult::SharedConst OpenTrustLineCommand::resultTransactionConflict() const {
-
-    return CommandResult::SharedConst(
-        new CommandResult(
-            UUID(),
-            500
         )
     );
 }

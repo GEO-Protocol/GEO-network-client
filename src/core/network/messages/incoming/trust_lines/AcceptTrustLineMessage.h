@@ -44,7 +44,8 @@ private:
 public:
     static const uint16_t kResultCodeAccepted = 200;
     static const uint16_t kResultCodeConflict = 409;
-    static const uint16_t kResultCodeTransactionConflict = 500;
+// There are more than one transaction with same type that are processed at one moment
+    static const uint16_t kResultCodeTransactionConflict = 429;
 
 private:
     TrustLineAmount mTrustLineAmount;
