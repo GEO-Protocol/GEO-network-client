@@ -82,6 +82,7 @@ add_subdirectory(src/core/trust_lines)
 add_subdirectory(src/core/max_flow_calculation)
 add_subdirectory(src/core/delayed_tasks)
 add_subdirectory(src/core/payments/amount_blocks)
+add_subdirectory(src/core/io/storage)
 
 #
 # libs
@@ -116,6 +117,7 @@ target_link_libraries(geo_network_client
 
         io__trust_lines_storage
         io__routing_tables_storage
+        io__storage
 
         paths
         trust_lines

@@ -16,6 +16,9 @@
 #include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
+#include "io/storage/StorageHandler.h"
+#include "io/storage/RoutingTableHandler.h"
+#include "../libs/sqlite3/sqlite3.h"
 
 #include "logger/Logger.h"
 
