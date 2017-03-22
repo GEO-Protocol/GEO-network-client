@@ -22,6 +22,7 @@ public:
     const MessageType typeID() const;
     vector<NodeUUID> NeighborsDebtor();
     vector<NodeUUID> NeighborsCreditor();
+    TrustLineBalance MaxFlow();
 protected:
     pair<BytesShared, size_t> serializeToBytes();
 

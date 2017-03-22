@@ -147,3 +147,7 @@ vector<NodeUUID> FourNodesBalancesRequestMessage::NeighborsDebtor() {
 vector<NodeUUID> FourNodesBalancesRequestMessage::NeighborsCreditor() {
     return mNeighborsCreditor;
 }
+
+TrustLineBalance FourNodesBalancesRequestMessage::MaxFlow() {
+    return mMaxFlow;
+}

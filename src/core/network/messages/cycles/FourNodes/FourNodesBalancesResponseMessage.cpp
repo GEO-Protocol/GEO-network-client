@@ -1,11 +1,10 @@
 #include "FourNodesBalancesResponseMessage.h"
 
-FourNodesBalancesResponseMessage::FourNodesBalancesResponseMessage(const TrustLineBalance &maxFlow,
-                                                                   vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalancesCreditors,
-                                                                   vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalancesDebtors):
+FourNodesBalancesResponseMessage::FourNodesBalancesResponseMessage(
+        vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalancesCreditors,
+        vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalancesDebtors):
         mNeighborsBalancesCreditors(neighborsBalancesCreditors),
-        mNeighborsBalancesDebtors(neighborsBalancesDebtors),
-        mMaxFlow(maxFlow)
+        mNeighborsBalancesDebtors(neighborsBalancesDebtors)
 {
 
 }
@@ -101,7 +100,7 @@ void FourNodesBalancesResponseMessage::deserializeFromBytes(BytesShared buffer) 
     NodeUUID stepNodeUUID;
     TrustLineBalance stepBalance;
 
-    //    Get neighborsDebtorsNodesCount
+    //  Get neighborsDebtorsNodesCount
     uint16_t neighborsCreditorsNodesCount;
     memcpy(
             &neighborsCreditorsNodesCount,
@@ -124,8 +123,6 @@ void FourNodesBalancesResponseMessage::deserializeFromBytes(BytesShared buffer) 
         mNeighborsBalancesCreditors.push_back(make_pair(stepNodeUUID, stepBalance));
         bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
     };
-
-
     //    Get neighborsDebtorsNodesCount
     uint16_t neighborsDebtorsNodesCount;
     memcpy(

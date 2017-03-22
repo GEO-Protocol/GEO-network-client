@@ -64,7 +64,8 @@ public:
         GetTopologyAndBalancesTransaction,
         SixNodesTopologyTransaction,
         FiveNodesTopologyTransaction,
-        GetNeighborBalancesTransaction,
+        GetThreeNodesNeighborBalancesTransaction,
+        GetFourNodesNeighborBalancesTransaction,
         // Payments
         CoordinatorPaymentTransaction,
         ReceiverPaymentTransaction,

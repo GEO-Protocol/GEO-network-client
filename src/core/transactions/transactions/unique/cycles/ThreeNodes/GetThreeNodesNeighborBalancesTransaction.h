@@ -6,10 +6,10 @@
 #include "../../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesRequestMessage.h"
 #include "../../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesResponseMessage.h"
 
-class GetNeighborBalancesTransaction : public UniqueTransaction {
+class GetThreeNodesNeighborBalancesTransaction : public UniqueTransaction {
 
 public:
-    GetNeighborBalancesTransaction(
+    GetThreeNodesNeighborBalancesTransaction(
             const TransactionType type,
             const NodeUUID &nodeUUID,
             const NodeUUID &contractorUUID,
@@ -17,7 +17,7 @@ public:
             TrustLinesManager *manager,
             Logger *logger);
 
-    GetNeighborBalancesTransaction(
+    GetThreeNodesNeighborBalancesTransaction(
             const TransactionType type,
             const NodeUUID &nodeUUID,
             ThreeNodesBalancesRequestMessage::Shared message,
@@ -25,7 +25,7 @@ public:
             TrustLinesManager *manager,
             Logger *logger);
 
-    GetNeighborBalancesTransaction(TransactionsScheduler *scheduler);
+    GetThreeNodesNeighborBalancesTransaction(TransactionsScheduler *scheduler);
 
     TransactionResult::SharedConst run();
 

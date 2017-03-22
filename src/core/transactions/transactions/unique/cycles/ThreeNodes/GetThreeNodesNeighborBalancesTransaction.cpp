@@ -1,11 +1,11 @@
-#include "GetNeighborBalancesTransaction.h"
+#include "GetThreeNodesNeighborBalancesTransaction.h"
 
-GetNeighborBalancesTransaction::GetNeighborBalancesTransaction(TransactionsScheduler *scheduler)
-        :UniqueTransaction(BaseTransaction::TransactionType::GetNeighborBalancesTransaction, scheduler) {
+GetThreeNodesNeighborBalancesTransaction::GetThreeNodesNeighborBalancesTransaction(TransactionsScheduler *scheduler)
+        :UniqueTransaction(BaseTransaction::TransactionType::GetThreeNodesNeighborBalancesTransaction, scheduler) {
 
 }
 
-GetNeighborBalancesTransaction::GetNeighborBalancesTransaction(
+GetThreeNodesNeighborBalancesTransaction::GetThreeNodesNeighborBalancesTransaction(
         const BaseTransaction::TransactionType type,
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
@@ -20,7 +20,7 @@ GetNeighborBalancesTransaction::GetNeighborBalancesTransaction(
 
 }
 
-GetNeighborBalancesTransaction::GetNeighborBalancesTransaction(const BaseTransaction::TransactionType type,
+GetThreeNodesNeighborBalancesTransaction::GetThreeNodesNeighborBalancesTransaction(const BaseTransaction::TransactionType type,
                                                                const NodeUUID &nodeUUID,
                                                                ThreeNodesBalancesRequestMessage::Shared message,
                                                                TransactionsScheduler *scheduler,
@@ -32,7 +32,7 @@ GetNeighborBalancesTransaction::GetNeighborBalancesTransaction(const BaseTransac
 {
 
 }
-TransactionResult::SharedConst GetNeighborBalancesTransaction::run() {
+TransactionResult::SharedConst GetThreeNodesNeighborBalancesTransaction::run() {
 //    Check if something in context
     if (mContext.size() > 0){
         auto message = static_pointer_cast<ThreeNodesBalancesResponseMessage>(*mContext.begin());
@@ -72,7 +72,7 @@ TransactionResult::SharedConst GetNeighborBalancesTransaction::run() {
 
 
 
-TransactionResult::SharedConst GetNeighborBalancesTransaction::waitingForNeighborBalances() {
+TransactionResult::SharedConst GetThreeNodesNeighborBalancesTransaction::waitingForNeighborBalances() {
 
     return transactionResultFromState(
             TransactionState::waitForMessageTypes(

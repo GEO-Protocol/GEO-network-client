@@ -12,7 +12,6 @@ public:
     typedef shared_ptr<FourNodesBalancesResponseMessage> Shared;
 public:
     FourNodesBalancesResponseMessage(
-            const TrustLineBalance& maxFlow,
             vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalancesCreditors,
             vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalancesDebtors
     );

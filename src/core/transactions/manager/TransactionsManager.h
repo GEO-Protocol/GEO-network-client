@@ -52,6 +52,9 @@
 #include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
 #include "../transactions/unique/cycles/FiveNodesTopologyTransaction.h"
 #include "../transactions/unique/cycles/SixNodesTopologyTransaction.h"
+#include "../transactions/unique/cycles/ThreeNodes/GetThreeNodesNeighborBalancesTransaction.h"
+#include "../transactions/unique/cycles/FourNodes/GetFourNodesNeighborBalancesTransaction.h"
+
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 #include "../transactions/regular/payments/IntermediateNodePaymentTransaction.h"
@@ -115,8 +118,11 @@ public:
     void launchGetTopologyAndBalancesTransactionFiveNodes();
     void launchGetTopologyAndBalancesTransactionSixNodes();
 
-    void launchGetNeighborBalancesTransaction(NodeUUID &contractorUUID);
-    void launchGetNeighborBalancesTransaction(ThreeNodesBalancesRequestMessage::Shared message);
+    void launchGetThreeNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
+    void launchGetThreeNodesNeighborBalancesTransaction(ThreeNodesBalancesRequestMessage::Shared message);
+
+    void launchGetFourNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
+    void launchGetFourNodesNeighborBalancesTransaction(FourNodesBalancesRequestMessage::Shared message);
 //    ----------------------------------------------------------
 
     void launchRoutingTablesUpdatingTransactionsFactory(

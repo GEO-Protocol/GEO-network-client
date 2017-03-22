@@ -1,5 +1,4 @@
 ﻿#include "TransactionsManager.h"
-#include "../transactions/unique/cycles/ThreeNodes/GetNeighborBalancesTransaction.h"
 #include "../../network/messages/total_balances/InitiateTotalBalancesMessage.h"
 
 /*!
@@ -269,7 +268,7 @@ void TransactionsManager::processMessage(
         launchGetTopologyAndBalancesTransaction(
                 static_pointer_cast<InBetweenNodeTopologyMessage>(message));
     }else if(message->typeID() == Message::MessageTypeID::ThreeNodesBalancesRequestMessage){
-        launchGetNeighborBalancesTransaction(
+        launchGetThreeNodesNeighborBalancesTransaction(
                 static_pointer_cast<ThreeNodesBalancesRequestMessage>(message));
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
@@ -1086,10 +1085,10 @@ void TransactionsManager::prepeareAndSchedule(
         transaction);
 }
 
-void TransactionsManager::launchGetNeighborBalancesTransaction(NodeUUID &contractorUUID) {
+void TransactionsManager::launchGetThreeNodesNeighborBalancesTransaction(NodeUUID &contractorUUID) {
     try {
-        auto transaction = make_shared<GetNeighborBalancesTransaction>(
-                BaseTransaction::TransactionType::GetNeighborBalancesTransaction,
+        auto transaction = make_shared<GetThreeNodesNeighborBalancesTransaction>(
+                BaseTransaction::TransactionType::GetThreeNodesNeighborBalancesTransaction,
                 mNodeUUID,
                 contractorUUID,
                 mScheduler.get(),
@@ -1105,10 +1104,49 @@ void TransactionsManager::launchGetNeighborBalancesTransaction(NodeUUID &contrac
     }
 }
 
-void TransactionsManager::launchGetNeighborBalancesTransaction(ThreeNodesBalancesRequestMessage::Shared message) {
+void TransactionsManager::launchGetThreeNodesNeighborBalancesTransaction(ThreeNodesBalancesRequestMessage::Shared message) {
     try {
-        auto transaction = make_shared<GetNeighborBalancesTransaction>(
-                BaseTransaction::TransactionType::GetNeighborBalancesTransaction,
+        auto transaction = make_shared<GetThreeNodesNeighborBalancesTransaction>(
+                BaseTransaction::TransactionType::GetThreeNodesNeighborBalancesTransaction,
+                mNodeUUID,
+                message,
+                mScheduler.get(),
+                mTrustLines,
+                mLog
+        );
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        mScheduler->scheduleTransaction(transaction);
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchOpenTrustLineTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchGetFourNodesNeighborBalancesTransaction(NodeUUID &contractorUUID) {
+    try {
+        auto transaction = make_shared<GetFourNodesNeighborBalancesTransaction>(
+                BaseTransaction::TransactionType::GetFourNodesNeighborBalancesTransaction,
+                mNodeUUID,
+                contractorUUID,
+                mScheduler.get(),
+                mTrustLines,
+                mLog
+        );
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        mScheduler->scheduleTransaction(transaction);
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchOpenTrustLineTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
+}
+
+void
+TransactionsManager::launchGetFourNodesNeighborBalancesTransaction(FourNodesBalancesRequestMessage::Shared message) {
+    try {
+        auto transaction = make_shared<GetFourNodesNeighborBalancesTransaction>(
+                BaseTransaction::TransactionType::GetFourNodesNeighborBalancesTransaction,
                 mNodeUUID,
                 message,
                 mScheduler.get(),
