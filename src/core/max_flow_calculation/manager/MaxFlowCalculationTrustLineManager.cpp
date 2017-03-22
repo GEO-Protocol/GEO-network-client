@@ -58,25 +58,33 @@ void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts() {
 
 void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines() {
 
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "deleteLegacyTrustLines\t" << "delete legacy trustLines set";
     info() << "deleteLegacyTrustLines\t" << "mapTrustLinesCount: " << trustLinesCounts();
 
     printTrustLines();
 
     info() << "deleteLegacyTrustLines\t" << "deleteion";
+#endif
     for (auto &timeAndTrustLineWithPtr : mtTrustLines) {
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
         info() << "deleteLegacyTrustLines\t" << "time created: " << timeAndTrustLineWithPtr.first;
+#endif
         if (utc_now() - timeAndTrustLineWithPtr.first > kResetTrustLinesDuration()) {
             auto trustLineWithPtr = timeAndTrustLineWithPtr.second;
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
             info() << "deleteLegacyTrustLines\t" <<
                           trustLineWithPtr->maxFlowCalculationtrustLine()->sourceUUID() << " " <<
                  trustLineWithPtr->maxFlowCalculationtrustLine()->targetUUID() << " " <<
                  trustLineWithPtr->maxFlowCalculationtrustLine()->amount();
+#endif
             auto hashSetPtr = trustLineWithPtr->hashSetPtr();
             hashSetPtr->erase(trustLineWithPtr);
             if (hashSetPtr->size() == 0) {
                 NodeUUID keyUUID = trustLineWithPtr->maxFlowCalculationtrustLine()->sourceUUID();
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
                 info() << "deleteLegacyTrustLines\t" << "remove all trustLines for node: " << keyUUID;
+#endif
                 msTrustLines.erase(keyUUID);
                 delete hashSetPtr;
             }
@@ -86,7 +94,9 @@ void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines() {
             break;
         }
     }
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "deleteLegacyTrustLines\t" << "map size after deleting: " << msTrustLines.size();
+#endif
 }
 
 size_t MaxFlowCalculationTrustLineManager::trustLinesCounts() const {

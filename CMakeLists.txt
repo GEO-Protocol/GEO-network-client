@@ -10,7 +10,7 @@ add_definitions(-DTRANSACTIONS_LOG)
 add_definitions(-DSCHEDULER_DEBUG_LOG)
 
 # debug max flow calculation logs
-add_definitions(-DMAX_FLOW_CALCULATION_TEST)
+#add_definitions(-DMAX_FLOW_CALCULATION_DEBUG_LOG)
 
 
 # Subsystems configuration
