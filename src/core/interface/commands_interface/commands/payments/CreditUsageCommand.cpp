@@ -1,46 +1,46 @@
 ﻿#include "CreditUsageCommand.h"
 
+
 CreditUsageCommand::CreditUsageCommand(
     const CommandUUID &uuid,
     const string &commandBuffer) :
 
     BaseUserCommand(
         uuid,
-        identifier()) {
-
+        identifier())
+{
     parse(commandBuffer);
 }
 
 CreditUsageCommand::CreditUsageCommand(
     BytesShared buffer) :
 
-    BaseUserCommand(identifier()) {
-
+    BaseUserCommand(identifier())
+{
     deserializeFromBytes(buffer);
 }
 
-const string &CreditUsageCommand::identifier() {
-
-    static const string identifier = "CREATE:payments/transactions";
+const string& CreditUsageCommand::identifier()
+{
+    static const string identifier = "CREATE:contractors/transactions";
     return identifier;
 }
 
-const NodeUUID &CreditUsageCommand::contractorUUID() const {
-
+const NodeUUID& CreditUsageCommand::contractorUUID() const
+{
     return mContractorUUID;
 }
 
-const TrustLineAmount &CreditUsageCommand::amount() const {
-
+const TrustLineAmount& CreditUsageCommand::amount() const
+{
     return mAmount;
 }
 
-
 /**
- * @Throw std::bad_alloc;
+ * @throws std::bad_alloc;
  */
-pair<BytesShared, size_t> CreditUsageCommand::serializeToBytes() {
-
+pair<BytesShared, size_t> CreditUsageCommand::serializeToBytes()
+{
     throw ValueError(
         "CreditUsageCommand::serializeToBytes: "
         "not implemented");
@@ -91,32 +91,37 @@ pair<BytesShared, size_t> CreditUsageCommand::serializeToBytes() {
 void CreditUsageCommand::deserializeFromBytes(
     BytesShared buffer)
 {
-    BaseUserCommand::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
-    bytesBufferOffset += NodeUUID::kBytesSize;
-    //----------------------------------------------------
-    vector<byte> amountBytes(
-        buffer.get() + bytesBufferOffset,
-        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+    throw Exception(
+            "CreditUsageCommand::deserializeFromBytes: "
+            "not implemented.");
 
-    mAmount = bytesToTrustLineAmount(amountBytes);
-    bytesBufferOffset += kTrustLineAmountBytesCount;
+//    BaseUserCommand::deserializeFromBytes(buffer);
+//    size_t bytesBufferOffset = kOffsetToInheritedBytes();
+//    //----------------------------------------------------
+//    memcpy(
+//        mContractorUUID.data,
+//        buffer.get() + bytesBufferOffset,
+//        NodeUUID::kBytesSize
+//    );
+//    bytesBufferOffset += NodeUUID::kBytesSize;
+//    //----------------------------------------------------
+//    vector<byte> amountBytes(
+//        buffer.get() + bytesBufferOffset,
+//        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+//
+//    mAmount = bytesToTrustLineAmount(amountBytes);
+//    bytesBufferOffset += kTrustLineAmountBytesCount;
 }
 
 void CreditUsageCommand::parse(
     const string &command)
 {
-    static const auto minCommandLength = CommandUUID::kHexSize + 1;
+    static const auto minCommandLength = CommandUUID::kHexSize + 2;
     if (command.size() < minCommandLength) {
         throw ValueError(
             "CreditUsageCommand::parse: "
-                "can't parse command. Received command is too short.");
+                "can't parse command. "
+                    "Received command is too short.");
     }
 
     try {
@@ -129,8 +134,6 @@ void CreditUsageCommand::parse(
                 "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 
-
-    size_t purposeTokenStartPosition;
     for (size_t i = NodeUUID::kHexSize+1; i < command.length(); ++i) {
         if (command.at(i) == kTokensSeparator ||
             command.at(i) == kCommandsSeparator ||
@@ -154,58 +157,44 @@ void CreditUsageCommand::parse(
                         "Received 'Amount' can't be 0.");
             }
 
-            purposeTokenStartPosition = i + 1;
+            // Command amount parsed well
             break;
         }
     }
 }
 
-const size_t CreditUsageCommand::kMinRequestedBufferSize()
-{
-    static const size_t size =
-            kOffsetToInheritedBytes()
-            + NodeUUID::kBytesSize
-            + kTrustLineAmountBytesCount;
+// TODO: deprecated
+//const size_t CreditUsageCommand::kMinRequestedBufferSize()
+//{
+//    static const size_t size =
+//            kOffsetToInheritedBytes()
+//            + NodeUUID::kBytesSize
+//            + kTrustLineAmountBytesCount;
+//
+//    return size;
+//}
 
-    return size;
+CommandResult::SharedConst CreditUsageCommand::responseOK() const
+{
+    return makeResult(200);
 }
 
-CommandResult::SharedConst CreditUsageCommand::resultOK() const
+CommandResult::SharedConst CreditUsageCommand::responseProtocolError() const
 {
-    return CommandResult::SharedConst(
-        new CommandResult(
-            UUID(),
-            CreditUsageCommand::OK));
+    return makeResult(401);
 }
 
-CommandResult::SharedConst CreditUsageCommand::resultNoPaths() const
+CommandResult::SharedConst CreditUsageCommand::responseInsufficientFunds() const
 {
-    return CommandResult::SharedConst(
-        new CommandResult(
-            UUID(),
-            CreditUsageCommand::NoPaths));
+    return makeResult(412);
 }
 
-CommandResult::SharedConst CreditUsageCommand::resultNoResponse() const
+CommandResult::SharedConst CreditUsageCommand::responseRemoteNodeIsInaccessible() const
 {
-    return CommandResult::SharedConst(
-        new CommandResult(
-            UUID(),
-            CreditUsageCommand::RemoteNodeIsInaccessible));
+    return makeResult(444);
 }
 
-CommandResult::SharedConst CreditUsageCommand::resultProtocolError() const
+CommandResult::SharedConst CreditUsageCommand::responseNoRoutes() const
 {
-    return CommandResult::SharedConst(
-        new CommandResult(
-            UUID(),
-            CreditUsageCommand::ProtocolError));
-}
-
-CommandResult::SharedConst CreditUsageCommand::resultInsufficientFundsError() const
-{
-    return CommandResult::SharedConst(
-        new CommandResult(
-            UUID(),
-            CreditUsageCommand::InsufficientFunds));
+    return makeResult(462);
 }
