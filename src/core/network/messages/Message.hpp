@@ -50,6 +50,7 @@ public:
         Payments_IntermediateNodeReservationRequest,
         Payments_IntermediateNodeReservationResponse,
 
+        Payments_ParticipantsApprove,
 
 
         InitiateMaxFlowCalculationMessageType,

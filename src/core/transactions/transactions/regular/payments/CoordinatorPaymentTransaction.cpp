@@ -203,7 +203,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::initPaymentOperation()
 {
-    info() << "Operation intialised to the node (" << mCommand->contractorUUID() << ")";
+    info() << "Operation initialised to the node (" << mCommand->contractorUUID() << ")";
     info() << "Command UUID: " << mCommand->UUID();
     info() << "Operation amount: " << mCommand->amount();
 
@@ -321,6 +321,70 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmounts(
             "CoordinatorPaymentTransaction::tryReserveAmounts: "
             "unexpected reservations stage occured.");
     }
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::processApprovesCollectingStage()
+{
+    mStep = Stages::ApprovesCollecting;
+    info() << "Approves collecting stage started.";
+
+
+    const auto kCurrentNodeUUID = nodeUUID();
+    const auto kTransactionUUID = UUID();
+
+    auto message = make_shared<ParticipantsApprovingMessage>(
+        kCurrentNodeUUID,
+        kTransactionUUID);
+
+    size_t totalParticipantsCount = 0;
+    for (const auto &pathUUIDAndPathStats : mPathsStats) {
+        if (! pathUUIDAndPathStats.second->isLastIntermediateNodeProcessed())
+            continue;
+
+        if (! pathUUIDAndPathStats.second->isValid())
+            continue;
+
+        for (const auto &nodeUUID : pathUUIDAndPathStats.second->path()->nodes) {
+            // By the protocol,
+            // coordinator node must be excluded from the message.
+            //
+            // Only coordinator may emit ParticipantsApprovingMessage into the network.
+            // It is supposed, that in case if it was emitted - than coordinator approved the transaction.
+            //
+            // TODO: [mvp] [cryptograpy] despite this, coordinator must sign the message,
+            // so the other nodes would be possible to know that this message was emitted by the coordinator.
+            if (nodeUUID == kCurrentNodeUUID)
+                continue;
+
+            message->addParticipant(nodeUUID);
+            totalParticipantsCount++;
+
+
+            info() << "Node (" << nodeUUID << ") included as participant";
+        }
+    }
+    info() << "Total participants included: " << totalParticipantsCount;
+
+
+    // Sending the message to the first node in votes list.
+    sendMessage(
+        message->firstParticipant(),
+        message);
+
+
+    // Now coordinator node must wait for this message
+    // with all participants approved, or one participant rejected.
+    const auto kTotalProcessingTimeout =
+        (totalParticipantsCount * kMaxMessageTransferLagMSec)
+        + (totalParticipantsCount * 3000); // delay for message processing
+    info() << "Max response waiting timeout for this operation " << kTotalProcessingTimeout;
+
+
+    // Move to the next stage
+    mStep = Stages::ApprovesChecking;
+    return resultWaitForMessageTypes(
+        {Message::Payments_ParticipantsApprove},
+        kTotalProcessingTimeout);
 }
 
 void CoordinatorPaymentTransaction::initAmountsReservationOnNextPath()
@@ -616,9 +680,21 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             info() << "Current path reservation ended";
             info() << "Total collected amount: " << kTotalAmount;
 
-            if (kTotalAmount >= mCommand->amount()){
-                info() << "COLLECTED";
+            if (kTotalAmount > mCommand->amount()){
+                error() << "Total collected amount by all paths: " << kTotalAmount;
+                error() << "Total requested amount: " << mCommand->amount();
+                error() << "Total collected amount is greater than requested amount. "
+                           "It indicates that some of the nodes doesn't follows the protocol, "
+                           "or that an error is present in protocol itself.";
+
                 return resultExit();
+            }
+
+            if (kTotalAmount == mCommand->amount()){
+                info() << "Requested amount collected";
+                info() << "Moving to approves collecting stage";
+
+                return processApprovesCollectingStage();
             }
         }
 
@@ -687,7 +763,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultInsufficient
         mCommand->resultInsufficientFundsError());
 }
 
-pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes()
+pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() const
 {
     throw ValueError("Not implemented");
 }

@@ -1,19 +1,21 @@
 ﻿cmake_minimum_required(VERSION 3.6)
 project(geo_network_client)
 
-
+#
 # Logs configuration
+#
 add_definitions(-DTRANSACTIONS_LOG)
 
+#
 # Debug logs configuration
+#
 #add_definitions(-DNETWORK_DEBUG_LOG)
 add_definitions(-DSCHEDULER_DEBUG_LOG)
-
-# debug max flow calculation logs
 #add_definitions(-DMAX_FLOW_CALCULATION_DEBUG_LOG)
 
-
+#
 # Subsystems configuration
+#
 add_definitions(-DROUTING_TABLES_PROPAGATION_DISABLED)
 
 # todo: change in the release version
@@ -81,6 +83,11 @@ add_subdirectory(src/core/max_flow_calculation)
 add_subdirectory(src/core/delayed_tasks)
 add_subdirectory(src/core/payments/amount_blocks)
 
+#
+# libs
+#
+add_subdirectory(src/libs/sqlite3)
+
 set(SOURCE_FILES
         main.cpp
 
@@ -97,12 +104,8 @@ target_link_libraries(geo_network_client
         ${Boost_SYSTEM_LIBRARY}
         ${Boost_THREAD_LIBRARY}
         Boost::thread
+        libsqlite3
 
-#        common
-#        exceptions
-#        time
-#        memory
-#        multiprecision
         logger
         settings
         network
@@ -110,7 +113,6 @@ target_link_libraries(geo_network_client
         interface__results
 
         db__operations_history_storage
-#        db_tests
 
         io__trust_lines_storage
         io__routing_tables_storage
@@ -119,5 +121,4 @@ target_link_libraries(geo_network_client
         trust_lines
         max_flow_calculation
         delayed_tasks
-        transactions
-)
+        transactions)

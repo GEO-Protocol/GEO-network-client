@@ -1,21 +1,12 @@
 #include "src/core/Core.h"
 
-#define TESTS
+//#define TESTS
 
-#define D_DEBUG
-#ifdef D_DEBUG
-/*#include "src/tests/trust_lines/TrustLinesManagerTests.h"
-{
-    TrustLineDirectionColumnTests tests;
-    tests.run();
-}*/
-
-#endif
 
 #ifdef TESTS
-//#define TESTS__DB__UUID_COLUMN
-//#define TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
-//#define TESTS__ROUTING_TABLE
+#define TESTS__DB__UUID_COLUMN
+#define TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
+#define TESTS__ROUTING_TABLE
 #define TESTS__TRUSTLINES
 #endif
 
