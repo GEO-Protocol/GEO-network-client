@@ -100,8 +100,10 @@ protected:
         Initialisation = 1,
         ReceiverResponseProcessing,
         AmountReservation,
-        ApprovesCollecting,
-        ApprovesChecking,
+        VotesListChecking,
+
+        Commiting,
+        RollingBack,
         Recovering,
     };
 
@@ -110,8 +112,8 @@ protected:
     TransactionResult::SharedConst processPaymentInitialisationStage();
     TransactionResult::SharedConst processReceiverResponseProcessingStage();
     TransactionResult::SharedConst processAmountReservationStage();
-    TransactionResult::SharedConst processApprovesCollectingStage();
-    TransactionResult::SharedConst processApprovesCheckingStage();
+    TransactionResult::SharedConst propagateVotesList();
+    TransactionResult::SharedConst processVotesCheckingStage();
     TransactionResult::SharedConst processRecoveringStage();
 
 protected:

@@ -44,7 +44,7 @@ protected:
         const NodeUUID &neighborNode,
         const TrustLineAmount& amount);
 
-    const bool validateContext(
+    const bool contextIsValid(
         Message::MessageTypeID messageType) const;
 
 protected:

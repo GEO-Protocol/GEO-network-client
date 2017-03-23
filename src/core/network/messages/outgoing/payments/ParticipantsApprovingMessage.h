@@ -37,6 +37,8 @@ public:
     const NodeUUID& nextParticipant(
         const NodeUUID &currentNodeUUID) const;
 
+    size_t totalParticipantsCount() const;
+
     const NodeUUID& firstParticipant() const;
 
     Vote vote(

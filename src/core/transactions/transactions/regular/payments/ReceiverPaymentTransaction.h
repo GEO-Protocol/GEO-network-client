@@ -37,10 +37,12 @@ protected:
     enum Stages {
         CoordinatorRequestApprooving = 1,
         AmountReservationsProcessing,
+        VotesChecking,
     };
 
-    TransactionResult::Shared initOperation();
-    TransactionResult::Shared processAmountReservationStage();
+    TransactionResult::Shared runInitialisationStage();
+    TransactionResult::Shared runAmountReservationStage();
+    TransactionResult::Shared runVotesCheckingStage();
 
 private:
     void deserializeFromBytes(
@@ -50,6 +52,10 @@ private:
 
 protected:
     ReceiverInitPaymentRequestMessage::ConstShared mMessage;
+
+    TrustLineAmount mTotalReserved;
+    set<NodeUUID> mNeighborsInvolved;
+
     Logger *mLog;
 };
 

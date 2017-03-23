@@ -193,8 +193,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
     case Stages::AmountReservation:
         return processAmountReservationStage();
 
-    case Stages::ApprovesChecking:
-        return processApprovesCheckingStage();
+    case Stages::VotesListChecking:
+        return processVotesCheckingStage();
 
     case Stages::Recovering:
         return processRecoveringStage();
@@ -273,7 +273,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processPaymentInit
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processReceiverResponseProcessingStage()
 {
-    if (! validateContext(Message::Payments_ReceiverInitPaymentResponse)){
+    if (! contextIsValid(Message::Payments_ReceiverInitPaymentResponse)){
         info() << "Can't proceed. Canceling.";
         return resultNoResponseError();
     }
@@ -329,12 +329,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processAmountReser
     }
 }
 
-TransactionResult::SharedConst CoordinatorPaymentTransaction::processApprovesCollectingStage()
+/**
+ * @brief CoordinatorPaymentTransaction::propagateVotesList
+ * Collects all nodes from all paths into one votes list, and
+ * propagates it to the next node in the votes list.
+ */
+TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList()
 {
-    mStep = Stages::ApprovesCollecting;
-    info() << "Approves collecting stage started.";
-
-
     const auto kCurrentNodeUUID = nodeUUID();
     const auto kTransactionUUID = UUID();
 
@@ -344,11 +345,20 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processApprovesCol
 
     uint16_t totalParticipantsCount = 0;
     for (const auto &pathUUIDAndPathStats : mPathsStats) {
+        // If paths wasn't processed - exlude nodes from it.
+        //
+        // Unprocessed paths may occure, because paths are loaded into the tranasction in batch,
+        // some of them may be used, and some may be left.
         if (! pathUUIDAndPathStats.second->isLastIntermediateNodeProcessed())
             continue;
 
+        // If path was dropped - exclude all nodes from it.
+        //
+        // Paths may be dropped in case if some node doesn't approved reservation,
+        // or, in case if there is no free amount on it.
         if (! pathUUIDAndPathStats.second->isValid())
             continue;
+
 
         for (const auto &nodeUUID : pathUUIDAndPathStats.second->path()->nodes) {
             // By the protocol,
@@ -364,13 +374,20 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processApprovesCol
 
             message->addParticipant(nodeUUID);
             totalParticipantsCount++;
-
-
-            info() << "Node (" << nodeUUID << ") included as participant";
         }
     }
     info() << "Total participants included: " << totalParticipantsCount;
 
+#ifdef DEBUG
+    info() << "Participants order is the next:";
+    try {
+        NodeUUID nextParticipantUUID = kCurrentNodeUUID;
+        for (;;) {
+            nextParticipantUUID = message->nextParticipant(nextParticipantUUID);
+            info() << nextParticipantUUID;
+        }
+    } catch (NotFoundError) {}
+#endif
 
     // Sending the message to the first node in votes list.
     sendMessage(
@@ -387,13 +404,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processApprovesCol
 
 
     // Move to the next stage
-    mStep = Stages::ApprovesChecking;
+    mStep = Stages::VotesListChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
         kTotalProcessingTimeout);
 }
 
-TransactionResult::SharedConst CoordinatorPaymentTransaction::processApprovesCheckingStage() {
+TransactionResult::SharedConst CoordinatorPaymentTransaction::processVotesCheckingStage() {
     info() << "exit";
 
     return exit();
@@ -565,7 +582,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmountReservationResponse()
 {
-    if (! validateContext(Message::Payments_IntermediateNodeReservationResponse)) {
+    if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
         info() << "Switching to another path.";
         return tryProcessNextPath();
     }
@@ -592,7 +609,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFurtherReservationResponse()
 {
-    if (! validateContext(Message::Payments_CoordinatorReservationResponse)) {
+    if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)) {
         info() << "Switching to another path.";
         return tryProcessNextPath();
     }
@@ -652,7 +669,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeResponse()
 {
-    if (! validateContext(Message::Payments_CoordinatorReservationResponse)){
+    if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)){
         info() << "Switching to another path.";
         return tryProcessNextPath();
     }
@@ -710,11 +727,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                 info() << "Requested amount collected";
                 info() << "Moving to approves collecting stage";
 
-                return processApprovesCollectingStage();
+                return propagateVotesList();
             }
         }
 
         info() << "Switching to another path";
+
+        mStep = Stages::ApprovesCollecting;
         return tryReserveNextNodeAmount(path);
     }
 }

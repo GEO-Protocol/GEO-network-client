@@ -238,3 +238,8 @@ bool ParticipantsApprovingMessage::containsRejectVote() const {
     return false;
 }
 
+
+size_t ParticipantsApprovingMessage::totalParticipantsCount() const
+{
+    return mVotes.size();
+}

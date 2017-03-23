@@ -107,7 +107,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 {
     info() << "Processing coordinator request";
 
-    if (! validateContext(Message::Payments_CoordinatorReservationRequest)) {
+    if (! contextIsValid(Message::Payments_CoordinatorReservationRequest)) {
         return exit();
     }
 
@@ -165,7 +165,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
 {
-    if (! validateContext(Message::Payments_IntermediateNodeReservationResponse)) {
+    if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
         return exit();
     }
 
@@ -348,13 +348,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesProce
 {
     // If no votes message is present - transaction must be stopped.
     // All amount reservations would be automatically dropped.
-    if (!validateContext(Message::Payments_ParticipantsVotes)) {
+    if (!contextIsValid(Message::Payments_ParticipantsVotes)) {
         error() << "No participants votes received. Canceling.";
         return exit();
     }
-
-    // ToDo: check if node may sign the message (previous nodes processing)
-
 
     const auto kCurrentNodeUUID = nodeUUID();
     auto message = popNextMessage<ParticipantsApprovingMessage>();
@@ -363,23 +360,56 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesProce
         return exit();
     }
 
+    // ToDo: check if node may sign the message
+    // (previous nodes processing, etc)
+
+    // TODO: check behavioud when message wasn't approved
+
     try {
         message->approve(kCurrentNodeUUID);
-    } catch (NotFoundError &) {
-        // It seems that current node doesn't listed in votes list.
-        // But the transaction can't achieve this stage in case if message was misdelivered.
-        // It may indicate that some node in path modified the message.
-        return exit();
-    }
 
-    if (message->)
+    } catch (NotFoundError &) {
+        // It seems that current node wasn't listed in votes list.
+        // This behavoud is possible only in case when one node takes part in 2 parallel transactions
+        // that have the common UUID (transactions UUID collision).
+        // The probability of this case is very small, but is present.
+        //
+        // In this case - the message must be simply ignored.
+
+        clearContext();
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes}, 3000);
+    }
 
     try {
+        // Try to get next participant from the message.
+        // In case if this node is the last node in votes list -
+        // then transaction is almost ready to be closed.
+        // Success propagation step is needed.
         const auto kNextParticipant = message->nextParticipant(kCurrentNodeUUID);
+
+        // Current node is not last in the votes list.
+        // Message must be transferred to the next node in the list.
+        sendMessage(
+            kNextParticipant,
+            message);
+
+        auto const kExpectedNodeProcessingDelay = 1500; // msec
+        auto kMaxTimeout =
+            (message->totalParticipantsCount() * kMaxMessageTransferLagMSec)
+            + (message->totalParticipantsCount() * kExpectedNodeProcessingDelay);
+
+        // Transaction must wait for next message, that must be already signed.
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes}, kMaxTimeout);
+
     } catch (NotFoundError &) {
-        // There are no nodes left in this votes list.
+        // There are no nodes left in this votes list,
+        // so the current one is the last one.
+        //
+        // Message is aproved, and this means that other nodes has been approved it too.
+        // Sucess propagation must be done now.
+
+        info() << "Success propagation step!";
     }
-
-    sendMessage(message.)
-
 }
