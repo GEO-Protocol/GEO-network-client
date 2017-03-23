@@ -3,10 +3,12 @@
 
 #include "../../common/NodeUUID.h"
 #include "../../logger/Logger.h"
+#include "../../common/exceptions/IOError.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
 #include <vector>
+#include <tuple>
 
 class RoutingTableHandler {
 
@@ -32,11 +34,11 @@ public:
     void rollBack();
 
     void insert(
-        const NodeUUID &leftNode,
-        const NodeUUID &rightNode,
-        DirectionType directionType);
+        const NodeUUID &source,
+        const NodeUUID &destination,
+        DirectionType direction);
 
-    vector<NodeUUID> leftNodes();
+    vector<tuple<NodeUUID, NodeUUID, RoutingTableHandler::DirectionType>> routeRecords();
 
 private:
 
@@ -44,9 +46,7 @@ private:
 
     const string createIndexQuery(string fieldName) const;
 
-    const string insertHeaderQuery() const;
-
-    const string insertBodyQuery() const;
+    const string insertQuery() const;
 
     const string selectQuery() const;
 
@@ -62,9 +62,7 @@ private:
     string mTableName;
     sqlite3_stmt *stmt;
     Logger *mLog;
-    vector<NodeUUID> mLeftNodes;
-    vector<NodeUUID> mRightNodes;
-    vector<DirectionType> mDirections;
+    bool isTransactionBegin;
 
 };
 

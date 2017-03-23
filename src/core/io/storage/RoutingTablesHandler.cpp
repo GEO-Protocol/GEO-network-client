@@ -3,30 +3,16 @@
 RoutingTablesHandler::RoutingTablesHandler(
     sqlite3 *db,
     Logger *logger):
-    mLog(logger){
+    mRoutingTable2Level(db, kRT2TableName, logger),
+    mRoutingTable3Level(db, kRT3TableName, logger),
+    mLog(logger){}
 
-    mRoutingTable2Level = new RoutingTableHandler(
-        db,
-        kRT2TableName,
-        mLog);
-    mRoutingTable3Level = new RoutingTableHandler(
-        db,
-        kRT3TableName,
-        mLog);
+RoutingTableHandler* RoutingTablesHandler::routingTable2Level() {
+
+    return &mRoutingTable2Level;
 }
 
-RoutingTablesHandler::~RoutingTablesHandler() {
+RoutingTableHandler* RoutingTablesHandler::routingTable3Level() {
 
-    delete mRoutingTable2Level;
-    delete mRoutingTable3Level;
-}
-
-RoutingTableHandler* RoutingTablesHandler::routingTable2Level() const {
-
-    return mRoutingTable2Level;
-}
-
-RoutingTableHandler* RoutingTablesHandler::routingTable3Level() const {
-
-    return mRoutingTable3Level;
+    return &mRoutingTable3Level;
 }

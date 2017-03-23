@@ -13,22 +13,19 @@ public:
         sqlite3 *db,
         Logger *logger);
 
-    ~RoutingTablesHandler();
+    RoutingTableHandler* routingTable2Level();
 
-    RoutingTableHandler* routingTable2Level() const;
-
-    RoutingTableHandler* routingTable3Level() const;
+    RoutingTableHandler* routingTable3Level();
 
 private:
 
-    string kRT2TableName = "RT2";
+    const string kRT2TableName = "RT2";
 
-    string kRT3TableName = "RT3";
+    const string kRT3TableName = "RT3";
 
 private:
-
-    RoutingTableHandler *mRoutingTable2Level;
-    RoutingTableHandler *mRoutingTable3Level;
+    RoutingTableHandler mRoutingTable2Level;
+    RoutingTableHandler mRoutingTable3Level;
     Logger *mLog;
 
 };

@@ -4,6 +4,7 @@
 #include "../../logger/Logger.h"
 #include "RoutingTablesHandler.h"
 #include "RoutingTableHandler.h"
+#include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 
 #include <boost/filesystem.hpp>
@@ -22,49 +23,31 @@ public:
 
     ~StorageHandler();
 
-    void insertRT2(
-        const NodeUUID &leftNode,
-        const NodeUUID &rightNode,
-        RoutingTableHandler::DirectionType direction) const;
-
-    void insertRT3(
-        const NodeUUID &leftNode,
-        const NodeUUID &rightNode,
-        RoutingTableHandler::DirectionType direction) const;
-
-    void commit() const;
-
-    void rollback() const;
-
-    void prepareInsertred() const;
-
-    RoutingTablesHandler *routingTablesHandler() const;
-
-    vector<NodeUUID> leftNodesRT2() const;
-
-    vector<NodeUUID> leftNodesRT3() const;
-
-private:
-
-    void checkDirectory();
-
-    void openConnection();
+    RoutingTablesHandler* routingTablesHandler();
 
     void closeConnection();
 
-    LoggerStream info() const;
+private:
 
-    LoggerStream error() const;
+    static void checkDirectory(
+        const string &directory);
+
+    static sqlite3* connection(
+        const string &dataBaseName,
+        const string &directory);
+
+    LoggerStream info() const;
 
     const string logHeader() const;
 
 private:
-    const char *kDataBaseName = "io/storage_handler/myDB";
+
+    static sqlite3 *mDataBase;
 
 private:
-    sqlite3 *mDataBase;
+
     Logger *mLog;
-    RoutingTablesHandler *mRoutingTablesHandler;
+    RoutingTablesHandler mRoutingTablesHandler;
     string mDirectory;
     string mDataBaseName;
     string mDataBasePath;
