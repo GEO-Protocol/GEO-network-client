@@ -17,18 +17,7 @@ int Core::run() {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
         return initCode;
     }
-
-    StorageHandler *storageHandler = new StorageHandler(&mLog);
-    cout << mNodeUUID << endl;
-    storageHandler->insertRT2(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Both);
-    storageHandler->rollback();
-    storageHandler->insertRT2(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Incoming);
-    storageHandler->commit();
-
-    vector<NodeUUID> leftNodes = storageHandler->leftNodesRT2();
-    cout << leftNodes.size() << endl;
-    cout << leftNodes.at(0).stringUUID() << endl;
-    delete storageHandler;
+    testStorageHandler();
     try {
         writePIDFile();
 
@@ -108,6 +97,10 @@ int Core::initCoreComponents() {
         return initCode;
 
     initCode = initDelayedTasks();
+    if (initCode != 0)
+        return initCode;
+
+    initCode = initStorageHandler();
     if (initCode != 0)
         return initCode;
 
@@ -270,6 +263,22 @@ int Core::initCommandsInterface() {
         mLog.logException("Core", e);
         return -1;
     }
+}
+
+int Core::initStorageHandler() {
+
+    try {
+        mStorageHandler = new StorageHandler(
+            "io/storage_handler",
+            "myDB",
+            &mLog);
+        mLog.logSuccess("Core", "Storage handler is successfully initialised");
+        return 0;
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+
 }
 
 void Core::connectCommunicatorSignals() {
@@ -450,6 +459,10 @@ void Core::cleanupMemory() {
     if (mMaxFlowCalculationCacheUpdateDelayedTask != nullptr) {
         delete mMaxFlowCalculationCacheUpdateDelayedTask;
     }
+
+    if (mStorageHandler != nullptr) {
+        delete mStorageHandler;
+    }
 }
 
 void Core::zeroPointers() {
@@ -465,6 +478,7 @@ void Core::zeroPointers() {
     mMaxFlowCalculationTrustLimeManager = nullptr;
     mMaxFlowCalculationCacheManager = nullptr;
     mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
+    mStorageHandler = nullptr;
 }
 
 //void Core::initTimers() {
@@ -513,4 +527,16 @@ void Core::writePIDFile()
         auto errors = mLog.error("Core");
         errors << "Can't write/update pid file. Error message is: " << e.what();
     }
+}
+
+void Core::testStorageHandler() {
+    cout << mNodeUUID << endl;
+    mStorageHandler->insertRT2(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Both);
+    mStorageHandler->rollback();
+    mStorageHandler->insertRT2(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Incoming);
+    mStorageHandler->commit();
+
+    vector<NodeUUID> leftNodes = mStorageHandler->leftNodesRT2();
+    cout << leftNodes.size() << endl;
+    cout << leftNodes.at(0).stringUUID() << endl;
 }

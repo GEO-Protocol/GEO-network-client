@@ -128,7 +128,6 @@ void RoutingTableHandler::rollBack() {
     mLeftNodes.clear();
     mRightNodes.clear();
     mDirections.clear();
-    //sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
 }
 
@@ -138,7 +137,6 @@ void RoutingTableHandler::prepareInsertred() {
     mLeftNodes.clear();
     mRightNodes.clear();
     mDirections.clear();
-    sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
 }
 

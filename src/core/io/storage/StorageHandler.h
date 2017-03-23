@@ -6,11 +6,19 @@
 #include "RoutingTableHandler.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 
+#include <boost/filesystem.hpp>
+#include <vector>
+
+namespace fs = boost::filesystem;
+
 class StorageHandler {
 
 public:
 
-    StorageHandler(Logger *logger);
+    StorageHandler(
+        const string &directory,
+        const string &dataBaseName,
+        Logger *logger);
 
     ~StorageHandler();
 
@@ -38,6 +46,8 @@ public:
 
 private:
 
+    void checkDirectory();
+
     void openConnection();
 
     void closeConnection();
@@ -49,12 +59,15 @@ private:
     const string logHeader() const;
 
 private:
-    const char *kDataBaseName = "myDB";
+    const char *kDataBaseName = "io/storage_handler/myDB";
 
 private:
     sqlite3 *mDataBase;
     Logger *mLog;
     RoutingTablesHandler *mRoutingTablesHandler;
+    string mDirectory;
+    string mDataBaseName;
+    string mDataBasePath;
 
 };
 

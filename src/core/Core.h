@@ -65,6 +65,8 @@ private:
 
     int initDelayedTasks();
 
+    int initStorageHandler();
+
     void connectCommunicatorSignals();
 
     void connectTrustLinesManagerSignals();
@@ -102,6 +104,9 @@ private:
 
     void writePIDFile();
 
+    // TODO: remove after testing
+    void testStorageHandler();
+
 protected:
     Logger mLog;
 
@@ -119,6 +124,7 @@ protected:
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLimeManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     MaxFlowCalculationCacheUpdateDelayedTask *mMaxFlowCalculationCacheUpdateDelayedTask;
+    StorageHandler *mStorageHandler;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

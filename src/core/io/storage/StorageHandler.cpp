@@ -1,8 +1,16 @@
 #include "StorageHandler.h"
 
-StorageHandler::StorageHandler(Logger *logger):
-        mLog(logger) {
+StorageHandler::StorageHandler(
+    const string &directory,
+    const string &dataBaseName,
+    Logger *logger):
 
+    mDirectory(directory),
+    mDataBaseName(dataBaseName),
+    mDataBasePath(mDirectory + "/" + dataBaseName),
+    mLog(logger) {
+
+    checkDirectory();
     openConnection();
     mRoutingTablesHandler = new RoutingTablesHandler(
         mDataBase,
@@ -10,7 +18,7 @@ StorageHandler::StorageHandler(Logger *logger):
 }
 
 void StorageHandler::openConnection() {
-    int rc = sqlite3_open_v2(kDataBaseName, &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    int rc = sqlite3_open_v2(mDataBasePath.c_str(), &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
     if (rc == SQLITE_OK) {
         info() << "Opened database successfully";
     } else {
@@ -19,6 +27,7 @@ void StorageHandler::openConnection() {
 }
 
 StorageHandler::~StorageHandler() {
+    closeConnection();
     delete mRoutingTablesHandler;
 }
 
@@ -78,8 +87,16 @@ vector<NodeUUID> StorageHandler::leftNodesRT3() const {
 }
 
 void StorageHandler::closeConnection() {
-    sqlite3_close(mDataBase);
+    sqlite3_close_v2(mDataBase);
     info() << "Connection closed";
+}
+
+void StorageHandler::checkDirectory() {
+
+    if (!fs::is_directory(fs::path(mDirectory))){
+        fs::create_directories(
+            fs::path(mDirectory));
+    }
 }
 
 LoggerStream StorageHandler::info() const {
