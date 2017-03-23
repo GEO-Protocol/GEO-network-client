@@ -6,7 +6,7 @@ CoordinatorPaymentTransaction::PathStats::PathStats(
 
     mPath(path),
     mIntermediateNodesStates(
-        path->length()-2, // intermediate nodes count
+        path->length()-2, // edge nodes (sorce and destination) substructed
         ReservationRequestDoesntSent),
     mMaxPathFlow(0),
     mIsValid(true)
@@ -184,14 +184,20 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 {
     switch (mStep) {
-    case Stages::ReceiverPaymentInitialisation:
-        return initPaymentOperation();
+    case Stages::Initialisation:
+        return processPaymentInitialisationStage();
 
     case Stages::ReceiverResponseProcessing:
-        return processReceiverResponse();
+        return processReceiverResponseProcessingStage();
 
     case Stages::AmountReservation:
-        return tryReserveAmounts();
+        return processAmountReservationStage();
+
+    case Stages::ApprovesChecking:
+        return processApprovesCheckingStage();
+
+    case Stages::Recovering:
+        return processRecoveringStage();
 
     default:
         throw RuntimeError(
@@ -201,7 +207,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 }
 
 
-TransactionResult::SharedConst CoordinatorPaymentTransaction::initPaymentOperation()
+TransactionResult::SharedConst CoordinatorPaymentTransaction::processPaymentInitialisationStage()
 {
     info() << "Operation initialised to the node (" << mCommand->contractorUUID() << ")";
     info() << "Command UUID: " << mCommand->UUID();
@@ -265,7 +271,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::initPaymentOperati
         kMaxMessageTransferLagMSec);
 }
 
-TransactionResult::SharedConst CoordinatorPaymentTransaction::processReceiverResponse()
+TransactionResult::SharedConst CoordinatorPaymentTransaction::processReceiverResponseProcessingStage()
 {
     if (! validateContext(Message::Payments_ReceiverInitPaymentResponse)){
         info() << "Can't proceed. Canceling.";
@@ -276,7 +282,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processReceiverRes
     const auto kMessage = popNextMessage<ReceiverInitPaymentResponseMessage>();
     if (! kMessage->state() == ReceiverInitPaymentResponseMessage::Accepted) {
         info() << "Receiver rejected payment operation. Canceling.";
-        return resultExit();
+        return exit();
     }
 
     info() << "Receiver accepted operation. Moving to amounts reservation stage.";
@@ -285,7 +291,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processReceiverRes
     return resultFlushAndContinue();
 }
 
-TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmounts()
+TransactionResult::SharedConst CoordinatorPaymentTransaction::processAmountReservationStage()
 {
     switch (mReservationsStage) {
     case 0: {
@@ -312,13 +318,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmounts(
                 return processRemoteNodeResponse();
 
             throw RuntimeError(
-                "CoordinatorPaymentTransaction::tryReserveAmounts: "
+                "CoordinatorPaymentTransaction::processAmountReservationStage: "
                 "unexpected behaviour occured.");
         }
 
     default:
         throw ValueError(
-            "CoordinatorPaymentTransaction::tryReserveAmounts: "
+            "CoordinatorPaymentTransaction::processAmountReservationStage: "
             "unexpected reservations stage occured.");
     }
 }
@@ -336,7 +342,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processApprovesCol
         kCurrentNodeUUID,
         kTransactionUUID);
 
-    size_t totalParticipantsCount = 0;
+    uint16_t totalParticipantsCount = 0;
     for (const auto &pathUUIDAndPathStats : mPathsStats) {
         if (! pathUUIDAndPathStats.second->isLastIntermediateNodeProcessed())
             continue;
@@ -374,17 +380,27 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processApprovesCol
 
     // Now coordinator node must wait for this message
     // with all participants approved, or one participant rejected.
-    const auto kTotalProcessingTimeout =
+    const uint32_t kTotalProcessingTimeout =
         (totalParticipantsCount * kMaxMessageTransferLagMSec)
         + (totalParticipantsCount * 3000); // delay for message processing
-    info() << "Max response waiting timeout for this operation " << kTotalProcessingTimeout;
+    info() << "Max response waiting timeout for this operation " << kTotalProcessingTimeout << "msec.";
 
 
     // Move to the next stage
     mStep = Stages::ApprovesChecking;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsApprove},
+        {Message::Payments_ParticipantsVotes},
         kTotalProcessingTimeout);
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::processApprovesCheckingStage() {
+    info() << "exit";
+
+    return exit();
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::processRecoveringStage() {
+    return exit();
 }
 
 void CoordinatorPaymentTransaction::initAmountsReservationOnNextPath()
@@ -571,7 +587,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         1, PathStats::NeighbourReservationApproved);
 
 
-    return tryReserveAmounts();
+    return processAmountReservationStage();
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFurtherReservationResponse()
@@ -598,7 +614,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     info() << "Path max flow is now " << path->maxFlow();
 
 
-    return tryReserveAmounts();
+    return processAmountReservationStage();
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApproveReservation(
@@ -687,7 +703,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                            "It indicates that some of the nodes doesn't follows the protocol, "
                            "or that an error is present in protocol itself.";
 
-                return resultExit();
+                return exit();
             }
 
             if (kTotalAmount == mCommand->amount()){
@@ -707,7 +723,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
 {
     try {
         switchToNextPath();
-        return tryReserveAmounts();
+        return processAmountReservationStage();
 
     } catch (Exception &e) {
         info() << "No another paths are available. Canceling.";
@@ -736,41 +752,42 @@ void CoordinatorPaymentTransaction::switchToNextPath()
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultOK()
 {
     return transactionResultFromCommand(
-        mCommand->resultOK());
+            mCommand->responseOK());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoPathsError()
 {
     return transactionResultFromCommand(
-        mCommand->resultNoPaths());
+            mCommand->responseNoRoutes());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultProtocolError()
 {
     return transactionResultFromCommand(
-        mCommand->resultProtocolError());
+            mCommand->responseProtocolError());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoResponseError()
 {
     return transactionResultFromCommand(
-        mCommand->resultNoResponse());
+            mCommand->responseRemoteNodeIsInaccessible());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultInsufficientFundsError()
 {
     return transactionResultFromCommand(
-        mCommand->resultInsufficientFundsError());
+            mCommand->responseInsufficientFunds());
 }
 
 pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() const
 {
-    throw ValueError("Not implemented");
+    // todo: add implementation
+    return make_pair(make_shared<byte>(0), 0);
 }
 
 void CoordinatorPaymentTransaction::deserializeFromBytes(BytesShared buffer)
 {
-    throw ValueError("Not implemented");
+    // todo: add implementation
 }
 
 TrustLineAmount CoordinatorPaymentTransaction::totalReservedByAllPaths() const

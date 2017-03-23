@@ -58,7 +58,7 @@ void BaseTransaction::launchSubsidiaryTransaction(
     );
 }
 
-TransactionResult::Shared BaseTransaction::resultExit()
+TransactionResult::Shared BaseTransaction::exit()
 {
     return make_shared<TransactionResult>(
         TransactionState::exit());
@@ -71,8 +71,8 @@ TransactionResult::Shared BaseTransaction::resultFlushAndContinue()
 }
 
 TransactionResult::Shared BaseTransaction::resultWaitForMessageTypes(
-    vector<Message::MessageTypeID> &&requiredMessagesTypes,
-    uint16_t noLongerThanMilliseconds)
+        vector<Message::MessageTypeID> &&requiredMessagesTypes,
+        uint32_t noLongerThanMilliseconds)
 {
     return make_shared<TransactionResult>(
         TransactionState::waitForMessageTypes(

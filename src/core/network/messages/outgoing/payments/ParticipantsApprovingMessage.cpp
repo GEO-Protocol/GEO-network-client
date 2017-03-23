@@ -77,7 +77,7 @@ ParticipantsApprovingMessage::Vote ParticipantsApprovingMessage::vote(
 
 const Message::MessageType ParticipantsApprovingMessage::typeID() const
 {
-    return Message::Payments_ParticipantsApprove;
+    return Message::Payments_ParticipantsVotes;
 }
 
 /**
@@ -194,3 +194,47 @@ void ParticipantsApprovingMessage::deserializeFromBytes(
         currentOffset += kParticipantRecordSize;
     }
 }
+
+/**
+ * Sets vote of the "participant" to "rejected".
+ * Checks if "participant" is listed in votes list.
+ *
+ * @throws NotFoundError - in case if received "participant" doesn't listed in votes list.
+ */
+void ParticipantsApprovingMessage::reject(
+    const NodeUUID &participant) const
+{
+    if (! mVotes.count(participant) != 1)
+        throw NotFoundError(
+                "ParticipantsApprovingMessage::reject: "
+                "received participant doesn't listed in votes list.");
+
+    mVotes[participant] = Vote::Rejected;
+}
+
+/**
+ * Sets vote of the "participant" to "approved".
+ * Checks if "participant" is listed in votes list.
+ *
+ * @throws NotFoundError - in case if received "participant" doesn't listed in votes list.
+ */
+void ParticipantsApprovingMessage::approve(
+    const NodeUUID &participant) const
+{
+    if (! mVotes.count(participant) != 1)
+        throw NotFoundError(
+                "ParticipantsApprovingMessage::reject: "
+                        "received participant doesn't listed in votes list.");
+
+    mVotes[participant] = Vote::Approved;
+}
+
+bool ParticipantsApprovingMessage::containsRejectVote() const {
+    for (const auto &participantAndVote : mVotes) {
+        if (participantAndVote.second == Vote::Rejected)
+            return true;
+    }
+
+    return false;
+}
+

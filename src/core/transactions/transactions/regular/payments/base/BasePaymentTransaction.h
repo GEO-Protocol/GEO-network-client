@@ -36,12 +36,6 @@ public:
         Logger *log);
 
 protected:
-//    ConstSharedTrustLineAmount availableAmount(
-//        const NodeUUID &neighborNode);
-
-//    ConstSharedTrustLineAmount availableIncomingAmount(
-//        const NodeUUID &neighborNode);
-
     const bool reserveAmount(
         const NodeUUID &neighborNode,
         const TrustLineAmount& amount);

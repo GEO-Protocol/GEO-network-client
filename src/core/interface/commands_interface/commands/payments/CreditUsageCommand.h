@@ -3,6 +3,8 @@
 
 #include "../BaseUserCommand.h"
 
+#include "../../../../common/multiprecision/MultiprecisionUtils.h"
+
 #include "../../../../common/exceptions/ValueError.h"
 #include "../../../../common/exceptions/MemoryError.h"
 

@@ -1,5 +1,6 @@
 ﻿#include "BasePaymentTransaction.h"
 
+
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     const NodeUUID &currentNodeUUID,
@@ -11,9 +12,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines)
-{
-    cout << "\n\n BASE: " << mTrustLines << "\n\n" << endl;
-}
+{}
 
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
@@ -28,9 +27,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines)
-{
-    cout << "\n\n BASE: " << mTrustLines << "\n\n" << endl;
-}
+{}
 
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
@@ -42,21 +39,20 @@ BasePaymentTransaction::BasePaymentTransaction(
         type,
         log),
     mTrustLines(trustLines)
-{
-    cout << "\n\n BASE: " << mTrustLines << "\n\n" << endl;
-}
+{}
 
 const bool BasePaymentTransaction::reserveAmount(
     const NodeUUID& neighborNode,
     const TrustLineAmount& amount)
 {
     try {
-        // TODO: store reservation into internal storage to be able to serialize/deserialize it.
         mTrustLines->reserveAmount(
             neighborNode,
             UUID(),
             amount);
         return true;
+
+        // TODO: store reservation into internal storage to be able to serialize/deserialize it.
 
     } catch (Exception &) {}
 
@@ -68,12 +64,13 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
     const TrustLineAmount& amount)
 {
     try {
-        // TODO: store reservation into internal storage to be able to serialize/deserialize it.
         mTrustLines->reserveIncomingAmount(
             neighborNode,
             UUID(),
             amount);
         return true;
+
+        // TODO: store reservation into internal storage to be able to serialize/deserialize it.
 
     } catch (Exception &) {}
 
@@ -87,7 +84,6 @@ const bool BasePaymentTransaction::validateContext(
         error() <<"Transaction context is empty. No messages was received. Canceling.";
         return false;
     }
-
 
     if (mContext.size() > 1 || mContext.at(0)->typeID() != messageType) {
         error() << "Unexpected message received. "

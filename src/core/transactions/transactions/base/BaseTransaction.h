@@ -39,11 +39,11 @@ public:
 
 public:
     // TODO: add othe states shortcuts here
-    TransactionResult::Shared resultExit();
+    TransactionResult::Shared exit();
     TransactionResult::Shared resultFlushAndContinue();
     TransactionResult::Shared resultWaitForMessageTypes(
-        vector<Message::MessageTypeID> &&requiredMessagesTypes,
-        uint16_t noLongerThanMilliseconds);
+            vector<Message::MessageTypeID> &&requiredMessagesTypes,
+            uint32_t noLongerThanMilliseconds);
 
 public:
     ~BaseTransaction() = default;
@@ -113,7 +113,7 @@ protected:
         const TransactionUUID &transactionUUID,
         Logger *log=nullptr);
 
-    [[deprecated("Use constructor with currentNodeUUID instead.")]]
+    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,

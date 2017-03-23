@@ -1,15 +1,11 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 #define GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 
-#include "../../common/Types.h"
-#include "../../common/memory/MemoryUtils.h"
 
-#include "../channels/packet/PacketHeader.h"
 #include "../channels/packet/Packet.h"
 #include "../channels/channel/Channel.h"
 #include "../channels/manager/ChannelsManager.h"
 
-#include "../messages/Message.hpp"
 #include "../messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 #include "../messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../messages/incoming/trust_lines/RejectTrustLineMessage.h"
@@ -28,6 +24,7 @@
 #include "../messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
+#include "../messages/outgoing/payments/ParticipantsApprovingMessage.h"
 #include "../messages/cycles/InBetweenNodeTopologyMessage.h"
 #include "../messages/cycles/BoundaryNodeTopologyMessage.h"
 #include "../messages/response/Response.h"
@@ -40,9 +37,6 @@
 
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
-
-#include <memory>
-#include <vector>
 
 
 using namespace std;

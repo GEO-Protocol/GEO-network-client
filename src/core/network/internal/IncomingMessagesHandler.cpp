@@ -114,6 +114,10 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             return messageCollected<IntermediateNodeReservationResponseMessage>(messagePart);
         }
 
+        case Message::Payments_ParticipantsVotes: {
+            return messageCollected<ParticipantsApprovingMessage>(messagePart);
+        }
+
         /*
          * Cycles processing messages
          */

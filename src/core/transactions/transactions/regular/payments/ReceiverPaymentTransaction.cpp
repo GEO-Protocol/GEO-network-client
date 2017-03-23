@@ -103,7 +103,7 @@ TransactionResult::Shared ReceiverPaymentTransaction::initOperation()
 TransactionResult::Shared ReceiverPaymentTransaction::processAmountReservationStage()
 {
     if (! validateContext(Message::Payments_IntermediateNodeReservationRequest)) {
-        return resultExit();
+        return exit();
     }
 
 

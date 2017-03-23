@@ -97,20 +97,22 @@ protected:
 
 protected:
     enum Stages {
-        ReceiverPaymentInitialisation = 1,
+        Initialisation = 1,
         ReceiverResponseProcessing,
         AmountReservation,
         ApprovesCollecting,
         ApprovesChecking,
+        Recovering,
     };
 
 
     // Stages handlers
-    TransactionResult::SharedConst initPaymentOperation();
-    TransactionResult::SharedConst processReceiverResponse();
-    TransactionResult::SharedConst tryReserveAmounts();
+    TransactionResult::SharedConst processPaymentInitialisationStage();
+    TransactionResult::SharedConst processReceiverResponseProcessingStage();
+    TransactionResult::SharedConst processAmountReservationStage();
     TransactionResult::SharedConst processApprovesCollectingStage();
-    TransactionResult::SharedConst processTransactionRecovering();
+    TransactionResult::SharedConst processApprovesCheckingStage();
+    TransactionResult::SharedConst processRecoveringStage();
 
 protected:
     // Results handlers

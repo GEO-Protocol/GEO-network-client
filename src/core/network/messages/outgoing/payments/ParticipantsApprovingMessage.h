@@ -42,6 +42,14 @@ public:
     Vote vote(
         const NodeUUID &participant) const;
 
+    void approve(
+        const NodeUUID &participant) const;
+
+    void reject(
+        const NodeUUID &participant) const;
+
+    bool containsRejectVote() const;
+
     const MessageType typeID() const;
 
     virtual pair<BytesShared, size_t> serializeToBytes();

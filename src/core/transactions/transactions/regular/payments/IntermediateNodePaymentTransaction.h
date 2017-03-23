@@ -8,6 +8,7 @@
 #include "../../../../network/messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
+#include "../../../../network/messages/outgoing/payments/ParticipantsApprovingMessage.h"
 
 
 class IntermediateNodePaymentTransaction:
@@ -44,12 +45,14 @@ protected:
         CoordinatorRequestProcessing,
         NextNeighborResponseProcessing,
         ReservationProlongation,
+        VotesProcessing,
     };
 
-    TransactionResult::SharedConst processPreviousNeighborRequest();
-    TransactionResult::SharedConst processCoordinatorRequest();
-    TransactionResult::SharedConst processNextNeighborResponse();
-    TransactionResult::SharedConst processReservationProlongation();
+    TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
+    TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
+    TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
+    TransactionResult::SharedConst runReservationProlongationStage();
+    TransactionResult::SharedConst runVotesProcessingStage();
 
 private:
     void deserializeFromBytes(
