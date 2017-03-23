@@ -4,6 +4,7 @@
 #include "../../common/NodeUUID.h"
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"
+#include "../../common/exceptions/ValueError.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 

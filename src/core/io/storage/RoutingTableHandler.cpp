@@ -205,7 +205,7 @@ vector<tuple<NodeUUID, NodeUUID, RoutingTableHandler::DirectionType>> RoutingTab
     string query = selectQuery();
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::records: "
+        throw IOError("RoutingTableHandler::routeRecords: "
                               "Bad query " + string(sqlite3_errmsg(mDataBase)));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
@@ -232,12 +232,18 @@ vector<tuple<NodeUUID, NodeUUID, RoutingTableHandler::DirectionType>> RoutingTab
                     source,
                     destination,
                     DirectionType::Outgoing));
-        } else {
+        } else if (strcmp(direction, "B") == 0){
             result.push_back(
                 make_tuple(
                     source,
                     destination,
                     DirectionType::Both));
+        } else {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+            error() << "wrong direction during reading from DB";
+#endif
+            throw ValueError("RoutingTableHandler::routeRecords: "
+                                     "Wrong Direction during reading from DB");
         }
     }
     sqlite3_reset(stmt);
