@@ -124,7 +124,7 @@ namespace db {
 
                 if (fread(recordBytesBuffer.get(), 1, Record::kRecordBytesSize, mFileDescriptor) != Record::kRecordBytesSize){
                     if (fread(recordBytesBuffer.get(), 1, Record::kRecordBytesSize, mFileDescriptor) != Record::kRecordBytesSize){
-                        throw IOError("OperationsHistoryStorage::recordsStack. "
+                        throw NotFoundError("OperationsHistoryStorage::recordsStack. "
                                           "Can't read next record from file.");
                     }
                 }
@@ -208,6 +208,11 @@ namespace db {
                 0,
                 SEEK_END);
 
+            if (ftell(mFileDescriptor) == 0) {
+                throw NotFoundError("OperationsHistoryStorage::reverseOffsetToRequestedRecord. "
+                                        "File is empty.");
+            }
+
             while (!isStartOfFile) {
 
                 reverseOffset -= Record::kRecordBytesSize;
@@ -226,7 +231,7 @@ namespace db {
 
                 if (fread(recordBytesBuffer.get(), 1, Record::kRecordBytesSize, mFileDescriptor) != Record::kRecordBytesSize){
                     if (fread(recordBytesBuffer.get(), 1, Record::kRecordBytesSize, mFileDescriptor) != Record::kRecordBytesSize){
-                        throw IOError("OperationsHistoryStorage::reverseOffsetToRequestedRecord. "
+                        throw NotFoundError("OperationsHistoryStorage::reverseOffsetToRequestedRecord. "
                                           "Can't read next record from file.");
                     }
                 }
