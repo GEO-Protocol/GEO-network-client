@@ -32,11 +32,12 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
             info() << "start";
             if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
                 for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->outgoingFlows()) {
+                    auto trustLineAmountShared = nodeUUIDAndTrustLine.second;
                     mMaxFlowCalculationTrustLineManager->addTrustLine(
                         make_shared<MaxFlowCalculationTrustLine>(
                             mNodeUUID,
                             nodeUUIDAndTrustLine.first,
-                            nodeUUIDAndTrustLine.second));
+                            *trustLineAmountShared.get()));
                 }
                 sendMessagesOnFirstLevel();
                 mMaxFlowCalculationCacheManager->setInitiatorCache();

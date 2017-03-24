@@ -128,11 +128,9 @@ public:
 
     vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
 
-    // TODO: TrustLineAmount takes 32 bytes. Are you shure you need a COPY here?
-    vector<pair<NodeUUID, TrustLineAmount>> incomingFlows() const;
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
-    // TODO: TrustLineAmount takes 32 bytes. Are you shure you need a COPY here?
-    vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows() const;
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
 
     [[deprecated("Buggy function. Use trustLineReadOnly instead")]]
     const TrustLine::Shared trustLine(
