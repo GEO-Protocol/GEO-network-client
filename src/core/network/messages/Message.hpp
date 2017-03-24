@@ -63,6 +63,9 @@ public:
         InitiateTotalBalancesMessageType,
         TotalBalancesResultMessageType,
 
+        RequestRoutingTablesMessageType,
+        ResultRoutingTablesMessageType,
+
         ResponseMessageType = 1000,
         RoutingTablesResponseMessageType
     };

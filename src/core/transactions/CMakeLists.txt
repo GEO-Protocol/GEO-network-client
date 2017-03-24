@@ -11,6 +11,7 @@ add_subdirectory(transactions/unique/cycles)
 add_subdirectory(transactions/max_flow_calculation)
 add_subdirectory(transactions/total_balances)
 add_subdirectory(transactions/history)
+add_subdirectory(transactions/find_path)
 
 set(SOURCE_FILES
         transactions/base/TransactionUUID.h)
@@ -28,6 +29,7 @@ target_link_libraries(transactions
         transactions__result
         transactions__total_balances
         transactions__history
+        transactions__find_path
 
         common
         time

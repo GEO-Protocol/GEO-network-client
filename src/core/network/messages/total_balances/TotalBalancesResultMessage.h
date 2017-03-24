@@ -26,8 +26,6 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes();
 
-    const bool isTotalBalancesResponseMessage() const;
-
     const TrustLineAmount& totalIncomingTrust() const;
 
     const TrustLineAmount& totalTrustUsedByContractor() const;

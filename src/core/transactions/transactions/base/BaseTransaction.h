@@ -83,7 +83,10 @@ public:
 
         // History
         HistoryPaymentsTransactionType,
-        HistoryTrustLinesTransactionType
+        HistoryTrustLinesTransactionType,
+
+        // FindPath
+        FindPathTransactionType
 
     };
 

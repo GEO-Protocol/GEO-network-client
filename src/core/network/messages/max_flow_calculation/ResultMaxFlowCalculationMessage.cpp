@@ -96,6 +96,7 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
     bytesBufferOffset += sizeof(uint32_t);
     //-----------------------------------------------------
     mOutgoingFlows.clear();
+    mOutgoingFlows.reserve(*trustLinesOutCount);
     for (int idx = 0; idx < *trustLinesOutCount; idx++) {
         NodeUUID nodeUUID;
         memcpy(
@@ -117,6 +118,7 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
     bytesBufferOffset += sizeof(uint32_t);
     //-----------------------------------------------------
     mIncomingFlows.clear();
+    mIncomingFlows.reserve(*trustLinesInCount);
     for (int idx = 0; idx < *trustLinesInCount; idx++) {
         NodeUUID nodeUUID;
         memcpy(

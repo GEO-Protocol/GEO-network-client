@@ -8,6 +8,7 @@ add_subdirectory(result)
 add_subdirectory(cycles)
 add_subdirectory(max_flow_calculation)
 add_subdirectory(total_balances)
+add_subdirectory(find_path)
 
 set(SOURCE_FILES
         SenderMessage.cpp
@@ -37,4 +38,6 @@ target_link_libraries(network__messages
         messages__result
         messages__response
 
-        messages__total_balances)
+        messages__total_balances
+
+        messages__find_path)
