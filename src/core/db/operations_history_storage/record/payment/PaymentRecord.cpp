@@ -58,6 +58,11 @@ namespace db {
             return mAmount;
         }
 
+        const TrustLineBalance PaymentRecord::balanceAfterOperation() const {
+
+            return mBalanceAfterOperation;
+        }
+
         pair<BytesShared, size_t> PaymentRecord::serializeToBytes() {
 
             auto parentBytesAndCount = Record::serializeToBytes();

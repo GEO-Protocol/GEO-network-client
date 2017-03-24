@@ -52,6 +52,8 @@ namespace db {
 
             const TrustLineAmount amount() const;
 
+            const TrustLineBalance balanceAfterOperation() const;
+
         private:
             const bool isPaymentRecord() const;
 
