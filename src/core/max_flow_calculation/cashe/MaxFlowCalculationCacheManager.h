@@ -26,10 +26,12 @@ public:
 
     bool isInitiatorCached();
 
+    DateTime closestTimeEvent() const;
+
 private:
     static const byte kResetSenderCacheHours = 0;
-    static const byte kResetSenderCacheMinutes = 18;
-    static const byte kResetSenderCacheSeconds = 0;
+    static const byte kResetSenderCacheMinutes = 0;
+    static const byte kResetSenderCacheSeconds = 50;
 
     static Duration& kResetSenderCacheDuration() {
         static auto duration = Duration(
@@ -40,8 +42,8 @@ private:
     }
 
     static const byte kResetInitiatorCacheHours = 0;
-    static const byte kResetInitiatorCacheMinutes = 18;
-    static const byte kResetInitiatorCacheSeconds = 0;
+    static const byte kResetInitiatorCacheMinutes = 0;
+    static const byte kResetInitiatorCacheSeconds = 20;
 
     static Duration& kResetInitiatorCacheDuration() {
         static auto duration = Duration(

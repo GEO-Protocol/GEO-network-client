@@ -6,6 +6,7 @@
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 
+// TODO: discuss and maby remove
 class MaxFlowCalculationCacheUpdateTransaction : public BaseTransaction {
 
 public:

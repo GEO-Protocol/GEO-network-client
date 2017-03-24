@@ -59,6 +59,25 @@ bool MaxFlowCalculationCacheManager::isInitiatorCached() {
     return mInitiatorCache.first;
 }
 
+DateTime MaxFlowCalculationCacheManager::closestTimeEvent() const {
+
+    DateTime result = utc_now() + kResetInitiatorCacheDuration();
+    if (mInitiatorCache.first && mInitiatorCache.second + kResetInitiatorCacheDuration() < result) {
+        result = mInitiatorCache.second + kResetInitiatorCacheDuration();
+    }
+    if (msCache.size() > 0) {
+        auto timeAndNodeUUID = msCache.cbegin();
+        if (timeAndNodeUUID->first + kResetSenderCacheDuration() < result) {
+            result = timeAndNodeUUID->first + kResetSenderCacheDuration();
+        }
+    } else {
+        if (utc_now() + kResetSenderCacheDuration() < result) {
+            result = utc_now() + kResetSenderCacheDuration();
+        }
+    }
+    return result;
+}
+
 LoggerStream MaxFlowCalculationCacheManager::info() const {
 
     if (nullptr == mLog)

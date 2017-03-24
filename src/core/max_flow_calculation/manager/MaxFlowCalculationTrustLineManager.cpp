@@ -118,6 +118,18 @@ void MaxFlowCalculationTrustLineManager::printTrustLines() const {
     }
 }
 
+DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const {
+
+    DateTime result = utc_now() + kResetTrustLinesDuration();
+    if (mtTrustLines.size() > 0) {
+        auto timeAndNodeUUID = mtTrustLines.cbegin();
+        if (timeAndNodeUUID->first + kResetTrustLinesDuration() < result) {
+            result = timeAndNodeUUID->first + kResetTrustLinesDuration();
+        }
+    }
+    return result;
+}
+
 LoggerStream MaxFlowCalculationTrustLineManager::info() const {
 
     if (nullptr == mLog)
