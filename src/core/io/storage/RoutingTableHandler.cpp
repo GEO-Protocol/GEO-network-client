@@ -65,7 +65,7 @@ RoutingTableHandler::RoutingTableHandler(
 void RoutingTableHandler::insert(
         const NodeUUID &source,
         const NodeUUID &destination,
-        DirectionType direction) {
+        const TrustLineDirection direction) {
 
     string query = insertQuery();
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
@@ -85,15 +85,18 @@ void RoutingTableHandler::insert(
                               "Bad binding " + string(sqlite3_errmsg(mDataBase)));
     }
     switch (direction) {
-        case DirectionType::Incoming:
+        case TrustLineDirection::Incoming:
             rc = sqlite3_bind_blob(stmt, 3, "I", 1, SQLITE_STATIC);
             break;
-        case DirectionType::Outgoing:
+        case TrustLineDirection::Outgoing:
             rc = sqlite3_bind_blob(stmt, 3, "O", 1, SQLITE_STATIC);
             break;
-        case DirectionType::Both:
+        case TrustLineDirection::Both:
             rc = sqlite3_bind_blob(stmt, 3, "B", 1, SQLITE_STATIC);
             break;
+        default:
+            throw ValueError("RoutingTableHandler::insert: "
+                                     "Direction should be Incomeng, Outgoing or Both");
         }
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::insert: "
@@ -199,9 +202,9 @@ void RoutingTableHandler::prepareInsertred() {
 
 }
 
-vector<tuple<NodeUUID, NodeUUID, RoutingTableHandler::DirectionType>> RoutingTableHandler::routeRecords() {
+vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> RoutingTableHandler::routeRecords() {
 
-    vector<tuple<NodeUUID, NodeUUID, DirectionType>> result;
+    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> result;
     string query = selectQuery();
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -225,19 +228,19 @@ vector<tuple<NodeUUID, NodeUUID, RoutingTableHandler::DirectionType>> RoutingTab
                 make_tuple(
                     source,
                     destination,
-                    DirectionType::Incoming));
+                    TrustLineDirection::Incoming));
         } else if (strcmp(direction, "O") == 0) {
             result.push_back(
                 make_tuple(
                     source,
                     destination,
-                    DirectionType::Outgoing));
+                    TrustLineDirection::Outgoing));
         } else if (strcmp(direction, "B") == 0){
             result.push_back(
                 make_tuple(
                     source,
                     destination,
-                    DirectionType::Both));
+                    TrustLineDirection::Both));
         } else {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
             error() << "wrong direction during reading from DB";

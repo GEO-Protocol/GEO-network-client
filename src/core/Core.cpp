@@ -540,27 +540,27 @@ void Core::writePIDFile()
 
 void Core::testStorageHandler() {
     mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Both);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Both);
     mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
     mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Both);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Both);
     mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
     mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Incoming);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Outgoing);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Incoming);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Outgoing);
     mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
     mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Both);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Both);
     mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
     mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, RoutingTableHandler::DirectionType::Incoming);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Incoming);
 
 
-    vector<tuple<NodeUUID, NodeUUID, RoutingTableHandler::DirectionType>> records = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords();
+    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> records = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords();
     cout << records.size() << endl;
     NodeUUID source;
     NodeUUID target;
-    RoutingTableHandler::DirectionType direction;
+    TrustLineDirection direction;
     for (auto &record : records) {
         std::tie(source, target, direction) = record;
         cout << source.stringUUID() << " " << target.stringUUID() << " " << direction << endl;

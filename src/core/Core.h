@@ -17,7 +17,6 @@
 #include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
 #include "io/storage/StorageHandler.h"
-#include "io/storage/RoutingTableHandler.h"
 
 #include "logger/Logger.h"
 

@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_ROUTINGTABLEHANDLER_H
 
 #include "../../common/NodeUUID.h"
+#include "../../common/Types.h"
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
@@ -12,14 +13,6 @@
 #include <tuple>
 
 class RoutingTableHandler {
-
-public:
-
-    enum DirectionType {
-        Incoming = 1,
-        Outgoing,
-        Both
-    };
 
 public:
 
@@ -37,9 +30,9 @@ public:
     void insert(
         const NodeUUID &source,
         const NodeUUID &destination,
-        DirectionType direction);
+        const TrustLineDirection direction);
 
-    vector<tuple<NodeUUID, NodeUUID, RoutingTableHandler::DirectionType>> routeRecords();
+    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> routeRecords();
 
 private:
 
