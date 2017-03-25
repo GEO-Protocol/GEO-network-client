@@ -108,6 +108,11 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
+    initCode = initPathsManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     connectSignalsToSlots();
 
     return 0;
@@ -227,6 +232,8 @@ int Core::initTransactionsManager() {
             mMaxFlowCalculationCacheManager,
             mResultsInterface,
             mOperationsHistoryStorage,
+            mStorageHandler,
+            mPathsManager,
             &mLog
         );
         mLog.logSuccess("Core", "Transactions handler is successfully initialised");
@@ -285,7 +292,18 @@ int Core::initStorageHandler() {
         mLog.logException("Core", e);
         return -1;
     }
+}
 
+int Core::initPathsManager() {
+
+    try {
+        mPathsManager = new PathsManager();
+        mLog.logSuccess("Core", "Paths Manager is successfully initialised");
+        return 0;
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
 }
 
 void Core::connectCommunicatorSignals() {
@@ -471,6 +489,10 @@ void Core::cleanupMemory() {
     if (mStorageHandler != nullptr) {
         delete mStorageHandler;
     }
+
+    if (mPathsManager != nullptr) {
+        delete mPathsManager;
+    }
 }
 
 void Core::zeroPointers() {
@@ -487,6 +509,7 @@ void Core::zeroPointers() {
     mMaxFlowCalculationCacheManager = nullptr;
     mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
     mStorageHandler = nullptr;
+    mPathsManager = nullptr;
 }
 
 //void Core::initTimers() {
@@ -539,6 +562,8 @@ void Core::writePIDFile()
 }
 
 void Core::testStorageHandler() {
+    cout << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords().size() << endl;
+
     mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
     mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Both);
     mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();

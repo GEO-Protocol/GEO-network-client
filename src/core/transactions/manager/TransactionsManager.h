@@ -10,6 +10,8 @@
 #include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
+#include "../../io/storage/StorageHandler.h"
+#include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
@@ -25,6 +27,7 @@
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
@@ -70,6 +73,9 @@
 #include "../transactions/history/HistoryPaymentsTransaction.h"
 #include "../transactions/history/HistoryTrustLinesTransaction.h"
 
+#include "../transactions/find_path/FindPathTransaction.h"
+#include "../transactions/find_path/GetRoutingTablesTransaction.h"
+
 #include <boost/signals2.hpp>
 
 #include <string>
@@ -93,6 +99,8 @@ public:
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResultsInterface *resultsInterface,
         history::OperationsHistoryStorage *operationsHistoryStorage,
+        StorageHandler *storageHandler,
+        PathsManager *pathsManager,
         Logger *logger);
 
     void processCommand(
@@ -195,7 +203,14 @@ private:
         HistoryPaymentsCommand::Shared command);
 
     void launchHistoryTrustLinesTransaction(
-            HistoryTrustLinesCommand::Shared command);
+        HistoryTrustLinesCommand::Shared command);
+
+    // Find path transation
+    void launchFindPathTransaction(
+        FindPathCommand::Shared command);
+
+    void launchGetRoutingTablesTransaction(
+        RequestRoutingTablesMessage::Shared message);
 
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(
@@ -229,6 +244,8 @@ private:
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     ResultsInterface *mResultsInterface;
     history::OperationsHistoryStorage *mOperationsHistoryStorage;
+    PathsManager *mPathsManager;
+    StorageHandler *mStorageHandler;
     Logger *mLog;
 
     unique_ptr<storage::UUIDMapBlockStorage> mStorage;

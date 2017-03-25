@@ -626,6 +626,19 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFl
     return result;
 }
 
+vector<pair<const NodeUUID, const TrustLineDirection>> TrustLinesManager::rt1() const {
+
+    vector<pair<const NodeUUID, const TrustLineDirection >> result;
+    result.reserve(mTrustLines.size());
+    for (auto &nodeUUIDAndTrustLine : mTrustLines) {
+        result.push_back(
+            make_pair(
+                nodeUUIDAndTrustLine.first,
+                nodeUUIDAndTrustLine.second->direction()));
+    }
+    return result;
+}
+
 /**
  *
  * @throws NotFoundError - in case if no trust line with exact contractor.

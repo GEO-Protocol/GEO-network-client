@@ -1,5 +1,4 @@
 ﻿#include "TransactionsManager.h"
-#include "../../network/messages/total_balances/InitiateTotalBalancesMessage.h"
 
 /*!
  *
@@ -13,6 +12,8 @@ TransactionsManager::TransactionsManager(
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResultsInterface *resultsInterface,
     history::OperationsHistoryStorage *operationsHistoryStorage,
+    StorageHandler *storageHandler,
+    PathsManager *pathsManager,
     Logger *logger) :
 
     mNodeUUID(nodeUUID),
@@ -22,6 +23,8 @@ TransactionsManager::TransactionsManager(
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mResultsInterface(resultsInterface),
     mOperationsHistoryStorage(operationsHistoryStorage),
+    mStorageHandler(storageHandler),
+    mPathsManager(pathsManager),
     mLog(logger),
 
     mStorage(new storage::UUIDMapBlockStorage(
@@ -180,6 +183,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<HistoryTrustLinesCommand>(
                 command));
 
+    } else if (command->identifier() == FindPathCommand::identifier()){
+        launchFindPathTransaction(
+            static_pointer_cast<FindPathCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -243,6 +251,16 @@ void TransactionsManager::processMessage(
                 static_pointer_cast<InitiateTotalBalancesMessage>(message));
 
     } else if (message->typeID() == Message::MessageTypeID::TotalBalancesResultMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
+    /*
+    * Total balances
+    */
+    } else if (message->typeID() == Message::MessageTypeID::RequestRoutingTablesMessageType) {
+        launchGetRoutingTablesTransaction(
+            static_pointer_cast<RequestRoutingTablesMessage>(message));
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTablesMessageType) {
         mScheduler->tryAttachMessageToTransaction(message);
 
     /*
@@ -958,6 +976,49 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCo
         throw MemoryError(
             "TransactionsManager::launchHistoryTrustLinesTransaction: "
                 "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchFindPathTransaction(FindPathCommand::Shared command) {
+    try {
+        auto transaction = make_shared<FindPathTransaction>(
+            mNodeUUID,
+            command,
+            mPathsManager,
+            mLog);
+
+        prepeareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchFindPathTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchGetRoutingTablesTransaction(RequestRoutingTablesMessage::Shared message) {
+    try {
+        auto transaction = make_shared<GetRoutingTablesTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mStorageHandler,
+            mLog);
+
+        prepeareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchGetRoutingTablesTransaction: "
+                        "Can't allocate memory for transaction instance.");
     }
 }
 

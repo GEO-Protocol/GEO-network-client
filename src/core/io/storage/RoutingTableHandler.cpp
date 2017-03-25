@@ -206,6 +206,7 @@ vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> RoutingTableHandler::route
 
     vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> result;
     string query = selectQuery();
+    info() << "select: " << query;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecords: "
@@ -282,6 +283,7 @@ const string RoutingTableHandler::insertQuery() const {
 
 const string RoutingTableHandler::selectQuery() const {
 
+    info() << "selecting:";
     stringstream s;
     s <<  "SELECT source, destination, direction FROM " << mTableName.c_str();
     return s.str();

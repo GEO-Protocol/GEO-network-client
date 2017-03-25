@@ -180,6 +180,9 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                     make_shared<MaxFlowCalculationTargetSndLevelMessage>(messagePart)));
         }
 
+        /*
+         * Total Balances Messages
+         */
         case Message::InitiateTotalBalancesMessageType: {
             return make_pair(
                 true,
@@ -192,6 +195,23 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<TotalBalancesResultMessage>(messagePart)));
+        }
+
+        /*
+         * Find Path Messages
+         */
+        case Message::RequestRoutingTablesMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<RequestRoutingTablesMessage>(messagePart)));
+        }
+
+        case Message::ResultRoutingTablesMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ResultRoutingTablesMessage>(messagePart)));
         }
 
         default: {

@@ -17,6 +17,7 @@
 #include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
 #include "io/storage/StorageHandler.h"
+#include "paths/PathsManager.h"
 
 #include "logger/Logger.h"
 
@@ -64,6 +65,8 @@ private:
     int initDelayedTasks();
 
     int initStorageHandler();
+
+    int initPathsManager();
 
     void connectCommunicatorSignals();
 
@@ -123,6 +126,7 @@ protected:
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     MaxFlowCalculationCacheUpdateDelayedTask *mMaxFlowCalculationCacheUpdateDelayedTask;
     StorageHandler *mStorageHandler;
+    PathsManager *mPathsManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

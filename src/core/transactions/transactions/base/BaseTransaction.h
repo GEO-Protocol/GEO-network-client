@@ -86,7 +86,8 @@ public:
         HistoryTrustLinesTransactionType,
 
         // FindPath
-        FindPathTransactionType
+        FindPathTransactionType,
+        GetRoutingTablesTransactionType
 
     };
 

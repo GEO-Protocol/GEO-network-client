@@ -51,7 +51,17 @@ TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
             ResultRoutingTablesMessage::Shared response = static_pointer_cast<ResultRoutingTablesMessage>(
                 responseMessage);
 
+            vector<pair<const NodeUUID, const TrustLineDirection >> rt1 = response->rt1();
+            info() << "receive RT1 size: " << rt1.size();
+            for (auto &nodeUUIDAndDirection : rt1) {
+                info() << "\t" << nodeUUIDAndDirection.first << "\t" << nodeUUIDAndDirection.second;
+            }
+            info() << "receive RT2 size: " << response->rt2().size();
+            info() << "receive RT3 size: " << response->rt3().size();
+
             vector<NodeUUID> path;
+            path.push_back(mNodeUUID);
+            path.push_back(mCommand->contractorUUID());
             return resultOk(
                 path);
         }
@@ -66,6 +76,7 @@ TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
 
 void FindPathTransaction::sendMessageToRemoteNode() {
 
+    info() << "sendMessageToRemoteNode\t" << mCommand->contractorUUID();
     sendMessage<RequestRoutingTablesMessage>(
         mCommand->contractorUUID(),
         mNodeUUID,
