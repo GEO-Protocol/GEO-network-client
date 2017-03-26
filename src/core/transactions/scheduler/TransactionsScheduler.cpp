@@ -68,14 +68,8 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
     Message::Shared message) {
 
     // TODO: check the message type before the loop
+    // TODO: Refactor me
     for (auto const &transactionAndState : *mTransactions) {
-
-        if (message->isTransactionMessage()) {
-            if (static_pointer_cast<TransactionMessage>(message)->transactionUUID() != transactionAndState.first->UUID()) {
-                continue;
-            }
-        }
-
         if (message->isRoutingTableMessage()) {
             if (static_pointer_cast<RoutingTablesMessage>(message)->senderUUID() != static_pointer_cast<RoutingTablesTransaction>(transactionAndState.first)->contractorUUID()) {
                 continue;

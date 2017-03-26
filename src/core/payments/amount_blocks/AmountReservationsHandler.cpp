@@ -19,48 +19,46 @@ AmountReservation::ConstShared AmountReservationsHandler::reserve(
     const TrustLineAmount &amount,
     const AmountReservation::ReservationDirection direction)
 {
-    if (amount == 0) {
+    if (0 == amount)
         throw ValueError(
-            "AmountReservationsHandler::reserve: 'amount' can't be 0.");
-    }
+            "AmountReservationsHandler::reserve: amount can't be 0.");
 
-    auto reservation = make_shared<AmountReservation>(
+
+    const auto kReservation = make_shared<AmountReservation>(
         transactionUUID,
         amount,
         direction);
 
     auto iterator = mReservations.find(trustLineContractor);
     if (iterator != mReservations.end()) {
-        // Trying to insert "reservation" into the reservations container.
+        // Reservations container is present.
+        // Newly created reservation must be pushed into it.
         auto reservations = (*iterator).second.get();
-        reservations->push_back(reservation);
-        return reservation;
+        reservations->push_back(kReservation);
 
     } else {
         // Reservations container is absent and should be created.
-        unique_ptr<vector<AmountReservation::ConstShared>> reservationsContainer(
-            new vector<AmountReservation::ConstShared>(1));
-
-        reservationsContainer->push_back(reservation);
+        auto reservationsContainer = make_unique<vector<AmountReservation::ConstShared>>(1);
+        reservationsContainer->push_back(kReservation);
         mReservations.insert(
             make_pair(
                 trustLineContractor,
-                    move(reservationsContainer)));
-
-        return reservation;
+                move(reservationsContainer)));
     }
+
+    return kReservation;
 }
 
 /*!
  * Updates and returns existing "reservation", assigned to the trust line with the "trustLineContractor".
  *
- * @param trustLineContractor - uuid of the trust line contaractor node.
+ * @param trustLineContractor - uuid of the trust line contractor node.
  * @param reservation - reservation that should be updated.
  * @param newAmount - amount that should be reserved.
  *
  *
  * Throws ValueError in case if "amount" == 0;
- * Throws NotFoundError in case if "reservation" doesn'is not present in already created reservations.
+ * Throws NotFoundError in case if "reservation" is not present in already created reservations.
  * Throws MemoryError;
  */
 AmountReservation::ConstShared AmountReservationsHandler::updateReservation(

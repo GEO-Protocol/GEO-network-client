@@ -106,6 +106,10 @@ public:
         const NodeUUID &contractor,
         const AmountReservation::ConstShared reservation);
 
+    void useReservation(
+        const NodeUUID &contractor,
+        const AmountReservation::ConstShared reservation);
+
     ConstSharedTrustLineAmount availableOutgoingAmount(
         const NodeUUID &contractor);
 

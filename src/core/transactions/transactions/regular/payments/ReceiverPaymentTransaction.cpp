@@ -38,11 +38,14 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
 {
     switch (mStep) {
-    case Stages::CoordinatorRequestApprooving:
+    case Stages::CoordinatorRequestApproving:
         return runInitialisationStage();
 
     case Stages::AmountReservationsProcessing:
         return runAmountReservationStage();
+
+    case Stages::VotesChecking:
+        return runVotesCheckingStage();
 
     default:
         throw RuntimeError(
@@ -68,20 +71,16 @@ const string ReceiverPaymentTransaction::logHeader() const
     return s.str();
 }
 
-TransactionResult::Shared ReceiverPaymentTransaction::runInitialisationStage()
+TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStage()
 {
     const auto kCoordinator = mMessage->senderUUID();
 
-
-    info() << "Operation initalise by the (" << kCoordinator << ")";
-    info() << "Total operation amount: " << mMessage->amount();
-
+    info() << "Operation for " << mMessage->amount() << " initialised by the (" << kCoordinator << ")";
 
     // TODO: (optimisation)
     // Check if total incoming possibilities of the node are <= of the payment amount.
     // If not - there is no reason to process the operation at all.
     // (reject operation)
-
 
     sendMessage<ReceiverInitPaymentResponseMessage>(
         kCoordinator,
@@ -90,21 +89,21 @@ TransactionResult::Shared ReceiverPaymentTransaction::runInitialisationStage()
         ReceiverInitPaymentResponseMessage::Accepted);
 
 
+    // Begin waiting for amount reservation requests.
+    // There is non-zero probability, that first couple of paths will fail.
+    // So receiver will wait for time, that is approximatyle neede for several nodes for processing.
+    //
+    // TODO: enhancement: send aproximate paths count to receiver, so it will be able to wait correct timeout.
     mStep = Stages::AmountReservationsProcessing;
-
-    const auto kEstimatedTransactionProcessingTimeoutOnTheNode = 1000; //msec
-    const auto kEstimatedPathProcessingTimeout =
-        (kMaxNodesCount * kMaxMessageTransferLagMSec) +
-        (kMaxNodesCount * kEstimatedTransactionProcessingTimeoutOnTheNode);
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationRequest},
-        kEstimatedPathProcessingTimeout);
+        maxTimeout(kMaxPathLength*3));
 }
 
-TransactionResult::Shared ReceiverPaymentTransaction::runAmountReservationStage()
+TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationStage()
 {
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest))
-        return exit();
+        return reject("No amount reservation request was received. Rolled back.");
 
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
@@ -113,22 +112,27 @@ TransactionResult::Shared ReceiverPaymentTransaction::runAmountReservationStage(
     if (! mTrustLines->isNeighbor(kNeighbor)) {
         // Message was sent from node, that is not listed in neighbors list.
         //
-        // TODO: enchance this chek
-        // Neighbor private public key must be used here.
-        goto FURTHER_REQUESTS_PROCESSING;
+        // TODO: enhance this check
+        // Neighbor public key must be used here.
+
+        // Ignore received message.
+        // Begin waiting for another one.
+        //
+        // TODO: enhancement: send aproximate paths count to receiver, so it will be able to wait correct timeout.
+        return resultWaitForMessageTypes(
+            {Message::Payments_IntermediateNodeReservationRequest},
+            maxTimeout(kMaxPathLength*3));
     }
 
 
-    info() << "Amount reservation request received from " << kNeighbor;
-    info() << "Requested amount: " << kMessage->amount();
+    info() << "Amount reservation for " << kMessage->amount() << " request received from " << kNeighbor;
 
-    // Note:
-    // Don't delete (copy of shared pointer is required).
+    // Note: copy of shared pointer is required.
     const auto kAvailableAmount = mTrustLines->availableIncomingAmount(kNeighbor);
-    if (kMessage->amount() > kAvailableAmount || ! reserveIncomingAmount(kNeighbor, kMessage->amount())) {
+    if (kMessage->amount() > *kAvailableAmount || ! reserveIncomingAmount(kNeighbor, kMessage->amount())) {
         // Receiver must not confirm reservation in case if requested amount is less than available.
         // Intermediate nodes may decrease requested reservation amount, but receiver must not do this.
-        // It must stay syncronised with previous node.
+        // It must stay synchronised with previous node.
         // So, in case if requested amount is less than available -
         // previous node must report about it to the coordinator.
         // In this case, receiver should even not receive reservation request at all.
@@ -137,7 +141,7 @@ TransactionResult::Shared ReceiverPaymentTransaction::runAmountReservationStage(
         // in several COUNTER transactions.
         // In this case, balances may be reserved on the nodes,
         // but neighbor node may reject reservation,
-        // because it already reserved amount or othe transactions,
+        // because it already reserved amount or other transactions,
         // that wasn't approved by the current node yet.
         //
         // In this case, reservation request must be rejected.
@@ -148,54 +152,53 @@ TransactionResult::Shared ReceiverPaymentTransaction::runAmountReservationStage(
             UUID(),
             ResponseMessage::Rejected);
 
-        goto FURTHER_REQUESTS_PROCESSING;
+        // Begin accepting other reservation messages
+        return resultWaitForMessageTypes(
+            {Message::Payments_IntermediateNodeReservationRequest},
+            maxTimeout(kMaxPathLength*3));
 
-    } else {
-        mTotalReserved += message->amount();
-        info() << "Reserved locally: " << reservationAmount;
+    }
 
+    const auto kTotalTransactionAmount = mMessage->amount();
+    mTotalReserved += kMessage->amount();
+    if (mTotalReserved > kTotalTransactionAmount){
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             nodeUUID(),
             UUID(),
-            ResponseMessage::Accepted);
+            ResponseMessage::Rejected);
 
-        // Checking if reserved amount is enought for the payment operation.
-        // If so - move to the votes approving stage.
-
-#ifdef DEBUG
-        if (mTotalReserved > mMessage->amount()){
-            error() << "Reserved amount is greater than requested.";
-            assert(false);
-        }
-#endif
-
-        if (mTotalReserved == mMessage->amount()) {
-            // TODO: receiver must know, how many paths are involed into transaction.
-            // This info helps to calculate max timeout,
-            // that would be used for waiting for votes list message.
-
-            const auto kMaxVaitingTimeout = 10000;
-
-            mStep = Stages::VotesChecking;
-            return resultWaitForMessageTypes(
-                {Message::Payments_ParticipantsVotes},
-                kMaxVaitingTimeout);
-            }
+        return reject(
+            "Reserved amount is greater than requested. "
+            "It indicates protocol or realisation error. "
+            "Rolled back.");
     }
 
-FURTHER_REQUESTS_PROCESSING:
-    const auto kEstimatedTransactionProcessingTimeoutOnTheNode = 1000; //msec
-    const auto kEstimatedPathProcessingTimeout =
-        (kMaxNodesCount * kMaxMessageTransferLagMSec) +
-        (kMaxNodesCount * kEstimatedTransactionProcessingTimeoutOnTheNode);
 
-    return resultWaitForMessageTypes(
-        {Message::Payments_IntermediateNodeReservationRequest},
-        kEstimatedPathProcessingTimeout);
-}
+    info() << "Reserved locally: " << kMessage->amount();
+    sendMessage<IntermediateNodeReservationResponseMessage>(
+        kNeighbor,
+        nodeUUID(),
+        UUID(),
+        ResponseMessage::Accepted);
 
-TransactionResult::Shared ReceiverPaymentTransaction::runVotesCheckingStage()
-{
-    return exit();
+
+    if (mTotalReserved == mMessage->amount()) {
+        // Reserved amount is enough to move to votes processing stage.
+
+        // TODO: receiver must know, how many paths are involved into the transaction.
+        // This info helps to calculate max timeout,
+        // that would be used for waiting for votes list message.
+
+        mStep = Stages::VotesChecking;
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes},
+            maxTimeout(kMaxPathLength*3));
+
+    } else {
+        // Waiting for another reservation request
+        return resultWaitForMessageTypes(
+            {Message::Payments_IntermediateNodeReservationRequest},
+            maxTimeout(kMaxPathLength*3));
+    }
 }

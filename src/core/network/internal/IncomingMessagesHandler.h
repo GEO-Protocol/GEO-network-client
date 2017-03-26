@@ -24,7 +24,7 @@
 #include "../messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
-#include "../messages/outgoing/payments/ParticipantsApprovingMessage.h"
+#include "../messages/outgoing/payments/ParticipantsVotesMessage.h"
 #include "../messages/cycles/InBetweenNodeTopologyMessage.h"
 #include "../messages/cycles/BoundaryNodeTopologyMessage.h"
 #include "../messages/response/Response.h"

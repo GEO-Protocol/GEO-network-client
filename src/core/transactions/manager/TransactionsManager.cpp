@@ -188,9 +188,8 @@ void TransactionsManager::processCommand(
 }
 
 void TransactionsManager::processMessage(
-    Message::Shared message) {
-
-
+    Message::Shared message)
+{
     if (message->typeID() == Message::AcceptTrustLineMessageType) {
         launchAcceptTrustLineTransaction(
             static_pointer_cast<AcceptTrustLineMessage>(message));
@@ -265,6 +264,9 @@ void TransactionsManager::processMessage(
                 static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
         }
 
+    /*
+     * Cycles
+     */
     } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage){
         launchGetTopologyAndBalancesTransaction(
             static_pointer_cast<InBetweenNodeTopologyMessage>(message));

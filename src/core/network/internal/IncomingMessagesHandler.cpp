@@ -115,7 +115,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         }
 
         case Message::Payments_ParticipantsVotes: {
-            return messageCollected<ParticipantsApprovingMessage>(messagePart);
+            return messageCollected<ParticipantsVotesMessage>(messagePart);
         }
 
         /*

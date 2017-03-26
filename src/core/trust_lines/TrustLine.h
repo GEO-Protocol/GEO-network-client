@@ -9,6 +9,7 @@
 #include "../common/exceptions/RuntimeError.h"
 #include "../common/exceptions/MemoryError.h"
 #include "../common/exceptions/ValueError.h"
+#include "../common/exceptions/OverflowError.h"
 
 #include <vector>
 
@@ -49,6 +50,12 @@ public:
 
     void setBalance(
         const TrustLineBalance &balance);
+
+    void pay(
+        const TrustLineAmount &amount);
+
+    void acceptPayment(
+        const TrustLineAmount &amount);
 
     void activateOutgoingDirection();
 

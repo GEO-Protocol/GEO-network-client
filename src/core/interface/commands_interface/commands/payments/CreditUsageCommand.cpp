@@ -157,17 +157,6 @@ void CreditUsageCommand::parse(
     }
 }
 
-// TODO: deprecated
-//const size_t CreditUsageCommand::kMinRequestedBufferSize()
-//{
-//    static const size_t size =
-//            kOffsetToInheritedBytes()
-//            + NodeUUID::kBytesSize
-//            + kTrustLineAmountBytesCount;
-//
-//    return size;
-//}
-
 CommandResult::SharedConst CreditUsageCommand::responseOK() const
 {
     return makeResult(200);
@@ -176,6 +165,11 @@ CommandResult::SharedConst CreditUsageCommand::responseOK() const
 CommandResult::SharedConst CreditUsageCommand::responseProtocolError() const
 {
     return makeResult(401);
+}
+
+CommandResult::SharedConst CreditUsageCommand::responseNoConsensus () const
+{
+    return makeResult(409);
 }
 
 CommandResult::SharedConst CreditUsageCommand::responseInsufficientFunds() const

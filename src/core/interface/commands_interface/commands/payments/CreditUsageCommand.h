@@ -37,6 +37,7 @@ public:
     // Results handlers
     CommandResult::SharedConst responseOK() const;
     CommandResult::SharedConst responseProtocolError() const;
+    CommandResult::SharedConst responseNoConsensus() const;
     CommandResult::SharedConst responseRemoteNodeIsInaccessible() const;
     CommandResult::SharedConst responseInsufficientFunds() const;
     CommandResult::SharedConst responseNoRoutes() const;

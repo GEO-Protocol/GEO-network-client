@@ -8,6 +8,7 @@
 #include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
+#include "../../../../network/messages/outgoing/payments/ParticipantsVotesMessage.h"
 
 
 class ReceiverPaymentTransaction:
@@ -35,14 +36,13 @@ public:
 
 protected:
     enum Stages {
-        CoordinatorRequestApprooving = 1,
+        CoordinatorRequestApproving = 1,
         AmountReservationsProcessing,
         VotesChecking,
     };
 
-    TransactionResult::Shared runInitialisationStage();
-    TransactionResult::Shared runAmountReservationStage();
-    TransactionResult::Shared runVotesCheckingStage();
+    TransactionResult::SharedConst runInitialisationStage();
+    TransactionResult::SharedConst runAmountReservationStage();
 
 private:
     void deserializeFromBytes(
@@ -52,9 +52,7 @@ private:
 
 protected:
     ReceiverInitPaymentRequestMessage::ConstShared mMessage;
-
     TrustLineAmount mTotalReserved;
-    set<NodeUUID> mNeighborsInvolved;
 
     Logger *mLog;
 };

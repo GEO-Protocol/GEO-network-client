@@ -711,3 +711,20 @@ vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesFo
     }
     return Nodes;
 }
+
+void TrustLinesManager::useReservation(
+    const NodeUUID &contractor,
+    const AmountReservation::ConstShared reservation)
+{
+    if (mTrustLines.count(contractor) != 1)
+        throw NotFoundError(
+            "TrustLinesManager::useReservation: no trust line to the contractor.");
+
+    if (reservation->direction() == AmountReservation::Outgoing)
+        mTrustLines[contractor]->pay(reservation->amount());
+    else if (reservation->direction() == AmountReservation::Incoming)
+        mTrustLines[contractor]->acceptPayment(reservation->amount());
+    else
+        throw ValueError(
+            "TrustLinesManager::useReservation: invalid trust line direction occurred.");
+}

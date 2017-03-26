@@ -58,21 +58,21 @@ void BaseTransaction::launchSubsidiaryTransaction(
     );
 }
 
-TransactionResult::Shared BaseTransaction::exit()
+TransactionResult::Shared BaseTransaction::exit() const
 {
     return make_shared<TransactionResult>(
         TransactionState::exit());
 }
 
-TransactionResult::Shared BaseTransaction::resultFlushAndContinue()
+TransactionResult::Shared BaseTransaction::resultFlushAndContinue() const
 {
     return make_shared<TransactionResult>(
         TransactionState::flushAndContinue());
 }
 
 TransactionResult::Shared BaseTransaction::resultWaitForMessageTypes(
-        vector<Message::MessageTypeID> &&requiredMessagesTypes,
-        uint32_t noLongerThanMilliseconds)
+    vector<Message::MessageTypeID> &&requiredMessagesTypes,
+    uint32_t noLongerThanMilliseconds) const
 {
     return make_shared<TransactionResult>(
         TransactionState::waitForMessageTypes(

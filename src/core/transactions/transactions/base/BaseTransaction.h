@@ -39,11 +39,11 @@ public:
 
 public:
     // TODO: add othe states shortcuts here
-    TransactionResult::Shared exit();
-    TransactionResult::Shared resultFlushAndContinue();
+    TransactionResult::Shared exit() const;
+    TransactionResult::Shared resultFlushAndContinue() const;
     TransactionResult::Shared resultWaitForMessageTypes(
-            vector<Message::MessageTypeID> &&requiredMessagesTypes,
-            uint32_t noLongerThanMilliseconds);
+        vector<Message::MessageTypeID> &&requiredMessagesTypes,
+        uint32_t noLongerThanMilliseconds) const;
 
 public:
     ~BaseTransaction() = default;

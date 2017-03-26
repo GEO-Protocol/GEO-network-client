@@ -12,7 +12,7 @@
 #include "../../../../network/messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
-#include "../../../../network/messages/outgoing/payments/ParticipantsApprovingMessage.h"
+#include "../../../../network/messages/outgoing/payments/ParticipantsVotesMessage.h"
 
 #include <map>
 
@@ -101,20 +101,21 @@ protected:
         ReceiverResponseProcessing,
         AmountReservation,
         VotesListChecking,
-
-        Commiting,
-        RollingBack,
-        Recovering,
     };
 
 
     // Stages handlers
-    TransactionResult::SharedConst processPaymentInitialisationStage();
-    TransactionResult::SharedConst processReceiverResponseProcessingStage();
-    TransactionResult::SharedConst processAmountReservationStage();
+    TransactionResult::SharedConst runPaymentInitialisationStage ();
+    TransactionResult::SharedConst runReceiverResponseProcessingStage ();
+    TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst propagateVotesList();
-    TransactionResult::SharedConst processVotesCheckingStage();
-    TransactionResult::SharedConst processRecoveringStage();
+
+    // Coordinator node must return command result on transaction finishing.
+    // Therefore this methods are overriden.
+    TransactionResult::SharedConst approve();
+    TransactionResult::SharedConst recover();
+    TransactionResult::SharedConst reject(
+        const char *message = nullptr);
 
 protected:
     // Results handlers
@@ -123,6 +124,7 @@ protected:
     TransactionResult::SharedConst resultProtocolError();
     TransactionResult::SharedConst resultNoResponseError();
     TransactionResult::SharedConst resultInsufficientFundsError();
+    TransactionResult::SharedConst resultNoConsensusError();
 
 protected:
     // Init operation helpers
@@ -176,7 +178,6 @@ protected:
     // that was processed last, and potenially,
     // is waiting for request appriving.
     PathUUID mCurrentAmountReservingPathIdentifier;
-//    byte mCurrentAmountReservingPathIdentifierIndex;
 
     byte mReservationsStage;
 };

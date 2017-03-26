@@ -8,7 +8,7 @@
 #include "../../../../network/messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
-#include "../../../../network/messages/outgoing/payments/ParticipantsApprovingMessage.h"
+#include "../../../../network/messages/outgoing/payments/ParticipantsVotesMessage.h"
 
 
 class IntermediateNodePaymentTransaction:
@@ -52,7 +52,6 @@ protected:
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
-    TransactionResult::SharedConst runVotesProcessingStage();
 
 private:
     void deserializeFromBytes(
