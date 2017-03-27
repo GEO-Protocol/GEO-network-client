@@ -35,8 +35,6 @@ public:
 
     MessageResult::SharedConst resultConflict() const;
 
-    MessageResult::SharedConst resultTransactionConflict() const;
-
 private:
     const MessageType typeID() const;
 
@@ -45,9 +43,8 @@ private:
 
 public:
     static const uint16_t kResultCodeAccepted = 200;
-    static const uint16_t kResultCodeRejected = 401;
-    static const uint16_t kResultCodeConflict = 409;
-    static const uint16_t kResultCodeTransactionConflict = 500;
+    static const uint16_t kResultCodeRejected = 406;
+    static const uint16_t kResultCodeTrustLineAbsent = 404;
 
 private:
     TrustLineAmount mNewTrustLineAmount;

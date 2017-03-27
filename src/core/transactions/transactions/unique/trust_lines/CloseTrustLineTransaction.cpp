@@ -203,9 +203,10 @@ TransactionResult::SharedConst CloseTrustLineTransaction::checkTransactionContex
                     return resultOk();
                 }
 
-                case RejectTrustLineMessage::kResultCodeTrusLineAbsent:{
+                case RejectTrustLineMessage::kResultCodeTrustLineAbsent: {
+                    //todo add TrustLine synchronization
                     throw RuntimeError("CloseTrustLineTransaction::checkTransactionContext:"
-                    "Desync TrustLines data");
+                    "TrustLines data out of sync");
                 }
 
                 default: {

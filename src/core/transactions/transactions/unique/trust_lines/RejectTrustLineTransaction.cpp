@@ -103,7 +103,7 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run() {
 
         } else {
             sendResponseCodeToContractor(
-                    RejectTrustLineMessage::kResultCodeTrusLineAbsent);
+                    RejectTrustLineMessage::kResultCodeTrustLineAbsent);
             return transactionResultFromMessage(
                     mMessage->resultRejected());
         }

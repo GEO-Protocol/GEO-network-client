@@ -42,7 +42,7 @@ private:
 public:
     static const uint16_t kResultCodeRejected = 200;
     static const uint16_t kResultCodeRejectDelayed = 202;
-    static const uint16_t kResultCodeTrusLineAbsent = 404;
+    static const uint16_t kResultCodeTrustLineAbsent = 404;
 
 private:
     NodeUUID mContractorUUID;

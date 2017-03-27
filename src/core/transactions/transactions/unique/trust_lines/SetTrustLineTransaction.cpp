@@ -83,7 +83,7 @@ TransactionResult::SharedConst SetTrustLineTransaction::run() {
 
             case Stages::CheckUnicity: {
                 if (!isTransactionToContractorUnique()) {
-                    return conflictErrorResult();
+                    return resultConflictWithOtherOperation();
                 }
 
                 mStep = Stages::CheckOutgoingDirection;
@@ -91,7 +91,7 @@ TransactionResult::SharedConst SetTrustLineTransaction::run() {
 
             case Stages::CheckOutgoingDirection: {
                 if (!isOutgoingTrustLineDirectionExisting()) {
-                    return trustLineAbsentResult();
+                    return resultTrustLineIsAbsent();
                 }
 
                 mStep = Stages::CheckContext;
@@ -108,7 +108,7 @@ TransactionResult::SharedConst SetTrustLineTransaction::run() {
                         sendMessageToRemoteNode();
 
                     } else {
-                        return noResponseResult();
+                        return resultRemoteNodeIsInaccessible();
                     }
 
                 }
@@ -161,28 +161,24 @@ TransactionResult::SharedConst SetTrustLineTransaction::checkTransactionContext(
 
                 case UpdateTrustLineMessage::kResultCodeRejected: {
 
-                    return trustLineAbsentResult();
+                    return resultCurrentIncomingDebtIsGreaterThanNewAmount();
                 }
 
-                case UpdateTrustLineMessage::kResultCodeConflict: {
-
-                    return conflictErrorResult();
-                }
-
-                case UpdateTrustLineMessage::kResultCodeTransactionConflict: {
-
-                    return transactionConflictResult();
+                case UpdateTrustLineMessage::kResultCodeTrustLineAbsent: {
+                    //todo add TrustLine synchronization
+                    throw RuntimeError("CloseTrustLineTransaction::checkTransactionContext:"
+                                               "TrustLines data out of sync");
                 }
 
                 default: {
-                    return unexpectedErrorResult();
+                    break;
                 }
 
             }
 
         }
 
-        return unexpectedErrorResult();
+        return resultProtocolError();
 
     } else {
         throw ConflictError("SetTrustLineTransaction::checkTransactionContext: "
@@ -235,35 +231,33 @@ void SetTrustLineTransaction::logSetTrustLineOperation() {
 TransactionResult::SharedConst SetTrustLineTransaction::resultOk() {
 
     return transactionResultFromCommand(
-        mCommand->resultOk());
+            mCommand->responseCreated());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::trustLineAbsentResult() {
+TransactionResult::SharedConst SetTrustLineTransaction::resultTrustLineIsAbsent() {
 
     return transactionResultFromCommand(
-        mCommand->trustLineAbsentResult());
+            mCommand->responseTrustlineIsAbsent());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::conflictErrorResult() {
+TransactionResult::SharedConst SetTrustLineTransaction::resultConflictWithOtherOperation() {
 
     return transactionResultFromCommand(
-        mCommand->resultConflict());
+            mCommand->responseConflictWithOtherOperation());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::noResponseResult() {
+TransactionResult::SharedConst SetTrustLineTransaction::resultRemoteNodeIsInaccessible() {
 
     return transactionResultFromCommand(
-        mCommand->resultNoResponse());
+            mCommand->responseRemoteNodeIsInaccessible());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::transactionConflictResult() {
-
+TransactionResult::SharedConst SetTrustLineTransaction::resultProtocolError() {
     return transactionResultFromCommand(
-        mCommand->resultTransactionConflict());
+            mCommand->responseProtocolError());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::unexpectedErrorResult() {
-
+TransactionResult::SharedConst SetTrustLineTransaction::resultCurrentIncomingDebtIsGreaterThanNewAmount() {
     return transactionResultFromCommand(
-        mCommand->unexpectedErrorResult());
+            mCommand->responseCurrentIncomingDebtIsGreaterThanNewAmount());
 }

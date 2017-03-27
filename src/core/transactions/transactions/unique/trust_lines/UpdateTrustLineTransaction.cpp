@@ -91,18 +91,6 @@ TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
                             400));
                 }
 
-                mStep = Stages::CheckUnicity;
-            }
-
-            case Stages::CheckUnicity: {
-                if (!isTransactionToContractorUnique()) {
-                    sendResponseCodeToContractor(
-                        UpdateTrustLineMessage::kResultCodeTransactionConflict);
-
-                    return transactionResultFromMessage(
-                        mMessage->resultTransactionConflict());
-                }
-
                 mStep = Stages::CheckIncomingDirection;
             }
 
@@ -128,7 +116,7 @@ TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
 
                 } else {
                     sendResponseCodeToContractor(
-                        UpdateTrustLineMessage::kResultCodeConflict);
+                        UpdateTrustLineMessage::kResultCodeTrustLineAbsent);
 
                     return transactionResultFromMessage(
                         mMessage->resultConflict());
@@ -152,12 +140,12 @@ TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
 }
 
 bool UpdateTrustLineTransaction::checkJournal() {
-
+// todo add method to check journal
     return false;
 }
 
 bool UpdateTrustLineTransaction::isTransactionToContractorUnique() {
-
+    // todo Add method to check transaction unique
     return true;
 }
 
