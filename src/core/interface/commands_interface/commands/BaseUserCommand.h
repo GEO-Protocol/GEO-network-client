@@ -40,8 +40,17 @@ public:
 
     const DateTime &timestampAccepted() const;
 
-    [[deprecated]]
-    CommandResult::SharedConst unexpectedErrorResult();
+    CommandResult::SharedConst responseOK() const;
+    CommandResult::SharedConst responseCreated() const;
+    CommandResult::SharedConst responseProtocolError() const;
+    CommandResult::SharedConst responseTrustlineIsAbsent() const;
+    CommandResult::SharedConst responseCurrentIncomingDebtIsGreaterThanNewAmount() const;
+    CommandResult::SharedConst responseTrustlineIsAlreadyPresent() const;
+    CommandResult::SharedConst responseInsufficientFunds() const;
+    CommandResult::SharedConst responseConflictWithOtherOperation() const;
+    CommandResult::SharedConst responseRemoteNodeIsInaccessible() const;
+    CommandResult::SharedConst responseNoRoutes() const;
+    CommandResult::SharedConst responseUnexpectedError() const;
 
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes();
@@ -57,15 +66,8 @@ protected:
     CommandResult::SharedConst makeResult(
         const uint16_t code) const;
 
-    CommandResult::SharedConst responseOK() const;
-    CommandResult::SharedConst responseCreated() const;
-    CommandResult::SharedConst responseProtocolError() const;
-    CommandResult::SharedConst responseTrustlineIsAbsent() const;
-    CommandResult::SharedConst responseCurrentIncomingDebtIsGreaterThanNewAmount() const;
-    CommandResult::SharedConst responseInsufficientFunds() const;
-    CommandResult::SharedConst responseConflictWithOtherOperation() const;
-    CommandResult::SharedConst responseRemoteNodeIsInaccessible() const;
-    CommandResult::SharedConst responseNoRoutes() const;
+
+
 
 private:
     CommandUUID mCommandUUID;

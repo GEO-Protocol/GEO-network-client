@@ -18,7 +18,7 @@ public:
 
     const NodeUUID &contractorUUID() const;
 
-    CommandResult::SharedConst resultOk(string &totalBalancesStr) const;
+    CommandResult::SharedConst responseOk(string &totalBalancesStr) const;
 
 protected:
 

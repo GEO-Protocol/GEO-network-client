@@ -94,7 +94,7 @@ void InitiateMaxFlowCalculationCommand::parse(
     }
 }
 
-CommandResult::SharedConst InitiateMaxFlowCalculationCommand::resultOk(string &maxFlowAmount) const {
+CommandResult::SharedConst InitiateMaxFlowCalculationCommand::responseOk(string &maxFlowAmount) const {
 
     return CommandResult::SharedConst(
         new CommandResult(

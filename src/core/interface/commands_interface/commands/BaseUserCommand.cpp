@@ -77,15 +77,6 @@ const size_t BaseUserCommand::kOffsetToInheritedBytes() {
     return offset;
 }
 
-CommandResult::SharedConst BaseUserCommand::unexpectedErrorResult() {
-    return CommandResult::Shared(
-        new CommandResult(
-            mCommandUUID,
-            501
-        )
-    );
-}
-
 /**
  * Shortcut for creating results in derived commands classes.
  *
@@ -119,6 +110,10 @@ CommandResult::SharedConst BaseUserCommand::responseCurrentIncomingDebtIsGreater
     return makeResult(406);
 }
 
+CommandResult::SharedConst BaseUserCommand::responseTrustlineIsAlreadyPresent() const {
+    return makeResult(409);
+}
+
 CommandResult::SharedConst BaseUserCommand::responseInsufficientFunds() const
 {
     return makeResult(412);
@@ -136,6 +131,10 @@ CommandResult::SharedConst BaseUserCommand::responseRemoteNodeIsInaccessible() c
 CommandResult::SharedConst BaseUserCommand::responseNoRoutes() const
 {
     return makeResult(462);
+}
+
+CommandResult::SharedConst BaseUserCommand::responseUnexpectedError() const {
+    return makeResult(501);
 }
 
 

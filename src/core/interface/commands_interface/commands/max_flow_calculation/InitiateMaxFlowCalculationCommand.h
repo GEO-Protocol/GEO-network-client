@@ -23,7 +23,7 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes();
 
-    CommandResult::SharedConst resultOk(string &maxFlowAmount) const;
+    CommandResult::SharedConst responseOk(string &maxFlowAmount) const;
 
 protected:
     void deserializeFromBytes(
