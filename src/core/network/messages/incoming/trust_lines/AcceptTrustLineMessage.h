@@ -33,8 +33,6 @@ public:
 
     MessageResult::SharedConst resultConflict() const;
 
-    MessageResult::SharedConst resultTransactionConflict() const;
-
 private:
     const MessageType typeID() const;
 
@@ -45,7 +43,6 @@ public:
     static const uint16_t kResultCodeAccepted = 200;
     static const uint16_t kResultCodeConflict = 409;
 // There are more than one transaction with same type that are processed at one moment
-    static const uint16_t kResultCodeTransactionConflict = 429;
 
 private:
     TrustLineAmount mTrustLineAmount;

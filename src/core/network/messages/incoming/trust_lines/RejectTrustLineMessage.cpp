@@ -85,13 +85,3 @@ MessageResult::SharedConst RejectTrustLineMessage::resultRejectDelayed() {
             kResultCodeRejectDelayed)
     );
 }
-
-MessageResult::SharedConst RejectTrustLineMessage::resultTransactionConflict() const {
-
-    return MessageResult::SharedConst(
-        new MessageResult(
-            mSenderUUID,
-            mTransactionUUID,
-            kResultCodeTransactionConflict)
-    );
-}

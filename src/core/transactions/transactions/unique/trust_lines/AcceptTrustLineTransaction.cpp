@@ -91,18 +91,6 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
                             400));
                 }
 
-                mStep = Stages::CheckUnicity;
-            }
-
-            case Stages::CheckUnicity: {
-                if (!isTransactionToContractorUnique()) {
-                    sendResponseCodeToContractor(
-                        AcceptTrustLineMessage::kResultCodeTransactionConflict);
-
-                    return transactionResultFromMessage(
-                        mMessage->resultTransactionConflict());
-                }
-
                 mStep = Stages::CheckIncomingDirection;
             }
 

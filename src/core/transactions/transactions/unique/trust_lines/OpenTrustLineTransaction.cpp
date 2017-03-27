@@ -83,7 +83,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run() {
 
             case Stages::CheckUnicity: {
                 if (!isTransactionToContractorUnique()) {
-                    return conflictErrorResult();
+                    return resultConflictWithOtherOperation();
                 }
 
                 mStep = Stages::CheckOutgoingDirection;
@@ -91,7 +91,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run() {
 
             case Stages::CheckOutgoingDirection: {
                 if (isOutgoingTrustLineDirectionExisting()) {
-                    return trustLinePresentResult();
+                    return resultTrustLineIsAlreadyPresent();
                 }
 
                 mStep = Stages::CheckContext;
@@ -108,7 +108,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run() {
                         increaseRequestsCounter();
 
                     } else {
-                        return noResponseResult();
+                        return resultRemoteNodeIsInaccessible();
                     }
 
                 }
@@ -160,22 +160,17 @@ TransactionResult::SharedConst OpenTrustLineTransaction::checkTransactionContext
                 }
 
                 case AcceptTrustLineMessage::kResultCodeConflict: {
-                    return conflictErrorResult();
-                }
-
-                case AcceptTrustLineMessage::kResultCodeTransactionConflict: {
-                    return transactionConflictResult();
+                    return resultConflictWithOtherOperation();
                 }
 
                 default:{
-                    return unexpectedErrorResult();
+                    break;
                 }
 
             }
 
         }
-
-        return unexpectedErrorResult();
+        return resultProtocolError();
 
     } else {
         throw ConflictError("OpenTrustLineTransaction::checkTransactionContext: "
@@ -228,35 +223,28 @@ void OpenTrustLineTransaction::logOpeningTrustLineOperation() {
 TransactionResult::SharedConst OpenTrustLineTransaction::resultOk() {
 
     return transactionResultFromCommand(
-            mCommand->createdResponse());
+            mCommand->responseCreated());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::trustLinePresentResult() {
+TransactionResult::SharedConst OpenTrustLineTransaction::resultTrustLineIsAlreadyPresent() {
 
     return transactionResultFromCommand(
-            mCommand->trustLineIsAlreadyPresentResponse());
+            mCommand->responseTrustlineIsAlreadyPresent());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::conflictErrorResult() {
+TransactionResult::SharedConst OpenTrustLineTransaction::resultConflictWithOtherOperation() {
 
     return transactionResultFromCommand(
-            mCommand->conflictWithOtherOperation());
+            mCommand->responseConflictWithOtherOperation());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::noResponseResult() {
+TransactionResult::SharedConst OpenTrustLineTransaction::resultRemoteNodeIsInaccessible() {
 
     return transactionResultFromCommand(
-            mCommand->remoteNodeIsInaccessibleResponse());
+            mCommand->responseRemoteNodeIsInaccessible());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::transactionConflictResult() {
-
+TransactionResult::SharedConst OpenTrustLineTransaction::resultProtocolError() {
     return transactionResultFromCommand(
-        mCommand->resultTransactionConflict());
-}
-
-TransactionResult::SharedConst OpenTrustLineTransaction::unexpectedErrorResult() {
-
-    return transactionResultFromCommand(
-        mCommand->unexpectedErrorResult());
+            mCommand->responseProtocolError());
 }
