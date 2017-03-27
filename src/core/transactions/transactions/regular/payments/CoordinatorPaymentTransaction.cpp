@@ -223,7 +223,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::initPaymentOperati
 
     // TODO: Read paths from paths manager.
     // TODO: Ensure paths shuffling
-    // TODO: optimisation: if no paths are avaialbe - no operation can be proceed.
+    // TODO: optimisation: if no paths are available - no operation can be proceed.
 
     NodeUUID sender = nodeUUID();
     NodeUUID b("13e5cf8c-5834-4e52-b65b-f9281dd1ff01");
@@ -736,31 +736,31 @@ void CoordinatorPaymentTransaction::switchToNextPath()
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultOK()
 {
     return transactionResultFromCommand(
-        mCommand->resultOK());
+        mCommand->responseOK());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoPathsError()
 {
     return transactionResultFromCommand(
-        mCommand->resultNoPaths());
+        mCommand->responseNoRoutes());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultProtocolError()
 {
     return transactionResultFromCommand(
-        mCommand->resultProtocolError());
+        mCommand->responseProtocolError());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoResponseError()
 {
     return transactionResultFromCommand(
-        mCommand->resultNoResponse());
+        mCommand->responseRemoteNodeIsInaccessible());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultInsufficientFundsError()
 {
     return transactionResultFromCommand(
-        mCommand->resultInsufficientFundsError());
+        mCommand->responseInsufficientFunds());
 }
 
 pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() const

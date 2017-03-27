@@ -92,16 +92,6 @@ MessageResult::SharedConst UpdateTrustLineMessage::resultConflict() const {
         new MessageResult(
             mSenderUUID,
             mTransactionUUID,
-            kResultCodeConflict)
-    );
-}
-
-MessageResult::SharedConst UpdateTrustLineMessage::resultTransactionConflict() const {
-
-    return MessageResult::SharedConst(
-        new MessageResult(
-            mSenderUUID,
-            mTransactionUUID,
-            kResultCodeTransactionConflict)
+            kResultCodeTrustLineAbsent)
     );
 }

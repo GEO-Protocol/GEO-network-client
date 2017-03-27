@@ -265,8 +265,3 @@ LoggerStream BaseTransaction::debug() const
 
     return mLog->debug(logHeader());
 }
-
-TransactionResult::SharedConst BaseTransaction::resultOk() {
-    return transactionResultFromCommand(
-            mCommand->createdResponse());
-}
