@@ -92,6 +92,15 @@ int Core::initCoreComponents() {
         return initCode;
     }
 
+    initCode = initStorageHandler();
+    if (initCode != 0)
+        return initCode;
+
+    initCode = initPathsManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
@@ -103,15 +112,6 @@ int Core::initCoreComponents() {
     initCode = initDelayedTasks();
     if (initCode != 0)
         return initCode;
-
-    initCode = initStorageHandler();
-    if (initCode != 0)
-        return initCode;
-
-    initCode = initPathsManager();
-    if (initCode != 0) {
-        return initCode;
-    }
 
     connectSignalsToSlots();
 
@@ -297,7 +297,10 @@ int Core::initStorageHandler() {
 int Core::initPathsManager() {
 
     try {
-        mPathsManager = new PathsManager();
+        mPathsManager = new PathsManager(
+            mTrustLinesManager,
+            mStorageHandler,
+            &mLog);
         mLog.logSuccess("Core", "Paths Manager is successfully initialised");
         return 0;
     } catch (const std::exception &e) {

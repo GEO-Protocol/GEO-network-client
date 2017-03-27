@@ -36,14 +36,6 @@ public:
 
 private:
 
-    const string createTableQuery() const;
-
-    const string createIndexQuery(string fieldName) const;
-
-    const string insertQuery() const;
-
-    const string selectQuery() const;
-
     LoggerStream info() const;
 
     LoggerStream error() const;

@@ -10,7 +10,10 @@ RoutingTableHandler::RoutingTableHandler(
     mLog(logger),
     isTransactionBegin(false) {
 
-    string query = createTableQuery();
+    string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
+                     "(source BLOB NOT NULL, "
+                     "destination BLOB NOT NULL, "
+                     "direction BLOB NOT NULL);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::creating table: "
@@ -26,7 +29,8 @@ RoutingTableHandler::RoutingTableHandler(
                               "Run query " + string(sqlite3_errmsg(mDataBase)));
     }
 
-    query = createIndexQuery("source");
+    query = "CREATE INDEX IF NOT EXISTS " + mTableName
+            + "_source_idx on " + mTableName + "(source);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::creating index: "
@@ -42,7 +46,8 @@ RoutingTableHandler::RoutingTableHandler(
                               "Run query " + string(sqlite3_errmsg(mDataBase)));
     }
 
-    query = createIndexQuery("destination");
+    query = "CREATE INDEX IF NOT EXISTS " + mTableName
+            + "_destination_idx on " + mTableName + "(destination);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::creating index: "
@@ -67,7 +72,8 @@ void RoutingTableHandler::insert(
         const NodeUUID &destination,
         const TrustLineDirection direction) {
 
-    string query = insertQuery();
+    string query = "INSERT INTO " + mTableName +
+                     "(source, destination, direction) VALUES (?, ?, ?);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::insert: "
@@ -205,7 +211,7 @@ void RoutingTableHandler::prepareInsertred() {
 vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> RoutingTableHandler::routeRecords() {
 
     vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> result;
-    string query = selectQuery();
+    string query = "SELECT source, destination, direction FROM " + mTableName;
     info() << "select: " << query;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -252,41 +258,6 @@ vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> RoutingTableHandler::route
     }
     sqlite3_reset(stmt);
     return result;
-}
-
-const string RoutingTableHandler::createTableQuery() const {
-
-    stringstream s;
-    s << "CREATE TABLE IF NOT EXISTS "  << mTableName.c_str() <<
-            "(source BLOB NOT NULL, "
-            "destination BLOB NOT NULL, "
-            "direction BLOB NOT NULL);";
-    return s.str();
-}
-
-const string RoutingTableHandler::createIndexQuery(string fieldName) const {
-
-    stringstream s;
-    s << "CREATE INDEX IF NOT EXISTS "<< mTableName.c_str() <<
-            "_" << fieldName.c_str() << "_idx on " <<
-            mTableName.c_str() << "(" << fieldName.c_str() << ");";
-    return s.str();
-}
-
-const string RoutingTableHandler::insertQuery() const {
-
-    stringstream s;
-    s << "INSERT INTO " << mTableName.c_str() <<
-            "(source, destination, direction) VALUES (?, ?, ?);";
-    return s.str();
-}
-
-const string RoutingTableHandler::selectQuery() const {
-
-    info() << "selecting:";
-    stringstream s;
-    s <<  "SELECT source, destination, direction FROM " << mTableName.c_str();
-    return s.str();
 }
 
 LoggerStream RoutingTableHandler::info() const {

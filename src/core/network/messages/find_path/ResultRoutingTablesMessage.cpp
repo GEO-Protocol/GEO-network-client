@@ -168,6 +168,7 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         //---------------------------------------------------
         auto directionOffset = (SerializedTrustLineDirection*)(buffer.get() + bytesBufferOffset);
         TrustLineDirection direction = (TrustLineDirection)*directionOffset;
+        bytesBufferOffset += sizeof(SerializedTrustLineDirection);
         //---------------------------------------------------
         mRT1.push_back(make_pair(nodeUUID, direction));
     }
@@ -194,6 +195,7 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         //---------------------------------------------------
         auto directionOffset = (SerializedTrustLineDirection*)(buffer.get() + bytesBufferOffset);
         TrustLineDirection direction = (TrustLineDirection)*directionOffset;
+        bytesBufferOffset += sizeof(SerializedTrustLineDirection);
         //---------------------------------------------------
         mRT2.push_back(make_tuple(source, target, direction));
     }
@@ -220,6 +222,7 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         //---------------------------------------------------
         auto directionOffset = (SerializedTrustLineDirection*)(buffer.get() + bytesBufferOffset);
         TrustLineDirection direction = (TrustLineDirection)*directionOffset;
+        bytesBufferOffset += sizeof(SerializedTrustLineDirection);
         //---------------------------------------------------
         mRT3.push_back(make_tuple(source, target, direction));
     }
