@@ -12,7 +12,7 @@ FindPathTransaction::FindPathTransaction(
         logger),
 
     mCommand(command),
-    mPathManager(pathsManager),
+    mPathsManager(pathsManager),
     mRequestCounter(0) {}
 
 FindPathCommand::Shared FindPathTransaction::command() const {
@@ -57,13 +57,28 @@ TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
                 info() << "\t" << nodeUUIDAndDirection.first << "\t" << nodeUUIDAndDirection.second;
             }
             info() << "receive RT2 size: " << response->rt2().size();
-            info() << "receive RT3 size: " << response->rt3().size();
+            for (auto &nodeUUIDAndNodeUUIDAndDirection : response->rt2()) {
+                info() << "\t" << std::get<0>(nodeUUIDAndNodeUUIDAndDirection) << "\t" <<
+                       std::get<1>(nodeUUIDAndNodeUUIDAndDirection) << "\t" <<
+                       std::get<2>(nodeUUIDAndNodeUUIDAndDirection);
 
-            vector<NodeUUID> path;
-            path.push_back(mNodeUUID);
-            path.push_back(mCommand->contractorUUID());
-            return resultOk(
-                path);
+            }
+            info() << "receive RT3 size: " << response->rt3().size();
+            for (auto &nodeUUIDAndNodeUUIDAndDirection : response->rt3()) {
+                info() << "\t" << std::get<0>(nodeUUIDAndNodeUUIDAndDirection) << "\t" <<
+                       std::get<1>(nodeUUIDAndNodeUUIDAndDirection) << "\t" <<
+                       std::get<2>(nodeUUIDAndNodeUUIDAndDirection);
+
+            }
+
+            mPathsManager->setContractorRoutingTables(response);
+            Path::Shared result = mPathsManager->findPath();
+            if (result != nullptr) {
+                return resultOk(
+                        result);
+            } else {
+                return noPathResult();
+            }
         }
 
         return unexpectedErrorResult();
@@ -104,10 +119,10 @@ void FindPathTransaction::increaseRequestsCounter() {
 }
 
 TransactionResult::SharedConst FindPathTransaction::resultOk(
-        vector<NodeUUID> path) {
+        Path::Shared path) {
 
     stringstream s;
-    for (auto &nodeUUID : path) {
+    for (auto &nodeUUID : path->pathNodes()) {
         s << nodeUUID << "\t";
     }
     string pathResult = s.str();
@@ -120,6 +135,13 @@ TransactionResult::SharedConst FindPathTransaction::noResponseResult() {
     info() << "noResponseResult";
     return transactionResultFromCommand(
             mCommand->resultNoResponse());
+}
+
+TransactionResult::SharedConst FindPathTransaction::noPathResult() {
+
+    info() << "noPathResult";
+    return transactionResultFromCommand(
+        mCommand->resultNoPath());
 }
 
 TransactionResult::SharedConst FindPathTransaction::unexpectedErrorResult() {

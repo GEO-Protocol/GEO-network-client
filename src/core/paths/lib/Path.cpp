@@ -20,7 +20,10 @@ Path::Path(
             n.push_back(_destination);
 
             return n;
-        }(source, destination, intermediateNodes))
+        }(source, destination, intermediateNodes)),
+    mSourceUUID(source),
+    mDestinationUUID(destination),
+    mvIntermediateNodes(intermediateNodes)
 {}
 
 Path::Path(
@@ -28,12 +31,50 @@ Path::Path(
     const NodeUUID& destination,
     const vector<NodeUUID>&& intermediateNodes) :
 
-    Path(source, destination, intermediateNodes)
-{}
+    Path(source, destination, intermediateNodes) {}
+
+/*Path::Path(
+    const NodeUUID &source,
+    const NodeUUID &destination):
+
+    Path(
+        source,
+        destination,
+        vector<NodeUUID>()::) {}*/
+
+vector<NodeUUID> Path::pathNodes() const {
+
+    vector<NodeUUID> result;
+    result.reserve(intermediateUUIDs().size() + 2);
+    result.push_back(mSourceUUID);
+    result.insert(result.end(), mvIntermediateNodes.begin(), mvIntermediateNodes.end());
+    result.push_back(mDestinationUUID);
+    return nodes;
+}
+
+const NodeUUID& Path::sourceUUID() const {
+
+    return mSourceUUID;
+}
+
+const NodeUUID& Path::destinationUUID() const {
+
+    return mDestinationUUID;
+}
+
+vector<NodeUUID> Path::intermediateUUIDs() const {
+
+    return mvIntermediateNodes;
+}
 
 const size_t Path::length() const
 {
     return nodes.size();
+}
+
+bool Path::containsIntermediateNodes() const {
+
+    return mvIntermediateNodes.size() != 0;
 }
 
 const string Path::toString() const

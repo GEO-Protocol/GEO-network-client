@@ -298,6 +298,7 @@ int Core::initPathsManager() {
 
     try {
         mPathsManager = new PathsManager(
+            mNodeUUID,
             mTrustLinesManager,
             mStorageHandler,
             &mLog);
@@ -364,11 +365,6 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
-    // TODO: discuss and maby remove
-    mMaxFlowCalculationCacheUpdateDelayedTask->mMaxFlowCalculationCacheUpdateSignal.connect(
-        boost::bind(
-            &Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot,
-            this));
 }
 
 void Core::connectSignalsToSlots() {
@@ -546,11 +542,6 @@ void Core::JustToTestSomething() {
 //    );
 }
 
-// TODO: discuss and maby remove
-void Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot() {
-    mTransactionsManager->launchMaxFlowCalculationCacheUpdateTransaction();
-}
-
 void Core::writePIDFile()
 {
     try {
@@ -581,7 +572,9 @@ void Core::testStorageHandler() {
     mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Both);
     mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
     mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Incoming);
+    NodeUUID* nodeUUID91Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff91");
+    NodeUUID* nodeUUID92Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff92");
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID91Ptr, *nodeUUID92Ptr, TrustLineDirection::Incoming);
 
 
     vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> records = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords();

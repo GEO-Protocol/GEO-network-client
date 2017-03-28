@@ -1,30 +1,74 @@
-﻿//#include "PathsCollection.h"
+﻿#include "PathsCollection.h"
 
+PathsCollection::PathsCollection(
+    const NodeUUID &sourceUUID,
+    const NodeUUID &destinationUUID) :
 
-//PathsCollection::PathsCollection() :
-//    mIsDirectPathPresent(false) {
+    mSourceNode(sourceUUID),
+    mDestinationNode(destinationUUID),
+    mIsDirectPathPresent(false),
+    mIsReturnDirectPath(false),
+    mCurrentPath(0){}
 
-//}
+void PathsCollection::add(
+    Path &path) {
 
-//void PathsCollection::add(
-//    Path &path) {
+    if (path.sourceUUID() != mSourceNode || path.destinationUUID() != mDestinationNode) {
+        throw ValueError("PathsCollection::add "
+                                 "Added path differs from current collection");
+    }
+    if (path.containsIntermediateNodes()) {
+        mPaths.push_back(path.mvIntermediateNodes);
+    } else {
+        mIsDirectPathPresent = true;
+    }
+}
 
-//    if (path.containsIntermediateNodes()) {
-//        mIsDirectPathPresent = true;
-//    }
+void PathsCollection::resetCurrentPath() {
 
-//    mPaths.push_back(intermediateNodes);
-//}
+    mCurrentPath = 0;
+    mIsReturnDirectPath = false;
+}
 
-//PathsCollection::Path::Path(
-//    const NodeUUID &sourceNode,
-//    const NodeUUID &destinationNode,
-//    const PathsCollection::SharedIntermediateNodes intermediateNodes) :
+bool PathsCollection::hasNextPath() {
 
-//    mSourceNode(sourceNode),
-//    mDestinationNode(destinationNode),
-//    mIntermediateNodes(intermediateNodes) {
-//}
+    return mCurrentPath < mPaths.size();
+}
+
+Path::Shared PathsCollection::nextPath() {
+
+    if (mCurrentPath == 0) {
+        if (mIsDirectPathPresent && !mIsReturnDirectPath) {
+            vector<NodeUUID> emptyVector;
+            mIsReturnDirectPath = true;
+            return make_shared<Path>(
+                mSourceNode,
+                mDestinationNode,
+                emptyVector);
+        } else {
+            mCurrentPath++;
+            return make_shared<Path>(
+                mSourceNode,
+                mDestinationNode,
+                mPaths.at(mCurrentPath - 1));
+        }
+    } else {
+        mCurrentPath++;
+        return make_shared<Path>(
+            mSourceNode,
+            mDestinationNode,
+            mPaths.at(mCurrentPath - 1));
+    }
+}
+
+size_t PathsCollection::count() const {
+
+    if (mIsDirectPathPresent) {
+        return mPaths.size() + 1;
+    } else {
+        return mPaths.size();
+    }
+}
 
 ///*!
 // *
@@ -55,26 +99,25 @@
 //    return buffer;
 //}
 
-//PathsCollection::Iterator::Iterator(
-//    NodeUUID &sourceNode,
-//    NodeUUID &destinationNode,
-//    const vector<SharedIntermediateNodes> &paths) :
+/*PathsCollection::Iterator::Iterator(
+    NodeUUID &sourceNode,
+    NodeUUID &destinationNode,
+    const vector<SharedIntermediateNodes> &paths) :
 
-//    mCurrentPathIndex(0),
-//    mSourceNode(sourceNode),
-//    mDestinationNode(destinationNode),
-//    mPaths(paths){
-//}
+    mCurrentPathIndex(0),
+    mSourceNode(sourceNode),
+    mDestinationNode(destinationNode),
+    mPaths(paths){
+}
 
-//PathsCollection::Path PathsCollection::Iterator::next() {
+Path PathsCollection::Iterator::next() {
 
-//    if (mPaths.size() <= mCurrentPathIndex) {
-//        Path path(mSourceNode, mDestinationNode, mPaths[mCurrentPathIndex++]);
-//        return path;
-
-//    } else {
-//        throw IndexError(
-//            "PathsCollection::Iterator: "
-//                "no paths are available");
-//    }
-//}
+    if (mPaths.size() <= mCurrentPathIndex) {
+        Path path(mSourceNode, mDestinationNode, mPaths[mCurrentPathIndex++]);
+        return path;
+    } else {
+        throw IndexError(
+            "PathsCollection::Iterator: "
+                "no paths are available");
+    }
+}*/

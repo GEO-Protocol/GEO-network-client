@@ -34,6 +34,8 @@ public:
 
     vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> routeRecords();
 
+    const string &tableName() const;
+
 private:
 
     LoggerStream info() const;

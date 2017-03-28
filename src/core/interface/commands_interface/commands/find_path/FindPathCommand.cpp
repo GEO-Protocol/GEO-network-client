@@ -58,6 +58,14 @@ CommandResult::SharedConst FindPathCommand::resultOk(string &path) const {
             path));
 }
 
+CommandResult::SharedConst FindPathCommand::resultNoPath() const {
+
+    return CommandResult::SharedConst(
+        new CommandResult(
+            UUID(),
+            404));
+}
+
 CommandResult::SharedConst FindPathCommand::resultNoResponse() const {
 
     return CommandResult::SharedConst(

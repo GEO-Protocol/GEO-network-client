@@ -1,22 +1,37 @@
-﻿//#ifndef GEO_NETWORK_CLIENT_PATHSCOLLECTION_H
-//#define GEO_NETWORK_CLIENT_PATHSCOLLECTION_H
+﻿#ifndef GEO_NETWORK_CLIENT_PATHSCOLLECTION_H
+#define GEO_NETWORK_CLIENT_PATHSCOLLECTION_H
 
-//#include "Path.h"
+#include "Path.h"
+#include "../../common/exceptions/ValueError.h"
+
+#include <vector>
+
+class PathsCollection {
+public:
+    PathsCollection(
+        const NodeUUID &sourceUUID,
+        const NodeUUID &destinationUUID);
+
+    void add(
+        Path &path);
+
+    void resetCurrentPath();
+
+    Path::Shared nextPath();
+
+    bool hasNextPath();
+
+    size_t count() const;
+
+private:
+    NodeUUID mSourceNode;
+    NodeUUID mDestinationNode;
+    bool mIsDirectPathPresent;
+    bool mIsReturnDirectPath;
+    vector<vector<NodeUUID>> mPaths;
+
+    size_t mCurrentPath;
+};
 
 
-//class PathsCollection {
-//public:
-//    PathsCollection();
-
-//    void add(
-//        Path &path);
-
-//private:
-//    NodeUUID mSourceNode;
-//    NodeUUID mDestinationNode;
-//    bool mIsDirectPathPresent;
-//    vector<SharedIntermediateNodes> mPaths;
-//};
-
-
-//#endif //GEO_NETWORK_CLIENT_PATHSCOLLECTION_H
+#endif //GEO_NETWORK_CLIENT_PATHSCOLLECTION_H

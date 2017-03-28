@@ -87,9 +87,9 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
     //----------------------------------------------------
     for (auto const &it : mRT2) {
         NodeUUID source;
-        NodeUUID target;
+        NodeUUID destination;
         TrustLineDirection direction;
-        std::tie(source, target, direction) = it;
+        std::tie(source, destination, direction) = it;
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             source.data,
@@ -98,7 +98,7 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
         //------------------------------------------------
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            target.data,
+            destination.data,
             NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
         //------------------------------------------------
@@ -112,16 +112,16 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
     //----------------------------------------------------
     uint32_t rt3Size = (uint32_t)mRT3.size();
     memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &rt3Size,
-            sizeof(uint32_t));
+        dataBytesShared.get() + dataBytesOffset,
+        &rt3Size,
+        sizeof(uint32_t));
     dataBytesOffset += sizeof(uint32_t);
     //----------------------------------------------------
     for (auto const &it : mRT3) {
         NodeUUID source;
-        NodeUUID target;
+        NodeUUID destination;
         TrustLineDirection direction;
-        std::tie(source, target, direction) = it;
+        std::tie(source, destination, direction) = it;
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             source.data,
@@ -130,7 +130,7 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
         //------------------------------------------------
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            target.data,
+            destination.data,
             NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
         //------------------------------------------------
@@ -177,7 +177,7 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
     bytesBufferOffset += sizeof(uint32_t);
     //-----------------------------------------------------
     mRT2.clear();
-    mRT1.reserve(*rt2Count);
+    mRT2.reserve(*rt2Count);
     for (int idx = 0; idx < *rt2Count; idx++) {
         NodeUUID source;
         memcpy(
@@ -186,9 +186,9 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
             NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
-        NodeUUID target;
+        NodeUUID destination;
         memcpy(
-            target.data,
+            destination.data,
             buffer.get() + bytesBufferOffset,
             NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
@@ -197,14 +197,14 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         TrustLineDirection direction = (TrustLineDirection)*directionOffset;
         bytesBufferOffset += sizeof(SerializedTrustLineDirection);
         //---------------------------------------------------
-        mRT2.push_back(make_tuple(source, target, direction));
+        mRT2.push_back(make_tuple(source, destination, direction));
     }
     //-----------------------------------------------------
     uint32_t *rt3Count = new (buffer.get() + bytesBufferOffset) uint32_t;
     bytesBufferOffset += sizeof(uint32_t);
     //-----------------------------------------------------
-    mRT2.clear();
-    mRT1.reserve(*rt3Count);
+    mRT3.clear();
+    mRT3.reserve(*rt3Count);
     for (int idx = 0; idx < *rt3Count; idx++) {
         NodeUUID source;
         memcpy(
@@ -213,9 +213,9 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
             NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
-        NodeUUID target;
+        NodeUUID destination;
         memcpy(
-            target.data,
+            destination.data,
             buffer.get() + bytesBufferOffset,
             NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
@@ -224,7 +224,7 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         TrustLineDirection direction = (TrustLineDirection)*directionOffset;
         bytesBufferOffset += sizeof(SerializedTrustLineDirection);
         //---------------------------------------------------
-        mRT3.push_back(make_tuple(source, target, direction));
+        mRT3.push_back(make_tuple(source, destination, direction));
     }
     //-----------------------------------------------------
 }

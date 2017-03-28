@@ -11,16 +11,11 @@ MaxFlowCalculationCacheUpdateDelayedTask::MaxFlowCalculationCacheUpdateDelayedTa
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
     mLog(logger){
 
-    mMaxFlowCalculationCacheUpdateTimer = unique_ptr<as::steady_timer> (new as::steady_timer(
-        mIOService));
+    mMaxFlowCalculationCacheUpdateTimer = make_unique<as::steady_timer>(
+        mIOService);
 
-    /*mMaxFlowCalculationCacheUpdateTimer = unique_ptr<as::deadline_timer> (new as::deadline_timer(
-            mIOService));*/
-
-    GEOEpochTimestamp now = microsecondsSinceGEOEpoch(utc_now());
-    GEOEpochTimestamp nextAwakeningTimestamp = microsecondsSinceGEOEpoch(minimalAwakeningTimestamp());
-    GEOEpochTimestamp microsecondsDelay = nextAwakeningTimestamp - now;
-    mMaxFlowCalculationCacheUpdateTimer->expires_from_now(chrono::microseconds(microsecondsDelay));
+    Duration microsecondsDelay = minimalAwakeningTimestamp() - utc_now();
+    mMaxFlowCalculationCacheUpdateTimer->expires_from_now(chrono::milliseconds(microsecondsDelay.total_milliseconds()));
 
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "constructor at " << utc_now();
@@ -43,10 +38,8 @@ void MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheU
 
     updateCache();
 
-    GEOEpochTimestamp now = microsecondsSinceGEOEpoch(utc_now());
-    GEOEpochTimestamp nextAwakeningTimestamp = microsecondsSinceGEOEpoch(minimalAwakeningTimestamp());
-    GEOEpochTimestamp microsecondsDelay = nextAwakeningTimestamp - now;
-    mMaxFlowCalculationCacheUpdateTimer->expires_from_now(chrono::microseconds(microsecondsDelay));
+    Duration microsecondsDelay = minimalAwakeningTimestamp() - utc_now();
+    mMaxFlowCalculationCacheUpdateTimer->expires_from_now(chrono::microseconds(microsecondsDelay.total_milliseconds()));
 
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run at " << utc_now();
@@ -58,8 +51,6 @@ void MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheU
         &MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheUpdate,
         this,
         as::placeholders::error));
-
-    //mMaxFlowCalculationCacheUpdateSignal();
 }
 
 DateTime MaxFlowCalculationCacheUpdateDelayedTask::minimalAwakeningTimestamp() {

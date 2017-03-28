@@ -101,8 +101,6 @@ private:
 
     void JustToTestSomething();
 
-    void onDelayedTaskMaxFlowCalculationCacheUpdateSlot();
-
     void writePIDFile();
 
     // TODO: remove after testing

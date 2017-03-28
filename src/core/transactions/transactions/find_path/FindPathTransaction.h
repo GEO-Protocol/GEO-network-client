@@ -6,6 +6,7 @@
 #include "../../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 #include "../../../network/messages/find_path/RequestRoutingTablesMessage.h"
 #include "../../../network/messages/find_path/ResultRoutingTablesMessage.h"
+#include "../../../paths/lib/Path.h"
 
 #include <vector>
 
@@ -38,9 +39,11 @@ private:
 
     TransactionResult::SharedConst noResponseResult();
 
+    TransactionResult::SharedConst noPathResult();
+
     TransactionResult::SharedConst checkTransactionContext();
 
-    TransactionResult::SharedConst resultOk(vector<NodeUUID> path);
+    TransactionResult::SharedConst resultOk(Path::Shared path);
 
     TransactionResult::SharedConst unexpectedErrorResult();
 
@@ -52,7 +55,7 @@ private:
 private:
 
     FindPathCommand::Shared mCommand;
-    PathsManager* mPathManager;
+    PathsManager* mPathsManager;
     uint16_t mRequestCounter;
 
 };

@@ -65,7 +65,6 @@
 #include "../transactions/max_flow_calculation/MaxFlowCalculationSourceSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.h"
-#include "../transactions/max_flow_calculation/MaxFlowCalculationCacheUpdateTransaction.h"
 
 #include "../transactions/total_balances/TotalBalancesTransaction.h"
 #include "../transactions/total_balances/TotalBalancesFromRemoutNodeTransaction.h"
@@ -117,8 +116,6 @@ public:
     void launchRoutingTablesUpdatingTransactionsFactory(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
-
-    void launchMaxFlowCalculationCacheUpdateTransaction();
 
 private:
     // Transactions from storage
