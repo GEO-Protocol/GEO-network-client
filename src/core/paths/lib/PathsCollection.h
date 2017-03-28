@@ -3,6 +3,7 @@
 
 #include "Path.h"
 #include "../../common/exceptions/ValueError.h"
+#include "../../common/exceptions/IndexError.h"
 
 #include <vector>
 

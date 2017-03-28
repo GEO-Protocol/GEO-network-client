@@ -37,6 +37,10 @@ bool PathsCollection::hasNextPath() {
 
 Path::Shared PathsCollection::nextPath() {
 
+    if (mCurrentPath > mPaths.size()) {
+        throw IndexError("PathsCollection::nextPath "
+                                 "no paths are available");
+    }
     if (mCurrentPath == 0) {
         if (mIsDirectPathPresent && !mIsReturnDirectPath) {
             vector<NodeUUID> emptyVector;

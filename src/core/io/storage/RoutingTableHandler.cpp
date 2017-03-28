@@ -122,12 +122,12 @@ void RoutingTableHandler::insert(
 
 void RoutingTableHandler::commit() {
 
-    if (!isTransactionBegin) {
+    /*if (!isTransactionBegin) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         error() << "call commit, but trunsaction wasn't started";
 #endif
         return;
-    }
+    }*/
 
     string query = "END TRANSACTION;";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);

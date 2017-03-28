@@ -32,9 +32,18 @@ private:
 
     void findDirectPath();
 
-    void findPathOnSecondLevel();
+    void findPathsOnSecondLevel();
 
-    void findPathOnThirdLevel();
+    void findPathsOnThirdLevel();
+
+    void findPathsOnForthLevel();
+
+    void findPathsOnFifthLevel();
+
+    void findPathsOnSixthLevel();
+
+    vector<NodeUUID> intermediateNodesOnContractorFirstLevel(
+        const NodeUUID &thirdLevelSourceNode) const;
 
     LoggerStream info() const;
 
