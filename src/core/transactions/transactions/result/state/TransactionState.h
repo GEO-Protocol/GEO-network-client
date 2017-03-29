@@ -3,6 +3,7 @@
 
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../../network/messages/Message.hpp"
+#include "../../../../resources/resources/BaseResource.h"
 
 #include "boost/date_time.hpp"
 
@@ -33,6 +34,10 @@ public:
         vector<Message::MessageTypeID> &&requiredMessageType,
         uint32_t noLongerThanMilliseconds = 0);
 
+    static TransactionState::SharedConst waitForResourcesTypes(
+        vector<BaseResource::ResourceType> &&requiredResourcesType,
+        uint32_t noLongerThanMilliseconds = 0);
+
 public:
     TransactionState(
         GEOEpochTimestamp awakeningTimestamp,
@@ -61,6 +66,7 @@ public:
 private:
     GEOEpochTimestamp mAwakeningTimestamp;
     vector<Message::MessageTypeID> mRequiredMessageTypes;
+    vector<BaseResource::ResourceType> mRequiredResourcesTypes;
     bool mFlushToPermanentStorage;
 };
 
