@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <tuple>
+#include <unordered_map>
 
 class RoutingTableHandler {
 
@@ -32,7 +33,14 @@ public:
         const NodeUUID &destination,
         const TrustLineDirection direction);
 
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> routeRecords();
+    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> routeRecordsWithDirections();
+
+    vector<pair<NodeUUID, NodeUUID>> routeRecords();
+
+    vector<NodeUUID> allDestinationsForSource(
+        const NodeUUID &sourceUUID);
+
+    unordered_map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKey();
 
     const string &tableName() const;
 

@@ -57,18 +57,18 @@ TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
                 info() << "\t" << nodeUUIDAndDirection.first << "\t" << nodeUUIDAndDirection.second;
             }
             info() << "receive RT2 size: " << response->rt2().size();
-            for (auto &nodeUUIDAndNodeUUIDAndDirection : response->rt2()) {
-                info() << "\t" << std::get<0>(nodeUUIDAndNodeUUIDAndDirection) << "\t" <<
-                       std::get<1>(nodeUUIDAndNodeUUIDAndDirection) << "\t" <<
-                       std::get<2>(nodeUUIDAndNodeUUIDAndDirection);
-
+            for (auto &nodeUUIDAndVect : response->rt2()) {
+                for (auto const &nodeUUID : nodeUUIDAndVect.second) {
+                    info() << "\t" << nodeUUID
+                           << "\t" << nodeUUIDAndVect.first;
+                }
             }
             info() << "receive RT3 size: " << response->rt3().size();
-            for (auto &nodeUUIDAndNodeUUIDAndDirection : response->rt3()) {
-                info() << "\t" << std::get<0>(nodeUUIDAndNodeUUIDAndDirection) << "\t" <<
-                       std::get<1>(nodeUUIDAndNodeUUIDAndDirection) << "\t" <<
-                       std::get<2>(nodeUUIDAndNodeUUIDAndDirection);
-
+            for (auto &nodeUUIDAndVect : response->rt3()) {
+                for (auto const &nodeUUID : nodeUUIDAndVect.second) {
+                    info() << "\t" << nodeUUID
+                           << "\t" << nodeUUIDAndVect.first;
+                }
             }
 
             mPathsManager->setContractorRoutingTables(response);

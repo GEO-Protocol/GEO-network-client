@@ -28,16 +28,16 @@ TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
     info() << "run\t TrustLinesSize: " << mTrustLinesManager->trustLines().size();
 
     info() << "run\t" << "RT1 size: " << mTrustLinesManager->rt1().size();
-    info() << "run\t" << "RT2 size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords().size();
-    info() << "run\t" << "RT3 size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecords().size();
+    info() << "run\t" << "RT2 size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey().size();
+    info() << "run\t" << "RT3 size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey().size();
     info() << "run\t" << "transactionUUID\t" << mMessage->transactionUUID();
     sendMessage<ResultRoutingTablesMessage>(
         mMessage->senderUUID(),
         mNodeUUID,
         mMessage->transactionUUID(),
         mTrustLinesManager->rt1(),
-        mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords(),
-        mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecords());
+        mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey(),
+        mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey());
 
     info() << "message successfully sent";
     return make_shared<TransactionResult>(TransactionState::exit());

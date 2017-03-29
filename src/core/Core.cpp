@@ -556,7 +556,7 @@ void Core::writePIDFile()
 }
 
 void Core::testStorageHandler() {
-    cout << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords().size() << endl;
+    cout << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections().size() << endl;
 
     mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
     mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Both);
@@ -577,7 +577,7 @@ void Core::testStorageHandler() {
     mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID91Ptr, *nodeUUID92Ptr, TrustLineDirection::Incoming);
 
 
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> records = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords();
+    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> records = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections();
     cout << records.size() << endl;
     NodeUUID source;
     NodeUUID target;

@@ -32,12 +32,12 @@ vector<NodeUUID> RoutingTablesHandler::subRoutesSecondLevel(
 #endif
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::routeRecords: "
+        throw IOError("RoutingTableHandler::subRoutesSecondLevel: "
                               "Bad query " + string(sqlite3_errmsg(mDataBase)));
     }
     rc = sqlite3_bind_blob(stmt, 1, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::insert: "
+        throw IOError("RoutingTableHandler::subRoutesSecondLevel: "
                               "Bad binding " + string(sqlite3_errmsg(mDataBase)));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
@@ -68,12 +68,12 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevel(
 #endif
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::routeRecords: "
+        throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
                               "Bad query " + string(sqlite3_errmsg(mDataBase)));
     }
     rc = sqlite3_bind_blob(stmt, 1, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::insert: "
+        throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
                               "Bad binding " + string(sqlite3_errmsg(mDataBase)));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {

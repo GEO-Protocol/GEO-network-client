@@ -9,8 +9,7 @@
 #include "../logger/Logger.h"
 
 #include <vector>
-#include <set>
-#include <tuple>
+#include <unordered_map>
 
 class PathsManager {
 
@@ -61,8 +60,10 @@ private:
     NodeUUID mNodeUUID;
 
     vector<pair<const NodeUUID, const TrustLineDirection>> contractorRT1;
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> contractorRT2;
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> contractorRT3;
+    /*vector<pair<NodeUUID, NodeUUID>> contractorRT2;
+    vector<pair<NodeUUID, NodeUUID>> contractorRT3;*/
+    unordered_map<NodeUUID, vector<NodeUUID>> contractorRT2;
+    unordered_map<NodeUUID, vector<NodeUUID>> contractorRT3;
     NodeUUID contractorUUID;
 
 };

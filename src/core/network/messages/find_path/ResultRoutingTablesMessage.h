@@ -5,7 +5,7 @@
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
 #include <vector>
-#include <tuple>
+#include <unordered_map>
 
 class ResultRoutingTablesMessage : public TransactionMessage {
 
@@ -18,8 +18,8 @@ public:
         const NodeUUID& senderUUID,
         const TransactionUUID &transactionUUID,
         vector<pair<const NodeUUID, const TrustLineDirection>> rt1,
-        vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> rt2,
-        vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> rt3);
+        unordered_map<NodeUUID, vector<NodeUUID>> rt2,
+        unordered_map<NodeUUID, vector<NodeUUID>> rt3);
 
     ResultRoutingTablesMessage(
         BytesShared buffer);
@@ -28,13 +28,17 @@ public:
 
     vector<pair<const NodeUUID, const TrustLineDirection>> rt1();
 
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> rt2();
+    unordered_map<NodeUUID, vector<NodeUUID>> rt2();
 
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> rt3();
+    unordered_map<NodeUUID, vector<NodeUUID>> rt3();
 
     pair<BytesShared, size_t> serializeToBytes();
 
 private:
+
+    size_t rt2ByteSize();
+
+    size_t rt3ByteSize();
 
     void deserializeFromBytes(
             BytesShared buffer);
@@ -42,8 +46,8 @@ private:
 private:
 
     vector<pair<const NodeUUID, const TrustLineDirection>> mRT1;
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> mRT2;
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> mRT3;
+    unordered_map<NodeUUID, vector<NodeUUID>> mRT2;
+    unordered_map<NodeUUID, vector<NodeUUID>> mRT3;
 
 };
 
