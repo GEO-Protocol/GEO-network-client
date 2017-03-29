@@ -26,7 +26,13 @@ set(SOURCE_FILES
         IntermediateNodeReservationResponseMessage.cpp
 
         ParticipantsVotesMessage.cpp
-        ParticipantsVotesMessage.h)
+        ParticipantsVotesMessage.h
+
+        ParticipantsConfigurationMessage.cpp
+        ParticipantsConfigurationMessage.h
+
+        ParticipantsConfigurationRequestMessage.cpp
+        ParticipantsConfigurationRequestMessage.h)
 
 add_library(messages__outgoing__payments ${SOURCE_FILES})
 target_link_libraries(messages__outgoing__payments

@@ -51,6 +51,8 @@ public:
         Payments_IntermediateNodeReservationResponse,
 
         Payments_ParticipantsVotes,
+        Payments_ParticipantsConfiguration,
+        Payments_ParticipantsConfigurationRequest,
 
 
         InitiateMaxFlowCalculationMessageType,
