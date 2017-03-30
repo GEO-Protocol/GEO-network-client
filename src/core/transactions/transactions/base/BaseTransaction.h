@@ -87,7 +87,11 @@ public:
 
         // History
         HistoryPaymentsTransactionType,
-        HistoryTrustLinesTransactionType
+        HistoryTrustLinesTransactionType,
+
+        // FindPath
+        FindPathTransactionType,
+        GetRoutingTablesTransactionType
 
     };
 
@@ -151,6 +155,15 @@ protected:
         Args&&... args)
     {
         const auto message = make_shared<MessageType>(args...);
+        outgoingMessageIsReadySignal(
+            message,
+            addressee);
+    }
+
+    inline void sendMessage(
+        const NodeUUID &addressee,
+        const Message::Shared message)
+    {
         outgoingMessageIsReadySignal(
             message,
             addressee);

@@ -130,6 +130,12 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
             "invalid/unexpected message/response received");
 }
 
+void TransactionsScheduler::tryAttachResourceToTransaction(
+    BaseResource::Shared resource) {
+
+
+}
+
 void TransactionsScheduler::launchTransaction(
     BaseTransaction::Shared transaction) {
 

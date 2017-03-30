@@ -10,6 +10,8 @@
 #include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
+#include "../../io/storage/StorageHandler.h"
+#include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
 
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
@@ -25,6 +27,7 @@
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
@@ -33,6 +36,8 @@
 #include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 #include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../network/messages/response/Response.h"
+
+#include "../../resources/resources/BaseResource.h"
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/base/UniqueTransaction.h"
@@ -66,7 +71,6 @@
 #include "../transactions/max_flow_calculation/MaxFlowCalculationSourceSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.h"
-#include "../transactions/max_flow_calculation/MaxFlowCalculationCacheUpdateTransaction.h"
 #include "../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesRequestMessage.h"
 
 #include "../transactions/total_balances/TotalBalancesTransaction.h"
@@ -74,6 +78,9 @@
 
 #include "../transactions/history/HistoryPaymentsTransaction.h"
 #include "../transactions/history/HistoryTrustLinesTransaction.h"
+
+#include "../transactions/find_path/FindPathTransaction.h"
+#include "../transactions/find_path/GetRoutingTablesTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -98,6 +105,8 @@ public:
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResultsInterface *resultsInterface,
         history::OperationsHistoryStorage *operationsHistoryStorage,
+        StorageHandler *storageHandler,
+        PathsManager *pathsManager,
         Logger *logger);
 
     void processCommand(
@@ -129,7 +138,12 @@ public:
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
-    void launchMaxFlowCalculationCacheUpdateTransaction();
+    void launchPathsResourcesCollectTransaction(
+        const TransactionUUID &requestedTransactionUUID,
+        const NodeUUID &destinationNodeUUID);
+
+    void attachResourceToTransaction(
+        BaseResource::Shared resource);
 
 private:
     // Transactions from storage
@@ -200,7 +214,7 @@ private:
     void launchTotalBalancesTransaction(
         InitiateTotalBalancesMessage::Shared message);
 
-    void launchTotalBalancesRemouteNodeTransaction(
+    void launchTotalBalancesRemoteNodeTransaction(
         TotalBalancesRemouteNodeCommand::Shared command);
 
     // History transactions
@@ -208,7 +222,14 @@ private:
         HistoryPaymentsCommand::Shared command);
 
     void launchHistoryTrustLinesTransaction(
-            HistoryTrustLinesCommand::Shared command);
+        HistoryTrustLinesCommand::Shared command);
+
+    // Find path transactions
+    void launchFindPathTransaction(
+        FindPathCommand::Shared command);
+
+    void launchGetRoutingTablesTransaction(
+        RequestRoutingTablesMessage::Shared message);
 
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(
@@ -231,7 +252,7 @@ private:
     void onCommandResultReady(
         CommandResult::SharedConst result);
 
-    void prepeareAndSchedule(
+    void prepareAndSchedule(
         BaseTransaction::Shared transaction);
 
 private:
@@ -242,6 +263,8 @@ private:
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     ResultsInterface *mResultsInterface;
     history::OperationsHistoryStorage *mOperationsHistoryStorage;
+    PathsManager *mPathsManager;
+    StorageHandler *mStorageHandler;
     Logger *mLog;
 
     unique_ptr<storage::UUIDMapBlockStorage> mStorage;

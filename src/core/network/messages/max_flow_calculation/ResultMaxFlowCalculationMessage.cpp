@@ -24,8 +24,8 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() {
 
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(uint32_t) + mOutgoingFlows.size() * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount)
-                        + sizeof(uint32_t) + mIncomingFlows.size() * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
+                        + sizeof(RecordCount) + mOutgoingFlows.size() * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount)
+                        + sizeof(RecordCount) + mIncomingFlows.size() * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -35,12 +35,12 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() {
             parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
-    uint32_t trustLinesOutCount = (uint32_t)mOutgoingFlows.size();
+    RecordCount trustLinesOutCount = (RecordCount)mOutgoingFlows.size();
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &trustLinesOutCount,
-            sizeof(uint32_t));
-    dataBytesOffset += sizeof(uint32_t);
+            sizeof(RecordCount));
+    dataBytesOffset += sizeof(RecordCount);
     //----------------------------------------------------
     for (auto const &it : mOutgoingFlows) {
         memcpy(
@@ -58,12 +58,12 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() {
         dataBytesOffset += kTrustLineAmountBytesCount;
     }
     //----------------------------------------------------
-    uint32_t trustLinesInCount = (uint32_t)mIncomingFlows.size();
+    RecordCount trustLinesInCount = (RecordCount)mIncomingFlows.size();
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &trustLinesInCount,
-            sizeof(uint32_t));
-    dataBytesOffset += sizeof(uint32_t);
+            sizeof(RecordCount));
+    dataBytesOffset += sizeof(RecordCount);
     //----------------------------------------------------
     for (auto const &it : mIncomingFlows) {
         memcpy(
@@ -92,11 +92,12 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
     SenderMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
-    uint32_t *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) uint32_t;
-    bytesBufferOffset += sizeof(uint32_t);
+    RecordCount *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) RecordCount;
+    bytesBufferOffset += sizeof(RecordCount);
     //-----------------------------------------------------
     mOutgoingFlows.clear();
-    for (int idx = 0; idx < *trustLinesOutCount; idx++) {
+    mOutgoingFlows.reserve(*trustLinesOutCount);
+    for (RecordNumber idx = 0; idx < *trustLinesOutCount; idx++) {
         NodeUUID nodeUUID;
         memcpy(
             nodeUUID.data,
@@ -113,11 +114,12 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
         mOutgoingFlows.push_back(make_pair(nodeUUID, trustLineAmount));
     }
     //----------------------------------------------------
-    uint32_t *trustLinesInCount = new (buffer.get() + bytesBufferOffset) uint32_t;
-    bytesBufferOffset += sizeof(uint32_t);
+    RecordCount *trustLinesInCount = new (buffer.get() + bytesBufferOffset) RecordCount;
+    bytesBufferOffset += sizeof(RecordCount);
     //-----------------------------------------------------
     mIncomingFlows.clear();
-    for (int idx = 0; idx < *trustLinesInCount; idx++) {
+    mIncomingFlows.reserve(*trustLinesInCount);
+    for (RecordNumber idx = 0; idx < *trustLinesInCount; idx++) {
         NodeUUID nodeUUID;
         memcpy(
             nodeUUID.data,

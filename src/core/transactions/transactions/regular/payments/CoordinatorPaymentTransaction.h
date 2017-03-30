@@ -12,6 +12,7 @@
 #include "../../../../network/messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
+#include "../../../../network/messages/outgoing/payments/ParticipantsApprovingMessage.h"
 
 #include <map>
 
@@ -37,7 +38,7 @@ public:
 
     TransactionResult::SharedConst run();
 
-    pair<BytesShared, size_t> serializeToBytes();
+    pair<BytesShared, size_t> serializeToBytes() const;
 
 protected:
     typedef boost::uuids::uuid PathUUID;
@@ -100,6 +101,7 @@ protected:
         ReceiverResponseProcessing,
         AmountReservation,
         ApprovesCollecting,
+        ApprovesChecking,
     };
 
 
@@ -107,6 +109,8 @@ protected:
     TransactionResult::SharedConst initPaymentOperation();
     TransactionResult::SharedConst processReceiverResponse();
     TransactionResult::SharedConst tryReserveAmounts();
+    TransactionResult::SharedConst processApprovesCollectingStage();
+    TransactionResult::SharedConst processTransactionRecovering();
 
 protected:
     // Results handlers

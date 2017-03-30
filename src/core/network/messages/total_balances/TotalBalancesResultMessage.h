@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_TOTALBALANCESRESULTMESSAGE_H
 #define GEO_NETWORK_CLIENT_TOTALBALANCESRESULTMESSAGE_H
 
-#import "../base/transaction/TransactionMessage.h"
+#include "../base/transaction/TransactionMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
 class TotalBalancesResultMessage : public TransactionMessage {
@@ -25,8 +25,6 @@ public:
     const MessageType typeID() const;
 
     pair<BytesShared, size_t> serializeToBytes();
-
-    const bool isTotalBalancesResponseMessage() const;
 
     const TrustLineAmount& totalIncomingTrust() const;
 

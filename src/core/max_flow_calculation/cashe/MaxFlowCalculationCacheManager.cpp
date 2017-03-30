@@ -23,13 +23,17 @@ MaxFlowCalculationCache::Shared MaxFlowCalculationCacheManager::cacheByNode(
 }
 
 void MaxFlowCalculationCacheManager::updateCaches() {
-    mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", "mCaches size: " + to_string(mCaches.size()));
-    mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", "msCaches size: " + to_string(msCache.size()));
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+    info() << "updateCaches\t" << "mCaches size: " << mCaches.size();
+    info() << "updateCaches\t" << "msCaches size: " << msCache.size();
+#endif
 
     for (auto &timeAndNodeUUID : msCache) {
-        if (utc_now() - timeAndNodeUUID.first > kResetCacheDuration()) {
+        if (utc_now() - timeAndNodeUUID.first > kResetSenderCacheDuration()) {
             NodeUUID* keyUUIDPtr = timeAndNodeUUID.second;
-            mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", ((NodeUUID) *keyUUIDPtr).stringUUID());
+#ifdef  MAX_FLOW_CALCULATION_DEBUG_LOG
+            info() << "updateCaches\t" << *keyUUIDPtr;
+#endif
             mCaches.erase(*keyUUIDPtr);
             msCache.erase(timeAndNodeUUID.first);
             delete keyUUIDPtr;
@@ -39,7 +43,9 @@ void MaxFlowCalculationCacheManager::updateCaches() {
     }
 
     if (mInitiatorCache.first && utc_now() - mInitiatorCache.second > kResetInitiatorCacheDuration()) {
-        mLog->logInfo("MaxFlowCalculationCacheManager::updateCaches", "reset Initiator cache");
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+        info() << "updateCaches\t" << "reset Initiator cache";
+#endif
         mInitiatorCache.first = false;
     }
 }
@@ -51,4 +57,44 @@ void MaxFlowCalculationCacheManager::setInitiatorCache() {
 
 bool MaxFlowCalculationCacheManager::isInitiatorCached() {
     return mInitiatorCache.first;
+}
+
+DateTime MaxFlowCalculationCacheManager::closestTimeEvent() const {
+
+    // if initiator cache is active then take initiator cache removing time as result closest time event
+    // else take life time of initiator cache + now as result closest time event
+    DateTime result = utc_now() + kResetInitiatorCacheDuration();
+    if (mInitiatorCache.first && mInitiatorCache.second + kResetInitiatorCacheDuration() < result) {
+        result = mInitiatorCache.second + kResetInitiatorCacheDuration();
+    }
+    // if there are sender caches then take sender cache removing closest time as result closest time event
+    // else take life time of sender cache + now as result closest time event
+    // take as result minimal from initiator cache and sender cache closest time
+    if (msCache.size() > 0) {
+        auto timeAndNodeUUID = msCache.cbegin();
+        if (timeAndNodeUUID->first + kResetSenderCacheDuration() < result) {
+            result = timeAndNodeUUID->first + kResetSenderCacheDuration();
+        }
+    } else {
+        if (utc_now() + kResetSenderCacheDuration() < result) {
+            result = utc_now() + kResetSenderCacheDuration();
+        }
+    }
+    return result;
+}
+
+LoggerStream MaxFlowCalculationCacheManager::info() const {
+
+    if (nullptr == mLog)
+        throw Exception("logger is not initialised");
+
+    return mLog->info(logHeader());
+}
+
+const string MaxFlowCalculationCacheManager::logHeader() const {
+
+    stringstream s;
+    s << "[MaxFlowCalculationCacheManager]";
+
+    return s.str();
 }

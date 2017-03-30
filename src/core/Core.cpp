@@ -88,6 +88,20 @@ int Core::initCoreComponents() {
         return initCode;
     }
 
+    initCode = initStorageHandler();
+    if (initCode != 0)
+        return initCode;
+
+    initCode = initPathsManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initResourcesManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
@@ -202,6 +216,19 @@ int Core::initMaxFlowCalculationCacheManager() {
         mMaxFlowCalculationCacheManager = new MaxFlowCalculationCacheManager(&mLog);
         mLog.logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
         return 0;
+
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initResourcesManager() {
+
+    try {
+        mResourcesManager = new ResourcesManager();
+        mLog.logSuccess("Core", "Resources manager is successfully initialized");
+
     } catch (const std::exception &e) {
         mLog.logException("Core", e);
         return -1;
@@ -219,6 +246,8 @@ int Core::initTransactionsManager() {
             mMaxFlowCalculationCacheManager,
             mResultsInterface,
             mOperationsHistoryStorage,
+            mStorageHandler,
+            mPathsManager,
             &mLog
         );
         mLog.logSuccess("Core", "Transactions handler is successfully initialised");
@@ -235,7 +264,10 @@ int Core::initDelayedTasks() {
         mCyclesDelayedTasks = new CyclesDelayedTasks(
                 mIOService);
         mMaxFlowCalculationCacheUpdateDelayedTask = new MaxFlowCalculationCacheUpdateDelayedTask(
-                mIOService);
+                mIOService,
+                mMaxFlowCalculationCacheManager,
+                mMaxFlowCalculationTrustLimeManager,
+                &mLog);
         mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
         return 0;
     } catch (const std::exception &e) {
@@ -255,6 +287,37 @@ int Core::initCommandsInterface() {
         mLog.logSuccess("Core", "Commands interface is successfully initialised");
         return 0;
 
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initStorageHandler() {
+
+    try {
+        mStorageHandler = new StorageHandler(
+            "io",
+            "storageDB",
+            &mLog);
+        mLog.logSuccess("Core", "Storage handler is successfully initialised");
+        return 0;
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initPathsManager() {
+
+    try {
+        mPathsManager = new PathsManager(
+            mNodeUUID,
+            mTrustLinesManager,
+            mStorageHandler,
+            &mLog);
+        mLog.logSuccess("Core", "Paths Manager is successfully initialised");
+        return 0;
     } catch (const std::exception &e) {
         mLog.logException("Core", e);
         return -1;
@@ -316,16 +379,33 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
-    mMaxFlowCalculationCacheUpdateDelayedTask->mMaxFlowCalculationCacheUpdateSignal.connect(
+}
+
+void Core::connectResourcesManagerSignals() {
+
+    mResourcesManager->requestPathsResourcesSignal.connect(
         boost::bind(
-            &Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot,
-            this));
+            &Core::onPathsResourceRequestedSlot,
+            this,
+            _1,
+            _2
+        )
+    );
+
+    mResourcesManager->attachResourceSignal.connect(
+        boost::bind(
+            &Core::onResourceCollectedSlot,
+            this,
+            _1
+        )
+    );
 }
 void Core::connectSignalsToSlots() {
 
     connectCommunicatorSignals();
     connectTrustLinesManagerSignals();
     connectDelayedTasksSignals();
+    connectResourcesManagerSignals();
 }
 
 void Core::onMessageReceivedSlot(
@@ -388,6 +468,33 @@ void Core::onTrustLineStateModifiedSlot(
 
 }
 
+void Core::onPathsResourceRequestedSlot(const TransactionUUID &transactionUUID,
+                                        const NodeUUID &destinationNodeUUID) {
+
+    try {
+        mTransactionsManager->launchPathsResourcesCollectTransaction(
+            transactionUUID,
+            destinationNodeUUID);
+
+    } catch (exception &e) {
+        mLog.logException("Core", e);
+    }
+
+}
+
+void Core::onResourceCollectedSlot(
+    BaseResource::Shared resource) {
+
+    try {
+        mTransactionsManager->attachResourceToTransaction(
+            resource);
+
+    } catch (exception &e) {
+        mLog.logException("Core", e);
+    }
+
+}
+
 void Core::cleanupMemory() {
 
     if (mSettings != nullptr) {
@@ -410,6 +517,10 @@ void Core::cleanupMemory() {
         delete mTrustLinesManager;
     }
 
+    if (mResourcesManager != nullptr) {
+        delete mResourcesManager;
+    }
+
     if (mTransactionsManager != nullptr) {
         delete mTransactionsManager;
     }
@@ -429,6 +540,14 @@ void Core::cleanupMemory() {
     if (mMaxFlowCalculationCacheUpdateDelayedTask != nullptr) {
         delete mMaxFlowCalculationCacheUpdateDelayedTask;
     }
+
+    if (mStorageHandler != nullptr) {
+        delete mStorageHandler;
+    }
+
+    if (mPathsManager != nullptr) {
+        delete mPathsManager;
+    }
 }
 
 void Core::zeroPointers() {
@@ -439,24 +558,20 @@ void Core::zeroPointers() {
     mCommandsInterface = nullptr;
     mResultsInterface = nullptr;
     mTrustLinesManager = nullptr;
+    mResourcesManager = nullptr;
     mTransactionsManager = nullptr;
     mCyclesDelayedTasks = nullptr;
     mMaxFlowCalculationTrustLimeManager = nullptr;
     mMaxFlowCalculationCacheManager = nullptr;
     mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
-
 }
 
 void Core::onDelayedTaskCycleSixNodesSlot() {
-    mTransactionsManager->launchGetTopologyAndBalancesTransactionSixNodes();
+//    mTransactionsManager->launchGetTopologyAndBalancesTransactionSixNodes();
 }
 
 void Core::onDelayedTaskCycleFiveNodesSlot() {
-    mTransactionsManager->launchGetTopologyAndBalancesTransactionFiveNodes();
-}
-
-void Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot() {
-    mTransactionsManager->launchMaxFlowCalculationCacheUpdateTransaction();
+//    mTransactionsManager->launchGetTopologyAndBalancesTransactionFiveNodes();
 }
 
 void Core::writePIDFile()

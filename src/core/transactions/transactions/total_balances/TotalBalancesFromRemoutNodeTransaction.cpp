@@ -41,7 +41,7 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::run() {
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::checkTransactionContext() {
 
     info() << "context size\t" << mContext.size();
-    if (mExpectationResponsesCount == mContext.size()) {
+    if (mContext.size() == 1) {
         auto responseMessage = *mContext.begin();
 
         if (responseMessage->typeID() == Message::MessageTypeID::TotalBalancesResultMessageType) {

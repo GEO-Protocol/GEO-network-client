@@ -23,6 +23,20 @@ public:
         const NodeUUID &destination,
         const vector<NodeUUID> &&intermediateNodes);
 
+    Path(
+        const NodeUUID &source,
+        const NodeUUID &destination);
+
+    vector<NodeUUID> pathNodes() const;
+
+    const NodeUUID &sourceUUID() const;
+
+    const NodeUUID &destinationUUID() const;
+
+    vector<NodeUUID> intermediateUUIDs() const;
+
+    bool containsIntermediateNodes() const;
+
     const size_t length() const;
     const string toString() const;
 
@@ -32,6 +46,9 @@ public:
 
 public:
     const vector<NodeUUID> nodes;
+    NodeUUID mSourceUUID;
+    NodeUUID mDestinationUUID;
+    vector<NodeUUID> mvIntermediateNodes;
 };
 
 #endif // PATH_H

@@ -54,6 +54,7 @@ public:
         Payments_IntermediateNodeReservationRequest,
         Payments_IntermediateNodeReservationResponse,
 
+        Payments_ParticipantsApprove,
 
 
         InitiateMaxFlowCalculationMessageType,
@@ -65,6 +66,9 @@ public:
 
         InitiateTotalBalancesMessageType,
         TotalBalancesResultMessageType,
+
+        RequestRoutingTablesMessageType,
+        ResultRoutingTablesMessageType,
 
         ResponseMessageType = 1000,
         RoutingTablesResponseMessageType

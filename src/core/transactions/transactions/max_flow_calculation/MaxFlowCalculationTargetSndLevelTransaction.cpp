@@ -23,8 +23,8 @@ MaxFlowCalculationTargetSndLevelMessage::Shared MaxFlowCalculationTargetSndLevel
 TransactionResult::SharedConst MaxFlowCalculationTargetSndLevelTransaction::run() {
 
     info() << "run\t" << "Iam: " << mNodeUUID.stringUUID();
-    info() << "run\t" << "sender: " << mMessage->senderUUID().stringUUID();
-    info() << "run\t" << "target: " << mMessage->targetUUID().stringUUID();
+    info() << "run\t" << "sender: " << mMessage->senderUUID();
+    info() << "run\t" << "target: " << mMessage->targetUUID();
 
     sendResultToInitiator();
 
@@ -45,18 +45,26 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
     vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {
         if (outgoingFlow.first == mMessage->senderUUID()) {
-            outgoingFlows.push_back(outgoingFlow);
+            auto trustLineAmountShared = outgoingFlow.second;
+            outgoingFlows.push_back(
+                make_pair(
+                    outgoingFlow.first,
+                    *trustLineAmountShared.get()));
         }
     }
     vector<pair<NodeUUID, TrustLineAmount>> incomingFlows;
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
         if (incomingFlow.first != mMessage->senderUUID()
             && incomingFlow.first != mMessage->targetUUID()) {
-            incomingFlows.push_back(incomingFlow);
+            auto trustLineAmountShared = incomingFlow.second;
+            incomingFlows.push_back(
+                make_pair(
+                    incomingFlow.first,
+                    *trustLineAmountShared.get()));
         }
     }
 
-    info() << "sendResultToInitiator\t" << "send to " << mMessage->targetUUID().stringUUID();
+    info() << "sendResultToInitiator\t" << "send to " << mMessage->targetUUID();
     info() << "sendResultToInitiator\t" << "OutgoingFlows: " << outgoingFlows.size();
     info() << "sendResultToInitiator\t" << "IncomingFlows: " << incomingFlows.size();
 
@@ -78,31 +86,29 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
 void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
     MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr) {
 
-    info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID().stringUUID();
-
-    info() << "sendCachedResultToInitiator\t" << "cache:";
-    info() << "sendCachedResultToInitiator\t" << "outgoing: " << maxFlowCalculationCachePtr->mOutgoingFlows.size();
-    for (auto const &it : maxFlowCalculationCachePtr->mOutgoingFlows) {
-        info() << "sendCachedResultToInitiator\t" << "out uuid: " << it.first.stringUUID();
-    }
-    info() << "sendCachedResultToInitiator\t" << "incoming: " << maxFlowCalculationCachePtr->mIncomingFlows.size();
-    for (auto const &it : maxFlowCalculationCachePtr->mIncomingFlows) {
-        info() << "sendCachedResultToInitiator\t" << "in uuid: " << it.first.stringUUID();
-    }
+    info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID();
 
     vector<pair<NodeUUID, TrustLineAmount>> outgoingFlowsForSending;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {
+        auto trustLineAmountShared = outgoingFlow.second;
         if (outgoingFlow.first == mMessage->senderUUID()
-            && !maxFlowCalculationCachePtr->containsOutgoingFlow(outgoingFlow.first, outgoingFlow.second)) {
-            outgoingFlowsForSending.push_back(outgoingFlow);
+            && !maxFlowCalculationCachePtr->containsOutgoingFlow(outgoingFlow.first, *trustLineAmountShared.get())) {
+            outgoingFlowsForSending.push_back(
+                make_pair(
+                    outgoingFlow.first,
+                    *trustLineAmountShared.get()));
         }
     }
     vector<pair<NodeUUID, TrustLineAmount>> incomingFlowsForSending;
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
+        auto trustLineAmountShared = incomingFlow.second;
         if (incomingFlow.first != mMessage->senderUUID()
             && incomingFlow.first != mMessage->targetUUID()
-            && !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
-            incomingFlowsForSending.push_back(incomingFlow);
+            && !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, *trustLineAmountShared.get())) {
+            incomingFlowsForSending.push_back(
+                make_pair(
+                    incomingFlow.first,
+                    *trustLineAmountShared.get()));
         }
     }
     info() << "sendCachedResultToInitiator\t" << "OutgoingFlows: " << outgoingFlowsForSending.size();

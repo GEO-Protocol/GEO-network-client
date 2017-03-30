@@ -103,10 +103,6 @@ void TotalBalancesResultMessage::deserializeFromBytes(
     //-----------------------------------------------------
 }
 
-const bool TotalBalancesResultMessage::isTotalBalancesResponseMessage() const {
-    return true;
-}
-
 const TrustLineAmount& TotalBalancesResultMessage::totalIncomingTrust() const {
     return mTotalIncomingTrust;
 }
