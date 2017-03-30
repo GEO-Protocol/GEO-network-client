@@ -33,7 +33,7 @@ void OutgoingMessagesHandler::processOutgoingMessage(
 
         if (dataPacketsCount > 1) {
             if (packetNumber == dataPacketsCount) {
-                packetSize = messageBytesAndCount.second - kMaxPacketBodySize * packetNumber - 1;
+                packetSize = messageBytesAndCount.second - (kMaxPacketBodySize * (packetNumber - 1));
 
             } else {
                 packetSize = kMaxPacketBodySize;
