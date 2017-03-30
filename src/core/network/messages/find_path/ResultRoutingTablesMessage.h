@@ -17,7 +17,7 @@ public:
     ResultRoutingTablesMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID &transactionUUID,
-        vector<pair<const NodeUUID, const TrustLineDirection>> rt1,
+        vector<NodeUUID> rt1,
         unordered_map<NodeUUID, vector<NodeUUID>> rt2,
         unordered_map<NodeUUID, vector<NodeUUID>> rt3);
 
@@ -26,13 +26,18 @@ public:
 
     const MessageType typeID() const;
 
-    vector<pair<const NodeUUID, const TrustLineDirection>> rt1();
+    vector<NodeUUID> rt1();
 
     unordered_map<NodeUUID, vector<NodeUUID>> rt2();
 
     unordered_map<NodeUUID, vector<NodeUUID>> rt3();
 
     pair<BytesShared, size_t> serializeToBytes();
+
+private:
+
+    typedef uint32_t RecordNumber;
+    typedef RecordNumber RecordCount;
 
 private:
 
@@ -45,7 +50,7 @@ private:
 
 private:
 
-    vector<pair<const NodeUUID, const TrustLineDirection>> mRT1;
+    vector<NodeUUID> mRT1;
     unordered_map<NodeUUID, vector<NodeUUID>> mRT2;
     unordered_map<NodeUUID, vector<NodeUUID>> mRT3;
 

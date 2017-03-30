@@ -21,7 +21,16 @@ public:
 
     vector<NodeUUID> subRoutesSecondLevel(const NodeUUID &contractorUUID);
 
-    vector<pair<NodeUUID, NodeUUID>> subRoutesThirdLevel(const NodeUUID &contractorUUID);
+    vector<pair<NodeUUID, NodeUUID>> subRoutesThirdLevelContractor(
+            const NodeUUID &contractorUUID,
+            const NodeUUID &sourceUUID);
+
+    vector<pair<NodeUUID, NodeUUID>> subRoutesThirdLevel(const NodeUUID &foundUUID);
+
+    vector<pair<NodeUUID, NodeUUID>> subRoutesThirdLevelWithForbiddenNodes(
+        const NodeUUID &foundUUID,
+        const NodeUUID &sourceUUID,
+        const NodeUUID &contractorUUID);
 
 private:
 

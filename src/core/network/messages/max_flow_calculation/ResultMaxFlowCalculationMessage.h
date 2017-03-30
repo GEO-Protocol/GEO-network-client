@@ -38,6 +38,11 @@ private:
         BytesShared buffer);
 
 private:
+
+    typedef uint32_t RecordNumber;
+    typedef RecordNumber RecordCount;
+
+private:
     vector<pair<NodeUUID, TrustLineAmount>> mOutgoingFlows;
     vector<pair<NodeUUID, TrustLineAmount>> mIncomingFlows;
 

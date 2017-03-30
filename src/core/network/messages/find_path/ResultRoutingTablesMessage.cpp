@@ -3,7 +3,7 @@
 ResultRoutingTablesMessage::ResultRoutingTablesMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID &transactionUUID,
-    vector<pair<const NodeUUID, const TrustLineDirection>> rt1,
+    vector<NodeUUID> rt1,
     unordered_map<NodeUUID, vector<NodeUUID>> rt2,
     unordered_map<NodeUUID, vector<NodeUUID>> rt3):
 
@@ -25,7 +25,7 @@ const Message::MessageType ResultRoutingTablesMessage::typeID() const {
     return Message::MessageTypeID::ResultRoutingTablesMessageType;
 }
 
-vector<pair<const NodeUUID, const TrustLineDirection>> ResultRoutingTablesMessage::rt1() {
+vector<NodeUUID> ResultRoutingTablesMessage::rt1() {
 
     return mRT1;
 }
@@ -44,7 +44,7 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
 
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +
-            sizeof(uint32_t) + mRT1.size() * (NodeUUID::kBytesSize + sizeof(SerializedTrustLineDirection)) +
+            sizeof(RecordCount) + mRT1.size() * NodeUUID::kBytesSize +
             rt2ByteSize() + rt3ByteSize();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -55,34 +55,27 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
-    uint32_t rt1Size = (uint32_t)mRT1.size();
+    RecordCount rt1Size = (RecordCount)mRT1.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &rt1Size,
-        sizeof(uint32_t));
-    dataBytesOffset += sizeof(uint32_t);
+        sizeof(RecordCount));
+    dataBytesOffset += sizeof(RecordCount);
     //----------------------------------------------------
     for (auto const &itRT1 : mRT1) {
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            itRT1.first.data,
+            itRT1.data,
             NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
-        //------------------------------------------------
-        SerializedTrustLineDirection serializableDirection = itRT1.second;
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &serializableDirection,
-            sizeof(SerializedTrustLineDirection));
-        dataBytesOffset += sizeof(SerializedTrustLineDirection);
     }
     //----------------------------------------------------
-    uint32_t rt2Size = (uint32_t)mRT2.size();
+    RecordCount rt2Size = (RecordCount)mRT2.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &rt2Size,
-        sizeof(uint32_t));
-    dataBytesOffset += sizeof(uint32_t);
+        sizeof(RecordCount));
+    dataBytesOffset += sizeof(RecordCount);
     //----------------------------------------------------
     for (auto const &itRT2 : mRT2) {
         memcpy(
@@ -91,12 +84,12 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
             NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
         //------------------------------------------------
-        uint32_t rt2SizeVect = (uint32_t)itRT2.second.size();
+        RecordCount rt2SizeVect = (RecordCount)itRT2.second.size();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &rt2SizeVect,
-            sizeof(uint32_t));
-        dataBytesOffset += sizeof(uint32_t);
+            sizeof(RecordCount));
+        dataBytesOffset += sizeof(RecordCount);
         //------------------------------------------------
         for (auto const &nodeUUID : itRT2.second) {
             memcpy(
@@ -107,12 +100,12 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
         }
     }
     //----------------------------------------------------
-    uint32_t rt3Size = (uint32_t)mRT3.size();
+    RecordCount rt3Size = (RecordCount)mRT3.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &rt3Size,
-        sizeof(uint32_t));
-    dataBytesOffset += sizeof(uint32_t);
+        sizeof(RecordCount));
+    dataBytesOffset += sizeof(RecordCount);
     //----------------------------------------------------
     for (auto const &itRT3 : mRT3) {
         memcpy(
@@ -121,12 +114,12 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
             NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
         //------------------------------------------------
-        uint32_t rt3SizeVect = (uint32_t)itRT3.second.size();
+        RecordCount rt3SizeVect = (RecordCount)itRT3.second.size();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &rt3SizeVect,
-            sizeof(uint32_t));
-        dataBytesOffset += sizeof(uint32_t);
+            sizeof(RecordCount));
+        dataBytesOffset += sizeof(RecordCount);
         //------------------------------------------------
         for (auto const &nodeUUID : itRT3.second) {
             memcpy(
@@ -137,6 +130,7 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
         }
     }
     //----------------------------------------------------
+    cout << "ResultRoutingTablesMessage serialized " << bytesCount << " bytes" << endl;
     return make_pair(
         dataBytesShared,
         bytesCount);
@@ -148,12 +142,12 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
-    uint32_t *rt1Count = new (buffer.get() + bytesBufferOffset) uint32_t;
-    bytesBufferOffset += sizeof(uint32_t);
+    RecordCount *rt1Count = new (buffer.get() + bytesBufferOffset) RecordCount;
+    bytesBufferOffset += sizeof(RecordCount);
     //-----------------------------------------------------
     mRT1.clear();
     mRT1.reserve(*rt1Count);
-    for (int idx = 0; idx < *rt1Count; idx++) {
+    for (RecordNumber idx = 0; idx < *rt1Count; idx++) {
         NodeUUID nodeUUID;
         memcpy(
             nodeUUID.data,
@@ -161,19 +155,15 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
             NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
-        auto directionOffset = (SerializedTrustLineDirection*)(buffer.get() + bytesBufferOffset);
-        TrustLineDirection direction = (TrustLineDirection)*directionOffset;
-        bytesBufferOffset += sizeof(SerializedTrustLineDirection);
-        //---------------------------------------------------
-        mRT1.push_back(make_pair(nodeUUID, direction));
+        mRT1.push_back(nodeUUID);
     }
     //-----------------------------------------------------
-    uint32_t *rt2Count = new (buffer.get() + bytesBufferOffset) uint32_t;
-    bytesBufferOffset += sizeof(uint32_t);
+    RecordCount *rt2Count = new (buffer.get() + bytesBufferOffset) RecordCount;
+    bytesBufferOffset += sizeof(RecordCount);
     //-----------------------------------------------------
     mRT2.clear();
     mRT2.reserve(*rt2Count);
-    for (int idx = 0; idx < *rt2Count; idx++) {
+    for (RecordNumber idx = 0; idx < *rt2Count; idx++) {
         NodeUUID keyDesitnation;
         memcpy(
             keyDesitnation.data,
@@ -181,12 +171,12 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
             NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
-        uint32_t *rt2VectCount = new (buffer.get() + bytesBufferOffset) uint32_t;
-        bytesBufferOffset += sizeof(uint32_t);
+        RecordCount *rt2VectCount = new (buffer.get() + bytesBufferOffset) RecordCount;
+        bytesBufferOffset += sizeof(RecordCount);
         //---------------------------------------------------
         vector<NodeUUID> valueSources;
         valueSources.reserve(*rt2VectCount);
-        for (int jdx = 0; jdx < *rt2VectCount; jdx++) {
+        for (RecordNumber jdx = 0; jdx < *rt2VectCount; jdx++) {
             NodeUUID source;
             memcpy(
                 source.data,
@@ -199,12 +189,12 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         mRT2.insert(make_pair(keyDesitnation, valueSources));
     }
     //-----------------------------------------------------
-    uint32_t *rt3Count = new (buffer.get() + bytesBufferOffset) uint32_t;
-    bytesBufferOffset += sizeof(uint32_t);
+    RecordCount *rt3Count = new (buffer.get() + bytesBufferOffset) RecordCount;
+    bytesBufferOffset += sizeof(RecordCount);
     //-----------------------------------------------------
     mRT3.clear();
     mRT3.reserve(*rt3Count);
-    for (int idx = 0; idx < *rt3Count; idx++) {
+    for (RecordNumber idx = 0; idx < *rt3Count; idx++) {
         NodeUUID keyDesitnation;
         memcpy(
             keyDesitnation.data,
@@ -212,12 +202,12 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
             NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
-        uint32_t *rt3VectCount = new (buffer.get() + bytesBufferOffset) uint32_t;
-        bytesBufferOffset += sizeof(uint32_t);
+        RecordCount *rt3VectCount = new (buffer.get() + bytesBufferOffset) RecordCount;
+        bytesBufferOffset += sizeof(RecordCount);
         //---------------------------------------------------
         vector<NodeUUID> valueSources;
         valueSources.reserve(*rt3VectCount);
-        for (int jdx = 0; jdx < *rt3VectCount; jdx++) {
+        for (RecordNumber jdx = 0; jdx < *rt3VectCount; jdx++) {
             NodeUUID source;
             memcpy(
                 source.data,
@@ -234,9 +224,9 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
 
 size_t ResultRoutingTablesMessage::rt2ByteSize() {
 
-    size_t result = sizeof(uint32_t);
+    size_t result = sizeof(RecordCount);
     for (auto const &nodeUUIDAndVector : mRT2) {
-        result += NodeUUID::kBytesSize + sizeof(uint32_t) +
+        result += NodeUUID::kBytesSize + sizeof(RecordCount) +
                 nodeUUIDAndVector.second.size() * NodeUUID::kBytesSize;
     }
     return result;
@@ -244,9 +234,9 @@ size_t ResultRoutingTablesMessage::rt2ByteSize() {
 
 size_t ResultRoutingTablesMessage::rt3ByteSize() {
 
-    size_t result = sizeof(uint32_t);
+    size_t result = sizeof(RecordCount);
     for (auto const &nodeUUIDAndVector : mRT3) {
-        result += NodeUUID::kBytesSize + sizeof(uint32_t) +
+        result += NodeUUID::kBytesSize + sizeof(RecordCount) +
                   nodeUUIDAndVector.second.size() * NodeUUID::kBytesSize;
     }
     return result;

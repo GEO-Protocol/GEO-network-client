@@ -43,12 +43,10 @@ Path::Shared PathsCollection::nextPath() {
     }
     if (mCurrentPath == 0) {
         if (mIsDirectPathPresent && !mIsReturnDirectPath) {
-            vector<NodeUUID> emptyVector;
             mIsReturnDirectPath = true;
             return make_shared<Path>(
                 mSourceNode,
-                mDestinationNode,
-                emptyVector);
+                mDestinationNode);
         } else {
             mCurrentPath++;
             return make_shared<Path>(

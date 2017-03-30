@@ -22,8 +22,6 @@ public:
         string tableName,
         Logger *logger);
 
-    void prepareInsertred();
-
     void commit();
 
     void rollBack();
@@ -45,6 +43,8 @@ public:
     const string &tableName() const;
 
 private:
+
+    void prepareInsertred();
 
     LoggerStream info() const;
 

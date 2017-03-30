@@ -626,7 +626,7 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFl
     return result;
 }
 
-vector<pair<const NodeUUID, const TrustLineDirection>> TrustLinesManager::rt1() const {
+vector<pair<const NodeUUID, const TrustLineDirection>> TrustLinesManager::rt1WithDirections() const {
 
     vector<pair<const NodeUUID, const TrustLineDirection >> result;
     result.reserve(mTrustLines.size());
@@ -635,6 +635,17 @@ vector<pair<const NodeUUID, const TrustLineDirection>> TrustLinesManager::rt1() 
             make_pair(
                 nodeUUIDAndTrustLine.first,
                 nodeUUIDAndTrustLine.second->direction()));
+    }
+    return result;
+}
+
+vector<NodeUUID> TrustLinesManager::rt1() const {
+
+    vector<NodeUUID> result;
+    result.reserve(mTrustLines.size());
+    for (auto &nodeUUIDAndTrustLine : mTrustLines) {
+        result.push_back(
+            nodeUUIDAndTrustLine.first);
     }
     return result;
 }

@@ -33,14 +33,14 @@ Path::Path(
 
     Path(source, destination, intermediateNodes) {}
 
-/*Path::Path(
+Path::Path(
     const NodeUUID &source,
     const NodeUUID &destination):
 
     Path(
         source,
         destination,
-        vector<NodeUUID>()::) {}*/
+        {}) {}
 
 vector<NodeUUID> Path::pathNodes() const {
 

@@ -23,9 +23,9 @@ public:
         const NodeUUID &destination,
         const vector<NodeUUID> &&intermediateNodes);
 
-    /*Path(
+    Path(
         const NodeUUID &source,
-        const NodeUUID &destination);*/
+        const NodeUUID &destination);
 
     vector<NodeUUID> pathNodes() const;
 

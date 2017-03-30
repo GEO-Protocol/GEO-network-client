@@ -132,7 +132,9 @@ public:
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
 
-    vector<pair<const NodeUUID, const TrustLineDirection>> rt1() const;
+    vector<pair<const NodeUUID, const TrustLineDirection>> rt1WithDirections() const;
+
+    vector<NodeUUID> rt1() const;
 
     [[deprecated("Buggy function. Use trustLineReadOnly instead")]]
     const TrustLine::Shared trustLine(

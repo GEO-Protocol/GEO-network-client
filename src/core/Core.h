@@ -103,9 +103,6 @@ private:
 
     void writePIDFile();
 
-    // TODO: remove after testing
-    void testStorageHandler();
-
 protected:
     Logger mLog;
 

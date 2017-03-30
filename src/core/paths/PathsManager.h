@@ -51,6 +51,12 @@ private:
     // TODO : remove after testing
     void fillRoutingTables();
 
+    // TODO: remove after testing
+    void testStorageHandler();
+
+    // TODO: remove after testing
+    void testStorageHandlerNextStep();
+
 private:
 
     TrustLinesManager *mTrustLinesManager;
@@ -59,9 +65,7 @@ private:
     PathsCollection *mPathCollection;
     NodeUUID mNodeUUID;
 
-    vector<pair<const NodeUUID, const TrustLineDirection>> contractorRT1;
-    /*vector<pair<NodeUUID, NodeUUID>> contractorRT2;
-    vector<pair<NodeUUID, NodeUUID>> contractorRT3;*/
+    vector<NodeUUID> contractorRT1;
     unordered_map<NodeUUID, vector<NodeUUID>> contractorRT2;
     unordered_map<NodeUUID, vector<NodeUUID>> contractorRT3;
     NodeUUID contractorUUID;

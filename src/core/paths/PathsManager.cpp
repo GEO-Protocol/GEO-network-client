@@ -12,6 +12,11 @@ PathsManager::PathsManager(
     mLog(logger),
     mPathCollection(nullptr){
 
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+    testStorageHandler();
+#endif
+
+    //testStorageHandler();
     fillRoutingTables();
 }
 
@@ -25,13 +30,11 @@ void PathsManager::setContractorRoutingTables(ResultRoutingTablesMessage::Shared
 
 void PathsManager::findDirectPath() {
 
-    vector<NodeUUID> intermediateNodes;
-    for (auto const &nodeAndDirection : mTrustLinesManager->rt1()) {
-        if (nodeAndDirection.first == contractorUUID) {
+    for (auto const &nodeUUID : mTrustLinesManager->rt1()) {
+        if (nodeUUID == contractorUUID) {
             Path path = Path(
                 mNodeUUID,
-                contractorUUID,
-                intermediateNodes);
+                contractorUUID);
             mPathCollection->add(path);
             info() << "found direct path";
             return;
@@ -55,7 +58,9 @@ void PathsManager::findPathsOnSecondLevel() {
 
 void PathsManager::findPathsOnThirdLevel() {
 
-    for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(contractorUUID)) {
+    for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelContractor(
+            contractorUUID,
+            mNodeUUID)) {
         vector<NodeUUID> intermediateNodes;
         intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
         intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
@@ -70,13 +75,18 @@ void PathsManager::findPathsOnThirdLevel() {
 
 void PathsManager::findPathsOnForthLevel() {
 
-    for (auto const &itRT1 : contractorRT1) {
-        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
-                itRT1.first)) {
+    for (auto const &nodeUUID : contractorRT1) {
+        if (nodeUUID == mNodeUUID) {
+            continue;
+        }
+        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
+                nodeUUID,
+                mNodeUUID,
+                contractorUUID)) {
             vector<NodeUUID> intermediateNodes;
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
-            intermediateNodes.push_back(itRT1.first);
+            intermediateNodes.push_back(nodeUUID);
             Path path(
                 mNodeUUID,
                 contractorUUID,
@@ -90,8 +100,15 @@ void PathsManager::findPathsOnForthLevel() {
 void PathsManager::findPathsOnFifthLevel() {
 
     for (auto const &itRT2 : contractorRT2) {
-        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
-                itRT2.first)) {
+        // TODO (mc) : need or not second condition (itRT2.first == contractorUUID)
+        if (itRT2.first == mNodeUUID || itRT2.first == contractorUUID) {
+            continue;
+        }
+        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
+                itRT2.first,
+                mNodeUUID,
+                contractorUUID)) {
+            info() << "fifth path: " << itRT2.first << " " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second;
             for (auto const &nodeUUID : itRT2.second) {
                 vector<NodeUUID> intermediateNodes;
                 intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
@@ -112,8 +129,14 @@ void PathsManager::findPathsOnFifthLevel() {
 void PathsManager::findPathsOnSixthLevel() {
 
     for (auto const &itRT3 : contractorRT3) {
-        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
-                itRT3.first)) {
+        // TODO (mc) : need or not second condition (itRT3.first == contractorUUID)
+        if (itRT3.first == mNodeUUID || itRT3.first == contractorUUID) {
+            continue;
+        }
+        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
+                itRT3.first,
+                mNodeUUID,
+                contractorUUID)) {
             for (auto const &nodeUUID : itRT3.second) {
                 for (auto &contactorIntermediateNode : intermediateNodesOnContractorFirstLevel(
                             nodeUUID)) {
@@ -193,7 +216,6 @@ void PathsManager::fillRoutingTables() {
     NodeUUID* nodeUUID98Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff98");
 
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff90")) {
-        mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
         mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID92Ptr, *nodeUUID94Ptr,
                                                                               TrustLineDirection::Both);
         // duplicate
@@ -213,7 +235,6 @@ void PathsManager::fillRoutingTables() {
                                                                               TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
 
-        mStorageHandler->routingTablesHandler()->routingTable3Level()->prepareInsertred();
         mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID94Ptr, *nodeUUID90Ptr,
                                                                               TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID94Ptr, *nodeUUID92Ptr,
@@ -242,14 +263,12 @@ void PathsManager::fillRoutingTables() {
     }
 
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff91")) {
-        mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
         mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID93Ptr, *nodeUUID95Ptr,
                                                                               TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID93Ptr, *nodeUUID91Ptr,
                                                                               TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
 
-        mStorageHandler->routingTablesHandler()->routingTable3Level()->prepareInsertred();
         mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID95Ptr, *nodeUUID96Ptr,
                                                                               TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID95Ptr, *nodeUUID98Ptr,
@@ -260,30 +279,28 @@ void PathsManager::fillRoutingTables() {
     }
 
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff94")) {
-        mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
         mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID92Ptr, *nodeUUID90Ptr,
                                                                               TrustLineDirection::Both);
-        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID92Ptr, *nodeUUID94Ptr,
-                                                                              TrustLineDirection::Both);
+        /*mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID92Ptr, *nodeUUID94Ptr,
+                                                                              TrustLineDirection::Both);*/
         mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID96Ptr, *nodeUUID95Ptr,
                                                                               TrustLineDirection::Both);
-        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID96Ptr, *nodeUUID94Ptr,
-                                                                              TrustLineDirection::Both);
+        /*mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID96Ptr, *nodeUUID94Ptr,
+                                                                              TrustLineDirection::Both);*/
         mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID98Ptr, *nodeUUID95Ptr,
                                                                               TrustLineDirection::Both);
-        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID98Ptr, *nodeUUID94Ptr,
-                                                                              TrustLineDirection::Both);
-        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID97Ptr, *nodeUUID94Ptr,
-                                                                              TrustLineDirection::Both);
+        /*mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID98Ptr, *nodeUUID94Ptr,
+                                                                              TrustLineDirection::Both);*/
+        /*mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID97Ptr, *nodeUUID94Ptr,
+                                                                              TrustLineDirection::Both);*/
         mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
 
-        mStorageHandler->routingTablesHandler()->routingTable3Level()->prepareInsertred();
-        mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID90Ptr, *nodeUUID92Ptr,
-                                                                              TrustLineDirection::Both);
+        /*mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID90Ptr, *nodeUUID92Ptr,
+                                                                              TrustLineDirection::Both);*/
         mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID90Ptr, *nodeUUID94Ptr,
                                                                               TrustLineDirection::Both);
-        mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID92Ptr, *nodeUUID90Ptr,
-                                                                              TrustLineDirection::Both);
+        /*mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID92Ptr, *nodeUUID90Ptr,
+                                                                              TrustLineDirection::Both);*/
         mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID92Ptr, *nodeUUID94Ptr,
                                                                               TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID95Ptr, *nodeUUID93Ptr,
@@ -294,6 +311,76 @@ void PathsManager::fillRoutingTables() {
                                                                               TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable3Level()->commit();
     }
+
+    if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff93")) {
+        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID95Ptr, *nodeUUID96Ptr,
+                                                                              TrustLineDirection::Both);
+        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID95Ptr, *nodeUUID98Ptr,
+                                                                              TrustLineDirection::Both);
+        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID95Ptr, *nodeUUID93Ptr,
+                                                                              TrustLineDirection::Both);
+        mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+
+        mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID96Ptr, *nodeUUID94Ptr,
+                                                                              TrustLineDirection::Both);
+        mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID96Ptr, *nodeUUID95Ptr,
+                                                                              TrustLineDirection::Both);
+        mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID98Ptr, *nodeUUID94Ptr,
+                                                                              TrustLineDirection::Both);
+        mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID98Ptr, *nodeUUID95Ptr,
+                                                                              TrustLineDirection::Both);
+        mStorageHandler->routingTablesHandler()->routingTable3Level()->commit();
+    }
+
+    delete nodeUUID90Ptr;
+    delete nodeUUID91Ptr;
+    delete nodeUUID92Ptr;
+    delete nodeUUID93Ptr;
+    delete nodeUUID94Ptr;
+    delete nodeUUID95Ptr;
+    delete nodeUUID96Ptr;
+    delete nodeUUID97Ptr;
+    delete nodeUUID98Ptr;
+}
+
+void PathsManager::testStorageHandler() {
+    cout << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections().size() << endl;
+
+    NodeUUID* nodeUUID81Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff81");
+    NodeUUID* nodeUUID82Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff82");
+    NodeUUID* nodeUUID83Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff83");
+    NodeUUID* nodeUUID84Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff84");
+    NodeUUID* nodeUUID85Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff85");
+    NodeUUID* nodeUUID86Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff86");
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID81Ptr, *nodeUUID82Ptr, TrustLineDirection::Both);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID81Ptr, *nodeUUID82Ptr, TrustLineDirection::Both);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID83Ptr, *nodeUUID84Ptr, TrustLineDirection::Incoming);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID85Ptr, *nodeUUID86Ptr, TrustLineDirection::Outgoing);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID82Ptr, *nodeUUID81Ptr, TrustLineDirection::Both);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID84Ptr, *nodeUUID83Ptr, TrustLineDirection::Incoming);
+
+
+    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> records = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections();
+    cout << records.size() << endl;
+    NodeUUID source;
+    NodeUUID target;
+    TrustLineDirection direction;
+    for (auto &record : records) {
+        std::tie(source, target, direction) = record;
+        info() << source << " " << target << " " << direction;
+    }
+    delete nodeUUID81Ptr;
+    delete nodeUUID82Ptr;
+    delete nodeUUID83Ptr;
+    delete nodeUUID84Ptr;
+    delete nodeUUID85Ptr;
+    delete nodeUUID86Ptr;
+
 }
 
 LoggerStream PathsManager::info() const {

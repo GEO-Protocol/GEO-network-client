@@ -28,8 +28,23 @@ TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
     info() << "run\t TrustLinesSize: " << mTrustLinesManager->trustLines().size();
 
     info() << "run\t" << "RT1 size: " << mTrustLinesManager->rt1().size();
+    for (auto const &itRT1 : mTrustLinesManager->rt1()) {
+        info() << "run\t\t" << itRT1;
+    }
     info() << "run\t" << "RT2 size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey().size();
+    for (auto const &itRT2 : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey()) {
+        info() << "run\t\tkey: " << itRT2.first;
+        for (auto const &nodeUUID : itRT2.second) {
+            info() << "run\t\t\tvalue: " << nodeUUID;
+        }
+    }
     info() << "run\t" << "RT3 size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey().size();
+    for (auto const &itRT3 : mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey()) {
+        info() << "run\t\tkey: " << itRT3.first;
+        for (auto const &nodeUUID : itRT3.second) {
+            info() << "run\t\t\tvalue: " << nodeUUID;
+        }
+    }
     info() << "run\t" << "transactionUUID\t" << mMessage->transactionUUID();
     sendMessage<ResultRoutingTablesMessage>(
         mMessage->senderUUID(),

@@ -51,10 +51,10 @@ TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
             ResultRoutingTablesMessage::Shared response = static_pointer_cast<ResultRoutingTablesMessage>(
                 responseMessage);
 
-            vector<pair<const NodeUUID, const TrustLineDirection >> rt1 = response->rt1();
+            vector<NodeUUID> rt1 = response->rt1();
             info() << "receive RT1 size: " << rt1.size();
-            for (auto &nodeUUIDAndDirection : rt1) {
-                info() << "\t" << nodeUUIDAndDirection.first << "\t" << nodeUUIDAndDirection.second;
+            for (auto &nodeUUID : rt1) {
+                info() << "\t" << nodeUUID;
             }
             info() << "receive RT2 size: " << response->rt2().size();
             for (auto &nodeUUIDAndVect : response->rt2()) {

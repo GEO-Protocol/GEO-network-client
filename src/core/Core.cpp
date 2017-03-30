@@ -18,10 +18,6 @@ int Core::run() {
         return initCode;
     }
 
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    testStorageHandler();
-#endif
-
     try {
         writePIDFile();
 
@@ -553,38 +549,4 @@ void Core::writePIDFile()
         auto errors = mLog.error("Core");
         errors << "Can't write/update pid file. Error message is: " << e.what();
     }
-}
-
-void Core::testStorageHandler() {
-    cout << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections().size() << endl;
-
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Both);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Both);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Incoming);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Outgoing);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->prepareInsertred();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(mNodeUUID, mNodeUUID, TrustLineDirection::Both);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-    NodeUUID* nodeUUID91Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff91");
-    NodeUUID* nodeUUID92Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff92");
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID91Ptr, *nodeUUID92Ptr, TrustLineDirection::Incoming);
-
-
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> records = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections();
-    cout << records.size() << endl;
-    NodeUUID source;
-    NodeUUID target;
-    TrustLineDirection direction;
-    for (auto &record : records) {
-        std::tie(source, target, direction) = record;
-        cout << source.stringUUID() << " " << target.stringUUID() << " " << direction << endl;
-    }
-
 }
