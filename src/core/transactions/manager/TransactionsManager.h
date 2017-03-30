@@ -37,6 +37,8 @@
 #include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../network/messages/response/Response.h"
 
+#include "../../resources/resources/BaseResource.h"
+
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/base/UniqueTransaction.h"
 
@@ -117,6 +119,13 @@ public:
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
+    void launchPathsResourcesCollectTransaction(
+        const TransactionUUID &requestedTransactionUUID,
+        const NodeUUID &destinationNodeUUID);
+
+    void attachResourceToTransaction(
+        BaseResource::Shared resource);
+
 private:
     // Transactions from storage
     void loadTransactions();
@@ -192,7 +201,7 @@ private:
     void launchTotalBalancesTransaction(
         InitiateTotalBalancesMessage::Shared message);
 
-    void launchTotalBalancesRemouteNodeTransaction(
+    void launchTotalBalancesRemoteNodeTransaction(
         TotalBalancesRemouteNodeCommand::Shared command);
 
     // History transactions
@@ -202,7 +211,7 @@ private:
     void launchHistoryTrustLinesTransaction(
         HistoryTrustLinesCommand::Shared command);
 
-    // Find path transation
+    // Find path transactions
     void launchFindPathTransaction(
         FindPathCommand::Shared command);
 
@@ -230,7 +239,7 @@ private:
     void onCommandResultReady(
         CommandResult::SharedConst result);
 
-    void prepeareAndSchedule(
+    void prepareAndSchedule(
         BaseTransaction::Shared transaction);
 
 private:

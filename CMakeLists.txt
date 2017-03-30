@@ -97,7 +97,7 @@ set(SOURCE_FILES
         src/core/Core.h
 
         # libs
-        src/libs/json/json.h)
+        src/libs/json/json.h src/core/resources/manager/ResourcesManager.cpp src/core/resources/manager/ResourcesManager.h src/core/resources/resources/BaseResource.cpp src/core/resources/resources/BaseResource.h)
 
 add_executable(geo_network_client ${SOURCE_FILES})
 

@@ -169,9 +169,9 @@ void TransactionsManager::processCommand(
                 command));
 
     } else if (command->identifier() == TotalBalancesRemouteNodeCommand::identifier()){
-        launchTotalBalancesRemouteNodeTransaction(
-                static_pointer_cast<TotalBalancesRemouteNodeCommand>(
-                        command));
+        launchTotalBalancesRemoteNodeTransaction(
+            static_pointer_cast<TotalBalancesRemouteNodeCommand>(
+                command));
 
     } else if (command->identifier() == HistoryPaymentsCommand::identifier()){
         launchHistoryPaymentsTransaction(
@@ -604,7 +604,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -628,7 +628,7 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -652,7 +652,7 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
             mMaxFlowCalculationTrustLineManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -675,7 +675,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
             mTrustLines,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -698,7 +698,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
             mTrustLines,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -722,7 +722,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -746,7 +746,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -785,7 +785,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
 void TransactionsManager::launchReceiverPaymentTransaction(
     ReceiverInitPaymentRequestMessage::Shared message)
 {
-    prepeareAndSchedule(
+    prepareAndSchedule(
         make_shared<ReceiverPaymentTransaction>(
             mNodeUUID,
             message,
@@ -796,7 +796,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
 void TransactionsManager::launchIntermediateNodePaymentTransaction(
     IntermediateNodeReservationRequestMessage::Shared message)
 {
-    prepeareAndSchedule(
+    prepareAndSchedule(
         make_shared<IntermediateNodePaymentTransaction>(
             mNodeUUID,
             message,
@@ -865,7 +865,7 @@ void TransactionsManager::launchTotalBalancesTransaction(
             mTrustLines,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -888,7 +888,7 @@ void TransactionsManager::launchTotalBalancesTransaction(
             mTrustLines,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -901,8 +901,8 @@ void TransactionsManager::launchTotalBalancesTransaction(
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchTotalBalancesRemouteNodeTransaction(
-        TotalBalancesRemouteNodeCommand::Shared command) {
+void TransactionsManager::launchTotalBalancesRemoteNodeTransaction(
+    TotalBalancesRemouteNodeCommand::Shared command) {
 
     try {
         auto transaction = make_shared<TotalBalancesFromRemoutNodeTransaction>(
@@ -910,11 +910,11 @@ void TransactionsManager::launchTotalBalancesRemouteNodeTransaction(
             command,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchTotalBalancesRemouteNodeTransaction: "
+            "TransactionsManager::launchTotalBalancesRemoteNodeTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }
@@ -931,7 +931,7 @@ void TransactionsManager::launchHistoryPaymentsTransaction(HistoryPaymentsComman
             mOperationsHistoryStorage,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -952,7 +952,7 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCo
             mOperationsHistoryStorage,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -973,13 +973,26 @@ void TransactionsManager::launchFindPathTransaction(FindPathCommand::Shared comm
             mPathsManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchFindPathTransaction: "
                         "Can't allocate memory for transaction instance.");
     }
+}
+
+void TransactionsManager::launchPathsResourcesCollectTransaction(const TransactionUUID &requestedTransactionUUID,
+                                                                 const NodeUUID &destinationNodeUUID) {
+
+    //TODO:: create transaction which collect paths resources
+}
+
+void TransactionsManager::attachResourceToTransaction(
+    BaseResource::Shared resource) {
+
+    mScheduler->tryAttachResourceToTransaction(
+        resource);
 }
 
 /*!
@@ -995,7 +1008,7 @@ void TransactionsManager::launchGetRoutingTablesTransaction(RequestRoutingTables
             mStorageHandler,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -1099,7 +1112,7 @@ void TransactionsManager::onSubsidiaryTransactionReady(
  *
  * @throws bad_alloc;
  */
-void TransactionsManager::prepeareAndSchedule(
+void TransactionsManager::prepareAndSchedule(
     BaseTransaction::Shared transaction)
 {
     subscribeForOutgoingMessages(

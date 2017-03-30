@@ -97,6 +97,11 @@ int Core::initCoreComponents() {
         return initCode;
     }
 
+    initCode = initResourcesManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
@@ -211,6 +216,19 @@ int Core::initMaxFlowCalculationCacheManager() {
         mMaxFlowCalculationCacheManager = new MaxFlowCalculationCacheManager(&mLog);
         mLog.logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
         return 0;
+
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initResourcesManager() {
+
+    try {
+        mResourcesManager = new ResourcesManager();
+        mLog.logSuccess("Core", "Resources manager is successfully initialized");
+
     } catch (const std::exception &e) {
         mLog.logException("Core", e);
         return -1;
@@ -363,11 +381,32 @@ void Core::connectDelayedTasksSignals(){
     );
 }
 
+void Core::connectResourcesManagerSignals() {
+
+    mResourcesManager->requestPathsResourcesSignal.connect(
+        boost::bind(
+            &Core::onPathsResourceRequestedSlot,
+            this,
+            _1,
+            _2
+        )
+    );
+
+    mResourcesManager->attachResourceSignal.connect(
+        boost::bind(
+            &Core::onResourceCollectedSlot,
+            this,
+            _1
+        )
+    );
+}
+
 void Core::connectSignalsToSlots() {
 
     connectCommunicatorSignals();
     connectTrustLinesManagerSignals();
     connectDelayedTasksSignals();
+    connectResourcesManagerSignals();
 }
 
 void Core::onMessageReceivedSlot(
@@ -439,6 +478,33 @@ void Core::onDelayedTaskCycleFiveNodesSlot() {
 //    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
 }
 
+void Core::onPathsResourceRequestedSlot(const TransactionUUID &transactionUUID,
+                                        const NodeUUID &destinationNodeUUID) {
+
+    try {
+        mTransactionsManager->launchPathsResourcesCollectTransaction(
+            transactionUUID,
+            destinationNodeUUID);
+
+    } catch (exception &e) {
+        mLog.logException("Core", e);
+    }
+
+}
+
+void Core::onResourceCollectedSlot(
+    BaseResource::Shared resource) {
+
+    try {
+        mTransactionsManager->attachResourceToTransaction(
+            resource);
+
+    } catch (exception &e) {
+        mLog.logException("Core", e);
+    }
+
+}
+
 void Core::cleanupMemory() {
 
     if (mSettings != nullptr) {
@@ -459,6 +525,10 @@ void Core::cleanupMemory() {
 
     if (mTrustLinesManager != nullptr) {
         delete mTrustLinesManager;
+    }
+
+    if (mResourcesManager != nullptr) {
+        delete mResourcesManager;
     }
 
     if (mTransactionsManager != nullptr) {
@@ -498,6 +568,7 @@ void Core::zeroPointers() {
     mCommandsInterface = nullptr;
     mResultsInterface = nullptr;
     mTrustLinesManager = nullptr;
+    mResourcesManager = nullptr;
     mTransactionsManager = nullptr;
     mCyclesDelayedTasks = nullptr;
     mMaxFlowCalculationTrustLimeManager = nullptr;
@@ -505,37 +576,6 @@ void Core::zeroPointers() {
     mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
     mStorageHandler = nullptr;
     mPathsManager = nullptr;
-}
-
-//void Core::initTimers() {
-//
-//}
-
-void Core::JustToTestSomething() {
-//    mTrustLinesManager->getFirstLevelNodesForCycles();
-//    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles();
-//    TrustLineBalance bal = 70;
-//    TrustLineBalance max_flow = 30;
-//    vector<NodeUUID> path;
-//    vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes;
-//    boundaryNodes.push_back(make_pair(mNodeUUID, bal ));
-//    path.push_back(mNodeUUID);
-////    for(const auto &value: firstLevelNodes){
-//
-////
-//    auto message = Message::Shared(new BoundaryNodeTopolodyMessage(
-//            max_flow,
-//            2,
-//            path,
-//            boundaryNodes
-//    ));
-//    auto buffer = message->serializeToBytes();
-//    auto new_message = new BoundaryNodeTopolodyMessage(buffer.first);
-//    cout << "lets see what we have " << endl;
-    //    mTransactionsManager->launchGetTopologyAndBalancesTransaction(static_pointer_cast<BoundaryNodeTopologyMessage>(
-//            message
-//    )
-//    );
 }
 
 void Core::writePIDFile()
