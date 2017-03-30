@@ -68,13 +68,8 @@ public:
         const NodeUUID &outgoingNode)
         throw (ValueError, bad_alloc);
 
-    vector< tuple<NodeUUID, NodeUUID, ConstSharedTrustLineAmount>> intermediateNodePathsConfiguration()
-        const
-        throw (RuntimeError);
-
-    vector< tuple<NodeUUID, ConstSharedTrustLineAmount>> receiverNodePathsConfiguration()
-        const
-        throw (RuntimeError);
+    const vector< pair<NodesSet, ConstSharedTrustLineAmount>>& nodesAndFinalReservationAmount()
+        const noexcept;
 
     const MessageType typeID() const
         noexcept;

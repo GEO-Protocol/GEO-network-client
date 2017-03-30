@@ -35,11 +35,11 @@ public:
     pair<BytesShared, size_t> serializeToBytes();
 
 protected:
-    enum Stages {
-        CoordinatorRequestApproving = 1,
-        AmountReservationsProcessing,
-        VotesChecking,
-    };
+//    enum Stages {
+//        CoordinatorRequestApproving = 1,
+//        AmountReservationsProcessing,
+//        VotesChecking,
+//    };
 
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage();

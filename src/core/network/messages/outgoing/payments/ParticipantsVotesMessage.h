@@ -78,8 +78,7 @@ protected:
         BytesShared buffer);
 
 protected:
-    /*
-     * It is necessary to use flat map here:
+    /* It is necessary to use flat map here:
      * this container predicts order in which
      * this message would be transmitted between the nodes.
      *

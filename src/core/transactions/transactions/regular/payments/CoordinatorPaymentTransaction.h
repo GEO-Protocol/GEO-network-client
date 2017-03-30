@@ -13,8 +13,10 @@
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
 #include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
 #include "../../../../network/messages/outgoing/payments/ParticipantsVotesMessage.h"
+#include "../../../../network/messages/outgoing/payments/ParticipantsConfigurationRequestMessage.h"
 
 #include <map>
+#include <unordered_set>
 
 
 class CoordinatorPaymentTransaction:
@@ -96,19 +98,12 @@ protected:
     };
 
 protected:
-    enum Stages {
-        Initialisation = 1,
-        ReceiverResponseProcessing,
-        AmountReservation,
-        VotesListChecking,
-    };
-
-
     // Stages handlers
     TransactionResult::SharedConst runPaymentInitialisationStage ();
     TransactionResult::SharedConst runReceiverResponseProcessingStage ();
     TransactionResult::SharedConst runAmountReservationStage ();
-    TransactionResult::SharedConst propagateVotesList();
+    TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
+    TransactionResult::SharedConst runFinalRequestsProcessingStage ();
 
     // Coordinator node must return command result on transaction finishing.
     // Therefore this methods are overriden.
@@ -178,6 +173,10 @@ protected:
     // that was processed last, and potenially,
     // is waiting for request appriving.
     PathUUID mCurrentAmountReservingPathIdentifier;
+
+    // Contains nodes that has been requrested final paths configuration.
+    // for more details, see TODO
+    unordered_set<NodeUUID> mNodesRequestedFinalConfiguration;
 
     byte mReservationsStage;
 };

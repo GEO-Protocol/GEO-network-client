@@ -159,14 +159,16 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     TrustLinesManager *trustLines,
     Logger *log) :
 
+    mCommand(command),
+    mReservationsStage(0),
     BasePaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
         currentNodeUUID,
         trustLines,
-        log),
-    mCommand(command),
-    mReservationsStage(0)
-{}
+        log)
+{
+    mStep = Stages::Coordinator_Initialisation;
+}
 
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BytesShared buffer,
@@ -184,16 +186,16 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 {
     switch (mStep) {
-    case Stages::Initialisation:
+    case Stages::Coordinator_Initialisation:
         return runPaymentInitialisationStage();
 
-    case Stages::ReceiverResponseProcessing:
+    case Stages::Coordinator_ReceiverResponseProcessing:
         return runReceiverResponseProcessingStage();
 
-    case Stages::AmountReservation:
+    case Stages::Coordinator_AmountReservation:
         return runAmountReservationStage();
 
-    case Stages::VotesListChecking:
+    case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
 
     default:
@@ -262,7 +264,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
         UUID(),
         mCommand->amount());
 
-    mStep = Stages::ReceiverResponseProcessing;
+    mStep = Stages::Coordinator_ReceiverResponseProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_ReceiverInitPaymentResponse},
         kMaxMessageTransferLagMSec);
@@ -284,7 +286,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverRespons
 
     info() << "Receiver accepted operation. Moving to amounts reservation stage.";
 
-    mStep = Stages::AmountReservation;
+    mStep = Stages::Coordinator_AmountReservation;
     return resultFlushAndContinue();
 }
 
@@ -326,12 +328,110 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
     }
 }
 
+TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalRequestsProcessingStage ()
+{
+    if (contextIsValid(Message::Payments_ParticipantsConfigurationRequest))
+        // Coordinator already signed the transaction and can't reject it.
+        // But the remote intermediate node will newer receive
+        // the response and must not sign the transaction.
+        return recover();
+
+
+    const auto kMessage = popNextMessage<ParticipantsConfigurationRequestMessage>();
+
+    if (kMessage->senderUUID() == mCommand->contractorUUID()){
+        // Receiver requested final payment configuration.
+        auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
+            nodeUUID(),
+            UUID(),
+            ParticipantsConfigurationMessage::ForReceiverNode);
+
+        for (const auto &pathUUIDAndPathStats : mPathsStats) {
+            const auto kPathStats = pathUUIDAndPathStats.second.get();
+            const auto kPath = kPathStats->path();
+
+            // If paths wasn't processed - exclude it.
+            if (!kPathStats->isLastIntermediateNodeProcessed())
+                continue;
+
+            // If path was dropped (processed, but rejected) - exclude it.
+            if (!kPathStats->isValid())
+                continue;
+
+            const auto kReceiverPathPos = kPath->length();
+            const auto kIncomingNode = kPath->nodes[kReceiverPathPos - 1];
+
+            responseMessage->addPath(
+                kPathStats->maxFlow(),
+                kIncomingNode);
+        }
+
+        const auto kReceiverNodeUUID = kMessage->senderUUID();
+        sendMessage(
+            kReceiverNodeUUID,
+            responseMessage);
+
+    } else {
+        // Intermediate node requested final payment configuration.
+        auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
+            nodeUUID(),
+            UUID(),
+            ParticipantsConfigurationMessage::ForIntermediateNode);
+
+        for (const auto &pathUUIDAndPathStats : mPathsStats) {
+            const auto kPathStats = pathUUIDAndPathStats.second.get();
+            const auto kPath = kPathStats->path();
+
+            // If paths wasn't processed - exclude it.
+            if (!kPathStats->isLastIntermediateNodeProcessed())
+                continue;
+
+            // If path was dropped (processed, but rejected) - exclude it.
+            if (!kPathStats->isValid())
+                continue;
+
+            auto kIntermediateNodePathPos = 1;
+            while (kIntermediateNodePathPos != kPath->length()) {
+                if (kPath->nodes[kIntermediateNodePathPos] == kMessage->senderUUID())
+                    break;
+
+                kIntermediateNodePathPos++;
+            }
+
+            const auto kIncomingNode = kPath->nodes[kIntermediateNodePathPos - 1];
+            const auto kOutgoingNode = kPath->nodes[kIntermediateNodePathPos + 1];
+
+            responseMessage->addPath(
+                kPathStats->maxFlow(),
+                kIncomingNode,
+                kOutgoingNode);
+        }
+
+        const auto kReceiverNodeUUID = kMessage->senderUUID();
+        sendMessage(
+            kReceiverNodeUUID,
+            responseMessage);
+    }
+
+
+    mNodesRequestedFinalConfiguration.insert(kMessage->senderUUID());
+    if (mNodesRequestedFinalConfiguration.size() == mParticipantsVotesMessage->participantsCount()){
+        // All nodes has been requested final path configuration.
+        // Now coordinator must move to the votes checking stage, to be able to commit the operation.
+        mStep = Stages::Common_VotesChecking;
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes},
+            maxTimeout(2));
+    }
+}
+
+
 /**
  * @brief CoordinatorPaymentTransaction::propagateVotesList
- * Collects all nodes from all paths into one votes list, and
- * propagates it to the next node in the votes list.
+ * Collects all nodes from all paths into one votes list,
+ * and propagates it to the next node in the votes list.
  */
-TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList()
+TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForConfigurationRequests ()
 {
     const auto kCurrentNodeUUID = nodeUUID();
     const auto kTransactionUUID = UUID();
@@ -397,11 +497,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
         message->firstParticipant(),
         message);
 
-    // Now coordinator must wait for this message, but signed by all nodes.
-    mStep = Stages::VotesListChecking;
+
+    // Now coordinator begins responding to the final configuration requests of the participants.
+    mStep = Stages::Coordinator_FinalPathsConfigurationApproving;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes},
-        maxTimeout(message->participantsCount()));
+        {Message::Payments_ParticipantsConfigurationRequest},
+        maxTimeout(1));
 }
 
 
@@ -471,7 +572,7 @@ void CoordinatorPaymentTransaction::addPathForFurtherProcessing(
     }
 
     for (;;) {
-        // Cylce is needed to prevent possible hashes collison.
+        // Cycle is needed to prevent possible hashes collision.
         PathUUID identifier = boost::uuids::random_generator()();
         if (mPathsStats.count(identifier) == 0){
             mPathsStats[identifier] = make_unique<PathStats>(path);
@@ -711,7 +812,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                 info() << "Requested amount collected";
                 info() << "Moving to approves collecting stage";
 
-                return propagateVotesList();
+                return propagateVotesListAndWaitForConfigurationRequests();
             }
         }
 

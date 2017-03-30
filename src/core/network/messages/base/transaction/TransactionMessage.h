@@ -3,28 +3,23 @@
 
 #include "../../SenderMessage.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/NodeUUID.h"
-#include "../../../../common/memory/MemoryUtils.h"
-
 #include "../../../../transactions/transactions/base/TransactionUUID.h"
 
-#include <memory>
-#include <utility>
-#include <stdint.h>
 
 using namespace std;
 
-class TransactionMessage: public SenderMessage {
+
+class TransactionMessage:
+    public SenderMessage {
 
 public:
     typedef shared_ptr<TransactionMessage> Shared;
     typedef shared_ptr<const TransactionMessage> ConstShared;
 
 public:
-    virtual const TransactionUUID &transactionUUID() const;
+    const TransactionUUID &transactionUUID() const;
 
-protected:
+public:
     TransactionMessage();
 
     TransactionMessage(
@@ -38,6 +33,7 @@ protected:
 
     virtual pair<BytesShared, size_t> serializeToBytes();
 
+protected:
     virtual void deserializeFromBytes(
         BytesShared buffer);
 

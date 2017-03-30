@@ -100,64 +100,10 @@ void ParticipantsConfigurationMessage::addPath (
     mNeighborsReservationsConfiguration.push_back(kRecord);
 }
 
-/**
- * @returns payment paths configuration for the intermediate node.
- * (2 neighbor nodes UUID and common path amount)
- */
-vector<tuple<NodeUUID, NodeUUID, ConstSharedTrustLineAmount>>
-ParticipantsConfigurationMessage::intermediateNodePathsConfiguration () const
-    throw (RuntimeError)
-{
-    if (mDesignation != Designation::ForIntermediateNode)
-        throw RuntimeError(
-            "ParticipantsConfigurationMessage::intermediateNodePathsConfiguration: "
-            "message was configured for the receiver node.");
-
-
-    vector<tuple<NodeUUID, NodeUUID, ConstSharedTrustLineAmount>> records(
-        mNeighborsReservationsConfiguration.size());
-
-    for (const auto &kNodesAndAmount : mNeighborsReservationsConfiguration) {
-        records.push_back(
-            std::make_tuple(
-                *(kNodesAndAmount.first.cbegin()),
-                *(kNodesAndAmount.first.cbegin()++),
-                kNodesAndAmount.second));
-    }
-
-    return records;
-}
-
-/**
- * @returns payment paths configuration for the receiver node.
- * (neighbor node UUID and common path amount)
- */
-vector<tuple<NodeUUID, ConstSharedTrustLineAmount>>
-ParticipantsConfigurationMessage::receiverNodePathsConfiguration () const
-    throw (RuntimeError)
-{
-    if (mDesignation != Designation::ForIntermediateNode)
-        throw RuntimeError(
-            "ParticipantsConfigurationMessage::receiverNodePathsConfiguration: "
-            "message was configured for the intermediate node.");
-
-
-    vector<tuple<NodeUUID, ConstSharedTrustLineAmount>> records(
-        mNeighborsReservationsConfiguration.size());
-
-    for (const auto &kNodesAndAmount : mNeighborsReservationsConfiguration) {
-        records.push_back({
-            *(kNodesAndAmount.first.cbegin()),
-            kNodesAndAmount.second});
-    }
-
-    return records;
-}
-
 const Message::MessageType ParticipantsConfigurationMessage::typeID () const
     noexcept
 {
-    Message::Payments_ParticipantsConfiguration;
+    Message::Payments_ParticipantsPathsConfiguration;
 }
 
 pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeToBytes ()
@@ -476,4 +422,11 @@ void ParticipantsConfigurationMessage::deserializeFromBytes (
             continue;
         }
     }
+}
+
+const vector< pair<ParticipantsConfigurationMessage::NodesSet, ConstSharedTrustLineAmount>>&
+ParticipantsConfigurationMessage::nodesAndFinalReservationAmount () const
+    noexcept
+{
+    return mNeighborsReservationsConfiguration;
 }

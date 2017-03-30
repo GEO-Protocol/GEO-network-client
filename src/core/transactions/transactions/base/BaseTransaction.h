@@ -144,7 +144,7 @@ protected:
     template <typename MessageType, typename... Args>
     inline void sendMessage(
         const NodeUUID &addressee,
-        Args&&... args)
+        Args&&... args) const
     {
         const auto message = make_shared<MessageType>(args...);
         outgoingMessageIsReadySignal(
@@ -154,7 +154,7 @@ protected:
 
     inline void sendMessage(
         const NodeUUID &addressee,
-        const Message::Shared message)
+        const Message::Shared message) const
     {
         outgoingMessageIsReadySignal(
             message,

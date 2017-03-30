@@ -40,13 +40,13 @@ protected:
     static const uint16_t kCoordinatorPingTimeoutMSec = 3000;
 
 protected:
-    enum Stages {
-        PreviousNeighborRequestProcessing = 1,
-        CoordinatorRequestProcessing,
-        NextNeighborResponseProcessing,
-        ReservationProlongation,
-        VotesProcessing,
-    };
+//    enum Stages {
+//        PreviousNeighborRequestProcessing = 1,
+//        CoordinatorRequestProcessing,
+//        NextNeighborResponseProcessing,
+//        ReservationProlongation,
+//        VotesProcessing,
+//    };
 
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();

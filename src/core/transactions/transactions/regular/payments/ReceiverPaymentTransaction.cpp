@@ -15,7 +15,9 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         log),
     mMessage(message),
     mTotalReserved(0)
-{}
+{
+    mStep = Stages::Receiver_CoordinatorRequestApproving;
+}
 
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     BytesShared buffer,
@@ -38,13 +40,13 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
 {
     switch (mStep) {
-    case Stages::CoordinatorRequestApproving:
+    case Stages::Receiver_CoordinatorRequestApproving:
         return runInitialisationStage();
 
-    case Stages::AmountReservationsProcessing:
+    case Stages::Receiver_AmountReservationsProcessing:
         return runAmountReservationStage();
 
-    case Stages::VotesChecking:
+    case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
 
     default:
@@ -94,7 +96,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
     // So receiver will wait for time, that is approximatyle neede for several nodes for processing.
     //
     // TODO: enhancement: send aproximate paths count to receiver, so it will be able to wait correct timeout.
-    mStep = Stages::AmountReservationsProcessing;
+    mStep = Stages::Receiver_AmountReservationsProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationRequest},
         maxTimeout(kMaxPathLength*3));
@@ -190,7 +192,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         // This info helps to calculate max timeout,
         // that would be used for waiting for votes list message.
 
-        mStep = Stages::VotesChecking;
+        mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
             maxTimeout(kMaxPathLength*3));

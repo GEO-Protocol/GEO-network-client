@@ -6,11 +6,14 @@
 
 #include "../../../../../common/Types.h"
 #include "../../../../../paths/lib/Path.h"
-
-#include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../logger/Logger.h"
 
+#include "../../../../../trust_lines/manager/TrustLinesManager.h"
+
 #include "../../../../../network/messages/outgoing/payments/ParticipantsVotesMessage.h"
+#include "../../../../../network/messages/outgoing/payments/ParticipantsConfigurationMessage.h"
+#include "../../../../../network/messages/outgoing/payments/ParticipantsConfigurationRequestMessage.h"
+
 
 
 // TODO: Add restoring of the reservations after transaction deserialization.
@@ -38,9 +41,28 @@ public:
         Logger *log);
 
 protected:
+    enum Stages {
+        Coordinator_Initialisation = 1,
+        Coordinator_ReceiverResponseProcessing,
+        Coordinator_AmountReservation,
+        Coordinator_FinalPathsConfigurationApproving,
+
+        Receiver_CoordinatorRequestApproving,
+        Receiver_AmountReservationsProcessing,
+
+        IntermediateNode_PreviousNeighborRequestProcessing,
+        IntermediateNode_CoordinatorRequestProcessing,
+        IntermediateNode_NextNeighborResponseProcessing,
+        IntermediateNode_ReservationProlongation,
+
+        Common_VotesChecking,
+        Common_FinalPathsConfigurationChecking,
+    };
+
     // Stages handlers
     TransactionResult::SharedConst runVotesCheckingStage();
     TransactionResult::SharedConst runVotesConsistencyCheckingStage();
+    TransactionResult::SharedConst runFinalPathsConfigurationProcessingStage();
 
     virtual TransactionResult::SharedConst approve();
     virtual TransactionResult::SharedConst recover();
@@ -62,8 +84,16 @@ protected:
     uint32_t maxTimeout (
         const uint16_t totalParticipantsCount) const;
 
+    uint32_t maxCoordinatorResponseTimeout() const;
+
     const bool contextIsValid(
         Message::MessageTypeID messageType) const;
+
+    const bool positiveVoteIsPresent (
+        const ParticipantsVotesMessage::ConstShared kMessage) const;
+
+    void propagateVotesMessageToAllParticipants (
+        const ParticipantsVotesMessage::Shared kMessage) const;
 
 protected:
     // Specifies how long node must wait for the response from the remote node.
@@ -86,6 +116,11 @@ protected:
     //
     // If false - transaction wasn't approved yet.
     bool mTransactionIsVoted;
+
+    // Votes message cant be signed right after it is received.
+    // Additional message must be received from the coordinator,
+    // so the votes message must be saved for further processing.
+    ParticipantsVotesMessage::Shared mParticipantsVotesMessage;
 
     map<NodeUUID, vector<AmountReservation::ConstShared>> mReservations;
 };

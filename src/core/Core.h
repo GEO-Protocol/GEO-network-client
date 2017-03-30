@@ -64,11 +64,16 @@ private:
 
     void connectCommunicatorSignals();
 
+    void connectCommandsInterfaceSignals();
+
     void connectTrustLinesManagerSignals();
 
     void connectDelayedTasksSignals();
 
     void connectSignalsToSlots();
+
+    void onCommandReceivedSlot(
+        BaseUserCommand::Shared command);
 
     void onMessageReceivedSlot(
         Message::Shared message);

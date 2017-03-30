@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_PARTICIPANTSCONFIGURATIONREQUESTMESSAGE_H
 
 
-#include "../../base/transaction/TransactionMessage.cpp"
+#include "../../base/transaction/TransactionMessage.h"
 
 
 /**

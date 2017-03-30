@@ -2,7 +2,7 @@
 
 
 const Message::MessageType ParticipantsConfigurationRequestMessage::typeID () const
-    noexcept
+noexcept
 {
     return Message::Payments_ParticipantsConfigurationRequest;
 }

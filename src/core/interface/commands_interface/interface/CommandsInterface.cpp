@@ -240,11 +240,9 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::commandIsInvalidOrIncomplete
 
 CommandsInterface::CommandsInterface(
     as::io_service &ioService,
-    TransactionsManager *transactionsHandler,
     Logger *logger) :
 
     mIOService(ioService),
-    mTransactionsManager(transactionsHandler),
     mLog(logger){
 
     // Try to open FIFO file in non-blocking manner.
@@ -354,7 +352,7 @@ void CommandsInterface::handleReceivedInfo(
         while (true) {
             auto flagAndCommand = mCommandsParser->processReceivedCommands();
             if (flagAndCommand.first){
-                mTransactionsManager->processCommand(flagAndCommand.second);
+                commandReceivedSignal(flagAndCommand.second);
             } else {
                 break;
             }

@@ -14,7 +14,9 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         trustLines,
         log),
     mMessage(message)
-{}
+{
+    mStep =Stages::IntermediateNode_PreviousNeighborRequestProcessing;
+}
 
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BytesShared buffer,
@@ -31,24 +33,25 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
 {
     switch (mStep) {
-    case Stages::PreviousNeighborRequestProcessing:
+    case Stages::IntermediateNode_PreviousNeighborRequestProcessing:
         return runPreviousNeighborRequestProcessingStage();
 
-    case Stages::CoordinatorRequestProcessing:
+    case Stages::IntermediateNode_CoordinatorRequestProcessing:
         return runCoordinatorRequestProcessingStage();
 
-    case Stages::NextNeighborResponseProcessing:
+    case Stages::IntermediateNode_NextNeighborResponseProcessing:
         return runNextNeighborResponseProcessingStage();
 
-    case Stages::ReservationProlongation:
+    case Stages::IntermediateNode_ReservationProlongation:
         return runReservationProlongationStage();
 
-    case Stages::VotesProcessing:
+    case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
 
     default:
         throw RuntimeError(
-            "IntermediateNodePaymentTransaction::run: unexpected stage occurred.");
+            "IntermediateNodePaymentTransaction::run: "
+            "unexpected stage occurred.");
     }
 }
 
@@ -91,7 +94,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         ResponseMessage::Accepted);
 
 
-    mStep = Stages::CoordinatorRequestProcessing;
+    mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationRequest},
         maxTimeout(2));
@@ -137,7 +140,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         reservationAmount);
 
     clearContext();
-    mStep = Stages::NextNeighborResponseProcessing;
+    mStep = Stages::IntermediateNode_NextNeighborResponseProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationResponse},
         maxTimeout(2));
@@ -172,7 +175,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         mLastReservedAmount);
 
 
-    mStep = Stages::ReservationProlongation;
+    mStep = Stages::IntermediateNode_ReservationProlongation;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
         maxTimeout(kMaxPathLength));
@@ -184,7 +187,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
     // there is no need to prolong reservation, transaction may be proceeded.
     if (! mContext.empty())
         if (mContext.at(0)->typeID() == Message::Payments_ParticipantsVotes) {
-            mStep = Stages::VotesProcessing;
+            mStep = Stages::Common_VotesChecking;
             return runVotesCheckingStage();
         }
 
