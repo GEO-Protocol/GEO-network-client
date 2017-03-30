@@ -17,7 +17,7 @@ PathsManager::PathsManager(
 #endif
 
     //testStorageHandler();
-    fillRoutingTables();
+    //fillRoutingTables();
 }
 
 void PathsManager::setContractorRoutingTables(ResultRoutingTablesMessage::Shared message) {
