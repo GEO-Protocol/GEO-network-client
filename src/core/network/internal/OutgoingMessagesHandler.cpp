@@ -11,15 +11,14 @@ void OutgoingMessagesHandler::processOutgoingMessage(
 
     auto crcPacketAndCount = makeCRCPacket(
         messageBytesAndCount,
-        channelNumber
-    );
+        channelNumber);
 
-    channel->setOutgoingPacketsCount(crcPacketAndCount.second);
+    channel->setOutgoingPacketsCount(
+        crcPacketAndCount.second);
 
     channel->addPacket(
         Channel::kCRCPacketNumber(),
-        crcPacketAndCount.first
-    );
+        crcPacketAndCount.first);
 
     byte *serializedMessageBuffer = messageBytesAndCount.first.get();
     uint16_t dataPacketsCount = (uint16_t) (crcPacketAndCount.second - 1);
@@ -34,7 +33,7 @@ void OutgoingMessagesHandler::processOutgoingMessage(
 
         if (dataPacketsCount > 1) {
             if (packetNumber == dataPacketsCount) {
-                packetSize = messageBytesAndCount.second - kMaxPacketBodySize * packetNumber;
+                packetSize = messageBytesAndCount.second - kMaxPacketBodySize * packetNumber - 1;
 
             } else {
                 packetSize = kMaxPacketBodySize;
@@ -57,13 +56,11 @@ void OutgoingMessagesHandler::processOutgoingMessage(
             packetSize,
             packetNumber,
             crcPacketAndCount.second,
-            channelNumber
-        );
+            channelNumber);
 
         channel->addPacket(
             packetNumber,
-            packet
-        );
+            packet);
 
     }
 }
@@ -86,37 +83,31 @@ pair<Packet::Shared, uint16_t> OutgoingMessagesHandler::makeCRCPacket(
     boost::crc_32_type crc;
     crc.process_bytes(
         messageBytesAndCount.first.get(),
-        messageBytesAndCount.second
-    );
+        messageBytesAndCount.second);
     uint32_t controlSum = (uint32_t) crc.checksum();
 
-    BytesShared controlSumBytesShared = tryCalloc(kCRCDataSize);
+    BytesShared controlSumBytesShared = tryCalloc(
+        kCRCDataSize);
     memcpy(
         controlSumBytesShared.get(),
         &controlSum,
-        kCRCDataSize
-    );
+        kCRCDataSize);
 
     PacketHeader::Shared packetHeaderShared(
         new PacketHeader(
             channelNumber,
             kCRCPacketNumber,
             packetsCount,
-            (uint16_t) (PacketHeader::kHeaderSize + kCRCDataSize)
-        )
-    );
+            (uint16_t) (PacketHeader::kHeaderSize + kCRCDataSize)));
 
     Packet::Shared packetShared(
         new Packet(
             packetHeaderShared,
-            static_pointer_cast<const byte>(controlSumBytesShared)
-        )
-    );
+            static_pointer_cast<const byte>(controlSumBytesShared)));
 
     return make_pair(
         packetShared,
-        packetsCount
-    );
+        packetsCount);
 }
 
 
@@ -132,23 +123,18 @@ Packet::Shared OutgoingMessagesHandler::makePacket(
             channelNumber,
             packetNumber,
             packetsCount,
-            (uint16_t)(PacketHeader::kHeaderSize + bytesCount)
-        )
-    );
+            (uint16_t)(PacketHeader::kHeaderSize + bytesCount)));
 
     BytesShared bodyBytesShared = tryCalloc(packetHeaderShared->bodyBytesCount());
     memcpy(
         bodyBytesShared.get(),
         buffer,
-        packetHeaderShared->bodyBytesCount()
-    );
+        packetHeaderShared->bodyBytesCount());
 
     Packet::Shared packetShared(
         new Packet(
             packetHeaderShared,
-            static_pointer_cast<const byte>(bodyBytesShared)
-        )
-    );
+            static_pointer_cast<const byte>(bodyBytesShared)));
 
     return packetShared;
 }
