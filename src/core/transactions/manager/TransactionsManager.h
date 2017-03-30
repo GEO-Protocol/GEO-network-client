@@ -37,6 +37,7 @@
 #include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../network/messages/response/Response.h"
 
+#include "../../resources/manager/ResourcesManager.h"
 #include "../../resources/resources/BaseResource.h"
 
 #include "../transactions/base/BaseTransaction.h"
@@ -96,6 +97,7 @@ public:
         NodeUUID &nodeUUID,
         as::io_service &IOService,
         TrustLinesManager *trustLinesManager,
+        ResourcesManager *ResourcesManager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResultsInterface *resultsInterface,
@@ -246,6 +248,7 @@ private:
     NodeUUID &mNodeUUID;
     as::io_service &mIOService;
     TrustLinesManager *mTrustLines;
+    ResourcesManager *mResourcesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     ResultsInterface *mResultsInterface;

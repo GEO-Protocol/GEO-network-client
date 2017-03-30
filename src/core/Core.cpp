@@ -246,6 +246,7 @@ int Core::initTransactionsManager() {
             mNodeUUID,
             mIOService,
             mTrustLinesManager,
+            mResourcesManager,
             mMaxFlowCalculationTrustLimeManager,
             mMaxFlowCalculationCacheManager,
             mResultsInterface,

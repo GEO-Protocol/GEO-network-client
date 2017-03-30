@@ -13,6 +13,8 @@
 #include "../../../network/messages/Message.hpp"
 #include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
+#include "../../../resources/resources/BaseResource.h"
+
 #include "../result/TransactionResult.h"
 #include "../../../interface/results_interface/result/CommandResult.h"
 #include "../../../network/messages/result/MessageResult.h"
@@ -38,7 +40,7 @@ public:
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
 
 public:
-    // TODO: add othe states shortcuts here
+    // TODO: add other states shortcuts here
     TransactionResult::Shared resultExit();
     TransactionResult::Shared resultFlushAndContinue();
     TransactionResult::Shared resultWaitForMessageTypes(
@@ -101,6 +103,9 @@ public:
     void pushContext(
         Message::Shared message);
 
+    void pushResource(
+        BaseResource::Shared resource);
+
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
     virtual TransactionResult::SharedConst run() = 0;
@@ -142,6 +147,14 @@ protected:
         const auto message = static_pointer_cast<ContextMessageType>(mContext.front());
         mContext.pop_front();
         return message;
+    }
+
+    template<typename ResourceType>
+    inline shared_ptr<ResourceType> popNextResource() {
+
+        const auto resource = static_pointer_cast<ResourceType>(mResources.front());
+        mResources.pop_front();
+        return resource;
     }
 
     // TODO: convert to hpp?
@@ -213,6 +226,7 @@ protected:
 
     uint16_t mExpectationResponsesCount = 0;
     deque<Message::Shared> mContext;
+    deque<BaseResource::Shared> mResources;
 
     uint16_t mStep = 1;
 
