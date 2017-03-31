@@ -59,6 +59,8 @@ TransactionResult::SharedConst GetThreeNodesNeighborBalancesTransaction::run() {
 
         sendMessage<ThreeNodesBalancesRequestMessage>(
                 mContractorUUID,
+                mNodeUUID,
+                mTransactionUUID,
                 neighbors
         );
         return waitingForNeighborBalances();
@@ -73,6 +75,7 @@ TransactionResult::SharedConst GetThreeNodesNeighborBalancesTransaction::run() {
             ));
         }
         sendMessage<ThreeNodesBalancesResponseMessage>(
+                mContractorUUID,
                 mNodeUUID,
                 mTransactionUUID,
                 neighborsAndBalances

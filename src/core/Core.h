@@ -113,6 +113,8 @@ private:
 
     void writePIDFile();
 
+    void checkSomething();
+
 protected:
     Logger mLog;
 

@@ -1149,6 +1149,7 @@ void TransactionsManager::launchGetThreeNodesNeighborBalancesTransaction(NodeUUI
                 contractorUUID,
                 mScheduler.get(),
                 mTrustLines,
+                mStorageHandler,
                 mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);

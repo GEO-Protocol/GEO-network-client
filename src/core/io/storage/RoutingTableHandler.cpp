@@ -357,10 +357,10 @@ unordered_map<NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapDe
     return result;
 };
 
-vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
+set<NodeUUID> RoutingTableHandler::allDestinationsForSource(
     const NodeUUID &sourceUUID) {
 
-    vector<NodeUUID> result;
+    set<NodeUUID> result;
     string query = "SELECT destination FROM " + mTableName + " WHERE source = ?";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -378,7 +378,7 @@ vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
             destination.data,
             sqlite3_column_blob(stmt, 0),
             NodeUUID::kBytesSize);
-        result.push_back(destination);
+        result.insert(destination);
     }
     sqlite3_reset(stmt);
     return result;

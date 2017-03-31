@@ -3,13 +3,10 @@
 pair<BytesShared, size_t> FourNodesBalancesRequestMessage::serializeToBytes() {
     vector<byte> MaxFlowBuffer = trustLineBalanceToBytes(mMaxFlow);
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
-    uint16_t neighborsCreditorsCount = mNeighborsCreditor.size();
-    uint16_t neighborsDebtorsCount = mNeighborsDebtor.size();
+    uint16_t neighborsCount = mNeighbors.size();
     size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(neighborsCreditorsCount)
-                        + sizeof(neighborsDebtorsCount)
-                        + neighborsCreditorsCount * NodeUUID::kBytesSize
-                        + neighborsDebtorsCount * NodeUUID::kBytesSize
+                        + sizeof(neighborsCount)
+                        + neighborsCount * NodeUUID::kBytesSize
                         + MaxFlowBuffer.size();
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -28,32 +25,16 @@ pair<BytesShared, size_t> FourNodesBalancesRequestMessage::serializeToBytes() {
             MaxFlowBuffer.size()
     );
     dataBytesOffset += MaxFlowBuffer.size();
-    // For mNeighborsCreditor
-    memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &neighborsCreditorsCount,
-            sizeof(neighborsCreditorsCount)
-    );
-    dataBytesOffset += neighborsCreditorsCount;
-
-    for(auto const& value: mNeighborsCreditor) {
-        memcpy(
-                dataBytesShared.get() + dataBytesOffset,
-                &value,
-                NodeUUID::kBytesSize
-        );
-        dataBytesOffset += NodeUUID::kBytesSize;
-    }
     //----------------------------------------------------
-//    For mNeighborsDebtor
+//    For mNeighbors
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            &neighborsDebtorsCount,
-            sizeof(neighborsDebtorsCount)
+            &neighborsCount,
+            sizeof(neighborsCount)
     );
-    dataBytesOffset += neighborsDebtorsCount;
+    dataBytesOffset += neighborsCount;
 
-    for(auto const& value: mNeighborsDebtor) {
+    for(auto const& value: mNeighbors) {
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 &value,
@@ -83,15 +64,15 @@ void FourNodesBalancesRequestMessage::deserializeFromBytes(
     mMaxFlow = bytesToTrustLineBalance(amountBytes);
     bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
     // path
-    uint16_t neighborsCreditorsCount;
+    uint16_t neighborsCount;
     memcpy(
-            &neighborsCreditorsCount,
+            &neighborsCount,
             buffer.get() + bytesBufferOffset,
             sizeof(uint8_t)
     );
-    bytesBufferOffset += sizeof(neighborsCreditorsCount);
+    bytesBufferOffset += sizeof(neighborsCount);
 
-    for (uint8_t i = 1; i <= neighborsCreditorsCount; ++i) {
+    for (uint8_t i = 1; i <= neighborsCount; ++i) {
         NodeUUID stepNode;
         memcpy(
                 stepNode.data,
@@ -99,26 +80,7 @@ void FourNodesBalancesRequestMessage::deserializeFromBytes(
                 NodeUUID::kBytesSize
         );
         bytesBufferOffset += NodeUUID::kBytesSize;
-        mNeighborsCreditor.push_back(stepNode);
-    }
-//    For mNeighborsDebtors
-    uint16_t neighborsDebtorsCount;
-    memcpy(
-            &neighborsDebtorsCount,
-            buffer.get() + bytesBufferOffset,
-            sizeof(uint8_t)
-    );
-    bytesBufferOffset += sizeof(neighborsDebtorsCount);
-
-    for (uint8_t i = 1; i <= neighborsDebtorsCount; ++i) {
-        NodeUUID stepNode;
-        memcpy(
-                stepNode.data,
-                buffer.get() + bytesBufferOffset,
-                NodeUUID::kBytesSize
-        );
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        mNeighborsDebtor.push_back(stepNode);
+        mNeighbors.push_back(stepNode);
     }
 }
 
@@ -131,21 +93,15 @@ FourNodesBalancesRequestMessage::FourNodesBalancesRequestMessage(BytesShared buf
 }
 
 FourNodesBalancesRequestMessage::FourNodesBalancesRequestMessage(const TrustLineBalance &maxFlow,
-                                                                 vector<NodeUUID> &neighborsDebtor,
-                                                                 vector<NodeUUID> &neighborsCreditor):
+                                                                 vector<NodeUUID> &neighbors):
     mMaxFlow(maxFlow),
-    mNeighborsDebtor(neighborsDebtor),
-    mNeighborsCreditor(neighborsCreditor)
+    mNeighbors(neighbors)
 {
 
 }
 
-vector<NodeUUID> FourNodesBalancesRequestMessage::NeighborsDebtor() {
-    return mNeighborsDebtor;
-}
-
-vector<NodeUUID> FourNodesBalancesRequestMessage::NeighborsCreditor() {
-    return mNeighborsCreditor;
+vector<NodeUUID> FourNodesBalancesRequestMessage::Neighbors() {
+    return mNeighbors;
 }
 
 TrustLineBalance FourNodesBalancesRequestMessage::MaxFlow() {

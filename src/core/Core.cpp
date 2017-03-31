@@ -17,7 +17,7 @@ int Core::run() {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
         return initCode;
     }
-
+    checkSomething();
     try {
         writePIDFile();
 
@@ -585,4 +585,8 @@ void Core::writePIDFile()
         auto errors = mLog.error("Core");
         errors << "Can't write/update pid file. Error message is: " << e.what();
     }
+}
+
+void Core::checkSomething() {
+    cout << "checkSomething" << endl;
 }

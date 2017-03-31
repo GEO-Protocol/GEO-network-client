@@ -13,15 +13,13 @@ public:
 public:
     FourNodesBalancesRequestMessage(
             const TrustLineBalance& maxFlow,
-            vector<NodeUUID> &neighborsDebtor,
-            vector<NodeUUID> &neighborsCreditor);
+            vector<NodeUUID> &neighbors);
 
     FourNodesBalancesRequestMessage(
             BytesShared buffer);
 
     const MessageType typeID() const;
-    vector<NodeUUID> NeighborsDebtor();
-    vector<NodeUUID> NeighborsCreditor();
+    vector<NodeUUID> Neighbors();
     TrustLineBalance MaxFlow();
 protected:
     pair<BytesShared, size_t> serializeToBytes();
@@ -30,8 +28,7 @@ protected:
             BytesShared buffer);
 
 protected:
-    vector<NodeUUID> mNeighborsDebtor;
-    vector<NodeUUID> mNeighborsCreditor;
+    vector<NodeUUID> mNeighbors;
     TrustLineBalance mMaxFlow;
 };
 
