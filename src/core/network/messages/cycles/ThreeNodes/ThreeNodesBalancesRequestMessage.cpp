@@ -12,10 +12,11 @@ ThreeNodesBalancesRequestMessage::ThreeNodesBalancesRequestMessage(
         set<NodeUUID> &neighbors):
         TransactionMessage(
                 senderUUID,
-                transactionUUID),
-        mNeighbors(neighbors)
+                transactionUUID)
 {
-
+    mNeighbors.reserve(neighbors.size());
+    for(auto &value: neighbors)
+        mNeighbors.push_back(value);
 }
 
 pair<BytesShared, size_t> ThreeNodesBalancesRequestMessage::serializeToBytes() {
@@ -80,7 +81,7 @@ void ThreeNodesBalancesRequestMessage::deserializeFromBytes(
                 NodeUUID::kBytesSize
         );
         bytesBufferOffset += NodeUUID::kBytesSize;
-        mNeighbors.insert(stepNode);
+        mNeighbors.push_back(stepNode);
     }
 }
 
@@ -88,11 +89,6 @@ const Message::MessageType ThreeNodesBalancesRequestMessage::typeID() const {
     return Message::MessageTypeID::ThreeNodesBalancesRequestMessage;
 }
 
-const size_t ThreeNodesBalancesRequestMessage::kOffsetToInheritedBytes() {
-    return 0;
-}
-
-
-set<NodeUUID> ThreeNodesBalancesRequestMessage::Neighbors() {
+vector<NodeUUID> ThreeNodesBalancesRequestMessage::Neighbors() {
     return mNeighbors;
 }

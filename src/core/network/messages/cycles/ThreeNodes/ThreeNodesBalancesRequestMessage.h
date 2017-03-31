@@ -20,18 +20,15 @@ public:
             BytesShared buffer);
 
     const MessageType typeID() const;
-    set<NodeUUID> Neighbors();
-protected:
+    vector<NodeUUID> Neighbors();
     pair<BytesShared, size_t> serializeToBytes();
 
+protected:
     void deserializeFromBytes(
             BytesShared buffer);
 
-    static const size_t kOffsetToInheritedBytes();
-
-
 protected:
-    set<NodeUUID> mNeighbors;
+    vector<NodeUUID> mNeighbors;
 };
 
 #endif //GEO_NETWORK_CLIENT_BALANCESREQUESTMESSAGE_H

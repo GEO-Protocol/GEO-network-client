@@ -13,8 +13,8 @@ set(SOURCE_FILES
         SixNodesTopologyTransaction.cpp
         )
 
-add_library(transactions__cycles ${SOURCE_FILES})
-target_link_libraries(transactions__cycles
+add_library(transactions__cycles_old ${SOURCE_FILES})
+target_link_libraries(transactions__cycles_old
         transactions__base
 
         common

@@ -12,13 +12,19 @@ public:
     typedef shared_ptr<ThreeNodesBalancesResponseMessage> Shared;
 public:
     ThreeNodesBalancesResponseMessage(
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        uint16_t neighborsUUUIDAndBalancesCount);
+
+    ThreeNodesBalancesResponseMessage(
             const NodeUUID &senderUUID,
             const TransactionUUID &transactionUUID,
-            vector<pair<NodeUUID, TrustLineBalance>> &neighbors);
+            vector<pair<NodeUUID, TrustLineBalance>> &neighborsUUUIDAndBalance);
 
     ThreeNodesBalancesResponseMessage(
             BytesShared buffer);
 
+    void AddNeighborUUIDAndBalance(pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance);
     const MessageType typeID() const;
     const bool isTransactionMessage() const;
     vector<pair<NodeUUID, TrustLineBalance>> NeighborsAndBalances();
@@ -28,11 +34,8 @@ protected:
     void deserializeFromBytes(
             BytesShared buffer);
 
-    static const size_t kOffsetToInheritedBytes();
-
 protected:
-    vector<pair<NodeUUID, TrustLineBalance>> mNeighborsBalances;
-    TrustLineBalance mMaxFlow;
+    vector<pair<NodeUUID, TrustLineBalance>> mNeighborsUUUIDAndBalance;
 };
 
 #endif //GEO_NETWORK_CLIENT_BALANCESRESPONCEMESSAGE_H

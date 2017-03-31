@@ -2,7 +2,7 @@
 
 
 GetFourNodesNeighborBalancesTransaction::GetFourNodesNeighborBalancesTransaction(TransactionsScheduler *scheduler)
-        :UniqueTransaction(BaseTransaction::TransactionType::GetThreeNodesNeighborBalancesTransaction, scheduler) {
+        :UniqueTransaction(BaseTransaction::TransactionType::GetFourNodesNeighborBalancesTransaction, scheduler) {
 
 }
 
