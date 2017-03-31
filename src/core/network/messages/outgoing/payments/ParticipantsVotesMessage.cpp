@@ -248,7 +248,7 @@ void ParticipantsVotesMessage::deserializeFromBytes(
 void ParticipantsVotesMessage::reject(
     const NodeUUID &participant)
 {
-    if (! mVotes.count(participant) != 1)
+    if (mVotes.count(participant) != 1)
         throw NotFoundError(
                 "ParticipantsApprovingMessage::reject: "
                 "received participant doesn't listed in votes list.");

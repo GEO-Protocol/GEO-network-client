@@ -4,5 +4,5 @@
 const Message::MessageType ParticipantsConfigurationRequestMessage::typeID () const
 noexcept
 {
-    return Message::Payments_ParticipantsConfigurationRequest;
+    return Message::Payments_ParticipantsPathsConfigurationRequest;
 }

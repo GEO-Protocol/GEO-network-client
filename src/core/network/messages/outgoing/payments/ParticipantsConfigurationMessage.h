@@ -71,11 +71,9 @@ public:
     const vector< pair<NodesSet, ConstSharedTrustLineAmount>>& nodesAndFinalReservationAmount()
         const noexcept;
 
-    const MessageType typeID() const
-        noexcept;
+    const MessageType typeID() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes()
-        throw (bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes();
 
 protected:
     void addPath(
@@ -112,6 +110,6 @@ protected:
     // Scheme for receiver node:
     // Paths = ({NodeUUID, CommonPathAmount}, ..., {NodeUUID, CommonPathAmount})
     // (second NodeUUID is omitted because receiver node doesn't have outgoing nodes involved into the transaction)
-    vector< pair<NodesSet, ConstSharedTrustLineAmount>> mNeighborsReservationsConfiguration;
+    vector< pair<NodesSet, ConstSharedTrustLineAmount>> mPathsConfiguration;
 };
 #endif //GEO_NETWORK_CLIENT_PARTICIPANTSFINALCONFIGURATIONMESSAGE_H

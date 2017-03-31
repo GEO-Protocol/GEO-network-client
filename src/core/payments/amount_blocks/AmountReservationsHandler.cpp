@@ -66,41 +66,37 @@ AmountReservation::ConstShared AmountReservationsHandler::updateReservation(
     const AmountReservation::ConstShared reservation,
     const TrustLineAmount &newAmount) {
 
-    if (newAmount == 0) {
-        throw ValueError(
-            "AmountReservationsHandler::updateReservation: 'newAmount' can't be 0");
-    }
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(reservation != nullptr);
+#endif
 
-    try {
-        auto newReservation = AmountReservation::ConstShared(
-            new AmountReservation(
-                reservation->transactionUUID(),
-                newAmount,
-                reservation->direction()));
+    if (newAmount == TrustLineAmount(0))
+        throw ValueError("AmountReservationsHandler::updateReservation: 'newAmount' == 0.");
 
-        auto iterator = mReservations.find(trustLineContractor);
-        if (iterator == mReservations.end()) {
-            throw NotFoundError(
-                "AmountReservationsHandler::updateReservation: "
-                    "reservation with exact contractor UUID was not found.");
-        }
-
-        auto reservations = (*iterator).second.get();
-        for (auto it=reservations->begin(); it!=reservations->end(); ++it){
-            if (*it == reservation) {
-                *it = newReservation;
-                return newReservation;
-            }
-        }
-
+    if (mReservations.count(trustLineContractor) == 0) {
         throw NotFoundError(
             "AmountReservationsHandler::updateReservation: "
-                "reservation with exact amount was not found.");
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "AmountReservationsHandler::updateReservation: bad alloc.");
+                "reservation with exact contractor UUID was not found.");
     }
+
+
+    const auto kNewReservation = make_shared<const AmountReservation>(
+        reservation->transactionUUID(),
+        newAmount,
+        reservation->direction());
+
+
+    auto reservations = mReservations.find(trustLineContractor)->second.get();
+    for (auto it=reservations->begin(); it!=reservations->end(); ++it){
+        if (*it == reservation) {
+            *it = kNewReservation;
+            return kNewReservation;
+        }
+    }
+
+    throw NotFoundError(
+        "AmountReservationsHandler::updateReservation: "
+            "reservation with exact amount was not found.");
 }
 
 void AmountReservationsHandler::free(

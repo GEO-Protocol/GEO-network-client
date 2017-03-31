@@ -12,7 +12,8 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines),
-    mTransactionIsVoted(false)
+    mTransactionIsVoted(false),
+    mParticipantsVotesMessage(nullptr)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -28,7 +29,8 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines),
-    mTransactionIsVoted(false)
+    mTransactionIsVoted(false),
+    mParticipantsVotesMessage(nullptr)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -52,6 +54,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     // Votes message may be received twice:
     // First time - as a request to check the transaction and to sing it in case if all correct.
     // Second time - as a command to commit/rollback the transaction.
+    debug() << "\n\n" << mTransactionIsVoted;
+
     if (mTransactionIsVoted)
         return runVotesConsistencyCheckingStage();
 
@@ -62,6 +66,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
     const auto kCurrentNodeUUID = nodeUUID();
     auto message = popNextMessage<ParticipantsVotesMessage>();
+    info() << "Votes message received";
 
 
     try {
@@ -77,11 +82,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         //
         // In this case - the message must be simply ignored.
 
-        // ToDo: kMessage->participantsCount() must not bu used
-        // (this is missdelivered message from another transaction)
+        info() << "Votes message ignored due to transactions UUIDs collision detected.";
+        info() << "Waiting for another votes message.";
+
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
-            maxTimeout(message->participantsCount()));
+            maxNetworkDelay(message->participantsCount())); // ToDo: kMessage->participantsCount() must not be used (it is invalid)
     }
 
 
@@ -102,6 +108,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         message->coordinatorUUID(),
         kCurrentNodeUUID,
         UUID());
+
+    info() << "Final payment paths configuration requested from the coordinator.";
 
 
     // Votes message must be saved for further processing on next awakening.
@@ -125,6 +133,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
     const auto kCurrentNodeUUID = nodeUUID();
     const auto kMessage = popNextMessage<ParticipantsConfigurationMessage>();
 
+    // TODO: check if message was really received from the coordinator;
+
+
+    info() << "Final payment paths configuration received";
 
     // ToDo: check if node may sign the message
     // (is previous nodes in the paths signed the transaction, etc)
@@ -132,24 +144,28 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
     // TODO: check behaviour when message wasn't approved
 
 
-    // Shortening of all reservations, that was done by this node
-    // Note: copy of reservations is needed to be able to not modify the same reservation twice.
-    auto reservationsCopy = mReservations;
+    // Shortening all reservations that belongs to this node.
+    //
+    // Note: reservations copy is needed to be able to remove records from the reservations map.
+    // This approach significantly simplifies the logic
+    // and gives ability to not update the same reservation twice.
+    auto localReservationsCopy = mReservations;
     for (const auto kNodesAndFinalAmount : kMessage->nodesAndFinalReservationAmount()) {
-        const auto kCommonAmount = *kNodesAndFinalAmount.second;
+        const auto kCommonPathAmount = *kNodesAndFinalAmount.second;
 
         for (const auto kNode : kNodesAndFinalAmount.first) {
-            auto& nodeReservations = reservationsCopy[kNode];
+            auto& nodeReservations = localReservationsCopy[kNode];
 
             while (! nodeReservations.empty()) {
                 const auto kMinReservationIterator = min_element(
                     nodeReservations.cbegin(),
                     nodeReservations.cend());
 
-                mTrustLines->updateAmountReservation(
+                const auto kMinReservation = *kMinReservationIterator;
+                shortageReservation(
                     kNode,
-                    *kMinReservationIterator,
-                    kCommonAmount);
+                    kMinReservation,
+                    kCommonPathAmount);
 
                 // Prevent updating the same reservation twice
                 nodeReservations.erase(kMinReservationIterator);
@@ -160,6 +176,9 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
 
     mParticipantsVotesMessage->approve(kCurrentNodeUUID);
     mTransactionIsVoted = true;
+
+    // TODO: flush
+
     info() << "Voted +";
 
     try {
@@ -177,9 +196,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
 
         info() << "Votes list message transferred to the (" << kNextParticipant << ")";
 
+        mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
-            maxTimeout(mParticipantsVotesMessage->participantsCount()));
+            maxNetworkDelay(mParticipantsVotesMessage->participantsCount()));
 
     } catch (NotFoundError &) {
         // There are no nodes left in the votes list.
@@ -204,25 +224,26 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     if (! contextIsValid(Message::Payments_ParticipantsVotes))
         // In case if no votes are present - transaction can't be simply cancelled.
         // It must go through recovery stage to avoid inconsistency.
-        return recover();
+        return recover("No participants votes received.");
 
 
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
-
+    info () << "Participants votes message received.";
 
     // Checking if no one node has been deleted current nodes sign.
     // (Message modification protection)
     // ToDo: [mvp+] add cryptographic mechanism to prevent removing of votes.
-    if (!positiveVoteIsPresent(kMessage)){
-        // Note: there is no correct way to exit from the transaction
-        // in case if some one removed the vote from the message.
-        // Rolling transaction back only reverts current node.
+    if (nodeUUID() != kMessage->coordinatorUUID())
+        if (!positiveVoteIsPresent(kMessage)){
+            // Note: there is no correct way to exit from the transaction
+            // in case if some one removed the vote from the message.
+            // Rolling transaction back only reverts current node.
 
-        rollBack();
-        throw RuntimeError(
-            "BasePaymentTransaction::runVotesConsistencyCheckingStage: "
-            "Some node has been modified the message and removed the vote of the current node.");
-    }
+            rollBack();
+            throw RuntimeError(
+                "BasePaymentTransaction::runVotesConsistencyCheckingStage: "
+                "Some node has been modified the message and removed the vote of the current node.");
+        }
 
 
     if (kMessage->containsRejectVote())
@@ -235,14 +256,14 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
 
         info() << "Votes list received. Consensus achieved.";
         return approve();
-    }
 
-
-    // Otherwise - message contains some uncertain votes.
-    // In this case - message may be ignored.
-    return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes},
-        maxTimeout(kMessage->participantsCount()));
+    } else {
+        // Otherwise - message contains some uncertain votes.
+        // In this case - message may be ignored.
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes},
+            maxNetworkDelay(kMessage->participantsCount()));
+        }
 }
 
 const bool BasePaymentTransaction::reserveOutgoingAmount(
@@ -256,7 +277,7 @@ const bool BasePaymentTransaction::reserveOutgoingAmount(
             amount);
 
 #ifdef DEBUG
-        debug() << "Reserved outgoing " << amount << " for (" << neighborNode << ").";
+        debug() << "Reserved " << amount << " for (" << neighborNode << ") [Outgoing amount reservation].";
 #endif
 
         mReservations[neighborNode].push_back(kReservation);
@@ -278,7 +299,7 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
             amount);
 
 #ifdef DEBUG
-        debug() << "Reserved incoming " << amount << " for (" << neighborNode << ").";
+        debug() << "Reserved " << amount << " for (" << neighborNode << ") [Incoming amount reservation].";
 #endif
 
         mReservations[neighborNode].push_back(kReservation);
@@ -306,8 +327,7 @@ const bool BasePaymentTransaction::contextIsValid(
     return true;
 }
 
-/*
- * Shortcut method for rejecting transaction.
+/* Shortcut method for rejecting transaction.
  * Base class realisation contains logic for rejecting (and rolling back)
  * transaction on the nodes where it was launched by the message (and not by the command).
  *
@@ -322,10 +342,16 @@ TransactionResult::SharedConst BasePaymentTransaction::reject(
     if (message)
         info() << message;
 
-    mParticipantsVotesMessage->reject(nodeUUID());
-    propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
+    // Participants votes may not be received,
+    // if transaction doesn't achieved votes processing state yet.
+    if (mParticipantsVotesMessage != nullptr) {
+        mParticipantsVotesMessage->reject(nodeUUID());
+        propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
+    }
 
     rollBack();
+    info() << "Transaction succesfully rolled back.";
+
     return exit();
 }
 
@@ -371,8 +397,6 @@ void BasePaymentTransaction::commit ()
 
 void BasePaymentTransaction::rollBack ()
 {
-    info() << "Transaction rolling back...";
-
     for (const auto &kNodeUUIDAndReservations : mReservations)
         for (const auto &kReservation : kNodeUUIDAndReservations.second) {
             mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kReservation);
@@ -385,17 +409,19 @@ void BasePaymentTransaction::rollBack ()
                 info() << "Dropping reservation: [ <= ] " << kReservation->amount()
                        << " for (" << kNodeUUIDAndReservations.first << ")";
         }
-
-    info() << "Transaction rolled back.";
 }
 
-TransactionResult::SharedConst BasePaymentTransaction::recover ()
+TransactionResult::SharedConst BasePaymentTransaction::recover (
+    const char *message)
 {
-    info() << "Recover";
+    if (message != nullptr)
+        info() << message;
+
+    // TODO: implement me;
     return exit();
 }
 
-uint32_t BasePaymentTransaction::maxTimeout (
+uint32_t BasePaymentTransaction::maxNetworkDelay (
     const uint16_t totalParticipantsCount) const
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
@@ -409,7 +435,7 @@ uint32_t BasePaymentTransaction::maxTimeout (
 
 uint32_t BasePaymentTransaction::maxCoordinatorResponseTimeout () const
 {
-    return maxTimeout(1);
+    return maxNetworkDelay(1);
 }
 
 /**
@@ -460,4 +486,50 @@ void BasePaymentTransaction::propagateVotesMessageToAllParticipants (
     sendMessage(
         kMessage->coordinatorUUID(),
         kMessage);
+}
+
+const bool BasePaymentTransaction::shortageReservation (
+    const NodeUUID kContractor,
+    const AmountReservation::ConstShared kReservation,
+    const TrustLineAmount &kNewAmount)
+{
+    if (kNewAmount > kReservation->amount())
+        throw ValueError(
+            "BasePaymentTransaction::shortageReservation: "
+                "new amount can't be greater than already reserved one.");
+
+    try {
+#ifdef DEBUG
+        const auto kPreviousAmount = kReservation->amount();
+#endif
+
+        mTrustLines->updateAmountReservation(
+            kContractor,
+            kReservation,
+            kNewAmount);
+
+#ifdef DEBUG
+        if (kReservation->direction() == AmountReservation::Incoming)
+            info() << "Reservation for (" << kContractor << ") shortened "
+                   << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
+        else
+            info() << "Reservation for (" << kContractor << ") shortened "
+                   << "from " << kPreviousAmount << " to " << kNewAmount << " [<=]";
+#endif
+
+        return true;
+
+    } catch (NotFoundError &) {}
+
+    return false;
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::exitWithResult(
+    TransactionResult::SharedConst result,
+    const char *message)
+{
+    if (message != nullptr)
+        info() << message;
+
+    return result;
 }

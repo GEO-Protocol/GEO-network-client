@@ -33,10 +33,6 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     deserializeFromBytes(buffer);
 }
 
-/**
- * @throws RuntimeError in case if current stage is invalid.
- * @throws Exception from inner logic
- */
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
 {
     switch (mStep) {
@@ -45,6 +41,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
 
     case Stages::Receiver_AmountReservationsProcessing:
         return runAmountReservationStage();
+
+    case Stages::Common_FinalPathsConfigurationChecking:
+        return runFinalPathsConfigurationProcessingStage();
 
     case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
@@ -76,13 +75,25 @@ const string ReceiverPaymentTransaction::logHeader() const
 TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStage()
 {
     const auto kCoordinator = mMessage->senderUUID();
-
     info() << "Operation for " << mMessage->amount() << " initialised by the (" << kCoordinator << ")";
 
-    // TODO: (optimisation)
+
     // Check if total incoming possibilities of the node are <= of the payment amount.
     // If not - there is no reason to process the operation at all.
     // (reject operation)
+    const auto kTotalAvailableIncomingAmount = *(mTrustLines->totalIncomingAmount());
+    if (kTotalAvailableIncomingAmount < mMessage->amount()) {
+        sendMessage<ReceiverInitPaymentResponseMessage>(
+            kCoordinator,
+            nodeUUID(),
+            UUID(),
+            ReceiverInitPaymentResponseMessage::Rejected);
+
+        return exitWithResult(
+            exit(),
+            "Operation rejected due to insufficient funds.");
+    }
+
 
     sendMessage<ReceiverInitPaymentResponseMessage>(
         kCoordinator,
@@ -99,7 +110,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
     mStep = Stages::Receiver_AmountReservationsProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationRequest},
-        maxTimeout(kMaxPathLength*3));
+        maxNetworkDelay(kMaxPathLength * 3));
 }
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationStage()
@@ -123,7 +134,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         // TODO: enhancement: send aproximate paths count to receiver, so it will be able to wait correct timeout.
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeReservationRequest},
-            maxTimeout(kMaxPathLength*3));
+            maxNetworkDelay(kMaxPathLength * 3));
     }
 
 
@@ -157,7 +168,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         // Begin accepting other reservation messages
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeReservationRequest},
-            maxTimeout(kMaxPathLength*3));
+            maxNetworkDelay(kMaxPathLength * 3));
 
     }
 
@@ -195,12 +206,12 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
-            maxTimeout(kMaxPathLength*3));
+            maxNetworkDelay(kMaxPathLength * 3));
 
     } else {
         // Waiting for another reservation request
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeReservationRequest},
-            maxTimeout(kMaxPathLength*3));
+            maxNetworkDelay(kMaxPathLength * 3));
     }
 }

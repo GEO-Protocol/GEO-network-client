@@ -4,12 +4,6 @@
 
 #include "base/BasePaymentTransaction.h"
 
-#include "../../../../network/messages/outgoing/payments/CoordinatorReservationRequestMessage.h"
-#include "../../../../network/messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
-#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
-#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
-#include "../../../../network/messages/outgoing/payments/ParticipantsVotesMessage.h"
-
 
 class IntermediateNodePaymentTransaction:
     public BasePaymentTransaction {
@@ -35,25 +29,12 @@ public:
     pair<BytesShared, size_t> serializeToBytes();
 
 protected:
-    // Used as timeout for asking coordinator about what to do with reservation:
-    // prolong or drop and exit.
-    static const uint16_t kCoordinatorPingTimeoutMSec = 3000;
-
-protected:
-//    enum Stages {
-//        PreviousNeighborRequestProcessing = 1,
-//        CoordinatorRequestProcessing,
-//        NextNeighborResponseProcessing,
-//        ReservationProlongation,
-//        VotesProcessing,
-//    };
-
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
 
-private:
+protected:
     void deserializeFromBytes(
         BytesShared buffer);
 
@@ -61,8 +42,9 @@ private:
 
 protected:
     const IntermediateNodeReservationRequestMessage::ConstShared mMessage;
-    NodeUUID mCoordinator;
+
     TrustLineAmount mLastReservedAmount;
+    NodeUUID mCoordinator;
 };
 
 

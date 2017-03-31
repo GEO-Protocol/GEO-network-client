@@ -80,12 +80,12 @@ void ParticipantsConfigurationMessage::addPath (
             "ParticipantsConfigurationMessage::addPath: "
             "nodes set can't be greater than 2.");
 
-    if (nodes.size() == 2 && nodes.cbegin() == (nodes.cbegin()++))
+    if (nodes.size() == 2 && *(nodes.cbegin()) == *(std::next(nodes.cbegin())))
         throw ValueError(
             "ParticipantsConfigurationMessage::addPath: "
             "nodes set contains equal nodes.");
 
-    for (const auto &kRecords : mNeighborsReservationsConfiguration)
+    for (const auto &kRecords : mPathsConfiguration)
         if (kRecords.first == nodes)
             throw ValueError(
                 "ParticipantsConfigurationMessage::addPath: "
@@ -97,17 +97,15 @@ void ParticipantsConfigurationMessage::addPath (
         make_shared<const TrustLineAmount>(
             commonPathAmount));
 
-    mNeighborsReservationsConfiguration.push_back(kRecord);
+    mPathsConfiguration.push_back(kRecord);
 }
 
 const Message::MessageType ParticipantsConfigurationMessage::typeID () const
-    noexcept
 {
-    Message::Payments_ParticipantsPathsConfiguration;
+    return Message::Payments_ParticipantsPathsConfiguration;
 }
 
 pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeToBytes ()
-    throw (bad_alloc)
 {
     switch (mDesignation) {
         case Designation::ForIntermediateNode:
@@ -151,17 +149,18 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeToBytes ()
 pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermediateNode ()
     throw (bad_alloc)
 {
-    const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+    const auto kParentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    const auto kTotalPathsCount = mNeighborsReservationsConfiguration.size();
-    const auto kPathRecordsSize =
+    const auto kTotalPathsCount = mPathsConfiguration.size();
+    const auto kPathRecordSize =
         NodeUUID::kBytesSize * 2
         + kTrustLineAmountBytesCount;
 
     const auto kBufferSize =
-        parentBytesAndCount.second
+        kParentBytesAndCount.second
+        + sizeof(byte)
         + sizeof(RecordsCount)
-        + kTotalPathsCount * kPathRecordsSize;
+        + kTotalPathsCount * kPathRecordSize;
 
     BytesShared buffer = tryMalloc(kBufferSize);
 
@@ -169,7 +168,7 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermed
     const auto kParentMessageOffset = buffer.get();
     const auto kMessageDesignationOffset =
         kParentMessageOffset
-        + parentBytesAndCount.second;
+        + kParentBytesAndCount.second;
 
     const auto kPathsRecordsCountOffset =
         kMessageDesignationOffset
@@ -182,8 +181,8 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermed
     // Parent message content
     memcpy(
         kParentMessageOffset,
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
+        kParentBytesAndCount.first.get(),
+        kParentBytesAndCount.second);
 
     // Message designation
     const byte kSerializedDesignation = (byte)mDesignation;
@@ -200,7 +199,7 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermed
 
     // Nodes UUIDs and amount
     auto currentPathRecordOffset = kFirstPathRecordOffset;
-    for (const auto kNodesAndAmount : mNeighborsReservationsConfiguration) {
+    for (const auto kNodesAndAmount : mPathsConfiguration) {
 
         const auto kIncomingNeighborUUID = *(kNodesAndAmount.first.cbegin());
         const auto kOutgoingNeighborUUID = *(kNodesAndAmount.first.cbegin()++);
@@ -224,7 +223,7 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermed
             kSerializedAmount.size());
 
 
-        currentPathRecordOffset += kPathRecordsSize;
+        currentPathRecordOffset += kPathRecordSize;
     }
 
     return make_pair(
@@ -259,17 +258,18 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermed
 pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForReceiverNode ()
     throw (bad_alloc)
 {
-    const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+    const auto kParentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    const auto kTotalPathsCount = mNeighborsReservationsConfiguration.size();
-    const auto kPathRecordsSize =
+    const auto kTotalPathsCount = mPathsConfiguration.size();
+    const auto kPathRecordSize =
         NodeUUID::kBytesSize
         + kTrustLineAmountBytesCount;
 
     const auto kBufferSize =
-        parentBytesAndCount.second
+        kParentBytesAndCount.second
+        + sizeof(byte)
         + sizeof(RecordsCount)
-        + kTotalPathsCount * kPathRecordsSize;
+        + kTotalPathsCount * kPathRecordSize;
 
     BytesShared buffer = tryMalloc(kBufferSize);
 
@@ -277,7 +277,7 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForReceiver
     const auto kParentMessageOffset = buffer.get();
     const auto kMessageDesignationOffset =
         kParentMessageOffset
-        + parentBytesAndCount.second;
+        + kParentBytesAndCount.second;
 
     const auto kPathsRecordsCountOffset =
         kMessageDesignationOffset
@@ -290,8 +290,8 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForReceiver
     // Parent message content
     memcpy(
         kParentMessageOffset,
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
+        kParentBytesAndCount.first.get(),
+        kParentBytesAndCount.second);
 
     // Message designation
     const byte kSerializedDesignation = (byte)mDesignation;
@@ -308,7 +308,7 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForReceiver
 
     // Nodes UUIDs and amount
     auto currentPathRecordOffset = kFirstPathRecordOffset;
-    for (const auto kNodesAndAmount : mNeighborsReservationsConfiguration) {
+    for (const auto kNodesAndAmount : mPathsConfiguration) {
 
         const auto kIncomingNeighborUUID = *(kNodesAndAmount.first.cbegin());
         const auto kAmount = *(kNodesAndAmount.second);
@@ -324,8 +324,7 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForReceiver
             kSerializedAmount.data(),
             kSerializedAmount.size());
 
-
-        currentPathRecordOffset += kPathRecordsSize;
+        currentPathRecordOffset += kPathRecordSize;
     }
 
     return make_pair(
@@ -383,7 +382,7 @@ void ParticipantsConfigurationMessage::deserializeFromBytes (
 
             const TrustLineAmount kCommonPathAmount = bytesToTrustLineAmount(commonPathAmountBytes);
             const NodesSet kNodesSet = {incomingNodeUUID};
-            mNeighborsReservationsConfiguration.push_back(
+            mPathsConfiguration.push_back(
                 std::make_pair(
                     kNodesSet,
                     make_shared<const TrustLineAmount>(
@@ -413,7 +412,7 @@ void ParticipantsConfigurationMessage::deserializeFromBytes (
 
             const TrustLineAmount kCommonPathAmount = bytesToTrustLineAmount(commonPathAmountBytes);
             const NodesSet kNodesSet = {incomingNodeUUID, outgoingNodeUUID};
-            mNeighborsReservationsConfiguration.push_back(
+            mPathsConfiguration.push_back(
                 std::make_pair(
                     kNodesSet,
                     make_shared<const TrustLineAmount>(
@@ -428,5 +427,5 @@ const vector< pair<ParticipantsConfigurationMessage::NodesSet, ConstSharedTrustL
 ParticipantsConfigurationMessage::nodesAndFinalReservationAmount () const
     noexcept
 {
-    return mNeighborsReservationsConfiguration;
+    return mPathsConfiguration;
 }

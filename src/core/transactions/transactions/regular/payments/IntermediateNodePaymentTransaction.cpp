@@ -15,7 +15,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         log),
     mMessage(message)
 {
-    mStep =Stages::IntermediateNode_PreviousNeighborRequestProcessing;
+    mStep = Stages::IntermediateNode_PreviousNeighborRequestProcessing;
 }
 
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
@@ -45,6 +45,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
     case Stages::IntermediateNode_ReservationProlongation:
         return runReservationProlongationStage();
 
+    case Stages::Common_FinalPathsConfigurationChecking:
+        return runFinalPathsConfigurationProcessingStage();
+
     case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
 
@@ -64,9 +67,9 @@ pair<BytesShared, size_t> IntermediateNodePaymentTransaction::serializeToBytes()
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNeighborRequestProcessingStage()
 {
     const auto kNeighbor = mMessage->senderUUID();
+    info() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
+    info() << "Requested amount reservation: " << mMessage->amount();
 
-
-    info() << "Init. intermediate payment operation from node - (" << kNeighbor << ")";
 
     // Note: (copy of shared pointer is required)
     const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
@@ -84,9 +87,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
 
 
     mLastReservedAmount = kReservationAmount;
-    info() << "Locally reserved amount for (" << kNeighbor << ") : "
-           << kReservationAmount << "/" << mMessage->amount();
-
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
         nodeUUID(),
@@ -97,7 +97,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationRequest},
-        maxTimeout(2));
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage()
@@ -106,12 +106,16 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         return reject("No coordinator request received. Rolled back.");
 
 
+    info() << "Coordinator further reservation request received.";
+
+
     // TODO: add check for previous nodes amount reservation
 
 
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
     const auto kNextNode = kMessage->nextNodeInPathUUID();
     mCoordinator = kMessage->senderUUID();
+
 
 
     // Note: copy of shared pointer is required
@@ -130,9 +134,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         return reject("No amount reservation is possible. Rolled back.");
     }
 
-    mLastReservedAmount = reservationAmount;
-    info() << "Locally reserved amount for (" << kNextNode << "): " << reservationAmount;
 
+    mLastReservedAmount = reservationAmount;
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kNextNode,
         nodeUUID(),
@@ -143,7 +146,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     mStep = Stages::IntermediateNode_NextNeighborResponseProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationResponse},
-        maxTimeout(2));
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
@@ -178,7 +181,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     mStep = Stages::IntermediateNode_ReservationProlongation;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
-        maxTimeout(kMaxPathLength));
+        maxNetworkDelay(kMaxPathLength));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
@@ -191,7 +194,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
             return runVotesCheckingStage();
         }
 
-    return reject("No participants votes message received. Rolled back.");
+    return reject("No participants votes message received. Rolling back.");
 }
 
 void IntermediateNodePaymentTransaction::deserializeFromBytes(

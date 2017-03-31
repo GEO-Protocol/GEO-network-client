@@ -10,10 +10,15 @@
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 
-#include "../../../../../network/messages/outgoing/payments/ParticipantsVotesMessage.h"
-#include "../../../../../network/messages/outgoing/payments/ParticipantsConfigurationMessage.h"
+#include "../../../../../network/messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
+#include "../../../../../network/messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
+#include "../../../../../network/messages/outgoing/payments/CoordinatorReservationRequestMessage.h"
+#include "../../../../../network/messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
+#include "../../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
+#include "../../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
 #include "../../../../../network/messages/outgoing/payments/ParticipantsConfigurationRequestMessage.h"
-
+#include "../../../../../network/messages/outgoing/payments/ParticipantsConfigurationMessage.h"
+#include "../../../../../network/messages/outgoing/payments/ParticipantsVotesMessage.h"
 
 
 // TODO: Add restoring of the reservations after transaction deserialization.
@@ -60,14 +65,19 @@ protected:
     };
 
     // Stages handlers
-    TransactionResult::SharedConst runVotesCheckingStage();
-    TransactionResult::SharedConst runVotesConsistencyCheckingStage();
-    TransactionResult::SharedConst runFinalPathsConfigurationProcessingStage();
+    virtual TransactionResult::SharedConst runVotesCheckingStage();
+    virtual TransactionResult::SharedConst runVotesConsistencyCheckingStage();
+    virtual TransactionResult::SharedConst runFinalPathsConfigurationProcessingStage();
 
     virtual TransactionResult::SharedConst approve();
-    virtual TransactionResult::SharedConst recover();
+    virtual TransactionResult::SharedConst recover(
+        const char *message = nullptr);
     virtual TransactionResult::SharedConst reject(
         const char *message = nullptr);
+
+    TransactionResult::SharedConst exitWithResult(
+        const TransactionResult::SharedConst result,
+        const char *message=nullptr);
 
 protected:
     const bool reserveOutgoingAmount(
@@ -78,10 +88,15 @@ protected:
         const NodeUUID &neighborNode,
         const TrustLineAmount& amount);
 
+    const bool shortageReservation(
+        const NodeUUID kContractor,
+        const AmountReservation::ConstShared kReservation,
+        const TrustLineAmount &kNewAmount);
+
     void commit();
     void rollBack();
 
-    uint32_t maxTimeout (
+    uint32_t maxNetworkDelay (
         const uint16_t totalParticipantsCount) const;
 
     uint32_t maxCoordinatorResponseTimeout() const;

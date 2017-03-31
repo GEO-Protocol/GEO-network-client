@@ -52,7 +52,7 @@ public:
 
         Payments_ParticipantsVotes,
         Payments_ParticipantsPathsConfiguration,
-        Payments_ParticipantsConfigurationRequest,
+        Payments_ParticipantsPathsConfigurationRequest,
 
 
         InitiateMaxFlowCalculationMessageType,
@@ -121,33 +121,27 @@ public:
 
     virtual const MessageType typeID() const = 0;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() {
+    virtual pair<BytesShared, size_t> serializeToBytes()
+    {
+        const auto kMessageType = typeID();
+        auto buffer = tryMalloc(sizeof(kMessageType));
 
-        size_t bytesCount = sizeof(MessageType);
-        BytesShared bytesBuffer = tryMalloc(bytesCount);
-        //----------------------------------------------------
-        MessageType type = typeID();
         memcpy(
-            bytesBuffer.get(),
-            &type,
-            sizeof(MessageType)
-        );
-        //----------------------------------------------------
+            buffer.get(),
+            &kMessageType,
+            sizeof(kMessageType));
+
         return make_pair(
-            bytesBuffer,
-            bytesCount
-        );
+            buffer,
+            sizeof(kMessageType));
     }
 
 protected:
     virtual void deserializeFromBytes(
-        BytesShared buffer) {
+        BytesShared buffer) = 0;
 
-        MessageType *type = new (buffer.get()) MessageType;
-    }
-
-    static const size_t kOffsetToInheritedBytes() {
-
+    static const size_t kOffsetToInheritedBytes()
+    {
         static const size_t offset = sizeof(MessageType);
         return offset;
     }
