@@ -3,8 +3,10 @@
 
 #include "../../../base/UniqueTransaction.h"
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../../io/storage/StorageHandler.h"
 #include "../../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesRequestMessage.h"
 #include "../../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesResponseMessage.h"
+#include <set>
 
 class GetThreeNodesNeighborBalancesTransaction : public UniqueTransaction {
 
@@ -15,11 +17,13 @@ public:
             const NodeUUID &contractorUUID,
             TransactionsScheduler *scheduler,
             TrustLinesManager *manager,
+            StorageHandler *handler,
             Logger *logger);
 
     GetThreeNodesNeighborBalancesTransaction(
             const TransactionType type,
             const NodeUUID &nodeUUID,
+            const NodeUUID &contractorUUID,
             ThreeNodesBalancesRequestMessage::Shared message,
             TransactionsScheduler *scheduler,
             TrustLinesManager *manager,
@@ -30,6 +34,7 @@ public:
     TransactionResult::SharedConst run();
 
     TransactionResult::SharedConst waitingForNeighborBalances();
+    set<NodeUUID> getNeighborsWithContractor();
     pair<BytesShared, size_t> serializeToBytes() const {};
 
 private:
@@ -45,6 +50,7 @@ private:
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     Logger *mlogger;
+    StorageHandler *mStorageHandler;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETNEIGHBORTRANSACTION_H

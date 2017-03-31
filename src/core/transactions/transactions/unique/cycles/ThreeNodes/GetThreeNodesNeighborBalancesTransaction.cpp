@@ -11,8 +11,10 @@ GetThreeNodesNeighborBalancesTransaction::GetThreeNodesNeighborBalancesTransacti
         const NodeUUID &contractorUUID,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager,
+        StorageHandler *storageHandler,
         Logger *logger)
         : UniqueTransaction(type, nodeUUID, scheduler),
+          mStorageHandler(storageHandler),
           mTrustLinesManager(manager),
           mlogger(logger),
           mContractorUUID(contractorUUID)
@@ -22,10 +24,12 @@ GetThreeNodesNeighborBalancesTransaction::GetThreeNodesNeighborBalancesTransacti
 
 GetThreeNodesNeighborBalancesTransaction::GetThreeNodesNeighborBalancesTransaction(const BaseTransaction::TransactionType type,
                                                                const NodeUUID &nodeUUID,
+                                                               const NodeUUID &contractorUUID,
                                                                ThreeNodesBalancesRequestMessage::Shared message,
                                                                TransactionsScheduler *scheduler,
                                                                TrustLinesManager *manager, Logger *logger)
         : UniqueTransaction(type, nodeUUID, scheduler),
+          mContractorUUID(contractorUUID),
           mRequestMessage(message),
           mTrustLinesManager(manager),
           mlogger(logger)
@@ -35,6 +39,7 @@ GetThreeNodesNeighborBalancesTransaction::GetThreeNodesNeighborBalancesTransacti
 TransactionResult::SharedConst GetThreeNodesNeighborBalancesTransaction::run() {
 //    Check if something in context
     if (mContext.size() > 0){
+//        There is ResponseMessage in Context. Get data from it and create cycles
         auto message = static_pointer_cast<ThreeNodesBalancesResponseMessage>(*mContext.begin());
         vector <pair<NodeUUID, TrustLineBalance>> neighborsAndBalances = message->NeighborsAndBalances();
         for(auto &value:neighborsAndBalances ){
@@ -47,16 +52,18 @@ TransactionResult::SharedConst GetThreeNodesNeighborBalancesTransaction::run() {
         return finishTransaction();
 //   Nothing in context; No answer from neighbor
     } else if(mRequestMessage == nullptr){
+//  No response Messages. No Request Messages.
+//  Create RequestMessage with neighbors node uuids and send it contractor
     TrustLineBalance maxFlow = mTrustLinesManager->balance(mContractorUUID);
-    vector<NodeUUID> neighbors;
+    set<NodeUUID> neighbors = getNeighborsWithContractor();
+
         sendMessage<ThreeNodesBalancesRequestMessage>(
                 mContractorUUID,
-                maxFlow,
                 neighbors
         );
         return waitingForNeighborBalances();
     } else if(mRequestMessage != nullptr){
-        vector<NodeUUID> neighbors = mRequestMessage->Neighbors();
+        set<NodeUUID> neighbors = mRequestMessage->Neighbors();
         vector<pair<NodeUUID, TrustLineBalance>> neighborsAndBalances;
         for(auto &value: neighbors){
             neighborsAndBalances.push_back(
@@ -65,6 +72,11 @@ TransactionResult::SharedConst GetThreeNodesNeighborBalancesTransaction::run() {
                             mTrustLinesManager->balance(mContractorUUID)
             ));
         }
+        sendMessage<ThreeNodesBalancesResponseMessage>(
+                mNodeUUID,
+                mTransactionUUID,
+                neighborsAndBalances
+        );
         return finishTransaction();
     }
     return finishTransaction();
@@ -82,3 +94,30 @@ TransactionResult::SharedConst GetThreeNodesNeighborBalancesTransaction::waiting
     );
 }
 
+set<NodeUUID> GetThreeNodesNeighborBalancesTransaction::getNeighborsWithContractor() {
+    TrustLineBalance balanceToContractor = mTrustLinesManager->balance(mContractorUUID);
+    TrustLineBalance zeroBalance = 0;
+    bool balancePositive = true;
+    if (balanceToContractor < zeroBalance){
+        balancePositive = false;
+    }
+    set<NodeUUID> contractorNeighbors = mStorageHandler->routingTablesHandler()->routingTable2Level()->allDestinationsForSource(
+            mContractorUUID);
+    set<NodeUUID> ownNeighbors;
+    set<NodeUUID> commonNeighbors;
+    for (auto &value: mTrustLinesManager->trustLines()){
+        if (balancePositive){
+            if (value.second->balance() < zeroBalance){
+                ownNeighbors.insert(value.first);
+            }
+        } else {
+            if (value.second->balance() > zeroBalance){
+                ownNeighbors.insert(value.first);
+            }
+        }
+        set_intersection(ownNeighbors.begin(), ownNeighbors.end(),
+                         ownNeighbors.begin(), ownNeighbors.end(),
+                         std::inserter(commonNeighbors, commonNeighbors.begin()));
+    }
+    return commonNeighbors;
+}

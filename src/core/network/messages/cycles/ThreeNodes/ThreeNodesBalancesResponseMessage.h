@@ -11,9 +11,9 @@ class ThreeNodesBalancesResponseMessage: public TransactionMessage {
 public:
     typedef shared_ptr<ThreeNodesBalancesResponseMessage> Shared;
 public:
-    ThreeNodesBalancesResponseMessage();
     ThreeNodesBalancesResponseMessage(
-            const TrustLineBalance& maxFlow,
+            const NodeUUID &senderUUID,
+            const TransactionUUID &transactionUUID,
             vector<pair<NodeUUID, TrustLineBalance>> &neighbors);
 
     ThreeNodesBalancesResponseMessage(

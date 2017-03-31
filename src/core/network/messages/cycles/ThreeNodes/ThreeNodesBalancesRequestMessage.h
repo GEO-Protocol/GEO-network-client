@@ -2,26 +2,25 @@
 #define GEO_NETWORK_CLIENT_BALANCESREQUESTMESSAGE_H
 
 #include "../../Message.hpp"
-
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../base/transaction/TransactionMessage.h"
-
+#include "set"
 class ThreeNodesBalancesRequestMessage: public TransactionMessage {
 public:
     typedef shared_ptr<ThreeNodesBalancesRequestMessage> Shared;
 public:
-    ThreeNodesBalancesRequestMessage();
     ThreeNodesBalancesRequestMessage(
-            const TrustLineBalance& maxFlow,
-            vector<NodeUUID> &neighbors);
+            const NodeUUID &senderUUID,
+            const TransactionUUID &transactionUUID,
+            set<NodeUUID> &neighbors);
 
     ThreeNodesBalancesRequestMessage(
             BytesShared buffer);
 
     const MessageType typeID() const;
-    vector<NodeUUID> Neighbors();
+    set<NodeUUID> Neighbors();
 protected:
     pair<BytesShared, size_t> serializeToBytes();
 
@@ -32,8 +31,7 @@ protected:
 
 
 protected:
-    vector<NodeUUID> mNeighbors;
-    TrustLineBalance mMaxFlow;
+    set<NodeUUID> mNeighbors;
 };
 
 #endif //GEO_NETWORK_CLIENT_BALANCESREQUESTMESSAGE_H

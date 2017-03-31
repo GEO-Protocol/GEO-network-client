@@ -53,12 +53,13 @@ const Message::MessageType ThreeNodesBalancesResponseMessage::typeID() const {
     return Message::MessageTypeID::ThreeNodesBalancesResponseMessage;
 }
 
-ThreeNodesBalancesResponseMessage::ThreeNodesBalancesResponseMessage() {
-
-}
-
-ThreeNodesBalancesResponseMessage::ThreeNodesBalancesResponseMessage(const TrustLineBalance &maxFlow,
-                                                 vector<pair<NodeUUID, TrustLineBalance>> &neighbors) {
+ThreeNodesBalancesResponseMessage::ThreeNodesBalancesResponseMessage(
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        vector<pair<NodeUUID, TrustLineBalance>> &neighbors) :
+TransactionMessage(senderUUID, transactionUUID),
+mNeighborsBalances(neighbors)
+{
 
 }
 
