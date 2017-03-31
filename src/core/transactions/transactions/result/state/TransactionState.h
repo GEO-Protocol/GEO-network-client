@@ -57,6 +57,8 @@ public:
 
     const vector<Message::MessageTypeID>& acceptedMessagesTypes() const;
 
+    const vector<BaseResource::ResourceType>& acceptedResourcesTypes() const;
+
     const bool needSerialize() const;
 
     const bool mustBeRescheduled() const;

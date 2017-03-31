@@ -115,7 +115,28 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
 void TransactionsScheduler::tryAttachResourceToTransaction(
     BaseResource::Shared resource) {
 
+    for (const auto& transactionAndState : *mTransactions) {
 
+        if (resource->transactionUUID() != transactionAndState.first->UUID()) {
+            continue;
+        }
+
+        for (const auto &resType : transactionAndState.second->acceptedResourcesTypes()) {
+            if (resource->type() != resType) {
+                continue;
+            }
+
+            transactionAndState.first->pushResource(resource);
+        }
+
+        launchTransaction(transactionAndState.first);
+        return;
+
+    }
+
+    throw NotFoundError(
+        "TransactionsScheduler::tryAttachResourceToTransaction: "
+            "Can't find transaction that requires given resource.");
 }
 
 void TransactionsScheduler::launchTransaction(

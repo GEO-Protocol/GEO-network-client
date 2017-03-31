@@ -126,6 +126,11 @@ const vector<Message::MessageTypeID>& TransactionState::acceptedMessagesTypes() 
     return mRequiredMessageTypes;
 }
 
+const vector<BaseResource::ResourceType> &TransactionState::acceptedResourcesTypes() const {
+
+    return mRequiredResourcesTypes;
+}
+
 const bool TransactionState::needSerialize() const {
 
     return mFlushToPermanentStorage;

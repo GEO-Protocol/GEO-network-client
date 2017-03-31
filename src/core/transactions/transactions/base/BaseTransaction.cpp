@@ -122,6 +122,12 @@ void BaseTransaction::pushContext(
     mContext.push_back(message);
 }
 
+void BaseTransaction::pushResource(
+    BaseResource::Shared resource) {
+
+    mResources.push_back(resource);
+}
+
 void BaseTransaction::clearContext() {
 
     mContext.clear();
