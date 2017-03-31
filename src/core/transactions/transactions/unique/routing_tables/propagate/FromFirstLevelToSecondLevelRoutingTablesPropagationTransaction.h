@@ -12,6 +12,7 @@
 #include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
+
 #include "../../../../../common/exceptions/ConflictError.h"
 
 #include <memory>
@@ -20,6 +21,7 @@
 #include <stdint.h>
 
 class FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction : public RoutingTablesTransaction {
+
 public:
     typedef shared_ptr<FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction> Shared;
 
@@ -39,7 +41,6 @@ public:
 private:
     pair<bool, TransactionResult::SharedConst> checkContext();
 
-    // Relationships with initiator propagation to B1 level
     TransactionResult::SharedConst propagateRelationshipsBetweenInitiatorAndContractor();
 
     bool isContractorsCountEnoughForRoutingTablesPropagation();
@@ -48,11 +49,11 @@ private:
 
     void sendLinkBetweenInitiatorAndContractor();
 
-    // State for scheduler
     TransactionResult::SharedConst waitingForRoutingTablePropagationResponse();
 
 private:
     FirstLevelRoutingTableIncomingMessage::Shared mLinkWithInitiator;
     TrustLinesManager *mTrustLinesManager;
 };
+
 #endif //GEO_NETWORK_CLIENT_FROMFIRSTLEVELTOSECONDLEVELROUTINGTABLEPROPAGATION_H

@@ -3,26 +3,29 @@
 FromInitiatorToContractorRoutingTablesPropagationTransaction::FromInitiatorToContractorRoutingTablesPropagationTransaction(
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,
-    TrustLinesManager *trustLinesManager) :
+    TrustLinesManager *trustLinesManager,
+    StorageHandler *storageHandler) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        nodeUUID
-    ),
-    mTrustLinesManager(trustLinesManager) {
+        nodeUUID),
+    mTrustLinesManager(trustLinesManager),
+    mStorageHandler(storageHandler){
 
-    mContractorsUUIDs.push_back(contractorUUID);
+    mContractorsUUIDs.push_back(
+        contractorUUID);
 }
 
 FromInitiatorToContractorRoutingTablesPropagationTransaction::FromInitiatorToContractorRoutingTablesPropagationTransaction(
     BytesShared buffer,
-    TrustLinesManager *trustLinesManager) :
+    TrustLinesManager *trustLinesManager,
+    StorageHandler *storageHandler) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        buffer
-    ),
-    mTrustLinesManager(trustLinesManager) {}
+        buffer),
+    mTrustLinesManager(trustLinesManager),
+    mStorageHandler(storageHandler) {}
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagationTransaction::run() {
 
@@ -34,9 +37,9 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagation
             if (firstLevelPropagationResult->resultType() == TransactionResult::ResultType::TransactionStateType) {
                 return firstLevelPropagationResult;
 
-            } else if (firstLevelPropagationResult->resultType() == TransactionResult::ResultType::MessageResultType) {
+            } else {
                 prepareToNextStep();
-                increaseStepsCounter();
+                mStep = RoutingTableLevelStepIdentifier::SecondLevelRoutingTableStep;
             }
         }
 
@@ -67,8 +70,7 @@ pair<bool, TransactionResult::SharedConst> FromInitiatorToContractorRoutingTable
             if (response->code() != kResponseCodeSuccess) {
                 return make_pair(
                     false,
-                    TransactionResult::Shared(nullptr)
-                );
+                    TransactionResult::Shared(nullptr));
             }
 
         }
@@ -79,10 +81,7 @@ pair<bool, TransactionResult::SharedConst> FromInitiatorToContractorRoutingTable
                 make_shared<MessageResult>(
                     *mContractorsUUIDs.begin(),
                     mTransactionUUID,
-                    kResponseCodeSuccess
-                )
-            )
-        );
+                    kResponseCodeSuccess)));
 
     } else {
         throw ConflictError("FromInitiatorToContractorRoutingTablesPropagationTransaction::checkContext: "
@@ -144,29 +143,24 @@ void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendFirstLeve
     vector<pair<const NodeUUID, const TrustLineDirection>> neighborsAndDirections;
     for (const auto &contractorAndTrustLine : mTrustLinesManager->trustLines()) {
 
-        if (mContractorsUUIDs[0] == contractorAndTrustLine.first) {
+        if (*mContractorsUUIDs.begin() == contractorAndTrustLine.first) {
             continue;
         }
 
         neighborsAndDirections.push_back(
             make_pair(
                 contractorAndTrustLine.first,
-                mTrustLinesManager->trustLine(contractorAndTrustLine.first)->direction()
-            )
-        );
+                mTrustLinesManager->trustLineReadOnly(contractorAndTrustLine.first)->direction()));
 
     }
 
     firstLevelMessage->pushBack(
         mNodeUUID,
-        neighborsAndDirections
-    );
+        neighborsAndDirections);
 
-    Message::Shared message = dynamic_pointer_cast<Message>(firstLevelMessage);
-    addMessage(
-        message,
-        mContractorsUUIDs[0]
-    );
+    sendMessage(
+        *mContractorsUUIDs.begin(),
+        dynamic_pointer_cast<Message>(firstLevelMessage));
 }
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagationTransaction::propagateSecondLevelRoutingTable() {
@@ -209,59 +203,11 @@ void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendSecondLev
 
     SecondLevelRoutingTableOutgoingMessage::Shared secondLevelMessage = make_shared<SecondLevelRoutingTableOutgoingMessage>(mNodeUUID);
 
-    vector<pair<const NodeUUID, const TrustLineDirection>> neighborsAndDirections;
+    //TODO:: read second level routing table from storage handler
 
-#ifdef DEBUG
-    for (size_t i = 0; i < 10; ++ i) {
-        NodeUUID secondLevelContractor;
-        TrustLineDirection direction;
-
-        srand(
-            time(NULL));
-
-        int randomValue = rand() % 2;
-        switch (randomValue) {
-            case 0: {
-                direction = TrustLineDirection::Outgoing;
-                break;
-            }
-
-            case 1: {
-                direction = TrustLineDirection::Incoming;
-                break;
-            }
-
-            case 2: {
-                direction = TrustLineDirection::Both;
-                break;
-            }
-
-            default: {
-                direction = TrustLineDirection::Nowhere;
-            }
-        }
-
-        neighborsAndDirections.push_back(
-            make_pair(
-                secondLevelContractor,
-                direction
-            )
-        );
-
-    }
-#endif
-
-    NodeUUID randomFirstLevelNeighbor;
-    secondLevelMessage->pushBack(
-        randomFirstLevelNeighbor,
-        neighborsAndDirections
-    );
-
-    Message::Shared message = dynamic_pointer_cast<Message>(secondLevelMessage);
-    addMessage(
-        message,
-        mContractorsUUIDs[0]
-    );
+    sendMessage(
+        *mContractorsUUIDs.begin(),
+        dynamic_pointer_cast<Message>(secondLevelMessage));
 }
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagationTransaction::waitingForRoutingTablePropagationResponse() {
@@ -270,9 +216,7 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagation
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
             {Message::MessageTypeID::RoutingTablesResponseMessageType},
-            mConnectionTimeout
-        )
-    );
+            mConnectionTimeout));
 }
 
 void FromInitiatorToContractorRoutingTablesPropagationTransaction::prepareToNextStep() {

@@ -9,8 +9,7 @@ FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::FromFirstLevelTo
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
         nodeUUID,
-        contractorUUID
-    ),
+        contractorUUID),
     mLinkWithInitiator(relationshipsBetweenInitiatorAndContractor),
     mTrustLinesManager(trustLinesManager) {}
 
@@ -20,8 +19,7 @@ FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::FromFirstLevelTo
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        buffer
-    ),
+        buffer),
     mTrustLinesManager(trustLinesManager) {}
 
 TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::run() {
@@ -43,8 +41,7 @@ pair<bool, TransactionResult::SharedConst> FromFirstLevelToSecondLevelRoutingTab
             if (response->code() != kResponseCodeSuccess) {
                 return make_pair(
                     false,
-                    TransactionResult::Shared(nullptr)
-                );
+                    TransactionResult::Shared(nullptr));
             }
 
         }
@@ -55,16 +52,12 @@ pair<bool, TransactionResult::SharedConst> FromFirstLevelToSecondLevelRoutingTab
                 make_shared<MessageResult>(
                     *mContractorsUUIDs.begin(),
                     mTransactionUUID,
-                    kResponseCodeSuccess
-                )
-            )
-        );
+                    kResponseCodeSuccess)));
 
     } else {
         return make_pair(
             false,
-            TransactionResult::Shared(nullptr)
-        );
+            TransactionResult::Shared(nullptr));
     }
 }
 
@@ -96,16 +89,12 @@ bool FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::isContracto
 
 TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::trySendLinkBetweenInitiatorAndContractor() {
 
-    setExpectationResponsesCounter(
-        uint16_t(mTrustLinesManager->trustLines().size() - 1)
-    );
+    setExpectationResponsesCounter(uint16_t(mTrustLinesManager->trustLines().size() - 1));
 
     for (const auto &nodeAndTrustLine : mTrustLinesManager->trustLines()) {
 
         if (mLinkWithInitiator->records().begin()->second.begin()->first == nodeAndTrustLine.first) {
-            setExpectationResponsesCounter(
-                uint16_t(mTrustLinesManager->trustLines().size() - 2)
-            );
+            setExpectationResponsesCounter(uint16_t(mTrustLinesManager->trustLines().size() - 2));
             break;
         }
     }
@@ -122,6 +111,7 @@ TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTablesPropagati
     } else {
         return finishTransaction();
     }
+
     return waitingForRoutingTablePropagationResponse();
 }
 
@@ -142,14 +132,11 @@ void FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::sendLinkBet
             record.push_back(
                 make_pair(
                     initiator,
-                    initiatorAndDirect.second
-                )
-            );
+                    initiatorAndDirect.second));
 
             firstLevelMessage->pushBack(
                 contractorAndRecord.first,
-                record
-            );
+                record);
 
         }
 
@@ -170,10 +157,9 @@ void FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::sendLinkBet
         mContractorsUUIDs.push_back(
             contractorAndTrustLine.first);
 
-        addMessage(
-            message,
-            contractorAndTrustLine.first
-        );
+        sendMessage(
+            contractorAndTrustLine.first,
+            message);
 
     }
 }
@@ -183,7 +169,5 @@ TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTablesPropagati
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
             {Message::MessageTypeID::RoutingTablesResponseMessageType},
-            mConnectionTimeout
-        )
-    );
+            mConnectionTimeout));
 }
