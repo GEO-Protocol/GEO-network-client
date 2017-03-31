@@ -132,6 +132,9 @@ public:
 
     void launchGetFourNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
     void launchGetFourNodesNeighborBalancesTransaction(FourNodesBalancesRequestMessage::Shared message);
+
+    void launchThreeNodesCyclesInitTransaction(NodeUUID &contractorUUID);
+    void launchThreeNodesCyclesResponseTransaction(ThreeNodesBalancesRequestMessage::Shared message);
 //    ----------------------------------------------------------
 
     void launchRoutingTablesUpdatingTransactionsFactory(
