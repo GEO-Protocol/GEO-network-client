@@ -228,6 +228,7 @@ int Core::initResourcesManager() {
     try {
         mResourcesManager = new ResourcesManager();
         mLog.logSuccess("Core", "Resources manager is successfully initialized");
+        return 0;
 
     } catch (const std::exception &e) {
         mLog.logException("Core", e);

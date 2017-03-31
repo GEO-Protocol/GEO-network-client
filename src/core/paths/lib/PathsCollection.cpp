@@ -18,7 +18,7 @@ void PathsCollection::add(
                                  "Added path differs from current collection");
     }
     if (path.containsIntermediateNodes()) {
-        mPaths.push_back(path.mvIntermediateNodes);
+        mPaths.push_back(path.intermediateUUIDs());
     } else {
         mIsDirectPathPresent = true;
     }

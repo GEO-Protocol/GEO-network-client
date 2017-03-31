@@ -16,6 +16,7 @@ PathsManager::PathsManager(
     testStorageHandler();
 #endif
 
+    // TODO remove from here
     //testStorageHandler();
     //fillRoutingTables();
 }
@@ -281,26 +282,26 @@ void PathsManager::fillRoutingTables() {
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff94")) {
         mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID92Ptr, *nodeUUID90Ptr,
                                                                               TrustLineDirection::Both);
-        /*mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID92Ptr, *nodeUUID94Ptr,
-                                                                              TrustLineDirection::Both);*/
+        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID92Ptr, *nodeUUID94Ptr,
+                                                                              TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID96Ptr, *nodeUUID95Ptr,
                                                                               TrustLineDirection::Both);
-        /*mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID96Ptr, *nodeUUID94Ptr,
-                                                                              TrustLineDirection::Both);*/
+        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID96Ptr, *nodeUUID94Ptr,
+                                                                              TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID98Ptr, *nodeUUID95Ptr,
                                                                               TrustLineDirection::Both);
-        /*mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID98Ptr, *nodeUUID94Ptr,
-                                                                              TrustLineDirection::Both);*/
-        /*mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID97Ptr, *nodeUUID94Ptr,
-                                                                              TrustLineDirection::Both);*/
+        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID98Ptr, *nodeUUID94Ptr,
+                                                                              TrustLineDirection::Both);
+        mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID97Ptr, *nodeUUID94Ptr,
+                                                                              TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
 
-        /*mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID90Ptr, *nodeUUID92Ptr,
-                                                                              TrustLineDirection::Both);*/
+        mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID90Ptr, *nodeUUID92Ptr,
+                                                                              TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID90Ptr, *nodeUUID94Ptr,
                                                                               TrustLineDirection::Both);
-        /*mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID92Ptr, *nodeUUID90Ptr,
-                                                                              TrustLineDirection::Both);*/
+        mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID92Ptr, *nodeUUID90Ptr,
+                                                                              TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID92Ptr, *nodeUUID94Ptr,
                                                                               TrustLineDirection::Both);
         mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(*nodeUUID95Ptr, *nodeUUID93Ptr,
@@ -344,7 +345,6 @@ void PathsManager::fillRoutingTables() {
 }
 
 void PathsManager::testStorageHandler() {
-    cout << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections().size() << endl;
 
     NodeUUID* nodeUUID81Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff81");
     NodeUUID* nodeUUID82Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff82");
@@ -362,17 +362,25 @@ void PathsManager::testStorageHandler() {
     mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID82Ptr, *nodeUUID81Ptr, TrustLineDirection::Both);
     mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
     mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID84Ptr, *nodeUUID83Ptr, TrustLineDirection::Incoming);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID81Ptr, *nodeUUID83Ptr, TrustLineDirection::Incoming);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID81Ptr, *nodeUUID84Ptr, TrustLineDirection::Both);
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(*nodeUUID83Ptr, *nodeUUID81Ptr, TrustLineDirection::Outgoing);
 
 
     vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> records = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections();
-    cout << records.size() << endl;
     NodeUUID source;
     NodeUUID target;
     TrustLineDirection direction;
     for (auto &record : records) {
         std::tie(source, target, direction) = record;
         info() << source << " " << target << " " << direction;
+    }
+
+    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
+        info() << "key: " << itMap.first;
+        for (auto const &itVector : itMap.second) {
+            info() << "\tvalue: " << itVector.first << " " << itVector.second;
+        }
     }
     delete nodeUUID81Ptr;
     delete nodeUUID82Ptr;

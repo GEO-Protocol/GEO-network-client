@@ -12,8 +12,4 @@ target_link_libraries(transactions__find_path
         ${Boost_SYSTEM_LIBRARY}
         paths
         transactions__base
-
-        common
-        exceptions
-
         network__messages)

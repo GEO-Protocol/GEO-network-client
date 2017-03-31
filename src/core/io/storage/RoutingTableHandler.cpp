@@ -133,10 +133,9 @@ void RoutingTableHandler::insert(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-//#ifdef STORAGE_HANDLER_DEBUG_LOG
+#ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "prepare inserting (" << source << ", " << destination << ") " << "is completed successfully";
-//#endif
-//#endif
+#endif
     } else {
         throw IOError("RoutingTableHandler::insert: "
                               "Run query");
@@ -160,9 +159,9 @@ void RoutingTableHandler::commit() {
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-//#ifdef STORAGE_HANDLER_DEBUG_LOG
+#ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "transaction commit";
-//#endif
+#endif
     } else {
         throw IOError("RoutingTableHandler::commit: "
                               "Run query");
@@ -190,9 +189,9 @@ void RoutingTableHandler::rollBack() {
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-//#ifdef STORAGE_HANDLER_DEBUG_LOG
+#ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "rollBack done";
-//#endif
+#endif
     } else {
         throw IOError("RoutingTableHandler::rollback: "
                               "Run query");
@@ -332,14 +331,14 @@ unordered_map<NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapDe
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source;
         memcpy(
-                source.data,
-                sqlite3_column_blob(stmt, 0),
-                NodeUUID::kBytesSize);
+            source.data,
+            sqlite3_column_blob(stmt, 0),
+            NodeUUID::kBytesSize);
         NodeUUID destination;
         memcpy(
-                destination.data,
-                sqlite3_column_blob(stmt, 1),
-                NodeUUID::kBytesSize);
+            destination.data,
+            sqlite3_column_blob(stmt, 1),
+            NodeUUID::kBytesSize);
         auto element = result.find(destination);
         if (element == result.end()) {
             vector<NodeUUID> newVect;
@@ -384,6 +383,65 @@ vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
     return result;
 }
 
+unordered_map<NodeUUID, vector<pair<NodeUUID, TrustLineDirection>>> RoutingTableHandler::routeRecordsWithDirectionsMapSourceKey() {
+
+    unordered_map<NodeUUID, vector<pair<NodeUUID, TrustLineDirection>>> result;
+    string query = "SELECT source, destination, direction FROM " + mTableName;
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+    info() << "select: " << query;
+#endif
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTableHandler::routeRecordsWithDirectionsMapSourceKey: "
+                              "Bad query");
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        NodeUUID source;
+        memcpy(
+            source.data,
+            sqlite3_column_blob(stmt, 0),
+            NodeUUID::kBytesSize);
+        NodeUUID destination;
+        memcpy(
+            destination.data,
+            sqlite3_column_blob(stmt, 1),
+            NodeUUID::kBytesSize);
+        char* directionChr = (char*)sqlite3_column_blob(stmt, 2);
+        TrustLineDirection direction;
+        if (strcmp(directionChr, "I") == 0) {
+            direction = TrustLineDirection::Incoming;
+        } else if (strcmp(directionChr, "O") == 0) {
+            direction = TrustLineDirection::Outgoing;
+        } else if (strcmp(directionChr, "B") == 0) {
+            direction = TrustLineDirection::Both;
+        } else {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+            error() << "wrong direction during reading from DB";
+#endif
+            throw ValueError("RoutingTableHandler::routeRecordsWithDirectionsMapSourceKey: "
+                                     "Wrong Direction during reading from DB");
+        }
+        auto mapElement = result.find(source);
+        if (mapElement == result.end()) {
+            vector<pair<NodeUUID, TrustLineDirection>> newValue;
+            newValue.push_back(
+                make_pair(
+                    destination,
+                    direction));
+            result.insert(
+                make_pair(
+                    source,
+                    newValue));
+        } else {
+            mapElement->second.push_back(
+                make_pair(
+                    destination,
+                    direction));
+        }
+    }
+    return result;
+}
+
 const string& RoutingTableHandler::tableName() const {
 
     return mTableName;
@@ -409,4 +467,3 @@ const string RoutingTableHandler::logHeader() const {
     s << "[RoutingTableHandler]";
     return s.str();
 }
-

@@ -122,7 +122,7 @@ TransactionResult::SharedConst FindPathTransaction::resultOk(
         Path::Shared path) {
 
     stringstream s;
-    for (auto &nodeUUID : path->pathNodes()) {
+    for (auto &nodeUUID : path->nodes) {
         s << nodeUUID << "\t";
     }
     string pathResult = s.str();

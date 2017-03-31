@@ -7,6 +7,6 @@ set(SOURCE_FILES
         PathsManager.cpp)
 
 add_library(paths ${SOURCE_FILES})
+
 target_link_libraries(paths
-        slib_paths
-        )
+        slib_paths)

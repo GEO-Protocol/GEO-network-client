@@ -40,6 +40,8 @@ public:
 
     unordered_map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKey();
 
+    unordered_map<NodeUUID, vector<pair<NodeUUID, TrustLineDirection>>> routeRecordsWithDirectionsMapSourceKey();
+
     const string &tableName() const;
 
 private:

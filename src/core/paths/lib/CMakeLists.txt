@@ -7,7 +7,5 @@ set(SOURCE_FILES
         PathsCollection.cpp)
 
 add_library(slib_paths ${SOURCE_FILES})
-target_link_libraries(slib_paths
-        memory
-        common
-        exceptions)
+
+target_link_libraries(slib_paths)

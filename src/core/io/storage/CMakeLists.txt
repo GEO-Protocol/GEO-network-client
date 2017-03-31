@@ -11,5 +11,4 @@ set(SOURCE_FILES
 add_library(io__storage ${SOURCE_FILES})
 
 target_link_libraries(io__storage
-        common
         libsqlite3)

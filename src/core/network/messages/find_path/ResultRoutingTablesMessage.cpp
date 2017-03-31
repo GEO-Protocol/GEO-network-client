@@ -3,9 +3,9 @@
 ResultRoutingTablesMessage::ResultRoutingTablesMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID &transactionUUID,
-    vector<NodeUUID> rt1,
-    unordered_map<NodeUUID, vector<NodeUUID>> rt2,
-    unordered_map<NodeUUID, vector<NodeUUID>> rt3):
+    vector<NodeUUID> &rt1,
+    unordered_map<NodeUUID, vector<NodeUUID>> &rt2,
+    unordered_map<NodeUUID, vector<NodeUUID>> &rt3):
 
     TransactionMessage(
         senderUUID,
@@ -130,7 +130,6 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
         }
     }
     //----------------------------------------------------
-    cout << "ResultRoutingTablesMessage serialized " << bytesCount << " bytes" << endl;
     return make_pair(
         dataBytesShared,
         bytesCount);

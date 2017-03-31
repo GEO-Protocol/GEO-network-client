@@ -6,7 +6,7 @@ InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
     SenderMessage(senderUUID) {};
 
 InitiateMaxFlowCalculationMessage::InitiateMaxFlowCalculationMessage(
-        BytesShared buffer) {
+    BytesShared buffer) {
 
     deserializeFromBytes(buffer);
 }

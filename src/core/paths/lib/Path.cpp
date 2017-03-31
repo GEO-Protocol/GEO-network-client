@@ -20,11 +20,7 @@ Path::Path(
             n.push_back(_destination);
 
             return n;
-        }(source, destination, intermediateNodes)),
-    mSourceUUID(source),
-    mDestinationUUID(destination),
-    mvIntermediateNodes(intermediateNodes)
-{}
+        }(source, destination, intermediateNodes)) {}
 
 Path::Path(
     const NodeUUID& source,
@@ -42,29 +38,33 @@ Path::Path(
         destination,
         {}) {}
 
-vector<NodeUUID> Path::pathNodes() const {
-
-    vector<NodeUUID> result;
-    result.reserve(intermediateUUIDs().size() + 2);
-    result.push_back(mSourceUUID);
-    result.insert(result.end(), mvIntermediateNodes.begin(), mvIntermediateNodes.end());
-    result.push_back(mDestinationUUID);
-    return nodes;
-}
-
 const NodeUUID& Path::sourceUUID() const {
 
-    return mSourceUUID;
+    if (nodes.size() == 0) {
+        throw IndexError("Path::sourceUUID Path is empty");
+    }
+    return nodes.at(0);
 }
 
 const NodeUUID& Path::destinationUUID() const {
 
-    return mDestinationUUID;
+    if (nodes.size() == 0) {
+        throw IndexError("Path::destinationUUID Path is empty");
+    }
+    return nodes.at(nodes.size() - 1);
 }
 
 vector<NodeUUID> Path::intermediateUUIDs() const {
 
-    return mvIntermediateNodes;
+    if (nodes.size() == 0) {
+        throw IndexError("Path::intermediateUUIDs Path is empty");
+    }
+    if (nodes.size() <= 2) {
+        return {};
+    }
+    auto itFirst = nodes.begin() + 1;
+    auto itLast = nodes.begin() + (nodes.size() - 2);
+    return vector<NodeUUID>(itFirst,  itLast);
 }
 
 const size_t Path::length() const
@@ -74,7 +74,7 @@ const size_t Path::length() const
 
 bool Path::containsIntermediateNodes() const {
 
-    return mvIntermediateNodes.size() != 0;
+    return nodes.size() > 2;
 }
 
 const string Path::toString() const

@@ -3,14 +3,14 @@
 MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine(
     const NodeUUID &sourceUUID,
     const NodeUUID &targetUUID,
-    const TrustLineAmount &amount):
+    ConstSharedTrustLineAmount amount):
 
     mSourceUUID(sourceUUID),
     mTargetUUID(targetUUID),
     mAmount(amount),
-    mUsedAmount(0) {
+    mUsedAmount(make_shared<TrustLineAmount>(0)) {
 
-    if (amount < TrustLine::kZeroAmount()) {
+    if (*amount.get() < TrustLine::kZeroAmount()) {
         throw ValueError("MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine: "
                              "Amount can't be negative value.");
     }
@@ -24,24 +24,24 @@ const NodeUUID& MaxFlowCalculationTrustLine::targetUUID() const {
     return mTargetUUID;
 }
 
-const TrustLineAmount& MaxFlowCalculationTrustLine::amount() const {
+ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::amount() const {
     return mAmount;
 }
 
-ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::freeAmount() const {
+ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::freeAmount() {
     return ConstSharedTrustLineAmount(
         new TrustLineAmount(
-            mAmount - mUsedAmount));
+            *mAmount.get() - *mUsedAmount.get()));
 }
 
 void MaxFlowCalculationTrustLine::addUsedAmount(const TrustLineAmount &amount) {
-    mUsedAmount = mUsedAmount + amount;
+    *mUsedAmount.get() = *mUsedAmount.get() + amount;
 }
 
 void MaxFlowCalculationTrustLine::setUsedAmount(const TrustLineAmount &amount) {
-    mUsedAmount = amount;
+    *mUsedAmount.get() = amount;
 }
 
-void MaxFlowCalculationTrustLine::setAmount(const TrustLineAmount& amount) {
+void MaxFlowCalculationTrustLine::setAmount(ConstSharedTrustLineAmount amount) {
     mAmount = amount;
 }
