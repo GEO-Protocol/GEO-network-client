@@ -8,9 +8,9 @@
 #include "../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesResponseMessage.h"
 #include <set>
 
-class ThreeNodesResponseTransaction : public UniqueTransaction {
+class CyclesThreeNodesResponseTransaction : public UniqueTransaction {
 public:
-    ThreeNodesResponseTransaction(
+    CyclesThreeNodesResponseTransaction(
             const TransactionType type,
             const NodeUUID &nodeUUID,
             const NodeUUID &contractorUUID,
@@ -19,7 +19,7 @@ public:
             TrustLinesManager *manager,
             Logger *logger);
 
-    ThreeNodesResponseTransaction(TransactionsScheduler *scheduler);
+    CyclesThreeNodesResponseTransaction(TransactionsScheduler *scheduler);
 
     TransactionResult::SharedConst run();
 

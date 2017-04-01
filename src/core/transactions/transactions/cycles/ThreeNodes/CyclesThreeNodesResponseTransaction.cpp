@@ -1,11 +1,11 @@
-#include "ThreeNodesResponseTransaction.h"
+#include "CyclesThreeNodesResponseTransaction.h"
 
-ThreeNodesResponseTransaction::ThreeNodesResponseTransaction(TransactionsScheduler *scheduler)
+CyclesThreeNodesResponseTransaction::CyclesThreeNodesResponseTransaction(TransactionsScheduler *scheduler)
     : UniqueTransaction(BaseTransaction::TransactionType::ThreeNodesResponseTransaction, scheduler) {
 
 }
 
-ThreeNodesResponseTransaction::ThreeNodesResponseTransaction(
+CyclesThreeNodesResponseTransaction::CyclesThreeNodesResponseTransaction(
     const BaseTransaction::TransactionType type,
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,
@@ -23,7 +23,7 @@ ThreeNodesResponseTransaction::ThreeNodesResponseTransaction(
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-TransactionResult::SharedConst ThreeNodesResponseTransaction::run() {
+TransactionResult::SharedConst CyclesThreeNodesResponseTransaction::run() {
 //    Get neighbors UUID from message
     vector<NodeUUID> neighbors = mRequestMessage->Neighbors();
 //    Create message and reserve memory for neighbors

@@ -1,5 +1,5 @@
 ﻿#include "TransactionsManager.h"
-#include "../transactions/cycles/ThreeNodes/ThreeNodesInitTransaction.h"
+#include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 
 /*!
  *
@@ -1182,7 +1182,7 @@ void TransactionsManager::launchGetThreeNodesNeighborBalancesTransaction(ThreeNo
 }
 void TransactionsManager::launchThreeNodesCyclesInitTransaction(NodeUUID &contractorUUID) {
     try {
-        auto transaction = make_shared<ThreeNodesInitTransaction>(
+        auto transaction = make_shared<CyclesThreeNodesInitTransaction>(
             BaseTransaction::TransactionType::ThreeNodesInitTransaction,
             mNodeUUID,
             contractorUUID,
