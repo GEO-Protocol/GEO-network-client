@@ -7,7 +7,7 @@
 class CyclesBaseFiveSixNodesInitTransaction : public UniqueTransaction {
 
 public:
-    typedef shared_ptr<GetTopologyAndBalancesTransaction> Shared;
+    typedef shared_ptr<CyclesBaseFiveSixNodesInitTransaction> Shared;
     typedef pair<vector<NodeUUID>, TrustLineBalance> MapValuesType;
     typedef multimap<NodeUUID, MapValuesType> CycleMap;
     typedef CycleMap::iterator mapIter;
@@ -22,7 +22,6 @@ public:
 
     CyclesBaseFiveSixNodesInitTransaction(TransactionsScheduler *scheduler);
 
-    TransactionResult::SharedConst run_2();
     TransactionResult::SharedConst run();
 
     pair<BytesShared, size_t> serializeToBytes() const{};
@@ -30,16 +29,17 @@ public:
         BytesShared buffer){};
     virtual InBetweenNodeTopologyMessage::CycleTypeID cycleType() = 0;
 protected:
+    enum Stages {
+        CollectDataAndSendMessage = 1,
+        ParseMessageAndCreateCycles
+    };
+
     TrustLinesManager *mTrustLinesManager;
     Logger *mlogger;
-    InBetweenNodeTopologyMessage::Shared mInBetweeenMessage = nullptr;
-//    CycleMap mDebtors;
-//    vector<pair<vector<NodeUUID>, TrustLineBalance>> mCycles;
-    bool mWaitingFowAnswer = false;
 
 protected:
-    void createCyclesFromResponses();
-    virtual void sendFirstLevelNodeMessage() = 0;
+    virtual TransactionResult::SharedConst runCollectDataAndSendMessagesStage() = 0;
+    TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 private:
     const uint16_t mWaitingForResponseTime = 5000; //msec

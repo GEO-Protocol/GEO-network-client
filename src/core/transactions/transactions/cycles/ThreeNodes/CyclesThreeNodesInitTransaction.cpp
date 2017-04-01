@@ -107,7 +107,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run() {
             return runParseMessageAndCreateCyclesStage();
         default:
             throw RuntimeError(
-                    "CoordinatorPaymentTransaction::run(): "
+                    "CyclesThreeNodesInitTransaction::run(): "
                             "invalid transaction step.");
 
     }

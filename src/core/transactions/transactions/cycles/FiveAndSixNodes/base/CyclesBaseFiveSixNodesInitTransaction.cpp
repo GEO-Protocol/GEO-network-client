@@ -13,67 +13,30 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(con
 };
 
 CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(TransactionsScheduler *scheduler)
-    : UniqueTransaction(BaseTransaction::TransactionType::GetTopologyAndBalancesTransaction, scheduler) {
-
+    : UniqueTransaction(BaseTransaction::TransactionType::CyclesBaseFiveSixNodesInitTransaction, scheduler) {
 }
 
-TransactionResult::SharedConst GetTopologyAndBalancesTransaction::run_2() {
-//   It is initiator node and we have already have some topology
-    if (mWaitingFowAnswer) {
-        if (mContext.size() > 0) {
-            createCyclesFromResponses();
-        } else {
-            auto state = TransactionState::exit();
-            return make_shared<TransactionResult>(state);
-        }
-    } else if (mInBetweeenMessage != nullptr ) {
-        //  It is not initiator node. So we will decide to send messages to next level nodes, or to send it back to initiator
-        vector<pair<NodeUUID, TrustLineBalance>> firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(
-            mInBetweeenMessage->maxFlow());
-        vector<NodeUUID> path = mInBetweeenMessage->Path();
-        path.push_back(mNodeUUID);
-        if (path.size() > mInBetweeenMessage->maxDepth()) {
-//      Send message back to node initiator
-            sendMessage<BoundaryNodeTopologyMessage>(
-                mInBetweeenMessage->Path().front(),
-                cycleType(),
-                mInBetweeenMessage->maxFlow(),
-                mInBetweeenMessage->maxDepth(),
-                path,
-                firstLevelNodes
-            );
-            auto state = TransactionState::exit();
-            return make_shared<TransactionResult>(state);
-        } else {
-//      Send it to next level nodes
-            for(const auto &value: firstLevelNodes){
-                sendMessage<InBetweenNodeTopologyMessage>(
-                    value.first,
-                    cycleType(),
-                    min(mInBetweeenMessage->maxFlow(), value.second),
-                    mInBetweeenMessage->maxDepth(),
-                    path
-                );
-            }
-            auto state = TransactionState::exit();
-            return make_shared<TransactionResult>(state);
-        }
+TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::run() {
+    switch (mStep){
+        case Stages::CollectDataAndSendMessage:
+            return runCollectDataAndSendMessagesStage();
+        case Stages::ParseMessageAndCreateCycles:
+            return runParseMessageAndCreateCyclesStage();
+        default:
+            throw RuntimeError(
+                "CyclesBaseFiveSixNodesInitTransaction::run(): "
+                    "invalid transaction step.");
+
     }
-//        It is initiator node and we have no topology yet
-    else {
-        mWaitingFowAnswer = true;
-        sendFirstLevelNodeMessage();
-        auto state = TransactionState::awakeAfterMilliseconds(mWaitingForResponseTime);
-        return make_shared<TransactionResult>(state);
-    }
-    return TransactionResult::SharedConst();
 }
 
-void GetTopologyAndBalancesTransaction::createCyclesFromResponses() {
+TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
+
     TrustLineBalance zeroBalance = 0;
+
+    CycleMap mDebtors;
     vector <NodeUUID> stepPath;
     TrustLineBalance stepFlow;
-    vector <NodeUUID> stepCyclePath;
     for(const auto &mess: mContext){
         auto message = static_pointer_cast<BoundaryNodeTopologyMessage>(mess);
 // iF max flow less than zero than add this message to map
@@ -89,6 +52,8 @@ void GetTopologyAndBalancesTransaction::createCyclesFromResponses() {
     }
 
 //    Create Cycles comparing BoundaryMessages data with debtors map
+    ResultVector mCycles;
+    vector <NodeUUID> stepCyclePath;
     for(const auto &mess: mContext){
         auto message = static_pointer_cast<BoundaryNodeTopologyMessage>(mess);
         stepFlow = message->maxFlow();
@@ -109,5 +74,7 @@ void GetTopologyAndBalancesTransaction::createCyclesFromResponses() {
         }
     }
     mContext.clear();
+//    Todo run cycles
+    return finishTransaction();
 }
 
