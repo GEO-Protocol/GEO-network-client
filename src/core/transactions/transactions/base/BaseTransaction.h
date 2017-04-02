@@ -44,6 +44,8 @@ public:
     TransactionResult::Shared resultWaitForMessageTypes(
         vector<Message::MessageTypeID> &&requiredMessagesTypes,
         uint16_t noLongerThanMilliseconds);
+    TransactionResult::Shared resultAwaikAfterMilliseconds(
+        uint32_t responseWaitTime);
 
 public:
     ~BaseTransaction() = default;

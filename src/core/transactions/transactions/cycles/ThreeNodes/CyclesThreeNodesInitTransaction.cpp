@@ -1,7 +1,7 @@
 #include "CyclesThreeNodesInitTransaction.h"
 
 CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(TransactionsScheduler *scheduler)
-        :UniqueTransaction(BaseTransaction::TransactionType::ThreeNodesInitTransaction, scheduler) {
+        :UniqueTransaction(BaseTransaction::TransactionType::CyclesThreeNodesInitTransaction, scheduler) {
 
 }
 
@@ -20,55 +20,6 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
           mContractorUUID(contractorUUID)
 {
 
-}
-
-TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run_2() {
-//    Check if something in context
-    if (mContext.size() > 0){
-//        There is ResponseMessage in Context. Get data from it and create cycles
-        auto message = static_pointer_cast<ThreeNodesBalancesResponseMessage>(*mContext.begin());
-        vector <pair<NodeUUID, TrustLineBalance>> neighborsAndBalances = message->NeighborsAndBalances();
-        for(auto &value:neighborsAndBalances ){
-            vector<NodeUUID> cycle;
-            cycle.push_back(mNodeUUID);
-            cycle.push_back(mContractorUUID);
-            cycle.push_back(value.first);
-//            todo run transaction to close cycle
-        }
-        return finishTransaction();
-//   Nothing in context; No answer from neighbor
-    } else if(mRequestMessage == nullptr){
-//  No response Messages. No Request Messages.
-//  Create RequestMessage with neighbors node uuids and send it contractor
-    TrustLineBalance maxFlow = mTrustLinesManager->balance(mContractorUUID);
-    set<NodeUUID> neighbors = getNeighborsWithContractor();
-
-        sendMessage<ThreeNodesBalancesRequestMessage>(
-                mContractorUUID,
-                mNodeUUID,
-                mTransactionUUID,
-                neighbors
-        );
-        return waitingForNeighborBalances();
-    } else if(mRequestMessage != nullptr){
-        set<NodeUUID> neighbors = mRequestMessage->Neighbors();
-        vector<pair<NodeUUID, TrustLineBalance>> neighborsAndBalances;
-        for(auto &value: neighbors){
-            neighborsAndBalances.push_back(
-                    make_pair(
-                            value,
-                            mTrustLinesManager->balance(mContractorUUID)
-            ));
-        }
-        sendMessage<ThreeNodesBalancesResponseMessage>(
-                mContractorUUID,
-                mNodeUUID,
-                mTransactionUUID,
-                neighborsAndBalances
-        );
-        return finishTransaction();
-    }
-    return finishTransaction();
 }
 
 set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {

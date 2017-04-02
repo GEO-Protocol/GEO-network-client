@@ -30,17 +30,18 @@ TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::run() {
     }
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
 
     TrustLineBalance zeroBalance = 0;
-
     CycleMap mDebtors;
     vector <NodeUUID> stepPath;
     TrustLineBalance stepFlow;
     for(const auto &mess: mContext){
         auto message = static_pointer_cast<BoundaryNodeTopologyMessage>(mess);
 // iF max flow less than zero than add this message to map
-        stepFlow = message->maxFlow();
+        stepFlow = mTrustLinesManager->balance(message->Path()[1]);
         if (stepFlow < zeroBalance){
             stepPath = message->Path();
             for (auto &value: message->BoundaryNodes()){
@@ -56,7 +57,7 @@ TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::runParseMe
     vector <NodeUUID> stepCyclePath;
     for(const auto &mess: mContext){
         auto message = static_pointer_cast<BoundaryNodeTopologyMessage>(mess);
-        stepFlow = message->maxFlow();
+        stepFlow = mTrustLinesManager->balance(message->Path()[1]);
         if (stepFlow > zeroBalance){
             stepPath = message->Path();
             for (auto &value: message->BoundaryNodes()){
@@ -65,7 +66,7 @@ TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::runParseMe
                 for (s_it = keyRange.first;  s_it != keyRange.second;  ++s_it){
                     stepCyclePath = stepPath;
                     stepCyclePath.push_back(value.first);
-                    for (unsigned long i=s_it->second.first.size() -1 ; i>0; i--)
+                    for (uint8_t  i=s_it->second.first.size() -1 ; i>0; i--)
                         stepCyclePath.push_back(s_it->second.first[i]);
                     mCycles.push_back(make_pair(stepCyclePath, min(stepFlow, value.second)));
                     stepCyclePath.clear();
@@ -77,4 +78,9 @@ TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::runParseMe
 //    Todo run cycles
     return finishTransaction();
 }
+bool PathCorrect(){
+
+}
+
+#pragma clang diagnostic pop
 

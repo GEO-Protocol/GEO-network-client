@@ -737,3 +737,39 @@ vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesFo
     }
     return Nodes;
 }
+
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() const {
+    vector<NodeUUID> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (auto const& x : mTrustLines){
+        stepbalance = x.second->balance();
+        if (stepbalance > zerobalance)
+            Nodes.push_back(x.first);
+        }
+    return Nodes;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() const {
+    vector<NodeUUID> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (auto const& x : mTrustLines){
+        stepbalance = x.second->balance();
+        if (stepbalance < zerobalance)
+            Nodes.push_back(x.first);
+    }
+    return Nodes;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() const {
+    vector<NodeUUID> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (auto const& x : mTrustLines){
+        stepbalance = x.second->balance();
+        if (stepbalance != zerobalance)
+            Nodes.push_back(x.first);
+    }
+    return Nodes;
+}

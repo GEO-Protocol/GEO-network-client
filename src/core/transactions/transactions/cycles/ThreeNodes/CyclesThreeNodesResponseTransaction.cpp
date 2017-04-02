@@ -1,7 +1,7 @@
 #include "CyclesThreeNodesResponseTransaction.h"
 
 CyclesThreeNodesResponseTransaction::CyclesThreeNodesResponseTransaction(TransactionsScheduler *scheduler)
-    : UniqueTransaction(BaseTransaction::TransactionType::ThreeNodesResponseTransaction, scheduler) {
+    : UniqueTransaction(BaseTransaction::TransactionType::CyclesThreeNodesResponseTransaction, scheduler) {
 
 }
 

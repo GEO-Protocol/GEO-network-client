@@ -41,7 +41,7 @@ protected:
     virtual TransactionResult::SharedConst runCollectDataAndSendMessagesStage() = 0;
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
-private:
+protected:
     const uint16_t mWaitingForResponseTime = 5000; //msec
     const uint16_t kMaxRequestsCount = 5;
 };

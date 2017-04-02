@@ -21,8 +21,6 @@ public:
 
     CyclesThreeNodesInitTransaction(TransactionsScheduler *scheduler);
 
-    TransactionResult::SharedConst run_2();
-
     TransactionResult::SharedConst run();
 
     pair<BytesShared, size_t> serializeToBytes() const {};
