@@ -8,12 +8,10 @@ InBetweenNodeTopologyMessage::InBetweenNodeTopologyMessage() {
 
 InBetweenNodeTopologyMessage::InBetweenNodeTopologyMessage(
         const CycleType cycleType,
-        const TrustLineBalance& maxFlow,
         const byte max_depth,
         vector<NodeUUID> &path) :
     mCycleType(cycleType),
     mMaxDepth(max_depth),
-    mMaxFlow(maxFlow),
     mPath(path)
 {
     mNodesInPath = (uint8_t) mPath.size();
@@ -31,11 +29,7 @@ const Message::MessageType InBetweenNodeTopologyMessage::typeID() const {
 }
 
 pair<BytesShared, size_t> InBetweenNodeTopologyMessage::serializeToBytes() {
-
-    vector<byte> MaxFlowBuffer = trustLineBalanceToBytes(mMaxFlow);
-
-    size_t bytesCount = MaxFlowBuffer.size()
-                        + sizeof(MessageType)
+    size_t bytesCount = sizeof(MessageType)
                         + sizeof(CycleType)
                         + sizeof(mMaxDepth)
                         + sizeof(mNodesInPath)
@@ -58,13 +52,6 @@ pair<BytesShared, size_t> InBetweenNodeTopologyMessage::serializeToBytes() {
             sizeof(uint8_t)
     );
     dataBytesOffset += sizeof(uint8_t);
-    // for max flow
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        MaxFlowBuffer.data(),
-        MaxFlowBuffer.size()
-    );
-    dataBytesOffset += MaxFlowBuffer.size();
     //----------------------------------------------------
     // for max depth
     memcpy(
@@ -112,15 +99,6 @@ void InBetweenNodeTopologyMessage::deserializeFromBytes(
      sizeof(uint8_t)
     );
     bytesBufferOffset += sizeof(uint8_t);
-//   // Max flow
-    vector<byte> amountBytes(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
-
-
-    mMaxFlow = bytesToTrustLineBalance(amountBytes);
-    bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
-
     // for max depth
     memcpy(
             &mMaxDepth,
@@ -151,7 +129,6 @@ void InBetweenNodeTopologyMessage::deserializeFromBytes(
 
 const size_t InBetweenNodeTopologyMessage::kOffsetToInheritedBytes() {
     static const size_t offset =
-            + kTrustLineBalanceSerializeBytesCount
             + sizeof(mMaxDepth)
 //            node in path
             + sizeof(uint8_t)
@@ -161,16 +138,8 @@ const size_t InBetweenNodeTopologyMessage::kOffsetToInheritedBytes() {
     return offset;
 }
 
-const TrustLineBalance& InBetweenNodeTopologyMessage::maxFlow() const {
-    return mMaxFlow;
-}
-
 const uint8_t InBetweenNodeTopologyMessage::maxDepth() const {
     return mMaxDepth;
-}
-
-NodeUUID &InBetweenNodeTopologyMessage::getLastUUIDFromPath() {
-    return mPath.back();
 }
 
 const InBetweenNodeTopologyMessage::CycleType InBetweenNodeTopologyMessage::cycleType() const {
@@ -179,4 +148,8 @@ const InBetweenNodeTopologyMessage::CycleType InBetweenNodeTopologyMessage::cycl
 
 const vector<NodeUUID> InBetweenNodeTopologyMessage::Path() const {
     return mPath;
+}
+
+void InBetweenNodeTopologyMessage::addNodeToPath(NodeUUID InBetweenNode) {
+    mPath.push_back(InBetweenNode);
 }

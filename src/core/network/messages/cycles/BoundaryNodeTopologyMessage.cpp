@@ -4,14 +4,12 @@
 
 BoundaryNodeTopologyMessage::BoundaryNodeTopologyMessage(
         const CycleType cycleType,
-        const TrustLineBalance &maxFlow,
         const byte &max_depth,
         vector<NodeUUID> &path,
         const vector<pair<NodeUUID, TrustLineBalance>> &boundaryNodes) :
 
     InBetweenNodeTopologyMessage(
         cycleType,
-        maxFlow,
         max_depth,
         path
     ),

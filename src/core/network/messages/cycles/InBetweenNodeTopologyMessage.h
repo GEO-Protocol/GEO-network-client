@@ -16,7 +16,6 @@ public:
     InBetweenNodeTopologyMessage();
     InBetweenNodeTopologyMessage(
             const CycleType cycleType,
-            const TrustLineBalance& maxFlow,
             const byte max_depth,
             vector<NodeUUID> &path);
     InBetweenNodeTopologyMessage(
@@ -27,17 +26,15 @@ public:
         CycleForFiveNodes=2
     };
 
-    NodeUUID &getLastUUIDFromPath();
-
     const MessageType typeID() const;
-
-    const TrustLineBalance& maxFlow() const;
 
     const vector<NodeUUID> Path() const;
 
     const uint8_t maxDepth() const;
 
     const CycleType cycleType() const;
+
+    void addNodeToPath(NodeUUID InBetweenNode);
 
 protected:
     pair<BytesShared, size_t> serializeToBytes();
@@ -49,7 +46,6 @@ protected:
 
 protected:
     vector<NodeUUID> mPath;
-    TrustLineBalance mMaxFlow;
     uint8_t mMaxDepth;
     static uint8_t mNodesInPath;
     CycleType mCycleType;
