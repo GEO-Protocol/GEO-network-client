@@ -464,7 +464,8 @@ void TransactionsManager::launchFromInitiatorToContractorRoutingTablePropagation
         auto transaction = make_shared<FromInitiatorToContractorRoutingTablesPropagationTransaction>(
             mNodeUUID,
             contractorUUID,
-            mTrustLines
+            mTrustLines,
+            mStorageHandler
         );
 
         subscribeForOutgoingMessages(
@@ -496,7 +497,8 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                     make_shared<FromInitiatorToContractorRoutingTablesAcceptTransaction>(
                         mNodeUUID,
                         message,
-                        mTrustLines
+                        mTrustLines,
+                        mStorageHandler
                     )
                 );
                 break;

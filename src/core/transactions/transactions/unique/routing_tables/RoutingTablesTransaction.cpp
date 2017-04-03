@@ -5,8 +5,7 @@ RoutingTablesTransaction::RoutingTablesTransaction(
     BytesShared buffer) :
 
     BaseTransaction(
-        type
-    ) {
+        type) {
 
     deserializeFromBytes(buffer);
 }
@@ -16,8 +15,8 @@ RoutingTablesTransaction::RoutingTablesTransaction(
     const NodeUUID &nodeUUID) :
 
     BaseTransaction(
-        type, nodeUUID
-    ) {}
+        type,
+        nodeUUID) {}
 
 RoutingTablesTransaction::RoutingTablesTransaction(
     const BaseTransaction::TransactionType type,
@@ -26,8 +25,7 @@ RoutingTablesTransaction::RoutingTablesTransaction(
 
     BaseTransaction(
         type,
-        nodeUUID
-    ),
+        nodeUUID),
     mContractorUUID(contractorUUID) {}
 
 

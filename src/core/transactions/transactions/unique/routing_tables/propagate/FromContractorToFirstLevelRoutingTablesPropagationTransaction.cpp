@@ -8,8 +8,7 @@ FromContractorToFirstLevelRoutingTablesPropagationTransaction::FromContractorToF
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        nodeUUID
-    ),
+        nodeUUID),
     mLinkWithInitiator(relationshipsBetweenInitiatorAndContractor),
     mSecondLevelRoutingTableFromInitiator(secondLevelRoutingTableFromInitiator),
     mTrustLinesManager(trustLinesManager) {}
@@ -20,8 +19,7 @@ FromContractorToFirstLevelRoutingTablesPropagationTransaction::FromContractorToF
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        buffer
-    ),
+        buffer),
     mTrustLinesManager(trustLinesManager) {}
 
 TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesPropagationTransaction::run() {
@@ -38,7 +36,7 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesPropagatio
 
             } else {
                 prepareToNextStep();
-                increaseStepsCounter();
+                mStep = RoutingTableLevelStepIdentifier::SecondLevelRoutingTableStep;
             }
         }
 
@@ -68,8 +66,7 @@ pair<bool, TransactionResult::SharedConst> FromContractorToFirstLevelRoutingTabl
             if (response->code() != kResponseCodeSuccess) {
                 return make_pair(
                     false,
-                    TransactionResult::Shared(nullptr)
-                );
+                    TransactionResult::Shared(nullptr));
             }
 
         }
@@ -80,16 +77,12 @@ pair<bool, TransactionResult::SharedConst> FromContractorToFirstLevelRoutingTabl
                 make_shared<MessageResult>(
                     *mContractorsUUIDs.begin(),
                     mTransactionUUID,
-                    kResponseCodeSuccess
-                )
-            )
-        );
+                    kResponseCodeSuccess)));
 
     } else {
         return make_pair(
             false,
-            TransactionResult::Shared(nullptr)
-        );
+            TransactionResult::Shared(nullptr));
     }
 }
 
@@ -101,6 +94,7 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesPropagatio
 
     if (!mContext.empty()) {
         auto flagAndResult = checkContext();
+
         if (flagAndResult.first) {
             return flagAndResult.second;
 
@@ -134,7 +128,9 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesPropagatio
     } else {
         return finishTransaction();
     }
-    return waitingForRoutingTablePropagationResponse(mConnectionTimeout);
+
+    return waitingForRoutingTablePropagationResponse(
+        mConnectionTimeout);
 }
 
 void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendLinkBetweenInitiatorAndContractor() {
@@ -146,13 +142,11 @@ void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendLinkBetw
 
     vector<pair<const NodeUUID, const TrustLineDirection>> linkWithInitiator;
     linkWithInitiator.push_back(
-        mLinkWithInitiator
-    );
+        mLinkWithInitiator);
 
     firstLevelMessage->pushBack(
         mNodeUUID,
-        linkWithInitiator
-    );
+        linkWithInitiator);
 
     Message::Shared message = dynamic_pointer_cast<Message>(firstLevelMessage);
 
@@ -165,10 +159,9 @@ void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendLinkBetw
         mContractorsUUIDs.push_back(
             contractorAndTrustLine.first);
 
-        addMessage(
-            message,
-            contractorAndTrustLine.first
-        );
+        sendMessage(
+            contractorAndTrustLine.first,
+            message);
 
     }
 }
@@ -207,7 +200,8 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesPropagatio
         return finishTransaction();
     }
 
-    return waitingForRoutingTablePropagationResponse(mConnectionTimeout);
+    return waitingForRoutingTablePropagationResponse(
+        mConnectionTimeout);
 }
 
 void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendSecondLevelRoutingTable() {
@@ -223,15 +217,12 @@ void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendSecondLe
             neighborAndDirection.push_back(
                 make_pair(
                     neighborAndDirect.first,
-                    neighborAndDirect.second
-                )
-            );
+                    neighborAndDirect.second));
         }
 
         secondLevelMessage->pushBack(
             nodeAndRecord.first,
-            neighborAndDirection
-        );
+            neighborAndDirection);
 
     }
 
@@ -239,10 +230,9 @@ void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendSecondLe
 
     for (const auto &contractor : mContractorsUUIDs) {
 
-        addMessage(
-            message,
-            contractor
-        );
+        sendMessage(
+            contractor,
+            message);
 
     }
 }
@@ -253,9 +243,7 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesPropagatio
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
             {Message::MessageTypeID::RoutingTablesResponseMessageType},
-            connectionTimeout
-        )
-    );
+            connectionTimeout));
 }
 
 void FromContractorToFirstLevelRoutingTablesPropagationTransaction::prepareToNextStep() {

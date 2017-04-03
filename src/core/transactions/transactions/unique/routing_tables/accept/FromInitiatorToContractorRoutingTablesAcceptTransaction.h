@@ -15,6 +15,8 @@
 #include "../propagate/FromContractorToFirstLevelRoutingTablesPropagationTransaction.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../../io/storage/StorageHandler.h"
+
 #include "../../../../../common/exceptions/ConflictError.h"
 
 #include <stdint.h>
@@ -28,11 +30,13 @@ public:
     FromInitiatorToContractorRoutingTablesAcceptTransaction(
         const NodeUUID &nodeUUID,
         FirstLevelRoutingTableIncomingMessage::Shared message,
-        TrustLinesManager *trustLinesManager);
+        TrustLinesManager *trustLinesManager,
+        StorageHandler *storageHandler);
 
     FromInitiatorToContractorRoutingTablesAcceptTransaction(
         BytesShared buffer,
-        TrustLinesManager *trustLinesManager);
+        TrustLinesManager *trustLinesManager,
+        StorageHandler *storageHandler);
 
     FirstLevelRoutingTableIncomingMessage::Shared message() const;
 
@@ -55,12 +59,11 @@ private:
     void createFromContractorToFirstLevelRoutingTablesPropagationTransaction(
         SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage);
 
-    void createFromContractorToInitiatorReverseRoutingTablesPropagationTransaction();
-
 private:
     FirstLevelRoutingTableIncomingMessage::Shared mFirstLevelMessage;
 
     TrustLinesManager *mTrustLinesManager;
+    StorageHandler *mStorageHandler;
 };
 
 #endif //GEO_NETWORK_CLIENT_ACCEPTROUTINGTABLESTRANSACTION_H
