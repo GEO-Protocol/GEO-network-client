@@ -1186,7 +1186,7 @@ void TransactionsManager::launchSixNodesCyclesResponseTransaction(CycleSixNodesI
 
 void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
     try {
-        auto transaction = make_shared<CyclesFiveNodesInitTransaction>(
+        auto transaction = make_shared<CycleFiveNodesInitTransaction>(
             mNodeUUID,
             mScheduler.get(),
             mTrustLines,

@@ -1,4 +1,4 @@
-#include "CyclesSixNodesInitTransaction.h"
+#include "CycleSixNodesInitTransaction.h"
 
 const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactionType() const{
     return BaseTransaction::TransactionType::CycleSixNodesInitTransaction;

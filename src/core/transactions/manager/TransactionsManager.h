@@ -58,9 +58,9 @@
 #include "../transactions/unique/routing_tables/update/RoutingTablesUpdateTransactionsFactory.h"
 #include "../transactions/unique/routing_tables/update/AcceptRoutingTablesUpdatesTransaction.h"
 
-#include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesInitTransaction.h"
-#include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesInitTransaction.h"
-#include "../transactions/cycles/FiveAndSixNodes/CyclesFiveSixNodesResponseTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CycleFiveNodesInitTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CycleSixNodesInitTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CycleFiveNodesResponseTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CycleThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CycleThreeNodesResponseTransaction.h"
 

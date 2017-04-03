@@ -69,6 +69,8 @@ public:
         CycleBaseFiveSixNodesInitTransaction,
         CycleFiveNodesInitTransaction,
         CycleSixNodesInitTransaction,
+        CycleFiveNodesResponseTransaction,
+        CycleSixNodesResponseTransaction,
         CycleFiveSixNodesResponseTransaction,
 //      --------------------------------Cycles-------------------------------------------------
 

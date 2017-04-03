@@ -1,23 +1,23 @@
-#ifndef GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESRESPOSETRANSACTION_H
-#define GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESRESPOSETRANSACTION_H
+#ifndef GEO_NETWORK_CLIENT_CYCLESSIXNODESRESPONSETRANSACTION_H
+#define GEO_NETWORK_CLIENT_CYCLESSIXNODESRESPONSETRANSACTION_H
 #include "../../base/UniqueTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../io/storage/StorageHandler.h"
-#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp"
 #include <set>
 
-class CyclesFiveSixNodesResponseTransaction : public UniqueTransaction {
+class CycleSixNodesResponseTransaction : public UniqueTransaction {
 public:
-    CyclesFiveSixNodesResponseTransaction(
+    CycleSixNodesResponseTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
-        CycleFiveNodesInBetweenMessage::Shared message,
+        CycleSixNodesInBetweenMessage::Shared message,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager,
         Logger *logger);
 
-    CyclesFiveSixNodesResponseTransaction(TransactionsScheduler *scheduler);
+    CycleSixNodesResponseTransaction(TransactionsScheduler *scheduler);
 
     TransactionResult::SharedConst run();
 
@@ -25,11 +25,11 @@ public:
 
 protected:
 //    Nodes Balances that are mutual between core node and contract node
-    CycleFiveNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
+    CycleSixNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     Logger *mlogger;
     StorageHandler *mStorageHandler;
 
 };
-#endif //GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESRESPOSETRANSACTION_H
+#endif //GEO_NETWORK_CLIENT_CYCLESSIXNODESRESPONSETRANSACTION_H

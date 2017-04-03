@@ -2,11 +2,12 @@
 #define GEO_NETWORK_CLIENT_CYCLESFIVENODESINITTRANSACTION_H
 
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp"
 
-class CyclesFiveNodesInitTransaction : public CyclesBaseFiveSixNodesInitTransaction{
+class CycleFiveNodesInitTransaction : public CyclesBaseFiveSixNodesInitTransaction{
 
 public:
-    CyclesFiveNodesInitTransaction(
+    CycleFiveNodesInitTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
         TransactionsScheduler *scheduler,
@@ -17,6 +18,7 @@ public:
 
 protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
+    TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 protected:
     const uint8_t mMaxDepthDebtors = 2;
