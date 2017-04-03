@@ -9,8 +9,7 @@ FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContract
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
         nodeUUID,
-        message->senderUUID()
-    ),
+        message->senderUUID()),
     mFirstLevelMessage(message),
     mTrustLinesManager(trustLinesManager),
     mStorageHandler(storageHandler) {}
@@ -58,7 +57,6 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
 }
 
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRoutingTable() {
-
 
     for (const auto &nodeAndRecords : mFirstLevelMessage->records()) {
 
@@ -155,7 +153,7 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::sendResponseToCont
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::createFromContractorToFirstLevelRoutingTablesPropagationTransaction(
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage) {
 
-    const TrustLineDirection direction = TrustLineDirection::Incoming;
+    auto direction = mTrustLinesManager->trustLineReadOnly(mContractorUUID)->direction();
     auto relationshipsBetweenInitiatorAndContractor = make_pair(
         mContractorUUID,
         direction);

@@ -383,9 +383,9 @@ vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
     return result;
 }
 
-unordered_map<NodeUUID, vector<pair<NodeUUID, TrustLineDirection>>> RoutingTableHandler::routeRecordsWithDirectionsMapSourceKey() {
+map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> RoutingTableHandler::routeRecordsWithDirectionsMapSourceKey() {
 
-    unordered_map<NodeUUID, vector<pair<NodeUUID, TrustLineDirection>>> result;
+    map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> result;
     string query = "SELECT source, destination, direction FROM " + mTableName;
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "select: " << query;
@@ -423,7 +423,7 @@ unordered_map<NodeUUID, vector<pair<NodeUUID, TrustLineDirection>>> RoutingTable
         }
         auto mapElement = result.find(source);
         if (mapElement == result.end()) {
-            vector<pair<NodeUUID, TrustLineDirection>> newValue;
+            vector<pair<const NodeUUID, const TrustLineDirection>> newValue;
             newValue.push_back(
                 make_pair(
                     destination,

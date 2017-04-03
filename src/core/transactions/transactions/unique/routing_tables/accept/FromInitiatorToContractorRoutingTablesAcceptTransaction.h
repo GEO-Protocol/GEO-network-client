@@ -14,8 +14,8 @@
 #include "../propagate/FromInitiatorToContractorRoutingTablesPropagationTransaction.h"
 #include "../propagate/FromContractorToFirstLevelRoutingTablesPropagationTransaction.h"
 
-#include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../io/storage/StorageHandler.h"
+#include "../../../../../trust_lines/manager/TrustLinesManager.h"
 
 #include "../../../../../common/exceptions/ConflictError.h"
 
@@ -62,8 +62,8 @@ private:
 private:
     FirstLevelRoutingTableIncomingMessage::Shared mFirstLevelMessage;
 
-    TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
+    TrustLinesManager *mTrustLinesManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_ACCEPTROUTINGTABLESTRANSACTION_H

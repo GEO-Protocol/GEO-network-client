@@ -3,24 +3,27 @@
 FromContractorToFirstLevelRoutingTablesAcceptTransaction::FromContractorToFirstLevelRoutingTablesAcceptTransaction(
     const NodeUUID &nodeUUID,
     FirstLevelRoutingTableIncomingMessage::Shared relationshipsBetweenInitiatorAndContractor,
-    TrustLinesManager *trustLinesManager) :
+    TrustLinesManager *trustLinesManager,
+    StorageHandler *storageHandler) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
         nodeUUID,
-        relationshipsBetweenInitiatorAndContractor->senderUUID()
-    ),
+        relationshipsBetweenInitiatorAndContractor->senderUUID()),
     mLinkBetweenInitiatorAndContractor(relationshipsBetweenInitiatorAndContractor),
-    mTrustLinesManager(trustLinesManager) {}
+    mTrustLinesManager(trustLinesManager),
+    mStorageHandler(storageHandler) {}
 
 FromContractorToFirstLevelRoutingTablesAcceptTransaction::FromContractorToFirstLevelRoutingTablesAcceptTransaction(
     BytesShared buffer,
-    TrustLinesManager *trustLinesManager)  :
+    TrustLinesManager *trustLinesManager,
+    StorageHandler *storageHandler) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
         buffer),
-    mTrustLinesManager(trustLinesManager) {}
+    mTrustLinesManager(trustLinesManager),
+    mStorageHandler(storageHandler) {}
 
 FirstLevelRoutingTableIncomingMessage::Shared FromContractorToFirstLevelRoutingTablesAcceptTransaction::message() const {
 
@@ -35,9 +38,9 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTran
             saveLinkBetweenInitiatorAndContractor();
             sendResponseToContractor(
                 mContractorUUID,
-                kResponseCodeSuccess
-            );
-            increaseStepsCounter();
+                kResponseCodeSuccess);
+            mStep = RoutingTableLevelStepIdentifier::SecondLevelRoutingTableStep;
+
             return waitingForSecondLevelRoutingTableState();
         }
 
@@ -55,29 +58,19 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTran
 
 void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveLinkBetweenInitiatorAndContractor() {
 
-    string logLine;
-    cout << "Message with relationships between initiator and contractor from contractor received " << endl;
-    logLine = "SenderUUID:" + mLinkBetweenInitiatorAndContractor->senderUUID().stringUUID() + "::";
-    cout << "Sender UUID -> " << mLinkBetweenInitiatorAndContractor->senderUUID().stringUUID() << endl;
-    cout << "Routing table " << endl;
-
     for (const auto &nodeAndRecords : mLinkBetweenInitiatorAndContractor->records()) {
-
-        logLine += "ContractorUUID:" + nodeAndRecords.first.stringUUID() + "::";
-        cout << "Contractor UUID -> " << nodeAndRecords.first.stringUUID() << endl;
 
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
-            logLine += "InitiatorUUID:" + neighborAndDirect.first.stringUUID() + "::";
-            cout << "Initiator UUID -> " << neighborAndDirect.first.stringUUID() << endl;
-            logLine += "Direction:" + to_string(neighborAndDirect.second);
-            cout << "Direction -> " << neighborAndDirect.second << endl;
+            mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(
+                nodeAndRecords.first,
+                neighborAndDirect.first,
+                neighborAndDirect.second);
 
         }
 
     }
 
-    //mFileLogger->addLine(logLine.c_str());
 }
 
 TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTransaction::waitingForSecondLevelRoutingTableState() {
@@ -85,9 +78,7 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTran
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
             {Message::MessageTypeID::SecondLevelRoutingTableIncomingMessageType},
-            mConnectionTimeout
-        )
-    );
+            mConnectionTimeout));
 }
 
 TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTransaction::checkIncomingMessageForSecondLevelRoutingTable() {
@@ -113,13 +104,11 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTran
         }
 
         saveSecondLevelRoutingTable(
-            secondLevelMessage
-        );
+            secondLevelMessage);
 
         sendResponseToContractor(
             mContractorUUID,
-            kResponseCodeSuccess
-        );
+            kResponseCodeSuccess);
 
         createFromFirstLevelToSecondLevelRoutingTablesPropagationTransaction();
 
@@ -134,44 +123,29 @@ TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesAcceptTran
 void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveSecondLevelRoutingTable(
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage) {
 
-    string logLine;
-    cout << "Second level routing table message received " << endl;
-    logLine = "SenderUUID:" + secondLevelMessage->senderUUID().stringUUID() + "::";
-    cout << "Sender UUID -> " << secondLevelMessage->senderUUID().stringUUID() << endl;
-    cout << "Routing table " << endl;
-
     for (const auto &nodeAndRecords : secondLevelMessage->records()) {
-
-        logLine += "NodeUUID:" + nodeAndRecords.first.stringUUID() + "::";
-        cout << "Node UUID -> " << nodeAndRecords.first.stringUUID() << endl;
 
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
-            logLine += "NeighborUUID:" + neighborAndDirect.first.stringUUID() + "::";
-            cout << "Neighbor UUID -> " << neighborAndDirect.first.stringUUID() << endl;
-            logLine += "Direction:" + to_string(neighborAndDirect.second);
-            cout << "Direction -> " << neighborAndDirect.second << endl;
+            mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(
+                nodeAndRecords.first,
+                neighborAndDirect.first,
+                neighborAndDirect.second);
 
         }
 
     }
 
-    //mFileLogger->addLine(logLine.c_str());
 }
 
 void FromContractorToFirstLevelRoutingTablesAcceptTransaction::sendResponseToContractor(
     const NodeUUID &contractorUUID,
     const uint16_t code) {
 
-    Message *message = new RoutingTablesResponse(
+    sendMessage<RoutingTablesResponse>(
+        contractorUUID,
         mNodeUUID,
-        code
-    );
-
-    addMessage(
-        Message::Shared(message),
-        contractorUUID
-    );
+        code);
 }
 
 
@@ -186,8 +160,8 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::createFromFirstLe
         mNodeUUID,
         mContractorUUID,
         mLinkBetweenInitiatorAndContractor,
-        mTrustLinesManager
-    );
+        mTrustLinesManager);
 
-    launchSubsidiaryTransaction(transaction);
+    launchSubsidiaryTransaction(
+        transaction);
 }

@@ -21,6 +21,7 @@ TransactionResult::SharedConst AcceptRoutingTablesUpdatesTransaction::run() {
     updateRoutingTable();
     sendResponseToContractor(kResponseCodeSuccess);
     tryCreateNextUpdatingTransactionsPool();
+
     return finishTransaction();
 }
 
@@ -51,7 +52,8 @@ void AcceptRoutingTablesUpdatesTransaction::tryCreateNextUpdatingTransactionsPoo
                 contractorAndTrustLine.first,
                 RoutingTableUpdateOutgoingMessage::UpdatingStep::SecondLevelNodes);
 
-            launchSubsidiaryTransaction(updatesPropagationTransaction);
+            launchSubsidiaryTransaction(
+                updatesPropagationTransaction);
 
         }
 
@@ -61,12 +63,9 @@ void AcceptRoutingTablesUpdatesTransaction::tryCreateNextUpdatingTransactionsPoo
 void AcceptRoutingTablesUpdatesTransaction::sendResponseToContractor(
     const uint16_t code) {
 
-    Message *message = new Response(
+    sendMessage<Response>(
+        mMessage->senderUUID(),
         mNodeUUID,
         mMessage->transactionUUID(),
         code);
-
-    addMessage(
-        Message::Shared(message),
-        mMessage->senderUUID());
 }
