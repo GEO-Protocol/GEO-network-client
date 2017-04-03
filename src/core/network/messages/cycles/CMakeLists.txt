@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
-        BoundaryNodeTopologyMessage.h
-        BoundaryNodeTopologyMessage.cpp
-        InBetweenNodeTopologyMessage.h
-        InBetweenNodeTopologyMessage.cpp
         ThreeNodes/ThreeNodesBalancesRequestMessage.h
         ThreeNodes/ThreeNodesBalancesRequestMessage.cpp
         ThreeNodes/ThreeNodesBalancesResponseMessage.h
@@ -13,6 +9,14 @@ set(SOURCE_FILES
         FourNodes/FourNodesBalancesRequestMessage.cpp
         FourNodes/FourNodesBalancesResponseMessage.h
         FourNodes/FourNodesBalancesResponseMessage.cpp
+        SixAndFiveNodes/base/CycleBaseFiveOrSixNodesInBetweenMessage.h
+        SixAndFiveNodes/base/CycleBaseFiveOrSixNodesInBetweenMessage.cpp
+        SixAndFiveNodes/base/CycleBaseFiveOrSixNodesBoundaryMessage.h
+        SixAndFiveNodes/base/CycleBaseFiveOrSixNodesBoundaryMessage.cpp
+        SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp
+        SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp
+        SixAndFiveNodes/CycleFiveNodesBoundaryMessage.hpp
+        SixAndFiveNodes/CycleSixNodesBoundaryMessage.hpp
         )
 
 add_library(messages__cycles ${SOURCE_FILES})

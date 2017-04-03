@@ -36,8 +36,10 @@ public:
         RoutingTableUpdateOutgoingMessageType,
         RoutingTableUpdateIncomingMessageType,
 //        Cycles messages
-        InBetweenNodeTopologyMessage,
-        BoundaryNodeTopologyMessage,
+        CycleFiveNodesInBetweenMessage,
+        CycleSixNodesInBetweenMessage,
+        CycleFiveNodesBoundaryMessage,
+        CycleSixNodesBoundaryMessage,
         ThreeNodesBalancesRequestMessage,
         ThreeNodesBalancesResponseMessage,
         FourNodesBalancesRequestMessage,

@@ -1,30 +1,24 @@
+#include "CycleBaseFiveOrSixNodesBoundaryMessage.h"
 
-#include "../../../common/Types.h"
-#include "BoundaryNodeTopologyMessage.h"
-
-BoundaryNodeTopologyMessage::BoundaryNodeTopologyMessage(
-        const CycleType cycleType,
-        const byte &max_depth,
+CycleBaseFiveOrSixNodesBoundaryMessage::CycleBaseFiveOrSixNodesBoundaryMessage(
         vector<NodeUUID> &path,
         const vector<pair<NodeUUID, TrustLineBalance>> &boundaryNodes) :
 
-    InBetweenNodeTopologyMessage(
-        cycleType,
-        max_depth,
+    CycleBaseFiveOrSixNodesInBetweenMessage(
         path
     ),
     mBoundaryNodes(boundaryNodes)
 {
 }
 
-BoundaryNodeTopologyMessage::BoundaryNodeTopologyMessage(BytesShared buffer)
+CycleBaseFiveOrSixNodesBoundaryMessage::CycleBaseFiveOrSixNodesBoundaryMessage(BytesShared buffer)
 {
     deserializeFromBytes(buffer);
 }
 
 
-pair<BytesShared, size_t> BoundaryNodeTopologyMessage::serializeToBytes() {
-    auto parentBytesAndCount = InBetweenNodeTopologyMessage::serializeToBytes();
+pair<BytesShared, size_t> CycleBaseFiveOrSixNodesBoundaryMessage::serializeToBytes() {
+    auto parentBytesAndCount = CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes();
 
     uint16_t boundaryNodesCount = (uint16_t) mBoundaryNodes.size();
     size_t bytesCount =
@@ -71,10 +65,10 @@ pair<BytesShared, size_t> BoundaryNodeTopologyMessage::serializeToBytes() {
             bytesCount
     );
 }
-void BoundaryNodeTopologyMessage::deserializeFromBytes(BytesShared buffer) {
-    InBetweenNodeTopologyMessage::deserializeFromBytes(buffer);
+void CycleBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared buffer) {
+    CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(buffer);
 //        Parent part of deserializeFromBytes
-    size_t bytesBufferOffset = InBetweenNodeTopologyMessage::kOffsetToInheritedBytes();
+    size_t bytesBufferOffset = CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes();
 //    Get NodesCount
     uint16_t boundaryNodesCount;
     memcpy(
@@ -103,14 +97,10 @@ void BoundaryNodeTopologyMessage::deserializeFromBytes(BytesShared buffer) {
     };
 }
 
-const bool BoundaryNodeTopologyMessage::isCyclesDiscoveringResponseMessage() const {
+const bool CycleBaseFiveOrSixNodesBoundaryMessage::isCyclesDiscoveringResponseMessage() const {
     return true;
 }
 
-const vector<pair<NodeUUID, TrustLineBalance>> BoundaryNodeTopologyMessage::BoundaryNodes() const {
+const vector<pair<NodeUUID, TrustLineBalance>> CycleBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const {
     return mBoundaryNodes;
-}
-
-const Message::MessageType BoundaryNodeTopologyMessage::typeID() const {
-    return Message::BoundaryNodeTopologyMessage;
 }
