@@ -1,5 +1,4 @@
 ﻿#include "Cycles.h"
-#include "../network/messages/cycles/InBetweenNodeTopologyMessage.h"
 
 void CyclesDelayedTasks::RunSignalFiveNodes(const boost::system::error_code &error) {
     if (error) {

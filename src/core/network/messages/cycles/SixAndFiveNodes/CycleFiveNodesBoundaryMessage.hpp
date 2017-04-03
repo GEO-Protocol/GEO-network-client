@@ -1,9 +1,6 @@
-
 #include "base/CycleBaseFiveOrSixNodesBoundaryMessage.h"
-class CycleFiveNodesBoundaryMessage: public CycleBaseFiveOrSixNodesBoundaryMessage {
-public:
-    typedef shared_ptr<CycleSixNodesBoundaryMessage> Shared;
 
+class CycleFiveNodesBoundaryMessage: public CycleBaseFiveOrSixNodesBoundaryMessage {
 public:
     CycleFiveNodesBoundaryMessage(
         vector<NodeUUID> &path,

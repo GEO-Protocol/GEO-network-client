@@ -14,7 +14,6 @@ public:
         Logger *logger);
 
     const BaseTransaction::TransactionType transactionType() const;
-    InBetweenNodeTopologyMessage::CycleTypeID cycleType();
 
 protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();

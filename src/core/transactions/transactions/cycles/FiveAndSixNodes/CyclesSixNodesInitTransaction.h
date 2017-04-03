@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CYCLESSIXNODESINITTRANSACTION_H
 
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp"
 
 class CyclesSixNodesInitTransaction : public CyclesBaseFiveSixNodesInitTransaction{
 
@@ -14,12 +15,9 @@ public:
         Logger *logger);
 
     const BaseTransaction::TransactionType transactionType() const;
-    InBetweenNodeTopologyMessage::CycleTypeID cycleType();
 
 protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
-
-protected:
-    const uint8_t mMaxDepth = 2;
+    TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 };
 #endif //GEO_NETWORK_CLIENT_CYCLESSIXNODESINITTRANSACTION_H

@@ -1,11 +1,11 @@
-#include "CyclesThreeNodesInitTransaction.h"
+#include "CycleThreeNodesInitTransaction.h"
 
-CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(TransactionsScheduler *scheduler)
+CycleThreeNodesInitTransaction::CycleThreeNodesInitTransaction(TransactionsScheduler *scheduler)
         :UniqueTransaction(BaseTransaction::TransactionType::CyclesThreeNodesInitTransaction, scheduler) {
 
 }
 
-CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
+CycleThreeNodesInitTransaction::CycleThreeNodesInitTransaction(
         const BaseTransaction::TransactionType type,
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
@@ -22,7 +22,7 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
 
 }
 
-set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
+set<NodeUUID> CycleThreeNodesInitTransaction::getNeighborsWithContractor() {
     TrustLineBalance balanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     TrustLineBalance zeroBalance = 0;
     bool balancePositive = true;
@@ -50,7 +50,7 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
     return commonNeighbors;
 }
 
-TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run() {
+TransactionResult::SharedConst CycleThreeNodesInitTransaction::run() {
     switch (mStep){
         case Stages::CollectDataAndSendMessage:
             return runCollectDataAndSendMessageStage();
@@ -58,13 +58,13 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run() {
             return runParseMessageAndCreateCyclesStage();
         default:
             throw RuntimeError(
-                    "CyclesThreeNodesInitTransaction::run(): "
+                    "CycleThreeNodesInitTransaction::run(): "
                             "invalid transaction step.");
 
     }
 }
 
-TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAndSendMessageStage() {
+TransactionResult::SharedConst CycleThreeNodesInitTransaction::runCollectDataAndSendMessageStage() {
 
     set<NodeUUID> neighbors = getNeighborsWithContractor();
     sendMessage<ThreeNodesBalancesRequestMessage>(
@@ -79,7 +79,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
             kStandardConnectionTimeout);
 }
 
-TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
+TransactionResult::SharedConst CycleThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     auto message = static_pointer_cast<ThreeNodesBalancesResponseMessage>(*mContext.begin());
     vector <pair<NodeUUID, TrustLineBalance>> neighborsAndBalances = message->NeighborsAndBalances();
     for(auto &value:neighborsAndBalances ){

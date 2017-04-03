@@ -1,8 +1,6 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_CYCLES_H
 #define GEO_NETWORK_CLIENT_CYCLES_H
 
-#include "../network/messages/cycles/InBetweenNodeTopologyMessage.h"
-
 #include <boost/signals2.hpp>
 #include <boost/asio.hpp>
 #include <iostream>

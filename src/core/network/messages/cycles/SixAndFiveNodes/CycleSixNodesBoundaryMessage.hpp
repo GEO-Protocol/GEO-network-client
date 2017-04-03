@@ -1,4 +1,3 @@
-
 #include "base/CycleBaseFiveOrSixNodesBoundaryMessage.h"
 class CycleSixNodesBoundaryMessage: public CycleBaseFiveOrSixNodesBoundaryMessage {
 public:

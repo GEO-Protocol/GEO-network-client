@@ -7,7 +7,6 @@ add_subdirectory(transactions/base)
 add_subdirectory(transactions/regular/payments)
 add_subdirectory(transactions/unique/trust_lines)
 add_subdirectory(transactions/unique/routing_tables)
-add_subdirectory(transactions/unique/cycles)
 add_subdirectory(transactions/cycles)
 add_subdirectory(transactions/max_flow_calculation)
 add_subdirectory(transactions/total_balances)
@@ -26,7 +25,6 @@ target_link_libraries(transactions
         transactions__routing_tables
         transactions__max_flow_calculation
         transactions__payments
-        transactions__cycles_old
         transactions__cycles
         transactions__result
         transactions__total_balances

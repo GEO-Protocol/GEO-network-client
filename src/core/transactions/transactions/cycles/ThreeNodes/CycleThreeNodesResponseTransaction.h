@@ -8,18 +8,17 @@
 #include "../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesResponseMessage.h"
 #include <set>
 
-class CyclesThreeNodesResponseTransaction : public UniqueTransaction {
+class CycleThreeNodesResponseTransaction : public UniqueTransaction {
 public:
-    CyclesThreeNodesResponseTransaction(
+    CycleThreeNodesResponseTransaction(
             const TransactionType type,
             const NodeUUID &nodeUUID,
-            const NodeUUID &contractorUUID,
             ThreeNodesBalancesRequestMessage::Shared message,
             TransactionsScheduler *scheduler,
             TrustLinesManager *manager,
             Logger *logger);
 
-    CyclesThreeNodesResponseTransaction(TransactionsScheduler *scheduler);
+    CycleThreeNodesResponseTransaction(TransactionsScheduler *scheduler);
 
     TransactionResult::SharedConst run();
 
@@ -31,7 +30,7 @@ protected:
     ThreeNodesBalancesRequestMessage::Shared mRequestMessage;
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mlogger;
+    Logger *mLogger;
     StorageHandler *mStorageHandler;
 
 };

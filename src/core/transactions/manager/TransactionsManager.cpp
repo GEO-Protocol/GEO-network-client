@@ -1,5 +1,5 @@
 ﻿#include "TransactionsManager.h"
-#include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
+#include "../transactions/cycles/ThreeNodes/CycleThreeNodesInitTransaction.h"
 
 /*!
  *
@@ -283,9 +283,12 @@ void TransactionsManager::processMessage(
                 static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
         }
 
-    } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage) {
-        launchGetTopologyAndBalancesTransaction(
-                static_pointer_cast<InBetweenNodeTopologyMessage>(message));
+    } else if (message->typeID() == Message::MessageTypeID::CycleSixNodesInBetweenMessage) {
+        launchSixNodesCyclesResponseTransaction(
+                static_pointer_cast<CycleSixNodesInBetweenMessage>(message));
+    } else if (message->typeID() == Message::MessageTypeID::CycleFiveNodesInBetweenMessage) {
+        launchFiveNodesCyclesResponseTransaction(
+            static_pointer_cast<CycleFiveNodesInBetweenMessage>(message));
     }else if(message->typeID() == Message::MessageTypeID::ThreeNodesBalancesRequestMessage){
         launchThreeNodesCyclesResponseTransaction(
                 static_pointer_cast<ThreeNodesBalancesRequestMessage>(message));
@@ -1075,42 +1078,6 @@ void TransactionsManager::onCommandResultReady(
     }
 }
 
-void TransactionsManager::launchGetTopologyAndBalancesTransactionFiveNodes() {
-    try {
-        auto transaction = make_shared<FiveNodesTopologyTransaction>(
-                BaseTransaction::TransactionType::FiveNodesTopologyTransaction,
-                mNodeUUID,
-                mScheduler.get(),
-                mTrustLines,
-                mLog
-        );
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-                "TransactionsManager::launchOpenTrustLineTransaction: "
-                        "Can't allocate memory for transaction instance.");
-    }
-}
-
-void TransactionsManager::launchGetTopologyAndBalancesTransactionSixNodes() {
-    try {
-        auto transaction = make_shared<SixNodesTopologyTransaction>(
-                BaseTransaction::TransactionType::SixNodesTopologyTransaction,
-                mNodeUUID,
-                mScheduler.get(),
-                mTrustLines,
-                mLog
-        );
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-                "TransactionsManager::launchOpenTrustLineTransaction: "
-                        "Can't allocate memory for transaction instance.");
-    }
-}
-
 void TransactionsManager::onSubsidiaryTransactionReady(
     BaseTransaction::Shared transaction) {
 
@@ -1141,51 +1108,49 @@ void TransactionsManager::prepareAndSchedule(
     mScheduler->scheduleTransaction(
         transaction);
 }
+//   ---------------------------------------Cycles part----------------------------------------------
 
-void TransactionsManager::launchGetThreeNodesNeighborBalancesTransaction(NodeUUID &contractorUUID) {
-    try {
-        auto transaction = make_shared<GetThreeNodesNeighborBalancesTransaction>(
-                BaseTransaction::TransactionType::GetThreeNodesNeighborBalancesTransaction,
-                mNodeUUID,
-                contractorUUID,
-                mScheduler.get(),
-                mTrustLines,
-                mStorageHandler,
-                mLog
-        );
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-                "TransactionsManager::launchOpenTrustLineTransaction: "
-                        "Can't allocate memory for transaction instance.");
-    }
-}
+//void TransactionsManager::launchThreeNodesCyclesInitTransaction(NodeUUID &contractorUUID) {
+//    try {
+//        auto transaction = make_shared<CycleThreeNodesInitTransaction>(
+//            mNodeUUID,
+//            contractorUUID,
+//            mScheduler.get(),
+//            mTrustLines,
+//            mStorageHandler,
+//            mLog
+//        );
+//        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+//        mScheduler->scheduleTransaction(transaction);
+//    } catch (bad_alloc &) {
+//        throw MemoryError(
+//            "TransactionsManager::launchOpenTrustLineTransaction: "
+//                "Can't allocate memory for transaction instance.");
+//    }
+//}
 
-void TransactionsManager::launchGetThreeNodesNeighborBalancesTransaction(ThreeNodesBalancesRequestMessage::Shared message) {
+//void TransactionsManager::launchThreeNodesCyclesResponseTransaction(ThreeNodesBalancesRequestMessage::Shared message) {
+//    try {
+//        auto transaction = make_shared<CycleThreeNodesResponseTransaction>(
+//            mNodeUUID,
+//            message,
+//            mScheduler.get(),
+//            mTrustLines,
+//            mLog
+//        );
+//        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+//        mScheduler->scheduleTransaction(transaction);
+//    } catch (bad_alloc &) {
+//        throw MemoryError(
+//            "TransactionsManager::launchOpenTrustLineTransaction: "
+//                "Can't allocate memory for transaction instance.");
+//    }
+//}
+
+void TransactionsManager::launchSixNodesCyclesInitTransaction() {
     try {
-        auto transaction = make_shared<GetThreeNodesNeighborBalancesTransaction>(
-                BaseTransaction::TransactionType::GetThreeNodesNeighborBalancesTransaction,
-                mNodeUUID,
-                message,
-                mScheduler.get(),
-                mTrustLines,
-                mLog
-        );
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-                "TransactionsManager::launchOpenTrustLineTransaction: "
-                        "Can't allocate memory for transaction instance.");
-    }
-}
-void TransactionsManager::launchThreeNodesCyclesInitTransaction(NodeUUID &contractorUUID) {
-    try {
-        auto transaction = make_shared<CyclesThreeNodesInitTransaction>(
-            BaseTransaction::TransactionType::ThreeNodesInitTransaction,
+        auto transaction = make_shared<CyclesSixNodesInitTransaction>(
             mNodeUUID,
-            contractorUUID,
             mScheduler.get(),
             mTrustLines,
             mStorageHandler,
@@ -1195,65 +1160,102 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(NodeUUID &contra
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchOpenTrustLineTransaction: "
+            "TransactionsManager::launchSixNodesCyclesInitTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }
 
-void TransactionsManager::launchThreeNodesCyclesResponseTransaction(ThreeNodesBalancesRequestMessage::Shared message) {
+void TransactionsManager::launchSixNodesCyclesResponseTransaction(CycleSixNodesInBetweenMessage::Shared message) {
     try {
-        auto transaction = make_shared<GetThreeNodesNeighborBalancesTransaction>(
-            BaseTransaction::TransactionType::GetThreeNodesNeighborBalancesTransaction,
+        auto transaction = make_shared<CyclesSixNodesInitTransaction>(
             mNodeUUID,
             message,
             mScheduler.get(),
             mTrustLines,
+            mStorageHandler,
             mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchOpenTrustLineTransaction: "
+            "TransactionsManager::launchSixNodesCyclesInitTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }
 
-void TransactionsManager::launchGetFourNodesNeighborBalancesTransaction(NodeUUID &contractorUUID) {
+void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
     try {
-        auto transaction = make_shared<GetFourNodesNeighborBalancesTransaction>(
-                BaseTransaction::TransactionType::GetFourNodesNeighborBalancesTransaction,
-                mNodeUUID,
-                contractorUUID,
-                mScheduler.get(),
-                mTrustLines,
-                mLog
+        auto transaction = make_shared<CyclesFiveNodesInitTransaction>(
+            mNodeUUID,
+            mScheduler.get(),
+            mTrustLines,
+            mStorageHandler,
+            mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
-                "TransactionsManager::launchOpenTrustLineTransaction: "
-                        "Can't allocate memory for transaction instance.");
+            "TransactionsManager::launchSixNodesCyclesInitTransaction: "
+                "Can't allocate memory for transaction instance.");
     }
 }
 
-void
-TransactionsManager::launchGetFourNodesNeighborBalancesTransaction(FourNodesBalancesRequestMessage::Shared message) {
+void TransactionsManager::launchFiveNodesCyclesResponseTransaction(CycleFiveNodesInBetweenMessage::Shared message) {
     try {
-        auto transaction = make_shared<GetFourNodesNeighborBalancesTransaction>(
-                BaseTransaction::TransactionType::GetFourNodesNeighborBalancesTransaction,
-                mNodeUUID,
-                message,
-                mScheduler.get(),
-                mTrustLines,
-                mLog
+        auto transaction = make_shared<CyclesSixNodesInitTransaction>(
+            mNodeUUID,
+            message,
+            mScheduler.get(),
+            mTrustLines,
+            mStorageHandler,
+            mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
-                "TransactionsManager::launchOpenTrustLineTransaction: "
-                        "Can't allocate memory for transaction instance.");
+            "TransactionsManager::launchSixNodesCyclesInitTransaction: "
+                "Can't allocate memory for transaction instance.");
     }
 }
+//
+//void TransactionsManager::launchGetFourNodesNeighborBalancesTransaction(NodeUUID &contractorUUID) {
+//    try {
+//        auto transaction = make_shared<GetFourNodesNeighborBalancesTransaction>(
+//                BaseTransaction::TransactionType::GetFourNodesNeighborBalancesTransaction,
+//                mNodeUUID,
+//                contractorUUID,
+//                mScheduler.get(),
+//                mTrustLines,
+//                mLog
+//        );
+//        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+//        mScheduler->scheduleTransaction(transaction);
+//    } catch (bad_alloc &) {
+//        throw MemoryError(
+//                "TransactionsManager::launchOpenTrustLineTransaction: "
+//                        "Can't allocate memory for transaction instance.");
+//    }
+//}
+//
+//void
+//TransactionsManager::launchGetFourNodesNeighborBalancesTransaction(FourNodesBalancesRequestMessage::Shared message) {
+//    try {
+//        auto transaction = make_shared<GetFourNodesNeighborBalancesTransaction>(
+//                BaseTransaction::TransactionType::GetFourNodesNeighborBalancesTransaction,
+//                mNodeUUID,
+//                message,
+//                mScheduler.get(),
+//                mTrustLines,
+//                mLog
+//        );
+//        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+//        mScheduler->scheduleTransaction(transaction);
+//    } catch (bad_alloc &) {
+//        throw MemoryError(
+//                "TransactionsManager::launchOpenTrustLineTransaction: "
+//                        "Can't allocate memory for transaction instance.");
+//    }
+//}

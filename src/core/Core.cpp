@@ -567,11 +567,11 @@ void Core::zeroPointers() {
 }
 
 void Core::onDelayedTaskCycleSixNodesSlot() {
-//    mTransactionsManager->launchGetTopologyAndBalancesTransactionSixNodes();
+    mTransactionsManager->launchSixNodesCyclesInitTransaction();
 }
 
 void Core::onDelayedTaskCycleFiveNodesSlot() {
-//    mTransactionsManager->launchGetTopologyAndBalancesTransactionFiveNodes();
+    mTransactionsManager->launchFiveNodesCyclesInitTransaction();
 }
 
 void Core::writePIDFile()

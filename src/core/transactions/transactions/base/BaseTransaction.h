@@ -62,24 +62,16 @@ public:
         RoutingTablesUpdatesFactoryTransactionType,
         PropagateRoutingTablesUpdatesTransactionType,
         AcceptRoutingTablesUpdatesTransactionType,
-//        Cycles
 
-//      new part
-        CyclesThreeNodesInitTransaction,
-        CyclesThreeNodesResponseTransaction,
-        CyclesBaseFiveSixNodesInitTransaction,
-        CyclesFiveNodesInitTransaction,
-        CyclesSixNodesInitTransaction,
-        CyclesFiveSixNodesResponseTransaction,
+//      --------------------------------Cycles------------------------------------------------
+        CycleThreeNodesInitTransaction,
+        CycleThreeNodesResponseTransaction,
+        CycleBaseFiveSixNodesInitTransaction,
+        CycleFiveNodesInitTransaction,
+        CycleSixNodesInitTransaction,
+        CycleFiveSixNodesResponseTransaction,
+//      --------------------------------Cycles-------------------------------------------------
 
-//      old part
-
-        GetTopologyAndBalancesTransaction,
-        SixNodesTopologyTransaction,
-        FiveNodesTopologyTransaction,
-
-        GetThreeNodesNeighborBalancesTransaction,
-        GetFourNodesNeighborBalancesTransaction,
         // Payments
         CoordinatorPaymentTransaction,
         ReceiverPaymentTransaction,

@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESINITTRANSACTION_H
 #include "../../../base/UniqueTransaction.h"
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../../network/messages/cycles/InBetweenNodeTopologyMessage.h"
 
 class CyclesBaseFiveSixNodesInitTransaction : public UniqueTransaction {
 
@@ -27,7 +26,6 @@ public:
     pair<BytesShared, size_t> serializeToBytes() const{};
     void deserializeFromBytes(
         BytesShared buffer){};
-    virtual InBetweenNodeTopologyMessage::CycleTypeID cycleType() = 0;
 protected:
     enum Stages {
         CollectDataAndSendMessage = 1,
@@ -39,7 +37,7 @@ protected:
 
 protected:
     virtual TransactionResult::SharedConst runCollectDataAndSendMessagesStage() = 0;
-    TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
+    virtual TransactionResult::SharedConst runParseMessageAndCreateCyclesStage() = 0;
 
 protected:
     const uint16_t mWaitingForResponseTime = 5000; //msec

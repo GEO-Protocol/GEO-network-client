@@ -3,8 +3,7 @@
 #include "../../base/UniqueTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../io/storage/StorageHandler.h"
-#include "../../../../network/messages/cycles/InBetweenNodeTopologyMessage.h"
-#include "../../../../network/messages/cycles/BoundaryNodeTopologyMessage.h"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp"
 #include <set>
 
 class CyclesFiveSixNodesResponseTransaction : public UniqueTransaction {
@@ -13,7 +12,7 @@ public:
         const TransactionType type,
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
-        InBetweenNodeTopologyMessage::Shared message,
+        CycleFiveNodesInBetweenMessage::Shared message,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager,
         Logger *logger);
@@ -24,10 +23,9 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes() const {};
 
-
 protected:
 //    Nodes Balances that are mutual between core node and contract node
-    InBetweenNodeTopologyMessage::Shared mInBetweenNodeTopologyMessage;
+    CycleFiveNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     Logger *mlogger;
