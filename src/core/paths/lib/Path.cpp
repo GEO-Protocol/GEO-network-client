@@ -63,7 +63,7 @@ vector<NodeUUID> Path::intermediateUUIDs() const {
         return {};
     }
     auto itFirst = nodes.begin() + 1;
-    auto itLast = nodes.begin() + (nodes.size() - 2);
+    auto itLast = nodes.begin() + (nodes.size() - 1);
     return vector<NodeUUID>(itFirst,  itLast);
 }
 

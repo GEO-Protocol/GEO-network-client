@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <set>
 
 class PathsManager {
 
@@ -24,6 +25,8 @@ public:
     void setContractorRoutingTables(ResultRoutingTablesMessage::Shared message);
 
     Path::Shared findPath();
+
+    Path::Shared findPathsTest();
 
     PathsCollection *pathCollection() const;
 
@@ -42,7 +45,23 @@ private:
     void findPathsOnSixthLevel();
 
     vector<NodeUUID> intermediateNodesOnContractorFirstLevel(
-        const NodeUUID &thirdLevelSourceNode) const;
+        const NodeUUID &thirdLevelSourceNode,
+        const vector<NodeUUID> intermediateNodes) const;
+
+    // test
+    void findPathsOnSecondLevelTest();
+
+    void findPathsOnThirdLevelTest();
+
+    void findPathsOnForthLevelTest();
+
+    void findPathsOnFifthLevelTest();
+
+    void findPathsOnSixthLevelTest();
+
+    vector<NodeUUID> intermediateNodesOnContractorFirstLevelTest(
+            const NodeUUID &thirdLevelSourceNode) const;
+    //test end
 
     LoggerStream info() const;
 
@@ -50,12 +69,15 @@ private:
 
     // TODO : remove after testing
     void fillRoutingTables();
+    void fillBigRoutingTables();
+    string nodeUUIDName(uint32_t number);
+    NodeUUID* getPtrByNodeNumber(
+        uint32_t number,
+        vector<NodeUUID*> nodeUUIDPtrs);
 
     // TODO: remove after testing
     void testStorageHandler();
-
-    // TODO: remove after testing
-    void testStorageHandlerNextStep();
+    void testTrustLineHandler();
 
 private:
 

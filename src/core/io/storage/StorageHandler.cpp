@@ -11,6 +11,7 @@ StorageHandler::StorageHandler(
     mDataBaseName(dataBaseName),
     mDataBasePath(mDirectory + "/" + dataBaseName),
     mRoutingTablesHandler(connection(dataBaseName, directory), logger),
+    mTrustLineHandler(connection(dataBaseName, directory), kTrustLineTableName, logger),
     mLog(logger) {
 
 #ifdef STORAGE_HANDLER_DEBUG_LOG
@@ -45,6 +46,11 @@ sqlite3* StorageHandler::connection(
 RoutingTablesHandler* StorageHandler::routingTablesHandler() {
 
     return &mRoutingTablesHandler;
+}
+
+TrustLineHandler* StorageHandler::trustLineHandler() {
+
+    return &mTrustLineHandler;
 }
 
 void StorageHandler::closeConnection() {

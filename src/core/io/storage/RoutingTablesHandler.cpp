@@ -164,7 +164,7 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
     string query = "SELECT rt2.source, rt3.source FROM "
                    + mRoutingTable2Level.tableName() + " AS rt2 INNER JOIN "
                    + mRoutingTable3Level.tableName() + " AS rt3 ON rt2.destination = rt3.source " +
-                   " WHERE rt3.destination = ? AND rt2.source <> ? "
+                   " WHERE rt3.destination = ? AND rt2.source NOT IN (?, ?) "
                    + "AND rt3.source NOT IN (?, ?)";
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "select: " << query;
@@ -184,12 +184,17 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
                               "Bad contractorUUID binding");
     }
-    rc = sqlite3_bind_blob(stmt, 3, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 3, foundUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
+                              "Bad foundUUID binding");
+    }
+    rc = sqlite3_bind_blob(stmt, 4, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
                               "Bad sourceUUID binding");
     }
-    rc = sqlite3_bind_blob(stmt, 4, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 5, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
                               "Bad sourceUUID binding");

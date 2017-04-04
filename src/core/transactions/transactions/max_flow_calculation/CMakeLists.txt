@@ -3,29 +3,20 @@ cmake_minimum_required(VERSION 3.6)
 set(SOURCE_FILES
         InitiateMaxFlowCalculationTransaction.h
         InitiateMaxFlowCalculationTransaction.cpp
-        ReceiveMaxFlowCalculationOnTargetTransaction.cpp
         ReceiveMaxFlowCalculationOnTargetTransaction.h
-        MaxFlowCalculationSourceFstLevelTransaction.cpp
+        ReceiveMaxFlowCalculationOnTargetTransaction.cpp
         MaxFlowCalculationSourceFstLevelTransaction.h
-        MaxFlowCalculationTargetFstLevelTransaction.cpp
+        MaxFlowCalculationSourceFstLevelTransaction.cpp
         MaxFlowCalculationTargetFstLevelTransaction.h
-        MaxFlowCalculationSourceSndLevelTransaction.cpp
+        MaxFlowCalculationTargetFstLevelTransaction.cpp
         MaxFlowCalculationSourceSndLevelTransaction.h
-        MaxFlowCalculationTargetSndLevelTransaction.cpp
+        MaxFlowCalculationSourceSndLevelTransaction.cpp
         MaxFlowCalculationTargetSndLevelTransaction.h
-        ReceiveResultMaxFlowCalculationTransaction.cpp
+        MaxFlowCalculationTargetSndLevelTransaction.cpp
         ReceiveResultMaxFlowCalculationTransaction.h
-        )
+        ReceiveResultMaxFlowCalculationTransaction.cpp)
 
 add_library(transactions__max_flow_calculation ${SOURCE_FILES})
 
 target_link_libraries(transactions__max_flow_calculation
-        ${Boost_SYSTEM_LIBRARY}
-        max_flow_calculation
-        transactions__base
-
-        common
-        time
-        exceptions
-
-        network__messages)
+        max_flow_calculation)

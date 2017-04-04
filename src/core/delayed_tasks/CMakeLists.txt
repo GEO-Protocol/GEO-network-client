@@ -6,4 +6,5 @@ set(SOURCE_FILES
         MaxFlowCalculationCacheUpdateDelayedTask.h
         MaxFlowCalculationCacheUpdateDelayedTask.cpp)
 
-add_library(delayed_tasks ${SOURCE_FILES})
+add_library(delayed_tasks
+        ${SOURCE_FILES})

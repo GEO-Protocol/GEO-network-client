@@ -22,7 +22,7 @@ FindPathCommand::Shared FindPathTransaction::command() const {
 
 TransactionResult::SharedConst FindPathTransaction::run() {
 
-    info() << "run\t" << UUID();
+    info() << "run\t" << UUID() << " I am " << mNodeUUID;
 
     if (!mContext.empty()) {
         return checkTransactionContext();

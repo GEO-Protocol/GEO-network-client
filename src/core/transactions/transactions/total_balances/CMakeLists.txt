@@ -8,6 +8,4 @@ set(SOURCE_FILES
 
 add_library(transactions__total_balances ${SOURCE_FILES})
 
-target_link_libraries(transactions__total_balances
-        ${Boost_SYSTEM_LIBRARY}
-        transactions__base)
+target_link_libraries(transactions__total_balances)

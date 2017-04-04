@@ -71,7 +71,13 @@ pair<Packet::Shared, uint16_t> OutgoingMessagesHandler::makeCRCPacket(
 
     uint16_t packetsCount;
     if (kMaxPacketBodySize < messageBytesAndCount.second) {
+        size_t remaind = messageBytesAndCount.second % kMaxPacketBodySize;
         packetsCount = (uint16_t) (messageBytesAndCount.second / kMaxPacketBodySize + 1);
+
+        if (remaind > 0) {
+            packetsCount += 1;
+        }
+
         if (packetsCount == 2) {
             packetsCount += 1;
         }
