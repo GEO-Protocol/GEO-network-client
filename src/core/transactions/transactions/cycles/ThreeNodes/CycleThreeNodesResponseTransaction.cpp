@@ -24,7 +24,7 @@ TransactionResult::SharedConst CycleThreeNodesResponseTransaction::run() {
 //    Get neighbors UUID from message
     vector<NodeUUID> neighbors = mRequestMessage->Neighbors();
 //    Create message and reserve memory for neighbors
-    const auto kMessage = make_shared<const ThreeNodesBalancesResponseMessage>(
+    const auto kMessage = make_shared<ThreeNodesBalancesResponseMessage>(
         mNodeUUID,
         mTransactionUUID,
         neighbors.size()
@@ -37,20 +37,29 @@ TransactionResult::SharedConst CycleThreeNodesResponseTransaction::run() {
     if (contractorBalance < zeroBalance)
         searchDebtors = false;
 //    todo Add resize to AddNeighborUUIDAndBalance
+//    for (auto &value: neighbors) {
+//        stepNodeBalance = mTrustLinesManager->balance(value);
+//        if ((searchDebtors and (stepNodeBalance > zeroBalance)) or
+//            (not searchDebtors and (stepNodeBalance < zeroBalance)))
+//            neighborUUIDAndBalance.push_back(
+//                make_pair(
+//                    value,
+//                    stepNodeBalance));
     for (auto &value: neighbors) {
         stepNodeBalance = mTrustLinesManager->balance(value);
         if ((searchDebtors and (stepNodeBalance > zeroBalance)) or
             (not searchDebtors and (stepNodeBalance < zeroBalance)))
-            neighborUUIDAndBalance.push_back(
+            kMessage->AddNeighborUUIDAndBalance(
                 make_pair(
                     value,
                     stepNodeBalance));
     }
-    sendMessage<ThreeNodesBalancesResponseMessage>(
-        mContractorUUID,
-        mNodeUUID,
-        mTransactionUUID,
-        neighborUUIDAndBalance);
+    sendMessage(mContractorUUID, kMessage);
+//    sendMessage<ThreeNodesBalancesResponseMessage>(
+//        mContractorUUID,
+//        mNodeUUID,
+//        mTransactionUUID,
+//        neighborUUIDAndBalance);
     return finishTransaction();
 }
 #pragma clang diagnostic pop

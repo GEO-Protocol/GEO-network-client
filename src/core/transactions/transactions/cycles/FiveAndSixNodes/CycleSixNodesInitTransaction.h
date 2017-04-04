@@ -18,5 +18,8 @@ public:
 protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
+
+protected:
+    bool check_path(vector<NodeUUID> &debtors, vector<NodeUUID> &creditors);
 };
 #endif //GEO_NETWORK_CLIENT_CYCLESSIXNODESINITTRANSACTION_H
