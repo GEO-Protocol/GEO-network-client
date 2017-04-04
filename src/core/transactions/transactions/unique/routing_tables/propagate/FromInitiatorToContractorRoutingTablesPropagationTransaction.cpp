@@ -165,10 +165,6 @@ void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendFirstLeve
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagationTransaction::propagateSecondLevelRoutingTable() {
 
-    if (mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey().empty()) {
-        return finishTransaction();
-    }
-
     if (!mContext.empty()) {
         auto flagAndResult = checkContext();
 
