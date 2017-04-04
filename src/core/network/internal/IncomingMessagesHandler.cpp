@@ -348,7 +348,6 @@ void IncomingMessagesHandler::tryCollectPacket(
                                   "Can not allocate enough memory for incoming packet.");
         }
 
-
         // TODO: catch conflict error and log it
         // is needed for network stack analising
         channelAndEndpoint.first->addPacket(

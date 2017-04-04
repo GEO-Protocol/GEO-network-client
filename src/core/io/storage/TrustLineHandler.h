@@ -6,7 +6,6 @@
 #include "../../trust_lines/TrustLine.h"
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"
-#include "../../common/exceptions/ValueError.h"
 #include "../../common/multiprecision/MultiprecisionUtils.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
@@ -26,20 +25,23 @@ public:
 
     void rollBack();
 
-    void insert(
+    void saveTrustLine(
         TrustLine::Shared trustLine);
 
     vector<TrustLine::Shared> trustLines();
 
     void deleteTrustLine(const NodeUUID &contractorUUID);
 
-    void update(TrustLine::Shared trustLine);
-
-    bool containsContractor(const NodeUUID &contractorUUID);
-
 private:
 
     void prepareInsertred();
+
+    void insert(
+        TrustLine::Shared trustLine);
+
+    void update(TrustLine::Shared trustLine);
+
+    bool containsContractor(const NodeUUID &contractorUUID);
 
     LoggerStream info() const;
 

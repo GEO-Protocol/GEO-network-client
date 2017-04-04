@@ -27,10 +27,20 @@ public:
 
     void rollBack();
 
+    // TODO : move to private
     void insert(
         const NodeUUID &source,
         const NodeUUID &destination,
         const TrustLineDirection direction);
+
+    void saveRecord(
+        const NodeUUID &source,
+        const NodeUUID &destination,
+        const TrustLineDirection direction);
+
+    void deleteRecord(
+        const NodeUUID &source,
+        const NodeUUID &destination);
 
     vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> routeRecordsWithDirections();
 
@@ -48,6 +58,11 @@ public:
 private:
 
     void prepareInsertred();
+
+    void updateRecord(
+        const NodeUUID &source,
+        const NodeUUID &destination,
+        const TrustLineDirection direction);
 
     LoggerStream info() const;
 

@@ -95,11 +95,11 @@ void TrustLineHandler::insert(
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-//#ifdef STORAGE_HANDLER_DEBUG_LOG
+#ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "prepare inserting (" << trustLine->contractorNodeUUID() <<
         ", " << trustLine->incomingTrustAmount() << ", " << trustLine->outgoingTrustAmount() <<
         ", " << trustLine->balance() << ") " << "is completed successfully";
-//#endif
+#endif
     } else {
         throw IOError("TrustLineHandler::insert: Run query");
     }
@@ -240,6 +240,10 @@ vector<TrustLine::Shared> TrustLineHandler::trustLines() {
 
 void TrustLineHandler::deleteTrustLine(const NodeUUID &contractorUUID) {
 
+    if (!isTransactionBegin) {
+        prepareInsertred();
+    }
+
     string query = "DELETE FROM " + mTableName + " WHERE contractor = ?";
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "delete: " << query;
@@ -266,6 +270,10 @@ void TrustLineHandler::deleteTrustLine(const NodeUUID &contractorUUID) {
 }
 
 void TrustLineHandler::update(TrustLine::Shared trustLine) {
+
+    if (!isTransactionBegin) {
+        prepareInsertred();
+    }
 
     string query = "UPDATE " + mTableName +
         " SET incoming_amount = ?, outgoing_amount = ?, balance = ? " +
@@ -334,6 +342,15 @@ bool TrustLineHandler::containsContractor(const NodeUUID &contractorUUID) {
     }
 
     return sqlite3_step(stmt) == SQLITE_ROW;
+}
+
+void TrustLineHandler::saveTrustLine(TrustLine::Shared trustLine) {
+
+    if (containsContractor(trustLine->contractorNodeUUID())) {
+        update(trustLine);
+    } else {
+        insert(trustLine);
+    }
 }
 
 LoggerStream TrustLineHandler::info() const {
