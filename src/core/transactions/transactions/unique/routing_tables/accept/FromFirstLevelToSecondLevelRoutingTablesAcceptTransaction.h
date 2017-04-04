@@ -25,11 +25,13 @@ public:
     FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction(
         const NodeUUID &nodeUUID,
         FirstLevelRoutingTableIncomingMessage::Shared message,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction(
         BytesShared buffer,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     FirstLevelRoutingTableIncomingMessage::Shared message() const;
 
@@ -41,6 +43,8 @@ private:
     void sendResponseToContractor(
         const NodeUUID &contractorUUID,
         const uint16_t code);
+
+    const string logHeader() const;
 
 private:
     FirstLevelRoutingTableIncomingMessage::Shared mFirstLevelMessage;

@@ -32,7 +32,8 @@ public:
 protected:
     RoutingTablesTransaction(
         const TransactionType type,
-        BytesShared buffer);
+        BytesShared buffer,
+        Logger *logger);
 
     RoutingTablesTransaction(
         const TransactionType type,
@@ -41,7 +42,8 @@ protected:
     RoutingTablesTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID);
+        const NodeUUID &contractorUUID,
+        Logger *logger);
 
     void increaseRequestsCounter();
 

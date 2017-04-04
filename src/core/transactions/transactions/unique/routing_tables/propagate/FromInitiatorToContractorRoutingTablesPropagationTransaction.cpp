@@ -19,11 +19,13 @@ FromInitiatorToContractorRoutingTablesPropagationTransaction::FromInitiatorToCon
 FromInitiatorToContractorRoutingTablesPropagationTransaction::FromInitiatorToContractorRoutingTablesPropagationTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLinesManager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        buffer),
+        buffer,
+        logger),
     mTrustLinesManager(trustLinesManager),
     mStorageHandler(storageHandler) {}
 

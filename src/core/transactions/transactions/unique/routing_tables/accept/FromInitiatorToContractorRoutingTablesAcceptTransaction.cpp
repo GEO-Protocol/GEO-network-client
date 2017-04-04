@@ -4,12 +4,14 @@ FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContract
     const NodeUUID &nodeUUID,
     FirstLevelRoutingTableIncomingMessage::Shared message,
     TrustLinesManager *trustLinesManager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
         nodeUUID,
-        message->senderUUID()),
+        message->senderUUID(),
+        logger),
     mFirstLevelMessage(message),
     mTrustLinesManager(trustLinesManager),
     mStorageHandler(storageHandler) {}
@@ -17,11 +19,13 @@ FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContract
 FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContractorRoutingTablesAcceptTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLinesManager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
-        buffer),
+        buffer,
+        logger),
     mTrustLinesManager(trustLinesManager),
     mStorageHandler(storageHandler) {}
 
@@ -58,9 +62,18 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
 
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRoutingTable() {
 
+    info() << "From initiator first level routing table message received";
+    info() << "Sender UUID: " + mFirstLevelMessage->senderUUID().stringUUID();
+    info() << "Routing table";
+
     for (const auto &nodeAndRecords : mFirstLevelMessage->records()) {
 
+        info() << "Initiator UUID: " + nodeAndRecords.first.stringUUID();
+
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
+
+            info() << "Neighbor UUID: " + neighborAndDirect.first.stringUUID();
+            info() << "Direction: " + to_string(neighborAndDirect.second);
 
             mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(
                 mFirstLevelMessage->senderUUID(),
@@ -125,9 +138,18 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveSecondLevelRoutingTable(
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage) {
 
+    info() << "From initiator second level routing table message received";
+    info() << "Sender UUID: " + mFirstLevelMessage->senderUUID().stringUUID();
+    info() << "Routing table";
+
     for (const auto &nodeAndRecords : secondLevelMessage->records()) {
 
+        info() << "Node UUID: " + nodeAndRecords.first.stringUUID();
+
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
+
+            info() << "Neighbor UUID: " + neighborAndDirect.first.stringUUID();
+            info() << "Direction: " + to_string(neighborAndDirect.second);
 
             mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(
                 nodeAndRecords.first,
@@ -166,4 +188,12 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::createFromContract
 
     launchSubsidiaryTransaction(
         transaction);
+}
+
+const string FromInitiatorToContractorRoutingTablesAcceptTransaction::logHeader() const {
+
+    stringstream s;
+    s << "[FromInitiatorToContractorRoutingTablesAcceptTransaction]";
+
+    return s.str();
 }

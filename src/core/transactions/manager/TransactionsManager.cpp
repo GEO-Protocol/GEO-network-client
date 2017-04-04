@@ -498,7 +498,8 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                         mNodeUUID,
                         message,
                         mTrustLines,
-                        mStorageHandler
+                        mStorageHandler,
+                        mLog
                     )
                 );
                 break;
@@ -511,7 +512,8 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                         mNodeUUID,
                         message,
                         mTrustLines,
-                        mStorageHandler
+                        mStorageHandler,
+                        mLog
                     )
                 );
                 break;
@@ -523,7 +525,8 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                     make_shared<FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction>(
                         mNodeUUID,
                         message,
-                        mStorageHandler
+                        mStorageHandler,
+                        mLog
                     )
                 );
                 break;

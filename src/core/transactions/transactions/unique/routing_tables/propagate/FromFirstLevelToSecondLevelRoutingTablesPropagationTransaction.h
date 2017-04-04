@@ -30,11 +30,13 @@ public:
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
         FirstLevelRoutingTableIncomingMessage::Shared relationshipsBetweenInitiatorAndContractor,
-        TrustLinesManager *trustLinesManager);
+        TrustLinesManager *trustLinesManager,
+        Logger *logger = nullptr);
 
     FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction(
         BytesShared buffer,
-        TrustLinesManager *trustLinesManager);
+        TrustLinesManager *trustLinesManager,
+        Logger *logger = nullptr);
 
     TransactionResult::SharedConst run();
 
