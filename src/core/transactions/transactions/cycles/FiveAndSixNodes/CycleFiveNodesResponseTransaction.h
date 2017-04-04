@@ -26,8 +26,6 @@ public:
 protected:
 //    Nodes Balances that are mutual between core node and contract node
     CycleFiveNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
-    const uint8_t mDebtorsMaxDepth = 2;
-    const uint8_t mCreditorsMaxDepth = 1;
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     Logger *mlogger;
