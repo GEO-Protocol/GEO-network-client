@@ -13,7 +13,7 @@ RoutingTableHandler::RoutingTableHandler(
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                      "(source BLOB NOT NULL, "
                      "destination BLOB NOT NULL, "
-                     "direction BLOB NOT NULL);";
+                     "direction BLOB);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::creating table: " + mTableName +
@@ -318,6 +318,7 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords() {
 
 unordered_map<NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapDestinationKey() {
 
+    DateTime startTime = utc_now();
     unordered_map<NodeUUID, vector<NodeUUID>> result;
     string query = "SELECT source, destination FROM " + mTableName;
 #ifdef STORAGE_HANDLER_DEBUG_LOG
@@ -353,8 +354,10 @@ unordered_map<NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapDe
 
     }
     sqlite3_reset(stmt);
+    Duration methodTime = utc_now() - startTime;
+    info() << "RoutingTableHandler::routeRecordsMapDestinationKey finished with time: " << methodTime;
     return result;
-};
+}
 
 vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
     const NodeUUID &sourceUUID) {

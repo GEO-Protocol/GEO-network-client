@@ -4,6 +4,7 @@
 #include "../../logger/Logger.h"
 #include "RoutingTablesHandler.h"
 #include "RoutingTableHandler.h"
+#include "TrustLineHandler.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -25,6 +26,8 @@ public:
 
     RoutingTablesHandler* routingTablesHandler();
 
+    TrustLineHandler* trustLineHandler();
+
     void closeConnection();
 
 private:
@@ -42,12 +45,17 @@ private:
 
 private:
 
+    const string kTrustLineTableName = "trust_lines";
+
+private:
+
     static sqlite3 *mDataBase;
 
 private:
 
     Logger *mLog;
     RoutingTablesHandler mRoutingTablesHandler;
+    TrustLineHandler mTrustLineHandler;
     string mDirectory;
     string mDataBaseName;
     string mDataBasePath;

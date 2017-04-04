@@ -42,6 +42,10 @@ unordered_map<NodeUUID, vector<NodeUUID>> ResultRoutingTablesMessage::rt3() {
 
 pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
 
+    cout << "ResultRoutingTablesMessage::serializeToBytes start serializing" << endl;
+    cout << "ResultRoutingTablesMessage::serializeToBytes rt1 size: " << mRT1.size() << endl;
+    cout << "ResultRoutingTablesMessage::serializeToBytes rt2 size: " << mRT2.size() << endl;
+    cout << "ResultRoutingTablesMessage::serializeToBytes rt3 size: " << mRT3.size() << endl;
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +
             sizeof(RecordCount) + mRT1.size() * NodeUUID::kBytesSize +
@@ -130,6 +134,7 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
         }
     }
     //----------------------------------------------------
+    cout << "ResultRoutingTablesMessage::serializeToBytes message size: " << bytesCount << endl;
     return make_pair(
         dataBytesShared,
         bytesCount);
@@ -138,6 +143,7 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
 void ResultRoutingTablesMessage::deserializeFromBytes(
         BytesShared buffer){
 
+    cout << "ResultRoutingTablesMessage::deserializeFromBytes start deserializing" << endl;
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------

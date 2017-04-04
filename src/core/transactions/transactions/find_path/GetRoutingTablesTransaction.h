@@ -30,6 +30,10 @@ protected:
     const string logHeader() const;
 
 private:
+    // TODO: remove after testing
+    vector<NodeUUID> rt1FromDB();
+
+private:
 
     RequestRoutingTablesMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
