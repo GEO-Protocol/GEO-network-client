@@ -333,6 +333,7 @@ void IncomingMessagesHandler::tryCollectPacket(
             *bytesCount - (uint16_t)PacketHeader::kHeaderSize
         );
 
+
         Packet::Shared packet;
         try {
             packet = makePacket(
@@ -349,8 +350,6 @@ void IncomingMessagesHandler::tryCollectPacket(
         }
 
 
-        // TODO: catch conflict error and log it
-        // is needed for network stack analising
         channelAndEndpoint.first->addPacket(
             packet->header()->packetNumber(),
             Packet::Shared(packet)
