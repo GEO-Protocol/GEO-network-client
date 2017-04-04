@@ -1,3 +1,6 @@
+#ifndef GEO_NETWORK_CLIENT_CYCLEFIVENODESBOUNDARYMESSAGE_H
+#define GEO_NETWORK_CLIENT_CYCLEFIVENODESBOUNDARYMESSAGE_H
+
 #include "base/CycleBaseFiveOrSixNodesBoundaryMessage.h"
 
 class CycleFiveNodesBoundaryMessage: public CycleBaseFiveOrSixNodesBoundaryMessage {
@@ -14,4 +17,4 @@ public:
         return Message::MessageTypeID::CycleFiveNodesBoundaryMessage;
     };
 };
-
+#endif //GEO_NETWORK_CLIENT_CYCLEFIVENODESBOUNDARYMESSAGE_H

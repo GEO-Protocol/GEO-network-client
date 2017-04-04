@@ -11,7 +11,6 @@
 class CycleThreeNodesInitTransaction : public UniqueTransaction {
 public:
     CycleThreeNodesInitTransaction(
-            const TransactionType type,
             const NodeUUID &nodeUUID,
             const NodeUUID &contractorUUID,
             TransactionsScheduler *scheduler,

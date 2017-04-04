@@ -9,9 +9,7 @@
 class CycleFiveNodesResponseTransaction : public UniqueTransaction {
 public:
     CycleFiveNodesResponseTransaction(
-        const TransactionType type,
         const NodeUUID &nodeUUID,
-        const NodeUUID &contractorUUID,
         CycleFiveNodesInBetweenMessage::Shared message,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager,
@@ -26,7 +24,6 @@ public:
 protected:
 //    Nodes Balances that are mutual between core node and contract node
     CycleFiveNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
-    NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     Logger *mlogger;
     StorageHandler *mStorageHandler;

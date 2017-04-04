@@ -1,3 +1,6 @@
+#ifndef GEO_NETWORK_CLIENT_CYCLESIXNODESINBETWEENMESSAGE_H
+#define GEO_NETWORK_CLIENT_CYCLESIXNODESINBETWEENMESSAGE_H
+
 #include "base/CycleBaseFiveOrSixNodesInBetweenMessage.h"
 
 class CycleSixNodesInBetweenMessage: public CycleBaseFiveOrSixNodesInBetweenMessage {
@@ -14,3 +17,4 @@ public:
         return Message::MessageTypeID::CycleSixNodesInBetweenMessage;
     };
 };
+#endif //GEO_NETWORK_CLIENT_CYCLESIXNODESINBETWEENMESSAGE_H

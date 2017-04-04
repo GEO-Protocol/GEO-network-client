@@ -1,19 +1,18 @@
 #include "CycleThreeNodesInitTransaction.h"
 
 CycleThreeNodesInitTransaction::CycleThreeNodesInitTransaction(TransactionsScheduler *scheduler)
-        :UniqueTransaction(BaseTransaction::TransactionType::CyclesThreeNodesInitTransaction, scheduler) {
+        :UniqueTransaction(BaseTransaction::TransactionType::CycleThreeNodesInitTransaction, scheduler) {
 
 }
 
 CycleThreeNodesInitTransaction::CycleThreeNodesInitTransaction(
-        const BaseTransaction::TransactionType type,
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Logger *logger)
-        : UniqueTransaction(type, nodeUUID, scheduler),
+        : UniqueTransaction(BaseTransaction::TransactionType::CycleThreeNodesInitTransaction, nodeUUID, scheduler),
           mStorageHandler(storageHandler),
           mTrustLinesManager(manager),
           mlogger(logger),

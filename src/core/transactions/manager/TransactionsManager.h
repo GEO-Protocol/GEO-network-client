@@ -61,6 +61,8 @@
 #include "../transactions/cycles/FiveAndSixNodes/CycleFiveNodesInitTransaction.h"
 #include "../transactions/cycles/FiveAndSixNodes/CycleSixNodesInitTransaction.h"
 #include "../transactions/cycles/FiveAndSixNodes/CycleFiveNodesResponseTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CycleSixNodesResponseTransaction.h"
+
 #include "../transactions/cycles/ThreeNodes/CycleThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CycleThreeNodesResponseTransaction.h"
 

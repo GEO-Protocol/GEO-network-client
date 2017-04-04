@@ -8,7 +8,6 @@ class CycleFiveNodesInitTransaction : public CyclesBaseFiveSixNodesInitTransacti
 
 public:
     CycleFiveNodesInitTransaction(
-        const TransactionType type,
         const NodeUUID &nodeUUID,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager,

@@ -11,7 +11,6 @@
 class CycleThreeNodesResponseTransaction : public UniqueTransaction {
 public:
     CycleThreeNodesResponseTransaction(
-            const TransactionType type,
             const NodeUUID &nodeUUID,
             ThreeNodesBalancesRequestMessage::Shared message,
             TransactionsScheduler *scheduler,

@@ -20,10 +20,9 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
 }
 
 CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
-    const BaseTransaction::TransactionType type,
     const NodeUUID &nodeUUID, TransactionsScheduler *scheduler,
     TrustLinesManager *manager, Logger *logger)
-    : CyclesBaseFiveSixNodesInitTransaction(type, nodeUUID, scheduler, manager, logger) {
+    : CyclesBaseFiveSixNodesInitTransaction(BaseTransaction::TransactionType::CycleSixNodesInitTransaction, nodeUUID, scheduler, manager, logger) {
 
 }
 

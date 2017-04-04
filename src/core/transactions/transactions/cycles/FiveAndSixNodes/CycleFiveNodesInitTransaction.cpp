@@ -25,11 +25,9 @@ TransactionResult::SharedConst CycleFiveNodesInitTransaction::runCollectDataAndS
 }
 
 CycleFiveNodesInitTransaction::CycleFiveNodesInitTransaction(
-    const BaseTransaction::TransactionType type,
     const NodeUUID &nodeUUID, TransactionsScheduler *scheduler,
     TrustLinesManager *manager, Logger *logger)
-    : CyclesBaseFiveSixNodesInitTransaction(type, nodeUUID, scheduler, manager, logger) {
-
+    : CyclesBaseFiveSixNodesInitTransaction(BaseTransaction::TransactionType::CycleFiveNodesInitTransaction, nodeUUID, scheduler, manager, logger) {
 }
 
 #pragma clang diagnostic push

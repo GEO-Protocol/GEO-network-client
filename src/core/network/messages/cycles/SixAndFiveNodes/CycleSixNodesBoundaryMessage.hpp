@@ -1,3 +1,6 @@
+#ifndef GEO_NETWORK_CLIENT_CYCLESIXNODESBOUNDARYMESSAGE_H
+#define GEO_NETWORK_CLIENT_CYCLESIXNODESBOUNDARYMESSAGE_H
+
 #include "base/CycleBaseFiveOrSixNodesBoundaryMessage.h"
 class CycleSixNodesBoundaryMessage: public CycleBaseFiveOrSixNodesBoundaryMessage {
 public:
@@ -17,3 +20,4 @@ public:
     };
 };
 
+#endif //GEO_NETWORK_CLIENT_CYCLESIXNODESBOUNDARYMESSAGE_H

@@ -28,14 +28,20 @@
 #include "../messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
-#include "../messages/cycles/InBetweenNodeTopologyMessage.h"
-#include "../messages/cycles/BoundaryNodeTopologyMessage.h"
 #include "../messages/response/Response.h"
 #include "../messages/response/RoutingTablesResponse.h"
 #include "../messages/total_balances/InitiateTotalBalancesMessage.h"
 #include "../messages/total_balances/TotalBalancesResultMessage.h"
 #include "../messages/find_path/RequestRoutingTablesMessage.h"
 #include "../messages/find_path/ResultRoutingTablesMessage.h"
+
+#include "../messages/cycles/SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp"
+#include "../messages/cycles/SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp"
+#include "../messages/cycles/SixAndFiveNodes/CycleFiveNodesBoundaryMessage.hpp"
+#include "../messages/cycles/SixAndFiveNodes/CycleSixNodesBoundaryMessage.hpp"
+#include "../messages/cycles/ThreeNodes/ThreeNodesBalancesRequestMessage.h"
+#include "../messages/cycles/ThreeNodes/ThreeNodesBalancesResponseMessage.h"
+
 
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"

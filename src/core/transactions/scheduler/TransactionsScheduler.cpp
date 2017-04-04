@@ -82,23 +82,15 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
             }
         }
 //       Check if this is CycleTransaction
-        if(transactionAndState.first->transactionType() == BaseTransaction::TransactionType::SixNodesTopologyTransaction){
-            if(message->isCyclesDiscoveringResponseMessage()){
-                if (static_pointer_cast<BoundaryNodeTopologyMessage>(message)->cycleType() ==
-                    InBetweenNodeTopologyMessage::CycleTypeID::CycleForSixNodes) {
-                    transactionAndState.first->pushContext(message);
-                    return;
-                }
-            }
+        if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::CycleSixNodesInitTransaction and
+            message->typeID() == Message::MessageTypeID::CycleSixNodesBoundaryMessage) {
+            transactionAndState.first->pushContext(message);
+            return;
         }
-        if(transactionAndState.first->transactionType() == BaseTransaction::TransactionType::FiveNodesTopologyTransaction){
-            if(message->isCyclesDiscoveringResponseMessage()){
-                if (static_pointer_cast<BoundaryNodeTopologyMessage>(message)->cycleType() ==
-                    InBetweenNodeTopologyMessage::CycleTypeID::CycleForFiveNodes) {
-                    transactionAndState.first->pushContext(message);
-                    return;
-                }
-            }
+        if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::CycleFiveNodesInitTransaction and
+            message->typeID() == Message::MessageTypeID::CycleFiveNodesBoundaryMessage) {
+            transactionAndState.first->pushContext(message);
+            return;
         }
 
         if (message->isRoutingTableResponseMessage()) {

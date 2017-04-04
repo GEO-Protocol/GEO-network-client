@@ -6,13 +6,12 @@ CycleThreeNodesResponseTransaction::CycleThreeNodesResponseTransaction(Transacti
 }
 
 CycleThreeNodesResponseTransaction::CycleThreeNodesResponseTransaction(
-    const BaseTransaction::TransactionType type,
     const NodeUUID &nodeUUID,
     ThreeNodesBalancesRequestMessage::Shared message,
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager,
     Logger *logger)
-    : UniqueTransaction(type, nodeUUID, scheduler),
+    : UniqueTransaction(BaseTransaction::TransactionType::CycleThreeNodesResponseTransaction, nodeUUID, scheduler),
       mTrustLinesManager(manager),
       mLogger(logger),
       mRequestMessage(message) {
@@ -30,27 +29,28 @@ TransactionResult::SharedConst CycleThreeNodesResponseTransaction::run() {
         mTransactionUUID,
         neighbors.size()
     );
+    vector<pair<NodeUUID, TrustLineBalance>> neighborUUIDAndBalance;
     TrustLineBalance contractorBalance = mTrustLinesManager->balance(mContractorUUID);
     TrustLineBalance zeroBalance = 0;
     TrustLineBalance stepNodeBalance;
     bool searchDebtors = true;
-    if (contractorBalance > zeroBalance)
+    if (contractorBalance < zeroBalance)
         searchDebtors = false;
-
+//    todo Add resize to AddNeighborUUIDAndBalance
     for (auto &value: neighbors) {
         stepNodeBalance = mTrustLinesManager->balance(value);
-        if (searchDebtors and (stepNodeBalance > zeroBalance))
-            kMessage->AddNeighborUUIDAndBalance(
-                make_pair(
-                    value,
-                    stepNodeBalance));
-        if (not searchDebtors and (stepNodeBalance < zeroBalance))
-            kMessage->AddNeighborUUIDAndBalance(
+        if ((searchDebtors and (stepNodeBalance > zeroBalance)) or
+            (not searchDebtors and (stepNodeBalance < zeroBalance)))
+            neighborUUIDAndBalance.push_back(
                 make_pair(
                     value,
                     stepNodeBalance));
     }
-    sendMessage(mContractorUUID, kMessage);
+    sendMessage<ThreeNodesBalancesResponseMessage>(
+        mContractorUUID,
+        mNodeUUID,
+        mTransactionUUID,
+        neighborUUIDAndBalance);
     return finishTransaction();
 }
 #pragma clang diagnostic pop

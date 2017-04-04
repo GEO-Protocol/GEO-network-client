@@ -6,17 +6,14 @@ CycleFiveNodesResponseTransaction::CycleFiveNodesResponseTransaction(Transaction
 }
 
 CycleFiveNodesResponseTransaction::CycleFiveNodesResponseTransaction(
-    const BaseTransaction::TransactionType type,
     const NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
     CycleFiveNodesInBetweenMessage::Shared message,
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager,
     Logger *logger)
-    : UniqueTransaction(type, nodeUUID, scheduler),
+    : UniqueTransaction(BaseTransaction::TransactionType::CycleFiveNodesResponseTransaction, nodeUUID, scheduler),
       mTrustLinesManager(manager),
       mlogger(logger),
-      mContractorUUID(contractorUUID),
       mInBetweenNodeTopologyMessage(message) {
 
 }

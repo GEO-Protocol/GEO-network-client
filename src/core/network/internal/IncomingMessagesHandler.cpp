@@ -117,24 +117,54 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         /*
          * Cycles processing messages
          */
-        case Message::InBetweenNodeTopologyMessage: {
+        case Message::CycleSixNodesInBetweenMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<InBetweenNodeTopologyMessage>(messagePart)
+                    make_shared<CycleSixNodesInBetweenMessage>(messagePart)
                 )
             );
         }
-
-        case Message::BoundaryNodeTopologyMessage: {
+        case Message::CycleFiveNodesInBetweenMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<BoundaryNodeTopologyMessage>(messagePart)
+                    make_shared<CycleFiveNodesInBetweenMessage>(messagePart)
                 )
             );
         }
-
+        case Message::CycleSixNodesBoundaryMessage: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<CycleSixNodesBoundaryMessage>(messagePart)
+                )
+            );
+        }
+        case Message::CycleFiveNodesBoundaryMessage: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<CycleFiveNodesBoundaryMessage>(messagePart)
+                )
+            );
+        }
+        case Message::ThreeNodesBalancesResponseMessage: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ThreeNodesBalancesResponseMessage>(messagePart)
+                )
+            );
+        }
+        case Message::ThreeNodesBalancesRequestMessage: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ThreeNodesBalancesRequestMessage>(messagePart)
+                )
+            );
+        }
         /*
          * Max flow calculation messages
          */

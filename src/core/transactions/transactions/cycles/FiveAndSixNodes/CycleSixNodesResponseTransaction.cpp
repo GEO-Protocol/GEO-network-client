@@ -6,19 +6,15 @@ CycleSixNodesResponseTransaction::CycleSixNodesResponseTransaction(TransactionsS
 }
 
 CycleSixNodesResponseTransaction::CycleSixNodesResponseTransaction(
-    const BaseTransaction::TransactionType type,
     const NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID,
     CycleSixNodesInBetweenMessage::Shared message,
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager,
     Logger *logger)
-    : UniqueTransaction(type, nodeUUID, scheduler),
+    : UniqueTransaction(BaseTransaction::TransactionType::CycleSixNodesResponseTransaction, nodeUUID, scheduler),
       mTrustLinesManager(manager),
       mlogger(logger),
-      mContractorUUID(contractorUUID),
       mInBetweenNodeTopologyMessage(message) {
-
 }
 
 #pragma clang diagnostic push
