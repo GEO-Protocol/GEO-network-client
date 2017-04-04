@@ -1,4 +1,3 @@
-#include <map>
 #include "RoutingTablesMessage.h"
 
 RoutingTablesMessage::RoutingTablesMessage() {}
@@ -18,7 +17,7 @@ const RoutingTablesMessage::PropagationStep RoutingTablesMessage::propagationSte
     return mPropagationStep;
 }
 
-const std::map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>>& RoutingTablesMessage::records() const {
+const map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>>& RoutingTablesMessage::records() const {
 
     return mRecords;
 }

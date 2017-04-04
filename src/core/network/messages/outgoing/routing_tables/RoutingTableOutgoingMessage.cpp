@@ -19,9 +19,7 @@ void RoutingTableOutgoingMessage::pushBack(
     mRecords.insert(
         make_pair(
             node,
-            table
-        )
-    );
+            table));
 }
 
 pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
@@ -31,69 +29,66 @@ pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
 
     bytesCount += sizeof(SerializedPropagationStep);
     bytesCount += sizeof(RecordsCount);
+
     for (const auto &nodeAndRecord : mRecords) {
         bytesCount += NodeUUID::kBytesSize + sizeof(RecordsCount);
+
         for(const auto &neighborAndDirect : nodeAndRecord.second) {
             bytesCount += NodeUUID::kBytesSize + sizeof(TrustLineDirection);
         }
+
     }
 
-    BytesShared dataBytesShared = tryMalloc(bytesCount);
+    BytesShared dataBytesShared = tryMalloc(
+        bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     SerializedPropagationStep propagationStep = (SerializedPropagationStep) mPropagationStep;
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &propagationStep,
-        sizeof(SerializedPropagationStep)
-    );
+        sizeof(SerializedPropagationStep));
     dataBytesOffset += sizeof(SerializedPropagationStep);
     //----------------------------------------------------
     RecordsCount nodesCount = mRecords.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &nodesCount,
-        sizeof(RecordsCount)
-    );
+        sizeof(RecordsCount));
     dataBytesOffset += sizeof(RecordsCount);
     //----------------------------------------------------
     for (const auto &nodeAndRecord : mRecords) {
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             nodeAndRecord.first.data,
-            NodeUUID::kBytesSize
-        );
+            NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
         //----------------------------------------------------
         RecordsCount recordsCount = nodeAndRecord.second.size();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &recordsCount,
-            sizeof(RecordsCount)
-        );
+            sizeof(RecordsCount));
         dataBytesOffset += sizeof(RecordsCount);
         //----------------------------------------------------
         for(const auto &neighborAndDirect : nodeAndRecord.second) {
             memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 neighborAndDirect.first.data,
-                NodeUUID::kBytesSize
-            );
+                NodeUUID::kBytesSize);
             dataBytesOffset += NodeUUID::kBytesSize;
             //----------------------------------------------------
             SerializedTrustLineDirection direction = neighborAndDirect.second;
             memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 &direction,
-                sizeof(SerializedTrustLineDirection)
-            );
+                sizeof(SerializedTrustLineDirection));
             dataBytesOffset += sizeof(SerializedTrustLineDirection);
         }
         //----------------------------------------------------
@@ -101,8 +96,7 @@ pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
     //----------------------------------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 void RoutingTableOutgoingMessage::deserializeFromBytes(

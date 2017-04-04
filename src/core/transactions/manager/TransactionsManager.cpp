@@ -510,7 +510,8 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                     make_shared<FromContractorToFirstLevelRoutingTablesAcceptTransaction>(
                         mNodeUUID,
                         message,
-                        mTrustLines
+                        mTrustLines,
+                        mStorageHandler
                     )
                 );
                 break;
@@ -521,7 +522,8 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                 transaction = dynamic_pointer_cast<BaseTransaction>(
                     make_shared<FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction>(
                         mNodeUUID,
-                        message
+                        message,
+                        mStorageHandler
                     )
                 );
                 break;

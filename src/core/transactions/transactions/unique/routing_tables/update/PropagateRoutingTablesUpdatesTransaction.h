@@ -58,6 +58,7 @@ private:
     TrustLineDirection mDirection;
     NodeUUID mRecipientUUID;
     RoutingTableUpdateOutgoingMessage::UpdatingStep mUpdatingStep;
+
 };
 
 

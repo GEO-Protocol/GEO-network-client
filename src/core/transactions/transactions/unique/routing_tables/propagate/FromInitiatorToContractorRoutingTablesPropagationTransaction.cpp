@@ -203,7 +203,17 @@ void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendSecondLev
 
     SecondLevelRoutingTableOutgoingMessage::Shared secondLevelMessage = make_shared<SecondLevelRoutingTableOutgoingMessage>(mNodeUUID);
 
-    //TODO:: read second level routing table from storage handler
+    for (auto& nodeAndNeighborsAndDirections : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
+
+        if (*mContractorsUUIDs.begin() == nodeAndNeighborsAndDirections.first) {
+            continue;
+        }
+
+        secondLevelMessage->pushBack(
+            nodeAndNeighborsAndDirections.first,
+            nodeAndNeighborsAndDirections.second);
+
+    }
 
     sendMessage(
         *mContractorsUUIDs.begin(),
