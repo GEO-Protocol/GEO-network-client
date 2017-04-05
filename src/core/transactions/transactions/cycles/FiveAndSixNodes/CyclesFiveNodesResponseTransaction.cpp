@@ -1,20 +1,16 @@
 #include "CyclesFiveNodesResponseTransaction.h"
 
-CyclesFiveNodesResponseTransaction::CyclesFiveNodesResponseTransaction(TransactionsScheduler *scheduler)
-    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_FiveNodesResponseTransaction, scheduler) {
-
-}
-
 CyclesFiveNodesResponseTransaction::CyclesFiveNodesResponseTransaction(
     const NodeUUID &nodeUUID,
     CycleFiveNodesInBetweenMessage::Shared message,
-    TransactionsScheduler *scheduler,
     TrustLinesManager *manager,
-    Logger *logger)
-    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_FiveNodesResponseTransaction, nodeUUID, scheduler),
-      mTrustLinesManager(manager),
-      mlogger(logger),
-      mInBetweenNodeTopologyMessage(message) {
+    Logger *logger) :
+    BaseTransaction(
+        BaseTransaction::TransactionType::Cycles_FiveNodesResponseTransaction,
+        nodeUUID),
+    mTrustLinesManager(manager),
+    mLogger(logger),
+    mInBetweenNodeTopologyMessage(message) {
 
 }
 

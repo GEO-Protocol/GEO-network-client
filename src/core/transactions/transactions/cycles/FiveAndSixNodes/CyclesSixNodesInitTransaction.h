@@ -3,13 +3,13 @@
 
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesBoundaryMessage.hpp"
 
 class CyclesSixNodesInitTransaction : public CyclesBaseFiveSixNodesInitTransaction{
 
 public:
     CyclesSixNodesInitTransaction(
         const NodeUUID &nodeUUID,
-        TransactionsScheduler *scheduler,
         TrustLinesManager *manager,
         Logger *logger);
 
@@ -19,7 +19,5 @@ protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
-protected:
-    bool check_path(vector<NodeUUID> &debtors, vector<NodeUUID> &creditors);
 };
 #endif //GEO_NETWORK_CLIENT_CYCLESSIXNODESINITTRANSACTION_H

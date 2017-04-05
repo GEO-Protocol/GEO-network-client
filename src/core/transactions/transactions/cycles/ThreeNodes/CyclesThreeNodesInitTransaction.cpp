@@ -76,7 +76,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultWaitForMessageTypes(
         {Message::Cycles_ThreeNodesBalancesResponseMessage},
-        kStandardConnectionTimeout);
+        mkStandardConnectionTimeout);
 }
 
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage() {

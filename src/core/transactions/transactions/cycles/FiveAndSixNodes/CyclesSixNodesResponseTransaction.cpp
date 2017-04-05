@@ -1,20 +1,16 @@
 #include "CyclesSixNodesResponseTransaction.h"
 
-CyclesSixNodesResponseTransaction::CyclesSixNodesResponseTransaction(TransactionsScheduler *scheduler)
-    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_SixNodesResponseTransaction, scheduler) {
-
-}
-
 CyclesSixNodesResponseTransaction::CyclesSixNodesResponseTransaction(
     const NodeUUID &nodeUUID,
     CycleSixNodesInBetweenMessage::Shared message,
-    TransactionsScheduler *scheduler,
     TrustLinesManager *manager,
-    Logger *logger)
-    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_SixNodesResponseTransaction, nodeUUID, scheduler),
-      mTrustLinesManager(manager),
-      mlogger(logger),
-      mInBetweenNodeTopologyMessage(message) {
+    Logger *logger) :
+    BaseTransaction(
+        BaseTransaction::TransactionType::Cycles_SixNodesResponseTransaction,
+        nodeUUID),
+    mTrustLinesManager(manager),
+    mLogger(logger),
+    mInBetweenNodeTopologyMessage(message) {
 }
 
 #pragma clang diagnostic push
@@ -47,7 +43,7 @@ TransactionResult::SharedConst CyclesSixNodesResponseTransaction::run() {
         );
     }
     else {
-        mlogger->error("CyclesSixNodesResponseTransaction:"
+        mLogger->error("CyclesSixNodesResponseTransaction:"
         "Wrong path size");
     }
     return resultExit();

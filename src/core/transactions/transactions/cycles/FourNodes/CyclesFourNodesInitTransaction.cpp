@@ -51,7 +51,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultWaitForMessageTypes(
         {Message::FourNodesBalancesResponseMessage},
-        kStandardConnectionTimeout);
+        mkStandardConnectionTimeout);
 }
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage() {

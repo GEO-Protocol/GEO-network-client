@@ -1,32 +1,29 @@
 #include "CyclesBaseFiveSixNodesInitTransaction.h"
 
-CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(const TransactionType type,
-                                                                     const NodeUUID &nodeUUID,
-                                                                     TransactionsScheduler *scheduler,
-                                                                     TrustLinesManager *manager,
-                                                                     Logger *logger
-)
-    : UniqueTransaction(type, nodeUUID, scheduler),
-      mTrustLinesManager(manager),
-      mlogger(logger)
+CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
+    const TransactionType type,
+    const NodeUUID &nodeUUID,
+    TrustLinesManager *manager,
+    Logger *logger) :
+    BaseTransaction(
+        type,
+        nodeUUID),
+    mTrustLinesManager(manager),
+    mLogger(logger)
 {
 };
 
-CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(TransactionsScheduler *scheduler)
-    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_BaseFiveSixNodesInitTransaction, scheduler) {
-}
-
 TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::run() {
-    switch (mStep){
+    switch (mStep) {
         case Stages::CollectDataAndSendMessage:
             return runCollectDataAndSendMessagesStage();
+
         case Stages::ParseMessageAndCreateCycles:
             return runParseMessageAndCreateCyclesStage();
+
         default:
             throw RuntimeError(
-                "CyclesBaseFiveSixNodesInitTransaction::run(): "
-                    "invalid transaction step.");
-
+                "CyclesBaseFiveSixNodesInitTransaction::run():"
+                    "Invalid transaction step.");
     }
 }
-

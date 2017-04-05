@@ -4,9 +4,8 @@ const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactio
     return BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction;
 }
 
-
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndSendMessagesStage() {
-    auto firstLevelNodes = mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalance();
+    const auto firstLevelNodes = mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalance();
     vector<NodeUUID> path;
     path.push_back(mNodeUUID);
     for(const auto &value: firstLevelNodes){
@@ -16,15 +15,19 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
         );
     }
     mStep = Stages::ParseMessageAndCreateCycles;
-    return resultAwaikAfterMilliseconds(mWaitingForResponseTime);
+    return resultAwaikAfterMilliseconds(mkWaitingForResponseTime);
 }
 
 CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
-    const NodeUUID &nodeUUID, TransactionsScheduler *scheduler,
-    TrustLinesManager *manager, Logger *logger)
-    : CyclesBaseFiveSixNodesInitTransaction(BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction, nodeUUID, scheduler, manager, logger) {
-
-}
+    const NodeUUID &nodeUUID,
+    TrustLinesManager *manager,
+    Logger *logger) :
+    CyclesBaseFiveSixNodesInitTransaction(
+        BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction,
+        nodeUUID,
+        manager,
+        logger)
+{}
 
 
 #pragma clang diagnostic push
@@ -46,13 +49,13 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
         if (creditorsStepFlow > zeroBalance)
             continue;
 //  Check all Boundary Nodes and add it to map if all checks path
-        for (auto &value: message->BoundaryNodes()){
+        for (auto &nodeUUIDAndBalance: message->BoundaryNodes()){
 //  Prevent loop on cycles path
-            if (value.first == stepPath.front())
+            if (nodeUUIDAndBalance.first == stepPath.front())
                 continue;
             mCreditors.insert(make_pair(
-                value.first,
-                make_pair(stepPath, (-1) * max(creditorsStepFlow, value.second))));
+                nodeUUIDAndBalance.first,
+                make_pair(stepPath, (-1) * max(creditorsStepFlow, nodeUUIDAndBalance.second))));
 
         }
     }

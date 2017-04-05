@@ -21,14 +21,19 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
                 path
             );
     mStep = Stages::ParseMessageAndCreateCycles;
-    return resultAwaikAfterMilliseconds(mWaitingForResponseTime);
+    return resultAwaikAfterMilliseconds(mkWaitingForResponseTime);
 }
 
 CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
-    const NodeUUID &nodeUUID, TransactionsScheduler *scheduler,
-    TrustLinesManager *manager, Logger *logger)
-    : CyclesBaseFiveSixNodesInitTransaction(BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction, nodeUUID, scheduler, manager, logger) {
-}
+    const NodeUUID &nodeUUID,
+    TrustLinesManager *manager,
+    Logger *logger) :
+    CyclesBaseFiveSixNodesInitTransaction(
+        BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction,
+        nodeUUID,
+        manager,
+        logger)
+{};
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"

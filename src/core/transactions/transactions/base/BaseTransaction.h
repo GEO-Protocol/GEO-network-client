@@ -220,8 +220,9 @@ public:
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
 
 protected:
-    uint16_t kStandardConnectionTimeout = 1500; //miliseconds
-    uint16_t mExpectationResponsesCount = 0;
+    const uint16_t mkStandardConnectionTimeout = 1500; //miliseconds
+    const uint16_t mmExpectationResponsesCount = 0;
+    const uint16_t mkWaitingForResponseTime = 3000;
     uint16_t mStep = 1;
 
 protected:
