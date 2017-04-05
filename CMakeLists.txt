@@ -84,6 +84,7 @@ add_subdirectory(src/core/max_flow_calculation)
 add_subdirectory(src/core/delayed_tasks)
 add_subdirectory(src/core/payments/amount_blocks)
 add_subdirectory(src/core/io/storage)
+add_subdirectory(src/core/resources)
 
 #
 # libs
@@ -97,7 +98,7 @@ set(SOURCE_FILES
         src/core/Core.h
 
         # libs
-        src/libs/json/json.h src/core/resources/manager/ResourcesManager.cpp src/core/resources/manager/ResourcesManager.h src/core/resources/resources/BaseResource.cpp src/core/resources/resources/BaseResource.h)
+        src/libs/json/json.h)
 
 add_executable(geo_network_client ${SOURCE_FILES})
 
@@ -124,4 +125,5 @@ target_link_libraries(geo_network_client
         trust_lines
         max_flow_calculation
         delayed_tasks
-        transactions)
+        transactions
+        resources_manager)
