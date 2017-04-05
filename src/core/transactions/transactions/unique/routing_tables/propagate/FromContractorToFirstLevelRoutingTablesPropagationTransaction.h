@@ -37,7 +37,8 @@ public:
 
     FromContractorToFirstLevelRoutingTablesPropagationTransaction(
         BytesShared buffer,
-        TrustLinesManager *trustLinesManager);
+        TrustLinesManager *trustLinesManager,
+        Logger *logger = nullptr);
 
     TransactionResult::SharedConst run();
 

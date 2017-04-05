@@ -48,7 +48,7 @@ void OutgoingMessagesHandler::processOutgoingMessage(
             offset = 0;
 
         } else {
-            offset += kMaxPacketBodySize;
+            offset = kMaxPacketBodySize * (packetNumber - 1);
         }
 
         auto packet = makePacket(
@@ -57,6 +57,7 @@ void OutgoingMessagesHandler::processOutgoingMessage(
             packetNumber,
             crcPacketAndCount.second,
             channelNumber);
+
 
         channel->addPacket(
             packetNumber,
@@ -71,10 +72,10 @@ pair<Packet::Shared, uint16_t> OutgoingMessagesHandler::makeCRCPacket(
 
     uint16_t packetsCount;
     if (kMaxPacketBodySize < messageBytesAndCount.second) {
-        size_t remaind = messageBytesAndCount.second % kMaxPacketBodySize;
+        size_t remain = messageBytesAndCount.second % kMaxPacketBodySize;
         packetsCount = (uint16_t) (messageBytesAndCount.second / kMaxPacketBodySize + 1);
 
-        if (remaind > 0) {
+        if (remain > 0) {
             packetsCount += 1;
         }
 

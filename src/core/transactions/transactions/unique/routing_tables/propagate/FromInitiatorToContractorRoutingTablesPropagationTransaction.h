@@ -38,7 +38,8 @@ public:
     FromInitiatorToContractorRoutingTablesPropagationTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLinesManager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger = nullptr);
 
     TransactionResult::SharedConst run();
 

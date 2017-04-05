@@ -4,22 +4,26 @@ FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::FromFirstLevelTo
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,
     FirstLevelRoutingTableIncomingMessage::Shared relationshipsBetweenInitiatorAndContractor,
-    TrustLinesManager *trustLinesManager)  :
+    TrustLinesManager *trustLinesManager,
+    Logger *logger)  :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
         nodeUUID,
-        contractorUUID),
+        contractorUUID,
+        logger),
     mLinkWithInitiator(relationshipsBetweenInitiatorAndContractor),
     mTrustLinesManager(trustLinesManager) {}
 
 FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction(
     BytesShared buffer,
-    TrustLinesManager *trustLinesManager) :
+    TrustLinesManager *trustLinesManager,
+    Logger *logger) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        buffer),
+        buffer,
+        logger),
     mTrustLinesManager(trustLinesManager) {}
 
 TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::run() {

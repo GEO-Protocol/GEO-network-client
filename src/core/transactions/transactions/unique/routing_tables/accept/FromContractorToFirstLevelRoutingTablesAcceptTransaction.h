@@ -30,12 +30,14 @@ public:
         const NodeUUID &nodeUUID,
         FirstLevelRoutingTableIncomingMessage::Shared relationshipsBetweenInitiatorAndContractor,
         TrustLinesManager *trustLinesManager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     FromContractorToFirstLevelRoutingTablesAcceptTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLinesManager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     FirstLevelRoutingTableIncomingMessage::Shared message() const;
 
@@ -56,6 +58,8 @@ private:
         const uint16_t code);
 
     void createFromFirstLevelToSecondLevelRoutingTablesPropagationTransaction();
+
+    const string logHeader() const;
 
 private:
     FirstLevelRoutingTableIncomingMessage::Shared mLinkBetweenInitiatorAndContractor;

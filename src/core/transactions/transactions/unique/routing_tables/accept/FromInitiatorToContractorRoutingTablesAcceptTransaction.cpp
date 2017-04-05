@@ -4,12 +4,14 @@ FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContract
     const NodeUUID &nodeUUID,
     FirstLevelRoutingTableIncomingMessage::Shared message,
     TrustLinesManager *trustLinesManager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
         nodeUUID,
-        message->senderUUID()),
+        message->senderUUID(),
+        logger),
     mFirstLevelMessage(message),
     mTrustLinesManager(trustLinesManager),
     mStorageHandler(storageHandler) {}
@@ -17,11 +19,13 @@ FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContract
 FromInitiatorToContractorRoutingTablesAcceptTransaction::FromInitiatorToContractorRoutingTablesAcceptTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLinesManager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
-        buffer),
+        buffer,
+        logger),
     mTrustLinesManager(trustLinesManager),
     mStorageHandler(storageHandler) {}
 
@@ -58,14 +62,28 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
 
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRoutingTable() {
 
+    info() << "From initiator first level routing table message received";
+    info() << "Sender UUID: " + mFirstLevelMessage->senderUUID().stringUUID();
+    info() << "Routing table";
+
     for (const auto &nodeAndRecords : mFirstLevelMessage->records()) {
+
+        info() << "Initiator UUID: " + nodeAndRecords.first.stringUUID();
 
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
-            mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(
-                mFirstLevelMessage->senderUUID(),
-                neighborAndDirect.first,
-                neighborAndDirect.second);
+            info() << "Neighbor UUID: " + neighborAndDirect.first.stringUUID();
+            info() << "Direction: " + to_string(neighborAndDirect.second);
+
+            try {
+                mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(
+                    mFirstLevelMessage->senderUUID(),
+                    neighborAndDirect.first,
+                    neighborAndDirect.second);
+
+            } catch (Exception&) {
+                error() << "Except when saving first level routing table from initiator at contractor's side";
+            }
 
         }
     }
@@ -125,14 +143,28 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTrans
 void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveSecondLevelRoutingTable(
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage) {
 
+    info() << "From initiator second level routing table message received";
+    info() << "Sender UUID: " + mFirstLevelMessage->senderUUID().stringUUID();
+    info() << "Routing table";
+
     for (const auto &nodeAndRecords : secondLevelMessage->records()) {
+
+        info() << "Node UUID: " + nodeAndRecords.first.stringUUID();
 
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
-            mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(
-                nodeAndRecords.first,
-                neighborAndDirect.first,
-                neighborAndDirect.second);
+            info() << "Neighbor UUID: " + neighborAndDirect.first.stringUUID();
+            info() << "Direction: " + to_string(neighborAndDirect.second);
+
+            try {
+                mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(
+                    nodeAndRecords.first,
+                    neighborAndDirect.first,
+                    neighborAndDirect.second);
+
+            } catch (Exception& e) {
+                error() << "Except when saving second level routing table from initiator at contractor's side";
+            }
 
         }
 
@@ -166,4 +198,12 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::createFromContract
 
     launchSubsidiaryTransaction(
         transaction);
+}
+
+const string FromInitiatorToContractorRoutingTablesAcceptTransaction::logHeader() const {
+
+    stringstream s;
+    s << "[FromInitiatorToContractorRoutingTablesAcceptTransaction]";
+
+    return s.str();
 }

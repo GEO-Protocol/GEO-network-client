@@ -15,11 +15,13 @@ FromContractorToFirstLevelRoutingTablesPropagationTransaction::FromContractorToF
 
 FromContractorToFirstLevelRoutingTablesPropagationTransaction::FromContractorToFirstLevelRoutingTablesPropagationTransaction(
     BytesShared buffer,
-    TrustLinesManager *trustLinesManager) :
+    TrustLinesManager *trustLinesManager,
+    Logger *logger) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::PropagationRoutingTablesTransactionType,
-        buffer),
+        buffer,
+        logger),
     mTrustLinesManager(trustLinesManager) {}
 
 TransactionResult::SharedConst FromContractorToFirstLevelRoutingTablesPropagationTransaction::run() {
