@@ -4,6 +4,7 @@
 #include "../BaseUserCommand.h"
 #include "../../../../common/exceptions/ValueError.h"
 
+// TODO: should be removed after testing getting paths
 class FindPathCommand : public BaseUserCommand {
 
 public:

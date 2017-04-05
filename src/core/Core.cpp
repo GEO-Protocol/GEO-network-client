@@ -480,8 +480,9 @@ void Core::onDelayedTaskCycleFiveNodesSlot() {
 //    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
 }
 
-void Core::onPathsResourceRequestedSlot(const TransactionUUID &transactionUUID,
-                                        const NodeUUID &destinationNodeUUID) {
+void Core::onPathsResourceRequestedSlot(
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &destinationNodeUUID) {
 
     try {
         mTransactionsManager->launchPathsResourcesCollectTransaction(

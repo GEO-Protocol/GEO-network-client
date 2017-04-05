@@ -137,14 +137,6 @@ void PathsManager::findPathsOnFifthLevel() {
 
 void PathsManager::findPathsOnSixthLevel() {
 
-    /*info() << "sixth path RT3: ";
-    for (auto const &itMap : contractorRT3) {
-        info() << "key: " << itMap.first;
-        for (auto const &itVector : itMap.second) {
-            info() << "\tvalue: " << itVector;
-        }
-    }*/
-
     for (auto const &itRT3 : contractorRT3) {
         // TODO (mc) : need or not second condition (itRT3.first == contractorUUID)
         if (itRT3.first == mNodeUUID || itRT3.first == contractorUUID) {
@@ -213,8 +205,10 @@ void PathsManager::findPathsOnSecondLevelTest() {
             mNodeUUID,
             contractorUUID,
             {nodeUUID});
-        mPathCollection->add(path);
-        info() << "found path on second level";
+        if (isPathValid(path)) {
+            mPathCollection->add(path);
+            info() << "found path on second level";
+        }
     }
 }
 
@@ -231,8 +225,10 @@ void PathsManager::findPathsOnThirdLevelTest() {
             {
                 nodeUUIDAndNodeUUID.first,
                 nodeUUIDAndNodeUUID.second});
-        mPathCollection->add(path);
-        info() << "found path on third level";
+        if (isPathValid(path)) {
+            mPathCollection->add(path);
+            info() << "found path on third level";
+        }
     }
 }
 
@@ -251,8 +247,10 @@ void PathsManager::findPathsOnForthLevelTest() {
                     nodeUUIDAndNodeUUID.first,
                     nodeUUIDAndNodeUUID.second,
                     nodeUUID});
-            mPathCollection->add(path);
-            info() << "found path on forth level";
+            if (isPathValid(path)) {
+                mPathCollection->add(path);
+                info() << "found path on forth level";
+            }
         }
     }
 }
@@ -277,8 +275,10 @@ void PathsManager::findPathsOnFifthLevelTest() {
                     mNodeUUID,
                     contractorUUID,
                     intermediateNodes);
-                mPathCollection->add(path);
-                info() << "found path on fifth level";
+                if (isPathValid(path)) {
+                    mPathCollection->add(path);
+                    info() << "found path on fifth level";
+                }
             }
         }
     }
@@ -309,8 +309,10 @@ void PathsManager::findPathsOnSixthLevelTest() {
                         mNodeUUID,
                         contractorUUID,
                         intermediateNodes);
-                    mPathCollection->add(path);
-                    info() << "found path on sixth level";
+                    if (isPathValid(path)) {
+                        mPathCollection->add(path);
+                        info() << "found path on sixth level";
+                    }
                 }
             }
         }
@@ -327,15 +329,29 @@ vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevelTest(
         return nodeUUIDAndVect->second;
     }
 }
+
+bool PathsManager::isPathValid(const Path &path) {
+
+    auto itGlobal = path.nodes.begin();
+    while (itGlobal != path.nodes.end() - 1) {
+        auto itLocal = itGlobal + 1;
+        while (itLocal != path.nodes.end()) {
+            if (*itGlobal == *itLocal) {
+                return false;
+            }
+            itLocal++;
+        }
+        itGlobal++;
+    }
+    return true;
+}
 // test end
 
 Path::Shared PathsManager::findPath() {
 
     info() << "start finding paths to " << contractorUUID;
-    if (mPathCollection != nullptr) {
-        delete mPathCollection;
-    }
-    mPathCollection = new PathsCollection(
+    DateTime startTime;
+    mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
         contractorUUID);
     findDirectPath();
@@ -345,6 +361,8 @@ Path::Shared PathsManager::findPath() {
     findPathsOnFifthLevel();
     findPathsOnSixthLevel();
 
+    Duration methodTime = utc_now() - startTime;
+    info() << "PathsManager::findPath\tmethod time: " << methodTime;
     info() << "total paths count: " << mPathCollection->count();
     while (mPathCollection->hasNextPath()) {
         info() << mPathCollection->nextPath()->toString();
@@ -360,12 +378,9 @@ Path::Shared PathsManager::findPath() {
 Path::Shared PathsManager::findPathsTest() {
 
     info() << "start finding paths to " << contractorUUID;
-    if (mPathCollection != nullptr) {
-        delete mPathCollection;
-    }
-    mPathCollection = new PathsCollection(
-            mNodeUUID,
-            contractorUUID);
+    mPathCollection = make_shared<PathsCollection>(
+        mNodeUUID,
+        contractorUUID);
     findDirectPath();
     findPathsOnSecondLevelTest();
     findPathsOnThirdLevelTest();
@@ -385,7 +400,12 @@ Path::Shared PathsManager::findPathsTest() {
     }
 }
 
-PathsCollection* PathsManager::pathCollection() const {
+/*PathsCollection* PathsManager::pathCollection() const {
+
+    return mPathCollection;
+}*/
+
+PathsCollection::Shared PathsManager::pathCollection() const {
 
     return mPathCollection;
 }
@@ -631,7 +651,7 @@ void PathsManager::testTrustLineHandler() {
 
 void PathsManager::fillBigRoutingTables() {
 
-    uint32_t firstLevelNode = 15;
+    uint32_t firstLevelNode = 20;
     uint32_t countNodes = 1000;
     srand (time(NULL));
     vector<NodeUUID*> nodeUUIDPtrs;

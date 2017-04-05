@@ -75,6 +75,7 @@
 #include "../transactions/history/HistoryPaymentsTransaction.h"
 #include "../transactions/history/HistoryTrustLinesTransaction.h"
 
+#include "../transactions/find_path/GetPathTestTransaction.h"
 #include "../transactions/find_path/FindPathTransaction.h"
 #include "../transactions/find_path/GetRoutingTablesTransaction.h"
 
@@ -214,7 +215,7 @@ private:
         HistoryTrustLinesCommand::Shared command);
 
     // Find path transactions
-    void launchFindPathTransaction(
+    void launchGetPathTestTransaction(
         FindPathCommand::Shared command);
 
     void launchGetRoutingTablesTransaction(

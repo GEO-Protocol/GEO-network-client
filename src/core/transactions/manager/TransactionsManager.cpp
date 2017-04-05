@@ -186,7 +186,7 @@ void TransactionsManager::processCommand(
                 command));
 
     } else if (command->identifier() == FindPathCommand::identifier()){
-        launchFindPathTransaction(
+        launchGetPathTestTransaction(
             static_pointer_cast<FindPathCommand>(
                 command));
 
@@ -971,34 +971,21 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCo
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchFindPathTransaction(FindPathCommand::Shared command) {
+void TransactionsManager::launchGetPathTestTransaction(FindPathCommand::Shared command) {
     try {
-        auto transaction = make_shared<FindPathTransaction>(
+        auto transaction = make_shared<GetPathTestTransaction>(
             mNodeUUID,
             command,
-            mPathsManager,
+            mResourcesManager,
             mLog);
 
         prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchFindPathTransaction: "
-                        "Can't allocate memory for transaction instance.");
+            "TransactionsManager::launchGetPathTestTransaction: "
+                "Can't allocate memory for transaction instance.");
     }
-}
-
-void TransactionsManager::launchPathsResourcesCollectTransaction(const TransactionUUID &requestedTransactionUUID,
-                                                                 const NodeUUID &destinationNodeUUID) {
-
-    //TODO:: create transaction which collect paths resources
-}
-
-void TransactionsManager::attachResourceToTransaction(
-    BaseResource::Shared resource) {
-
-    mScheduler->tryAttachResourceToTransaction(
-        resource);
 }
 
 /*!
@@ -1018,9 +1005,38 @@ void TransactionsManager::launchGetRoutingTablesTransaction(RequestRoutingTables
 
     } catch (bad_alloc &) {
         throw MemoryError(
-                "TransactionsManager::launchGetRoutingTablesTransaction: "
-                        "Can't allocate memory for transaction instance.");
+            "TransactionsManager::launchGetRoutingTablesTransaction: "
+                "Can't allocate memory for transaction instance.");
     }
+}
+
+void TransactionsManager::launchPathsResourcesCollectTransaction(
+    const TransactionUUID &requestedTransactionUUID,
+    const NodeUUID &destinationNodeUUID) {
+
+    try {
+        auto transaction = make_shared<FindPathTransaction>(
+            mNodeUUID,
+            destinationNodeUUID,
+            requestedTransactionUUID,
+            mPathsManager,
+            mResourcesManager,
+            mLog);
+
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchFindPathTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::attachResourceToTransaction(
+    BaseResource::Shared resource) {
+
+    mScheduler->tryAttachResourceToTransaction(
+        resource);
 }
 
 void TransactionsManager::subscribeForSubsidiaryTransactions(

@@ -3,10 +3,12 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../paths/PathsManager.h"
-#include "../../../interface/commands_interface/commands/find_path/FindPathCommand.h"
+#include "../../../resources/manager/ResourcesManager.h"
+#include "../../../resources/resources/PathsResource.h"
 #include "../../../network/messages/find_path/RequestRoutingTablesMessage.h"
 #include "../../../network/messages/find_path/ResultRoutingTablesMessage.h"
 #include "../../../paths/lib/Path.h"
+#include "../../../logger/Logger.h"
 
 #include <vector>
 
@@ -15,14 +17,13 @@ class FindPathTransaction : public BaseTransaction {
 public:
     typedef shared_ptr<FindPathTransaction> Shared;
 
-public:
     FindPathTransaction(
         NodeUUID &nodeUUID,
-        FindPathCommand::Shared command,
-        PathsManager *pathManager,
+        const NodeUUID &contractorUUID,
+        const TransactionUUID &requestedTransactionUUID,
+        PathsManager *pathsManager,
+        ResourcesManager *resourcesManager,
         Logger *logger);
-
-    FindPathCommand::Shared command() const;
 
     TransactionResult::SharedConst run();
 
@@ -37,25 +38,19 @@ private:
 
     TransactionResult::SharedConst waitingForResponseState();
 
-    TransactionResult::SharedConst noResponseResult();
-
-    TransactionResult::SharedConst noPathResult();
-
     TransactionResult::SharedConst checkTransactionContext();
 
-    TransactionResult::SharedConst resultOk(Path::Shared path);
+private:
 
-    TransactionResult::SharedConst unexpectedErrorResult();
+    const uint32_t kConnectionTimeout = 500;
+    const uint16_t kMaxRequestsCount = 5;
 
 private:
 
-    const uint32_t kConnectionTimeout = 40000;
-    const uint16_t kMaxRequestsCount = 1;
-
-private:
-
-    FindPathCommand::Shared mCommand;
-    PathsManager* mPathsManager;
+    NodeUUID mContractorUUID;
+    TransactionUUID mRequestedTransactionUUID;
+    PathsManager *mPathsManager;
+    ResourcesManager *mResourcesManager;
     uint16_t mRequestCounter;
 
 };

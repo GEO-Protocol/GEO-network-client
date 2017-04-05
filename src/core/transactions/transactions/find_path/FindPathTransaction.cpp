@@ -2,8 +2,10 @@
 
 FindPathTransaction::FindPathTransaction(
     NodeUUID &nodeUUID,
-    FindPathCommand::Shared command,
+    const NodeUUID &contractorUUID,
+    const TransactionUUID &requestedTransactionUUID,
     PathsManager *pathsManager,
+    ResourcesManager *resourcesManager,
     Logger *logger) :
 
     BaseTransaction(
@@ -11,14 +13,11 @@ FindPathTransaction::FindPathTransaction(
         nodeUUID,
         logger),
 
-    mCommand(command),
+    mContractorUUID(contractorUUID),
+    mRequestedTransactionUUID(requestedTransactionUUID),
     mPathsManager(pathsManager),
+    mResourcesManager(resourcesManager),
     mRequestCounter(0) {}
-
-FindPathCommand::Shared FindPathTransaction::command() const {
-
-    return mCommand;
-}
 
 TransactionResult::SharedConst FindPathTransaction::run() {
 
@@ -33,7 +32,12 @@ TransactionResult::SharedConst FindPathTransaction::run() {
             increaseRequestsCounter();
 
         } else {
-            return noResponseResult();
+            mResourcesManager->putResource(
+                make_shared<PathsResource>(
+                    mRequestedTransactionUUID,
+                    mPathsManager->pathCollection()));
+            return make_shared<const TransactionResult>(
+                TransactionState::exit());
         }
 
     }
@@ -72,28 +76,29 @@ TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
             }
 
             mPathsManager->setContractorRoutingTables(response);
-            Path::Shared result = mPathsManager->findPath();
-            if (result != nullptr) {
-                return resultOk(
-                        result);
-            } else {
-                return noPathResult();
-            }
+            mPathsManager->findPath();
+            // TODO : remove after testing
+            mPathsManager->findPathsTest();
         }
 
-        return unexpectedErrorResult();
+        mResourcesManager->putResource(
+            make_shared<PathsResource>(
+                mRequestedTransactionUUID,
+                mPathsManager->pathCollection()));
+        return make_shared<const TransactionResult>(
+            TransactionState::exit());
 
     } else {
-        throw ConflictError("TotalBalancesFromRemoutNodeTransaction::checkTransactionContext: "
+        throw ConflictError("FindPathTransaction::checkTransactionContext: "
                                     "Unexpected context size.");
     }
 }
 
 void FindPathTransaction::sendMessageToRemoteNode() {
 
-    info() << "sendMessageToRemoteNode\t" << mCommand->contractorUUID();
+    info() << "sendMessageToRemoteNode\t" << mContractorUUID;
     sendMessage<RequestRoutingTablesMessage>(
-        mCommand->contractorUUID(),
+        mContractorUUID,
         mNodeUUID,
         UUID());
 }
@@ -101,53 +106,16 @@ void FindPathTransaction::sendMessageToRemoteNode() {
 TransactionResult::SharedConst FindPathTransaction::waitingForResponseState() {
 
     info() << "waitingForResponseState";
-    TransactionState *transactionState = new TransactionState(
-        microsecondsSinceGEOEpoch(
-            utc_now() + pt::microseconds(kConnectionTimeout * 1000)),
-            Message::MessageTypeID::ResultRoutingTablesMessageType,
-            false);
-
     return transactionResultFromState(
-        TransactionState::SharedConst(
-            transactionState));
+        TransactionState::waitForMessageTypes(
+            {Message::MessageTypeID::ResultRoutingTablesMessageType},
+            kConnectionTimeout));
 }
 
 void FindPathTransaction::increaseRequestsCounter() {
 
     mRequestCounter += 1;
     info() << "increaseRequestsCounter\t" << mRequestCounter;
-}
-
-TransactionResult::SharedConst FindPathTransaction::resultOk(
-        Path::Shared path) {
-
-    stringstream s;
-    for (auto &nodeUUID : path->nodes) {
-        s << nodeUUID << "\t";
-    }
-    string pathResult = s.str();
-    info() << "resultOk\t" << pathResult;
-    return transactionResultFromCommand(mCommand->resultOk(pathResult));
-}
-
-TransactionResult::SharedConst FindPathTransaction::noResponseResult() {
-
-    info() << "noResponseResult";
-    return transactionResultFromCommand(
-            mCommand->resultNoResponse());
-}
-
-TransactionResult::SharedConst FindPathTransaction::noPathResult() {
-
-    info() << "noPathResult";
-    return transactionResultFromCommand(
-        mCommand->resultNoPath());
-}
-
-TransactionResult::SharedConst FindPathTransaction::unexpectedErrorResult() {
-
-    return transactionResultFromCommand(
-            mCommand->unexpectedErrorResult());
 }
 
 const string FindPathTransaction::logHeader() const

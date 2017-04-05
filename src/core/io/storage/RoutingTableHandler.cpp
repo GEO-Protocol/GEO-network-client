@@ -349,7 +349,12 @@ void RoutingTableHandler::saveRecord(
 
 vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> RoutingTableHandler::routeRecordsWithDirections() {
 
+    DateTime startTime = utc_now();
+
+
     vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> result;
+
+
     string query = "SELECT source, destination, direction FROM " + mTableName;
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "select: " << query;
@@ -398,11 +403,14 @@ vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> RoutingTableHandler::route
         }
     }
     sqlite3_reset(stmt);
+    Duration methodTime = utc_now() - startTime;
+    info() << "RoutingTableHandler::routeRecordsWithDirections finished with time: " << methodTime;
     return result;
 }
 
 vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords() {
 
+    DateTime startTime = utc_now();
     vector<pair<NodeUUID, NodeUUID>> result;
     string query = "SELECT source, destination FROM " + mTableName;
 #ifdef STORAGE_HANDLER_DEBUG_LOG
@@ -430,6 +438,8 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords() {
                 destination));
     }
     sqlite3_reset(stmt);
+    Duration methodTime = utc_now() - startTime;
+    info() << "RoutingTableHandler::routeRecords finished with time: " << methodTime;
     return result;
 }
 

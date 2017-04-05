@@ -23,11 +23,10 @@ public:
     void putResource(
         BaseResource::Shared resource);
 
-    template<typename... Params>
-    void requestResource(
-        const BaseResource::ResourceType type,
+    void requestPaths(
         const TransactionUUID &transactionUUID,
-        Params&&... params);
+        const NodeUUID &contractorUUID) const;
+
 
 public:
     mutable RequestPathsResourcesSignal requestPathsResourcesSignal;

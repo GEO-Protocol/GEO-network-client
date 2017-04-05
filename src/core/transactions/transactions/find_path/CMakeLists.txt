@@ -4,8 +4,11 @@ set(SOURCE_FILES
         FindPathTransaction.h
         FindPathTransaction.cpp
         GetRoutingTablesTransaction.h
-        GetRoutingTablesTransaction.cpp)
+        GetRoutingTablesTransaction.cpp
+        GetPathTestTransaction.h
+        GetPathTestTransaction.cpp )
 
 add_library(transactions__find_path ${SOURCE_FILES})
 
-target_link_libraries(transactions__find_path)
+target_link_libraries(transactions__find_path
+        resources_manager)

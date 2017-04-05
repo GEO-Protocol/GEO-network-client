@@ -7,24 +7,12 @@ void ResourcesManager::putResource(
         resource);
 }
 
-template<typename... Params>
-void ResourcesManager::requestResource(
-    const BaseResource::ResourceType type,
+void ResourcesManager::requestPaths(
     const TransactionUUID &transactionUUID,
-    Params&&... params) {
+    const NodeUUID &contractorUUID) const {
 
-    switch (type) {
+    requestPathsResourcesSignal(
+        transactionUUID,
+        contractorUUID);
 
-        case BaseResource::ResourceType::Paths: {
-            requestPathsResourcesSignal(
-                transactionUUID,
-                params...);
-        }
-
-        default:{
-            throw ConflictError("ResourcesManager::requestResource "
-                                    "Unexpected resource type");
-        }
-
-    }
 }

@@ -74,15 +74,10 @@ void TotalBalancesFromRemoutNodeTransaction::sendMessageToRemoteNode() {
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::waitingForResponseState() {
 
     info() << "waitingForResponseState";
-    TransactionState *transactionState = new TransactionState(
-        microsecondsSinceGEOEpoch(
-            utc_now() + pt::microseconds(kConnectionTimeout * 1000)),
-        Message::MessageTypeID::TotalBalancesResultMessageType,
-        false);
-
     return transactionResultFromState(
-        TransactionState::SharedConst(
-            transactionState));
+        TransactionState::waitForMessageTypes(
+            {Message::MessageTypeID::TotalBalancesResultMessageType},
+            kConnectionTimeout));
 }
 
 void TotalBalancesFromRemoutNodeTransaction::increaseRequestsCounter() {

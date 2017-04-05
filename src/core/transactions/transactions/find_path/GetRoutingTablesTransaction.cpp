@@ -31,20 +31,26 @@ TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
     for (auto const &itRT1 : mTrustLinesManager->rt1()) {
         info() << "run\t\t" << itRT1;
     }
-    //info() << "run\t" << "RT2 size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey().size();
+    info() << "run\t" << "RT2 size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords().size();
+    info() << "run\t" << "RT2 with directions size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections().size();
+    info() << "run\t" << "RT2 map size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey().size();
     /*for (auto const &itRT2 : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey()) {
         info() << "run\t\tkey: " << itRT2.first;
         for (auto const &nodeUUID : itRT2.second) {
             info() << "run\t\t\tvalue: " << nodeUUID;
         }
     }*/
-    //info() << "run\t" << "RT3 size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey().size();
+    info() << "run\t" << "RT3 size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecords().size();
+    info() << "run\t" << "RT3 with directions size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsWithDirections().size();
+    info() << "run\t" << "RT3 map size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey().size();
     /*for (auto const &itRT3 : mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey()) {
         info() << "run\t\tkey: " << itRT3.first;
         for (auto const &nodeUUID : itRT3.second) {
             info() << "run\t\t\tvalue: " << nodeUUID;
         }
     }*/
+
+
     info() << "run\t" << "transactionUUID\t" << mMessage->transactionUUID();
     sendMessage<ResultRoutingTablesMessage>(
         mMessage->senderUUID(),

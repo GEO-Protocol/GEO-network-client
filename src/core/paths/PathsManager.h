@@ -26,9 +26,12 @@ public:
 
     Path::Shared findPath();
 
+    // TODO : test
     Path::Shared findPathsTest();
 
-    PathsCollection *pathCollection() const;
+    //PathsCollection *pathCollection() const;
+
+    PathsCollection::Shared pathCollection() const;
 
 private:
 
@@ -61,6 +64,8 @@ private:
 
     vector<NodeUUID> intermediateNodesOnContractorFirstLevelTest(
             const NodeUUID &thirdLevelSourceNode) const;
+
+    bool isPathValid(const Path &path);
     //test end
 
     LoggerStream info() const;
@@ -84,7 +89,8 @@ private:
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     Logger *mLog;
-    PathsCollection *mPathCollection;
+    //PathsCollection *mPathCollection;
+    PathsCollection::Shared mPathCollection;
     NodeUUID mNodeUUID;
 
     vector<NodeUUID> contractorRT1;

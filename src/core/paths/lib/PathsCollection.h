@@ -8,7 +8,12 @@
 #include <vector>
 
 class PathsCollection {
+
 public:
+    typedef shared_ptr<PathsCollection> Shared;
+
+public:
+
     PathsCollection(
         const NodeUUID &sourceUUID,
         const NodeUUID &destinationUUID);
