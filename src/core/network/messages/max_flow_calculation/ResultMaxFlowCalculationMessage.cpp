@@ -96,11 +96,10 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
     mOutgoingFlows.clear();
     mOutgoingFlows.reserve(*trustLinesOutCount);
     for (RecordNumber idx = 0; idx < *trustLinesOutCount; idx++) {
-        NodeUUID nodeUUID;
-        memcpy(
-            nodeUUID.data,
+        vector<uint8_t> nodeUUIDBufferBytes(
             buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
+            buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
+        NodeUUID nodeUUID(nodeUUIDBufferBytes.data());
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
         vector<byte> bufferTrustLineAmount(
@@ -111,7 +110,8 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
         TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
         mOutgoingFlows.push_back(make_pair(
             nodeUUID,
-            make_shared<const TrustLineAmount>(trustLineAmount)));
+            make_shared<const TrustLineAmount>(
+                trustLineAmount)));
     }
     //----------------------------------------------------
     RecordCount *trustLinesInCount = new (buffer.get() + bytesBufferOffset) RecordCount;
@@ -120,11 +120,10 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
     mIncomingFlows.clear();
     mIncomingFlows.reserve(*trustLinesInCount);
     for (RecordNumber idx = 0; idx < *trustLinesInCount; idx++) {
-        NodeUUID nodeUUID;
-        memcpy(
-            nodeUUID.data,
+        vector<uint8_t> nodeUUIDBufferBytes(
             buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
+            buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
+        NodeUUID nodeUUID(nodeUUIDBufferBytes.data());
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
         vector<byte> bufferTrustLineAmount(
@@ -135,7 +134,8 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
         TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
         mIncomingFlows.push_back(make_pair(
             nodeUUID,
-            make_shared<const TrustLineAmount>(trustLineAmount)));
+            make_shared<const TrustLineAmount>(
+                trustLineAmount)));
     }
 }
 

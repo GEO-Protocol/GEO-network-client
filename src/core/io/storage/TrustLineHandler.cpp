@@ -188,21 +188,27 @@ void TrustLineHandler::prepareInsertred() {
 
 vector<TrustLine::Shared> TrustLineHandler::trustLines() {
 
+    string queryCount = "SELECT count(*) FROM " + mTableName;
+    int rc = sqlite3_prepare_v2( mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::trustLines: Bad count query");
+    }
+    sqlite3_step(stmt);
+    uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    info() << "trustLines\t count records: " << rowCount;
     vector<TrustLine::Shared> result;
+    result.reserve(rowCount);
+
     string query = "SELECT contractor, incoming_amount, outgoing_amount, balance FROM " + mTableName;
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "select: " << query;
 #endif
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::trustLines: Bad query");
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        NodeUUID contractor;
-        memcpy(
-            contractor.data,
-            sqlite3_column_blob(stmt, 0),
-            NodeUUID::kBytesSize);
+        NodeUUID contractor((uint8_t*)sqlite3_column_blob(stmt, 0));
 
         byte* incomingAmountBytes = (byte*)sqlite3_column_blob(stmt, 1);
         vector<byte> incomingAmountBufferBytes(

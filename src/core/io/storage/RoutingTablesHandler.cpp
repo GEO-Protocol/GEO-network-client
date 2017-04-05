@@ -41,11 +41,7 @@ vector<NodeUUID> RoutingTablesHandler::subRoutesSecondLevel(
                               "Bad Destination binding");
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        NodeUUID source;
-        memcpy(
-            source.data,
-            sqlite3_column_blob(stmt, 0),
-            NodeUUID::kBytesSize);
+        NodeUUID source((uint8_t*)sqlite3_column_blob(stmt, 0));
         result.push_back(
             source);
     }
@@ -90,20 +86,12 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelContra
                               "Bad sourceUUID binding");
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        NodeUUID source2Level;
-        memcpy(
-                source2Level.data,
-                sqlite3_column_blob(stmt, 0),
-                NodeUUID::kBytesSize);
-        NodeUUID source3Level;
-        memcpy(
-                source3Level.data,
-                sqlite3_column_blob(stmt, 1),
-                NodeUUID::kBytesSize);
+        NodeUUID source2Level((uint8_t*)sqlite3_column_blob(stmt, 0));
+        NodeUUID source3Level((uint8_t*)sqlite3_column_blob(stmt, 1));
         result.push_back(
-                make_pair(
-                        source2Level,
-                        source3Level));
+            make_pair(
+                source2Level,
+                source3Level));
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
@@ -133,16 +121,8 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevel(
                               "Bad foundUUID binding");
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        NodeUUID source2Level;
-        memcpy(
-            source2Level.data,
-            sqlite3_column_blob(stmt, 0),
-            NodeUUID::kBytesSize);
-        NodeUUID source3Level;
-        memcpy(
-            source3Level.data,
-            sqlite3_column_blob(stmt, 1),
-            NodeUUID::kBytesSize);
+        NodeUUID source2Level((uint8_t*)sqlite3_column_blob(stmt, 0));
+        NodeUUID source3Level((uint8_t*)sqlite3_column_blob(stmt, 1));
         result.push_back(
             make_pair(
                 source2Level,
@@ -200,20 +180,12 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
                               "Bad sourceUUID binding");
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        NodeUUID source2Level;
-        memcpy(
-                source2Level.data,
-                sqlite3_column_blob(stmt, 0),
-                NodeUUID::kBytesSize);
-        NodeUUID source3Level;
-        memcpy(
-                source3Level.data,
-                sqlite3_column_blob(stmt, 1),
-                NodeUUID::kBytesSize);
+        NodeUUID source2Level((uint8_t*)sqlite3_column_blob(stmt, 0));
+        NodeUUID source3Level((uint8_t*)sqlite3_column_blob(stmt, 1));
         result.push_back(
-                make_pair(
-                        source2Level,
-                        source3Level));
+            make_pair(
+                source2Level,
+                source3Level));
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);

@@ -143,7 +143,6 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
 void ResultRoutingTablesMessage::deserializeFromBytes(
         BytesShared buffer){
 
-    cout << "ResultRoutingTablesMessage::deserializeFromBytes start deserializing" << endl;
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
@@ -153,11 +152,10 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
     mRT1.clear();
     mRT1.reserve(*rt1Count);
     for (RecordNumber idx = 0; idx < *rt1Count; idx++) {
-        NodeUUID nodeUUID;
-        memcpy(
-            nodeUUID.data,
+        vector<uint8_t> nodeUUIDBufferByte(
             buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
+            buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
+        NodeUUID nodeUUID(nodeUUIDBufferByte.data());
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
         mRT1.push_back(nodeUUID);
@@ -169,11 +167,10 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
     mRT2.clear();
     mRT2.reserve(*rt2Count);
     for (RecordNumber idx = 0; idx < *rt2Count; idx++) {
-        NodeUUID keyDesitnation;
-        memcpy(
-            keyDesitnation.data,
+        vector<uint8_t> keyDestinationBufferBytes(
             buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
+            buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
+        NodeUUID keyDesitnation(keyDestinationBufferBytes.data());
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
         RecordCount *rt2VectCount = new (buffer.get() + bytesBufferOffset) RecordCount;
@@ -182,11 +179,10 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         vector<NodeUUID> valueSources;
         valueSources.reserve(*rt2VectCount);
         for (RecordNumber jdx = 0; jdx < *rt2VectCount; jdx++) {
-            NodeUUID source;
-            memcpy(
-                source.data,
+            vector<uint8_t> sourceBufferBytes(
                 buffer.get() + bytesBufferOffset,
-                NodeUUID::kBytesSize);
+                buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
+            NodeUUID source(sourceBufferBytes.data());
             bytesBufferOffset += NodeUUID::kBytesSize;
             valueSources.push_back(source);
         }
@@ -200,11 +196,10 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
     mRT3.clear();
     mRT3.reserve(*rt3Count);
     for (RecordNumber idx = 0; idx < *rt3Count; idx++) {
-        NodeUUID keyDesitnation;
-        memcpy(
-            keyDesitnation.data,
+        vector<uint8_t> keyDesitnationBufferBytes(
             buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
+            buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
+        NodeUUID keyDesitnation(keyDesitnationBufferBytes.data());
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
         RecordCount *rt3VectCount = new (buffer.get() + bytesBufferOffset) RecordCount;
@@ -213,11 +208,10 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         vector<NodeUUID> valueSources;
         valueSources.reserve(*rt3VectCount);
         for (RecordNumber jdx = 0; jdx < *rt3VectCount; jdx++) {
-            NodeUUID source;
-            memcpy(
-                source.data,
+            vector<uint8_t> sourceBufferBytes(
                 buffer.get() + bytesBufferOffset,
-                NodeUUID::kBytesSize);
+                buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
+            NodeUUID source(sourceBufferBytes.data());
             bytesBufferOffset += NodeUUID::kBytesSize;
             valueSources.push_back(source);
         }
