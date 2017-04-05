@@ -74,10 +74,15 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveLinkBetweenIn
             info() << "Initiator UUID: " + neighborAndDirect.first.stringUUID();
             info() << "Direction UUID: " + to_string(neighborAndDirect.second);
 
-            mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(
-                nodeAndRecords.first,
-                neighborAndDirect.first,
-                neighborAndDirect.second);
+            try {
+                mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(
+                    nodeAndRecords.first,
+                    neighborAndDirect.first,
+                    neighborAndDirect.second);
+
+            } catch (Exception&) {
+                error() << "Except when saving link between initiator and contractor from contractor at first level side";
+            }
 
         }
 
@@ -147,10 +152,15 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveSecondLevelRo
             info() << "Neighbor UUID: " + neighborAndDirect.first.stringUUID();
             info() << "Direction: " + to_string(neighborAndDirect.second);
 
-            mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(
-                nodeAndRecords.first,
-                neighborAndDirect.first,
-                neighborAndDirect.second);
+            try {
+                mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(
+                    nodeAndRecords.first,
+                    neighborAndDirect.first,
+                    neighborAndDirect.second);
+
+            } catch (Exception&) {
+                error() << "Except when saving second level routing table from contractor at first level side";
+            }
 
         }
 

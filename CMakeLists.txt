@@ -9,8 +9,8 @@ add_definitions(-DTRANSACTIONS_LOG)
 #
 # Debug logs configuration
 #
-add_definitions(-DNETWORK_DEBUG_LOG)
-add_definitions(-DSCHEDULER_DEBUG_LOG)
+#add_definitions(-DNETWORK_DEBUG_LOG)
+#add_definitions(-DSCHEDULER_DEBUG_LOG)
 #add_definitions(-DMAX_FLOW_CALCULATION_DEBUG_LOG)
 #add_definitions(-DSTORAGE_HANDLER_DEBUG_LOG)
 
