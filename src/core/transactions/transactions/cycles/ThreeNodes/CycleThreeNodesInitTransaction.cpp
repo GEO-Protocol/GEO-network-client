@@ -43,7 +43,7 @@ set<NodeUUID> CycleThreeNodesInitTransaction::getNeighborsWithContractor() {
             }
         }
         set_intersection(ownNeighbors.begin(), ownNeighbors.end(),
-                         ownNeighbors.begin(), ownNeighbors.end(),
+                         contractorNeighbors.begin(), contractorNeighbors.end(),
                          std::inserter(commonNeighbors, commonNeighbors.begin()));
     }
     return commonNeighbors;

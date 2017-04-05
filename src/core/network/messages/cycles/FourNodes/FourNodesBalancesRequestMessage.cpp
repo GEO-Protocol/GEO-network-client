@@ -1,13 +1,13 @@
 #include "FourNodesBalancesRequestMessage.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
 pair<BytesShared, size_t> FourNodesBalancesRequestMessage::serializeToBytes() {
-    vector<byte> MaxFlowBuffer = trustLineBalanceToBytes(mMaxFlow);
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     uint16_t neighborsCount = mNeighbors.size();
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(neighborsCount)
-                        + neighborsCount * NodeUUID::kBytesSize
-                        + MaxFlowBuffer.size();
+                        + neighborsCount * NodeUUID::kBytesSize;
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -18,14 +18,6 @@ pair<BytesShared, size_t> FourNodesBalancesRequestMessage::serializeToBytes() {
             parentBytesAndCount.second
     );
     dataBytesOffset += parentBytesAndCount.second;
-    // for max flow
-    memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            MaxFlowBuffer.data(),
-            MaxFlowBuffer.size()
-    );
-    dataBytesOffset += MaxFlowBuffer.size();
-    //----------------------------------------------------
 //    For mNeighbors
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
@@ -49,20 +41,13 @@ pair<BytesShared, size_t> FourNodesBalancesRequestMessage::serializeToBytes() {
             bytesCount
     );
 }
+#pragma clang diagnostic pop
 
 void FourNodesBalancesRequestMessage::deserializeFromBytes(
         BytesShared buffer) {
 
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    //   // Max flow
-    vector<byte> amountBytes(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
-
-
-    mMaxFlow = bytesToTrustLineBalance(amountBytes);
-    bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
     // path
     uint16_t neighborsCount;
     memcpy(
@@ -80,7 +65,7 @@ void FourNodesBalancesRequestMessage::deserializeFromBytes(
                 NodeUUID::kBytesSize
         );
         bytesBufferOffset += NodeUUID::kBytesSize;
-        mNeighbors.push_back(stepNode);
+        mNeighbors.insert(stepNode);
     }
 }
 
@@ -92,18 +77,16 @@ FourNodesBalancesRequestMessage::FourNodesBalancesRequestMessage(BytesShared buf
     deserializeFromBytes(buffer);
 }
 
-FourNodesBalancesRequestMessage::FourNodesBalancesRequestMessage(const TrustLineBalance &maxFlow,
-                                                                 vector<NodeUUID> &neighbors):
-    mMaxFlow(maxFlow),
+FourNodesBalancesRequestMessage::FourNodesBalancesRequestMessage(
+    const NodeUUID &senderUUID,
+    const TransactionUUID &transactionUUID,
+    set<NodeUUID> &neighbors):
+    TransactionMessage(senderUUID, transactionUUID),
     mNeighbors(neighbors)
 {
 
 }
 
-vector<NodeUUID> FourNodesBalancesRequestMessage::Neighbors() {
+set<NodeUUID> FourNodesBalancesRequestMessage::Neighbors() {
     return mNeighbors;
-}
-
-TrustLineBalance FourNodesBalancesRequestMessage::MaxFlow() {
-    return mMaxFlow;
 }

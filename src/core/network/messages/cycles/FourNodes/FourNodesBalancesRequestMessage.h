@@ -7,20 +7,22 @@
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../base/transaction/TransactionMessage.h"
 
+#include "set"
+
 class FourNodesBalancesRequestMessage: public TransactionMessage {
 public:
     typedef shared_ptr<FourNodesBalancesRequestMessage> Shared;
 public:
     FourNodesBalancesRequestMessage(
-            const TrustLineBalance& maxFlow,
-            vector<NodeUUID> &neighbors);
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+            set<NodeUUID> &neighbors);
 
     FourNodesBalancesRequestMessage(
             BytesShared buffer);
 
     const MessageType typeID() const;
-    vector<NodeUUID> Neighbors();
-    TrustLineBalance MaxFlow();
+    set<NodeUUID> Neighbors();
 protected:
     pair<BytesShared, size_t> serializeToBytes();
 
@@ -28,8 +30,7 @@ protected:
             BytesShared buffer);
 
 protected:
-    vector<NodeUUID> mNeighbors;
-    TrustLineBalance mMaxFlow;
+    set<NodeUUID> mNeighbors;
 };
 
 #endif //GEO_NETWORK_CLIENT_FOURNODESBALANCESREQUESTMESSAGE_H

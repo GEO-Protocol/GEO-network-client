@@ -11,6 +11,10 @@ set(SOURCE_FILES
         FiveAndSixNodes/CycleFiveNodesResponseTransaction.h
         FiveAndSixNodes/CycleSixNodesResponseTransaction.h
         FiveAndSixNodes/CycleSixNodesResponseTransaction.cpp
+        FourNodes/CycleFourNodesInitTransaction.h
+        FourNodes/CycleFourNodesInitTransaction.cpp
+        FourNodes/CycleFourNodesResponseTransaction.h
+        FourNodes/CycleFourNodesResponseTransaction.cpp
         ThreeNodes/CycleThreeNodesInitTransaction.cpp
         ThreeNodes/CycleThreeNodesInitTransaction.h
         ThreeNodes/CycleThreeNodesResponseTransaction.cpp

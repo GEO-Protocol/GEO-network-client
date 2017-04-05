@@ -27,10 +27,7 @@ public:
 protected:
 //    Nodes Balances that are mutual between core node and contract node
     ThreeNodesBalancesRequestMessage::Shared mRequestMessage;
-    NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     Logger *mLogger;
-    StorageHandler *mStorageHandler;
-
 };
 #endif //GEO_NETWORK_CLIENT_THREENODESRESPONSETRANSACTION_H

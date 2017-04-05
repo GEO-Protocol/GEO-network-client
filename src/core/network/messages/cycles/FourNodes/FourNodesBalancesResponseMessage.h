@@ -11,18 +11,25 @@ class FourNodesBalancesResponseMessage: public TransactionMessage {
 public:
     typedef shared_ptr<FourNodesBalancesResponseMessage> Shared;
 public:
+
     FourNodesBalancesResponseMessage(
-            vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalancesCreditors,
-            vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalancesDebtors
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        uint16_t neighborsUUUIDAndBalancesCount);
+
+    FourNodesBalancesResponseMessage(
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+            vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalances
     );
 
     FourNodesBalancesResponseMessage(
             BytesShared buffer);
 
+    void AddNeighborUUIDAndBalance(pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance);
     const MessageType typeID() const;
     const bool isTransactionMessage() const;
-    vector<pair<NodeUUID, TrustLineBalance>> NeighborsBalancesDebtors();
-    vector<pair<NodeUUID, TrustLineBalance>> NeighborsBalancesCreditors();
+    vector<pair<NodeUUID, TrustLineBalance>> NeighborsBalances();
 protected:
     pair<BytesShared, size_t> serializeToBytes();
 
@@ -31,8 +38,6 @@ protected:
 
 
 protected:
-    vector<pair<NodeUUID, TrustLineBalance>> mNeighborsBalancesDebtors;
-    vector<pair<NodeUUID, TrustLineBalance>> mNeighborsBalancesCreditors;
-    TrustLineBalance mMaxFlow;
+    vector<pair<NodeUUID, TrustLineBalance>> mNeighborsBalances;
 };
 #endif //GEO_NETWORK_CLIENT_FOURNODESBALANCESRESPONSEMESSAGE_H
