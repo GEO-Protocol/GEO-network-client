@@ -1080,9 +1080,8 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(NodeUUID &contra
         auto transaction = make_shared<CyclesThreeNodesInitTransaction>(
             mNodeUUID,
             contractorUUID,
-            mScheduler.get(),
             mTrustLines,
-            mStorageHandler,
+            mStorageHandler->routingTablesHandler(),
             mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -1099,7 +1098,6 @@ void TransactionsManager::launchThreeNodesCyclesResponseTransaction(ThreeNodesBa
         auto transaction = make_shared<CyclesThreeNodesResponseTransaction>(
             mNodeUUID,
             message,
-            mScheduler.get(),
             mTrustLines,
             mLog
         );

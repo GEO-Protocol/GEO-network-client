@@ -1,40 +1,35 @@
 #include "CyclesFourNodesInitTransaction.h"
 
-
-CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(TransactionsScheduler *scheduler)
-        :UniqueTransaction(BaseTransaction::TransactionType::Cycles_FourNodesInitTransaction, scheduler) {
-
-}
-
 CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
-        const NodeUUID &nodeUUID,
-        const NodeUUID &debtorContractorUUID,
-        const NodeUUID &creditorContractorUUID,
-        TransactionsScheduler *scheduler,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Logger *logger)
-        : UniqueTransaction(BaseTransaction::TransactionType::Cycles_FourNodesInitTransaction, nodeUUID, scheduler),
-          mTrustLinesManager(manager),
-          mlogger(logger),
-          mStorageHandler(storageHandler),
-          mDebtorContractorUUID(debtorContractorUUID),
-          mCreditorContractorUUID(creditorContractorUUID)
-{
+    const NodeUUID &nodeUUID,
+    const NodeUUID &debtorContractorUUID,
+    const NodeUUID &creditorContractorUUID,
+    TrustLinesManager *manager,
+    RoutingTablesHandler *routingTablesHandler,
+    Logger *logger) :
 
-}
+    BaseTransaction(
+        BaseTransaction::TransactionType::Cycles_FourNodesInitTransaction,
+        nodeUUID),
+    mTrustLinesManager(manager),
+    mLogger(logger),
+    mRoutingTablesHandler(routingTablesHandler),
+    mDebtorContractorUUID(debtorContractorUUID),
+    mCreditorContractorUUID(creditorContractorUUID)
+{}
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::run() {
-    switch (mStep){
+    switch (mStep) {
         case Stages::CollectDataAndSendMessage:
             return runCollectDataAndSendMessageStage();
+
         case Stages::ParseMessageAndCreateCycles:
             return runParseMessageAndCreateCyclesStage();
+
         default:
             throw RuntimeError(
                 "CycleThreeNodesInitTransaction::run(): "
-                    "invalid transaction step.");
-
+                "Invalid transaction step.");
     }
 }
 
@@ -61,7 +56,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     if (mContext.size() != 2){
-        mlogger->error("CyclesFourNodesInitTransaction:"
+        mLogger->error("CyclesFourNodesInitTransaction:"
                            "Responses Messages count Not equal 2;"
                            "Can not create Cycles;");
         return finishTransaction();
@@ -76,7 +71,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
     if ((firstContractorBalance < zeroBalance and secondContractorBalance > zeroBalance) or
         (firstContractorBalance > zeroBalance and secondContractorBalance < zeroBalance))
     {
-        mlogger->info("CyclesFourNodesInitTransaction:"
+        mLogger->info("CyclesFourNodesInitTransaction:"
                           "Balances was changed. Cannot create Cycles");
         return finishTransaction();
     }
@@ -115,15 +110,20 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
 }
 
 set<NodeUUID> CyclesFourNodesInitTransaction::getCommonNeighborsForDebtorAndCreditorNodes() {
-    set<NodeUUID> creditorsNeighbors = mStorageHandler->routingTablesHandler()->routingTable2Level()->allDestinationsForSource(
+    const auto creditorsNeighbors = mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(
         mCreditorContractorUUID);
-    set<NodeUUID> debtorsNeighbors = mStorageHandler->routingTablesHandler()->routingTable2Level()->allDestinationsForSource(
+    const auto debtorsNeighbors = mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(
         mCreditorContractorUUID);
 
     set<NodeUUID> commonNeighbors;
-    set_intersection(creditorsNeighbors.begin(), creditorsNeighbors.end(),
-                     debtorsNeighbors.begin(), debtorsNeighbors.end(),
-                     std::inserter(commonNeighbors, commonNeighbors.begin()));
+    set_intersection(
+        creditorsNeighbors.begin(),
+        creditorsNeighbors.end(),
+        debtorsNeighbors.begin(),
+        debtorsNeighbors.end(),
+        std::inserter(
+            commonNeighbors,
+            commonNeighbors.begin()));
 
     return commonNeighbors;
 }
