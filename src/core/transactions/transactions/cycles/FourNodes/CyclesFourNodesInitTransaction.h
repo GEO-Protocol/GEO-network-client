@@ -8,10 +8,10 @@
 #include "../../../../network/messages/cycles/FourNodes/FourNodesBalancesResponseMessage.h"
 #include <set>
 
-class CycleFourNodesInitTransaction : public UniqueTransaction {
+class CyclesFourNodesInitTransaction : public UniqueTransaction {
 
 public:
-    CycleFourNodesInitTransaction(
+    CyclesFourNodesInitTransaction(
             const NodeUUID &nodeUUID,
             const NodeUUID &debtorContractorUUID,
             const NodeUUID &creditorContractorUUID,
@@ -20,7 +20,7 @@ public:
             StorageHandler *storageHandler,
             Logger *logger);
 
-    CycleFourNodesInitTransaction(TransactionsScheduler *scheduler);
+    CyclesFourNodesInitTransaction(TransactionsScheduler *scheduler);
 
     TransactionResult::SharedConst run();
 

@@ -149,7 +149,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                 )
             );
         }
-        case Message::ThreeNodesBalancesResponseMessage: {
+        case Message::Cycles_ThreeNodesBalancesResponseMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
@@ -157,7 +157,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                 )
             );
         }
-        case Message::ThreeNodesBalancesRequestMessage: {
+        case Message::Cycles_ThreeNodesBalancesRequestMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(

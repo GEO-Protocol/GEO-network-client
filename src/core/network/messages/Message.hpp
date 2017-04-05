@@ -36,12 +36,14 @@ public:
         RoutingTableUpdateOutgoingMessageType,
         RoutingTableUpdateIncomingMessageType,
 //        Cycles messages
+
+        // todo: add Cycles_...
         CycleFiveNodesInBetweenMessage,
         CycleSixNodesInBetweenMessage,
         CycleFiveNodesBoundaryMessage,
         CycleSixNodesBoundaryMessage,
-        ThreeNodesBalancesRequestMessage,
-        ThreeNodesBalancesResponseMessage,
+        Cycles_ThreeNodesBalancesRequestMessage,
+        Cycles_ThreeNodesBalancesResponseMessage,
         FourNodesBalancesRequestMessage,
         FourNodesBalancesResponseMessage,
         /*

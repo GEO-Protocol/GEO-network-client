@@ -69,7 +69,7 @@ std::pair<BytesShared, size_t> ThreeNodesBalancesResponseMessage::serializeToByt
 }
 
 const Message::MessageType ThreeNodesBalancesResponseMessage::typeID() const {
-    return Message::MessageTypeID::ThreeNodesBalancesResponseMessage;
+    return Message::MessageTypeID::Cycles_ThreeNodesBalancesResponseMessage;
 }
 
 ThreeNodesBalancesResponseMessage::ThreeNodesBalancesResponseMessage(BytesShared buffer) {

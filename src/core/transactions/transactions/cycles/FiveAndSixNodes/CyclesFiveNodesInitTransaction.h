@@ -4,10 +4,10 @@
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp"
 
-class CycleFiveNodesInitTransaction : public CyclesBaseFiveSixNodesInitTransaction{
+class CyclesFiveNodesInitTransaction : public CyclesBaseFiveSixNodesInitTransaction{
 
 public:
-    CycleFiveNodesInitTransaction(
+    CyclesFiveNodesInitTransaction(
         const NodeUUID &nodeUUID,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager,

@@ -86,7 +86,7 @@ void ThreeNodesBalancesRequestMessage::deserializeFromBytes(
 }
 
 const Message::MessageType ThreeNodesBalancesRequestMessage::typeID() const {
-    return Message::MessageTypeID::ThreeNodesBalancesRequestMessage;
+    return Message::MessageTypeID::Cycles_ThreeNodesBalancesRequestMessage;
 }
 
 vector<NodeUUID> ThreeNodesBalancesRequestMessage::Neighbors() {

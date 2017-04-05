@@ -1,17 +1,17 @@
-#include "CycleFiveNodesResponseTransaction.h"
+#include "CyclesFiveNodesResponseTransaction.h"
 
-CycleFiveNodesResponseTransaction::CycleFiveNodesResponseTransaction(TransactionsScheduler *scheduler)
-    : UniqueTransaction(BaseTransaction::TransactionType::CycleFiveNodesResponseTransaction, scheduler) {
+CyclesFiveNodesResponseTransaction::CyclesFiveNodesResponseTransaction(TransactionsScheduler *scheduler)
+    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_FiveNodesResponseTransaction, scheduler) {
 
 }
 
-CycleFiveNodesResponseTransaction::CycleFiveNodesResponseTransaction(
+CyclesFiveNodesResponseTransaction::CyclesFiveNodesResponseTransaction(
     const NodeUUID &nodeUUID,
     CycleFiveNodesInBetweenMessage::Shared message,
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager,
     Logger *logger)
-    : UniqueTransaction(BaseTransaction::TransactionType::CycleFiveNodesResponseTransaction, nodeUUID, scheduler),
+    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_FiveNodesResponseTransaction, nodeUUID, scheduler),
       mTrustLinesManager(manager),
       mlogger(logger),
       mInBetweenNodeTopologyMessage(message) {
@@ -20,7 +20,7 @@ CycleFiveNodesResponseTransaction::CycleFiveNodesResponseTransaction(
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-TransactionResult::SharedConst CycleFiveNodesResponseTransaction::run() {
+TransactionResult::SharedConst CyclesFiveNodesResponseTransaction::run() {
     vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
     uint8_t currentDepth = path.size();
     TrustLineBalance zeroBalance = 0;

@@ -64,16 +64,16 @@ public:
         AcceptRoutingTablesUpdatesTransactionType,
 
 //      --------------------------------Cycles------------------------------------------------
-        CycleThreeNodesInitTransaction,
-        CycleThreeNodesResponseTransaction,
-        CycleFourNodesInitTransaction,
-        CycleFourNodesResponseTransaction,
-        CycleBaseFiveSixNodesInitTransaction,
-        CycleFiveNodesInitTransaction,
-        CycleSixNodesInitTransaction,
-        CycleFiveNodesResponseTransaction,
-        CycleSixNodesResponseTransaction,
-        CycleFiveSixNodesResponseTransaction,
+        Cycles_ThreeNodesInitTransaction,
+        Cycles_ThreeNodesResponseTransaction,
+        Cycles_FourNodesInitTransaction,
+        Cycles_FourNodesResponseTransaction,
+        Cycles_BaseFiveSixNodesInitTransaction,
+        Cycles_FiveNodesInitTransaction,
+        Cycles_SixNodesInitTransaction,
+        Cycles_FiveNodesResponseTransaction,
+        Cycles_SixNodesResponseTransaction,
+        Cycles_FiveSixNodesResponseTransaction,
 //      --------------------------------Cycles-------------------------------------------------
 
         // Payments
@@ -131,7 +131,6 @@ protected:
         const TransactionUUID &transactionUUID,
         Logger *log=nullptr);
 
-    [[deprecated("Use constructor with currentNodeUUID instead.")]]
     BaseTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
@@ -221,14 +220,16 @@ public:
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
 
 protected:
+    uint16_t kStandardConnectionTimeout = 1500; //miliseconds
+    uint16_t mExpectationResponsesCount = 0;
+    uint16_t mStep = 1;
+
+protected:
     TransactionType mType;
     TransactionUUID mTransactionUUID;
     NodeUUID mNodeUUID;
-
-    uint16_t mExpectationResponsesCount = 0;
     deque<Message::Shared> mContext;
 
-    uint16_t mStep = 1;
 
 protected:
     Logger *mLog;

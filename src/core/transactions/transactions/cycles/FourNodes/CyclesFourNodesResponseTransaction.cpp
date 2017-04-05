@@ -1,17 +1,17 @@
-#include "CycleThreeNodesResponseTransaction.h"
+#include "CyclesFourNodesResponseTransaction.h"
 
-CycleThreeNodesResponseTransaction::CycleThreeNodesResponseTransaction(TransactionsScheduler *scheduler)
-    : UniqueTransaction(BaseTransaction::TransactionType::CycleThreeNodesResponseTransaction, scheduler) {
+CyclesFourNodesResponseTransaction::CyclesFourNodesResponseTransaction(TransactionsScheduler *scheduler)
+    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_FourNodesResponseTransaction, scheduler) {
 
 }
 
-CycleThreeNodesResponseTransaction::CycleThreeNodesResponseTransaction(
+CyclesFourNodesResponseTransaction::CyclesFourNodesResponseTransaction(
     const NodeUUID &nodeUUID,
-    ThreeNodesBalancesRequestMessage::Shared message,
+    FourNodesBalancesRequestMessage::Shared message,
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager,
     Logger *logger)
-    : UniqueTransaction(BaseTransaction::TransactionType::CycleThreeNodesResponseTransaction, nodeUUID, scheduler),
+    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_FourNodesResponseTransaction, nodeUUID, scheduler),
       mTrustLinesManager(manager),
       mLogger(logger),
       mRequestMessage(message) {
@@ -20,11 +20,11 @@ CycleThreeNodesResponseTransaction::CycleThreeNodesResponseTransaction(
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-TransactionResult::SharedConst CycleThreeNodesResponseTransaction::run() {
+TransactionResult::SharedConst CyclesFourNodesResponseTransaction::run() {
 //    Get neighbors UUID from message
-    vector<NodeUUID> neighbors = mRequestMessage->Neighbors();
+    set<NodeUUID> neighbors = mRequestMessage->Neighbors();
 //    Create message and reserve memory for neighbors
-    const auto kMessage = make_shared<ThreeNodesBalancesResponseMessage>(
+    const auto kMessage = make_shared<FourNodesBalancesResponseMessage>(
         mNodeUUID,
         mTransactionUUID,
         neighbors.size()

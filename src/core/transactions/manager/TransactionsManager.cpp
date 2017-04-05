@@ -288,7 +288,7 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::MessageTypeID::CycleFiveNodesInBetweenMessage) {
         launchFiveNodesCyclesResponseTransaction(
             static_pointer_cast<CycleFiveNodesInBetweenMessage>(message));
-    }else if(message->typeID() == Message::MessageTypeID::ThreeNodesBalancesRequestMessage){
+    }else if(message->typeID() == Message::MessageTypeID::Cycles_ThreeNodesBalancesRequestMessage){
         launchThreeNodesCyclesResponseTransaction(
                 static_pointer_cast<ThreeNodesBalancesRequestMessage>(message));
     } else {
@@ -1077,7 +1077,7 @@ void TransactionsManager::prepareAndSchedule(
 
 void TransactionsManager::launchThreeNodesCyclesInitTransaction(NodeUUID &contractorUUID) {
     try {
-        auto transaction = make_shared<CycleThreeNodesInitTransaction>(
+        auto transaction = make_shared<CyclesThreeNodesInitTransaction>(
             mNodeUUID,
             contractorUUID,
             mScheduler.get(),
@@ -1096,7 +1096,7 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(NodeUUID &contra
 
 void TransactionsManager::launchThreeNodesCyclesResponseTransaction(ThreeNodesBalancesRequestMessage::Shared message) {
     try {
-        auto transaction = make_shared<CycleThreeNodesResponseTransaction>(
+        auto transaction = make_shared<CyclesThreeNodesResponseTransaction>(
             mNodeUUID,
             message,
             mScheduler.get(),
@@ -1131,7 +1131,7 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction() {
 
 void TransactionsManager::launchSixNodesCyclesResponseTransaction(CycleSixNodesInBetweenMessage::Shared message) {
     try {
-        auto transaction = make_shared<CycleSixNodesResponseTransaction>(
+        auto transaction = make_shared<CyclesSixNodesResponseTransaction>(
             mNodeUUID,
             message,
             mScheduler.get(),
@@ -1149,7 +1149,7 @@ void TransactionsManager::launchSixNodesCyclesResponseTransaction(CycleSixNodesI
 
 void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
     try {
-        auto transaction = make_shared<CycleFiveNodesInitTransaction>(
+        auto transaction = make_shared<CyclesFiveNodesInitTransaction>(
             mNodeUUID,
             mScheduler.get(),
             mTrustLines,
@@ -1166,7 +1166,7 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
 
 void TransactionsManager::launchFiveNodesCyclesResponseTransaction(CycleFiveNodesInBetweenMessage::Shared message) {
     try {
-        auto transaction = make_shared<CycleFiveNodesResponseTransaction>(
+        auto transaction = make_shared<CyclesFiveNodesResponseTransaction>(
             mNodeUUID,
             message,
             mScheduler.get(),

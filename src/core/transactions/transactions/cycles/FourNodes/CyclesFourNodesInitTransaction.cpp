@@ -1,12 +1,12 @@
-#include "CycleFourNodesInitTransaction.h"
+#include "CyclesFourNodesInitTransaction.h"
 
 
-CycleFourNodesInitTransaction::CycleFourNodesInitTransaction(TransactionsScheduler *scheduler)
-        :UniqueTransaction(BaseTransaction::TransactionType::CycleFourNodesInitTransaction, scheduler) {
+CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(TransactionsScheduler *scheduler)
+        :UniqueTransaction(BaseTransaction::TransactionType::Cycles_FourNodesInitTransaction, scheduler) {
 
 }
 
-CycleFourNodesInitTransaction::CycleFourNodesInitTransaction(
+CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
         const NodeUUID &nodeUUID,
         const NodeUUID &debtorContractorUUID,
         const NodeUUID &creditorContractorUUID,
@@ -14,7 +14,7 @@ CycleFourNodesInitTransaction::CycleFourNodesInitTransaction(
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Logger *logger)
-        : UniqueTransaction(BaseTransaction::TransactionType::CycleFourNodesInitTransaction, nodeUUID, scheduler),
+        : UniqueTransaction(BaseTransaction::TransactionType::Cycles_FourNodesInitTransaction, nodeUUID, scheduler),
           mTrustLinesManager(manager),
           mlogger(logger),
           mStorageHandler(storageHandler),
@@ -24,7 +24,7 @@ CycleFourNodesInitTransaction::CycleFourNodesInitTransaction(
 
 }
 
-TransactionResult::SharedConst CycleFourNodesInitTransaction::run() {
+TransactionResult::SharedConst CyclesFourNodesInitTransaction::run() {
     switch (mStep){
         case Stages::CollectDataAndSendMessage:
             return runCollectDataAndSendMessageStage();
@@ -38,7 +38,7 @@ TransactionResult::SharedConst CycleFourNodesInitTransaction::run() {
     }
 }
 
-TransactionResult::SharedConst CycleFourNodesInitTransaction::runCollectDataAndSendMessageStage() {
+TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage() {
 
     set<NodeUUID> neighbors = getCommonNeighborsForDebtorAndCreditorNodes();
     sendMessage<FourNodesBalancesRequestMessage>(
@@ -59,9 +59,9 @@ TransactionResult::SharedConst CycleFourNodesInitTransaction::runCollectDataAndS
         kStandardConnectionTimeout);
 }
 
-TransactionResult::SharedConst CycleFourNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
+TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     if (mContext.size() != 2){
-        mlogger->error("CycleFourNodesInitTransaction:"
+        mlogger->error("CyclesFourNodesInitTransaction:"
                            "Responses Messages count Not equal 2;"
                            "Can not create Cycles;");
         return finishTransaction();
@@ -76,7 +76,7 @@ TransactionResult::SharedConst CycleFourNodesInitTransaction::runParseMessageAnd
     if ((firstContractorBalance < zeroBalance and secondContractorBalance > zeroBalance) or
         (firstContractorBalance > zeroBalance and secondContractorBalance < zeroBalance))
     {
-        mlogger->info("CycleFourNodesInitTransaction:"
+        mlogger->info("CyclesFourNodesInitTransaction:"
                           "Balances was changed. Cannot create Cycles");
         return finishTransaction();
     }
@@ -114,7 +114,7 @@ TransactionResult::SharedConst CycleFourNodesInitTransaction::runParseMessageAnd
     return TransactionResult::SharedConst();
 }
 
-set<NodeUUID> CycleFourNodesInitTransaction::getCommonNeighborsForDebtorAndCreditorNodes() {
+set<NodeUUID> CyclesFourNodesInitTransaction::getCommonNeighborsForDebtorAndCreditorNodes() {
     set<NodeUUID> creditorsNeighbors = mStorageHandler->routingTablesHandler()->routingTable2Level()->allDestinationsForSource(
         mCreditorContractorUUID);
     set<NodeUUID> debtorsNeighbors = mStorageHandler->routingTablesHandler()->routingTable2Level()->allDestinationsForSource(

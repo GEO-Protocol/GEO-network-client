@@ -6,16 +6,16 @@
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp"
 #include <set>
 
-class CycleSixNodesResponseTransaction : public UniqueTransaction {
+class CyclesSixNodesResponseTransaction : public UniqueTransaction {
 public:
-    CycleSixNodesResponseTransaction(
+    CyclesSixNodesResponseTransaction(
         const NodeUUID &nodeUUID,
         CycleSixNodesInBetweenMessage::Shared message,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager,
         Logger *logger);
 
-    CycleSixNodesResponseTransaction(TransactionsScheduler *scheduler);
+    CyclesSixNodesResponseTransaction(TransactionsScheduler *scheduler);
 
     TransactionResult::SharedConst run();
 

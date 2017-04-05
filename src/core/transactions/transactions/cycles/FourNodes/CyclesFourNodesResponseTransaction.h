@@ -6,16 +6,16 @@
 #include "../../../../network/messages/cycles/FourNodes/FourNodesBalancesResponseMessage.h"
 #include <set>
 
-class CycleFourNodesResponseTransaction : public UniqueTransaction {
+class CyclesFourNodesResponseTransaction : public UniqueTransaction {
 public:
-    CycleFourNodesResponseTransaction(
+    CyclesFourNodesResponseTransaction(
         const NodeUUID &nodeUUID,
         FourNodesBalancesRequestMessage::Shared message,
         TransactionsScheduler *scheduler,
         TrustLinesManager *manager,
         Logger *logger);
 
-    CycleFourNodesResponseTransaction(TransactionsScheduler *scheduler);
+    CyclesFourNodesResponseTransaction(TransactionsScheduler *scheduler);
 
     TransactionResult::SharedConst run();
 

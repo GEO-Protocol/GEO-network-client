@@ -6,18 +6,22 @@
 #include "../../../../io/storage/StorageHandler.h"
 #include "../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesResponseMessage.h"
+
 #include <set>
 
-class CycleThreeNodesResponseTransaction : public UniqueTransaction {
-public:
-    CycleThreeNodesResponseTransaction(
-            const NodeUUID &nodeUUID,
-            ThreeNodesBalancesRequestMessage::Shared message,
-            TransactionsScheduler *scheduler,
-            TrustLinesManager *manager,
-            Logger *logger);
 
-    CycleThreeNodesResponseTransaction(TransactionsScheduler *scheduler);
+class CyclesThreeNodesResponseTransaction :
+    public UniqueTransaction {
+
+public:
+    CyclesThreeNodesResponseTransaction(
+        const NodeUUID &nodeUUID,
+        ThreeNodesBalancesRequestMessage::Shared message,
+        TransactionsScheduler *scheduler,
+        TrustLinesManager *manager,
+        Logger *logger);
+
+    CyclesThreeNodesResponseTransaction(TransactionsScheduler *scheduler);
 
     TransactionResult::SharedConst run();
 
@@ -25,7 +29,6 @@ public:
 
 
 protected:
-//    Nodes Balances that are mutual between core node and contract node
     ThreeNodesBalancesRequestMessage::Shared mRequestMessage;
     TrustLinesManager *mTrustLinesManager;
     Logger *mLogger;

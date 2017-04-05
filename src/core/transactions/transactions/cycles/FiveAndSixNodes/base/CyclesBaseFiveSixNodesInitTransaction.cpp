@@ -13,7 +13,7 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(con
 };
 
 CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(TransactionsScheduler *scheduler)
-    : UniqueTransaction(BaseTransaction::TransactionType::CycleBaseFiveSixNodesInitTransaction, scheduler) {
+    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_BaseFiveSixNodesInitTransaction, scheduler) {
 }
 
 TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::run() {

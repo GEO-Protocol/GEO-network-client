@@ -1,17 +1,17 @@
-#include "CycleSixNodesResponseTransaction.h"
+#include "CyclesSixNodesResponseTransaction.h"
 
-CycleSixNodesResponseTransaction::CycleSixNodesResponseTransaction(TransactionsScheduler *scheduler)
-    : UniqueTransaction(BaseTransaction::TransactionType::CycleSixNodesResponseTransaction, scheduler) {
+CyclesSixNodesResponseTransaction::CyclesSixNodesResponseTransaction(TransactionsScheduler *scheduler)
+    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_SixNodesResponseTransaction, scheduler) {
 
 }
 
-CycleSixNodesResponseTransaction::CycleSixNodesResponseTransaction(
+CyclesSixNodesResponseTransaction::CyclesSixNodesResponseTransaction(
     const NodeUUID &nodeUUID,
     CycleSixNodesInBetweenMessage::Shared message,
     TransactionsScheduler *scheduler,
     TrustLinesManager *manager,
     Logger *logger)
-    : UniqueTransaction(BaseTransaction::TransactionType::CycleSixNodesResponseTransaction, nodeUUID, scheduler),
+    : UniqueTransaction(BaseTransaction::TransactionType::Cycles_SixNodesResponseTransaction, nodeUUID, scheduler),
       mTrustLinesManager(manager),
       mlogger(logger),
       mInBetweenNodeTopologyMessage(message) {
@@ -19,7 +19,7 @@ CycleSixNodesResponseTransaction::CycleSixNodesResponseTransaction(
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-TransactionResult::SharedConst CycleSixNodesResponseTransaction::run() {
+TransactionResult::SharedConst CyclesSixNodesResponseTransaction::run() {
     vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
     uint8_t currentDepth = path.size();
     TrustLineBalance zeroBalance = 0;
@@ -47,7 +47,7 @@ TransactionResult::SharedConst CycleSixNodesResponseTransaction::run() {
         );
     }
     else {
-        mlogger->error("CycleSixNodesResponseTransaction:"
+        mlogger->error("CyclesSixNodesResponseTransaction:"
         "Wrong path size");
     }
     return resultExit();
