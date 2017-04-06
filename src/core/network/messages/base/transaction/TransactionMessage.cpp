@@ -10,9 +10,9 @@ TransactionMessage::TransactionMessage(
     mTransactionUUID(transactionUUID) {}
 
 TransactionMessage::TransactionMessage(
-        BytesShared bufer)
+        BytesShared buffer)
 {
-    deserializeFromBytes(bufer);
+    deserializeFromBytes(buffer);
 }
 
 const bool TransactionMessage::isTransactionMessage() const {

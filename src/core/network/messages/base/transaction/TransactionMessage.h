@@ -32,7 +32,7 @@ protected:
         const TransactionUUID &transactionUUID);
 
     TransactionMessage(
-        BytesShared bufer);
+        BytesShared buffer);
 
     virtual const MessageType typeID() const = 0;
 

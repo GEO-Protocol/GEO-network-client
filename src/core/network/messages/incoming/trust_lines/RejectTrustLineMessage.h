@@ -25,8 +25,6 @@ public:
 
     const NodeUUID &contractorUUID() const;
 
-    const size_t kRequestedBufferSize();
-
     pair<BytesShared, size_t> serializeToBytes();
 
     MessageResult::SharedConst resultRejected();

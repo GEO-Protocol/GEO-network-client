@@ -36,28 +36,8 @@ RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
 
 pair<BytesShared, size_t> RejectTrustLineTransaction::serializeToBytes() const{
 
-    auto parentBytesAndCount = TrustLineTransaction::serializeToBytes();
-    auto messageBytesAndCount = mMessage->serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second
-                        + messageBytesAndCount.second;
-
-    BytesShared dataBytesShared = tryMalloc(
-        bytesCount);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + parentBytesAndCount.second,
-        messageBytesAndCount.first.get(),
-        messageBytesAndCount.second);
-    //-----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
+    throw NotImplementedError("RejectTrustLineTransaction::serializeToBytes: "
+        "Method not implemented");
 }
 
 void RejectTrustLineTransaction::deserializeFromBytes(
@@ -66,16 +46,8 @@ void RejectTrustLineTransaction::deserializeFromBytes(
     TrustLineTransaction::deserializeFromBytes(
         buffer);
 
-    size_t bytesCount = RejectTrustLineMessage::kRequestedBufferSize();
-    BytesShared messageBufferShared = tryMalloc(bytesCount);
-    //-----------------------------------------------------
-    memcpy(
-        messageBufferShared.get(),
-        buffer.get() + TrustLineTransaction::kOffsetToDataBytes(),
-        RejectTrustLineMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    mMessage = make_shared<RejectTrustLineMessage>(
-        messageBufferShared);
+    throw NotImplementedError("RejectTrustLineTransaction::deserializeFromBytes: "
+        "Method not implemented");
 }
 
 TransactionResult::SharedConst RejectTrustLineTransaction::run() {
