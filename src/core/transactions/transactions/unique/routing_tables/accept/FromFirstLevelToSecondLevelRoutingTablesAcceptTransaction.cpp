@@ -57,7 +57,7 @@ void FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::saveFirstLevelRo
 
 
             try {
-                mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(
+                mStorageHandler->routingTablesHandler()->routingTable3Level()->saveRecord(
                     nodeAndRecords.first,
                     neighborAndDirect.first,
                     neighborAndDirect.second);

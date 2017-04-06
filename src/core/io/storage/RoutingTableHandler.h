@@ -27,12 +27,6 @@ public:
 
     void rollBack();
 
-    // TODO : move to private
-    void insert(
-        const NodeUUID &source,
-        const NodeUUID &destination,
-        const TrustLineDirection direction);
-
     void saveRecord(
         const NodeUUID &source,
         const NodeUUID &destination,
@@ -58,6 +52,11 @@ public:
 private:
 
     void prepareInserted();
+
+    void insert(
+        const NodeUUID &source,
+        const NodeUUID &destination,
+        const TrustLineDirection direction);
 
     void updateRecord(
         const NodeUUID &source,

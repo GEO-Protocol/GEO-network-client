@@ -75,7 +75,7 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveLinkBetweenIn
             info() << "Direction UUID: " + to_string(neighborAndDirect.second);
 
             try {
-                mStorageHandler->routingTablesHandler()->routingTable2Level()->insert(
+                mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(
                     nodeAndRecords.first,
                     neighborAndDirect.first,
                     neighborAndDirect.second);
@@ -153,7 +153,7 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveSecondLevelRo
             info() << "Direction: " + to_string(neighborAndDirect.second);
 
             try {
-                mStorageHandler->routingTablesHandler()->routingTable3Level()->insert(
+                mStorageHandler->routingTablesHandler()->routingTable3Level()->saveRecord(
                     nodeAndRecords.first,
                     neighborAndDirect.first,
                     neighborAndDirect.second);
