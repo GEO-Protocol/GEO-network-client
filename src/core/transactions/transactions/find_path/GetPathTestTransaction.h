@@ -36,8 +36,8 @@ private:
 
 private:
 
-    const uint32_t kConnectionTimeout = 1000;
-    const uint16_t kMaxRequestsCount = 2;
+    const uint32_t kConnectionTimeout = 2000;
+    const uint16_t kMaxRequestsCount = 1;
 
 private:
 

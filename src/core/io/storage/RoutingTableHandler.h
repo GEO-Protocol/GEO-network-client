@@ -57,7 +57,7 @@ public:
 
 private:
 
-    void prepareInsertred();
+    void prepareInserted();
 
     void updateRecord(
         const NodeUUID &source,

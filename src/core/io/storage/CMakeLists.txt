@@ -8,7 +8,9 @@ set(SOURCE_FILES
         RoutingTablesHandler.h
         RoutingTablesHandler.cpp
         TrustLineHandler.h
-        TrustLineHandler.cpp)
+        TrustLineHandler.cpp
+        PaymentOperationStateHandler.h
+        PaymentOperationStateHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

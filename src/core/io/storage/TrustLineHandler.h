@@ -18,7 +18,7 @@ public:
 
     TrustLineHandler(
         sqlite3 *db,
-        string tableName,
+        const string &tableName,
         Logger *logger);
 
     void commit();
@@ -34,7 +34,7 @@ public:
 
 private:
 
-    void prepareInsertred();
+    void prepareInserted();
 
     void insert(
         TrustLine::Shared trustLine);

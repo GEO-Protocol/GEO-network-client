@@ -32,6 +32,8 @@ TransactionResult::SharedConst FindPathTransaction::run() {
             increaseRequestsCounter();
 
         } else {
+            mPathsManager->findPathsOnSelfArea(
+                mContractorUUID);
             mResourcesManager->putResource(
                 make_shared<PathsResource>(
                     mRequestedTransactionUUID,
@@ -39,7 +41,6 @@ TransactionResult::SharedConst FindPathTransaction::run() {
             return make_shared<const TransactionResult>(
                 TransactionState::exit());
         }
-
     }
     return waitingForResponseState();
 
@@ -75,10 +76,13 @@ TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
                 }
             }
 
-            mPathsManager->setContractorRoutingTables(response);
-            mPathsManager->findPath();
+            mPathsManager->findPaths(
+                mContractorUUID,
+                response->rt1(),
+                response->rt2(),
+                response->rt3());
             // TODO : remove after testing
-            mPathsManager->findPathsTest();
+            //mPathsManager->findPathsTest();
         }
 
         mResourcesManager->putResource(

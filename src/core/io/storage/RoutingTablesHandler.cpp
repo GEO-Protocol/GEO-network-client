@@ -2,11 +2,13 @@
 
 RoutingTablesHandler::RoutingTablesHandler(
     sqlite3 *db,
+    const string &rt2TableName,
+    const string &rt3TableName,
     Logger *logger):
 
     mDataBase(db),
-    mRoutingTable2Level(db, kRT2TableName, logger),
-    mRoutingTable3Level(db, kRT3TableName, logger),
+    mRoutingTable2Level(db, rt2TableName, logger),
+    mRoutingTable3Level(db, rt3TableName, logger),
     mLog(logger){}
 
 RoutingTableHandler* RoutingTablesHandler::routingTable2Level() {

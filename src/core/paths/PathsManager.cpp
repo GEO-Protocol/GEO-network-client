@@ -20,24 +20,17 @@ PathsManager::PathsManager(
     //testStorageHandler();
     //fillRoutingTables();
     //fillBigRoutingTables();
-    //testTrustLineHandler();
-}
-
-void PathsManager::setContractorRoutingTables(ResultRoutingTablesMessage::Shared message) {
-
-    contractorUUID = message->senderUUID();
-    contractorRT1 = message->rt1();
-    contractorRT2 = message->rt2();
-    contractorRT3 = message->rt3();
+    testTrustLineHandler();
+    //testPaymentStateOperationsHandler();
 }
 
 void PathsManager::findDirectPath() {
 
     for (auto const &nodeUUID : mTrustLinesManager->rt1()) {
-        if (nodeUUID == contractorUUID) {
+        if (nodeUUID == mContractorUUID) {
             Path path = Path(
                 mNodeUUID,
-                contractorUUID);
+                mContractorUUID);
             mPathCollection->add(path);
             info() << "found direct path";
             return;
@@ -47,12 +40,12 @@ void PathsManager::findDirectPath() {
 
 void PathsManager::findPathsOnSecondLevel() {
 
-    for (auto const &nodeUUID : mStorageHandler->routingTablesHandler()->subRoutesSecondLevel(contractorUUID)) {
+    for (auto const &nodeUUID : mStorageHandler->routingTablesHandler()->subRoutesSecondLevel(mContractorUUID)) {
         vector<NodeUUID> intermediateNodes;
         intermediateNodes.push_back(nodeUUID);
         Path path(
             mNodeUUID,
-            contractorUUID,
+            mContractorUUID,
             intermediateNodes);
         mPathCollection->add(path);
         info() << "found path on second level";
@@ -62,21 +55,22 @@ void PathsManager::findPathsOnSecondLevel() {
 void PathsManager::findPathsOnThirdLevel() {
 
     for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelContractor(
-            contractorUUID,
+            mContractorUUID,
             mNodeUUID)) {
         vector<NodeUUID> intermediateNodes;
         intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
         intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
         Path path(
             mNodeUUID,
-            contractorUUID,
+            mContractorUUID,
             intermediateNodes);
         mPathCollection->add(path);
         info() << "found path on third level";
     }
 }
 
-void PathsManager::findPathsOnForthLevel() {
+void PathsManager::findPathsOnForthLevel(
+    vector<NodeUUID> &contractorRT1) {
 
     for (auto const &nodeUUID : contractorRT1) {
         if (nodeUUID == mNodeUUID) {
@@ -85,7 +79,7 @@ void PathsManager::findPathsOnForthLevel() {
         for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
                 nodeUUID,
                 mNodeUUID,
-                contractorUUID)) {
+                mContractorUUID)) {
             vector<NodeUUID> intermediateNodes;
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
@@ -93,7 +87,7 @@ void PathsManager::findPathsOnForthLevel() {
             info() << "forth level: " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second << " " << nodeUUID;
             Path path(
                 mNodeUUID,
-                contractorUUID,
+                mContractorUUID,
                 intermediateNodes);
             mPathCollection->add(path);
             info() << "found path on forth level";
@@ -101,17 +95,18 @@ void PathsManager::findPathsOnForthLevel() {
     }
 }
 
-void PathsManager::findPathsOnFifthLevel() {
+void PathsManager::findPathsOnFifthLevel(
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
 
     for (auto const &itRT2 : contractorRT2) {
         // TODO (mc) : need or not second condition (itRT2.first == contractorUUID)
-        if (itRT2.first == mNodeUUID || itRT2.first == contractorUUID) {
+        if (itRT2.first == mNodeUUID || itRT2.first == mContractorUUID) {
             continue;
         }
         for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
                 itRT2.first,
                 mNodeUUID,
-                contractorUUID)) {
+                mContractorUUID)) {
             vector<NodeUUID> intermediateNodes;
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
@@ -119,13 +114,13 @@ void PathsManager::findPathsOnFifthLevel() {
             info() << "fifth path: " << itRT2.first << " " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second;
             for (auto const &nodeUUID : itRT2.second) {
                 if(std::find(intermediateNodes.begin(), intermediateNodes.end(), nodeUUID) != intermediateNodes.end() ||
-                        nodeUUID == mNodeUUID || nodeUUID == contractorUUID) {
+                        nodeUUID == mNodeUUID || nodeUUID == mContractorUUID) {
                     continue;
                 }
                 intermediateNodes.push_back(nodeUUID);
                 Path path(
                     mNodeUUID,
-                    contractorUUID,
+                    mContractorUUID,
                     intermediateNodes);
                 mPathCollection->add(path);
                 intermediateNodes.pop_back();
@@ -135,17 +130,19 @@ void PathsManager::findPathsOnFifthLevel() {
     }
 }
 
-void PathsManager::findPathsOnSixthLevel() {
+void PathsManager::findPathsOnSixthLevel(
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
 
     for (auto const &itRT3 : contractorRT3) {
         // TODO (mc) : need or not second condition (itRT3.first == contractorUUID)
-        if (itRT3.first == mNodeUUID || itRT3.first == contractorUUID) {
+        if (itRT3.first == mNodeUUID || itRT3.first == mContractorUUID) {
             continue;
         }
         for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
                 itRT3.first,
                 mNodeUUID,
-                contractorUUID)) {
+                mContractorUUID)) {
             vector<NodeUUID> intermediateNodes;
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
@@ -154,13 +151,14 @@ void PathsManager::findPathsOnSixthLevel() {
             for (auto const &nodeUUID : itRT3.second) {
                 for (auto &contactorIntermediateNode : intermediateNodesOnContractorFirstLevel(
                         nodeUUID,
-                        intermediateNodes)) {
+                        intermediateNodes,
+                        contractorRT2)) {
                     //info() << "sixth path: " << nodeUUID << " " << contactorIntermediateNode;
                     intermediateNodes.push_back(nodeUUID);
                     intermediateNodes.push_back(contactorIntermediateNode);
                     Path path(
                         mNodeUUID,
-                        contractorUUID,
+                        mContractorUUID,
                         intermediateNodes);
                     mPathCollection->add(path);
                     intermediateNodes.pop_back();
@@ -173,11 +171,12 @@ void PathsManager::findPathsOnSixthLevel() {
 }
 
 vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevel(
-        const NodeUUID &thirdLevelSourceNode,
-        const vector<NodeUUID> intermediateNodes) const {
+    const NodeUUID &thirdLevelSourceNode,
+    vector<NodeUUID> &intermediateNodes,
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) const {
 
     if(std::find(intermediateNodes.begin(), intermediateNodes.end(), thirdLevelSourceNode) != intermediateNodes.end() ||
-            thirdLevelSourceNode == mNodeUUID || thirdLevelSourceNode == contractorUUID) {
+            thirdLevelSourceNode == mNodeUUID || thirdLevelSourceNode == mContractorUUID) {
         return {};
     }
 
@@ -188,7 +187,7 @@ vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevel(
         vector<NodeUUID> result;
         for (auto const &nodeUUID : nodeUUIDAndVect->second) {
             if(std::find(intermediateNodes.begin(), intermediateNodes.end(), nodeUUID) != intermediateNodes.end() ||
-                    nodeUUID == mNodeUUID || nodeUUID == contractorUUID) {
+                    nodeUUID == mNodeUUID || nodeUUID == mContractorUUID) {
                 continue;
             }
             result.push_back(nodeUUID);
@@ -200,10 +199,10 @@ vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevel(
 // test
 void PathsManager::findPathsOnSecondLevelTest() {
 
-    for (auto const &nodeUUID : mStorageHandler->routingTablesHandler()->subRoutesSecondLevel(contractorUUID)) {
+    for (auto const &nodeUUID : mStorageHandler->routingTablesHandler()->subRoutesSecondLevel(mContractorUUID)) {
         Path path(
             mNodeUUID,
-            contractorUUID,
+            mContractorUUID,
             {nodeUUID});
         if (isPathValid(path)) {
             mPathCollection->add(path);
@@ -215,13 +214,13 @@ void PathsManager::findPathsOnSecondLevelTest() {
 void PathsManager::findPathsOnThirdLevelTest() {
 
     for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
-            contractorUUID)) {
-        if (nodeUUIDAndNodeUUID.first == contractorUUID || nodeUUIDAndNodeUUID.second == mNodeUUID) {
+            mContractorUUID)) {
+        if (nodeUUIDAndNodeUUID.first == mContractorUUID || nodeUUIDAndNodeUUID.second == mNodeUUID) {
             continue;
         }
         Path path(
             mNodeUUID,
-            contractorUUID,
+            mContractorUUID,
             {
                 nodeUUIDAndNodeUUID.first,
                 nodeUUIDAndNodeUUID.second});
@@ -232,7 +231,8 @@ void PathsManager::findPathsOnThirdLevelTest() {
     }
 }
 
-void PathsManager::findPathsOnForthLevelTest() {
+void PathsManager::findPathsOnForthLevelTest(
+    vector<NodeUUID> &contractorRT1) {
 
     for (auto const &nodeUUID : contractorRT1) {
         if (nodeUUID == mNodeUUID) {
@@ -242,7 +242,7 @@ void PathsManager::findPathsOnForthLevelTest() {
                 nodeUUID)) {
             Path path(
                 mNodeUUID,
-                contractorUUID,
+                mContractorUUID,
                 {
                     nodeUUIDAndNodeUUID.first,
                     nodeUUIDAndNodeUUID.second,
@@ -255,11 +255,12 @@ void PathsManager::findPathsOnForthLevelTest() {
     }
 }
 
-void PathsManager::findPathsOnFifthLevelTest() {
+void PathsManager::findPathsOnFifthLevelTest(
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
 
     for (auto const &itRT2 : contractorRT2) {
         // TODO (mc) : need or not second condition (itRT2.first == contractorUUID)
-        if (itRT2.first == mNodeUUID || itRT2.first == contractorUUID) {
+        if (itRT2.first == mNodeUUID || itRT2.first == mContractorUUID) {
             continue;
         }
         for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
@@ -273,7 +274,7 @@ void PathsManager::findPathsOnFifthLevelTest() {
                 intermediateNodes.push_back(nodeUUID);
                 Path path(
                     mNodeUUID,
-                    contractorUUID,
+                    mContractorUUID,
                     intermediateNodes);
                 if (isPathValid(path)) {
                     mPathCollection->add(path);
@@ -284,11 +285,13 @@ void PathsManager::findPathsOnFifthLevelTest() {
     }
 }
 
-void PathsManager::findPathsOnSixthLevelTest() {
+void PathsManager::findPathsOnSixthLevelTest(
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
 
     for (auto const &itRT3 : contractorRT3) {
         // TODO (mc) : need or not second condition (itRT3.first == contractorUUID)
-        if (itRT3.first == mNodeUUID || itRT3.first == contractorUUID) {
+        if (itRT3.first == mNodeUUID || itRT3.first == mContractorUUID) {
             continue;
         }
         for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
@@ -297,7 +300,8 @@ void PathsManager::findPathsOnSixthLevelTest() {
             info() << "sixth path: " << itRT3.first << " " << nodeUUIDAndNodeUUID.second << " " << nodeUUIDAndNodeUUID.first;
             for (auto const &nodeUUID : itRT3.second) {
                 for (auto &contactorIntermediateNode : intermediateNodesOnContractorFirstLevelTest(
-                        nodeUUID)) {
+                        nodeUUID,
+                        contractorRT2)) {
                     info() << "sixth path: " << nodeUUID << " " << contactorIntermediateNode;
                     vector<NodeUUID> intermediateNodes;
                     intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
@@ -307,7 +311,7 @@ void PathsManager::findPathsOnSixthLevelTest() {
                     intermediateNodes.push_back(contactorIntermediateNode);
                     Path path(
                         mNodeUUID,
-                        contractorUUID,
+                        mContractorUUID,
                         intermediateNodes);
                     if (isPathValid(path)) {
                         mPathCollection->add(path);
@@ -320,7 +324,8 @@ void PathsManager::findPathsOnSixthLevelTest() {
 }
 
 vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevelTest(
-        const NodeUUID &thirdLevelSourceNode) const {
+    const NodeUUID &thirdLevelSourceNode,
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) const {
 
     auto nodeUUIDAndVect = contractorRT2.find(thirdLevelSourceNode);
     if (nodeUUIDAndVect == contractorRT2.end()) {
@@ -347,19 +352,29 @@ bool PathsManager::isPathValid(const Path &path) {
 }
 // test end
 
-Path::Shared PathsManager::findPath() {
+void PathsManager::findPaths(
+    const NodeUUID &contractorUUID,
+    vector<NodeUUID> &contractorRT1,
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2,
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3) {
+
+    mContractorUUID = contractorUUID;
 
     info() << "start finding paths to " << contractorUUID;
     DateTime startTime;
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
-        contractorUUID);
+        mContractorUUID);
     findDirectPath();
     findPathsOnSecondLevel();
     findPathsOnThirdLevel();
-    findPathsOnForthLevel();
-    findPathsOnFifthLevel();
-    findPathsOnSixthLevel();
+    findPathsOnForthLevel(
+        contractorRT1);
+    findPathsOnFifthLevel(
+        contractorRT2);
+    findPathsOnSixthLevel(
+        contractorRT3,
+        contractorRT2);
 
     Duration methodTime = utc_now() - startTime;
     info() << "PathsManager::findPath\tmethod time: " << methodTime;
@@ -367,43 +382,57 @@ Path::Shared PathsManager::findPath() {
     while (mPathCollection->hasNextPath()) {
         info() << mPathCollection->nextPath()->toString();
     }
-    mPathCollection->resetCurrentPath();
-    if (mPathCollection->hasNextPath()) {
-        return mPathCollection->nextPath();
-    } else {
-        return nullptr;
+}
+
+void PathsManager::findPathsOnSelfArea(
+    const NodeUUID &contractorUUID) {
+
+    mContractorUUID = contractorUUID;
+    info() << "start finding paths on self area to " << contractorUUID;
+    DateTime startTime;
+    mPathCollection = make_shared<PathsCollection>(
+        mNodeUUID,
+        mContractorUUID);
+    findDirectPath();
+    findPathsOnSecondLevel();
+    findPathsOnThirdLevel();
+
+    Duration methodTime = utc_now() - startTime;
+    info() << "PathsManager::findPath\tmethod time: " << methodTime;
+    info() << "total paths count: " << mPathCollection->count();
+    while (mPathCollection->hasNextPath()) {
+        info() << mPathCollection->nextPath()->toString();
     }
 }
 
-Path::Shared PathsManager::findPathsTest() {
+void PathsManager::findPathsTest(
+    const NodeUUID &contractorUUID,
+    vector<NodeUUID> &contractorRT1,
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2,
+    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3) {
 
-    info() << "start finding paths to " << contractorUUID;
+    mContractorUUID = contractorUUID;
+
+    info() << "start finding test paths to " << mContractorUUID;
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
-        contractorUUID);
+        mContractorUUID);
     findDirectPath();
     findPathsOnSecondLevelTest();
     findPathsOnThirdLevelTest();
-    findPathsOnForthLevelTest();
-    findPathsOnFifthLevelTest();
-    findPathsOnSixthLevelTest();
+    findPathsOnForthLevelTest(
+        contractorRT1);
+    findPathsOnFifthLevelTest(
+        contractorRT2);
+    findPathsOnSixthLevelTest(
+        contractorRT3,
+        contractorRT2);
 
     info() << "total paths count: " << mPathCollection->count();
     while (mPathCollection->hasNextPath()) {
         info() << mPathCollection->nextPath()->toString();
     }
-    mPathCollection->resetCurrentPath();
-    if (mPathCollection->hasNextPath()) {
-        return mPathCollection->nextPath();
-    } else {
-        return nullptr;
-    }
 }
-
-/*PathsCollection* PathsManager::pathCollection() const {
-
-    return mPathCollection;
-}*/
 
 PathsCollection::Shared PathsManager::pathCollection() const {
 
@@ -637,16 +666,151 @@ void PathsManager::testTrustLineHandler() {
         TrustLineBalance(-30));
     mStorageHandler->trustLineHandler()->saveTrustLine(trLine);
     mStorageHandler->trustLineHandler()->commit();
-    mStorageHandler->trustLineHandler()->trustLines();
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+        info() << "read one trust line: " <<
+               rtrLine->contractorNodeUUID() << " " <<
+               rtrLine->incomingTrustAmount() << " " <<
+               rtrLine->outgoingTrustAmount() << " " <<
+               rtrLine->balance();
+    }
     trLine->setBalance(55);
     trLine->setIncomingTrustAmount(1000);
     mStorageHandler->trustLineHandler()->saveTrustLine(trLine);
-    mStorageHandler->trustLineHandler()->trustLines();
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+        info() << "read one trust line: " <<
+               rtrLine->contractorNodeUUID() << " " <<
+               rtrLine->incomingTrustAmount() << " " <<
+               rtrLine->outgoingTrustAmount() << " " <<
+               rtrLine->balance();
+    }
     mStorageHandler->trustLineHandler()->rollBack();
-    mStorageHandler->trustLineHandler()->trustLines();
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+        info() << "read one trust line: " <<
+               rtrLine->contractorNodeUUID() << " " <<
+               rtrLine->incomingTrustAmount() << " " <<
+               rtrLine->outgoingTrustAmount() << " " <<
+               rtrLine->balance();
+    }
     mStorageHandler->trustLineHandler()->deleteTrustLine(mNodeUUID);
-    mStorageHandler->trustLineHandler()->trustLines();
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+        info() << "read one trust line: " <<
+               rtrLine->contractorNodeUUID() << " " <<
+               rtrLine->incomingTrustAmount() << " " <<
+               rtrLine->outgoingTrustAmount() << " " <<
+               rtrLine->balance();
+    }
     mStorageHandler->trustLineHandler()->commit();
+}
+
+void PathsManager::testPaymentStateOperationsHandler() {
+    TransactionUUID transaction1;
+    BytesShared state1 = tryMalloc(sizeof(uint8_t));
+    uint8_t st1 = 2;
+    memcpy(
+        state1.get(),
+        &st1,
+        sizeof(uint8_t));
+    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+    st1 = 22;
+    memcpy(
+        state1.get(),
+        &st1,
+        sizeof(uint8_t));
+    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+    TransactionUUID transaction2;
+    BytesShared state2 = tryMalloc(sizeof(uint16_t));
+    uint16_t st2 = 88;
+    memcpy(
+        state2.get(),
+        &st2,
+        sizeof(uint16_t));
+    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction2, state2, sizeof(uint16_t));
+    mStorageHandler->paymentOperationStateHandler()->commit();
+    TransactionUUID transaction3;
+    BytesShared state3 = tryMalloc(sizeof(uint32_t));
+    uint32_t st3 = 3;
+    memcpy(
+        state3.get(),
+        &st3,
+        sizeof(uint32_t));
+    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
+    mStorageHandler->paymentOperationStateHandler()->rollBack();
+
+    pair<BytesShared, size_t> stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction1);
+    uint32_t state = 0;
+    memcpy(
+        &state,
+        stateBt.first.get(),
+        stateBt.second);
+    info() << stateBt.second << " " << (uint32_t)state;
+    try {
+        stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction2);
+        memcpy(
+            &state,
+            stateBt.first.get(),
+            stateBt.second);
+        info() << stateBt.second << " " << state;
+    } catch (NotFoundError) {
+        info() << "not found";
+    }
+    try {
+        stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction3);
+        memcpy(
+            &state,
+            stateBt.first.get(),
+            stateBt.second);
+        info() << stateBt.second << " " << state;
+    } catch (NotFoundError) {
+        info() << "not found";
+    }
+    state1 = tryMalloc(sizeof(uint32_t));
+    uint32_t st1_1 = 101;
+    memcpy(
+        state1.get(),
+        &st1_1,
+        sizeof(uint32_t));
+    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint32_t));
+    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
+    mStorageHandler->paymentOperationStateHandler()->deleteRecord(transaction2);
+    mStorageHandler->paymentOperationStateHandler()->commit();
+
+    info() << "after changes";
+    stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction1);
+    memcpy(
+        &state,
+        stateBt.first.get(),
+        stateBt.second);
+    info() << stateBt.second << " " << state;
+    try {
+        stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction2);
+        memcpy(
+            &state,
+            stateBt.first.get(),
+            stateBt.second);
+        info() << stateBt.second << " " << state;
+    } catch (NotFoundError) {
+        info() << "not found";
+    }
+    try {
+        stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction3);
+        memcpy(
+            &state,
+            stateBt.first.get(),
+            stateBt.second);
+        info() << stateBt.second << " " << state;
+    } catch (NotFoundError) {
+        info() << "not found";
+    }
+    try {
+        stateBt = mStorageHandler->paymentOperationStateHandler()->getState(TransactionUUID());
+        memcpy(
+            &state,
+            stateBt.first.get(),
+            stateBt.second);
+        info() << stateBt.second << " " << state;
+    } catch (NotFoundError) {
+        info() << "not found";
+    }
 }
 
 void PathsManager::fillBigRoutingTables() {

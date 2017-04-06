@@ -26,11 +26,11 @@ public:
 
     const MessageType typeID() const;
 
-    vector<NodeUUID> rt1();
+    vector<NodeUUID>& rt1();
 
-    unordered_map<NodeUUID, vector<NodeUUID>> rt2();
+    unordered_map<NodeUUID, vector<NodeUUID>>& rt2();
 
-    unordered_map<NodeUUID, vector<NodeUUID>> rt3();
+    unordered_map<NodeUUID, vector<NodeUUID>>& rt3();
 
     pair<BytesShared, size_t> serializeToBytes();
 

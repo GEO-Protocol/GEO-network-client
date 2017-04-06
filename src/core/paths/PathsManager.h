@@ -22,14 +22,21 @@ public:
         StorageHandler* storageHandler,
         Logger *logger);
 
-    void setContractorRoutingTables(ResultRoutingTablesMessage::Shared message);
+    void findPaths(
+        const NodeUUID &contractorUUID,
+        vector<NodeUUID> &contractorRT1,
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2,
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3);
 
-    Path::Shared findPath();
+    void findPathsOnSelfArea(
+        const NodeUUID &contractorUUID);
 
     // TODO : test
-    Path::Shared findPathsTest();
-
-    //PathsCollection *pathCollection() const;
+    void findPathsTest(
+        const NodeUUID &contractorUUID,
+        vector<NodeUUID> &contractorRT1,
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2,
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3);
 
     PathsCollection::Shared pathCollection() const;
 
@@ -41,29 +48,39 @@ private:
 
     void findPathsOnThirdLevel();
 
-    void findPathsOnForthLevel();
+    void findPathsOnForthLevel(
+        vector<NodeUUID> &contractorRT1);
 
-    void findPathsOnFifthLevel();
+    void findPathsOnFifthLevel(
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2);
 
-    void findPathsOnSixthLevel();
+    void findPathsOnSixthLevel(
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2);
 
     vector<NodeUUID> intermediateNodesOnContractorFirstLevel(
         const NodeUUID &thirdLevelSourceNode,
-        const vector<NodeUUID> intermediateNodes) const;
+        vector<NodeUUID> &intermediateNodes,
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) const;
 
     // test
     void findPathsOnSecondLevelTest();
 
     void findPathsOnThirdLevelTest();
 
-    void findPathsOnForthLevelTest();
+    void findPathsOnForthLevelTest(
+        vector<NodeUUID> &contractorRT1);
 
-    void findPathsOnFifthLevelTest();
+    void findPathsOnFifthLevelTest(
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2);
 
-    void findPathsOnSixthLevelTest();
+    void findPathsOnSixthLevelTest(
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2);
 
     vector<NodeUUID> intermediateNodesOnContractorFirstLevelTest(
-            const NodeUUID &thirdLevelSourceNode) const;
+        const NodeUUID &thirdLevelSourceNode,
+        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) const;
 
     bool isPathValid(const Path &path);
     //test end
@@ -83,20 +100,17 @@ private:
     // TODO: remove after testing
     void testStorageHandler();
     void testTrustLineHandler();
+    void testPaymentStateOperationsHandler();
 
 private:
 
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     Logger *mLog;
-    //PathsCollection *mPathCollection;
     PathsCollection::Shared mPathCollection;
     NodeUUID mNodeUUID;
 
-    vector<NodeUUID> contractorRT1;
-    unordered_map<NodeUUID, vector<NodeUUID>> contractorRT2;
-    unordered_map<NodeUUID, vector<NodeUUID>> contractorRT3;
-    NodeUUID contractorUUID;
+    NodeUUID mContractorUUID;
 
 };
 

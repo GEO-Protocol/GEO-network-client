@@ -13,6 +13,8 @@ public:
 
     RoutingTablesHandler(
         sqlite3 *db,
+        const string &rt2TableName,
+        const string &rt3TableName,
         Logger *logger);
 
     RoutingTableHandler* routingTable2Level();
@@ -33,10 +35,6 @@ public:
         const NodeUUID &contractorUUID);
 
 private:
-
-    const string kRT2TableName = "RT2";
-
-    const string kRT3TableName = "RT3";
 
     LoggerStream info() const;
 

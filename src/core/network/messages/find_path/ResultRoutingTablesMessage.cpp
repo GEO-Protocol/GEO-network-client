@@ -25,17 +25,17 @@ const Message::MessageType ResultRoutingTablesMessage::typeID() const {
     return Message::MessageTypeID::ResultRoutingTablesMessageType;
 }
 
-vector<NodeUUID> ResultRoutingTablesMessage::rt1() {
+vector<NodeUUID>& ResultRoutingTablesMessage::rt1() {
 
     return mRT1;
 }
 
-unordered_map<NodeUUID, vector<NodeUUID>> ResultRoutingTablesMessage::rt2() {
+unordered_map<NodeUUID, vector<NodeUUID>>& ResultRoutingTablesMessage::rt2() {
 
     return mRT2;
 }
 
-unordered_map<NodeUUID, vector<NodeUUID>> ResultRoutingTablesMessage::rt3() {
+unordered_map<NodeUUID, vector<NodeUUID>>& ResultRoutingTablesMessage::rt3() {
 
     return mRT3;
 }

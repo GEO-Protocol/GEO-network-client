@@ -5,6 +5,7 @@
 #include "RoutingTablesHandler.h"
 #include "RoutingTableHandler.h"
 #include "TrustLineHandler.h"
+#include "PaymentOperationStateHandler.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -24,9 +25,11 @@ public:
 
     ~StorageHandler();
 
-    RoutingTablesHandler* routingTablesHandler();
+    RoutingTablesHandler *routingTablesHandler();
 
-    TrustLineHandler* trustLineHandler();
+    TrustLineHandler *trustLineHandler();
+
+    PaymentOperationStateHandler *paymentOperationStateHandler();
 
     void closeConnection();
 
@@ -45,7 +48,10 @@ private:
 
 private:
 
+    const string kRT2TableName = "RT2";
+    const string kRT3TableName = "RT3";
     const string kTrustLineTableName = "trust_lines";
+    const string kPaymentOperationStateTableName = "payment_operation_state";
 
 private:
 
@@ -56,6 +62,7 @@ private:
     Logger *mLog;
     RoutingTablesHandler mRoutingTablesHandler;
     TrustLineHandler mTrustLineHandler;
+    PaymentOperationStateHandler mPaymentOperationStateHandler;
     string mDirectory;
     string mDataBaseName;
     string mDataBasePath;

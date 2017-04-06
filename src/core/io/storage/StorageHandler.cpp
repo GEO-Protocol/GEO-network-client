@@ -10,8 +10,9 @@ StorageHandler::StorageHandler(
     mDirectory(directory),
     mDataBaseName(dataBaseName),
     mDataBasePath(mDirectory + "/" + dataBaseName),
-    mRoutingTablesHandler(connection(dataBaseName, directory), logger),
+    mRoutingTablesHandler(connection(dataBaseName, directory), kRT2TableName, kRT3TableName, logger),
     mTrustLineHandler(connection(dataBaseName, directory), kTrustLineTableName, logger),
+    mPaymentOperationStateHandler(connection(dataBaseName, directory), kPaymentOperationStateTableName, logger),
     mLog(logger) {
 
 #ifdef STORAGE_HANDLER_DEBUG_LOG
@@ -51,6 +52,11 @@ RoutingTablesHandler* StorageHandler::routingTablesHandler() {
 TrustLineHandler* StorageHandler::trustLineHandler() {
 
     return &mTrustLineHandler;
+}
+
+PaymentOperationStateHandler *StorageHandler::paymentOperationStateHandler() {
+
+    return &mPaymentOperationStateHandler;
 }
 
 void StorageHandler::closeConnection() {
