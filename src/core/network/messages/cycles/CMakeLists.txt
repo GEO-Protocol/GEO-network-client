@@ -1,22 +1,22 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
-        ThreeNodes/ThreeNodesBalancesRequestMessage.h
-        ThreeNodes/ThreeNodesBalancesRequestMessage.cpp
-        ThreeNodes/ThreeNodesBalancesResponseMessage.h
-        ThreeNodes/ThreeNodesBalancesResponseMessage.cpp
-        FourNodes/FourNodesBalancesRequestMessage.h
-        FourNodes/FourNodesBalancesRequestMessage.cpp
-        FourNodes/FourNodesBalancesResponseMessage.h
-        FourNodes/FourNodesBalancesResponseMessage.cpp
-        SixAndFiveNodes/base/CycleBaseFiveOrSixNodesInBetweenMessage.h
-        SixAndFiveNodes/base/CycleBaseFiveOrSixNodesInBetweenMessage.cpp
-        SixAndFiveNodes/base/CycleBaseFiveOrSixNodesBoundaryMessage.h
-        SixAndFiveNodes/base/CycleBaseFiveOrSixNodesBoundaryMessage.cpp
-        SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp
-        SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp
-        SixAndFiveNodes/CycleFiveNodesBoundaryMessage.hpp
-        SixAndFiveNodes/CycleSixNodesBoundaryMessage.hpp
+        ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h
+        ThreeNodes/CyclesThreeNodesBalancesRequestMessage.cpp
+        ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h
+        ThreeNodes/CyclesThreeNodesBalancesResponseMessage.cpp
+        FourNodes/CyclesFourNodesBalancesRequestMessage.h
+        FourNodes/CyclesFourNodesBalancesRequestMessage.cpp
+        FourNodes/CyclesFourNodesBalancesResponseMessage.h
+        FourNodes/CyclesFourNodesBalancesResponseMessage.cpp
+        SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesInBetweenMessage.h
+        SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesInBetweenMessage.cpp
+        SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesBoundaryMessage.h
+        SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesBoundaryMessage.cpp
+        SixAndFiveNodes/Cycles_FiveNodesInBetweenMessage.hpp
+        SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp
+        SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp
+        SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp
         )
 
 add_library(messages__cycles ${SOURCE_FILES})

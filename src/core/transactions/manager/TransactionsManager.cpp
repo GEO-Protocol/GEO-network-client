@@ -282,15 +282,15 @@ void TransactionsManager::processMessage(
                 static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
         }
 
-    } else if (message->typeID() == Message::MessageTypeID::CycleSixNodesInBetweenMessage) {
+    } else if (message->typeID() == Message::MessageTypeID::Cycles_SixNodesInBetweenMessage) {
         launchSixNodesCyclesResponseTransaction(
-                static_pointer_cast<CycleSixNodesInBetweenMessage>(message));
-    } else if (message->typeID() == Message::MessageTypeID::CycleFiveNodesInBetweenMessage) {
+                static_pointer_cast<CyclesSixNodesInBetweenMessage>(message));
+    } else if (message->typeID() == Message::MessageTypeID::Cycles_FiveNodesInBetweenMessage) {
         launchFiveNodesCyclesResponseTransaction(
             static_pointer_cast<CycleFiveNodesInBetweenMessage>(message));
     }else if(message->typeID() == Message::MessageTypeID::Cycles_ThreeNodesBalancesRequestMessage){
         launchThreeNodesCyclesResponseTransaction(
-                static_pointer_cast<ThreeNodesBalancesRequestMessage>(message));
+                static_pointer_cast<CyclesThreeNodesBalancesRequestMessage>(message));
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
@@ -1093,9 +1093,9 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(NodeUUID &contra
     }
 }
 
-void TransactionsManager::launchThreeNodesCyclesResponseTransaction(ThreeNodesBalancesRequestMessage::Shared message) {
+void TransactionsManager::launchThreeNodesCyclesResponseTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message) {
     try {
-        auto transaction = make_shared<CyclesThreeNodesResponseTransaction>(
+        auto transaction = make_shared<CyclesThreeNodesReceiverTransaction>(
             mNodeUUID,
             message,
             mTrustLines,
@@ -1127,7 +1127,7 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction() {
     }
 }
 
-void TransactionsManager::launchSixNodesCyclesResponseTransaction(CycleSixNodesInBetweenMessage::Shared message) {
+void TransactionsManager::launchSixNodesCyclesResponseTransaction(CyclesSixNodesInBetweenMessage::Shared message) {
     try {
         auto transaction = make_shared<CyclesSixNodesResponseTransaction>(
             mNodeUUID,

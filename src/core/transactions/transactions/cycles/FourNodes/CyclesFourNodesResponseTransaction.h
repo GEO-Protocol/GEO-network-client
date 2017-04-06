@@ -3,25 +3,25 @@
 
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../network/messages/cycles/FourNodes/FourNodesBalancesRequestMessage.h"
-#include "../../../../network/messages/cycles/FourNodes/FourNodesBalancesResponseMessage.h"
+#include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
+#include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 
 #include <set>
 
-class CyclesFourNodesResponseTransaction :
-    public BaseTransaction{
+class CyclesFourNodesResponseTransaction:
+    public BaseTransaction {
+
 public:
     CyclesFourNodesResponseTransaction(
         const NodeUUID &nodeUUID,
-        FourNodesBalancesRequestMessage::Shared message,
+        CyclesFourNodesBalancesRequestMessage::Shared message,
         TrustLinesManager *manager,
         Logger *logger);
 
     TransactionResult::SharedConst run();
 
 protected:
-//    Nodes Balances that are mutual between core node and contract node
-    FourNodesBalancesRequestMessage::Shared mRequestMessage;
+    CyclesFourNodesBalancesRequestMessage::Shared mRequestMessage;
     TrustLinesManager *mTrustLinesManager;
     Logger *mLogger;
 };

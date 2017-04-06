@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_CYCLEFIVENODESINBETWEENMESSAGE_H
 #define GEO_NETWORK_CLIENT_CYCLEFIVENODESINBETWEENMESSAGE_H
 
-#include "base/CycleBaseFiveOrSixNodesInBetweenMessage.h"
+#include "base/CyclesBaseFiveOrSixNodesInBetweenMessage.h"
 
 class CycleFiveNodesInBetweenMessage: public CycleBaseFiveOrSixNodesInBetweenMessage {
 public:
@@ -14,7 +14,7 @@ public:
         BytesShared buffer):CycleBaseFiveOrSixNodesInBetweenMessage(buffer){};
 
     const MessageType typeID() const {
-        return Message::MessageTypeID::CycleFiveNodesInBetweenMessage;
+        return Message::MessageTypeID::Cycles_FiveNodesInBetweenMessage;
     };
 };
 #endif //GEO_NETWORK_CLIENT_CYCLEFIVENODESINBETWEENMESSAGE_H

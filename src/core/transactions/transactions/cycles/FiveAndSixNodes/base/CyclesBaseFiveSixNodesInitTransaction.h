@@ -9,7 +9,7 @@ class CyclesBaseFiveSixNodesInitTransaction :
 
 public:
     typedef shared_ptr<CyclesBaseFiveSixNodesInitTransaction> Shared;
-    typedef pair<vector<NodeUUID>, TrustLineBalance> MapValuesType;
+    typedef pair<shared_ptr<vector<NodeUUID>>, TrustLineBalance> MapValuesType;
     typedef multimap<NodeUUID, MapValuesType> CycleMap;
     typedef CycleMap::iterator mapIter;
     typedef vector<MapValuesType> ResultVector;
@@ -32,7 +32,7 @@ protected:
     virtual TransactionResult::SharedConst runCollectDataAndSendMessagesStage() = 0;
     virtual TransactionResult::SharedConst runParseMessageAndCreateCyclesStage() = 0;
 
-protected
+protected:
     TrustLinesManager *mTrustLinesManager;
     Logger *mLogger;
 };

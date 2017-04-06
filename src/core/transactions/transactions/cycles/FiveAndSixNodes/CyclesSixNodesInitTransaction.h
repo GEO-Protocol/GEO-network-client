@@ -2,8 +2,8 @@
 #define GEO_NETWORK_CLIENT_CYCLESSIXNODESINITTRANSACTION_H
 
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
-#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp"
-#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesBoundaryMessage.hpp"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 
 class CyclesSixNodesInitTransaction : public CyclesBaseFiveSixNodesInitTransaction{
 

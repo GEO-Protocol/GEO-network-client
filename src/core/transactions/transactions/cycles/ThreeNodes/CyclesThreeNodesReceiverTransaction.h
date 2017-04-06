@@ -4,26 +4,26 @@
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../io/storage/StorageHandler.h"
-#include "../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesRequestMessage.h"
-#include "../../../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesResponseMessage.h"
+#include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
+#include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
 
 #include <set>
 
 
-class CyclesThreeNodesResponseTransaction :
+class CyclesThreeNodesReceiverTransaction :
     public BaseTransaction {
 
 public:
-    CyclesThreeNodesResponseTransaction(
+    CyclesThreeNodesReceiverTransaction(
         const NodeUUID &nodeUUID,
-        ThreeNodesBalancesRequestMessage::Shared message,
+        CyclesThreeNodesBalancesRequestMessage::Shared message,
         TrustLinesManager *manager,
         Logger *logger);
 
     TransactionResult::SharedConst run();
 
 protected:
-    ThreeNodesBalancesRequestMessage::Shared mRequestMessage;
+    CyclesThreeNodesBalancesRequestMessage::Shared mRequestMessage;
     TrustLinesManager *mTrustLinesManager;
     Logger *mLogger;
 };

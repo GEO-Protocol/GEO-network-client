@@ -37,8 +37,8 @@
 #include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
 #include "../../network/messages/response/Response.h"
 
-#include "../../network/messages/cycles/ThreeNodes/ThreeNodesBalancesRequestMessage.h"
-#include "../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp"
+#include "../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
+#include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 
 #include "../../resources/resources/BaseResource.h"
 
@@ -64,7 +64,7 @@
 #include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesResponseTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
-#include "../transactions/cycles/ThreeNodes/CyclesThreeNodesResponseTransaction.h"
+#include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
 
 
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
@@ -134,16 +134,16 @@ public:
 //    void launchGetTopologyAndBalancesTransactionSixNodes();
 //
 //    void launchGetThreeNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
-//    void launchGetThreeNodesNeighborBalancesTransaction(ThreeNodesBalancesRequestMessage::Shared message);
+//    void launchGetThreeNodesNeighborBalancesTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message);
 //
 //    void launchGetFourNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
-//    void launchGetFourNodesNeighborBalancesTransaction(FourNodesBalancesRequestMessage::Shared message);
+//    void launchGetFourNodesNeighborBalancesTransaction(CyclesFourNodesBalancesRequestMessage::Shared message);
 
     void launchThreeNodesCyclesInitTransaction(NodeUUID &contractorUUID);
-    void launchThreeNodesCyclesResponseTransaction(ThreeNodesBalancesRequestMessage::Shared message);
+    void launchThreeNodesCyclesResponseTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message);
 
     void launchSixNodesCyclesInitTransaction();
-    void launchSixNodesCyclesResponseTransaction(CycleSixNodesInBetweenMessage::Shared message);
+    void launchSixNodesCyclesResponseTransaction(CyclesSixNodesInBetweenMessage::Shared message);
 
     void launchFiveNodesCyclesInitTransaction();
     void launchFiveNodesCyclesResponseTransaction(CycleFiveNodesInBetweenMessage::Shared message);

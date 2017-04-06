@@ -7,16 +7,16 @@
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../base/transaction/TransactionMessage.h"
 #include "set"
-class ThreeNodesBalancesRequestMessage: public TransactionMessage {
+class CyclesThreeNodesBalancesRequestMessage: public TransactionMessage {
 public:
-    typedef shared_ptr<ThreeNodesBalancesRequestMessage> Shared;
+    typedef shared_ptr<CyclesThreeNodesBalancesRequestMessage> Shared;
 public:
-    ThreeNodesBalancesRequestMessage(
+    CyclesThreeNodesBalancesRequestMessage(
             const NodeUUID &senderUUID,
             const TransactionUUID &transactionUUID,
             set<NodeUUID> &neighbors);
 
-    ThreeNodesBalancesRequestMessage(
+    CyclesThreeNodesBalancesRequestMessage(
             BytesShared buffer);
 
     const MessageType typeID() const;

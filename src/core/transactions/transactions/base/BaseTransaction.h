@@ -65,15 +65,13 @@ public:
 
 //      --------------------------------Cycles------------------------------------------------
         Cycles_ThreeNodesInitTransaction,
-        Cycles_ThreeNodesResponseTransaction,
+        Cycles_ThreeNodesReceiverTransaction,
         Cycles_FourNodesInitTransaction,
-        Cycles_FourNodesResponseTransaction,
-        Cycles_BaseFiveSixNodesInitTransaction,
+        Cycles_FourNodesReceiverTransaction,
         Cycles_FiveNodesInitTransaction,
+        Cycles_FiveNodesReceiverTransaction,
         Cycles_SixNodesInitTransaction,
-        Cycles_FiveNodesResponseTransaction,
-        Cycles_SixNodesResponseTransaction,
-        Cycles_FiveSixNodesResponseTransaction,
+        Cycles_SixNodesReceiverTransaction,
 //      --------------------------------Cycles-------------------------------------------------
 
         // Payments

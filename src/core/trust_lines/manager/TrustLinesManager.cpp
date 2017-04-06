@@ -708,10 +708,11 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() con
 }
 
 vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() const {
+    // todo change vector to set
     vector<NodeUUID> Nodes;
     TrustLineBalance zerobalance = 0;
     TrustLineBalance stepbalance;
-    for (auto const& x : mTrustLines){
+    for (const auto &x : mTrustLines){
         stepbalance = x.second->balance();
         if (stepbalance < zerobalance)
             Nodes.push_back(x.first);

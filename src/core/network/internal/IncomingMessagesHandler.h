@@ -36,11 +36,11 @@
 #include "../messages/find_path/ResultRoutingTablesMessage.h"
 
 #include "../messages/cycles/SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp"
-#include "../messages/cycles/SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp"
-#include "../messages/cycles/SixAndFiveNodes/CycleFiveNodesBoundaryMessage.hpp"
-#include "../messages/cycles/SixAndFiveNodes/CycleSixNodesBoundaryMessage.hpp"
-#include "../messages/cycles/ThreeNodes/ThreeNodesBalancesRequestMessage.h"
-#include "../messages/cycles/ThreeNodes/ThreeNodesBalancesResponseMessage.h"
+#include "../messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
+#include "../messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
+#include "../messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
+#include "../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
+#include "../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
 
 
 #include "../../common/exceptions/ValueError.h"

@@ -9,16 +9,16 @@
 
 #include "set"
 
-class FourNodesBalancesRequestMessage: public TransactionMessage {
+class CyclesFourNodesBalancesRequestMessage: public TransactionMessage {
 public:
-    typedef shared_ptr<FourNodesBalancesRequestMessage> Shared;
+    typedef shared_ptr<CyclesFourNodesBalancesRequestMessage> Shared;
 public:
-    FourNodesBalancesRequestMessage(
+    CyclesFourNodesBalancesRequestMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
             set<NodeUUID> &neighbors);
 
-    FourNodesBalancesRequestMessage(
+    CyclesFourNodesBalancesRequestMessage(
             BytesShared buffer);
 
     const MessageType typeID() const;

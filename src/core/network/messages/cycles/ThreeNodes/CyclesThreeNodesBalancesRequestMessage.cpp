@@ -1,12 +1,12 @@
-#include "ThreeNodesBalancesRequestMessage.h"
+#include "CyclesThreeNodesBalancesRequestMessage.h"
 
-ThreeNodesBalancesRequestMessage::ThreeNodesBalancesRequestMessage(BytesShared buffer)
+CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(BytesShared buffer)
 {
     deserializeFromBytes(buffer);
 }
 
 
-ThreeNodesBalancesRequestMessage::ThreeNodesBalancesRequestMessage(
+CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         set<NodeUUID> &neighbors):
@@ -19,7 +19,7 @@ ThreeNodesBalancesRequestMessage::ThreeNodesBalancesRequestMessage(
         mNeighbors.push_back(value);
 }
 
-pair<BytesShared, size_t> ThreeNodesBalancesRequestMessage::serializeToBytes() {
+pair<BytesShared, size_t> CyclesThreeNodesBalancesRequestMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     uint16_t neighborsCount = mNeighbors.size();
     size_t bytesCount = parentBytesAndCount.second
@@ -58,7 +58,7 @@ pair<BytesShared, size_t> ThreeNodesBalancesRequestMessage::serializeToBytes() {
     );
 }
 
-void ThreeNodesBalancesRequestMessage::deserializeFromBytes(
+void CyclesThreeNodesBalancesRequestMessage::deserializeFromBytes(
         BytesShared buffer) {
 
     SenderMessage::deserializeFromBytes(buffer);
@@ -85,10 +85,10 @@ void ThreeNodesBalancesRequestMessage::deserializeFromBytes(
     }
 }
 
-const Message::MessageType ThreeNodesBalancesRequestMessage::typeID() const {
+const Message::MessageType CyclesThreeNodesBalancesRequestMessage::typeID() const {
     return Message::MessageTypeID::Cycles_ThreeNodesBalancesRequestMessage;
 }
 
-vector<NodeUUID> ThreeNodesBalancesRequestMessage::Neighbors() {
+vector<NodeUUID> CyclesThreeNodesBalancesRequestMessage::Neighbors() {
     return mNeighbors;
 }

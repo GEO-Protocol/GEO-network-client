@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_CYCLEBASEFIVEORSIXNODESBOUNDARYMESSAGE_H
 #define GEO_NETWORK_CLIENT_CYCLEBASEFIVEORSIXNODESBOUNDARYMESSAGE_H
 
-#include "CycleBaseFiveOrSixNodesInBetweenMessage.h"
+#include "CyclesBaseFiveOrSixNodesInBetweenMessage.h"
 class CycleBaseFiveOrSixNodesBoundaryMessage: public CycleBaseFiveOrSixNodesInBetweenMessage {
 public:
     typedef shared_ptr<CycleBaseFiveOrSixNodesBoundaryMessage> Shared;

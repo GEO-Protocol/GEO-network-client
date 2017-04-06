@@ -117,15 +117,15 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         /*
          * Cycles processing messages
          */
-        case Message::CycleSixNodesInBetweenMessage: {
+        case Message::Cycles_SixNodesInBetweenMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<CycleSixNodesInBetweenMessage>(messagePart)
+                    make_shared<CyclesSixNodesInBetweenMessage>(messagePart)
                 )
             );
         }
-        case Message::CycleFiveNodesInBetweenMessage: {
+        case Message::Cycles_FiveNodesInBetweenMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
@@ -133,27 +133,27 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                 )
             );
         }
-        case Message::CycleSixNodesBoundaryMessage: {
+        case Message::Cycles_SixNodesBoundaryMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<CycleSixNodesBoundaryMessage>(messagePart)
+                    make_shared<CyclesSixNodesBoundaryMessage>(messagePart)
                 )
             );
         }
-        case Message::CycleFiveNodesBoundaryMessage: {
+        case Message::Cycles_FiveNodesBoundaryMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<CycleFiveNodesBoundaryMessage>(messagePart)
+                    make_shared<CyclesFiveNodesBoundaryMessage>(messagePart)
                 )
             );
         }
-        case Message::Cycles_ThreeNodesBalancesResponseMessage: {
+        case Message::Cycles_ThreeNodesBalancesReceiverMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<ThreeNodesBalancesResponseMessage>(messagePart)
+                    make_shared<CyclesThreeNodesBalancesResponseMessage>(messagePart)
                 )
             );
         }
@@ -161,7 +161,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<ThreeNodesBalancesRequestMessage>(messagePart)
+                    make_shared<CyclesThreeNodesBalancesRequestMessage>(messagePart)
                 )
             );
         }

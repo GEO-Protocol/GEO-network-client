@@ -1,4 +1,4 @@
-#include "CycleBaseFiveOrSixNodesInBetweenMessage.h"
+#include "CyclesBaseFiveOrSixNodesInBetweenMessage.h"
 
 uint8_t CycleBaseFiveOrSixNodesInBetweenMessage::mNodesInPath;
 

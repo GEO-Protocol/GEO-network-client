@@ -3,7 +3,7 @@
 
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp"
-#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesBoundaryMessage.hpp"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 
 class CyclesFiveNodesInitTransaction :
     public CyclesBaseFiveSixNodesInitTransaction{

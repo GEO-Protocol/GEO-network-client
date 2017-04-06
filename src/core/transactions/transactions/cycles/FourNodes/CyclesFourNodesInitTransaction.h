@@ -4,8 +4,8 @@
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../io/storage/RoutingTablesHandler.h"
-#include "../../../../network/messages/cycles/FourNodes/FourNodesBalancesRequestMessage.h"
-#include "../../../../network/messages/cycles/FourNodes/FourNodesBalancesResponseMessage.h"
+#include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
+#include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 #include <set>
 
 class CyclesFourNodesInitTransaction :
@@ -13,15 +13,16 @@ class CyclesFourNodesInitTransaction :
 
 public:
     CyclesFourNodesInitTransaction(
-            const NodeUUID &nodeUUID,
-            const NodeUUID &debtorContractorUUID,
-            const NodeUUID &creditorContractorUUID,
-            TrustLinesManager *manager,
-            RoutingTablesHandler *routingTablesHandler,
-            Logger *logger);
+        const NodeUUID &nodeUUID,
+        const NodeUUID &debtorContractorUUID,
+        const NodeUUID &creditorContractorUUID,
+        TrustLinesManager *manager,
+        RoutingTablesHandler *routingTablesHandler,
+        Logger *logger);
 
     TransactionResult::SharedConst run();
 
+protected:
     enum Stages {
         CollectDataAndSendMessage = 1,
         ParseMessageAndCreateCycles
@@ -31,10 +32,9 @@ public:
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 protected:
-    set<NodeUUID> getCommonNeighborsForDebtorAndCreditorNodes();
+    set<NodeUUID> commonNeighborsForDebtorAndCreditorNodes();
 
-private:
-//    Nodes Balances that are mutual between core node and contract node
+protected:
     NodeUUID mDebtorContractorUUID;
     NodeUUID mCreditorContractorUUID;
     TrustLinesManager *mTrustLinesManager;

@@ -7,23 +7,23 @@
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../base/transaction/TransactionMessage.h"
 
-class FourNodesBalancesResponseMessage: public TransactionMessage {
+class CyclesFourNodesBalancesResponseMessage: public TransactionMessage {
 public:
-    typedef shared_ptr<FourNodesBalancesResponseMessage> Shared;
+    typedef shared_ptr<CyclesFourNodesBalancesResponseMessage> Shared;
 public:
 
-    FourNodesBalancesResponseMessage(
+    CyclesFourNodesBalancesResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         uint16_t neighborsUUUIDAndBalancesCount);
 
-    FourNodesBalancesResponseMessage(
+    CyclesFourNodesBalancesResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
             vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalances
     );
 
-    FourNodesBalancesResponseMessage(
+    CyclesFourNodesBalancesResponseMessage(
             BytesShared buffer);
 
     void AddNeighborUUIDAndBalance(pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance);

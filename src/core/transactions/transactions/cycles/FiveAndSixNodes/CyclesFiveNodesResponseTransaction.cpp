@@ -6,7 +6,7 @@ CyclesFiveNodesResponseTransaction::CyclesFiveNodesResponseTransaction(
     TrustLinesManager *manager,
     Logger *logger) :
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_FiveNodesResponseTransaction,
+        BaseTransaction::TransactionType::Cycles_FiveNodesReceiverTransaction,
         nodeUUID),
     mTrustLinesManager(manager),
     mLogger(logger),

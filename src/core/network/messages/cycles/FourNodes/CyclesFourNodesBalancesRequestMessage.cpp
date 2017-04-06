@@ -1,8 +1,8 @@
-#include "FourNodesBalancesRequestMessage.h"
+#include "CyclesFourNodesBalancesRequestMessage.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-pair<BytesShared, size_t> FourNodesBalancesRequestMessage::serializeToBytes() {
+pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     uint16_t neighborsCount = mNeighbors.size();
     size_t bytesCount = parentBytesAndCount.second
@@ -43,7 +43,7 @@ pair<BytesShared, size_t> FourNodesBalancesRequestMessage::serializeToBytes() {
 }
 #pragma clang diagnostic pop
 
-void FourNodesBalancesRequestMessage::deserializeFromBytes(
+void CyclesFourNodesBalancesRequestMessage::deserializeFromBytes(
         BytesShared buffer) {
 
     TransactionMessage::deserializeFromBytes(buffer);
@@ -69,15 +69,15 @@ void FourNodesBalancesRequestMessage::deserializeFromBytes(
     }
 }
 
-const Message::MessageType FourNodesBalancesRequestMessage::typeID() const {
-    return Message::MessageTypeID::FourNodesBalancesRequestMessage;
+const Message::MessageType CyclesFourNodesBalancesRequestMessage::typeID() const {
+    return Message::MessageTypeID::Cycles_FourNodesBalancesRequestMessage;
 }
 
-FourNodesBalancesRequestMessage::FourNodesBalancesRequestMessage(BytesShared buffer) {
+CyclesFourNodesBalancesRequestMessage::CyclesFourNodesBalancesRequestMessage(BytesShared buffer) {
     deserializeFromBytes(buffer);
 }
 
-FourNodesBalancesRequestMessage::FourNodesBalancesRequestMessage(
+CyclesFourNodesBalancesRequestMessage::CyclesFourNodesBalancesRequestMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     set<NodeUUID> &neighbors):
@@ -87,6 +87,6 @@ FourNodesBalancesRequestMessage::FourNodesBalancesRequestMessage(
 
 }
 
-set<NodeUUID> FourNodesBalancesRequestMessage::Neighbors() {
+set<NodeUUID> CyclesFourNodesBalancesRequestMessage::Neighbors() {
     return mNeighbors;
 }

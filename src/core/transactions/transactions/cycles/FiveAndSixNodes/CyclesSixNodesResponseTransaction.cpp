@@ -2,11 +2,11 @@
 
 CyclesSixNodesResponseTransaction::CyclesSixNodesResponseTransaction(
     const NodeUUID &nodeUUID,
-    CycleSixNodesInBetweenMessage::Shared message,
+    CyclesSixNodesInBetweenMessage::Shared message,
     TrustLinesManager *manager,
     Logger *logger) :
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_SixNodesResponseTransaction,
+        BaseTransaction::TransactionType::Cycles_SixNodesReceiverTransaction,
         nodeUUID),
     mTrustLinesManager(manager),
     mLogger(logger),

@@ -83,12 +83,12 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
         }
 //       Check if this is CycleTransaction
         if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction and
-            message->typeID() == Message::MessageTypeID::CycleSixNodesBoundaryMessage) {
+            message->typeID() == Message::MessageTypeID::Cycles_SixNodesBoundaryMessage) {
             transactionAndState.first->pushContext(message);
             return;
         }
         if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction and
-            message->typeID() == Message::MessageTypeID::CycleFiveNodesBoundaryMessage) {
+            message->typeID() == Message::MessageTypeID::Cycles_FiveNodesBoundaryMessage) {
             transactionAndState.first->pushContext(message);
             return;
         }

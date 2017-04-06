@@ -38,14 +38,16 @@ public:
 //        Cycles messages
 
         // todo: add Cycles_...
-        CycleFiveNodesInBetweenMessage,
-        CycleSixNodesInBetweenMessage,
-        CycleFiveNodesBoundaryMessage,
-        CycleSixNodesBoundaryMessage,
+
         Cycles_ThreeNodesBalancesRequestMessage,
-        Cycles_ThreeNodesBalancesResponseMessage,
-        FourNodesBalancesRequestMessage,
-        FourNodesBalancesResponseMessage,
+        Cycles_ThreeNodesBalancesReceiverMessage,
+        Cycles_FourNodesBalancesRequestMessage,
+        Cycles_FourNodesBalancesResponseMessage,
+        Cycles_FiveNodesBoundaryMessage,
+        Cycles_FiveNodesInBetweenMessage,
+        Cycles_SixNodesInBetweenMessage,
+        Cycles_SixNodesBoundaryMessage,
+
         /*
          * Payments
          */

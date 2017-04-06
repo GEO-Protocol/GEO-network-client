@@ -4,7 +4,7 @@
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../io/storage/StorageHandler.h"
-#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesInBetweenMessage.hpp"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 #include <set>
 
 class CyclesSixNodesResponseTransaction :
@@ -12,7 +12,7 @@ class CyclesSixNodesResponseTransaction :
 public:
     CyclesSixNodesResponseTransaction(
         const NodeUUID &nodeUUID,
-        CycleSixNodesInBetweenMessage::Shared message,
+        CyclesSixNodesInBetweenMessage::Shared message,
         TrustLinesManager *manager,
         Logger *logger);
 
@@ -20,7 +20,7 @@ public:
 
 protected:
 //    Nodes Balances that are mutual between core node and contract node
-    CycleSixNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
+    CyclesSixNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
     TrustLinesManager *mTrustLinesManager;
     Logger *mLogger;
 };

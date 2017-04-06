@@ -1,33 +1,32 @@
-#include "FourNodesBalancesResponseMessage.h"
+#include "CyclesThreeNodesBalancesResponseMessage.h"
 
-FourNodesBalancesResponseMessage::FourNodesBalancesResponseMessage(
+CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalances):
-        TransactionMessage(senderUUID, transactionUUID),
-        mNeighborsBalances(neighborsBalances)
+    vector<pair<NodeUUID, TrustLineBalance>> &neighbors) :
+    TransactionMessage(senderUUID, transactionUUID),
+    mNeighborsUUUIDAndBalance(neighbors)
 {
 
 }
 
-FourNodesBalancesResponseMessage::FourNodesBalancesResponseMessage(
+CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
     uint16_t neighborsUUUIDAndBalancesCount):
-    TransactionMessage(senderUUID, transactionUUID)
+TransactionMessage(senderUUID, transactionUUID)
 {
-    mNeighborsBalances.reserve(neighborsUUUIDAndBalancesCount);
+    mNeighborsUUUIDAndBalance.reserve(neighborsUUUIDAndBalancesCount);
 }
 
-std::pair<BytesShared, size_t> FourNodesBalancesResponseMessage::serializeToBytes() {
+std::pair<BytesShared, size_t> CyclesThreeNodesBalancesResponseMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    uint16_t neighborsNodesCount = (uint16_t) mNeighborsBalances.size();
+    uint16_t boundaryNodesCount = (uint16_t) mNeighborsUUUIDAndBalance.size();
     size_t bytesCount =
             parentBytesAndCount.second +
-            (NodeUUID::kBytesSize + kTrustLineBalanceSerializeBytesCount) * neighborsNodesCount +
-            sizeof(neighborsNodesCount);
-
+            (NodeUUID::kBytesSize + kTrustLineBalanceSerializeBytesCount) * boundaryNodesCount +
+            sizeof(boundaryNodesCount);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     // for parent node
@@ -38,15 +37,15 @@ std::pair<BytesShared, size_t> FourNodesBalancesResponseMessage::serializeToByte
             parentBytesAndCount.second
     );
     dataBytesOffset += parentBytesAndCount.second;
-    vector<byte> stepObligationFlow;
-// for mNeighborsBalances
+//    for mNeighborsBalances
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
-            &neighborsNodesCount,
+            &boundaryNodesCount,
             sizeof(uint16_t)
     );
     dataBytesOffset += sizeof(uint16_t);
-    for(auto &value: mNeighborsBalances){
+    vector<byte> stepObligationFlow;
+    for(auto &value: mNeighborsUUUIDAndBalance){
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 &value.first,
@@ -62,38 +61,38 @@ std::pair<BytesShared, size_t> FourNodesBalancesResponseMessage::serializeToByte
         dataBytesOffset += stepObligationFlow.size();
         stepObligationFlow.clear();
     }
+
     return make_pair(
             dataBytesShared,
             bytesCount
     );
 }
 
-const Message::MessageType FourNodesBalancesResponseMessage::typeID() const {
-    return Message::MessageTypeID::FourNodesBalancesResponseMessage;
+const Message::MessageType CyclesThreeNodesBalancesResponseMessage::typeID() const {
+    return Message::MessageTypeID::Cycles_ThreeNodesBalancesReceiverMessage;
 }
 
-FourNodesBalancesResponseMessage::FourNodesBalancesResponseMessage(BytesShared buffer) {
+CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(BytesShared buffer) {
     deserializeFromBytes(buffer);
 }
 
-void FourNodesBalancesResponseMessage::deserializeFromBytes(BytesShared buffer) {
-    TransactionMessage::deserializeFromBytes(buffer);
+void CyclesThreeNodesBalancesResponseMessage::deserializeFromBytes(BytesShared buffer) {
+    SenderMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
-    vector<byte> *stepObligationFlowBytes;
-    NodeUUID stepNodeUUID;
-    TrustLineBalance stepBalance;
-
-    //  Get neighborsNodesCount
-    uint16_t neighborsNodesCount;
+//    Get NodesCount
+    uint16_t boundaryNodesCount;
     memcpy(
-            &neighborsNodesCount,
+            &boundaryNodesCount,
             buffer.get() + bytesBufferOffset,
             sizeof(uint16_t)
     );
     bytesBufferOffset += sizeof(uint16_t);
-//    Parse mNeighborsBalances
-    for (uint16_t i=1; i<=neighborsNodesCount; i++){
+//    Parse boundary nodes
+    vector<byte> *stepObligationFlowBytes;
+    NodeUUID stepNodeUUID;
+    TrustLineBalance stepBalance;
+    for (uint16_t i=1; i<=boundaryNodesCount; i++){
         memcpy(
                 stepNodeUUID.data,
                 buffer.get() + bytesBufferOffset,
@@ -104,20 +103,21 @@ void FourNodesBalancesResponseMessage::deserializeFromBytes(BytesShared buffer) 
                 buffer.get() + bytesBufferOffset,
                 buffer.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
         stepBalance = bytesToTrustLineBalance(*stepObligationFlowBytes);
-        mNeighborsBalances.push_back(make_pair(stepNodeUUID, stepBalance));
+        mNeighborsUUUIDAndBalance.push_back(make_pair(stepNodeUUID, stepBalance));
         bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
     };
 }
 
-const bool FourNodesBalancesResponseMessage::isTransactionMessage() const {
-    return  true;
+vector<pair<NodeUUID, TrustLineBalance>> CyclesThreeNodesBalancesResponseMessage::NeighborsAndBalances() {
+    return mNeighborsUUUIDAndBalance;
 }
 
-vector<pair<NodeUUID, TrustLineBalance>> FourNodesBalancesResponseMessage::NeighborsBalances() {
-    return mNeighborsBalances;
+const bool CyclesThreeNodesBalancesResponseMessage::isTransactionMessage() const {
+    return true;
 }
 
-void FourNodesBalancesResponseMessage::AddNeighborUUIDAndBalance(
+void CyclesThreeNodesBalancesResponseMessage::addNeighborUUIDAndBalance(
     pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance) {
-    mNeighborsBalances.push_back(neighborUUIDAndBalance);
+    mNeighborsUUUIDAndBalance.push_back(neighborUUIDAndBalance);
 }
+

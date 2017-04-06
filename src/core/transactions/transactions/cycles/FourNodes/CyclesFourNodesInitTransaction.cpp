@@ -35,63 +35,73 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::run() {
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage() {
 
-    set<NodeUUID> neighbors = getCommonNeighborsForDebtorAndCreditorNodes();
-    sendMessage<FourNodesBalancesRequestMessage>(
+    set<NodeUUID> neighbors = commonNeighborsForDebtorAndCreditorNodes();
+    sendMessage<CyclesFourNodesBalancesRequestMessage>(
         mDebtorContractorUUID,
         mNodeUUID,
         mTransactionUUID,
-        neighbors
-    );
-    sendMessage<FourNodesBalancesRequestMessage>(
+        neighbors);
+
+    sendMessage<CyclesFourNodesBalancesRequestMessage>(
         mCreditorContractorUUID,
         mNodeUUID,
         mTransactionUUID,
-        neighbors
-    );
+        neighbors);
+
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultWaitForMessageTypes(
-        {Message::FourNodesBalancesResponseMessage},
+        {Message::Cycles_FourNodesBalancesResponseMessage},
         mkStandardConnectionTimeout);
 }
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
-    if (mContext.size() != 2){
-        mLogger->error("CyclesFourNodesInitTransaction:"
-                           "Responses Messages count Not equal 2;"
-                           "Can not create Cycles;");
+    if (mContext.size() != 2) {
+        error() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
+                   "Responses messages count not equals to 2; "
+                   "Can't create cycles;";
+
         return finishTransaction();
-        }
-    auto firstMessage = static_pointer_cast<FourNodesBalancesResponseMessage>(*mContext.begin());
-    auto secondMessage = static_pointer_cast<FourNodesBalancesResponseMessage>(*mContext.end());
+    }
+
+    auto firstMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*mContext.begin());
+    auto secondMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*mContext.end());
     auto firstContractorUUID = firstMessage->senderUUID();
     auto secondContractorUUID = secondMessage->senderUUID();
     TrustLineBalance zeroBalance = 0;
+
     TrustLineBalance firstContractorBalance = mTrustLinesManager->balance(firstContractorUUID);
     TrustLineBalance secondContractorBalance = mTrustLinesManager->balance(secondContractorUUID);
-    if ((firstContractorBalance < zeroBalance and secondContractorBalance > zeroBalance) or
-        (firstContractorBalance > zeroBalance and secondContractorBalance < zeroBalance))
-    {
-        mLogger->info("CyclesFourNodesInitTransaction:"
-                          "Balances was changed. Cannot create Cycles");
+
+    // In case if some payment operation was done and balances on the nodes was changed -
+    // this check prevents redundant cycles closing operations.
+    if ((firstContractorBalance > zeroBalance and secondContractorBalance > zeroBalance) or
+        (firstContractorBalance < zeroBalance and secondContractorBalance < zeroBalance) or
+        (firstContractorBalance == zeroBalance and secondContractorBalance == zeroBalance)) {
+
+        info() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
+                  "Balances between initiator node and (" << firstContractorUUID <<  "), or "
+                  "between initiator node and (" << secondContractorUUID << ") was changed. "
+                  "Cannot create cycles.";
+
         return finishTransaction();
     }
-    bool isFirstContractorCreditor = false;
-    if (firstContractorBalance < zeroBalance) {
+
+    const bool kFirstContractorIsCreditor = firstContractorBalance < zeroBalance;
+    if (kFirstContractorIsCreditor)
         firstContractorBalance = firstContractorBalance * (-1);
-        isFirstContractorCreditor = true;
-    } else {
+    else
         secondContractorBalance = secondContractorBalance * (-1);
-    }
+
     TrustLineBalance maxFlow = min(firstContractorBalance, secondContractorBalance);
     TrustLineBalance stepMaxFlow;
     vector<pair<vector<NodeUUID>, TrustLineBalance>> ResultCycles;
 
     for (auto &nodeAndBalanceFirst: firstMessage->NeighborsBalances()){
-        if (isFirstContractorCreditor)
+        if (kFirstContractorIsCreditor)
             nodeAndBalanceFirst.second = nodeAndBalanceFirst.second * (-1);
         for (auto &nodeAndBalanceSecond: secondMessage->NeighborsBalances()){
             if (nodeAndBalanceSecond.first == nodeAndBalanceFirst.first){
-                if (not isFirstContractorCreditor)
+                if (not kFirstContractorIsCreditor)
                     nodeAndBalanceSecond.second = nodeAndBalanceSecond.second * (-1);
                 stepMaxFlow = min(maxFlow, min(nodeAndBalanceSecond.second, nodeAndBalanceFirst.second));
                 vector<NodeUUID> stepPath = {
@@ -109,7 +119,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
     return TransactionResult::SharedConst();
 }
 
-set<NodeUUID> CyclesFourNodesInitTransaction::getCommonNeighborsForDebtorAndCreditorNodes() {
+set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCreditorNodes() {
     const auto creditorsNeighbors = mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(
         mCreditorContractorUUID);
     const auto debtorsNeighbors = mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(

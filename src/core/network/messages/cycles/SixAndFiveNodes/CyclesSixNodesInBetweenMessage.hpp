@@ -1,20 +1,20 @@
 #ifndef GEO_NETWORK_CLIENT_CYCLESIXNODESINBETWEENMESSAGE_H
 #define GEO_NETWORK_CLIENT_CYCLESIXNODESINBETWEENMESSAGE_H
 
-#include "base/CycleBaseFiveOrSixNodesInBetweenMessage.h"
+#include "base/CyclesBaseFiveOrSixNodesInBetweenMessage.h"
 
-class CycleSixNodesInBetweenMessage: public CycleBaseFiveOrSixNodesInBetweenMessage {
+class CyclesSixNodesInBetweenMessage: public CycleBaseFiveOrSixNodesInBetweenMessage {
 public:
-    typedef shared_ptr<CycleSixNodesInBetweenMessage> Shared;
+    typedef shared_ptr<CyclesSixNodesInBetweenMessage> Shared;
 public:
-    CycleSixNodesInBetweenMessage(){};
-    CycleSixNodesInBetweenMessage(
+    CyclesSixNodesInBetweenMessage(){};
+    CyclesSixNodesInBetweenMessage(
         vector<NodeUUID> &path):CycleBaseFiveOrSixNodesInBetweenMessage(path){};
-    CycleSixNodesInBetweenMessage(
+    CyclesSixNodesInBetweenMessage(
         BytesShared buffer):CycleBaseFiveOrSixNodesInBetweenMessage(buffer){};
 
     const MessageType typeID() const {
-        return Message::MessageTypeID::CycleSixNodesInBetweenMessage;
+        return Message::MessageTypeID::Cycles_SixNodesInBetweenMessage;
     };
 };
 #endif //GEO_NETWORK_CLIENT_CYCLESIXNODESINBETWEENMESSAGE_H

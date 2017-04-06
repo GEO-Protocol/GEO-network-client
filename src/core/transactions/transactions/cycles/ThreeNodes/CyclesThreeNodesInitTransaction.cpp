@@ -67,7 +67,7 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAndSendMessageStage() {
 
     set<NodeUUID> neighbors = getNeighborsWithContractor();
-    sendMessage<ThreeNodesBalancesRequestMessage>(
+    sendMessage<CyclesThreeNodesBalancesRequestMessage>(
         mContractorUUID,
         mNodeUUID,
         mTransactionUUID,
@@ -75,7 +75,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
 
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultWaitForMessageTypes(
-        {Message::Cycles_ThreeNodesBalancesResponseMessage},
+        {Message::Cycles_ThreeNodesBalancesReceiverMessage},
         mkStandardConnectionTimeout);
 }
 
@@ -84,7 +84,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     if (mContext.size() != 1){
         return finishTransaction();
     }
-    auto message = static_pointer_cast<ThreeNodesBalancesResponseMessage>(*mContext.begin());
+    auto message = static_pointer_cast<CyclesThreeNodesBalancesResponseMessage>(*mContext.begin());
     const auto neighborsAndBalances = message->NeighborsAndBalances();
     for(const auto &nodeUUIDAndBalance : neighborsAndBalances ){
         vector<NodeUUID> cycle = {

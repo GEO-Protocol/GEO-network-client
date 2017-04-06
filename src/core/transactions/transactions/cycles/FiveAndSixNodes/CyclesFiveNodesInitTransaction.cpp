@@ -41,68 +41,68 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
 
     TrustLineBalance zeroBalance = 0;
     CycleMap mCreditors;
-    vector <NodeUUID> stepPath;
     TrustLineBalance creditorsStepFlow;
     for(const auto &mess: mContext){
-        auto message = static_pointer_cast<CycleSixNodesBoundaryMessage>(mess);
-        stepPath = message->Path();
-//  It has to be exactly nodes count in path
-        if (stepPath.size() != 2)
+        auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
+        const auto stepPath = make_shared<vector<NodeUUID>>(message->Path());
+        //  It has to be exactly nodes count in path
+        if (stepPath->size() != 2)
             continue;
-        creditorsStepFlow = mTrustLinesManager->balance(stepPath[1]);
-//  If it is Debtor branch - skip it
+        creditorsStepFlow = mTrustLinesManager->balance((*stepPath)[1]);
+        //  If it is Debtor branch - skip it
         if (creditorsStepFlow > zeroBalance)
             continue;
-//  Check all Boundary Nodes and add it to map if all checks path
+        //  Check all Boundary Nodes and add it to map if all checks path
         for (auto &NodeUUIDAndBalance: message->BoundaryNodes()){
-//  Prevent loop on cycles path
-            if (NodeUUIDAndBalance.first == stepPath.front())
+            //  Prevent loop on cycles path
+            if (NodeUUIDAndBalance.first == stepPath->front())
                 continue;
-//  NodeUUIDAndBalance.second - already minimum balance on creditors branch
-//  For not tu use abc for every balance on debtors branch - just change sign of these balance
+            //  NodeUUIDAndBalance.second - already minimum balance on creditors branch
+            //  For not tu use abc for every balance on debtors branch - just change sign of these balance
             mCreditors.insert(make_pair(
                 NodeUUIDAndBalance.first,
                 make_pair(stepPath, (-1) * NodeUUIDAndBalance.second)));
 
         }
     }
-
+    vector<NodeUUID> stepPathDebtors;
 //    Create Cycles comparing BoundaryMessages data with debtors map
     ResultVector mCycles;
 //     stepCyclePath;
     TrustLineBalance debtorsStepFlow;
     TrustLineBalance commonStepMaxFlow;
     for(const auto &mess: mContext) {
-        auto message = static_pointer_cast<CycleSixNodesBoundaryMessage>(mess);
+        auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
         debtorsStepFlow = mTrustLinesManager->balance(message->Path()[1]);
 //  If it is Creditors branch - skip it
         if (debtorsStepFlow < zeroBalance)
             continue;
-        stepPath = message->Path();
+        stepPathDebtors = message->Path();
 //  It has to be exactly nodes count in path
-        if (stepPath.size() != 3)
+        if (stepPathDebtors.size() != 3)
             continue;
         for (auto &NodeUUIDAndBalance: message->BoundaryNodes()) {
 //  Prevent loop on cycles path
-            if (NodeUUIDAndBalance.first == stepPath.front())
+            if (NodeUUIDAndBalance.first == stepPathDebtors.front())
                 continue;
-            mapIter m_it, s_it;
-            pair <mapIter, mapIter> keyRange = mCreditors.equal_range(NodeUUIDAndBalance.first);
-            for (s_it = keyRange.first; s_it != keyRange.second; ++s_it) {
+
+            auto NodeUIIDAndPathRange = mCreditors.equal_range(NodeUUIDAndBalance.first);
+            for (auto s_it = NodeUIIDAndPathRange.first; s_it != NodeUIIDAndPathRange.second; ++s_it) {
 //  Find minMax flow between 3 value. 1 in map. 1 in boundaryNodes. 1 we get from creditor first node in path
                 commonStepMaxFlow = min(min(s_it->second.second, debtorsStepFlow), NodeUUIDAndBalance.second);
-                vector <NodeUUID> stepCyclePath = {stepPath[0],
-                                                   stepPath[1],
-                                                   stepPath[2],
+                vector <NodeUUID> stepCyclePath = {stepPathDebtors[0],
+                                                   stepPathDebtors[1],
+                                                   stepPathDebtors[2],
                                                    NodeUUIDAndBalance.first,
-                                                   s_it->second.first.back()};
+                                                   s_it->second.first->back()};
+                // Todo run cycles
                 mCycles.push_back(make_pair(stepCyclePath, commonStepMaxFlow));
                 stepCyclePath.clear();
             }
         }
     }
     mContext.clear();
-//    Todo run cycles
+
     return finishTransaction();
 }
 #pragma clang diagnostic pop

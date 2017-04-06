@@ -9,8 +9,8 @@
 #include "../../network/messages/base/routing_tables/RoutingTablesMessage.h"
 #include "../../network/messages/response/Response.h"
 #include "../../network/messages/response/RoutingTablesResponse.h"
-#include "../../network/messages/cycles/SixAndFiveNodes/CycleFiveNodesBoundaryMessage.hpp"
-#include "../../network/messages/cycles/SixAndFiveNodes/CycleSixNodesBoundaryMessage.hpp"
+#include "../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
+#include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 
 
 #include "../transactions/base/BaseTransaction.h"

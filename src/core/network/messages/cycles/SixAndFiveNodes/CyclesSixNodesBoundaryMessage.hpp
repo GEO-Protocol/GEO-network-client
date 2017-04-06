@@ -1,22 +1,22 @@
 #ifndef GEO_NETWORK_CLIENT_CYCLESIXNODESBOUNDARYMESSAGE_H
 #define GEO_NETWORK_CLIENT_CYCLESIXNODESBOUNDARYMESSAGE_H
 
-#include "base/CycleBaseFiveOrSixNodesBoundaryMessage.h"
-class CycleSixNodesBoundaryMessage: public CycleBaseFiveOrSixNodesBoundaryMessage {
+#include "base/CyclesBaseFiveOrSixNodesBoundaryMessage.h"
+class CyclesSixNodesBoundaryMessage: public CycleBaseFiveOrSixNodesBoundaryMessage {
 public:
-    typedef shared_ptr<CycleSixNodesBoundaryMessage> Shared;
+    typedef shared_ptr<CyclesSixNodesBoundaryMessage> Shared;
 
 public:
-    CycleSixNodesBoundaryMessage(
+    CyclesSixNodesBoundaryMessage(
         vector<NodeUUID> &path,
         const vector<pair<NodeUUID, TrustLineBalance>> &boundaryNodes) : CycleBaseFiveOrSixNodesBoundaryMessage(path,
                                                                                                       boundaryNodes) {};
 
-    CycleSixNodesBoundaryMessage(
+    CyclesSixNodesBoundaryMessage(
         BytesShared buffer):CycleBaseFiveOrSixNodesBoundaryMessage(buffer){};
 
     const MessageType typeID() const {
-        return Message::MessageTypeID::CycleSixNodesBoundaryMessage;
+        return Message::MessageTypeID::Cycles_SixNodesBoundaryMessage;
     };
 };
 

@@ -1,6 +1,6 @@
-#include "CycleBaseFiveOrSixNodesBoundaryMessage.h"
+#include "CyclesBaseFiveOrSixNodesBoundaryMessage.h"
 
-CycleBaseFiveOrSixNodesBoundaryMessage::CycleBaseFiveOrSixNodesBoundaryMessage(
+CycleBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(
         vector<NodeUUID> &path,
         const vector<pair<NodeUUID, TrustLineBalance>> &boundaryNodes) :
 
@@ -11,7 +11,7 @@ CycleBaseFiveOrSixNodesBoundaryMessage::CycleBaseFiveOrSixNodesBoundaryMessage(
 {
 }
 
-CycleBaseFiveOrSixNodesBoundaryMessage::CycleBaseFiveOrSixNodesBoundaryMessage(BytesShared buffer)
+CycleBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(BytesShared buffer)
 {
     deserializeFromBytes(buffer);
 }
