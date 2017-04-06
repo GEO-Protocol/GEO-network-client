@@ -20,7 +20,7 @@ PathsManager::PathsManager(
     //testStorageHandler();
     //fillRoutingTables();
     //fillBigRoutingTables();
-    testTrustLineHandler();
+    //testTrustLineHandler();
     //testPaymentStateOperationsHandler();
 }
 
