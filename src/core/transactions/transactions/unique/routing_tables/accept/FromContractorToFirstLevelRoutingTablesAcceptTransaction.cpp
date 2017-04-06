@@ -87,6 +87,7 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveLinkBetweenIn
         }
 
     }
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
 
 }
 
@@ -165,6 +166,7 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveSecondLevelRo
         }
 
     }
+    mStorageHandler->routingTablesHandler()->routingTable3Level()->commit();
 
 }
 

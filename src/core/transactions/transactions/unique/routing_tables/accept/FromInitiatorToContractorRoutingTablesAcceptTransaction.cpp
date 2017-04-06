@@ -87,6 +87,7 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRout
 
         }
     }
+    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
 }
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::waitingForSecondLevelRoutingTableState() {
@@ -169,6 +170,7 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveSecondLevelRou
         }
 
     }
+    mStorageHandler->routingTablesHandler()->routingTable3Level()->commit();
 
 }
 

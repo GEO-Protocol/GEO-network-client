@@ -12,10 +12,6 @@ PathsManager::PathsManager(
     mLog(logger),
     mPathCollection(nullptr){
 
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    testStorageHandler();
-#endif
-
     // TODO remove from here
     //testStorageHandler();
     //fillRoutingTables();

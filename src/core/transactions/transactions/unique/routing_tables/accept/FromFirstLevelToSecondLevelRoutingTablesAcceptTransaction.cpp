@@ -68,6 +68,7 @@ void FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::saveFirstLevelRo
 
         }
     }
+    mStorageHandler->routingTablesHandler()->routingTable3Level()->commit();
 
 }
 

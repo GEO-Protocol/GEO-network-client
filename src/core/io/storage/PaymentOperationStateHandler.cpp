@@ -14,9 +14,6 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
         " (transaction_uuid BLOB NOT NULL, "
             "state BLOB NOT NULL, "
             "state_bytes_count INT NOT NULL);";
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << query;
-#endif
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::creating table: " + mTableName +
@@ -24,9 +21,6 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "table" << mTableName << "created successfully";
-#endif
     } else {
         throw IOError("PaymentOperationStateHandler::creating table: " + mTableName +
                       " : Run query");
@@ -34,9 +28,6 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_transaction_uuid_idx on " + mTableName + " (transaction_uuid);";
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << query;
-#endif
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::creating index for TransactionUUID: "
@@ -44,9 +35,6 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "index for transaction created successfully";
-#endif
     } else {
         throw IOError("PaymentOperationStateHandler::creating index for TransactionUUID: "
                           "Run query");

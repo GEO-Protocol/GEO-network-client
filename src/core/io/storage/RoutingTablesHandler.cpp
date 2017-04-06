@@ -29,9 +29,6 @@ vector<NodeUUID> RoutingTablesHandler::subRoutesSecondLevel(
     string query = "SELECT source FROM "
                    + mRoutingTable2Level.tableName() +
                    " WHERE destination = ?";
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "select: " << query;
-#endif
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesSecondLevel: "
@@ -64,9 +61,6 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelContra
                    + mRoutingTable3Level.tableName() + " AS rt3 ON rt2.destination = rt3.source " +
                    " WHERE rt3.destination = ? AND rt2.source <> ? "
                    + "AND rt3.source <> ?";
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "select: " << query;
-#endif
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
@@ -109,9 +103,6 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevel(
                    + mRoutingTable2Level.tableName() + " AS rt2 INNER JOIN "
                    + mRoutingTable3Level.tableName() + " AS rt3 ON rt2.destination = rt3.source " +
                    " WHERE rt3.destination = ?";
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "select: " << query;
-#endif
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
@@ -148,9 +139,6 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
                    + mRoutingTable3Level.tableName() + " AS rt3 ON rt2.destination = rt3.source " +
                    " WHERE rt3.destination = ? AND rt2.source NOT IN (?, ?) "
                    + "AND rt3.source NOT IN (?, ?)";
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "select: " << query;
-#endif
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "

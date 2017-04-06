@@ -21,9 +21,6 @@ RoutingTableHandler::RoutingTableHandler(
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "table" << mTableName << "created successfully";
-#endif
     } else {
         throw IOError("RoutingTableHandler::creating table: " + mTableName +
                               " : Run query");
@@ -38,9 +35,6 @@ RoutingTableHandler::RoutingTableHandler(
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "index for source created successfully";
-#endif
     } else {
         throw IOError("RoutingTableHandler::creating index for Source: "
                               "Run query");
@@ -55,9 +49,6 @@ RoutingTableHandler::RoutingTableHandler(
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "index for destination created successfully";
-#endif
     } else {
         throw IOError("RoutingTableHandler::creating index for Destination: "
                               "Run query");
@@ -73,9 +64,6 @@ RoutingTableHandler::RoutingTableHandler(
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "unique index for source and destination created successfully";
-#endif
     } else {
         throw IOError("RoutingTableHandler::creating unique index for Source and Destination: "
                               "Run query");
@@ -238,9 +226,6 @@ void RoutingTableHandler::deleteRecord(
     }
 
     string query = "DELETE FROM " + mTableName + " WHERE source = ? AND destination = ?;";
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "delete: " << query;
-#endif
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::deleteRecord: Bad query");
@@ -278,9 +263,6 @@ void RoutingTableHandler::updateRecord(
     }
 
     string query = "UPDATE " + mTableName + " SET direction = ? WHERE source = ? AND destination = ?;";
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "update: " << query;
-#endif
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::updateRecord: Bad query");
@@ -401,9 +383,6 @@ vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> RoutingTableHandler::route
     result.reserve(rowCount);
 
     string query = "SELECT source, destination, direction FROM " + mTableName;
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "select: " << query;
-#endif
     rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecordsWithDirections: "
@@ -460,9 +439,6 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords() {
     vector<pair<NodeUUID, NodeUUID>> result;
     result.reserve(rowCount);
     string query = "SELECT source, destination FROM " + mTableName;
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "select: " << query;
-#endif
     rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecords: "
@@ -487,9 +463,6 @@ unordered_map<NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapDe
     DateTime startTime = utc_now();
     unordered_map<NodeUUID, vector<NodeUUID>> result;
     string query = "SELECT source, destination FROM " + mTableName;
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "select: " << query;
-#endif
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecordsMapDestinationKey: "
@@ -560,9 +533,6 @@ map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> Rout
 
     map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> result;
     string query = "SELECT source, destination, direction FROM " + mTableName;
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "select: " << query;
-#endif
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecordsWithDirectionsMapSourceKey: "
