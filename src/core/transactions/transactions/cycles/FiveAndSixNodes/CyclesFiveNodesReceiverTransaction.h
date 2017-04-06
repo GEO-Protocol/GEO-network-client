@@ -3,14 +3,14 @@
 
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
 #include <set>
 
-class CyclesFiveNodesResponseTransaction : public BaseTransaction {
+class CyclesFiveNodesReceiverTransaction : public BaseTransaction {
 public:
-    CyclesFiveNodesResponseTransaction(
+    CyclesFiveNodesReceiverTransaction(
         const NodeUUID &nodeUUID,
-        CycleFiveNodesInBetweenMessage::Shared message,
+        CyclesFiveNodesInBetweenMessage::Shared message,
         TrustLinesManager *manager,
         Logger *logger);
 
@@ -18,7 +18,7 @@ public:
 
 protected:
 //    Nodes Balances that are mutual between core node and contract node
-    CycleFiveNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
+    CyclesFiveNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
     TrustLinesManager *mTrustLinesManager;
     Logger *mLogger;
 };

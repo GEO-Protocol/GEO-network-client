@@ -8,11 +8,11 @@
 
 #include <set>
 
-class CyclesFourNodesResponseTransaction:
+class CyclesFourNodesReceiverTransaction:
     public BaseTransaction {
 
 public:
-    CyclesFourNodesResponseTransaction(
+    CyclesFourNodesReceiverTransaction(
         const NodeUUID &nodeUUID,
         CyclesFourNodesBalancesRequestMessage::Shared message,
         TrustLinesManager *manager,

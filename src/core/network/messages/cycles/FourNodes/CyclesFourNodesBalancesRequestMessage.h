@@ -12,6 +12,7 @@
 class CyclesFourNodesBalancesRequestMessage: public TransactionMessage {
 public:
     typedef shared_ptr<CyclesFourNodesBalancesRequestMessage> Shared;
+
 public:
     CyclesFourNodesBalancesRequestMessage(
         const NodeUUID &senderUUID,
@@ -21,11 +22,14 @@ public:
     CyclesFourNodesBalancesRequestMessage(
             BytesShared buffer);
 
-    const MessageType typeID() const;
-    set<NodeUUID> Neighbors();
-protected:
+public:
     pair<BytesShared, size_t> serializeToBytes();
 
+    const MessageType typeID() const;
+
+    set<NodeUUID> Neighbors();
+
+protected:
     void deserializeFromBytes(
             BytesShared buffer);
 

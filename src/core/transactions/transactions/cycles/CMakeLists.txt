@@ -7,18 +7,18 @@ set(SOURCE_FILES
         FiveAndSixNodes/CyclesFiveNodesInitTransaction.h
         FiveAndSixNodes/CyclesSixNodesInitTransaction.cpp
         FiveAndSixNodes/CyclesSixNodesInitTransaction.h
-        FiveAndSixNodes/CyclesFiveNodesResponseTransaction.cpp
-        FiveAndSixNodes/CyclesFiveNodesResponseTransaction.h
-        FiveAndSixNodes/CyclesSixNodesResponseTransaction.h
-        FiveAndSixNodes/CyclesSixNodesResponseTransaction.cpp
+        FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.cpp
+        FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.h
+        FiveAndSixNodes/CyclesSixNodesReceiverTransaction.h
+        FiveAndSixNodes/CyclesSixNodesReceiverTransaction.cpp
         FourNodes/CyclesFourNodesInitTransaction.h
         FourNodes/CyclesFourNodesInitTransaction.cpp
-        FourNodes/CyclesFourNodesResponseTransaction.h
-        FourNodes/CyclesFourNodesResponseTransaction.cpp
+        FourNodes/CyclesFourNodesReceiverTransaction.h
+        FourNodes/CyclesFourNodesReceiverTransaction.cpp
         ThreeNodes/CyclesThreeNodesInitTransaction.cpp
         ThreeNodes/CyclesThreeNodesInitTransaction.h
-        ThreeNodes/CyclesThreeNodesResponseTransaction.cpp
-        ThreeNodes/CyclesThreeNodesResponseTransaction.h
+        ThreeNodes/CyclesThreeNodesReceiverTransaction.cpp
+        ThreeNodes/CyclesThreeNodesReceiverTransaction.h
         )
 
 add_library(transactions__cycles ${SOURCE_FILES})

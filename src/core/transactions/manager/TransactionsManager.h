@@ -60,8 +60,8 @@
 
 #include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesInitTransaction.h"
 #include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesInitTransaction.h"
-#include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesResponseTransaction.h"
-#include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesResponseTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesReceiverTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -146,7 +146,7 @@ public:
     void launchSixNodesCyclesResponseTransaction(CyclesSixNodesInBetweenMessage::Shared message);
 
     void launchFiveNodesCyclesInitTransaction();
-    void launchFiveNodesCyclesResponseTransaction(CycleFiveNodesInBetweenMessage::Shared message);
+    void launchFiveNodesCyclesResponseTransaction(CyclesFiveNodesInBetweenMessage::Shared message);
 
 //    ----------------------------------------------------------
 

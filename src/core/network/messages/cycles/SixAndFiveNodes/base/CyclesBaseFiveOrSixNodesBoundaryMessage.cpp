@@ -1,8 +1,8 @@
 #include "CyclesBaseFiveOrSixNodesBoundaryMessage.h"
 
-CycleBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(
-        vector<NodeUUID> &path,
-        const vector<pair<NodeUUID, TrustLineBalance>> &boundaryNodes) :
+CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(
+        vector<NodeUUID>& path,
+        vector<pair<NodeUUID, TrustLineBalance>>& boundaryNodes) :
 
     CycleBaseFiveOrSixNodesInBetweenMessage(
         path
@@ -11,13 +11,13 @@ CycleBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(
 {
 }
 
-CycleBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(BytesShared buffer)
+CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(BytesShared buffer)
 {
     deserializeFromBytes(buffer);
 }
 
 
-pair<BytesShared, size_t> CycleBaseFiveOrSixNodesBoundaryMessage::serializeToBytes() {
+pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBytes() {
     auto parentBytesAndCount = CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes();
 
     uint16_t boundaryNodesCount = (uint16_t) mBoundaryNodes.size();
@@ -65,7 +65,7 @@ pair<BytesShared, size_t> CycleBaseFiveOrSixNodesBoundaryMessage::serializeToByt
             bytesCount
     );
 }
-void CycleBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared buffer) {
+void CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared buffer) {
     CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(buffer);
 //        Parent part of deserializeFromBytes
     size_t bytesBufferOffset = CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes();
@@ -97,10 +97,10 @@ void CycleBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared bu
     };
 }
 
-const bool CycleBaseFiveOrSixNodesBoundaryMessage::isCyclesDiscoveringResponseMessage() const {
+const bool CyclesBaseFiveOrSixNodesBoundaryMessage::isCyclesDiscoveringResponseMessage() const {
     return true;
 }
 
-const vector<pair<NodeUUID, TrustLineBalance>> CycleBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const {
+const vector<pair<NodeUUID, TrustLineBalance>> CyclesBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const {
     return mBoundaryNodes;
 }

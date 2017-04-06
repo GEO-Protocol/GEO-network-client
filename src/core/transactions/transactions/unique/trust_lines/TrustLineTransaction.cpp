@@ -70,7 +70,7 @@ void TrustLineTransaction::deserializeFromBytes(
 
 const size_t TrustLineTransaction::kOffsetToDataBytes() {
 
-    static const size_t offset = BaseTransaction::kOffsetToInheritedBytes()
+    const size_t offset = BaseTransaction::kOffsetToInheritedBytes()
                                  + sizeof(uint16_t);
     return offset;
 }

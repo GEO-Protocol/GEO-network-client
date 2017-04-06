@@ -4,18 +4,18 @@
 #include "base/CyclesBaseFiveOrSixNodesBoundaryMessage.h"
 
 class CyclesFiveNodesBoundaryMessage:
-    public CycleBaseFiveOrSixNodesBoundaryMessage {
+    public CyclesBaseFiveOrSixNodesBoundaryMessage {
 public:
     CyclesFiveNodesBoundaryMessage(
         vector<NodeUUID> &path,
-        const vector<pair<NodeUUID, TrustLineBalance>> &boundaryNodes) :
-        CycleBaseFiveOrSixNodesBoundaryMessage(
+        vector<pair<NodeUUID, TrustLineBalance>> &boundaryNodes) :
+        CyclesBaseFiveOrSixNodesBoundaryMessage(
             path,
             boundaryNodes){};
 
     CyclesFiveNodesBoundaryMessage(
         BytesShared buffer) :
-        CycleBaseFiveOrSixNodesBoundaryMessage(buffer){};
+        CyclesBaseFiveOrSixNodesBoundaryMessage(buffer){};
 
     const MessageType typeID() const {
         return Message::MessageTypeID::Cycles_FiveNodesBoundaryMessage;

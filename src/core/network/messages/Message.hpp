@@ -157,9 +157,9 @@ protected:
         MessageType *type = new (buffer.get()) MessageType;
     }
 
-    static const size_t kOffsetToInheritedBytes() {
+    virtual const size_t kOffsetToInheritedBytes() {
 
-        static const size_t offset = sizeof(MessageType);
+        const size_t offset = sizeof(MessageType);
         return offset;
     }
 };

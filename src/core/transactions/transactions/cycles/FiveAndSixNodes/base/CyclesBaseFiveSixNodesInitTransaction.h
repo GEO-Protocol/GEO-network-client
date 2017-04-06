@@ -9,7 +9,7 @@ class CyclesBaseFiveSixNodesInitTransaction :
 
 public:
     typedef shared_ptr<CyclesBaseFiveSixNodesInitTransaction> Shared;
-    typedef pair<shared_ptr<vector<NodeUUID>>, TrustLineBalance> MapValuesType;
+    typedef pair<const shared_ptr<vector<NodeUUID>>, TrustLineBalance> MapValuesType;
     typedef multimap<NodeUUID, MapValuesType> CycleMap;
     typedef CycleMap::iterator mapIter;
     typedef vector<MapValuesType> ResultVector;

@@ -5,7 +5,6 @@ CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(B
     deserializeFromBytes(buffer);
 }
 
-
 CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,

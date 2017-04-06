@@ -129,7 +129,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<CycleFiveNodesInBetweenMessage>(messagePart)
+                    make_shared<CyclesFiveNodesInBetweenMessage>(messagePart)
                 )
             );
         }

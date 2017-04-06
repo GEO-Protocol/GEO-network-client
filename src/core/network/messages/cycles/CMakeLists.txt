@@ -13,7 +13,7 @@ set(SOURCE_FILES
         SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesInBetweenMessage.cpp
         SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesBoundaryMessage.h
         SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesBoundaryMessage.cpp
-        SixAndFiveNodes/Cycles_FiveNodesInBetweenMessage.hpp
+        SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp
         SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp
         SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp
         SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp

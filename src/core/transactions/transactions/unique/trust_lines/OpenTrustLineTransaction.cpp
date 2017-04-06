@@ -143,7 +143,7 @@ bool OpenTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
 
 TransactionResult::SharedConst OpenTrustLineTransaction::checkTransactionContext() {
 
-    if (mExpectationResponsesCount == mContext.size()) {
+    if (mkExpectationResponsesCount == mContext.size()) {
         auto responseMessage = *mContext.begin();
 
         if (responseMessage->typeID() == Message::MessageTypeID::ResponseMessageType) {

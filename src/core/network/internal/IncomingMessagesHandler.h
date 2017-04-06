@@ -35,7 +35,7 @@
 #include "../messages/find_path/RequestRoutingTablesMessage.h"
 #include "../messages/find_path/ResultRoutingTablesMessage.h"
 
-#include "../messages/cycles/SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp"
+#include "../messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
 #include "../messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 #include "../messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
 #include "../messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"

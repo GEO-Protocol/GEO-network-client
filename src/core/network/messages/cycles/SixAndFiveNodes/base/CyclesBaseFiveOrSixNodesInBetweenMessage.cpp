@@ -1,10 +1,6 @@
 #include "CyclesBaseFiveOrSixNodesInBetweenMessage.h"
 
-uint8_t CycleBaseFiveOrSixNodesInBetweenMessage::mNodesInPath;
-
-CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage() {
-
-}
+CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage() {}
 
 CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage(
     vector<NodeUUID> &path) :

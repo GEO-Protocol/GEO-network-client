@@ -18,7 +18,7 @@ const NodeUUID &RejectTrustLineMessage::contractorUUID() const {
 
 const size_t RejectTrustLineMessage::kRequestedBufferSize() {
 
-    static const size_t size = TransactionMessage::kOffsetToInheritedBytes()
+    const size_t size = TransactionMessage::kOffsetToInheritedBytes()
                                + NodeUUID::kBytesSize;
 
     return size;

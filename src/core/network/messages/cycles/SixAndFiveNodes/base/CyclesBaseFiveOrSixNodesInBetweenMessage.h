@@ -8,7 +8,8 @@
 #include "../../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../../../../common/NodeUUID.h"
 
-class CycleBaseFiveOrSixNodesInBetweenMessage: public Message {
+class CycleBaseFiveOrSixNodesInBetweenMessage:
+        public Message {
 public:
     typedef shared_ptr<CycleBaseFiveOrSixNodesInBetweenMessage> Shared;
 public:
@@ -30,11 +31,11 @@ protected:
     void deserializeFromBytes(
         BytesShared buffer);
 
-    static const size_t kOffsetToInheritedBytes();
+    const size_t kOffsetToInheritedBytes();
 
 protected:
     vector<NodeUUID> mPath;
-    static uint8_t mNodesInPath;
+    uint8_t mNodesInPath;
 };
 
 

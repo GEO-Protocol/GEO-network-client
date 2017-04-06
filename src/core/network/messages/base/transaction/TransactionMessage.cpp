@@ -69,7 +69,7 @@ void TransactionMessage::deserializeFromBytes(
 
 const size_t TransactionMessage::kOffsetToInheritedBytes() {
 
-    static const size_t offset = SenderMessage::kOffsetToInheritedBytes()
+    const size_t offset = SenderMessage::kOffsetToInheritedBytes()
                                  + TransactionUUID::kBytesSize;
 
     return offset;

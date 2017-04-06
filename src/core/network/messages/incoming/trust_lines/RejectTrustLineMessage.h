@@ -25,7 +25,7 @@ public:
 
     const NodeUUID &contractorUUID() const;
 
-    static const size_t kRequestedBufferSize();
+    const size_t kRequestedBufferSize();
 
     pair<BytesShared, size_t> serializeToBytes();
 

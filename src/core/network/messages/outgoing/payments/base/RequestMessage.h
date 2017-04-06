@@ -24,7 +24,7 @@ public:
 protected:
     pair<BytesShared, size_t> serializeToBytes();
 
-    static const size_t kOffsetToInheritedBytes();
+    const size_t kOffsetToInheritedBytes();
 
     void deserializeFromBytes(
         BytesShared buffer);

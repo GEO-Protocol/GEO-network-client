@@ -66,8 +66,8 @@ void RejectTrustLineTransaction::deserializeFromBytes(
     TrustLineTransaction::deserializeFromBytes(
         buffer);
 
-    BytesShared messageBufferShared = tryMalloc(
-        RejectTrustLineMessage::kRequestedBufferSize());
+    size_t bytesCount = RejectTrustLineMessage::kRequestedBufferSize();
+    BytesShared messageBufferShared = tryMalloc(bytesCount);
     //-----------------------------------------------------
     memcpy(
         messageBufferShared.get(),

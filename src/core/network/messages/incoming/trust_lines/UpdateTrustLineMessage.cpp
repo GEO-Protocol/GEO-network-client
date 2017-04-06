@@ -18,7 +18,7 @@ const TrustLineAmount &UpdateTrustLineMessage::newAmount() const {
 
 const size_t UpdateTrustLineMessage::kRequestedBufferSize() {
 
-    static const size_t size = TransactionMessage::kOffsetToInheritedBytes()
+    const size_t size = TransactionMessage::kOffsetToInheritedBytes()
                                + kTrustLineAmountBytesCount;
 
     return size;

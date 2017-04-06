@@ -1,50 +1,55 @@
-#include "CyclesSixNodesResponseTransaction.h"
+#include "CyclesFiveNodesReceiverTransaction.h"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
 
-CyclesSixNodesResponseTransaction::CyclesSixNodesResponseTransaction(
+CyclesFiveNodesReceiverTransaction::CyclesFiveNodesReceiverTransaction(
     const NodeUUID &nodeUUID,
-    CyclesSixNodesInBetweenMessage::Shared message,
+    CyclesFiveNodesInBetweenMessage::Shared message,
     TrustLinesManager *manager,
     Logger *logger) :
     BaseTransaction(
-        BaseTransaction::TransactionType::Cycles_SixNodesReceiverTransaction,
+        BaseTransaction::TransactionType::Cycles_FiveNodesReceiverTransaction,
         nodeUUID),
     mTrustLinesManager(manager),
     mLogger(logger),
     mInBetweenNodeTopologyMessage(message) {
+
 }
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-TransactionResult::SharedConst CyclesSixNodesResponseTransaction::run() {
+TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run() {
     vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
     uint8_t currentDepth = path.size();
     TrustLineBalance zeroBalance = 0;
     TrustLineBalance maxFlow = mTrustLinesManager->balance(path.back());
-
-//  If balance to previous node equal zero finish transaction
-    if (maxFlow == zeroBalance)
-        return resultExit();
     vector<pair<NodeUUID, TrustLineBalance>> firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
-//  Update message path and send to next level nodes
-    if ((currentDepth==1)) {
+
+    bool debtorsDirection = true;
+    if (maxFlow < zeroBalance){
+        debtorsDirection = false;
+    }
+    if ((debtorsDirection and currentDepth==1)) {
         mInBetweenNodeTopologyMessage->addNodeToPath(mNodeUUID);
         for(const auto &value: firstLevelNodes)
             sendMessage(
                 value.first,
                 mInBetweenNodeTopologyMessage
             );
+        return resultExit();
     }
-    if (currentDepth==2){
+    if ((debtorsDirection and currentDepth==2) or (not debtorsDirection and currentDepth==1)){
         path.push_back(mNodeUUID);
-        sendMessage<CycleFiveNodesBoundaryMessage>(
+        sendMessage<CyclesFiveNodesBoundaryMessage>(
             path.front(),
             path,
             firstLevelNodes
         );
+        return resultExit();
     }
     else {
-        mLogger->error("CyclesSixNodesResponseTransaction:"
-        "Wrong path size");
+        return resultExit();
     }
-    return resultExit();
+
 }
+#pragma clang diagnostic pop
+

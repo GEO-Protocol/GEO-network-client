@@ -23,14 +23,18 @@ public:
 
     CyclesThreeNodesBalancesResponseMessage(
             BytesShared buffer);
-
-    void addNeighborUUIDAndBalance(pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance);
-    const MessageType typeID() const;
-    const bool isTransactionMessage() const;
-    vector<pair<NodeUUID, TrustLineBalance>> NeighborsAndBalances();
-protected:
+public:
     pair<BytesShared, size_t> serializeToBytes();
 
+    void addNeighborUUIDAndBalance(pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance);
+
+    const MessageType typeID() const;
+
+    const bool isTransactionMessage() const;
+
+    vector<pair<NodeUUID, TrustLineBalance>> NeighborsAndBalances();
+
+protected:
     void deserializeFromBytes(
             BytesShared buffer);
 

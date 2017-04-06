@@ -7,7 +7,8 @@
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../base/transaction/TransactionMessage.h"
 
-class CyclesFourNodesBalancesResponseMessage: public TransactionMessage {
+class CyclesFourNodesBalancesResponseMessage:
+        public TransactionMessage {
 public:
     typedef shared_ptr<CyclesFourNodesBalancesResponseMessage> Shared;
 public:
@@ -20,22 +21,27 @@ public:
     CyclesFourNodesBalancesResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-            vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalances
+        vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalances
     );
 
     CyclesFourNodesBalancesResponseMessage(
             BytesShared buffer);
 
-    void AddNeighborUUIDAndBalance(pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance);
-    const MessageType typeID() const;
-    const bool isTransactionMessage() const;
-    vector<pair<NodeUUID, TrustLineBalance>> NeighborsBalances();
-protected:
+public:
     pair<BytesShared, size_t> serializeToBytes();
+
+    void AddNeighborUUIDAndBalance(pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance);
+
+    const MessageType typeID() const;
+
+    const bool isTransactionMessage() const;
+
+    vector<pair<NodeUUID, TrustLineBalance>> NeighborsBalances();
+
+protected:
 
     void deserializeFromBytes(
             BytesShared buffer);
-
 
 protected:
     vector<pair<NodeUUID, TrustLineBalance>> mNeighborsBalances;

@@ -117,12 +117,12 @@ void BaseTransaction::resetStepsCounter() {
 void BaseTransaction::setExpectationResponsesCounter(
     uint16_t count) {
 
-    mExpectationResponsesCount = count;
+    mkExpectationResponsesCount = count;
 }
 
 void BaseTransaction::resetExpectationResponsesCounter() {
 
-    mExpectationResponsesCount = 0;
+    mkExpectationResponsesCount = 0;
 }
 
 void BaseTransaction::pushContext(

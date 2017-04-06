@@ -4,7 +4,7 @@
 #pragma clang diagnostic ignored "-Wconversion"
 pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
-    uint16_t neighborsCount = mNeighbors.size();
+    const uint16_t neighborsCount = mNeighbors.size();
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(neighborsCount)
                         + neighborsCount * NodeUUID::kBytesSize;
@@ -26,10 +26,10 @@ pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToByte
     );
     dataBytesOffset += neighborsCount;
 
-    for(auto const& value: mNeighbors) {
+    for(auto const& kNodeUUID: mNeighbors) {
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
-                &value,
+                &kNodeUUID,
                 NodeUUID::kBytesSize
         );
         dataBytesOffset += NodeUUID::kBytesSize;

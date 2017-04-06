@@ -7,10 +7,10 @@
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 #include <set>
 
-class CyclesSixNodesResponseTransaction :
+class CyclesSixNodesReceiverTransaction :
     public BaseTransaction {
 public:
-    CyclesSixNodesResponseTransaction(
+    CyclesSixNodesReceiverTransaction(
         const NodeUUID &nodeUUID,
         CyclesSixNodesInBetweenMessage::Shared message,
         TrustLinesManager *manager,

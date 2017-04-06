@@ -7,7 +7,8 @@
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../base/transaction/TransactionMessage.h"
 #include "set"
-class CyclesThreeNodesBalancesRequestMessage: public TransactionMessage {
+class CyclesThreeNodesBalancesRequestMessage:
+        public TransactionMessage {
 public:
     typedef shared_ptr<CyclesThreeNodesBalancesRequestMessage> Shared;
 public:
@@ -18,7 +19,7 @@ public:
 
     CyclesThreeNodesBalancesRequestMessage(
             BytesShared buffer);
-
+public:
     const MessageType typeID() const;
     vector<NodeUUID> Neighbors();
     pair<BytesShared, size_t> serializeToBytes();

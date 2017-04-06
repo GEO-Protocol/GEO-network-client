@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_CYCLESFIVENODESINITTRANSACTION_H
 
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
-#include "../../../../network/messages/cycles/SixAndFiveNodes/CycleFiveNodesInBetweenMessage.hpp"
+#include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 
 class CyclesFiveNodesInitTransaction :

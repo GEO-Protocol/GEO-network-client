@@ -54,7 +54,7 @@ TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesPropagation
 
 pair<bool, TransactionResult::SharedConst> FromInitiatorToContractorRoutingTablesPropagationTransaction::checkContext() {
 
-    if (mExpectationResponsesCount == mContext.size()) {
+    if (mkExpectationResponsesCount == mContext.size()) {
 
         for (const auto& responseMessage : mContext) {
 

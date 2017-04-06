@@ -63,11 +63,11 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
         return finishTransaction();
     }
 
-    auto firstMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*mContext.begin());
-    auto secondMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*mContext.end());
-    auto firstContractorUUID = firstMessage->senderUUID();
-    auto secondContractorUUID = secondMessage->senderUUID();
-    TrustLineBalance zeroBalance = 0;
+    const auto firstMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*mContext.begin());
+    const auto secondMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*mContext.end());
+    const auto firstContractorUUID = firstMessage->senderUUID();
+    const auto secondContractorUUID = secondMessage->senderUUID();
+    const TrustLineBalance zeroBalance = 0;
 
     TrustLineBalance firstContractorBalance = mTrustLinesManager->balance(firstContractorUUID);
     TrustLineBalance secondContractorBalance = mTrustLinesManager->balance(secondContractorUUID);

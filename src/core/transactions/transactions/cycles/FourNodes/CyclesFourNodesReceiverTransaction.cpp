@@ -1,6 +1,6 @@
-#include "CyclesFourNodesResponseTransaction.h"
+#include "CyclesFourNodesReceiverTransaction.h"
 
-CyclesFourNodesResponseTransaction::CyclesFourNodesResponseTransaction(
+CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
     const NodeUUID &nodeUUID,
     CyclesFourNodesBalancesRequestMessage::Shared message,
     TrustLinesManager *manager,
@@ -13,28 +13,28 @@ CyclesFourNodesResponseTransaction::CyclesFourNodesResponseTransaction(
     mRequestMessage(message)
 {}
 
-TransactionResult::SharedConst CyclesFourNodesResponseTransaction::run() {
+TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
     const auto kNeighbors = mRequestMessage->Neighbors();
     const auto kMessage = make_shared<CyclesFourNodesBalancesResponseMessage>(
         mNodeUUID,
         mTransactionUUID,
         kNeighbors.size());
 
-    const auto contractorBalance = mTrustLinesManager->balance(mRequestMessage->senderUUID());
-    TrustLineBalance zeroBalance = 0;
+    const auto kContractorBalance = mTrustLinesManager->balance(mRequestMessage->senderUUID());
+    const TrustLineBalance kZeroBalance = 0;
     TrustLineBalance stepNodeBalance;
 
     bool searchDebtors = true;
-    if (contractorBalance < zeroBalance)
+    if (kContractorBalance < kZeroBalance)
         searchDebtors = false;
 
-    for (auto &nodeUUID: kNeighbors) {
-        stepNodeBalance = mTrustLinesManager->balance(nodeUUID);
-        if ((searchDebtors and (stepNodeBalance > zeroBalance)) or
-            (not searchDebtors and (stepNodeBalance < zeroBalance)))
+    for (auto &kNodeUUID: kNeighbors) {
+        stepNodeBalance = mTrustLinesManager->balance(kNodeUUID);
+        if ((searchDebtors and (stepNodeBalance > kZeroBalance)) or
+            (not searchDebtors and (stepNodeBalance < kZeroBalance)))
             kMessage->AddNeighborUUIDAndBalance(
                 make_pair(
-                    nodeUUID,
+                    kNodeUUID,
                     stepNodeBalance));
     }
 

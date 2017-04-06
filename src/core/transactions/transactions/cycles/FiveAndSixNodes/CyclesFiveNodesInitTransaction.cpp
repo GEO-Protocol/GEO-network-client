@@ -11,12 +11,12 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
     path.push_back(mNodeUUID);
     TrustLineBalance zeroBalance = 0;
     for(const auto &value: firstLevelNodesNegativeBalance)
-        sendMessage<CycleFiveNodesInBetweenMessage>(
+        sendMessage<CyclesFiveNodesInBetweenMessage>(
             value,
             path
         );
     for(const auto &value: firstLevelNodesPositiveBalance)
-            sendMessage<CycleFiveNodesInBetweenMessage>(
+            sendMessage<CyclesFiveNodesInBetweenMessage>(
                 value,
                 path
             );
@@ -67,7 +67,6 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
     }
     vector<NodeUUID> stepPathDebtors;
 //    Create Cycles comparing BoundaryMessages data with debtors map
-    ResultVector mCycles;
 //     stepCyclePath;
     TrustLineBalance debtorsStepFlow;
     TrustLineBalance commonStepMaxFlow;
@@ -96,7 +95,6 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
                                                    NodeUUIDAndBalance.first,
                                                    s_it->second.first->back()};
                 // Todo run cycles
-                mCycles.push_back(make_pair(stepCyclePath, commonStepMaxFlow));
                 stepCyclePath.clear();
             }
         }

@@ -3,14 +3,14 @@
 
 #include "base/CyclesBaseFiveOrSixNodesInBetweenMessage.h"
 
-class CycleFiveNodesInBetweenMessage: public CycleBaseFiveOrSixNodesInBetweenMessage {
+class CyclesFiveNodesInBetweenMessage: public CycleBaseFiveOrSixNodesInBetweenMessage {
 public:
-    typedef shared_ptr<CycleFiveNodesInBetweenMessage> Shared;
+    typedef shared_ptr<CyclesFiveNodesInBetweenMessage> Shared;
 public:
-    CycleFiveNodesInBetweenMessage(){};
-    CycleFiveNodesInBetweenMessage(
+    CyclesFiveNodesInBetweenMessage(){};
+    CyclesFiveNodesInBetweenMessage(
         vector<NodeUUID> &path):CycleBaseFiveOrSixNodesInBetweenMessage(path){};
-    CycleFiveNodesInBetweenMessage(
+    CyclesFiveNodesInBetweenMessage(
         BytesShared buffer):CycleBaseFiveOrSixNodesInBetweenMessage(buffer){};
 
     const MessageType typeID() const {
