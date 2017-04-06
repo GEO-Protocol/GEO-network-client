@@ -133,6 +133,7 @@ protected:
     TransactionResult::SharedConst runPaymentInitialisationStage ();
     TransactionResult::SharedConst runReceiverResponseProcessingStage ();
     TransactionResult::SharedConst runAmountReservationStage ();
+    TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
     TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
     TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
     TransactionResult::SharedConst runVotesCheckingStage ();
@@ -167,8 +168,11 @@ protected:
 
     TransactionResult::SharedConst tryProcessNextPath();
 
-    TransactionResult::SharedConst tryReserveNextNodeAmount(
-        PathStats* pathStats);
+    TransactionResult::SharedConst tryReserveAmountDirectlyOnReceiver (
+        PathStats *pathStats);
+
+    TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (
+        PathStats *pathStats);
 
     TransactionResult::SharedConst askNeighborToReserveAmount(
         const NodeUUID &neighbor,
@@ -216,5 +220,14 @@ protected:
     // Contains nodes that has been requrested final paths configuration.
     // for more details, see TODO
     unordered_set<NodeUUID> mNodesRequestedFinalConfiguration;
+
+    /*
+     * If true - then it means that direct path betweeen coordinator and receiver has been already processed.
+     * Otherwise is set to the false (by default).
+     *
+     * Only one direct path may occure due to one payment operation.
+     * In case if several direct paths occurs - than it seems that paths collection is broken.
+     */
+    bool mDirectPathIsAllreadyProcessed;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

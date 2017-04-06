@@ -50,6 +50,7 @@ protected:
         Coordinator_Initialisation = 1,
         Coordinator_ReceiverResponseProcessing,
         Coordinator_AmountReservation,
+        Coordinator_ShortPathAmountReservationResponseProcessing,
         Coordinator_FinalPathsConfigurationApproving,
 
         Receiver_CoordinatorRequestApproving,

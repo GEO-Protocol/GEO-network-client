@@ -16,7 +16,7 @@ public:
     Path(
         const NodeUUID &source,
         const NodeUUID &destination,
-        const vector<NodeUUID> &intermediateNodes);
+        const vector<NodeUUID> &intermediateNodes = vector<NodeUUID>());
 
     Path(
         const NodeUUID &source,
