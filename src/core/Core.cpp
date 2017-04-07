@@ -573,18 +573,18 @@ void Core::zeroPointers() {
 }
 
 void Core::onDelayedTaskCycleSixNodesSlot() {
-    mTransactionsManager->launchSixNodesCyclesInitTransaction();
+//    mTransactionsManager->launchSixNodesCyclesInitTransaction();
 }
 
 void Core::onDelayedTaskCycleFiveNodesSlot() {
-    mTransactionsManager->launchFiveNodesCyclesInitTransaction();
+//    mTransactionsManager->launchFiveNodesCyclesInitTransaction();
 }
 
 void Core::onDelayedTaskCycleFourNodesSlot() {
 }
 
 void Core::onDelayedTaskCycleThreeNodesSlot() {
-    test_ThreeNodesTransaction();
+//    test_ThreeNodesTransaction();
 
 }
 
