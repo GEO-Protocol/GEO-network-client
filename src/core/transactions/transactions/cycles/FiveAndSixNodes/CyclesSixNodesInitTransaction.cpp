@@ -48,14 +48,13 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
         if (creditorsStepFlow > kZeroBalance)
             continue;
 //  Check all Boundary Nodes and add it to map if all checks path
-        for (auto &nodeUUIDAndBalance: message->BoundaryNodes()){
+        for (auto &nodeUUID: message->BoundaryNodes()){
 //  Prevent loop on cycles path
-            if (nodeUUIDAndBalance.first == stepPath->front())
+            if (nodeUUID == stepPath->front())
                 continue;
             mCreditors.insert(make_pair(
-                nodeUUIDAndBalance.first,
-                make_pair(stepPath, (-1) * max(creditorsStepFlow, nodeUUIDAndBalance.second))));
-
+                nodeUUID,
+                stepPath));
         }
     }
 
@@ -73,24 +72,25 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
         //  It has to be exactly nodes count in path
         if (stepPath.size() != 3)
             continue;
-        for (auto &NodeUUIDAndBalance: message->BoundaryNodes()) {
+        for (const auto &kNodeUUID: message->BoundaryNodes()) {
             //  Prevent loop on cycles path
-            if (NodeUUIDAndBalance.first == stepPath.front())
+            if (kNodeUUID == stepPath.front())
                 continue;
-            auto NodeUIIDAndPathRange = mCreditors.equal_range(NodeUUIDAndBalance.first);
+            auto NodeUIIDAndPathRange = mCreditors.equal_range(kNodeUUID);
             for (auto NodeUIDandPairOfPathandBalace = NodeUIIDAndPathRange.first;
                  NodeUIDandPairOfPathandBalace != NodeUIIDAndPathRange.second; ++NodeUIDandPairOfPathandBalace) {
-                if (((*NodeUIDandPairOfPathandBalace->second.first)[2] == stepPath[1]) or ((*NodeUIDandPairOfPathandBalace->second.first)[1] == stepPath[2]))
+                if (((*NodeUIDandPairOfPathandBalace->second)[2] == stepPath[1]) or ((*NodeUIDandPairOfPathandBalace->second)[1] == stepPath[2]))
                     continue;
-//  Find minMax flow between 3 value. 1 in map. 1 in boundaryNodes. 1 we get from creditor first node in path
-                commonStepMaxFlow = min(min(NodeUIDandPairOfPathandBalace->second.second, debtorsStepFlow), NodeUUIDAndBalance.second);
-                vector <NodeUUID> stepCyclePath = {stepPath[0],
-                                                   stepPath[1],
-                                                   stepPath[2],
-                                                   NodeUUIDAndBalance.first,
-                                                   (*(NodeUIDandPairOfPathandBalace->second.first))[2],
-                                                   (*(NodeUIDandPairOfPathandBalace->second.first))[1]};
+                //  Find minMax flow between 3 value. 1 in map. 1 in boundaryNodes. 1 we get from creditor first node in path
+                vector<NodeUUID> stepCyclePath = {stepPath[0],
+                                                  stepPath[1],
+                                                  stepPath[2],
+                                                  kNodeUUID,
+                                                  (*(NodeUIDandPairOfPathandBalace->second))[2],
+                                                  (*(NodeUIDandPairOfPathandBalace->second))[1]};
                 //    Todo run cycles
+                // Потрібно ставити первірку на доречність перекриття цилів
+                // Ця транакція має верта нам дані про те через який трастлайн неможна зробити перрозрахунок
                 stepCyclePath.clear();
             }
         }

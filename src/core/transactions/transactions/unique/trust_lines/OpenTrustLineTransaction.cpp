@@ -125,8 +125,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::run() {
     } catch (exception &e){
         throw RuntimeError("OpenTrustLineTransaction::run: "
                                "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
-                               "Crashed at step -> " + to_string(mStep) + ". "
-                               "Message -> " + string(e.what()));
+                               "Crashed at step -> " + to_string(mStep) );
     }
 }
 

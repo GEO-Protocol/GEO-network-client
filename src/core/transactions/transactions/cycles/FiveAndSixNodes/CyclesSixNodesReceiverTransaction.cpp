@@ -32,7 +32,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
         mInBetweenNodeTopologyMessage->addNodeToPath(mNodeUUID);
         for(const auto &kNodeUUIDAndBalance: kFirstLevelNodes)
             sendMessage(
-                kNodeUUIDAndBalance.first,
+                kNodeUUIDAndBalance,
                 mInBetweenNodeTopologyMessage
             );
     }

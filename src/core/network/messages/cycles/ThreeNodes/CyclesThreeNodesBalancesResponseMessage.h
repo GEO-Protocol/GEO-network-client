@@ -14,32 +14,32 @@ public:
     CyclesThreeNodesBalancesResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        uint16_t neighborsUUUIDAndBalancesCount);
+        uint16_t neighborsUUUID);
 
     CyclesThreeNodesBalancesResponseMessage(
             const NodeUUID &senderUUID,
             const TransactionUUID &transactionUUID,
-            vector<pair<NodeUUID, TrustLineBalance>> &neighborsUUUIDAndBalance);
+            vector<NodeUUID> &neighborsUUUID);
 
     CyclesThreeNodesBalancesResponseMessage(
             BytesShared buffer);
 public:
     pair<BytesShared, size_t> serializeToBytes();
 
-    void addNeighborUUIDAndBalance(pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance);
+    void addNeighborUUIDAndBalance(NodeUUID neighborUUID);
 
     const MessageType typeID() const;
 
     const bool isTransactionMessage() const;
 
-    vector<pair<NodeUUID, TrustLineBalance>> NeighborsAndBalances();
+    vector<NodeUUID> NeighborsAndBalances();
 
 protected:
     void deserializeFromBytes(
             BytesShared buffer);
 
 protected:
-    vector<pair<NodeUUID, TrustLineBalance>> mNeighborsUUUIDAndBalance;
+    vector<NodeUUID> mNeighborsUUUID;
 };
 
 #endif //GEO_NETWORK_CLIENT_BALANCESRESPONCEMESSAGE_H

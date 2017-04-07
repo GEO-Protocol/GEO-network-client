@@ -2,10 +2,10 @@
 
 CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(
         vector<NodeUUID>& path,
-        vector<pair<NodeUUID, TrustLineBalance>>& boundaryNodes) :
+        vector<NodeUUID>& boundaryNodes) :
 
     CycleBaseFiveOrSixNodesInBetweenMessage(
-        path
+            path
     ),
     mBoundaryNodes(boundaryNodes)
 {
@@ -16,14 +16,13 @@ CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage
     deserializeFromBytes(buffer);
 }
 
-
 pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBytes() {
     auto parentBytesAndCount = CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes();
 
     uint16_t boundaryNodesCount = (uint16_t) mBoundaryNodes.size();
     size_t bytesCount =
             parentBytesAndCount.second +
-            (NodeUUID::kBytesSize + kTrustLineBalanceSerializeBytesCount) * boundaryNodesCount +
+            (NodeUUID::kBytesSize) * boundaryNodesCount +
             sizeof(boundaryNodesCount);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -43,23 +42,14 @@ pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBy
     );
     dataBytesOffset += sizeof(uint16_t);
     vector<byte> stepObligationFlow;
-    for(auto &value: mBoundaryNodes){
+    for(const auto &kNodeUUID: mBoundaryNodes){
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
-                &value.first,
+                &kNodeUUID,
                 NodeUUID::kBytesSize
         );
         dataBytesOffset += NodeUUID::kBytesSize;
-        stepObligationFlow = trustLineBalanceToBytes(value.second);
-        memcpy(
-                dataBytesShared.get() + dataBytesOffset,
-                stepObligationFlow.data(),
-                stepObligationFlow.size()
-        );
-        dataBytesOffset += stepObligationFlow.size();
-        stepObligationFlow.clear();
     }
-
     return make_pair(
             dataBytesShared,
             bytesCount
@@ -78,9 +68,7 @@ void CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared b
     );
     bytesBufferOffset += sizeof(uint16_t);
 //    Parse boundary nodes
-    vector<byte> *stepObligationFlowBytes;
     NodeUUID stepNodeUUID;
-    TrustLineBalance stepBalance;
     for (uint16_t i=1; i<=boundaryNodesCount; i++){
         memcpy(
                 stepNodeUUID.data,
@@ -88,12 +76,7 @@ void CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared b
                 NodeUUID::kBytesSize
         );
         bytesBufferOffset += NodeUUID::kBytesSize;
-        stepObligationFlowBytes = new vector<byte>(
-                buffer.get() + bytesBufferOffset,
-                buffer.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
-        stepBalance = bytesToTrustLineBalance(*stepObligationFlowBytes);
-        mBoundaryNodes.push_back(make_pair(stepNodeUUID, stepBalance));
-        bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
+        mBoundaryNodes.push_back(stepNodeUUID);
     };
 }
 
@@ -101,6 +84,6 @@ const bool CyclesBaseFiveOrSixNodesBoundaryMessage::isCyclesDiscoveringResponseM
     return true;
 }
 
-const vector<pair<NodeUUID, TrustLineBalance>> CyclesBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const {
+const vector<NodeUUID> CyclesBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const {
     return mBoundaryNodes;
 }

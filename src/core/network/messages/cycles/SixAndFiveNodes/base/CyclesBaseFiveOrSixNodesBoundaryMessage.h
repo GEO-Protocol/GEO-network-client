@@ -10,7 +10,7 @@ public:
 public:
     CyclesBaseFiveOrSixNodesBoundaryMessage(
         vector<NodeUUID> &path,
-        vector<pair<NodeUUID, TrustLineBalance>> &boundaryNodes);
+        vector<NodeUUID> &boundaryNodes);
 
     CyclesBaseFiveOrSixNodesBoundaryMessage(
         BytesShared buffer);
@@ -22,14 +22,14 @@ public:
 
     const bool isCyclesDiscoveringResponseMessage() const;
 
-    const vector<pair<NodeUUID, TrustLineBalance>> BoundaryNodes() const;
+    const vector<NodeUUID> BoundaryNodes() const;
 
 protected:
     void deserializeFromBytes(
         BytesShared buffer);
 
 private:
-    vector<pair<NodeUUID, TrustLineBalance>> mBoundaryNodes;
+    vector<NodeUUID> mBoundaryNodes;
 };
 
 

@@ -1075,7 +1075,7 @@ void TransactionsManager::prepareAndSchedule(
 }
 //   ---------------------------------------Cycles part----------------------------------------------
 
-void TransactionsManager::launchThreeNodesCyclesInitTransaction(NodeUUID &contractorUUID) {
+void TransactionsManager::launchThreeNodesCyclesInitTransaction(const NodeUUID &contractorUUID) {
     try {
         auto transaction = make_shared<CyclesThreeNodesInitTransaction>(
             mNodeUUID,

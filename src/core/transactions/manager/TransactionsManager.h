@@ -139,7 +139,7 @@ public:
 //    void launchGetFourNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
 //    void launchGetFourNodesNeighborBalancesTransaction(CyclesFourNodesBalancesRequestMessage::Shared message);
 
-    void launchThreeNodesCyclesInitTransaction(NodeUUID &contractorUUID);
+    void launchThreeNodesCyclesInitTransaction(const NodeUUID &contractorUUID);
     void launchThreeNodesCyclesResponseTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message);
 
     void launchSixNodesCyclesInitTransaction();

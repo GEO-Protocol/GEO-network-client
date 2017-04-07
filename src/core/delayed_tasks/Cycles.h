@@ -17,18 +17,28 @@ public:
     signals::signal<void()> mSixNodesCycleSignal;
     signals::signal<void()> mFiveNodesCycleSignal;
 
+    signals::signal<void()> mThreeNodesCycleSignal;
+    signals::signal<void()> mFourNodesCycleSignal;
+
 public:
     void RunSignalSixNodes(const boost::system::error_code &error);
     void RunSignalFiveNodes(const boost::system::error_code &error);
+    void RunSignalFourNodes(const boost::system::error_code &error);
+    void RunSignalThreeNodes(const boost::system::error_code &error);
 
 private:
     as::io_service &mIOService;
     const int mSixNodesSignalRepeatTimeSeconds = 8000;
     const int mFiveNodesSignalRepeatTimeSeconds = 8000;
 
+    const int mFourNodesSignalRepeatTimeSeconds = 60;
+    const int mThreeNodesSignalRepeatTimeSeconds = 60;
+
 
     unique_ptr<as::deadline_timer> mSixNodesCycleTimer;
     unique_ptr<as::deadline_timer> mFiveNodesCycleTimer;
+    unique_ptr<as::deadline_timer> mFourNodesCycleTimer;
+    unique_ptr<as::deadline_timer> mThreeNodesCycleTimer;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLES_H

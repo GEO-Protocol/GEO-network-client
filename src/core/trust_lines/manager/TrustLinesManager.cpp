@@ -69,6 +69,9 @@ void TrustLinesManager::open(
         TrustLine::Shared trustLine = it->second;
         if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setOutgoingTrustAmount(amount);
+            // todo delete this
+            trustLine->setBalance(50);
+            // todo delete this
             trustLine->activateOutgoingDirection();
             saveToDisk(trustLine);
         } else {
@@ -85,6 +88,9 @@ void TrustLinesManager::open(
                 0,
                 amount,
                 0);
+            // todo delete this
+            trustLine->setBalance(50);
+            // todo delete this
             trustLine->activateOutgoingDirection();
 
         } catch (std::bad_alloc &e) {
@@ -147,6 +153,9 @@ void TrustLinesManager::accept(
         TrustLine::Shared trustLine = it->second;
         if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setIncomingTrustAmount(amount);
+            // todo delete this
+            trustLine->setBalance(-50);
+            // todo delete this
             trustLine->activateIncomingDirection();
             saveToDisk(trustLine);
         } else {
@@ -163,6 +172,9 @@ void TrustLinesManager::accept(
                 0,
                 0);
             trustLine->activateIncomingDirection();
+            // todo delete this
+            trustLine->setBalance(-50);
+            // todo delete this
 
         } catch (std::bad_alloc &e) {
             throw MemoryError("TrustLinesManager::accept: "
@@ -672,23 +684,23 @@ const bool TrustLinesManager::isNeighbor(
     return mTrustLines.count(node) == 1;
 }
 
-vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxFlow) {
-    vector<pair<NodeUUID, TrustLineBalance>> Nodes;
+vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxFlow) {
+    vector<NodeUUID> Nodes;
     TrustLineBalance zerobalance = 0;
     TrustLineBalance stepbalance;
     for (auto const& x : mTrustLines){
         stepbalance = x.second->balance();
         if (maxFlow == zerobalance) {
             if (stepbalance != zerobalance) {
-                Nodes.push_back(make_pair(x.first, stepbalance));
+                Nodes.push_back(x.first);
                 }
         } else if(maxFlow < zerobalance){
             if (stepbalance < zerobalance) {
-                Nodes.push_back(make_pair(x.first, min(maxFlow, stepbalance)));
+                Nodes.push_back(x.first);
             }
         } else {
             if (stepbalance > zerobalance) {
-                Nodes.push_back(make_pair(x.first, min(maxFlow, stepbalance)));
+                Nodes.push_back(x.first);
             }
         }
     }

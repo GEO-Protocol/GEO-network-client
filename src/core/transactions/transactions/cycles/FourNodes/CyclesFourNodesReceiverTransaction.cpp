@@ -32,10 +32,7 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
         stepNodeBalance = mTrustLinesManager->balance(kNodeUUID);
         if ((searchDebtors and (stepNodeBalance > kZeroBalance)) or
             (not searchDebtors and (stepNodeBalance < kZeroBalance)))
-            kMessage->AddNeighborUUIDAndBalance(
-                make_pair(
-                    kNodeUUID,
-                    stepNodeBalance));
+            kMessage->AddNeighborUUID(kNodeUUID);
     }
 
     sendMessage(mRequestMessage->senderUUID(), kMessage);

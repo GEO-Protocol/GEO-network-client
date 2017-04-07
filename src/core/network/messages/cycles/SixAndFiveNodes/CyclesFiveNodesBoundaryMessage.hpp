@@ -8,7 +8,7 @@ class CyclesFiveNodesBoundaryMessage:
 public:
     CyclesFiveNodesBoundaryMessage(
         vector<NodeUUID> &path,
-        vector<pair<NodeUUID, TrustLineBalance>> &boundaryNodes) :
+        vector<NodeUUID> &boundaryNodes) :
         CyclesBaseFiveOrSixNodesBoundaryMessage(
             path,
             boundaryNodes){};

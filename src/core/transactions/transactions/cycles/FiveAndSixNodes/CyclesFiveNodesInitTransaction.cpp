@@ -53,16 +53,15 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
         if (creditorsStepFlow > zeroBalance)
             continue;
         //  Check all Boundary Nodes and add it to map if all checks path
-        for (auto &NodeUUIDAndBalance: message->BoundaryNodes()){
+        for (auto &NodeUUID: message->BoundaryNodes()){
             //  Prevent loop on cycles path
-            if (NodeUUIDAndBalance.first == stepPath->front())
+            if (NodeUUID == stepPath->front())
                 continue;
             //  NodeUUIDAndBalance.second - already minimum balance on creditors branch
             //  For not tu use abc for every balance on debtors branch - just change sign of these balance
             mCreditors.insert(make_pair(
-                NodeUUIDAndBalance.first,
-                make_pair(stepPath, (-1) * NodeUUIDAndBalance.second)));
-
+                NodeUUID,
+                stepPath));
         }
     }
     vector<NodeUUID> stepPathDebtors;
@@ -80,27 +79,27 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
 //  It has to be exactly nodes count in path
         if (stepPathDebtors.size() != 3)
             continue;
-        for (auto &NodeUUIDAndBalance: message->BoundaryNodes()) {
+        for (const auto &kNodeUUID: message->BoundaryNodes()) {
 //  Prevent loop on cycles path
-            if (NodeUUIDAndBalance.first == stepPathDebtors.front())
+            if (kNodeUUID == stepPathDebtors.front())
                 continue;
 
-            auto NodeUIIDAndPathRange = mCreditors.equal_range(NodeUUIDAndBalance.first);
+            auto NodeUIIDAndPathRange = mCreditors.equal_range(kNodeUUID);
             for (auto s_it = NodeUIIDAndPathRange.first; s_it != NodeUIIDAndPathRange.second; ++s_it) {
 //  Find minMax flow between 3 value. 1 in map. 1 in boundaryNodes. 1 we get from creditor first node in path
-                commonStepMaxFlow = min(min(s_it->second.second, debtorsStepFlow), NodeUUIDAndBalance.second);
                 vector <NodeUUID> stepCyclePath = {stepPathDebtors[0],
                                                    stepPathDebtors[1],
                                                    stepPathDebtors[2],
-                                                   NodeUUIDAndBalance.first,
-                                                   s_it->second.first->back()};
+                                                   kNodeUUID,
+                                                   s_it->second->back()};
                 // Todo run cycles
+                // Потрібно ставити первірку на доречність перекриття цилів
+                // Ця транакція має верта нам дані про те через який трастлайн неможна зробити перрозрахунок
                 stepCyclePath.clear();
             }
         }
     }
     mContext.clear();
-
     return finishTransaction();
 }
 #pragma clang diagnostic pop

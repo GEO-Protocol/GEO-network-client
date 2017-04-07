@@ -3,29 +3,27 @@
 CyclesFourNodesBalancesResponseMessage::CyclesFourNodesBalancesResponseMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalances):
+    vector<NodeUUID> &neighborsUUID):
         TransactionMessage(senderUUID, transactionUUID),
-        mNeighborsBalances(neighborsBalances)
-{
-
-}
+        mNeighborsUUID(neighborsUUID)
+{}
 
 CyclesFourNodesBalancesResponseMessage::CyclesFourNodesBalancesResponseMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    uint16_t neighborsUUUIDAndBalancesCount):
+    uint16_t neighborsUUUIDCount):
     TransactionMessage(senderUUID, transactionUUID)
 {
-    mNeighborsBalances.reserve(neighborsUUUIDAndBalancesCount);
+    mNeighborsUUID.reserve(neighborsUUUIDCount);
 }
 
 std::pair<BytesShared, size_t> CyclesFourNodesBalancesResponseMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    uint16_t neighborsNodesCount = (uint16_t) mNeighborsBalances.size();
+    uint16_t neighborsNodesCount = (uint16_t) mNeighborsUUID.size();
     size_t bytesCount =
             parentBytesAndCount.second +
-            (NodeUUID::kBytesSize + kTrustLineBalanceSerializeBytesCount) * neighborsNodesCount +
+            (NodeUUID::kBytesSize) * neighborsNodesCount +
             sizeof(neighborsNodesCount);
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -39,28 +37,20 @@ std::pair<BytesShared, size_t> CyclesFourNodesBalancesResponseMessage::serialize
     );
     dataBytesOffset += parentBytesAndCount.second;
     vector<byte> stepObligationFlow;
-// for mNeighborsBalances
+    // for mNeighborsUUIDs
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &neighborsNodesCount,
             sizeof(uint16_t)
     );
     dataBytesOffset += sizeof(uint16_t);
-    for(auto &value: mNeighborsBalances){
+    for(const auto &kNodeUUID: mNeighborsUUID){
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
-                &value.first,
+                &kNodeUUID,
                 NodeUUID::kBytesSize
         );
         dataBytesOffset += NodeUUID::kBytesSize;
-        stepObligationFlow = trustLineBalanceToBytes(value.second);
-        memcpy(
-                dataBytesShared.get() + dataBytesOffset,
-                stepObligationFlow.data(),
-                stepObligationFlow.size()
-        );
-        dataBytesOffset += stepObligationFlow.size();
-        stepObligationFlow.clear();
     }
     return make_pair(
             dataBytesShared,
@@ -80,10 +70,7 @@ void CyclesFourNodesBalancesResponseMessage::deserializeFromBytes(BytesShared bu
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
-    vector<byte> *stepObligationFlowBytes;
     NodeUUID stepNodeUUID;
-    TrustLineBalance stepBalance;
-
     //  Get neighborsNodesCount
     uint16_t neighborsNodesCount;
     memcpy(
@@ -92,7 +79,7 @@ void CyclesFourNodesBalancesResponseMessage::deserializeFromBytes(BytesShared bu
             sizeof(uint16_t)
     );
     bytesBufferOffset += sizeof(uint16_t);
-//    Parse mNeighborsBalances
+//    Parse mNeighborsUUIDS
     for (uint16_t i=1; i<=neighborsNodesCount; i++){
         memcpy(
                 stepNodeUUID.data,
@@ -100,12 +87,7 @@ void CyclesFourNodesBalancesResponseMessage::deserializeFromBytes(BytesShared bu
                 NodeUUID::kBytesSize
         );
         bytesBufferOffset += NodeUUID::kBytesSize;
-        stepObligationFlowBytes = new vector<byte>(
-                buffer.get() + bytesBufferOffset,
-                buffer.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
-        stepBalance = bytesToTrustLineBalance(*stepObligationFlowBytes);
-        mNeighborsBalances.push_back(make_pair(stepNodeUUID, stepBalance));
-        bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
+        mNeighborsUUID.push_back(stepNodeUUID);
     };
 }
 
@@ -113,11 +95,11 @@ const bool CyclesFourNodesBalancesResponseMessage::isTransactionMessage() const 
     return  true;
 }
 
-vector<pair<NodeUUID, TrustLineBalance>> CyclesFourNodesBalancesResponseMessage::NeighborsBalances() {
-    return mNeighborsBalances;
+vector<NodeUUID> CyclesFourNodesBalancesResponseMessage::NeighborsUUID() {
+    return mNeighborsUUID;
 }
 
-void CyclesFourNodesBalancesResponseMessage::AddNeighborUUIDAndBalance(
-    pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance) {
-    mNeighborsBalances.push_back(neighborUUIDAndBalance);
+void CyclesFourNodesBalancesResponseMessage::AddNeighborUUID(
+    NodeUUID neighborUUID) {
+    mNeighborsUUID.push_back(neighborUUID);
 }

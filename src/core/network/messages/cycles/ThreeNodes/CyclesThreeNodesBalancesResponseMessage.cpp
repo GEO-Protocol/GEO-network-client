@@ -3,9 +3,9 @@
 CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    vector<pair<NodeUUID, TrustLineBalance>> &neighbors) :
+    vector<NodeUUID> &neighbors) :
     TransactionMessage(senderUUID, transactionUUID),
-    mNeighborsUUUIDAndBalance(neighbors)
+    mNeighborsUUUID(neighbors)
 {
 
 }
@@ -13,19 +13,19 @@ CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage
 CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    uint16_t neighborsUUUIDAndBalancesCount):
+    uint16_t neighborsUUUID):
 TransactionMessage(senderUUID, transactionUUID)
 {
-    mNeighborsUUUIDAndBalance.reserve(neighborsUUUIDAndBalancesCount);
+    mNeighborsUUUID.reserve(neighborsUUUID);
 }
 
 std::pair<BytesShared, size_t> CyclesThreeNodesBalancesResponseMessage::serializeToBytes() {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
-    uint16_t boundaryNodesCount = (uint16_t) mNeighborsUUUIDAndBalance.size();
+    uint16_t boundaryNodesCount = (uint16_t) mNeighborsUUUID.size();
     size_t bytesCount =
             parentBytesAndCount.second +
-            (NodeUUID::kBytesSize + kTrustLineBalanceSerializeBytesCount) * boundaryNodesCount +
+            (NodeUUID::kBytesSize) * boundaryNodesCount +
             sizeof(boundaryNodesCount);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -45,21 +45,13 @@ std::pair<BytesShared, size_t> CyclesThreeNodesBalancesResponseMessage::serializ
     );
     dataBytesOffset += sizeof(uint16_t);
     vector<byte> stepObligationFlow;
-    for(auto &value: mNeighborsUUUIDAndBalance){
+    for(const auto &kNodeUUUID: mNeighborsUUUID){
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
-                &value.first,
+                &kNodeUUUID,
                 NodeUUID::kBytesSize
         );
         dataBytesOffset += NodeUUID::kBytesSize;
-        stepObligationFlow = trustLineBalanceToBytes(value.second);
-        memcpy(
-                dataBytesShared.get() + dataBytesOffset,
-                stepObligationFlow.data(),
-                stepObligationFlow.size()
-        );
-        dataBytesOffset += stepObligationFlow.size();
-        stepObligationFlow.clear();
     }
 
     return make_pair(
@@ -89,9 +81,7 @@ void CyclesThreeNodesBalancesResponseMessage::deserializeFromBytes(BytesShared b
     );
     bytesBufferOffset += sizeof(uint16_t);
 //    Parse boundary nodes
-    vector<byte> *stepObligationFlowBytes;
     NodeUUID stepNodeUUID;
-    TrustLineBalance stepBalance;
     for (uint16_t i=1; i<=boundaryNodesCount; i++){
         memcpy(
                 stepNodeUUID.data,
@@ -99,17 +89,13 @@ void CyclesThreeNodesBalancesResponseMessage::deserializeFromBytes(BytesShared b
                 NodeUUID::kBytesSize
         );
         bytesBufferOffset += NodeUUID::kBytesSize;
-        stepObligationFlowBytes = new vector<byte>(
-                buffer.get() + bytesBufferOffset,
-                buffer.get() + bytesBufferOffset + kTrustLineBalanceSerializeBytesCount);
-        stepBalance = bytesToTrustLineBalance(*stepObligationFlowBytes);
-        mNeighborsUUUIDAndBalance.push_back(make_pair(stepNodeUUID, stepBalance));
+        mNeighborsUUUID.push_back(stepNodeUUID);
         bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
     };
 }
 
-vector<pair<NodeUUID, TrustLineBalance>> CyclesThreeNodesBalancesResponseMessage::NeighborsAndBalances() {
-    return mNeighborsUUUIDAndBalance;
+vector<NodeUUID> CyclesThreeNodesBalancesResponseMessage::NeighborsAndBalances() {
+    return mNeighborsUUUID;
 }
 
 const bool CyclesThreeNodesBalancesResponseMessage::isTransactionMessage() const {
@@ -117,7 +103,7 @@ const bool CyclesThreeNodesBalancesResponseMessage::isTransactionMessage() const
 }
 
 void CyclesThreeNodesBalancesResponseMessage::addNeighborUUIDAndBalance(
-    pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance) {
-    mNeighborsUUUIDAndBalance.push_back(neighborUUIDAndBalance);
+    NodeUUID neighborUUID) {
+    mNeighborsUUUID.push_back(neighborUUID);
 }
 

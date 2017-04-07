@@ -22,7 +22,7 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run() {
     uint8_t currentDepth = path.size();
     TrustLineBalance zeroBalance = 0;
     TrustLineBalance maxFlow = mTrustLinesManager->balance(path.back());
-    vector<pair<NodeUUID, TrustLineBalance>> firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
+    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
 
     bool debtorsDirection = true;
     if (maxFlow < zeroBalance){
@@ -30,10 +30,10 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run() {
     }
     if ((debtorsDirection and currentDepth==1)) {
         mInBetweenNodeTopologyMessage->addNodeToPath(mNodeUUID);
-        for(const auto &value: firstLevelNodes)
+        for(const auto &kNodeUUID: firstLevelNodes)
             sendMessage(
-                value.first,
-                mInBetweenNodeTopologyMessage
+                    kNodeUUID,
+                    mInBetweenNodeTopologyMessage
             );
         return resultExit();
     }

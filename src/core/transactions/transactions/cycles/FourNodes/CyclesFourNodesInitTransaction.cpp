@@ -87,32 +87,18 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
     }
 
     const bool kFirstContractorIsCreditor = firstContractorBalance < zeroBalance;
-    if (kFirstContractorIsCreditor)
-        firstContractorBalance = firstContractorBalance * (-1);
-    else
-        secondContractorBalance = secondContractorBalance * (-1);
 
-    TrustLineBalance maxFlow = min(firstContractorBalance, secondContractorBalance);
     TrustLineBalance stepMaxFlow;
-    vector<pair<vector<NodeUUID>, TrustLineBalance>> ResultCycles;
 
-    for (auto &nodeAndBalanceFirst: firstMessage->NeighborsBalances()){
-        if (kFirstContractorIsCreditor)
-            nodeAndBalanceFirst.second = nodeAndBalanceFirst.second * (-1);
-        for (auto &nodeAndBalanceSecond: secondMessage->NeighborsBalances()){
-            if (nodeAndBalanceSecond.first == nodeAndBalanceFirst.first){
-                if (not kFirstContractorIsCreditor)
-                    nodeAndBalanceSecond.second = nodeAndBalanceSecond.second * (-1);
-                stepMaxFlow = min(maxFlow, min(nodeAndBalanceSecond.second, nodeAndBalanceFirst.second));
+    for (auto &kNodeUUIDSecondMessage: firstMessage->NeighborsUUID()){
+        for (auto &nodeAndBalanceSecond: secondMessage->NeighborsUUID()){
+            if (nodeAndBalanceSecond == kNodeUUIDSecondMessage){
                 vector<NodeUUID> stepPath = {
                     mNodeUUID,
                     mDebtorContractorUUID,
-                    nodeAndBalanceSecond.first,
+                    nodeAndBalanceSecond,
                     mCreditorContractorUUID};
-                ResultCycles.push_back(make_pair(
-                   stepPath,
-                   stepMaxFlow
-                ));
+                // Run transaction to close cycle
             }
         }
     }

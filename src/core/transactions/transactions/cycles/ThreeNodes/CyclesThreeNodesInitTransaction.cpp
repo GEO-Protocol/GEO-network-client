@@ -90,8 +90,12 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
         vector<NodeUUID> cycle = {
             mNodeUUID,
             mContractorUUID,
-            nodeUUIDAndBalance.first};
+            nodeUUIDAndBalance};
+        stringstream ss;
+        copy(cycle.begin(), cycle.end(), ostream_iterator<NodeUUID>(ss, " "));
+        info() << "CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage " << ss.str() << endl;
     }
+
     //            todo run transaction to close cycle
     return finishTransaction();
 }

@@ -152,8 +152,8 @@ public:
     // todo: return const shared
     map<NodeUUID, TrustLine::Shared>& trustLines();
 
-    vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(
-        TrustLineBalance maxFlow);
+    vector<NodeUUID> getFirstLevelNodesForCycles(
+            TrustLineBalance maxFlow);
 
     void setSomeBalances();
 

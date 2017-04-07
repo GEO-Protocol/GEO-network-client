@@ -16,12 +16,12 @@ public:
     CyclesFourNodesBalancesResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        uint16_t neighborsUUUIDAndBalancesCount);
+        uint16_t neighborsUUUIDCount);
 
     CyclesFourNodesBalancesResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        vector<pair<NodeUUID, TrustLineBalance>> &neighborsBalances
+        vector<NodeUUID> &neighborsUUID
     );
 
     CyclesFourNodesBalancesResponseMessage(
@@ -30,13 +30,13 @@ public:
 public:
     pair<BytesShared, size_t> serializeToBytes();
 
-    void AddNeighborUUIDAndBalance(pair<NodeUUID, TrustLineBalance> neighborUUIDAndBalance);
+    void AddNeighborUUID(NodeUUID neighborUUID);
 
     const MessageType typeID() const;
 
     const bool isTransactionMessage() const;
 
-    vector<pair<NodeUUID, TrustLineBalance>> NeighborsBalances();
+    vector<NodeUUID> NeighborsUUID();
 
 protected:
 
@@ -44,6 +44,6 @@ protected:
             BytesShared buffer);
 
 protected:
-    vector<pair<NodeUUID, TrustLineBalance>> mNeighborsBalances;
+    vector<NodeUUID> mNeighborsUUID;
 };
 #endif //GEO_NETWORK_CLIENT_FOURNODESBALANCESRESPONSEMESSAGE_H

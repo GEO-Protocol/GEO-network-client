@@ -47,75 +47,67 @@ void AcceptTrustLineTransaction::deserializeFromBytes(
 
 TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
 
-    try {
-        switch (mStep) {
+    switch (mStep) {
 
-            case Stages::CheckJournal: {
-                if (checkJournal()) {
-                    sendResponseCodeToContractor(
-                        400);
+        case Stages::CheckJournal: {
+            if (checkJournal()) {
+                sendResponseCodeToContractor(
+                    400);
 
-                    return transactionResultFromMessage(
-                        mMessage->customCodeResult(
-                            400));
-                }
-
-                mStep = Stages::CheckUnicity;
+                return transactionResultFromMessage(
+                    mMessage->customCodeResult(
+                        400));
             }
 
-            case Stages::CheckUnicity: {
-                if (!isTransactionToContractorUnique()) {
-                    sendResponseCodeToContractor(
-                        AcceptTrustLineMessage::kResultCodeTransactionConflict);
+            mStep = Stages::CheckUnicity;
+        }
 
-                    return transactionResultFromMessage(
-                        mMessage->resultTransactionConflict());
-                }
+        case Stages::CheckUnicity: {
+            if (!isTransactionToContractorUnique()) {
+                sendResponseCodeToContractor(
+                    AcceptTrustLineMessage::kResultCodeTransactionConflict);
 
-                mStep = Stages::CheckIncomingDirection;
+                return transactionResultFromMessage(
+                    mMessage->resultTransactionConflict());
             }
 
-            case Stages::CheckIncomingDirection: {
-                if (isIncomingTrustLineDirectionExisting()) {
+            mStep = Stages::CheckIncomingDirection;
+        }
 
-                    if (isIncomingTrustLineAlreadyAccepted()) {
-                        sendResponseCodeToContractor(
-                            AcceptTrustLineMessage::kResultCodeAccepted);
+        case Stages::CheckIncomingDirection: {
+            if (isIncomingTrustLineDirectionExisting()) {
 
-                        return transactionResultFromMessage(
-                            mMessage->resultAccepted());
-
-                    } else {
-                        sendResponseCodeToContractor(
-                            AcceptTrustLineMessage::kResultCodeConflict);
-
-                        return transactionResultFromMessage(
-                            mMessage->resultConflict());
-                    }
-
-                } else {
-                    acceptTrustLine();
-                    logAcceptingTrustLineOperation();
+                if (isIncomingTrustLineAlreadyAccepted()) {
                     sendResponseCodeToContractor(
                         AcceptTrustLineMessage::kResultCodeAccepted);
 
                     return transactionResultFromMessage(
                         mMessage->resultAccepted());
+
+                } else {
+                    sendResponseCodeToContractor(
+                        AcceptTrustLineMessage::kResultCodeConflict);
+
+                    return transactionResultFromMessage(
+                        mMessage->resultConflict());
                 }
-            }
 
-            default: {
-                throw ConflictError("AcceptTrustLineTransaction::run: "
-                                        "Illegal step execution.");
-            }
+            } else {
+                acceptTrustLine();
+                logAcceptingTrustLineOperation();
+                sendResponseCodeToContractor(
+                    AcceptTrustLineMessage::kResultCodeAccepted);
 
+                return transactionResultFromMessage(
+                    mMessage->resultAccepted());
+            }
         }
 
-    } catch (exception &e) {
-        throw RuntimeError("AcceptTrustLineTransaction::run: "
-                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
-                               "Crashed at step -> " + to_string(mStep) + ". "
-                               "Message -> " + string(e.what()));
+        default: {
+            throw ConflictError("AcceptTrustLineTransaction::run: "
+                                    "Illegal step execution.");
+        }
+
     }
 }
 
