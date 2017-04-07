@@ -30,7 +30,7 @@ protected:
     virtual void deserializeFromBytes(
         BytesShared buffer);
 
-    static const size_t kOffsetToDataBytes();
+    const size_t kOffsetToDataBytes();
 
 protected:
     const uint16_t kResponsesCount = 1;

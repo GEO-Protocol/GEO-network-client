@@ -490,7 +490,7 @@ unordered_map<NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapDe
     return result;
 }
 
-vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
+set<NodeUUID> RoutingTableHandler::allDestinationsForSource(
     const NodeUUID &sourceUUID) {
 
     string countQuery = "SELECT count(*) FROM " + mTableName + " WHERE source = ?";
@@ -507,8 +507,8 @@ vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
     sqlite3_step(stmt);
     uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
     info() << "routeRecordsWithDirections\t count records: " << rowCount;
-    vector<NodeUUID> result;
-    result.reserve(rowCount);
+    set<NodeUUID> result;
+//    result.reserve(rowCount);
 
     string query = "SELECT destination FROM " + mTableName + " WHERE source = ?";
     rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
@@ -523,7 +523,7 @@ vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID destination((uint8_t *)sqlite3_column_blob(stmt, 1));
-        result.push_back(destination);
+        result.insert(destination);
     }
     sqlite3_reset(stmt);
     return result;

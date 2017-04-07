@@ -128,6 +128,12 @@ public:
 
     vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
 
+    vector<NodeUUID> firstLevelNeighborsWithPositiveBalance() const;
+
+    vector<NodeUUID> firstLevelNeighborsWithNegativeBalance() const;
+
+    vector<NodeUUID> firstLevelNeighborsWithNoneZeroBalance() const;
+
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
@@ -146,8 +152,8 @@ public:
     // todo: return const shared
     map<NodeUUID, TrustLine::Shared>& trustLines();
 
-    vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(
-        TrustLineBalance maxFlow);
+    vector<NodeUUID> getFirstLevelNodesForCycles(
+            TrustLineBalance maxFlow);
 
     void setSomeBalances();
 

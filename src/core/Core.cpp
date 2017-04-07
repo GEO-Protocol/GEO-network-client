@@ -17,7 +17,7 @@ int Core::run() {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
         return initCode;
     }
-
+    checkSomething();
     try {
         writePIDFile();
 
@@ -229,7 +229,6 @@ int Core::initResourcesManager() {
         mResourcesManager = new ResourcesManager();
         mLog.logSuccess("Core", "Resources manager is successfully initialized");
         return 0;
-
     } catch (const std::exception &e) {
         mLog.logException("Core", e);
         return -1;
@@ -381,6 +380,12 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
+    mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
+            boost::bind(
+                    &Core::onDelayedTaskCycleThreeNodesSlot,
+                    this
+            )
+    );
 }
 
 void Core::connectResourcesManagerSignals() {
@@ -402,7 +407,6 @@ void Core::connectResourcesManagerSignals() {
         )
     );
 }
-
 void Core::connectSignalsToSlots() {
 
     connectCommunicatorSignals();
@@ -415,8 +419,7 @@ void Core::onMessageReceivedSlot(
     Message::Shared message) {
 
 //    try {
-        mTransactionsManager->processMessage(message);
-
+    mTransactionsManager->processMessage(message);
 //    } catch(exception &e) {
 //        mLog.logException("Core", e);
 //    }
@@ -483,7 +486,6 @@ void Core::onDelayedTaskCycleFiveNodesSlot() {
 void Core::onPathsResourceRequestedSlot(
     const TransactionUUID &transactionUUID,
     const NodeUUID &destinationNodeUUID) {
-
     try {
         mTransactionsManager->launchPathsResourcesCollectTransaction(
             transactionUUID,
@@ -577,8 +579,14 @@ void Core::zeroPointers() {
     mMaxFlowCalculationTrustLimeManager = nullptr;
     mMaxFlowCalculationCacheManager = nullptr;
     mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
-    mStorageHandler = nullptr;
-    mPathsManager = nullptr;
+}
+
+void Core::onDelayedTaskCycleFourNodesSlot() {
+}
+
+void Core::onDelayedTaskCycleThreeNodesSlot() {
+//    test_ThreeNodesTransaction();
+
 }
 
 void Core::writePIDFile()
@@ -592,4 +600,29 @@ void Core::writePIDFile()
         auto errors = mLog.error("Core");
         errors << "Can't write/update pid file. Error message is: " << e.what();
     }
+}
+
+void Core::checkSomething() {
+    vector<NodeUUID> test_vector;
+    for (int i=0; i<=5; i++){
+        NodeUUID some_node;
+        test_vector.push_back(some_node);
+    }
+    stringstream ss;
+    copy(test_vector.begin(), test_vector.end(), ostream_iterator<NodeUUID>(ss, ";"));
+//    cout << ss.str() << endl;
+}
+
+void Core::test_ThreeNodesTransaction() {
+    cout << "Nodes With Positive Balance" << endl;
+    auto neighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
+    stringstream ss;
+    copy(neighborsUUIDs.begin(), neighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, ";"));
+    cout << "test_ThreeNodesTransaction::Nodes With positive balance" << ss.str() << endl;
+    neighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
+    ss.clear();
+    copy(neighborsUUIDs.begin(), neighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, ";"));
+    cout << "test_ThreeNodesTransaction::Nodes With positive balance" << ss.str() << endl;
+    for(const auto &kNodeUUID: neighborsUUIDs)
+        mTransactionsManager->launchThreeNodesCyclesInitTransaction(kNodeUUID);
 }

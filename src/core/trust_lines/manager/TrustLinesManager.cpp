@@ -69,6 +69,9 @@ void TrustLinesManager::open(
         TrustLine::Shared trustLine = it->second;
         if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setOutgoingTrustAmount(amount);
+            // todo delete this
+            trustLine->setBalance(50);
+            // todo delete this
             trustLine->activateOutgoingDirection();
             saveToDisk(trustLine);
         } else {
@@ -85,6 +88,9 @@ void TrustLinesManager::open(
                 0,
                 amount,
                 0);
+            // todo delete this
+            trustLine->setBalance(50);
+            // todo delete this
             trustLine->activateOutgoingDirection();
 
         } catch (std::bad_alloc &e) {
@@ -111,20 +117,9 @@ void TrustLinesManager::close(
             if (trustLine->balance() <= TrustLine::kZeroBalance()) {
                 if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-//                    mlogger->logTustlineState(
-//                            contractorUUID,
-//                            "Both",
-//                            "Close"
-//                    );
-
                 } else {
                     trustLine->setOutgoingTrustAmount(0);
                     trustLine->suspendOutgoingDirection();
-//                    mlogger->logTustlineState(
-//                            contractorUUID,
-//                            "Outgoing",
-//                            "Suspend"
-//                    );
                     saveToDisk(trustLine);
                 }
 
@@ -158,6 +153,9 @@ void TrustLinesManager::accept(
         TrustLine::Shared trustLine = it->second;
         if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setIncomingTrustAmount(amount);
+            // todo delete this
+            trustLine->setBalance(-50);
+            // todo delete this
             trustLine->activateIncomingDirection();
             saveToDisk(trustLine);
         } else {
@@ -174,6 +172,9 @@ void TrustLinesManager::accept(
                 0,
                 0);
             trustLine->activateIncomingDirection();
+            // todo delete this
+            trustLine->setBalance(-50);
+            // todo delete this
 
         } catch (std::bad_alloc &e) {
             throw MemoryError("TrustLinesManager::accept: "
@@ -198,19 +199,9 @@ void TrustLinesManager::reject(
             if (trustLine->balance() >= TrustLine::kZeroBalance()) {
                 if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-//                    mlogger->logTustlineState(
-//                            contractorUUID,
-//                            "Both",
-//                            "Close"
-//                    );
                 } else {
                     trustLine->setIncomingTrustAmount(0);
                     trustLine->suspendIncomingDirection();
-//                    mlogger->logTustlineState(
-//                            contractorUUID,
-//                            "Incoming",
-//                            "Suspend"
-//                    );
                     saveToDisk(trustLine);
                 }
 
@@ -693,47 +684,62 @@ const bool TrustLinesManager::isNeighbor(
     return mTrustLines.count(node) == 1;
 }
 
-void TrustLinesManager::setSomeBalances() {
-//     this is debug method. have to be removed
-    NodeUUID contractor1;
-    NodeUUID contractor2;
-    TrustLine *first_trustline = nullptr;
-    TrustLine *second_trustline = nullptr;
-    first_trustline = new TrustLine(
-            contractor1,
-            100,
-            100,
-            50
-    );
-    second_trustline = new TrustLine(
-            contractor2,
-            200,
-            200,
-            111
-    );
-    saveToDisk(TrustLine::Shared(first_trustline));
-    saveToDisk(TrustLine::Shared(second_trustline));
-}
-
-vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxFlow) {
-    vector<pair<NodeUUID, TrustLineBalance>> Nodes;
+vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxFlow) {
+    vector<NodeUUID> Nodes;
     TrustLineBalance zerobalance = 0;
     TrustLineBalance stepbalance;
     for (auto const& x : mTrustLines){
         stepbalance = x.second->balance();
         if (maxFlow == zerobalance) {
             if (stepbalance != zerobalance) {
-                Nodes.push_back(make_pair(x.first, stepbalance));
+                Nodes.push_back(x.first);
                 }
         } else if(maxFlow < zerobalance){
             if (stepbalance < zerobalance) {
-                Nodes.push_back(make_pair(x.first, min(maxFlow, stepbalance)));
+                Nodes.push_back(x.first);
             }
         } else {
             if (stepbalance > zerobalance) {
-                Nodes.push_back(make_pair(x.first, min(maxFlow, stepbalance)));
+                Nodes.push_back(x.first);
             }
         }
+    }
+    return Nodes;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() const {
+    vector<NodeUUID> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (auto const& x : mTrustLines){
+        stepbalance = x.second->balance();
+        if (stepbalance > zerobalance)
+            Nodes.push_back(x.first);
+        }
+    return Nodes;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() const {
+    // todo change vector to set
+    vector<NodeUUID> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (const auto &x : mTrustLines){
+        stepbalance = x.second->balance();
+        if (stepbalance < zerobalance)
+            Nodes.push_back(x.first);
+    }
+    return Nodes;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() const {
+    vector<NodeUUID> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (auto const& x : mTrustLines){
+        stepbalance = x.second->balance();
+        if (stepbalance != zerobalance)
+            Nodes.push_back(x.first);
     }
     return Nodes;
 }

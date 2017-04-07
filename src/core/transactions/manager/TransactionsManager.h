@@ -38,6 +38,10 @@
 #include "../../network/messages/response/Response.h"
 
 #include "../../resources/manager/ResourcesManager.h"
+
+#include "../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
+#include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
+
 #include "../../resources/resources/BaseResource.h"
 
 #include "../transactions/base/BaseTransaction.h"
@@ -55,7 +59,15 @@
 #include "../transactions/unique/routing_tables/accept/FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction.h"
 #include "../transactions/unique/routing_tables/update/RoutingTablesUpdateTransactionsFactory.h"
 #include "../transactions/unique/routing_tables/update/AcceptRoutingTablesUpdatesTransaction.h"
-#include "../transactions/unique/cycles/GetTopologyAndBalancesTransaction.h"
+
+#include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesInitTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesInitTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesReceiverTransaction.h"
+
+#include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
+#include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
+
 
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
@@ -117,6 +129,30 @@ public:
     void launchFromInitiatorToContractorRoutingTablePropagationTransaction(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
+
+    //  Cycles Transactions
+// -------------------------------------------------------------------------------
+//    void launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message);
+//
+//    void launchGetTopologyAndBalancesTransactionFiveNodes();
+//    void launchGetTopologyAndBalancesTransactionSixNodes();
+//
+//    void launchGetThreeNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
+//    void launchGetThreeNodesNeighborBalancesTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message);
+//
+//    void launchGetFourNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
+//    void launchGetFourNodesNeighborBalancesTransaction(CyclesFourNodesBalancesRequestMessage::Shared message);
+
+    void launchThreeNodesCyclesInitTransaction(const NodeUUID &contractorUUID);
+    void launchThreeNodesCyclesResponseTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message);
+
+    void launchSixNodesCyclesInitTransaction();
+    void launchSixNodesCyclesResponseTransaction(CyclesSixNodesInBetweenMessage::Shared message);
+
+    void launchFiveNodesCyclesInitTransaction();
+    void launchFiveNodesCyclesResponseTransaction(CyclesFiveNodesInBetweenMessage::Shared message);
+
+//    ----------------------------------------------------------
 
     void launchRoutingTablesUpdatingTransactionsFactory(
         const NodeUUID &contractorUUID,
@@ -190,12 +226,6 @@ private:
 
     void launchIntermediateNodePaymentTransaction(
         IntermediateNodeReservationRequestMessage::Shared message);
-
-    // Topology transactions
-    void launchGetTopologyAndBalancesTransaction();
-
-    void launchGetTopologyAndBalancesTransaction(
-        InBetweenNodeTopologyMessage::Shared message);
 
     // Total balances transaction
     void launchTotalBalancesTransaction(

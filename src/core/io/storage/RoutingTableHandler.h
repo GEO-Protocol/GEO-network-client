@@ -10,6 +10,7 @@
 #include "../../../libs/sqlite3/sqlite3.h"
 
 #include <vector>
+#include <set>
 #include <tuple>
 #include <unordered_map>
 #include <map>
@@ -40,7 +41,7 @@ public:
 
     vector<pair<NodeUUID, NodeUUID>> routeRecords();
 
-    vector<NodeUUID> allDestinationsForSource(
+    set<NodeUUID> allDestinationsForSource(
         const NodeUUID &sourceUUID);
 
     unordered_map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKey();

@@ -117,24 +117,54 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         /*
          * Cycles processing messages
          */
-        case Message::InBetweenNodeTopologyMessage: {
+        case Message::Cycles_SixNodesInBetweenMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<InBetweenNodeTopologyMessage>(messagePart)
+                    make_shared<CyclesSixNodesInBetweenMessage>(messagePart)
                 )
             );
         }
-
-        case Message::BoundaryNodeTopologyMessage: {
+        case Message::Cycles_FiveNodesInBetweenMessage: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<BoundaryNodeTopologyMessage>(messagePart)
+                    make_shared<CyclesFiveNodesInBetweenMessage>(messagePart)
                 )
             );
         }
-
+        case Message::Cycles_SixNodesBoundaryMessage: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<CyclesSixNodesBoundaryMessage>(messagePart)
+                )
+            );
+        }
+        case Message::Cycles_FiveNodesBoundaryMessage: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<CyclesFiveNodesBoundaryMessage>(messagePart)
+                )
+            );
+        }
+        case Message::Cycles_ThreeNodesBalancesReceiverMessage: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<CyclesThreeNodesBalancesResponseMessage>(messagePart)
+                )
+            );
+        }
+        case Message::Cycles_ThreeNodesBalancesRequestMessage: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<CyclesThreeNodesBalancesRequestMessage>(messagePart)
+                )
+            );
+        }
         /*
          * Max flow calculation messages
          */

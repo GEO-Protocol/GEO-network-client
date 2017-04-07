@@ -81,6 +81,17 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
                 continue;
             }
         }
+//       Check if this is CycleTransaction
+        if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction and
+            message->typeID() == Message::MessageTypeID::Cycles_SixNodesBoundaryMessage) {
+            transactionAndState.first->pushContext(message);
+            return;
+        }
+        if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction and
+            message->typeID() == Message::MessageTypeID::Cycles_FiveNodesBoundaryMessage) {
+            transactionAndState.first->pushContext(message);
+            return;
+        }
 
         if (message->isRoutingTableResponseMessage()) {
 
@@ -106,7 +117,6 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
             return;
         }
     }
-
     throw NotFoundError(
         "TransactionsScheduler::handleMessage: "
             "invalid/unexpected message/response received");

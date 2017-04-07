@@ -46,6 +46,8 @@ public:
     TransactionResult::Shared resultWaitForMessageTypes(
         vector<Message::MessageTypeID> &&requiredMessagesTypes,
         uint16_t noLongerThanMilliseconds);
+    TransactionResult::Shared resultAwaikAfterMilliseconds(
+        uint32_t responseWaitTime);
 
 public:
     ~BaseTransaction() = default;
@@ -62,7 +64,17 @@ public:
         RoutingTablesUpdatesFactoryTransactionType,
         PropagateRoutingTablesUpdatesTransactionType,
         AcceptRoutingTablesUpdatesTransactionType,
-        GetTopologyAndBalancesTransaction,
+
+//      --------------------------------Cycles------------------------------------------------
+        Cycles_ThreeNodesInitTransaction,
+        Cycles_ThreeNodesReceiverTransaction,
+        Cycles_FourNodesInitTransaction,
+        Cycles_FourNodesReceiverTransaction,
+        Cycles_FiveNodesInitTransaction,
+        Cycles_FiveNodesReceiverTransaction,
+        Cycles_SixNodesInitTransaction,
+        Cycles_SixNodesReceiverTransaction,
+//      --------------------------------Cycles-------------------------------------------------
 
         // Payments
         CoordinatorPaymentTransaction,
@@ -95,7 +107,7 @@ public:
     };
 
 public:
-    const TransactionType transactionType() const;
+    virtual const TransactionType transactionType() const;
 
     const TransactionUUID &UUID() const;
 
@@ -123,7 +135,6 @@ protected:
         const TransactionUUID &transactionUUID,
         Logger *log=nullptr);
 
-    [[deprecated("Use constructor with currentNodeUUID instead.")]]
     BaseTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
@@ -221,15 +232,18 @@ public:
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
 
 protected:
+    uint16_t mkStandardConnectionTimeout = 1500; //miliseconds
+    uint16_t mkExpectationResponsesCount = 0;
+    uint16_t mkWaitingForResponseTime = 3000;
+    uint16_t mStep = 1;
+
+protected:
     TransactionType mType;
     TransactionUUID mTransactionUUID;
     NodeUUID mNodeUUID;
-
-    uint16_t mExpectationResponsesCount = 0;
     deque<Message::Shared> mContext;
     deque<BaseResource::Shared> mResources;
 
-    uint16_t mStep = 1;
 
 protected:
     Logger *mLog;

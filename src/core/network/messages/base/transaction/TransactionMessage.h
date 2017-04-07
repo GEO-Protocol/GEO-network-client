@@ -32,7 +32,7 @@ protected:
         const TransactionUUID &transactionUUID);
 
     TransactionMessage(
-        BytesShared bufer);
+        BytesShared buffer);
 
     virtual const MessageType typeID() const = 0;
 
@@ -41,7 +41,7 @@ protected:
     virtual void deserializeFromBytes(
         BytesShared buffer);
 
-    static const size_t kOffsetToInheritedBytes();
+    const size_t kOffsetToInheritedBytes();
 
 private:
     const bool isTransactionMessage() const;
