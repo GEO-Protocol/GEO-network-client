@@ -49,14 +49,29 @@ TransactionResult::SharedConst FindPathTransaction::run() {
 TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
 
     info() << "context size\t" << mContext.size();
-    if (mContext.size() == 1) {
-        auto responseMessage = *mContext.begin();
+    if (mContext.size() > 0) {
+        if (mContext.size() == previousContextSize) {
+            return buildPaths();
+        }
+        previousContextSize = mContext.size();
+        return waitingForResponseState();
 
+    } else {
+        throw ConflictError("FindPathTransaction::checkTransactionContext: "
+                                    "Unexpected context size.");
+    }
+}
+
+TransactionResult::SharedConst FindPathTransaction::buildPaths() {
+
+    for (auto itResponseMessage = mContext.begin(); itResponseMessage != mContext.end(); ++itResponseMessage) {
+
+        auto responseMessage = *itResponseMessage;
         if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTablesMessageType) {
             ResultRoutingTablesMessage::Shared response = static_pointer_cast<ResultRoutingTablesMessage>(
                 responseMessage);
 
-            vector<NodeUUID> rt1 = response->rt1();
+            /*vector<NodeUUID> rt1 = response->rt1();
             info() << "receive RT1 size: " << rt1.size();
             for (auto &nodeUUID : rt1) {
                 info() << "\t" << nodeUUID;
@@ -74,7 +89,7 @@ TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
                     info() << "\t" << nodeUUID
                            << "\t" << nodeUUIDAndVect.first;
                 }
-            }
+            }*/
 
             mPathsManager->findPaths(
                 mContractorUUID,
@@ -82,24 +97,66 @@ TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
                 response->rt2(),
                 response->rt3());
             // TODO : remove after testing
-            //mPathsManager->findPathsTest();
+            mPathsManager->findPathsTest(
+                mContractorUUID,
+                response->rt1(),
+                response->rt2(),
+                response->rt3());
+            mResourcesManager->putResource(
+                make_shared<PathsResource>(
+                    mRequestedTransactionUUID,
+                    mPathsManager->pathCollection()));
+            return make_shared<const TransactionResult>(
+                TransactionState::exit());
         }
 
-        mResourcesManager->putResource(
-            make_shared<PathsResource>(
-                mRequestedTransactionUUID,
-                mPathsManager->pathCollection()));
-        return make_shared<const TransactionResult>(
-            TransactionState::exit());
+        if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTable1LevelMessageType) {
+            ResultRoutingTable1LevelMessage::Shared response = static_pointer_cast<ResultRoutingTable1LevelMessage>(
+                responseMessage);
 
-    } else {
-        throw ConflictError("FindPathTransaction::checkTransactionContext: "
-                                    "Unexpected context size.");
+            mRT1 = response->rt1();
+            info() << "receive RT1, size: " << mRT1.size();
+            isReceiveContractorRT1 = true;
+        }
+
+        if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTable2LevelMessageType) {
+            ResultRoutingTable2LevelMessage::Shared response = static_pointer_cast<ResultRoutingTable2LevelMessage>(
+                responseMessage);
+
+            mRT2.insert(response->rt2().begin(), response->rt2().end());
+            info() << "receive RT2, size: " << mRT2.size();
+            isReceiveContractorRT1 = true;
+        }
+
+        if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTable3LevelMessageType) {
+            ResultRoutingTable3LevelMessage::Shared response = static_pointer_cast<ResultRoutingTable3LevelMessage>(
+                responseMessage);
+
+            mRT3.insert(response->rt3().begin(), response->rt3().end());
+            info() << "receive RT3, size: " << mRT3.size();
+            isReceiveContractorRT1 = true;
+        }
     }
+    mPathsManager->findPaths(
+        mContractorUUID,
+        mRT1,
+        mRT2,
+        mRT3);
+    mResourcesManager->putResource(
+        make_shared<PathsResource>(
+            mRequestedTransactionUUID,
+            mPathsManager->pathCollection()));
+    return make_shared<const TransactionResult>(
+        TransactionState::exit());
 }
 
 void FindPathTransaction::sendMessageToRemoteNode() {
 
+    isReceiveContractorRT1 = false;
+    previousContextSize = 0;
+    mRT1.clear();
+    mRT2.clear();
+    mRT3.clear();
     info() << "sendMessageToRemoteNode\t" << mContractorUUID;
     sendMessage<RequestRoutingTablesMessage>(
         mContractorUUID,
@@ -112,7 +169,10 @@ TransactionResult::SharedConst FindPathTransaction::waitingForResponseState() {
     info() << "waitingForResponseState";
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
-            {Message::MessageTypeID::ResultRoutingTablesMessageType},
+            {Message::MessageTypeID::ResultRoutingTablesMessageType,
+             Message::MessageTypeID::ResultRoutingTable1LevelMessageType,
+             Message::MessageTypeID::ResultRoutingTable2LevelMessageType,
+             Message::MessageTypeID::ResultRoutingTable3LevelMessageType},
             kConnectionTimeout));
 }
 

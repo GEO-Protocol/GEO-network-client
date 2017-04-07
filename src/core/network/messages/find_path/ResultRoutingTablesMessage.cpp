@@ -46,6 +46,7 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
     cout << "ResultRoutingTablesMessage::serializeToBytes rt1 size: " << mRT1.size() << endl;
     cout << "ResultRoutingTablesMessage::serializeToBytes rt2 size: " << mRT2.size() << endl;
     cout << "ResultRoutingTablesMessage::serializeToBytes rt3 size: " << mRT3.size() << endl;
+    DateTime startTime = utc_now();
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +
             sizeof(RecordCount) + mRT1.size() * NodeUUID::kBytesSize +
@@ -135,6 +136,8 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
     }
     //----------------------------------------------------
     cout << "ResultRoutingTablesMessage::serializeToBytes message size: " << bytesCount << endl;
+    Duration methodTime = utc_now() - startTime;
+    cout << "ResultRoutingTablesMessage::serializing time: " << methodTime << endl;
     return make_pair(
         dataBytesShared,
         bytesCount);
@@ -143,6 +146,8 @@ pair<BytesShared, size_t> ResultRoutingTablesMessage::serializeToBytes() {
 void ResultRoutingTablesMessage::deserializeFromBytes(
         BytesShared buffer){
 
+    cout << "ResultRoutingTablesMessage::deserializeFromBytes start deserializing" << endl;
+    DateTime startTime = utc_now();
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
@@ -152,7 +157,7 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
     mRT1.clear();
     mRT1.reserve(*rt1Count);
     for (RecordNumber idx = 0; idx < *rt1Count; idx++) {
-        vector<uint8_t> nodeUUIDBufferByte(
+        vector<byte> nodeUUIDBufferByte(
             buffer.get() + bytesBufferOffset,
             buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
         NodeUUID nodeUUID(nodeUUIDBufferByte.data());
@@ -167,7 +172,7 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
     mRT2.clear();
     mRT2.reserve(*rt2Count);
     for (RecordNumber idx = 0; idx < *rt2Count; idx++) {
-        vector<uint8_t> keyDestinationBufferBytes(
+        vector<byte> keyDestinationBufferBytes(
             buffer.get() + bytesBufferOffset,
             buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
         NodeUUID keyDesitnation(keyDestinationBufferBytes.data());
@@ -179,7 +184,7 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         vector<NodeUUID> valueSources;
         valueSources.reserve(*rt2VectCount);
         for (RecordNumber jdx = 0; jdx < *rt2VectCount; jdx++) {
-            vector<uint8_t> sourceBufferBytes(
+            vector<byte> sourceBufferBytes(
                 buffer.get() + bytesBufferOffset,
                 buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
             NodeUUID source(sourceBufferBytes.data());
@@ -196,7 +201,7 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
     mRT3.clear();
     mRT3.reserve(*rt3Count);
     for (RecordNumber idx = 0; idx < *rt3Count; idx++) {
-        vector<uint8_t> keyDesitnationBufferBytes(
+        vector<byte> keyDesitnationBufferBytes(
             buffer.get() + bytesBufferOffset,
             buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
         NodeUUID keyDesitnation(keyDesitnationBufferBytes.data());
@@ -208,7 +213,7 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         vector<NodeUUID> valueSources;
         valueSources.reserve(*rt3VectCount);
         for (RecordNumber jdx = 0; jdx < *rt3VectCount; jdx++) {
-            vector<uint8_t> sourceBufferBytes(
+            vector<byte> sourceBufferBytes(
                 buffer.get() + bytesBufferOffset,
                 buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
             NodeUUID source(sourceBufferBytes.data());
@@ -219,6 +224,9 @@ void ResultRoutingTablesMessage::deserializeFromBytes(
         mRT3.insert(make_pair(keyDesitnation, valueSources));
     }
     //-----------------------------------------------------
+    cout << "ResultRoutingTablesMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
+    Duration methodTime = utc_now() - startTime;
+    cout << "ResultRoutingTablesMessage::deserializeFromBytes time: " << methodTime << endl;
 }
 
 size_t ResultRoutingTablesMessage::rt2ByteSize() {

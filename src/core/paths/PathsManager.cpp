@@ -28,7 +28,7 @@ void PathsManager::findDirectPath() {
                 mNodeUUID,
                 mContractorUUID);
             mPathCollection->add(path);
-            info() << "found direct path";
+            //info() << "found direct path";
             return;
         }
     }
@@ -44,7 +44,7 @@ void PathsManager::findPathsOnSecondLevel() {
             mContractorUUID,
             intermediateNodes);
         mPathCollection->add(path);
-        info() << "found path on second level";
+        //info() << "found path on second level";
     }
 }
 
@@ -61,7 +61,7 @@ void PathsManager::findPathsOnThirdLevel() {
             mContractorUUID,
             intermediateNodes);
         mPathCollection->add(path);
-        info() << "found path on third level";
+        //info() << "found path on third level";
     }
 }
 
@@ -80,13 +80,13 @@ void PathsManager::findPathsOnForthLevel(
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
             intermediateNodes.push_back(nodeUUID);
-            info() << "forth level: " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second << " " << nodeUUID;
+            //info() << "forth level: " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second << " " << nodeUUID;
             Path path(
                 mNodeUUID,
                 mContractorUUID,
                 intermediateNodes);
             mPathCollection->add(path);
-            info() << "found path on forth level";
+            //info() << "found path on forth level";
         }
     }
 }
@@ -107,7 +107,7 @@ void PathsManager::findPathsOnFifthLevel(
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
             intermediateNodes.push_back(itRT2.first);
-            info() << "fifth path: " << itRT2.first << " " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second;
+            //info() << "fifth path: " << itRT2.first << " " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second;
             for (auto const &nodeUUID : itRT2.second) {
                 if(std::find(intermediateNodes.begin(), intermediateNodes.end(), nodeUUID) != intermediateNodes.end() ||
                         nodeUUID == mNodeUUID || nodeUUID == mContractorUUID) {
@@ -120,7 +120,7 @@ void PathsManager::findPathsOnFifthLevel(
                     intermediateNodes);
                 mPathCollection->add(path);
                 intermediateNodes.pop_back();
-                info() << "found path on fifth level";
+                //info() << "found path on fifth level";
             }
         }
     }
@@ -159,7 +159,7 @@ void PathsManager::findPathsOnSixthLevel(
                     mPathCollection->add(path);
                     intermediateNodes.pop_back();
                     intermediateNodes.pop_back();
-                    info() << "found path on sixth level";
+                    //info() << "found path on sixth level";
                 }
             }
         }
@@ -202,7 +202,7 @@ void PathsManager::findPathsOnSecondLevelTest() {
             {nodeUUID});
         if (isPathValid(path)) {
             mPathCollection->add(path);
-            info() << "found path on second level";
+            //info() << "found path on second level";
         }
     }
 }
@@ -222,7 +222,7 @@ void PathsManager::findPathsOnThirdLevelTest() {
                 nodeUUIDAndNodeUUID.second});
         if (isPathValid(path)) {
             mPathCollection->add(path);
-            info() << "found path on third level";
+            //info() << "found path on third level";
         }
     }
 }
@@ -245,7 +245,7 @@ void PathsManager::findPathsOnForthLevelTest(
                     nodeUUID});
             if (isPathValid(path)) {
                 mPathCollection->add(path);
-                info() << "found path on forth level";
+                //info() << "found path on forth level";
             }
         }
     }
@@ -261,7 +261,7 @@ void PathsManager::findPathsOnFifthLevelTest(
         }
         for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
                 itRT2.first)) {
-            info() << "fifth path: " << itRT2.first << " " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second;
+            //info() << "fifth path: " << itRT2.first << " " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second;
             for (auto const &nodeUUID : itRT2.second) {
                 vector<NodeUUID> intermediateNodes;
                 intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
@@ -274,7 +274,7 @@ void PathsManager::findPathsOnFifthLevelTest(
                     intermediateNodes);
                 if (isPathValid(path)) {
                     mPathCollection->add(path);
-                    info() << "found path on fifth level";
+                    //info() << "found path on fifth level";
                 }
             }
         }
@@ -293,12 +293,12 @@ void PathsManager::findPathsOnSixthLevelTest(
         for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
                 itRT3.first)) {
 
-            info() << "sixth path: " << itRT3.first << " " << nodeUUIDAndNodeUUID.second << " " << nodeUUIDAndNodeUUID.first;
+            //info() << "sixth path: " << itRT3.first << " " << nodeUUIDAndNodeUUID.second << " " << nodeUUIDAndNodeUUID.first;
             for (auto const &nodeUUID : itRT3.second) {
                 for (auto &contactorIntermediateNode : intermediateNodesOnContractorFirstLevelTest(
                         nodeUUID,
                         contractorRT2)) {
-                    info() << "sixth path: " << nodeUUID << " " << contactorIntermediateNode;
+                    //info() << "sixth path: " << nodeUUID << " " << contactorIntermediateNode;
                     vector<NodeUUID> intermediateNodes;
                     intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
                     intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
@@ -311,7 +311,7 @@ void PathsManager::findPathsOnSixthLevelTest(
                         intermediateNodes);
                     if (isPathValid(path)) {
                         mPathCollection->add(path);
-                        info() << "found path on sixth level";
+                        //info() << "found path on sixth level";
                     }
                 }
             }
@@ -357,7 +357,7 @@ void PathsManager::findPaths(
     mContractorUUID = contractorUUID;
 
     info() << "start finding paths to " << contractorUUID;
-    DateTime startTime;
+    DateTime startTime = utc_now();
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
         mContractorUUID);
@@ -375,9 +375,9 @@ void PathsManager::findPaths(
     Duration methodTime = utc_now() - startTime;
     info() << "PathsManager::findPath\tmethod time: " << methodTime;
     info() << "total paths count: " << mPathCollection->count();
-    while (mPathCollection->hasNextPath()) {
+    /*while (mPathCollection->hasNextPath()) {
         info() << mPathCollection->nextPath()->toString();
-    }
+    }*/
 }
 
 void PathsManager::findPathsOnSelfArea(
@@ -385,7 +385,7 @@ void PathsManager::findPathsOnSelfArea(
 
     mContractorUUID = contractorUUID;
     info() << "start finding paths on self area to " << contractorUUID;
-    DateTime startTime;
+    DateTime startTime = utc_now();
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
         mContractorUUID);
@@ -394,11 +394,11 @@ void PathsManager::findPathsOnSelfArea(
     findPathsOnThirdLevel();
 
     Duration methodTime = utc_now() - startTime;
-    info() << "PathsManager::findPath\tmethod time: " << methodTime;
-    info() << "total paths count: " << mPathCollection->count();
-    while (mPathCollection->hasNextPath()) {
+    info() << "PathsManager::findPathsOnSelfArea\tmethod time: " << methodTime;
+    info() << "total paths on self area count: " << mPathCollection->count();
+    /*while (mPathCollection->hasNextPath()) {
         info() << mPathCollection->nextPath()->toString();
-    }
+    }*/
 }
 
 void PathsManager::findPathsTest(
@@ -410,6 +410,7 @@ void PathsManager::findPathsTest(
     mContractorUUID = contractorUUID;
 
     info() << "start finding test paths to " << mContractorUUID;
+    DateTime startTime = utc_now();
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
         mContractorUUID);
@@ -424,10 +425,12 @@ void PathsManager::findPathsTest(
         contractorRT3,
         contractorRT2);
 
-    info() << "total paths count: " << mPathCollection->count();
-    while (mPathCollection->hasNextPath()) {
+    Duration methodTime = utc_now() - startTime;
+    info() << "PathsManager::findPathTest\tmethod time: " << methodTime;
+    info() << "total paths test count: " << mPathCollection->count();
+    /*while (mPathCollection->hasNextPath()) {
         info() << mPathCollection->nextPath()->toString();
-    }
+    }*/
 }
 
 PathsCollection::Shared PathsManager::pathCollection() const {

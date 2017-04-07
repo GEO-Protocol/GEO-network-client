@@ -256,13 +256,22 @@ void TransactionsManager::processMessage(
         mScheduler->tryAttachMessageToTransaction(message);
 
     /*
-    * Total balances
+    * Paths
     */
     } else if (message->typeID() == Message::MessageTypeID::RequestRoutingTablesMessageType) {
         launchGetRoutingTablesTransaction(
             static_pointer_cast<RequestRoutingTablesMessage>(message));
 
     } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTablesMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable1LevelMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable2LevelMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable3LevelMessageType) {
         mScheduler->tryAttachMessageToTransaction(message);
 
     /*

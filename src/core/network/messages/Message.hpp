@@ -65,6 +65,9 @@ public:
 
         RequestRoutingTablesMessageType,
         ResultRoutingTablesMessageType,
+        ResultRoutingTable1LevelMessageType,
+        ResultRoutingTable2LevelMessageType,
+        ResultRoutingTable3LevelMessageType,
 
         ResponseMessageType = 1000,
         RoutingTablesResponseMessageType

@@ -214,6 +214,27 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                     make_shared<ResultRoutingTablesMessage>(messagePart)));
         }
 
+        case Message::ResultRoutingTable1LevelMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ResultRoutingTable1LevelMessage>(messagePart)));
+        }
+
+        case Message::ResultRoutingTable2LevelMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ResultRoutingTable2LevelMessage>(messagePart)));
+        }
+
+        case Message::ResultRoutingTable3LevelMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ResultRoutingTable3LevelMessage>(messagePart)));
+        }
+
         default: {
             return tryDeserializeResponse(
                 messageIdentifier,

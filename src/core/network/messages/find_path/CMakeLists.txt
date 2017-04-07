@@ -4,7 +4,13 @@ set(SOURCE_FILES
         RequestRoutingTablesMessage.h
         RequestRoutingTablesMessage.cpp
         ResultRoutingTablesMessage.h
-        ResultRoutingTablesMessage.cpp)
+        ResultRoutingTablesMessage.cpp
+        ResultRoutingTable1LevelMessage.h
+        ResultRoutingTable1LevelMessage.cpp
+        ResultRoutingTable2LevelMessage.h
+        ResultRoutingTable2LevelMessage.cpp
+        ResultRoutingTable3LevelMessage.h
+        ResultRoutingTable3LevelMessage.cpp)
 
 add_library(messages__find_path ${SOURCE_FILES})
 

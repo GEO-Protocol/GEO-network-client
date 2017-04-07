@@ -28,10 +28,6 @@ public:
         Logger *logger);
 
 public:
-    // TODO: discuss and maby remove
-    signals::signal<void()> mMaxFlowCalculationCacheUpdateSignal;
-
-public:
 
     void runSignalMaxFlowCalculationCacheUpdate(
         const boost::system::error_code &error);
@@ -51,7 +47,6 @@ private:
 private:
     as::io_service &mIOService;
     unique_ptr<as::steady_timer> mMaxFlowCalculationCacheUpdateTimer;
-    //unique_ptr<as::deadline_timer> mMaxFlowCalculationCacheUpdateTimer;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheMnager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     Logger *mLog;

@@ -1,5 +1,6 @@
-#ifndef GEO_NETWORK_CLIENT_RESULTROUTINGTABLESMESSAGE_H
-#define GEO_NETWORK_CLIENT_RESULTROUTINGTABLESMESSAGE_H
+#ifndef GEO_NETWORK_CLIENT_RESULTROUTINGTABLE3LEVELMESSAGE_H
+#define GEO_NETWORK_CLIENT_RESULTROUTINGTABLE3LEVELMESSAGE_H
+
 
 #include "../base/transaction/TransactionMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
@@ -9,28 +10,22 @@
 #include <vector>
 #include <unordered_map>
 
-class ResultRoutingTablesMessage : public TransactionMessage {
+class ResultRoutingTable3LevelMessage : public TransactionMessage {
 
 public:
-    typedef shared_ptr<ResultRoutingTablesMessage> Shared;
+    typedef shared_ptr<ResultRoutingTable3LevelMessage> Shared;
 
 public:
 
-    ResultRoutingTablesMessage(
+    ResultRoutingTable3LevelMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID &transactionUUID,
-        vector<NodeUUID> &rt1,
-        unordered_map<NodeUUID, vector<NodeUUID>> &rt2,
         unordered_map<NodeUUID, vector<NodeUUID>> &rt3);
 
-    ResultRoutingTablesMessage(
+    ResultRoutingTable3LevelMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
-
-    vector<NodeUUID>& rt1();
-
-    unordered_map<NodeUUID, vector<NodeUUID>>& rt2();
 
     unordered_map<NodeUUID, vector<NodeUUID>>& rt3();
 
@@ -43,20 +38,16 @@ private:
 
 private:
 
-    size_t rt2ByteSize();
-
     size_t rt3ByteSize();
 
     void deserializeFromBytes(
-            BytesShared buffer);
+        BytesShared buffer);
 
 private:
 
-    vector<NodeUUID> mRT1;
-    unordered_map<NodeUUID, vector<NodeUUID>> mRT2;
     unordered_map<NodeUUID, vector<NodeUUID>> mRT3;
 
 };
 
 
-#endif //GEO_NETWORK_CLIENT_RESULTROUTINGTABLESMESSAGE_H
+#endif //GEO_NETWORK_CLIENT_RESULTROUTINGTABLE3LEVELMESSAGE_H
