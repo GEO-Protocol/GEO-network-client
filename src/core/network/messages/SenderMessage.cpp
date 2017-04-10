@@ -46,16 +46,10 @@ pair<BytesShared, size_t> SenderMessage::serializeToBytes() {
 void SenderMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    size_t bytesBufferOffset = 0;
-
-    Message::deserializeFromBytes(buffer);
-    bytesBufferOffset += Message::kOffsetToInheritedBytes();
-    //-----------------------------------------------------
     memcpy(
         mSenderUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
+        buffer.get() + Message::kOffsetToInheritedBytes(),
+        NodeUUID::kBytesSize);
 }
 
 const size_t SenderMessage::kOffsetToInheritedBytes() {

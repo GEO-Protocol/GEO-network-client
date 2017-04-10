@@ -73,6 +73,8 @@ private:
 
     void connectCommunicatorSignals();
 
+    void connectCommandsInterfaceSignals();
+
     void connectTrustLinesManagerSignals();
 
     void connectDelayedTasksSignals();
@@ -80,6 +82,9 @@ private:
     void connectResourcesManagerSignals();
 
     void connectSignalsToSlots();
+
+    void onCommandReceivedSlot(
+        BaseUserCommand::Shared command);
 
     void onMessageReceivedSlot(
         Message::Shared message);

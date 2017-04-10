@@ -68,14 +68,8 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
     Message::Shared message) {
 
     // TODO: check the message type before the loop
+    // TODO: Refactor me
     for (auto const &transactionAndState : *mTransactions) {
-
-        if (message->isTransactionMessage()) {
-            if (static_pointer_cast<TransactionMessage>(message)->transactionUUID() != transactionAndState.first->UUID()) {
-                continue;
-            }
-        }
-
         if (message->isRoutingTableMessage()) {
             if (static_pointer_cast<RoutingTablesMessage>(message)->senderUUID() != static_pointer_cast<RoutingTablesTransaction>(transactionAndState.first)->contractorUUID()) {
                 continue;
@@ -160,16 +154,14 @@ void TransactionsScheduler::launchTransaction(
         );
 
     } catch (exception &e) {
-        mLog->logException(
-            "TransactionScheduler::launchTransaction:",
-            e
-        );
+        auto errors = mLog->error("TransactionScheduler");
+        errors << "Transaction error occurred. "
+               << "TypeID: " << transaction->transactionType() << "; "
+               << "UUID: " << transaction->UUID() << "; "
+               << "Error message: \"" << e.what() << "\". "
+               << "Transaction dropped.";
+
         forgetTransaction(transaction);
-        // todo: add production log here. (this one is unusable)
-        /*auto errors = mLog->error("TransactionsScheduler");
-        errors << "Transaction interrupted with exception: "
-               << "transaction type: " << transaction->transactionType()
-               << e.what();*/
     }
 }
 

@@ -29,14 +29,6 @@ Path::Path(
 
     Path(source, destination, intermediateNodes) {}
 
-Path::Path(
-    const NodeUUID &source,
-    const NodeUUID &destination):
-
-    Path(
-        source,
-        destination,
-        {}) {}
 
 const NodeUUID& Path::sourceUUID() const {
 

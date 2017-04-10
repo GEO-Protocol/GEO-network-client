@@ -4,11 +4,6 @@
 
 #include "base/BasePaymentTransaction.h"
 
-#include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
-#include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
-#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
-#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
-
 
 class ReceiverPaymentTransaction:
     public BasePaymentTransaction {
@@ -34,23 +29,18 @@ public:
     pair<BytesShared, size_t> serializeToBytes();
 
 protected:
-    enum Stages {
-        CoordinatorRequestApprooving = 1,
-        AmountReservationsProcessing,
-    };
+    TransactionResult::SharedConst runInitialisationStage();
+    TransactionResult::SharedConst runAmountReservationStage();
 
-    TransactionResult::Shared initOperation();
-    TransactionResult::Shared processAmountReservationStage();
-
-private:
+protected:
     void deserializeFromBytes(
         BytesShared buffer);
 
     const string logHeader() const;
 
 protected:
-    ReceiverInitPaymentRequestMessage::ConstShared mMessage;
-    Logger *mLog;
+    const ReceiverInitPaymentRequestMessage::ConstShared mMessage;
+    TrustLineAmount mTotalReserved;
 };
 
 

@@ -185,6 +185,8 @@ void Communicator::sendData(
         address.second
     );
 
+
+
     mSocket->async_send_to(
         as::buffer(
             buffer,

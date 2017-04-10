@@ -40,6 +40,7 @@ public:
 
     const DateTime &timestampAccepted() const;
 
+    [[deprecated]]
     CommandResult::SharedConst unexpectedErrorResult();
 
 protected:
@@ -52,6 +53,9 @@ protected:
         const string &commandBuffer) = 0;
 
     static const size_t kOffsetToInheritedBytes();
+
+    CommandResult::SharedConst makeResult(
+        const uint16_t code) const;
 
 private:
     CommandUUID mCommandUUID;

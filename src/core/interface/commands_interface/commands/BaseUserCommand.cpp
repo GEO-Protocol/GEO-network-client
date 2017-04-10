@@ -85,3 +85,14 @@ CommandResult::SharedConst BaseUserCommand::unexpectedErrorResult() {
         )
     );
 }
+
+/**
+ * Shortcut for creating results in derived commands classes.
+ *
+ * @param code - result code that would be transferred out of the engine.
+ */
+CommandResult::SharedConst BaseUserCommand::makeResult(
+    const uint16_t code) const
+{
+    return make_shared<const CommandResult>(UUID(), code);
+}
