@@ -5,7 +5,9 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../network/messages/find_path/RequestRoutingTablesMessage.h"
-#include "../../../network/messages/find_path/ResultRoutingTablesMessage.h"
+#include "../../../network/messages/find_path/ResultRoutingTable1LevelMessage.h"
+#include "../../../network/messages/find_path/ResultRoutingTable2LevelMessage.h"
+#include "../../../network/messages/find_path/ResultRoutingTable3LevelMessage.h"
 
 class GetRoutingTablesTransaction : public BaseTransaction {
 
@@ -32,6 +34,12 @@ protected:
 private:
     // TODO: remove after testing
     vector<NodeUUID> rt1FromDB();
+
+    void sendRoutingTables();
+
+private:
+
+    const size_t kCountElementsPerMessage = 200;
 
 private:
 

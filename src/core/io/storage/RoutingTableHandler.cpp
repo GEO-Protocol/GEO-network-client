@@ -378,7 +378,6 @@ vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> RoutingTableHandler::route
     }
     sqlite3_step(stmt);
     uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
-    info() << "routeRecordsWithDirections\t count records: " << rowCount;
     vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> result;
     result.reserve(rowCount);
 
@@ -386,7 +385,7 @@ vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> RoutingTableHandler::route
     rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecordsWithDirections: "
-                              "Bad query");
+                          "Bad query");
     }
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         NodeUUID source((uint8_t *)sqlite3_column_blob(stmt, 0));
@@ -415,12 +414,12 @@ vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> RoutingTableHandler::route
             error() << "wrong direction during reading from DB";
 #endif
             throw ValueError("RoutingTableHandler::routeRecordsWithDirections: "
-                                     "Wrong Direction during reading from DB");
+                                 "Wrong Direction during reading from DB");
         }
     }
     sqlite3_reset(stmt);
-    Duration methodTime = utc_now() - startTime;
-    info() << "RoutingTableHandler::routeRecordsWithDirections finished with time: " << methodTime;
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "RoutingTableHandler::routeRecordsWithDirections finished with time: " << methodTime;*/
     return result;
 }
 
@@ -435,14 +434,13 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords() {
     }
     sqlite3_step(stmt);
     uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
-    info() << "routeRecords\t count records: " << rowCount;
     vector<pair<NodeUUID, NodeUUID>> result;
     result.reserve(rowCount);
     string query = "SELECT source, destination FROM " + mTableName;
     rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecords: "
-                              "Bad query");
+                          "Bad query");
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source((uint8_t *)sqlite3_column_blob(stmt, 0));
@@ -453,46 +451,56 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords() {
                 destination));
     }
     sqlite3_reset(stmt);
-    Duration methodTime = utc_now() - startTime;
-    info() << "RoutingTableHandler::routeRecords finished with time: " << methodTime;
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "RoutingTableHandler::routeRecords finished with time: " << methodTime;*/
     return result;
 }
 
-unordered_map<NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapDestinationKey() {
+unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> RoutingTableHandler::routeRecordsMapDestinationKey() {
 
     DateTime startTime = utc_now();
-    unordered_map<NodeUUID, vector<NodeUUID>> result;
-    string query = "SELECT source, destination FROM " + mTableName;
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> result;
+    string query = "SELECT source, destination FROM " + mTableName + " ORDER BY destination";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecordsMapDestinationKey: "
-                              "Bad query");
+                          "Bad query");
+    }
+    NodeUUID currentDestination;
+    vector<NodeUUID> valueSources;
+    if (sqlite3_step(stmt) == SQLITE_ROW ) {
+        NodeUUID source((uint8_t *)sqlite3_column_blob(stmt, 0));
+        NodeUUID destination((uint8_t *)sqlite3_column_blob(stmt, 1));
+        valueSources.push_back(source);
+        currentDestination = destination;
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source((uint8_t *)sqlite3_column_blob(stmt, 0));
         NodeUUID destination((uint8_t *)sqlite3_column_blob(stmt, 1));
-        auto element = result.find(destination);
-        if (element == result.end()) {
-            vector<NodeUUID> newVect;
-            newVect.push_back(source);
+        if (destination != currentDestination) {
             result.insert(
                 make_pair(
-                    destination,
-                    newVect));
-        } else {
-            element->second.push_back(source);
+                    currentDestination,
+                    valueSources));
+            valueSources.clear();
+            currentDestination = destination;
         }
-
+        valueSources.push_back(source);
     }
+    result.insert(
+        make_pair(
+            currentDestination,
+            valueSources));
     sqlite3_reset(stmt);
-    Duration methodTime = utc_now() - startTime;
-    info() << "RoutingTableHandler::routeRecordsMapDestinationKey finished with time: " << methodTime;
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "RoutingTableHandler::routeRecordsMapDestinationKey finished with time: " << methodTime;*/
     return result;
 }
 
 vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
     const NodeUUID &sourceUUID) {
 
+    DateTime startTime = utc_now();
     string countQuery = "SELECT count(*) FROM " + mTableName + " WHERE source = ?";
     int rc = sqlite3_prepare_v2( mDataBase, countQuery.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -506,7 +514,7 @@ vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
     }
     sqlite3_step(stmt);
     uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
-    info() << "routeRecordsWithDirections\t count records: " << rowCount;
+    info() << "allDestinationsForSource\t count records: " << rowCount;
     vector<NodeUUID> result;
     result.reserve(rowCount);
 
@@ -522,10 +530,12 @@ vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
                               "Bad Source binding");
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        NodeUUID destination((uint8_t *)sqlite3_column_blob(stmt, 1));
+        NodeUUID destination((uint8_t *)sqlite3_column_blob(stmt, 0));
         result.push_back(destination);
     }
     sqlite3_reset(stmt);
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "allDestinationsForSource method time: " << methodTime;*/
     return result;
 }
 

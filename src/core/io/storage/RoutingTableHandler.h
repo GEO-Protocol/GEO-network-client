@@ -12,7 +12,7 @@
 #include <vector>
 #include <tuple>
 #include <unordered_map>
-#include <map>
+#include <boost/functional/hash.hpp>
 
 class RoutingTableHandler {
 
@@ -43,7 +43,7 @@ public:
     vector<NodeUUID> allDestinationsForSource(
         const NodeUUID &sourceUUID);
 
-    unordered_map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKey();
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKey();
 
     map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> routeRecordsWithDirectionsMapSourceKey();
 
