@@ -179,6 +179,9 @@ void Communicator::sendData(
     vector<byte> buffer,
     Channel::Shared channel) {
 
+
+    // ToDo: message sending must be async, but now there is a problem with channel removing before the data was sent.
+    // for now - sync sending is used.
     const auto kBytesSent = mSocket->send_to(
         as::buffer(
             buffer,
