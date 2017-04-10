@@ -10,6 +10,8 @@
 #include "../../../../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
 #include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
+#include "../../../../../io/storage/StorageHandler.h"
+
 #include "../../../../../common/exceptions/ConflictError.h"
 
 #include <stdint.h>
@@ -22,10 +24,14 @@ public:
 public:
     FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction(
         const NodeUUID &nodeUUID,
-        FirstLevelRoutingTableIncomingMessage::Shared message);
+        FirstLevelRoutingTableIncomingMessage::Shared message,
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction(
-        BytesShared buffer);
+        BytesShared buffer,
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     FirstLevelRoutingTableIncomingMessage::Shared message() const;
 
@@ -38,8 +44,12 @@ private:
         const NodeUUID &contractorUUID,
         const uint16_t code);
 
+    const string logHeader() const;
+
 private:
     FirstLevelRoutingTableIncomingMessage::Shared mFirstLevelMessage;
+
+    StorageHandler *mStorageHandler;
 
 };
 

@@ -2,10 +2,10 @@
 
 set(SOURCE_FILES
         Path.h
-        Path.cpp)
+        Path.cpp
+        PathsCollection.h
+        PathsCollection.cpp)
 
 add_library(slib_paths ${SOURCE_FILES})
-target_link_libraries(slib_paths
-        memory
-        common
-        exceptions)
+
+target_link_libraries(slib_paths)

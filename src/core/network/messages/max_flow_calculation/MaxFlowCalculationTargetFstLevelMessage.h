@@ -11,8 +11,8 @@ public:
 public:
 
     MaxFlowCalculationTargetFstLevelMessage(
-            const NodeUUID& senderUUID,
-            const NodeUUID& targetUUID);
+        const NodeUUID& senderUUID,
+        const NodeUUID& targetUUID);
 
     MaxFlowCalculationTargetFstLevelMessage(
         BytesShared buffer);

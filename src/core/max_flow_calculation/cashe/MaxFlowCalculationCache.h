@@ -14,20 +14,20 @@ public:
     typedef shared_ptr<MaxFlowCalculationCache> Shared;
 
     MaxFlowCalculationCache(
-        const vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows,
-        const vector<pair<NodeUUID, TrustLineAmount>> incomingFlows);
+        const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
+        const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows);
 
     bool containsIncomingFlow(
         const NodeUUID &nodeUUID,
-        const TrustLineAmount &flow);
+        ConstSharedTrustLineAmount flow);
 
     bool containsOutgoingFlow(
         const NodeUUID &nodeUUID,
-        const TrustLineAmount &flow);
+        ConstSharedTrustLineAmount flow);
 
 private:
-    unordered_map<NodeUUID, TrustLineAmount> mIncomingFlows;
-    unordered_map<NodeUUID, TrustLineAmount> mOutgoingFlows;
+    unordered_map<NodeUUID, ConstSharedTrustLineAmount> mIncomingFlows;
+    unordered_map<NodeUUID, ConstSharedTrustLineAmount> mOutgoingFlows;
 };
 
 

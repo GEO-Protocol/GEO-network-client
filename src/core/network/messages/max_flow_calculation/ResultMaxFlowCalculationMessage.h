@@ -15,9 +15,9 @@ public:
 public:
 
     ResultMaxFlowCalculationMessage(
-            const NodeUUID& senderUUID,
-            vector<pair<NodeUUID, TrustLineAmount>> &outgoingFlows,
-            vector<pair<NodeUUID, TrustLineAmount>> &incomingFlows);
+        const NodeUUID& senderUUID,
+        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
+        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows);
 
     ResultMaxFlowCalculationMessage(
         BytesShared buffer);
@@ -26,9 +26,9 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes();
 
-    const vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows() const;
+    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
 
-    const vector<pair<NodeUUID, TrustLineAmount>> incomingFlows() const;
+    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
     const bool isMaxFlowCalculationResponseMessage() const;
 
@@ -38,9 +38,14 @@ private:
         BytesShared buffer);
 
 private:
-    vector<pair<NodeUUID, TrustLineAmount>> mOutgoingFlows;
-    vector<pair<NodeUUID, TrustLineAmount>> mIncomingFlows;
 
+    typedef uint32_t RecordNumber;
+    typedef RecordNumber RecordCount;
+
+private:
+
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> mOutgoingFlows;
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> mIncomingFlows;
 };
 
 

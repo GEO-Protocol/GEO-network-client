@@ -1,10 +1,10 @@
 #include "MaxFlowCalculationTargetFstLevelMessage.h"
 
 MaxFlowCalculationTargetFstLevelMessage::MaxFlowCalculationTargetFstLevelMessage(
-        const NodeUUID& senderUUID,
-        const NodeUUID& targetUUID) :
+    const NodeUUID& senderUUID,
+    const NodeUUID& targetUUID) :
 
-        MaxFlowCalculationMessage(senderUUID, targetUUID) {};
+    MaxFlowCalculationMessage(senderUUID, targetUUID) {};
 
 MaxFlowCalculationTargetFstLevelMessage::MaxFlowCalculationTargetFstLevelMessage(
     BytesShared buffer) {

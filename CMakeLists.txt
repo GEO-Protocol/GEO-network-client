@@ -9,14 +9,15 @@ add_definitions(-DTRANSACTIONS_LOG)
 #
 # Debug logs configuration
 #
-add_definitions(-DSCHEDULER_DEBUG_LOG)
 add_definitions(-DNETWORK_DEBUG_LOG)
+#add_definitions(-DSCHEDULER_DEBUG_LOG)
 #add_definitions(-DMAX_FLOW_CALCULATION_DEBUG_LOG)
+#add_definitions(-DSTORAGE_HANDLER_DEBUG_LOG)
 
 #
 # Subsystems configuration
 #
-add_definitions(-DROUTING_TABLES_PROPAGATION_DISABLED)
+#add_definitions(-DROUTING_TABLES_PROPAGATION_DISABLED)
 
 # todo: change in the release version
 
@@ -82,6 +83,8 @@ add_subdirectory(src/core/trust_lines)
 add_subdirectory(src/core/max_flow_calculation)
 add_subdirectory(src/core/delayed_tasks)
 add_subdirectory(src/core/payments/amount_blocks)
+add_subdirectory(src/core/io/storage)
+add_subdirectory(src/core/resources)
 
 #
 # libs
@@ -116,9 +119,11 @@ target_link_libraries(geo_network_client
 
         io__trust_lines_storage
         io__routing_tables_storage
+        io__storage
 
         paths
         trust_lines
         max_flow_calculation
         delayed_tasks
-        transactions)
+        transactions
+        resources_manager)

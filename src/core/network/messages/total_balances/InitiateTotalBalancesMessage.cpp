@@ -19,7 +19,3 @@ const Message::MessageType InitiateTotalBalancesMessage::typeID() const {
     return Message::MessageTypeID::InitiateTotalBalancesMessageType;
 }
 
-const bool InitiateTotalBalancesMessage::isTotalBalancesResponseMessage() const {
-    return true;
-}
-

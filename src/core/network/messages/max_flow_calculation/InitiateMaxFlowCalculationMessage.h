@@ -14,7 +14,7 @@ public:
         const NodeUUID& senderUUID);
 
     InitiateMaxFlowCalculationMessage(
-            BytesShared buffer);
+        BytesShared buffer);
 
     const MessageType typeID() const;
 

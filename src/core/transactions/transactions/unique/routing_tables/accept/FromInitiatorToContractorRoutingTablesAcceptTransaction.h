@@ -14,7 +14,9 @@
 #include "../propagate/FromInitiatorToContractorRoutingTablesPropagationTransaction.h"
 #include "../propagate/FromContractorToFirstLevelRoutingTablesPropagationTransaction.h"
 
+#include "../../../../../io/storage/StorageHandler.h"
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
+
 #include "../../../../../common/exceptions/ConflictError.h"
 
 #include <stdint.h>
@@ -28,11 +30,15 @@ public:
     FromInitiatorToContractorRoutingTablesAcceptTransaction(
         const NodeUUID &nodeUUID,
         FirstLevelRoutingTableIncomingMessage::Shared message,
-        TrustLinesManager *trustLinesManager);
+        TrustLinesManager *trustLinesManager,
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     FromInitiatorToContractorRoutingTablesAcceptTransaction(
         BytesShared buffer,
-        TrustLinesManager *trustLinesManager);
+        TrustLinesManager *trustLinesManager,
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     FirstLevelRoutingTableIncomingMessage::Shared message() const;
 
@@ -55,11 +61,12 @@ private:
     void createFromContractorToFirstLevelRoutingTablesPropagationTransaction(
         SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage);
 
-    void createFromContractorToInitiatorReverseRoutingTablesPropagationTransaction();
+    const string logHeader() const;
 
 private:
     FirstLevelRoutingTableIncomingMessage::Shared mFirstLevelMessage;
 
+    StorageHandler *mStorageHandler;
     TrustLinesManager *mTrustLinesManager;
 };
 

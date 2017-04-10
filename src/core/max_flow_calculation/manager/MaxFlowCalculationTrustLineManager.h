@@ -30,6 +30,8 @@ public:
 
     void printTrustLines() const;
 
+    DateTime closestTimeEvent() const;
+
 private:
     // comparing two trustLines for sorting
     struct {
@@ -45,8 +47,8 @@ private:
 private:
 
     static const byte kResetTrustLinesHours = 0;
-    static const byte kResetTrustLinesMinutes = 20;
-    static const byte kResetTrustLinesSeconds = 0;
+    static const byte kResetTrustLinesMinutes = 0;
+    static const byte kResetTrustLinesSeconds = 60;
 
     static Duration& kResetTrustLinesDuration() {
         static auto duration = Duration(

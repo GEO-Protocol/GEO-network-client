@@ -16,7 +16,8 @@ pair<BytesShared, size_t> RoutingTableIncomingMessage::serializeToBytes() {
 void RoutingTableIncomingMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    SenderMessage::deserializeFromBytes(buffer);
+    SenderMessage::deserializeFromBytes(
+        buffer);
     size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //---------------------------------------------------
     SerializedPropagationStep *propagationStep = new (buffer.get() + bytesBufferOffset) SerializedPropagationStep;
@@ -31,8 +32,7 @@ void RoutingTableIncomingMessage::deserializeFromBytes(
         memcpy(
           node.data,
           buffer.get() + bytesBufferOffset,
-          NodeUUID::kBytesSize
-        );
+          NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
         RecordsCount *recordsCount = new (buffer.get() + bytesBufferOffset) RecordsCount;
@@ -45,8 +45,7 @@ void RoutingTableIncomingMessage::deserializeFromBytes(
             memcpy(
               neighbor.data,
               buffer.get() + bytesBufferOffset,
-              NodeUUID::kBytesSize
-            );
+              NodeUUID::kBytesSize);
             bytesBufferOffset += NodeUUID::kBytesSize;
             //---------------------------------------------------
             SerializedTrustLineDirection *direct = new (buffer.get() + bytesBufferOffset) SerializedTrustLineDirection;
@@ -56,17 +55,13 @@ void RoutingTableIncomingMessage::deserializeFromBytes(
             records.push_back(
                 make_pair(
                     neighbor,
-                    direction
-                )
-            );
+                    direction));
         }
         //---------------------------------------------------
         mRecords.insert(
             make_pair(
                 node,
-                records
-            )
-        );
+                records));
     }
     //---------------------------------------------------
 }

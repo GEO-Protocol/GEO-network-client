@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
-        MaxFlowCalculationTrustLine.cpp
         MaxFlowCalculationTrustLine.h
-        manager/MaxFlowCalculationTrustLineManager.cpp
+        MaxFlowCalculationTrustLine.cpp
         manager/MaxFlowCalculationTrustLineManager.h
-        cashe/MaxFlowCalculationCache.cpp
+        manager/MaxFlowCalculationTrustLineManager.cpp
         cashe/MaxFlowCalculationCache.h
+        cashe/MaxFlowCalculationCache.cpp
+        cashe/MaxFlowCalculationCacheManager.h
         cashe/MaxFlowCalculationCacheManager.cpp
-        cashe/MaxFlowCalculationCacheManager.h manager/MaxFlowCalculationTrustLineWithPtr.cpp manager/MaxFlowCalculationTrustLineWithPtr.h)
+        manager/MaxFlowCalculationTrustLineWithPtr.h
+        manager/MaxFlowCalculationTrustLineWithPtr.cpp)
 
 add_library(max_flow_calculation ${SOURCE_FILES})

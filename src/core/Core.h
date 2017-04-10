@@ -11,11 +11,14 @@
 #include "interface/commands_interface/interface/CommandsInterface.h"
 #include "interface/results_interface/interface/ResultsInterface.h"
 #include "trust_lines/manager/TrustLinesManager.h"
+#include "resources/manager/ResourcesManager.h"
 #include "transactions/manager/TransactionsManager.h"
 #include "delayed_tasks/Cycles.h"
 #include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
+#include "io/storage/StorageHandler.h"
+#include "paths/PathsManager.h"
 
 #include "logger/Logger.h"
 
@@ -58,9 +61,15 @@ private:
 
     int initMaxFlowCalculationCacheManager();
 
+    int initResourcesManager();
+
     int initTransactionsManager();
 
     int initDelayedTasks();
+
+    int initStorageHandler();
+
+    int initPathsManager();
 
     void connectCommunicatorSignals();
 
@@ -69,6 +78,8 @@ private:
     void connectTrustLinesManagerSignals();
 
     void connectDelayedTasksSignals();
+
+    void connectResourcesManagerSignals();
 
     void connectSignalsToSlots();
 
@@ -94,13 +105,16 @@ private:
 
     void onDelayedTaskCycleFiveNodesSlot();
 
+    void onPathsResourceRequestedSlot(
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &destinationNodeUUID);
+
+    void onResourceCollectedSlot(
+        BaseResource::Shared resource);
+
     void zeroPointers();
 
     void cleanupMemory();
-
-    void JustToTestSomething();
-
-    void onDelayedTaskMaxFlowCalculationCacheUpdateSlot();
 
     void writePIDFile();
 
@@ -116,11 +130,14 @@ protected:
     CommandsInterface *mCommandsInterface;
     ResultsInterface *mResultsInterface;
     TrustLinesManager *mTrustLinesManager;
+    ResourcesManager *mResourcesManager;
     TransactionsManager *mTransactionsManager;
     CyclesDelayedTasks *mCyclesDelayedTasks;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLimeManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     MaxFlowCalculationCacheUpdateDelayedTask *mMaxFlowCalculationCacheUpdateDelayedTask;
+    StorageHandler *mStorageHandler;
+    PathsManager *mPathsManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

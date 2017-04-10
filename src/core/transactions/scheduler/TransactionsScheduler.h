@@ -14,6 +14,8 @@
 #include "../transactions/unique/routing_tables/RoutingTablesTransaction.h"
 #include "../transactions/result/TransactionResult.h"
 
+#include "../../resources/resources/BaseResource.h"
+
 #include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 #include "../../common/exceptions/Exception.h"
@@ -68,6 +70,9 @@ public:
     //       if contractor node doesn't follows the protocol.
     void tryAttachMessageToTransaction(
         Message::Shared message);
+
+    void tryAttachResourceToTransaction(
+        BaseResource::Shared resource);
 
     friend const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
         TransactionsScheduler *scheduler);

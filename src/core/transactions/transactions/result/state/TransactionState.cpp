@@ -97,6 +97,25 @@ TransactionState::SharedConst TransactionState::waitForMessageTypes(
     return const_pointer_cast<const TransactionState>(state);
 }
 
+TransactionState::SharedConst TransactionState::waitForResourcesTypes(
+    vector<BaseResource::ResourceType> &&requiredResourcesType,
+    uint32_t noLongerThanMilliseconds) {
+
+    TransactionState::Shared state;
+    if (noLongerThanMilliseconds == 0) {
+        state = const_pointer_cast<TransactionState> (TransactionState::exit());
+
+    } else {
+        state = const_pointer_cast<TransactionState> (TransactionState::awakeAfterMilliseconds(
+            noLongerThanMilliseconds
+        ));
+    }
+
+    state->mRequiredResourcesTypes = requiredResourcesType;
+
+    return const_pointer_cast<const TransactionState>(state);
+}
+
 const GEOEpochTimestamp TransactionState::awakeningTimestamp() const {
 
     return mAwakeningTimestamp;
@@ -105,6 +124,11 @@ const GEOEpochTimestamp TransactionState::awakeningTimestamp() const {
 const vector<Message::MessageTypeID>& TransactionState::acceptedMessagesTypes() const {
 
     return mRequiredMessageTypes;
+}
+
+const vector<BaseResource::ResourceType> &TransactionState::acceptedResourcesTypes() const {
+
+    return mRequiredResourcesTypes;
 }
 
 const bool TransactionState::needSerialize() const {

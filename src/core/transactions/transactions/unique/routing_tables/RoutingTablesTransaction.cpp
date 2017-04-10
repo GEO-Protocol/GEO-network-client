@@ -2,11 +2,12 @@
 
 RoutingTablesTransaction::RoutingTablesTransaction(
     const TransactionType type,
-    BytesShared buffer) :
+    BytesShared buffer,
+    Logger *logger) :
 
     BaseTransaction(
-        type
-    ) {
+        type,
+        logger) {
 
     deserializeFromBytes(buffer);
 }
@@ -16,18 +17,19 @@ RoutingTablesTransaction::RoutingTablesTransaction(
     const NodeUUID &nodeUUID) :
 
     BaseTransaction(
-        type, nodeUUID
-    ) {}
+        type,
+        nodeUUID) {}
 
 RoutingTablesTransaction::RoutingTablesTransaction(
     const BaseTransaction::TransactionType type,
     const NodeUUID &nodeUUID,
-    const NodeUUID &contractorUUID) :
+    const NodeUUID &contractorUUID,
+    Logger *logger) :
 
     BaseTransaction(
         type,
-        nodeUUID
-    ),
+        nodeUUID,
+        logger),
     mContractorUUID(contractorUUID) {}
 
 

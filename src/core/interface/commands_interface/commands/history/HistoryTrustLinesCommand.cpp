@@ -30,23 +30,34 @@ void HistoryTrustLinesCommand::parse(
                                  "Can't parse command. Received command is to short.");
     }
 
+    size_t tabSeparator = command.find("\t");
+    string historyFromStr = command.substr(
+        0,
+        tabSeparator);
+    if (historyFromStr.at(0) == '-') {
+        throw ValueError("HistoryTrustLinesCommand::parse: "
+                                  "Can't parse command. 'from' token can't be negative.");
+    }
     try {
-        size_t tabSeparator = command.find("\t");
-        string historyFromStr = command.substr(
-                0,
-                tabSeparator);
         mHistoryFrom = std::stoul(historyFromStr);
-
-        string historyCountStr = command.substr(
-                tabSeparator + 1,
-                command.size() - 1);
-        mHistoryCount = std::stoul(historyCountStr);
-
     } catch (...) {
         throw ValueError("HistoryTrustLinesCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'count and from' token.");
+                                 "Can't parse command. Error occurred while parsing  'from' token.");
     }
 
+    string historyCountStr = command.substr(
+        tabSeparator + 1,
+        command.size() - 1);
+    if (historyCountStr.at(0) == '-') {
+        throw ValueError("HistoryTrustLinesCommand::parse: "
+                                 "Can't parse command. 'count' token can't be negative.");
+    }
+    try {
+        mHistoryCount = std::stoul(historyCountStr);
+    } catch (...) {
+        throw ValueError("HistoryTrustLinesCommand::parse: "
+                                 "Can't parse command. Error occurred while parsing 'count' token.");
+    }
 }
 
 const size_t HistoryTrustLinesCommand::historyFrom() const {

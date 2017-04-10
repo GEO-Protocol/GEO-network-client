@@ -118,6 +118,20 @@ void MaxFlowCalculationTrustLineManager::printTrustLines() const {
     }
 }
 
+DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const {
+
+    DateTime result = utc_now() + kResetTrustLinesDuration();
+    // if there are cached trust lines, then take closest trust line removing time as result closest time event
+    // else take trust line life time as result closest time event
+    if (mtTrustLines.size() > 0) {
+        auto timeAndNodeUUID = mtTrustLines.cbegin();
+        if (timeAndNodeUUID->first + kResetTrustLinesDuration() < result) {
+            result = timeAndNodeUUID->first + kResetTrustLinesDuration();
+        }
+    }
+    return result;
+}
+
 LoggerStream MaxFlowCalculationTrustLineManager::info() const {
 
     if (nullptr == mLog)

@@ -74,7 +74,7 @@ private:
         Channel::Shared channel);
 
 private:
-    static const constexpr size_t kMaxIncomingBufferSize = 1000;
+    static const constexpr size_t kMaxIncomingBufferSize = 1024 * 1024;
 
     as::io_service &mIOService;
     NodeUUID &mNodeUUID;
