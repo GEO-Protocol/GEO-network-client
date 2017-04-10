@@ -96,34 +96,33 @@ void Communicator::beginAcceptMessages() {
     asyncReceiveData();
 }
 
-void Communicator::sendMessage(
-    Message::Shared message,
+void Communicator::sendMessage (
+    const Message::Shared kMessage,
     const NodeUUID &contractorUUID) {
 
-    auto address = mUUID2AddressService->getNodeAddress(contractorUUID);
-    if (address.first == "localhost") {
-        address.first = "127.0.0.1";
+    auto addressAndPort = mUUID2AddressService->nodeAddressAndPort(contractorUUID);
+
+    // ToDo: at this moment, nodeAddressAndPort() may return "localhost". If so - enpoint would not be created.
+    if (addressAndPort.first == "localhost") {
+        addressAndPort.first = "127.0.0.1";
     }
 
     ip::udp::endpoint endpoint(
-        ip::address::from_string(address.first),
-        address.second);
+        ip::address::from_string(addressAndPort.first),
+        addressAndPort.second);
 
 
-    auto numberAndChannel = mChannelsManager->outgoingChannel(endpoint);
-
+    auto numberAndChannel = mChannelsManager->nextOutgoingChannel(endpoint);
     mOutgoingMessagesHandler->processOutgoingMessage(
-        message,
+        kMessage,
         numberAndChannel.first,
         numberAndChannel.second);
 
-    for (auto const &numberAndPacket : *numberAndChannel.second->packets()) {
+    for (auto const &numberAndPacket : *numberAndChannel.second->packets())
         sendData(
-            address,
+            endpoint,
             numberAndPacket.second->packetBytes(),
             numberAndChannel.second);
-    }
-
 }
 
 void Communicator::asyncReceiveData() {
@@ -176,32 +175,24 @@ void Communicator::handleReceivedInfo(
 }
 
 void Communicator::sendData(
-    pair<string, uint16_t> address,
+    udp::endpoint &endpoint,
     vector<byte> buffer,
     Channel::Shared channel) {
 
-    ip::udp::endpoint destination(
-        ip::address::from_string(address.first),
-        address.second
-    );
-
-
-
-    mSocket->async_send_to(
+    const auto kBytesSent = mSocket->send_to(
         as::buffer(
             buffer,
-            buffer.size()
-        ),
-        destination,
-        boost::bind(
-            &Communicator::handleSend,
-            this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred,
-            destination,
-            channel
-        )
-    );
+            buffer.size()),
+        endpoint);
+
+#ifdef NETWORK_DEBUG_LOG
+    auto debug = mLog->debug("Communicator");
+    debug << kBytesSent <<  "B \tTX  [ => ]";
+#endif
+
+    if (channel->canBeRemoved()) {
+        mChannelsManager->removeOutgoingChannel(endpoint);
+    }
 }
 
 void Communicator::handleSend(
@@ -210,7 +201,7 @@ void Communicator::handleSend(
     udp::endpoint endpoint,
     Channel::Shared channel) {
 
-    if (channel->isChannelCanBeRemoved()) {
+    if (channel->canBeRemoved()) {
         mChannelsManager->removeOutgoingChannel(endpoint);
     }
 

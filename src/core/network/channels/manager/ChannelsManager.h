@@ -39,7 +39,7 @@ public:
         const udp::endpoint &endpoint,
         const uint16_t channelNumber);
 
-    pair<uint16_t, Channel::Shared> outgoingChannel(
+    pair<uint16_t, Channel::Shared> nextOutgoingChannel (
         const udp::endpoint &endpoint);
 
     void removeOutgoingChannel(
