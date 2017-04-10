@@ -12,7 +12,6 @@
 #include <vector>
 #include <tuple>
 #include <unordered_map>
-#include <map>
 #include <boost/functional/hash.hpp>
 
 class RoutingTableHandler {
@@ -39,31 +38,12 @@ public:
 
     vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> routeRecordsWithDirections();
 
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> routeRecordsWithDirectionsWithReserve();
-
     vector<pair<NodeUUID, NodeUUID>> routeRecords();
-
-    vector<pair<NodeUUID, NodeUUID>> routeRecordsWithResesrve();
 
     vector<NodeUUID> allDestinationsForSource(
         const NodeUUID &sourceUUID);
 
-    //TODO: remove after testing
-    NodeUUID sourceMaxCount();
-
-    unordered_map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKey();
-
-    unordered_map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKeyOpt();
-
-    unordered_map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKeyOpt1();
-
-    unordered_map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKeyOpt2();
-
-    unordered_map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKeyOpt3();
-
-    map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKeyOpt4();
-
-    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKeyOpt5();
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKey();
 
     map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> routeRecordsWithDirectionsMapSourceKey();
 

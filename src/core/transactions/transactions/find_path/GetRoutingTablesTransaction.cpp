@@ -44,16 +44,6 @@ TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
         }
     }*/
 
-
-    /*sendMessage<ResultRoutingTablesMessage>(
-        mMessage->senderUUID(),
-        mNodeUUID,
-        mMessage->transactionUUID(),
-        // TODO: uncomment after testing
-        //mTrustLinesManager->rt1(),
-        rt1FromDB(),
-        mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey(),
-        mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey());*/
     sendRoutingTables();
 
     info() << "message successfully sent to " << mMessage->senderUUID();
@@ -70,9 +60,8 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
         //mTrustLinesManager->rt1(),
         rt1FromDB());
 
-    // TODO : testing routeRecordsMapDestinationKey
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt2
-        = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKeyOpt5();
+        = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey();
     size_t rt2MessageCount = rt2.size() / kCountElementsPerMessage;
     size_t idx = 0;
     auto itRT2 = rt2.begin();
@@ -98,9 +87,8 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             subRT2);
     }
 
-    // TODO : testing routeRecordsMapDestinationKey
-    unordered_map<NodeUUID, vector<NodeUUID>> rt3
-        = mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKeyOpt3();
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt3
+        = mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey();
     size_t rt3MessageCount = rt3.size() / kCountElementsPerMessage;
     idx = 0;
     auto itRT3 = rt3.begin();
@@ -109,7 +97,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
         for (size_t jdx = 0; jdx < kCountElementsPerMessage; jdx++) {
             itRT3++;
         }
-        unordered_map<NodeUUID, vector<NodeUUID>> subRT3(itRT3First, itRT3);
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT3(itRT3First, itRT3);
         sendMessage<ResultRoutingTable3LevelMessage>(
             mMessage->senderUUID(),
             mNodeUUID,
@@ -118,41 +106,13 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
         idx++;
     }
     if (itRT3 != rt3.end()) {
-        unordered_map<NodeUUID, vector<NodeUUID>> subRT3(itRT3, rt3.end());
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT3(itRT3, rt3.end());
         sendMessage<ResultRoutingTable3LevelMessage>(
             mMessage->senderUUID(),
             mNodeUUID,
             mMessage->transactionUUID(),
             subRT3);
     }
-
-    /*vector<pair<NodeUUID, NodeUUID>> rt3
-        = mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsWithResesrve();
-    size_t rt3MessageCount = rt3.size() / kCountElementsPerMessage;
-    idx = 0;
-    auto itRT3 = rt3.begin();
-    while (idx < rt3MessageCount) {
-        auto itRT3First = itRT3;
-        for (size_t jdx = 0; jdx < kCountElementsPerMessage; jdx++) {
-            itRT3++;
-        }
-        vector<pair<NodeUUID, NodeUUID>> subRT3(itRT3First, itRT3);
-        sendMessage<ResultRoutingTable3LevelVectorMessage>(
-            mMessage->senderUUID(),
-            mNodeUUID,
-            mMessage->transactionUUID(),
-            subRT3);
-        idx++;
-    }
-    if (itRT3 != rt3.end()) {
-        vector<pair<NodeUUID, NodeUUID>> subRT3(itRT3, rt3.end());
-        sendMessage<ResultRoutingTable3LevelVectorMessage>(
-            mMessage->senderUUID(),
-            mNodeUUID,
-            mMessage->transactionUUID(),
-            subRT3);
-    }*/
-
 }
 
 vector<NodeUUID> GetRoutingTablesTransaction::rt1FromDB() {

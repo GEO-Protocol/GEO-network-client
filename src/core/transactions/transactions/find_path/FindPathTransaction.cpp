@@ -67,55 +67,12 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
     for (auto itResponseMessage = mContext.begin(); itResponseMessage != mContext.end(); ++itResponseMessage) {
 
         auto responseMessage = *itResponseMessage;
-        if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTablesMessageType) {
-            ResultRoutingTablesMessage::Shared response = static_pointer_cast<ResultRoutingTablesMessage>(
-                responseMessage);
-
-            /*vector<NodeUUID> rt1 = response->rt1();
-            info() << "receive RT1 size: " << rt1.size();
-            for (auto &nodeUUID : rt1) {
-                info() << "\t" << nodeUUID;
-            }
-            info() << "receive RT2 size: " << response->rt2().size();
-            for (auto &nodeUUIDAndVect : response->rt2()) {
-                for (auto const &nodeUUID : nodeUUIDAndVect.second) {
-                    info() << "\t" << nodeUUID
-                           << "\t" << nodeUUIDAndVect.first;
-                }
-            }
-            info() << "receive RT3 size: " << response->rt3().size();
-            for (auto &nodeUUIDAndVect : response->rt3()) {
-                for (auto const &nodeUUID : nodeUUIDAndVect.second) {
-                    info() << "\t" << nodeUUID
-                           << "\t" << nodeUUIDAndVect.first;
-                }
-            }*/
-
-            /*mPathsManager->findPaths(
-                mContractorUUID,
-                response->rt1(),
-                response->rt2(),
-                response->rt3());
-            // TODO : remove after testing
-            mPathsManager->findPathsTest(
-                mContractorUUID,
-                response->rt1(),
-                response->rt2(),
-                response->rt3());*/
-            mResourcesManager->putResource(
-                make_shared<PathsResource>(
-                    mRequestedTransactionUUID,
-                    mPathsManager->pathCollection()));
-            return make_shared<const TransactionResult>(
-                TransactionState::exit());
-        }
-
         if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTable1LevelMessageType) {
             ResultRoutingTable1LevelMessage::Shared response = static_pointer_cast<ResultRoutingTable1LevelMessage>(
                 responseMessage);
 
             mRT1 = response->rt1();
-            info() << "receive RT1, size: " << mRT1.size();
+            //info() << "receive RT1, size: " << mRT1.size();
             isReceiveContractorRT1 = true;
         }
 
@@ -124,7 +81,7 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
                 responseMessage);
 
             mRT2.insert(response->rt2().begin(), response->rt2().end());
-            info() << "receive RT2, size: " << mRT2.size();
+            //info() << "receive RT2, size: " << mRT2.size();
             isReceiveContractorRT1 = true;
         }
 
@@ -133,19 +90,10 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
                 responseMessage);
 
             mRT3.insert(response->rt3().begin(), response->rt3().end());
-            info() << "receive RT3, size: " << mRT3.size();
+            //info() << "receive RT3, size: " << mRT3.size();
             isReceiveContractorRT1 = true;
         }
 
-        if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTable3LevelVectorMessageType) {
-            ResultRoutingTable3LevelVectorMessage::Shared response = static_pointer_cast<ResultRoutingTable3LevelVectorMessage>(
-                responseMessage);
-
-            std::copy(std::begin(response->rt3()), std::end(response->rt3()),
-                      std::back_inserter(mRTV3));
-            info() << "receive RTV3, size: " << mRTV3.size();
-            isReceiveContractorRT1 = true;
-        }
     }
     mPathsManager->findPaths(
         mContractorUUID,
@@ -153,11 +101,11 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
         mRT2,
         mRT3);
     // TODO : remove after testing
-    mPathsManager->findPathsTest(
+    /*mPathsManager->findPathsTest(
         mContractorUUID,
         mRT1,
         mRT2,
-        mRT3);
+        mRT3);*/
     mResourcesManager->putResource(
         make_shared<PathsResource>(
             mRequestedTransactionUUID,
@@ -173,7 +121,6 @@ void FindPathTransaction::sendMessageToRemoteNode() {
     mRT1.clear();
     mRT2.clear();
     mRT3.clear();
-    mRTV3.clear();
     info() << "sendMessageToRemoteNode\t" << mContractorUUID;
     sendMessage<RequestRoutingTablesMessage>(
         mContractorUUID,
@@ -186,11 +133,9 @@ TransactionResult::SharedConst FindPathTransaction::waitingForResponseState() {
     info() << "waitingForResponseState";
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
-            {Message::MessageTypeID::ResultRoutingTablesMessageType,
-             Message::MessageTypeID::ResultRoutingTable1LevelMessageType,
+            {Message::MessageTypeID::ResultRoutingTable1LevelMessageType,
              Message::MessageTypeID::ResultRoutingTable2LevelMessageType,
-             Message::MessageTypeID::ResultRoutingTable3LevelMessageType,
-             Message::MessageTypeID::ResultRoutingTable3LevelVectorMessageType},
+             Message::MessageTypeID::ResultRoutingTable3LevelMessageType},
             kConnectionTimeout));
 }
 

@@ -28,9 +28,9 @@ unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& Resu
 
 pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() {
 
-    cout << "ResultRoutingTable2LevelMessage::serializeToBytes start serializing" << endl;
+    /*cout << "ResultRoutingTable2LevelMessage::serializeToBytes start serializing" << endl;
     cout << "ResultRoutingTable2LevelMessage::serializeToBytes rt2 size: " << mRT2.size() << endl;
-    DateTime startTime = utc_now();
+    DateTime startTime = utc_now();*/
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + rt2ByteSize();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -72,9 +72,9 @@ pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() {
         }
     }
     //----------------------------------------------------
-    cout << "ResultRoutingTable2LevelMessage::serializeToBytes message size: " << bytesCount << endl;
+    /*cout << "ResultRoutingTable2LevelMessage::serializeToBytes message size: " << bytesCount << endl;
     Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable2LevelMessage::serializing time: " << methodTime << endl;
+    cout << "ResultRoutingTable2LevelMessage::serializing time: " << methodTime << endl;*/
     return make_pair(
         dataBytesShared,
         bytesCount);
@@ -83,8 +83,8 @@ pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() {
 void ResultRoutingTable2LevelMessage::deserializeFromBytes(
     BytesShared buffer){
 
-    cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes start deserializing" << endl;
-    DateTime startTime = utc_now();
+    /*cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes start deserializing" << endl;
+    DateTime startTime = utc_now();*/
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
@@ -93,10 +93,7 @@ void ResultRoutingTable2LevelMessage::deserializeFromBytes(
     //-----------------------------------------------------
     mRT2.reserve(*rt2Count);
     for (RecordNumber idx = 0; idx < *rt2Count; idx++) {
-        vector<byte> keyDestinationBufferBytes(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
-        NodeUUID keyDesitnation(keyDestinationBufferBytes.data());
+        NodeUUID keyDesitnation(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
         RecordCount *rt2VectCount = new (buffer.get() + bytesBufferOffset) RecordCount;
@@ -105,10 +102,7 @@ void ResultRoutingTable2LevelMessage::deserializeFromBytes(
         vector<NodeUUID> valueSources;
         valueSources.reserve(*rt2VectCount);
         for (RecordNumber jdx = 0; jdx < *rt2VectCount; jdx++) {
-            vector<byte> sourceBufferBytes(
-                buffer.get() + bytesBufferOffset,
-                buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
-            NodeUUID source(sourceBufferBytes.data());
+            NodeUUID source(buffer.get() + bytesBufferOffset);
             bytesBufferOffset += NodeUUID::kBytesSize;
             valueSources.push_back(source);
         }
@@ -116,9 +110,9 @@ void ResultRoutingTable2LevelMessage::deserializeFromBytes(
         mRT2.insert(make_pair(keyDesitnation, valueSources));
     }
     //-----------------------------------------------------
-    cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
+    /*cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
     Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes time: " << methodTime << endl;
+    cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes time: " << methodTime << endl;*/
 }
 
 size_t ResultRoutingTable2LevelMessage::rt2ByteSize() {

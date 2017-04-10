@@ -28,9 +28,9 @@ vector<NodeUUID>& ResultRoutingTable1LevelMessage::rt1() {
 
 pair<BytesShared, size_t> ResultRoutingTable1LevelMessage::serializeToBytes() {
 
-    cout << "ResultRoutingTable1LevelMessage::serializeToBytes start serializing" << endl;
+    /*cout << "ResultRoutingTable1LevelMessage::serializeToBytes start serializing" << endl;
     cout << "ResultRoutingTable1LevelMessage::serializeToBytes rt1 size: " << mRT1.size() << endl;
-    DateTime startTime = utc_now();
+    DateTime startTime = utc_now();*/
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +
                         sizeof(RecordCount) + mRT1.size() * NodeUUID::kBytesSize;
@@ -58,9 +58,9 @@ pair<BytesShared, size_t> ResultRoutingTable1LevelMessage::serializeToBytes() {
         dataBytesOffset += NodeUUID::kBytesSize;
     }
     //----------------------------------------------------
-    cout << "ResultRoutingTable1LevelMessage::serializeToBytes message size: " << bytesCount << endl;
+    /*cout << "ResultRoutingTable1LevelMessage::serializeToBytes message size: " << bytesCount << endl;
     Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable1LevelMessage::serializing time: " << methodTime << endl;
+    cout << "ResultRoutingTable1LevelMessage::serializing time: " << methodTime << endl;*/
     return make_pair(
         dataBytesShared,
         bytesCount);
@@ -69,8 +69,8 @@ pair<BytesShared, size_t> ResultRoutingTable1LevelMessage::serializeToBytes() {
 void ResultRoutingTable1LevelMessage::deserializeFromBytes(
     BytesShared buffer){
 
-    cout << "ResultRoutingTable1LevelMessage::deserializeFromBytes start deserializing" << endl;
-    DateTime startTime = utc_now();
+    /*cout << "ResultRoutingTable1LevelMessage::deserializeFromBytes start deserializing" << endl;
+    DateTime startTime = utc_now();*/
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
@@ -89,7 +89,7 @@ void ResultRoutingTable1LevelMessage::deserializeFromBytes(
         mRT1.push_back(nodeUUID);
     }
     //-----------------------------------------------------
-    cout << "ResultRoutingTablesMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
+    /*cout << "ResultRoutingTablesMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
     Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTablesMessage::deserializeFromBytes time: " << methodTime << endl;
+    cout << "ResultRoutingTablesMessage::deserializeFromBytes time: " << methodTime << endl;*/
 }

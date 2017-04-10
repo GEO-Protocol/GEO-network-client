@@ -35,11 +35,9 @@
 #include "../messages/total_balances/InitiateTotalBalancesMessage.h"
 #include "../messages/total_balances/TotalBalancesResultMessage.h"
 #include "../messages/find_path/RequestRoutingTablesMessage.h"
-#include "../messages/find_path/ResultRoutingTablesMessage.h"
 #include "../messages/find_path/ResultRoutingTable1LevelMessage.h"
 #include "../messages/find_path/ResultRoutingTable2LevelMessage.h"
 #include "../messages/find_path/ResultRoutingTable3LevelMessage.h"
-#include "../messages/find_path/ResultRoutingTable3LevelVectorMessage.h"
 
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"

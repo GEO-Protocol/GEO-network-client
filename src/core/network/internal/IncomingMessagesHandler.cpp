@@ -207,13 +207,6 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                     make_shared<RequestRoutingTablesMessage>(messagePart)));
         }
 
-        case Message::ResultRoutingTablesMessageType: {
-            return make_pair(
-                true,
-                static_pointer_cast<Message>(
-                    make_shared<ResultRoutingTablesMessage>(messagePart)));
-        }
-
         case Message::ResultRoutingTable1LevelMessageType: {
             return make_pair(
                 true,
@@ -233,13 +226,6 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<ResultRoutingTable3LevelMessage>(messagePart)));
-        }
-
-        case Message::ResultRoutingTable3LevelVectorMessageType: {
-            return make_pair(
-                true,
-                static_pointer_cast<Message>(
-                    make_shared<ResultRoutingTable3LevelVectorMessage>(messagePart)));
         }
 
         default: {

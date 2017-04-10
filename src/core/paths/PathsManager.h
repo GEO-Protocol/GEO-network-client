@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_PATHSMANAGER_H
 
 #include "../trust_lines/manager/TrustLinesManager.h"
-#include "../network/messages/find_path/ResultRoutingTablesMessage.h"
 #include "../io/storage/StorageHandler.h"
 #include "lib/Path.h"
 #include "lib/PathsCollection.h"
@@ -27,7 +26,7 @@ public:
         const NodeUUID &contractorUUID,
         vector<NodeUUID> &contractorRT1,
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2,
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3);
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3);
 
     void findPathsOnSelfArea(
         const NodeUUID &contractorUUID);
@@ -37,7 +36,7 @@ public:
         const NodeUUID &contractorUUID,
         vector<NodeUUID> &contractorRT1,
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2,
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3);
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3);
 
     PathsCollection::Shared pathCollection() const;
 
@@ -56,7 +55,7 @@ private:
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2);
 
     void findPathsOnSixthLevel(
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3,
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2);
 
     vector<NodeUUID> intermediateNodesOnContractorFirstLevel(
@@ -76,7 +75,7 @@ private:
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2);
 
     void findPathsOnSixthLevelTest(
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3,
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2);
 
     vector<NodeUUID> intermediateNodesOnContractorFirstLevelTest(

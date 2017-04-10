@@ -5,11 +5,9 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../network/messages/find_path/RequestRoutingTablesMessage.h"
-#include "../../../network/messages/find_path/ResultRoutingTablesMessage.h"
 #include "../../../network/messages/find_path/ResultRoutingTable1LevelMessage.h"
 #include "../../../network/messages/find_path/ResultRoutingTable2LevelMessage.h"
 #include "../../../network/messages/find_path/ResultRoutingTable3LevelMessage.h"
-#include "../../../network/messages/find_path/ResultRoutingTable3LevelVectorMessage.h"
 
 class GetRoutingTablesTransaction : public BaseTransaction {
 
