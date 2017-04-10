@@ -274,6 +274,9 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable3LevelMessageType) {
         mScheduler->tryAttachMessageToTransaction(message);
 
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable3LevelVectorMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
     /*
      * Payments
      */

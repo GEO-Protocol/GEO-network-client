@@ -235,6 +235,13 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                     make_shared<ResultRoutingTable3LevelMessage>(messagePart)));
         }
 
+        case Message::ResultRoutingTable3LevelVectorMessageType: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<ResultRoutingTable3LevelVectorMessage>(messagePart)));
+        }
+
         default: {
             return tryDeserializeResponse(
                 messageIdentifier,

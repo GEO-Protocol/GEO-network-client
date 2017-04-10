@@ -3,7 +3,7 @@
 ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID &transactionUUID,
-    unordered_map<NodeUUID, vector<NodeUUID>> &rt2):
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &rt2):
 
     TransactionMessage(
         senderUUID,
@@ -21,7 +21,7 @@ const Message::MessageType ResultRoutingTable2LevelMessage::typeID() const {
     return Message::MessageTypeID::ResultRoutingTable2LevelMessageType;
 }
 
-unordered_map<NodeUUID, vector<NodeUUID>>& ResultRoutingTable2LevelMessage::rt2() {
+unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& ResultRoutingTable2LevelMessage::rt2() {
 
     return mRT2;
 }
@@ -91,7 +91,6 @@ void ResultRoutingTable2LevelMessage::deserializeFromBytes(
     RecordCount *rt2Count = new (buffer.get() + bytesBufferOffset) RecordCount;
     bytesBufferOffset += sizeof(RecordCount);
     //-----------------------------------------------------
-    mRT2.clear();
     mRT2.reserve(*rt2Count);
     for (RecordNumber idx = 0; idx < *rt2Count; idx++) {
         vector<byte> keyDestinationBufferBytes(

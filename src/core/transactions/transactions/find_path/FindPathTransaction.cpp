@@ -91,7 +91,7 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
                 }
             }*/
 
-            mPathsManager->findPaths(
+            /*mPathsManager->findPaths(
                 mContractorUUID,
                 response->rt1(),
                 response->rt2(),
@@ -101,7 +101,7 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
                 mContractorUUID,
                 response->rt1(),
                 response->rt2(),
-                response->rt3());
+                response->rt3());*/
             mResourcesManager->putResource(
                 make_shared<PathsResource>(
                     mRequestedTransactionUUID,
@@ -136,8 +136,24 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
             info() << "receive RT3, size: " << mRT3.size();
             isReceiveContractorRT1 = true;
         }
+
+        if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTable3LevelVectorMessageType) {
+            ResultRoutingTable3LevelVectorMessage::Shared response = static_pointer_cast<ResultRoutingTable3LevelVectorMessage>(
+                responseMessage);
+
+            std::copy(std::begin(response->rt3()), std::end(response->rt3()),
+                      std::back_inserter(mRTV3));
+            info() << "receive RTV3, size: " << mRTV3.size();
+            isReceiveContractorRT1 = true;
+        }
     }
     mPathsManager->findPaths(
+        mContractorUUID,
+        mRT1,
+        mRT2,
+        mRT3);
+    // TODO : remove after testing
+    mPathsManager->findPathsTest(
         mContractorUUID,
         mRT1,
         mRT2,
@@ -157,6 +173,7 @@ void FindPathTransaction::sendMessageToRemoteNode() {
     mRT1.clear();
     mRT2.clear();
     mRT3.clear();
+    mRTV3.clear();
     info() << "sendMessageToRemoteNode\t" << mContractorUUID;
     sendMessage<RequestRoutingTablesMessage>(
         mContractorUUID,
@@ -172,7 +189,8 @@ TransactionResult::SharedConst FindPathTransaction::waitingForResponseState() {
             {Message::MessageTypeID::ResultRoutingTablesMessageType,
              Message::MessageTypeID::ResultRoutingTable1LevelMessageType,
              Message::MessageTypeID::ResultRoutingTable2LevelMessageType,
-             Message::MessageTypeID::ResultRoutingTable3LevelMessageType},
+             Message::MessageTypeID::ResultRoutingTable3LevelMessageType,
+             Message::MessageTypeID::ResultRoutingTable3LevelVectorMessageType},
             kConnectionTimeout));
 }
 

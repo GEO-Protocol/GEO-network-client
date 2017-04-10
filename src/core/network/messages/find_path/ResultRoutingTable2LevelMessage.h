@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <boost/functional/hash.hpp>
 
 class ResultRoutingTable2LevelMessage : public TransactionMessage {
 
@@ -19,14 +20,14 @@ public:
     ResultRoutingTable2LevelMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID &transactionUUID,
-        unordered_map<NodeUUID, vector<NodeUUID>> &rt2);
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &rt2);
 
     ResultRoutingTable2LevelMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
 
-    unordered_map<NodeUUID, vector<NodeUUID>>& rt2();
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& rt2();
 
     pair<BytesShared, size_t> serializeToBytes();
 
@@ -44,7 +45,7 @@ private:
 
 private:
 
-    unordered_map<NodeUUID, vector<NodeUUID>> mRT2;
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> mRT2;
 
 };
 

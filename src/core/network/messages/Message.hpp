@@ -68,6 +68,7 @@ public:
         ResultRoutingTable1LevelMessageType,
         ResultRoutingTable2LevelMessageType,
         ResultRoutingTable3LevelMessageType,
+        ResultRoutingTable3LevelVectorMessageType,
 
         ResponseMessageType = 1000,
         RoutingTablesResponseMessageType

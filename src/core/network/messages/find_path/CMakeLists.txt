@@ -10,7 +10,9 @@ set(SOURCE_FILES
         ResultRoutingTable2LevelMessage.h
         ResultRoutingTable2LevelMessage.cpp
         ResultRoutingTable3LevelMessage.h
-        ResultRoutingTable3LevelMessage.cpp)
+        ResultRoutingTable3LevelMessage.cpp
+        ResultRoutingTable3LevelVectorMessage.h
+        ResultRoutingTable3LevelVectorMessage.cpp)
 
 add_library(messages__find_path ${SOURCE_FILES})
 

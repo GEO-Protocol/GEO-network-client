@@ -18,6 +18,7 @@ PathsManager::PathsManager(
     //fillBigRoutingTables();
     //testTrustLineHandler();
     //testPaymentStateOperationsHandler();
+    //testTime();
 }
 
 void PathsManager::findDirectPath() {
@@ -36,6 +37,7 @@ void PathsManager::findDirectPath() {
 
 void PathsManager::findPathsOnSecondLevel() {
 
+    DateTime startTime = utc_now();
     for (auto const &nodeUUID : mStorageHandler->routingTablesHandler()->subRoutesSecondLevel(mContractorUUID)) {
         vector<NodeUUID> intermediateNodes;
         intermediateNodes.push_back(nodeUUID);
@@ -46,10 +48,13 @@ void PathsManager::findPathsOnSecondLevel() {
         mPathCollection->add(path);
         //info() << "found path on second level";
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSecondLevel method time: " << methodTime;
 }
 
 void PathsManager::findPathsOnThirdLevel() {
 
+    DateTime startTime = utc_now();
     for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelContractor(
             mContractorUUID,
             mNodeUUID)) {
@@ -63,11 +68,14 @@ void PathsManager::findPathsOnThirdLevel() {
         mPathCollection->add(path);
         //info() << "found path on third level";
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnThirdLevel method time: " << methodTime;
 }
 
 void PathsManager::findPathsOnForthLevel(
     vector<NodeUUID> &contractorRT1) {
 
+    DateTime startTime =  utc_now();
     for (auto const &nodeUUID : contractorRT1) {
         if (nodeUUID == mNodeUUID) {
             continue;
@@ -89,11 +97,14 @@ void PathsManager::findPathsOnForthLevel(
             //info() << "found path on forth level";
         }
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnForthLevel method time: " << methodTime;
 }
 
 void PathsManager::findPathsOnFifthLevel(
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
+    DateTime startTime = utc_now();
     for (auto const &itRT2 : contractorRT2) {
         // TODO (mc) : need or not second condition (itRT2.first == contractorUUID)
         if (itRT2.first == mNodeUUID || itRT2.first == mContractorUUID) {
@@ -124,12 +135,15 @@ void PathsManager::findPathsOnFifthLevel(
             }
         }
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnFifthLevel method time: " << methodTime;
 }
 
 void PathsManager::findPathsOnSixthLevel(
     unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
+    DateTime startTime = utc_now();
     for (auto const &itRT3 : contractorRT3) {
         // TODO (mc) : need or not second condition (itRT3.first == contractorUUID)
         if (itRT3.first == mNodeUUID || itRT3.first == mContractorUUID) {
@@ -145,12 +159,17 @@ void PathsManager::findPathsOnSixthLevel(
             intermediateNodes.push_back(itRT3.first);
             //info() << "sixth path: " << itRT3.first << " " << nodeUUIDAndNodeUUID.second << " " << nodeUUIDAndNodeUUID.first;
             for (auto const &nodeUUID : itRT3.second) {
+                if(std::find(intermediateNodes.begin(), intermediateNodes.end(), nodeUUID) != intermediateNodes.end() ||
+                   nodeUUID == mNodeUUID || nodeUUID == mContractorUUID) {
+                    continue;
+                }
+                intermediateNodes.push_back(nodeUUID);
                 for (auto &contactorIntermediateNode : intermediateNodesOnContractorFirstLevel(
                         nodeUUID,
                         intermediateNodes,
                         contractorRT2)) {
                     //info() << "sixth path: " << nodeUUID << " " << contactorIntermediateNode;
-                    intermediateNodes.push_back(nodeUUID);
+
                     intermediateNodes.push_back(contactorIntermediateNode);
                     Path path(
                         mNodeUUID,
@@ -158,23 +177,21 @@ void PathsManager::findPathsOnSixthLevel(
                         intermediateNodes);
                     mPathCollection->add(path);
                     intermediateNodes.pop_back();
-                    intermediateNodes.pop_back();
+
                     //info() << "found path on sixth level";
                 }
+                intermediateNodes.pop_back();
             }
         }
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSixthLevel method time: " << methodTime;
 }
 
 vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevel(
     const NodeUUID &thirdLevelSourceNode,
     vector<NodeUUID> &intermediateNodes,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) const {
-
-    if(std::find(intermediateNodes.begin(), intermediateNodes.end(), thirdLevelSourceNode) != intermediateNodes.end() ||
-            thirdLevelSourceNode == mNodeUUID || thirdLevelSourceNode == mContractorUUID) {
-        return {};
-    }
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) const {
 
     auto nodeUUIDAndVect = contractorRT2.find(thirdLevelSourceNode);
     if (nodeUUIDAndVect == contractorRT2.end()) {
@@ -195,6 +212,7 @@ vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevel(
 // test
 void PathsManager::findPathsOnSecondLevelTest() {
 
+    DateTime startTime = utc_now();
     for (auto const &nodeUUID : mStorageHandler->routingTablesHandler()->subRoutesSecondLevel(mContractorUUID)) {
         Path path(
             mNodeUUID,
@@ -205,10 +223,13 @@ void PathsManager::findPathsOnSecondLevelTest() {
             //info() << "found path on second level";
         }
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSecondLevel test method time: " << methodTime;
 }
 
 void PathsManager::findPathsOnThirdLevelTest() {
 
+    DateTime startTime = utc_now();
     for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
             mContractorUUID)) {
         if (nodeUUIDAndNodeUUID.first == mContractorUUID || nodeUUIDAndNodeUUID.second == mNodeUUID) {
@@ -225,11 +246,14 @@ void PathsManager::findPathsOnThirdLevelTest() {
             //info() << "found path on third level";
         }
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnThirdLevel test method time: " << methodTime;
 }
 
 void PathsManager::findPathsOnForthLevelTest(
     vector<NodeUUID> &contractorRT1) {
 
+    DateTime startTime = utc_now();
     for (auto const &nodeUUID : contractorRT1) {
         if (nodeUUID == mNodeUUID) {
             continue;
@@ -249,11 +273,14 @@ void PathsManager::findPathsOnForthLevelTest(
             }
         }
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnForthLevel test method time: " << methodTime;
 }
 
 void PathsManager::findPathsOnFifthLevelTest(
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
+    DateTime startTime = utc_now();
     for (auto const &itRT2 : contractorRT2) {
         // TODO (mc) : need or not second condition (itRT2.first == contractorUUID)
         if (itRT2.first == mNodeUUID || itRT2.first == mContractorUUID) {
@@ -279,12 +306,15 @@ void PathsManager::findPathsOnFifthLevelTest(
             }
         }
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnFifthLevel test method time: " << methodTime;
 }
 
 void PathsManager::findPathsOnSixthLevelTest(
     unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
+    DateTime startTime = utc_now();
     for (auto const &itRT3 : contractorRT3) {
         // TODO (mc) : need or not second condition (itRT3.first == contractorUUID)
         if (itRT3.first == mNodeUUID || itRT3.first == mContractorUUID) {
@@ -317,11 +347,13 @@ void PathsManager::findPathsOnSixthLevelTest(
             }
         }
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSixthLevel test method time: " << methodTime;
 }
 
 vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevelTest(
     const NodeUUID &thirdLevelSourceNode,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) const {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) const {
 
     auto nodeUUIDAndVect = contractorRT2.find(thirdLevelSourceNode);
     if (nodeUUIDAndVect == contractorRT2.end()) {
@@ -351,7 +383,7 @@ bool PathsManager::isPathValid(const Path &path) {
 void PathsManager::findPaths(
     const NodeUUID &contractorUUID,
     vector<NodeUUID> &contractorRT1,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2,
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2,
     unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3) {
 
     mContractorUUID = contractorUUID;
@@ -375,9 +407,12 @@ void PathsManager::findPaths(
     Duration methodTime = utc_now() - startTime;
     info() << "PathsManager::findPath\tmethod time: " << methodTime;
     info() << "total paths count: " << mPathCollection->count();
-    /*while (mPathCollection->hasNextPath()) {
-        info() << mPathCollection->nextPath()->toString();
-    }*/
+    while (mPathCollection->hasNextPath()) {
+        //info() << mPathCollection->nextPath()->toString();
+        if (!isPathValid(*mPathCollection->nextPath().get())) {
+            info() << "wrong path!!! ";
+        }
+    }
 }
 
 void PathsManager::findPathsOnSelfArea(
@@ -404,7 +439,7 @@ void PathsManager::findPathsOnSelfArea(
 void PathsManager::findPathsTest(
     const NodeUUID &contractorUUID,
     vector<NodeUUID> &contractorRT1,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2,
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2,
     unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3) {
 
     mContractorUUID = contractorUUID;
@@ -644,6 +679,11 @@ void PathsManager::testStorageHandler() {
     }
     mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
 
+    info() << "all destinations for source: " << *nodeUUID81Ptr;
+    for (const auto &itVect : mStorageHandler->routingTablesHandler()->routingTable2Level()->allDestinationsForSource(*nodeUUID81Ptr)) {
+        info() << "\t\t\t" << itVect;
+    }
+
     delete nodeUUID81Ptr;
     delete nodeUUID82Ptr;
     delete nodeUUID83Ptr;
@@ -814,8 +854,8 @@ void PathsManager::testPaymentStateOperationsHandler() {
 
 void PathsManager::fillBigRoutingTables() {
 
-    uint32_t firstLevelNode = 20;
-    uint32_t countNodes = 1000;
+    uint32_t firstLevelNode = 10;
+    uint32_t countNodes = 800;
     srand (time(NULL));
     vector<NodeUUID*> nodeUUIDPtrs;
     nodeUUIDPtrs.reserve(countNodes);
@@ -863,7 +903,7 @@ void PathsManager::fillBigRoutingTables() {
                 TrustLineDirection::Both);
         }
         mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-        info() << "fillBigRoutingTables:: second level commit";
+        //info() << "fillBigRoutingTables:: second level commit";
     }
     info() << "fillBigRoutingTables:: second level done";
     for (auto secondLevelIdx : secondLevelAllNodes) {
@@ -885,7 +925,7 @@ void PathsManager::fillBigRoutingTables() {
                 TrustLineDirection::Both);
         }
         mStorageHandler->routingTablesHandler()->routingTable3Level()->commit();
-        info() << "fillBigRoutingTables:: third level commit";
+        //info() << "fillBigRoutingTables:: third level commit";
     }
     info() << "fillBigRoutingTables:: third level done";
     for (auto nodeUUIDPrt : nodeUUIDPtrs) {
@@ -913,6 +953,40 @@ NodeUUID* PathsManager::getPtrByNodeNumber(
             return nodeUUIDPtr;
         }
     }
+}
+
+void PathsManager::testTime() {
+
+    NodeUUID sourceWithMaxDestinaions = mStorageHandler->routingTablesHandler()->routingTable3Level()->sourceMaxCount();
+    info() << "testTime\t" << "source with max destinaions: " << sourceWithMaxDestinaions;
+
+    NodeUUID* testNode = new NodeUUID(sourceWithMaxDestinaions);
+    info() << "testTime\t" << "allDestinationForSource 3level size: " <<
+           mStorageHandler->routingTablesHandler()->routingTable3Level()->allDestinationsForSource(*testNode).size();
+
+    info() << "testTime\t" << "RT2 size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords().size();
+    info() << "testTime\t" << "RT2 size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithResesrve().size();
+    info() << "testTime\t" << "RT2 with directions size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections().size();
+    info() << "testTime\t" << "RT2 with directions size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsWithReserve().size();
+    info() << "testTime\t" << "RT2 map size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey().size();
+    info() << "testTime\t" << "RT2 map size opt: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKeyOpt().size();
+    info() << "testTime\t" << "RT2 map size opt1: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKeyOpt1().size();
+    info() << "testTime\t" << "RT2 map size opt2: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKeyOpt2().size();
+    info() << "testTime\t" << "RT2 map size opt3: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKeyOpt3().size();
+    info() << "testTime\t" << "RT2 map size opt4: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKeyOpt4().size();
+    info() << "testTime\t" << "RT2 map size opt5: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKeyOpt5().size();
+
+    info() << "testTime\t" << "RT3 size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecords().size();
+    info() << "testTime\t" << "RT3 size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsWithResesrve().size();
+    info() << "testTime\t" << "RT3 with directions size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsWithDirections().size();
+    info() << "testTime\t" << "RT3 with directions size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsWithDirectionsWithReserve().size();
+    info() << "testTime\t" << "RT3 map size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey().size();
+    info() << "testTime\t" << "RT3 map size opt: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKeyOpt().size();
+    info() << "testTime\t" << "RT3 map size opt1: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKeyOpt1().size();
+    info() << "testTime\t" << "RT3 map size opt2: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKeyOpt2().size();
+    info() << "testTime\t" << "RT3 map size opt3: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKeyOpt3().size();
+    info() << "testTime\t" << "RT3 map size opt4: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKeyOpt4().size();
+    info() << "testTime\t" << "RT3 map size opt5: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKeyOpt5().size();
 }
 
 LoggerStream PathsManager::info() const {

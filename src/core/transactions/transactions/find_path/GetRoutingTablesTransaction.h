@@ -9,6 +9,7 @@
 #include "../../../network/messages/find_path/ResultRoutingTable1LevelMessage.h"
 #include "../../../network/messages/find_path/ResultRoutingTable2LevelMessage.h"
 #include "../../../network/messages/find_path/ResultRoutingTable3LevelMessage.h"
+#include "../../../network/messages/find_path/ResultRoutingTable3LevelVectorMessage.h"
 
 class GetRoutingTablesTransaction : public BaseTransaction {
 

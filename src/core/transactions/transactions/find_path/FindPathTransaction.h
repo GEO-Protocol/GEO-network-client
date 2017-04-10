@@ -10,10 +10,13 @@
 #include "../../../network/messages/find_path/ResultRoutingTable1LevelMessage.h"
 #include "../../../network/messages/find_path/ResultRoutingTable2LevelMessage.h"
 #include "../../../network/messages/find_path/ResultRoutingTable3LevelMessage.h"
+#include "../../../network/messages/find_path/ResultRoutingTable3LevelVectorMessage.h"
 #include "../../../paths/lib/Path.h"
 #include "../../../logger/Logger.h"
 
 #include <vector>
+#include <unordered_map>
+#include <boost/functional/hash.hpp>
 
 class FindPathTransaction : public BaseTransaction {
 
@@ -47,7 +50,7 @@ private:
 
 private:
 
-    const uint32_t kConnectionTimeout = 1000;
+    const uint32_t kConnectionTimeout = 8000;
     const uint16_t kMaxRequestsCount = 1;
 
 private:
@@ -61,8 +64,9 @@ private:
     size_t previousContextSize;
     bool isReceiveContractorRT1;
     vector<NodeUUID> mRT1;
-    unordered_map<NodeUUID, vector<NodeUUID>> mRT2;
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> mRT2;
     unordered_map<NodeUUID, vector<NodeUUID>> mRT3;
+    vector<pair<NodeUUID, NodeUUID>> mRTV3;
 };
 
 
