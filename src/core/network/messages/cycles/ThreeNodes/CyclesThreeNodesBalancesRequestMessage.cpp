@@ -22,8 +22,8 @@ pair<BytesShared, size_t> CyclesThreeNodesBalancesRequestMessage::serializeToByt
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     uint16_t neighborsCount = mNeighbors.size();
     size_t bytesCount = parentBytesAndCount.second
-                        + neighborsCount
-                        + mNeighbors.size() * NodeUUID::kBytesSize;
+                        + sizeof(neighborsCount)
+                        + neighborsCount * NodeUUID::kBytesSize;
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -40,7 +40,7 @@ pair<BytesShared, size_t> CyclesThreeNodesBalancesRequestMessage::serializeToByt
             &neighborsCount,
             sizeof(neighborsCount)
     );
-    dataBytesOffset += neighborsCount;
+    dataBytesOffset += sizeof(neighborsCount);
 
     for(auto const& value: mNeighbors) {
         memcpy(
@@ -60,7 +60,7 @@ pair<BytesShared, size_t> CyclesThreeNodesBalancesRequestMessage::serializeToByt
 void CyclesThreeNodesBalancesRequestMessage::deserializeFromBytes(
         BytesShared buffer) {
 
-    SenderMessage::deserializeFromBytes(buffer);
+    TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
     uint16_t neighborsCount;
@@ -68,7 +68,7 @@ void CyclesThreeNodesBalancesRequestMessage::deserializeFromBytes(
     memcpy(
             &neighborsCount,
             buffer.get() + bytesBufferOffset,
-            sizeof(uint8_t)
+            sizeof(uint16_t)
     );
     bytesBufferOffset += sizeof(neighborsCount);
 

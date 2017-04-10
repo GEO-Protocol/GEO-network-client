@@ -522,7 +522,7 @@ set<NodeUUID> RoutingTableHandler::allDestinationsForSource(
                               "Bad Source binding");
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        NodeUUID destination((uint8_t *)sqlite3_column_blob(stmt, 1));
+        NodeUUID destination((uint8_t *)sqlite3_column_blob(stmt, 0));
         result.insert(destination);
     }
     sqlite3_reset(stmt);

@@ -13,10 +13,12 @@ CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage
 CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    uint16_t neighborsUUUID):
-TransactionMessage(senderUUID, transactionUUID)
+    uint16_t neighborsUUUIDCount):
+    TransactionMessage(
+            senderUUID,
+            transactionUUID)
 {
-    mNeighborsUUUID.reserve(neighborsUUUID);
+    mNeighborsUUUID.reserve(neighborsUUUIDCount);
 }
 
 std::pair<BytesShared, size_t> CyclesThreeNodesBalancesResponseMessage::serializeToBytes() {
@@ -44,7 +46,6 @@ std::pair<BytesShared, size_t> CyclesThreeNodesBalancesResponseMessage::serializ
             sizeof(uint16_t)
     );
     dataBytesOffset += sizeof(uint16_t);
-    vector<byte> stepObligationFlow;
     for(const auto &kNodeUUUID: mNeighborsUUUID){
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
@@ -53,7 +54,6 @@ std::pair<BytesShared, size_t> CyclesThreeNodesBalancesResponseMessage::serializ
         );
         dataBytesOffset += NodeUUID::kBytesSize;
     }
-
     return make_pair(
             dataBytesShared,
             bytesCount
@@ -69,9 +69,8 @@ CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage
 }
 
 void CyclesThreeNodesBalancesResponseMessage::deserializeFromBytes(BytesShared buffer) {
-    SenderMessage::deserializeFromBytes(buffer);
+    TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-
 //    Get NodesCount
     uint16_t boundaryNodesCount;
     memcpy(
@@ -90,7 +89,6 @@ void CyclesThreeNodesBalancesResponseMessage::deserializeFromBytes(BytesShared b
         );
         bytesBufferOffset += NodeUUID::kBytesSize;
         mNeighborsUUUID.push_back(stepNodeUUID);
-        bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
     };
 }
 

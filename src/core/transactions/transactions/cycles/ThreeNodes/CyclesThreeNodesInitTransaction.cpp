@@ -9,7 +9,8 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
 
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_ThreeNodesInitTransaction,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mRoutingTablesHandler(routingTablesHandler),
     mTrustLinesManager(manager),
     mLogger(logger),
@@ -34,7 +35,6 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run() {
 set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     const TrustLineBalance kZeroBalance = 0;
-
     auto contractorNeighbors =
         mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(
         mContractorUUID);
@@ -50,16 +50,15 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
         else
             if (kTL->balance() < kZeroBalance)
                 ownNeighbors.insert(kNodeUUIDAndTrustLine.first);
-
-        set_intersection(
+    }
+    set_intersection(
             ownNeighbors.begin(),
             ownNeighbors.end(),
             contractorNeighbors.begin(),
             contractorNeighbors.end(),
             std::inserter(
-                commonNeighbors,
-                commonNeighbors.begin()));
-    }
+                    commonNeighbors,
+                    commonNeighbors.begin()));
 
     return commonNeighbors;
 }
@@ -70,7 +69,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
     sendMessage<CyclesThreeNodesBalancesRequestMessage>(
         mContractorUUID,
         mNodeUUID,
-        mTransactionUUID,
+        UUID(),
         neighbors);
 
     mStep = Stages::ParseMessageAndCreateCycles;
@@ -80,7 +79,6 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
 }
 
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
-
     if (mContext.size() != 1){
         return finishTransaction();
     }
@@ -91,9 +89,11 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
             mNodeUUID,
             mContractorUUID,
             nodeUUIDAndBalance};
+        #ifdef DEBUG
         stringstream ss;
         copy(cycle.begin(), cycle.end(), ostream_iterator<NodeUUID>(ss, " "));
-        info() << "CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage " << ss.str() << endl;
+        debug() << "CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage " << ss.str() << endl;
+        #endif
     }
 
     //            todo run transaction to close cycle

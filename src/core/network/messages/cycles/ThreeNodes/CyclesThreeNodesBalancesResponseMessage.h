@@ -14,7 +14,7 @@ public:
     CyclesThreeNodesBalancesResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        uint16_t neighborsUUUID);
+        uint16_t neighborsUUUIDCount);
 
     CyclesThreeNodesBalancesResponseMessage(
             const NodeUUID &senderUUID,
