@@ -41,12 +41,14 @@ Path::Shared PathsCollection::nextPath() {
         throw IndexError("PathsCollection::nextPath "
                                  "no paths are available");
     }
+
     if (mCurrentPath == 0) {
         if (mIsDirectPathPresent && !mIsReturnDirectPath) {
             mIsReturnDirectPath = true;
             return make_shared<Path>(
                 mSourceNode,
                 mDestinationNode);
+
         } else {
             mCurrentPath++;
             return make_shared<Path>(

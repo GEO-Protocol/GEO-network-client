@@ -58,7 +58,7 @@ void BaseTransaction::launchSubsidiaryTransaction(
     );
 }
 
-TransactionResult::Shared BaseTransaction::exit() const
+TransactionResult::Shared BaseTransaction::resultExit() const
 {
     return make_shared<TransactionResult>(
         TransactionState::exit());

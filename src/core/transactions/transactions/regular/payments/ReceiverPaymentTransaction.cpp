@@ -90,7 +90,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
             ReceiverInitPaymentResponseMessage::Rejected);
 
         return exitWithResult(
-            exit(),
+            resultExit(),
             "Operation rejected due to insufficient funds.");
     }
 

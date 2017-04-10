@@ -41,8 +41,8 @@ public:
 
 public:
     // TODO: add other states shortcuts here
-    TransactionResult::Shared resultExit();
-    TransactionResult::Shared resultFlushAndContinue();
+    TransactionResult::Shared resultExit() const;
+    TransactionResult::Shared resultFlushAndContinue() const;
     TransactionResult::Shared resultWaitForMessageTypes(
         vector<Message::MessageTypeID> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;

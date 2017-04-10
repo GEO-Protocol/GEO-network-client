@@ -352,7 +352,7 @@ TransactionResult::SharedConst BasePaymentTransaction::reject(
     rollBack();
     info() << "Transaction succesfully rolled back.";
 
-    return exit();
+    return resultExit();
 }
 
 /*
@@ -370,7 +370,7 @@ TransactionResult::SharedConst BasePaymentTransaction::approve()
     info() << "Transaction approved. Committing.";
 
     commit();
-    return exit();
+    return resultExit();
 }
 
 void BasePaymentTransaction::commit ()
@@ -418,7 +418,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
         info() << message;
 
     // TODO: implement me;
-    return exit();
+    return resultExit();
 }
 
 uint32_t BasePaymentTransaction::maxNetworkDelay (
