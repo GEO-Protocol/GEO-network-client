@@ -26,6 +26,10 @@ public:
 
     void deleteLegacyTrustLines();
 
+    size_t trustLinesCounts() const;
+
+    void printTrustLines() const;
+
 private:
     // comparing two trustLines for sorting
     struct {
@@ -41,8 +45,8 @@ private:
 private:
 
     static const byte kResetTrustLinesHours = 0;
-    static const byte kResetTrustLinesMinutes = 0;
-    static const byte kResetTrustLinesSeconds = 10;
+    static const byte kResetTrustLinesMinutes = 20;
+    static const byte kResetTrustLinesSeconds = 0;
 
     static Duration& kResetTrustLinesDuration() {
         static auto duration = Duration(
@@ -52,8 +56,12 @@ private:
         return duration;
     }
 
-// todo make private after testing
-public:
+private:
+    LoggerStream info() const;
+
+    const string logHeader() const;
+
+private:
     unordered_map<NodeUUID, trustLineWithPtrHashSet*> msTrustLines;
     map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
     Logger *mLog;

@@ -102,6 +102,25 @@ int Core::initCoreComponents() {
 
     connectSignalsToSlots();
 
+    // TODO: Remove me
+    // This scheme is needd for payments tests
+    // Please, do no remove it untile payments would be done
+
+    if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff00")) {
+        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(100));
+
+    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff01")) {
+        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff00"), TrustLineAmount(100));
+        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(90));
+
+    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff02")) {
+        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(90));
+        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff03"), TrustLineAmount(80));
+
+    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff03")) {
+        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(80));
+    }
+
     return 0;
 }
 
@@ -249,7 +268,6 @@ int Core::initCommandsInterface() {
     try {
         mCommandsInterface = new CommandsInterface(
             mIOService,
-            mTransactionsManager,
             &mLog
         );
         mLog.logSuccess("Core", "Commands interface is successfully initialised");
@@ -259,6 +277,15 @@ int Core::initCommandsInterface() {
         mLog.logException("Core", e);
         return -1;
     }
+}
+
+void Core::connectCommandsInterfaceSignals ()
+{
+    mCommandsInterface->commandReceivedSignal.connect(
+        boost::bind(
+            &Core::onCommandReceivedSlot,
+            this,
+            _1));
 }
 
 void Core::connectCommunicatorSignals() {
@@ -282,7 +309,6 @@ void Core::connectCommunicatorSignals() {
         )
     );
 }
-
 void Core::connectTrustLinesManagerSignals() {
 
     mTrustLinesManager->trustLineCreatedSignal.connect(
@@ -303,6 +329,7 @@ void Core::connectTrustLinesManagerSignals() {
         )
     );
 }
+
 void Core::connectDelayedTasksSignals(){
     mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
             boost::bind(
@@ -324,20 +351,32 @@ void Core::connectDelayedTasksSignals(){
 
 void Core::connectSignalsToSlots() {
 
+    connectCommandsInterfaceSignals();
     connectCommunicatorSignals();
     connectTrustLinesManagerSignals();
     connectDelayedTasksSignals();
 }
 
+void Core::onCommandReceivedSlot (
+    BaseUserCommand::Shared command)
+{
+    try {
+        mTransactionsManager->processCommand(command);
+
+    } catch(exception &e) {
+        mLog.logException("Core", e);
+    }
+}
+
 void Core::onMessageReceivedSlot(
     Message::Shared message) {
 
-//    try {
+    try {
         mTransactionsManager->processMessage(message);
 
-//    } catch(exception &e) {
-//        mLog.logException("Core", e);
-//    }
+    } catch(exception &e) {
+        mLog.logException("Core", e);
+    }
 }
 
 void Core::onMessageSendSlot(
@@ -456,8 +495,6 @@ void Core::zeroPointers() {
     mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
 }
 
-//void Core::initTimers() {
-//
 //}
 
 void Core::JustToTestSomething() {

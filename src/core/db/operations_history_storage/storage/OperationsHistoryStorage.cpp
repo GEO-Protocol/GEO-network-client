@@ -62,6 +62,8 @@ namespace db {
 
             } catch (NotFoundError) {
                 return result;
+            } catch (IOError) {
+                return result;
             }
         }
 
@@ -85,6 +87,8 @@ namespace db {
                 return result;
 
             } catch (NotFoundError) {
+                return result;
+            } catch (IOError) {
                 return result;
             }
         }

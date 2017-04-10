@@ -6,8 +6,10 @@ set(SOURCE_FILES
 
         CoordinatorPaymentTransaction.h
         CoordinatorPaymentTransaction.cpp
-        ReceiverPaymentTransaction.cpp
+
         ReceiverPaymentTransaction.h
+        ReceiverPaymentTransaction.cpp
+
         IntermediateNodePaymentTransaction.h
         IntermediateNodePaymentTransaction.cpp)
 

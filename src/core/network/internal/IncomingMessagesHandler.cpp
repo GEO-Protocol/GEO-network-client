@@ -90,29 +90,32 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         /*
          * Payment operations messages
          */
-        case Message::Payments_CoordinatorReservationRequest: {
+        case Message::Payments_CoordinatorReservationRequest:
             return messageCollected<CoordinatorReservationRequestMessage>(messagePart);
-        }
 
-        case Message::Payments_CoordinatorReservationResponse: {
+        case Message::Payments_CoordinatorReservationResponse:
             return messageCollected<CoordinatorReservationResponseMessage>(messagePart);
-        }
 
-        case Message::Payments_ReceiverInitPaymentRequest: {
+        case Message::Payments_ReceiverInitPaymentRequest:
             return messageCollected<ReceiverInitPaymentRequestMessage>(messagePart);
-        }
 
-        case Message::Payments_ReceiverInitPaymentResponse: {
+        case Message::Payments_ReceiverInitPaymentResponse:
             return messageCollected<ReceiverInitPaymentResponseMessage>(messagePart);
-        }
 
-        case Message::Payments_IntermediateNodeReservationRequest: {
+        case Message::Payments_IntermediateNodeReservationRequest:
             return messageCollected<IntermediateNodeReservationRequestMessage>(messagePart);
-        }
 
-        case Message::Payments_IntermediateNodeReservationResponse: {
+        case Message::Payments_IntermediateNodeReservationResponse:
             return messageCollected<IntermediateNodeReservationResponseMessage>(messagePart);
-        }
+
+        case Message::Payments_ParticipantsVotes:
+            return messageCollected<ParticipantsVotesMessage>(messagePart);
+
+        case Message::Payments_ParticipantsPathsConfigurationRequest:
+            return messageCollected<ParticipantsConfigurationRequestMessage>(messagePart);
+
+        case Message::Payments_ParticipantsPathsConfiguration:
+            return messageCollected<ParticipantsConfigurationMessage>(messagePart);
 
         /*
          * Cycles processing messages
@@ -234,12 +237,11 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeResponse(
     }
 };
 
-pair<bool, Message::Shared> MessagesParser::messageInvalidOrIncomplete() {
-
+pair<bool, Message::Shared> MessagesParser::messageInvalidOrIncomplete()
+{
     return make_pair(
         false,
-        Message::Shared(nullptr)
-                );
+        Message::Shared(nullptr));
 }
 
 template <class CollectedMessageType>

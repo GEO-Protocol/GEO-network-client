@@ -20,8 +20,8 @@ MaxFlowCalculationSourceFstLevelMessage::Shared MaxFlowCalculationSourceFstLevel
 
 TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run() {
 
-    info() << "run\t" << "Iam: " << mNodeUUID.stringUUID();
-    info() << "run\t" << "sender: " << mMessage->senderUUID().stringUUID();
+    info() << "run\t" << "Iam: " << mNodeUUID;
+    info() << "run\t" << "sender: " << mMessage->senderUUID();
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 
@@ -31,7 +31,7 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
             continue;
         }
 
-        info() << "sendFirst\t" << nodeUUIDOutgoingFlow.stringUUID();
+        info() << "sendFirst\t" << nodeUUIDOutgoingFlow;
 
         sendMessage<MaxFlowCalculationSourceSndLevelMessage>(
                 nodeUUIDOutgoingFlow,

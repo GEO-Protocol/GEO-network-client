@@ -405,17 +405,23 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
     const AmountReservation::ConstShared reservation,
     const TrustLineAmount &newAmount) {
 
-    // todo: ensure reservations
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(newAmount > TrustLineAmount(0));
+#endif
 
-    if ((*mTrustLines.at(contractor)->availableAmount() - reservation->amount()) >= newAmount) {
+    // Note: copy of shared ptr is required
+    const auto kTL = mTrustLines[contractor];
+    const auto kAvailableAmount = *(kTL->availableAmount());
+
+    // Previous reservation would be removed (updated),
+    // so it's amount must be added to the the available maount on the trust line.
+    if (kAvailableAmount + reservation->amount() >= newAmount)
         return mAmountBlocksHandler->updateReservation(
             contractor,
             reservation,
-            newAmount
-        );
-    }
-    throw ValueError("TrustLinesManager::reserveAmount: "
-                         "Trust line has not enought amount.");
+            newAmount);
+
+    throw ValueError("TrustLinesManager::reserveAmount: trust line has not enough amount.");
 }
 
 void TrustLinesManager::dropAmountReservation(
@@ -710,4 +716,51 @@ vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesFo
         }
     }
     return Nodes;
+}
+
+void TrustLinesManager::useReservation(
+    const NodeUUID &contractor,
+    const AmountReservation::ConstShared reservation)
+{
+    if (mTrustLines.count(contractor) != 1)
+        throw NotFoundError(
+            "TrustLinesManager::useReservation: no trust line to the contractor.");
+
+    if (reservation->direction() == AmountReservation::Outgoing)
+        mTrustLines[contractor]->pay(reservation->amount());
+    else if (reservation->direction() == AmountReservation::Incoming)
+        mTrustLines[contractor]->acceptPayment(reservation->amount());
+    else
+        throw ValueError(
+            "TrustLinesManager::useReservation: invalid trust line direction occurred.");
+}
+
+/**
+ * @returns total summary of all outgoing possibilities of the node.
+ */
+ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmount () const
+    throw (bad_alloc)
+{
+    auto totalAmount = make_shared<TrustLineAmount>(0);
+    for (const auto kTrustLine : mTrustLines) {
+        const auto kTLAmount = kTrustLine.second->availableAmount();
+        *totalAmount += *(kTLAmount);
+    }
+
+    return totalAmount;
+}
+
+/**
+ * @returns total summary of all incoming possibilities of the node.
+ */
+ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount () const
+    throw (bad_alloc)
+{
+    auto totalAmount = make_shared<TrustLineAmount>(0);
+    for (const auto kTrustLine : mTrustLines) {
+        const auto kTLAmount = kTrustLine.second->availableIncomingAmount();
+        *totalAmount += *(kTLAmount);
+    }
+
+    return totalAmount;
 }

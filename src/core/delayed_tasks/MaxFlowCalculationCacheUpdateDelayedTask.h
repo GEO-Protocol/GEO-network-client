@@ -23,7 +23,7 @@ public:
         const boost::system::error_code &error);
 
 private:
-    const uint32_t kSignalRepeatTimeSeconds = 40;
+    const uint32_t kSignalRepeatTimeSeconds = 600;
 
 private:
     as::io_service &mIOService;

@@ -22,9 +22,9 @@ MaxFlowCalculationSourceSndLevelMessage::Shared MaxFlowCalculationSourceSndLevel
 
 TransactionResult::SharedConst MaxFlowCalculationSourceSndLevelTransaction::run() {
 
-    info() << "run\t" << "Iam: " << mNodeUUID.stringUUID();
-    info() << "run\t" << "sender: " << mMessage->senderUUID().stringUUID();
-    info() << "run\t" << "target: " << mMessage->targetUUID().stringUUID();
+    info() << "run\t" << "Iam: " << mNodeUUID;
+    info() << "run\t" << "sender: " << mMessage->senderUUID();
+    info() << "run\t" << "target: " << mMessage->targetUUID();
 
     sendResultToInitiator();
 
@@ -42,7 +42,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator() {
         return;
     }
 
-    info() << "sendResultToInitiator\t" << "send to " << mMessage->targetUUID().stringUUID();
+    info() << "sendResultToInitiator\t" << "send to " << mMessage->targetUUID();
     vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {
         if (outgoingFlow.first != mMessage->senderUUID() && outgoingFlow.first != mMessage->targetUUID()) {
@@ -76,17 +76,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator() {
 void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
     MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr) {
 
-    info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID().stringUUID();
-
-    info() << "sendCachedResultToInitiator\t" << "cache:";
-    info() << "sendCachedResultToInitiator\t" << "outgoing: " << maxFlowCalculationCachePtr->mOutgoingFlows.size();
-    for (auto const &it : maxFlowCalculationCachePtr->mOutgoingFlows) {
-        info() << "sendCachedResultToInitiator\t" << "out uuid: " << it.first.stringUUID();
-    }
-    info() << "sendCachedResultToInitiator\t" << "incoming: " << maxFlowCalculationCachePtr->mIncomingFlows.size();
-    for (auto const &it : maxFlowCalculationCachePtr->mIncomingFlows) {
-        info() << "sendCachedResultToInitiator\t" << "in uuid: " + it.first.stringUUID();
-    }
+    info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID();
 
     vector<pair<NodeUUID, TrustLineAmount>> outgoingFlowsForSending;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {

@@ -20,7 +20,7 @@ public:
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const OperationState state,
-        const TrustLineAmount &reservedAmount);
+        const TrustLineAmount &reservedAmount=0);
 
     CoordinatorReservationResponseMessage(
         BytesShared buffer);

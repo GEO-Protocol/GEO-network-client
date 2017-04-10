@@ -106,11 +106,21 @@ public:
         const NodeUUID &contractor,
         const AmountReservation::ConstShared reservation);
 
+    void useReservation(
+        const NodeUUID &contractor,
+        const AmountReservation::ConstShared reservation);
+
     ConstSharedTrustLineAmount availableOutgoingAmount(
         const NodeUUID &contractor);
 
     ConstSharedTrustLineAmount availableIncomingAmount(
         const NodeUUID &contractor);
+
+    ConstSharedTrustLineAmount totalOutgoingAmount()
+        const throw (bad_alloc);
+
+    ConstSharedTrustLineAmount totalIncomingAmount()
+        const throw (bad_alloc);
 
     const bool isTrustLineExist(
         const NodeUUID &contractorUUID) const;
