@@ -119,7 +119,7 @@ private:
 
     void checkSomething();
 
-    void test_ThreeNodesTransaction();
+    void test_FourNodesTransaction();
 
 protected:
     Logger mLog;
