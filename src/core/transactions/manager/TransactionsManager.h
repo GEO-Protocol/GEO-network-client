@@ -40,6 +40,7 @@
 #include "../../resources/manager/ResourcesManager.h"
 
 #include "../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
+#include "../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 
 #include "../../resources/resources/BaseResource.h"
@@ -60,13 +61,14 @@
 #include "../transactions/unique/routing_tables/update/RoutingTablesUpdateTransactionsFactory.h"
 #include "../transactions/unique/routing_tables/update/AcceptRoutingTablesUpdatesTransaction.h"
 
-#include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesInitTransaction.h"
-#include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesInitTransaction.h"
-#include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.h"
-#include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesReceiverTransaction.h"
-
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
+#include "../transactions/cycles/FourNodes/CyclesFourNodesInitTransaction.h"
+#include "../transactions/cycles/FourNodes/CyclesFourNodesReceiverTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesInitTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesInitTransaction.h"
+#include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesReceiverTransaction.h"
 
 
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
@@ -140,8 +142,8 @@ public:
 //    void launchGetThreeNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
 //    void launchGetThreeNodesNeighborBalancesTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message);
 //
-//    void launchGetFourNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
-//    void launchGetFourNodesNeighborBalancesTransaction(CyclesFourNodesBalancesRequestMessage::Shared message);
+    void launchFourNodesCyclesInitTransaction(const NodeUUID &debtorUUID, const NodeUUID &creditorUUID);
+    void launchFourNodesCyclesResponseTransaction(CyclesFourNodesBalancesRequestMessage::Shared message);
 
     void launchThreeNodesCyclesInitTransaction(const NodeUUID &contractorUUID);
     void launchThreeNodesCyclesResponseTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message);

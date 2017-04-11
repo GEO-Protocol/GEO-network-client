@@ -70,7 +70,7 @@ void TrustLinesManager::open(
         if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setOutgoingTrustAmount(amount);
             // todo delete this
-            trustLine->setBalance(50);
+            trustLine->setBalance(-50);
             // todo delete this
             trustLine->activateOutgoingDirection();
             saveToDisk(trustLine);
@@ -89,7 +89,7 @@ void TrustLinesManager::open(
                 amount,
                 0);
             // todo delete this
-            trustLine->setBalance(50);
+            trustLine->setBalance(-50);
             // todo delete this
             trustLine->activateOutgoingDirection();
 
@@ -154,7 +154,7 @@ void TrustLinesManager::accept(
         if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setIncomingTrustAmount(amount);
             // todo delete this
-            trustLine->setBalance(-50);
+            trustLine->setBalance(50);
             // todo delete this
             trustLine->activateIncomingDirection();
             saveToDisk(trustLine);
@@ -173,7 +173,7 @@ void TrustLinesManager::accept(
                 0);
             trustLine->activateIncomingDirection();
             // todo delete this
-            trustLine->setBalance(-50);
+            trustLine->setBalance(50);
             // todo delete this
 
         } catch (std::bad_alloc &e) {

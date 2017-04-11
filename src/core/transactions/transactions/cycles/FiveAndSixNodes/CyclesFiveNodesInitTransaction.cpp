@@ -38,7 +38,15 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
+    if (mContext.size() == 0) {
+        cout << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
+                "No responses messages "
+                "Can't create cycles;";
 
+        return resultExit();
+    }
+    cout << "_____________________________________________________________________" << endl;
+    cout  << "CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage " << endl;
     TrustLineBalance zeroBalance = 0;
     CycleMap mCreditors;
     TrustLineBalance creditorsStepFlow;
@@ -95,11 +103,14 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
                 // Todo run cycles
                 // Потрібно ставити первірку на доречність перекриття цилів
                 // Ця транакція має верта нам дані про те через який трастлайн неможна зробити перрозрахунок
+                stringstream ss;
+                copy(stepCyclePath.begin(), stepCyclePath.end(), ostream_iterator<NodeUUID>(ss, "]["));
+                cout << "ResultCycles: " << ss.str() << endl;
                 stepCyclePath.clear();
             }
         }
     }
     mContext.clear();
-    return finishTransaction();
+    return resultExit();
 }
 #pragma clang diagnostic pop

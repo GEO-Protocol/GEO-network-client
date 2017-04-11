@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmultiprecision.a  
+/usr/bin/ranlib libmultiprecision.a

@@ -66,7 +66,6 @@ void TransactionsScheduler::killTransaction(
 
 void TransactionsScheduler::tryAttachMessageToTransaction(
     Message::Shared message) {
-
     // TODO: check the message type before the loop
     for (auto const &transactionAndState : *mTransactions) {
 
@@ -103,17 +102,17 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
                     break;
                 }
             }
-
-
         }
-
         for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
             if (message->typeID() != messageType) {
                 continue;
             }
-
             transactionAndState.first->pushContext(message);
             launchTransaction(transactionAndState.first);
+            return;
+        }
+        if (transactionAndState.second->awakeningTimestamp() != 0 and transactionAndState.second->acceptedMessagesTypes().size() == 0){
+            transactionAndState.first->pushContext(message);
             return;
         }
     }

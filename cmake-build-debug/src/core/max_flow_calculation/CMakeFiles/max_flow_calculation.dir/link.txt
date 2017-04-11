@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmax_flow_calculation.a  CMakeFiles/max_flow_calculation.dir/MaxFlowCalculationTrustLine.cpp.o CMakeFiles/max_flow_calculation.dir/manager/MaxFlowCalculationTrustLineManager.cpp.o CMakeFiles/max_flow_calculation.dir/cashe/MaxFlowCalculationCache.cpp.o CMakeFiles/max_flow_calculation.dir/cashe/MaxFlowCalculationCacheManager.cpp.o CMakeFiles/max_flow_calculation.dir/manager/MaxFlowCalculationTrustLineWithPtr.cpp.o
+/usr/bin/ranlib libmax_flow_calculation.a

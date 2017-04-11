@@ -36,14 +36,13 @@ std::pair<BytesShared, size_t> CyclesFourNodesBalancesResponseMessage::serialize
             parentBytesAndCount.second
     );
     dataBytesOffset += parentBytesAndCount.second;
-    vector<byte> stepObligationFlow;
     // for mNeighborsUUIDs
     memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &neighborsNodesCount,
-            sizeof(uint16_t)
+            sizeof(neighborsNodesCount)
     );
-    dataBytesOffset += sizeof(uint16_t);
+    dataBytesOffset += sizeof(neighborsNodesCount);
     for(const auto &kNodeUUID: mNeighborsUUID){
         memcpy(
                 dataBytesShared.get() + dataBytesOffset,
@@ -52,6 +51,10 @@ std::pair<BytesShared, size_t> CyclesFourNodesBalancesResponseMessage::serialize
         );
         dataBytesOffset += NodeUUID::kBytesSize;
     }
+//    cout << "_______________________________" << endl;
+//    cout << "CyclesFourNodesBalancesResponseMessage::serializeToBytes" << endl;
+//    cout << "Transaction UUID: " << this->transactionUUID() << endl;
+//    cout << "_______________________________" << endl;
     return make_pair(
             dataBytesShared,
             bytesCount
@@ -76,9 +79,9 @@ void CyclesFourNodesBalancesResponseMessage::deserializeFromBytes(BytesShared bu
     memcpy(
             &neighborsNodesCount,
             buffer.get() + bytesBufferOffset,
-            sizeof(uint16_t)
+            sizeof(neighborsNodesCount)
     );
-    bytesBufferOffset += sizeof(uint16_t);
+    bytesBufferOffset += sizeof(neighborsNodesCount);
 //    Parse mNeighborsUUIDS
     for (uint16_t i=1; i<=neighborsNodesCount; i++){
         memcpy(
@@ -89,10 +92,15 @@ void CyclesFourNodesBalancesResponseMessage::deserializeFromBytes(BytesShared bu
         bytesBufferOffset += NodeUUID::kBytesSize;
         mNeighborsUUID.push_back(stepNodeUUID);
     };
+//    cout << "_______________________________" << endl;
+//    cout << "CyclesFourNodesBalancesResponseMessage::deserializeFromBytes" << endl;
+//    cout << "Transaction UUID: " << this->transactionUUID() << endl;
+//    cout << "_______________________________" << endl;
+
 }
 
 const bool CyclesFourNodesBalancesResponseMessage::isTransactionMessage() const {
-    return  true;
+    return true;
 }
 
 vector<NodeUUID> CyclesFourNodesBalancesResponseMessage::NeighborsUUID() {

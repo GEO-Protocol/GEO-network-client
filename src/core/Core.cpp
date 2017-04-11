@@ -380,7 +380,13 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
-    mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
+//    mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
+//            boost::bind(
+//                    &Core::onDelayedTaskCycleThreeNodesSlot,
+//                    this
+//            )
+//    );
+    mCyclesDelayedTasks->mFourNodesCycleSignal.connect(
             boost::bind(
                     &Core::onDelayedTaskCycleThreeNodesSlot,
                     this
@@ -480,7 +486,7 @@ void Core::onDelayedTaskCycleSixNodesSlot() {
 }
 
 void Core::onDelayedTaskCycleFiveNodesSlot() {
-//    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
+    mTransactionsManager->launchFiveNodesCyclesInitTransaction();
 }
 
 void Core::onPathsResourceRequestedSlot(
@@ -585,8 +591,7 @@ void Core::onDelayedTaskCycleFourNodesSlot() {
 }
 
 void Core::onDelayedTaskCycleThreeNodesSlot() {
-//    test_ThreeNodesTransaction();
-
+    test_ThreeNodesTransaction();
 }
 
 void Core::writePIDFile()
@@ -603,26 +608,42 @@ void Core::writePIDFile()
 }
 
 void Core::checkSomething() {
-    vector<NodeUUID> test_vector;
-    for (int i=0; i<=5; i++){
-        NodeUUID some_node;
-        test_vector.push_back(some_node);
-    }
+    auto debtorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
     stringstream ss;
-    copy(test_vector.begin(), test_vector.end(), ostream_iterator<NodeUUID>(ss, ";"));
-//    cout << ss.str() << endl;
+    copy(debtorsNeighborsUUIDs.begin(), debtorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
+    cout << "Nodes With positive balance: \n" << ss.str() << endl;
+    auto creditorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
+    stringstream ss1;
+    copy(creditorsNeighborsUUIDs.begin(), creditorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss1, "\n"));
+    cout << "Nodes With negative balance: \n" << ss1.str() << endl;
+//    vector<NodeUUID> test_vector;
+//    for (int i=0; i<=5; i++){
+//        NodeUUID some_node;
+//        test_vector.push_back(some_node);
+//    }
+//    auto message = CyclesFiveNodesBoundaryMessage(test_vector, test_vector);
+//    auto buffer = message.serializeToBytes();
+//    auto message2 = CyclesFiveNodesBoundaryMessage(buffer.first);
+//    cout << message2.BoundaryNodes().size() << endl;
+//    cout << "ok" << endl;
 }
 
 void Core::test_ThreeNodesTransaction() {
-    cout << "Nodes With Positive Balance" << endl;
-    auto neighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
-    stringstream ss;
-    copy(neighborsUUIDs.begin(), neighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, ";"));
-    cout << "test_ThreeNodesTransaction::Nodes With positive balance" << ss.str() << endl;
-    neighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
-    ss.clear();
-    copy(neighborsUUIDs.begin(), neighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, ";"));
-    cout << "test_ThreeNodesTransaction::Nodes With positive balance" << ss.str() << endl;
-    for(const auto &kNodeUUID: neighborsUUIDs)
-        mTransactionsManager->launchThreeNodesCyclesInitTransaction(kNodeUUID);
+//    cout << "Nodes With Positive Balance" << endl;
+//    auto debtorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
+//    stringstream ss;
+//    copy(debtorsNeighborsUUIDs.begin(), debtorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
+//    cout << "test_ThreeNodesTransaction::Nodes With positive balance: \n" << ss.str() << endl;
+//    auto creditorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
+//    stringstream ss1;
+//    copy(creditorsNeighborsUUIDs.begin(), creditorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss1, "\n"));
+//    cout << "test_ThreeNodesTransaction::Nodes With negative balance: \n" << ss1.str() << endl;
+//    for(const auto &kCreditorNodeUUID: creditorsNeighborsUUIDs) {
+//        for (const auto &kDebtorNodeUUID: debtorsNeighborsUUIDs) {
+////            cout << "_______________________________" << endl;
+////            cout << "Debtor UUID:  " << kDebtorNodeUUID << endl;
+////            cout << "Credior UUID:   " << kCreditorNodeUUID << endl;
+//            mTransactionsManager->launchFourNodesCyclesInitTransaction(kDebtorNodeUUID, kCreditorNodeUUID);
+//        }
+//    }
 }

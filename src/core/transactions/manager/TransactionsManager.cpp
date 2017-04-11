@@ -199,7 +199,8 @@ void TransactionsManager::processCommand(
 
 void TransactionsManager::processMessage(
     Message::Shared message) {
-
+//    cout << "__________________________________________" << endl;
+//    cout << "MEssageType: " << message->typeID() << endl;
     if (message->typeID() == Message::AcceptTrustLineMessageType) {
         launchAcceptTrustLineTransaction(
             static_pointer_cast<AcceptTrustLineMessage>(message));
@@ -293,6 +294,9 @@ void TransactionsManager::processMessage(
     }else if(message->typeID() == Message::MessageTypeID::Cycles_ThreeNodesBalancesRequestMessage){
         launchThreeNodesCyclesResponseTransaction(
                 static_pointer_cast<CyclesThreeNodesBalancesRequestMessage>(message));
+    }else if(message->typeID() == Message::MessageTypeID::Cycles_FourNodesBalancesRequestMessage){
+        launchFourNodesCyclesResponseTransaction(
+                static_pointer_cast<CyclesFourNodesBalancesRequestMessage>(message));
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
@@ -1113,7 +1117,7 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(const NodeUUID &
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchOpenTrustLineTransaction: "
+            "TransactionsManager::launchThreeNodesCyclesInitTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }
@@ -1130,7 +1134,7 @@ void TransactionsManager::launchThreeNodesCyclesResponseTransaction(CyclesThreeN
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchOpenTrustLineTransaction: "
+            "TransactionsManager::launchThreeNodesCyclesResponseTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }
@@ -1163,7 +1167,7 @@ void TransactionsManager::launchSixNodesCyclesResponseTransaction(CyclesSixNodes
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchSixNodesCyclesInitTransaction: "
+            "TransactionsManager::launchSixNodesCyclesResponseTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }
@@ -1179,7 +1183,7 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchSixNodesCyclesInitTransaction: "
+            "TransactionsManager::launchFiveNodesCyclesInitTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }
@@ -1198,5 +1202,41 @@ void TransactionsManager::launchFiveNodesCyclesResponseTransaction(CyclesFiveNod
         throw MemoryError(
             "TransactionsManager::launchFiveNodesCyclesResponseTransaction: "
                 "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchFourNodesCyclesInitTransaction(const NodeUUID &debtorUUID, const NodeUUID &creditorUUID) {
+    try {
+        auto transaction = make_shared<CyclesFourNodesInitTransaction>(
+                mNodeUUID,
+                debtorUUID,
+                creditorUUID,
+                mTrustLines,
+                mStorageHandler->routingTablesHandler(),
+                mLog
+        );
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        mScheduler->scheduleTransaction(transaction);
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchFourNodesCyclesInitTransaction: "
+                        "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchFourNodesCyclesResponseTransaction(CyclesFourNodesBalancesRequestMessage::Shared message) {
+    try {
+        auto transaction = make_shared<CyclesFourNodesReceiverTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mLog
+        );
+        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        mScheduler->scheduleTransaction(transaction);
+    } catch (bad_alloc &) {
+        throw MemoryError(
+                "TransactionsManager::launchFourNodesCyclesResponseTransaction: "
+                        "Can't allocate memory for transaction instance.");
     }
 }

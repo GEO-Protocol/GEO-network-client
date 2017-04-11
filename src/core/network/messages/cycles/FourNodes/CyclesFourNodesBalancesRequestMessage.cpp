@@ -24,7 +24,7 @@ pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToByte
             &neighborsCount,
             sizeof(neighborsCount)
     );
-    dataBytesOffset += neighborsCount;
+    dataBytesOffset += sizeof(neighborsCount);
 
     for(auto const& kNodeUUID: mNeighbors) {
         memcpy(
@@ -35,7 +35,10 @@ pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToByte
         dataBytesOffset += NodeUUID::kBytesSize;
     }
     //----------------------------------------------------
-
+//    cout << "_______________________________" << endl;
+//    cout << "CyclesFourNodesBalancesRequestMessage::serializeToBytes" << endl;
+//    cout << "Transaction UUID: " << this->transactionUUID() << endl;
+//    cout << "_______________________________" << endl;
     return make_pair(
             dataBytesShared,
             bytesCount
@@ -53,11 +56,11 @@ void CyclesFourNodesBalancesRequestMessage::deserializeFromBytes(
     memcpy(
             &neighborsCount,
             buffer.get() + bytesBufferOffset,
-            sizeof(uint8_t)
+            sizeof(neighborsCount)
     );
     bytesBufferOffset += sizeof(neighborsCount);
 
-    for (uint8_t i = 1; i <= neighborsCount; ++i) {
+    for (uint16_t i = 1; i <= neighborsCount; ++i) {
         NodeUUID stepNode;
         memcpy(
                 stepNode.data,
@@ -67,6 +70,10 @@ void CyclesFourNodesBalancesRequestMessage::deserializeFromBytes(
         bytesBufferOffset += NodeUUID::kBytesSize;
         mNeighbors.insert(stepNode);
     }
+//    cout << "_______________________________" << endl;
+//    cout << "CyclesFourNodesBalancesRequestMessage::deserializeFromByte" << endl;
+//    cout << "Transaction UUID: " << this->transactionUUID() << endl;
+//    cout << "_______________________________" << endl;
 }
 
 const Message::MessageType CyclesFourNodesBalancesRequestMessage::typeID() const {

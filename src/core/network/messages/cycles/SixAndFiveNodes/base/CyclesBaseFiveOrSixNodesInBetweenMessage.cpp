@@ -3,11 +3,9 @@
 CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage() {}
 
 CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage(
-    vector<NodeUUID> &path) :
+    vector<NodeUUID> &path):
     mPath(path)
-{
-    mNodesInPath = (uint8_t) mPath.size();
-}
+{}
 
 CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage(
     BytesShared buffer) {
@@ -16,28 +14,29 @@ CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage
 }
 
 pair<BytesShared, size_t> CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes() {
-    size_t bytesCount = sizeof(MessageType)
-                        + sizeof(mNodesInPath)
-                        + mNodesInPath * NodeUUID::kBytesSize;
+    auto parentBytesAndCount = Message::serializeToBytes();
+    const uint8_t kNodesInPath = mPath.size();
+    size_t bytesCount = parentBytesAndCount.second
+                        + sizeof(kNodesInPath)
+                        + kNodesInPath * NodeUUID::kBytesSize;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
-
-//    MessageType
-    MessageType messageType = (MessageType) typeID();
+    // for parent node
+    //----------------------------------------------------
     memcpy(
-        dataBytesShared.get(),
-        &messageType,
-        sizeof(MessageType)
+            dataBytesShared.get(),
+            parentBytesAndCount.first.get(),
+            parentBytesAndCount.second
     );
-    dataBytesOffset += sizeof(MessageType);
+    dataBytesOffset += parentBytesAndCount.second;
     // For path
     // Write vector size first
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        &mNodesInPath,
-        sizeof(mNodesInPath)
+        &kNodesInPath,
+        sizeof(kNodesInPath)
     );
-    dataBytesOffset += sizeof(mNodesInPath);
+    dataBytesOffset += sizeof(kNodesInPath);
 
     for(auto const& value: mPath) {
         memcpy(
@@ -62,14 +61,16 @@ void CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(
     MessageType *messageType = new (buffer.get()) MessageType;
     bytesBufferOffset += sizeof(uint16_t);
     // path
+    uint8_t nodesInPath;
     memcpy(
-        &mNodesInPath,
+        &nodesInPath,
         buffer.get() + bytesBufferOffset,
         sizeof(uint8_t)
     );
     bytesBufferOffset += sizeof(uint8_t);
-
-    for (uint8_t i = 1; i <= mNodesInPath; ++i) {
+    if (nodesInPath <= 0)
+        return;
+    for (uint8_t i = 1; i <= nodesInPath; ++i) {
         NodeUUID stepNode;
         memcpy(
             stepNode.data,
@@ -82,10 +83,10 @@ void CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(
 }
 
 const size_t CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes() {
+    const uint8_t kNodesInPath = mPath.size();
     static const size_t offset =
-        //            node in path
-        + sizeof(uint8_t)
-        + NodeUUID::kBytesSize * mNodesInPath
+        + sizeof(kNodesInPath)
+        + NodeUUID::kBytesSize * kNodesInPath
         + sizeof(MessageType);
     return offset;
 }

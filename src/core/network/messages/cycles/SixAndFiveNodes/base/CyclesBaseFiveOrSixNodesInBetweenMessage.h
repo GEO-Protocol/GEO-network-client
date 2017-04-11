@@ -19,6 +19,8 @@ public:
     CycleBaseFiveOrSixNodesInBetweenMessage(
         BytesShared buffer);
 
+    pair<BytesShared, size_t> serializeToBytes();
+
     virtual const MessageType typeID() const = 0;
 
     const vector<NodeUUID> Path() const;
@@ -26,7 +28,7 @@ public:
     void addNodeToPath(NodeUUID InBetweenNode);
 
 protected:
-    pair<BytesShared, size_t> serializeToBytes();
+
 
     void deserializeFromBytes(
         BytesShared buffer);
@@ -35,7 +37,6 @@ protected:
 
 protected:
     vector<NodeUUID> mPath;
-    uint8_t mNodesInPath;
 };
 
 

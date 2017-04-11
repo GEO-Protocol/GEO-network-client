@@ -7,17 +7,22 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
     Logger *logger) :
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_FourNodesReceiverTransaction,
-        nodeUUID),
+        message->transactionUUID(),
+        nodeUUID,
+        logger),
     mTrustLinesManager(manager),
     mLogger(logger),
     mRequestMessage(message)
 {}
 
 TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
+    cout << "__________________________________________" << endl;
+    cout << "CyclesFourNodesReceiverTransaction" << endl;
+    cout << "CyclesFourNodesReceiverTransaction::TransactionUUID: " << UUID() << endl;
     const auto kNeighbors = mRequestMessage->Neighbors();
     const auto kMessage = make_shared<CyclesFourNodesBalancesResponseMessage>(
         mNodeUUID,
-        mTransactionUUID,
+        UUID(),
         kNeighbors.size());
 
     const auto kContractorBalance = mTrustLinesManager->balance(mRequestMessage->senderUUID());
@@ -25,7 +30,7 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
     TrustLineBalance stepNodeBalance;
 
     bool searchDebtors = true;
-    if (kContractorBalance < kZeroBalance)
+    if (kContractorBalance > kZeroBalance)
         searchDebtors = false;
 
     for (auto &kNodeUUID: kNeighbors) {
@@ -34,7 +39,8 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
             (not searchDebtors and (stepNodeBalance < kZeroBalance)))
             kMessage->AddNeighborUUID(kNodeUUID);
     }
-
-    sendMessage(mRequestMessage->senderUUID(), kMessage);
+    if (kMessage->NeighborsUUID().size() > 0)
+        cout << "CyclesFourNodesReceiverTransaction::SenderUUID: " << mRequestMessage->senderUUID() << endl;
+        sendMessage(mRequestMessage->senderUUID(), kMessage);
     return finishTransaction();
 }

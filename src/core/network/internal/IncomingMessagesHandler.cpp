@@ -1,4 +1,6 @@
 ﻿#include "IncomingMessagesHandler.h"
+#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
+#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
     BytesShared messagePart,
@@ -13,9 +15,11 @@ pair<bool, Message::Shared> MessagesParser::processMessage(
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
     BytesShared messagePart) {
-
+//    cout << "_________________________" << endl;
+//    cout << "MessagesParser::tryDeserializeMessage " << endl;
     try {
         uint16_t *messageIdentifier = new (messagePart.get()) uint16_t;
+//        cout << messageIdentifier << ";" << *messageIdentifier << endl;
         auto deserializedData = tryDeserializeRequest(
             *messageIdentifier,
             messagePart
@@ -155,6 +159,22 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
                 static_pointer_cast<Message>(
                     make_shared<CyclesThreeNodesBalancesResponseMessage>(messagePart)
                 )
+            );
+        }
+        case Message::Cycles_FourNodesBalancesRequestMessage: {
+            return make_pair(
+                    true,
+                    static_pointer_cast<Message>(
+                            make_shared<CyclesFourNodesBalancesRequestMessage>(messagePart)
+                    )
+            );
+        }
+        case Message::Cycles_FourNodesBalancesResponseMessage: {
+            return make_pair(
+                    true,
+                    static_pointer_cast<Message>(
+                            make_shared<CyclesFourNodesBalancesResponseMessage>(messagePart)
+                    )
             );
         }
         case Message::Cycles_ThreeNodesBalancesRequestMessage: {

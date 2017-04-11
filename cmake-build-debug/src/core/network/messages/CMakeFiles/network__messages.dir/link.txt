@@ -1,0 +1,2 @@
+/usr/bin/ar qc libnetwork__messages.a  CMakeFiles/network__messages.dir/SenderMessage.cpp.o
+/usr/bin/ranlib libnetwork__messages.a

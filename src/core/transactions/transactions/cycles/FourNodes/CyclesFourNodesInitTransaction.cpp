@@ -10,7 +10,8 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
 
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_FourNodesInitTransaction,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mTrustLinesManager(manager),
     mLogger(logger),
     mRoutingTablesHandler(routingTablesHandler),
@@ -36,38 +37,59 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::run() {
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage() {
 
     set<NodeUUID> neighbors = commonNeighborsForDebtorAndCreditorNodes();
+    cout << "\n\n\n\n" << endl;
+    cout << "runCollectDataAndSendMessageStage Transaction UUID: " << UUID() << endl;
+    cout << "runCollectDataAndSendMessageStage Debtor UUID:  " << mDebtorContractorUUID << endl;
+    cout << "runCollectDataAndSendMessageStage Credior UUID:   " << mCreditorContractorUUID << endl;
+    stringstream ss;
+    copy(neighbors.begin(), neighbors.end(), ostream_iterator<NodeUUID>(ss, "\n"));
+    cout << "runCollectDataAndSendMessageStage Neighbors() : \n" << ss.str() << endl;
+    if (neighbors.size() == 0){
+        cout << "No common neighbors. Exit Transaction" << endl;
+        return resultExit();
+    }
     sendMessage<CyclesFourNodesBalancesRequestMessage>(
         mDebtorContractorUUID,
         mNodeUUID,
-        mTransactionUUID,
+        UUID(),
         neighbors);
 
     sendMessage<CyclesFourNodesBalancesRequestMessage>(
         mCreditorContractorUUID,
         mNodeUUID,
-        mTransactionUUID,
+        UUID(),
         neighbors);
 
     mStep = Stages::ParseMessageAndCreateCycles;
-    return resultWaitForMessageTypes(
-        {Message::Cycles_FourNodesBalancesResponseMessage},
-        mkStandardConnectionTimeout);
+    return resultAwaikAfterMilliseconds(
+            mkWaitingForResponseTime);
 }
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     if (mContext.size() != 2) {
-        error() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
+        cout << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
                    "Responses messages count not equals to 2; "
                    "Can't create cycles;";
 
-        return finishTransaction();
+        return resultExit();
     }
-
+    cout << "\n\n\n\n\n" << endl;
+    cout << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage()" << endl;
     const auto firstMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*mContext.begin());
-    const auto secondMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*mContext.end());
+    const auto secondMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*(mContext.end()-1));
     const auto firstContractorUUID = firstMessage->senderUUID();
     const auto secondContractorUUID = secondMessage->senderUUID();
     const TrustLineBalance zeroBalance = 0;
+    cout << "FirstMessage Sender UUID " << firstContractorUUID << endl;
+    stringstream ns1;
+    auto path1 = firstMessage->NeighborsUUID();
+    copy(path1.begin(), path1.end(), ostream_iterator<NodeUUID>(ns1, "]["));
+    cout << "FirstMessage Neighbors " << ns1.str() << endl;
+    cout << "SecondMessage Sender UUID " << secondContractorUUID << endl;
+    auto path2 = secondMessage->NeighborsUUID();
+    stringstream ns2;
+    copy(path2.begin(), path2.end(), ostream_iterator<NodeUUID>(ns2, "]["));
+    cout << "SecondMessage Neighbors " << ns2.str() << endl;
 
     TrustLineBalance firstContractorBalance = mTrustLinesManager->balance(firstContractorUUID);
     TrustLineBalance secondContractorBalance = mTrustLinesManager->balance(secondContractorUUID);
@@ -78,39 +100,42 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
         (firstContractorBalance < zeroBalance and secondContractorBalance < zeroBalance) or
         (firstContractorBalance == zeroBalance and secondContractorBalance == zeroBalance)) {
 
-        info() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
+        cout << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
                   "Balances between initiator node and (" << firstContractorUUID <<  "), or "
                   "between initiator node and (" << secondContractorUUID << ") was changed. "
                   "Cannot create cycles.";
-
-        return finishTransaction();
+        return resultExit();
     }
 
-    const bool kFirstContractorIsCreditor = firstContractorBalance < zeroBalance;
-
-    TrustLineBalance stepMaxFlow;
-
-    for (auto &kNodeUUIDSecondMessage: firstMessage->NeighborsUUID()){
-        for (auto &nodeAndBalanceSecond: secondMessage->NeighborsUUID()){
-            if (nodeAndBalanceSecond == kNodeUUIDSecondMessage){
+    for (auto &kNodeUUIDFirstMessage: firstMessage->NeighborsUUID()){
+        for (auto &kNodeUUIDSecondMessage: secondMessage->NeighborsUUID()){
+            if (kNodeUUIDSecondMessage == kNodeUUIDFirstMessage){
                 vector<NodeUUID> stepPath = {
                     mNodeUUID,
                     mDebtorContractorUUID,
-                    nodeAndBalanceSecond,
+                    kNodeUUIDSecondMessage,
                     mCreditorContractorUUID};
                 // Run transaction to close cycle
+                stringstream ss;
+                copy(stepPath.begin(), stepPath.end(), ostream_iterator<NodeUUID>(ss, "\n"));
+                cout << "CycleFound : \n" << ss.str() << endl;
             }
         }
     }
-    return TransactionResult::SharedConst();
+    return resultExit();
 }
 
 set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCreditorNodes() {
     const auto creditorsNeighbors = mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(
         mCreditorContractorUUID);
+    stringstream ss;
+    copy(creditorsNeighbors.begin(), creditorsNeighbors.end(), ostream_iterator<NodeUUID>(ss, "]["));
+    cout << "commonNeighborsForDebtorAndCreditorNodes creditorsNeighbor : " << ss.str() << endl;
     const auto debtorsNeighbors = mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(
-        mCreditorContractorUUID);
-
+        mDebtorContractorUUID);
+    stringstream s2;
+    copy(debtorsNeighbors.begin(), debtorsNeighbors.end(), ostream_iterator<NodeUUID>(s2, "]["));
+    cout << "commonNeighborsForDebtorAndCreditorNodes debtorNeighbors : " << s2.str() << endl;
     set<NodeUUID> commonNeighbors;
     set_intersection(
         creditorsNeighbors.begin(),

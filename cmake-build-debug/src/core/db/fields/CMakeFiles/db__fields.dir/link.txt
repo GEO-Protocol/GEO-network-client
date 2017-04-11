@@ -1,0 +1,2 @@
+/usr/bin/ar qc libdb__fields.a  CMakeFiles/db__fields.dir/common/AbstractFileDescriptorHandler.cpp.o CMakeFiles/db__fields.dir/common/AbstractRecordsHandler.cpp.o CMakeFiles/db__fields.dir/common/RecordNumbersIndex.cpp.o CMakeFiles/db__fields.dir/tl_direction_column/TrustLineDirectionColumn.cpp.o CMakeFiles/db__fields.dir/uuid_column/internal/BucketBlock.cpp.o CMakeFiles/db__fields.dir/uuid_column/internal/BucketBlockRecord.cpp.o CMakeFiles/db__fields.dir/uuid_column/UUIDColumn.cpp.o
+/usr/bin/ranlib libdb__fields.a

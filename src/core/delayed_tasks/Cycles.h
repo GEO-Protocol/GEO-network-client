@@ -28,10 +28,10 @@ public:
 
 private:
     as::io_service &mIOService;
-    const int mSixNodesSignalRepeatTimeSeconds = 8000;
-    const int mFiveNodesSignalRepeatTimeSeconds = 8000;
+    const int mSixNodesSignalRepeatTimeSeconds = 30;
+    const int mFiveNodesSignalRepeatTimeSeconds = 1000;
 
-    const int mFourNodesSignalRepeatTimeSeconds = 60;
+    const int mFourNodesSignalRepeatTimeSeconds = 1000;
     const int mThreeNodesSignalRepeatTimeSeconds = 60;
 
 
