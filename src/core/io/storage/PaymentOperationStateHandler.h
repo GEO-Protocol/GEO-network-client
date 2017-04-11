@@ -16,6 +16,7 @@ public:
 
     PaymentOperationStateHandler(
         sqlite3 *db,
+        const string &dataBasePath,
         const string &tableName,
         Logger *logger);
 
@@ -33,6 +34,8 @@ public:
     void commit();
 
     void rollBack();
+
+    void closeConnection();
 
 private:
 

@@ -31,20 +31,20 @@ public:
 
     PaymentOperationStateHandler *paymentOperationStateHandler();
 
-    void closeConnection();
+    void closeConnections();
 
 private:
 
-    static void checkDirectory(
-        const string &directory);
-
-    static sqlite3* connection(
-        const string &dataBaseName,
-        const string &directory);
+    static string buildDataBasePath(
+        const string &directory,
+        const string &dataBaseName);
 
     LoggerStream info() const;
 
     const string logHeader() const;
+
+private:
+    static sqlite3 *mDataBase;
 
 private:
 
@@ -53,9 +53,11 @@ private:
     const string kTrustLineTableName = "trust_lines";
     const string kPaymentOperationStateTableName = "payment_operation_state";
 
-private:
-
-    static sqlite3 *mDataBase;
+    static void checkDirectory(
+        const string &directory);
+    static sqlite3* connection(
+        const string &dataBaseName,
+        const string &directory);
 
 private:
 
@@ -65,7 +67,6 @@ private:
     PaymentOperationStateHandler mPaymentOperationStateHandler;
     string mDirectory;
     string mDataBaseName;
-    string mDataBasePath;
 
 };
 

@@ -13,7 +13,7 @@ PathsManager::PathsManager(
     mPathCollection(nullptr){
 
     // TODO remove from here
-    //testStorageHandler();
+    testStorageHandler();
     //fillRoutingTables();
     //fillBigRoutingTables();
     //testTrustLineHandler();

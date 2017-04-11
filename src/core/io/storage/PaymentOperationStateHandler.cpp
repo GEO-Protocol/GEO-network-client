@@ -2,13 +2,23 @@
 
 PaymentOperationStateHandler::PaymentOperationStateHandler(
     sqlite3 *db,
+    const string &dataBasePath,
     const string &tableName,
     Logger *logger):
 
-    mDataBase(db),
     mTableName(tableName),
     mLog(logger),
-    isTransactionBegin(false){
+    isTransactionBegin(false),
+    mDataBase(db) {
+
+    /*int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    if (rc == SQLITE_OK) {
+    } else {
+        throw IOError("PaymentOperationStateHandler::connection "
+                          "Can't open database " + dataBasePath);
+    }
+
+    info() << "connect";*/
 
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
         " (transaction_uuid BLOB NOT NULL, "
@@ -311,6 +321,11 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::getState(
         throw NotFoundError("PaymentOperationStateHandler::getState: "
                                 "There are now records with requested transactionUUID");
     }
+}
+
+void PaymentOperationStateHandler::closeConnection() {
+
+    sqlite3_close_v2(mDataBase);
 }
 
 LoggerStream PaymentOperationStateHandler::info() const {

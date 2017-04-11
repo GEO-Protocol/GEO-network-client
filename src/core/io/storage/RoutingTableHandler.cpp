@@ -2,13 +2,23 @@
 
 RoutingTableHandler::RoutingTableHandler(
     sqlite3 *db,
-    string tableName,
+    const string &dataBasePath,
+    const string &tableName,
     Logger *logger) :
 
-    mDataBase(db),
     mTableName(tableName),
     mLog(logger),
-    isTransactionBegin(false) {
+    isTransactionBegin(false),
+    mDataBase(db){
+
+    /*int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    if (rc == SQLITE_OK) {
+    } else {
+        throw IOError("RoutingTableHandler::connection "
+                          "Can't open database " + dataBasePath);
+    }
+
+    info() << "connect";*/
 
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                      "(source BLOB NOT NULL, "
@@ -590,6 +600,11 @@ map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> Rout
 const string& RoutingTableHandler::tableName() const {
 
     return mTableName;
+}
+
+void RoutingTableHandler::closeConnection() {
+
+    sqlite3_close_v2(mDataBase);
 }
 
 LoggerStream RoutingTableHandler::info() const {

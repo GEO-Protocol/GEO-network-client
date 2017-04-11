@@ -13,6 +13,7 @@ public:
 
     RoutingTablesHandler(
         sqlite3 *db,
+        const string &dataBasePath,
         const string &rt2TableName,
         const string &rt3TableName,
         Logger *logger);
@@ -33,6 +34,8 @@ public:
         const NodeUUID &foundUUID,
         const NodeUUID &sourceUUID,
         const NodeUUID &contractorUUID);
+
+    void closeConnections();
 
 private:
 

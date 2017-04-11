@@ -18,6 +18,7 @@ public:
 
     TrustLineHandler(
         sqlite3 *db,
+        const string &dataBasePath,
         const string &tableName,
         Logger *logger);
 
@@ -31,6 +32,8 @@ public:
     vector<TrustLine::Shared> trustLines();
 
     void deleteTrustLine(const NodeUUID &contractorUUID);
+
+    void closeConnection();
 
 private:
 

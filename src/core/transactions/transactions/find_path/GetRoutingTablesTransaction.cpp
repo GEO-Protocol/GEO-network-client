@@ -52,6 +52,7 @@ TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
 
 void GetRoutingTablesTransaction::sendRoutingTables() {
 
+    info() << "sendRoutingTables\tRT1 size: " << rt1FromDB().size();
     sendMessage<ResultRoutingTable1LevelMessage>(
         mMessage->senderUUID(),
         mNodeUUID,
@@ -62,6 +63,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt2
         = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey();
+    info() << "sendRoutingTables\tRT2 size: " << rt2.size();
     size_t rt2MessageCount = rt2.size() / kCountElementsPerMessage;
     size_t idx = 0;
     auto itRT2 = rt2.begin();
@@ -89,6 +91,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt3
         = mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey();
+    info() << "sendRoutingTables\tRT3 size: " << rt3.size();
     size_t rt3MessageCount = rt3.size() / kCountElementsPerMessage;
     idx = 0;
     auto itRT3 = rt3.begin();

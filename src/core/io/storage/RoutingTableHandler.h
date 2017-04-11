@@ -20,7 +20,8 @@ public:
 
     RoutingTableHandler(
         sqlite3 *db,
-        string tableName,
+        const string &databasePath,
+        const string &tableName,
         Logger *logger);
 
     void commit();
@@ -48,6 +49,8 @@ public:
     map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> routeRecordsWithDirectionsMapSourceKey();
 
     const string &tableName() const;
+
+    void closeConnection();
 
 private:
 

@@ -75,6 +75,10 @@ int Core::initCoreComponents() {
     if (initCode != 0)
         return initCode;
 
+    initCode = initStorageHandler();
+    if (initCode != 0)
+        return initCode;
+
     initCode = initTrustLinesManager();
     if (initCode != 0)
         return initCode;
@@ -87,10 +91,6 @@ int Core::initCoreComponents() {
     if (initCode != 0) {
         return initCode;
     }
-
-    initCode = initStorageHandler();
-    if (initCode != 0)
-        return initCode;
 
     initCode = initPathsManager();
     if (initCode != 0) {
@@ -206,7 +206,9 @@ int Core::initResultsInterface() {
 int Core::initTrustLinesManager() {
 
     try{
-        mTrustLinesManager = new TrustLinesManager(&mLog);
+        mTrustLinesManager = new TrustLinesManager(
+            mStorageHandler,
+            &mLog);
         mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
         return 0;
 

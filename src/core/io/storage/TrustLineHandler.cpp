@@ -2,13 +2,23 @@
 
 TrustLineHandler::TrustLineHandler(
     sqlite3 *db,
+    const string &dataBasePath,
     const string &tableName,
     Logger *logger) :
 
-    mDataBase(db),
     mTableName(tableName),
     mLog(logger),
-    isTransactionBegin(false) {
+    isTransactionBegin(false),
+    mDataBase(db) {
+
+    /*int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    if (rc == SQLITE_OK) {
+    } else {
+        throw IOError("TrustLineHandler::connection "
+                          "Can't open database " + dataBasePath);
+    }
+
+    info() << "connect";*/
 
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    "(contractor BLOB NOT NULL, "
@@ -216,12 +226,18 @@ vector<TrustLine::Shared> TrustLineHandler::trustLines() {
                 balanceBytes + kTrustLineBalanceSerializeBytesCount);
         TrustLineBalance balance = bytesToTrustLineBalance(balanceBufferBytes);
 
-        result.push_back(
-            make_shared<TrustLine>(
-                contractor,
-                incomingAmount,
-                outgoingAmount,
-                balance));
+        try {
+            result.push_back(
+                make_shared<TrustLine>(
+                    contractor,
+                    incomingAmount,
+                    outgoingAmount,
+                    balance));
+        } catch (...) {
+            throw Exception("TrustLinesManager::loadTrustLine. "
+                                "Unable to create trust line instance from DB.");
+        }
+
     }
     sqlite3_reset(stmt);
     return result;
@@ -374,6 +390,11 @@ void TrustLineHandler::saveTrustLine(
     } else {
         throw IOError("TrustLineHandler::insert or replace: Run query");
     }
+}
+
+void TrustLineHandler::closeConnection() {
+
+    sqlite3_close_v2(mDataBase);
 }
 
 LoggerStream TrustLineHandler::info() const {
