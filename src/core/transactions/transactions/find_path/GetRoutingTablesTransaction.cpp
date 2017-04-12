@@ -52,14 +52,12 @@ TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
 
 void GetRoutingTablesTransaction::sendRoutingTables() {
 
-    info() << "sendRoutingTables\tRT1 size: " << rt1FromDB().size();
+    info() << "sendRoutingTables\tRT1 size: " << mTrustLinesManager->rt1().size();
     sendMessage<ResultRoutingTable1LevelMessage>(
         mMessage->senderUUID(),
         mNodeUUID,
         mMessage->transactionUUID(),
-        // TODO: uncomment after testing
-        //mTrustLinesManager->rt1(),
-        rt1FromDB());
+        mTrustLinesManager->rt1());
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt2
         = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey();
@@ -116,17 +114,6 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             mMessage->transactionUUID(),
             subRT3);
     }
-}
-
-vector<NodeUUID> GetRoutingTablesTransaction::rt1FromDB() {
-
-    vector<NodeUUID> result;
-    for (auto const itRt2 : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords()) {
-        if(std::find(result.begin(), result.end(), itRt2.first) == result.end()) {
-            result.push_back(itRt2.first);
-        }
-    }
-    return result;
 }
 
 const string GetRoutingTablesTransaction::logHeader() const

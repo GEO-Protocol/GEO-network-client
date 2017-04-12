@@ -1,7 +1,5 @@
 #include "StorageHandler.h"
 
-sqlite3 *StorageHandler::mDataBase = nullptr;
-
 StorageHandler::StorageHandler(
     const string &directory,
     const string &dataBaseName,
@@ -9,42 +7,17 @@ StorageHandler::StorageHandler(
 
     mDirectory(directory),
     mDataBaseName(dataBaseName),
-    /*mRoutingTablesHandler(buildDataBasePath(directory, dataBaseName), kRT2TableName, kRT3TableName, logger),
+    mRoutingTablesHandler(buildDataBasePath(directory, dataBaseName), kRT2TableName, kRT3TableName, logger),
     mTrustLineHandler(buildDataBasePath(directory, dataBaseName), kTrustLineTableName, logger),
-    mPaymentOperationStateHandler(buildDataBasePath(directory, dataBaseName), kPaymentOperationStateTableName, logger),*/
-    mRoutingTablesHandler(connection(dataBaseName, directory), mDataBaseName, kRT2TableName, kRT3TableName, logger),
-    mTrustLineHandler(connection(dataBaseName, directory), mDataBaseName, kTrustLineTableName, logger),
-    mPaymentOperationStateHandler(connection(dataBaseName, directory), mDataBaseName, kPaymentOperationStateTableName, logger),
+    mPaymentOperationStateHandler(buildDataBasePath(directory, dataBaseName), kPaymentOperationStateTableName, logger),
     mLog(logger) {
 
+    sqlite3_config(SQLITE_CONFIG_SINGLETHREAD);
 }
 
 StorageHandler::~StorageHandler() {
 
     closeConnections();
-}
-
-sqlite3* StorageHandler::connection(
-    const string &dataBaseName,
-    const string &directory) {
-    checkDirectory(directory);
-    if (mDataBase != nullptr)
-        return mDataBase;
-    string dataBasePath = directory + "/" + dataBaseName;
-    int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-    if (rc == SQLITE_OK) {
-    } else {
-        throw IOError("StorageHandler::connection "
-                          "Can't open database " + dataBaseName);
-    }
-    return mDataBase;
-}
-
-void StorageHandler::checkDirectory(const string &directory) {
-    if (!fs::is_directory(fs::path(directory))){
-        fs::create_directories(
-            fs::path(directory));
-    }
 }
 
 RoutingTablesHandler* StorageHandler::routingTablesHandler() {

@@ -44,20 +44,11 @@ private:
     const string logHeader() const;
 
 private:
-    static sqlite3 *mDataBase;
-
-private:
 
     const string kRT2TableName = "RT2";
     const string kRT3TableName = "RT3";
     const string kTrustLineTableName = "trust_lines";
     const string kPaymentOperationStateTableName = "payment_operation_state";
-
-    static void checkDirectory(
-        const string &directory);
-    static sqlite3* connection(
-        const string &dataBaseName,
-        const string &directory);
 
 private:
 

@@ -12,7 +12,6 @@ class RoutingTablesHandler {
 public:
 
     RoutingTablesHandler(
-        sqlite3 *db,
         const string &dataBasePath,
         const string &rt2TableName,
         const string &rt3TableName,

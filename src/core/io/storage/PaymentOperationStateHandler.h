@@ -15,7 +15,6 @@ class PaymentOperationStateHandler {
 public:
 
     PaymentOperationStateHandler(
-        sqlite3 *db,
         const string &dataBasePath,
         const string &tableName,
         Logger *logger);
@@ -31,7 +30,7 @@ public:
     void deleteRecord(
         const TransactionUUID &transactionUUID);
 
-    void commit();
+    bool commit();
 
     void rollBack();
 
@@ -61,7 +60,6 @@ private:
 
     sqlite3 *mDataBase;
     string mTableName;
-    sqlite3_stmt *stmt;
     Logger *mLog;
     bool isTransactionBegin;
 

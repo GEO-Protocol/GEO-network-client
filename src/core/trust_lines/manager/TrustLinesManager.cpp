@@ -455,6 +455,7 @@ void TrustLinesManager::saveToDisk(
         alreadyExisted = true;
     }
     mStorageHandler->trustLineHandler()->saveTrustLine(trustLine);
+    mStorageHandler->trustLineHandler()->commit();
     try {
         mTrustLines.insert(
             make_pair(

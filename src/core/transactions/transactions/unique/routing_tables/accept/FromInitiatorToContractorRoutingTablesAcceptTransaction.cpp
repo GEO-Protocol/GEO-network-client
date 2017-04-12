@@ -75,15 +75,15 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRout
             info() << "Neighbor UUID: " + neighborAndDirect.first.stringUUID();
             info() << "Direction: " + to_string(neighborAndDirect.second);
 
-            //try {
+            try {
                 mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(
                     mFirstLevelMessage->senderUUID(),
                     neighborAndDirect.first,
                     neighborAndDirect.second);
 
-            /*} catch (Exception&) {
+            } catch (Exception&) {
                 error() << "Except when saving first level routing table from initiator at contractor's side";
-            }*/
+            }
 
         }
     }

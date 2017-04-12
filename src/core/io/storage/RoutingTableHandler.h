@@ -19,12 +19,11 @@ class RoutingTableHandler {
 public:
 
     RoutingTableHandler(
-        sqlite3 *db,
         const string &databasePath,
         const string &tableName,
         Logger *logger);
 
-    void commit();
+    bool commit();
 
     void rollBack();
 
@@ -76,7 +75,6 @@ private:
 
     sqlite3 *mDataBase;
     string mTableName;
-    sqlite3_stmt *stmt;
     Logger *mLog;
     bool isTransactionBegin;
 
