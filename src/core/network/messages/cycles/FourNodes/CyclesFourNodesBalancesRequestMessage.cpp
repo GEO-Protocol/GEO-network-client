@@ -34,11 +34,6 @@ pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToByte
         );
         dataBytesOffset += NodeUUID::kBytesSize;
     }
-    //----------------------------------------------------
-//    cout << "_______________________________" << endl;
-//    cout << "CyclesFourNodesBalancesRequestMessage::serializeToBytes" << endl;
-//    cout << "Transaction UUID: " << this->transactionUUID() << endl;
-//    cout << "_______________________________" << endl;
     return make_pair(
             dataBytesShared,
             bytesCount
@@ -70,10 +65,6 @@ void CyclesFourNodesBalancesRequestMessage::deserializeFromBytes(
         bytesBufferOffset += NodeUUID::kBytesSize;
         mNeighbors.insert(stepNode);
     }
-//    cout << "_______________________________" << endl;
-//    cout << "CyclesFourNodesBalancesRequestMessage::deserializeFromByte" << endl;
-//    cout << "Transaction UUID: " << this->transactionUUID() << endl;
-//    cout << "_______________________________" << endl;
 }
 
 const Message::MessageType CyclesFourNodesBalancesRequestMessage::typeID() const {

@@ -51,10 +51,6 @@ std::pair<BytesShared, size_t> CyclesFourNodesBalancesResponseMessage::serialize
         );
         dataBytesOffset += NodeUUID::kBytesSize;
     }
-//    cout << "_______________________________" << endl;
-//    cout << "CyclesFourNodesBalancesResponseMessage::serializeToBytes" << endl;
-//    cout << "Transaction UUID: " << this->transactionUUID() << endl;
-//    cout << "_______________________________" << endl;
     return make_pair(
             dataBytesShared,
             bytesCount

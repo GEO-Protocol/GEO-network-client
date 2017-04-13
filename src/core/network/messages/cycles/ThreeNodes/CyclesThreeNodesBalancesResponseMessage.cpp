@@ -6,9 +6,7 @@ CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage
     vector<NodeUUID> &neighbors) :
     TransactionMessage(senderUUID, transactionUUID),
     mNeighborsUUUID(neighbors)
-{
-
-}
+{}
 
 CyclesThreeNodesBalancesResponseMessage::CyclesThreeNodesBalancesResponseMessage(
     const NodeUUID &senderUUID,

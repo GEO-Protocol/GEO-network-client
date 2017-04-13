@@ -121,6 +121,10 @@ private:
 
     void test_FourNodesTransaction();
 
+    void test_ThreeNodesTransaction();
+
+    void printRTs();
+
 protected:
     Logger mLog;
 

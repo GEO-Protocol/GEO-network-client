@@ -18,23 +18,20 @@ CyclesFiveNodesReceiverTransaction::CyclesFiveNodesReceiverTransaction(
 #pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run() {
     vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
-    stringstream ss;
-    copy(path.begin(), path.end(), ostream_iterator<NodeUUID>(ss, "    "));
-    cout << "CyclesFiveNodesReceiverTransaction::run() Path   " << ss.str() << endl;
     uint8_t currentDepth = path.size();
     TrustLineBalance zeroBalance = 0;
+    // Direction has mirror sign for initiator node and receiver node.
+    // Direction is calculated based on initiator node
     TrustLineBalance maxFlow = (-1) * mTrustLinesManager->balance(path.back());
     auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
-    stringstream ss1;
-    copy(firstLevelNodes.begin(), firstLevelNodes.end(), ostream_iterator<NodeUUID>(ss1, "    "));
-    cout << "CyclesFiveNodesReceiverTransaction::run() firstLevelNodes: " << ss1.str() << endl;
-    bool creditorsBranch = true;
-    if (maxFlow < zeroBalance){
-        creditorsBranch = false;
-        cout << "We are on Creditors branch (-) Branch" << endl;
-    } else {
-        cout << "We are on Debtors branch (+) Branch" << endl;
+    if (firstLevelNodes.size() == 0){
+        info() << "CyclesFiveNodesReceiverTransaction: No suitable firstLevelNodes " << endl;
+        return resultExit();
     }
+    bool creditorsBranch = true;
+    if (maxFlow < zeroBalance)
+        creditorsBranch = false;
+
     if ((creditorsBranch and currentDepth==1)) {
         mInBetweenNodeTopologyMessage->addNodeToPath(mNodeUUID);
         for(const auto &kNodeUUID: firstLevelNodes)

@@ -21,7 +21,9 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
     const uint8_t kCurrentDepth = path.size();
 #pragma clang diagnostic pop
     const TrustLineBalance kZeroBalance = 0;
-    TrustLineBalance maxFlow = mTrustLinesManager->balance(path.back());
+    // Direction has mirror sign for initiator node and receiver node.
+    // Direction is calculated based on initiator node
+    TrustLineBalance maxFlow = (-1) *  mTrustLinesManager->balance(path.back());
 
 //  If balance to previous node equal zero finish transaction
     if (maxFlow == kZeroBalance)

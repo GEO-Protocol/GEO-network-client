@@ -84,10 +84,10 @@ void CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(
 
 const size_t CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes() {
     const uint8_t kNodesInPath = mPath.size();
-    static const size_t offset =
+    const size_t offset =
         + sizeof(kNodesInPath)
         + NodeUUID::kBytesSize * kNodesInPath
-        + sizeof(MessageType);
+        + Message::kOffsetToInheritedBytes();
     return offset;
 }
 

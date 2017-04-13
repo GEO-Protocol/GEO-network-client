@@ -16,9 +16,6 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
 {}
 
 TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
-    cout << "__________________________________________" << endl;
-    cout << "CyclesFourNodesReceiverTransaction" << endl;
-    cout << "CyclesFourNodesReceiverTransaction::TransactionUUID: " << UUID() << endl;
     const auto kNeighbors = mRequestMessage->Neighbors();
     const auto kMessage = make_shared<CyclesFourNodesBalancesResponseMessage>(
         mNodeUUID,
@@ -40,7 +37,6 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
             kMessage->AddNeighborUUID(kNodeUUID);
     }
     if (kMessage->NeighborsUUID().size() > 0)
-        cout << "CyclesFourNodesReceiverTransaction::SenderUUID: " << mRequestMessage->senderUUID() << endl;
         sendMessage(mRequestMessage->senderUUID(), kMessage);
     return finishTransaction();
 }

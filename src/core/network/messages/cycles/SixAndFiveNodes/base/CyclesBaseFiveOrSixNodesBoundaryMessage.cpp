@@ -56,9 +56,12 @@ pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBy
     );
 }
 void CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared buffer) {
-    CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(buffer);
 //        Parent part of deserializeFromBytes
+//    cout << "---------------------------------" << endl;
+//    cout << "CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes" << endl;
+    CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes();
+//    cout << "bytesBufferOffset kOffsetToInheritedBytes" << bytesBufferOffset << endl;
 //    Get NodesCount
     uint16_t boundaryNodesCount;
     memcpy(
@@ -70,6 +73,8 @@ void CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared b
 //    Parse boundary nodes
     NodeUUID stepNodeUUID;
     for (uint16_t i=1; i<=boundaryNodesCount; i++){
+//        cout << i << " " << boundaryNodesCount << endl;
+//        cout << "bytesBufferOffset " << bytesBufferOffset << endl;
         memcpy(
                 stepNodeUUID.data,
                 buffer.get() + bytesBufferOffset,
@@ -78,6 +83,11 @@ void CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared b
         bytesBufferOffset += NodeUUID::kBytesSize;
         mBoundaryNodes.push_back(stepNodeUUID);
     };
+//    stringstream ss;
+//    copy(mBoundaryNodes.begin(), mBoundaryNodes.end(), ostream_iterator<NodeUUID>(ss, "  "));
+//    cout << "MBoundaryNOdes " << ss.str() << endl;
+//    cout << "CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes Success" << endl;
+//    cout << "________________________________________________________" << endl;
 }
 
 const bool CyclesBaseFiveOrSixNodesBoundaryMessage::isCyclesDiscoveringResponseMessage() const {

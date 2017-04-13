@@ -5,7 +5,8 @@
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 
-class CyclesSixNodesInitTransaction : public CyclesBaseFiveSixNodesInitTransaction{
+class CyclesSixNodesInitTransaction :
+        public CyclesBaseFiveSixNodesInitTransaction{
 
 public:
     CyclesSixNodesInitTransaction(

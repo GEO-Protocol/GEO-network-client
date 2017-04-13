@@ -82,6 +82,9 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     if (mContext.size() != 1){
         return finishTransaction();
     }
+    #ifdef TESTS
+    vector<vector<NodeUUID>> ResultCycles;
+    #endif
     auto message = static_pointer_cast<CyclesThreeNodesBalancesResponseMessage>(*mContext.begin());
     const auto neighborsAndBalances = message->NeighborsAndBalances();
     for(const auto &nodeUUIDAndBalance : neighborsAndBalances ){
@@ -89,13 +92,21 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
             mNodeUUID,
             mContractorUUID,
             nodeUUIDAndBalance};
-        #ifdef DEBUG
-        stringstream ss;
-        copy(cycle.begin(), cycle.end(), ostream_iterator<NodeUUID>(ss, " "));
-        debug() << "CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage " << ss.str() << endl;
+        // todo run close cycle transaction
+        #ifdef TESTS
+            ResultCycles.push_back(cycle);
         #endif
     }
 
-    //            todo run transaction to close cycle
+    #ifdef TESTS
+    cout << "CyclesThreeNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size()) << endl;
+    for (vector<NodeUUID> KCyclePath: ResultCycles){
+        stringstream ss;
+        copy(KCyclePath.begin(), KCyclePath.end(), ostream_iterator<NodeUUID>(ss, ","));
+        cout << "CyclesThreeNodesInitTransaction::CyclePath " << ss.str() << endl;
+    }
+    cout << "CyclesThreeNodesInitTransaction::End" << endl;
+    #endif
+
     return finishTransaction();
 }

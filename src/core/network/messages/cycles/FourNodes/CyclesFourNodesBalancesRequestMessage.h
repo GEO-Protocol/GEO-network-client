@@ -9,7 +9,8 @@
 
 #include "set"
 
-class CyclesFourNodesBalancesRequestMessage: public TransactionMessage {
+class CyclesFourNodesBalancesRequestMessage:
+        public TransactionMessage {
 public:
     typedef shared_ptr<CyclesFourNodesBalancesRequestMessage> Shared;
 
