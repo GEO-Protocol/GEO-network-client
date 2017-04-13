@@ -13,6 +13,7 @@
 #include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../../io/storage/StorageHandler.h"
 
 #include "../../../../../common/exceptions/ConflictError.h"
 
@@ -31,11 +32,14 @@ public:
     FromInitiatorToContractorRoutingTablesPropagationTransaction(
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
-        TrustLinesManager *trustLinesManager);
+        TrustLinesManager *trustLinesManager,
+        StorageHandler *storageHandler);
 
     FromInitiatorToContractorRoutingTablesPropagationTransaction(
         BytesShared buffer,
-        TrustLinesManager *trustLinesManager);
+        TrustLinesManager *trustLinesManager,
+        StorageHandler *storageHandler,
+        Logger *logger = nullptr);
 
     TransactionResult::SharedConst run();
 
@@ -62,6 +66,7 @@ private:
 
 private:
     TrustLinesManager *mTrustLinesManager;
+    StorageHandler *mStorageHandler;
 };
 
 

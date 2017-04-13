@@ -39,7 +39,8 @@ pair<bool, TransactionResult::SharedConst> PropagateRoutingTablesUpdatesTransact
         if (response->code() != kResponseCodeSuccess) {
             return make_pair(
                 false,
-                TransactionResult::Shared(nullptr));
+                TransactionResult::Shared(
+                    nullptr));
         }
 
         return make_pair(
@@ -95,18 +96,14 @@ TransactionResult::SharedConst PropagateRoutingTablesUpdatesTransaction::trySend
 
 void PropagateRoutingTablesUpdatesTransaction::sendMessageToRecipient() {
 
-    Message::Shared message = make_shared<RoutingTableUpdateOutgoingMessage>(
+    sendMessage<RoutingTableUpdateOutgoingMessage>(
+        mRecipientUUID,
         mNodeUUID,
         mTransactionUUID,
         mInitiatorUUID,
         mContractorUUID,
         mDirection,
-        mUpdatingStep
-    );
-
-    addMessage(
-        message,
-        mRecipientUUID);
+        mUpdatingStep);
 }
 
 TransactionResult::SharedConst PropagateRoutingTablesUpdatesTransaction::waitingForResponseFromRecipient() {
@@ -114,9 +111,7 @@ TransactionResult::SharedConst PropagateRoutingTablesUpdatesTransaction::waiting
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
             {Message::MessageTypeID::ResponseMessageType},
-            mConnectionTimeout
-        )
-    );
+            mConnectionTimeout));
 }
 
 void PropagateRoutingTablesUpdatesTransaction::increaseRequestsCounter() {

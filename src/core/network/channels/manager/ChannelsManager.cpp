@@ -124,16 +124,16 @@ void ChannelsManager::removeIncomingChannel(
     }
 }
 
-pair<uint16_t, Channel::Shared> ChannelsManager::outgoingChannel(
+pair<uint16_t, Channel::Shared> ChannelsManager::nextOutgoingChannel (
     const udp::endpoint &endpoint) {
 
-    /*mLog->logInfo("ChannelsManager::outgoingChannel: ",
+    /*mLog->logInfo("ChannelsManager::nextOutgoingChannel: ",
                   "Create channel for endpoint " + endpoint.address().to_string() + " : " + to_string(endpoint.port()));*/
 
     uint16_t channelNumber = unusedOutgoingChannelNumber(
         endpoint);
 
-    /*mLog->logInfo("ChannelsManager::outgoingChannel: ",
+    /*mLog->logInfo("ChannelsManager::nextOutgoingChannel: ",
                   "Number for channel " + to_string(channelNumber));*/
 
     return make_pair(

@@ -43,12 +43,12 @@ private:
             const TrustLineAmount &totalTrustUsedBySelf);
     
 private:
+
     const uint16_t kConnectionTimeout = 500;
     const uint16_t kMaxRequestsCount = 5;
 
 private:
-    // TODO: discuss
-    uint16_t mExpectationResponsesCount = 1;
+
     TotalBalancesRemouteNodeCommand::Shared mCommand;
     uint16_t mRequestCounter;
 

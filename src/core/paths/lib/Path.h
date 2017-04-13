@@ -2,6 +2,7 @@
 #define PATH_H
 
 #include "../../common/NodeUUID.h"
+#include "../../common/exceptions/IndexError.h"
 
 #include <vector>
 #include <sstream>
@@ -16,12 +17,20 @@ public:
     Path(
         const NodeUUID &source,
         const NodeUUID &destination,
-        const vector<NodeUUID> &intermediateNodes);
+        const vector<NodeUUID> &intermediateNodes = vector<NodeUUID>());
 
     Path(
         const NodeUUID &source,
         const NodeUUID &destination,
         const vector<NodeUUID> &&intermediateNodes);
+
+    const NodeUUID &sourceUUID() const;
+
+    const NodeUUID &destinationUUID() const;
+
+    vector<NodeUUID> intermediateUUIDs() const;
+
+    bool containsIntermediateNodes() const;
 
     const size_t length() const;
     const string toString() const;
@@ -31,7 +40,9 @@ public:
         const Path &p2);
 
 public:
+
     const vector<NodeUUID> nodes;
+
 };
 
 #endif // PATH_H

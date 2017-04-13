@@ -1,5 +1,4 @@
 ﻿#include "TransactionsManager.h"
-#include "../../network/messages/total_balances/InitiateTotalBalancesMessage.h"
 
 /*!
  *
@@ -9,19 +8,25 @@ TransactionsManager::TransactionsManager(
     NodeUUID &nodeUUID,
     as::io_service &IOService,
     TrustLinesManager *trustLinesManager,
+    ResourcesManager *resourcesManager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResultsInterface *resultsInterface,
     history::OperationsHistoryStorage *operationsHistoryStorage,
+    StorageHandler *storageHandler,
+    PathsManager *pathsManager,
     Logger *logger) :
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
     mTrustLines(trustLinesManager),
+    mResourcesManager(resourcesManager),
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mResultsInterface(resultsInterface),
     mOperationsHistoryStorage(operationsHistoryStorage),
+    mStorageHandler(storageHandler),
+    mPathsManager(pathsManager),
     mLog(logger),
 
     mStorage(new storage::UUIDMapBlockStorage(
@@ -166,9 +171,9 @@ void TransactionsManager::processCommand(
                 command));
 
     } else if (command->identifier() == TotalBalancesRemouteNodeCommand::identifier()){
-        launchTotalBalancesRemouteNodeTransaction(
-                static_pointer_cast<TotalBalancesRemouteNodeCommand>(
-                        command));
+        launchTotalBalancesRemoteNodeTransaction(
+            static_pointer_cast<TotalBalancesRemouteNodeCommand>(
+                command));
 
     } else if (command->identifier() == HistoryPaymentsCommand::identifier()){
         launchHistoryPaymentsTransaction(
@@ -180,6 +185,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<HistoryTrustLinesCommand>(
                 command));
 
+    } else if (command->identifier() == FindPathCommand::identifier()){
+        launchGetPathTestTransaction(
+            static_pointer_cast<FindPathCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -188,9 +198,8 @@ void TransactionsManager::processCommand(
 }
 
 void TransactionsManager::processMessage(
-    Message::Shared message) {
-
-
+    Message::Shared message)
+{
     if (message->typeID() == Message::AcceptTrustLineMessageType) {
         launchAcceptTrustLineTransaction(
             static_pointer_cast<AcceptTrustLineMessage>(message));
@@ -246,6 +255,22 @@ void TransactionsManager::processMessage(
         mScheduler->tryAttachMessageToTransaction(message);
 
     /*
+    * Paths
+    */
+    } else if (message->typeID() == Message::MessageTypeID::RequestRoutingTablesMessageType) {
+        launchGetRoutingTablesTransaction(
+            static_pointer_cast<RequestRoutingTablesMessage>(message));
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable1LevelMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable2LevelMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable3LevelMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
+    /*
      * Payments
      */
     } else if (message->typeID() == Message::Payments_ReceiverInitPaymentRequest) {
@@ -265,6 +290,9 @@ void TransactionsManager::processMessage(
                 static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
         }
 
+    /*
+     * Cycles
+     */
     } else if (message->typeID() == Message::MessageTypeID::InBetweenNodeTopologyMessage){
         launchGetTopologyAndBalancesTransaction(
             static_pointer_cast<InBetweenNodeTopologyMessage>(message));
@@ -444,7 +472,8 @@ void TransactionsManager::launchFromInitiatorToContractorRoutingTablePropagation
         auto transaction = make_shared<FromInitiatorToContractorRoutingTablesPropagationTransaction>(
             mNodeUUID,
             contractorUUID,
-            mTrustLines
+            mTrustLines,
+            mStorageHandler
         );
 
         subscribeForOutgoingMessages(
@@ -476,7 +505,9 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                     make_shared<FromInitiatorToContractorRoutingTablesAcceptTransaction>(
                         mNodeUUID,
                         message,
-                        mTrustLines
+                        mTrustLines,
+                        mStorageHandler,
+                        mLog
                     )
                 );
                 break;
@@ -488,7 +519,9 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                     make_shared<FromContractorToFirstLevelRoutingTablesAcceptTransaction>(
                         mNodeUUID,
                         message,
-                        mTrustLines
+                        mTrustLines,
+                        mStorageHandler,
+                        mLog
                     )
                 );
                 break;
@@ -499,7 +532,9 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
                 transaction = dynamic_pointer_cast<BaseTransaction>(
                     make_shared<FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction>(
                         mNodeUUID,
-                        message
+                        message,
+                        mStorageHandler,
+                        mLog
                     )
                 );
                 break;
@@ -586,7 +621,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -610,7 +645,7 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -634,7 +669,7 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
             mMaxFlowCalculationTrustLineManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -657,7 +692,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
             mTrustLines,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -680,7 +715,7 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
             mTrustLines,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -704,7 +739,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -728,29 +763,11 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
             mMaxFlowCalculationCacheManager,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction: "
-                "can't allocate memory for transaction instance.");
-    }
-}
-
-void TransactionsManager::launchMaxFlowCalculationCacheUpdateTransaction() {
-
-    try {
-        auto transaction = make_shared<MaxFlowCalculationCacheUpdateTransaction>(
-            mNodeUUID,
-            mMaxFlowCalculationCacheManager,
-            mMaxFlowCalculationTrustLineManager,
-            mLog);
-
-        prepeareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchMaxFlowCalculationCacheUpdateTransaction: "
                 "can't allocate memory for transaction instance.");
     }
 }
@@ -785,7 +802,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
 void TransactionsManager::launchReceiverPaymentTransaction(
     ReceiverInitPaymentRequestMessage::Shared message)
 {
-    prepeareAndSchedule(
+    prepareAndSchedule(
         make_shared<ReceiverPaymentTransaction>(
             mNodeUUID,
             message,
@@ -796,7 +813,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
 void TransactionsManager::launchIntermediateNodePaymentTransaction(
     IntermediateNodeReservationRequestMessage::Shared message)
 {
-    prepeareAndSchedule(
+    prepareAndSchedule(
         make_shared<IntermediateNodePaymentTransaction>(
             mNodeUUID,
             message,
@@ -865,7 +882,7 @@ void TransactionsManager::launchTotalBalancesTransaction(
             mTrustLines,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -888,7 +905,7 @@ void TransactionsManager::launchTotalBalancesTransaction(
             mTrustLines,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -901,8 +918,8 @@ void TransactionsManager::launchTotalBalancesTransaction(
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchTotalBalancesRemouteNodeTransaction(
-        TotalBalancesRemouteNodeCommand::Shared command) {
+void TransactionsManager::launchTotalBalancesRemoteNodeTransaction(
+    TotalBalancesRemouteNodeCommand::Shared command) {
 
     try {
         auto transaction = make_shared<TotalBalancesFromRemoutNodeTransaction>(
@@ -910,11 +927,11 @@ void TransactionsManager::launchTotalBalancesRemouteNodeTransaction(
             command,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
-            "TransactionsManager::launchTotalBalancesRemouteNodeTransaction: "
+            "TransactionsManager::launchTotalBalancesRemoteNodeTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }
@@ -931,7 +948,7 @@ void TransactionsManager::launchHistoryPaymentsTransaction(HistoryPaymentsComman
             mOperationsHistoryStorage,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -952,13 +969,85 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCo
             mOperationsHistoryStorage,
             mLog);
 
-        prepeareAndSchedule(transaction);
+        prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchHistoryTrustLinesTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchGetPathTestTransaction(FindPathCommand::Shared command) {
+    try {
+        auto transaction = make_shared<GetPathTestTransaction>(
+            mNodeUUID,
+            command,
+            mResourcesManager,
+            mLog);
+
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchGetPathTestTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchGetRoutingTablesTransaction(RequestRoutingTablesMessage::Shared message) {
+    try {
+        auto transaction = make_shared<GetRoutingTablesTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mStorageHandler,
+            mLog);
+
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchGetRoutingTablesTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchPathsResourcesCollectTransaction(
+    const TransactionUUID &requestedTransactionUUID,
+    const NodeUUID &destinationNodeUUID) {
+
+    try {
+        auto transaction = make_shared<FindPathTransaction>(
+            mNodeUUID,
+            destinationNodeUUID,
+            requestedTransactionUUID,
+            mPathsManager,
+            mResourcesManager,
+            mLog);
+
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchFindPathTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::attachResourceToTransaction(
+    BaseResource::Shared resource) {
+
+    mScheduler->tryAttachResourceToTransaction(
+        resource);
 }
 
 void TransactionsManager::subscribeForSubsidiaryTransactions(
@@ -1056,7 +1145,7 @@ void TransactionsManager::onSubsidiaryTransactionReady(
  *
  * @throws bad_alloc;
  */
-void TransactionsManager::prepeareAndSchedule(
+void TransactionsManager::prepareAndSchedule(
     BaseTransaction::Shared transaction)
 {
     subscribeForOutgoingMessages(

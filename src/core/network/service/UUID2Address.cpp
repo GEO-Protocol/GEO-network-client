@@ -185,8 +185,10 @@ const pair<unsigned int, string> UUID2Address::processResponse() {
     }
 }
 
-const pair<string, uint16_t> UUID2Address::getNodeAddress(
+const pair<string, uint16_t> UUID2Address::nodeAddressAndPort (
     const uuids::uuid &contractorUUID) {
+
+    // ToDo: prevent returning "localhost" from this method. Replace it with 127.0.0.1
 
     if (isNodeAddressExistInLocalCache(contractorUUID)) {
         if (wasAddressAlreadyCached(contractorUUID)) {

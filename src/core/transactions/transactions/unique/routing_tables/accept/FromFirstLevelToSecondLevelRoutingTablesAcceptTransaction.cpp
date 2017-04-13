@@ -2,21 +2,28 @@
 
 FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction(
     const NodeUUID &nodeUUID,
-    FirstLevelRoutingTableIncomingMessage::Shared message) :
+    FirstLevelRoutingTableIncomingMessage::Shared message,
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
         nodeUUID,
-        message->senderUUID()
-    ),
-    mFirstLevelMessage(message) {}
+        message->senderUUID(),
+        logger),
+    mFirstLevelMessage(message),
+    mStorageHandler(storageHandler) {}
 
 FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction(
-    BytesShared buffer) :
+    BytesShared buffer,
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     RoutingTablesTransaction(
         BaseTransaction::TransactionType::AcceptRoutingTablesTransactionType,
-        buffer) {}
+        buffer,
+        logger),
+    mStorageHandler(storageHandler) {}
 
 FirstLevelRoutingTableIncomingMessage::Shared FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::message() const {
 
@@ -29,49 +36,56 @@ TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTablesAcceptTra
 
     sendResponseToContractor(
         mContractorUUID,
-        kResponseCodeSuccess
-    );
+        kResponseCodeSuccess);
 
     return finishTransaction();
 }
 
 void FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::saveFirstLevelRoutingTable() {
 
-    string logLine;
-    cout << "Link between initiator and contractor received " << endl;
-    logLine = "SenderUUID:" + mFirstLevelMessage->senderUUID().stringUUID() + "::";
-    cout << "Sender UUID -> " << mFirstLevelMessage->senderUUID().stringUUID() << endl;
-    cout << "Routing table " << endl;
+    info() << "Link between initiator and contractor from first level received";
+    info() << "Sender UUID: " + mFirstLevelMessage->senderUUID().stringUUID();
+    info() << "Routing table";
 
     for (const auto &nodeAndRecords : mFirstLevelMessage->records()) {
 
-        logLine += "ContractorUUID:" + nodeAndRecords.first.stringUUID() + "::";
-        cout << "Contractor UUID -> " << nodeAndRecords.first.stringUUID() << endl;
-
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
-            logLine += "InitiatorUUID:" + neighborAndDirect.first.stringUUID() + "::";
-            cout << "Initiator UUID -> " << neighborAndDirect.first.stringUUID() << endl;
-            logLine += "Direction:" + to_string(neighborAndDirect.second);
-            cout << "Direction -> " << neighborAndDirect.second << endl;
+            info() << "Contractor UUID: " + nodeAndRecords.first.stringUUID();
+            info() << "Initiator UUID: " + neighborAndDirect.first.stringUUID();
+            info() << "Direction UUID: " + to_string(neighborAndDirect.second);
+
+
+            try {
+                mStorageHandler->routingTablesHandler()->routingTable3Level()->saveRecord(
+                    nodeAndRecords.first,
+                    neighborAndDirect.first,
+                    neighborAndDirect.second);
+
+            } catch (Exception&) {
+                error() << "Except when saving link between initiator and contractor from first level at second level side";
+            }
 
         }
     }
+    mStorageHandler->routingTablesHandler()->routingTable3Level()->commit();
 
-    //mFileLogger->addLine(logLine.c_str());
 }
 
 void FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::sendResponseToContractor(
     const NodeUUID &contractorUUID,
     const uint16_t code) {
 
-    Message *message = new RoutingTablesResponse(
+    sendMessage<RoutingTablesResponse>(
+        contractorUUID,
         mNodeUUID,
-        code
-    );
+        code);
+}
 
-    addMessage(
-        Message::Shared(message),
-        contractorUUID
-    );
+const string FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction::logHeader() const {
+
+    stringstream s;
+    s << "[FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction]";
+
+    return s.str();
 }

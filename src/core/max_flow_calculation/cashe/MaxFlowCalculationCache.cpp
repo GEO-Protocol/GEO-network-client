@@ -1,8 +1,8 @@
 #include "MaxFlowCalculationCache.h"
 
 MaxFlowCalculationCache::MaxFlowCalculationCache(
-    const vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows,
-    const vector<pair<NodeUUID, TrustLineAmount>> incomingFlows) {
+    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
+    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows) {
 
     for (auto &nodeUUIDAndFlow : outgoingFlows) {
         mOutgoingFlows.insert(nodeUUIDAndFlow);
@@ -14,7 +14,7 @@ MaxFlowCalculationCache::MaxFlowCalculationCache(
 
 bool MaxFlowCalculationCache::containsIncomingFlow(
     const NodeUUID &nodeUUID,
-    const TrustLineAmount &flow) {
+    ConstSharedTrustLineAmount flow) {
 
     auto nodeUUIDAndFlow = mIncomingFlows.find(nodeUUID);
     if (nodeUUIDAndFlow == mIncomingFlows.end()) {
@@ -24,7 +24,8 @@ bool MaxFlowCalculationCache::containsIncomingFlow(
                 flow));
         return false;
     } else {
-        if ((*nodeUUIDAndFlow).second != flow) {
+        auto sharedFlow = (*nodeUUIDAndFlow).second;
+        if (*sharedFlow.get() != *flow.get()) {
             mIncomingFlows.erase(nodeUUIDAndFlow);
             mIncomingFlows.insert(
                 make_pair(
@@ -39,7 +40,7 @@ bool MaxFlowCalculationCache::containsIncomingFlow(
 
 bool MaxFlowCalculationCache::containsOutgoingFlow(
     const NodeUUID &nodeUUID,
-    const TrustLineAmount &flow) {
+    const ConstSharedTrustLineAmount flow) {
 
     auto nodeUUIDAndFlow = mOutgoingFlows.find(nodeUUID);
     if (nodeUUIDAndFlow == mOutgoingFlows.end()) {
@@ -49,7 +50,8 @@ bool MaxFlowCalculationCache::containsOutgoingFlow(
                 flow));
         return false;
     } else {
-        if ((*nodeUUIDAndFlow).second != flow) {
+        auto sharedFlow = (*nodeUUIDAndFlow).second;
+        if (*sharedFlow.get() != *flow.get()) {
             mOutgoingFlows.erase(nodeUUIDAndFlow);
             mOutgoingFlows.insert(
                 make_pair(

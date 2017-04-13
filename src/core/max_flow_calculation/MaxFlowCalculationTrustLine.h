@@ -16,17 +16,17 @@ public:
     MaxFlowCalculationTrustLine(
         const NodeUUID &sourceUUID,
         const NodeUUID &targetUUID,
-        const TrustLineAmount &amount);
+        ConstSharedTrustLineAmount amount);
 
     const NodeUUID& sourceUUID() const;
 
     const NodeUUID& targetUUID() const;
 
-    const TrustLineAmount& amount() const;
+    ConstSharedTrustLineAmount amount() const;
 
-    void setAmount(const TrustLineAmount& amount);
+    void setAmount(ConstSharedTrustLineAmount amount);
 
-    ConstSharedTrustLineAmount freeAmount() const;
+    ConstSharedTrustLineAmount freeAmount();
 
     void addUsedAmount(const TrustLineAmount &amount);
 
@@ -35,8 +35,8 @@ public:
 private:
     NodeUUID mSourceUUID;
     NodeUUID mTargetUUID;
-    TrustLineAmount mAmount;
-    TrustLineAmount mUsedAmount;
+    ConstSharedTrustLineAmount mAmount;
+    SharedTrustLineAmount mUsedAmount;
 };
 
 

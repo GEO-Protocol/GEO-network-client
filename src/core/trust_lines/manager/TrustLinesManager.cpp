@@ -405,17 +405,23 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
     const AmountReservation::ConstShared reservation,
     const TrustLineAmount &newAmount) {
 
-    // todo: ensure reservations
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(newAmount > TrustLineAmount(0));
+#endif
 
-    if ((*mTrustLines.at(contractor)->availableAmount() - reservation->amount()) >= newAmount) {
+    // Note: copy of shared ptr is required
+    const auto kTL = mTrustLines[contractor];
+    const auto kAvailableAmount = *(kTL->availableAmount());
+
+    // Previous reservation would be removed (updated),
+    // so it's amount must be added to the the available maount on the trust line.
+    if (kAvailableAmount + reservation->amount() >= newAmount)
         return mAmountBlocksHandler->updateReservation(
             contractor,
             reservation,
-            newAmount
-        );
-    }
-    throw ValueError("TrustLinesManager::reserveAmount: "
-                         "Trust line has not enought amount.");
+            newAmount);
+
+    throw ValueError("TrustLinesManager::reserveAmount: trust line has not enough amount.");
 }
 
 void TrustLinesManager::dropAmountReservation(
@@ -594,8 +600,8 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const 
     return result;
 }
 
-vector<pair<NodeUUID, TrustLineAmount>> TrustLinesManager::incomingFlows() const {
-    vector<pair<NodeUUID, TrustLineAmount>> result;
+vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlows() const {
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableIncomingAmount();
         auto trustLineAmountPtr = trustLineAmountShared.get();
@@ -603,14 +609,15 @@ vector<pair<NodeUUID, TrustLineAmount>> TrustLinesManager::incomingFlows() const
             result.push_back(
                 make_pair(
                     nodeUUIDAndTrustLine.first,
-                    *trustLineAmountPtr));
+                    make_shared<const TrustLineAmount>(
+                        *trustLineAmountPtr)));
         }
     }
     return result;
 }
 
-vector<pair<NodeUUID, TrustLineAmount>> TrustLinesManager::outgoingFlows() const {
-    vector<pair<NodeUUID, TrustLineAmount>> result;
+vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlows() const {
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableAmount();
         auto trustLineAmountPtr = trustLineAmountShared.get();
@@ -618,8 +625,33 @@ vector<pair<NodeUUID, TrustLineAmount>> TrustLinesManager::outgoingFlows() const
             result.push_back(
                 make_pair(
                     nodeUUIDAndTrustLine.first,
-                    *trustLineAmountPtr));
+                    make_shared<const TrustLineAmount>(
+                        *trustLineAmountPtr)));
         }
+    }
+    return result;
+}
+
+vector<pair<const NodeUUID, const TrustLineDirection>> TrustLinesManager::rt1WithDirections() const {
+
+    vector<pair<const NodeUUID, const TrustLineDirection >> result;
+    result.reserve(mTrustLines.size());
+    for (auto &nodeUUIDAndTrustLine : mTrustLines) {
+        result.push_back(
+            make_pair(
+                nodeUUIDAndTrustLine.first,
+                nodeUUIDAndTrustLine.second->direction()));
+    }
+    return result;
+}
+
+vector<NodeUUID> TrustLinesManager::rt1() const {
+
+    vector<NodeUUID> result;
+    result.reserve(mTrustLines.size());
+    for (auto &nodeUUIDAndTrustLine : mTrustLines) {
+        result.push_back(
+            nodeUUIDAndTrustLine.first);
     }
     return result;
 }
@@ -710,4 +742,51 @@ vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesFo
         }
     }
     return Nodes;
+}
+
+void TrustLinesManager::useReservation(
+    const NodeUUID &contractor,
+    const AmountReservation::ConstShared reservation)
+{
+    if (mTrustLines.count(contractor) != 1)
+        throw NotFoundError(
+            "TrustLinesManager::useReservation: no trust line to the contractor.");
+
+    if (reservation->direction() == AmountReservation::Outgoing)
+        mTrustLines[contractor]->pay(reservation->amount());
+    else if (reservation->direction() == AmountReservation::Incoming)
+        mTrustLines[contractor]->acceptPayment(reservation->amount());
+    else
+        throw ValueError(
+            "TrustLinesManager::useReservation: invalid trust line direction occurred.");
+}
+
+/**
+ * @returns total summary of all outgoing possibilities of the node.
+ */
+ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmount () const
+    throw (bad_alloc)
+{
+    auto totalAmount = make_shared<TrustLineAmount>(0);
+    for (const auto kTrustLine : mTrustLines) {
+        const auto kTLAmount = kTrustLine.second->availableAmount();
+        *totalAmount += *(kTLAmount);
+    }
+
+    return totalAmount;
+}
+
+/**
+ * @returns total summary of all incoming possibilities of the node.
+ */
+ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount () const
+    throw (bad_alloc)
+{
+    auto totalAmount = make_shared<TrustLineAmount>(0);
+    for (const auto kTrustLine : mTrustLines) {
+        const auto kTLAmount = kTrustLine.second->availableIncomingAmount();
+        *totalAmount += *(kTLAmount);
+    }
+
+    return totalAmount;
 }

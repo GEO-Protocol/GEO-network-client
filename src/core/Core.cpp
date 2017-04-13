@@ -88,6 +88,20 @@ int Core::initCoreComponents() {
         return initCode;
     }
 
+    initCode = initStorageHandler();
+    if (initCode != 0)
+        return initCode;
+
+    initCode = initPathsManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
+    initCode = initResourcesManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
@@ -101,6 +115,25 @@ int Core::initCoreComponents() {
         return initCode;
 
     connectSignalsToSlots();
+
+    // TODO: Remove me
+    // This scheme is needd for payments tests
+    // Please, do no remove it untile payments would be done
+
+//    if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff00")) {
+//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(100));
+//
+//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff01")) {
+//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff00"), TrustLineAmount(100));
+//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(90));
+//
+//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff02")) {
+//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(90));
+//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff03"), TrustLineAmount(80));
+//
+//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff03")) {
+//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(80));
+//    }
 
     return 0;
 }
@@ -202,6 +235,20 @@ int Core::initMaxFlowCalculationCacheManager() {
         mMaxFlowCalculationCacheManager = new MaxFlowCalculationCacheManager(&mLog);
         mLog.logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
         return 0;
+
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initResourcesManager() {
+
+    try {
+        mResourcesManager = new ResourcesManager();
+        mLog.logSuccess("Core", "Resources manager is successfully initialized");
+        return 0;
+
     } catch (const std::exception &e) {
         mLog.logException("Core", e);
         return -1;
@@ -215,10 +262,13 @@ int Core::initTransactionsManager() {
             mNodeUUID,
             mIOService,
             mTrustLinesManager,
+            mResourcesManager,
             mMaxFlowCalculationTrustLimeManager,
             mMaxFlowCalculationCacheManager,
             mResultsInterface,
             mOperationsHistoryStorage,
+            mStorageHandler,
+            mPathsManager,
             &mLog
         );
         mLog.logSuccess("Core", "Transactions handler is successfully initialised");
@@ -235,7 +285,10 @@ int Core::initDelayedTasks() {
         mCyclesDelayedTasks = new CyclesDelayedTasks(
                 mIOService);
         mMaxFlowCalculationCacheUpdateDelayedTask = new MaxFlowCalculationCacheUpdateDelayedTask(
-                mIOService);
+                mIOService,
+                mMaxFlowCalculationCacheManager,
+                mMaxFlowCalculationTrustLimeManager,
+                &mLog);
         mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
         return 0;
     } catch (const std::exception &e) {
@@ -249,12 +302,51 @@ int Core::initCommandsInterface() {
     try {
         mCommandsInterface = new CommandsInterface(
             mIOService,
-            mTransactionsManager,
             &mLog
         );
         mLog.logSuccess("Core", "Commands interface is successfully initialised");
         return 0;
 
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+void Core::connectCommandsInterfaceSignals ()
+{
+    mCommandsInterface->commandReceivedSignal.connect(
+        boost::bind(
+            &Core::onCommandReceivedSlot,
+            this,
+            _1));
+}
+
+int Core::initStorageHandler() {
+
+    try {
+        mStorageHandler = new StorageHandler(
+            "io",
+            "storageDB",
+            &mLog);
+        mLog.logSuccess("Core", "Storage handler is successfully initialised");
+        return 0;
+    } catch (const std::exception &e) {
+        mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initPathsManager() {
+
+    try {
+        mPathsManager = new PathsManager(
+            mNodeUUID,
+            mTrustLinesManager,
+            mStorageHandler,
+            &mLog);
+        mLog.logSuccess("Core", "Paths Manager is successfully initialised");
+        return 0;
     } catch (const std::exception &e) {
         mLog.logException("Core", e);
         return -1;
@@ -282,7 +374,6 @@ void Core::connectCommunicatorSignals() {
         )
     );
 }
-
 void Core::connectTrustLinesManagerSignals() {
 
     mTrustLinesManager->trustLineCreatedSignal.connect(
@@ -303,6 +394,7 @@ void Core::connectTrustLinesManagerSignals() {
         )
     );
 }
+
 void Core::connectDelayedTasksSignals(){
     mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
             boost::bind(
@@ -316,28 +408,57 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
-    mMaxFlowCalculationCacheUpdateDelayedTask->mMaxFlowCalculationCacheUpdateSignal.connect(
+}
+
+void Core::connectResourcesManagerSignals() {
+
+    mResourcesManager->requestPathsResourcesSignal.connect(
         boost::bind(
-            &Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot,
-            this));
+            &Core::onPathsResourceRequestedSlot,
+            this,
+            _1,
+            _2
+        )
+    );
+
+    mResourcesManager->attachResourceSignal.connect(
+        boost::bind(
+            &Core::onResourceCollectedSlot,
+            this,
+            _1
+        )
+    );
 }
 
 void Core::connectSignalsToSlots() {
 
+    connectCommandsInterfaceSignals();
     connectCommunicatorSignals();
     connectTrustLinesManagerSignals();
     connectDelayedTasksSignals();
+    connectResourcesManagerSignals();
+}
+
+void Core::onCommandReceivedSlot (
+    BaseUserCommand::Shared command)
+{
+    try {
+        mTransactionsManager->processCommand(command);
+
+    } catch(exception &e) {
+        mLog.logException("Core", e);
+    }
 }
 
 void Core::onMessageReceivedSlot(
     Message::Shared message) {
 
-//    try {
+    try {
         mTransactionsManager->processMessage(message);
 
-//    } catch(exception &e) {
-//        mLog.logException("Core", e);
-//    }
+    } catch(exception &e) {
+        mLog.logException("Core", e);
+    }
 }
 
 void Core::onMessageSendSlot(
@@ -398,6 +519,34 @@ void Core::onDelayedTaskCycleFiveNodesSlot() {
 //    mTransactionsManager->launchGetTopologyAndBalancesTransaction();
 }
 
+void Core::onPathsResourceRequestedSlot(
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &destinationNodeUUID) {
+
+    try {
+        mTransactionsManager->launchPathsResourcesCollectTransaction(
+            transactionUUID,
+            destinationNodeUUID);
+
+    } catch (exception &e) {
+        mLog.logException("Core", e);
+    }
+
+}
+
+void Core::onResourceCollectedSlot(
+    BaseResource::Shared resource) {
+
+    try {
+        mTransactionsManager->attachResourceToTransaction(
+            resource);
+
+    } catch (exception &e) {
+        mLog.logException("Core", e);
+    }
+
+}
+
 void Core::cleanupMemory() {
 
     if (mSettings != nullptr) {
@@ -420,6 +569,10 @@ void Core::cleanupMemory() {
         delete mTrustLinesManager;
     }
 
+    if (mResourcesManager != nullptr) {
+        delete mResourcesManager;
+    }
+
     if (mTransactionsManager != nullptr) {
         delete mTransactionsManager;
     }
@@ -439,6 +592,14 @@ void Core::cleanupMemory() {
     if (mMaxFlowCalculationCacheUpdateDelayedTask != nullptr) {
         delete mMaxFlowCalculationCacheUpdateDelayedTask;
     }
+
+    if (mStorageHandler != nullptr) {
+        delete mStorageHandler;
+    }
+
+    if (mPathsManager != nullptr) {
+        delete mPathsManager;
+    }
 }
 
 void Core::zeroPointers() {
@@ -449,18 +610,19 @@ void Core::zeroPointers() {
     mCommandsInterface = nullptr;
     mResultsInterface = nullptr;
     mTrustLinesManager = nullptr;
+    mResourcesManager = nullptr;
     mTransactionsManager = nullptr;
     mCyclesDelayedTasks = nullptr;
     mMaxFlowCalculationTrustLimeManager = nullptr;
     mMaxFlowCalculationCacheManager = nullptr;
     mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
+    mStorageHandler = nullptr;
+    mPathsManager = nullptr;
 }
 
-//void Core::initTimers() {
-//
 //}
 
-void Core::JustToTestSomething() {
+//void Core::JustToTestSomething() {
 //    mTrustLinesManager->getFirstLevelNodesForCycles();
 //    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles();
 //    TrustLineBalance bal = 70;
@@ -485,11 +647,11 @@ void Core::JustToTestSomething() {
 //            message
 //    )
 //    );
-}
-
-void Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot() {
-    mTransactionsManager->launchMaxFlowCalculationCacheUpdateTransaction();
-}
+//}
+//
+//void Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot() {
+//    mTransactionsManager->launchMaxFlowCalculationCacheUpdateTransaction();
+//}
 
 void Core::writePIDFile()
 {

@@ -13,6 +13,7 @@
 #include "../../../../../network/messages/response/RoutingTablesResponse.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
+
 #include "../../../../../common/exceptions/ConflictError.h"
 
 #include <memory>
@@ -36,7 +37,8 @@ public:
 
     FromContractorToFirstLevelRoutingTablesPropagationTransaction(
         BytesShared buffer,
-        TrustLinesManager *trustLinesManager);
+        TrustLinesManager *trustLinesManager,
+        Logger *logger = nullptr);
 
     TransactionResult::SharedConst run();
 

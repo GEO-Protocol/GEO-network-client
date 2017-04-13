@@ -47,7 +47,7 @@ public:
         const string &nodeHost,
         const uint16_t &nodePort);
 
-    const pair<string, uint16_t> getNodeAddress(
+    const pair<string, uint16_t> nodeAddressAndPort (
         const uuids::uuid &contractorUUUID);
 
 private:

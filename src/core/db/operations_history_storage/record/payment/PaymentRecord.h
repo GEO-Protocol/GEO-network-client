@@ -32,17 +32,27 @@ namespace db {
             PaymentRecord(
                 BytesShared buffer);
 
+            [[deprecated("Use constructor with balanceAfterOperation instead.")]]
             PaymentRecord(
                 const uuids::uuid &operationUUID,
                 const PaymentRecord::PaymentOperationType operationType,
                 const NodeUUID &contractorUUID,
                 const TrustLineAmount &amount);
 
+            PaymentRecord(
+                const uuids::uuid &operationUUID,
+                const PaymentRecord::PaymentOperationType operationType,
+                const NodeUUID &contractorUUID,
+                const TrustLineAmount &amount,
+                const TrustLineBalance &balanceAfterOperation);
+
             const PaymentOperationType paymentOperationType() const;
 
             const NodeUUID contractorUUID() const;
 
             const TrustLineAmount amount() const;
+
+            const TrustLineBalance balanceAfterOperation() const;
 
         private:
             const bool isPaymentRecord() const;
@@ -56,6 +66,7 @@ namespace db {
             PaymentOperationType mPaymentOperationType;
             NodeUUID mContractorUUID;
             TrustLineAmount mAmount;
+            TrustLineBalance mBalanceAfterOperation;
         };
 
     }

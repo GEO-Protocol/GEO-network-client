@@ -431,3 +431,37 @@ bool operator==(
 
     return contractor1.contractorNodeUUID() == contractor2.contractorNodeUUID();
 }
+
+/**
+ * Decreases debt of the contractor (if exists),
+ * and uses credit to the current node (if needed).
+ *
+ * @param amount - specifies how much should be cleared/used.
+ */
+void TrustLine::pay(
+    const TrustLineAmount &amount)
+{
+    const auto kNewBalance = mBalance - amount;
+    if (abs(kNewBalance) > mIncomingTrustAmount)
+        throw OverflowError(
+            "TrustLine::useCredit: attempt of using more than incoming credit amount.");
+
+    mBalance = kNewBalance;
+}
+
+/**
+ * Clears debt of the current node (if exists)
+ * and increases debt of the contractor (if exists).
+ *
+ * @param amount - specifies how much should be cleared/used.
+ */
+void TrustLine::acceptPayment(
+    const TrustLineAmount &amount)
+{
+    const auto kNewBalance = mBalance + amount;
+    if (abs(kNewBalance) > mOutgoingTrustAmount)
+        throw OverflowError(
+            "TrustLine::useCredit: attempt of using more than outgoing credit amount.");
+
+    mBalance = kNewBalance;
+}

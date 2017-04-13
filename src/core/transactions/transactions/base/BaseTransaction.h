@@ -13,6 +13,8 @@
 #include "../../../network/messages/Message.hpp"
 #include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
+#include "../../../resources/resources/BaseResource.h"
+
 #include "../result/TransactionResult.h"
 #include "../../../interface/results_interface/result/CommandResult.h"
 #include "../../../network/messages/result/MessageResult.h"
@@ -38,12 +40,12 @@ public:
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
 
 public:
-    // TODO: add othe states shortcuts here
-    TransactionResult::Shared resultExit();
-    TransactionResult::Shared resultFlushAndContinue();
+    // TODO: add other states shortcuts here
+    TransactionResult::Shared resultExit() const;
+    TransactionResult::Shared resultFlushAndContinue() const;
     TransactionResult::Shared resultWaitForMessageTypes(
         vector<Message::MessageTypeID> &&requiredMessagesTypes,
-        uint16_t noLongerThanMilliseconds);
+        uint32_t noLongerThanMilliseconds) const;
 
 public:
     ~BaseTransaction() = default;
@@ -83,7 +85,12 @@ public:
 
         // History
         HistoryPaymentsTransactionType,
-        HistoryTrustLinesTransactionType
+        HistoryTrustLinesTransactionType,
+
+        // FindPath
+        GetPathTestTransactionType,
+        FindPathTransactionType,
+        GetRoutingTablesTransactionType
 
     };
 
@@ -96,6 +103,9 @@ public:
 
     void pushContext(
         Message::Shared message);
+
+    void pushResource(
+        BaseResource::Shared resource);
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
@@ -113,7 +123,7 @@ protected:
         const TransactionUUID &transactionUUID,
         Logger *log=nullptr);
 
-    [[deprecated("Use constructor with currentNodeUUID instead.")]]
+    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
@@ -140,11 +150,19 @@ protected:
         return message;
     }
 
+    template<typename ResourceType>
+    inline shared_ptr<ResourceType> popNextResource() {
+
+        const auto resource = static_pointer_cast<ResourceType>(mResources.front());
+        mResources.pop_front();
+        return resource;
+    }
+
     // TODO: convert to hpp?
     template <typename MessageType, typename... Args>
     inline void sendMessage(
         const NodeUUID &addressee,
-        Args&&... args)
+        Args&&... args) const
     {
         const auto message = make_shared<MessageType>(args...);
         outgoingMessageIsReadySignal(
@@ -154,7 +172,7 @@ protected:
 
     inline void sendMessage(
         const NodeUUID &addressee,
-        const Message::Shared message)
+        const Message::Shared message) const
     {
         outgoingMessageIsReadySignal(
             message,
@@ -209,6 +227,7 @@ protected:
 
     uint16_t mExpectationResponsesCount = 0;
     deque<Message::Shared> mContext;
+    deque<BaseResource::Shared> mResources;
 
     uint16_t mStep = 1;
 

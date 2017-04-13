@@ -41,9 +41,7 @@ const TrustLineAmount& CreditUsageCommand::amount() const
  */
 pair<BytesShared, size_t> CreditUsageCommand::serializeToBytes()
 {
-    throw ValueError(
-        "CreditUsageCommand::serializeToBytes: "
-        "not implemented");
+    return make_pair(make_shared<byte>(), 0);
 
 //    auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
 //    size_t bytesCount = parentBytesAndCount.second +
@@ -91,26 +89,22 @@ pair<BytesShared, size_t> CreditUsageCommand::serializeToBytes()
 void CreditUsageCommand::deserializeFromBytes(
     BytesShared buffer)
 {
-    throw Exception(
-            "CreditUsageCommand::deserializeFromBytes: "
-            "not implemented.");
+    BaseUserCommand::deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = kOffsetToInheritedBytes();
+    //----------------------------------------------------
+    memcpy(
+        mContractorUUID.data,
+        buffer.get() + bytesBufferOffset,
+        NodeUUID::kBytesSize
+    );
+    bytesBufferOffset += NodeUUID::kBytesSize;
+    //----------------------------------------------------
+    vector<byte> amountBytes(
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
 
-//    BaseUserCommand::deserializeFromBytes(buffer);
-//    size_t bytesBufferOffset = kOffsetToInheritedBytes();
-//    //----------------------------------------------------
-//    memcpy(
-//        mContractorUUID.data,
-//        buffer.get() + bytesBufferOffset,
-//        NodeUUID::kBytesSize
-//    );
-//    bytesBufferOffset += NodeUUID::kBytesSize;
-//    //----------------------------------------------------
-//    vector<byte> amountBytes(
-//        buffer.get() + bytesBufferOffset,
-//        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-//
-//    mAmount = bytesToTrustLineAmount(amountBytes);
-//    bytesBufferOffset += kTrustLineAmountBytesCount;
+    mAmount = bytesToTrustLineAmount(amountBytes);
+    bytesBufferOffset += kTrustLineAmountBytesCount;
 }
 
 void CreditUsageCommand::parse(
@@ -162,7 +156,6 @@ void CreditUsageCommand::parse(
         }
     }
 }
-
 // TODO: deprecated
 //const size_t CreditUsageCommand::kMinRequestedBufferSize()
 //{
@@ -173,3 +166,8 @@ void CreditUsageCommand::parse(
 //
 //    return size;
 //}
+
+CommandResult::SharedConst CreditUsageCommand::responseNoConsensus () const
+{
+    return makeResult(409);
+}

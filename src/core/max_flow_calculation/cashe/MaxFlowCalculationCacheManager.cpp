@@ -59,6 +59,30 @@ bool MaxFlowCalculationCacheManager::isInitiatorCached() {
     return mInitiatorCache.first;
 }
 
+DateTime MaxFlowCalculationCacheManager::closestTimeEvent() const {
+
+    // if initiator cache is active then take initiator cache removing time as result closest time event
+    // else take life time of initiator cache + now as result closest time event
+    DateTime result = utc_now() + kResetInitiatorCacheDuration();
+    if (mInitiatorCache.first && mInitiatorCache.second + kResetInitiatorCacheDuration() < result) {
+        result = mInitiatorCache.second + kResetInitiatorCacheDuration();
+    }
+    // if there are sender caches then take sender cache removing closest time as result closest time event
+    // else take life time of sender cache + now as result closest time event
+    // take as result minimal from initiator cache and sender cache closest time
+    if (msCache.size() > 0) {
+        auto timeAndNodeUUID = msCache.cbegin();
+        if (timeAndNodeUUID->first + kResetSenderCacheDuration() < result) {
+            result = timeAndNodeUUID->first + kResetSenderCacheDuration();
+        }
+    } else {
+        if (utc_now() + kResetSenderCacheDuration() < result) {
+            result = utc_now() + kResetSenderCacheDuration();
+        }
+    }
+    return result;
+}
+
 LoggerStream MaxFlowCalculationCacheManager::info() const {
 
     if (nullptr == mLog)

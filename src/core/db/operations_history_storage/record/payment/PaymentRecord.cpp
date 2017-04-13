@@ -23,6 +23,21 @@ namespace db {
             mContractorUUID(contractorUUID),
             mAmount(amount) {}
 
+        PaymentRecord::PaymentRecord(
+            const uuids::uuid &operationUUID,
+            const PaymentRecord::PaymentOperationType operationType,
+            const NodeUUID &contractorUUID,
+            const TrustLineAmount &amount,
+            const TrustLineBalance &balanceAfterOperation):
+
+            Record(
+                Record::RecordType::PaymentRecordType,
+                operationUUID),
+            mPaymentOperationType(operationType),
+            mContractorUUID(contractorUUID),
+            mAmount(amount),
+            mBalanceAfterOperation(balanceAfterOperation) {}
+
         const bool PaymentRecord::isPaymentRecord() const {
 
             return true;
@@ -41,6 +56,11 @@ namespace db {
         const TrustLineAmount PaymentRecord::amount() const {
 
             return mAmount;
+        }
+
+        const TrustLineBalance PaymentRecord::balanceAfterOperation() const {
+
+            return mBalanceAfterOperation;
         }
 
         pair<BytesShared, size_t> PaymentRecord::serializeToBytes() {
@@ -78,6 +98,14 @@ namespace db {
                 bytesBuffer.get() + bytesBufferOffset,
                 trustAmountBytes.data(),
                 kTrustLineAmountBytesCount);
+            bytesBufferOffset += kTrustLineAmountBytesCount;
+
+            auto trustBalanceBytes = trustLineBalanceToBytes(
+                mBalanceAfterOperation);
+            memcpy(
+                bytesBuffer.get() + bytesBufferOffset,
+                trustBalanceBytes.data(),
+                kTrustLineBalanceBytesCount);
 
             return make_pair(
                 bytesBuffer,
@@ -105,9 +133,15 @@ namespace db {
             vector<byte> amountBytes(
                 buffer.get() + dataBufferOffset,
                 buffer.get() + dataBufferOffset + kTrustLineAmountBytesCount);
-
             mAmount = bytesToTrustLineAmount(
                 amountBytes);
+            dataBufferOffset += kTrustLineAmountBytesCount;
+
+            vector<byte> balanceBytes(
+                buffer.get() + dataBufferOffset,
+                buffer.get() + dataBufferOffset + kTrustLineBalanceBytesCount);
+            mBalanceAfterOperation = bytesToTrustLineBalance(
+                balanceBytes);
         }
 
     }

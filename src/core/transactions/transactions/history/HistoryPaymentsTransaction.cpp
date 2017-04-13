@@ -44,7 +44,8 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
         s << paymentRecord->operationTimestamp() << "\t";
         s << paymentRecord->contractorUUID() << "\t";
         s << paymentRecord->paymentOperationType() << "\t";
-        s << paymentRecord->amount();
+        s << paymentRecord->amount() << "\t";
+        s << paymentRecord->balanceAfterOperation();
     }
     string historyPaymentsStrResult = s.str();
     return transactionResultFromCommand(mCommand->resultOk(historyPaymentsStrResult));

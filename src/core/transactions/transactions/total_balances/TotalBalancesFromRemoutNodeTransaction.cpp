@@ -41,7 +41,7 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::run() {
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::checkTransactionContext() {
 
     info() << "context size\t" << mContext.size();
-    if (mExpectationResponsesCount == mContext.size()) {
+    if (mContext.size() == 1) {
         auto responseMessage = *mContext.begin();
 
         if (responseMessage->typeID() == Message::MessageTypeID::TotalBalancesResultMessageType) {
@@ -74,15 +74,10 @@ void TotalBalancesFromRemoutNodeTransaction::sendMessageToRemoteNode() {
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::waitingForResponseState() {
 
     info() << "waitingForResponseState";
-    TransactionState *transactionState = new TransactionState(
-        microsecondsSinceGEOEpoch(
-            utc_now() + pt::microseconds(kConnectionTimeout * 1000)),
-        Message::MessageTypeID::TotalBalancesResultMessageType,
-        false);
-
     return transactionResultFromState(
-        TransactionState::SharedConst(
-            transactionState));
+        TransactionState::waitForMessageTypes(
+            {Message::MessageTypeID::TotalBalancesResultMessageType},
+            kConnectionTimeout));
 }
 
 void TotalBalancesFromRemoutNodeTransaction::increaseRequestsCounter() {

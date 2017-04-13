@@ -106,11 +106,21 @@ public:
         const NodeUUID &contractor,
         const AmountReservation::ConstShared reservation);
 
+    void useReservation(
+        const NodeUUID &contractor,
+        const AmountReservation::ConstShared reservation);
+
     ConstSharedTrustLineAmount availableOutgoingAmount(
         const NodeUUID &contractor);
 
     ConstSharedTrustLineAmount availableIncomingAmount(
         const NodeUUID &contractor);
+
+    ConstSharedTrustLineAmount totalOutgoingAmount()
+        const throw (bad_alloc);
+
+    ConstSharedTrustLineAmount totalIncomingAmount()
+        const throw (bad_alloc);
 
     const bool isTrustLineExist(
         const NodeUUID &contractorUUID) const;
@@ -128,11 +138,13 @@ public:
 
     vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
 
-    // TODO: TrustLineAmount takes 32 bytes. Are you shure you need a COPY here?
-    vector<pair<NodeUUID, TrustLineAmount>> incomingFlows() const;
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
-    // TODO: TrustLineAmount takes 32 bytes. Are you shure you need a COPY here?
-    vector<pair<NodeUUID, TrustLineAmount>> outgoingFlows() const;
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
+
+    vector<pair<const NodeUUID, const TrustLineDirection>> rt1WithDirections() const;
+
+    vector<NodeUUID> rt1() const;
 
     [[deprecated("Buggy function. Use trustLineReadOnly instead")]]
     const TrustLine::Shared trustLine(

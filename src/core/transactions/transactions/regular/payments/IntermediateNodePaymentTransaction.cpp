@@ -14,7 +14,9 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         trustLines,
         log),
     mMessage(message)
-{}
+{
+    mStep = Stages::IntermediateNode_PreviousNeighborRequestProcessing;
+}
 
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BytesShared buffer,
@@ -31,21 +33,28 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
 {
     switch (mStep) {
-    case Stages::PreviousNeighborRequestProcessing:
-        return processPreviousNeighborRequest();
+    case Stages::IntermediateNode_PreviousNeighborRequestProcessing:
+        return runPreviousNeighborRequestProcessingStage();
 
-    case Stages::CoordinatorRequestProcessing:
-        return processCoordinatorRequest();
+    case Stages::IntermediateNode_CoordinatorRequestProcessing:
+        return runCoordinatorRequestProcessingStage();
 
-    case Stages::NextNeighborResponseProcessing:
-        return processNextNeighborResponse();
+    case Stages::IntermediateNode_NextNeighborResponseProcessing:
+        return runNextNeighborResponseProcessingStage();
 
-    case Stages::ReservationProlongation:
-        return processReservationProlongation();
+    case Stages::IntermediateNode_ReservationProlongation:
+        return runReservationProlongationStage();
+
+    case Stages::Common_FinalPathsConfigurationChecking:
+        return runFinalPathsConfigurationProcessingStage();
+
+    case Stages::Common_VotesChecking:
+        return runVotesCheckingStage();
 
     default:
         throw RuntimeError(
-            "IntermediateNodePaymentTransaction::run: unexpected stage occured.");
+            "IntermediateNodePaymentTransaction::run: "
+            "unexpected stage occurred.");
     }
 }
 
@@ -55,61 +64,50 @@ pair<BytesShared, size_t> IntermediateNodePaymentTransaction::serializeToBytes()
 }
 
 
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::processPreviousNeighborRequest()
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNeighborRequestProcessingStage()
 {
-    // This method launches from message received in transaction constructor.
-    // No context validation is needed here.
-
     const auto kNeighbor = mMessage->senderUUID();
+    info() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
+    info() << "Requested amount reservation: " << mMessage->amount();
 
 
-    info() << "Init. intermediate payment operation from node - (" << kNeighbor << ")";
-    info() << "Amount reservation request: " << mMessage->amount();
+    // Note: (copy of shared pointer is required)
+    const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
+    const auto kReservationAmount =
+        min(mMessage->amount(), *kIncomingAmount);
 
-    // note: (copy of shared pointer is required)
-    const auto incomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
-    TrustLineAmount reservationAmount =
-        min(mMessage->amount(), *incomingAmount);
-
-    debug() << reservationAmount;
-
-    if (0 == reservationAmount || ! reserveIncomingAmount(kNeighbor, reservationAmount)) {
-        info() << "No incoming amount reservation is posible. Canceling.";
-
+    if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             nodeUUID(),
             UUID(),
             ResponseMessage::Rejected);
-        return resultExit();
-
-    } else {
-        mLastReservedAmount = reservationAmount;
-        info() << "Locally reserved amount: " << reservationAmount;
-
-        sendMessage<IntermediateNodeReservationResponseMessage>(
-            kNeighbor,
-            nodeUUID(),
-            UUID(),
-            ResponseMessage::Accepted);
-        info() << "Neighbor reservation accepted.";
-
-        mStep = Stages::CoordinatorRequestProcessing;
-
-        const auto kResponseTripTime = kMaxMessageTransferLagMSec * 2;
-        return resultWaitForMessageTypes(
-            {Message::Payments_CoordinatorReservationRequest},
-            kResponseTripTime);
+        return reject("No incoming amount reservation is possible. Rolled back.");
     }
+
+
+    mLastReservedAmount = kReservationAmount;
+    sendMessage<IntermediateNodeReservationResponseMessage>(
+        kNeighbor,
+        nodeUUID(),
+        UUID(),
+        ResponseMessage::Accepted);
+
+
+    mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
+    return resultWaitForMessageTypes(
+        {Message::Payments_CoordinatorReservationRequest},
+        maxNetworkDelay(2));
 }
 
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::processCoordinatorRequest()
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage()
 {
-    info() << "Processing coordinator request";
+    if (! contextIsValid(Message::Payments_CoordinatorReservationRequest))
+        return reject("No coordinator request received. Rolled back.");
 
-    if (! validateContext(Message::Payments_CoordinatorReservationRequest)) {
-        return resultExit();
-    }
+
+    info() << "Coordinator further reservation request received.";
+
 
     // TODO: add check for previous nodes amount reservation
 
@@ -119,36 +117,25 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::processCoordi
     mCoordinator = kMessage->senderUUID();
 
 
-    // TODO: check previous node reservation
 
-
-    //
-    // Local reservation
-
-    // note: don't delete this (copy of shared pointer is required)
+    // Note: copy of shared pointer is required
     const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
     TrustLineAmount reservationAmount = min(
         kMessage->amount(),
         *kOutgoingAmount);
 
-    if (0 == reservationAmount || ! reserveAmount(kNextNode, reservationAmount)) {
-        info() << "No amount reservation is posible. Canceling.";
+    if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount)) {
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             nodeUUID(),
             UUID(),
-            ResponseMessage::Rejected,
-            0);
-        return resultExit();
+            ResponseMessage::Rejected);
+
+        return reject("No amount reservation is possible. Rolled back.");
     }
 
+
     mLastReservedAmount = reservationAmount;
-    info() << "Locally reserved amount: " << reservationAmount;
-    info() << "Waiting for neighbor node amount reservation approve.";
-
-
-    //
-    // Process neighbor node reservation
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kNextNode,
         nodeUUID(),
@@ -156,172 +143,59 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::processCoordi
         reservationAmount);
 
     clearContext();
-
-    mStep = Stages::NextNeighborResponseProcessing;
+    mStep = Stages::IntermediateNode_NextNeighborResponseProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationResponse},
-        kMaxMessageTransferLagMSec);
+        maxNetworkDelay(2));
 }
 
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::processNextNeighborResponse()
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
 {
-    if (! validateContext(Message::Payments_IntermediateNodeReservationResponse)) {
-        return resultExit();
-    }
+    if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse))
+        reject("No valid amount reservation response received. Rolled back.");
+
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
     const auto kContractor = kMessage->senderUUID();
 
 
-    if (kMessage->state() == CoordinatorReservationResponseMessage::Rejected){
-        // TODO: check trust line consystency
-
-        error() << "(" << kContractor << ") rejected amount reservation. Canceling";
+    if (kMessage->state() == IntermediateNodeReservationResponseMessage::Rejected){
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             nodeUUID(),
             UUID(),
-            ResponseMessage::Rejected,
-            0);
-        return resultExit();
+            ResponseMessage::Rejected);
+        return reject("Amount reservation rejected by the neighbor node. Rolled back.");
     }
 
-    if (kMessage->state() == CoordinatorReservationResponseMessage::Accepted){
-        info() << "(" << kContractor << ") accepted amount reservation";
-        sendMessage<CoordinatorReservationResponseMessage>(
-            mCoordinator,
-            nodeUUID(),
-            UUID(),
-            ResponseMessage::Accepted,
-            mLastReservedAmount);
 
-        mStep = Stages::ReservationProlongation;
-        return resultWaitForMessageTypes(
-            {},
-            kCoordinatorPingTimeoutMSec);
-    }
+    info() << "(" << kContractor << ") accepted amount reservation.";
+    sendMessage<CoordinatorReservationResponseMessage>(
+        mCoordinator,
+        nodeUUID(),
+        UUID(),
+        ResponseMessage::Accepted,
+        mLastReservedAmount);
+
+
+    mStep = Stages::IntermediateNode_ReservationProlongation;
+    return resultWaitForMessageTypes(
+        {Message::Payments_ParticipantsVotes},
+        maxNetworkDelay(kMaxPathLength));
 }
 
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::processReservationProlongation()
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
 {
-    info() << "Reservation prolongation stage";
+    // In case if participants votes message is already received -
+    // there is no need to prolong reservation, transaction may be proceeded.
+    if (! mContext.empty())
+        if (mContext.at(0)->typeID() == Message::Payments_ParticipantsVotes) {
+            mStep = Stages::Common_VotesChecking;
+            return runVotesCheckingStage();
+        }
 
-
-    info() << "exit";
-    return resultExit();
-
-    return resultWaitForMessageTypes({}, kCoordinatorPingTimeoutMSec);
+    return reject("No participants votes message received. Rolling back.");
 }
-
-
-//TransactionResult::SharedConst IntermediateNodePaymentTransaction::processReservationAssumingCoordiinatorIsNeighbour()
-//{
-//    const auto kCoordinator = mMessage->senderUUID();
-
-
-//    info() << "Processing reservation request assuming coordinator is neighbor.";
-
-//    // note: don't delete this (copy of shared pointer is required)
-//    const auto incomingAmount = availableIncomingAmount(kCoordinator);
-//    TrustLineAmount reservationAmount =
-//        min(mMessage->amount(), *incomingAmount);
-
-//    if (0 == reservationAmount) {
-//        info() << "No amount reservation from coordinator is posible. Canceling.";
-
-//        return rejectRequest();
-//    }
-
-//    if (! reserveIncomingAmount(kCoordinator, reservationAmount)) {
-//        error() << "Can't reserve incoming amount " << reservationAmount;
-//        error() << "Transaction may not be proceed. Stopping.";
-
-//        return rejectRequest();
-//    }
-
-//    info() << "Successfully reserved " << reservationAmount << " for the coordinator.";
-
-//    return processReservationAssumingCoordinatorIsRemoteNode();
-//}
-
-//TransactionResult::SharedConst IntermediateNodePaymentTransaction::processReservationAssumingCoordinatorIsRemoteNode()
-//{
-//    const auto kNextNode = mMessage->nextNodeInThePathUUID();
-
-
-//    info() << "Processing reservation request to the (" << kNextNode << ").";
-
-//    // note: don't delete this (copy of shared pointer is required)
-//    const auto outgoingAmount = availableAmount(kNextNode);
-//    TrustLineAmount reservationAmount =
-//        min(mMessage->amount(), *outgoingAmount);
-
-//    if (0 == reservationAmount) {
-//        info() << "No amount reservation to next node in path is posible. Canceling.";
-
-//        return rejectRequest();
-//    }
-
-//    if (! reserveAmount(kNextNode, reservationAmount)) {
-//        error() << "Can't reserve incoming amount " << reservationAmount;
-//        error() << "Transaction may not be proceed. Stopping.";
-
-//        return rejectRequest();
-//    }
-
-//    info() << "Reserved locally " << reservationAmount << " for the " << kNextNode;
-//    return propagateReservation(reservationAmount);
-//}
-
-//TransactionResult::SharedConst IntermediateNodePaymentTransaction::rejectRequest()
-//{
-//    sendMessage(
-//        make_shared<IntermediateNodeReservationResponseMessage>(
-//            nodeUUID(),
-//            UUID(),
-//            IntermediateNodeReservationResponseMessage::Rejected),
-//        mMessage->senderUUID());
-
-//    return resultExit();
-//}
-
-//TransactionResult::SharedConst IntermediateNodePaymentTransaction::acceptRequest()
-//{
-//    sendMessage(
-//        make_shared<IntermediateNodeReservationResponseMessage>(
-//            nodeUUID(),
-//            UUID(),
-//            IntermediateNodeReservationResponseMessage::Accepted),
-//        mMessage->senderUUID());
-
-//    // TODO: Wait for shortages nj  message
-//    return resultExit();
-//}
-
-
-//TransactionResult::SharedConst IntermediateNodePaymentTransaction::propagateReservation(
-//    const TrustLineAmount &amount)
-//{
-//    info() << "Propagating reservation request to " << amount;
-
-
-//}
-
-//TransactionResult::SharedConst IntermediateNodePaymentTransaction::coordinatorRequestRejected(
-//    const NodeUUID &coordinator)
-//{
-//    error() << "(" << kContractor << ") rejected amount reservation. Canceling";
-
-//    sendMessage<CoordinatorReservationResponseMessage>(
-//        coordinator,
-//        nodeUUID(),
-//        UUID(),
-//        IntermediateNodeReservationResponseMessage::Rejected);
-
-//    info() << "Reject reservation response sent";
-//    return resultExit();
-//}
-
 
 void IntermediateNodePaymentTransaction::deserializeFromBytes(
     BytesShared buffer)

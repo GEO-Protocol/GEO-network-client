@@ -3,6 +3,8 @@
 
 #include "../BaseUserCommand.h"
 
+#include "../../../../common/multiprecision/MultiprecisionUtils.h"
+
 #include "../../../../common/exceptions/ValueError.h"
 #include "../../../../common/exceptions/MemoryError.h"
 
@@ -30,6 +32,10 @@ public:
     pair<BytesShared, size_t> serializeToBytes();
     const TrustLineAmount& amount() const;
     const NodeUUID& contractorUUID() const;
+
+public:
+    // Results handlers
+    CommandResult::SharedConst responseNoConsensus() const;
 
 protected:
     void deserializeFromBytes(

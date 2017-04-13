@@ -1,7 +1,6 @@
 #ifndef GEO_NETWORK_CLIENT_INITIATETOTALBALANCESMESSAGE_H
 #define GEO_NETWORK_CLIENT_INITIATETOTALBALANCESMESSAGE_H
 
-#include "../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../base/transaction/TransactionMessage.h"
 
 class InitiateTotalBalancesMessage : public TransactionMessage {
@@ -19,8 +18,6 @@ public:
         BytesShared buffer);
 
     const MessageType typeID() const;
-
-    const bool isTotalBalancesResponseMessage() const;
 
 };
 
