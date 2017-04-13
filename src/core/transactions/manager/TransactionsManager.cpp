@@ -564,6 +564,16 @@ void TransactionsManager::launchAcceptRoutingTablesTransaction(
     }
 }
 
+void TransactionsManager::launchProcessTrustLineModificationTransactions(
+    const NodeUUID &contractorUUID)
+{
+    prepareAndSchedule(
+        make_shared<>(
+            mNodeUUID,
+            mTrustLines,
+            mLog));
+}
+
 void TransactionsManager::launchRoutingTablesUpdatingTransactionsFactory(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) {
@@ -772,31 +782,15 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
     }
 }
 
-/*!
- *
- * Throws MemoryError.
- */
 void TransactionsManager::launchCoordinatorPaymentTransaction(
     CreditUsageCommand::Shared command) {
 
-    try {
-        auto transaction = make_shared<CoordinatorPaymentTransaction>(
+    prepareAndSchedule(
+        make_shared<CoordinatorPaymentTransaction>(
             mNodeUUID,
-            command,
+            message,
             mTrustLines,
-            mLog);
-
-        subscribeForOutgoingMessages(
-            transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(
-            transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchCoordinatorPaymentTransaction: "
-                "can't allocate memory for transaction instance.");
-    }
+            mLog));
 }
 
 void TransactionsManager::launchReceiverPaymentTransaction(

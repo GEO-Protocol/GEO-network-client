@@ -57,11 +57,11 @@ public:
         UpdateTrustLineTransactionType,
         CloseTrustLineTransactionType,
         RejectTrustLineTransactionType,
-        PropagationRoutingTablesTransactionType,
-        AcceptRoutingTablesTransactionType,
-        RoutingTablesUpdatesFactoryTransactionType,
-        PropagateRoutingTablesUpdatesTransactionType,
-        AcceptRoutingTablesUpdatesTransactionType,
+
+        // RT
+        RoutingTables_TrustLineStatesHandler
+
+
         GetTopologyAndBalancesTransaction,
 
         // Payments
@@ -91,7 +91,6 @@ public:
         GetPathTestTransactionType,
         FindPathTransactionType,
         GetRoutingTablesTransactionType
-
     };
 
 public:

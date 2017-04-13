@@ -88,8 +88,8 @@ namespace storage = db::uuid_map_block_storage;
 namespace history = db::operations_history_storage;
 namespace signals = boost::signals2;
 
+
 class TransactionsManager {
-    // todo: hsc: tests?
 public:
     signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
 
@@ -113,18 +113,10 @@ public:
     void processMessage(
         Message::Shared message);
 
-    // Invokes from Core
-    void launchFromInitiatorToContractorRoutingTablePropagationTransaction(
-        const NodeUUID &contractorUUID,
-        const TrustLineDirection direction);
+    // Routing tables transactions handlers
+    void launchProcessTrustLineModificationTransactions(
+        const NodeUUID &contractorUUID);
 
-    void launchRoutingTablesUpdatingTransactionsFactory(
-        const NodeUUID &contractorUUID,
-        const TrustLineDirection direction);
-
-    void launchPathsResourcesCollectTransaction(
-        const TransactionUUID &requestedTransactionUUID,
-        const NodeUUID &destinationNodeUUID);
 
     void attachResourceToTransaction(
         BaseResource::Shared resource);
@@ -151,13 +143,6 @@ private:
 
     void launchRejectTrustLineTransaction(
         RejectTrustLineMessage::Shared message);
-
-    // Routing tables transactions
-    void launchAcceptRoutingTablesTransaction(
-        FirstLevelRoutingTableIncomingMessage::Shared message);
-
-    void launchAcceptRoutingTablesUpdatesTransaction(
-        RoutingTableUpdateIncomingMessage::Shared message);
 
     // Max flow transactions
     void launchInitiateMaxFlowCalculatingTransaction(
@@ -242,6 +227,7 @@ private:
     void onCommandResultReady(
         CommandResult::SharedConst result);
 
+protected:
     void prepareAndSchedule(
         BaseTransaction::Shared transaction);
 
