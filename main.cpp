@@ -1,13 +1,13 @@
 #include "src/core/Core.h"
 
-#define TESTS
+//#define TESTS
 
 
 #ifdef TESTS
-//#define TESTS__DB__UUID_COLUMN
-//#define TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
-//#define TESTS__ROUTING_TABLE
-//#define TESTS__TRUSTLINES
+#define TESTS__DB__UUID_COLUMN
+#define TESTS__DB__TRUST_LINE_DIRECTION_COLUMN
+#define TESTS__ROUTING_TABLE
+#define TESTS__TRUSTLINES
 #endif
 
 // todo: move this into separate if..def
