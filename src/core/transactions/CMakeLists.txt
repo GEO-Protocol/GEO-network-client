@@ -14,7 +14,7 @@ add_subdirectory(transactions/history)
 add_subdirectory(transactions/find_path)
 
 set(SOURCE_FILES
-        transactions/base/TransactionUUID.h)
+        transactions/base/TransactionUUID.h transactions/contractors_list/GetFirstLevelContractorsTransaction.h transactions/contractors_list/GetFirstLevelContractorsTransaction.cpp)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions

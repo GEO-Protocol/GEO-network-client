@@ -28,7 +28,11 @@ set(SOURCE_FILES
         commands/history/HistoryPaymentsCommand.cpp
         commands/history/HistoryPaymentsCommand.h
         commands/history/HistoryTrustLinesCommand.cpp
-        commands/history/HistoryTrustLinesCommand.h commands/find_path/FindPathCommand.cpp commands/find_path/FindPathCommand.h)
+        commands/history/HistoryTrustLinesCommand.h
+        commands/find_path/FindPathCommand.cpp
+        commands/find_path/FindPathCommand.h
+        commands/contractors_list/GetFirstLevelContractorsCommand.h
+        commands/contractors_list/GetFirstLevelContractorsCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

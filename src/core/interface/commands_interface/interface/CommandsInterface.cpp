@@ -1,3 +1,4 @@
+#include <commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.h>
 #include "CommandsInterface.h"
 
 
@@ -190,6 +191,10 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == GetFirstLevelContractorsCommand::identifier()) {
+            command = new GetFirstLevelContractorsCommand(
+                    uuid,
+                    buffer);
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "
