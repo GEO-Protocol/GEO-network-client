@@ -12,6 +12,9 @@ ChannelsManager::ChannelsManager(
         mIncomingChannels = unique_ptr<map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>>(
             new map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>());
 
+        mUsedChannelNumberForEndpoint = unique_ptr<map<udp::endpoint, uint16_t>>(
+            new map<udp::endpoint, uint16_t>());
+
         mOutgoingChannels = unique_ptr<map<udp::endpoint, pair<uint16_t, Channel::Shared>>>(
             new map<udp::endpoint, pair<uint16_t, Channel::Shared>>());
 
@@ -180,20 +183,26 @@ uint16_t ChannelsManager::unusedOutgoingChannelNumber(
 
     uint16_t maximalPossibleOutgoingChannelNumber = std::numeric_limits<uint16_t>::max();
 
-    if (mOutgoingChannels->count(endpoint) != 0) {
+    if (mUsedChannelNumberForEndpoint->count(endpoint) != 0) {
 
-        const auto endpointAndChannel = mOutgoingChannels->find(
+        const auto endpointAndChannelNumber = mUsedChannelNumberForEndpoint->find(
             endpoint);
 
-        if (endpointAndChannel->second.first < maximalPossibleOutgoingChannelNumber) {
-
-            uint16_t channelNumber = endpointAndChannel->second.first + 1;
+        if (endpointAndChannelNumber->second < maximalPossibleOutgoingChannelNumber) {
+            uint16_t channelNumber = endpointAndChannelNumber->second + 1;
+            (*mUsedChannelNumberForEndpoint)[endpoint] = channelNumber;
             return channelNumber;
         }
 
+    } else {
+        mUsedChannelNumberForEndpoint->insert(
+            make_pair(
+                endpoint,
+                0));
+
+        return 0;
     }
 
-    return 0;
 }
 
 void ChannelsManager::removeOutgoingChannel(

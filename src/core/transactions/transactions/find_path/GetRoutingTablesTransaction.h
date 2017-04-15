@@ -41,7 +41,7 @@ private:
 
 private:
 
-    const size_t kCountElementsPerMessage = 200;
+    const size_t kCountElementsPerMessage = 1000;
 
 private:
 

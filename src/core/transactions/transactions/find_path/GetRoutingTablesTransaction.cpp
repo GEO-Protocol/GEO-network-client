@@ -25,12 +25,11 @@ TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
 
     info() << "run\tI am " << mNodeUUID;
 
-    info() << "run\t TrustLinesSize: " << mTrustLinesManager->trustLines().size();
-
+    /*info() << "run\t TrustLinesSize: " << mTrustLinesManager->trustLines().size();
     info() << "run\t" << "RT1 size: " << mTrustLinesManager->rt1().size();
     for (auto const &itRT1 : mTrustLinesManager->rt1()) {
         info() << "run\t\t" << itRT1;
-    }
+    }*/
     /*for (auto const &itRT2 : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey()) {
         info() << "run\t\tkey: " << itRT2.first;
         for (auto const &nodeUUID : itRT2.second) {

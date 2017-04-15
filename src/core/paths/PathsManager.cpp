@@ -849,8 +849,8 @@ void PathsManager::testPaymentStateOperationsHandler() {
 
 void PathsManager::fillBigRoutingTables() {
 
-    uint32_t firstLevelNode = 35;
-    uint32_t countNodes = 10000;
+    uint32_t firstLevelNode = 20;
+    uint32_t countNodes = 5000;
     srand (time(NULL));
     vector<NodeUUID*> nodeUUIDPtrs;
     nodeUUIDPtrs.reserve(countNodes);
@@ -1092,17 +1092,6 @@ void PathsManager::testMultiConnection() {
     sqlite3_reset(stmt2);
     sqlite3_finalize(stmt2);
 
-    // transaction 2 select
-    rc = sqlite3_prepare_v2(database2, selectQuery.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 select: Bad query");
-    }
-    while (sqlite3_step(stmt2) == SQLITE_ROW) {
-        info() << "testMultiConnection 2 select " << sqlite3_column_int(stmt2, 0) << " " << sqlite3_column_int(stmt2, 0);
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
     // transaction 2 insert
     rc = sqlite3_prepare_v2(database2, queryInsert.c_str(), -1, &stmt2, 0);
     if (rc != SQLITE_OK) {
@@ -1122,6 +1111,17 @@ void PathsManager::testMultiConnection() {
     } else {
         info() << "testMultiConnection 2 insert error: " << rc;
         //throw IOError("PathsManager::testMultiConnection 2 insert: Run query");
+    }
+    sqlite3_reset(stmt2);
+    sqlite3_finalize(stmt2);
+
+    // transaction 2 select
+    rc = sqlite3_prepare_v2(database2, selectQuery.c_str(), -1, &stmt2, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 2 select: Bad query");
+    }
+    while (sqlite3_step(stmt2) == SQLITE_ROW) {
+        info() << "testMultiConnection 2 select " << sqlite3_column_int(stmt2, 0) << " " << sqlite3_column_int(stmt2, 0);
     }
     sqlite3_reset(stmt2);
     sqlite3_finalize(stmt2);
