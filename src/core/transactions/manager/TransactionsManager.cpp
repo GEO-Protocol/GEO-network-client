@@ -1035,6 +1035,16 @@ void TransactionsManager::subscribeForCommandResult(
     );
 }
 
+void TransactionsManager::subscribeCloseCycleTransaction(BaseTransaction::LaunchCloseCycleSignal &signal) {
+    signal.connect(
+            boost::bind(
+                    &TransactionsManager::launchCloseCycleTransaction,
+                    this,
+                    _1
+            )
+    );
+}
+
 void TransactionsManager::onTransactionOutgoingMessageReady(
     Message::Shared message,
     const NodeUUID &contractorUUID) {
@@ -1113,6 +1123,7 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(const NodeUUID &
             mStorageHandler->routingTablesHandler(),
             mLog
         );
+        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1140,14 +1151,17 @@ void TransactionsManager::launchThreeNodesCyclesResponseTransaction(CyclesThreeN
 }
 
 void TransactionsManager::launchSixNodesCyclesInitTransaction() {
+
     try {
         auto transaction = make_shared<CyclesSixNodesInitTransaction>(
             mNodeUUID,
             mTrustLines,
             mLog
         );
+        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
+
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchSixNodesCyclesInitTransaction: "
@@ -1179,6 +1193,7 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
             mTrustLines,
             mLog
         );
+        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1215,6 +1230,7 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(const NodeUUID &d
                 mStorageHandler->routingTablesHandler(),
                 mLog
         );
+        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1240,3 +1256,6 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(CyclesFourNod
                         "Can't allocate memory for transaction instance.");
     }
 }
+
+void TransactionsManager::launchCloseCycleTransaction(shared_ptr<vector<NodeUUID>> path)
+{}

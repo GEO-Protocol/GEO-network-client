@@ -99,10 +99,13 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                                                   kNodeUUID,
                                                   (*(NodeUIDandPairOfPathandBalace->second))[2],
                                                   (*(NodeUIDandPairOfPathandBalace->second))[1]};
+                auto sCycle = make_shared<vector<NodeUUID>>(stepCyclePath);
+                closeCycleSignal(sCycle);
                 #ifdef TESTS
                 ResultCycles.push_back(stepCyclePath);
                 #endif
                 //    Todo run cycles
+//                Startsignal
                 // Потрібно ставити первірку на доречність перекриття цилів
                 // Ця транакція має верта нам дані про те через який трастлайн неможна зробити перрозрахунок
 //                stepCyclePath.clear();

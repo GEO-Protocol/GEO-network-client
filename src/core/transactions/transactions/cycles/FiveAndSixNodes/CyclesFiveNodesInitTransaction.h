@@ -16,6 +16,9 @@ public:
 
     const BaseTransaction::TransactionType transactionType() const;
 
+public:
+    mutable LaunchCloseCycleSignal closeCycleSignal;
+
 protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();

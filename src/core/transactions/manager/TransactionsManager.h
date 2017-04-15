@@ -253,6 +253,8 @@ private:
     void launchGetRoutingTablesTransaction(
         RequestRoutingTablesMessage::Shared message);
 
+    void launchCloseCycleTransaction(shared_ptr<vector<NodeUUID>>);
+
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(
         BaseTransaction::LaunchSubsidiaryTransactionSignal &signal);
@@ -262,6 +264,9 @@ private:
 
     void subscribeForCommandResult(
         TransactionsScheduler::CommandResultSignal &signal);
+
+    void subscribeCloseCycleTransaction(
+         BaseTransaction::LaunchCloseCycleSignal &signal);
 
     // Slots
     void onSubsidiaryTransactionReady(

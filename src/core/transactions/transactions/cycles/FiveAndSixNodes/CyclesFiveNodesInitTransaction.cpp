@@ -100,6 +100,8 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
                                                    stepPathDebtors[2],
                                                    kNodeUUID,
                                                    s_it->second->back()};
+                auto sCycle = make_shared<vector<NodeUUID>>(stepCyclePath);
+                closeCycleSignal(sCycle);
                 #ifdef TESTS
                     ResultCycles.push_back(stepCyclePath);
                 #endif

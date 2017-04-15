@@ -22,6 +22,9 @@ public:
 
     TransactionResult::SharedConst run();
 
+public:
+    mutable LaunchCloseCycleSignal closeCycleSignal;
+
 protected:
     enum Stages {
         CollectDataAndSendMessage = 1,

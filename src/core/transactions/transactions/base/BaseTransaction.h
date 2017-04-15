@@ -38,6 +38,7 @@ public:
     typedef uint16_t SerializedTransactionType;
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
+    typedef signals::signal<void(shared_ptr<vector<NodeUUID>>)> LaunchCloseCycleSignal;
 
 public:
     // TODO: add other states shortcuts here

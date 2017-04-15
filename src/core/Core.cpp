@@ -17,7 +17,6 @@ int Core::run() {
         mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
         return initCode;
     }
-    checkSomething();
     try {
         writePIDFile();
 
@@ -488,7 +487,7 @@ void Core::onDelayedTaskCycleSixNodesSlot() {
 }
 
 void Core::onDelayedTaskCycleFiveNodesSlot() {
-//    mTransactionsManager->launchFiveNodesCyclesInitTransaction();
+    mTransactionsManager->launchFiveNodesCyclesInitTransaction();
 }
 
 void Core::onDelayedTaskCycleFourNodesSlot() {
@@ -572,9 +571,9 @@ void Core::cleanupMemory() {
         delete mMaxFlowCalculationCacheUpdateDelayedTask;
     }
 
-    if (mStorageHandler != nullptr) {
+/*    if (mStorageHandler != nullptr) {
         delete mStorageHandler;
-    }
+    }*/
 
     if (mPathsManager != nullptr) {
         delete mPathsManager;
@@ -653,7 +652,7 @@ void Core::test_ThreeNodesTransaction() {
     const auto kNeighborsUUIDs = mTrustLinesManager->getFirstLevelNodesForCycles(0);
     stringstream ss;
     copy(kNeighborsUUIDs.begin(), kNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
-    cout << "test_FourNodesTransaction::Nodes With positive balance: \n" << ss.str() << endl;
+    cout << "test_ThreeNodesTransaction::Nodes With positive balance: \n" << ss.str() << endl;
     for(const auto &kNodeUUID: kNeighborsUUIDs) {
             mTransactionsManager->launchThreeNodesCyclesInitTransaction(kNodeUUID);
     }

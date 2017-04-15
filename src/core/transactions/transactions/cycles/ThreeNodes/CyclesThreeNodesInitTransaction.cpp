@@ -35,10 +35,14 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run() {
 set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     const TrustLineBalance kZeroBalance = 0;
-    auto contractorNeighbors =
+    const auto contractorNeighbors =
         mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(
         mContractorUUID);
-
+    cout << "CyclesThreeNodesInitTransaction::mContractorUUID " << mContractorUUID << endl;
+    stringstream ss;
+    copy(contractorNeighbors.begin(), contractorNeighbors.end(), ostream_iterator<NodeUUID>(ss, " "));
+    cout << ss.str() << endl;
+    cout << "CyclesThreeNodesInitTransaction::End" << endl;
     set<NodeUUID> ownNeighbors, commonNeighbors;
     for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()){
 
@@ -71,7 +75,6 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
         mNodeUUID,
         UUID(),
         neighbors);
-
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultWaitForMessageTypes(
         {Message::Cycles_ThreeNodesBalancesReceiverMessage},
@@ -92,7 +95,8 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
             mNodeUUID,
             mContractorUUID,
             nodeUUIDAndBalance};
-        // todo run close cycle transaction
+        auto sCycle = make_shared<vector<NodeUUID>>(cycle);
+        closeCycleSignal(sCycle);
         #ifdef TESTS
             ResultCycles.push_back(cycle);
         #endif
