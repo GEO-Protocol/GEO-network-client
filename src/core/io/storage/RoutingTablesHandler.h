@@ -34,6 +34,10 @@ public:
         const NodeUUID &sourceUUID,
         const NodeUUID &contractorUUID);
 
+    void deleteRecordFromRT2(
+        const NodeUUID &source,
+        const NodeUUID &destination);
+
     void closeConnections();
 
 private:
@@ -46,7 +50,7 @@ private:
 
 private:
 
-    sqlite3 *mDataBase;
+    sqlite3 *mDataBase = nullptr;
     RoutingTableHandler mRoutingTable2Level;
     RoutingTableHandler mRoutingTable3Level;
     Logger *mLog;

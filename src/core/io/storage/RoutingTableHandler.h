@@ -47,6 +47,10 @@ public:
 
     map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> routeRecordsWithDirectionsMapSourceKey();
 
+    bool isNodePresentAsDestination(const NodeUUID &nodeUUID);
+
+    void deleteAllRecordsWithSource(const NodeUUID &sourceUUID);
+
     const string &tableName() const;
 
     void closeConnection();
@@ -73,7 +77,7 @@ private:
 
 private:
 
-    sqlite3 *mDataBase;
+    sqlite3 *mDataBase = nullptr;
     string mTableName;
     Logger *mLog;
     bool isTransactionBegin;

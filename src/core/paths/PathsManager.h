@@ -104,6 +104,7 @@ private:
     void testTime();
     void testMultiConnection();
     void printRTs();
+    void testDeletingRT();
 
 private:
 

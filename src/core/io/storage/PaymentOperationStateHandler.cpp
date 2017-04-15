@@ -349,7 +349,9 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::getState(
 
 void PaymentOperationStateHandler::closeConnection() {
 
-    sqlite3_close_v2(mDataBase);
+    if (mDataBase != nullptr) {
+        sqlite3_close_v2(mDataBase);
+    }
 }
 
 LoggerStream PaymentOperationStateHandler::info() const {

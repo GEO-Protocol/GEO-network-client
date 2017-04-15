@@ -628,7 +628,50 @@ map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> Rout
                     direction));
         }
     }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
     return result;
+}
+
+bool RoutingTableHandler::isNodePresentAsDestination(const NodeUUID &nodeUUID) {
+
+    string query = "SELECT 1 FROM " + mTableName + " WHERE destination = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTableHandler::isNodePresentAsDestination: Bad query");
+    }
+    rc = sqlite3_bind_blob(stmt, 1, nodeUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTableHandler::isNodePresentAsDestination: Bad binding of nodeUUID");
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_ROW;
+}
+
+// TODO : this action is out of transaction
+void RoutingTableHandler::deleteAllRecordsWithSource(const NodeUUID &sourceUUID) {
+
+    string query = "DELETE FROM " + mTableName + " WHERE source = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTableHandler::deleteAllRecordsWithSource: Bad query");
+    }
+    rc = sqlite3_bind_blob(stmt, 1, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTableHandler::deleteAllRecordsWithSource: "
+                          "Bad sourceUUID binding");
+    }
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        info() << "deleting error: " << rc;
+        throw IOError("RoutingTableHandler::deleteAllRecordsWithSource: Run query");
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
 }
 
 const string& RoutingTableHandler::tableName() const {
@@ -638,7 +681,9 @@ const string& RoutingTableHandler::tableName() const {
 
 void RoutingTableHandler::closeConnection() {
 
-    sqlite3_close_v2(mDataBase);
+    if (mDataBase != nullptr) {
+        sqlite3_close_v2(mDataBase);
+    }
 }
 
 LoggerStream RoutingTableHandler::info() const {

@@ -58,7 +58,7 @@ private:
 
 private:
 
-    sqlite3 *mDataBase;
+    sqlite3 *mDataBase = nullptr;
     string mTableName;
     Logger *mLog;
     bool isTransactionBegin;

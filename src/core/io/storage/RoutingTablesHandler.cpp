@@ -189,11 +189,29 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
     return result;
 }
 
+void RoutingTablesHandler::deleteRecordFromRT2(
+    const NodeUUID &source,
+    const NodeUUID &destination) {
+
+    mRoutingTable2Level.deleteRecord(
+        source,
+        destination);
+    mRoutingTable2Level.commit();
+
+    if (!mRoutingTable2Level.isNodePresentAsDestination(
+        destination)) {
+        mRoutingTable3Level.deleteAllRecordsWithSource(
+            destination);
+    }
+}
+
 void RoutingTablesHandler::closeConnections() {
 
     mRoutingTable2Level.closeConnection();
     mRoutingTable3Level.closeConnection();
-    sqlite3_close_v2(mDataBase);
+    if (mDataBase != nullptr) {
+        sqlite3_close_v2(mDataBase);
+    }
 }
 
 LoggerStream RoutingTablesHandler::info() const {

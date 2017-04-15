@@ -420,7 +420,9 @@ void TrustLineHandler::saveTrustLine(
 
 void TrustLineHandler::closeConnection() {
 
-    sqlite3_close_v2(mDataBase);
+    if (mDataBase != nullptr) {
+        sqlite3_close_v2(mDataBase);
+    }
 }
 
 LoggerStream TrustLineHandler::info() const {
