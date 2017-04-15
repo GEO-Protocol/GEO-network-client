@@ -31,16 +31,13 @@ public:
 
     PaymentOperationStateHandler *paymentOperationStateHandler();
 
-    void closeConnection();
+    void closeConnections();
 
 private:
 
-    static void checkDirectory(
-        const string &directory);
-
-    static sqlite3* connection(
-        const string &dataBaseName,
-        const string &directory);
+    static string buildDataBasePath(
+        const string &directory,
+        const string &dataBaseName);
 
     LoggerStream info() const;
 
@@ -55,17 +52,12 @@ private:
 
 private:
 
-    static sqlite3 *mDataBase;
-
-private:
-
     Logger *mLog;
     RoutingTablesHandler mRoutingTablesHandler;
     TrustLineHandler mTrustLineHandler;
     PaymentOperationStateHandler mPaymentOperationStateHandler;
     string mDirectory;
     string mDataBaseName;
-    string mDataBasePath;
 
 };
 

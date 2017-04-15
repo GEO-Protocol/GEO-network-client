@@ -12,6 +12,9 @@ ChannelsManager::ChannelsManager(
         mIncomingChannels = unique_ptr<map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>>(
             new map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>());
 
+        mUsedChannelNumberForEndpoint = unique_ptr<map<udp::endpoint, uint16_t>>(
+            new map<udp::endpoint, uint16_t>());
+
         mOutgoingChannels = unique_ptr<map<udp::endpoint, pair<uint16_t, Channel::Shared>>>(
             new map<udp::endpoint, pair<uint16_t, Channel::Shared>>());
 
@@ -124,16 +127,16 @@ void ChannelsManager::removeIncomingChannel(
     }
 }
 
-pair<uint16_t, Channel::Shared> ChannelsManager::outgoingChannel(
+pair<uint16_t, Channel::Shared> ChannelsManager::nextOutgoingChannel (
     const udp::endpoint &endpoint) {
 
-    /*mLog->logInfo("ChannelsManager::outgoingChannel: ",
+    /*mLog->logInfo("ChannelsManager::nextOutgoingChannel: ",
                   "Create channel for endpoint " + endpoint.address().to_string() + " : " + to_string(endpoint.port()));*/
 
     uint16_t channelNumber = unusedOutgoingChannelNumber(
         endpoint);
 
-    /*mLog->logInfo("ChannelsManager::outgoingChannel: ",
+    /*mLog->logInfo("ChannelsManager::nextOutgoingChannel: ",
                   "Number for channel " + to_string(channelNumber));*/
 
     return make_pair(
@@ -180,20 +183,26 @@ uint16_t ChannelsManager::unusedOutgoingChannelNumber(
 
     uint16_t maximalPossibleOutgoingChannelNumber = std::numeric_limits<uint16_t>::max();
 
-    if (mOutgoingChannels->count(endpoint) != 0) {
+    if (mUsedChannelNumberForEndpoint->count(endpoint) != 0) {
 
-        const auto endpointAndChannel = mOutgoingChannels->find(
+        const auto endpointAndChannelNumber = mUsedChannelNumberForEndpoint->find(
             endpoint);
 
-        if (endpointAndChannel->second.first < maximalPossibleOutgoingChannelNumber) {
-
-            uint16_t channelNumber = endpointAndChannel->second.first + 1;
+        if (endpointAndChannelNumber->second < maximalPossibleOutgoingChannelNumber) {
+            uint16_t channelNumber = endpointAndChannelNumber->second + 1;
+            (*mUsedChannelNumberForEndpoint)[endpoint] = channelNumber;
             return channelNumber;
         }
 
+    } else {
+        mUsedChannelNumberForEndpoint->insert(
+            make_pair(
+                endpoint,
+                0));
+
+        return 0;
     }
 
-    return 0;
 }
 
 void ChannelsManager::removeOutgoingChannel(

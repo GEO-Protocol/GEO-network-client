@@ -42,13 +42,13 @@ public:
 
 public:
     // TODO: add other states shortcuts here
-    TransactionResult::Shared resultExit();
-    TransactionResult::Shared resultFlushAndContinue();
+    TransactionResult::Shared resultExit() const;
+    TransactionResult::Shared resultFlushAndContinue() const;
     TransactionResult::Shared resultWaitForMessageTypes(
         vector<Message::MessageTypeID> &&requiredMessagesTypes,
-        uint16_t noLongerThanMilliseconds);
+        uint32_t noLongerThanMilliseconds) const;
     TransactionResult::Shared resultAwaikAfterMilliseconds(
-        uint32_t responseWaitTime);
+        uint32_t responseWaitTime) const ;
 
 public:
     ~BaseTransaction() = default;
@@ -136,6 +136,7 @@ protected:
         const TransactionUUID &transactionUUID,
         Logger *log=nullptr);
 
+    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
@@ -174,7 +175,7 @@ protected:
     template <typename MessageType, typename... Args>
     inline void sendMessage(
         const NodeUUID &addressee,
-        Args&&... args)
+        Args&&... args) const
     {
         const auto message = make_shared<MessageType>(args...);
         outgoingMessageIsReadySignal(
@@ -184,7 +185,7 @@ protected:
 
     inline void sendMessage(
         const NodeUUID &addressee,
-        const Message::Shared message)
+        const Message::Shared message) const
     {
         outgoingMessageIsReadySignal(
             message,

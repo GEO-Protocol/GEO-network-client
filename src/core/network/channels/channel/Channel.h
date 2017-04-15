@@ -46,7 +46,7 @@ public:
     void setOutgoingPacketsCount(
         uint16_t packetsCount);
 
-    bool isChannelCanBeRemoved();
+    bool canBeRemoved ();
 
     const map<uint16_t, Packet::Shared, less<uint16_t>> *packets() const;
 

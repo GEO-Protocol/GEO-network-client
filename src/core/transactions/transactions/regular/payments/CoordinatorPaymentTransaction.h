@@ -6,17 +6,16 @@
 
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 
-#include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
-#include "../../../../network/messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
-#include "../../../../network/messages/outgoing/payments/CoordinatorReservationRequestMessage.h"
-#include "../../../../network/messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
-#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
-#include "../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
-#include "../../../../network/messages/outgoing/payments/ParticipantsApprovingMessage.h"
+#include <boost/functional/hash.hpp>
 
-#include <map>
+#include <unordered_map>
+#include <unordered_set>
 
-
+/**
+ * TODO: Implement intermedaite reservations shortage for the big transactions.
+ * It is makes sense to implement additional reservations shortage process,
+ * that would free parts of reserved capabilities in parallel with amounts reservation stages.
+ */
 class CoordinatorPaymentTransaction:
     public BasePaymentTransaction {
 
@@ -26,27 +25,32 @@ public:
 
 public:
     CoordinatorPaymentTransaction(
-        const NodeUUID &currentNodeUUID,
-        CreditUsageCommand::Shared command,
+        const NodeUUID &kCurrentNodeUUID,
+        const CreditUsageCommand::Shared kCommand,
         TrustLinesManager *trustLines,
-        Logger *log);
+        Logger *log)
+        noexcept;
 
     CoordinatorPaymentTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLines,
-        Logger *log);
+        Logger *log)
+        throw (bad_alloc);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run()
+        throw (RuntimeError, bad_alloc);
 
-    pair<BytesShared, size_t> serializeToBytes() const;
+    pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc);
 
 protected:
+    // TODO: move it into separate *.h file.
     typedef boost::uuids::uuid PathUUID;
 
 protected:
-    /**
-     * Describes payment path, it's nodes states, and max flow through it.
-     */
+
+    // Describes payment path, it's nodes states,
+    // and max flow through it.
     class PathStats {
     public:
         enum NodeState {
@@ -61,56 +65,87 @@ protected:
         };
 
     public:
-        PathStats(
-            Path::ConstShared path);
+        PathStats (
+            const Path::ConstShared path)
+            noexcept;
 
-        void setNodeState(
+        void setNodeState (
             const uint8_t positionInPath,
-            const NodeState state);
+            const NodeState state)
+            throw(ValueError);
 
-        const TrustLineAmount& maxFlow() const;
-        void setMaxFlow(
-             const TrustLineAmount &amount);
+        const TrustLineAmount &maxFlow () const
+            noexcept;
 
-        const Path::ConstShared path() const;
-        const pair<NodeUUID, uint8_t> currentIntermediateNodeAndPos() const;
-        const pair<NodeUUID, uint8_t> nextIntermediateNodeAndPos() const;
-        const bool reservationRequestSentToAllNodes() const;
+        void shortageMaxFlow (
+            const TrustLineAmount &kAmount)
+            throw(ValueError);
 
-        const bool isNeighborAmountReserved() const;
-        const bool isWaitingForNeighborReservationResponse() const;
-        const bool isWaitingForNeighborReservationPropagationResponse() const;
-        const bool isWaitingForReservationResponse() const;
+        const Path::ConstShared path () const
+            noexcept;
 
-        const bool isReadyToSendNextReservationRequest() const;
-        const bool isLastIntermediateNodeProcessed() const;
+        const pair<NodeUUID, uint8_t> currentIntermediateNodeAndPos () const
+            throw (NotFoundError);
 
-        const bool isValid() const;
-        void setUnusable();
+        const pair<NodeUUID, uint8_t> nextIntermediateNodeAndPos () const
+            throw (NotFoundError);
+
+        const bool reservationRequestSentToAllNodes () const
+            noexcept;
+
+        const bool isNeighborAmountReserved () const
+            noexcept;
+
+        const bool isWaitingForNeighborReservationResponse () const
+            noexcept;
+
+        const bool isWaitingForNeighborReservationPropagationResponse () const
+            noexcept;
+
+        const bool isWaitingForReservationResponse () const
+            noexcept;
+
+        const bool isReadyToSendNextReservationRequest () const
+            noexcept;
+
+        const bool isLastIntermediateNodeProcessed () const
+            noexcept;
+
+        const bool isValid () const
+            noexcept;
+
+        void setUnusable ()
+            noexcept;
 
     protected:
-        Path::ConstShared mPath;
-        vector<NodeState> mIntermediateNodesStates;
+        const Path::ConstShared mPath;
         TrustLineAmount mMaxPathFlow;
         bool mIsValid;
+
+        // Contains states of each node in the path.
+        // See reservaions stage for the details.
+        vector<NodeState> mIntermediateNodesStates;
     };
 
 protected:
-    enum Stages {
-        ReceiverPaymentInitialisation = 1,
-        ReceiverResponseProcessing,
-        AmountReservation,
-        ApprovesCollecting,
-        ApprovesChecking,
-    };
-
-
     // Stages handlers
-    TransactionResult::SharedConst initPaymentOperation();
-    TransactionResult::SharedConst processReceiverResponse();
-    TransactionResult::SharedConst tryReserveAmounts();
-    TransactionResult::SharedConst processApprovesCollectingStage();
-    TransactionResult::SharedConst processTransactionRecovering();
+    // TODO: Add throws specififcations
+    TransactionResult::SharedConst runPaymentInitialisationStage ();
+    TransactionResult::SharedConst runReceiverResponseProcessingStage ();
+    TransactionResult::SharedConst runAmountReservationStage ();
+    TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
+    TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
+    TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
+    TransactionResult::SharedConst runVotesCheckingStage ();
+
+protected:
+    // Coordinator must return command result on transaction finishing.
+    // Therefore this methods are overriden.
+    TransactionResult::SharedConst approve();
+    TransactionResult::SharedConst recover(
+        const char *message = nullptr);
+    TransactionResult::SharedConst reject(
+        const char *message = nullptr);
 
 protected:
     // Results handlers
@@ -119,21 +154,25 @@ protected:
     TransactionResult::SharedConst resultProtocolError();
     TransactionResult::SharedConst resultNoResponseError();
     TransactionResult::SharedConst resultInsufficientFundsError();
+    TransactionResult::SharedConst resultNoConsensusError();
 
 protected:
-    // Init operation helpers
     void addPathForFurtherProcessing(
         Path::ConstShared path);
 
-    // Amounts reservation helpers
     void initAmountsReservationOnNextPath();
+
     void switchToNextPath();
 
     PathStats* currentAmountReservationPathStats();
+
     TransactionResult::SharedConst tryProcessNextPath();
 
-    TransactionResult::SharedConst tryReserveNextNodeAmount(
-        PathStats* pathStats);
+    TransactionResult::SharedConst tryReserveAmountDirectlyOnReceiver (
+        PathStats *pathStats);
+
+    TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (
+        PathStats *pathStats);
 
     TransactionResult::SharedConst askNeighborToReserveAmount(
         const NodeUUID &neighbor,
@@ -155,25 +194,40 @@ protected:
 
     TransactionResult::SharedConst processRemoteNodeResponse();
 
+    TrustLineAmount totalReservedByAllPaths() const;
+
 protected:
     const string logHeader() const;
     void deserializeFromBytes(
         BytesShared buffer);
 
-    TrustLineAmount totalReservedByAllPaths() const;
-
 protected:
-    // local
     CreditUsageCommand::Shared mCommand;
-    map<PathUUID, unique_ptr<PathStats>> mPathsStats;
+
+    // Contains special stats data, such as current msx flow,
+    // for all paths involved into the transaction.
+    unordered_map<PathUUID, unique_ptr<PathStats>, boost::hash<boost::uuids::uuid>> mPathsStats;
 
     // Used in amount reservations stage.
     // Contains identifier of the path,
     // that was processed last, and potenially,
     // is waiting for request appriving.
     PathUUID mCurrentAmountReservingPathIdentifier;
-//    byte mCurrentAmountReservingPathIdentifierIndex;
 
+    // Reservation stage contains it's own internal steps counter.
     byte mReservationsStage;
+
+    // Contains nodes that has been requrested final paths configuration.
+    // for more details, see TODO
+    unordered_set<NodeUUID> mNodesRequestedFinalConfiguration;
+
+    /*
+     * If true - then it means that direct path betweeen coordinator and receiver has been already processed.
+     * Otherwise is set to the false (by default).
+     *
+     * Only one direct path may occure due to one payment operation.
+     * In case if several direct paths occurs - than it seems that paths collection is broken.
+     */
+    bool mDirectPathIsAllreadyProcessed;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

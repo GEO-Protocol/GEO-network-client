@@ -1,15 +1,11 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 #define GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 
-#include "../../common/Types.h"
-#include "../../common/memory/MemoryUtils.h"
 
-#include "../channels/packet/PacketHeader.h"
 #include "../channels/packet/Packet.h"
 #include "../channels/channel/Channel.h"
 #include "../channels/manager/ChannelsManager.h"
 
-#include "../messages/Message.hpp"
 #include "../messages/incoming/trust_lines/AcceptTrustLineMessage.h"
 #include "../messages/incoming/trust_lines/UpdateTrustLineMessage.h"
 #include "../messages/incoming/trust_lines/RejectTrustLineMessage.h"
@@ -28,12 +24,17 @@
 #include "../messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
+#include "../messages/outgoing/payments/ParticipantsVotesMessage.h"
+#include "../messages/outgoing/payments/ParticipantsConfigurationRequestMessage.h"
+#include "../messages/outgoing/payments/ParticipantsConfigurationMessage.h"
 #include "../messages/response/Response.h"
 #include "../messages/response/RoutingTablesResponse.h"
 #include "../messages/total_balances/InitiateTotalBalancesMessage.h"
 #include "../messages/total_balances/TotalBalancesResultMessage.h"
 #include "../messages/find_path/RequestRoutingTablesMessage.h"
-#include "../messages/find_path/ResultRoutingTablesMessage.h"
+#include "../messages/find_path/ResultRoutingTable1LevelMessage.h"
+#include "../messages/find_path/ResultRoutingTable2LevelMessage.h"
+#include "../messages/find_path/ResultRoutingTable3LevelMessage.h"
 
 #include "../messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
 #include "../messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
@@ -48,9 +49,6 @@
 
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
-
-#include <memory>
-#include <vector>
 
 
 using namespace std;

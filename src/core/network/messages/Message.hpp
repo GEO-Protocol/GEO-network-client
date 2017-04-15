@@ -60,7 +60,9 @@ public:
         Payments_IntermediateNodeReservationRequest,
         Payments_IntermediateNodeReservationResponse,
 
-        Payments_ParticipantsApprove,
+        Payments_ParticipantsVotes,
+        Payments_ParticipantsPathsConfiguration,
+        Payments_ParticipantsPathsConfigurationRequest,
 
 
         InitiateMaxFlowCalculationMessageType,
@@ -74,7 +76,9 @@ public:
         TotalBalancesResultMessageType,
 
         RequestRoutingTablesMessageType,
-        ResultRoutingTablesMessageType,
+        ResultRoutingTable1LevelMessageType,
+        ResultRoutingTable2LevelMessageType,
+        ResultRoutingTable3LevelMessageType,
 
         ResponseMessageType = 1000,
         RoutingTablesResponseMessageType
@@ -132,22 +136,19 @@ public:
 
     virtual const MessageType typeID() const = 0;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() {
+    virtual pair<BytesShared, size_t> serializeToBytes()
+    {
+        const auto kMessageType = typeID();
+        auto buffer = tryMalloc(sizeof(kMessageType));
 
-        size_t bytesCount = sizeof(MessageType);
-        BytesShared bytesBuffer = tryMalloc(bytesCount);
-        //----------------------------------------------------
-        MessageType type = typeID();
         memcpy(
-            bytesBuffer.get(),
-            &type,
-            sizeof(MessageType)
-        );
-        //----------------------------------------------------
+            buffer.get(),
+            &kMessageType,
+            sizeof(kMessageType));
+
         return make_pair(
-            bytesBuffer,
-            bytesCount
-        );
+            buffer,
+            sizeof(kMessageType));
     }
 
 protected:

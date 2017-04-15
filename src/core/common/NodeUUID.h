@@ -57,12 +57,9 @@ namespace std {
     template <>
     class hash<NodeUUID>{
     public :
-        size_t operator()(const NodeUUID &nodeUUID) const{
-            size_t result = 0;
-            for (int idx = 0; idx < 8; idx++) {
-                result += hash<uint8_t>()(nodeUUID.data[idx*2] << (idx*8));
-            }
-            return result;
+        size_t operator()(const NodeUUID &nodeUUID) const {
+            const auto kPtr = reinterpret_cast<const size_t* >(nodeUUID.data);
+            return *kPtr;
         }
     };
 }

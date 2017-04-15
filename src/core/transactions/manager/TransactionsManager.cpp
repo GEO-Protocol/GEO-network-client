@@ -198,9 +198,8 @@ void TransactionsManager::processCommand(
 }
 
 void TransactionsManager::processMessage(
-    Message::Shared message) {
-//    cout << "__________________________________________" << endl;
-//    cout << "MEssageType: " << message->typeID() << endl;
+    Message::Shared message)
+{
     if (message->typeID() == Message::AcceptTrustLineMessageType) {
         launchAcceptTrustLineTransaction(
             static_pointer_cast<AcceptTrustLineMessage>(message));
@@ -256,13 +255,19 @@ void TransactionsManager::processMessage(
         mScheduler->tryAttachMessageToTransaction(message);
 
     /*
-    * Total balances
+    * Paths
     */
     } else if (message->typeID() == Message::MessageTypeID::RequestRoutingTablesMessageType) {
         launchGetRoutingTablesTransaction(
             static_pointer_cast<RequestRoutingTablesMessage>(message));
 
-    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTablesMessageType) {
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable1LevelMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable2LevelMessageType) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
+    } else if (message->typeID() == Message::MessageTypeID::ResultRoutingTable3LevelMessageType) {
         mScheduler->tryAttachMessageToTransaction(message);
 
     /*

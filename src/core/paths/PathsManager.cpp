@@ -18,6 +18,9 @@ PathsManager::PathsManager(
     //fillBigRoutingTables();
     //testTrustLineHandler();
     //testPaymentStateOperationsHandler();
+    //testTime();
+    //testMultiConnection();
+    //printRTs();
 }
 
 void PathsManager::findDirectPath() {
@@ -28,7 +31,7 @@ void PathsManager::findDirectPath() {
                 mNodeUUID,
                 mContractorUUID);
             mPathCollection->add(path);
-            info() << "found direct path";
+            //info() << "found direct path";
             return;
         }
     }
@@ -36,6 +39,7 @@ void PathsManager::findDirectPath() {
 
 void PathsManager::findPathsOnSecondLevel() {
 
+    DateTime startTime = utc_now();
     for (auto const &nodeUUID : mStorageHandler->routingTablesHandler()->subRoutesSecondLevel(mContractorUUID)) {
         vector<NodeUUID> intermediateNodes;
         intermediateNodes.push_back(nodeUUID);
@@ -44,12 +48,15 @@ void PathsManager::findPathsOnSecondLevel() {
             mContractorUUID,
             intermediateNodes);
         mPathCollection->add(path);
-        info() << "found path on second level";
+        //info() << "found path on second level";
     }
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSecondLevel method time: " << methodTime;*/
 }
 
 void PathsManager::findPathsOnThirdLevel() {
 
+    DateTime startTime = utc_now();
     for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelContractor(
             mContractorUUID,
             mNodeUUID)) {
@@ -61,13 +68,16 @@ void PathsManager::findPathsOnThirdLevel() {
             mContractorUUID,
             intermediateNodes);
         mPathCollection->add(path);
-        info() << "found path on third level";
+        //info() << "found path on third level";
     }
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnThirdLevel method time: " << methodTime;*/
 }
 
 void PathsManager::findPathsOnForthLevel(
     vector<NodeUUID> &contractorRT1) {
 
+    DateTime startTime =  utc_now();
     for (auto const &nodeUUID : contractorRT1) {
         if (nodeUUID == mNodeUUID) {
             continue;
@@ -80,20 +90,22 @@ void PathsManager::findPathsOnForthLevel(
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
             intermediateNodes.push_back(nodeUUID);
-            info() << "forth level: " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second << " " << nodeUUID;
             Path path(
                 mNodeUUID,
                 mContractorUUID,
                 intermediateNodes);
             mPathCollection->add(path);
-            info() << "found path on forth level";
+            //info() << "found path on forth level";
         }
     }
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnForthLevel method time: " << methodTime;*/
 }
 
 void PathsManager::findPathsOnFifthLevel(
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
+    DateTime startTime = utc_now();
     for (auto const &itRT2 : contractorRT2) {
         // TODO (mc) : need or not second condition (itRT2.first == contractorUUID)
         if (itRT2.first == mNodeUUID || itRT2.first == mContractorUUID) {
@@ -107,7 +119,6 @@ void PathsManager::findPathsOnFifthLevel(
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
             intermediateNodes.push_back(itRT2.first);
-            info() << "fifth path: " << itRT2.first << " " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second;
             for (auto const &nodeUUID : itRT2.second) {
                 if(std::find(intermediateNodes.begin(), intermediateNodes.end(), nodeUUID) != intermediateNodes.end() ||
                         nodeUUID == mNodeUUID || nodeUUID == mContractorUUID) {
@@ -120,16 +131,19 @@ void PathsManager::findPathsOnFifthLevel(
                     intermediateNodes);
                 mPathCollection->add(path);
                 intermediateNodes.pop_back();
-                info() << "found path on fifth level";
+                //info() << "found path on fifth level";
             }
         }
     }
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnFifthLevel method time: " << methodTime;*/
 }
 
 void PathsManager::findPathsOnSixthLevel(
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3,
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
+    DateTime startTime = utc_now();
     for (auto const &itRT3 : contractorRT3) {
         // TODO (mc) : need or not second condition (itRT3.first == contractorUUID)
         if (itRT3.first == mNodeUUID || itRT3.first == mContractorUUID) {
@@ -143,14 +157,17 @@ void PathsManager::findPathsOnSixthLevel(
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
             intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
             intermediateNodes.push_back(itRT3.first);
-            //info() << "sixth path: " << itRT3.first << " " << nodeUUIDAndNodeUUID.second << " " << nodeUUIDAndNodeUUID.first;
             for (auto const &nodeUUID : itRT3.second) {
+                if(std::find(intermediateNodes.begin(), intermediateNodes.end(), nodeUUID) != intermediateNodes.end() ||
+                   nodeUUID == mNodeUUID || nodeUUID == mContractorUUID) {
+                    continue;
+                }
+                intermediateNodes.push_back(nodeUUID);
                 for (auto &contactorIntermediateNode : intermediateNodesOnContractorFirstLevel(
                         nodeUUID,
                         intermediateNodes,
                         contractorRT2)) {
-                    //info() << "sixth path: " << nodeUUID << " " << contactorIntermediateNode;
-                    intermediateNodes.push_back(nodeUUID);
+
                     intermediateNodes.push_back(contactorIntermediateNode);
                     Path path(
                         mNodeUUID,
@@ -158,23 +175,21 @@ void PathsManager::findPathsOnSixthLevel(
                         intermediateNodes);
                     mPathCollection->add(path);
                     intermediateNodes.pop_back();
-                    intermediateNodes.pop_back();
-                    info() << "found path on sixth level";
+
+                    //info() << "found path on sixth level";
                 }
+                intermediateNodes.pop_back();
             }
         }
     }
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSixthLevel method time: " << methodTime;*/
 }
 
 vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevel(
     const NodeUUID &thirdLevelSourceNode,
     vector<NodeUUID> &intermediateNodes,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) const {
-
-    if(std::find(intermediateNodes.begin(), intermediateNodes.end(), thirdLevelSourceNode) != intermediateNodes.end() ||
-            thirdLevelSourceNode == mNodeUUID || thirdLevelSourceNode == mContractorUUID) {
-        return {};
-    }
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) const {
 
     auto nodeUUIDAndVect = contractorRT2.find(thirdLevelSourceNode);
     if (nodeUUIDAndVect == contractorRT2.end()) {
@@ -195,6 +210,7 @@ vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevel(
 // test
 void PathsManager::findPathsOnSecondLevelTest() {
 
+    DateTime startTime = utc_now();
     for (auto const &nodeUUID : mStorageHandler->routingTablesHandler()->subRoutesSecondLevel(mContractorUUID)) {
         Path path(
             mNodeUUID,
@@ -202,13 +218,16 @@ void PathsManager::findPathsOnSecondLevelTest() {
             {nodeUUID});
         if (isPathValid(path)) {
             mPathCollection->add(path);
-            info() << "found path on second level";
+            //info() << "found path on second level";
         }
     }
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSecondLevel test method time: " << methodTime;*/
 }
 
 void PathsManager::findPathsOnThirdLevelTest() {
 
+    DateTime startTime = utc_now();
     for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
             mContractorUUID)) {
         if (nodeUUIDAndNodeUUID.first == mContractorUUID || nodeUUIDAndNodeUUID.second == mNodeUUID) {
@@ -222,14 +241,17 @@ void PathsManager::findPathsOnThirdLevelTest() {
                 nodeUUIDAndNodeUUID.second});
         if (isPathValid(path)) {
             mPathCollection->add(path);
-            info() << "found path on third level";
+            //info() << "found path on third level";
         }
     }
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnThirdLevel test method time: " << methodTime;*/
 }
 
 void PathsManager::findPathsOnForthLevelTest(
     vector<NodeUUID> &contractorRT1) {
 
+    DateTime startTime = utc_now();
     for (auto const &nodeUUID : contractorRT1) {
         if (nodeUUID == mNodeUUID) {
             continue;
@@ -245,15 +267,18 @@ void PathsManager::findPathsOnForthLevelTest(
                     nodeUUID});
             if (isPathValid(path)) {
                 mPathCollection->add(path);
-                info() << "found path on forth level";
+                //info() << "found path on forth level";
             }
         }
     }
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnForthLevel test method time: " << methodTime;*/
 }
 
 void PathsManager::findPathsOnFifthLevelTest(
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
+    DateTime startTime = utc_now();
     for (auto const &itRT2 : contractorRT2) {
         // TODO (mc) : need or not second condition (itRT2.first == contractorUUID)
         if (itRT2.first == mNodeUUID || itRT2.first == mContractorUUID) {
@@ -261,7 +286,6 @@ void PathsManager::findPathsOnFifthLevelTest(
         }
         for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
                 itRT2.first)) {
-            info() << "fifth path: " << itRT2.first << " " << nodeUUIDAndNodeUUID.first << " " << nodeUUIDAndNodeUUID.second;
             for (auto const &nodeUUID : itRT2.second) {
                 vector<NodeUUID> intermediateNodes;
                 intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
@@ -274,17 +298,20 @@ void PathsManager::findPathsOnFifthLevelTest(
                     intermediateNodes);
                 if (isPathValid(path)) {
                     mPathCollection->add(path);
-                    info() << "found path on fifth level";
+                    //info() << "found path on fifth level test";
                 }
             }
         }
     }
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnFifthLevel test method time: " << methodTime;
 }
 
 void PathsManager::findPathsOnSixthLevelTest(
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3,
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
+    DateTime startTime = utc_now();
     for (auto const &itRT3 : contractorRT3) {
         // TODO (mc) : need or not second condition (itRT3.first == contractorUUID)
         if (itRT3.first == mNodeUUID || itRT3.first == mContractorUUID) {
@@ -293,12 +320,10 @@ void PathsManager::findPathsOnSixthLevelTest(
         for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
                 itRT3.first)) {
 
-            info() << "sixth path: " << itRT3.first << " " << nodeUUIDAndNodeUUID.second << " " << nodeUUIDAndNodeUUID.first;
             for (auto const &nodeUUID : itRT3.second) {
                 for (auto &contactorIntermediateNode : intermediateNodesOnContractorFirstLevelTest(
                         nodeUUID,
                         contractorRT2)) {
-                    info() << "sixth path: " << nodeUUID << " " << contactorIntermediateNode;
                     vector<NodeUUID> intermediateNodes;
                     intermediateNodes.push_back(nodeUUIDAndNodeUUID.first);
                     intermediateNodes.push_back(nodeUUIDAndNodeUUID.second);
@@ -311,17 +336,19 @@ void PathsManager::findPathsOnSixthLevelTest(
                         intermediateNodes);
                     if (isPathValid(path)) {
                         mPathCollection->add(path);
-                        info() << "found path on sixth level";
+                        //info() << "found path on sixth level test";
                     }
                 }
             }
         }
     }
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSixthLevel test method time: " << methodTime;*/
 }
 
 vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevelTest(
     const NodeUUID &thirdLevelSourceNode,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) const {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) const {
 
     auto nodeUUIDAndVect = contractorRT2.find(thirdLevelSourceNode);
     if (nodeUUIDAndVect == contractorRT2.end()) {
@@ -351,13 +378,13 @@ bool PathsManager::isPathValid(const Path &path) {
 void PathsManager::findPaths(
     const NodeUUID &contractorUUID,
     vector<NodeUUID> &contractorRT1,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3) {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2,
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3) {
 
     mContractorUUID = contractorUUID;
 
     info() << "start finding paths to " << contractorUUID;
-    DateTime startTime;
+    DateTime startTime = utc_now();
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
         mContractorUUID);
@@ -376,7 +403,10 @@ void PathsManager::findPaths(
     info() << "PathsManager::findPath\tmethod time: " << methodTime;
     info() << "total paths count: " << mPathCollection->count();
     while (mPathCollection->hasNextPath()) {
-        info() << mPathCollection->nextPath()->toString();
+        //info() << mPathCollection->nextPath()->toString();
+        if (!isPathValid(*mPathCollection->nextPath().get())) {
+            info() << "wrong path!!! ";
+        }
     }
 }
 
@@ -385,7 +415,7 @@ void PathsManager::findPathsOnSelfArea(
 
     mContractorUUID = contractorUUID;
     info() << "start finding paths on self area to " << contractorUUID;
-    DateTime startTime;
+    DateTime startTime = utc_now();
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
         mContractorUUID);
@@ -394,22 +424,23 @@ void PathsManager::findPathsOnSelfArea(
     findPathsOnThirdLevel();
 
     Duration methodTime = utc_now() - startTime;
-    info() << "PathsManager::findPath\tmethod time: " << methodTime;
-    info() << "total paths count: " << mPathCollection->count();
-    while (mPathCollection->hasNextPath()) {
+    info() << "PathsManager::findPathsOnSelfArea\tmethod time: " << methodTime;
+    info() << "total paths on self area count: " << mPathCollection->count();
+    /*while (mPathCollection->hasNextPath()) {
         info() << mPathCollection->nextPath()->toString();
-    }
+    }*/
 }
 
 void PathsManager::findPathsTest(
     const NodeUUID &contractorUUID,
     vector<NodeUUID> &contractorRT1,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2,
-    unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3) {
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2,
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3) {
 
     mContractorUUID = contractorUUID;
 
     info() << "start finding test paths to " << mContractorUUID;
+    DateTime startTime = utc_now();
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
         mContractorUUID);
@@ -424,10 +455,12 @@ void PathsManager::findPathsTest(
         contractorRT3,
         contractorRT2);
 
-    info() << "total paths count: " << mPathCollection->count();
-    while (mPathCollection->hasNextPath()) {
+    Duration methodTime = utc_now() - startTime;
+    info() << "PathsManager::findPathTest\tmethod time: " << methodTime;
+    info() << "total paths test count: " << mPathCollection->count();
+    /*while (mPathCollection->hasNextPath()) {
         info() << mPathCollection->nextPath()->toString();
-    }
+    }*/
 }
 
 PathsCollection::Shared PathsManager::pathCollection() const {
@@ -641,6 +674,11 @@ void PathsManager::testStorageHandler() {
     }
     mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
 
+    info() << "all destinations for source: " << *nodeUUID81Ptr;
+    for (const auto &itVect : mStorageHandler->routingTablesHandler()->routingTable2Level()->allDestinationsForSource(*nodeUUID81Ptr)) {
+        info() << "\t\t\t" << itVect;
+    }
+
     delete nodeUUID81Ptr;
     delete nodeUUID82Ptr;
     delete nodeUUID83Ptr;
@@ -812,7 +850,7 @@ void PathsManager::testPaymentStateOperationsHandler() {
 void PathsManager::fillBigRoutingTables() {
 
     uint32_t firstLevelNode = 20;
-    uint32_t countNodes = 1000;
+    uint32_t countNodes = 5000;
     srand (time(NULL));
     vector<NodeUUID*> nodeUUIDPtrs;
     nodeUUIDPtrs.reserve(countNodes);
@@ -837,7 +875,16 @@ void PathsManager::fillBigRoutingTables() {
             continue;
         }
         firstLevelNodes.push_back(nextIdx);
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *getPtrByNodeNumber(
+                    nextIdx,
+                    nodeUUIDPtrs),
+                TrustLineAmount(200),
+                TrustLineAmount(200),
+                TrustLineBalance(0)));
     }
+    mStorageHandler->trustLineHandler()->commit();
     info() << "PathsManager::fillBigRoutingTables first level done";
     set<uint32_t> secondLevelAllNodes;
     for (auto firstLevelIdx : firstLevelNodes) {
@@ -860,7 +907,7 @@ void PathsManager::fillBigRoutingTables() {
                 TrustLineDirection::Both);
         }
         mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-        info() << "fillBigRoutingTables:: second level commit";
+        //info() << "fillBigRoutingTables:: second level commit";
     }
     info() << "fillBigRoutingTables:: second level done";
     for (auto secondLevelIdx : secondLevelAllNodes) {
@@ -882,7 +929,7 @@ void PathsManager::fillBigRoutingTables() {
                 TrustLineDirection::Both);
         }
         mStorageHandler->routingTablesHandler()->routingTable3Level()->commit();
-        info() << "fillBigRoutingTables:: third level commit";
+        //info() << "fillBigRoutingTables:: third level commit";
     }
     info() << "fillBigRoutingTables:: third level done";
     for (auto nodeUUIDPrt : nodeUUIDPtrs) {
@@ -909,6 +956,253 @@ NodeUUID* PathsManager::getPtrByNodeNumber(
         if (nodeUUIDStr.compare(nodeUUIDPtr->stringUUID()) == 0) {
             return nodeUUIDPtr;
         }
+    }
+}
+
+void PathsManager::testTime() {
+
+    info() << "testTime\t" << "RT2 size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecords().size();
+    info() << "testTime\t" << "RT2 with directions size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections().size();
+    info() << "testTime\t" << "RT2 map size opt5: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey().size();
+
+    info() << "testTime\t" << "RT3 size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecords().size();
+    info() << "testTime\t" << "RT3 with directions size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsWithDirections().size();
+    info() << "testTime\t" << "RT3 map size opt5: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey().size();
+}
+
+void PathsManager::testMultiConnection() {
+
+    string queryCreateTable = "CREATE TABLE IF NOT EXISTS test_table "
+        "(field1 INTEGER NOT NULL, "
+        "field2 INTEGER NOT NULL);";
+    string queryBegin = "BEGIN TRANSACTION;";
+    string queryInsert = "INSERT INTO test_table (field1, field2) VALUES (?, ?);";
+    string queryCommit = "END TRANSACTION;";
+    string selectQuery = "SELECT * FROM test_table";
+
+    sqlite3_stmt *stmt1;
+    sqlite3_stmt *stmt2;
+
+    sqlite3 *database1;
+    sqlite3 *database2;
+
+    int rc = sqlite3_open_v2("io/storageDB", &database1, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    if (rc == SQLITE_OK) {
+    } else {
+        throw IOError("PathsManager::testMultiConnection "
+                          "Can't open database 1");
+    }
+
+    // create table conn1
+    rc = sqlite3_prepare_v2( database1, queryCreateTable.c_str(), -1, &stmt1, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 1 creating table : Bad query");
+    }
+    rc = sqlite3_step(stmt1);
+    if (rc == SQLITE_DONE) {
+    } else {
+        info() << "testMultiConnection 1 creating table error: " << rc;
+        throw IOError("PathsManager::testMultiConnection 1 creating table : Run query");
+    }
+    sqlite3_reset(stmt1);
+    sqlite3_finalize(stmt1);
+
+
+    rc = sqlite3_open_v2("io/storageDB", &database2, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    if (rc == SQLITE_OK) {
+    } else {
+        throw IOError("PathsManager::testMultiConnection "
+                          "Can't open database 2");
+    }
+
+    // create table conn2
+    rc = sqlite3_prepare_v2( database2, queryCreateTable.c_str(), -1, &stmt2, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 2 creating table : Bad query");
+    }
+    rc = sqlite3_step(stmt2);
+    if (rc == SQLITE_DONE) {
+    } else {
+        throw IOError("PathsManager::testMultiConnection 2 creating table : Run query");
+    }
+    sqlite3_reset(stmt2);
+    sqlite3_finalize(stmt2);
+
+    // transaction 1 begin
+    rc = sqlite3_prepare_v2( database1, queryBegin.c_str(), -1, &stmt1, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 1 prepareInserted: Bad query");
+    }
+    rc = sqlite3_step(stmt1);
+    if (rc == SQLITE_DONE) {
+        info() << "testMultiConnection 1 transaction begin";
+    } else {
+        info() << "testMultiConnection 1 prepareInserted error: " << rc;
+        //throw IOError("PathsManager::testMultiConnection 1 prepareInserted: Run query");
+    }
+    sqlite3_reset(stmt1);
+    sqlite3_finalize(stmt1);
+
+    // transaction 1 insert
+    rc = sqlite3_prepare_v2(database1, queryInsert.c_str(), -1, &stmt1, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 1 insert: Bad query");
+    }
+    rc = sqlite3_bind_int(stmt1, 1, 1);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 1 insert: Bad binding of field1");
+    }
+    rc = sqlite3_bind_int(stmt1, 2, 11);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 1 insert: Bad binding of field2");
+    }
+    rc = sqlite3_step(stmt1);
+    if (rc == SQLITE_DONE) {
+        info() << "testMultiConnection 1 inserting is completed successfully";
+    } else {
+        info() << "testMultiConnection 1 insert error: " << rc;
+        //throw IOError("PathsManager::testMultiConnection 1 insert: Run query");
+    }
+    sqlite3_reset(stmt1);
+    sqlite3_finalize(stmt1);
+
+    // transaction 1 select
+    rc = sqlite3_prepare_v2(database1, selectQuery.c_str(), -1, &stmt1, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 1 select: Bad query");
+    }
+    while (sqlite3_step(stmt1) == SQLITE_ROW) {
+        info() << "testMultiConnection 1 select " << sqlite3_column_int(stmt1, 0) << " " << sqlite3_column_int(stmt1, 0);
+    }
+    sqlite3_reset(stmt1);
+    sqlite3_finalize(stmt1);
+
+    // transaction 2 begin
+    rc = sqlite3_prepare_v2( database2, queryBegin.c_str(), -1, &stmt2, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 2 prepareInserted: Bad query");
+    }
+    rc = sqlite3_step(stmt2);
+    if (rc == SQLITE_DONE) {
+        info() << "testMultiConnection 2 transaction begin";
+    } else {
+        info() << "testMultiConnection 2 prepareInserted error: " << rc;
+        //throw IOError("PathsManager::testMultiConnection 2 prepareInserted: Run query");
+    }
+    sqlite3_reset(stmt2);
+    sqlite3_finalize(stmt2);
+
+    // transaction 2 insert
+    rc = sqlite3_prepare_v2(database2, queryInsert.c_str(), -1, &stmt2, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 2 insert: Bad query");
+    }
+    rc = sqlite3_bind_int(stmt2, 1, 2);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 2 insert: Bad binding of field1");
+    }
+    rc = sqlite3_bind_int(stmt2, 2, 22);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 2 insert: Bad binding of field2");
+    }
+    rc = sqlite3_step(stmt2);
+    if (rc == SQLITE_DONE) {
+        info() << "testMultiConnection 2 inserting is completed successfully";
+    } else {
+        info() << "testMultiConnection 2 insert error: " << rc;
+        //throw IOError("PathsManager::testMultiConnection 2 insert: Run query");
+    }
+    sqlite3_reset(stmt2);
+    sqlite3_finalize(stmt2);
+
+    // transaction 2 select
+    rc = sqlite3_prepare_v2(database2, selectQuery.c_str(), -1, &stmt2, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 2 select: Bad query");
+    }
+    while (sqlite3_step(stmt2) == SQLITE_ROW) {
+        info() << "testMultiConnection 2 select " << sqlite3_column_int(stmt2, 0) << " " << sqlite3_column_int(stmt2, 0);
+    }
+    sqlite3_reset(stmt2);
+    sqlite3_finalize(stmt2);
+
+    // transaction 1 commit
+    rc = sqlite3_prepare_v2( database1, queryCommit.c_str(), -1, &stmt1, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 1 commit: Bad query");
+    }
+    rc = sqlite3_step(stmt1);
+    if (rc == SQLITE_DONE) {
+        info() << "testMultiConnection 1 transaction commit";
+    } else {
+        info() << "testMultiConnection 1 commit error: " << rc;
+        //throw IOError("PathsManager::testMultiConnection 1 commit: Run query");
+    }
+    sqlite3_reset(stmt1);
+    sqlite3_finalize(stmt1);
+
+    // transaction 2 commit
+    rc = sqlite3_prepare_v2( database2, queryCommit.c_str(), -1, &stmt2, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 2 commit: Bad query");
+    }
+    rc = sqlite3_step(stmt2);
+    if (rc == SQLITE_DONE) {
+        info() << "testMultiConnection 2 transaction commit";
+    } else {
+        info() << "testMultiConnection 2 commit error: " << rc;
+        //throw IOError("PathsManager::testMultiConnection 2 commit: Run query");
+    }
+    sqlite3_reset(stmt2);
+    sqlite3_finalize(stmt2);
+
+    // transaction 1 select
+    rc = sqlite3_prepare_v2(database1, selectQuery.c_str(), -1, &stmt1, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 1 select: Bad query");
+    }
+    while (sqlite3_step(stmt1) == SQLITE_ROW) {
+        info() << "testMultiConnection 1 select " << sqlite3_column_int(stmt1, 0) << " " << sqlite3_column_int(stmt1, 0);
+    }
+    sqlite3_reset(stmt1);
+    sqlite3_finalize(stmt1);
+
+    // transaction 2 select
+    rc = sqlite3_prepare_v2(database2, selectQuery.c_str(), -1, &stmt2, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("PathsManager::testMultiConnection 2 select: Bad query");
+    }
+    while (sqlite3_step(stmt2) == SQLITE_ROW) {
+        info() << "testMultiConnection 2 select " << sqlite3_column_int(stmt2, 0) << " " << sqlite3_column_int(stmt2, 0);
+    }
+    sqlite3_reset(stmt2);
+    sqlite3_finalize(stmt2);
+
+    sqlite3_close_v2(database1);
+    sqlite3_close_v2(database2);
+}
+
+void PathsManager::printRTs() {
+
+    info() << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
+    for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
+        info() << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
+               << itTrustLine.second->incomingTrustAmount() << " "
+               << itTrustLine.second->outgoingTrustAmount() << " "
+               << itTrustLine.second->balance();
+    }
+    info() << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections().size();
+    NodeUUID source;
+    NodeUUID target;
+    TrustLineDirection direction;
+    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections()) {
+        std::tie(source, target, direction) = itRT2;
+        info() << source << " " << target << " " << direction;
+    }
+    info() << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsWithDirections().size();
+    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsWithDirections()) {
+        std::tie(source, target, direction) = itRT3;
+        info() << source << " " << target << " " << direction;
     }
 }
 

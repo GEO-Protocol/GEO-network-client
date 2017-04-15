@@ -93,13 +93,9 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
     RecordCount *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) RecordCount;
     bytesBufferOffset += sizeof(RecordCount);
     //-----------------------------------------------------
-    mOutgoingFlows.clear();
     mOutgoingFlows.reserve(*trustLinesOutCount);
     for (RecordNumber idx = 0; idx < *trustLinesOutCount; idx++) {
-        vector<uint8_t> nodeUUIDBufferBytes(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
-        NodeUUID nodeUUID(nodeUUIDBufferBytes.data());
+        NodeUUID nodeUUID(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
         vector<byte> bufferTrustLineAmount(
@@ -117,13 +113,9 @@ void ResultMaxFlowCalculationMessage::deserializeFromBytes(
     RecordCount *trustLinesInCount = new (buffer.get() + bytesBufferOffset) RecordCount;
     bytesBufferOffset += sizeof(RecordCount);
     //-----------------------------------------------------
-    mIncomingFlows.clear();
     mIncomingFlows.reserve(*trustLinesInCount);
     for (RecordNumber idx = 0; idx < *trustLinesInCount; idx++) {
-        vector<uint8_t> nodeUUIDBufferBytes(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
-        NodeUUID nodeUUID(nodeUUIDBufferBytes.data());
+        NodeUUID nodeUUID(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
         vector<byte> bufferTrustLineAmount(

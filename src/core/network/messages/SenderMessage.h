@@ -3,17 +3,13 @@
 
 #include "Message.hpp"
 
-#include "../../common/Types.h"
 #include "../../common/NodeUUID.h"
-#include "../../common/memory/MemoryUtils.h"
 
-#include <memory>
-#include <utility>
-#include <stdint.h>
 
 using namespace std;
 
-class SenderMessage : public Message {
+class SenderMessage:
+    public Message {
 
 public:
     const NodeUUID &senderUUID() const;
@@ -36,4 +32,5 @@ protected:
 protected:
     NodeUUID mSenderUUID;
 };
+
 #endif //GEO_NETWORK_CLIENT_SENDERMESSAGE_H

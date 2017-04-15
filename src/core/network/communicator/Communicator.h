@@ -46,8 +46,8 @@ public:
 
     void beginAcceptMessages();
 
-    void sendMessage(
-        Message::Shared message,
+    void sendMessage (
+        const Message::Shared kMessage,
         const NodeUUID &contractorUUID);
 
 private:
@@ -63,7 +63,7 @@ private:
         size_t bytesTransferred);
 
     void sendData(
-        pair <string, uint16_t> address,
+        udp::endpoint &address,
         vector<byte> buffer,
         Channel::Shared channel);
 
@@ -74,7 +74,7 @@ private:
         Channel::Shared channel);
 
 private:
-    static const constexpr size_t kMaxIncomingBufferSize = 1024 * 1024;
+    static const constexpr size_t kMaxIncomingBufferSize = 1024;
 
     as::io_service &mIOService;
     NodeUUID &mNodeUUID;

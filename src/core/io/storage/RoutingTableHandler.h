@@ -13,18 +13,18 @@
 #include <set>
 #include <tuple>
 #include <unordered_map>
-#include <map>
+#include <boost/functional/hash.hpp>
 
 class RoutingTableHandler {
 
 public:
 
     RoutingTableHandler(
-        sqlite3 *db,
-        string tableName,
+        const string &databasePath,
+        const string &tableName,
         Logger *logger);
 
-    void commit();
+    bool commit();
 
     void rollBack();
 
@@ -44,11 +44,13 @@ public:
     set<NodeUUID> allDestinationsForSource(
         const NodeUUID &sourceUUID);
 
-    unordered_map<NodeUUID, vector<NodeUUID>> routeRecordsMapDestinationKey();
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKey();
 
     map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> routeRecordsWithDirectionsMapSourceKey();
 
     const string &tableName() const;
+
+    void closeConnection();
 
 private:
 
@@ -74,7 +76,6 @@ private:
 
     sqlite3 *mDataBase;
     string mTableName;
-    sqlite3_stmt *stmt;
     Logger *mLog;
     bool isTransactionBegin;
 

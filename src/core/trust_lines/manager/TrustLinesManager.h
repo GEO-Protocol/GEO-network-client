@@ -6,7 +6,6 @@
 
 #include "../TrustLine.h"
 #include "../../payments/amount_blocks/AmountReservationsHandler.h"
-#include "../../io/trust_lines/TrustLinesStorage.h"
 
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
@@ -15,6 +14,7 @@
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
 #include "../../logger/Logger.h"
+#include "../../io/storage/StorageHandler.h"
 
 #include <boost/signals2.hpp>
 
@@ -27,7 +27,6 @@
 
 
 using namespace std;
-namespace storage = db::uuid_map_block_storage;
 namespace signals = boost::signals2;
 
 
@@ -40,7 +39,9 @@ public:
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineStateModifiedSignal;
 
 public:
-    TrustLinesManager(Logger *logger);
+    TrustLinesManager(
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     void loadTrustLines();
 
@@ -106,11 +107,21 @@ public:
         const NodeUUID &contractor,
         const AmountReservation::ConstShared reservation);
 
+    void useReservation(
+        const NodeUUID &contractor,
+        const AmountReservation::ConstShared reservation);
+
     ConstSharedTrustLineAmount availableOutgoingAmount(
         const NodeUUID &contractor);
 
     ConstSharedTrustLineAmount availableIncomingAmount(
         const NodeUUID &contractor);
+
+    ConstSharedTrustLineAmount totalOutgoingAmount()
+        const throw (bad_alloc);
+
+    ConstSharedTrustLineAmount totalIncomingAmount()
+        const throw (bad_alloc);
 
     const bool isTrustLineExist(
         const NodeUUID &contractorUUID) const;
@@ -173,8 +184,8 @@ private:
     // Contractor UUID -> trust line to the contractor.
     map<NodeUUID, TrustLine::Shared> mTrustLines;
 
-    unique_ptr<TrustLinesStorage> mTrustLinesStorage;
     unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
+    StorageHandler *mStorageHandler;
     Logger *mlogger;
 };
 

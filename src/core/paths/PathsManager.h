@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_PATHSMANAGER_H
 
 #include "../trust_lines/manager/TrustLinesManager.h"
-#include "../network/messages/find_path/ResultRoutingTablesMessage.h"
 #include "../io/storage/StorageHandler.h"
 #include "lib/Path.h"
 #include "lib/PathsCollection.h"
@@ -10,6 +9,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <boost/functional/hash.hpp>
 #include <set>
 
 class PathsManager {
@@ -25,8 +25,8 @@ public:
     void findPaths(
         const NodeUUID &contractorUUID,
         vector<NodeUUID> &contractorRT1,
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2,
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3);
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2,
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3);
 
     void findPathsOnSelfArea(
         const NodeUUID &contractorUUID);
@@ -35,8 +35,8 @@ public:
     void findPathsTest(
         const NodeUUID &contractorUUID,
         vector<NodeUUID> &contractorRT1,
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2,
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3);
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2,
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3);
 
     PathsCollection::Shared pathCollection() const;
 
@@ -52,16 +52,16 @@ private:
         vector<NodeUUID> &contractorRT1);
 
     void findPathsOnFifthLevel(
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2);
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2);
 
     void findPathsOnSixthLevel(
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2);
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3,
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2);
 
     vector<NodeUUID> intermediateNodesOnContractorFirstLevel(
         const NodeUUID &thirdLevelSourceNode,
         vector<NodeUUID> &intermediateNodes,
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) const;
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) const;
 
     // test
     void findPathsOnSecondLevelTest();
@@ -72,15 +72,15 @@ private:
         vector<NodeUUID> &contractorRT1);
 
     void findPathsOnFifthLevelTest(
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2);
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2);
 
     void findPathsOnSixthLevelTest(
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT3,
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2);
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3,
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2);
 
     vector<NodeUUID> intermediateNodesOnContractorFirstLevelTest(
         const NodeUUID &thirdLevelSourceNode,
-        unordered_map<NodeUUID, vector<NodeUUID>> &contractorRT2) const;
+        unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) const;
 
     bool isPathValid(const Path &path);
     //test end
@@ -101,6 +101,9 @@ private:
     void testStorageHandler();
     void testTrustLineHandler();
     void testPaymentStateOperationsHandler();
+    void testTime();
+    void testMultiConnection();
+    void printRTs();
 
 private:
 

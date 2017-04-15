@@ -1,8 +1,12 @@
 ﻿#include "TrustLinesManager.h"
 
-TrustLinesManager::TrustLinesManager(Logger *logger) : mlogger(logger){
+TrustLinesManager::TrustLinesManager(
+    StorageHandler *storageHandler,
+    Logger *logger) :
+
+    mStorageHandler(storageHandler),
+    mlogger(logger){
     try {
-        mTrustLinesStorage = unique_ptr<TrustLinesStorage>(new TrustLinesStorage("trust_lines.dat"));
 
         mAmountBlocksHandler = unique_ptr<AmountReservationsHandler>(new AmountReservationsHandler());
 
@@ -17,42 +21,14 @@ TrustLinesManager::TrustLinesManager(Logger *logger) : mlogger(logger){
 
 /**
  * throw IOError - can not read trust line data from file by key
- * throw Exception - unable to create instance of trust line
  */
 void TrustLinesManager::loadTrustLines() {
 
-    vector<NodeUUID> contractorsUUIDs = mTrustLinesStorage->getAllContractorsUUIDs();
-
-    if (contractorsUUIDs.size() > 0) {
-
-        for (auto const &item : contractorsUUIDs) {
-
-            storage::Record::Shared record;
-            try {
-                record = mTrustLinesStorage->readByUUID(storage::uuids::uuid(item));
-
-            } catch(std::exception &e) {
-                throw IOError(e.what());
-            }
-
-            try{
-                TrustLine *trustLine = new TrustLine(
-                    record->data(),
-                    item
-                );
-
-                mTrustLines.insert(
-                    make_pair(
-                        item,
-                        TrustLine::Shared(trustLine)
-                    )
-                );
-
-            } catch (...) {
-                throw Exception("TrustLinesManager::loadTrustLine. "
-                                    "Unable to create trust line instance from buffer.");
-            }
-        }
+    for (auto const itTrustLine : mStorageHandler->trustLineHandler()->trustLines()) {
+        mTrustLines.insert(
+            make_pair(
+                itTrustLine->contractorNodeUUID(),
+                itTrustLine));
     }
 }
 
@@ -384,17 +360,23 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
     const AmountReservation::ConstShared reservation,
     const TrustLineAmount &newAmount) {
 
-    // todo: ensure reservations
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(newAmount > TrustLineAmount(0));
+#endif
 
-    if ((*mTrustLines.at(contractor)->availableAmount() - reservation->amount()) >= newAmount) {
+    // Note: copy of shared ptr is required
+    const auto kTL = mTrustLines[contractor];
+    const auto kAvailableAmount = *(kTL->availableAmount());
+
+    // Previous reservation would be removed (updated),
+    // so it's amount must be added to the the available maount on the trust line.
+    if (kAvailableAmount + reservation->amount() >= newAmount)
         return mAmountBlocksHandler->updateReservation(
             contractor,
             reservation,
-            newAmount
-        );
-    }
-    throw ValueError("TrustLinesManager::reserveAmount: "
-                         "Trust line has not enought amount.");
+            newAmount);
+
+    throw ValueError("TrustLinesManager::reserveAmount: trust line has not enough amount.");
 }
 
 void TrustLinesManager::dropAmountReservation(
@@ -443,66 +425,36 @@ const bool TrustLinesManager::isTrustLineExist(
     return mTrustLines.count(contractorUUID) > 0;
 }
 
-/**
- * throws IOError - unable to write or update data in storage
- */
 void TrustLinesManager::saveToDisk(
     TrustLine::Shared trustLine) {
-
-    vector<byte> trustLineData = trustLine->serialize();
 
     bool alreadyExisted = false;
 
     if (isTrustLineExist(trustLine->contractorNodeUUID())) {
         alreadyExisted = true;
-        try {
-            mTrustLinesStorage->rewrite(
-                storage::uuids::uuid(trustLine->contractorNodeUUID()),
-                trustLineData.data(),
-                kRecordSize
-            );
-
-        } catch (std::exception &e) {
-            throw IOError(e.what());
-        }
-
-    } else {
-        try {
-            mTrustLinesStorage->write(
-                storage::uuids::uuid(trustLine->contractorNodeUUID()),
-                trustLineData.data(),
-                kRecordSize
-            );
-
-        } catch (std::exception &e) {
-            throw IOError(e.what());
-        }
-
-        try {
-            mTrustLines.insert(
-                make_pair(
-                    trustLine->contractorNodeUUID(),
-                    trustLine
-                )
-            );
+    }
+    mStorageHandler->trustLineHandler()->saveTrustLine(trustLine);
+    mStorageHandler->trustLineHandler()->commit();
+    try {
+        mTrustLines.insert(
+            make_pair(
+                trustLine->contractorNodeUUID(),
+                trustLine));
 
         } catch (std::bad_alloc&) {
             throw MemoryError("TrustLinesManager::saveToDisk: "
                                   "Can not reallocate STL container memory for new trust line instance.");
         }
-    }
 
     if (alreadyExisted) {
         trustLineStateModifiedSignal(
             trustLine->contractorNodeUUID(),
-            trustLine->direction()
-        );
+            trustLine->direction());
 
     } else {
         trustLineCreatedSignal(
             trustLine->contractorNodeUUID(),
-            trustLine->direction()
-        );
+            trustLine->direction());
     }
 }
 
@@ -514,19 +466,13 @@ void TrustLinesManager::removeTrustLine(
     const NodeUUID &contractorUUID) {
 
     if (isTrustLineExist(contractorUUID)) {
-        try {
-            mTrustLinesStorage->erase(storage::uuids::uuid(contractorUUID));
-
-        } catch (std::exception &e) {
-            throw IOError("TrustLinesManager::removeTrustLine. "
-                              "Can't remove trust line from file.");
-        }
+        mStorageHandler->trustLineHandler()->deleteTrustLine(
+            contractorUUID);
         mTrustLines.erase(contractorUUID);
 
         trustLineStateModifiedSignal(
             contractorUUID,
-            TrustLineDirection::Nowhere
-        );
+            TrustLineDirection::Nowhere);
 
     } else {
         throw NotFoundError(
@@ -724,10 +670,57 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() con
     vector<NodeUUID> Nodes;
     TrustLineBalance zerobalance = 0;
     TrustLineBalance stepbalance;
-    for (auto const& x : mTrustLines){
+    for (auto const &x : mTrustLines) {
         stepbalance = x.second->balance();
         if (stepbalance != zerobalance)
             Nodes.push_back(x.first);
     }
     return Nodes;
+}
+
+void TrustLinesManager::useReservation(
+    const NodeUUID &contractor,
+    const AmountReservation::ConstShared reservation)
+{
+    if (mTrustLines.count(contractor) != 1)
+        throw NotFoundError(
+            "TrustLinesManager::useReservation: no trust line to the contractor.");
+
+    if (reservation->direction() == AmountReservation::Outgoing)
+        mTrustLines[contractor]->pay(reservation->amount());
+    else if (reservation->direction() == AmountReservation::Incoming)
+        mTrustLines[contractor]->acceptPayment(reservation->amount());
+    else
+        throw ValueError(
+            "TrustLinesManager::useReservation: invalid trust line direction occurred.");
+}
+
+/**
+ * @returns total summary of all outgoing possibilities of the node.
+ */
+ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmount () const
+    throw (bad_alloc)
+{
+    auto totalAmount = make_shared<TrustLineAmount>(0);
+    for (const auto kTrustLine : mTrustLines) {
+        const auto kTLAmount = kTrustLine.second->availableAmount();
+        *totalAmount += *(kTLAmount);
+    }
+
+    return totalAmount;
+}
+
+/**
+ * @returns total summary of all incoming possibilities of the node.
+ */
+ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount () const
+    throw (bad_alloc)
+{
+    auto totalAmount = make_shared<TrustLineAmount>(0);
+    for (const auto kTrustLine : mTrustLines) {
+        const auto kTLAmount = kTrustLine.second->availableIncomingAmount();
+        *totalAmount += *(kTLAmount);
+    }
+
+    return totalAmount;
 }

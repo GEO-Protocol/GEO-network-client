@@ -64,10 +64,10 @@ TransactionResult::SharedConst GetPathTestTransaction::checkResourcesContext() {
             PathsResource::Shared response = static_pointer_cast<PathsResource>(
                 responseResource);
             info() << "checkResourcesContext\t receive paths count: " << response->pathCollection()->count();
-            response->pathCollection()->resetCurrentPath();
+            /*response->pathCollection()->resetCurrentPath();
             while (response->pathCollection()->hasNextPath()) {
                 info() << response->pathCollection()->nextPath()->toString();
-            }
+            }*/
             return make_shared<const TransactionResult>(
                 TransactionState::exit());
         }

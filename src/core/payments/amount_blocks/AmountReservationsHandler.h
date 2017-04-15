@@ -38,11 +38,9 @@ protected:
     // One trust line may hold several amount reservations,
     // so the vector<AmountReservation::ConstShared> is used (reservations container).
     //
-    // Blocks container would be requested from the map very often,
+    // Reservations container would be requested from the map very often,
     // but map's iterator returns copy of the object,
-    // so the unique_ptr<vector> is used to get the container withoud copying it.
-    //
-    // unique_ptr is used because reservations will never be transafered outside of this class.
+    // so the unique_ptr<vector> is used to get the container without copying it.
     map<NodeUUID, unique_ptr<vector<AmountReservation::ConstShared>>> mReservations;
 
 protected:
