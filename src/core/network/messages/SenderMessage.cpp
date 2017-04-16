@@ -1,61 +1,40 @@
 #include "SenderMessage.h"
 
-SenderMessage::SenderMessage() {
-
-}
 
 SenderMessage::SenderMessage(
-    const NodeUUID &senderUUID) :
+    const NodeUUID &senderUUID)
+    noexcept :
 
-    mSenderUUID(senderUUID){}
+    senderUUID(senderUUID)
+{}
 
-const NodeUUID &SenderMessage::senderUUID() const {
+SenderMessage::SenderMessage(
+    BytesShared buffer)
+    noexcept
+{
+    BytesDeserializer memory(
+        buffer,
+        Message::kOffsetToInheritedBytes());
 
-    return mSenderUUID;
+    memory.copyInto(senderUUID);
 }
 
-pair<BytesShared, size_t> SenderMessage::serializeToBytes() {
+pair<BytesShared, size_t> SenderMessage::serializeToBytes() const
+    throw (bad_alloc &)
+{
+    BytesSerializer serializer;
 
-    auto parentBytesAndCount = Message::serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize;
-
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
-    dataBytesOffset += parentBytesAndCount.second;
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mSenderUUID.data,
-        NodeUUID::kBytesSize
-    );
-    //-----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount
-    );
+    serializer.enqueue(Message::serializeToBytes());
+    serializer.enqueue(senderUUID);
+    return serializer.collect();
 }
 
-void SenderMessage::deserializeFromBytes(
-    BytesShared buffer) {
+const size_t SenderMessage::kOffsetToInheritedBytes() const
+    noexcept
+{
+    static const auto kOffset =
+        Message::kOffsetToInheritedBytes()
+        + NodeUUID::kBytesSize;
 
-    memcpy(
-        mSenderUUID.data,
-        buffer.get() + Message::kOffsetToInheritedBytes(),
-        NodeUUID::kBytesSize);
-}
-
-const size_t SenderMessage::kOffsetToInheritedBytes() {
-
-    static const size_t offset = Message::kOffsetToInheritedBytes()
-                                 + NodeUUID::kBytesSize;
-
-    return offset;
+    return kOffset;
 }

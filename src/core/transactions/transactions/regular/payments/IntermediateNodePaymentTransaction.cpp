@@ -79,7 +79,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
-            nodeUUID(),
+            currentNodeUUID(),
             UUID(),
             ResponseMessage::Rejected);
         return reject("No incoming amount reservation is possible. Rolled back.");
@@ -89,7 +89,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     mLastReservedAmount = kReservationAmount;
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
-        nodeUUID(),
+        currentNodeUUID(),
         UUID(),
         ResponseMessage::Accepted);
 
@@ -127,7 +127,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount)) {
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
-            nodeUUID(),
+            currentNodeUUID(),
             UUID(),
             ResponseMessage::Rejected);
 
@@ -138,7 +138,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     mLastReservedAmount = reservationAmount;
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kNextNode,
-        nodeUUID(),
+        currentNodeUUID(),
         UUID(),
         reservationAmount);
 
@@ -162,7 +162,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     if (kMessage->state() == IntermediateNodeReservationResponseMessage::Rejected){
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
-            nodeUUID(),
+            currentNodeUUID(),
             UUID(),
             ResponseMessage::Rejected);
         return reject("Amount reservation rejected by the neighbor node. Rolled back.");
@@ -172,7 +172,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     info() << "(" << kContractor << ") accepted amount reservation.";
     sendMessage<CoordinatorReservationResponseMessage>(
         mCoordinator,
-        nodeUUID(),
+        currentNodeUUID(),
         UUID(),
         ResponseMessage::Accepted,
         mLastReservedAmount);

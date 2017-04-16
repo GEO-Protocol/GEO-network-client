@@ -85,19 +85,19 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
     if (kTotalAvailableIncomingAmount < mMessage->amount()) {
         sendMessage<ReceiverInitPaymentResponseMessage>(
             kCoordinator,
-            nodeUUID(),
+            currentNodeUUID(),
             UUID(),
             ReceiverInitPaymentResponseMessage::Rejected);
 
         return exitWithResult(
-            resultExit(),
+            resultDone(),
             "Operation rejected due to insufficient funds.");
     }
 
 
     sendMessage<ReceiverInitPaymentResponseMessage>(
         kCoordinator,
-        nodeUUID(),
+        currentNodeUUID(),
         UUID(),
         ReceiverInitPaymentResponseMessage::Accepted);
 
@@ -161,7 +161,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
-            nodeUUID(),
+            currentNodeUUID(),
             UUID(),
             ResponseMessage::Rejected);
 
@@ -177,7 +177,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     if (mTotalReserved > kTotalTransactionAmount){
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
-            nodeUUID(),
+            currentNodeUUID(),
             UUID(),
             ResponseMessage::Rejected);
 
@@ -191,7 +191,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     info() << "Reserved locally: " << kMessage->amount();
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
-        nodeUUID(),
+        currentNodeUUID(),
         UUID(),
         ResponseMessage::Accepted);
 

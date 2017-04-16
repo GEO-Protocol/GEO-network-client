@@ -14,6 +14,7 @@
 #include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 #include "../../../resources/resources/BaseResource.h"
+#include "../../../common/exceptions/RuntimeError.h"
 
 #include "../result/TransactionResult.h"
 #include "../../../interface/results_interface/result/CommandResult.h"
@@ -41,7 +42,7 @@ public:
 
 public:
     // TODO: add other states shortcuts here
-    TransactionResult::Shared resultExit() const;
+    TransactionResult::Shared resultDone () const;
     TransactionResult::Shared resultFlushAndContinue() const;
     TransactionResult::Shared resultWaitForMessageTypes(
         vector<Message::MessageTypeID> &&requiredMessagesTypes,
@@ -58,8 +59,9 @@ public:
         CloseTrustLineTransactionType,
         RejectTrustLineTransactionType,
 
-        // RT
-        RoutingTables_TrustLineStatesHandler
+        // Routing tables
+        RoutingTables_TrustLineStatesHandler,
+        RoutingTables_NeighborsCollecting,
 
 
         GetTopologyAndBalancesTransaction,
@@ -98,7 +100,7 @@ public:
 
     const TransactionUUID &UUID() const;
 
-    const NodeUUID &nodeUUID() const;
+    const NodeUUID &currentNodeUUID () const;
 
     void pushContext(
         Message::Shared message);

@@ -58,7 +58,7 @@ void BaseTransaction::launchSubsidiaryTransaction(
     );
 }
 
-TransactionResult::Shared BaseTransaction::resultExit() const
+TransactionResult::Shared BaseTransaction::resultDone () const
 {
     return make_shared<TransactionResult>(
         TransactionState::exit());
@@ -90,7 +90,7 @@ const TransactionUUID &BaseTransaction::UUID() const {
     return mTransactionUUID;
 }
 
-const NodeUUID &BaseTransaction::nodeUUID() const {
+const NodeUUID &BaseTransaction::currentNodeUUID () const {
 
     return mNodeUUID;
 }

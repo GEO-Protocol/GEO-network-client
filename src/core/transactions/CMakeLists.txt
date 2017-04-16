@@ -13,7 +13,7 @@ add_subdirectory(transactions/history)
 add_subdirectory(transactions/find_path)
 
 set(SOURCE_FILES
-        transactions/base/TransactionUUID.h transactions/routing_tables/TrustLineStatesHandlerTransaction.cpp transactions/routing_tables/TrustLineStatesHandlerTransaction.h)
+        transactions/base/TransactionUUID.h transactions/routing_tables/TrustLineStatesHandlerTransaction.cpp transactions/routing_tables/TrustLineStatesHandlerTransaction.h transactions/routing_tables/NeighborsCollectingTransaction.cpp transactions/routing_tables/NeighborsCollectingTransaction.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions

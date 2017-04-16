@@ -118,6 +118,7 @@ public:
         const NodeUUID &contractorUUID);
 
 
+    // Resources transactions handlers
     void attachResourceToTransaction(
         BaseResource::Shared resource);
 
@@ -182,7 +183,7 @@ private:
     void launchGetTopologyAndBalancesTransaction(
         InBetweenNodeTopologyMessage::Shared message);
 
-    // Total balances transaction
+    // Total balances transactions
     void launchTotalBalancesTransaction(
             TotalBalancesCommand::Shared command);
 
@@ -206,6 +207,7 @@ private:
     void launchGetRoutingTablesTransaction(
         RequestRoutingTablesMessage::Shared message);
 
+
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(
         BaseTransaction::LaunchSubsidiaryTransactionSignal &signal);
@@ -215,6 +217,7 @@ private:
 
     void subscribeForCommandResult(
         TransactionsScheduler::CommandResultSignal &signal);
+
 
     // Slots
     void onSubsidiaryTransactionReady(

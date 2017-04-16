@@ -10,6 +10,7 @@
 #include <utility>
 #include <stdint.h>
 
+
 using namespace std;
 
 class NotImplementedError : public Exception {
@@ -29,17 +30,12 @@ public:
         CloseTrustLineMessageType,
         RejectTrustLineMessageType,
         UpdateTrustLineMessageType,
-        FirstLevelRoutingTableOutgoingMessageType,
-        FirstLevelRoutingTableIncomingMessageType,
-        SecondLevelRoutingTableOutgoingMessageType,
-        SecondLevelRoutingTableIncomingMessageType,
-        RoutingTableUpdateOutgoingMessageType,
-        RoutingTableUpdateIncomingMessageType,
+
         InBetweenNodeTopologyMessage,
         BoundaryNodeTopologyMessage,
 
         /*
-         * Payments
+         * Payments messages
          */
         Payments_ReceiverInitPaymentRequest,
         Payments_ReceiverInitPaymentResponse,
@@ -54,6 +50,14 @@ public:
         Payments_ParticipantsPathsConfiguration,
         Payments_ParticipantsPathsConfigurationRequest,
 
+        /*
+         * Routing tables messages
+         */
+        RoutingTables_NeighborsRequest,
+        RoutingTables_NeighborsResponse,
+        RoutingTables_NotificationTrustLineCreated,
+        RoutingTables_NotificationTrustLineRemoved,
+
 
         InitiateMaxFlowCalculationMessageType,
         MaxFlowCalculationSourceFstLevelMessageType,
@@ -65,13 +69,7 @@ public:
         InitiateTotalBalancesMessageType,
         TotalBalancesResultMessageType,
 
-        RequestRoutingTablesMessageType,
-        ResultRoutingTable1LevelMessageType,
-        ResultRoutingTable2LevelMessageType,
-        ResultRoutingTable3LevelMessageType,
-
         ResponseMessageType = 1000,
-        RoutingTablesResponseMessageType
     };
     // TODO: (DM) rename to "SerializedMessageType"
     typedef uint16_t MessageType;
@@ -126,7 +124,7 @@ public:
 
     virtual const MessageType typeID() const = 0;
 
-    virtual pair<BytesShared, size_t> serializeToBytes()
+    virtual pair<BytesShared, size_t> serializeToBytes() const
     {
         const auto kMessageType = typeID();
         auto buffer = tryMalloc(sizeof(kMessageType));

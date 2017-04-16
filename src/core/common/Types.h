@@ -45,7 +45,7 @@ enum TrustState {
 typedef uint8_t SerializedTrustLineState;
 
 enum TrustLineDirection {
-    Nowhere = 0,
+    Nowhere = 0, // todo: remove this
     Incoming,
     Outgoing,
     Both,
