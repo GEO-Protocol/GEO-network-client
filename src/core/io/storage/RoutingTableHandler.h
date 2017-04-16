@@ -40,7 +40,7 @@ public:
 
     vector<pair<NodeUUID, NodeUUID>> routeRecords();
 
-    vector<NodeUUID> allDestinationsForSource(
+    vector<NodeUUID> neighborsOf (
         const NodeUUID &sourceUUID);
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKey();

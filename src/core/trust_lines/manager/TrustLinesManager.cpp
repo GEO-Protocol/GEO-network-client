@@ -1,17 +1,12 @@
 ﻿#include "TrustLinesManager.h"
 
-TrustLinesManager::TrustLinesManager(Logger *logger) : mlogger(logger){
-    try {
-        mTrustLinesStorage = unique_ptr<TrustLinesStorage>(new TrustLinesStorage("trust_lines.dat"));
 
-        mAmountBlocksHandler = unique_ptr<AmountReservationsHandler>(new AmountReservationsHandler());
+TrustLinesManager::TrustLinesManager(
+    Logger *logger) :
 
-    } catch (bad_alloc &e) {
-        throw MemoryError(
-            "TrustLinesManager::TrustLinesManager: "
-                "Can not allocate memory for one of the trust lines manager's components.");
-    }
-
+    mLogger(logger)
+{
+    mAmountBlocksHandler = make_unique<AmountReservationsHandler>();
     loadTrustLines();
 }
 
@@ -91,7 +86,7 @@ void TrustLinesManager::open(
             throw MemoryError("TrustLinesManager::open: "
                                   "Can not allocate memory for new trust line instance.");
         }
-//        mlogger->logTruslineOperationStatus(trustLine->contractorNodeUUID(), amount, "open");
+//        mLogger->logTruslineOperationStatus(trustLine->contractorNodeUUID(), amount, "open");
         saveToDisk(TrustLine::Shared(trustLine));
     }
 }
@@ -111,7 +106,7 @@ void TrustLinesManager::close(
             if (trustLine->balance() <= TrustLine::kZeroBalance()) {
                 if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-//                    mlogger->logTustlineState(
+//                    mLogger->logTustlineState(
 //                            contractorUUID,
 //                            "Both",
 //                            "Close"
@@ -120,7 +115,7 @@ void TrustLinesManager::close(
                 } else {
                     trustLine->setOutgoingTrustAmount(0);
                     trustLine->suspendOutgoingDirection();
-//                    mlogger->logTustlineState(
+//                    mLogger->logTustlineState(
 //                            contractorUUID,
 //                            "Outgoing",
 //                            "Suspend"
@@ -198,7 +193,7 @@ void TrustLinesManager::reject(
             if (trustLine->balance() >= TrustLine::kZeroBalance()) {
                 if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-//                    mlogger->logTustlineState(
+//                    mLogger->logTustlineState(
 //                            contractorUUID,
 //                            "Both",
 //                            "Close"
@@ -206,7 +201,7 @@ void TrustLinesManager::reject(
                 } else {
                     trustLine->setIncomingTrustAmount(0);
                     trustLine->suspendIncomingDirection();
-//                    mlogger->logTustlineState(
+//                    mLogger->logTustlineState(
 //                            contractorUUID,
 //                            "Incoming",
 //                            "Suspend"

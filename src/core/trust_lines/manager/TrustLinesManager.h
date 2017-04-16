@@ -1,7 +1,6 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 #define GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 
-
 #include "../../common/Types.h"
 
 #include "../TrustLine.h"
@@ -22,25 +21,20 @@
 #include <vector>
 #include <malloc.h>
 
-// TODO: remove me
-#include <iostream>
-
 
 using namespace std;
-namespace storage = db::uuid_map_block_storage;
 namespace signals = boost::signals2;
 
 
 class TrustLinesManager {
-    // todo: deprecated; Tests subclass should be used.
-    friend class TrustLinesManagerTests;
-
 public:
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineCreatedSignal;
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineStateModifiedSignal;
 
 public:
-    TrustLinesManager(Logger *logger);
+    TrustLinesManager(
+        Logger *logger)
+        throw (bad_alloc);
 
     void loadTrustLines();
 
@@ -179,7 +173,7 @@ private:
 
     unique_ptr<TrustLinesStorage> mTrustLinesStorage;
     unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
-    Logger *mlogger;
+    Logger *mLogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H

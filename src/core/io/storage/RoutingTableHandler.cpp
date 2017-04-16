@@ -497,7 +497,7 @@ unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> Routi
     return result;
 }
 
-vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
+vector<NodeUUID> RoutingTableHandler::neighborsOf (
     const NodeUUID &sourceUUID) {
 
     DateTime startTime = utc_now();
