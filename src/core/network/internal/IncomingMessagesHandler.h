@@ -27,8 +27,6 @@
 #include "../messages/outgoing/payments/ParticipantsVotesMessage.h"
 #include "../messages/outgoing/payments/ParticipantsConfigurationRequestMessage.h"
 #include "../messages/outgoing/payments/ParticipantsConfigurationMessage.h"
-#include "../messages/cycles/InBetweenNodeTopologyMessage.h"
-#include "../messages/cycles/BoundaryNodeTopologyMessage.h"
 #include "../messages/response/Response.h"
 #include "../messages/response/RoutingTablesResponse.h"
 #include "../messages/total_balances/InitiateTotalBalancesMessage.h"
@@ -37,6 +35,14 @@
 #include "../messages/find_path/ResultRoutingTable1LevelMessage.h"
 #include "../messages/find_path/ResultRoutingTable2LevelMessage.h"
 #include "../messages/find_path/ResultRoutingTable3LevelMessage.h"
+
+#include "../messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
+#include "../messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
+#include "../messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
+#include "../messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
+#include "../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
+#include "../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
+
 
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"

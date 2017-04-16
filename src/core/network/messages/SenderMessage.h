@@ -30,7 +30,12 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc &);
 
+    virtual pair<BytesShared, size_t> serializeToBytes();
+
 protected:
+    virtual void deserializeFromBytes(
+        BytesShared buffer);
+
     const size_t kOffsetToInheritedBytes() const
         noexcept;
 };

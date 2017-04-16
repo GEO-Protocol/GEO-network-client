@@ -22,14 +22,19 @@ ResultMaxFlowCalculationMessage::Shared ReceiveResultMaxFlowCalculationTransacti
 
 TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run() {
 
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "initiator: " << mNodeUUID;
     info() << "run\t" << "sender: " << mMessage->senderUUID();
-
     info() << "run\t" << "beforeInsert mapTrustLinesCount: " << mMaxFlowCalculationTrustLineManager->trustLinesCounts();
+#endif
 
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "receivedTrustLinesOut: " << mMessage->outgoingFlows().size();
+#endif
     for (auto const &outgoingFlow : mMessage->outgoingFlows()) {
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
         info() << "run\t" << outgoingFlow.first << " " << *outgoingFlow.second.get();
+#endif
 
         mMaxFlowCalculationTrustLineManager->addTrustLine(
             make_shared<MaxFlowCalculationTrustLine>(
@@ -37,9 +42,14 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
                 outgoingFlow.first,
                 outgoingFlow.second));
     }
+
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "receivedTrustLinesIn: " << mMessage->incomingFlows().size();
+#endif
     for (auto const &incomingFlow : mMessage->incomingFlows()) {
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
         info() << "run\t" << incomingFlow.first << " " << *incomingFlow.second.get();
+#endif
 
         mMaxFlowCalculationTrustLineManager->addTrustLine(
             make_shared<MaxFlowCalculationTrustLine>(
@@ -48,9 +58,9 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
                 incomingFlow.second));
     }
 
-    info() << "run\t" << "afterInsert mapTrustLinesCount: " << mMaxFlowCalculationTrustLineManager->trustLinesCounts();
 
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+    info() << "run\t" << "afterInsert mapTrustLinesCount: " << mMaxFlowCalculationTrustLineManager->trustLinesCounts();
     mMaxFlowCalculationTrustLineManager->printTrustLines();
 #endif
 

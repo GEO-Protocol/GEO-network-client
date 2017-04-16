@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/denis/Projects/client/src/core/common/NodeUUID.cpp
+NodeUUID.h
+/home/denis/Projects/client/src/core/common/NodeUUID.h
+
+/home/denis/Projects/client/src/core/common/NodeUUID.h
+boost/uuid/uuid.hpp
+-
+boost/uuid/uuid_generators.hpp
+-
+boost/uuid/uuid_io.hpp
+-
+boost/lexical_cast.hpp
+-
+boost/endian/arithmetic.hpp
+-
+string
+-
+

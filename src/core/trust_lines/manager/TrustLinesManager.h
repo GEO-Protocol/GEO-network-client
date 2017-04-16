@@ -5,7 +5,6 @@
 
 #include "../TrustLine.h"
 #include "../../payments/amount_blocks/AmountReservationsHandler.h"
-#include "../../io/trust_lines/TrustLinesStorage.h"
 
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
@@ -14,6 +13,7 @@
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
 #include "../../logger/Logger.h"
+#include "../../io/storage/StorageHandler.h"
 
 #include <boost/signals2.hpp>
 
@@ -33,6 +33,7 @@ public:
 
 public:
     TrustLinesManager(
+        StorageHandler *storageHandler,
         Logger *logger)
         throw (bad_alloc);
 
@@ -132,6 +133,12 @@ public:
 
     vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
 
+    vector<NodeUUID> firstLevelNeighborsWithPositiveBalance() const;
+
+    vector<NodeUUID> firstLevelNeighborsWithNegativeBalance() const;
+
+    vector<NodeUUID> firstLevelNeighborsWithNoneZeroBalance() const;
+
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
@@ -150,8 +157,8 @@ public:
     // todo: return const shared
     map<NodeUUID, TrustLine::Shared>& trustLines();
 
-    vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(
-        TrustLineBalance maxFlow);
+    vector<NodeUUID> getFirstLevelNodesForCycles(
+            TrustLineBalance maxFlow);
 
     void setSomeBalances();
 
@@ -171,9 +178,9 @@ private:
     // Contractor UUID -> trust line to the contractor.
     map<NodeUUID, TrustLine::Shared> mTrustLines;
 
-    unique_ptr<TrustLinesStorage> mTrustLinesStorage;
     unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
-    Logger *mLogger;
+    StorageHandler *mStorageHandler;
+    Logger *mlogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H

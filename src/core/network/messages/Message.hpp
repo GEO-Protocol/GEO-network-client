@@ -24,15 +24,28 @@ public:
 public:
     // TODO: cut "..MessageType" from all enum records
     enum MessageTypeID {
+        /*
+         * Trust lines
+         */
         OpenTrustLineMessageType = 1,
         AcceptTrustLineMessageType,
         SetTrustLineMessageType,
         CloseTrustLineMessageType,
         RejectTrustLineMessageType,
         UpdateTrustLineMessageType,
+        
 
-        InBetweenNodeTopologyMessage,
-        BoundaryNodeTopologyMessage,
+        /*
+         * Cycles
+         */
+        Cycles_ThreeNodesBalancesRequestMessage,
+        Cycles_ThreeNodesBalancesReceiverMessage,
+        Cycles_FourNodesBalancesRequestMessage,
+        Cycles_FourNodesBalancesResponseMessage,
+        Cycles_FiveNodesBoundaryMessage,
+        Cycles_FiveNodesInBetweenMessage,
+        Cycles_SixNodesInBetweenMessage,
+        Cycles_SixNodesBoundaryMessage,
 
         /*
          * Payments messages
@@ -141,11 +154,14 @@ public:
 
 protected:
     virtual void deserializeFromBytes(
-        BytesShared buffer) = 0;
+        BytesShared buffer) {
 
-    static const size_t kOffsetToInheritedBytes()
-    {
-        static const size_t offset = sizeof(MessageType);
+        MessageType *type = new (buffer.get()) MessageType;
+    }
+
+    virtual const size_t kOffsetToInheritedBytes() {
+
+        const size_t offset = sizeof(MessageType);
         return offset;
     }
 };

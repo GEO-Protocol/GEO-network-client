@@ -9,6 +9,10 @@
 #include "../../../network/messages/find_path/ResultRoutingTable2LevelMessage.h"
 #include "../../../network/messages/find_path/ResultRoutingTable3LevelMessage.h"
 
+#include <vector>
+#include <unordered_map>
+#include <boost/functional/hash.hpp>
+
 class GetRoutingTablesTransaction : public BaseTransaction {
 
 public:
@@ -32,14 +36,12 @@ protected:
     const string logHeader() const;
 
 private:
-    // TODO: remove after testing
-    vector<NodeUUID> rt1FromDB();
 
     void sendRoutingTables();
 
 private:
 
-    const size_t kCountElementsPerMessage = 200;
+    const size_t kCountElementsPerMessage = 1000;
 
 private:
 

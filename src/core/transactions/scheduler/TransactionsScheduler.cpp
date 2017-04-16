@@ -66,7 +66,6 @@ void TransactionsScheduler::killTransaction(
 
 void TransactionsScheduler::tryAttachMessageToTransaction(
     Message::Shared message) {
-
     // TODO: check the message type before the loop
     // TODO: Refactor me
     for (auto const &transactionAndState : *mTransactions) {
@@ -74,6 +73,17 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
             if (static_pointer_cast<RoutingTablesMessage>(message)->senderUUID() != static_pointer_cast<RoutingTablesTransaction>(transactionAndState.first)->contractorUUID()) {
                 continue;
             }
+        }
+//       Check if this is CycleTransaction
+        if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction and
+            message->typeID() == Message::MessageTypeID::Cycles_SixNodesBoundaryMessage) {
+            transactionAndState.first->pushContext(message);
+            return;
+        }
+        if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction and
+            message->typeID() == Message::MessageTypeID::Cycles_FiveNodesBoundaryMessage) {
+            transactionAndState.first->pushContext(message);
+            return;
         }
 
         if (message->isRoutingTableResponseMessage()) {
@@ -86,21 +96,20 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
                     break;
                 }
             }
-
-
         }
-
         for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
             if (message->typeID() != messageType) {
                 continue;
             }
-
             transactionAndState.first->pushContext(message);
             launchTransaction(transactionAndState.first);
             return;
         }
+        if (transactionAndState.second->awakeningTimestamp() != 0 and transactionAndState.second->acceptedMessagesTypes().size() == 0){
+            transactionAndState.first->pushContext(message);
+            return;
+        }
     }
-
     throw NotFoundError(
         "TransactionsScheduler::handleMessage: "
             "invalid/unexpected message/response received");

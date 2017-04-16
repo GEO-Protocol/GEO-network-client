@@ -10,9 +10,9 @@ TransactionMessage::TransactionMessage(
     mTransactionUUID(transactionUUID) {}
 
 TransactionMessage::TransactionMessage(
-        BytesShared bufer)
+        BytesShared buffer)
 {
-    deserializeFromBytes(bufer);
+    deserializeFromBytes(buffer);
 }
 
 const bool TransactionMessage::isTransactionMessage() const {
@@ -69,7 +69,7 @@ void TransactionMessage::deserializeFromBytes(
 
 const size_t TransactionMessage::kOffsetToInheritedBytes() {
 
-    static const size_t offset = SenderMessage::kOffsetToInheritedBytes()
+    const size_t offset = SenderMessage::kOffsetToInheritedBytes()
                                  + TransactionUUID::kBytesSize;
 
     return offset;

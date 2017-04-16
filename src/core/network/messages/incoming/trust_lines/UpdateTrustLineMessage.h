@@ -25,8 +25,6 @@ public:
 
     const TrustLineAmount &newAmount() const;
 
-    static const size_t kRequestedBufferSize();
-
     pair<BytesShared, size_t> serializeToBytes();
 
     MessageResult::SharedConst resultAccepted() const;

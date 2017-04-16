@@ -72,7 +72,7 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
                 responseMessage);
 
             mRT1 = response->rt1();
-            //info() << "receive RT1, size: " << mRT1.size();
+            info() << "receive RT1, size: " << mRT1.size();
             isReceiveContractorRT1 = true;
         }
 
@@ -81,7 +81,7 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
                 responseMessage);
 
             mRT2.insert(response->rt2().begin(), response->rt2().end());
-            //info() << "receive RT2, size: " << mRT2.size();
+            info() << "receive RT2, size: " << mRT2.size();
             isReceiveContractorRT1 = true;
         }
 
@@ -90,7 +90,7 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
                 responseMessage);
 
             mRT3.insert(response->rt3().begin(), response->rt3().end());
-            //info() << "receive RT3, size: " << mRT3.size();
+            info() << "receive RT3, size: " << mRT3.size();
             isReceiveContractorRT1 = true;
         }
 
