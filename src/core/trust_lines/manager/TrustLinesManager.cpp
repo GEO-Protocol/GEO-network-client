@@ -1,8 +1,12 @@
 ﻿#include "TrustLinesManager.h"
 
-TrustLinesManager::TrustLinesManager(Logger *logger) : mlogger(logger){
+TrustLinesManager::TrustLinesManager(
+    StorageHandler *storageHandler,
+    Logger *logger) :
+
+    mStorageHandler(storageHandler),
+    mlogger(logger){
     try {
-        mTrustLinesStorage = unique_ptr<TrustLinesStorage>(new TrustLinesStorage("trust_lines.dat"));
 
         mAmountBlocksHandler = unique_ptr<AmountReservationsHandler>(new AmountReservationsHandler());
 
@@ -17,42 +21,14 @@ TrustLinesManager::TrustLinesManager(Logger *logger) : mlogger(logger){
 
 /**
  * throw IOError - can not read trust line data from file by key
- * throw Exception - unable to create instance of trust line
  */
 void TrustLinesManager::loadTrustLines() {
 
-    vector<NodeUUID> contractorsUUIDs = mTrustLinesStorage->getAllContractorsUUIDs();
-
-    if (contractorsUUIDs.size() > 0) {
-
-        for (auto const &item : contractorsUUIDs) {
-
-            storage::Record::Shared record;
-            try {
-                record = mTrustLinesStorage->readByUUID(storage::uuids::uuid(item));
-
-            } catch(std::exception &e) {
-                throw IOError(e.what());
-            }
-
-            try{
-                TrustLine *trustLine = new TrustLine(
-                    record->data(),
-                    item
-                );
-
-                mTrustLines.insert(
-                    make_pair(
-                        item,
-                        TrustLine::Shared(trustLine)
-                    )
-                );
-
-            } catch (...) {
-                throw Exception("TrustLinesManager::loadTrustLine. "
-                                    "Unable to create trust line instance from buffer.");
-            }
-        }
+    for (auto const itTrustLine : mStorageHandler->trustLineHandler()->trustLines()) {
+        mTrustLines.insert(
+            make_pair(
+                itTrustLine->contractorNodeUUID(),
+                itTrustLine));
     }
 }
 
@@ -111,20 +87,9 @@ void TrustLinesManager::close(
             if (trustLine->balance() <= TrustLine::kZeroBalance()) {
                 if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-//                    mlogger->logTustlineState(
-//                            contractorUUID,
-//                            "Both",
-//                            "Close"
-//                    );
-
                 } else {
                     trustLine->setOutgoingTrustAmount(0);
                     trustLine->suspendOutgoingDirection();
-//                    mlogger->logTustlineState(
-//                            contractorUUID,
-//                            "Outgoing",
-//                            "Suspend"
-//                    );
                     saveToDisk(trustLine);
                 }
 
@@ -198,19 +163,9 @@ void TrustLinesManager::reject(
             if (trustLine->balance() >= TrustLine::kZeroBalance()) {
                 if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
-//                    mlogger->logTustlineState(
-//                            contractorUUID,
-//                            "Both",
-//                            "Close"
-//                    );
                 } else {
                     trustLine->setIncomingTrustAmount(0);
                     trustLine->suspendIncomingDirection();
-//                    mlogger->logTustlineState(
-//                            contractorUUID,
-//                            "Incoming",
-//                            "Suspend"
-//                    );
                     saveToDisk(trustLine);
                 }
 
@@ -470,66 +425,36 @@ const bool TrustLinesManager::isTrustLineExist(
     return mTrustLines.count(contractorUUID) > 0;
 }
 
-/**
- * throws IOError - unable to write or update data in storage
- */
 void TrustLinesManager::saveToDisk(
     TrustLine::Shared trustLine) {
-
-    vector<byte> trustLineData = trustLine->serialize();
 
     bool alreadyExisted = false;
 
     if (isTrustLineExist(trustLine->contractorNodeUUID())) {
         alreadyExisted = true;
-        try {
-            mTrustLinesStorage->rewrite(
-                storage::uuids::uuid(trustLine->contractorNodeUUID()),
-                trustLineData.data(),
-                kRecordSize
-            );
-
-        } catch (std::exception &e) {
-            throw IOError(e.what());
-        }
-
-    } else {
-        try {
-            mTrustLinesStorage->write(
-                storage::uuids::uuid(trustLine->contractorNodeUUID()),
-                trustLineData.data(),
-                kRecordSize
-            );
-
-        } catch (std::exception &e) {
-            throw IOError(e.what());
-        }
-
-        try {
-            mTrustLines.insert(
-                make_pair(
-                    trustLine->contractorNodeUUID(),
-                    trustLine
-                )
-            );
+    }
+    mStorageHandler->trustLineHandler()->saveTrustLine(trustLine);
+    mStorageHandler->trustLineHandler()->commit();
+    try {
+        mTrustLines.insert(
+            make_pair(
+                trustLine->contractorNodeUUID(),
+                trustLine));
 
         } catch (std::bad_alloc&) {
             throw MemoryError("TrustLinesManager::saveToDisk: "
                                   "Can not reallocate STL container memory for new trust line instance.");
         }
-    }
 
     if (alreadyExisted) {
         trustLineStateModifiedSignal(
             trustLine->contractorNodeUUID(),
-            trustLine->direction()
-        );
+            trustLine->direction());
 
     } else {
         trustLineCreatedSignal(
             trustLine->contractorNodeUUID(),
-            trustLine->direction()
-        );
+            trustLine->direction());
     }
 }
 
@@ -541,19 +466,13 @@ void TrustLinesManager::removeTrustLine(
     const NodeUUID &contractorUUID) {
 
     if (isTrustLineExist(contractorUUID)) {
-        try {
-            mTrustLinesStorage->erase(storage::uuids::uuid(contractorUUID));
-
-        } catch (std::exception &e) {
-            throw IOError("TrustLinesManager::removeTrustLine. "
-                              "Can't remove trust line from file.");
-        }
+        mStorageHandler->trustLineHandler()->deleteTrustLine(
+            contractorUUID);
         mTrustLines.erase(contractorUUID);
 
         trustLineStateModifiedSignal(
             contractorUUID,
-            TrustLineDirection::Nowhere
-        );
+            TrustLineDirection::Nowhere);
 
     } else {
         throw NotFoundError(
@@ -699,47 +618,62 @@ const bool TrustLinesManager::isNeighbor(
     return mTrustLines.count(node) == 1;
 }
 
-void TrustLinesManager::setSomeBalances() {
-//     this is debug method. have to be removed
-    NodeUUID contractor1;
-    NodeUUID contractor2;
-    TrustLine *first_trustline = nullptr;
-    TrustLine *second_trustline = nullptr;
-    first_trustline = new TrustLine(
-            contractor1,
-            100,
-            100,
-            50
-    );
-    second_trustline = new TrustLine(
-            contractor2,
-            200,
-            200,
-            111
-    );
-    saveToDisk(TrustLine::Shared(first_trustline));
-    saveToDisk(TrustLine::Shared(second_trustline));
-}
-
-vector<pair<NodeUUID, TrustLineBalance>> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxFlow) {
-    vector<pair<NodeUUID, TrustLineBalance>> Nodes;
+vector<NodeUUID> TrustLinesManager::getFirstLevelNodesForCycles(TrustLineBalance maxFlow) {
+    vector<NodeUUID> Nodes;
     TrustLineBalance zerobalance = 0;
     TrustLineBalance stepbalance;
     for (auto const& x : mTrustLines){
         stepbalance = x.second->balance();
         if (maxFlow == zerobalance) {
             if (stepbalance != zerobalance) {
-                Nodes.push_back(make_pair(x.first, stepbalance));
+                Nodes.push_back(x.first);
                 }
         } else if(maxFlow < zerobalance){
             if (stepbalance < zerobalance) {
-                Nodes.push_back(make_pair(x.first, min(maxFlow, stepbalance)));
+                Nodes.push_back(x.first);
             }
         } else {
             if (stepbalance > zerobalance) {
-                Nodes.push_back(make_pair(x.first, min(maxFlow, stepbalance)));
+                Nodes.push_back(x.first);
             }
         }
+    }
+    return Nodes;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithPositiveBalance() const {
+    vector<NodeUUID> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (auto const& x : mTrustLines){
+        stepbalance = x.second->balance();
+        if (stepbalance > zerobalance)
+            Nodes.push_back(x.first);
+        }
+    return Nodes;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNegativeBalance() const {
+    // todo change vector to set
+    vector<NodeUUID> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (const auto &x : mTrustLines){
+        stepbalance = x.second->balance();
+        if (stepbalance < zerobalance)
+            Nodes.push_back(x.first);
+    }
+    return Nodes;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithNoneZeroBalance() const {
+    vector<NodeUUID> Nodes;
+    TrustLineBalance zerobalance = 0;
+    TrustLineBalance stepbalance;
+    for (auto const &x : mTrustLines) {
+        stepbalance = x.second->balance();
+        if (stepbalance != zerobalance)
+            Nodes.push_back(x.first);
     }
     return Nodes;
 }

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmessages__base__transaction.a  CMakeFiles/messages__base__transaction.dir/TransactionMessage.cpp.o
+/usr/bin/ranlib libmessages__base__transaction.a

@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/denis/Projects/client/src/core/common/exceptions/Exception.cpp
+Exception.h
+/home/denis/Projects/client/src/core/common/exceptions/Exception.h
+
+/home/denis/Projects/client/src/core/common/exceptions/Exception.h
+string
+-
+

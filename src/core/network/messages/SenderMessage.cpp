@@ -54,7 +54,7 @@ void SenderMessage::deserializeFromBytes(
 
 const size_t SenderMessage::kOffsetToInheritedBytes() {
 
-    static const size_t offset = Message::kOffsetToInheritedBytes()
+    const size_t offset = Message::kOffsetToInheritedBytes()
                                  + NodeUUID::kBytesSize;
 
     return offset;

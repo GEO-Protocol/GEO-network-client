@@ -34,46 +34,15 @@ UpdateTrustLineMessage::Shared UpdateTrustLineTransaction::message() const {
 
 pair<BytesShared, size_t> UpdateTrustLineTransaction::serializeToBytes() const{
 
-    auto parentBytesAndCount = TrustLineTransaction::serializeToBytes();
-    auto messageBytesAndCount = mMessage->serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second
-                        + messageBytesAndCount.second;
-
-    BytesShared dataBytesShared = tryMalloc(
-        bytesCount);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + parentBytesAndCount.second,
-        messageBytesAndCount.first.get(),
-        messageBytesAndCount.second);
-    //-----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
+    throw NotImplementedError("UpdateTrustLineTransaction::serializeToBytes: "
+        "Method not implemented");
 }
 
 void UpdateTrustLineTransaction::deserializeFromBytes(
     BytesShared buffer) {
 
-    TrustLineTransaction::deserializeFromBytes(
-        buffer);
-
-    BytesShared messageBufferShared = tryMalloc(
-        UpdateTrustLineMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    memcpy(
-        messageBufferShared.get(),
-        buffer.get() + TrustLineTransaction::kOffsetToDataBytes(),
-        UpdateTrustLineMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    mMessage = make_shared<UpdateTrustLineMessage>(
-        messageBufferShared);
+    throw NotImplementedError("UpdateTrustLineTransaction::deserializeFromBytes: "
+        "Method not implemented");
 }
 
 TransactionResult::SharedConst UpdateTrustLineTransaction::run() {

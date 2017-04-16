@@ -1,15 +1,22 @@
 #include "RoutingTablesHandler.h"
 
 RoutingTablesHandler::RoutingTablesHandler(
-    sqlite3 *db,
+    const string &dataBasePath,
     const string &rt2TableName,
     const string &rt3TableName,
     Logger *logger):
 
-    mDataBase(db),
-    mRoutingTable2Level(db, rt2TableName, logger),
-    mRoutingTable3Level(db, rt3TableName, logger),
-    mLog(logger){}
+    mRoutingTable2Level(dataBasePath, rt2TableName, logger),
+    mRoutingTable3Level(dataBasePath, rt3TableName, logger),
+    mLog(logger){
+
+    int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    if (rc == SQLITE_OK) {
+    } else {
+        throw IOError("RoutingTablesHandler::connection "
+                          "Can't open database " + dataBasePath);
+    }
+}
 
 RoutingTableHandler* RoutingTablesHandler::routingTable2Level() {
 
@@ -180,6 +187,13 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return result;
+}
+
+void RoutingTablesHandler::closeConnections() {
+
+    mRoutingTable2Level.closeConnection();
+    mRoutingTable3Level.closeConnection();
+    sqlite3_close_v2(mDataBase);
 }
 
 LoggerStream RoutingTablesHandler::info() const {

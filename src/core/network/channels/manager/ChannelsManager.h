@@ -66,6 +66,8 @@ private:
     as::io_service &mIOService;
     unique_ptr<as::steady_timer> mProcessingTimer;
 
+    // <endpoint, last using number for channel>
+    unique_ptr<map<udp::endpoint, uint16_t>> mUsedChannelNumberForEndpoint;
     // <endpoint, <channel number, channel>>
     unique_ptr<map<udp::endpoint, pair<uint16_t, Channel::Shared>>> mOutgoingChannels;
     unique_ptr<map<udp::endpoint, vector<pair<uint16_t, Channel::Shared>>>> mIncomingChannels;

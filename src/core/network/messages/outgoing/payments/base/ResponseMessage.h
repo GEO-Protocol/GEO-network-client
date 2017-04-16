@@ -27,7 +27,7 @@ public:
 
 protected:
     typedef byte SerializedOperationState;
-    static const size_t kOffsetToInheritedBytes();
+    const size_t kOffsetToInheritedBytes();
 
 protected:
     pair<BytesShared, size_t> serializeToBytes();

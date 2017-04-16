@@ -26,7 +26,7 @@ TransactionResult::SharedConst PropagateRoutingTablesUpdatesTransaction::run() {
 
 pair<bool, TransactionResult::SharedConst> PropagateRoutingTablesUpdatesTransaction::checkContext() {
 
-    if (mExpectationResponsesCount == mContext.size()) {
+    if (mkExpectationResponsesCount == mContext.size()) {
 
         Message::Shared responseMessage = *mContext.begin();
 

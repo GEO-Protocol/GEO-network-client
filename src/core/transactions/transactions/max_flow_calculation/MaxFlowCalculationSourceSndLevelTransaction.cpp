@@ -22,9 +22,11 @@ MaxFlowCalculationSourceSndLevelMessage::Shared MaxFlowCalculationSourceSndLevel
 
 TransactionResult::SharedConst MaxFlowCalculationSourceSndLevelTransaction::run() {
 
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "Iam: " << mNodeUUID;
     info() << "run\t" << "sender: " << mMessage->senderUUID();
     info() << "run\t" << "target: " << mMessage->targetUUID();
+#endif
 
     sendResultToInitiator();
 
@@ -42,7 +44,9 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator() {
         return;
     }
 
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "sendResultToInitiator\t" << "send to " << mMessage->targetUUID();
+#endif
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {
         if (outgoingFlow.first != mMessage->senderUUID() && outgoingFlow.first != mMessage->targetUUID()) {
@@ -57,8 +61,10 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator() {
                 incomingFlow);
         }
     }
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "sendResult\t" << "OutgoingFlows: " << outgoingFlows.size();
     info() << "sendResult\t" << "IncomingFlows: " << incomingFlows.size();
+#endif
 
     sendMessage<ResultMaxFlowCalculationMessage>(
         mMessage->targetUUID(),
@@ -76,7 +82,9 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator() {
 void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
     MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr) {
 
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID();
+#endif
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsForSending;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {
@@ -96,8 +104,10 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
                 incomingFlow);
         }
     }
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "sendCachedResultToInitiator\t" << "OutgoingFlows: " << outgoingFlowsForSending.size();
     info() << "sendCachedResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
+#endif
 
     if (outgoingFlowsForSending.size() > 0 || incomingFlowsForSending.size() > 0) {
 

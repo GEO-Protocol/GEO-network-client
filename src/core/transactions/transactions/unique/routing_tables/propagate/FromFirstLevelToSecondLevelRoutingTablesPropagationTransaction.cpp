@@ -33,7 +33,7 @@ TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTablesPropagati
 
 pair<bool, TransactionResult::SharedConst> FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::checkContext() {
 
-    if (mExpectationResponsesCount == mContext.size()) {
+    if (mkExpectationResponsesCount == mContext.size()) {
         for (const auto& responseMessage : mContext) {
 
             if (responseMessage->typeID() != Message::MessageTypeID::RoutingTablesResponseMessageType) {

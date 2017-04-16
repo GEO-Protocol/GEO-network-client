@@ -24,12 +24,16 @@ InitiateMaxFlowCalculationCommand::Shared InitiateMaxFlowCalculationTransaction:
 
 TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
 
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "initiator: " << mNodeUUID;
     info() << "run\t" << "target: " << mCommand->contractorUUID();
+#endif
 
     switch (mStep) {
         case Stages::SendRequestForCollectingTopology:
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
             info() << "start";
+#endif
             if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
                 for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->outgoingFlows()) {
                     auto trustLineAmountShared = nodeUUIDAndTrustLine.second;
@@ -41,8 +45,6 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
                 }
                 sendMessagesOnFirstLevel();
                 mMaxFlowCalculationCacheManager->setInitiatorCache();
-
-                info() << "run\t" << "step " << mStep;
             }
             sendMessageToRemoteNode();
             mStep = Stages::CalculateMaxTransactionFlow;
@@ -50,11 +52,12 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
                 TransactionState::awakeAfterMilliseconds(kWaitMilisecondsForCalculatingMaxFlow));;
         case Stages::CalculateMaxTransactionFlow:
             TrustLineAmount maxFlow = calculateMaxFlow();
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
             info() << "run\t" << "max flow: " << maxFlow;
+#endif
             mStep = Stages::SendRequestForCollectingTopology;
             return resultOk(maxFlow);
     }
-
 }
 
 void InitiateMaxFlowCalculationTransaction::sendMessageToRemoteNode() {
@@ -68,9 +71,9 @@ void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel() {
 
     vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
     for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
-
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
         info() << "sendFirst\t" << nodeUUIDOutgoingFlow;
-
+#endif
         sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
             nodeUUIDOutgoingFlow,
             mNodeUUID);
@@ -80,7 +83,9 @@ void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel() {
 
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow() {
     TrustLineAmount result = 0;
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "calculateMaxFlow\tstart found flow to: " << mCommand->contractorUUID();
+#endif
     while(true) {
         vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines =
                 mMaxFlowCalculationTrustLineManager->sortedTrustLines(mNodeUUID);
@@ -93,8 +98,6 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow() {
         if (*trustLineFreeAmountPtr == TrustLine::kZeroAmount()) {
             return result;
         }
-        info() << "calculateMaxFlow\t" << "1st max flow: " << *trustLineFreeAmountPtr;
-
         TrustLineAmount currentFlow = 0;
         for (auto &trustLine : sortedTrustLines) {
             auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
@@ -105,13 +108,15 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow() {
                 *trustLineAmountPtr,
                 1);
             if (flow > TrustLine::kZeroAmount()) {
-                info() << "calculateMaxFlow\t" << "used flow: " << trustLine.get()->sourceUUID() << "->"
-                              << trustLine.get()->targetUUID() << " " << flow;
                 currentFlow += flow;
                 trustLine->addUsedAmount(flow);
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+                info() << "calculateMaxFlow\t" << "used flow: " << trustLine.get()->sourceUUID() << "->"
+                              << trustLine.get()->targetUUID() << " " << flow;
                 auto trustLineFreeAmountTmp = trustLine.get()->freeAmount();
                 auto trustLineAmountTmp = trustLineFreeAmountTmp.get();
                 info() << "calculateMaxFlow\t" << "new flow: " << *trustLineAmountTmp;
+#endif
                 break;
             }
         }
@@ -130,9 +135,11 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     const TrustLineAmount& currentFlow,
     byte level) {
 
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "calculateMaxFlow\t" << "go in: " << nodeUUID << "->"
                   << currentFlow << "->" << to_string(level);
     info() << "calculateMaxFlow\t" << "forbidden nodes: " << forbiddenNodeUUIDs.size();
+#endif
     if (nodeUUID == mCommand->contractorUUID()) {
         return currentFlow;
     }
@@ -167,12 +174,14 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
             level + (byte)1);
         forbiddenNodeUUIDs.erase(nodeUUID);
         if (calcFlow > TrustLine::kZeroAmount()) {
+            trustLine->addUsedAmount(calcFlow);
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
             info() << "calculateMaxFlow\t" << "used flow: " << trustLine.get()->sourceUUID() << "->"
                           << trustLine.get()->targetUUID() << " " << calcFlow;
-            trustLine->addUsedAmount(calcFlow);
             auto trustLineFreeAmountTmp = trustLine.get()->freeAmount();
             auto trustLineAmountTmp = trustLineFreeAmountTmp.get();
             info() << "calculateMaxFlow\t" << "new flow: " << *trustLineAmountTmp;
+#endif
             return calcFlow;
         }
     }

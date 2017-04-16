@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtransactions.a  CMakeFiles/transactions.dir/transactions/contractors_list/GetFirstLevelContractorsTransaction.cpp.o
+/usr/bin/ranlib libtransactions.a

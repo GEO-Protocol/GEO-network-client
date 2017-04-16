@@ -28,9 +28,9 @@ unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& Resu
 
 pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() {
 
-    /*cout << "ResultRoutingTable3LevelMessage::serializeToBytes start serializing" << endl;
+    cout << "ResultRoutingTable3LevelMessage::serializeToBytes start serializing" << endl;
     cout << "ResultRoutingTable3LevelMessage::serializeToBytes rt3 size: " << mRT3.size() << endl;
-    DateTime startTime = utc_now();*/
+    DateTime startTime = utc_now();
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + rt3ByteSize();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -72,9 +72,9 @@ pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() {
         }
     }
     //----------------------------------------------------
-    /*cout << "ResultRoutingTable3LevelMessage::serializeToBytes message size: " << bytesCount << endl;
+    cout << "ResultRoutingTable3LevelMessage::serializeToBytes message size: " << bytesCount << endl;
     Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable3LevelMessage::serializing time: " << methodTime << endl;*/
+    cout << "ResultRoutingTable3LevelMessage::serializing time: " << methodTime << endl;
     return make_pair(
         dataBytesShared,
         bytesCount);
@@ -83,8 +83,8 @@ pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() {
 void ResultRoutingTable3LevelMessage::deserializeFromBytes(
     BytesShared buffer){
 
-    /*cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes start deserializing" << endl;
-    DateTime startTime = utc_now();*/
+    cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes start deserializing" << endl;
+    DateTime startTime = utc_now();
     TransactionMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //-----------------------------------------------------
@@ -110,9 +110,9 @@ void ResultRoutingTable3LevelMessage::deserializeFromBytes(
         mRT3.insert(make_pair(keyDesitnation, valueSources));
     }
     //-----------------------------------------------------
-    /*cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
+    cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
     Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes time: " << methodTime << endl;*/
+    cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes time: " << methodTime << endl;
 }
 
 size_t ResultRoutingTable3LevelMessage::rt3ByteSize() {

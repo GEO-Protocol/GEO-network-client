@@ -34,107 +34,65 @@ AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
 
 pair<BytesShared, size_t> AcceptTrustLineTransaction::serializeToBytes() const{
 
-    auto parentBytesAndCount = TrustLineTransaction::serializeToBytes();
-    auto messageBytesAndCount = mMessage->serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second
-                        + messageBytesAndCount.second;
-
-    BytesShared dataBytesShared = tryMalloc(
-        bytesCount);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + parentBytesAndCount.second,
-        messageBytesAndCount.first.get(),
-        messageBytesAndCount.second);
-    //-----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
+    throw NotImplementedError("AcceptTrustLineTransaction::serializeToBytes: "
+        "Method not implemented");
 }
 
 void AcceptTrustLineTransaction::deserializeFromBytes(
     BytesShared buffer) {
 
-    TrustLineTransaction::deserializeFromBytes(
-        buffer);
-
-    BytesShared messageBufferShared = tryMalloc(
-        AcceptTrustLineMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    memcpy(
-        messageBufferShared.get(),
-        buffer.get() + TrustLineTransaction::kOffsetToDataBytes(),
-        AcceptTrustLineMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    mMessage = make_shared<AcceptTrustLineMessage>(
-        messageBufferShared);
+    throw NotImplementedError("AcceptTrustLineTransaction::deserializeFromBytes: "
+        "Method not implemented");
 }
 
 TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
 
-    try {
-        switch (mStep) {
+    switch (mStep) {
 
-            case Stages::CheckJournal: {
-                if (checkJournal()) {
-                    sendResponseCodeToContractor(
-                        400);
-
-                    return transactionResultFromMessage(
-                        mMessage->customCodeResult(
-                            400));
-                }
-
-                mStep = Stages::CheckIncomingDirection;
+        case Stages::CheckJournal: {
+            if (checkJournal()) {
+                sendResponseCodeToContractor(
+                    400);
+                mStep = Stages::CheckIncomingDirection;1
             }
 
-            case Stages::CheckIncomingDirection: {
-                if (isIncomingTrustLineDirectionExisting()) {
+            mStep = Stages::CheckIncomingDirection;
+        }
 
-                    if (isIncomingTrustLineAlreadyAccepted()) {
-                        sendResponseCodeToContractor(
-                            AcceptTrustLineMessage::kResultCodeAccepted);
+        case Stages::CheckIncomingDirection: {
+            if (isIncomingTrustLineDirectionExisting()) {
 
-                        return transactionResultFromMessage(
-                            mMessage->resultAccepted());
-
-                    } else {
-                        sendResponseCodeToContractor(
-                            AcceptTrustLineMessage::kResultCodeConflict);
-
-                        return transactionResultFromMessage(
-                            mMessage->resultConflict());
-                    }
-
-                } else {
-                    acceptTrustLine();
-                    logAcceptingTrustLineOperation();
+                if (isIncomingTrustLineAlreadyAccepted()) {
                     sendResponseCodeToContractor(
                         AcceptTrustLineMessage::kResultCodeAccepted);
 
                     return transactionResultFromMessage(
                         mMessage->resultAccepted());
+
+                } else {
+                    sendResponseCodeToContractor(
+                        AcceptTrustLineMessage::kResultCodeConflict);
+
+                    return transactionResultFromMessage(
+                        mMessage->resultConflict());
                 }
-            }
 
-            default: {
-                throw ConflictError("AcceptTrustLineTransaction::run: "
-                                        "Illegal step execution.");
-            }
+            } else {
+                acceptTrustLine();
+                logAcceptingTrustLineOperation();
+                sendResponseCodeToContractor(
+                    AcceptTrustLineMessage::kResultCodeAccepted);
 
+                return transactionResultFromMessage(
+                    mMessage->resultAccepted());
+            }
         }
 
-    } catch (exception &e) {
-        throw RuntimeError("AcceptTrustLineTransaction::run: "
-                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
-                               "Crashed at step -> " + to_string(mStep) + ". "
-                               "Message -> " + string(e.what()));
+        default: {
+            throw ConflictError("AcceptTrustLineTransaction::run: "
+                                    "Illegal step execution.");
+        }
+
     }
 }
 
