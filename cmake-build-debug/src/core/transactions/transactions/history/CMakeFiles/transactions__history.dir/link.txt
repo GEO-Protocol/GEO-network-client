@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtransactions__history.a  CMakeFiles/transactions__history.dir/HistoryPaymentsTransaction.cpp.o CMakeFiles/transactions__history.dir/HistoryTrustLinesTransaction.cpp.o
-/usr/bin/ranlib libtransactions__history.a

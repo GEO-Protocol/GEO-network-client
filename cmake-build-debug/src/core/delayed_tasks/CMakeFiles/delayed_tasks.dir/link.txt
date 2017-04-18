@@ -1,2 +1,0 @@
-/usr/bin/ar qc libdelayed_tasks.a  CMakeFiles/delayed_tasks.dir/Cycles.cpp.o CMakeFiles/delayed_tasks.dir/MaxFlowCalculationCacheUpdateDelayedTask.cpp.o
-/usr/bin/ranlib libdelayed_tasks.a

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtransactions__find_path.a  CMakeFiles/transactions__find_path.dir/FindPathTransaction.cpp.o CMakeFiles/transactions__find_path.dir/GetRoutingTablesTransaction.cpp.o CMakeFiles/transactions__find_path.dir/GetPathTestTransaction.cpp.o
-/usr/bin/ranlib libtransactions__find_path.a
