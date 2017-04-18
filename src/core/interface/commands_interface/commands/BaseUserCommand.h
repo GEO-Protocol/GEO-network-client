@@ -40,17 +40,28 @@ public:
 
     const DateTime &timestampAccepted() const;
 
-    CommandResult::SharedConst responseOK() const;
-    CommandResult::SharedConst responseCreated() const;
-    CommandResult::SharedConst responseProtocolError() const;
-    CommandResult::SharedConst responseTrustlineIsAbsent() const;
-    CommandResult::SharedConst responseCurrentIncomingDebtIsGreaterThanNewAmount() const;
-    CommandResult::SharedConst responseTrustlineIsAlreadyPresent() const;
-    CommandResult::SharedConst responseInsufficientFunds() const;
-    CommandResult::SharedConst responseConflictWithOtherOperation() const;
-    CommandResult::SharedConst responseRemoteNodeIsInaccessible() const;
-    CommandResult::SharedConst responseNoRoutes() const;
-    CommandResult::SharedConst responseUnexpectedError() const;
+    CommandResult::SharedConst responseOK() const
+        noexcept;
+    CommandResult::SharedConst responseCreated() const
+        noexcept;
+    CommandResult::SharedConst responseProtocolError() const
+        noexcept;
+    CommandResult::SharedConst responseTrustlineIsAbsent() const
+        noexcept;
+    CommandResult::SharedConst responseCurrentIncomingDebtIsGreaterThanNewAmount() const
+        noexcept;
+    CommandResult::SharedConst responseTrustlineIsAlreadyPresent() const
+        noexcept;
+    CommandResult::SharedConst responseInsufficientFunds() const
+        noexcept;
+    CommandResult::SharedConst responseConflictWithOtherOperation() const
+        noexcept;
+    CommandResult::SharedConst responseRemoteNodeIsInaccessible() const
+        noexcept;
+    CommandResult::SharedConst responseNoRoutes() const
+        noexcept;
+    CommandResult::SharedConst responseUnexpectedError() const
+        noexcept;
 
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes();
@@ -66,11 +77,8 @@ protected:
     CommandResult::SharedConst makeResult(
         const uint16_t code) const;
 
-
-
-
 private:
-    CommandUUID mCommandUUID;
+    const CommandUUID mCommandUUID;
     DateTime mTimestampAccepted;
     const string mCommandIdentifier;
 };

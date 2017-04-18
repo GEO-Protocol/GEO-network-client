@@ -798,21 +798,14 @@ void TransactionsManager::launchGetPathTestTransaction(FindPathCommand::Shared c
     }
 }
 
-void TransactionsManager::launchGetFirstLevelContractorsTransaction(GetFirstLevelContractorsCommand::Shared command) {
-    try {
-        auto transaction = make_shared<GetFirstLevelContractorsTransaction>(
-                mNodeUUID,
-                command,
-                mTrustLines,
-                mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-                "TransactionsManager::launchGetFirstLevelContractorsTransaction: "
-                        "Can't allocate memory for transaction instance.");
-    }
+void TransactionsManager::launchGetFirstLevelContractorsTransaction(GetFirstLevelContractorsCommand::Shared command)
+{
+    prepareAndSchedule(
+            make_shared<GetFirstLevelContractorsTransaction>(
+                    mNodeUUID,
+                    command,
+                    mTrustLines,
+                    mLog));
 }
 
 /*!

@@ -1,8 +1,11 @@
 #include "GetFirstLevelContractorsCommand.h"
 
-GetFirstLevelContractorsCommand::GetFirstLevelContractorsCommand(const CommandUUID &uuid, const string &commandBuffer)
-        : BaseUserCommand(uuid, identifier()) {
-}
+GetFirstLevelContractorsCommand::GetFirstLevelContractorsCommand(const CommandUUID &uuid, const string& commandBuffer)
+    noexcept
+    : BaseUserCommand(
+    uuid,
+    identifier())
+{}
 
 const string &GetFirstLevelContractorsCommand::identifier() {
 
@@ -10,14 +13,9 @@ const string &GetFirstLevelContractorsCommand::identifier() {
     return identifier;
 }
 
-CommandResult::SharedConst GetFirstLevelContractorsCommand::resultOk(string &neighbors) const {
-    return CommandResult::SharedConst(
-            new CommandResult(
-                    UUID(),
-                    200,
-                    neighbors));
+CommandResult::SharedConst GetFirstLevelContractorsCommand::resultOk(string& neighbors) const {
+    return make_shared<const CommandResult>(UUID(),200, neighbors);
 }
 
-void GetFirstLevelContractorsCommand::parse(const string &command) {
-
-}
+void GetFirstLevelContractorsCommand::parse(const string& command)
+{}

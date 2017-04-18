@@ -4,9 +4,8 @@
 #include "../BaseUserCommand.h"
 #include "../../../../common/exceptions/ValueError.h"
 
-// TODO: should be removed after testing getting paths
 class GetFirstLevelContractorsCommand :
-        public BaseUserCommand {
+    public BaseUserCommand {
 
 public:
     typedef shared_ptr<GetFirstLevelContractorsCommand> Shared;
@@ -14,7 +13,8 @@ public:
 public:
     GetFirstLevelContractorsCommand(
             const CommandUUID &uuid,
-            const string &commandBuffer);
+            const string &commandBuffer)
+        noexcept;
 
     static const string &identifier();
 
