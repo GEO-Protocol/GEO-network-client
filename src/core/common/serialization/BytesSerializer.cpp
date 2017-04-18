@@ -212,5 +212,7 @@ const pair<BytesShared, size_t> BytesSerializer::collect () const
         currentBufferOffset += kRecord->bytesCount();
     }
 
-    return make_pair(buffer, totalBytesCount);
+    return make_pair(
+        buffer,
+        totalBytesCount);
 }

@@ -119,7 +119,8 @@ const Message::MessageType ParticipantsVotesMessage::typeID() const
  *
  *  @throws bad_alloc in case of insufficient memory.
  */
-pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes()
+pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
+    throw(bad_alloc)
 {
     const auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

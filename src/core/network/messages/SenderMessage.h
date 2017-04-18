@@ -25,13 +25,13 @@ public:
 
     SenderMessage(
         BytesShared buffer)
-        throw (bad_alloc);
+        noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes() const
+    virtual pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
 
 protected:
-    const size_t kOffsetToInheritedBytes() const
+    virtual const size_t kOffsetToInheritedBytes() const
         noexcept;
 };
 

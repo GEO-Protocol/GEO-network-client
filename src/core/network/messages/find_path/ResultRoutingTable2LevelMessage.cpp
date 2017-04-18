@@ -51,7 +51,9 @@ unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& Resu
     return mRT2;
 }
 
-pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() {
+pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() const
+    throw(bad_alloc)
+{
 
     /*cout << "ResultRoutingTable2LevelMessage::serializeToBytes start serializing" << endl;
     cout << "ResultRoutingTable2LevelMessage::serializeToBytes rt2 size: " << mRT2.size() << endl;
@@ -106,7 +108,7 @@ pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() {
 }
 
 
-size_t ResultRoutingTable2LevelMessage::rt2ByteSize() {
+size_t ResultRoutingTable2LevelMessage::rt2ByteSize() const {
 
     size_t result = sizeof(RecordCount);
     for (auto const &nodeUUIDAndVector : mRT2) {

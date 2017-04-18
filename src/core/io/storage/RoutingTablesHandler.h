@@ -54,10 +54,10 @@ public:
 
     vector<pair<NodeUUID, NodeUUID>> rt3Records();
 
-    vector<NodeUUID> allDestinationsForSourceOnRT2(
+    set<NodeUUID> neighborsOfOnRT2(
         const NodeUUID &sourceUUID);
 
-    vector<NodeUUID> allDestinationsForSourceOnRT3(
+    set<NodeUUID> neighborsOfOnRT3(
         const NodeUUID &sourceUUID);
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKeyOnRT2();

@@ -11,8 +11,7 @@
 NeighborsCollectingTransaction::NeighborsCollectingTransaction (
     const NodeUUID &destinationNode,
     const uint8_t hopDistance,
-    RoutingTableHandler *routingTable2Level,
-    RoutingTableHandler *routingTable3Level,
+    RoutingTablesHandler *routingTables,
     Logger *logger)
     noexcept :
 
@@ -21,8 +20,7 @@ NeighborsCollectingTransaction::NeighborsCollectingTransaction (
         logger),
     mDestinationNodeUUID(destinationNode),
     mHopDistance(hopDistance),
-    mRoutingTable2Level(routingTable2Level),
-    mRoutingTable3Level(routingTable3Level),
+    mRoutingTables(routingTables),
     mSecondLevelNeighborsMustAlsoBeScanned(true)
 {}
 
@@ -129,10 +127,9 @@ void NeighborsCollectingTransaction::populateSecondLevelRoutingTable (
 {
     for (const auto kNeighbor : neighbors)
         try {
-            mRoutingTable2Level->saveRecord(
+            mRoutingTables->saveRecordToRT2(
                 source,
-                kNeighbor,
-                TrustLineDirection::Nowhere);
+                kNeighbor);
 
             debug() << "Record (" << source << " - " << kNeighbor << ") has been written to the RT2.";
 
@@ -140,7 +137,7 @@ void NeighborsCollectingTransaction::populateSecondLevelRoutingTable (
             error() << "Record (" << source << " - " << kNeighbor << ") can't be written to the RT2.";
         }
 
-    mRoutingTable2Level->commit();
+    mRoutingTables->commit();
 }
 
 /**
@@ -153,10 +150,9 @@ void NeighborsCollectingTransaction::populateThirdLevelRoutingTable (
 {
     for (const auto kNeighbor : neighbors)
         try {
-            mRoutingTable3Level->saveRecord(
+            mRoutingTables->saveRecordToRT3(
                 source,
-                kNeighbor,
-                TrustLineDirection::Nowhere);
+                kNeighbor);
 
             debug() << "Record (" << source << " - " << kNeighbor << ") has been written to the RT3.";
 
@@ -164,7 +160,7 @@ void NeighborsCollectingTransaction::populateThirdLevelRoutingTable (
             error() << "Record (" << source << " - " << kNeighbor << ") can't be written to the RT3.";
         }
 
-    mRoutingTable3Level->commit();
+    mRoutingTables->commit();
 }
 
 void NeighborsCollectingTransaction::spawnChildNeighborsScanningTransactions (
@@ -175,8 +171,7 @@ void NeighborsCollectingTransaction::spawnChildNeighborsScanningTransactions (
         const auto kTransaction = make_shared<NeighborsCollectingTransaction>(
             kNeighbor,
             mHopDistance,
-            mRoutingTable2Level,
-            mRoutingTable3Level,
+            mRoutingTables,
             mLog);
 
         // Prevent infinite network scanning

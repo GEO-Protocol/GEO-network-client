@@ -22,7 +22,7 @@ public:
     const MessageType typeID() const
         noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes()
+    virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
     MessageResult::SharedConst resultRejected()

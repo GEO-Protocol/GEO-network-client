@@ -53,7 +53,9 @@ const Message::MessageType TotalBalancesResultMessage::typeID() const {
     return Message::MessageType::TotalBalance_Response;
 }
 
-pair<BytesShared, size_t> TotalBalancesResultMessage::serializeToBytes() {
+pair<BytesShared, size_t> TotalBalancesResultMessage::serializeToBytes() const
+    throw(bad_alloc)
+{
 
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + 4 * kTrustLineAmountBytesCount;

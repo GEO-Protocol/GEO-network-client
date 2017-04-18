@@ -29,7 +29,7 @@ const NodeUUID &RejectTrustLineMessage::contractorUUID() const
 /*
  * ToDo: rewrite me with bytes deserializer
  */
-pair<BytesShared, size_t> RejectTrustLineMessage::serializeToBytes()
+pair<BytesShared, size_t> RejectTrustLineMessage::serializeToBytes() const
     throw (bad_alloc)
 {
 

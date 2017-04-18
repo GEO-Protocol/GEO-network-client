@@ -30,14 +30,15 @@ public:
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& rt3();
 
-    pair<BytesShared, size_t> serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
 
 private:
     typedef uint32_t RecordNumber;
     typedef RecordNumber RecordCount;
 
 private:
-    size_t rt3ByteSize();
+    size_t rt3ByteSize() const;
 
 private:
 

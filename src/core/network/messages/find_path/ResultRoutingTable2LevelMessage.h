@@ -31,14 +31,15 @@ public:
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& rt2();
 
-    pair<BytesShared, size_t> serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
 
 protected:
     typedef uint32_t RecordNumber;
     typedef RecordNumber RecordCount;
 
 protected:
-    size_t rt2ByteSize();
+    size_t rt2ByteSize() const;
 
 protected:
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> mRT2;

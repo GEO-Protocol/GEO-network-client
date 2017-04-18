@@ -628,7 +628,7 @@ void PathsManager::testStorageHandler() {
     mStorageHandler->routingTablesHandler()->commit();
 
     info() << "all destinations for source: " << *nodeUUID81Ptr;
-    for (const auto &itVect : mStorageHandler->routingTablesHandler()->allDestinationsForSourceOnRT2(*nodeUUID81Ptr)) {
+    for (const auto &itVect : mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(*nodeUUID81Ptr)) {
         info() << "\t\t\t" << itVect;
     }
 

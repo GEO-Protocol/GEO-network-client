@@ -29,7 +29,8 @@ public:
 
     vector<NodeUUID>& rt1();
 
-    pair<BytesShared, size_t> serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
 
 protected:
     typedef uint32_t RecordNumber;

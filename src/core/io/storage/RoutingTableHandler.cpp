@@ -229,27 +229,10 @@ set<NodeUUID> RoutingTableHandler::neighborsOf (
     const NodeUUID &sourceUUID) {
 
     DateTime startTime = utc_now();
-    string countQuery = "SELECT count(*) FROM " + mTableName + " WHERE source = ?";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, countQuery.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::neighborsOf: "
-                          "Bad count query");
-    }
-    rc = sqlite3_bind_blob(stmt, 1, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::neighborsOf: "
-                          "Bad Source binding");
-    }
-    sqlite3_step(stmt);
-    uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
-    info() << "routeRecordsWithDirections\t count records: " << rowCount;
     set<NodeUUID> result;
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-
     string query = "SELECT destination FROM " + mTableName + " WHERE source = ?";
-    rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::neighborsOf: "
                               "Bad query");

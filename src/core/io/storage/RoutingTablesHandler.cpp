@@ -339,17 +339,17 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::rt3Records() {
     return mRoutingTable3Level.routeRecords();
 }
 
-vector<NodeUUID> RoutingTablesHandler::allDestinationsForSourceOnRT2(
+set<NodeUUID> RoutingTablesHandler::neighborsOfOnRT2(
     const NodeUUID &sourceUUID) {
 
-    return mRoutingTable2Level.allDestinationsForSource(
+    return mRoutingTable2Level.neighborsOf(
         sourceUUID);
 }
 
-vector<NodeUUID> RoutingTablesHandler::allDestinationsForSourceOnRT3(
+set<NodeUUID> RoutingTablesHandler::neighborsOfOnRT3(
     const NodeUUID &sourceUUID) {
 
-    return mRoutingTable3Level.allDestinationsForSource(
+    return mRoutingTable3Level.neighborsOf(
         sourceUUID);
 }
 

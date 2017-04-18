@@ -49,8 +49,7 @@ TrustLineStatesHandlerTransaction::TrustLineStatesHandlerTransaction (
     const TrustLineState trustLineState,
     const uint8_t hopDistance,
     TrustLinesManager *trustLines,
-    RoutingTableHandler *routingTable2Level,
-    RoutingTableHandler *routingTable3Level,
+    RoutingTablesHandler *routingTables,
     Logger *logger)
     noexcept :
 
@@ -63,8 +62,7 @@ TrustLineStatesHandlerTransaction::TrustLineStatesHandlerTransaction (
     mNeighborSenderUUID(neighborSenderUUID),
     mCurrentHopDistance(hopDistance),
     mTrustLines(trustLines),
-    mRoutingTable2Level(routingTable2Level),
-    mRoutingTable3Level(routingTable3Level)
+    mRoutingTables(routingTables)
 {}
 
 TransactionResult::SharedConst TrustLineStatesHandlerTransaction::run ()
@@ -115,12 +113,12 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         // that has node B as a source.
         // Also, cascade removing of the related records of the third level routing table is needed.
 
-        for (const auto kNeighborOfCounterpartNode : mRoutingTable2Level->neighborsOf(mRightContractorUUID)) {
+        for (const auto kNeighborOfCounterpartNode : mRoutingTables->neighborsOfOnRT2(mRightContractorUUID)) {
             removeRecordFromSecondLevel(
                 mRightContractorUUID,
                 kNeighborOfCounterpartNode);
         }
-        mRoutingTable2Level->commit();
+        mRoutingTables->commit();
 
         return resultDone();
 
@@ -132,7 +130,7 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         removeRecordFromSecondLevel(
             mRightContractorUUID,
             mNeighborSenderUUID);
-        mRoutingTable2Level->commit();
+        mRoutingTables->commit();
 
         return resultDone();
 
@@ -143,7 +141,7 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         removeRecordFromThirdLevel(
             mRightContractorUUID,
             mLeftContractorUUID);
-        mRoutingTable3Level->commit();
+        mRoutingTables->commit();
 
         return resultDone();
     }
@@ -194,8 +192,7 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         const auto kTransaction = make_shared<NeighborsCollectingTransaction>(
             mRightContractorUUID,
             mCurrentHopDistance,
-            mRoutingTable2Level,
-            mRoutingTable3Level,
+            mRoutingTables,
             mLog);
 
         launchSubsidiaryTransaction(kTransaction);
@@ -211,8 +208,7 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         const auto kTransaction = make_shared<NeighborsCollectingTransaction>(
             mRightContractorUUID,
             mCurrentHopDistance,
-            mRoutingTable2Level,
-            mRoutingTable3Level,
+            mRoutingTables,
             mLog);
 
         launchSubsidiaryTransaction(kTransaction);
@@ -275,14 +271,14 @@ void TrustLineStatesHandlerTransaction::removeRecordFromSecondLevel (
 {
     try {
         // todo: rename to "remove"
-        mRoutingTable2Level->deleteRecord(
+        mRoutingTables->deleteRecordFromRT2(
             source,
             destination);
     } catch (IOError &) {}
 
     try {
         // todo: rename to "remove"
-        mRoutingTable2Level->deleteRecord(
+        mRoutingTables->deleteRecordFromRT2(
             destination,
             source);
     } catch (IOError &) {}
@@ -299,13 +295,13 @@ void TrustLineStatesHandlerTransaction::removeRecordFromThirdLevel (
     noexcept
 {
     try {
-        mRoutingTable3Level->deleteRecord(
+        mRoutingTables->deleteRecordFromRT3(
             source,
             destination);
     } catch (IOError &) {}
 
     try {
-        mRoutingTable3Level->deleteRecord(
+        mRoutingTables->deleteRecordFromRT3(
             destination,
             source);
     } catch (IOError &) {}
@@ -321,11 +317,10 @@ void TrustLineStatesHandlerTransaction::writeRecordToThirdLevel (
 {
     // todo: rename to "set";
     // todo: remove direction from the signature;
-    mRoutingTable3Level->saveRecord(
+    mRoutingTables->saveRecordToRT3(
         source,
-        destination,
-        TrustLineDirection::Nowhere);
+        destination);
 
     // ToDo: use autocommit structure
-    mRoutingTable3Level->commit();
+    mRoutingTables->commit();
 }

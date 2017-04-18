@@ -10,13 +10,12 @@ SenderMessage::SenderMessage(
 
 SenderMessage::SenderMessage(
     BytesShared buffer)
-    throw (bad_alloc)
+    noexcept
 {
-    BytesDeserializer memory(
-        buffer,
-        Message::kOffsetToInheritedBytes());
-
-    memory.copyIntoDespiteConst(&senderUUID);
+    memcpy(
+        const_cast<NodeUUID*>(&senderUUID),
+        buffer.get() + Message::kOffsetToInheritedBytes(),
+        NodeUUID::kBytesSize);
 }
 
 pair<BytesShared, size_t> SenderMessage::serializeToBytes() const

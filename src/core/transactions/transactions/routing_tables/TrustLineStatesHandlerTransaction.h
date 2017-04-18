@@ -4,7 +4,7 @@
 #include "NeighborsCollectingTransaction.h"
 
 #include "../../../common/Constraints.h"
-#include "../../../io/storage/RoutingTableHandler.h"
+#include "../../../io/storage/RoutingTablesHandler.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 
 #include "../../../network/messages/routing_tables/NotificationTrustLineRemovedMessage.h"
@@ -33,8 +33,8 @@ public:
         const uint8_t hopDistance,
 
         TrustLinesManager *trustLines,
-        RoutingTableHandler *routingTable2Level,
-        RoutingTableHandler *routingTable3Level,
+
+        RoutingTablesHandler *routingTables,
         Logger *logger)
         noexcept;
 
@@ -94,8 +94,7 @@ protected:
     const uint8_t mCurrentHopDistance;
 
     TrustLinesManager *mTrustLines;
-    RoutingTableHandler *mRoutingTable2Level;
-    RoutingTableHandler *mRoutingTable3Level;
+    RoutingTablesHandler *mRoutingTables;
 };
 
 
