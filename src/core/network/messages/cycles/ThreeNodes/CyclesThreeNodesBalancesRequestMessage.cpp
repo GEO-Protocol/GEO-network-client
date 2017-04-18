@@ -1,21 +1,46 @@
 #include "CyclesThreeNodesBalancesRequestMessage.h"
 
-CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(BytesShared buffer)
-{
-    deserializeFromBytes(buffer);
-}
 
 CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(
-        const NodeUUID &senderUUID,
-        const TransactionUUID &transactionUUID,
-        set<NodeUUID> &neighbors):
-        TransactionMessage(
-                senderUUID,
-                transactionUUID)
+    const NodeUUID &senderUUID,
+    const TransactionUUID &transactionUUID,
+    set<NodeUUID> &neighbors):
+
+    TransactionMessage(
+        senderUUID,
+        transactionUUID)
 {
     mNeighbors.reserve(neighbors.size());
     for(auto &value: neighbors)
         mNeighbors.push_back(value);
+}
+
+CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(
+    BytesShared buffer):
+
+    TransactionMessage(buffer)
+{
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+
+    uint16_t neighborsCount;
+    // path
+    memcpy(
+        &neighborsCount,
+        buffer.get() + bytesBufferOffset,
+        sizeof(uint16_t)
+    );
+    bytesBufferOffset += sizeof(neighborsCount);
+
+    for (uint8_t i = 1; i <= neighborsCount; ++i) {
+        NodeUUID stepNode;
+        memcpy(
+            stepNode.data,
+            buffer.get() + bytesBufferOffset,
+            NodeUUID::kBytesSize
+        );
+        bytesBufferOffset += NodeUUID::kBytesSize;
+        mNeighbors.push_back(stepNode);
+    }
 }
 
 pair<BytesShared, size_t> CyclesThreeNodesBalancesRequestMessage::serializeToBytes() {
@@ -57,35 +82,8 @@ pair<BytesShared, size_t> CyclesThreeNodesBalancesRequestMessage::serializeToByt
     );
 }
 
-void CyclesThreeNodesBalancesRequestMessage::deserializeFromBytes(
-        BytesShared buffer) {
-
-    TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-
-    uint16_t neighborsCount;
-    // path
-    memcpy(
-            &neighborsCount,
-            buffer.get() + bytesBufferOffset,
-            sizeof(uint16_t)
-    );
-    bytesBufferOffset += sizeof(neighborsCount);
-
-    for (uint8_t i = 1; i <= neighborsCount; ++i) {
-        NodeUUID stepNode;
-        memcpy(
-                stepNode.data,
-                buffer.get() + bytesBufferOffset,
-                NodeUUID::kBytesSize
-        );
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        mNeighbors.push_back(stepNode);
-    }
-}
-
 const Message::MessageType CyclesThreeNodesBalancesRequestMessage::typeID() const {
-    return Message::MessageTypeID::Cycles_ThreeNodesBalancesRequestMessage;
+    return Message::MessageType::Cycles_ThreeNodesBalancesRequest;
 }
 
 vector<NodeUUID> CyclesThreeNodesBalancesRequestMessage::Neighbors() {

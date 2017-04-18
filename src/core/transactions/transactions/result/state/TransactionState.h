@@ -31,7 +31,7 @@ public:
         uint32_t milliseconds);
 
     static TransactionState::SharedConst waitForMessageTypes(
-        vector<Message::MessageTypeID> &&requiredMessageType,
+        vector<Message::MessageType> &&requiredMessageType,
         uint32_t noLongerThanMilliseconds = 0);
 
     static TransactionState::SharedConst waitForResourcesTypes(
@@ -44,18 +44,18 @@ public:
         bool flushToPermanentStorage = false);
 
     TransactionState(
-        Message::MessageTypeID requiredMessageType,
+        Message::MessageType requiredMessageType,
         bool flushToPermanentStorage = false);
 
     TransactionState(
         GEOEpochTimestamp awakeTimestamp,
-        Message::MessageTypeID requiredMessageType,
+        Message::MessageType requiredMessageType,
         bool flushToPermanentStorage = false);
 
 
     const GEOEpochTimestamp awakeningTimestamp() const;
 
-    const vector<Message::MessageTypeID>& acceptedMessagesTypes() const;
+    const vector<Message::MessageType>& acceptedMessagesTypes() const;
 
     const vector<BaseResource::ResourceType>& acceptedResourcesTypes() const;
 
@@ -67,7 +67,7 @@ public:
 
 private:
     GEOEpochTimestamp mAwakeningTimestamp;
-    vector<Message::MessageTypeID> mRequiredMessageTypes;
+    vector<Message::MessageType> mRequiredMessageTypes;
     vector<BaseResource::ResourceType> mRequiredResourcesTypes;
     bool mFlushToPermanentStorage;
 };

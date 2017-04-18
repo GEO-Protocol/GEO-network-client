@@ -4,87 +4,86 @@
 #include "../../common/Types.h"
 #include "../../common/memory/MemoryUtils.h"
 
-#include "../../common/exceptions/Exception.h"
-
-#include <memory>
-#include <utility>
-#include <stdint.h>
 
 using namespace std;
 
-class NotImplementedError : public Exception {
-    using Exception::Exception;
-};
 
 class Message {
 public:
     typedef shared_ptr<Message> Shared;
 
 public:
-    // TODO: cut "..MessageType" from all enum records
-    enum MessageTypeID {
-        OpenTrustLineMessageType = 1,
-        AcceptTrustLineMessageType,
-        SetTrustLineMessageType,
-        CloseTrustLineMessageType,
-        RejectTrustLineMessageType,
-        UpdateTrustLineMessageType,
-        FirstLevelRoutingTableOutgoingMessageType,
-        FirstLevelRoutingTableIncomingMessageType,
-        SecondLevelRoutingTableOutgoingMessageType,
-        SecondLevelRoutingTableIncomingMessageType,
-        RoutingTableUpdateOutgoingMessageType,
-        RoutingTableUpdateIncomingMessageType,
-//        Cycles messages
-
-        // todo: add Cycles_...
-
-        Cycles_ThreeNodesBalancesRequestMessage,
-        Cycles_ThreeNodesBalancesReceiverMessage,
-        Cycles_FourNodesBalancesRequestMessage,
-        Cycles_FourNodesBalancesResponseMessage,
-        Cycles_FiveNodesBoundaryMessage,
-        Cycles_FiveNodesInBetweenMessage,
-        Cycles_SixNodesInBetweenMessage,
-        Cycles_SixNodesBoundaryMessage,
+    enum MessageType {
+        /*
+         * Trust lines
+         */
+        TrustLines_Open = 1,
+        TrustLines_Accept,
+        TrustLines_Set,
+        TrustLines_Close,
+        TrustLines_Reject,
+        TrustLines_Update,
 
         /*
-         * Payments
+         * Payments messages
          */
         Payments_ReceiverInitPaymentRequest,
         Payments_ReceiverInitPaymentResponse,
-
         Payments_CoordinatorReservationRequest,
         Payments_CoordinatorReservationResponse,
-
         Payments_IntermediateNodeReservationRequest,
         Payments_IntermediateNodeReservationResponse,
-
         Payments_ParticipantsVotes,
         Payments_ParticipantsPathsConfiguration,
         Payments_ParticipantsPathsConfigurationRequest,
 
+        /*
+         * Cycles
+         */
+        Cycles_ThreeNodesBalancesRequest,
+        Cycles_ThreeNodesBalancesResponse,
+        Cycles_FourNodesBalancesRequest,
+        Cycles_FourNodesBalancesResponse,
+        Cycles_FiveNodesBoundary,
+        Cycles_FiveNodesMiddleware,
+        Cycles_SixNodesBoundary,
+        Cycles_SixNodesMiddleware,
 
-        InitiateMaxFlowCalculationMessageType,
-        MaxFlowCalculationSourceFstLevelMessageType,
-        MaxFlowCalculationTargetFstLevelMessageType,
-        MaxFlowCalculationSourceSndLevelMessageType,
-        MaxFlowCalculationTargetSndLevelMessageType,
-        ResultMaxFlowCalculationMessageType,
+        /*
+         * Routing tables messages
+         */
+        RoutingTables_NeighborsRequest,
+        RoutingTables_NeighborsResponse,
+        RoutingTables_NotificationTrustLineCreated,
+        RoutingTables_NotificationTrustLineRemoved,
 
-        InitiateTotalBalancesMessageType,
-        TotalBalancesResultMessageType,
+        /*
+         * Paths
+         */
+        Paths_RequestRoutingTables,
+        Paths_ResultRoutingTableFirstLevel,
+        Paths_ResultRoutingTableSecondLevel,
+        Paths_ResultRoutingTableThirdLevel,
 
-        RequestRoutingTablesMessageType,
-        ResultRoutingTable1LevelMessageType,
-        ResultRoutingTable2LevelMessageType,
-        ResultRoutingTable3LevelMessageType,
+        /*
+         * Max flow
+         */
+        MaxFlow_InitiateCalculation,
+        MaxFlow_CalculationSourceFirstLevel,
+        MaxFlow_CalculationTargetFirstLevel,
+        MaxFlow_CalculationSourceSecondLevel,
+        MaxFlow_CalculationTargetSecondLevel,
+        MaxFlow_ResultMaxFlowCalculation,
 
+        /*
+         * Total balance
+         */
+        TotalBalance_Request,
+        TotalBalance_Response,
+
+        // ToDo: remove this
         ResponseMessageType = 1000,
-        RoutingTablesResponseMessageType
     };
-    // TODO: (DM) rename to "SerializedMessageType"
-    typedef uint16_t MessageType;
 
 public:
     virtual ~Message() = default;
@@ -109,36 +108,38 @@ public:
      *
      * Derived classes of specific responses must override one of this methods.
      */
-    virtual const bool isTransactionMessage() const {
-
+    virtual const bool isTransactionMessage() const
+    {
         return false;
     }
 
-    virtual const bool isRoutingTableMessage() const {
-
+    virtual const bool isRoutingTableMessage() const
+    {
         return false;
     }
 
-    virtual const bool isRoutingTableResponseMessage() const {
-
+    virtual const bool isRoutingTableResponseMessage() const
+    {
         return false;
     }
 
-    virtual const bool isMaxFlowCalculationResponseMessage() const {
-
+    virtual const bool isMaxFlowCalculationResponseMessage() const
+    {
         return false;
     }
 
-    virtual const bool isCyclesDiscoveringResponseMessage() const {
-
+    virtual const bool isCyclesDiscoveringResponseMessage() const
+    {
         return false;
     }
+
 
     virtual const MessageType typeID() const = 0;
 
-    virtual pair<BytesShared, size_t> serializeToBytes()
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc)
     {
-        const auto kMessageType = typeID();
+        const uint16_t kMessageType = typeID();
         auto buffer = tryMalloc(sizeof(kMessageType));
 
         memcpy(
@@ -153,15 +154,12 @@ public:
 
 protected:
     virtual void deserializeFromBytes(
-        BytesShared buffer) {
+        BytesShared buffer)
+    {}
 
-        MessageType *type = new (buffer.get()) MessageType;
-    }
-
-    virtual const size_t kOffsetToInheritedBytes() {
-
-        const size_t offset = sizeof(MessageType);
-        return offset;
+    virtual const size_t kOffsetToInheritedBytes() const
+    {
+        return sizeof(uint16_t);
     }
 };
 

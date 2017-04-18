@@ -1,32 +1,32 @@
 #ifndef GEO_NETWORK_CLIENT_BALANCESREQUESTMESSAGE_H
 #define GEO_NETWORK_CLIENT_BALANCESREQUESTMESSAGE_H
 
-#include "../../Message.hpp"
-#include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../base/transaction/TransactionMessage.h"
-#include "set"
+
+#include <set>
+
+
 class CyclesThreeNodesBalancesRequestMessage:
-        public TransactionMessage {
+    public TransactionMessage {
+
 public:
     typedef shared_ptr<CyclesThreeNodesBalancesRequestMessage> Shared;
+
 public:
     CyclesThreeNodesBalancesRequestMessage(
-            const NodeUUID &senderUUID,
-            const TransactionUUID &transactionUUID,
-            set<NodeUUID> &neighbors);
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        set<NodeUUID> &neighbors);
 
     CyclesThreeNodesBalancesRequestMessage(
-            BytesShared buffer);
-public:
+        BytesShared buffer);
+
     const MessageType typeID() const;
-    vector<NodeUUID> Neighbors();
-    pair<BytesShared, size_t> serializeToBytes();
 
-protected:
-    void deserializeFromBytes(
-            BytesShared buffer);
+    vector<NodeUUID> Neighbors();
+
+    pair<BytesShared, size_t> serializeToBytes();
 
 protected:
     vector<NodeUUID> mNeighbors;

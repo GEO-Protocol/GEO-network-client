@@ -19,7 +19,7 @@ public:
         BytesShared buffer):CyclesBaseFiveOrSixNodesBoundaryMessage(buffer){};
 
     const MessageType typeID() const {
-        return Message::MessageTypeID::Cycles_SixNodesBoundaryMessage;
+        return Message::MessageType::Cycles_SixNodesBoundary;
     };
 };
 

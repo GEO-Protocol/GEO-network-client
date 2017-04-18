@@ -36,8 +36,8 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     const TrustLineBalance kZeroBalance = 0;
     const auto contractorNeighbors =
-        mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(
-        mContractorUUID);
+        mRoutingTablesHandler->routingTable2Level()->neighborsOf(
+            mContractorUUID);
     cout << "CyclesThreeNodesInitTransaction::mContractorUUID " << mContractorUUID << endl;
     stringstream ss;
     copy(contractorNeighbors.begin(), contractorNeighbors.end(), ostream_iterator<NodeUUID>(ss, " "));
@@ -73,11 +73,11 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
     sendMessage<CyclesThreeNodesBalancesRequestMessage>(
         mContractorUUID,
         mNodeUUID,
-        UUID(),
+        currentTransactionUUID(),
         neighbors);
     mStep = Stages::ParseMessageAndCreateCycles;
     return resultWaitForMessageTypes(
-        {Message::Cycles_ThreeNodesBalancesReceiverMessage},
+        {Message::Cycles_ThreeNodesBalancesResponse},
         mkStandardConnectionTimeout);
 }
 

@@ -263,7 +263,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     info() << "Operation amount: " << mCommand->amount();
 
 
-    if (mCommand->contractorUUID() == nodeUUID()) {
+    if (mCommand->contractorUUID() == currentNodeUUID()) {
         info() << "Attempt to initialise operation against itself was prevented. Canceled.";
         return resultProtocolError();
     }
@@ -280,7 +280,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     // TODO: Read paths from paths manager.
     // TODO: Ensure paths shuffling
 
-    NodeUUID sender = nodeUUID();
+    NodeUUID sender = currentNodeUUID();
 //    NodeUUID b("13e5cf8c-5834-4e52-b65b-f9281dd1ff01");
 //    NodeUUID c("13e5cf8c-5834-4e52-b65b-f9281dd1ff02");
     NodeUUID receiver("13e5cf8c-5834-4e52-b65b-f9281dd1ff03");
@@ -307,8 +307,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     // Sending message to the receiver note to approve the payment receiving.
     sendMessage<ReceiverInitPaymentRequestMessage>(
         mCommand->contractorUUID(),
-        nodeUUID(),
-        UUID(),
+        currentNodeUUID(),
+        currentTransactionUUID(),
         mCommand->amount());
 
     mStep = Stages::Coordinator_ReceiverResponseProcessing;
@@ -328,7 +328,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverRespons
     const auto kMessage = popNextMessage<ReceiverInitPaymentResponseMessage>();
     if (kMessage->state() != ReceiverInitPaymentResponseMessage::Accepted)
         return exitWithResult(
-            resultExit(),
+            resultDone(),
             "Receiver rejected payment operation. Canceling.");
 
 
@@ -391,14 +391,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalParticipan
 
 
     const auto kMessage = popNextMessage<ParticipantsConfigurationRequestMessage>();
-    info() << "Final payment paths configuration request received from (" << kMessage->senderUUID() << ")";
+    info() << "Final payment paths configuration request received from (" << kMessage->senderUUID << ")";
 
 
-    if (kMessage->senderUUID() == mCommand->contractorUUID()){
+    if (kMessage->senderUUID == mCommand->contractorUUID()){
         // Receiver requested final payment configuration.
         auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
-            nodeUUID(),
-            UUID(),
+            currentNodeUUID(),
+            currentTransactionUUID(),
             ParticipantsConfigurationMessage::ForReceiverNode);
 
         for (const auto &pathUUIDAndPathStats : mPathsStats) {
@@ -429,7 +429,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalParticipan
 #endif
         }
 
-        const auto kReceiverNodeUUID = kMessage->senderUUID();
+        const auto kReceiverNodeUUID = kMessage->senderUUID;
         sendMessage(
             kReceiverNodeUUID,
             responseMessage);
@@ -441,8 +441,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalParticipan
     } else {
         // Intermediate node requested final payment configuration.
         auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
-            nodeUUID(),
-            UUID(),
+            currentNodeUUID(),
+            currentTransactionUUID(),
             ParticipantsConfigurationMessage::ForIntermediateNode);
 
         for (const auto &pathUUIDAndPathStats : mPathsStats) {
@@ -460,7 +460,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalParticipan
 
             auto kIntermediateNodePathPos = 1;
             while (kIntermediateNodePathPos != kPath->length()) {
-                if (kPath->nodes[kIntermediateNodePathPos] == kMessage->senderUUID())
+                if (kPath->nodes[kIntermediateNodePathPos] == kMessage->senderUUID)
                     break;
 
                 kIntermediateNodePathPos++;
@@ -482,7 +482,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalParticipan
 #endif
         }
 
-        const auto kReceiverNodeUUID = kMessage->senderUUID();
+        const auto kReceiverNodeUUID = kMessage->senderUUID;
         sendMessage(
             kReceiverNodeUUID,
             responseMessage);
@@ -493,7 +493,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalParticipan
     }
 
 
-    mNodesRequestedFinalConfiguration.insert(kMessage->senderUUID());
+    mNodesRequestedFinalConfiguration.insert(kMessage->senderUUID);
     if (mNodesRequestedFinalConfiguration.size() == mParticipantsVotesMessage->participantsCount()){
 
 #ifdef DEBUG
@@ -527,7 +527,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesCheckingSt
         return reject("No participants votes received. Canceling.");
 
 
-    const auto kCurrentNodeUUID = nodeUUID();
+    const auto kCurrentNodeUUID = currentNodeUUID();
     auto message = popNextMessage<ParticipantsVotesMessage>();
     info() << "Votes message received";
 
@@ -579,8 +579,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesCheckingSt
  */
 TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForConfigurationRequests ()
 {
-    const auto kCurrentNodeUUID = nodeUUID();
-    const auto kTransactionUUID = UUID();
+    const auto kCurrentNodeUUID = currentNodeUUID();
+    const auto kTransactionUUID = currentTransactionUUID();
 
     // TODO: additional check if payment is correct
 
@@ -697,8 +697,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
            << "Trying to reserve amount directly on the receiver side.";
 
 
-    const auto kCoordinator = nodeUUID();
-    const auto kTransactionUUID = UUID();
+    const auto kCoordinator = currentNodeUUID();
+    const auto kTransactionUUID = currentTransactionUUID();
     const auto kContractor = mCommand->contractorUUID();
 
 
@@ -812,8 +812,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     const NodeUUID &neighbor,
     PathStats *path)
 {
-    const auto kCurrentNode = nodeUUID();
-    const auto kTransactionUUID = UUID();
+    const auto kCurrentNode = currentNodeUUID();
+    const auto kTransactionUUID = currentTransactionUUID();
 
     if (! mTrustLines->isNeighbor(neighbor)){
         // Internal process error.
@@ -866,8 +866,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     const NodeUUID& neighbor,
     PathStats *path)
 {
-    const auto kCoordinator = nodeUUID();
-    const auto kTransactionUUID = UUID();
+    const auto kCoordinator = currentNodeUUID();
+    const auto kTransactionUUID = currentTransactionUUID();
     const auto kNeighborPathPosition = 1;
     const auto kNextAfterNeighborNode = path->path()->nodes[kNeighborPathPosition+1];
 
@@ -912,7 +912,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
     }
 
 
-    info() << "(" << message->senderUUID() << ") approved reservation request.";
+    info() << "(" << message->senderUUID << ") approved reservation request.";
     auto path = currentAmountReservationPathStats();
     path->setNodeState(
         1, PathStats::NeighbourReservationApproved);
@@ -954,8 +954,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     const byte remoteNodePosition,
     const NodeUUID& nextNodeAfterRemote)
 {
-    const auto kCoordinator = nodeUUID();
-    const auto kTransactionUUID = UUID();
+    const auto kCoordinator = currentNodeUUID();
+    const auto kTransactionUUID = currentTransactionUUID();
 
     sendMessage<CoordinatorReservationRequestMessage>(
         remoteNode,
@@ -1017,7 +1017,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             R_PathPosition,
             PathStats::ReservationApproved);
 
-        info() << "(" << message->senderUUID() << ") reserved " << reservedAmount;
+        info() << "(" << message->senderUUID << ") reserved " << reservedAmount;
         info() << "Path max flow is now " << path->maxFlow();
 
         if (path->isLastIntermediateNodeProcessed()) {
@@ -1032,7 +1032,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                            "It indicates that some of the nodes doesn't follows the protocol, "
                            "or that an error is present in protocol itself.";
 
-                return resultExit();
+                return resultDone();
             }
 
             if (kTotalAmount == mCommand->amount()){
@@ -1145,7 +1145,7 @@ TrustLineAmount CoordinatorPaymentTransaction::totalReservedByAllPaths() const
 const string CoordinatorPaymentTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CoordinatorPaymentTA: " << UUID().stringUUID() << "] ";
+    s << "[CoordinatorPaymentTA: " << currentTransactionUUID().stringUUID() << "] ";
 
     return s.str();
 }
@@ -1209,7 +1209,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
                 << "It indicates that some of the nodes doesn't follows the protocol, "
                 << "or that an error is present in protocol itself.";
 
-        return resultExit();
+        return resultDone();
     }
 
     if (kTotalAmount == mCommand->amount()){

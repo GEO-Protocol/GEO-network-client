@@ -32,19 +32,6 @@ UpdateTrustLineMessage::Shared UpdateTrustLineTransaction::message() const {
     return mMessage;
 }
 
-pair<BytesShared, size_t> UpdateTrustLineTransaction::serializeToBytes() const{
-
-    throw NotImplementedError("UpdateTrustLineTransaction::serializeToBytes: "
-        "Method not implemented");
-}
-
-void UpdateTrustLineTransaction::deserializeFromBytes(
-    BytesShared buffer) {
-
-    throw NotImplementedError("UpdateTrustLineTransaction::deserializeFromBytes: "
-        "Method not implemented");
-}
-
 TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
 
     try {
@@ -56,7 +43,9 @@ TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
                         400);
 
                     return transactionResultFromMessage(
-                        mMessage->customCodeResult(
+                        make_shared<const MessageResult>(
+                            currentNodeUUID(),
+                            currentTransactionUUID(),
                             400));
                 }
 
@@ -120,19 +109,19 @@ bool UpdateTrustLineTransaction::isTransactionToContractorUnique() {
 
 bool UpdateTrustLineTransaction::isIncomingTrustLineDirectionExisting() {
 
-    return mTrustLinesManager->checkDirection(mMessage->senderUUID(), TrustLineDirection::Incoming) ||
-           mTrustLinesManager->checkDirection(mMessage->senderUUID(), TrustLineDirection::Both);
+    return mTrustLinesManager->checkDirection(mMessage->senderUUID, TrustLineDirection::Incoming) ||
+           mTrustLinesManager->checkDirection(mMessage->senderUUID, TrustLineDirection::Both);
 }
 
 bool UpdateTrustLineTransaction::isIncomingTrustLineCouldBeModified() {
 
-    return mTrustLinesManager->incomingTrustAmount(mMessage->senderUUID()) <= mMessage->newAmount();
+    return mTrustLinesManager->incomingTrustAmount(mMessage->senderUUID) <= mMessage->newAmount();
 }
 
 void UpdateTrustLineTransaction::updateIncomingTrustAmount() {
 
     mTrustLinesManager->setIncomingTrustAmount(
-        mMessage->senderUUID(),
+        mMessage->senderUUID,
         mMessage->newAmount());
 }
 
@@ -141,7 +130,7 @@ void UpdateTrustLineTransaction::logUpdatingTrustLineOperation() {
     Record::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Updating,
-        mMessage->senderUUID(),
+        mMessage->senderUUID,
         mMessage->newAmount());
 
     mOperationsHistoryStorage->addRecord(
@@ -152,7 +141,7 @@ void UpdateTrustLineTransaction::sendResponseCodeToContractor(
     const uint16_t code) {
 
     sendMessage<Response>(
-        mMessage->senderUUID(),
+        mMessage->senderUUID,
         mNodeUUID,
         mMessage->transactionUUID(),
         code);

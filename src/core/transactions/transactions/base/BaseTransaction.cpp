@@ -58,7 +58,7 @@ void BaseTransaction::launchSubsidiaryTransaction(
     );
 }
 
-TransactionResult::Shared BaseTransaction::resultExit() const
+TransactionResult::Shared BaseTransaction::resultDone () const
 {
     return make_shared<TransactionResult>(
         TransactionState::exit());
@@ -72,7 +72,7 @@ TransactionResult::Shared BaseTransaction::resultFlushAndContinue() const
 
 // todo Change resultWaitForMessageTypes type to sharedConst
 TransactionResult::Shared BaseTransaction::resultWaitForMessageTypes(
-    vector<Message::MessageTypeID> &&requiredMessagesTypes,
+    vector<Message::MessageType> &&requiredMessagesTypes,
     uint32_t noLongerThanMilliseconds) const
 {
     return make_shared<TransactionResult>(
@@ -94,12 +94,12 @@ const BaseTransaction::TransactionType BaseTransaction::transactionType() const 
     return mType;
 }
 
-const TransactionUUID &BaseTransaction::UUID() const {
+const TransactionUUID &BaseTransaction::currentTransactionUUID () const {
 
     return mTransactionUUID;
 }
 
-const NodeUUID &BaseTransaction::nodeUUID() const {
+const NodeUUID &BaseTransaction::currentNodeUUID () const {
 
     return mNodeUUID;
 }

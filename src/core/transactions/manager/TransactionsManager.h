@@ -31,11 +31,9 @@
 #include "../../interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.h"
 
 #include "../../network/messages/Message.hpp"
-#include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
-#include "../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
-#include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
-#include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
-#include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
+#include "../../network/messages/trust_lines/AcceptTrustLineMessage.h"
+#include "../../network/messages/trust_lines/RejectTrustLineMessage.h"
+#include "../../network/messages/trust_lines/UpdateTrustLineMessage.h"
 #include "../../network/messages/response/Response.h"
 
 #include "../../resources/manager/ResourcesManager.h"
@@ -55,12 +53,6 @@
 #include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
-#include "../transactions/unique/routing_tables/propagate/FromInitiatorToContractorRoutingTablesPropagationTransaction.h"
-#include "../transactions/unique/routing_tables/accept/FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
-#include "../transactions/unique/routing_tables/accept/FromContractorToFirstLevelRoutingTablesAcceptTransaction.h"
-#include "../transactions/unique/routing_tables/accept/FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction.h"
-#include "../transactions/unique/routing_tables/update/RoutingTablesUpdateTransactionsFactory.h"
-#include "../transactions/unique/routing_tables/update/AcceptRoutingTablesUpdatesTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -103,8 +95,8 @@ namespace storage = db::uuid_map_block_storage;
 namespace history = db::operations_history_storage;
 namespace signals = boost::signals2;
 
+
 class TransactionsManager {
-    // todo: hsc: tests?
 public:
     signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
 
@@ -128,21 +120,11 @@ public:
     void processMessage(
         Message::Shared message);
 
-    // Invokes from Core
-    void launchFromInitiatorToContractorRoutingTablePropagationTransaction(
-        const NodeUUID &contractorUUID,
-        const TrustLineDirection direction);
+    // Routing tables transactions handlers
+    void launchProcessTrustLineModificationTransactions(
+        const NodeUUID &contractorUUID);
 
     //  Cycles Transactions
-// -------------------------------------------------------------------------------
-//    void launchGetTopologyAndBalancesTransaction(InBetweenNodeTopologyMessage::Shared message);
-//
-//    void launchGetTopologyAndBalancesTransactionFiveNodes();
-//    void launchGetTopologyAndBalancesTransactionSixNodes();
-//
-//    void launchGetThreeNodesNeighborBalancesTransaction(NodeUUID &contractorUUID);
-//    void launchGetThreeNodesNeighborBalancesTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message);
-//
     void launchFourNodesCyclesInitTransaction(const NodeUUID &debtorUUID, const NodeUUID &creditorUUID);
     void launchFourNodesCyclesResponseTransaction(CyclesFourNodesBalancesRequestMessage::Shared message);
 
@@ -155,18 +137,13 @@ public:
     void launchFiveNodesCyclesInitTransaction();
     void launchFiveNodesCyclesResponseTransaction(CyclesFiveNodesInBetweenMessage::Shared message);
 
-//    ----------------------------------------------------------
-
-    void launchRoutingTablesUpdatingTransactionsFactory(
-        const NodeUUID &contractorUUID,
-        const TrustLineDirection direction);
+    // Resources transactions handlers
+    void attachResourceToTransaction(
+        BaseResource::Shared resource);
 
     void launchPathsResourcesCollectTransaction(
         const TransactionUUID &requestedTransactionUUID,
         const NodeUUID &destinationNodeUUID);
-
-    void attachResourceToTransaction(
-        BaseResource::Shared resource);
 
 private:
     // Transactions from storage
@@ -190,13 +167,6 @@ private:
 
     void launchRejectTrustLineTransaction(
         RejectTrustLineMessage::Shared message);
-
-    // Routing tables transactions
-    void launchAcceptRoutingTablesTransaction(
-        FirstLevelRoutingTableIncomingMessage::Shared message);
-
-    void launchAcceptRoutingTablesUpdatesTransaction(
-        RoutingTableUpdateIncomingMessage::Shared message);
 
     // Max flow transactions
     void launchInitiateMaxFlowCalculatingTransaction(
@@ -272,6 +242,7 @@ private:
     void subscribeCloseCycleTransaction(
          BaseTransaction::LaunchCloseCycleSignal &signal);
 
+    
     // Slots
     void onSubsidiaryTransactionReady(
         BaseTransaction::Shared transaction);
@@ -283,6 +254,7 @@ private:
     void onCommandResultReady(
         CommandResult::SharedConst result);
 
+protected:
     void prepareAndSchedule(
         BaseTransaction::Shared transaction);
 

@@ -34,22 +34,6 @@ RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
     return mMessage;
 }
 
-pair<BytesShared, size_t> RejectTrustLineTransaction::serializeToBytes() const{
-
-    throw NotImplementedError("RejectTrustLineTransaction::serializeToBytes: "
-        "Method not implemented");
-}
-
-void RejectTrustLineTransaction::deserializeFromBytes(
-    BytesShared buffer) {
-
-    TrustLineTransaction::deserializeFromBytes(
-        buffer);
-
-    throw NotImplementedError("RejectTrustLineTransaction::deserializeFromBytes: "
-        "Method not implemented");
-}
-
 TransactionResult::SharedConst RejectTrustLineTransaction::run() {
 
     try {
@@ -118,7 +102,7 @@ void RejectTrustLineTransaction::logRejectingTrustLineOperation() {
     Record::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Rejecting,
-        mMessage->senderUUID());
+        mMessage->senderUUID);
 
     mOperationsHistoryStorage->addRecord(
         record);
@@ -133,7 +117,7 @@ void RejectTrustLineTransaction::sendResponseCodeToContractor(
     const uint16_t code) {
 
     sendMessage<Response>(
-        mMessage->senderUUID(),
+        mMessage->senderUUID,
         mNodeUUID,
         mMessage->transactionUUID(),
         code);

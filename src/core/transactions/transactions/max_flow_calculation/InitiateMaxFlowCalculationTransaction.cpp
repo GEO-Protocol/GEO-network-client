@@ -64,7 +64,7 @@ void InitiateMaxFlowCalculationTransaction::sendMessageToRemoteNode() {
 
     sendMessage<InitiateMaxFlowCalculationMessage>(
         mCommand->contractorUUID(),
-        mNodeUUID);
+        currentNodeUUID());
 }
 
 void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel() {

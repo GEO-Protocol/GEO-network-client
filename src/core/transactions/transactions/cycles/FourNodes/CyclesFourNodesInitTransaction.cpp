@@ -40,18 +40,18 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
     if (neighbors.size() == 0){
         info() << "CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage: "
                << "No common neighbors. Exit Transaction" << endl;
-        return resultExit();
+        return resultDone();
     }
     sendMessage<CyclesFourNodesBalancesRequestMessage>(
         mDebtorContractorUUID,
         mNodeUUID,
-        UUID(),
+        currentTransactionUUID(),
         neighbors);
 
     sendMessage<CyclesFourNodesBalancesRequestMessage>(
         mCreditorContractorUUID,
         mNodeUUID,
-        UUID(),
+        currentTransactionUUID(),
         neighbors);
 
     mStep = Stages::ParseMessageAndCreateCycles;
@@ -65,12 +65,12 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
                    "Responses messages count not equals to 2; "
                    "Can't create cycles;";
 
-        return resultExit();
+        return resultDone();
     }
     const auto firstMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*mContext.begin());
     const auto secondMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(*(mContext.end()-1));
-    const auto firstContractorUUID = firstMessage->senderUUID();
-    const auto secondContractorUUID = secondMessage->senderUUID();
+    const auto firstContractorUUID = firstMessage->senderUUID;
+    const auto secondContractorUUID = secondMessage->senderUUID;
 
     const TrustLineBalance zeroBalance = 0;
     TrustLineBalance firstContractorBalance = mTrustLinesManager->balance(firstContractorUUID);
@@ -86,7 +86,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
                   "Balances between initiator node and (" << firstContractorUUID <<  "), or "
                   "between initiator node and (" << secondContractorUUID << ") was changed. "
                   "Cannot create cycles.";
-        return resultExit();
+        return resultDone();
     }
     #ifdef TESTS
         vector<vector<NodeUUID>> ResultCycles;
@@ -118,13 +118,13 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
         }
         cout << "CyclesThreeNodesInitTransaction::End" << endl;
     #endif
-    return resultExit();
+    return resultDone();
 }
 
 set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCreditorNodes() {
-    const auto creditorsNeighbors = mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(
+    const auto creditorsNeighbors = mRoutingTablesHandler->routingTable2Level()->neighborsOf(
         mCreditorContractorUUID);
-    const auto debtorsNeighbors = mRoutingTablesHandler->routingTable2Level()->allDestinationsForSource(
+    const auto debtorsNeighbors = mRoutingTablesHandler->routingTable2Level()->neighborsOf(
         mDebtorContractorUUID);
     set<NodeUUID> commonNeighbors;
     set_intersection(

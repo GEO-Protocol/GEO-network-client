@@ -12,8 +12,8 @@
 #include "../../../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 
 #include "../../../../network/messages/Message.hpp"
-#include "../../../../network/messages/outgoing/trust_lines/CloseTrustLineMessage.h"
-#include "../../../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
+#include "../../../../network/messages/trust_lines/CloseTrustLineMessage.h"
+#include "../../../../network/messages/trust_lines/RejectTrustLineMessage.h"
 
 #include "RejectTrustLineTransaction.h"
 

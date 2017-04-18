@@ -24,7 +24,7 @@ TransactionResult::SharedConst MaxFlowCalculationTargetSndLevelTransaction::run(
 
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "Iam: " << mNodeUUID.stringUUID();
-    info() << "run\t" << "sender: " << mMessage->senderUUID();
+    info() << "run\t" << "sender: " << mMessage->senderUUID;
     info() << "run\t" << "target: " << mMessage->targetUUID();
 #endif
     sendResultToInitiator();
@@ -45,14 +45,14 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator() {
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {
-        if (outgoingFlow.first == mMessage->senderUUID()) {
+        if (outgoingFlow.first == mMessage->senderUUID) {
             outgoingFlows.push_back(
                 outgoingFlow);
         }
     }
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows;
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
-        if (incomingFlow.first != mMessage->senderUUID()
+        if (incomingFlow.first != mMessage->senderUUID
             && incomingFlow.first != mMessage->targetUUID()) {
             incomingFlows.push_back(
                 incomingFlow);
@@ -86,7 +86,7 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsForSending;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {
-        if (outgoingFlow.first == mMessage->senderUUID()
+        if (outgoingFlow.first == mMessage->senderUUID
             && !maxFlowCalculationCachePtr->containsOutgoingFlow(outgoingFlow.first, outgoingFlow.second)) {
             outgoingFlowsForSending.push_back(
                 outgoingFlow);
@@ -94,7 +94,7 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
     }
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlowsForSending;
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
-        if (incomingFlow.first != mMessage->senderUUID()
+        if (incomingFlow.first != mMessage->senderUUID
             && incomingFlow.first != mMessage->targetUUID()
             && !maxFlowCalculationCachePtr->containsIncomingFlow(incomingFlow.first, incomingFlow.second)) {
             incomingFlowsForSending.push_back(

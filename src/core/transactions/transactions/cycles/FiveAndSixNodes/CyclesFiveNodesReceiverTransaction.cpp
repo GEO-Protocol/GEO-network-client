@@ -26,7 +26,7 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run() {
     auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
     if (firstLevelNodes.size() == 0){
         info() << "CyclesFiveNodesReceiverTransaction: No suitable firstLevelNodes " << endl;
-        return resultExit();
+        return resultDone();
     }
     bool creditorsBranch = true;
     if (maxFlow < zeroBalance)
@@ -39,7 +39,7 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run() {
                     kNodeUUID,
                     mInBetweenNodeTopologyMessage
             );
-        return resultExit();
+        return resultDone();
     }
     if ((creditorsBranch and currentDepth==2) or (not creditorsBranch and currentDepth==1)){
         path.push_back(mNodeUUID);
@@ -48,10 +48,10 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run() {
             path,
             firstLevelNodes
         );
-        return resultExit();
+        return resultDone();
     }
     else {
-        return resultExit();
+        return resultDone();
     }
 
 }

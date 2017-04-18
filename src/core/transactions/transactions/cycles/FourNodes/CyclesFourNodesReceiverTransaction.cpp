@@ -19,10 +19,10 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
     const auto kNeighbors = mRequestMessage->Neighbors();
     const auto kMessage = make_shared<CyclesFourNodesBalancesResponseMessage>(
         mNodeUUID,
-        UUID(),
+        currentTransactionUUID(),
         kNeighbors.size());
 
-    const auto kContractorBalance = mTrustLinesManager->balance(mRequestMessage->senderUUID());
+    const auto kContractorBalance = mTrustLinesManager->balance(mRequestMessage->senderUUID);
     const TrustLineBalance kZeroBalance = 0;
     TrustLineBalance stepNodeBalance;
 
@@ -37,6 +37,6 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
             kMessage->AddNeighborUUID(kNodeUUID);
     }
     if (kMessage->NeighborsUUID().size() > 0)
-        sendMessage(mRequestMessage->senderUUID(), kMessage);
+        sendMessage(mRequestMessage->senderUUID, kMessage);
     return finishTransaction();
 }

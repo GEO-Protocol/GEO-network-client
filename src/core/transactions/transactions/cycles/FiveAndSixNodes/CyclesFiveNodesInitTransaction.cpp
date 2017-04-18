@@ -43,7 +43,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
                 "No responses messages "
                 "Can't create cycles;";
 
-        return resultExit();
+        return resultDone();
     }
     TrustLineBalance zeroBalance = 0;
     CycleMap mCreditors;
@@ -121,6 +121,6 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
     cout << "CyclesSixNodesInitTransaction::End" << endl;
     #endif
     mContext.clear();
-    return resultExit();
+    return resultDone();
 }
 #pragma clang diagnostic pop

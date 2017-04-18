@@ -10,7 +10,7 @@
 #include "../../../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../network/messages/Message.hpp"
-#include "../../../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
+#include "../../../../network/messages/trust_lines/RejectTrustLineMessage.h"
 #include "../../../../network/messages/response/Response.h"
 
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
@@ -41,14 +41,9 @@ public:
 
     RejectTrustLineMessage::Shared message() const;
 
-    pair<BytesShared, size_t> serializeToBytes() const;
-
     TransactionResult::SharedConst run();
 
 private:
-    void deserializeFromBytes(
-        BytesShared buffer);
-
     bool isTransactionToContractorUnique();
 
     bool isIncomingTrustLineDirectionExisting();

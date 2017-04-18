@@ -7,12 +7,12 @@ MaxFlowCalculationTargetFstLevelMessage::MaxFlowCalculationTargetFstLevelMessage
     MaxFlowCalculationMessage(senderUUID, targetUUID) {};
 
 MaxFlowCalculationTargetFstLevelMessage::MaxFlowCalculationTargetFstLevelMessage(
-    BytesShared buffer) {
+    BytesShared buffer):
 
-    deserializeFromBytes(buffer);
-}
+    MaxFlowCalculationMessage(buffer)
+{}
 
 const Message::MessageType MaxFlowCalculationTargetFstLevelMessage::typeID() const {
 
-    return Message::MessageTypeID::MaxFlowCalculationTargetFstLevelMessageType;
+    return Message::MessageType::MaxFlow_CalculationTargetFirstLevel;
 }

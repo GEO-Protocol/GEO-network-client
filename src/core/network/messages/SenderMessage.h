@@ -1,36 +1,38 @@
 #ifndef GEO_NETWORK_CLIENT_SENDERMESSAGE_H
 #define GEO_NETWORK_CLIENT_SENDERMESSAGE_H
 
+
 #include "Message.hpp"
 
 #include "../../common/NodeUUID.h"
+#include "../../common/serialization/BytesDeserializer.h"
+#include "../../common/serialization/BytesSerializer.h"
 
 
-using namespace std;
-
+/*
+ * Abstract base class for messages that must contain sender node UUID.
+ */
 class SenderMessage:
     public Message {
 
 public:
-    const NodeUUID &senderUUID() const;
+    const NodeUUID senderUUID;
 
-protected:
-    SenderMessage();
+public:
+    SenderMessage(
+        const NodeUUID &senderUUID)
+        noexcept;
 
     SenderMessage(
-        const NodeUUID &senderUUID);
+        BytesShared buffer)
+        throw (bad_alloc);
 
-    virtual const MessageType typeID() const = 0;
-
-    virtual pair<BytesShared, size_t> serializeToBytes();
-
-    virtual void deserializeFromBytes(
-        BytesShared buffer);
-
-    const size_t kOffsetToInheritedBytes();
+    pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc);
 
 protected:
-    NodeUUID mSenderUUID;
+    const size_t kOffsetToInheritedBytes() const
+        noexcept;
 };
 
 #endif //GEO_NETWORK_CLIENT_SENDERMESSAGE_H

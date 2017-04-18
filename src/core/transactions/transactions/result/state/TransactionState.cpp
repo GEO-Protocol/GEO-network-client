@@ -10,7 +10,7 @@ TransactionState::TransactionState(
 }
 
 TransactionState::TransactionState(
-    Message::MessageTypeID requiredMessageType,
+    Message::MessageType requiredMessageType,
     bool flushToPermanentStorage) {
 
     mRequiredMessageTypes.push_back(requiredMessageType);
@@ -19,7 +19,7 @@ TransactionState::TransactionState(
 
 TransactionState::TransactionState(
     GEOEpochTimestamp awakeningTimestamp,
-    Message::MessageTypeID requiredMessageType,
+    Message::MessageType requiredMessageType,
     bool flushToPermanentStorage) :
 
     mAwakeningTimestamp(awakeningTimestamp) {
@@ -79,7 +79,7 @@ TransactionState::SharedConst TransactionState::awakeAfterMilliseconds(
  * Optionally, may be initialised with deadline timeout.
  */
 TransactionState::SharedConst TransactionState::waitForMessageTypes(
-    vector<Message::MessageTypeID> &&requiredMessageType,
+    vector<Message::MessageType> &&requiredMessageType,
     uint32_t noLongerThanMilliseconds) {
 
     TransactionState::Shared state;
@@ -121,7 +121,7 @@ const GEOEpochTimestamp TransactionState::awakeningTimestamp() const {
     return mAwakeningTimestamp;
 }
 
-const vector<Message::MessageTypeID>& TransactionState::acceptedMessagesTypes() const {
+const vector<Message::MessageType>& TransactionState::acceptedMessagesTypes() const {
 
     return mRequiredMessageTypes;
 }

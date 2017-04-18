@@ -19,7 +19,7 @@ TotalBalancesRemouteNodeCommand::Shared TotalBalancesFromRemoutNodeTransaction::
 
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::run() {
 
-    info() << "run\t" << UUID();
+    info() << "run\t" << currentTransactionUUID();
 
     if (!mContext.empty()) {
         return checkTransactionContext();
@@ -44,7 +44,7 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::checkTran
     if (mContext.size() == 1) {
         auto responseMessage = *mContext.begin();
 
-        if (responseMessage->typeID() == Message::MessageTypeID::TotalBalancesResultMessageType) {
+        if (responseMessage->typeID() == Message::MessageType::TotalBalance_Response) {
             TotalBalancesResultMessage::Shared response = static_pointer_cast<TotalBalancesResultMessage>(
                     responseMessage);
 
@@ -68,7 +68,7 @@ void TotalBalancesFromRemoutNodeTransaction::sendMessageToRemoteNode() {
     sendMessage<InitiateTotalBalancesMessage>(
         mCommand->contractorUUID(),
         mNodeUUID,
-        UUID());
+        currentTransactionUUID());
 }
 
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::waitingForResponseState() {
@@ -76,7 +76,7 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::waitingFo
     info() << "waitingForResponseState";
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
-            {Message::MessageTypeID::TotalBalancesResultMessageType},
+            {Message::MessageType::TotalBalance_Response},
             kConnectionTimeout));
 }
 

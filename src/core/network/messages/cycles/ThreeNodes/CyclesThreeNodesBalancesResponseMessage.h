@@ -1,15 +1,16 @@
 #ifndef GEO_NETWORK_CLIENT_BALANCESRESPONCEMESSAGE_H
 #define GEO_NETWORK_CLIENT_BALANCESRESPONCEMESSAGE_H
-#include "../../Message.hpp"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
-#include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../base/transaction/TransactionMessage.h"
+#include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
-class CyclesThreeNodesBalancesResponseMessage: public TransactionMessage {
+
+class CyclesThreeNodesBalancesResponseMessage:
+    public TransactionMessage {
+
 public:
     typedef shared_ptr<CyclesThreeNodesBalancesResponseMessage> Shared;
+
 public:
     CyclesThreeNodesBalancesResponseMessage(
         const NodeUUID &senderUUID,
@@ -17,26 +18,27 @@ public:
         uint16_t neighborsUUUIDCount);
 
     CyclesThreeNodesBalancesResponseMessage(
-            const NodeUUID &senderUUID,
-            const TransactionUUID &transactionUUID,
-            vector<NodeUUID> &neighborsUUUID);
+        const NodeUUID &senderUUID,
+        const TransactionUUID &transactionUUID,
+        vector<NodeUUID> &neighborsUUUID);
 
     CyclesThreeNodesBalancesResponseMessage(
-            BytesShared buffer);
-public:
-    pair<BytesShared, size_t> serializeToBytes();
+        BytesShared buffer);
 
-    void addNeighborUUIDAndBalance(NodeUUID neighborUUID);
+    pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc);
 
-    const MessageType typeID() const;
+    void addNeighborUUIDAndBalance(NodeUUID neighborUUID)
+        throw (bad_alloc);
 
-    const bool isTransactionMessage() const;
+    const MessageType typeID() const
+        noexcept;
 
-    vector<NodeUUID> NeighborsAndBalances();
+    const bool isTransactionMessage() const
+        noexcept;
 
-protected:
-    void deserializeFromBytes(
-            BytesShared buffer);
+    vector<NodeUUID> NeighborsAndBalances()
+        noexcept;
 
 protected:
     vector<NodeUUID> mNeighborsUUUID;

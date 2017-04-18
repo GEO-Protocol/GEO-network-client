@@ -493,34 +493,11 @@ void Core::onTrustLineCreatedSlot(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) {
 
-#ifdef ROUTING_TABLES_PROPAGATION_DISABLED
-    return;
-#endif
-
-
-    try {
-        mTransactionsManager->launchFromInitiatorToContractorRoutingTablePropagationTransaction(
-            contractorUUID,
-            direction
-        );
-
-    } catch (exception &e) {
-        mLog.logException("Core", e);
-    }
 }
 
 void Core::onTrustLineStateModifiedSlot(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) {
-
-    try {
-        mTransactionsManager->launchRoutingTablesUpdatingTransactionsFactory(
-            contractorUUID,
-            direction);
-
-    } catch (exception &e) {
-        mLog.logException("Core", e);
-    }
 
 }
 
