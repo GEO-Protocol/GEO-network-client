@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtransactions__total_balances.a  CMakeFiles/transactions__total_balances.dir/TotalBalancesTransaction.cpp.o CMakeFiles/transactions__total_balances.dir/TotalBalancesFromRemoutNodeTransaction.cpp.o
-/usr/bin/ranlib libtransactions__total_balances.a

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libio__trust_lines_storage.a  CMakeFiles/io__trust_lines_storage.dir/TrustLinesStorage.cpp.o
-/usr/bin/ranlib libio__trust_lines_storage.a

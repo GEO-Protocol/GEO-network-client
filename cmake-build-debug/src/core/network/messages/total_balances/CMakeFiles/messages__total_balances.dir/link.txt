@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmessages__total_balances.a  CMakeFiles/messages__total_balances.dir/InitiateTotalBalancesMessage.cpp.o CMakeFiles/messages__total_balances.dir/TotalBalancesResultMessage.cpp.o
-/usr/bin/ranlib libmessages__total_balances.a

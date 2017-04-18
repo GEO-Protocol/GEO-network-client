@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtrust_lines.a  CMakeFiles/trust_lines.dir/manager/TrustLinesManager.cpp.o CMakeFiles/trust_lines.dir/TrustLine.cpp.o
-/usr/bin/ranlib libtrust_lines.a

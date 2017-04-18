@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtime.a  
-/usr/bin/ranlib libtime.a

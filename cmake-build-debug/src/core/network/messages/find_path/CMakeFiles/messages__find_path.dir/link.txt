@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmessages__find_path.a  CMakeFiles/messages__find_path.dir/RequestRoutingTablesMessage.cpp.o CMakeFiles/messages__find_path.dir/ResultRoutingTablesMessage.cpp.o
-/usr/bin/ranlib libmessages__find_path.a

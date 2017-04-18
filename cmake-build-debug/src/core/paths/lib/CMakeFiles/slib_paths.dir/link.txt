@@ -1,2 +1,0 @@
-/usr/bin/ar qc libslib_paths.a  CMakeFiles/slib_paths.dir/Path.cpp.o CMakeFiles/slib_paths.dir/PathsCollection.cpp.o
-/usr/bin/ranlib libslib_paths.a

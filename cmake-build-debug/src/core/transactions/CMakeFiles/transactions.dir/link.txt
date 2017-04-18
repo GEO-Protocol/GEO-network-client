@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtransactions.a  
-/usr/bin/ranlib libtransactions.a

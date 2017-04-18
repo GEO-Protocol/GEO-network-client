@@ -1,2 +1,0 @@
-/usr/bin/ar qc libdb__operations_history_storage.a  CMakeFiles/db__operations_history_storage.dir/record/base/Record.cpp.o CMakeFiles/db__operations_history_storage.dir/record/trust_line/TrustLineRecord.cpp.o CMakeFiles/db__operations_history_storage.dir/record/payment/PaymentRecord.cpp.o CMakeFiles/db__operations_history_storage.dir/storage/OperationsHistoryStorage.cpp.o
-/usr/bin/ranlib libdb__operations_history_storage.a

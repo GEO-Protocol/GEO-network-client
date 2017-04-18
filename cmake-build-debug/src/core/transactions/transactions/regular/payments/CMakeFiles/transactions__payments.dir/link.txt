@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtransactions__payments.a  CMakeFiles/transactions__payments.dir/base/BasePaymentTransaction.cpp.o CMakeFiles/transactions__payments.dir/CoordinatorPaymentTransaction.cpp.o CMakeFiles/transactions__payments.dir/ReceiverPaymentTransaction.cpp.o CMakeFiles/transactions__payments.dir/IntermediateNodePaymentTransaction.cpp.o
-/usr/bin/ranlib libtransactions__payments.a

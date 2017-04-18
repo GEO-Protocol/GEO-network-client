@@ -1,2 +1,0 @@
-/usr/bin/ar qc libio_routing_tables_tests.a  CMakeFiles/io_routing_tables_tests.dir/OperationsLogTests.cpp.o CMakeFiles/io_routing_tables_tests.dir/operations/RemoveOperationTests.cpp.o CMakeFiles/io_routing_tables_tests.dir/operations/DirectionUpdateOperationTests.cpp.o CMakeFiles/io_routing_tables_tests.dir/operations/SetOperationTests.cpp.o CMakeFiles/io_routing_tables_tests.dir/RoutingTableTests.cpp.o
-/usr/bin/ranlib libio_routing_tables_tests.a

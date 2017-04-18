@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmessages__incoming__trust_lines.a  CMakeFiles/messages__incoming__trust_lines.dir/AcceptTrustLineMessage.cpp.o CMakeFiles/messages__incoming__trust_lines.dir/RejectTrustLineMessage.cpp.o CMakeFiles/messages__incoming__trust_lines.dir/UpdateTrustLineMessage.cpp.o
-/usr/bin/ranlib libmessages__incoming__trust_lines.a
