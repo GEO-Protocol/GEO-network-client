@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmessages__base__trust_lines.a  CMakeFiles/messages__base__trust_lines.dir/TrustLinesMessage.cpp.o
-/usr/bin/ranlib libmessages__base__trust_lines.a

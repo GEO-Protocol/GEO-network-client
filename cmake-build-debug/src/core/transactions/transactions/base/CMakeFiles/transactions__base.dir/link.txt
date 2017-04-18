@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtransactions__base.a  CMakeFiles/transactions__base.dir/BaseTransaction.cpp.o CMakeFiles/transactions__base.dir/UniqueTransaction.cpp.o
-/usr/bin/ranlib libtransactions__base.a

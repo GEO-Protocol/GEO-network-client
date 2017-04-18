@@ -1,2 +1,0 @@
-/usr/bin/ar qc libdb__uuid_map_block_storage.a  CMakeFiles/db__uuid_map_block_storage.dir/Record.cpp.o CMakeFiles/db__uuid_map_block_storage.dir/UUIDMapBlockStorage.cpp.o
-/usr/bin/ranlib libdb__uuid_map_block_storage.a

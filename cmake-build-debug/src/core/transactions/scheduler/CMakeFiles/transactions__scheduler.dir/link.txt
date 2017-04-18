@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtransactions__scheduler.a  CMakeFiles/transactions__scheduler.dir/TransactionsScheduler.cpp.o
-/usr/bin/ranlib libtransactions__scheduler.a

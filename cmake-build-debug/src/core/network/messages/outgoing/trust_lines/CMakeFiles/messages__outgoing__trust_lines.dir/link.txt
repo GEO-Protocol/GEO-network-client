@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmessages__outgoing__trust_lines.a  CMakeFiles/messages__outgoing__trust_lines.dir/CloseTrustLineMessage.cpp.o CMakeFiles/messages__outgoing__trust_lines.dir/OpenTrustLineMessage.cpp.o CMakeFiles/messages__outgoing__trust_lines.dir/SetTrustLineMessage.cpp.o
-/usr/bin/ranlib libmessages__outgoing__trust_lines.a

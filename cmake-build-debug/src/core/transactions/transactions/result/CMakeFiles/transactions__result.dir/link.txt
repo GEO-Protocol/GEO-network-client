@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtransactions__result.a  CMakeFiles/transactions__result.dir/state/TransactionState.cpp.o CMakeFiles/transactions__result.dir/TransactionResult.cpp.o
-/usr/bin/ranlib libtransactions__result.a

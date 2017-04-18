@@ -1,2 +1,0 @@
-/usr/bin/ar qc libio__storage.a  CMakeFiles/io__storage.dir/StorageHandler.cpp.o CMakeFiles/io__storage.dir/RoutingTableHandler.cpp.o CMakeFiles/io__storage.dir/RoutingTablesHandler.cpp.o CMakeFiles/io__storage.dir/TrustLineHandler.cpp.o CMakeFiles/io__storage.dir/PaymentOperationStateHandler.cpp.o
-/usr/bin/ranlib libio__storage.a

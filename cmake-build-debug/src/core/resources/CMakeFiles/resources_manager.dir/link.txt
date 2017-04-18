@@ -1,2 +1,0 @@
-/usr/bin/ar qc libresources_manager.a  CMakeFiles/resources_manager.dir/manager/ResourcesManager.cpp.o CMakeFiles/resources_manager.dir/resources/BaseResource.cpp.o CMakeFiles/resources_manager.dir/resources/PathsResource.cpp.o
-/usr/bin/ranlib libresources_manager.a
