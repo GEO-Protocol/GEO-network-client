@@ -14,7 +14,6 @@
 #include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
 
-#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 #include "../scheduler/TransactionsScheduler.h"
 
 #include "../../interface/commands_interface/commands/BaseUserCommand.h"
@@ -90,7 +89,6 @@
 #include <string>
 
 using namespace std;
-namespace storage = db::uuid_map_block_storage;
 namespace history = db::operations_history_storage;
 namespace signals = boost::signals2;
 
@@ -267,7 +265,6 @@ private:
     StorageHandler *mStorageHandler;
     Logger *mLog;
 
-    unique_ptr<storage::UUIDMapBlockStorage> mStorage;
     unique_ptr<TransactionsScheduler> mScheduler;
 };
 

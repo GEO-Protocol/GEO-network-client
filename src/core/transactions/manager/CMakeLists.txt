@@ -12,8 +12,6 @@ target_link_libraries(transactions__manager
         time
         exceptions
 
-        db__operations_history_storage
-
         settings
         network
 

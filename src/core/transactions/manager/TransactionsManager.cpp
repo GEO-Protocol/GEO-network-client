@@ -29,16 +29,10 @@ TransactionsManager::TransactionsManager(
     mPathsManager(pathsManager),
     mLog(logger),
 
-    mStorage(new storage::UUIDMapBlockStorage(
-        "io/transactions",
-        "transactions.dat")
-    ),
-
     mScheduler(new TransactionsScheduler(
         mIOService,
-        mStorage.get(),
-        mLog)
-    ) {
+        mLog))
+{
 
     subscribeForCommandResult(mScheduler->commandResultIsReadySignal);
 
@@ -52,85 +46,85 @@ TransactionsManager::TransactionsManager(
 
 void TransactionsManager::loadTransactions() {
 
-    auto uuidKeys = unique_ptr<const vector<storage::uuids::uuid>>(mStorage->keys());
-    if (uuidKeys->size() == 0) {
-        return;
-    }
-
-    for (auto const &uuidKey : *uuidKeys) {
-        try {
-            auto record = mStorage->readByUUID(uuidKey);
-
-            BytesShared transactionBuffer = tryCalloc(record->bytesCount());
-            memcpy(
-                transactionBuffer.get(),
-                const_cast<byte *> (record->data()),
-                record->bytesCount()
-            );
-
-            BaseTransaction::SerializedTransactionType *type = new (transactionBuffer.get()) BaseTransaction::SerializedTransactionType;
-            BaseTransaction::TransactionType transactionType = (BaseTransaction::TransactionType) *type;
-
-            BaseTransaction *transaction;
-            switch (transactionType) {
-                case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
-                    transaction = new OpenTrustLineTransaction(
-                        transactionBuffer,
-                        mTrustLines,
-                        mOperationsHistoryStorage
-                    );
-                    break;
-                }
-
-                case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
-                    transaction = new SetTrustLineTransaction(
-                        transactionBuffer,
-                        mTrustLines,
-                        mOperationsHistoryStorage
-                    );
-                    break;
-                }
-
-                case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
-                    transaction = new CloseTrustLineTransaction(
-                        transactionBuffer,
-                        mTrustLines,
-                        mOperationsHistoryStorage
-                    );
-                    break;
-                }
-
-                default: {
-                    throw RuntimeError(
-                        "TrustLinesManager::loadTransactions. "
-                            "Unexpected transaction type identifier.");
-                }
-            }
-
-            subscribeForOutgoingMessages(
-                transaction->outgoingMessageIsReadySignal);
-
-            mScheduler->scheduleTransaction(
-                BaseTransaction::Shared(transaction));
-
-        } catch(IndexError &e) {
-            throw RuntimeError(
-                string(
-                    "TransactionsManager::loadTransactions: "
-                        "Internal error: ") + e.what());
-
-        } catch (IOError &e) {
-            throw RuntimeError(
-                string(
-                    "TransactionsManager::loadTransactions: "
-                        "Internal error: ") + e.what());
-
-        } catch (bad_alloc &) {
-            throw MemoryError(
-                "TransactionsManager::loadTransactions: "
-                    "Bad alloc.");
-        }
-    }
+//    auto uuidKeys = unique_ptr<const vector<storage::uuids::uuid>>(mStorage->keys());
+//    if (uuidKeys->size() == 0) {
+//        return;
+//    }
+//
+//    for (auto const &uuidKey : *uuidKeys) {
+//        try {
+//            auto record = mStorage->readByUUID(uuidKey);
+//
+//            BytesShared transactionBuffer = tryCalloc(record->bytesCount());
+//            memcpy(
+//                transactionBuffer.get(),
+//                const_cast<byte *> (record->data()),
+//                record->bytesCount()
+//            );
+//
+//            BaseTransaction::SerializedTransactionType *type = new (transactionBuffer.get()) BaseTransaction::SerializedTransactionType;
+//            BaseTransaction::TransactionType transactionType = (BaseTransaction::TransactionType) *type;
+//
+//            BaseTransaction *transaction;
+//            switch (transactionType) {
+//                case BaseTransaction::TransactionType::OpenTrustLineTransactionType: {
+//                    transaction = new OpenTrustLineTransaction(
+//                        transactionBuffer,
+//                        mTrustLines,
+//                        mOperationsHistoryStorage
+//                    );
+//                    break;
+//                }
+//
+//                case BaseTransaction::TransactionType::SetTrustLineTransactionType: {
+//                    transaction = new SetTrustLineTransaction(
+//                        transactionBuffer,
+//                        mTrustLines,
+//                        mOperationsHistoryStorage
+//                    );
+//                    break;
+//                }
+//
+//                case BaseTransaction::TransactionType::CloseTrustLineTransactionType: {
+//                    transaction = new CloseTrustLineTransaction(
+//                        transactionBuffer,
+//                        mTrustLines,
+//                        mOperationsHistoryStorage
+//                    );
+//                    break;
+//                }
+//
+//                default: {
+//                    throw RuntimeError(
+//                        "TrustLinesManager::loadTransactions. "
+//                            "Unexpected transaction type identifier.");
+//                }
+//            }
+//
+//            subscribeForOutgoingMessages(
+//                transaction->outgoingMessageIsReadySignal);
+//
+//            mScheduler->scheduleTransaction(
+//                BaseTransaction::Shared(transaction));
+//
+//        } catch(IndexError &e) {
+//            throw RuntimeError(
+//                string(
+//                    "TransactionsManager::loadTransactions: "
+//                        "Internal error: ") + e.what());
+//
+//        } catch (IOError &e) {
+//            throw RuntimeError(
+//                string(
+//                    "TransactionsManager::loadTransactions: "
+//                        "Internal error: ") + e.what());
+//
+//        } catch (bad_alloc &) {
+//            throw MemoryError(
+//                "TransactionsManager::loadTransactions: "
+//                    "Bad alloc.");
+//        }
+//    }
 }
 
 /*!
