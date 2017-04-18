@@ -7,7 +7,9 @@
 #include <memory>
 #include <malloc.h>
 
+
 using namespace std;
+
 
 inline BytesShared tryMalloc(
     size_t bytesCount) {

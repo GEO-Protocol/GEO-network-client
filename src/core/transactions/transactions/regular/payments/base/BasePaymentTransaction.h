@@ -10,15 +10,15 @@
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 
-#include "../../../../../network/messages/outgoing/payments/ReceiverInitPaymentRequestMessage.h"
-#include "../../../../../network/messages/outgoing/payments/ReceiverInitPaymentResponseMessage.h"
-#include "../../../../../network/messages/outgoing/payments/CoordinatorReservationRequestMessage.h"
-#include "../../../../../network/messages/outgoing/payments/CoordinatorReservationResponseMessage.h"
-#include "../../../../../network/messages/outgoing/payments/IntermediateNodeReservationRequestMessage.h"
-#include "../../../../../network/messages/outgoing/payments/IntermediateNodeReservationResponseMessage.h"
-#include "../../../../../network/messages/outgoing/payments/ParticipantsConfigurationRequestMessage.h"
-#include "../../../../../network/messages/outgoing/payments/ParticipantsConfigurationMessage.h"
-#include "../../../../../network/messages/outgoing/payments/ParticipantsVotesMessage.h"
+#include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
+#include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
+#include "../../../../../network/messages/payments/CoordinatorReservationRequestMessage.h"
+#include "../../../../../network/messages/payments/CoordinatorReservationResponseMessage.h"
+#include "../../../../../network/messages/payments/IntermediateNodeReservationRequestMessage.h"
+#include "../../../../../network/messages/payments/IntermediateNodeReservationResponseMessage.h"
+#include "../../../../../network/messages/payments/ParticipantsConfigurationRequestMessage.h"
+#include "../../../../../network/messages/payments/ParticipantsConfigurationMessage.h"
+#include "../../../../../network/messages/payments/ParticipantsVotesMessage.h"
 
 
 // TODO: Add restoring of the reservations after transaction deserialization.
@@ -103,7 +103,7 @@ protected:
     uint32_t maxCoordinatorResponseTimeout() const;
 
     const bool contextIsValid(
-        Message::MessageTypeID messageType) const;
+        Message::MessageType messageType) const;
 
     const bool positiveVoteIsPresent (
         const ParticipantsVotesMessage::ConstShared kMessage) const;

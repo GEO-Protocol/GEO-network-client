@@ -107,7 +107,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     sendMessage<ParticipantsConfigurationRequestMessage>(
         message->coordinatorUUID(),
         kCurrentNodeUUID,
-        UUID());
+        currentTransactionUUID());
 
     info() << "Final payment paths configuration requested from the coordinator.";
 
@@ -273,7 +273,7 @@ const bool BasePaymentTransaction::reserveOutgoingAmount(
     try {
         const auto kReservation = mTrustLines->reserveAmount(
             neighborNode,
-            UUID(),
+            currentTransactionUUID(),
             amount);
 
 #ifdef DEBUG
@@ -295,7 +295,7 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
     try {
         const auto kReservation = mTrustLines->reserveIncomingAmount(
             neighborNode,
-            UUID(),
+            currentTransactionUUID(),
             amount);
 
 #ifdef DEBUG
@@ -311,7 +311,7 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
 }
 
 const bool BasePaymentTransaction::contextIsValid(
-    Message::MessageTypeID messageType) const
+    Message::MessageType messageType) const
 {
     if (mContext.empty())
         return false;

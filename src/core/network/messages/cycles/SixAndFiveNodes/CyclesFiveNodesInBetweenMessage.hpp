@@ -14,7 +14,7 @@ public:
         BytesShared buffer):CycleBaseFiveOrSixNodesInBetweenMessage(buffer){};
 
     const MessageType typeID() const {
-        return Message::MessageTypeID::Cycles_FiveNodesInBetweenMessage;
+        return Message::MessageType::Cycles_FiveNodesMiddleware;
     };
 };
 #endif //GEO_NETWORK_CLIENT_CYCLEFIVENODESINBETWEENMESSAGE_H

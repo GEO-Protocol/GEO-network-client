@@ -1,18 +1,26 @@
 ﻿#include "AcceptTrustLineMessage.h"
 
+
 AcceptTrustLineMessage::AcceptTrustLineMessage(
-    BytesShared buffer) {
+    BytesShared buffer):
 
-    deserializeFromBytes(buffer);
+    BaseTrustLineMessage(buffer)
+{
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    //----------------------------------------------------
+    vector<byte> amountBytes(
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+    mTrustLineAmount = bytesToTrustLineAmount(amountBytes);
 }
 
-const Message::MessageType AcceptTrustLineMessage::typeID() const {
-
-    return Message::MessageTypeID::AcceptTrustLineMessageType;
+const Message::MessageType AcceptTrustLineMessage::typeID() const
+{
+    return Message::MessageType::TrustLines_Accept;
 }
 
-const TrustLineAmount &AcceptTrustLineMessage::amount() const {
-
+const TrustLineAmount &AcceptTrustLineMessage::amount() const
+{
     return mTrustLineAmount;
 }
 
@@ -45,23 +53,11 @@ pair<BytesShared, size_t> AcceptTrustLineMessage::serializeToBytes() {
     );
 }
 
-void AcceptTrustLineMessage::deserializeFromBytes(
-    BytesShared buffer) {
-
-    TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    vector<byte> amountBytes(
-        buffer.get() + bytesBufferOffset,
-        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-    mTrustLineAmount = bytesToTrustLineAmount(amountBytes);
-}
-
 MessageResult::SharedConst AcceptTrustLineMessage::resultAccepted() const {
-
+    // todo: refactor
     return MessageResult::SharedConst(
         new MessageResult(
-            mSenderUUID,
+            senderUUID,
             mTransactionUUID,
             kResultCodeAccepted)
     );
@@ -69,9 +65,10 @@ MessageResult::SharedConst AcceptTrustLineMessage::resultAccepted() const {
 
 MessageResult::SharedConst AcceptTrustLineMessage::resultConflict() const {
 
+    // todo: refactor
     return MessageResult::SharedConst(
         new MessageResult(
-            mSenderUUID,
+            senderUUID,
             mTransactionUUID,
             kResultCodeConflict)
     );
@@ -79,9 +76,10 @@ MessageResult::SharedConst AcceptTrustLineMessage::resultConflict() const {
 
 MessageResult::SharedConst AcceptTrustLineMessage::resultTransactionConflict() const {
 
+    // todo: refactor
     return MessageResult::SharedConst(
         new MessageResult(
-            mSenderUUID,
+            senderUUID,
             mTransactionUUID,
             kResultCodeTransactionConflict)
     );

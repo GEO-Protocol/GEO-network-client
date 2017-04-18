@@ -3,22 +3,18 @@
 
 #include "../base/transaction/TransactionMessage.h"
 
-class InitiateTotalBalancesMessage : public TransactionMessage {
+
+class InitiateTotalBalancesMessage:
+    public TransactionMessage {
 
 public:
     typedef shared_ptr<InitiateTotalBalancesMessage> Shared;
 
 public:
+    using TransactionMessage::TransactionMessage;
 
-    InitiateTotalBalancesMessage(
-        const NodeUUID& senderUUID,
-        const TransactionUUID &transactionUUID);
-
-    InitiateTotalBalancesMessage(
-        BytesShared buffer);
-
-    const MessageType typeID() const;
-
+    const MessageType typeID() const
+        noexcept;
 };
 
 

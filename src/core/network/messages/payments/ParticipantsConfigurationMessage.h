@@ -2,11 +2,11 @@
 #define GEO_NETWORK_CLIENT_PARTICIPANTSFINALCONFIGURATIONMESSAGE_H
 
 
-#include "../../base/transaction/TransactionMessage.h"
+#include "../base/transaction/TransactionMessage.h"
 
-#include "../../../../common/multiprecision/MultiprecisionUtils.h"
-#include "../../../../common/exceptions/ValueError.h"
-#include "../../../../common/exceptions/RuntimeError.h"
+#include "../../../common/multiprecision/MultiprecisionUtils.h"
+#include "../../../common/exceptions/ValueError.h"
+#include "../../../common/exceptions/RuntimeError.h"
 
 
 #include "boost/container/flat_set.hpp"

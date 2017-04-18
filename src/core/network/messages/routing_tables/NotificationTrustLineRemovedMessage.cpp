@@ -4,7 +4,8 @@ NotificationTrustLineRemovedMessage::NotificationTrustLineRemovedMessage (
     const NodeUUID &senderUUID,
     const NodeUUID &nodeA,
     const NodeUUID &nodeB,
-    const byte hop):
+    const byte hop)
+    noexcept :
 
     SenderMessage(senderUUID),
     nodeA(nodeA),
@@ -13,21 +14,23 @@ NotificationTrustLineRemovedMessage::NotificationTrustLineRemovedMessage (
 {}
 
 NotificationTrustLineRemovedMessage::NotificationTrustLineRemovedMessage (
-    BytesShared buffer):
+    BytesShared buffer)
+    noexcept :
 
     SenderMessage(buffer),
     hop(0)
 {
-    BytesDeserializer memory(
+    BytesDeserializer deserializer(
         buffer,
         SenderMessage::kOffsetToInheritedBytes());
 
-    memory.copyInto(nodeA);
-    memory.copyInto(nodeB);
-    memory.copyInto(hop);
+    deserializer.copyIntoDespiteConst(&nodeA);
+    deserializer.copyIntoDespiteConst(&nodeB);
+    deserializer.copyIntoDespiteConst(&hop);
 }
 
 pair<BytesShared, size_t> NotificationTrustLineRemovedMessage::serializeToBytes () const
+    throw (bad_alloc)
 {
     BytesSerializer serializer;
 
@@ -39,7 +42,7 @@ pair<BytesShared, size_t> NotificationTrustLineRemovedMessage::serializeToBytes 
     return serializer.collect();
 }
 
-const MessageType NotificationTrustLineRemovedMessage::typeID() const
+const Message::MessageType NotificationTrustLineRemovedMessage::typeID() const
     noexcept
 {
     return Message::RoutingTables_NotificationTrustLineRemoved;

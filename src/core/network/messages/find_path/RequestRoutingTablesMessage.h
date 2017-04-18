@@ -3,22 +3,18 @@
 
 #include "../base/transaction/TransactionMessage.h"
 
-class RequestRoutingTablesMessage : public TransactionMessage {
+
+class RequestRoutingTablesMessage:
+    public TransactionMessage {
 
 public:
     typedef shared_ptr<RequestRoutingTablesMessage> Shared;
 
 public:
+    using TransactionMessage::TransactionMessage;
 
-    RequestRoutingTablesMessage(
-        const NodeUUID& senderUUID,
-        const TransactionUUID &transactionUUID);
-
-    RequestRoutingTablesMessage(
-        BytesShared buffer);
-
-    const MessageType typeID() const;
-
+    const MessageType typeID() const
+        noexcept;
 };
 
 

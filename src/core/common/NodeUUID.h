@@ -33,6 +33,8 @@ public:
     // todo: deprecated, operator== should be used
     static ComparePredicates compare(const NodeUUID &a, const NodeUUID &b);
 
+    static const NodeUUID& empty();
+
 public:
     explicit NodeUUID();
     NodeUUID(uuid const &u);

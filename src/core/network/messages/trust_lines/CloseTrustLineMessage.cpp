@@ -1,25 +1,30 @@
 ﻿#include "CloseTrustLineMessage.h"
 
+
 CloseTrustLineMessage::CloseTrustLineMessage(
     const NodeUUID &sender,
     const TransactionUUID &transactionUUID,
-    const NodeUUID &contractorUUID) :
+    const NodeUUID &contractorUUID)
+    noexcept :
 
-    TrustLinesMessage(
+    TransactionMessage(
         sender,
-        transactionUUID
-    ),
-    mContractorUUID(contractorUUID){
+        transactionUUID),
+    mContractorUUID(contractorUUID)
+{}
 
+const Message::MessageType CloseTrustLineMessage::typeID() const
+    noexcept
+{
+    return Message::MessageType::TrustLines_Close;
 }
 
-const Message::MessageType CloseTrustLineMessage::typeID() const {
-
-    return Message::MessageTypeID::CloseTrustLineMessageType;
-}
-
-pair<BytesShared, size_t> CloseTrustLineMessage::serializeToBytes() {
-
+/*
+ * ToDo: rewrite me with bytes deserializer
+ */
+pair<BytesShared, size_t> CloseTrustLineMessage::serializeToBytes() const
+    throw (bad_alloc)
+{
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
@@ -45,11 +50,4 @@ pair<BytesShared, size_t> CloseTrustLineMessage::serializeToBytes() {
         dataBytesShared,
         bytesCount
     );
-}
-
-void CloseTrustLineMessage::deserializeFromBytes(
-    BytesShared buffer) {
-
-    throw NotImplementedError("CloseTrustLineMessage::deserializeFromBytes: "
-                                  "Method not implemented.");
 }

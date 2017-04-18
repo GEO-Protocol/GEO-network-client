@@ -27,7 +27,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
 
 //  If balance to previous node equal zero finish transaction
     if (maxFlow == kZeroBalance)
-        return resultExit();
+        return resultDone();
     auto kFirstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
 //  Update message path and send to next level nodes
     if ((kCurrentDepth==1)) {
@@ -50,5 +50,5 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
         mLogger->error("CyclesSixNodesReceiverTransaction:"
         "Wrong path size");
     }
-    return resultExit();
+    return resultDone();
 }

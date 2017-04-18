@@ -70,7 +70,7 @@ TransactionResult::SharedConst TotalBalancesTransaction::run() {
                << "\t" << totalOutgoingTrust << "\t" << totalTrustUsedBySelf;
         info() << "transactionUUID\t" << mMessage->transactionUUID();
         sendMessage<TotalBalancesResultMessage>(
-            mMessage->senderUUID(),
+            mMessage->senderUUID,
             mNodeUUID,
             mMessage->transactionUUID(),
             totalIncomingTrust,

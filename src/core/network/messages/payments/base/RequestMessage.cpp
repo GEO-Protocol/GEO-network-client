@@ -55,7 +55,8 @@ pair<BytesShared, size_t> RequestMessage::serializeToBytes() {
                 bytesCount);
 }
 
-const size_t RequestMessage::kOffsetToInheritedBytes()
+const size_t RequestMessage::kOffsetToInheritedBytes() const
+    noexcept
 {
     static const size_t offset =
         TransactionMessage::kOffsetToInheritedBytes()

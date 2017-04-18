@@ -13,9 +13,14 @@ ResponseMessage::ResponseMessage(
 {}
 
 ResponseMessage::ResponseMessage(
-    BytesShared buffer)
+    BytesShared buffer):
+
+    TransactionMessage(buffer)
 {
-    deserializeFromBytes(buffer);
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    //----------------------------------------------------
+    SerializedOperationState *state = new (buffer.get() + bytesBufferOffset) SerializedOperationState;
+    mState = (OperationState) (*state);
 }
 
 const ResponseMessage::OperationState ResponseMessage::state() const
@@ -23,7 +28,8 @@ const ResponseMessage::OperationState ResponseMessage::state() const
     return mState;
 }
 
-const size_t ResponseMessage::kOffsetToInheritedBytes()
+const size_t ResponseMessage::kOffsetToInheritedBytes() const
+    noexcept
 {
     return TransactionMessage::kOffsetToInheritedBytes() + sizeof(SerializedOperationState);
 }
@@ -32,7 +38,8 @@ const size_t ResponseMessage::kOffsetToInheritedBytes()
  *
  * @throws bad_alloc;
  */
-pair<BytesShared, size_t> ResponseMessage::serializeToBytes()
+pair<BytesShared, size_t> ResponseMessage::serializeToBytes() const
+    throw (bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
@@ -60,11 +67,3 @@ pair<BytesShared, size_t> ResponseMessage::serializeToBytes()
         bytesCount);
 }
 
-void ResponseMessage::deserializeFromBytes(BytesShared buffer)
-{
-    TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    SerializedOperationState *state = new (buffer.get() + bytesBufferOffset) SerializedOperationState;
-    mState = (OperationState) (*state);
-}

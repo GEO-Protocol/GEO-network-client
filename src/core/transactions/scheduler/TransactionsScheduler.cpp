@@ -58,7 +58,7 @@ void TransactionsScheduler::killTransaction(
     const TransactionUUID &transactionUUID) {
 
     for (const auto &transactionAndState : *mTransactions) {
-        if (transactionAndState.first->UUID() == transactionUUID) {
+        if (transactionAndState.first->currentTransactionUUID() == transactionUUID) {
             forgetTransaction(transactionAndState.first);
         }
     }
@@ -69,34 +69,20 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
     // TODO: check the message type before the loop
     // TODO: Refactor me
     for (auto const &transactionAndState : *mTransactions) {
-        if (message->isRoutingTableMessage()) {
-            if (static_pointer_cast<RoutingTablesMessage>(message)->senderUUID() != static_pointer_cast<RoutingTablesTransaction>(transactionAndState.first)->contractorUUID()) {
-                continue;
-            }
-        }
+
 //       Check if this is CycleTransaction
         if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction and
-            message->typeID() == Message::MessageTypeID::Cycles_SixNodesBoundaryMessage) {
+            message->typeID() == Message::MessageType::Cycles_SixNodesBoundary) {
             transactionAndState.first->pushContext(message);
             return;
         }
         if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction and
-            message->typeID() == Message::MessageTypeID::Cycles_FiveNodesBoundaryMessage) {
+            message->typeID() == Message::MessageType::Cycles_FiveNodesBoundary) {
             transactionAndState.first->pushContext(message);
             return;
         }
 
-        if (message->isRoutingTableResponseMessage()) {
 
-            for (const auto &contractor : static_pointer_cast<RoutingTablesTransaction>(transactionAndState.first)->contractorsUUIDs()) {
-                if (static_pointer_cast<RoutingTablesMessage>(message)->senderUUID() != contractor) {
-                    continue;
-
-                } else {
-                    break;
-                }
-            }
-        }
         for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
             if (message->typeID() != messageType) {
                 continue;
@@ -120,7 +106,7 @@ void TransactionsScheduler::tryAttachResourceToTransaction(
 
     for (const auto& transactionAndState : *mTransactions) {
 
-        if (resource->transactionUUID() != transactionAndState.first->UUID()) {
+        if (resource->transactionUUID() != transactionAndState.first->currentTransactionUUID()) {
             continue;
         }
 
@@ -166,7 +152,7 @@ void TransactionsScheduler::launchTransaction(
         auto errors = mLog->error("TransactionScheduler");
         errors << "Transaction error occurred. "
                << "TypeID: " << transaction->transactionType() << "; "
-               << "UUID: " << transaction->UUID() << "; "
+               << "UUID: " << transaction->currentTransactionUUID() << "; "
                << "Error message: \"" << e.what() << "\". "
                << "Transaction dropped.";
 
@@ -251,16 +237,16 @@ void TransactionsScheduler::serializeTransaction(
     BaseTransaction::Shared transaction) {
 
     auto transactionBytesAndCount = transaction->serializeToBytes();
-    if (!mStorage->isExist(storage::uuids::uuid(transaction->UUID()))) {
+    if (!mStorage->isExist(storage::uuids::uuid(transaction->currentTransactionUUID()))) {
         mStorage->write(
-            storage::uuids::uuid(transaction->UUID()),
+            storage::uuids::uuid(transaction->currentTransactionUUID()),
             transactionBytesAndCount.first.get(),
             transactionBytesAndCount.second
         );
 
     } else {
         mStorage->rewrite(
-            storage::uuids::uuid(transaction->UUID()),
+            storage::uuids::uuid(transaction->currentTransactionUUID()),
             transactionBytesAndCount.first.get(),
             transactionBytesAndCount.second
         );
@@ -272,7 +258,7 @@ void TransactionsScheduler::forgetTransaction(
 
     try {
         mStorage->erase(
-            storage::uuids::uuid(transaction->UUID())
+            storage::uuids::uuid(transaction->currentTransactionUUID())
         );
 
     } catch (IndexError &) {}

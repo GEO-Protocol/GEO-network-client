@@ -6,7 +6,11 @@ BytesSerializer::BaseSerializationRecord::BaseSerializationRecord (
     noexcept :
 
     mBytesCount(bytesCount)
-{}
+{
+#ifdef INTERNAL_ARGUMENTS_VALIDATION
+    assert(bytesCount > 0);
+#endif
+}
 
 size_t BytesSerializer::BaseSerializationRecord::bytesCount () const
     noexcept
@@ -33,8 +37,10 @@ void* BytesSerializer::DelayedRecord::pointer () const
 
 BytesSerializer::InlineRecord::InlineRecord (
     BytesShared bytes,
-    const size_t bytesCount) :
+    const size_t bytesCount)
+    noexcept :
 
+    BaseSerializationRecord(bytesCount),
     mBytes(bytes)
 {}
 
@@ -130,6 +136,7 @@ void BytesSerializer::enqueue (
 
 void BytesSerializer::enqueue (
     const NodeUUID &nodeUUID)
+    throw (bad_alloc&)
 {
     enqueue(
         nodeUUID.data,

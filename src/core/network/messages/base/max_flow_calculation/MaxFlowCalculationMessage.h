@@ -27,11 +27,12 @@ public:
     const bool isMaxFlowCalculationResponseMessage() const;
 
 protected:
-    MaxFlowCalculationMessage();
-
     MaxFlowCalculationMessage(
         const NodeUUID &senderUUID,
         const NodeUUID &targetUUID);
+
+    MaxFlowCalculationMessage(
+        BytesShared buffer);
 
     virtual const MessageType typeID() const = 0;
 

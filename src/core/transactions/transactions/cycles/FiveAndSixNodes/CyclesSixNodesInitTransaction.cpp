@@ -39,7 +39,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                 "No responses messages "
                 "Can't create cycles;";
 
-        return resultExit();
+        return resultDone();
     }
     const TrustLineBalance kZeroBalance = 0;
     CycleMap mCreditors;

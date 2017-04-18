@@ -19,12 +19,15 @@ public:
         const NodeUUID &senderUUID,
         const NodeUUID &nodeA,
         const NodeUUID &nodeB,
-        const byte hop=0);
+        const byte hop=0)
+        noexcept;
 
     NotificationTrustLineRemovedMessage(
-        BytesShared buffer);
+        BytesShared buffer)
+        noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes() const;
+    pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc);
 
     virtual const MessageType typeID() const
         noexcept;

@@ -2,10 +2,10 @@
 #define GEO_NETWORK_CLIENT_PARTICIPANTSAPPROVINGMESSAGE_H
 
 
-#include "../../base/transaction/TransactionMessage.h"
+#include "../base/transaction/TransactionMessage.h"
 
-#include "../../../../common/exceptions/NotFoundError.h"
-#include "../../../../common/exceptions/OverflowError.h"
+#include "../../../common/exceptions/NotFoundError.h"
+#include "../../../common/exceptions/OverflowError.h"
 
 #include <boost/container/flat_map.hpp>
 

@@ -1,18 +1,17 @@
 #ifndef GEO_NETWORK_CLIENT_FOURNODESBALANCESRESPONSEMESSAGE_H
 #define GEO_NETWORK_CLIENT_FOURNODESBALANCESRESPONSEMESSAGE_H
-#include "../../Message.hpp"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
-#include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../base/transaction/TransactionMessage.h"
+#include "../../../../common/multiprecision/MultiprecisionUtils.h"
+
 
 class CyclesFourNodesBalancesResponseMessage:
-        public TransactionMessage {
+    public TransactionMessage {
+
 public:
     typedef shared_ptr<CyclesFourNodesBalancesResponseMessage> Shared;
-public:
 
+public:
     CyclesFourNodesBalancesResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
@@ -21,27 +20,21 @@ public:
     CyclesFourNodesBalancesResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        vector<NodeUUID> &neighborsUUID
-    );
+        vector<NodeUUID> &neighborsUUID);
 
     CyclesFourNodesBalancesResponseMessage(
-            BytesShared buffer);
+        BytesShared buffer);
 
-public:
     pair<BytesShared, size_t> serializeToBytes();
 
     void AddNeighborUUID(NodeUUID neighborUUID);
 
     const MessageType typeID() const;
 
-    const bool isTransactionMessage() const;
+    const bool isTransactionMessage() const
+        noexcept;
 
     vector<NodeUUID> NeighborsUUID();
-
-protected:
-
-    void deserializeFromBytes(
-            BytesShared buffer);
 
 protected:
     vector<NodeUUID> mNeighborsUUID;

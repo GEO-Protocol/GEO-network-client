@@ -18,7 +18,7 @@ public:
         CyclesBaseFiveOrSixNodesBoundaryMessage(buffer){};
 
     const MessageType typeID() const {
-        return Message::MessageTypeID::Cycles_FiveNodesBoundaryMessage;
+        return Message::MessageType::Cycles_FiveNodesBoundary;
     };
 };
 #endif //GEO_NETWORK_CLIENT_CYCLEFIVENODESBOUNDARYMESSAGE_H

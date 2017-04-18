@@ -72,7 +72,7 @@ TransactionResult::Shared BaseTransaction::resultFlushAndContinue() const
 
 // todo Change resultWaitForMessageTypes type to sharedConst
 TransactionResult::Shared BaseTransaction::resultWaitForMessageTypes(
-    vector<Message::MessageTypeID> &&requiredMessagesTypes,
+    vector<Message::MessageType> &&requiredMessagesTypes,
     uint32_t noLongerThanMilliseconds) const
 {
     return make_shared<TransactionResult>(
@@ -94,7 +94,7 @@ const BaseTransaction::TransactionType BaseTransaction::transactionType() const 
     return mType;
 }
 
-const TransactionUUID &BaseTransaction::UUID() const {
+const TransactionUUID &BaseTransaction::currentTransactionUUID () const {
 
     return mTransactionUUID;
 }

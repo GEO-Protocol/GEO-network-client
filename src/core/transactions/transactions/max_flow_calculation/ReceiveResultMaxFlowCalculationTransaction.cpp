@@ -24,7 +24,7 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
 
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "initiator: " << mNodeUUID;
-    info() << "run\t" << "sender: " << mMessage->senderUUID();
+    info() << "run\t" << "sender: " << mMessage->senderUUID;
     info() << "run\t" << "beforeInsert mapTrustLinesCount: " << mMaxFlowCalculationTrustLineManager->trustLinesCounts();
 #endif
 
@@ -38,7 +38,7 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
 
         mMaxFlowCalculationTrustLineManager->addTrustLine(
             make_shared<MaxFlowCalculationTrustLine>(
-                mMessage->senderUUID(),
+                mMessage->senderUUID,
                 outgoingFlow.first,
                 outgoingFlow.second));
     }
@@ -54,7 +54,7 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
         mMaxFlowCalculationTrustLineManager->addTrustLine(
             make_shared<MaxFlowCalculationTrustLine>(
                 incomingFlow.first,
-                mMessage->senderUUID(),
+                mMessage->senderUUID,
                 incomingFlow.second));
     }
 

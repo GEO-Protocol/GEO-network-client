@@ -32,19 +32,6 @@ AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
     return mMessage;
 }
 
-pair<BytesShared, size_t> AcceptTrustLineTransaction::serializeToBytes() const{
-
-    throw NotImplementedError("AcceptTrustLineTransaction::serializeToBytes: "
-        "Method not implemented");
-}
-
-void AcceptTrustLineTransaction::deserializeFromBytes(
-    BytesShared buffer) {
-
-    throw NotImplementedError("AcceptTrustLineTransaction::deserializeFromBytes: "
-        "Method not implemented");
-}
-
 TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
 
     switch (mStep) {
@@ -123,20 +110,20 @@ bool AcceptTrustLineTransaction::isTransactionToContractorUnique() {
 
 bool AcceptTrustLineTransaction::isIncomingTrustLineDirectionExisting() {
 
-    return mTrustLinesManager->checkDirection(mMessage->senderUUID(), TrustLineDirection::Incoming) ||
-        mTrustLinesManager->checkDirection(mMessage->senderUUID(), TrustLineDirection::Both);
+    return mTrustLinesManager->checkDirection(mMessage->senderUUID, TrustLineDirection::Incoming) ||
+        mTrustLinesManager->checkDirection(mMessage->senderUUID, TrustLineDirection::Both);
 }
 
 bool AcceptTrustLineTransaction::isIncomingTrustLineAlreadyAccepted() {
 
 
-    return mTrustLinesManager->incomingTrustAmount(mMessage->senderUUID()) == mMessage->amount();
+    return mTrustLinesManager->incomingTrustAmount(mMessage->senderUUID) == mMessage->amount();
 }
 
 void AcceptTrustLineTransaction::acceptTrustLine() {
 
     mTrustLinesManager->accept(
-        mMessage->senderUUID(),
+        mMessage->senderUUID,
         mMessage->amount());
 }
 
@@ -145,7 +132,7 @@ void AcceptTrustLineTransaction::logAcceptingTrustLineOperation() {
     Record::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Accepting,
-        mMessage->senderUUID(),
+        mMessage->senderUUID,
         mMessage->amount());
 
     mOperationsHistoryStorage->addRecord(
@@ -156,7 +143,7 @@ void AcceptTrustLineTransaction::sendResponseCodeToContractor(
     const uint16_t code) {
 
     sendMessage<Response>(
-        mMessage->senderUUID(),
+        mMessage->senderUUID,
         mNodeUUID,
         mMessage->transactionUUID(),
         code);

@@ -68,13 +68,13 @@ void ReceiverPaymentTransaction::deserializeFromBytes(BytesShared buffer)
 const string ReceiverPaymentTransaction::logHeader() const
 {
     stringstream s;
-    s << "[ReceiverPaymentTA: " << UUID().stringUUID() << "] ";
+    s << "[ReceiverPaymentTA: " << currentTransactionUUID().stringUUID() << "] ";
     return s.str();
 }
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStage()
 {
-    const auto kCoordinator = mMessage->senderUUID();
+    const auto kCoordinator = mMessage->senderUUID;
     info() << "Operation for " << mMessage->amount() << " initialised by the (" << kCoordinator << ")";
 
 
@@ -86,7 +86,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
         sendMessage<ReceiverInitPaymentResponseMessage>(
             kCoordinator,
             currentNodeUUID(),
-            UUID(),
+            currentTransactionUUID(),
             ReceiverInitPaymentResponseMessage::Rejected);
 
         return exitWithResult(
@@ -98,7 +98,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
     sendMessage<ReceiverInitPaymentResponseMessage>(
         kCoordinator,
         currentNodeUUID(),
-        UUID(),
+        currentTransactionUUID(),
         ReceiverInitPaymentResponseMessage::Accepted);
 
 
@@ -120,7 +120,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
-    const auto kNeighbor = kMessage->senderUUID();
+    const auto kNeighbor = kMessage->senderUUID;
 
     if (! mTrustLines->isNeighbor(kNeighbor)) {
         // Message was sent from node, that is not listed in neighbors list.
@@ -162,7 +162,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
-            UUID(),
+            currentTransactionUUID(),
             ResponseMessage::Rejected);
 
         // Begin accepting other reservation messages
@@ -178,7 +178,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
-            UUID(),
+            currentTransactionUUID(),
             ResponseMessage::Rejected);
 
         return reject(
@@ -192,7 +192,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
         currentNodeUUID(),
-        UUID(),
+        currentTransactionUUID(),
         ResponseMessage::Accepted);
 
 

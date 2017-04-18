@@ -1,5 +1,4 @@
 #include "NeighborsCollectingTransaction.h"
-#include "../../../network/messages/routing_tables/NeighborsResponseMessage.h"
 
 
 /**
@@ -23,7 +22,7 @@ NeighborsCollectingTransaction::NeighborsCollectingTransaction (
     mDestinationNodeUUID(destinationNode),
     mHopDistance(hopDistance),
     mRoutingTable2Level(routingTable2Level),
-    mRoutingTable2Level(routingTable3Level),
+    mRoutingTable3Level(routingTable3Level),
     mSecondLevelNeighborsMustAlsoBeScanned(true)
 {}
 
@@ -64,8 +63,9 @@ TransactionResult::SharedConst NeighborsCollectingTransaction::processNeighborsR
 
 
     sendMessage<NeighborsRequestMessage>(
+        mDestinationNodeUUID,
         currentNodeUUID(),
-        UUID());
+        currentTransactionUUID());
 
     mStep = Stages::NeighborsInfoProcessing;
 
@@ -75,6 +75,7 @@ TransactionResult::SharedConst NeighborsCollectingTransaction::processNeighborsR
 }
 
 TransactionResult::SharedConst NeighborsCollectingTransaction::processReceivedNeighborsInfo ()
+    noexcept
 {
     if (mContext.empty()) {
         debug() << "No neighbors info message was received. Can't proceed.";

@@ -193,7 +193,10 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
 
         const auto kTransaction = make_shared<NeighborsCollectingTransaction>(
             mRightContractorUUID,
-            mCurrentHopDistance);
+            mCurrentHopDistance,
+            mRoutingTable2Level,
+            mRoutingTable3Level,
+            mLog);
 
         launchSubsidiaryTransaction(kTransaction);
         return resultDone();
@@ -207,7 +210,10 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
 
         const auto kTransaction = make_shared<NeighborsCollectingTransaction>(
             mRightContractorUUID,
-            mCurrentHopDistance);
+            mCurrentHopDistance,
+            mRoutingTable2Level,
+            mRoutingTable3Level,
+            mLog);
 
         launchSubsidiaryTransaction(kTransaction);
         return resultDone();

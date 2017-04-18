@@ -6,20 +6,17 @@
 #include "../../../common/Types.h"
 #include "../../../common/NodeUUID.h"
 #include "../../../common/memory/MemoryUtils.h"
-#include "../../../logger/FileLogger.h"
-
-#include "../../../logger/Logger.h"
 
 #include "../../../network/messages/Message.hpp"
-#include "../../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
-
+#include "../result/TransactionResult.h"
+#include "../result/state/TransactionState.h"
+#include "../../../network/messages/result/MessageResult.h"
+#include "../../../interface/results_interface/result/CommandResult.h"
 #include "../../../resources/resources/BaseResource.h"
+
 #include "../../../common/exceptions/RuntimeError.h"
 
-#include "../result/TransactionResult.h"
-#include "../../../interface/results_interface/result/CommandResult.h"
-#include "../../../network/messages/result/MessageResult.h"
-#include "../result/state/TransactionState.h"
+#include "../../../logger/Logger.h"
 
 #include <boost/signals2.hpp>
 
@@ -30,15 +27,17 @@
 #include <sstream>
 
 
-namespace storage = db::uuid_map_block_storage;
 namespace signals = boost::signals2;
 
 class BaseTransaction {
 public:
     typedef shared_ptr<BaseTransaction> Shared;
     typedef uint16_t SerializedTransactionType;
+
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
+
+    // todo: [review: hsc]: move this out of here!
     typedef signals::signal<void(shared_ptr<vector<NodeUUID>>)> LaunchCloseCycleSignal;
 
 public:
@@ -46,7 +45,7 @@ public:
     TransactionResult::Shared resultDone () const;
     TransactionResult::Shared resultFlushAndContinue() const;
     TransactionResult::Shared resultWaitForMessageTypes(
-        vector<Message::MessageTypeID> &&requiredMessagesTypes,
+        vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
     TransactionResult::Shared resultAwaikAfterMilliseconds(
         uint32_t responseWaitTime) const ;
@@ -61,6 +60,10 @@ public:
         UpdateTrustLineTransactionType,
         CloseTrustLineTransactionType,
         RejectTrustLineTransactionType,
+
+        // Routing tables
+        RoutingTables_TrustLineStatesHandler,
+        RoutingTables_NeighborsCollecting,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction,
@@ -104,7 +107,7 @@ public:
 public:
     virtual const TransactionType transactionType() const;
 
-    const TransactionUUID &UUID() const;
+    const TransactionUUID &currentTransactionUUID () const;
 
     const NodeUUID &currentNodeUUID () const;
 
@@ -240,12 +243,7 @@ protected:
     deque<Message::Shared> mContext;
     deque<BaseResource::Shared> mResources;
 
-
-protected:
     Logger *mLog;
-
-    [[deprecated("Use logger instead")]]
-    unique_ptr<FileLogger> mFileLogger;
 };
 
 

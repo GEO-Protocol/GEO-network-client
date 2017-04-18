@@ -606,85 +606,85 @@ void PathsManager::fillRoutingTables() {
 }
 
 void PathsManager::testStorageHandler() {
-
-    NodeUUID* nodeUUID81Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff81");
-    NodeUUID* nodeUUID82Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff82");
-    NodeUUID* nodeUUID83Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff83");
-    NodeUUID* nodeUUID84Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff84");
-    NodeUUID* nodeUUID85Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff85");
-    NodeUUID* nodeUUID86Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff86");
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID82Ptr, TrustLineDirection::Both);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID82Ptr, TrustLineDirection::Both);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID83Ptr, *nodeUUID84Ptr, TrustLineDirection::Incoming);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID85Ptr, *nodeUUID86Ptr, TrustLineDirection::Outgoing);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID82Ptr, *nodeUUID81Ptr, TrustLineDirection::Both);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID83Ptr, TrustLineDirection::Incoming);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID84Ptr, TrustLineDirection::Both);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID83Ptr, *nodeUUID81Ptr, TrustLineDirection::Outgoing);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-
-
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> records = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections();
-    NodeUUID source;
-    NodeUUID target;
-    TrustLineDirection direction;
-    for (auto &record : records) {
-        std::tie(source, target, direction) = record;
-        info() << source << " " << target << " " << direction;
-    }
-
-    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
-        info() << "key: " << itMap.first;
-        for (auto const &itVector : itMap.second) {
-            info() << "\tvalue: " << itVector.first << " " << itVector.second;
-        }
-    }
-
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->deleteRecord(*nodeUUID81Ptr, *nodeUUID83Ptr);
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID84Ptr, TrustLineDirection::Outgoing);
-    info() << "after updating and deleting";
-    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
-        info() << "key: " << itMap.first;
-        for (auto const &itVector : itMap.second) {
-            info() << "\tvalue: " << itVector.first << " " << itVector.second;
-        }
-    }
-
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID85Ptr, *nodeUUID81Ptr, TrustLineDirection::Outgoing);
-    info() << "after updating absent elemnet";
-    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
-        info() << "key: " << itMap.first;
-        for (auto const &itVector : itMap.second) {
-            info() << "\tvalue: " << itVector.first << " " << itVector.second;
-        }
-    }
-
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID82Ptr, TrustLineDirection::Outgoing);
-    info() << "after updating real elemnet";
-    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
-        info() << "key: " << itMap.first;
-        for (auto const &itVector : itMap.second) {
-            info() << "\tvalue: " << itVector.first << " " << itVector.second;
-        }
-    }
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
-
-    info() << "all destinations for source: " << *nodeUUID81Ptr;
-    for (const auto &itVect : mStorageHandler->routingTablesHandler()->routingTable2Level()->neighborsOf(*nodeUUID81Ptr)) {
-        info() << "\t\t\t" << itVect;
-    }
-
-    delete nodeUUID81Ptr;
-    delete nodeUUID82Ptr;
-    delete nodeUUID83Ptr;
-    delete nodeUUID84Ptr;
-    delete nodeUUID85Ptr;
-    delete nodeUUID86Ptr;
+//
+//    NodeUUID* nodeUUID81Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff81");
+//    NodeUUID* nodeUUID82Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff82");
+//    NodeUUID* nodeUUID83Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff83");
+//    NodeUUID* nodeUUID84Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff84");
+//    NodeUUID* nodeUUID85Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff85");
+//    NodeUUID* nodeUUID86Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff86");
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID82Ptr, TrustLineDirection::Both);
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID82Ptr, TrustLineDirection::Both);
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID83Ptr, *nodeUUID84Ptr, TrustLineDirection::Incoming);
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID85Ptr, *nodeUUID86Ptr, TrustLineDirection::Outgoing);
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID82Ptr, *nodeUUID81Ptr, TrustLineDirection::Both);
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->rollBack();
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID83Ptr, TrustLineDirection::Incoming);
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID84Ptr, TrustLineDirection::Both);
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID83Ptr, *nodeUUID81Ptr, TrustLineDirection::Outgoing);
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+//
+//
+//    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> records = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections();
+//    NodeUUID source;
+//    NodeUUID target;
+//    TrustLineDirection direction;
+//    for (auto &record : records) {
+//        std::tie(source, target, direction) = record;
+//        info() << source << " " << target << " " << direction;
+//    }
+//
+//    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
+//        info() << "key: " << itMap.first;
+//        for (auto const &itVector : itMap.second) {
+//            info() << "\tvalue: " << itVector.first << " " << itVector.second;
+//        }
+//    }
+//
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->deleteRecord(*nodeUUID81Ptr, *nodeUUID83Ptr);
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID84Ptr, TrustLineDirection::Outgoing);
+//    info() << "after updating and deleting";
+//    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
+//        info() << "key: " << itMap.first;
+//        for (auto const &itVector : itMap.second) {
+//            info() << "\tvalue: " << itVector.first << " " << itVector.second;
+//        }
+//    }
+//
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID85Ptr, *nodeUUID81Ptr, TrustLineDirection::Outgoing);
+//    info() << "after updating absent elemnet";
+//    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
+//        info() << "key: " << itMap.first;
+//        for (auto const &itVector : itMap.second) {
+//            info() << "\tvalue: " << itVector.first << " " << itVector.second;
+//        }
+//    }
+//
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*nodeUUID81Ptr, *nodeUUID82Ptr, TrustLineDirection::Outgoing);
+//    info() << "after updating real elemnet";
+//    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
+//        info() << "key: " << itMap.first;
+//        for (auto const &itVector : itMap.second) {
+//            info() << "\tvalue: " << itVector.first << " " << itVector.second;
+//        }
+//    }
+//    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+//
+//    info() << "all destinations for source: " << *nodeUUID81Ptr;
+//    for (const auto &itVect : mStorageHandler->routingTablesHandler()->routingTable2Level()->neighborsOf(*nodeUUID81Ptr)) {
+//        info() << "\t\t\t" << itVect;
+//    }
+//
+//    delete nodeUUID81Ptr;
+//    delete nodeUUID82Ptr;
+//    delete nodeUUID83Ptr;
+//    delete nodeUUID84Ptr;
+//    delete nodeUUID85Ptr;
+//    delete nodeUUID86Ptr;
 
 }
 
@@ -700,7 +700,7 @@ void PathsManager::testTrustLineHandler() {
         TrustLineBalance(-30));
     mStorageHandler->trustLineHandler()->saveTrustLine(trLine);
     mStorageHandler->trustLineHandler()->commit();
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<
@@ -710,7 +710,7 @@ void PathsManager::testTrustLineHandler() {
     trLine->setBalance(55);
     trLine->setIncomingTrustAmount(1000);
     mStorageHandler->trustLineHandler()->saveTrustLine(trLine);
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<
@@ -718,7 +718,7 @@ void PathsManager::testTrustLineHandler() {
                rtrLine->balance();
     }
     mStorageHandler->trustLineHandler()->rollBack();
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<
@@ -726,7 +726,7 @@ void PathsManager::testTrustLineHandler() {
                rtrLine->balance();
     }
     mStorageHandler->trustLineHandler()->deleteTrustLine(mNodeUUID);
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<

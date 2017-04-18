@@ -1,23 +1,37 @@
 ﻿#include "RejectTrustLineMessage.h"
 
+
 RejectTrustLineMessage::RejectTrustLineMessage(
-    BytesShared buffer) {
+    BytesShared buffer)
+    noexcept :
 
-    deserializeFromBytes(buffer);
+    TransactionMessage(buffer)
+{
+    BytesDeserializer deserializer(
+        buffer,
+        TransactionMessage::kOffsetToInheritedBytes());
+
+    deserializer.copyIntoDespiteConst(&mContractorUUID);
 }
 
-const Message::MessageType RejectTrustLineMessage::typeID() const {
-
-    return Message::MessageTypeID::RejectTrustLineMessageType;
+const Message::MessageType RejectTrustLineMessage::typeID() const
+    noexcept
+{
+    return Message::MessageType::TrustLines_Reject;
 }
 
-const NodeUUID &RejectTrustLineMessage::contractorUUID() const {
-
+const NodeUUID &RejectTrustLineMessage::contractorUUID() const
+    noexcept
+{
     return mContractorUUID;
 }
 
-
-pair<BytesShared, size_t> RejectTrustLineMessage::serializeToBytes() {
+/*
+ * ToDo: rewrite me with bytes deserializer
+ */
+pair<BytesShared, size_t> RejectTrustLineMessage::serializeToBytes()
+    throw (bad_alloc)
+{
 
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
@@ -46,44 +60,38 @@ pair<BytesShared, size_t> RejectTrustLineMessage::serializeToBytes() {
     );
 }
 
-void RejectTrustLineMessage::deserializeFromBytes(
-    BytesShared buffer) {
-
-    TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
-}
-
-MessageResult::SharedConst RejectTrustLineMessage::resultRejected() {
+// todo: refactor me
+MessageResult::SharedConst RejectTrustLineMessage::resultRejected()
+    throw (bad_alloc)
+{
 
     return MessageResult::SharedConst(
         new MessageResult(
-            mSenderUUID,
+            senderUUID,
             mTransactionUUID,
             kResultCodeRejected)
     );
 }
 
-MessageResult::SharedConst RejectTrustLineMessage::resultRejectDelayed() {
-
+// todo: refactor me
+MessageResult::SharedConst RejectTrustLineMessage::resultRejectDelayed()
+    throw (bad_alloc)
+{
     return MessageResult::SharedConst(
         new MessageResult(
-            mSenderUUID,
+            senderUUID,
             mTransactionUUID,
             kResultCodeRejectDelayed)
     );
 }
 
-MessageResult::SharedConst RejectTrustLineMessage::resultTransactionConflict() const {
-
+// todo: refactor me
+MessageResult::SharedConst RejectTrustLineMessage::resultTransactionConflict() const
+    throw (bad_alloc)
+{
     return MessageResult::SharedConst(
         new MessageResult(
-            mSenderUUID,
+            senderUUID,
             mTransactionUUID,
             kResultCodeTransactionConflict)
     );

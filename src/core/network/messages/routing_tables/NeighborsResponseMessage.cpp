@@ -46,7 +46,8 @@ const Message::MessageType NeighborsResponseMessage::typeID () const
     return Message::RoutingTables_NeighborsResponse;
 }
 
-std::vector &NeighborsResponseMessage::neighbors () const
+const std::vector<NodeUUID> &NeighborsResponseMessage::neighbors () const
+    noexcept
 {
     return mNeighbors;
 }
@@ -64,7 +65,7 @@ void NeighborsResponseMessage::appendNeighbor (
 }
 
 pair<BytesShared, size_t> NeighborsResponseMessage::serializeToBytes () const
-    noexcept
+    throw (bad_alloc)
 {
     BytesSerializer serializer;
 

@@ -62,12 +62,12 @@ protected:
     void writeRecordToThirdLevel (
         const NodeUUID &source,
         const NodeUUID &destination)
-        noexcept;
+        throw (IOError);
 
     void sendMessageAndPreventRecursion(
         const NodeUUID &addressee,
         const Message::Shared message)
-        throw (IOError);
+        noexcept;
 
 protected:
     /*

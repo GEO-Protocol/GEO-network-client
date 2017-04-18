@@ -30,11 +30,9 @@
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 
 #include "../../network/messages/Message.hpp"
-#include "../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
-#include "../../network/messages/incoming/trust_lines/RejectTrustLineMessage.h"
-#include "../../network/messages/incoming/trust_lines/UpdateTrustLineMessage.h"
-#include "../../network/messages/incoming/routing_tables/FirstLevelRoutingTableIncomingMessage.h"
-#include "../../network/messages/incoming/routing_tables/SecondLevelRoutingTableIncomingMessage.h"
+#include "../../network/messages/trust_lines/AcceptTrustLineMessage.h"
+#include "../../network/messages/trust_lines/RejectTrustLineMessage.h"
+#include "../../network/messages/trust_lines/UpdateTrustLineMessage.h"
 #include "../../network/messages/response/Response.h"
 
 #include "../../resources/manager/ResourcesManager.h"
@@ -54,12 +52,6 @@
 #include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
-#include "../transactions/unique/routing_tables/propagate/FromInitiatorToContractorRoutingTablesPropagationTransaction.h"
-#include "../transactions/unique/routing_tables/accept/FromInitiatorToContractorRoutingTablesAcceptTransaction.h"
-#include "../transactions/unique/routing_tables/accept/FromContractorToFirstLevelRoutingTablesAcceptTransaction.h"
-#include "../transactions/unique/routing_tables/accept/FromFirstLevelToSecondLevelRoutingTablesAcceptTransaction.h"
-#include "../transactions/unique/routing_tables/update/RoutingTablesUpdateTransactionsFactory.h"
-#include "../transactions/unique/routing_tables/update/AcceptRoutingTablesUpdatesTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -148,6 +140,10 @@ public:
     void attachResourceToTransaction(
         BaseResource::Shared resource);
 
+    void launchPathsResourcesCollectTransaction(
+        const TransactionUUID &requestedTransactionUUID,
+        const NodeUUID &destinationNodeUUID);
+
 private:
     // Transactions from storage
     void loadTransactions();
@@ -228,7 +224,6 @@ private:
         RequestRoutingTablesMessage::Shared message);
 
     void launchCloseCycleTransaction(shared_ptr<vector<NodeUUID>>);
-
 
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(

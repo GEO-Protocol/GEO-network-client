@@ -5,6 +5,7 @@
 
 #include "../../../io/storage/RoutingTableHandler.h"
 #include "../../../network/messages/routing_tables/NeighborsRequestMessage.h"
+#include "../../../network/messages/routing_tables/NeighborsResponseMessage.h"
 
 
 /**

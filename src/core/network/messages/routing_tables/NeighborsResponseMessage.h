@@ -31,7 +31,7 @@ public:
     const MessageType typeID() const
         noexcept;
 
-    std::vector& neighbors() const
+    const std::vector<NodeUUID>& neighbors() const
         noexcept;
 
     void appendNeighbor(
@@ -39,7 +39,7 @@ public:
         throw (bad_alloc, OverflowError);
 
     pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc &);
+        throw (bad_alloc);
 
 protected:
     std::vector<NodeUUID> mNeighbors;

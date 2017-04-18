@@ -1,23 +1,28 @@
-﻿#include "OpenTrustLineMessage.h"
+﻿#include "SetTrustLineMessage.h"
 
-OpenTrustLineMessage::OpenTrustLineMessage(
+
+SetTrustLineMessage::SetTrustLineMessage(
     const NodeUUID &sender,
     const TransactionUUID &transactionUUID,
-    const TrustLineAmount &amount) :
+    const TrustLineAmount &newAmount)
+    noexcept :
 
-    TrustLinesMessage(
+    TransactionMessage(
         sender,
-        transactionUUID
-    ),
-    mTrustLineAmount(amount) {}
+        transactionUUID),
+    mNewTrustLineAmount(newAmount)
+{}
 
-const Message::MessageType OpenTrustLineMessage::typeID() const {
-
-    return Message::MessageTypeID::OpenTrustLineMessageType;
+const Message::MessageType SetTrustLineMessage::typeID() const
+    noexcept
+{
+    return Message::MessageType::TrustLines_Set;
 }
 
-pair<BytesShared, size_t> OpenTrustLineMessage::serializeToBytes() {
-
+// todo: refactor me
+pair<BytesShared, size_t> SetTrustLineMessage::serializeToBytes() const
+    throw (bad_alloc)
+{
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
@@ -33,7 +38,7 @@ pair<BytesShared, size_t> OpenTrustLineMessage::serializeToBytes() {
     );
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
-    vector<byte> buffer = trustLineAmountToBytes(mTrustLineAmount);
+    vector<byte> buffer = trustLineAmountToBytes(mNewTrustLineAmount);
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         buffer.data(),
@@ -44,11 +49,4 @@ pair<BytesShared, size_t> OpenTrustLineMessage::serializeToBytes() {
         dataBytesShared,
         bytesCount
     );
-}
-
-void OpenTrustLineMessage::deserializeFromBytes(
-    BytesShared buffer) {
-
-    throw NotImplementedError("OpenTrustLineMessage::deserializeFromBytes: "
-                                  "Method not implemented.");
 }

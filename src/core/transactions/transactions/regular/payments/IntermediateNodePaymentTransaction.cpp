@@ -66,7 +66,7 @@ pair<BytesShared, size_t> IntermediateNodePaymentTransaction::serializeToBytes()
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNeighborRequestProcessingStage()
 {
-    const auto kNeighbor = mMessage->senderUUID();
+    const auto kNeighbor = mMessage->senderUUID;
     info() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
     info() << "Requested amount reservation: " << mMessage->amount();
 
@@ -80,7 +80,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
-            UUID(),
+            currentTransactionUUID(),
             ResponseMessage::Rejected);
         return reject("No incoming amount reservation is possible. Rolled back.");
     }
@@ -90,7 +90,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
         currentNodeUUID(),
-        UUID(),
+        currentTransactionUUID(),
         ResponseMessage::Accepted);
 
 
@@ -114,7 +114,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
     const auto kNextNode = kMessage->nextNodeInPathUUID();
-    mCoordinator = kMessage->senderUUID();
+    mCoordinator = kMessage->senderUUID;
 
 
 
@@ -128,7 +128,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
-            UUID(),
+            currentTransactionUUID(),
             ResponseMessage::Rejected);
 
         return reject("No amount reservation is possible. Rolled back.");
@@ -139,7 +139,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kNextNode,
         currentNodeUUID(),
-        UUID(),
+        currentTransactionUUID(),
         reservationAmount);
 
     clearContext();
@@ -156,14 +156,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
-    const auto kContractor = kMessage->senderUUID();
+    const auto kContractor = kMessage->senderUUID;
 
 
     if (kMessage->state() == IntermediateNodeReservationResponseMessage::Rejected){
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
-            UUID(),
+            currentTransactionUUID(),
             ResponseMessage::Rejected);
         return reject("Amount reservation rejected by the neighbor node. Rolled back.");
     }
@@ -173,7 +173,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     sendMessage<CoordinatorReservationResponseMessage>(
         mCoordinator,
         currentNodeUUID(),
-        UUID(),
+        currentTransactionUUID(),
         ResponseMessage::Accepted,
         mLastReservedAmount);
 
@@ -206,7 +206,7 @@ void IntermediateNodePaymentTransaction::deserializeFromBytes(
 const string IntermediateNodePaymentTransaction::logHeader() const
 {
     stringstream s;
-    s << "[IntermediateNodePaymentTA: " << UUID().stringUUID() << "] ";
+    s << "[IntermediateNodePaymentTA: " << currentTransactionUUID().stringUUID() << "] ";
 
     return s.str();
 }

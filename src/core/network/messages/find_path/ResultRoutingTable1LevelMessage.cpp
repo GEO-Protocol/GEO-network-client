@@ -12,13 +12,30 @@ ResultRoutingTable1LevelMessage::ResultRoutingTable1LevelMessage(
     mRT1(rt1) {}
 
 ResultRoutingTable1LevelMessage::ResultRoutingTable1LevelMessage(
-    BytesShared buffer) {
+    BytesShared buffer):
 
-    deserializeFromBytes(buffer);
+    TransactionMessage(buffer)
+{
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    //----------------------------------------------------
+    RecordCount *rt1Count = new (buffer.get() + bytesBufferOffset) RecordCount;
+    bytesBufferOffset += sizeof(RecordCount);
+    //-----------------------------------------------------
+    mRT1.clear();
+    mRT1.reserve(*rt1Count);
+    for (RecordNumber idx = 0; idx < *rt1Count; idx++) {
+        vector<byte> nodeUUIDBufferByte(
+            buffer.get() + bytesBufferOffset,
+            buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
+        NodeUUID nodeUUID(nodeUUIDBufferByte.data());
+        bytesBufferOffset += NodeUUID::kBytesSize;
+        //---------------------------------------------------
+        mRT1.push_back(nodeUUID);
+    }
 }
 
 const Message::MessageType ResultRoutingTable1LevelMessage::typeID() const {
-    return Message::MessageTypeID::ResultRoutingTable1LevelMessageType;
+    return Message::MessageType::Paths_ResultRoutingTableFirstLevel;
 }
 
 vector<NodeUUID>& ResultRoutingTable1LevelMessage::rt1() {
@@ -64,32 +81,4 @@ pair<BytesShared, size_t> ResultRoutingTable1LevelMessage::serializeToBytes() {
     return make_pair(
         dataBytesShared,
         bytesCount);
-}
-
-void ResultRoutingTable1LevelMessage::deserializeFromBytes(
-    BytesShared buffer){
-
-    /*cout << "ResultRoutingTable1LevelMessage::deserializeFromBytes start deserializing" << endl;
-    DateTime startTime = utc_now();*/
-    TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    RecordCount *rt1Count = new (buffer.get() + bytesBufferOffset) RecordCount;
-    bytesBufferOffset += sizeof(RecordCount);
-    //-----------------------------------------------------
-    mRT1.clear();
-    mRT1.reserve(*rt1Count);
-    for (RecordNumber idx = 0; idx < *rt1Count; idx++) {
-        vector<byte> nodeUUIDBufferByte(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
-        NodeUUID nodeUUID(nodeUUIDBufferByte.data());
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        //---------------------------------------------------
-        mRT1.push_back(nodeUUID);
-    }
-    //-----------------------------------------------------
-    /*cout << "ResultRoutingTablesMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
-    Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTablesMessage::deserializeFromBytes time: " << methodTime << endl;*/
 }

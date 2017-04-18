@@ -27,7 +27,9 @@ protected:
     };
 
 
-    class DelayedRecord {
+    class DelayedRecord:
+        public BaseSerializationRecord {
+
     public:
         DelayedRecord(
             const void *src,
@@ -42,7 +44,9 @@ protected:
     };
 
 
-    class InlineRecord {
+    class InlineRecord:
+        public BaseSerializationRecord {
+
     public:
         InlineRecord(
             BytesShared bytes,
@@ -57,12 +61,15 @@ protected:
     };
 
     template <typename T>
-    class OptimizedPrimitiveTypeInlineRecord {
+    class OptimizedPrimitiveTypeInlineRecord:
+        public BaseSerializationRecord {
+
     public:
         OptimizedPrimitiveTypeInlineRecord(
             T value)
             noexcept :
 
+            BaseSerializationRecord(sizeof(value)),
             mValue(value) {}
 
         virtual void* pointer() const
@@ -102,6 +109,10 @@ public:
         throw (bad_alloc &);
 
     void enqueue (
+        const uint32_t value)
+        throw (bad_alloc &);
+
+    void enqueue (
         const size_t value)
         throw (bad_alloc &);
 
@@ -117,6 +128,10 @@ public:
         const NodeUUID &nodeUUID)
         throw (bad_alloc &);
 
+    void enqueue (
+        BytesSerializer &otherContainer)
+        throw (bad_alloc &);
+
     void copy (
         const void *src,
         const size_t bytesCount)
@@ -124,10 +139,6 @@ public:
 
     void copy (
         vector<byte> &bytes)
-        throw (bad_alloc &);
-
-    void enqueue (
-        BytesSerializer &otherContainer)
         throw (bad_alloc &);
 
     const pair<BytesShared, size_t> collect() const

@@ -2,9 +2,9 @@
 #define REQUESTMESSAGE_H
 
 
-#include "../../../base/transaction/TransactionMessage.h"
+#include "../../base/transaction/TransactionMessage.h"
 
-#include "../../../../../common/multiprecision/MultiprecisionUtils.h"
+#include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
 
 class RequestMessage:
@@ -24,7 +24,8 @@ public:
 protected:
     pair<BytesShared, size_t> serializeToBytes();
 
-    const size_t kOffsetToInheritedBytes();
+    const size_t kOffsetToInheritedBytes() const
+        noexcept;
 
     void deserializeFromBytes(
         BytesShared buffer);

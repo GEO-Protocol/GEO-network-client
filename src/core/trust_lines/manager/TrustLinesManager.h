@@ -1,9 +1,9 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 #define GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 
-#include "../../common/Types.h"
-
 #include "../TrustLine.h"
+
+#include "../../common/Types.h"
 #include "../../payments/amount_blocks/AmountReservationsHandler.h"
 
 #include "../../common/exceptions/IOError.h"
@@ -16,8 +16,9 @@
 #include "../../io/storage/StorageHandler.h"
 
 #include <boost/signals2.hpp>
+#include <boost/functional/hash.hpp>
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <malloc.h>
 
@@ -35,16 +36,16 @@ public:
     TrustLinesManager(
         StorageHandler *storageHandler,
         Logger *logger)
-        throw (bad_alloc);
-
-    void loadTrustLines();
+        throw (bad_alloc, IOError);
 
     void open(
         const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount);
+        const TrustLineAmount &amount)
+        throw (ConflictError, IOError);
 
     void close(
-        const NodeUUID &contractorUUID);
+        const NodeUUID &contractorUUID)
+        throw (NotFoundError, PreconditionFailedError, IOError);
 
     void accept(
         const NodeUUID &contractorUUID,
@@ -117,7 +118,7 @@ public:
     ConstSharedTrustLineAmount totalIncomingAmount()
         const throw (bad_alloc);
 
-    const bool isTrustLineExist(
+    const bool trustLineIsPresent (
         const NodeUUID &contractorUUID) const;
 
     const bool isNeighbor(
@@ -154,13 +155,14 @@ public:
     const TrustLine::ConstShared trustLineReadOnly(
         const NodeUUID &contractorUUID) const;
 
-    // todo: return const shared
-    map<NodeUUID, TrustLine::Shared>& trustLines();
+    unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>>& trustLines();
 
     vector<NodeUUID> getFirstLevelNodesForCycles(
             TrustLineBalance maxFlow);
 
-    void setSomeBalances();
+protected:
+    void loadTrustLinesFromDisk ()
+        throw (IOError);
 
 private:
     static const size_t kTrustAmountPartSize = 32;
@@ -175,12 +177,12 @@ private:
         + kTrustStatePartSize
         + kTrustStatePartSize;
 
-    // Contractor UUID -> trust line to the contractor.
-    map<NodeUUID, TrustLine::Shared> mTrustLines;
 
-    unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
+    unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> mTrustLines;
+
+    unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
     StorageHandler *mStorageHandler;
-    Logger *mlogger;
+    Logger *mLogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H

@@ -2,7 +2,7 @@
 #define RESPONSEMESSAGE_H
 
 
-#include "../../../base/transaction/TransactionMessage.h"
+#include "../../base/transaction/TransactionMessage.h"
 
 
 class ResponseMessage:
@@ -27,12 +27,11 @@ public:
 
 protected:
     typedef byte SerializedOperationState;
-    const size_t kOffsetToInheritedBytes();
+    const size_t kOffsetToInheritedBytes() const
+        noexcept;
 
-protected:
-    pair<BytesShared, size_t> serializeToBytes();
-    void deserializeFromBytes(
-        BytesShared buffer);
+    pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc);
 
 private:
     OperationState mState;

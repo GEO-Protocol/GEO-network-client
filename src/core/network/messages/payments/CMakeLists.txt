@@ -34,8 +34,8 @@ set(SOURCE_FILES
         ParticipantsConfigurationRequestMessage.cpp
         ParticipantsConfigurationRequestMessage.h)
 
-add_library(messages__outgoing__payments ${SOURCE_FILES})
-target_link_libraries(messages__outgoing__payments
+add_library(messages__payments ${SOURCE_FILES})
+target_link_libraries(messages__payments
 
         messages__base__transaction
 
