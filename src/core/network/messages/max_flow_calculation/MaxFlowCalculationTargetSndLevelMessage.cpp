@@ -1,18 +1,20 @@
 #include "MaxFlowCalculationTargetSndLevelMessage.h"
 
-MaxFlowCalculationTargetSndLevelMessage::MaxFlowCalculationTargetSndLevelMessage(
-    const NodeUUID& senderUUID,
-    const NodeUUID& targetUUID) :
-
-    MaxFlowCalculationMessage(senderUUID, targetUUID) {};
 
 MaxFlowCalculationTargetSndLevelMessage::MaxFlowCalculationTargetSndLevelMessage(
-    BytesShared buffer) {
+    const NodeUUID &senderUUID,
+    const NodeUUID &targetUUID) :
 
-    deserializeFromBytes(buffer);
-}
+    MaxFlowCalculationMessage(senderUUID, targetUUID)
+{}
 
-const Message::MessageType MaxFlowCalculationTargetSndLevelMessage::typeID() const {
+MaxFlowCalculationTargetSndLevelMessage::MaxFlowCalculationTargetSndLevelMessage(
+    BytesShared buffer):
 
-    return Message::MessageTypeID::MaxFlowCalculationTargetSndLevelMessageType;
+    MaxFlowCalculationMessage(buffer)
+{}
+
+const Message::MessageType MaxFlowCalculationTargetSndLevelMessage::typeID() const
+{
+    return Message::MessageType::MaxFlow_CalculationTargetSecondLevel;
 }

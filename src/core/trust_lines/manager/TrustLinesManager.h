@@ -1,12 +1,10 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 #define GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H
 
+#include "../TrustLine.h"
 
 #include "../../common/Types.h"
-
-#include "../TrustLine.h"
 #include "../../payments/amount_blocks/AmountReservationsHandler.h"
-#include "../../io/trust_lines/TrustLinesStorage.h"
 
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
@@ -15,41 +13,39 @@
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
 #include "../../logger/Logger.h"
+#include "../../io/storage/StorageHandler.h"
 
 #include <boost/signals2.hpp>
+#include <boost/functional/hash.hpp>
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <malloc.h>
 
-// TODO: remove me
-#include <iostream>
-
 
 using namespace std;
-namespace storage = db::uuid_map_block_storage;
 namespace signals = boost::signals2;
 
 
 class TrustLinesManager {
-    // todo: deprecated; Tests subclass should be used.
-    friend class TrustLinesManagerTests;
-
 public:
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineCreatedSignal;
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineStateModifiedSignal;
 
 public:
-    TrustLinesManager(Logger *logger);
-
-    void loadTrustLines();
+    TrustLinesManager(
+        StorageHandler *storageHandler,
+        Logger *logger)
+        throw (bad_alloc, IOError);
 
     void open(
         const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount);
+        const TrustLineAmount &amount)
+        throw (ConflictError, IOError);
 
     void close(
-        const NodeUUID &contractorUUID);
+        const NodeUUID &contractorUUID)
+        throw (NotFoundError, PreconditionFailedError, IOError);
 
     void accept(
         const NodeUUID &contractorUUID,
@@ -122,7 +118,7 @@ public:
     ConstSharedTrustLineAmount totalIncomingAmount()
         const throw (bad_alloc);
 
-    const bool isTrustLineExist(
+    const bool trustLineIsPresent (
         const NodeUUID &contractorUUID) const;
 
     const bool isNeighbor(
@@ -137,6 +133,12 @@ public:
     vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
 
     vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
+
+    vector<NodeUUID> firstLevelNeighborsWithPositiveBalance() const;
+
+    vector<NodeUUID> firstLevelNeighborsWithNegativeBalance() const;
+
+    vector<NodeUUID> firstLevelNeighborsWithNoneZeroBalance() const;
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
@@ -153,13 +155,14 @@ public:
     const TrustLine::ConstShared trustLineReadOnly(
         const NodeUUID &contractorUUID) const;
 
-    // todo: return const shared
-    map<NodeUUID, TrustLine::Shared>& trustLines();
+    unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>>& trustLines();
 
-    vector<pair<NodeUUID, TrustLineBalance>> getFirstLevelNodesForCycles(
-        TrustLineBalance maxFlow);
+    vector<NodeUUID> getFirstLevelNodesForCycles(
+            TrustLineBalance maxFlow);
 
-    void setSomeBalances();
+protected:
+    void loadTrustLinesFromDisk ()
+        throw (IOError);
 
 private:
     static const size_t kTrustAmountPartSize = 32;
@@ -174,12 +177,12 @@ private:
         + kTrustStatePartSize
         + kTrustStatePartSize;
 
-    // Contractor UUID -> trust line to the contractor.
-    map<NodeUUID, TrustLine::Shared> mTrustLines;
 
-    unique_ptr<TrustLinesStorage> mTrustLinesStorage;
-    unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
-    Logger *mlogger;
+    unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> mTrustLines;
+
+    unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
+    StorageHandler *mStorageHandler;
+    Logger *mLogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H

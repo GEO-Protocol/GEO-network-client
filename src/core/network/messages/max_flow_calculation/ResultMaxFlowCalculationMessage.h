@@ -1,19 +1,19 @@
 #ifndef GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONMESSAGE_H
 #define GEO_NETWORK_CLIENT_RESULTMAXFLOWCALCULATIONMESSAGE_H
 
-#include "../result/MessageResult.h"
 #include "../SenderMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
 #include <vector>
 
-class ResultMaxFlowCalculationMessage : public SenderMessage {
+
+class ResultMaxFlowCalculationMessage:
+    public SenderMessage {
 
 public:
     typedef shared_ptr<ResultMaxFlowCalculationMessage> Shared;
 
 public:
-
     ResultMaxFlowCalculationMessage(
         const NodeUUID& senderUUID,
         vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
@@ -33,17 +33,10 @@ public:
     const bool isMaxFlowCalculationResponseMessage() const;
 
 private:
-
-    void deserializeFromBytes(
-        BytesShared buffer);
-
-private:
-
     typedef uint32_t RecordNumber;
     typedef RecordNumber RecordCount;
 
 private:
-
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> mOutgoingFlows;
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> mIncomingFlows;
 };

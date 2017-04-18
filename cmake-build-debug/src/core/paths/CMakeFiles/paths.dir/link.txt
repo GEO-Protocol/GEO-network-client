@@ -1,0 +1,2 @@
+/usr/bin/ar qc libpaths.a  CMakeFiles/paths.dir/PathsManager.cpp.o
+/usr/bin/ranlib libpaths.a

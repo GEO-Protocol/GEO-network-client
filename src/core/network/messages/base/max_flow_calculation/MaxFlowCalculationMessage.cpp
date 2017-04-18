@@ -1,6 +1,5 @@
 #include "MaxFlowCalculationMessage.h"
 
-MaxFlowCalculationMessage::MaxFlowCalculationMessage() : SenderMessage() {}
 
 MaxFlowCalculationMessage::MaxFlowCalculationMessage(
     const NodeUUID& senderUUID,
@@ -8,7 +7,18 @@ MaxFlowCalculationMessage::MaxFlowCalculationMessage(
 
     SenderMessage(senderUUID),
 
-    mTargetUUID(targetUUID){}
+    mTargetUUID(targetUUID)
+{}
+
+MaxFlowCalculationMessage::MaxFlowCalculationMessage (
+    BytesShared buffer) :
+    SenderMessage(buffer)
+{
+    memcpy(
+        mTargetUUID.data,
+        buffer.get() + SenderMessage::kOffsetToInheritedBytes(),
+    NodeUUID::kBytesSize);
+}
 
 const NodeUUID &MaxFlowCalculationMessage::targetUUID() const {
 
@@ -42,7 +52,7 @@ pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() {
 void MaxFlowCalculationMessage::deserializeFromBytes(
     BytesShared buffer) {
 
-    SenderMessage::deserializeFromBytes(buffer);
+//    SenderMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(

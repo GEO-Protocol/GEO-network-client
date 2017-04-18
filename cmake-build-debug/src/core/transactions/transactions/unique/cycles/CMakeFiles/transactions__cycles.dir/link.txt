@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtransactions__cycles.a  CMakeFiles/transactions__cycles.dir/GetTopologyAndBalancesTransaction.cpp.o
+/usr/bin/ranlib libtransactions__cycles.a

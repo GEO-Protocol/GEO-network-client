@@ -27,18 +27,19 @@ public:
     const bool isMaxFlowCalculationResponseMessage() const;
 
 protected:
-    MaxFlowCalculationMessage();
-
     MaxFlowCalculationMessage(
         const NodeUUID &senderUUID,
         const NodeUUID &targetUUID);
+
+    MaxFlowCalculationMessage(
+        BytesShared buffer);
 
     virtual const MessageType typeID() const = 0;
 
     virtual void deserializeFromBytes(
         BytesShared buffer);
 
-    static const size_t kOffsetToInheritedBytes();
+    const size_t kOffsetToInheritedBytes();
 
 protected:
     NodeUUID mTargetUUID;

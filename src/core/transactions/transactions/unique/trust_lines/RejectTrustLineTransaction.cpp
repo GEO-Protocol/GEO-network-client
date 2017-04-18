@@ -34,50 +34,6 @@ RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
     return mMessage;
 }
 
-pair<BytesShared, size_t> RejectTrustLineTransaction::serializeToBytes() const{
-
-    auto parentBytesAndCount = TrustLineTransaction::serializeToBytes();
-    auto messageBytesAndCount = mMessage->serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second
-                        + messageBytesAndCount.second;
-
-    BytesShared dataBytesShared = tryMalloc(
-        bytesCount);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + parentBytesAndCount.second,
-        messageBytesAndCount.first.get(),
-        messageBytesAndCount.second);
-    //-----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
-}
-
-void RejectTrustLineTransaction::deserializeFromBytes(
-    BytesShared buffer) {
-
-    TrustLineTransaction::deserializeFromBytes(
-        buffer);
-
-    BytesShared messageBufferShared = tryMalloc(
-        RejectTrustLineMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    memcpy(
-        messageBufferShared.get(),
-        buffer.get() + TrustLineTransaction::kOffsetToDataBytes(),
-        RejectTrustLineMessage::kRequestedBufferSize());
-    //-----------------------------------------------------
-    mMessage = make_shared<RejectTrustLineMessage>(
-        messageBufferShared);
-}
-
 TransactionResult::SharedConst RejectTrustLineTransaction::run() {
 
     try {
@@ -164,7 +120,7 @@ void RejectTrustLineTransaction::logRejectingTrustLineOperation() {
     Record::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Rejecting,
-        mMessage->senderUUID());
+        mMessage->senderUUID);
 
     mOperationsHistoryStorage->addRecord(
         record);
@@ -179,7 +135,7 @@ void RejectTrustLineTransaction::sendResponseCodeToContractor(
     const uint16_t code) {
 
     sendMessage<Response>(
-        mMessage->senderUUID(),
+        mMessage->senderUUID,
         mNodeUUID,
         mMessage->transactionUUID(),
         code);

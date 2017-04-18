@@ -1,21 +1,28 @@
 #include "TrustLineHandler.h"
 
 TrustLineHandler::TrustLineHandler(
-    sqlite3 *db,
+    const string &dataBasePath,
     const string &tableName,
     Logger *logger) :
 
-    mDataBase(db),
     mTableName(tableName),
     mLog(logger),
     isTransactionBegin(false) {
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    if (rc == SQLITE_OK) {
+    } else {
+        throw IOError("TrustLineHandler::connection "
+                          "Can't open database " + dataBasePath);
+    }
 
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    "(contractor BLOB NOT NULL, "
                    "incoming_amount BLOB NOT NULL, "
                    "outgoing_amount BLOB NOT NULL, "
                    "balance BLOB NOT NULL);";
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::creating table: " + mTableName +
                       " : Bad query");
@@ -54,6 +61,7 @@ void TrustLineHandler::insert(
 
     string query = "INSERT INTO " + mTableName +
                    "(contractor, incoming_amount, outgoing_amount, balance) VALUES (?, ?, ?, ?);";
+    sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::insert: "
@@ -88,6 +96,8 @@ void TrustLineHandler::insert(
     }
 
     rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "prepare inserting is completed successfully";
@@ -97,31 +107,40 @@ void TrustLineHandler::insert(
     }
 }
 
-void TrustLineHandler::commit() {
+bool TrustLineHandler::commit() {
 
     if (!isTransactionBegin) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         error() << "call commit, but trunsaction wasn't started";
 #endif
-        return;
+        return true;
     }
 
-    string query = "END TRANSACTION;";
+    string query = "COMMIT TRANSACTION;";
+    sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
+        info() << "commit query error: " << rc;
         throw IOError("TrustLineHandler::commit: Bad query");
     }
     rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "transaction commit";
 #endif
+        isTransactionBegin = false;
+        return true;
+    } else if (rc == SQLITE_BUSY) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "database busy";
+#endif
+        return false;
     } else {
+        info() << "commit error: " << rc;
         throw IOError("TrustLineHandler::commit: Run query");
     }
-
-    sqlite3_reset(stmt);
-    isTransactionBegin = false;
 }
 
 void TrustLineHandler::rollBack() {
@@ -133,13 +152,15 @@ void TrustLineHandler::rollBack() {
         return;
     }
 
-    sqlite3_finalize(stmt);
-    string query = "ROLLBACK;";
+    string query = "ROLLBACK TRANSACTION;";
+    sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::rollback: Bad query");
     }
     rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "rollBack done";
@@ -148,7 +169,6 @@ void TrustLineHandler::rollBack() {
         throw IOError("TrustLineHandler::rollback: Run query");
     }
 
-    sqlite3_reset(stmt);
     isTransactionBegin = false;
 }
 
@@ -161,13 +181,15 @@ void TrustLineHandler::prepareInserted() {
         return;
     }
 
-    sqlite3_finalize(stmt);
     string query = "BEGIN TRANSACTION;";
+    sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::prepareInserted: Bad query");
     }
     rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "transaction begin";
@@ -178,15 +200,18 @@ void TrustLineHandler::prepareInserted() {
     isTransactionBegin = true;
 }
 
-vector<TrustLine::Shared> TrustLineHandler::trustLines() {
+vector<TrustLine::Shared> TrustLineHandler::allTrustLines () {
 
     string queryCount = "SELECT count(*) FROM " + mTableName;
+    sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, queryCount.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::trustLines: Bad count query");
     }
     sqlite3_step(stmt);
     uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
     vector<TrustLine::Shared> result;
     result.reserve(rowCount);
 
@@ -216,14 +241,21 @@ vector<TrustLine::Shared> TrustLineHandler::trustLines() {
                 balanceBytes + kTrustLineBalanceSerializeBytesCount);
         TrustLineBalance balance = bytesToTrustLineBalance(balanceBufferBytes);
 
-        result.push_back(
-            make_shared<TrustLine>(
-                contractor,
-                incomingAmount,
-                outgoingAmount,
-                balance));
+        try {
+            result.push_back(
+                make_shared<TrustLine>(
+                    contractor,
+                    incomingAmount,
+                    outgoingAmount,
+                    balance));
+        } catch (...) {
+            throw Exception("TrustLinesManager::loadTrustLine. "
+                                "Unable to create trust line instance from DB.");
+        }
+
     }
     sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
     return result;
 }
 
@@ -235,6 +267,7 @@ void TrustLineHandler::deleteTrustLine(
     }
 
     string query = "DELETE FROM " + mTableName + " WHERE contractor = ?";
+    sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::deleteTrustLine: Bad query");
@@ -247,6 +280,8 @@ void TrustLineHandler::deleteTrustLine(
     }
 
     rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "deleting is completed successfully";
@@ -265,6 +300,7 @@ void TrustLineHandler::update(TrustLine::Shared trustLine) {
     string query = "UPDATE " + mTableName +
         " SET incoming_amount = ?, outgoing_amount = ?, balance = ? " +
         "WHERE contractor = ?";
+    sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::update: Bad query");
@@ -298,6 +334,8 @@ void TrustLineHandler::update(TrustLine::Shared trustLine) {
     }
 
     rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "updating is completed successfully";
@@ -311,6 +349,7 @@ bool TrustLineHandler::containsContractor(
     const NodeUUID &contractorUUID) {
 
     string query = "SELECT contractor FROM " + mTableName + " WHERE contractor = ?";
+    sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::containsContractor: Bad query");
@@ -333,6 +372,7 @@ void TrustLineHandler::saveTrustLine(
 
     string query = "INSERT OR REPLACE INTO " + mTableName +
                    "(contractor, incoming_amount, outgoing_amount, balance) VALUES (?, ?, ?, ?);";
+    sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::insert or replace: "
@@ -367,6 +407,8 @@ void TrustLineHandler::saveTrustLine(
     }
 
     rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "prepare inserting or replacing is completed successfully";
@@ -374,6 +416,11 @@ void TrustLineHandler::saveTrustLine(
     } else {
         throw IOError("TrustLineHandler::insert or replace: Run query");
     }
+}
+
+void TrustLineHandler::closeConnection() {
+
+    sqlite3_close_v2(mDataBase);
 }
 
 LoggerStream TrustLineHandler::info() const {

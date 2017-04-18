@@ -102,6 +102,8 @@ private:
     void testTrustLineHandler();
     void testPaymentStateOperationsHandler();
     void testTime();
+    void testMultiConnection();
+    void printRTs();
 
 private:
 

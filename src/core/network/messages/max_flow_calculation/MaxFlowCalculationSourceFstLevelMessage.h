@@ -3,21 +3,17 @@
 
 #include "../SenderMessage.h"
 
-class MaxFlowCalculationSourceFstLevelMessage : public SenderMessage {
+
+class MaxFlowCalculationSourceFstLevelMessage:
+    public SenderMessage {
 
 public:
     typedef shared_ptr<MaxFlowCalculationSourceFstLevelMessage> Shared;
 
 public:
-
-    MaxFlowCalculationSourceFstLevelMessage(
-        const NodeUUID& senderUUID);
-
-    MaxFlowCalculationSourceFstLevelMessage(
-        BytesShared buffer);
+    using SenderMessage::SenderMessage;
 
     const MessageType typeID() const;
-
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCEFSTLEVELMESSAGE_H

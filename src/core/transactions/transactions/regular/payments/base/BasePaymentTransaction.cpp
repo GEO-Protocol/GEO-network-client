@@ -64,7 +64,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         return reject("No participants votes received. Canceling.");
 
 
-    const auto kCurrentNodeUUID = nodeUUID();
+    const auto kCurrentNodeUUID = currentNodeUUID();
     auto message = popNextMessage<ParticipantsVotesMessage>();
     info() << "Votes message received";
 
@@ -107,7 +107,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     sendMessage<ParticipantsConfigurationRequestMessage>(
         message->coordinatorUUID(),
         kCurrentNodeUUID,
-        UUID());
+        currentTransactionUUID());
 
     info() << "Final payment paths configuration requested from the coordinator.";
 
@@ -130,7 +130,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
         return reject("No final paths configuration was received from the coordinator. Rejected.");
 
 
-    const auto kCurrentNodeUUID = nodeUUID();
+    const auto kCurrentNodeUUID = currentNodeUUID();
     const auto kMessage = popNextMessage<ParticipantsConfigurationMessage>();
 
     // TODO: check if message was really received from the coordinator;
@@ -233,7 +233,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     // Checking if no one node has been deleted current nodes sign.
     // (Message modification protection)
     // ToDo: [mvp+] add cryptographic mechanism to prevent removing of votes.
-    if (nodeUUID() != kMessage->coordinatorUUID())
+    if (currentNodeUUID() != kMessage->coordinatorUUID())
         if (!positiveVoteIsPresent(kMessage)){
             // Note: there is no correct way to exit from the transaction
             // in case if some one removed the vote from the message.
@@ -273,7 +273,7 @@ const bool BasePaymentTransaction::reserveOutgoingAmount(
     try {
         const auto kReservation = mTrustLines->reserveAmount(
             neighborNode,
-            UUID(),
+            currentTransactionUUID(),
             amount);
 
 #ifdef DEBUG
@@ -295,7 +295,7 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
     try {
         const auto kReservation = mTrustLines->reserveIncomingAmount(
             neighborNode,
-            UUID(),
+            currentTransactionUUID(),
             amount);
 
 #ifdef DEBUG
@@ -311,7 +311,7 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
 }
 
 const bool BasePaymentTransaction::contextIsValid(
-    Message::MessageTypeID messageType) const
+    Message::MessageType messageType) const
 {
     if (mContext.empty())
         return false;
@@ -345,14 +345,14 @@ TransactionResult::SharedConst BasePaymentTransaction::reject(
     // Participants votes may not be received,
     // if transaction doesn't achieved votes processing state yet.
     if (mParticipantsVotesMessage != nullptr) {
-        mParticipantsVotesMessage->reject(nodeUUID());
+        mParticipantsVotesMessage->reject(currentNodeUUID());
         propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
     }
 
     rollBack();
     info() << "Transaction succesfully rolled back.";
 
-    return resultExit();
+    return resultDone();
 }
 
 /*
@@ -370,7 +370,7 @@ TransactionResult::SharedConst BasePaymentTransaction::approve()
     info() << "Transaction approved. Committing.";
 
     commit();
-    return resultExit();
+    return resultDone();
 }
 
 void BasePaymentTransaction::commit ()
@@ -418,7 +418,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
         info() << message;
 
     // TODO: implement me;
-    return resultExit();
+    return resultDone();
 }
 
 uint32_t BasePaymentTransaction::maxNetworkDelay (
@@ -448,7 +448,7 @@ const bool BasePaymentTransaction::positiveVoteIsPresent (
     // ToDo: add cryptographic mechanism to prevent removing of votes.
 
     try {
-        const auto kCurrentNodeVote = kMessage->vote(nodeUUID());
+        const auto kCurrentNodeVote = kMessage->vote(currentNodeUUID());
         if (kCurrentNodeVote == ParticipantsVotesMessage::Approved)
             return true;
 
@@ -460,7 +460,7 @@ const bool BasePaymentTransaction::positiveVoteIsPresent (
 void BasePaymentTransaction::propagateVotesMessageToAllParticipants (
     const ParticipantsVotesMessage::Shared kMessage) const
 {
-    const auto kCurrentNodeUUID = nodeUUID();
+    const auto kCurrentNodeUUID = currentNodeUUID();
 
     auto participant = kMessage->firstParticipant();
     if (participant != kCurrentNodeUUID)

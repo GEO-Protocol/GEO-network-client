@@ -1,6 +1,7 @@
 .idea/*
 uuid2address/
 bin/
+cmake-build-debug/
 
 *.cmake
 *.a

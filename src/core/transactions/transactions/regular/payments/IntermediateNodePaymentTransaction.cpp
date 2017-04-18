@@ -66,7 +66,7 @@ pair<BytesShared, size_t> IntermediateNodePaymentTransaction::serializeToBytes()
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNeighborRequestProcessingStage()
 {
-    const auto kNeighbor = mMessage->senderUUID();
+    const auto kNeighbor = mMessage->senderUUID;
     info() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
     info() << "Requested amount reservation: " << mMessage->amount();
 
@@ -79,8 +79,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
-            nodeUUID(),
-            UUID(),
+            currentNodeUUID(),
+            currentTransactionUUID(),
             ResponseMessage::Rejected);
         return reject("No incoming amount reservation is possible. Rolled back.");
     }
@@ -89,8 +89,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     mLastReservedAmount = kReservationAmount;
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
-        nodeUUID(),
-        UUID(),
+        currentNodeUUID(),
+        currentTransactionUUID(),
         ResponseMessage::Accepted);
 
 
@@ -114,7 +114,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
     const auto kNextNode = kMessage->nextNodeInPathUUID();
-    mCoordinator = kMessage->senderUUID();
+    mCoordinator = kMessage->senderUUID;
 
 
 
@@ -127,8 +127,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount)) {
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
-            nodeUUID(),
-            UUID(),
+            currentNodeUUID(),
+            currentTransactionUUID(),
             ResponseMessage::Rejected);
 
         return reject("No amount reservation is possible. Rolled back.");
@@ -138,8 +138,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     mLastReservedAmount = reservationAmount;
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kNextNode,
-        nodeUUID(),
-        UUID(),
+        currentNodeUUID(),
+        currentTransactionUUID(),
         reservationAmount);
 
     clearContext();
@@ -156,14 +156,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
-    const auto kContractor = kMessage->senderUUID();
+    const auto kContractor = kMessage->senderUUID;
 
 
     if (kMessage->state() == IntermediateNodeReservationResponseMessage::Rejected){
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
-            nodeUUID(),
-            UUID(),
+            currentNodeUUID(),
+            currentTransactionUUID(),
             ResponseMessage::Rejected);
         return reject("Amount reservation rejected by the neighbor node. Rolled back.");
     }
@@ -172,8 +172,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     info() << "(" << kContractor << ") accepted amount reservation.";
     sendMessage<CoordinatorReservationResponseMessage>(
         mCoordinator,
-        nodeUUID(),
-        UUID(),
+        currentNodeUUID(),
+        currentTransactionUUID(),
         ResponseMessage::Accepted,
         mLastReservedAmount);
 
@@ -206,7 +206,7 @@ void IntermediateNodePaymentTransaction::deserializeFromBytes(
 const string IntermediateNodePaymentTransaction::logHeader() const
 {
     stringstream s;
-    s << "[IntermediateNodePaymentTA: " << UUID().stringUUID() << "] ";
+    s << "[IntermediateNodePaymentTA: " << currentTransactionUUID().stringUUID() << "] ";
 
     return s.str();
 }

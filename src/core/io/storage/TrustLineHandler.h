@@ -17,20 +17,22 @@ class TrustLineHandler {
 public:
 
     TrustLineHandler(
-        sqlite3 *db,
+        const string &dataBasePath,
         const string &tableName,
         Logger *logger);
 
-    void commit();
+    bool commit();
 
     void rollBack();
 
     void saveTrustLine(
         TrustLine::Shared trustLine);
 
-    vector<TrustLine::Shared> trustLines();
+    vector<TrustLine::Shared> allTrustLines ();
 
     void deleteTrustLine(const NodeUUID &contractorUUID);
+
+    void closeConnection();
 
 private:
 
@@ -53,7 +55,6 @@ private:
 
     sqlite3 *mDataBase;
     string mTableName;
-    sqlite3_stmt *stmt;
     Logger *mLog;
     bool isTransactionBegin;
 

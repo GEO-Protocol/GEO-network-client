@@ -23,6 +23,7 @@ MaxFlowCalculationCache::Shared MaxFlowCalculationCacheManager::cacheByNode(
 }
 
 void MaxFlowCalculationCacheManager::updateCaches() {
+
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "updateCaches\t" << "mCaches size: " << mCaches.size();
     info() << "updateCaches\t" << "msCaches size: " << msCache.size();
@@ -51,8 +52,14 @@ void MaxFlowCalculationCacheManager::updateCaches() {
 }
 
 void MaxFlowCalculationCacheManager::setInitiatorCache() {
+
     mInitiatorCache.first = true;
     mInitiatorCache.second = utc_now();
+}
+
+void MaxFlowCalculationCacheManager::resetInititorCache() {
+
+    mInitiatorCache.first = false;
 }
 
 bool MaxFlowCalculationCacheManager::isInitiatorCached() {

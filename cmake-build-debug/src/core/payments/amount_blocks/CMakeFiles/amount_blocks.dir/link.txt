@@ -1,0 +1,2 @@
+/usr/bin/ar qc libamount_blocks.a  CMakeFiles/amount_blocks.dir/AmountReservation.cpp.o CMakeFiles/amount_blocks.dir/AmountReservationsHandler.cpp.o
+/usr/bin/ranlib libamount_blocks.a

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libnetwork.a  CMakeFiles/network.dir/communicator/Communicator.cpp.o CMakeFiles/network.dir/service/UUID2Address.cpp.o CMakeFiles/network.dir/internal/IncomingMessagesHandler.cpp.o CMakeFiles/network.dir/internal/OutgoingMessagesHandler.cpp.o CMakeFiles/network.dir/channels/packet/PacketHeader.cpp.o CMakeFiles/network.dir/channels/packet/Packet.cpp.o CMakeFiles/network.dir/channels/channel/Channel.cpp.o CMakeFiles/network.dir/channels/manager/ChannelsManager.cpp.o
+/usr/bin/ranlib libnetwork.a

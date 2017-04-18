@@ -21,7 +21,7 @@ FindPathTransaction::FindPathTransaction(
 
 TransactionResult::SharedConst FindPathTransaction::run() {
 
-    info() << "run\t" << UUID() << " I am " << mNodeUUID;
+    info() << "run\t" << currentTransactionUUID() << " I am " << mNodeUUID;
 
     if (!mContext.empty()) {
         return checkTransactionContext();
@@ -67,30 +67,30 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
     for (auto itResponseMessage = mContext.begin(); itResponseMessage != mContext.end(); ++itResponseMessage) {
 
         auto responseMessage = *itResponseMessage;
-        if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTable1LevelMessageType) {
+        if (responseMessage->typeID() == Message::MessageType::Paths_ResultRoutingTableFirstLevel) {
             ResultRoutingTable1LevelMessage::Shared response = static_pointer_cast<ResultRoutingTable1LevelMessage>(
                 responseMessage);
 
             mRT1 = response->rt1();
-            //info() << "receive RT1, size: " << mRT1.size();
+            info() << "receive RT1, size: " << mRT1.size();
             isReceiveContractorRT1 = true;
         }
 
-        if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTable2LevelMessageType) {
+        if (responseMessage->typeID() == Message::MessageType::Paths_ResultRoutingTableSecondLevel) {
             ResultRoutingTable2LevelMessage::Shared response = static_pointer_cast<ResultRoutingTable2LevelMessage>(
                 responseMessage);
 
             mRT2.insert(response->rt2().begin(), response->rt2().end());
-            //info() << "receive RT2, size: " << mRT2.size();
+            info() << "receive RT2, size: " << mRT2.size();
             isReceiveContractorRT1 = true;
         }
 
-        if (responseMessage->typeID() == Message::MessageTypeID::ResultRoutingTable3LevelMessageType) {
+        if (responseMessage->typeID() == Message::MessageType::Paths_ResultRoutingTableThirdLevel) {
             ResultRoutingTable3LevelMessage::Shared response = static_pointer_cast<ResultRoutingTable3LevelMessage>(
                 responseMessage);
 
             mRT3.insert(response->rt3().begin(), response->rt3().end());
-            //info() << "receive RT3, size: " << mRT3.size();
+            info() << "receive RT3, size: " << mRT3.size();
             isReceiveContractorRT1 = true;
         }
 
@@ -125,7 +125,7 @@ void FindPathTransaction::sendMessageToRemoteNode() {
     sendMessage<RequestRoutingTablesMessage>(
         mContractorUUID,
         mNodeUUID,
-        UUID());
+        currentTransactionUUID());
 }
 
 TransactionResult::SharedConst FindPathTransaction::waitingForResponseState() {
@@ -133,9 +133,9 @@ TransactionResult::SharedConst FindPathTransaction::waitingForResponseState() {
     info() << "waitingForResponseState";
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
-            {Message::MessageTypeID::ResultRoutingTable1LevelMessageType,
-             Message::MessageTypeID::ResultRoutingTable2LevelMessageType,
-             Message::MessageTypeID::ResultRoutingTable3LevelMessageType},
+            {Message::MessageType::Paths_ResultRoutingTableFirstLevel,
+             Message::MessageType::Paths_ResultRoutingTableSecondLevel,
+             Message::MessageType::Paths_ResultRoutingTableThirdLevel},
             kConnectionTimeout));
 }
 

@@ -20,20 +20,22 @@ MaxFlowCalculationTargetFstLevelMessage::Shared MaxFlowCalculationTargetFstLevel
 
 TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run() {
 
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "Iam: " << mNodeUUID;
-    info() << "run\t" << "sender: " << mMessage->senderUUID();
+    info() << "run\t" << "sender: " << mMessage->senderUUID;
     info() << "run\t" << "target: " << mMessage->targetUUID();
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
+#endif
 
     vector<NodeUUID> incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
     for (auto const &nodeUUIDIncomingFlow : incomingFlowUuids) {
-        if (nodeUUIDIncomingFlow == mMessage->senderUUID() || nodeUUIDIncomingFlow == mMessage->targetUUID()) {
+        if (nodeUUIDIncomingFlow == mMessage->senderUUID || nodeUUIDIncomingFlow == mMessage->targetUUID()) {
             continue;
         }
-
+#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
         info() << "sendFirst\t" << nodeUUIDIncomingFlow;
-
+#endif
         sendMessage<MaxFlowCalculationTargetSndLevelMessage>(
                 nodeUUIDIncomingFlow,
                 mNodeUUID,

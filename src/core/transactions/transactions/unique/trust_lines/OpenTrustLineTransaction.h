@@ -13,8 +13,8 @@
 #include "../../../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 
 #include "../../../../network/messages/Message.hpp"
-#include "../../../../network/messages/outgoing/trust_lines/OpenTrustLineMessage.h"
-#include "../../../../network/messages/incoming/trust_lines/AcceptTrustLineMessage.h"
+#include "../../../../network/messages/trust_lines/OpenTrustLineMessage.h"
+#include "../../../../network/messages/trust_lines/AcceptTrustLineMessage.h"
 
 #include "AcceptTrustLineTransaction.h"
 

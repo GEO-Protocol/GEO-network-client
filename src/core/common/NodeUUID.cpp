@@ -79,3 +79,9 @@ bool operator== (const NodeUUID &u1, const NodeUUID &u2) {
     return NodeUUID::compare(u1, u2) == NodeUUID::EQUAL;
 }
 
+const NodeUUID& NodeUUID::empty ()
+{
+    static const NodeUUID kEmpty("00000000-0000-0000-0000-000000000000");
+    return kEmpty;
+}
+

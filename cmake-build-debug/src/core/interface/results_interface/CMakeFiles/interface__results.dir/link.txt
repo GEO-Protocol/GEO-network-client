@@ -1,0 +1,2 @@
+/usr/bin/ar qc libinterface__results.a  CMakeFiles/interface__results.dir/interface/ResultsInterface.cpp.o CMakeFiles/interface__results.dir/result/CommandResult.cpp.o
+/usr/bin/ranlib libinterface__results.a

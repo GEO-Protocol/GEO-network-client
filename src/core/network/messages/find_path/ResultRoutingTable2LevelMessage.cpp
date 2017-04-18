@@ -12,13 +12,38 @@ ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
     mRT2(rt2) {}
 
 ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
-    BytesShared buffer) {
+    BytesShared buffer) :
 
-    deserializeFromBytes(buffer);
+    TransactionMessage(buffer)
+{
+
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    //----------------------------------------------------
+    RecordCount *rt2Count = new (buffer.get() + bytesBufferOffset) RecordCount;
+    bytesBufferOffset += sizeof(RecordCount);
+    //-----------------------------------------------------
+    mRT2.reserve(*rt2Count);
+    for (RecordNumber idx = 0; idx < *rt2Count; idx++) {
+        NodeUUID keyDesitnation(buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += NodeUUID::kBytesSize;
+        //---------------------------------------------------
+        RecordCount *rt2VectCount = new (buffer.get() + bytesBufferOffset) RecordCount;
+        bytesBufferOffset += sizeof(RecordCount);
+        //---------------------------------------------------
+        vector<NodeUUID> valueSources;
+        valueSources.reserve(*rt2VectCount);
+        for (RecordNumber jdx = 0; jdx < *rt2VectCount; jdx++) {
+            NodeUUID source(buffer.get() + bytesBufferOffset);
+            bytesBufferOffset += NodeUUID::kBytesSize;
+            valueSources.push_back(source);
+        }
+        //---------------------------------------------------
+        mRT2.insert(make_pair(keyDesitnation, valueSources));
+    }
 }
 
 const Message::MessageType ResultRoutingTable2LevelMessage::typeID() const {
-    return Message::MessageTypeID::ResultRoutingTable2LevelMessageType;
+    return Message::MessageType::Paths_ResultRoutingTableSecondLevel;
 }
 
 unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& ResultRoutingTable2LevelMessage::rt2() {
@@ -80,40 +105,6 @@ pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() {
         bytesCount);
 }
 
-void ResultRoutingTable2LevelMessage::deserializeFromBytes(
-    BytesShared buffer){
-
-    /*cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes start deserializing" << endl;
-    DateTime startTime = utc_now();*/
-    TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    RecordCount *rt2Count = new (buffer.get() + bytesBufferOffset) RecordCount;
-    bytesBufferOffset += sizeof(RecordCount);
-    //-----------------------------------------------------
-    mRT2.reserve(*rt2Count);
-    for (RecordNumber idx = 0; idx < *rt2Count; idx++) {
-        NodeUUID keyDesitnation(buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        //---------------------------------------------------
-        RecordCount *rt2VectCount = new (buffer.get() + bytesBufferOffset) RecordCount;
-        bytesBufferOffset += sizeof(RecordCount);
-        //---------------------------------------------------
-        vector<NodeUUID> valueSources;
-        valueSources.reserve(*rt2VectCount);
-        for (RecordNumber jdx = 0; jdx < *rt2VectCount; jdx++) {
-            NodeUUID source(buffer.get() + bytesBufferOffset);
-            bytesBufferOffset += NodeUUID::kBytesSize;
-            valueSources.push_back(source);
-        }
-        //---------------------------------------------------
-        mRT2.insert(make_pair(keyDesitnation, valueSources));
-    }
-    //-----------------------------------------------------
-    /*cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
-    Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes time: " << methodTime << endl;*/
-}
 
 size_t ResultRoutingTable2LevelMessage::rt2ByteSize() {
 
