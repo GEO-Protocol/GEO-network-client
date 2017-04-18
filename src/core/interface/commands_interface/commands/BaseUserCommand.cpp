@@ -62,7 +62,7 @@ void BaseUserCommand::deserializeFromBytes(
     //-----------------------------------------------------
 //    const_cast<mCommandUUID>;
     memcpy(
-            const_cast<CommandUUID&>(mCommandUUID).data,
+            const_cast<CommandUUID*>(&mCommandUUID),
             buffer.get(),
             CommandUUID::kBytesSize
     );
