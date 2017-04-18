@@ -14,7 +14,13 @@
 #include <string>
 #include <cstdio>
 #include <vector>
+#ifdef MAC_OS
 #include <stdlib.h>
+#endif
+
+#ifdef LINUX
+#include <malloc.h>
+#endif
 #include <unistd.h>
 
 #include "../../common/exceptions/IOError.h"

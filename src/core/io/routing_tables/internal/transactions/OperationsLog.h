@@ -15,7 +15,13 @@
 
 #include <unistd.h>
 #include <utility>
+#ifdef MAC_OS
 #include <stdlib.h>
+#endif
+
+#ifdef LINUX
+#include <malloc.h>
+#endif
 
 
 namespace io {

@@ -14,7 +14,13 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include <map>
+#ifdef MAC_OS
 #include <stdlib.h>
+#endif
+
+#ifdef LINUX
+#include <malloc.h>
+#endif
 
 
 namespace db {

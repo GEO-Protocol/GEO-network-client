@@ -72,7 +72,21 @@ void AbstractFileDescriptorHandler::close() {
     }
 }
 
+#ifdef MAC_OS
 off_t AbstractFileDescriptorHandler::fileSize() const {
+    struct stat stbuf;
+    if ((fstat(fileno(mFileDescriptor), &stbuf) != 0) || (!S_ISREG(stbuf.st_mode))) {
+        throw IOError(
+                "AbstractFileDescriptorHandler::fileSize: "
+                        "Can't determine the size of the file.");
+    }
+
+    return stbuf.st_size;
+}
+#endif
+
+#ifdef LINUX
+__off_t AbstractFileDescriptorHandler::fileSize() const {
     struct stat stbuf;
     if ((fstat(fileno(mFileDescriptor), &stbuf) != 0) || (!S_ISREG(stbuf.st_mode))) {
         throw IOError(
@@ -82,6 +96,8 @@ off_t AbstractFileDescriptorHandler::fileSize() const {
 
     return stbuf.st_size;
 }
+#endif
+
 
 const bool AbstractFileDescriptorHandler::exists() const {
     return fs::exists((path() / filename()));

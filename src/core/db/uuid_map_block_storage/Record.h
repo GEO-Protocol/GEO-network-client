@@ -4,7 +4,13 @@
 #include "../../common/Types.h"
 
 #include <string>
+#ifdef MAC_OS
 #include <stdlib.h>
+#endif
+
+#ifdef LINUX
+#include <malloc.h>
+#endif
 #include <memory>
 
 namespace db {

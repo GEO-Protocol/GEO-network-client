@@ -20,7 +20,13 @@
 
 #include <map>
 #include <vector>
+#ifdef MAC_OS
 #include <stdlib.h>
+#endif
+
+#ifdef LINUX
+#include <malloc.h>
+#endif
 
 // TODO: remove me
 #include <iostream>

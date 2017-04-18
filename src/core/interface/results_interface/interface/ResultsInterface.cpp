@@ -24,9 +24,16 @@ void ResultsInterface::writeResult(
     const size_t bytesCount) {
 
     if (mFIFODescriptor == 0){
+        #ifdef MAC_OS
         mFIFODescriptor = open(
             FIFOFilePath().c_str(),
             O_WRONLY | O_DSYNC);
+        #endif
+        #ifdef LINUX
+        mFIFODescriptor = open(
+            FIFOFilePath().c_str(),
+            O_WRONLY | O_RSYNC | O_DSYNC);
+        #endif
 
         if (mFIFODescriptor == -1) {
             throw IOError(
@@ -37,9 +44,18 @@ void ResultsInterface::writeResult(
 
     if (write(mFIFODescriptor, bytes, bytesCount) != bytesCount) {
         close(mFIFODescriptor);
+
+#ifdef MAC_OS
         mFIFODescriptor = open(
             FIFOFilePath().c_str(),
             O_WRONLY | O_DSYNC);
+#endif
+
+#ifdef LINUX
+        mFIFODescriptor = open(
+            FIFOFilePath().c_str(),
+            O_WRONLY | O_RSYNC | O_DSYNC);
+#endif
 
         if (mFIFODescriptor == -1) {
             throw IOError(

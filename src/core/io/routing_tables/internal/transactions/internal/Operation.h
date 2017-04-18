@@ -8,7 +8,13 @@
 #include <utility>
 #include <cstring>
 #include <memory>
+#ifdef MAC_OS
 #include "stdlib.h"
+#endif
+
+#ifdef LINUX
+#include "malloc.h"
+#endif
 #include <assert.h>
 
 

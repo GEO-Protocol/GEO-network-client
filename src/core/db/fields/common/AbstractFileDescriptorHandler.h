@@ -30,7 +30,14 @@ public:
 
     void close();
     const bool exists() const;
+    #ifdef MAC_OS
     off_t fileSize() const;
+    #endif
+
+    #ifdef LINUX
+    __off_t fileSize() const;
+    #endif
+
 
     void syncLowLevelOSBuffers() const;
 

@@ -13,7 +13,13 @@
 #include <cstring>
 #include <limits>
 
+#ifdef MAC_OS
 #include "stdlib.h"
+#endif
+
+#ifdef LINUX
+#include "malloc.h"
+#endif
 
 
 namespace db {
