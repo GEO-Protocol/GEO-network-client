@@ -22,14 +22,14 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
 
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "Iam: " << mNodeUUID;
-    info() << "run\t" << "sender: " << mMessage->senderUUID();
+    info() << "run\t" << "sender: " << mMessage->senderUUID;
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 #endif
 
     vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
     for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
-        if (nodeUUIDOutgoingFlow == mMessage->senderUUID()) {
+        if (nodeUUIDOutgoingFlow == mMessage->senderUUID) {
             continue;
         }
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
@@ -39,7 +39,7 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
         sendMessage<MaxFlowCalculationSourceSndLevelMessage>(
                 nodeUUIDOutgoingFlow,
                 mNodeUUID,
-                mMessage->senderUUID());
+                mMessage->senderUUID);
     }
 
     return make_shared<const TransactionResult>(

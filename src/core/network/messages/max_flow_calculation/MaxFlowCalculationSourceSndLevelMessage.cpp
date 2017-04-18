@@ -4,15 +4,16 @@ MaxFlowCalculationSourceSndLevelMessage::MaxFlowCalculationSourceSndLevelMessage
     const NodeUUID& senderUUID,
     const NodeUUID& targetUUID) :
 
-    MaxFlowCalculationMessage(senderUUID, targetUUID) {};
+    MaxFlowCalculationMessage(senderUUID, targetUUID)
+{};
 
 MaxFlowCalculationSourceSndLevelMessage::MaxFlowCalculationSourceSndLevelMessage(
-    BytesShared buffer) {
+    BytesShared buffer):
 
-    deserializeFromBytes(buffer);
-}
+    MaxFlowCalculationMessage(buffer)
+{}
 
 const Message::MessageType MaxFlowCalculationSourceSndLevelMessage::typeID() const {
 
-    return Message::MessageTypeID::MaxFlowCalculationSourceSndLevelMessageType;
+    return Message::MessageType::MaxFlow_CalculationSourceSecondLevel;
 }

@@ -2,20 +2,15 @@
 #define GEO_NETWORK_CLIENT_RESPONSE_H
 
 #include "../base/transaction/TransactionMessage.h"
-
-#include "../../../common/Types.h"
-#include "../../../common/NodeUUID.h"
 #include "../../../common/memory/MemoryUtils.h"
 
-#include "../../../transactions/transactions/base/TransactionUUID.h"
-
-#include <memory>
-#include <utility>
-#include <stdint.h>
 
 using namespace std;
 
-class Response : public TransactionMessage {
+
+class Response:
+    public TransactionMessage {
+
 public:
     typedef shared_ptr<Response> Shared;
 
@@ -31,7 +26,8 @@ public:
     uint16_t code();
 
 private:
-    const bool isTransactionMessage() const;
+    const bool isTransactionMessage() const
+        noexcept;
 
     const MessageType typeID() const;
 

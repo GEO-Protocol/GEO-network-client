@@ -3,6 +3,7 @@
 
 #include "../base/transaction/TransactionMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
+
 //TODO: remove after testing
 #include "../../../common/time/TimeUtils.h"
 
@@ -10,13 +11,14 @@
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
 
-class ResultRoutingTable2LevelMessage : public TransactionMessage {
+
+class ResultRoutingTable2LevelMessage:
+    public TransactionMessage {
 
 public:
     typedef shared_ptr<ResultRoutingTable2LevelMessage> Shared;
 
 public:
-
     ResultRoutingTable2LevelMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID &transactionUUID,
@@ -31,22 +33,15 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes();
 
-private:
-
+protected:
     typedef uint32_t RecordNumber;
     typedef RecordNumber RecordCount;
 
-private:
-
+protected:
     size_t rt2ByteSize();
 
-    void deserializeFromBytes(
-        BytesShared buffer);
-
-private:
-
+protected:
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> mRT2;
-
 };
 
 

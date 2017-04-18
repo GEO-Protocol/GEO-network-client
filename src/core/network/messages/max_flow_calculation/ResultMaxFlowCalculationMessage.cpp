@@ -10,14 +10,56 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
         mIncomingFlows(incomingFlows){};
 
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
-    BytesShared buffer) {
+    BytesShared buffer):
 
-    deserializeFromBytes(buffer);
+    SenderMessage(buffer) {
+
+    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
+    //----------------------------------------------------
+    RecordCount *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) RecordCount;
+    bytesBufferOffset += sizeof(RecordCount);
+    //-----------------------------------------------------
+    mOutgoingFlows.reserve(*trustLinesOutCount);
+    for (RecordNumber idx = 0; idx < *trustLinesOutCount; idx++) {
+        NodeUUID nodeUUID(buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += NodeUUID::kBytesSize;
+        //---------------------------------------------------
+        vector<byte> bufferTrustLineAmount(
+            buffer.get() + bytesBufferOffset,
+            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+        bytesBufferOffset += kTrustLineAmountBytesCount;
+        //---------------------------------------------------
+        TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
+        mOutgoingFlows.push_back(make_pair(
+            nodeUUID,
+            make_shared<const TrustLineAmount>(
+                trustLineAmount)));
+    }
+    //----------------------------------------------------
+    RecordCount *trustLinesInCount = new (buffer.get() + bytesBufferOffset) RecordCount;
+    bytesBufferOffset += sizeof(RecordCount);
+    //-----------------------------------------------------
+    mIncomingFlows.reserve(*trustLinesInCount);
+    for (RecordNumber idx = 0; idx < *trustLinesInCount; idx++) {
+        NodeUUID nodeUUID(buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += NodeUUID::kBytesSize;
+        //---------------------------------------------------
+        vector<byte> bufferTrustLineAmount(
+            buffer.get() + bytesBufferOffset,
+            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+        bytesBufferOffset += kTrustLineAmountBytesCount;
+        //---------------------------------------------------
+        TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
+        mIncomingFlows.push_back(make_pair(
+            nodeUUID,
+            make_shared<const TrustLineAmount>(
+                trustLineAmount)));
+    }
 }
 
 const Message::MessageType ResultMaxFlowCalculationMessage::typeID() const {
 
-    return Message::MessageTypeID::ResultMaxFlowCalculationMessageType;
+    return Message::MessageType::MaxFlow_ResultMaxFlowCalculation;
 }
 
 pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() {
@@ -82,53 +124,6 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() {
     return make_pair(
         dataBytesShared,
         bytesCount);
-}
-
-void ResultMaxFlowCalculationMessage::deserializeFromBytes(
-    BytesShared buffer){
-
-    SenderMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    RecordCount *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) RecordCount;
-    bytesBufferOffset += sizeof(RecordCount);
-    //-----------------------------------------------------
-    mOutgoingFlows.reserve(*trustLinesOutCount);
-    for (RecordNumber idx = 0; idx < *trustLinesOutCount; idx++) {
-        NodeUUID nodeUUID(buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        //---------------------------------------------------
-        vector<byte> bufferTrustLineAmount(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-        bytesBufferOffset += kTrustLineAmountBytesCount;
-        //---------------------------------------------------
-        TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
-        mOutgoingFlows.push_back(make_pair(
-            nodeUUID,
-            make_shared<const TrustLineAmount>(
-                trustLineAmount)));
-    }
-    //----------------------------------------------------
-    RecordCount *trustLinesInCount = new (buffer.get() + bytesBufferOffset) RecordCount;
-    bytesBufferOffset += sizeof(RecordCount);
-    //-----------------------------------------------------
-    mIncomingFlows.reserve(*trustLinesInCount);
-    for (RecordNumber idx = 0; idx < *trustLinesInCount; idx++) {
-        NodeUUID nodeUUID(buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        //---------------------------------------------------
-        vector<byte> bufferTrustLineAmount(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-        bytesBufferOffset += kTrustLineAmountBytesCount;
-        //---------------------------------------------------
-        TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
-        mIncomingFlows.push_back(make_pair(
-            nodeUUID,
-            make_shared<const TrustLineAmount>(
-                trustLineAmount)));
-    }
 }
 
 const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> ResultMaxFlowCalculationMessage::outgoingFlows() const {

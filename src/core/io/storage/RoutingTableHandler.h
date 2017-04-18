@@ -10,6 +10,7 @@
 #include "../../../libs/sqlite3/sqlite3.h"
 
 #include <vector>
+#include <set>
 #include <tuple>
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
@@ -33,7 +34,7 @@ public:
 
     vector<pair<NodeUUID, NodeUUID>> routeRecords();
 
-    vector<NodeUUID> allDestinationsForSource(
+    set<NodeUUID> neighborsOf (
         const NodeUUID &sourceUUID);
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKey();

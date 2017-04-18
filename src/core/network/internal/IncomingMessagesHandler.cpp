@@ -1,4 +1,6 @@
 ﻿#include "IncomingMessagesHandler.h"
+#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
+#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
     BytesShared messagePart,
@@ -13,9 +15,11 @@ pair<bool, Message::Shared> MessagesParser::processMessage(
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
     BytesShared messagePart) {
-
+//    cout << "_________________________" << endl;
+//    cout << "MessagesParser::tryDeserializeMessage " << endl;
     try {
         uint16_t *messageIdentifier = new (messagePart.get()) uint16_t;
+//        cout << messageIdentifier << ";" << *messageIdentifier << endl;
         auto deserializedData = tryDeserializeRequest(
             *messageIdentifier,
             messagePart
@@ -33,7 +37,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
 
     switch(messageIdentifier) {
 
-        case Message::OpenTrustLineMessageType: {
+        case Message::TrustLines_Open: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
@@ -42,7 +46,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
-        case Message::CloseTrustLineMessageType: {
+        case Message::TrustLines_Close: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
@@ -51,7 +55,7 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
-        case Message::SetTrustLineMessageType: {
+        case Message::TrustLines_Set: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
@@ -60,32 +64,33 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
-        case Message::FirstLevelRoutingTableOutgoingMessageType: {
-            return make_pair(
-                true,
-                static_pointer_cast<Message>(
-                    make_shared<FirstLevelRoutingTableIncomingMessage>(messagePart)
-                )
-            );
-        }
-
-        case Message::SecondLevelRoutingTableOutgoingMessageType: {
-            return make_pair(
-                true,
-                static_pointer_cast<Message>(
-                    make_shared<SecondLevelRoutingTableIncomingMessage>(messagePart)
-                )
-            );
-        }
-
-        case Message::RoutingTableUpdateOutgoingMessageType: {
-            return make_pair(
-                true,
-                static_pointer_cast<Message>(
-                    make_shared<RoutingTableUpdateIncomingMessage>(messagePart)
-                )
-            );
-        }
+    // todo: remove
+//        case Message::FirstLevelRoutingTableOutgoingMessageType: {
+//            return make_pair(
+//                true,
+//                static_pointer_cast<Message>(
+//                    make_shared<FirstLevelRoutingTableIncomingMessage>(messagePart)
+//                )
+//            );
+//        }
+//
+//        case Message::SecondLevelRoutingTableOutgoingMessageType: {
+//            return make_pair(
+//                true,
+//                static_pointer_cast<Message>(
+//                    make_shared<SecondLevelRoutingTableIncomingMessage>(messagePart)
+//                )
+//            );
+//        }
+//
+//        case Message::RoutingTableUpdateOutgoingMessageType: {
+//            return make_pair(
+//                true,
+//                static_pointer_cast<Message>(
+//                    make_shared<RoutingTableUpdateIncomingMessage>(messagePart)
+//                )
+//            );
+//        }
 
         /*
          * Payment operations messages
@@ -120,63 +125,109 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         /*
          * Cycles processing messages
          */
-        case Message::InBetweenNodeTopologyMessage: {
+        case Message::Cycles_SixNodesMiddleware: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<InBetweenNodeTopologyMessage>(messagePart)
+                    make_shared<CyclesSixNodesInBetweenMessage>(messagePart)
                 )
             );
         }
-
-        case Message::BoundaryNodeTopologyMessage: {
+        case Message::Cycles_FiveNodesMiddleware: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
-                    make_shared<BoundaryNodeTopologyMessage>(messagePart)
+                    make_shared<CyclesFiveNodesInBetweenMessage>(messagePart)
                 )
             );
         }
-
+        case Message::Cycles_SixNodesBoundary: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<CyclesSixNodesBoundaryMessage>(messagePart)
+                )
+            );
+        }
+        case Message::Cycles_FiveNodesBoundary: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<CyclesFiveNodesBoundaryMessage>(messagePart)
+                )
+            );
+        }
+        case Message::Cycles_ThreeNodesBalancesResponse: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<CyclesThreeNodesBalancesResponseMessage>(messagePart)
+                )
+            );
+        }
+        case Message::Cycles_FourNodesBalancesRequest: {
+            return make_pair(
+                    true,
+                    static_pointer_cast<Message>(
+                            make_shared<CyclesFourNodesBalancesRequestMessage>(messagePart)
+                    )
+            );
+        }
+        case Message::Cycles_FourNodesBalancesResponse: {
+            return make_pair(
+                    true,
+                    static_pointer_cast<Message>(
+                            make_shared<CyclesFourNodesBalancesResponseMessage>(messagePart)
+                    )
+            );
+        }
+        case Message::Cycles_ThreeNodesBalancesRequest: {
+            return make_pair(
+                true,
+                static_pointer_cast<Message>(
+                    make_shared<CyclesThreeNodesBalancesRequestMessage>(messagePart)
+                )
+            );
+        }
         /*
          * Max flow calculation messages
          */
-        case Message::InitiateMaxFlowCalculationMessageType: {
+        case Message::MaxFlow_InitiateCalculation: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<InitiateMaxFlowCalculationMessage>(messagePart)));
         }
 
-        case Message::ResultMaxFlowCalculationMessageType: {
+        case Message::MaxFlow_ResultMaxFlowCalculation: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<ResultMaxFlowCalculationMessage>(messagePart)));
         }
 
-        case Message::MaxFlowCalculationSourceFstLevelMessageType: {
+        case Message::MaxFlow_CalculationSourceFirstLevel: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<MaxFlowCalculationSourceFstLevelMessage>(messagePart)));
         }
 
-        case Message::MaxFlowCalculationTargetFstLevelMessageType: {
+        case Message::MaxFlow_CalculationTargetFirstLevel: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<MaxFlowCalculationTargetFstLevelMessage>(messagePart)));
         }
 
-        case Message::MaxFlowCalculationSourceSndLevelMessageType: {
+        case Message::MaxFlow_CalculationSourceSecondLevel: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<MaxFlowCalculationSourceSndLevelMessage>(messagePart)));
         }
 
-        case Message::MaxFlowCalculationTargetSndLevelMessageType: {
+        case Message::MaxFlow_CalculationTargetSecondLevel: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
@@ -186,14 +237,14 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         /*
          * Total Balances Messages
          */
-        case Message::InitiateTotalBalancesMessageType: {
+        case Message::TotalBalance_Request: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<InitiateTotalBalancesMessage>(messagePart)));
         }
 
-        case Message::TotalBalancesResultMessageType: {
+        case Message::TotalBalance_Response: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
@@ -203,28 +254,28 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         /*
          * Find Path Messages
          */
-        case Message::RequestRoutingTablesMessageType: {
+        case Message::Paths_RequestRoutingTables: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<RequestRoutingTablesMessage>(messagePart)));
         }
 
-        case Message::ResultRoutingTable1LevelMessageType: {
+        case Message::Paths_ResultRoutingTableFirstLevel: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<ResultRoutingTable1LevelMessage>(messagePart)));
         }
 
-        case Message::ResultRoutingTable2LevelMessageType: {
+        case Message::Paths_ResultRoutingTableSecondLevel: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<ResultRoutingTable2LevelMessage>(messagePart)));
         }
 
-        case Message::ResultRoutingTable3LevelMessageType: {
+        case Message::Paths_ResultRoutingTableThirdLevel: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
@@ -247,20 +298,11 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeResponse(
 
     switch(messageIdentifier) {
 
-        case Message::MessageTypeID::ResponseMessageType: {
+        case Message::MessageType::ResponseMessageType: {
             return make_pair(
                 true,
                 static_pointer_cast<Message>(
                     make_shared<Response>(messagePart)
-                )
-            );
-        }
-
-        case Message::MessageTypeID::RoutingTablesResponseMessageType: {
-            return make_pair(
-                true,
-                static_pointer_cast<Message>(
-                    make_shared<RoutingTablesResponse>(messagePart)
                 )
             );
         }

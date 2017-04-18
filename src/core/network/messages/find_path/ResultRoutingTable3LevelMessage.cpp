@@ -12,13 +12,37 @@ ResultRoutingTable3LevelMessage::ResultRoutingTable3LevelMessage(
     mRT3(rt3){}
 
 ResultRoutingTable3LevelMessage::ResultRoutingTable3LevelMessage(
-    BytesShared buffer) {
+    BytesShared buffer):
 
-    deserializeFromBytes(buffer);
+    TransactionMessage(buffer)
+{
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    //-----------------------------------------------------
+    RecordCount *rt3Count = new (buffer.get() + bytesBufferOffset) RecordCount;
+    bytesBufferOffset += sizeof(RecordCount);
+    //-----------------------------------------------------
+    mRT3.reserve(*rt3Count);
+    for (RecordNumber idx = 0; idx < *rt3Count; idx++) {
+        NodeUUID keyDesitnation(buffer.get() + bytesBufferOffset);
+        bytesBufferOffset += NodeUUID::kBytesSize;
+        //---------------------------------------------------
+        RecordCount *rt3VectCount = new (buffer.get() + bytesBufferOffset) RecordCount;
+        bytesBufferOffset += sizeof(RecordCount);
+        //---------------------------------------------------
+        vector<NodeUUID> valueSources;
+        valueSources.reserve(*rt3VectCount);
+        for (RecordNumber jdx = 0; jdx < *rt3VectCount; jdx++) {
+            NodeUUID source(buffer.get() + bytesBufferOffset);
+            bytesBufferOffset += NodeUUID::kBytesSize;
+            valueSources.push_back(source);
+        }
+        //---------------------------------------------------
+        mRT3.insert(make_pair(keyDesitnation, valueSources));
+    }
 }
 
 const Message::MessageType ResultRoutingTable3LevelMessage::typeID() const {
-    return Message::MessageTypeID::ResultRoutingTable3LevelMessageType;
+    return Message::MessageType::Paths_ResultRoutingTableThirdLevel;
 }
 
 unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& ResultRoutingTable3LevelMessage::rt3() {
@@ -80,43 +104,7 @@ pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() {
         bytesCount);
 }
 
-void ResultRoutingTable3LevelMessage::deserializeFromBytes(
-    BytesShared buffer){
-
-    cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes start deserializing" << endl;
-    DateTime startTime = utc_now();
-    TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    //-----------------------------------------------------
-    RecordCount *rt3Count = new (buffer.get() + bytesBufferOffset) RecordCount;
-    bytesBufferOffset += sizeof(RecordCount);
-    //-----------------------------------------------------
-    mRT3.reserve(*rt3Count);
-    for (RecordNumber idx = 0; idx < *rt3Count; idx++) {
-        NodeUUID keyDesitnation(buffer.get() + bytesBufferOffset);
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        //---------------------------------------------------
-        RecordCount *rt3VectCount = new (buffer.get() + bytesBufferOffset) RecordCount;
-        bytesBufferOffset += sizeof(RecordCount);
-        //---------------------------------------------------
-        vector<NodeUUID> valueSources;
-        valueSources.reserve(*rt3VectCount);
-        for (RecordNumber jdx = 0; jdx < *rt3VectCount; jdx++) {
-            NodeUUID source(buffer.get() + bytesBufferOffset);
-            bytesBufferOffset += NodeUUID::kBytesSize;
-            valueSources.push_back(source);
-        }
-        //---------------------------------------------------
-        mRT3.insert(make_pair(keyDesitnation, valueSources));
-    }
-    //-----------------------------------------------------
-    cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
-    Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes time: " << methodTime << endl;
-}
-
 size_t ResultRoutingTable3LevelMessage::rt3ByteSize() {
-
     size_t result = sizeof(RecordCount);
     for (auto const &nodeUUIDAndVector : mRT3) {
         result += NodeUUID::kBytesSize + sizeof(RecordCount) +

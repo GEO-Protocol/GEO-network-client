@@ -18,13 +18,39 @@ TotalBalancesResultMessage::TotalBalancesResultMessage(
 
 
 TotalBalancesResultMessage::TotalBalancesResultMessage(
-        BytesShared buffer) {
+    BytesShared buffer):
 
-    deserializeFromBytes(buffer);
+    TransactionMessage(buffer)
+{
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    //----------------------------------------------------
+    vector<byte> bufferTotalIncomingTrust(
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+    bytesBufferOffset += kTrustLineAmountBytesCount;
+    mTotalIncomingTrust = bytesToTrustLineAmount(bufferTotalIncomingTrust);
+    //-----------------------------------------------------
+    vector<byte> bufferTotalTrustUsedByContractor(
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+    bytesBufferOffset += kTrustLineAmountBytesCount;
+    mTotalTrustUsedByContractor = bytesToTrustLineAmount(bufferTotalTrustUsedByContractor);
+    //-----------------------------------------------------
+    vector<byte> bufferTotalOutgoingTrust(
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+    bytesBufferOffset += kTrustLineAmountBytesCount;
+    mTotalOutgoingTrust = bytesToTrustLineAmount(bufferTotalOutgoingTrust);
+    //-----------------------------------------------------
+    vector<byte> bufferTotalTrustUsedBySelf(
+        buffer.get() + bytesBufferOffset,
+        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
+    mTotalTrustUsedBySelf = bytesToTrustLineAmount(bufferTotalTrustUsedBySelf);
+
 }
 
 const Message::MessageType TotalBalancesResultMessage::typeID() const {
-    return Message::MessageTypeID::TotalBalancesResultMessageType;
+    return Message::MessageType::TotalBalance_Response;
 }
 
 pair<BytesShared, size_t> TotalBalancesResultMessage::serializeToBytes() {
@@ -70,37 +96,6 @@ pair<BytesShared, size_t> TotalBalancesResultMessage::serializeToBytes() {
     return make_pair(
             dataBytesShared,
             bytesCount);
-}
-
-void TotalBalancesResultMessage::deserializeFromBytes(
-        BytesShared buffer){
-
-    TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    vector<byte> bufferTotalIncomingTrust(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-    bytesBufferOffset += kTrustLineAmountBytesCount;
-    mTotalIncomingTrust = bytesToTrustLineAmount(bufferTotalIncomingTrust);
-    //-----------------------------------------------------
-    vector<byte> bufferTotalTrustUsedByContractor(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-    bytesBufferOffset += kTrustLineAmountBytesCount;
-    mTotalTrustUsedByContractor = bytesToTrustLineAmount(bufferTotalTrustUsedByContractor);
-    //-----------------------------------------------------
-    vector<byte> bufferTotalOutgoingTrust(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-    bytesBufferOffset += kTrustLineAmountBytesCount;
-    mTotalOutgoingTrust = bytesToTrustLineAmount(bufferTotalOutgoingTrust);
-    //-----------------------------------------------------
-    vector<byte> bufferTotalTrustUsedBySelf(
-            buffer.get() + bytesBufferOffset,
-            buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-    mTotalTrustUsedBySelf = bytesToTrustLineAmount(bufferTotalTrustUsedBySelf);
-    //-----------------------------------------------------
 }
 
 const TrustLineAmount& TotalBalancesResultMessage::totalIncomingTrust() const {

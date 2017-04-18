@@ -45,7 +45,7 @@ TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
 
     sendRoutingTables();
 
-    info() << "message successfully sent to " << mMessage->senderUUID();
+    info() << "message successfully sent to " << mMessage->senderUUID;
     return make_shared<TransactionResult>(TransactionState::exit());
 }
 
@@ -53,7 +53,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
 
     info() << "sendRoutingTables\tRT1 size: " << mTrustLinesManager->rt1().size();
     sendMessage<ResultRoutingTable1LevelMessage>(
-        mMessage->senderUUID(),
+        mMessage->senderUUID,
         mNodeUUID,
         mMessage->transactionUUID(),
         mTrustLinesManager->rt1());
@@ -71,7 +71,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
         }
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT2(itRT2First, itRT2);
         sendMessage<ResultRoutingTable2LevelMessage>(
-            mMessage->senderUUID(),
+            mMessage->senderUUID,
             mNodeUUID,
             mMessage->transactionUUID(),
             subRT2);
@@ -80,7 +80,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
     if (itRT2 != rt2.end()) {
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT2(itRT2, rt2.end());
         sendMessage<ResultRoutingTable2LevelMessage>(
-            mMessage->senderUUID(),
+            mMessage->senderUUID,
             mNodeUUID,
             mMessage->transactionUUID(),
             subRT2);
@@ -99,7 +99,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
         }
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT3(itRT3First, itRT3);
         sendMessage<ResultRoutingTable3LevelMessage>(
-            mMessage->senderUUID(),
+            mMessage->senderUUID,
             mNodeUUID,
             mMessage->transactionUUID(),
             subRT3);
@@ -108,7 +108,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
     if (itRT3 != rt3.end()) {
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT3(itRT3, rt3.end());
         sendMessage<ResultRoutingTable3LevelMessage>(
-            mMessage->senderUUID(),
+            mMessage->senderUUID,
             mNodeUUID,
             mMessage->transactionUUID(),
             subRT3);

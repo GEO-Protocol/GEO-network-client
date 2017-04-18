@@ -138,7 +138,7 @@ void TrustLineHandler::prepareInserted() {
     isTransactionBegin = true;
 }
 
-vector<TrustLine::Shared> TrustLineHandler::trustLines() {
+vector<TrustLine::Shared> TrustLineHandler::allTrustLines () {
 
     string queryCount = "SELECT count(*) FROM " + mTableName;
     sqlite3_stmt *stmt;

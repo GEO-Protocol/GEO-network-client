@@ -643,6 +643,9 @@ void PathsManager::testStorageHandler() {
 
 void PathsManager::testTrustLineHandler() {
 
+    for (auto const &trustLine : mTrustLinesManager->trustLines()) {
+        mStorageHandler->trustLineHandler()->saveTrustLine(trustLine.second);
+    }
     TrustLine::Shared trLine = make_shared<TrustLine>(
         mNodeUUID,
         TrustLineAmount(100),
@@ -650,7 +653,7 @@ void PathsManager::testTrustLineHandler() {
         TrustLineBalance(-30));
     mStorageHandler->trustLineHandler()->saveTrustLine(trLine);
     mStorageHandler->trustLineHandler()->commit();
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<
@@ -660,7 +663,7 @@ void PathsManager::testTrustLineHandler() {
     trLine->setBalance(55);
     trLine->setIncomingTrustAmount(1000);
     mStorageHandler->trustLineHandler()->saveTrustLine(trLine);
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<
@@ -668,7 +671,7 @@ void PathsManager::testTrustLineHandler() {
                rtrLine->balance();
     }
     mStorageHandler->trustLineHandler()->rollBack();
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<
@@ -676,7 +679,7 @@ void PathsManager::testTrustLineHandler() {
                rtrLine->balance();
     }
     mStorageHandler->trustLineHandler()->deleteTrustLine(mNodeUUID);
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->trustLines()) {
+    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<

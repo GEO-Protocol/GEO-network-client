@@ -143,10 +143,10 @@ bool SetTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
 
 TransactionResult::SharedConst SetTrustLineTransaction::checkTransactionContext() {
 
-    if (mExpectationResponsesCount == mContext.size()) {
+    if (mkExpectationResponsesCount == mContext.size()) {
         auto responseMessage = *mContext.begin();
 
-        if (responseMessage->typeID() == Message::MessageTypeID::ResponseMessageType) {
+        if (responseMessage->typeID() == Message::MessageType::ResponseMessageType) {
             Response::Shared response = static_pointer_cast<Response>(
                 responseMessage);
 
@@ -204,7 +204,7 @@ TransactionResult::SharedConst SetTrustLineTransaction::waitingForResponseState(
     TransactionState *transactionState = new TransactionState(
         microsecondsSinceGEOEpoch(
             utc_now() + pt::microseconds(kConnectionTimeout * 1000)),
-        Message::MessageTypeID::ResponseMessageType,
+        Message::MessageType::ResponseMessageType,
         false);
 
 

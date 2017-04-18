@@ -33,16 +33,11 @@ public:
     pair<BytesShared, size_t> serializeToBytes();
 
 private:
-
     typedef uint32_t RecordNumber;
     typedef RecordNumber RecordCount;
 
 private:
-
     size_t rt3ByteSize();
-
-    void deserializeFromBytes(
-        BytesShared buffer);
 
 private:
 

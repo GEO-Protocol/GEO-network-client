@@ -4,13 +4,13 @@
 #include "../base/transaction/TransactionMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
-class TotalBalancesResultMessage : public TransactionMessage {
+class TotalBalancesResultMessage:
+    public TransactionMessage {
 
 public:
     typedef shared_ptr<TotalBalancesResultMessage> Shared;
 
 public:
-
     TotalBalancesResultMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID &transactionUUID,
@@ -20,7 +20,7 @@ public:
         const TrustLineAmount &totalTrustUsedBySelf);
 
     TotalBalancesResultMessage(
-            BytesShared buffer);
+        BytesShared buffer);
 
     const MessageType typeID() const;
 
@@ -35,15 +35,10 @@ public:
     const TrustLineAmount& totalTrustUsedBySelf() const;
 
 private:
-    void deserializeFromBytes(
-            BytesShared buffer);
-
-private:
     TrustLineAmount mTotalIncomingTrust;
     TrustLineAmount mTotalTrustUsedByContractor;
     TrustLineAmount mTotalOutgoingTrust;
     TrustLineAmount mTotalTrustUsedBySelf;
-
 };
 
 

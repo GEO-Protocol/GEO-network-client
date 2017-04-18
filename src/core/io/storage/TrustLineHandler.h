@@ -28,7 +28,7 @@ public:
     void saveTrustLine(
         TrustLine::Shared trustLine);
 
-    vector<TrustLine::Shared> trustLines();
+    vector<TrustLine::Shared> allTrustLines ();
 
     void deleteTrustLine(const NodeUUID &contractorUUID);
 

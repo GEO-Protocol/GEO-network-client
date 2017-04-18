@@ -225,7 +225,7 @@ unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> Routi
     return result;
 }
 
-vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
+set<NodeUUID> RoutingTableHandler::neighborsOf (
     const NodeUUID &sourceUUID) {
 
     DateTime startTime = utc_now();
@@ -233,40 +233,40 @@ vector<NodeUUID> RoutingTableHandler::allDestinationsForSource(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, countQuery.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::allDestinationsForSource: "
+        throw IOError("RoutingTableHandler::neighborsOf: "
                           "Bad count query");
     }
     rc = sqlite3_bind_blob(stmt, 1, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::allDestinationsForSource: "
+        throw IOError("RoutingTableHandler::neighborsOf: "
                           "Bad Source binding");
     }
     sqlite3_step(stmt);
     uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    info() << "routeRecordsWithDirections\t count records: " << rowCount;
+    set<NodeUUID> result;
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    vector<NodeUUID> result;
-    result.reserve(rowCount);
 
     string query = "SELECT destination FROM " + mTableName + " WHERE source = ?";
     rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::allDestinationsForSource: "
+        throw IOError("RoutingTableHandler::neighborsOf: "
                               "Bad query");
     }
     rc = sqlite3_bind_blob(stmt, 1, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::allDestinationsForSource: "
+        throw IOError("RoutingTableHandler::neighborsOf: "
                               "Bad Source binding");
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID destination((uint8_t *)sqlite3_column_blob(stmt, 0));
-        result.push_back(destination);
+        result.insert(destination);
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     /*Duration methodTime = utc_now() - startTime;
-    info() << "allDestinationsForSource method time: " << methodTime;*/
+    info() << "neighborsOf method time: " << methodTime;*/
     return result;
 }
 

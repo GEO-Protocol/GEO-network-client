@@ -2,17 +2,21 @@
 #define GEO_NETWORK_CLIENT_RESULTROUTINGTABLE1LEVELMESSAGE_H
 
 #include "../base/transaction/TransactionMessage.h"
+
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
+
 //TODO: remove after testing
 #include "../../../common/time/TimeUtils.h"
-
 #include <vector>
 
-class ResultRoutingTable1LevelMessage : public TransactionMessage {
+
+class ResultRoutingTable1LevelMessage:
+    public TransactionMessage {
 
 public:
     typedef shared_ptr<ResultRoutingTable1LevelMessage> Shared;
 
+public:
     ResultRoutingTable1LevelMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID &transactionUUID,
@@ -27,20 +31,12 @@ public:
 
     pair<BytesShared, size_t> serializeToBytes();
 
-private:
-
+protected:
     typedef uint32_t RecordNumber;
     typedef RecordNumber RecordCount;
 
 private:
-
-    void deserializeFromBytes(
-        BytesShared buffer);
-
-private:
-
     vector<NodeUUID> mRT1;
-
 };
 
 

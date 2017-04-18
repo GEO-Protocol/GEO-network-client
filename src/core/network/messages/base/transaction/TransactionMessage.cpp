@@ -1,32 +1,50 @@
 ﻿#include "TransactionMessage.h"
 
-TransactionMessage::TransactionMessage() {}
 
 TransactionMessage::TransactionMessage(
     const NodeUUID &senderUUID,
-    const TransactionUUID &transactionUUID) :
+    const TransactionUUID &transactionUUID)
+    noexcept :
 
     SenderMessage(senderUUID),
-    mTransactionUUID(transactionUUID) {}
+    mTransactionUUID(transactionUUID)
+{}
 
 TransactionMessage::TransactionMessage(
-        BytesShared bufer)
+    BytesShared buffer)
+    noexcept :
+
+    SenderMessage(buffer),
+    mTransactionUUID([&buffer](const size_t parentOffset) -> const TransactionUUID {
+        TransactionUUID tu;
+
+        memcpy(
+            tu.data,
+            buffer.get() + parentOffset,
+            TransactionUUID::kBytesSize);
+
+        return tu;
+    }(SenderMessage::kOffsetToInheritedBytes()))
+{}
+
+const bool TransactionMessage::isTransactionMessage() const
+    noexcept
 {
-    deserializeFromBytes(bufer);
-}
-
-const bool TransactionMessage::isTransactionMessage() const {
-
     return true;
 }
 
-const TransactionUUID &TransactionMessage::transactionUUID() const {
-
+const TransactionUUID &TransactionMessage::transactionUUID() const
+    noexcept
+{
     return mTransactionUUID;
 }
 
-pair<BytesShared, size_t> TransactionMessage::serializeToBytes() {
-
+/*
+ * ToDo: rewrite me with bytes deserializer
+ */
+pair<BytesShared, size_t> TransactionMessage::serializeToBytes() const
+    throw (bad_alloc)
+{
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
@@ -54,23 +72,12 @@ pair<BytesShared, size_t> TransactionMessage::serializeToBytes() {
     );
 }
 
-void TransactionMessage::deserializeFromBytes(
-    BytesShared buffer) {
+const size_t TransactionMessage::kOffsetToInheritedBytes() const
+    noexcept
+{
+    static const auto kOffset =
+          SenderMessage::kOffsetToInheritedBytes()
+        + TransactionUUID::kBytesSize;
 
-    SenderMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    memcpy(
-        mTransactionUUID.data,
-        buffer.get() + bytesBufferOffset,
-        TransactionUUID::kBytesSize
-    );
-}
-
-const size_t TransactionMessage::kOffsetToInheritedBytes() {
-
-    static const size_t offset = SenderMessage::kOffsetToInheritedBytes()
-                                 + TransactionUUID::kBytesSize;
-
-    return offset;
+    return kOffset;
 }

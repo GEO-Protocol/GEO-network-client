@@ -22,7 +22,7 @@ FindPathCommand::Shared GetPathTestTransaction::command() const {
 
 TransactionResult::SharedConst GetPathTestTransaction::run() {
 
-    info() << "run\t" << UUID() << " I am " << mNodeUUID;
+    info() << "run\t" << currentTransactionUUID() << " I am " << mNodeUUID;
     info() << "run\tget paths to " << mCommand->contractorUUID();
 
     if (!mResources.empty()) {
@@ -37,7 +37,7 @@ TransactionResult::SharedConst GetPathTestTransaction::run() {
         if (mRequestCounter == 0) {
             info() << "run\t request resources";
             mResourcesManager->requestPaths(
-                UUID(),
+                currentTransactionUUID(),
                 mCommand->contractorUUID());
         }
         mRequestCounter++;

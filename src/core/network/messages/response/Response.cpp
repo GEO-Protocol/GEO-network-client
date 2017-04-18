@@ -13,19 +13,26 @@ Response::Response(const NodeUUID &sender,
 }
 
 Response::Response(
-    BytesShared buffer) {
+    BytesShared buffer):
 
-    deserializeFromBytes(buffer);
+    TransactionMessage(buffer)
+{
+
+    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    //------------------------------
+    uint16_t *code = new (buffer.get() + bytesBufferOffset) uint16_t;
+    mCode = *code;
 }
 
-const bool Response::isTransactionMessage() const {
-
+const bool Response::isTransactionMessage() const
+    noexcept
+{
     return true;
 }
 
 const Message::MessageType Response::typeID() const {
 
-    return Message::MessageTypeID::ResponseMessageType;
+    return Message::MessageType::ResponseMessageType;
 }
 
 uint16_t Response::code() {
@@ -66,8 +73,4 @@ void Response::deserializeFromBytes(
     BytesShared buffer) {
 
     TransactionMessage::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    //------------------------------
-    uint16_t *code = new (buffer.get() + bytesBufferOffset) uint16_t;
-    mCode = *code;
 }

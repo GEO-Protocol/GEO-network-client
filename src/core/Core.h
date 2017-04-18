@@ -105,6 +105,10 @@ private:
 
     void onDelayedTaskCycleFiveNodesSlot();
 
+    void onDelayedTaskCycleThreeNodesSlot();
+
+    void onDelayedTaskCycleFourNodesSlot();
+
     void onPathsResourceRequestedSlot(
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationNodeUUID);
@@ -117,6 +121,14 @@ private:
     void cleanupMemory();
 
     void writePIDFile();
+
+    void checkSomething();
+
+    void test_FourNodesTransaction();
+
+    void test_ThreeNodesTransaction();
+
+    void printRTs();
 
 protected:
     Logger mLog;
