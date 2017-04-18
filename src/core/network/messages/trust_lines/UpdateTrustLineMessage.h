@@ -41,8 +41,8 @@ public:
 public:
     static const uint16_t kResultCodeAccepted = 200;
     static const uint16_t kResultCodeRejected = 401;
+    static const uint16_t kResultCodeTrustLineAbsent = 404;
     static const uint16_t kResultCodeConflict = 409;
-    static const uint16_t kResultCodeTransactionConflict = 500;
 
 protected:
     TrustLineAmount mNewTrustLineAmount;

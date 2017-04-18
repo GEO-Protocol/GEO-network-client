@@ -40,8 +40,28 @@ public:
 
     const DateTime &timestampAccepted() const;
 
-    [[deprecated]]
-    CommandResult::SharedConst unexpectedErrorResult();
+    CommandResult::SharedConst responseOK() const
+        noexcept;
+    CommandResult::SharedConst responseCreated() const
+        noexcept;
+    CommandResult::SharedConst responseProtocolError() const
+        noexcept;
+    CommandResult::SharedConst responseTrustlineIsAbsent() const
+        noexcept;
+    CommandResult::SharedConst responseCurrentIncomingDebtIsGreaterThanNewAmount() const
+        noexcept;
+    CommandResult::SharedConst responseTrustlineIsAlreadyPresent() const
+        noexcept;
+    CommandResult::SharedConst responseInsufficientFunds() const
+        noexcept;
+    CommandResult::SharedConst responseConflictWithOtherOperation() const
+        noexcept;
+    CommandResult::SharedConst responseRemoteNodeIsInaccessible() const
+        noexcept;
+    CommandResult::SharedConst responseNoRoutes() const
+        noexcept;
+    CommandResult::SharedConst responseUnexpectedError() const
+        noexcept;
 
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes();
@@ -58,7 +78,7 @@ protected:
         const uint16_t code) const;
 
 private:
-    CommandUUID mCommandUUID;
+    const CommandUUID mCommandUUID;
     DateTime mTimestampAccepted;
     const string mCommandIdentifier;
 };

@@ -19,14 +19,14 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
     deserializeFromBytes(buffer);
 }
 
-const string &InitiateMaxFlowCalculationCommand::identifier() {
-
+const string &InitiateMaxFlowCalculationCommand::identifier()
+{
     static const string identifier = "GET:contractors/transactions/max";
     return identifier;
 }
 
-const NodeUUID &InitiateMaxFlowCalculationCommand::contractorUUID() const {
-
+const NodeUUID &InitiateMaxFlowCalculationCommand::contractorUUID() const
+{
     return mContractorUUID;
 }
 
@@ -94,8 +94,8 @@ void InitiateMaxFlowCalculationCommand::parse(
     }
 }
 
-CommandResult::SharedConst InitiateMaxFlowCalculationCommand::resultOk(string &maxFlowAmount) const {
-
+CommandResult::SharedConst InitiateMaxFlowCalculationCommand::responseOk(string &maxFlowAmount) const
+{
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),

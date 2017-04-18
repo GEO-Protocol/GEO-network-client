@@ -77,15 +77,17 @@ private:
 
     TransactionResult::SharedConst resultOk();
 
-    TransactionResult::SharedConst trustLineAbsentResult();
+    TransactionResult::SharedConst resultTrustLineIsAbsent();
 
-    TransactionResult::SharedConst conflictErrorResult();
+    TransactionResult::SharedConst resultConflictWithOtherOperation();
 
-    TransactionResult::SharedConst noResponseResult();
+    TransactionResult::SharedConst resultRemoteNodeIsInaccessible();
 
-    TransactionResult::SharedConst transactionConflictResult();
+    TransactionResult::SharedConst resultCurrentIncomingDebtIsGreaterThanNewAmount();
 
-    TransactionResult::SharedConst unexpectedErrorResult();
+    TransactionResult::SharedConst resultProtocolError();
+
+
 
 private:
     const uint16_t kConnectionTimeout = 2000;
