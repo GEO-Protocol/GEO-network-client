@@ -1,12 +1,11 @@
 ﻿#include "TransactionsScheduler.h"
 
+
 TransactionsScheduler::TransactionsScheduler(
     as::io_service &IOService,
-    storage::UUIDMapBlockStorage *storage,
     Logger *logger) :
 
     mIOService(IOService),
-    mStorage(storage),
     mLog(logger),
 
     mTransactions(new map<BaseTransaction::Shared, TransactionState::SharedConst>()),
@@ -237,31 +236,30 @@ void TransactionsScheduler::serializeTransaction(
     BaseTransaction::Shared transaction) {
 
     auto transactionBytesAndCount = transaction->serializeToBytes();
-    if (!mStorage->isExist(storage::uuids::uuid(transaction->currentTransactionUUID()))) {
-        mStorage->write(
-            storage::uuids::uuid(transaction->currentTransactionUUID()),
-            transactionBytesAndCount.first.get(),
-            transactionBytesAndCount.second
-        );
-
-    } else {
-        mStorage->rewrite(
-            storage::uuids::uuid(transaction->currentTransactionUUID()),
-            transactionBytesAndCount.first.get(),
-            transactionBytesAndCount.second
-        );
-    }
+//    if (!mStorage->isExist(storage::uuids::uuid(transaction->currentTransactionUUID()))) {
+//        mStorage->write(
+//            storage::uuids::uuid(transaction->currentTransactionUUID()),
+//            transactionBytesAndCount.first.get(),
+//            transactionBytesAndCount.second
+//        );
+//
+//    } else {
+//        mStorage->rewrite(
+//            storage::uuids::uuid(transaction->currentTransactionUUID()),
+//            transactionBytesAndCount.first.get(),
+//            transactionBytesAndCount.second
+//        );
+//    }
 }
 
 void TransactionsScheduler::forgetTransaction(
     BaseTransaction::Shared transaction) {
 
-    try {
-        mStorage->erase(
-            storage::uuids::uuid(transaction->currentTransactionUUID())
-        );
-
-    } catch (IndexError &) {}
+//    try {
+//        mStorage->erase(
+//            storage::uuids::uuid(transaction->currentTransactionUUID())
+//        );
+//    } catch (IndexError &) {}
 
     mTransactions->erase(transaction);
 }

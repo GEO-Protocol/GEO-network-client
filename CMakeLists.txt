@@ -66,13 +66,7 @@ add_subdirectory(src/core/common/exceptions)
 add_subdirectory(src/core/common/time)
 add_subdirectory(src/core/common/memory)
 add_subdirectory(src/core/common/multiprecision)
-add_subdirectory(src/core/db)
-#add_subdirectory(src/tests/db)
-add_subdirectory(src/core/io/routing_tables)
-add_subdirectory(src/tests/io/routing_tables)
-
-add_subdirectory(src/core/io/trust_lines)
-#add_subdirectory(src/tests/io/trust_lines)
+add_subdirectory(src/core/db/operations_history_storage)
 add_subdirectory(src/core/logger)
 add_subdirectory(src/core/interface)
 add_subdirectory(src/core/network)
@@ -116,10 +110,6 @@ target_link_libraries(geo_network_client
         interface__results
 
         db__operations_history_storage
-
-        io__trust_lines_storage
-        io__routing_tables_storage
-        io__storage
 
         paths
         trust_lines
