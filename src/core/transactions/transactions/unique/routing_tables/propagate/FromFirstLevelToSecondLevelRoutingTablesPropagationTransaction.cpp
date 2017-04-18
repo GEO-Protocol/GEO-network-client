@@ -97,7 +97,7 @@ TransactionResult::SharedConst FromFirstLevelToSecondLevelRoutingTablesPropagati
 
     for (const auto &nodeAndTrustLine : mTrustLinesManager->trustLines()) {
 
-        if (mLinkWithInitiator->records().begin()->second.begin()->first == nodeAndTrustLine.first) {
+        if (*mLinkWithInitiator->records().begin()->second.begin() == nodeAndTrustLine.first) {
             setExpectationResponsesCounter(uint16_t(mTrustLinesManager->trustLines().size() - 2));
             break;
         }
@@ -130,13 +130,11 @@ void FromFirstLevelToSecondLevelRoutingTablesPropagationTransaction::sendLinkBet
 
         for (const auto &initiatorAndDirect : contractorAndRecord.second) {
 
-            initiator = initiatorAndDirect.first;
+            initiator = initiatorAndDirect;
 
-            vector<pair<const NodeUUID, const TrustLineDirection>> record;
+            vector<NodeUUID> record;
             record.push_back(
-                make_pair(
-                    initiator,
-                    initiatorAndDirect.second));
+                initiator);
 
             firstLevelMessage->pushBack(
                 contractorAndRecord.first,

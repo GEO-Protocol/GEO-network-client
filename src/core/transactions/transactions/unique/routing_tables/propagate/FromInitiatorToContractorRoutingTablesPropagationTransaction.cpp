@@ -142,23 +142,21 @@ void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendFirstLeve
     firstLevelMessage->setPropagationStep(
         RoutingTablesMessage::PropagationStep::FromInitiatorToContractor);
 
-    vector<pair<const NodeUUID, const TrustLineDirection>> neighborsAndDirections;
+    vector<NodeUUID> neighbors;
     for (const auto &contractorAndTrustLine : mTrustLinesManager->trustLines()) {
 
         if (*mContractorsUUIDs.begin() == contractorAndTrustLine.first) {
             continue;
         }
 
-        neighborsAndDirections.push_back(
-            make_pair(
-                contractorAndTrustLine.first,
-                mTrustLinesManager->trustLineReadOnly(contractorAndTrustLine.first)->direction()));
+        neighbors.push_back(
+            contractorAndTrustLine.first);
 
     }
 
     firstLevelMessage->pushBack(
         mNodeUUID,
-        neighborsAndDirections);
+        neighbors);
 
     sendMessage(
         *mContractorsUUIDs.begin(),
@@ -205,7 +203,7 @@ void FromInitiatorToContractorRoutingTablesPropagationTransaction::sendSecondLev
 
     SecondLevelRoutingTableOutgoingMessage::Shared secondLevelMessage = make_shared<SecondLevelRoutingTableOutgoingMessage>(mNodeUUID);
 
-    for (auto& nodeAndNeighborsAndDirections : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirectionsMapSourceKey()) {
+    for (auto& nodeAndNeighborsAndDirections : mStorageHandler->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
 
         if (*mContractorsUUIDs.begin() == nodeAndNeighborsAndDirections.first) {
             continue;

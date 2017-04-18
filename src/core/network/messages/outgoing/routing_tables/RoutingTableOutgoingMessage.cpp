@@ -14,7 +14,7 @@ void RoutingTableOutgoingMessage::setPropagationStep(
 
 void RoutingTableOutgoingMessage::pushBack(
     const NodeUUID &node,
-    vector<pair<const NodeUUID, const TrustLineDirection>> &table) {
+    vector<NodeUUID> &table) {
 
     mRecords.insert(
         make_pair(
@@ -32,10 +32,6 @@ pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
 
     for (const auto &nodeAndRecord : mRecords) {
         bytesCount += NodeUUID::kBytesSize + sizeof(RecordsCount);
-
-        for(const auto &neighborAndDirect : nodeAndRecord.second) {
-            bytesCount += NodeUUID::kBytesSize + sizeof(TrustLineDirection);
-        }
 
     }
 
@@ -80,16 +76,9 @@ pair<BytesShared, size_t> RoutingTableOutgoingMessage::serializeToBytes() {
         for(const auto &neighborAndDirect : nodeAndRecord.second) {
             memcpy(
                 dataBytesShared.get() + dataBytesOffset,
-                neighborAndDirect.first.data,
+                neighborAndDirect.data,
                 NodeUUID::kBytesSize);
             dataBytesOffset += NodeUUID::kBytesSize;
-            //----------------------------------------------------
-            SerializedTrustLineDirection direction = neighborAndDirect.second;
-            memcpy(
-                dataBytesShared.get() + dataBytesOffset,
-                &direction,
-                sizeof(SerializedTrustLineDirection));
-            dataBytesOffset += sizeof(SerializedTrustLineDirection);
         }
         //----------------------------------------------------
     }

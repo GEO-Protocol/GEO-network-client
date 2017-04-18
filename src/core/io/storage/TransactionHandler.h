@@ -1,5 +1,5 @@
-#ifndef GEO_NETWORK_CLIENT_PAYMENTOPERATIONSTATEHANDLER_H
-#define GEO_NETWORK_CLIENT_PAYMENTOPERATIONSTATEHANDLER_H
+#ifndef GEO_NETWORK_CLIENT_TRANSACTIONHANDLER_H
+#define GEO_NETWORK_CLIENT_TRANSACTIONHANDLER_H
 
 #include "../../logger/Logger.h"
 #include "../../transactions/transactions/base/TransactionUUID.h"
@@ -10,21 +10,21 @@
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
-class PaymentOperationStateHandler {
+class TransactionHandler {
 
 public:
 
-    PaymentOperationStateHandler(
+    TransactionHandler(
         sqlite3 *dbConnection,
         const string &tableName,
         Logger *logger);
 
     void saveRecord(
         const TransactionUUID &transactionUUID,
-        BytesShared state,
-        size_t stateBytesCount);
+        BytesShared transaction,
+        size_t transactionBytesCount);
 
-    pair<BytesShared, size_t> getState(
+    pair<BytesShared, size_t> getTransaction(
         const TransactionUUID &transactionUUID);
 
     void deleteRecord(
@@ -56,4 +56,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_PAYMENTOPERATIONSTATEHANDLER_H
+#endif //GEO_NETWORK_CLIENT_TRANSACTIONHANDLER_H

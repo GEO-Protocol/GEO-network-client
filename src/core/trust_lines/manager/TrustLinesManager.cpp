@@ -1,10 +1,10 @@
 ﻿#include "TrustLinesManager.h"
 
 TrustLinesManager::TrustLinesManager(
-    StorageHandler *storageHandler,
+    TrustLineHandler *trustLineHandler,
     Logger *logger) :
 
-    mStorageHandler(storageHandler),
+    mTrustLineHandler(trustLineHandler),
     mlogger(logger){
     try {
 
@@ -24,7 +24,7 @@ TrustLinesManager::TrustLinesManager(
  */
 void TrustLinesManager::loadTrustLines() {
 
-    for (auto const itTrustLine : mStorageHandler->trustLineHandler()->trustLines()) {
+    for (auto const itTrustLine : mTrustLineHandler->trustLines()) {
         mTrustLines.insert(
             make_pair(
                 itTrustLine->contractorNodeUUID(),
@@ -454,8 +454,8 @@ void TrustLinesManager::saveToDisk(
     if (isTrustLineExist(trustLine->contractorNodeUUID())) {
         alreadyExisted = true;
     }
-    mStorageHandler->trustLineHandler()->saveTrustLine(trustLine);
-    mStorageHandler->trustLineHandler()->commit();
+    mTrustLineHandler->saveTrustLine(trustLine);
+    mTrustLineHandler->commit();
     try {
         mTrustLines.insert(
             make_pair(
@@ -487,7 +487,7 @@ void TrustLinesManager::removeTrustLine(
     const NodeUUID &contractorUUID) {
 
     if (isTrustLineExist(contractorUUID)) {
-        mStorageHandler->trustLineHandler()->deleteTrustLine(
+        mTrustLineHandler->deleteTrustLine(
             contractorUUID);
         mTrustLines.erase(contractorUUID);
 

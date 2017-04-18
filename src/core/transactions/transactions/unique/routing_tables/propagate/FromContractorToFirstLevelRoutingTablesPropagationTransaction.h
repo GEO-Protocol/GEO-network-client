@@ -31,7 +31,7 @@ public:
 public:
     FromContractorToFirstLevelRoutingTablesPropagationTransaction(
         const NodeUUID &nodeUUID,
-        const pair<const NodeUUID, const TrustLineDirection> &relationshipsBetweenInitiatorAndContractor,
+        const NodeUUID &relationshipsBetweenInitiatorAndContractor,
         SecondLevelRoutingTableIncomingMessage::Shared secondLevelRoutingTableFromInitiator,
         TrustLinesManager *trustLinesManager);
 
@@ -65,7 +65,7 @@ private:
     void prepareToNextStep();
 
 private:
-    pair<const NodeUUID, const TrustLineDirection> mLinkWithInitiator;
+    NodeUUID mLinkWithInitiator;
     SecondLevelRoutingTableIncomingMessage::Shared mSecondLevelRoutingTableFromInitiator;
     TrustLinesManager *mTrustLinesManager;
 };

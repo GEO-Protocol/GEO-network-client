@@ -14,7 +14,7 @@
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
 #include "../../logger/Logger.h"
-#include "../../io/storage/StorageHandler.h"
+#include "../../io/storage/TrustLineHandler.h"
 
 #include <boost/signals2.hpp>
 
@@ -40,7 +40,7 @@ public:
 
 public:
     TrustLinesManager(
-        StorageHandler *storageHandler,
+        TrustLineHandler *trustLineHandler,
         Logger *logger);
 
     void loadTrustLines();
@@ -179,7 +179,7 @@ private:
     map<NodeUUID, TrustLine::Shared> mTrustLines;
 
     unique_ptr<AmountReservationsHandler> mAmountBlocksHandler;
-    StorageHandler *mStorageHandler;
+    TrustLineHandler *mTrustLineHandler;
     Logger *mlogger;
 };
 

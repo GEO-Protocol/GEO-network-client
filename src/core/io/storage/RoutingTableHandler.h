@@ -19,24 +19,17 @@ class RoutingTableHandler {
 public:
 
     RoutingTableHandler(
-        const string &databasePath,
+        sqlite3 *dbConnection,
         const string &tableName,
         Logger *logger);
 
-    bool commit();
-
-    void rollBack();
-
     void saveRecord(
         const NodeUUID &source,
-        const NodeUUID &destination,
-        const TrustLineDirection direction);
+        const NodeUUID &destination);
 
     void deleteRecord(
         const NodeUUID &source,
         const NodeUUID &destination);
-
-    vector<tuple<NodeUUID, NodeUUID, TrustLineDirection>> routeRecordsWithDirections();
 
     vector<pair<NodeUUID, NodeUUID>> routeRecords();
 
@@ -45,7 +38,7 @@ public:
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKey();
 
-    map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> routeRecordsWithDirectionsMapSourceKey();
+    map<const NodeUUID, vector<NodeUUID>> routeRecordsMapSourceKey();
 
     bool isNodePresentAsDestination(const NodeUUID &nodeUUID);
 
@@ -56,18 +49,6 @@ public:
     void closeConnection();
 
 private:
-
-    void prepareInserted();
-
-    void insert(
-        const NodeUUID &source,
-        const NodeUUID &destination,
-        const TrustLineDirection direction);
-
-    void updateRecord(
-        const NodeUUID &source,
-        const NodeUUID &destination,
-        const TrustLineDirection direction);
 
     LoggerStream info() const;
 
@@ -80,7 +61,6 @@ private:
     sqlite3 *mDataBase = nullptr;
     string mTableName;
     Logger *mLog;
-    bool isTransactionBegin;
 
 };
 

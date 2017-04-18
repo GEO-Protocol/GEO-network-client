@@ -68,17 +68,15 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveLinkBetweenIn
 
     for (const auto &nodeAndRecords : mLinkBetweenInitiatorAndContractor->records()) {
 
-        for (const auto &neighborAndDirect : nodeAndRecords.second) {
+        for (const auto &neighbor : nodeAndRecords.second) {
 
             info() << "Contractor UUID: " + nodeAndRecords.first.stringUUID();
-            info() << "Initiator UUID: " + neighborAndDirect.first.stringUUID();
-            info() << "Direction UUID: " + to_string(neighborAndDirect.second);
+            info() << "Initiator UUID: " + neighbor.stringUUID();
 
             try {
-                mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(
+                mStorageHandler->routingTablesHandler()->saveRecordToRT2(
                     nodeAndRecords.first,
-                    neighborAndDirect.first,
-                    neighborAndDirect.second);
+                    neighbor);
 
             } catch (Exception&) {
                 error() << "Except when saving link between initiator and contractor from contractor at first level side";
@@ -87,7 +85,7 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveLinkBetweenIn
         }
 
     }
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+    mStorageHandler->routingTablesHandler()->commit();
 
 }
 
@@ -150,14 +148,12 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveSecondLevelRo
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
             info() << "Node UUID: " + nodeAndRecords.first.stringUUID();
-            info() << "Neighbor UUID: " + neighborAndDirect.first.stringUUID();
-            info() << "Direction: " + to_string(neighborAndDirect.second);
+            info() << "Neighbor UUID: " + neighborAndDirect.stringUUID();
 
             try {
-                mStorageHandler->routingTablesHandler()->routingTable3Level()->saveRecord(
+                mStorageHandler->routingTablesHandler()->saveRecordToRT3(
                     nodeAndRecords.first,
-                    neighborAndDirect.first,
-                    neighborAndDirect.second);
+                    neighborAndDirect);
 
             } catch (Exception&) {
                 error() << "Except when saving second level routing table from contractor at first level side";
@@ -166,7 +162,7 @@ void FromContractorToFirstLevelRoutingTablesAcceptTransaction::saveSecondLevelRo
         }
 
     }
-    mStorageHandler->routingTablesHandler()->routingTable3Level()->commit();
+    mStorageHandler->routingTablesHandler()->commit();
 
 }
 

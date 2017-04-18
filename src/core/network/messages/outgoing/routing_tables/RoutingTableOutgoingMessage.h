@@ -27,7 +27,7 @@ public:
 
     void pushBack(
         const NodeUUID &node,
-        vector<pair<const NodeUUID, const TrustLineDirection>> &table);
+        vector<NodeUUID> &table);
 
 protected:
     RoutingTableOutgoingMessage(

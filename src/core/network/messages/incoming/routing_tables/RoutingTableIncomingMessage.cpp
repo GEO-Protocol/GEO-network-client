@@ -38,7 +38,7 @@ void RoutingTableIncomingMessage::deserializeFromBytes(
         RecordsCount *recordsCount = new (buffer.get() + bytesBufferOffset) RecordsCount;
         bytesBufferOffset += sizeof(RecordsCount);
         //---------------------------------------------------
-        vector<pair<const NodeUUID, const TrustLineDirection>> records;
+        vector<NodeUUID> records;
         records.clear();
         for (size_t recordsIterator = 0; recordsIterator < *recordsCount; ++recordsIterator) {
             NodeUUID neighbor;
@@ -48,14 +48,8 @@ void RoutingTableIncomingMessage::deserializeFromBytes(
               NodeUUID::kBytesSize);
             bytesBufferOffset += NodeUUID::kBytesSize;
             //---------------------------------------------------
-            SerializedTrustLineDirection *direct = new (buffer.get() + bytesBufferOffset) SerializedTrustLineDirection;
-            bytesBufferOffset += sizeof(SerializedTrustLineDirection);
-            TrustLineDirection direction = (TrustLineDirection) *direct;
-            //---------------------------------------------------
             records.push_back(
-                make_pair(
-                    neighbor,
-                    direction));
+                neighbor);
         }
         //---------------------------------------------------
         mRecords.insert(

@@ -72,14 +72,12 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRout
 
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
-            info() << "Neighbor UUID: " + neighborAndDirect.first.stringUUID();
-            info() << "Direction: " + to_string(neighborAndDirect.second);
+            info() << "Neighbor UUID: " + neighborAndDirect.stringUUID();
 
             try {
-                mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(
+                mStorageHandler->routingTablesHandler()->saveRecordToRT2(
                     mFirstLevelMessage->senderUUID(),
-                    neighborAndDirect.first,
-                    neighborAndDirect.second);
+                    neighborAndDirect);
 
             } catch (Exception&) {
                 error() << "Except when saving first level routing table from initiator at contractor's side";
@@ -87,7 +85,7 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveFirstLevelRout
 
         }
     }
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->commit();
+    mStorageHandler->routingTablesHandler()->commit();
 }
 
 TransactionResult::SharedConst FromInitiatorToContractorRoutingTablesAcceptTransaction::waitingForSecondLevelRoutingTableState() {
@@ -154,14 +152,12 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveSecondLevelRou
 
         for (const auto &neighborAndDirect : nodeAndRecords.second) {
 
-            info() << "Neighbor UUID: " + neighborAndDirect.first.stringUUID();
-            info() << "Direction: " + to_string(neighborAndDirect.second);
+            info() << "Neighbor UUID: " + neighborAndDirect.stringUUID();
 
             try {
-                mStorageHandler->routingTablesHandler()->routingTable3Level()->saveRecord(
+                mStorageHandler->routingTablesHandler()->saveRecordToRT3(
                     nodeAndRecords.first,
-                    neighborAndDirect.first,
-                    neighborAndDirect.second);
+                    neighborAndDirect);
 
             } catch (Exception& e) {
                 error() << "Except when saving second level routing table from initiator at contractor's side";
@@ -170,7 +166,7 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::saveSecondLevelRou
         }
 
     }
-    mStorageHandler->routingTablesHandler()->routingTable3Level()->commit();
+    mStorageHandler->routingTablesHandler()->commit();
 
 }
 
@@ -188,9 +184,7 @@ void FromInitiatorToContractorRoutingTablesAcceptTransaction::createFromContract
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelMessage) {
 
     auto direction = mTrustLinesManager->trustLineReadOnly(mContractorUUID)->direction();
-    auto relationshipsBetweenInitiatorAndContractor = make_pair(
-        mContractorUUID,
-        direction);
+    auto relationshipsBetweenInitiatorAndContractor = mContractorUUID;
 
     BaseTransaction::Shared transaction = make_shared<FromContractorToFirstLevelRoutingTablesPropagationTransaction>(
       mNodeUUID,

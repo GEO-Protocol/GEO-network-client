@@ -17,7 +17,7 @@ const RoutingTablesMessage::PropagationStep RoutingTablesMessage::propagationSte
     return mPropagationStep;
 }
 
-const map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>>& RoutingTablesMessage::records() const {
+const map<const NodeUUID, vector<NodeUUID>>& RoutingTablesMessage::records() const {
 
     return mRecords;
 }

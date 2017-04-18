@@ -2,7 +2,7 @@
 
 FromContractorToFirstLevelRoutingTablesPropagationTransaction::FromContractorToFirstLevelRoutingTablesPropagationTransaction(
     const NodeUUID &nodeUUID,
-    const pair<const NodeUUID, const TrustLineDirection> &relationshipsBetweenInitiatorAndContractor,
+    const NodeUUID &relationshipsBetweenInitiatorAndContractor,
     SecondLevelRoutingTableIncomingMessage::Shared secondLevelRoutingTableFromInitiator,
     TrustLinesManager *trustLinesManager) :
 
@@ -142,7 +142,7 @@ void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendLinkBetw
         RoutingTablesMessage::PropagationStep::FromContractorToFirstLevel);
 
 
-    vector<pair<const NodeUUID, const TrustLineDirection>> linkWithInitiator;
+    vector<NodeUUID> linkWithInitiator;
     linkWithInitiator.push_back(
         mLinkWithInitiator);
 
@@ -154,7 +154,7 @@ void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendLinkBetw
 
     for (const auto &contractorAndTrustLine : mTrustLinesManager->trustLines()) {
 
-        if (contractorAndTrustLine.first == mLinkWithInitiator.first) {
+        if (contractorAndTrustLine.first == mLinkWithInitiator) {
             continue;
         }
 
@@ -212,14 +212,12 @@ void FromContractorToFirstLevelRoutingTablesPropagationTransaction::sendSecondLe
 
     for (const auto &nodeAndRecord : mSecondLevelRoutingTableFromInitiator->records()) {
 
-        vector<pair<const NodeUUID, const TrustLineDirection>> neighborAndDirection;
+        vector<NodeUUID> neighborAndDirection;
 
         for (const auto &neighborAndDirect : nodeAndRecord.second) {
 
             neighborAndDirection.push_back(
-                make_pair(
-                    neighborAndDirect.first,
-                    neighborAndDirect.second));
+                neighborAndDirect);
         }
 
         secondLevelMessage->pushBack(

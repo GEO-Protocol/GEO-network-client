@@ -207,7 +207,7 @@ int Core::initTrustLinesManager() {
 
     try{
         mTrustLinesManager = new TrustLinesManager(
-            mStorageHandler,
+            mStorageHandler->trustLineHandler(),
             &mLog);
         mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
         return 0;

@@ -29,7 +29,7 @@ public:
 public:
     const RoutingTablesMessage::PropagationStep propagationStep() const;
 
-    const map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>>& records() const;
+    const map<const NodeUUID, vector<NodeUUID>>& records() const;
 
 protected:
     RoutingTablesMessage();
@@ -48,7 +48,7 @@ private:
     const bool isRoutingTableMessage() const;
 
 protected:
-    map<const NodeUUID, vector<pair<const NodeUUID, const TrustLineDirection>>> mRecords;
+    map<const NodeUUID, vector<NodeUUID>> mRecords;
     RoutingTablesMessage::PropagationStep mPropagationStep = RoutingTablesMessage::PropagationStep::WithoutStep;
 };
 #endif //GEO_NETWORK_CLIENT_ROUTINGTABLESMESSAGE_H

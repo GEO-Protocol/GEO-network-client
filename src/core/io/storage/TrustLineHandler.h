@@ -17,7 +17,7 @@ class TrustLineHandler {
 public:
 
     TrustLineHandler(
-        const string &dataBasePath,
+        sqlite3 *dbConnection,
         const string &tableName,
         Logger *logger);
 
@@ -37,11 +37,6 @@ public:
 private:
 
     void prepareInserted();
-
-    void insert(
-        TrustLine::Shared trustLine);
-
-    void update(TrustLine::Shared trustLine);
 
     bool containsContractor(const NodeUUID &contractorUUID);
 

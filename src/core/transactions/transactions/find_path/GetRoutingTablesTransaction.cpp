@@ -59,7 +59,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
         mTrustLinesManager->rt1());
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt2
-        = mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey();
+        = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2();
     info() << "sendRoutingTables\tRT2 size: " << rt2.size();
     size_t rt2MessageCount = rt2.size() / kCountElementsPerMessage;
     size_t idx = 0;
@@ -87,7 +87,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
     }
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt3
-        = mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey();
+        = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
     info() << "sendRoutingTables\tRT3 size: " << rt3.size();
     size_t rt3MessageCount = rt3.size() / kCountElementsPerMessage;
     idx = 0;

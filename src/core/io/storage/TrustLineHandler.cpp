@@ -1,31 +1,24 @@
 #include "TrustLineHandler.h"
 
 TrustLineHandler::TrustLineHandler(
-    const string &dataBasePath,
+    sqlite3 *dbConnection,
     const string &tableName,
     Logger *logger) :
 
+    mDataBase(dbConnection),
     mTableName(tableName),
     mLog(logger),
     isTransactionBegin(false) {
 
     sqlite3_stmt *stmt;
-    int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-    if (rc == SQLITE_OK) {
-    } else {
-        throw IOError("TrustLineHandler::connection "
-                          "Can't open database " + dataBasePath);
-    }
-
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    "(contractor BLOB NOT NULL, "
                    "incoming_amount BLOB NOT NULL, "
                    "outgoing_amount BLOB NOT NULL, "
                    "balance BLOB NOT NULL);";
-    rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::creating table: " + mTableName +
-                      " : Bad query");
+        throw IOError("TrustLineHandler::creating table: Bad query");
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
@@ -50,61 +43,6 @@ TrustLineHandler::TrustLineHandler(
 
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-}
-
-void TrustLineHandler::insert(
-    TrustLine::Shared trustLine) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
-    string query = "INSERT INTO " + mTableName +
-                   "(contractor, incoming_amount, outgoing_amount, balance) VALUES (?, ?, ?, ?);";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert: "
-                              "Bad query");
-    }
-
-    rc = sqlite3_bind_blob(stmt, 1, trustLine->contractorNodeUUID().data, NodeUUID::kBytesSize, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert: "
-                              "Bad binding of Contractor");
-    }
-
-    vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(trustLine->incomingTrustAmount());
-    rc = sqlite3_bind_blob(stmt, 2, incomingAmountBufferBytes.data(), kTrustLineAmountBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert: "
-                              "Bad binding of Incoming Amount");
-    }
-
-    vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(trustLine->outgoingTrustAmount());
-    rc = sqlite3_bind_blob(stmt, 3, outgoingAmountBufferBytes.data(), kTrustLineAmountBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert: "
-                              "Bad binding of Outgoing Amount");
-    }
-
-    vector<byte> balanceBufferBytes = trustLineBalanceToBytes(const_cast<TrustLineBalance&>(trustLine->balance()));
-    rc = sqlite3_bind_blob(stmt, 4, balanceBufferBytes.data(), kTrustLineBalanceSerializeBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::insert: "
-                              "Bad binding of Balance");
-    }
-
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "prepare inserting is completed successfully";
-#endif
-    } else {
-        throw IOError("TrustLineHandler::insert: Run query");
-    }
 }
 
 bool TrustLineHandler::commit() {
@@ -288,60 +226,6 @@ void TrustLineHandler::deleteTrustLine(
 #endif
     } else {
         throw IOError("TrustLineHandler::deleteTrustLine: Run query");
-    }
-}
-
-void TrustLineHandler::update(TrustLine::Shared trustLine) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
-    string query = "UPDATE " + mTableName +
-        " SET incoming_amount = ?, outgoing_amount = ?, balance = ? " +
-        "WHERE contractor = ?";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::update: Bad query");
-    }
-
-    vector<byte> incomingAmountBufferBytes = trustLineAmountToBytes(trustLine->incomingTrustAmount());
-    rc = sqlite3_bind_blob(stmt, 1, incomingAmountBufferBytes.data(), kTrustLineAmountBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::update: "
-                              "Bad binding of Incoming Amount");
-    }
-
-    vector<byte> outgoingAmountBufferBytes = trustLineAmountToBytes(trustLine->outgoingTrustAmount());
-    rc = sqlite3_bind_blob(stmt, 2, outgoingAmountBufferBytes.data(), kTrustLineAmountBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::update: "
-                              "Bad binding of Outgoing Amount");
-    }
-
-    vector<byte> balanceBufferBytes = trustLineBalanceToBytes(const_cast<TrustLineBalance&>(trustLine->balance()));
-    rc = sqlite3_bind_blob(stmt, 3, balanceBufferBytes.data(), kTrustLineBalanceSerializeBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::update: "
-                              "Bad binding of Balance");
-    }
-
-    rc = sqlite3_bind_blob(stmt, 4, trustLine->contractorNodeUUID().data, NodeUUID::kBytesSize, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("TrustLineHandler::update: "
-                              "Bad binding of Contractor");
-    }
-
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "updating is completed successfully";
-#endif
-    } else {
-        throw IOError("TrustLineHandler::update: Run query");
     }
 }
 
