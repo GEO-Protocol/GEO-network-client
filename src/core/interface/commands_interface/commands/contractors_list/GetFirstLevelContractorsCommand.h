@@ -5,7 +5,8 @@
 #include "../../../../common/exceptions/ValueError.h"
 
 // TODO: should be removed after testing getting paths
-class GetFirstLevelContractorsCommand : public BaseUserCommand {
+class GetFirstLevelContractorsCommand :
+        public BaseUserCommand {
 
 public:
     typedef shared_ptr<GetFirstLevelContractorsCommand> Shared;

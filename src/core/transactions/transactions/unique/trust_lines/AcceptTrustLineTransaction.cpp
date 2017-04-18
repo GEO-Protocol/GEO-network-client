@@ -52,13 +52,10 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
         case Stages::CheckJournal: {
             if (checkJournal()) {
                 sendResponseCodeToContractor(
-                    400);
-                mStep = Stages::CheckIncomingDirection;1
+                        400);
+                mStep = Stages::CheckIncomingDirection;
             }
-
-            mStep = Stages::CheckIncomingDirection;
         }
-
         case Stages::CheckIncomingDirection: {
             if (isIncomingTrustLineDirectionExisting()) {
 

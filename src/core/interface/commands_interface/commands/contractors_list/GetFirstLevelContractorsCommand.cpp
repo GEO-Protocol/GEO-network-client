@@ -1,8 +1,7 @@
 #include "GetFirstLevelContractorsCommand.h"
 
 GetFirstLevelContractorsCommand::GetFirstLevelContractorsCommand(const CommandUUID &uuid, const string &commandBuffer)
-        : BaseUserCommand(uuid, commandBuffer) {
-
+        : BaseUserCommand(uuid, identifier()) {
 }
 
 const string &GetFirstLevelContractorsCommand::identifier() {
