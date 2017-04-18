@@ -460,7 +460,7 @@ namespace db {
         void UUIDMapBlockStorage::syncData() {
 
             fflush(mFileDescriptor);
-            fdatasync(mPOSIXFileDescriptor);
+            fsync(mPOSIXFileDescriptor);
         }
 
         const bool UUIDMapBlockStorage::isFileExist(

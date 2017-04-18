@@ -15,7 +15,7 @@
 
 #include <unistd.h>
 #include <utility>
-#include <malloc.h>
+#include <stdlib.h>
 
 
 namespace io {

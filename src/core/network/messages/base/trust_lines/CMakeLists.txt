@@ -11,5 +11,5 @@ target_link_libraries(messages__base__trust_lines
 
         common
         exceptions
-        memory
+        #        memory
         transactions)

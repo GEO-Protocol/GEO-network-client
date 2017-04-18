@@ -147,7 +147,7 @@ void RecordNumbersIndex::updateFileHeader(
             "RecordNumbersIndex::updateFileHeader: "
                 "can't write header to the disk.");
     }
-    if (fdatasync(fileno(mFileDescriptor)) != 0) {
+    if (fsync(fileno(mFileDescriptor)) != 0) {
         throw IOError(
             "RecordNumbersIndex::updateFileHeader: "
                 "can't sync buffers with the disk.");

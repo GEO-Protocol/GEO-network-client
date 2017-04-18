@@ -10,6 +10,6 @@ target_link_libraries(messages__base__max_flow_calculation
         messages__base__transaction
 
         common
-        memory
+        #        memory
         transactions
         exceptions)

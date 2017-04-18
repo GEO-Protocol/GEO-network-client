@@ -12,6 +12,6 @@ target_link_libraries(messages__cycles
         messages__base__transaction
 
         common
-        memory
-        multiprecision
+        #        memory
+        #        multiprecision
         exceptions)

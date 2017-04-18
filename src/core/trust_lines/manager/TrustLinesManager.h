@@ -20,7 +20,7 @@
 
 #include <map>
 #include <vector>
-#include <malloc.h>
+#include <stdlib.h>
 
 // TODO: remove me
 #include <iostream>

@@ -30,7 +30,7 @@ public:
 
     void close();
     const bool exists() const;
-    __off_t fileSize() const;
+    off_t fileSize() const;
 
     void syncLowLevelOSBuffers() const;
 

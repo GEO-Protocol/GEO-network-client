@@ -26,7 +26,7 @@ void ResultsInterface::writeResult(
     if (mFIFODescriptor == 0){
         mFIFODescriptor = open(
             FIFOFilePath().c_str(),
-            O_WRONLY | O_RSYNC | O_DSYNC);
+            O_WRONLY | O_DSYNC);
 
         if (mFIFODescriptor == -1) {
             throw IOError(
@@ -39,7 +39,7 @@ void ResultsInterface::writeResult(
         close(mFIFODescriptor);
         mFIFODescriptor = open(
             FIFOFilePath().c_str(),
-            O_WRONLY | O_RSYNC | O_DSYNC);
+            O_WRONLY | O_DSYNC);
 
         if (mFIFODescriptor == -1) {
             throw IOError(

@@ -15,4 +15,5 @@ target_link_libraries(messages__incoming__routing_tables
 
         common
         exceptions
-        memory)
+        #        memory
+        )

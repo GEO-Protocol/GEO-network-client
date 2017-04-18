@@ -14,7 +14,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 #include <map>
-#include <malloc.h>
+#include <stdlib.h>
 
 
 namespace db {

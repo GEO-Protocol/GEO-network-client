@@ -15,5 +15,7 @@ target_link_libraries(messages__incoming__trust_lines
 
         common
         exceptions
-        memory
-        multiprecision)
+        #        memory
+        #        multiprecision
+        )
+

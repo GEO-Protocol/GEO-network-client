@@ -5,7 +5,7 @@
 
 #include <cstdint>
 #include <memory>
-#include <malloc.h>
+#include <stdlib.h>
 
 using namespace std;
 

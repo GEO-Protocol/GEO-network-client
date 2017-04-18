@@ -14,7 +14,7 @@
 #include <string>
 #include <cstdio>
 #include <vector>
-#include <malloc.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "../../common/exceptions/IOError.h"

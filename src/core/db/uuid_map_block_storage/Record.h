@@ -4,7 +4,7 @@
 #include "../../common/Types.h"
 
 #include <string>
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory>
 
 namespace db {

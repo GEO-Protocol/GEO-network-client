@@ -72,7 +72,7 @@ void AbstractFileDescriptorHandler::close() {
     }
 }
 
-__off_t AbstractFileDescriptorHandler::fileSize() const {
+off_t AbstractFileDescriptorHandler::fileSize() const {
     struct stat stbuf;
     if ((fstat(fileno(mFileDescriptor), &stbuf) != 0) || (!S_ISREG(stbuf.st_mode))) {
         throw IOError(
@@ -89,7 +89,7 @@ const bool AbstractFileDescriptorHandler::exists() const {
 
 void AbstractFileDescriptorHandler::syncLowLevelOSBuffers() const {
     fflush(mFileDescriptor);
-    if (fdatasync(fileno(mFileDescriptor)) != 0) {
+    if (fsync(fileno(mFileDescriptor)) != 0) {
         throw IOError(
             "UUIDColumn::writeBlock: "
                 "can't sync user-space buffers.");
