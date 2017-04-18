@@ -42,7 +42,13 @@
 # define _LARGEFILE_SOURCE 1
 #endif
 
+#ifdef MAC_OS
 #include <stdlib.h>
+#endif
+
+#ifdef LINUX
+#include <malloc.h>
+#endif
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>

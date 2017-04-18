@@ -9,6 +9,6 @@ target_link_libraries(messages__base__transaction
 
         common
         exceptions
-        memory
-#        transactions
+        #        memory
+        #        transactions
         )

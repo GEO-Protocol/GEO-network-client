@@ -1,6 +1,13 @@
 ﻿cmake_minimum_required(VERSION 3.6)
 project(geo_network_client)
 
+# Available options are: LINUX | MAC_OS
+set(PLATFORM "MAC_OS")
+IF (${PLATFORM} MATCHES "MAC_OS")
+    add_definitions(-DMAC_OS)
+ENDIF (${PLATFORM} MATCHES "MAC_OS")
+
+
 #
 # Logs configuration
 #
@@ -19,11 +26,10 @@ add_definitions(-DNETWORK_DEBUG_LOG)
 #
 #add_definitions(-DROUTING_TABLES_PROPAGATION_DISABLED)
 
-# todo: change in the release version
 
+# todo: change in the release version
 # Available options are: DEBUG | RELEASE | REALEASE_WITH_DEBUG_LOG
 set(BUILD_CONFIGURATION "DEBUG")
-
 
 IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
     add_definitions(-DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION)

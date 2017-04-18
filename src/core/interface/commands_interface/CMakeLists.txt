@@ -18,7 +18,7 @@ set(SOURCE_FILES
         interface/CommandsInterface.cpp
         interface/CommandsInterface.h
 
-#        CommandUUID.h
+        #        CommandUUID.h
         commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.cpp
         commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h
         commands/total_balances/TotalBalancesCommand.cpp
@@ -34,6 +34,7 @@ add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands
         ${Boost_SYSTEM_LIBRARY}
         common
-        memory
-        time
-        multiprecision)
+        #        memory
+        #        time
+        #        multiprecision
+        )

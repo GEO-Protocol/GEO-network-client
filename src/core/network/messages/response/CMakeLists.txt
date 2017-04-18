@@ -12,4 +12,5 @@ target_link_libraries(messages__response
 
         common
         exceptions
-        memory)
+        #        memory
+        )
