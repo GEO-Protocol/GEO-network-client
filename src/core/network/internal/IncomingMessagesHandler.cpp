@@ -1,6 +1,4 @@
 ﻿#include "IncomingMessagesHandler.h"
-#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
-#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
     BytesShared messagePart,

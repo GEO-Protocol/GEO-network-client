@@ -49,7 +49,8 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
             sendMessageToRemoteNode();
             mStep = Stages::CalculateMaxTransactionFlow;
             return make_shared<TransactionResult>(
-                TransactionState::awakeAfterMilliseconds(kWaitMilisecondsForCalculatingMaxFlow));;
+                TransactionState::awakeAfterMilliseconds(
+                    kWaitMilisecondsForCalculatingMaxFlow));
         case Stages::CalculateMaxTransactionFlow:
             TrustLineAmount maxFlow = calculateMaxFlow();
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG

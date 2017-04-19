@@ -24,25 +24,6 @@ RequestRoutingTablesMessage::Shared GetRoutingTablesTransaction::message() const
 TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
 
     info() << "run\tI am " << mNodeUUID;
-
-    /*info() << "run\t TrustLinesSize: " << mTrustLinesManager->trustLines().size();
-    info() << "run\t" << "RT1 size: " << mTrustLinesManager->rt1().size();
-    for (auto const &itRT1 : mTrustLinesManager->rt1()) {
-        info() << "run\t\t" << itRT1;
-    }*/
-    /*for (auto const &itRT2 : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey()) {
-        info() << "run\t\tkey: " << itRT2.first;
-        for (auto const &nodeUUID : itRT2.second) {
-            info() << "run\t\t\tvalue: " << nodeUUID;
-        }
-    }*/
-    /*for (auto const &itRT3 : mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey()) {
-        info() << "run\t\tkey: " << itRT3.first;
-        for (auto const &nodeUUID : itRT3.second) {
-            info() << "run\t\t\tvalue: " << nodeUUID;
-        }
-    }*/
-
     sendRoutingTables();
 
     info() << "message successfully sent to " << mMessage->senderUUID;
@@ -62,6 +43,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
         = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2();
     info() << "sendRoutingTables\tRT2 size: " << rt2.size();
     size_t rt2MessageCount = rt2.size() / kCountElementsPerMessage;
+    info() << "sendRoutingTables\tcount RT2 messages: " << (rt2MessageCount + 1);
     size_t idx = 0;
     auto itRT2 = rt2.begin();
     while (idx < rt2MessageCount) {
@@ -90,6 +72,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
         = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
     info() << "sendRoutingTables\tRT3 size: " << rt3.size();
     size_t rt3MessageCount = rt3.size() / kCountElementsPerMessage;
+    info() << "sendRoutingTables\tcount RT2 messages: " << (rt3MessageCount + 1);
     idx = 0;
     auto itRT3 = rt3.begin();
     while (idx < rt3MessageCount) {

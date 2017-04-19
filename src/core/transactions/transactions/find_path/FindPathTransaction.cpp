@@ -22,6 +22,30 @@ FindPathTransaction::FindPathTransaction(
 TransactionResult::SharedConst FindPathTransaction::run() {
 
     info() << "run\t" << currentTransactionUUID() << " I am " << mNodeUUID;
+    info() << "urn\t" << "step: " << mStep;
+    info() << "run\t" << "context size: " << mContext.size();
+
+    /*switch (mStep) {
+        case Stages::SendRequestForGettingRoutingTables:
+            sendMessageToRemoteNode();
+            mStep = Stages::BuildAllPaths;
+            return waitingForResponseState();
+
+        case Stages::BuildAllPaths:
+            if (!mContext.empty()) {
+                return buildPaths();
+            } else {
+                mPathsManager->findPathsOnSelfArea(
+                    mContractorUUID);
+                mResourcesManager->putResource(
+                    make_shared<PathsResource>(
+                        mRequestedTransactionUUID,
+                        mPathsManager->pathCollection()));
+                mStep = Stages::SendRequestForGettingRoutingTables;
+                return make_shared<const TransactionResult>(
+                    TransactionState::exit());
+            }
+    }*/
 
     if (!mContext.empty()) {
         return checkTransactionContext();
@@ -137,6 +161,9 @@ TransactionResult::SharedConst FindPathTransaction::waitingForResponseState() {
              Message::MessageType::Paths_ResultRoutingTableSecondLevel,
              Message::MessageType::Paths_ResultRoutingTableThirdLevel},
             kConnectionTimeout));
+    /*return make_shared<TransactionResult>(
+        TransactionState::awakeAfterMilliseconds(
+            kConnectionTimeout));*/
 }
 
 void FindPathTransaction::increaseRequestsCounter() {

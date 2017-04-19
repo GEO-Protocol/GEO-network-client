@@ -46,9 +46,15 @@ private:
 
     TransactionResult::SharedConst buildPaths();
 
+protected:
+    enum Stages {
+        SendRequestForGettingRoutingTables = 1,
+        BuildAllPaths
+    };
+
 private:
 
-    const uint32_t kConnectionTimeout = 3000;
+    const uint32_t kConnectionTimeout = 1500;
     const uint16_t kMaxRequestsCount = 1;
 
 private:

@@ -54,9 +54,9 @@ pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() co
     throw(bad_alloc)
 {
 
-    cout << "ResultRoutingTable3LevelMessage::serializeToBytes start serializing" << endl;
+    /*cout << "ResultRoutingTable3LevelMessage::serializeToBytes start serializing" << endl;
     cout << "ResultRoutingTable3LevelMessage::serializeToBytes rt3 size: " << mRT3.size() << endl;
-    DateTime startTime = utc_now();
+    DateTime startTime = utc_now();*/
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + rt3ByteSize();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -99,8 +99,8 @@ pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() co
     }
     //----------------------------------------------------
     cout << "ResultRoutingTable3LevelMessage::serializeToBytes message size: " << bytesCount << endl;
-    Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable3LevelMessage::serializing time: " << methodTime << endl;
+    /*Duration methodTime = utc_now() - startTime;
+    cout << "ResultRoutingTable3LevelMessage::serializing time: " << methodTime << endl;*/
     return make_pair(
         dataBytesShared,
         bytesCount);

@@ -197,6 +197,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     const NodeUUID &kCurrentNodeUUID,
     const CreditUsageCommand::Shared kCommand,
     TrustLinesManager *trustLines,
+    ResourcesManager *resourcesManager,
     Logger *log)
     noexcept :
 
@@ -206,6 +207,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         trustLines,
         log),
     mCommand(kCommand),
+    mResourcesManager(resourcesManager),
     mReservationsStage(0),
     mDirectPathIsAllreadyProcessed(false)
 {
@@ -232,6 +234,9 @@ throw (RuntimeError, bad_alloc)
     switch (mStep) {
         case Stages::Coordinator_Initialisation:
             return runPaymentInitialisationStage();
+
+        case Stages::Coordinator_ReceiverResourceProcessing:
+            return runReceiverResourceProcessingStage();
 
         case Stages::Coordinator_ReceiverResponseProcessing:
             return runReceiverResponseProcessingStage();
@@ -280,24 +285,41 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     // TODO: Read paths from paths manager.
     // TODO: Ensure paths shuffling
 
-    NodeUUID sender = currentNodeUUID();
-//    NodeUUID b("13e5cf8c-5834-4e52-b65b-f9281dd1ff01");
-//    NodeUUID c("13e5cf8c-5834-4e52-b65b-f9281dd1ff02");
-    NodeUUID receiver("13e5cf8c-5834-4e52-b65b-f9281dd1ff03");
+    mResourcesManager->requestPaths(
+        currentTransactionUUID(),
+        mCommand->contractorUUID());
 
-    auto p1 = make_shared<const Path>(
-        Path(sender, receiver));
-//    auto p2 = make_shared<const Path>(
-//        Path(sender, receiver, {c}));
+    mStep = Stages::Coordinator_ReceiverResourceProcessing;
+    return transactionResultFromState(
+        TransactionState::waitForResourcesTypes(
+            {BaseResource::ResourceType::Paths},
+            kMaxResourceTransferLagMSec));
+}
 
-    addPathForFurtherProcessing(p1);
-//    addPathForFurtherProcessing(p2);
-
+TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourceProcessingStage()
+{
+    if (mResources.size() == 1) {
+        auto responseResource = *mResources.begin();
+        if (responseResource->type() == BaseResource::ResourceType::Paths) {
+            PathsResource::Shared response = static_pointer_cast<PathsResource>(
+                responseResource);
+            while (response->pathCollection()->hasNextPath()) {
+                auto path = response->pathCollection()->nextPath();
+                info() << path->toString();
+                addPathForFurtherProcessing(path);
+            }
+        } else {
+            // TODO: action on this case
+            error() << "wrong resource type";
+        }
+    } else {
+        // TODO: action on this case
+        error() << "wrong resources size";
+    }
 
     // If there is no one path to the receiver - transaction can't proceed.
     if (mPathsStats.empty())
         return resultNoPathsError();
-
 
     info() << "Collected paths:";
     for (const auto &identifierAndStats : mPathsStats)

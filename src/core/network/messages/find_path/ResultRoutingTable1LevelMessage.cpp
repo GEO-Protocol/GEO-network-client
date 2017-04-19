@@ -77,8 +77,8 @@ pair<BytesShared, size_t> ResultRoutingTable1LevelMessage::serializeToBytes() co
         dataBytesOffset += NodeUUID::kBytesSize;
     }
     //----------------------------------------------------
-    /*cout << "ResultRoutingTable1LevelMessage::serializeToBytes message size: " << bytesCount << endl;
-    Duration methodTime = utc_now() - startTime;
+    cout << "ResultRoutingTable1LevelMessage::serializeToBytes message size: " << bytesCount << endl;
+    /*Duration methodTime = utc_now() - startTime;
     cout << "ResultRoutingTable1LevelMessage::serializing time: " << methodTime << endl;*/
 
     return make_pair(

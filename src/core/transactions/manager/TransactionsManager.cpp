@@ -637,6 +637,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mNodeUUID,
             command,
             mTrustLines,
+            mResourcesManager,
             mLog));
 }
 

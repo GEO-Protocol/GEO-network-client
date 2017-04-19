@@ -48,6 +48,7 @@ public:
 protected:
     enum Stages {
         Coordinator_Initialisation = 1,
+        Coordinator_ReceiverResourceProcessing,
         Coordinator_ReceiverResponseProcessing,
         Coordinator_AmountReservation,
         Coordinator_ShortPathAmountReservationResponseProcessing,
@@ -120,6 +121,9 @@ protected:
 
     // Specifies how long node may process transaction for some decision.
     static const uint16_t kExpectedNodeProcessingDelay = 1500; // milliseconds;
+
+    // Specifies how long node must wait for the resources from other transaction
+    static const uint16_t kMaxResourceTransferLagMSec = 2000; //
 
     static const auto kMaxPathLength = 7;
 

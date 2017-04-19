@@ -3,8 +3,10 @@
 
 
 #include "base/BasePaymentTransaction.h"
-
+#include "../../find_path/FindPathTransaction.h"
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
+
+#include "../../../../resources/manager/ResourcesManager.h"
 
 #include <boost/functional/hash.hpp>
 
@@ -28,6 +30,7 @@ public:
         const NodeUUID &kCurrentNodeUUID,
         const CreditUsageCommand::Shared kCommand,
         TrustLinesManager *trustLines,
+        ResourcesManager *resourcesManager,
         Logger *log)
         noexcept;
 
@@ -131,6 +134,7 @@ protected:
     // Stages handlers
     // TODO: Add throws specififcations
     TransactionResult::SharedConst runPaymentInitialisationStage ();
+    TransactionResult::SharedConst runReceiverResourceProcessingStage();
     TransactionResult::SharedConst runReceiverResponseProcessingStage ();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
@@ -229,5 +233,7 @@ protected:
      * In case if several direct paths occurs - than it seems that paths collection is broken.
      */
     bool mDirectPathIsAllreadyProcessed;
+
+    ResourcesManager *mResourcesManager;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H
