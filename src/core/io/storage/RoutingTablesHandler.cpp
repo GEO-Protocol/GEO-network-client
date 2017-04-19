@@ -373,15 +373,6 @@ map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourc
     return mRoutingTable3Level.routeRecordsMapSourceKey();
 }
 
-void RoutingTablesHandler::closeConnections() {
-
-    mRoutingTable2Level.closeConnection();
-    mRoutingTable3Level.closeConnection();
-    if (mDataBase != nullptr) {
-        sqlite3_close_v2(mDataBase);
-    }
-}
-
 LoggerStream RoutingTablesHandler::info() const {
 
     if (nullptr == mLog)

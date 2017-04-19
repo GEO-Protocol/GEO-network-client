@@ -330,13 +330,6 @@ const string& RoutingTableHandler::tableName() const {
     return mTableName;
 }
 
-void RoutingTableHandler::closeConnection() {
-
-    if (mDataBase != nullptr) {
-        sqlite3_close_v2(mDataBase);
-    }
-}
-
 LoggerStream RoutingTableHandler::info() const {
 
     if (nullptr == mLog)

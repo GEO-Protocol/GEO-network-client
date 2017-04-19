@@ -68,8 +68,6 @@ public:
 
     map<const NodeUUID, vector<NodeUUID>> routeRecordsMapSourceKeyOnRT3();
 
-    void closeConnections();
-
 private:
 
     void prepareInserted();

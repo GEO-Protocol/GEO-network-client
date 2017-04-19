@@ -34,8 +34,6 @@ public:
 
     TransactionHandler *transactionHandler();
 
-    void closeConnections();
-
 private:
 
     static void checkDirectory(

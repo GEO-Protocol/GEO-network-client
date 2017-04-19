@@ -302,13 +302,6 @@ void TrustLineHandler::saveTrustLine(
     }
 }
 
-void TrustLineHandler::closeConnection() {
-
-    if (mDataBase != nullptr) {
-        sqlite3_close_v2(mDataBase);
-    }
-}
-
 LoggerStream TrustLineHandler::info() const {
     if (nullptr == mLog)
         throw Exception("logger is not initialised");

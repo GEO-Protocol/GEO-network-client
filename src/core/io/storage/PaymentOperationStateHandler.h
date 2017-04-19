@@ -34,8 +34,6 @@ public:
 
     void rollBack();
 
-    void closeConnection();
-
 private:
 
     void prepareInserted();

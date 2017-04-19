@@ -20,7 +20,9 @@ StorageHandler::StorageHandler(
 
 StorageHandler::~StorageHandler() {
 
-    closeConnections();
+    if (mDBConnection != nullptr) {
+        sqlite3_close_v2(mDBConnection);
+    }
 }
 
 RoutingTablesHandler* StorageHandler::routingTablesHandler() {
@@ -41,14 +43,6 @@ PaymentOperationStateHandler *StorageHandler::paymentOperationStateHandler() {
 TransactionHandler *StorageHandler::transactionHandler() {
 
     return &mTransactionHandler;
-}
-
-void StorageHandler::closeConnections() {
-
-    mRoutingTablesHandler.closeConnections();
-    mTrustLineHandler.closeConnection();
-    mPaymentOperationStateHandler.closeConnection();
-    mTransactionHandler.closeConnection();
 }
 
 void StorageHandler::checkDirectory(
@@ -78,7 +72,6 @@ sqlite3* StorageHandler::connection(
     }
     return mDBConnection;
 }
-
 
 LoggerStream StorageHandler::info() const {
     if (nullptr == mLog)

@@ -249,13 +249,6 @@ pair<BytesShared, size_t> TransactionHandler::getTransaction(
     }
 }
 
-void TransactionHandler::closeConnection() {
-
-    if (mDataBase != nullptr) {
-        sqlite3_close_v2(mDataBase);
-    }
-}
-
 LoggerStream TransactionHandler::info() const {
 
     if (nullptr == mLog)

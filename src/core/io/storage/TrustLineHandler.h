@@ -32,8 +32,6 @@ public:
 
     void deleteTrustLine(const NodeUUID &contractorUUID);
 
-    void closeConnection();
-
 private:
 
     void prepareInserted();

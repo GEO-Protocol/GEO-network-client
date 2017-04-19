@@ -47,8 +47,6 @@ public:
 
     const string &tableName() const;
 
-    void closeConnection();
-
 private:
 
     LoggerStream info() const;
