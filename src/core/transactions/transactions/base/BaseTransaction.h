@@ -79,6 +79,7 @@ public:
         CoordinatorPaymentTransaction,
         ReceiverPaymentTransaction,
         IntermediateNodePaymentTransaction,
+        CycleCloserInitiatorTransaction,
 
         // Max flow calculation
         InitiateMaxFlowCalculationTransactionType,

@@ -13,6 +13,7 @@ add_subdirectory(transactions/total_balances)
 add_subdirectory(transactions/history)
 add_subdirectory(transactions/find_path)
 add_subdirectory(transactions/routing_tables)
+add_subdirectory(transactions/cycles_closing)
 
 set(SOURCE_FILES
         manager/TransactionsManager.h
@@ -36,6 +37,7 @@ target_link_libraries(transactions
         transactions__total_balances
         transactions__history
         transactions__find_path
+        transactions__cycles_closing
 
         common
         exceptions)

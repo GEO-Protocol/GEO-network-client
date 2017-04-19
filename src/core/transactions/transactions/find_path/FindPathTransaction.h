@@ -38,11 +38,7 @@ private:
 
     void sendMessageToRemoteNode();
 
-    void increaseRequestsCounter();
-
     TransactionResult::SharedConst waitingForResponseState();
-
-    TransactionResult::SharedConst checkTransactionContext();
 
     TransactionResult::SharedConst buildPaths();
 
@@ -54,8 +50,7 @@ protected:
 
 private:
 
-    const uint32_t kConnectionTimeout = 1500;
-    const uint16_t kMaxRequestsCount = 1;
+    const uint32_t kConnectionTimeout = 1000;
 
 private:
 
@@ -63,10 +58,7 @@ private:
     TransactionUUID mRequestedTransactionUUID;
     PathsManager *mPathsManager;
     ResourcesManager *mResourcesManager;
-    uint16_t mRequestCounter;
 
-    size_t previousContextSize;
-    bool isReceiveContractorRT1;
     vector<NodeUUID> mRT1;
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> mRT2;
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> mRT3;

@@ -16,8 +16,8 @@ FindPathTransaction::FindPathTransaction(
     mContractorUUID(contractorUUID),
     mRequestedTransactionUUID(requestedTransactionUUID),
     mPathsManager(pathsManager),
-    mResourcesManager(resourcesManager),
-    mRequestCounter(0) {}
+    mResourcesManager(resourcesManager)
+{}
 
 TransactionResult::SharedConst FindPathTransaction::run() {
 
@@ -25,7 +25,7 @@ TransactionResult::SharedConst FindPathTransaction::run() {
     info() << "urn\t" << "step: " << mStep;
     info() << "run\t" << "context size: " << mContext.size();
 
-    /*switch (mStep) {
+    switch (mStep) {
         case Stages::SendRequestForGettingRoutingTables:
             sendMessageToRemoteNode();
             mStep = Stages::BuildAllPaths;
@@ -45,44 +45,6 @@ TransactionResult::SharedConst FindPathTransaction::run() {
                 return make_shared<const TransactionResult>(
                     TransactionState::exit());
             }
-    }*/
-
-    if (!mContext.empty()) {
-        return checkTransactionContext();
-
-    } else {
-        if (mRequestCounter < kMaxRequestsCount) {
-            sendMessageToRemoteNode();
-            increaseRequestsCounter();
-
-        } else {
-            mPathsManager->findPathsOnSelfArea(
-                mContractorUUID);
-            mResourcesManager->putResource(
-                make_shared<PathsResource>(
-                    mRequestedTransactionUUID,
-                    mPathsManager->pathCollection()));
-            return make_shared<const TransactionResult>(
-                TransactionState::exit());
-        }
-    }
-    return waitingForResponseState();
-
-}
-
-TransactionResult::SharedConst FindPathTransaction::checkTransactionContext() {
-
-    info() << "context size\t" << mContext.size();
-    if (mContext.size() > 0) {
-        if (mContext.size() == previousContextSize) {
-            return buildPaths();
-        }
-        previousContextSize = mContext.size();
-        return waitingForResponseState();
-
-    } else {
-        throw ConflictError("FindPathTransaction::checkTransactionContext: "
-                                    "Unexpected context size.");
     }
 }
 
@@ -97,7 +59,6 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
 
             mRT1 = response->rt1();
             info() << "receive RT1, size: " << mRT1.size();
-            isReceiveContractorRT1 = true;
         }
 
         if (responseMessage->typeID() == Message::MessageType::Paths_ResultRoutingTableSecondLevel) {
@@ -106,7 +67,6 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
 
             mRT2.insert(response->rt2().begin(), response->rt2().end());
             info() << "receive RT2, size: " << mRT2.size();
-            isReceiveContractorRT1 = true;
         }
 
         if (responseMessage->typeID() == Message::MessageType::Paths_ResultRoutingTableThirdLevel) {
@@ -115,7 +75,6 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
 
             mRT3.insert(response->rt3().begin(), response->rt3().end());
             info() << "receive RT3, size: " << mRT3.size();
-            isReceiveContractorRT1 = true;
         }
 
     }
@@ -140,8 +99,6 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
 
 void FindPathTransaction::sendMessageToRemoteNode() {
 
-    isReceiveContractorRT1 = false;
-    previousContextSize = 0;
     mRT1.clear();
     mRT2.clear();
     mRT3.clear();
@@ -155,21 +112,12 @@ void FindPathTransaction::sendMessageToRemoteNode() {
 TransactionResult::SharedConst FindPathTransaction::waitingForResponseState() {
 
     info() << "waitingForResponseState";
-    return transactionResultFromState(
-        TransactionState::waitForMessageTypes(
+    return make_shared<TransactionResult>(
+        TransactionState::waitForMessageTypesAndAwakeAfterMilliseconds(
             {Message::MessageType::Paths_ResultRoutingTableFirstLevel,
              Message::MessageType::Paths_ResultRoutingTableSecondLevel,
              Message::MessageType::Paths_ResultRoutingTableThirdLevel},
             kConnectionTimeout));
-    /*return make_shared<TransactionResult>(
-        TransactionState::awakeAfterMilliseconds(
-            kConnectionTimeout));*/
-}
-
-void FindPathTransaction::increaseRequestsCounter() {
-
-    mRequestCounter += 1;
-    info() << "increaseRequestsCounter\t" << mRequestCounter;
 }
 
 const string FindPathTransaction::logHeader() const

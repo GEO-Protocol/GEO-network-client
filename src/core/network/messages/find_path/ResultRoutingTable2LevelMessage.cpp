@@ -17,6 +17,9 @@ ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
     TransactionMessage(buffer)
 {
 
+    /*cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes start serializing" << endl;
+    cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes rt2 size: " << mRT2.size() << endl;
+    DateTime startTime = utc_now();*/
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     RecordCount *rt2Count = new (buffer.get() + bytesBufferOffset) RecordCount;
@@ -40,6 +43,9 @@ ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
         //---------------------------------------------------
         mRT2.insert(make_pair(keyDesitnation, valueSources));
     }
+    cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
+    /*Duration methodTime = utc_now() - startTime;
+    cout << "ResultRoutingTable2LevelMessage::deserializing time: " << methodTime << endl;*/
 }
 
 const Message::MessageType ResultRoutingTable2LevelMessage::typeID() const {

@@ -4,9 +4,14 @@ project(geo_network_client)
 
 # Available options are: LINUX | MAC_OS
 set(PLATFORM "LINUX")
+
 IF (${PLATFORM} MATCHES "MAC_OS")
     add_definitions(-DMAC_OS)
 ENDIF (${PLATFORM} MATCHES "MAC_OS")
+
+IF (${PLATFORM} MATCHES "LINUX")
+    add_definitions(-DLINUX)
+ENDIF (${PLATFORM} MATCHES "LINUX")
 
 
 #
