@@ -1,6 +1,6 @@
-#include "PaymentOperationStateHandler.h"
+#include "TransactionHandler.h"
 
-PaymentOperationStateHandler::PaymentOperationStateHandler(
+TransactionHandler::TransactionHandler(
     sqlite3 *dbConnection,
     const string &tableName,
     Logger *logger):
@@ -11,31 +11,31 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
     isTransactionBegin(false){
 
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
-        " (transaction_uuid BLOB NOT NULL, "
-            "state BLOB NOT NULL, "
-            "state_bytes_count INT NOT NULL);";
+                   " (transaction_uuid BLOB NOT NULL, "
+                       "transaction_body BLOB NOT NULL, "
+                       "transaction_bytes_count INT NOT NULL);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::creating table: Bad query");
+        throw IOError("TransactionHandler::creating table: Bad query");
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
-        throw IOError("PaymentOperationStateHandler::creating table: Run query");
+        throw IOError("TransactionHandler::creating table: Run query");
     }
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_transaction_uuid_idx on " + mTableName + " (transaction_uuid);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::creating index for TransactionUUID: "
+        throw IOError("TransactionHandler::creating index for TransactionUUID: "
                           "Bad query");
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
-        throw IOError("PaymentOperationStateHandler::creating index for TransactionUUID: "
+        throw IOError("TransactionHandler::creating index for TransactionUUID: "
                           "Run query");
     }
 
@@ -43,7 +43,7 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
     sqlite3_finalize(stmt);
 }
 
-void PaymentOperationStateHandler::prepareInserted() {
+void TransactionHandler::prepareInserted() {
 
     if (isTransactionBegin) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
@@ -56,7 +56,7 @@ void PaymentOperationStateHandler::prepareInserted() {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::prepareInserted: "
+        throw IOError("TransactionHandler::prepareInserted: "
                           "Bad query");
     }
     rc = sqlite3_step(stmt);
@@ -67,13 +67,13 @@ void PaymentOperationStateHandler::prepareInserted() {
         info() << "transaction begin";
 #endif
     } else {
-        throw IOError("PaymentOperationStateHandler::prepareInserted: "
+        throw IOError("TransactionHandler::prepareInserted: "
                           "Run query");
     }
     isTransactionBegin = true;
 }
 
-bool PaymentOperationStateHandler::commit() {
+bool TransactionHandler::commit() {
 
     if (!isTransactionBegin) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
@@ -86,8 +86,7 @@ bool PaymentOperationStateHandler::commit() {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::commit: "
-                          "Bad query");
+        throw IOError("TransactionHandler::commit: Bad query");
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -105,12 +104,12 @@ bool PaymentOperationStateHandler::commit() {
         return false;
     } else {
         info() << "commit error: " << rc;
-        throw IOError("PaymentOperationStateHandler::commit: "
+        throw IOError("TransactionHandler::commit: "
                           "Run query");
     }
 }
 
-void PaymentOperationStateHandler::rollBack() {
+void TransactionHandler::rollBack() {
 
     if (!isTransactionBegin) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
@@ -123,8 +122,7 @@ void PaymentOperationStateHandler::rollBack() {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::rollback: "
-                          "Bad query");
+        throw IOError("TransactionHandler::rollback: Bad query");
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -134,44 +132,43 @@ void PaymentOperationStateHandler::rollBack() {
         info() << "rollBack done";
 #endif
     } else {
-        throw IOError("PaymentOperationStateHandler::rollback: "
+        throw IOError("TransactionHandler::rollback: "
                           "Run query");
     }
-
     isTransactionBegin = false;
 }
 
-void PaymentOperationStateHandler::saveRecord(
+void TransactionHandler::saveRecord(
     const TransactionUUID &transactionUUID,
-    BytesShared state,
-    size_t stateBytesCount) {
+    BytesShared transaction,
+    size_t transactionBytesCount) {
 
     if (!isTransactionBegin) {
         prepareInserted();
     }
 
     string query = "INSERT OR REPLACE INTO " + mTableName +
-        " (transaction_uuid, state, state_bytes_count) VALUES(?, ?, ?);";
+                   " (transaction_uuid, transaction_body, transaction_bytes_count) VALUES(?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert or replace: "
+        throw IOError("TransactionHandler::insert or replace: "
                           "Bad query");
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert or replace: "
+        throw IOError("TransactionHandler::insert or replace: "
                           "Bad binding of TransactionUUID");
     }
-    rc = sqlite3_bind_blob(stmt, 2, state.get(), (int)stateBytesCount, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 2, transaction.get(), (int)transactionBytesCount, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert or replace: "
-                          "Bad binding of State");
+        throw IOError("TransactionHandler::insert or replace: "
+                          "Bad binding of Transaction body");
     }
-    rc = sqlite3_bind_int(stmt, 3, (int)stateBytesCount);
+    rc = sqlite3_bind_int(stmt, 3, (int)transactionBytesCount);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert or replace: "
-                          "Bad binding of State bytes count");
+        throw IOError("TransactionHandler::insert or replace: "
+                          "Bad binding of Transaction bytes count");
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -181,12 +178,12 @@ void PaymentOperationStateHandler::saveRecord(
         info() << "prepare inserting or replacing is completed successfully";
 #endif
     } else {
-        throw IOError("PaymentOperationStateHandler::insert or replace: "
+        throw IOError("TransactionHandler::insert or replace: "
                           "Run query");
     }
 }
 
-void PaymentOperationStateHandler::deleteRecord(
+void TransactionHandler::deleteRecord(
     const TransactionUUID &transactionUUID) {
 
     if (!isTransactionBegin) {
@@ -197,12 +194,12 @@ void PaymentOperationStateHandler::deleteRecord(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::delete: "
+        throw IOError("TransactionHandler::delete: "
                           "Bad query");
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::delete: "
+        throw IOError("TransactionHandler::delete: "
                           "Bad binding of TransactionUUID");
     }
     rc = sqlite3_step(stmt);
@@ -218,19 +215,19 @@ void PaymentOperationStateHandler::deleteRecord(
     }
 }
 
-pair<BytesShared, size_t> PaymentOperationStateHandler::getState(
+pair<BytesShared, size_t> TransactionHandler::getTransaction(
     const TransactionUUID &transactionUUID) {
 
-    string query = "SELECT state, state_bytes_count FROM " + mTableName + " WHERE transaction_uuid = ?;";
+    string query = "SELECT transaction_body, transaction_bytes_count FROM " + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::getState: "
+        throw IOError("TransactionHandler::getTransaction: "
                           "Bad query");
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::getState: "
+        throw IOError("TransactionHandler::getTransaction: "
                           "Bad binding of TransactionUUID");
     }
     rc = sqlite3_step(stmt);
@@ -247,35 +244,35 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::getState(
     } else {
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
-        throw NotFoundError("PaymentOperationStateHandler::getState: "
+        throw NotFoundError("TransactionHandler::getTransaction: "
                                 "There are now records with requested transactionUUID");
     }
 }
 
-void PaymentOperationStateHandler::closeConnection() {
+void TransactionHandler::closeConnection() {
 
     if (mDataBase != nullptr) {
         sqlite3_close_v2(mDataBase);
     }
 }
 
-LoggerStream PaymentOperationStateHandler::info() const {
+LoggerStream TransactionHandler::info() const {
 
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->info(logHeader());
 }
 
-LoggerStream PaymentOperationStateHandler::error() const {
+LoggerStream TransactionHandler::error() const {
 
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->error(logHeader());
 }
 
-const string PaymentOperationStateHandler::logHeader() const {
+const string TransactionHandler::logHeader() const {
 
     stringstream s;
-    s << "[PaymentOperationStateHandler]";
+    s << "[TransactionHandler]";
     return s.str();
 }

@@ -12,14 +12,10 @@ class RoutingTablesHandler {
 public:
 
     RoutingTablesHandler(
-        const string &dataBasePath,
+        sqlite3 *dbConnection,
         const string &rt2TableName,
         const string &rt3TableName,
         Logger *logger);
-
-    RoutingTableHandler* routingTable2Level();
-
-    RoutingTableHandler* routingTable3Level();
 
     vector<NodeUUID> subRoutesSecondLevel(const NodeUUID &contractorUUID);
 
@@ -34,9 +30,49 @@ public:
         const NodeUUID &sourceUUID,
         const NodeUUID &contractorUUID);
 
+    void saveRecordToRT2(
+        const NodeUUID &source,
+        const NodeUUID &destination);
+
+    void saveRecordToRT3(
+        const NodeUUID &source,
+        const NodeUUID &destination);
+
+    void deleteRecordFromRT2(
+        const NodeUUID &source,
+        const NodeUUID &destination);
+
+    void deleteRecordFromRT3(
+        const NodeUUID &source,
+        const NodeUUID &destination);
+
+    bool commit();
+
+    void rollBack();
+
+    vector<pair<NodeUUID, NodeUUID>> rt2Records();
+
+    vector<pair<NodeUUID, NodeUUID>> rt3Records();
+
+    set<NodeUUID> neighborsOfOnRT2(
+        const NodeUUID &sourceUUID);
+
+    set<NodeUUID> neighborsOfOnRT3(
+        const NodeUUID &sourceUUID);
+
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKeyOnRT2();
+
+    unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKeyOnRT3();
+
+    map<const NodeUUID, vector<NodeUUID>> routeRecordsMapSourceKeyOnRT2();
+
+    map<const NodeUUID, vector<NodeUUID>> routeRecordsMapSourceKeyOnRT3();
+
     void closeConnections();
 
 private:
+
+    void prepareInserted();
 
     LoggerStream info() const;
 
@@ -46,9 +82,10 @@ private:
 
 private:
 
-    sqlite3 *mDataBase;
+    sqlite3 *mDataBase = nullptr;
     RoutingTableHandler mRoutingTable2Level;
     RoutingTableHandler mRoutingTable3Level;
+    bool isTransactionBegin;
     Logger *mLog;
 
 };

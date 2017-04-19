@@ -1,4 +1,5 @@
 ﻿#include "TransactionsManager.h"
+#include "../transactions/contractors_list/GetFirstLevelContractorsTransaction.h"
 
 /*!
  *
@@ -183,6 +184,11 @@ void TransactionsManager::processCommand(
         launchGetPathTestTransaction(
             static_pointer_cast<FindPathCommand>(
                 command));
+
+    } else if (command->identifier() == GetFirstLevelContractorsCommand::identifier()){
+        launchGetFirstLevelContractorsTransaction(
+                static_pointer_cast<GetFirstLevelContractorsCommand>(
+                        command));
 
     } else {
         throw ValueError(
@@ -784,6 +790,16 @@ void TransactionsManager::launchGetPathTestTransaction(FindPathCommand::Shared c
             "TransactionsManager::launchGetPathTestTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
+}
+
+void TransactionsManager::launchGetFirstLevelContractorsTransaction(GetFirstLevelContractorsCommand::Shared command)
+{
+    prepareAndSchedule(
+            make_shared<GetFirstLevelContractorsTransaction>(
+                    mNodeUUID,
+                    command,
+                    mTrustLines,
+                    mLog));
 }
 
 /*!

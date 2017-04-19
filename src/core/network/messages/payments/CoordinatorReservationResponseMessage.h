@@ -27,7 +27,8 @@ public:
 
     const TrustLineAmount& amountReserved() const;
 
-    pair<BytesShared, size_t> serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
 
 protected:
     const MessageType typeID() const;

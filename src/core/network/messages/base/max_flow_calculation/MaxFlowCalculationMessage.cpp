@@ -14,10 +14,11 @@ MaxFlowCalculationMessage::MaxFlowCalculationMessage (
     BytesShared buffer) :
     SenderMessage(buffer)
 {
+
     memcpy(
         mTargetUUID.data,
         buffer.get() + SenderMessage::kOffsetToInheritedBytes(),
-    NodeUUID::kBytesSize);
+        NodeUUID::kBytesSize);
 }
 
 const NodeUUID &MaxFlowCalculationMessage::targetUUID() const {
@@ -25,7 +26,9 @@ const NodeUUID &MaxFlowCalculationMessage::targetUUID() const {
     return mTargetUUID;
 }
 
-pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() {
+pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() const
+    throw(bad_alloc)
+{
 
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize;

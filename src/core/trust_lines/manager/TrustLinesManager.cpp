@@ -1,11 +1,11 @@
 ﻿#include "TrustLinesManager.h"
 
 TrustLinesManager::TrustLinesManager(
-    StorageHandler *storageHandler,
+    TrustLineHandler *trustLineHandler,
     Logger *logger)
     throw (bad_alloc, IOError) :
 
-    mStorageHandler(storageHandler),
+    mTrustLineHandler(trustLineHandler),
     mLogger(logger)
 {
     mAmountReservationsHandler = make_unique<AmountReservationsHandler>();
@@ -16,7 +16,7 @@ TrustLinesManager::TrustLinesManager(
 void TrustLinesManager::loadTrustLinesFromDisk ()
     throw (IOError)
 {
-    const auto kTrustLines = mStorageHandler->trustLineHandler()->allTrustLines();
+    const auto kTrustLines = mTrustLineHandler->allTrustLines();
     mTrustLines.reserve(kTrustLines.size());
 
     for (auto const kTrustLine : kTrustLines) {
@@ -416,8 +416,8 @@ void TrustLinesManager::saveToDisk(
     if (trustLineIsPresent(trustLine->contractorNodeUUID())) {
         alreadyExisted = true;
     }
-    mStorageHandler->trustLineHandler()->saveTrustLine(trustLine);
-    mStorageHandler->trustLineHandler()->commit();
+    mTrustLineHandler->saveTrustLine(trustLine);
+    mTrustLineHandler->commit();
     try {
         mTrustLines.insert(
             make_pair(
@@ -449,7 +449,7 @@ void TrustLinesManager::removeTrustLine(
     const NodeUUID &contractorUUID) {
 
     if (trustLineIsPresent(contractorUUID)) {
-        mStorageHandler->trustLineHandler()->deleteTrustLine(
+        mTrustLineHandler->deleteTrustLine(
             contractorUUID);
         mTrustLines.erase(contractorUUID);
 

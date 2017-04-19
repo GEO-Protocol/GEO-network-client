@@ -16,7 +16,9 @@ CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage
     deserializeFromBytes(buffer);
 }
 
-pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBytes() {
+pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBytes() const
+    throw(bad_alloc)
+{
     auto parentBytesAndCount = CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes();
 
     uint16_t boundaryNodesCount = (uint16_t) mBoundaryNodes.size();

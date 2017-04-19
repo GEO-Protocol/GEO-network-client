@@ -105,7 +105,8 @@ const Message::MessageType ParticipantsConfigurationMessage::typeID () const
     return Message::Payments_ParticipantsPathsConfiguration;
 }
 
-pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeToBytes ()
+pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeToBytes() const
+    throw(bad_alloc)
 {
     switch (mDesignation) {
         case Designation::ForIntermediateNode:
@@ -146,7 +147,7 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeToBytes ()
  *
  *  @throws bad_alloc in case of insufficient memory.
  */
-pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermediateNode ()
+pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermediateNode() const
     throw (bad_alloc)
 {
     const auto kParentBytesAndCount = TransactionMessage::serializeToBytes();
@@ -255,7 +256,7 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermed
  *
  *  @throws bad_alloc in case of insufficient memory.
  */
-pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForReceiverNode ()
+pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForReceiverNode() const
     throw (bad_alloc)
 {
     const auto kParentBytesAndCount = TransactionMessage::serializeToBytes();

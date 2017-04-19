@@ -73,7 +73,8 @@ public:
 
     const MessageType typeID() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
 
 protected:
     void addPath(
@@ -85,11 +86,11 @@ protected:
     typedef uint32_t RecordsCount;
 
     // TODO: make it const
-    pair<BytesShared, size_t> serializeForIntermediateNode()
+    pair<BytesShared, size_t> serializeForIntermediateNode() const
         throw (bad_alloc);
 
     // TODO: make it const
-    pair<BytesShared, size_t> serializeForReceiverNode()
+    pair<BytesShared, size_t> serializeForReceiverNode() const
         throw (bad_alloc);
 
     virtual void deserializeFromBytes(

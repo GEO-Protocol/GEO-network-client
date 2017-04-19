@@ -28,7 +28,8 @@ const TrustLineAmount&CoordinatorReservationResponseMessage::amountReserved() co
     return mAmountReserved;
 }
 
-pair<BytesShared, size_t> CoordinatorReservationResponseMessage::serializeToBytes()
+pair<BytesShared, size_t> CoordinatorReservationResponseMessage::serializeToBytes() const
+    throw(bad_alloc)
 {
     auto parentBytesAndCount = ResponseMessage::serializeToBytes();
     auto serializedAmount = trustLineAmountToBytes(mAmountReserved);

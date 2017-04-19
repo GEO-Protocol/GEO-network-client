@@ -30,7 +30,7 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::run() {
             increaseRequestsCounter();
 
         } else {
-            return noResponseResult();
+            return resultRemoteNodeIsInaccessible();
         }
 
     }
@@ -55,7 +55,7 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::checkTran
                 response->totalTrustUsedBySelf());
         }
 
-        return unexpectedErrorResult();
+        return resultRemoteNodeIsInaccessible();
 
     } else {
         throw ConflictError("TotalBalancesFromRemoutNodeTransaction::checkTransactionContext: "
@@ -96,20 +96,14 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::resultOk(
     s << totalIncomingTrust << "\t" << totalTrustUsedByContractor << "\t" << totalOutgoingTrust << "\t" << totalTrustUsedBySelf;
     string totalBalancesStrResult = s.str();
     info() << "resultOk\t" << totalBalancesStrResult;
-    return transactionResultFromCommand(mCommand->resultOk(totalBalancesStrResult));
+    return transactionResultFromCommand(mCommand->responseOk(totalBalancesStrResult));
 }
 
-TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::noResponseResult() {
+TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::resultRemoteNodeIsInaccessible() {
 
-    info() << "noResponseResult";
+    info() << "resultRemoteNodeIsInaccessible";
     return transactionResultFromCommand(
-            mCommand->resultNoResponse());
-}
-
-TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::unexpectedErrorResult() {
-
-    return transactionResultFromCommand(
-            mCommand->unexpectedErrorResult());
+            mCommand->responseRemoteNodeIsInaccessible());
 }
 
 const string TotalBalancesFromRemoutNodeTransaction::logHeader() const

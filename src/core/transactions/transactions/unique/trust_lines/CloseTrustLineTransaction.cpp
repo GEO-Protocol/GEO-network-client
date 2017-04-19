@@ -84,7 +84,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
 
             case Stages::CheckUnicity: {
                 if (!isTransactionToContractorUnique()) {
-                    return conflictErrorResult();
+                    return resultConflictWithOtherOperation();
                 }
 
                 mStep = Stages::CheckOutgoingDirection;
@@ -92,7 +92,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
 
             case Stages::CheckOutgoingDirection: {
                 if (!isOutgoingTrustLineDirectionExisting()) {
-                    return trustLineAbsentResult();
+                    return resultTrustLineAbsent();
                 }
 
                 mStep = Stages::CheckDebt;
@@ -121,7 +121,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
                         increaseRequestsCounter();
 
                     } else {
-                        return noResponseResult();
+                        return resultRemoteNodeIsInaccessible();
                     }
 
                 }
@@ -203,20 +203,22 @@ TransactionResult::SharedConst CloseTrustLineTransaction::checkTransactionContex
                     return resultOk();
                 }
 
-                case RejectTrustLineMessage::kResultCodeTransactionConflict: {
-                    return transactionConflictResult();
+                case RejectTrustLineMessage::kResultCodeTrustLineAbsent: {
+                    //todo add TrustLine synchronization
+                    throw RuntimeError("CloseTrustLineTransaction::checkTransactionContext:"
+                    "TrustLines data out of sync");
                 }
 
                 default: {
-                    return unexpectedErrorResult();
+                    break;
                 }
             }
         }
 
-        return unexpectedErrorResult();
+        return resultProtocolError();
 
     } else {
-        throw ConflictError("OpenTrustLineTransaction::checkTransactionContext: "
+        throw ConflictError("CloseTrustLineTransaction::checkTransactionContext: "
                                 "Unexpected context size.");
     }
 }
@@ -246,35 +248,28 @@ TransactionResult::SharedConst CloseTrustLineTransaction::waitingForResponseStat
 TransactionResult::SharedConst CloseTrustLineTransaction::resultOk() {
 
     return transactionResultFromCommand(
-        mCommand->resultOk());
+        mCommand->responseOK());
 }
 
-TransactionResult::SharedConst CloseTrustLineTransaction::trustLineAbsentResult() {
+TransactionResult::SharedConst CloseTrustLineTransaction::resultTrustLineAbsent() {
 
     return transactionResultFromCommand(
-        mCommand->trustLineIsAbsentResult());
+        mCommand->responseTrustlineIsAbsent());
 }
 
-TransactionResult::SharedConst CloseTrustLineTransaction::conflictErrorResult() {
+TransactionResult::SharedConst CloseTrustLineTransaction::resultConflictWithOtherOperation() {
 
     return transactionResultFromCommand(
-        mCommand->resultConflict());
+        mCommand->responseConflictWithOtherOperation());
 }
 
-TransactionResult::SharedConst CloseTrustLineTransaction::noResponseResult() {
+TransactionResult::SharedConst CloseTrustLineTransaction::resultRemoteNodeIsInaccessible() {
 
     return transactionResultFromCommand(
-        mCommand->resultNoResponse());
+        mCommand->responseRemoteNodeIsInaccessible());
 }
 
-TransactionResult::SharedConst CloseTrustLineTransaction::transactionConflictResult() {
-
+TransactionResult::SharedConst CloseTrustLineTransaction::resultProtocolError() {
     return transactionResultFromCommand(
-        mCommand->resultTransactionConflict());
-}
-
-TransactionResult::SharedConst CloseTrustLineTransaction::unexpectedErrorResult() {
-
-    return transactionResultFromCommand(
-        mCommand->unexpectedErrorResult());
+            mCommand->responseProtocolError());
 }

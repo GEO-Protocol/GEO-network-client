@@ -27,12 +27,6 @@ class RejectTrustLineTransaction : public TrustLineTransaction {
 public:
     typedef shared_ptr<RejectTrustLineTransaction> Shared;
 
-private:
-    enum Stages{
-        CheckUnicity = 1,
-        CheckIncomingDirection
-    };
-
 public:
     RejectTrustLineTransaction(
         const NodeUUID &nodeUUID,

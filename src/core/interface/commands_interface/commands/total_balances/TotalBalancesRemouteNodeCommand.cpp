@@ -48,7 +48,7 @@ void TotalBalancesRemouteNodeCommand::parse(
     }
 }
 
-CommandResult::SharedConst TotalBalancesRemouteNodeCommand::resultOk(string &totalBalancesStr) const {
+CommandResult::SharedConst TotalBalancesRemouteNodeCommand::responseOk(string &totalBalancesStr) const {
 
     return CommandResult::SharedConst(
         new CommandResult(
@@ -57,10 +57,3 @@ CommandResult::SharedConst TotalBalancesRemouteNodeCommand::resultOk(string &tot
             totalBalancesStr));
 }
 
-CommandResult::SharedConst TotalBalancesRemouteNodeCommand::resultNoResponse() const {
-
-    return CommandResult::SharedConst(
-        new CommandResult(
-            UUID(),
-            501));
-}

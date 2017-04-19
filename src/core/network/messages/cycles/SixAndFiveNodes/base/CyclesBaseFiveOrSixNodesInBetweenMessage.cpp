@@ -13,7 +13,9 @@ CycleBaseFiveOrSixNodesInBetweenMessage::CycleBaseFiveOrSixNodesInBetweenMessage
     deserializeFromBytes(buffer);
 }
 
-pair<BytesShared, size_t> CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes() {
+pair<BytesShared, size_t> CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes() const
+    throw(bad_alloc)
+{
     auto parentBytesAndCount = Message::serializeToBytes();
     const uint8_t kNodesInPath = mPath.size();
     size_t bytesCount = parentBytesAndCount.second
