@@ -1,8 +1,9 @@
 ﻿cmake_minimum_required(VERSION 3.6)
 project(geo_network_client)
 
+
 # Available options are: LINUX | MAC_OS
-set(PLATFORM "MAC_OS")
+set(PLATFORM "LINUX")
 IF (${PLATFORM} MATCHES "MAC_OS")
     add_definitions(-DMAC_OS)
 ENDIF (${PLATFORM} MATCHES "MAC_OS")
@@ -69,9 +70,6 @@ find_package(Boost COMPONENTS system filesystem thread date_time REQUIRED)
 #
 add_subdirectory(src/core/common/)
 add_subdirectory(src/core/common/exceptions)
-add_subdirectory(src/core/common/time)
-add_subdirectory(src/core/common/memory)
-add_subdirectory(src/core/common/multiprecision)
 add_subdirectory(src/core/db/operations_history_storage)
 add_subdirectory(src/core/logger)
 add_subdirectory(src/core/interface)

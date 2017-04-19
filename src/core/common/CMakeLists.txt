@@ -14,7 +14,6 @@ set(SOURCE_FILES
     
     time/TimeUtils.h
     multiprecision/MultiprecisionUtils.h
-    memory/MemoryUtils.h
-    )
+    memory/MemoryUtils.h)
 
 add_library(common ${SOURCE_FILES})
