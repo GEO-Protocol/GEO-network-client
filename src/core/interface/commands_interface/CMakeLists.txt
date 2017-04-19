@@ -42,7 +42,4 @@ set(SOURCE_FILES
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands
         ${Boost_SYSTEM_LIBRARY}
-        common
-        memory
-        time
-        multiprecision)
+        common)
