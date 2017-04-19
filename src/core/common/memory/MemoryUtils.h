@@ -5,7 +5,14 @@
 
 #include <cstdint>
 #include <memory>
+
+#ifdef MAC_OS
+#include <stdlib.h>
+#endif
+
+#ifdef LINUX
 #include <malloc.h>
+#endif
 
 
 using namespace std;

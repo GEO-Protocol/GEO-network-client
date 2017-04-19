@@ -189,10 +189,12 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     return 0;
 }
 
-TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultOk(TrustLineAmount &maxFlowAmount) {
-
-    string maxFlowAmountStr = to_string((uint32_t)maxFlowAmount);
-    return transactionResultFromCommand(mCommand->resultOk(maxFlowAmountStr));
+TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultOk(TrustLineAmount &maxFlowAmount)
+{
+    stringstream ss;
+    ss << maxFlowAmount;
+    auto kMaxFlowAmountStr = ss.str();
+    return transactionResultFromCommand(mCommand->responseOk(kMaxFlowAmountStr));
 }
 
 const string InitiateMaxFlowCalculationTransaction::logHeader() const

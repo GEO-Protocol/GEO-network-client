@@ -37,49 +37,31 @@ RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
 TransactionResult::SharedConst RejectTrustLineTransaction::run() {
 
     try {
-        switch(mStep) {
+        if (isIncomingTrustLineDirectionExisting()) {
 
-            case Stages::CheckUnicity: {
-                if (!isTransactionToContractorUnique()) {
-                    sendResponseCodeToContractor(
-                        RejectTrustLineMessage::kResultCodeTransactionConflict);
+            if (checkDebt()) {
+                suspendTrustLineDirectionFromContractor();
+                sendResponseCodeToContractor(
+                        RejectTrustLineMessage::kResultCodeRejectDelayed);
 
-                    return transactionResultFromMessage(
-                        mMessage->resultTransactionConflict());
-                }
+                return transactionResultFromMessage(
+                        mMessage->resultRejectDelayed());
 
-                mStep = Stages::CheckIncomingDirection;
+            } else {
+                rejectTrustLine();
+                logRejectingTrustLineOperation();
+                sendResponseCodeToContractor(
+                        RejectTrustLineMessage::kResultCodeRejected);
+
+                return transactionResultFromMessage(
+                        mMessage->resultRejected());
             }
 
-            case Stages::CheckIncomingDirection: {
-                if (isIncomingTrustLineDirectionExisting()) {
-
-                    if (checkDebt()) {
-                        suspendTrustLineDirectionFromContractor();
-                        sendResponseCodeToContractor(
-                            RejectTrustLineMessage::kResultCodeRejectDelayed);
-
-                        return transactionResultFromMessage(
-                            mMessage->resultRejectDelayed());
-
-                    } else {
-                        rejectTrustLine();
-                        logRejectingTrustLineOperation();
-                        sendResponseCodeToContractor(
-                            RejectTrustLineMessage::kResultCodeRejected);
-
-                        return transactionResultFromMessage(
-                            mMessage->resultRejected());
-                    }
-
-                }
-            }
-
-            default: {
-                throw ConflictError("RejectTrustLineTransaction::run: "
-                                        "Illegal step execution.");
-            }
-
+        } else {
+            sendResponseCodeToContractor(
+                    RejectTrustLineMessage::kResultCodeTrustLineAbsent);
+            return transactionResultFromMessage(
+                    mMessage->resultRejected());
         }
 
     } catch (exception &e) {

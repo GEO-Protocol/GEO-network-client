@@ -9,5 +9,5 @@ set(SOURCE_FILES
 add_library(transactions__result ${SOURCE_FILES})
 target_link_libraries(transactions__result
         common
-        time
+        #        time
         exceptions)

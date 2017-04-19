@@ -75,14 +75,3 @@ MessageResult::SharedConst AcceptTrustLineMessage::resultConflict() const {
             kResultCodeConflict)
     );
 }
-
-MessageResult::SharedConst AcceptTrustLineMessage::resultTransactionConflict() const {
-
-    // todo: refactor
-    return MessageResult::SharedConst(
-        new MessageResult(
-            senderUUID,
-            mTransactionUUID,
-            kResultCodeTransactionConflict)
-    );
-}

@@ -34,16 +34,6 @@ public:
 
     static const size_t kRequestedBufferSize();
 
-    CommandResult::SharedConst resultOk() const;
-
-    CommandResult::SharedConst trustLineIsAbsentResult() const;
-
-    CommandResult::SharedConst resultConflict() const;
-
-    CommandResult::SharedConst resultNoResponse() const;
-
-    CommandResult::SharedConst resultTransactionConflict() const;
-
 private:
     void deserializeFromBytes(
         BytesShared buffer);

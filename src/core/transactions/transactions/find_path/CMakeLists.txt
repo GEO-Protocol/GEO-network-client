@@ -11,4 +11,5 @@ set(SOURCE_FILES
 add_library(transactions__find_path ${SOURCE_FILES})
 
 target_link_libraries(transactions__find_path
-        resources_manager)
+        resources_manager
+        io__storage)
