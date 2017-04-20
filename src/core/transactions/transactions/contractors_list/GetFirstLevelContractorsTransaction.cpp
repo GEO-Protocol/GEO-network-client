@@ -5,7 +5,7 @@ GetFirstLevelContractorsTransaction::GetFirstLevelContractorsTransaction(NodeUUI
                                                                          TrustLinesManager *manager,
                                                                          Logger *logger):
         BaseTransaction(
-                BaseTransaction::TransactionType::TotalBalancesTransactionType,
+                BaseTransaction::TransactionType::ContractorsListTransaction,
                 nodeUUID,
                 logger),
         mCommand(command),

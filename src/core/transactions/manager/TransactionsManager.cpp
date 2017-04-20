@@ -1,5 +1,4 @@
 ﻿#include "TransactionsManager.h"
-#include "../transactions/contractors_list/GetFirstLevelContractorsTransaction.h"
 
 /*!
  *
@@ -188,6 +187,11 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == GetFirstLevelContractorsCommand::identifier()){
         launchGetFirstLevelContractorsTransaction(
                 static_pointer_cast<GetFirstLevelContractorsCommand>(
+                        command));
+
+    } else if (command->identifier() == GetFirstLevelContractorsBalancesCommand::identifier()){
+        launchGetFirstLevelContractorsBalancesTransaction(
+                static_pointer_cast<GetFirstLevelContractorsBalancesCommand>(
                         command));
 
     } else {
@@ -802,6 +806,15 @@ void TransactionsManager::launchGetFirstLevelContractorsTransaction(GetFirstLeve
                     mLog));
 }
 
+void TransactionsManager::launchGetFirstLevelContractorsBalancesTransaction(GetFirstLevelContractorsBalancesCommand::Shared command)
+{
+    prepareAndSchedule(
+            make_shared<GetFirstLevelContractorsBalancesTransaction>(
+                    mNodeUUID,
+                    command,
+                    mTrustLines,
+                    mLog));
+}
 /*!
  *
  * Throws MemoryError.

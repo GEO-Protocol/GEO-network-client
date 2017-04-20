@@ -36,10 +36,15 @@ set(SOURCE_FILES
         commands/contractors_list/GetFirstLevelContractorsCommand.h
         commands/contractors_list/GetFirstLevelContractorsCommand.cpp
 
+        commands/contractors_list/GetFirstLevelContractorsBalancesCommand.h
+        commands/contractors_list/GetFirstLevelContractorsBalancesCommand.cpp
+
         commands/find_path/FindPathCommand.h
-        commands/find_path/FindPathCommand.cpp)
+        commands/find_path/FindPathCommand.cpp
+        )
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands
         ${Boost_SYSTEM_LIBRARY}
+        ${Boost_FILESYSTEM_LIBRARY}
         common)

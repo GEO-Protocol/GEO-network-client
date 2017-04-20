@@ -90,6 +90,9 @@ public:
         ReceiveResultMaxFlowCalculationTransactionType,
         MaxFlowCalculationCacheUpdateTransactionType,
 
+        // Contractors
+        ContractorsListTransaction,
+        ContractosBalancesListTransaction,
         // TotalBalances
         TotalBalancesTransactionType,
         InitiateTotalBalancesFromRemoutNodeTransactionType,
