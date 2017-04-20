@@ -26,6 +26,7 @@
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/cycle_closer/CycleCloserCommand.h"
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 #include "../../interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.h"
 
@@ -84,6 +85,8 @@
 #include "../transactions/find_path/GetPathTestTransaction.h"
 #include "../transactions/find_path/FindPathTransaction.h"
 #include "../transactions/find_path/GetRoutingTablesTransaction.h"
+
+#include "../transactions/cycles_closing/CycleCloserInitiatorTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -224,6 +227,10 @@ private:
 
     void launchGetRoutingTablesTransaction(
         RequestRoutingTablesMessage::Shared message);
+
+    // closeCycle transaction TODO : should be removed after testing
+    void launchTestCloseCycleTransaction(
+        CycleCloserCommand::Shared command);
 
     void launchCloseCycleTransaction(shared_ptr<vector<NodeUUID>>);
 

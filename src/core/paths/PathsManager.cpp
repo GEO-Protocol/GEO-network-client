@@ -23,6 +23,7 @@ PathsManager::PathsManager(
     //testMultiConnection();
     //printRTs();
     //testDeletingRT();
+    //fillCycleTables();
 }
 
 void PathsManager::findDirectPath() {
@@ -703,7 +704,11 @@ void PathsManager::testPaymentStateOperationsHandler() {
         state1.get(),
         &st1,
         sizeof(uint8_t));
-    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+    try {
+        mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+    } catch (IOError) {
+        info() << "record alredy present";
+    }
     TransactionUUID transaction2;
     BytesShared state2 = tryMalloc(sizeof(uint16_t));
     uint16_t st2 = 88;
@@ -756,8 +761,12 @@ void PathsManager::testPaymentStateOperationsHandler() {
         state1.get(),
         &st1_1,
         sizeof(uint32_t));
-    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint32_t));
-    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
+    mStorageHandler->paymentOperationStateHandler()->saveRecord(TransactionUUID(), state1, sizeof(uint32_t));
+    try {
+        mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
+    } catch (IOError) {
+        info() << "record alredy present";
+    }
     mStorageHandler->paymentOperationStateHandler()->deleteRecord(transaction2);
     mStorageHandler->paymentOperationStateHandler()->commit();
 
@@ -1342,6 +1351,101 @@ void PathsManager::testDeletingRT() {
     delete nodeUUID84Ptr;
     delete nodeUUID85Ptr;
     delete nodeUUID86Ptr;
+}
+
+void PathsManager::fillCycleTables() {
+
+    NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+    NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+    NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+    NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+    NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+
+    if (mNodeUUID == *nodeUUID51Ptr) {
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(200),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+        mStorageHandler->trustLineHandler()->commit();
+    }
+
+    if (mNodeUUID == *nodeUUID52Ptr) {
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(180),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(200),
+                TrustLineBalance(0)));
+        mStorageHandler->trustLineHandler()->commit();
+    }
+
+    if (mNodeUUID == *nodeUUID53Ptr) {
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(150),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(180),
+                TrustLineBalance(0)));
+        mStorageHandler->trustLineHandler()->commit();
+    }
+
+    if (mNodeUUID == *nodeUUID54Ptr) {
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(130),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(150),
+                TrustLineBalance(0)));
+        mStorageHandler->trustLineHandler()->commit();
+    }
+
+    if (mNodeUUID == *nodeUUID55Ptr) {
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        mStorageHandler->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(130),
+                TrustLineBalance(0)));
+        mStorageHandler->trustLineHandler()->commit();
+    }
+
+    delete nodeUUID51Ptr;
+    delete nodeUUID52Ptr;
+    delete nodeUUID53Ptr;
+    delete nodeUUID54Ptr;
+    delete nodeUUID55Ptr;
 }
 
 LoggerStream PathsManager::info() const {

@@ -1,9 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_CYCLECLOSERINITIATORTRANSACTION_H
 #define GEO_NETWORK_CLIENT_CYCLECLOSERINITIATORTRANSACTION_H
 
-#include "base/BasePaymentTransaction.h"
-#include "../find_path/FindPathTransaction.h"
-#include "../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
+#include "../regular/payments/base/BasePaymentTransaction.h"
 
 #include <boost/functional/hash.hpp>
 
@@ -124,7 +122,6 @@ protected:
     // Stages handlers
     // TODO: Add throws specififcations
     TransactionResult::SharedConst runAmountReservationStage ();
-    TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
     TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
     TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
     TransactionResult::SharedConst runVotesCheckingStage ();
@@ -139,26 +136,6 @@ protected:
         const char *message = nullptr);
 
 protected:
-    // Results handlers
-    TransactionResult::SharedConst resultOK();
-    TransactionResult::SharedConst resultProtocolError();
-    TransactionResult::SharedConst resultNoResponseError();
-    TransactionResult::SharedConst resultInsufficientFundsError();
-    TransactionResult::SharedConst resultNoConsensusError();
-
-protected:
-
-    void addPathForFurtherProcessing(
-        Path::ConstShared path);
-
-    void initAmountsReservationOnNextPath();
-
-    PathStats* currentAmountReservationPathStats();
-
-    TransactionResult::SharedConst tryProcessNextPath();
-
-    TransactionResult::SharedConst tryReserveAmountDirectlyOnReceiver (
-        PathStats *pathStats);
 
     TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (
         PathStats *pathStats);
@@ -194,30 +171,13 @@ protected:
 
     // Contains special stats data, such as current msx flow,
     // for all paths involved into the transaction.
-    unordered_map<PathUUID, unique_ptr<PathStats>, boost::hash<boost::uuids::uuid>> mPathsStats;
+    //unordered_map<PathUUID, unique_ptr<PathStats>, boost::hash<boost::uuids::uuid>> mPathsStats;
 
-    // Used in amount reservations stage.
-    // Contains identifier of the path,
-    // that was processed last, and potenially,
-    // is waiting for request appriving.
-    PathUUID mCurrentAmountReservingPathIdentifier;
-
-    // Reservation stage contains it's own internal steps counter.
-    byte mReservationsStage;
+    unique_ptr<PathStats> mPathStats;
 
     // Contains nodes that has been requrested final paths configuration.
     // for more details, see TODO
     unordered_set<NodeUUID> mNodesRequestedFinalConfiguration;
-
-    /*
-     * If true - then it means that direct path betweeen coordinator and receiver has been already processed.
-     * Otherwise is set to the false (by default).
-     *
-     * Only one direct path may occure due to one payment operation.
-     * In case if several direct paths occurs - than it seems that paths collection is broken.
-     */
-    bool mDirectPathIsAllreadyProcessed;
-    Path::ConstShared mPath;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLECLOSERINITIATORTRANSACTION_H

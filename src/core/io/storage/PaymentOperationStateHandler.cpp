@@ -13,7 +13,8 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
         " (transaction_uuid BLOB NOT NULL, "
             "state BLOB NOT NULL, "
-            "state_bytes_count INT NOT NULL);";
+            "state_bytes_count INT NOT NULL, "
+            "recording_time INT NOT NULL);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -150,38 +151,44 @@ void PaymentOperationStateHandler::saveRecord(
         prepareInserted();
     }
 
-    string query = "INSERT OR REPLACE INTO " + mTableName +
-        " (transaction_uuid, state, state_bytes_count) VALUES(?, ?, ?);";
+    string query = "INSERT INTO " + mTableName +
+        " (transaction_uuid, state, state_bytes_count, recording_time) VALUES(?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert or replace: "
+        throw IOError("PaymentOperationStateHandler::insert: "
                           "Bad query");
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert or replace: "
+        throw IOError("PaymentOperationStateHandler::insert: "
                           "Bad binding of TransactionUUID");
     }
     rc = sqlite3_bind_blob(stmt, 2, state.get(), (int)stateBytesCount, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert or replace: "
+        throw IOError("PaymentOperationStateHandler::insert: "
                           "Bad binding of State");
     }
     rc = sqlite3_bind_int(stmt, 3, (int)stateBytesCount);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert or replace: "
+        throw IOError("PaymentOperationStateHandler::insert: "
                           "Bad binding of State bytes count");
+    }
+    GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(utc_now());
+    rc = sqlite3_bind_int64(stmt, 4, timestamp);
+    if (rc != SQLITE_OK) {
+        throw IOError("PaymentOperationStateHandler::insert: "
+                          "Bad binding of Timestamp");
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     if (rc == SQLITE_DONE) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "prepare inserting or replacing is completed successfully";
+        info() << "prepare inserting is completed successfully";
 #endif
     } else {
-        throw IOError("PaymentOperationStateHandler::insert or replace: "
+        throw IOError("PaymentOperationStateHandler::insert: "
                           "Run query");
     }
 }

@@ -852,6 +852,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
 
     // Note: copy of shared pointer is required
     const auto kAvailableOutgoingAmount =  mTrustLines->availableOutgoingAmount(neighbor);
+    // TODO : резервувати mCommand->amount() - емаунт уже зарезервованих траст ліній
     const auto kReservationAmount = min(*kAvailableOutgoingAmount, mCommand->amount());
 
     if (kReservationAmount == 0) {

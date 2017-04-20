@@ -180,6 +180,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<HistoryTrustLinesCommand>(
                 command));
 
+    } else if (command->identifier() == CycleCloserCommand::identifier()){
+        launchTestCloseCycleTransaction(
+            static_pointer_cast<CycleCloserCommand>(
+                command));
+
     } else if (command->identifier() == FindPathCommand::identifier()){
         launchGetPathTestTransaction(
             static_pointer_cast<FindPathCommand>(
@@ -843,6 +848,26 @@ void TransactionsManager::launchPathsResourcesCollectTransaction(
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchFindPathTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+// TODO : should be removed after testing
+void TransactionsManager::launchTestCloseCycleTransaction(
+    CycleCloserCommand::Shared command) {
+
+    try {
+        auto transaction = make_shared<CycleCloserInitiatorTransaction>(
+            mNodeUUID,
+            command->path(),
+            mTrustLines,
+            mLog);
+
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchTestCloseCycleTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }
