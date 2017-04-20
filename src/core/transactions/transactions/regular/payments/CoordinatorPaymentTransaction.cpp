@@ -197,6 +197,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     const NodeUUID &kCurrentNodeUUID,
     const CreditUsageCommand::Shared kCommand,
     TrustLinesManager *trustLines,
+    PaymentOperationStateHandler *paymentOperationStateHandler,
     Logger *log)
     noexcept :
 
@@ -204,6 +205,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
         kCurrentNodeUUID,
         trustLines,
+        paymentOperationStateHandler,
         log),
     mCommand(kCommand),
     mReservationsStage(0),
@@ -215,14 +217,16 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLines,
+    PaymentOperationStateHandler *paymentOperationStateHandler,
     Logger *log)
     throw (bad_alloc) :
 
-    BasePaymentTransaction(
-        BaseTransaction::CoordinatorPaymentTransaction,
-        buffer,
-        trustLines,
-        log)
+        BasePaymentTransaction(
+                BaseTransaction::CoordinatorPaymentTransaction,
+                buffer,
+                trustLines,
+                paymentOperationStateHandler,
+                log)
 {}
 
 

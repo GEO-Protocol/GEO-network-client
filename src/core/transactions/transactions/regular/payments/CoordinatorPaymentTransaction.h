@@ -28,12 +28,14 @@ public:
         const NodeUUID &kCurrentNodeUUID,
         const CreditUsageCommand::Shared kCommand,
         TrustLinesManager *trustLines,
+        PaymentOperationStateHandler *paymentOperationStateHandler,
         Logger *log)
         noexcept;
 
     CoordinatorPaymentTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLines,
+        PaymentOperationStateHandler *paymentOperationStateHandler,
         Logger *log)
         throw (bad_alloc);
 

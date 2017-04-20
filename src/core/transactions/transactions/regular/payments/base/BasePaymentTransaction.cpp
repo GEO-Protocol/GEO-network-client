@@ -5,6 +5,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     const NodeUUID &currentNodeUUID,
     TrustLinesManager *trustLines,
+    PaymentOperationStateHandler *paymentOperationStateHandler,
     Logger *log) :
 
     BaseTransaction(
@@ -12,6 +13,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines),
+    mPaymentOperationState(paymentOperationStateHandler),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -21,6 +23,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionUUID &transactionUUID,
     const NodeUUID &currentNodeUUID,
     TrustLinesManager *trustLines,
+    PaymentOperationStateHandler *paymentOperationStateHandler,
     Logger *log) :
 
     BaseTransaction(
@@ -29,20 +32,23 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines),
+    mPaymentOperationState(paymentOperationStateHandler),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
-    const TransactionType type,
-    BytesShared buffer,
-    TrustLinesManager *trustLines,
-    Logger *log) :
+        const TransactionType type,
+        BytesShared buffer,
+        TrustLinesManager *trustLines,
+        PaymentOperationStateHandler *paymentOperationStateHandler,
+        Logger *log) :
 
     BaseTransaction(
         type,
         log),
-    mTrustLines(trustLines)
+    mTrustLines(trustLines),
+    mPaymentOperationState(paymentOperationStateHandler)
 {}
 
 /*
@@ -392,7 +398,19 @@ void BasePaymentTransaction::commit ()
                        << " for (" << kNodeUUIDAndReservations.first << ")";
         }
 
+    saveVoutes();
+    info() << "Voutes saved.";
     info() << "Transaction committed.";
+}
+
+void BasePaymentTransaction::saveVoutes()
+{
+    auto bufferAndSize = mParticipantsVotesMessage->serializeToBytes();
+    mPaymentOperationState->saveRecord(
+            mParticipantsVotesMessage->transactionUUID(),
+            bufferAndSize.first,
+            bufferAndSize.second
+    );
 }
 
 void BasePaymentTransaction::rollBack ()
@@ -418,6 +436,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
         info() << message;
 
     // TODO: implement me;
+
     return resultDone();
 }
 

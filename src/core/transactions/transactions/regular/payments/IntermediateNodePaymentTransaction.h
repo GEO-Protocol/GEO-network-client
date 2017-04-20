@@ -17,11 +17,13 @@ public:
         const NodeUUID &currentNodeUUID,
         IntermediateNodeReservationRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
+        PaymentOperationStateHandler *paymentOperationStateHandler,
         Logger *log);
 
     IntermediateNodePaymentTransaction(
         BytesShared buffer,
         TrustLinesManager* trustLines,
+        PaymentOperationStateHandler *paymentOperationStateHandler,
         Logger* log);
 
     TransactionResult::SharedConst run();
@@ -33,6 +35,11 @@ protected:
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
+    TransactionResult::SharedConst runPreviousNeighborVoutesRequestStage();
+    TransactionResult::SharedConst runCheckPreviousNeighborVoutesStage();
+    TransactionResult::SharedConst sendVoutesRequestMessageAndWaitForResponse(const NodeUUID &contractorUUID);
+
+
 
 protected:
     void deserializeFromBytes(

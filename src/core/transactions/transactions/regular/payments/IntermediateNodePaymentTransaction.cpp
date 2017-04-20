@@ -5,6 +5,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     const NodeUUID& currentNodeUUID,
     IntermediateNodeReservationRequestMessage::ConstShared message,
     TrustLinesManager* trustLines,
+    PaymentOperationStateHandler *paymentOperationStateHandler,
     Logger* log) :
 
     BasePaymentTransaction(
@@ -12,6 +13,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         trustLines,
+        paymentOperationStateHandler,
         log),
     mMessage(message)
 {
@@ -21,13 +23,15 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BytesShared buffer,
     TrustLinesManager* trustLines,
+    PaymentOperationStateHandler *paymentOperationState,
     Logger* log) :
 
-    BasePaymentTransaction(
-        BaseTransaction::IntermediateNodePaymentTransaction,
-        buffer,
-        trustLines,
-        log)
+        BasePaymentTransaction(
+                BaseTransaction::IntermediateNodePaymentTransaction,
+                buffer,
+                trustLines,
+                paymentOperationState,
+                log)
 {}
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
@@ -209,4 +213,46 @@ const string IntermediateNodePaymentTransaction::logHeader() const
     s << "[IntermediateNodePaymentTA: " << currentTransactionUUID().stringUUID() << "] ";
 
     return s.str();
+}
+
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNeighborVoutesRequestStage() {
+
+    const auto kNeighbor = mMessage->senderUUID;
+    mStep = Stages::Common_CheckPreviousNeighborVoutesRequestStage;
+    return sendVoutesRequestMessageAndWaitForResponse(kNeighbor);
+}
+
+
+
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCheckPreviousNeighborVoutesStage() {
+
+    if(mContext.size() != 1) {
+        const NodeUUID kNextNeighbor;
+        mStep = Stages::Common_CheckCoordinatorNeighborVoutesStage;
+        return sendVoutesRequestMessageAndWaitForResponse(kNextNeighbor);
+    }
+    const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
+    if(kMessage->containsRejectVote()){
+        // todo add info message
+        return resultDone();
+    }
+    return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes},
+            maxNetworkDelay(kMaxPathLength));
+}
+
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::sendVoutesRequestMessageAndWaitForResponse(
+        const NodeUUID &contractorUUID)
+{
+    auto requestMessage = make_shared<VotesStatusRequestMessage>(
+            mNodeUUID,
+            currentTransactionUUID()
+    );
+    sendMessage(
+            contractorUUID,
+            requestMessage
+    );
+    return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes},
+            maxNetworkDelay(kMaxPathLength));
 }

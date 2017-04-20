@@ -11,7 +11,7 @@ set(SOURCE_FILES
         ReceiverPaymentTransaction.cpp
 
         IntermediateNodePaymentTransaction.h
-        IntermediateNodePaymentTransaction.cpp)
+        IntermediateNodePaymentTransaction.cpp VoutesStatusResponsePaymentTransaction.h VoutesStatusResponsePaymentTransaction.cpp)
 
 add_library(transactions__payments ${SOURCE_FILES})
 target_link_libraries(transactions__payments

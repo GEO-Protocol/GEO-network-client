@@ -32,7 +32,9 @@ set(SOURCE_FILES
         ParticipantsConfigurationMessage.h
 
         ParticipantsConfigurationRequestMessage.cpp
-        ParticipantsConfigurationRequestMessage.h)
+        ParticipantsConfigurationRequestMessage.h
+        VotesStatusRequestMessage.hpp
+        )
 
 add_library(messages__payments ${SOURCE_FILES})
 target_link_libraries(messages__payments

@@ -9,6 +9,7 @@
 #include "../../../../../logger/Logger.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../../io/storage/PaymentOperationStateHandler.h"
 
 #include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
@@ -19,6 +20,7 @@
 #include "../../../../../network/messages/payments/ParticipantsConfigurationRequestMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsVotesMessage.h"
+#include "../../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 
 
 // TODO: Add restoring of the reservations after transaction deserialization.
@@ -30,6 +32,7 @@ public:
         const TransactionType type,
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
+        PaymentOperationStateHandler *paymentOperationStateHandler,
         Logger *log);
 
     BasePaymentTransaction(
@@ -37,13 +40,15 @@ public:
         const TransactionUUID &transactionUUID,
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
+        PaymentOperationStateHandler *paymentOperationStateHandler,
         Logger *log);
 
     BasePaymentTransaction(
-        const TransactionType type,
-        BytesShared buffer,
-        TrustLinesManager *trustLines,
-        Logger *log);
+            const TransactionType type,
+            BytesShared buffer,
+            TrustLinesManager *trustLines,
+            PaymentOperationStateHandler *paymentOperationStateHandler,
+            Logger *log);
 
 protected:
     enum Stages {
@@ -63,6 +68,11 @@ protected:
 
         Common_VotesChecking,
         Common_FinalPathsConfigurationChecking,
+        Common_PreviousNeighborVoutesRequestStage,
+        Common_CheckPreviousNeighborVoutesRequestStage,
+        Common_NextNeighborVoutesRequestStage,
+        Common_CheckNextNeighborVoutesStage,
+        Common_CheckCoordinatorNeighborVoutesStage,
     };
 
     // Stages handlers
@@ -94,8 +104,10 @@ protected:
         const AmountReservation::ConstShared kReservation,
         const TrustLineAmount &kNewAmount);
 
+    void saveVoutes();
     void commit();
     void rollBack();
+
 
     uint32_t maxNetworkDelay (
         const uint16_t totalParticipantsCount) const;
@@ -125,6 +137,7 @@ protected:
 
 protected:
     TrustLinesManager *mTrustLines;
+    PaymentOperationStateHandler *mPaymentOperationState;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.

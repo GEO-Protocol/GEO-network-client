@@ -22,6 +22,7 @@
 #include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
+#include "../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
@@ -66,6 +67,7 @@
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 #include "../transactions/regular/payments/IntermediateNodePaymentTransaction.h"
+#include "../transactions/regular/payments/VoutesStatusResponsePaymentTransaction.h"
 
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
@@ -198,6 +200,9 @@ private:
 
     void launchIntermediateNodePaymentTransaction(
         IntermediateNodeReservationRequestMessage::Shared message);
+
+    void launchVoutesResponsePaymentsTransaction(
+            VotesStatusRequestMessage::Shared message);
 
     // Total balances transaction
     void launchTotalBalancesTransaction(

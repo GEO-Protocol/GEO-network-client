@@ -279,9 +279,11 @@ void TransactionsManager::processMessage(
 
         } catch (NotFoundError &) {
             launchIntermediateNodePaymentTransaction(
-                static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
+                    static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
         }
-
+    } else if(message->typeID() == Message::MessageType::Payments_VoutesStatusRequest){
+        launchVoutesResponsePaymentsTransaction(
+                static_pointer_cast<VotesStatusRequestMessage>(message));
     } else if (message->typeID() == Message::MessageType::Cycles_SixNodesMiddleware) {
         launchSixNodesCyclesResponseTransaction(
                 static_pointer_cast<CyclesSixNodesInBetweenMessage>(message));
@@ -637,6 +639,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mNodeUUID,
             command,
             mTrustLines,
+            mStorageHandler->paymentOperationStateHandler(),
             mLog));
 }
 
@@ -648,6 +651,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mNodeUUID,
             message,
             mTrustLines,
+            mStorageHandler->paymentOperationStateHandler(),
             mLog));
 }
 
@@ -659,8 +663,20 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             mNodeUUID,
             message,
             mTrustLines,
+            mStorageHandler->paymentOperationStateHandler(),
             mLog));
 }
+
+void TransactionsManager::launchVoutesResponsePaymentsTransaction(VotesStatusRequestMessage::Shared message)
+{
+    prepareAndSchedule(
+            make_shared<VoutesStatusResponsePaymentTransaction>(
+                    mNodeUUID,
+                    message,
+                    mStorageHandler->paymentOperationStateHandler(),
+                    mLog));
+}
+
 /*!
  *
  * Throws MemoryError.
