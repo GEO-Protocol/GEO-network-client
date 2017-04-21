@@ -12,6 +12,8 @@
 #include <vector>
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
+#include <chrono>
+#include <thread>
 
 class GetRoutingTablesTransaction : public BaseTransaction {
 
@@ -41,7 +43,8 @@ private:
 
 private:
 
-    const size_t kCountElementsPerMessage = 50;
+    const size_t kCountElementsPerMessage = 100;
+    const uint16_t kDelayMilliSecondsBetweenSendingMessages = 5;
 
 private:
 

@@ -22,7 +22,7 @@ FindPathTransaction::FindPathTransaction(
 TransactionResult::SharedConst FindPathTransaction::run() {
 
     info() << "run\t" << currentTransactionUUID() << " I am " << mNodeUUID;
-    info() << "urn\t" << "step: " << mStep;
+    info() << "run\t" << "step: " << mStep;
     info() << "run\t" << "context size: " << mContext.size();
 
     switch (mStep) {

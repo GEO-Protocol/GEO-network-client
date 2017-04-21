@@ -58,6 +58,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             mMessage->transactionUUID(),
             subRT2);
         idx++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
     if (itRT2 != rt2.end()) {
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT2(itRT2, rt2.end());
@@ -72,7 +73,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
         = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
     info() << "sendRoutingTables\tRT3 size: " << rt3.size();
     size_t rt3MessageCount = rt3.size() / kCountElementsPerMessage;
-    info() << "sendRoutingTables\tcount RT2 messages: " << (rt3MessageCount + 1);
+    info() << "sendRoutingTables\tcount RT3 messages: " << (rt3MessageCount + 1);
     idx = 0;
     auto itRT3 = rt3.begin();
     while (idx < rt3MessageCount) {
@@ -87,6 +88,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             mMessage->transactionUUID(),
             subRT3);
         idx++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
     if (itRT3 != rt3.end()) {
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT3(itRT3, rt3.end());

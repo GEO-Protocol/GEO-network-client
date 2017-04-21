@@ -398,6 +398,7 @@ void IncomingMessagesHandler::tryCollectPacket(
                 *bytesCount,
                 bytesBodySharedConst
             );
+            cout << "IncomingMessagesHandler\tchannel: " << *channelNumber << "\tpacket: " << *packageNumber << endl;
 
         } catch (bad_alloc &) {
             throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "

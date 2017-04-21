@@ -13,6 +13,8 @@ void OutgoingMessagesHandler::processOutgoingMessage(
         messageBytesAndCount,
         channelNumber);
 
+    cout << "OutgoingMessagesHandler\tchannel: " << channelNumber << "\tpacket: "
+         << crcPacketAndCount.first->header()->packetNumber() << "\ttotal packages: " << totalCountPackages++ << endl;
     channel->setOutgoingPacketsCount(
         crcPacketAndCount.second);
 
@@ -57,6 +59,9 @@ void OutgoingMessagesHandler::processOutgoingMessage(
             packetNumber,
             crcPacketAndCount.second,
             channelNumber);
+
+        cout << "OutgoingMessagesHandler\tchannel: " << channelNumber << "\tpacket: " << packetNumber
+             << "\ttotal packages: " << totalCountPackages++ << endl;
 
 
         channel->addPacket(

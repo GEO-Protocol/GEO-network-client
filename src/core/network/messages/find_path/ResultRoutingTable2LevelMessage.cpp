@@ -44,8 +44,8 @@ ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
         mRT2.insert(make_pair(keyDesitnation, valueSources));
     }
     cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
-    /*Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable2LevelMessage::deserializing time: " << methodTime << endl;*/
+//    Duration methodTime = utc_now() - startTime;
+//    cout << "ResultRoutingTable2LevelMessage::deserializing time: " << methodTime << endl;
 }
 
 const Message::MessageType ResultRoutingTable2LevelMessage::typeID() const {
@@ -106,8 +106,8 @@ pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() co
     }
     //----------------------------------------------------
     cout << "ResultRoutingTable2LevelMessage::serializeToBytes message size: " << bytesCount << endl;
-    /*Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable2LevelMessage::serializing time: " << methodTime << endl;*/
+//    Duration methodTime = utc_now() - startTime;
+//    cout << "ResultRoutingTable2LevelMessage::serializing time: " << methodTime << endl;
     return make_pair(
         dataBytesShared,
         bytesCount);
