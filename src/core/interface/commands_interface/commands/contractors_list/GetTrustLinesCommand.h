@@ -1,18 +1,20 @@
 #ifndef GEO_NETWORK_CLIENT_FIRSTLEVELCONTRACTORSBALANCESCOMMAND_H
 #define GEO_NETWORK_CLIENT_FIRSTLEVELCONTRACTORSBALANCESCOMMAND_H
+
 #include "../BaseUserCommand.h"
 #include "../../../../common/exceptions/ValueError.h"
 
-class GetFirstLevelContractorsBalancesCommand :
-        public BaseUserCommand {
+
+class GetTrustLinesCommand :
+    public BaseUserCommand {
 
 public:
-    typedef shared_ptr<GetFirstLevelContractorsBalancesCommand> Shared;
+    typedef shared_ptr<GetTrustLinesCommand> Shared;
 
 public:
-    GetFirstLevelContractorsBalancesCommand(
-            const CommandUUID &uuid,
-            const string &commandBuffer)
+    GetTrustLinesCommand(
+        const CommandUUID &uuid,
+        const string &commandBuffer)
     noexcept;
 
     static const string &identifier();
@@ -20,7 +22,7 @@ public:
     CommandResult::SharedConst resultOk(string &neighbors) const;
 
 protected:
-    void parse(
-            const string &command);
+    void parse(const string &command);
 };
+
 #endif //GEO_NETWORK_CLIENT_FIRSTLEVELCONTRACTORSBALANCESCOMMAND_H

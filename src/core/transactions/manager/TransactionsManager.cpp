@@ -189,10 +189,10 @@ void TransactionsManager::processCommand(
                 static_pointer_cast<GetFirstLevelContractorsCommand>(
                         command));
 
-    } else if (command->identifier() == GetFirstLevelContractorsBalancesCommand::identifier()){
-        launchGetFirstLevelContractorsBalancesTransaction(
-                static_pointer_cast<GetFirstLevelContractorsBalancesCommand>(
-                        command));
+    } else if (command->identifier() == GetTrustLinesCommand::identifier()){
+        launchGetTrustlinesTransaction(
+            static_pointer_cast<GetTrustLinesCommand>(
+                command));
 
     } else {
         throw ValueError(
@@ -799,21 +799,21 @@ void TransactionsManager::launchGetPathTestTransaction(FindPathCommand::Shared c
 void TransactionsManager::launchGetFirstLevelContractorsTransaction(GetFirstLevelContractorsCommand::Shared command)
 {
     prepareAndSchedule(
-            make_shared<GetFirstLevelContractorsTransaction>(
-                    mNodeUUID,
-                    command,
-                    mTrustLines,
-                    mLog));
+        make_shared<GetFirstLevelContractorsTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mLog));
 }
 
-void TransactionsManager::launchGetFirstLevelContractorsBalancesTransaction(GetFirstLevelContractorsBalancesCommand::Shared command)
+void TransactionsManager::launchGetTrustlinesTransaction(GetTrustLinesCommand::Shared command)
 {
     prepareAndSchedule(
-            make_shared<GetFirstLevelContractorsBalancesTransaction>(
-                    mNodeUUID,
-                    command,
-                    mTrustLines,
-                    mLog));
+        make_shared<GetFirstLevelContractorsBalancesTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mLog));
 }
 /*!
  *

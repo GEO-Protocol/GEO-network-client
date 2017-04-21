@@ -7,18 +7,20 @@
 #include "../../../interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 
+
 class GetFirstLevelContractorsTransaction :
-        public BaseTransaction {
+    public BaseTransaction {
 
 public:
     typedef shared_ptr<GetFirstLevelContractorsTransaction> Shared;
 
 public:
     GetFirstLevelContractorsTransaction(
-            NodeUUID &nodeUUID,
-            GetFirstLevelContractorsCommand::Shared command,
-            TrustLinesManager *manager,
-            Logger *logger);
+        NodeUUID &nodeUUID,
+        GetFirstLevelContractorsCommand::Shared command,
+        TrustLinesManager *manager,
+        Logger *logger)
+    noexcept;
 
     GetFirstLevelContractorsCommand::Shared command() const;
 
@@ -27,7 +29,6 @@ public:
 private:
     GetFirstLevelContractorsCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-
 };
 
 

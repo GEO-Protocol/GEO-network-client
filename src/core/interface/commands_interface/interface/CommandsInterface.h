@@ -15,7 +15,7 @@
 #include "../commands/history/HistoryPaymentsCommand.h"
 #include "../commands/history/HistoryTrustLinesCommand.h"
 #include "../commands/contractors_list/GetFirstLevelContractorsCommand.h"
-#include "../commands/contractors_list/GetFirstLevelContractorsBalancesCommand.h"
+#include "../commands/contractors_list/GetTrustLinesCommand.h"
 #include "../commands/find_path/FindPathCommand.h"
 
 #include "../../../common/exceptions/IOError.h"

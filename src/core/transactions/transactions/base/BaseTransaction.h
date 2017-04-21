@@ -91,8 +91,9 @@ public:
         MaxFlowCalculationCacheUpdateTransactionType,
 
         // Contractors
-        ContractorsListTransaction,
-        ContractosBalancesListTransaction,
+        ContractorsList,
+        TrustlinesList,
+
         // TotalBalances
         TotalBalancesTransactionType,
         InitiateTotalBalancesFromRemoutNodeTransactionType,

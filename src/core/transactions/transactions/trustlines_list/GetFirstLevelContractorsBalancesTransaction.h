@@ -2,30 +2,31 @@
 #define GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSBALANCESTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
-#include "../../../interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsBalancesCommand.h"
+#include "../../../interface/commands_interface/commands/contractors_list/GetTrustLinesCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 
+
 class GetFirstLevelContractorsBalancesTransaction :
-        public BaseTransaction {
+    public BaseTransaction {
 
 public:
     typedef shared_ptr<GetFirstLevelContractorsBalancesTransaction> Shared;
 
 public:
     GetFirstLevelContractorsBalancesTransaction(
-            NodeUUID &nodeUUID,
-            GetFirstLevelContractorsBalancesCommand::Shared command,
-            TrustLinesManager *manager,
-            Logger *logger);
+        NodeUUID &nodeUUID,
+        GetTrustLinesCommand::Shared command,
+        TrustLinesManager *manager,
+        Logger *logger)
+    noexcept;
 
-    GetFirstLevelContractorsBalancesCommand::Shared command() const;
+    GetTrustLinesCommand::Shared command() const;
 
     TransactionResult::SharedConst run();
 
 private:
-    GetFirstLevelContractorsBalancesCommand::Shared mCommand;
+    GetTrustLinesCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-
 };
 
 #endif //GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSBALANCESTRANSACTION_H

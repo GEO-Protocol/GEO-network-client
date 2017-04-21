@@ -8,6 +8,6 @@ set(SOURCE_FILES
         GetFirstLevelContractorsBalancesTransaction.cpp
         )
 
-add_library(transactions__contractors_list ${SOURCE_FILES})
-target_link_libraries(transactions__contractors_list
+add_library(transactions__trustlines_list ${SOURCE_FILES})
+target_link_libraries(transactions__trustlines_list
         transactions__base)
