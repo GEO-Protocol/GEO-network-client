@@ -57,6 +57,28 @@ void PathsManager::findPathsOnSecondLevel() {
     info() << "findPathsOnSecondLevel method time: " << methodTime;*/
 }
 
+void PathsManager::findPathsOnSecondLevelWithoutRoutingTables(
+    vector<NodeUUID> &contractorRT1) {
+
+    DateTime startTime = utc_now();
+    for (auto const &nodeUUID1 : mTrustLinesManager->rt1()) {
+        for (auto const &nodeUUID2 : contractorRT1) {
+            if (nodeUUID1 == nodeUUID2) {
+                vector<NodeUUID> intermediateNodes;
+                intermediateNodes.push_back(nodeUUID1);
+                Path path(
+                    mNodeUUID,
+                    mContractorUUID,
+                    intermediateNodes);
+                mPathCollection->add(path);
+                //info() << "found path on second level";
+            }
+        }
+    }
+    /*Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSecondLevel method time: " << methodTime;*/
+}
+
 void PathsManager::findPathsOnThirdLevel() {
 
     DateTime startTime = utc_now();
@@ -393,6 +415,7 @@ void PathsManager::findPaths(
         mContractorUUID);
     findDirectPath();
     findPathsOnSecondLevel();
+    //findPathsOnSecondLevelWithoutRoutingTables(contractorRT1);
     findPathsOnThirdLevel();
     findPathsOnForthLevel(
         contractorRT1);

@@ -23,8 +23,7 @@ TrustLineHandler::TrustLineHandler(
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
-        throw IOError("TrustLineHandler::creating table: " + mTableName +
-                      " : Run query");
+        throw IOError("TrustLineHandler::creating table: Run query");
     }
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName

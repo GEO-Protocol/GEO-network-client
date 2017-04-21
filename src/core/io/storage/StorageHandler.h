@@ -7,6 +7,7 @@
 #include "TrustLineHandler.h"
 #include "PaymentOperationStateHandler.h"
 #include "TransactionHandler.h"
+#include "HistoryStorage.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -26,13 +27,15 @@ public:
 
     ~StorageHandler();
 
-    RoutingTablesHandler *routingTablesHandler();
+    RoutingTablesHandler* routingTablesHandler();
 
-    TrustLineHandler *trustLineHandler();
+    TrustLineHandler* trustLineHandler();
 
-    PaymentOperationStateHandler *paymentOperationStateHandler();
+    PaymentOperationStateHandler* paymentOperationStateHandler();
 
-    TransactionHandler *transactionHandler();
+    TransactionHandler* transactionHandler();
+
+    HistoryStorage* historyStorage();
 
 private:
 
@@ -54,6 +57,8 @@ private:
     const string kTrustLineTableName = "trust_lines";
     const string kPaymentOperationStateTableName = "payment_operation_state";
     const string kTransactionTableName = "transactions";
+    const string kHistoryPaymentsTableName = "history_payments";
+    const string kHistoryTrustLinesTableName = "history_trust_lines";
 
 private:
 
@@ -66,9 +71,10 @@ private:
     TrustLineHandler mTrustLineHandler;
     PaymentOperationStateHandler mPaymentOperationStateHandler;
     TransactionHandler mTransactionHandler;
+    HistoryStorage mHistoryStorage;
+
     string mDirectory;
     string mDataBaseName;
-
 };
 
 

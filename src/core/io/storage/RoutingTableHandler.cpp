@@ -15,14 +15,12 @@ RoutingTableHandler::RoutingTableHandler(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::creating table: " + mTableName +
-                              " : Bad query");
+        throw IOError("RoutingTableHandler::creating table: Bad query");
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
-        throw IOError("RoutingTableHandler::creating table: " + mTableName +
-                              " : Run query");
+        throw IOError("RoutingTableHandler::creating table: Run query");
     }
 
     query = "CREATE INDEX IF NOT EXISTS " + mTableName

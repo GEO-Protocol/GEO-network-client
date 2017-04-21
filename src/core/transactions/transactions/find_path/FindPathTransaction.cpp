@@ -59,6 +59,9 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
 
             mRT1 = response->rt1();
             info() << "receive RT1, size: " << mRT1.size();
+            /*for (auto &nodeUUID : mRT1) {
+                info() << "\t" << nodeUUID;
+            }*/
         }
 
         if (responseMessage->typeID() == Message::MessageType::Paths_ResultRoutingTableSecondLevel) {
@@ -67,6 +70,12 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
 
             mRT2.insert(response->rt2().begin(), response->rt2().end());
             info() << "receive RT2, size: " << mRT2.size();
+            /*for (auto &nodeUUIDAndVect : mRT2) {
+                for (auto const &nodeUUID : nodeUUIDAndVect.second) {
+                    info() << "\t" << nodeUUID
+                           << "\t" << nodeUUIDAndVect.first;
+                }
+            }*/
         }
 
         if (responseMessage->typeID() == Message::MessageType::Paths_ResultRoutingTableThirdLevel) {
@@ -75,6 +84,12 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths() {
 
             mRT3.insert(response->rt3().begin(), response->rt3().end());
             info() << "receive RT3, size: " << mRT3.size();
+            /*for (auto &nodeUUIDAndVect : mRT3) {
+                for (auto const &nodeUUID : nodeUUIDAndVect.second) {
+                    info() << "\t" << nodeUUID
+                           << "\t" << nodeUUIDAndVect.first;
+                }
+            }*/
         }
 
     }

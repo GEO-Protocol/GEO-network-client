@@ -13,6 +13,7 @@ StorageHandler::StorageHandler(
     mTrustLineHandler(connection(dataBaseName, directory), kTrustLineTableName, logger),
     mPaymentOperationStateHandler(connection(dataBaseName, directory), kPaymentOperationStateTableName, logger),
     mTransactionHandler(connection(dataBaseName, directory), kTransactionTableName, logger),
+    mHistoryStorage(connection(dataBaseName, directory), kHistoryPaymentsTableName, kHistoryTrustLinesTableName, logger),
     mLog(logger) {
 
     sqlite3_config(SQLITE_CONFIG_SINGLETHREAD);
@@ -35,14 +36,19 @@ TrustLineHandler* StorageHandler::trustLineHandler() {
     return &mTrustLineHandler;
 }
 
-PaymentOperationStateHandler *StorageHandler::paymentOperationStateHandler() {
+PaymentOperationStateHandler* StorageHandler::paymentOperationStateHandler() {
 
     return &mPaymentOperationStateHandler;
 }
 
-TransactionHandler *StorageHandler::transactionHandler() {
+TransactionHandler* StorageHandler::transactionHandler() {
 
     return &mTransactionHandler;
+}
+
+HistoryStorage* StorageHandler::historyStorage() {
+
+    return &mHistoryStorage;
 }
 
 void StorageHandler::checkDirectory(

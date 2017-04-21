@@ -303,6 +303,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
         if (responseResource->type() == BaseResource::ResourceType::Paths) {
             PathsResource::Shared response = static_pointer_cast<PathsResource>(
                 responseResource);
+            response->pathCollection()->resetCurrentPath();
             while (response->pathCollection()->hasNextPath()) {
                 auto path = response->pathCollection()->nextPath();
                 info() << path->toString();

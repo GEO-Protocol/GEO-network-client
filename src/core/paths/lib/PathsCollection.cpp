@@ -32,7 +32,7 @@ void PathsCollection::resetCurrentPath() {
 
 bool PathsCollection::hasNextPath() {
 
-    return mCurrentPath < mPaths.size();
+    return (mCurrentPath < mPaths.size() || (mIsDirectPathPresent && !mIsReturnDirectPath));
 }
 
 Path::Shared PathsCollection::nextPath() {
