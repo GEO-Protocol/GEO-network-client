@@ -82,8 +82,8 @@
 #include "../transactions/history/HistoryPaymentsTransaction.h"
 #include "../transactions/history/HistoryTrustLinesTransaction.h"
 
-#include "../transactions/contractors_list/GetFirstLevelContractorsTransaction.h"
-#include "../transactions/contractors_list/GetFirstLevelContractorsBalancesTransaction.h"
+#include "../transactions/trustlines_list/GetFirstLevelContractorsTransaction.h"
+#include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
 
 #include "../transactions/find_path/GetPathTestTransaction.h"
 #include "../transactions/find_path/FindPathTransaction.h"
