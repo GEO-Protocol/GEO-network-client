@@ -14,8 +14,8 @@
 #include "../commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../commands/history/HistoryPaymentsCommand.h"
 #include "../commands/history/HistoryTrustLinesCommand.h"
-#include "../commands/contractors_list/GetFirstLevelContractorsCommand.h"
-#include "../commands/contractors_list/GetTrustLinesCommand.h"
+#include "../commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
+#include "../commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../commands/find_path/FindPathCommand.h"
 
 #include "../../../common/exceptions/IOError.h"

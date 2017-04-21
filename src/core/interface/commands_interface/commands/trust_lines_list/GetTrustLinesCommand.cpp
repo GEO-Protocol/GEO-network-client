@@ -9,8 +9,8 @@ GetTrustLinesCommand::GetTrustLinesCommand(
             identifier())
 {}
 
-const string &GetTrustLinesCommand::identifier() {
-
+const string &GetTrustLinesCommand::identifier()
+{
     static const string kIdentifier = "GET:contractors/trust-lines";
     return kIdentifier;
 }

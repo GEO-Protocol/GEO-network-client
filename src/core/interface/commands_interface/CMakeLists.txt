@@ -33,11 +33,11 @@ set(SOURCE_FILES
         commands/history/HistoryTrustLinesCommand.cpp
         commands/history/HistoryTrustLinesCommand.h
 
-        commands/contractors_list/GetFirstLevelContractorsCommand.h
-        commands/contractors_list/GetFirstLevelContractorsCommand.cpp
+        commands/trust_lines_list/GetFirstLevelContractorsCommand.h
+        commands/trust_lines_list/GetFirstLevelContractorsCommand.cpp
 
-        commands/contractors_list/GetTrustLinesCommand.h
-        commands/contractors_list/GetTrustLinesCommand.cpp
+        commands/trust_lines_list/GetTrustLinesCommand.h
+        commands/trust_lines_list/GetTrustLinesCommand.cpp
 
         commands/find_path/FindPathCommand.h
         commands/find_path/FindPathCommand.cpp)

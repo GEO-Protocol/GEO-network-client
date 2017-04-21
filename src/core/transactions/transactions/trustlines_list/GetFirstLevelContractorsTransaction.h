@@ -4,7 +4,7 @@
 #define GEO_NETWORK_CLIENT_GetFirstLevelContractorsTransaction_H
 
 #include "../base/BaseTransaction.h"
-#include "../../../interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.h"
+#include "../../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 
 

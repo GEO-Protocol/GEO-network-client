@@ -27,8 +27,8 @@
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
-#include "../../interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.h"
-#include "../../interface/commands_interface/commands/contractors_list/GetTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/trust_lines/AcceptTrustLineMessage.h"

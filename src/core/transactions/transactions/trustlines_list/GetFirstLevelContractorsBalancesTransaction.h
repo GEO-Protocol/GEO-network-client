@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSBALANCESTRANSACTION_H
 
 #include "../base/BaseTransaction.h"
-#include "../../../interface/commands_interface/commands/contractors_list/GetTrustLinesCommand.h"
+#include "../../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 
 
