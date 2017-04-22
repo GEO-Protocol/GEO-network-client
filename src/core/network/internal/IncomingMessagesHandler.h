@@ -139,6 +139,9 @@ private:
 
     unique_ptr<MessagesParser> mMessagesParser;
     vector<byte> mPacketsBuffer;
+
+    size_t realPacketNumber = 0;
+    size_t previousChannel = 0;
 };
 
 #endif //GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H

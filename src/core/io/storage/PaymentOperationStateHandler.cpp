@@ -18,12 +18,14 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::creating table: Bad query");
+        throw IOError("PaymentOperationStateHandler::creating table: "
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
-        throw IOError("PaymentOperationStateHandler::creating table: Run query");
+        throw IOError("PaymentOperationStateHandler::creating table: "
+                          "Run query; sqlite error: " + rc);
     }
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
@@ -31,13 +33,13 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::creating index for TransactionUUID: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("PaymentOperationStateHandler::creating index for TransactionUUID: "
-                          "Run query");
+                          "Run query; sqlite error: " + rc);
     }
 
     sqlite3_reset(stmt);
@@ -52,63 +54,52 @@ void PaymentOperationStateHandler::prepareInserted() {
 #endif
         return;
     }
-
     string query = "BEGIN TRANSACTION;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::prepareInserted: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "transaction begin";
-#endif
-    } else {
+    if (rc != SQLITE_DONE) {
         throw IOError("PaymentOperationStateHandler::prepareInserted: "
-                          "Run query");
+                          "Run query; sqlite error: " + rc);
     }
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+    info() << "transaction begin";
+#endif
     isTransactionBegin = true;
 }
 
-bool PaymentOperationStateHandler::commit() {
+void PaymentOperationStateHandler::commit() {
 
     if (!isTransactionBegin) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         error() << "call commit, but trunsaction wasn't started";
 #endif
-        return true;
+        return;
     }
-
     string query = "END TRANSACTION;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::commit: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "transaction commit";
-#endif
-        isTransactionBegin = false;
-        return true;
-    } else if (rc == SQLITE_BUSY) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "database busy";
-#endif
-        return false;
-    } else {
-        info() << "commit error: " << rc;
+    if (rc != SQLITE_DONE) {
         throw IOError("PaymentOperationStateHandler::commit: "
-                          "Run query");
+                          "Run query; sqlite error: " + rc);
     }
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+    info() << "transaction commit";
+#endif
+    isTransactionBegin = false;
 }
 
 void PaymentOperationStateHandler::rollBack() {
@@ -119,26 +110,23 @@ void PaymentOperationStateHandler::rollBack() {
 #endif
         return;
     }
-
     string query = "ROLLBACK;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::rollback: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "rollBack done";
-#endif
-    } else {
+    if (rc != SQLITE_DONE) {
         throw IOError("PaymentOperationStateHandler::rollback: "
-                          "Run query");
+                          "Run query; sqlite error: " + rc);
     }
-
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+    info() << "rollBack done";
+#endif
     isTransactionBegin = false;
 }
 
@@ -150,35 +138,34 @@ void PaymentOperationStateHandler::saveRecord(
     if (!isTransactionBegin) {
         prepareInserted();
     }
-
     string query = "INSERT INTO " + mTableName +
         " (transaction_uuid, state, state_bytes_count, recording_time) VALUES(?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of TransactionUUID");
+                          "Bad binding of TransactionUUID; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 2, state.get(), (int)stateBytesCount, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of State");
+                          "Bad binding of State; sqlite error: " + rc);
     }
     rc = sqlite3_bind_int(stmt, 3, (int)stateBytesCount);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of State bytes count");
+                          "Bad binding of State bytes count; sqlite error: " + rc);
     }
     GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(utc_now());
     rc = sqlite3_bind_int64(stmt, 4, timestamp);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of Timestamp");
+                          "Bad binding of Timestamp; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -189,7 +176,7 @@ void PaymentOperationStateHandler::saveRecord(
 #endif
     } else {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Run query");
+                          "Run query; sqlite error: " + rc);
     }
 }
 
@@ -199,18 +186,17 @@ void PaymentOperationStateHandler::deleteRecord(
     if (!isTransactionBegin) {
         prepareInserted();
     }
-
     string query = "DELETE FROM " + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::delete: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::delete: "
-                          "Bad binding of TransactionUUID");
+                          "Bad binding of TransactionUUID; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -221,7 +207,7 @@ void PaymentOperationStateHandler::deleteRecord(
 #endif
     } else {
         throw IOError("PaymentOperationStateHandler::delete: "
-                          "Run query");
+                          "Run query; sqlite error: " + rc);
     }
 }
 
@@ -233,12 +219,12 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::getState(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::getState: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::getState: "
-                          "Bad binding of TransactionUUID");
+                          "Bad binding of TransactionUUID; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {

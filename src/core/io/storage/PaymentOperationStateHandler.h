@@ -30,7 +30,7 @@ public:
     void deleteRecord(
         const TransactionUUID &transactionUUID);
 
-    bool commit();
+    void commit();
 
     void rollBack();
 

@@ -21,7 +21,7 @@ public:
         const string &tableName,
         Logger *logger);
 
-    bool commit();
+    void commit();
 
     void rollBack();
 

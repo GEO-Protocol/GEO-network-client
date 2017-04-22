@@ -62,10 +62,6 @@ int Core::initCoreComponents() {
         return -1;
     }
 
-    initCode = initOperationsHistoryStorage();
-    if (initCode != 0)
-        return initCode;
-
     initCode = initCommunicator(conf);
     if (initCode != 0)
         return initCode;
@@ -148,23 +144,6 @@ int Core::initSettings() {
         mLog.logException("Core", e);
         return -1;
     }
-}
-
-int Core::initOperationsHistoryStorage() {
-
-    try{
-        mOperationsHistoryStorage = new history::OperationsHistoryStorage(
-            "io/history",
-            "operations_storage.dat");
-
-        mLog.logSuccess("Core", "Operations history storage is successfully initialised");
-        return 0;
-
-    } catch (const std::exception &e) {
-        mLog.logException("Core", e);
-        return -1;
-    }
-
 }
 
 int Core::initCommunicator(
@@ -266,7 +245,6 @@ int Core::initTransactionsManager() {
             mMaxFlowCalculationTrustLimeManager,
             mMaxFlowCalculationCacheManager,
             mResultsInterface,
-            mOperationsHistoryStorage,
             mStorageHandler,
             mPathsManager,
             &mLog
@@ -396,7 +374,7 @@ void Core::connectTrustLinesManagerSignals() {
 }
 
 void Core::connectDelayedTasksSignals(){
-    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
+    /*mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
             boost::bind(
                     &Core::onDelayedTaskCycleSixNodesSlot,
                     this
@@ -421,7 +399,7 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
-    #endif
+    #endif*/
 }
 
 void Core::connectResourcesManagerSignals() {
@@ -550,10 +528,6 @@ void Core::cleanupMemory() {
         delete mSettings;
     }
 
-    if (mOperationsHistoryStorage != nullptr) {
-        delete mOperationsHistoryStorage;
-    }
-
     if (mCommunicator != nullptr) {
         delete mCommunicator;
     }
@@ -602,7 +576,6 @@ void Core::cleanupMemory() {
 void Core::zeroPointers() {
 
     mSettings = nullptr;
-    mOperationsHistoryStorage = nullptr;
     mCommunicator = nullptr;
     mCommandsInterface = nullptr;
     mResultsInterface = nullptr;

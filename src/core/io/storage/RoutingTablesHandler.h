@@ -46,7 +46,7 @@ public:
         const NodeUUID &source,
         const NodeUUID &destination);
 
-    bool commit();
+    void commit();
 
     void rollBack();
 

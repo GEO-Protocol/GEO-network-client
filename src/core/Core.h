@@ -6,7 +6,6 @@
 #include "common/NodeUUID.h"
 
 #include "settings/Settings.h"
-#include "db/operations_history_storage/storage/OperationsHistoryStorage.h"
 #include "network/communicator/Communicator.h"
 #include "interface/commands_interface/interface/CommandsInterface.h"
 #include "interface/results_interface/interface/ResultsInterface.h"
@@ -30,7 +29,6 @@ using namespace std;
 
 namespace as = boost::asio;
 namespace signals = boost::signals2;
-namespace history = db::operations_history_storage;
 
 class Core {
 
@@ -45,8 +43,6 @@ private:
     int initCoreComponents();
 
     int initSettings();
-
-    int initOperationsHistoryStorage();
 
     int initCommunicator(
         const json &conf);
@@ -137,7 +133,6 @@ protected:
     as::io_service mIOService;
 
     Settings *mSettings;
-    history::OperationsHistoryStorage *mOperationsHistoryStorage;
     Communicator *mCommunicator;
     CommandsInterface *mCommandsInterface;
     ResultsInterface *mResultsInterface;

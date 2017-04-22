@@ -13,7 +13,6 @@ TransactionsManager::TransactionsManager(
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResultsInterface *resultsInterface,
-    history::OperationsHistoryStorage *operationsHistoryStorage,
     StorageHandler *storageHandler,
     PathsManager *pathsManager,
     Logger *logger) :
@@ -25,7 +24,6 @@ TransactionsManager::TransactionsManager(
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mResultsInterface(resultsInterface),
-    mOperationsHistoryStorage(operationsHistoryStorage),
     mStorageHandler(storageHandler),
     mPathsManager(pathsManager),
     mLog(logger),
@@ -72,7 +70,7 @@ void TransactionsManager::loadTransactions() {
 //                    transaction = new OpenTrustLineTransaction(
 //                        transactionBuffer,
 //                        mTrustLines,
-//                        mOperationsHistoryStorage
+//                        mStorageHandler->historyStorage()
 //                    );
 //                    break;
 //                }
@@ -81,7 +79,7 @@ void TransactionsManager::loadTransactions() {
 //                    transaction = new SetTrustLineTransaction(
 //                        transactionBuffer,
 //                        mTrustLines,
-//                        mOperationsHistoryStorage
+//                        mStorageHandler->historyStorage()
 //                    );
 //                    break;
 //                }
@@ -90,7 +88,7 @@ void TransactionsManager::loadTransactions() {
 //                    transaction = new CloseTrustLineTransaction(
 //                        transactionBuffer,
 //                        mTrustLines,
-//                        mOperationsHistoryStorage
+//                        mStorageHandler->historyStorage()
 //                    );
 //                    break;
 //                }
@@ -316,7 +314,7 @@ void TransactionsManager::launchOpenTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mOperationsHistoryStorage
+            mStorageHandler->historyStorage()
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -343,7 +341,7 @@ void TransactionsManager::launchSetTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mOperationsHistoryStorage
+            mStorageHandler->historyStorage()
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -369,7 +367,7 @@ void TransactionsManager::launchCloseTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mOperationsHistoryStorage
+            mStorageHandler->historyStorage()
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -395,7 +393,7 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mOperationsHistoryStorage
+            mStorageHandler->historyStorage()
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -417,7 +415,7 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mOperationsHistoryStorage
+            mStorageHandler->historyStorage()
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -443,7 +441,7 @@ void TransactionsManager::launchRejectTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mOperationsHistoryStorage
+            mStorageHandler->historyStorage()
         );
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -744,7 +742,7 @@ void TransactionsManager::launchHistoryPaymentsTransaction(HistoryPaymentsComman
         auto transaction = make_shared<HistoryPaymentsTransaction>(
             mNodeUUID,
             command,
-            mOperationsHistoryStorage,
+            mStorageHandler->historyStorage(),
             mLog);
 
         prepareAndSchedule(transaction);
@@ -765,7 +763,7 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCo
         auto transaction = make_shared<HistoryTrustLinesTransaction>(
             mNodeUUID,
             command,
-            mOperationsHistoryStorage,
+            mStorageHandler->historyStorage(),
             mLog);
 
         prepareAndSchedule(transaction);

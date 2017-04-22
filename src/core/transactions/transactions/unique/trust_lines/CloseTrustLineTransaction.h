@@ -6,8 +6,8 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
-#include "../../../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
+#include "../../../../io/storage/HistoryStorage.h"
+#include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 
@@ -24,8 +24,6 @@
 #include <memory>
 #include <utility>
 #include <cstdint>
-
-using namespace db::operations_history_storage;
 
 class CloseTrustLineTransaction: public TrustLineTransaction {
 public:
@@ -44,12 +42,12 @@ public:
         const NodeUUID &nodeUUID,
         CloseTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        HistoryStorage *historyStorage);
 
     CloseTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        HistoryStorage *historyStorage);
 
     CloseTrustLineCommand::Shared command() const;
 
@@ -95,7 +93,7 @@ private:
 
     CloseTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-    OperationsHistoryStorage *mOperationsHistoryStorage;
+    HistoryStorage *mHistoryStorage;
 };
 
 

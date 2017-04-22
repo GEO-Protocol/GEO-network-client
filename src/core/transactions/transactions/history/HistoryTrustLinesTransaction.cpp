@@ -3,7 +3,7 @@
 HistoryTrustLinesTransaction::HistoryTrustLinesTransaction(
     NodeUUID &nodeUUID,
     HistoryTrustLinesCommand::Shared command,
-    OperationsHistoryStorage *historyStorage,
+    HistoryStorage *historyStorage,
     Logger *logger) :
 
     BaseTransaction(
@@ -11,40 +11,33 @@ HistoryTrustLinesTransaction::HistoryTrustLinesTransaction(
         nodeUUID,
         logger),
     mCommand(command),
-    mHistoryStorage(historyStorage) {}
+    mHistoryStorage(historyStorage)
+{}
 
-HistoryTrustLinesCommand::Shared HistoryTrustLinesTransaction::command() const {
-
+HistoryTrustLinesCommand::Shared HistoryTrustLinesTransaction::command() const
+{
     return mCommand;
 }
 
-TransactionResult::SharedConst HistoryTrustLinesTransaction::run() {
-
-    info() << "run\t";
-    info() << "run\t" << "from: " << mCommand->historyFrom();
-    info() << "run\t" << "count: " << mCommand->historyCount();
-
-    vector<TrustLineRecord::Shared> trustLineRecords = mHistoryStorage->trustLineRecordsStack(
+TransactionResult::SharedConst HistoryTrustLinesTransaction::run()
+{
+    auto const trustLineRecords = mHistoryStorage->allTrustLineRecords(
         mCommand->historyCount(),
         mCommand->historyFrom());
-
-    info() << "run\t" << "real count: " << trustLineRecords.size();
-
     return resultOk(trustLineRecords);
-
 }
 
 TransactionResult::SharedConst HistoryTrustLinesTransaction::resultOk(
-        vector<TrustLineRecord::Shared> trustLineRecords) {
-
+    vector<pair<TrustLineRecord::Shared, DateTime>> trustLineRecords)
+{
     stringstream s;
     s << trustLineRecords.size();
-    for (auto &trustLineRecord : trustLineRecords) {
-        s << "\t" << trustLineRecord->operationUUID() << "\t";
-        s << trustLineRecord->operationTimestamp() << "\t";
-        s << trustLineRecord->contractorUUID() << "\t";
-        s << trustLineRecord->trustLineOperationType() << "\t";
-        s << trustLineRecord->amount();
+    for (auto const &trustLineRecordAndTimestamp : trustLineRecords) {
+        s << "\t" << trustLineRecordAndTimestamp.first->operationUUID() << "\t";
+        s << trustLineRecordAndTimestamp.second << "\t";
+        s << trustLineRecordAndTimestamp.first->contractorUUID() << "\t";
+        s << trustLineRecordAndTimestamp.first->trustLineOperationType() << "\t";
+        s << trustLineRecordAndTimestamp.first->amount();
     }
     string historyTrustLinesStrResult = s.str();
     return transactionResultFromCommand(mCommand->resultOk(historyTrustLinesStrResult));
@@ -54,6 +47,5 @@ const string HistoryTrustLinesTransaction::logHeader() const
 {
     stringstream s;
     s << "[HistoryTrustLinesTA]";
-
     return s.str();
 }

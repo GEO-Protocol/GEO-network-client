@@ -9,7 +9,6 @@
 #include "../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
-#include "../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
 #include "../../io/storage/StorageHandler.h"
 #include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
@@ -93,7 +92,6 @@
 #include <string>
 
 using namespace std;
-namespace history = db::operations_history_storage;
 namespace signals = boost::signals2;
 
 
@@ -110,7 +108,6 @@ public:
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResultsInterface *resultsInterface,
-        history::OperationsHistoryStorage *operationsHistoryStorage,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
         Logger *logger);
@@ -271,7 +268,6 @@ private:
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     ResultsInterface *mResultsInterface;
-    history::OperationsHistoryStorage *mOperationsHistoryStorage;
     PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;
     Logger *mLog;
