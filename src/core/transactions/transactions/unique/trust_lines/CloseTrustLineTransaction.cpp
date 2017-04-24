@@ -4,24 +4,24 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
     const NodeUUID &nodeUUID,
     CloseTrustLineCommand::Shared command,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    HistoryStorage *historyStorage) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::CloseTrustLineTransactionType,
         nodeUUID),
     mCommand(command),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {}
+    mHistoryStorage(historyStorage) {}
 
 CloseTrustLineTransaction::CloseTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    HistoryStorage *historyStorage) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::CloseTrustLineTransactionType),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {
+    mHistoryStorage(historyStorage) {
 
     deserializeFromBytes(
         buffer);
@@ -180,8 +180,9 @@ void CloseTrustLineTransaction::logClosingTrustLineOperation() {
         TrustLineRecord::TrustLineOperationType::Closing,
         mCommand->contractorUUID());
 
-    mOperationsHistoryStorage->addRecord(
+    mHistoryStorage->saveRecord(
         record);
+    mHistoryStorage->commit();
 }
 
 TransactionResult::SharedConst CloseTrustLineTransaction::checkTransactionContext() {

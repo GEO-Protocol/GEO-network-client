@@ -4,24 +4,24 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     const NodeUUID &nodeUUID,
     UpdateTrustLineMessage::Shared message,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    HistoryStorage *historyStorage) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::UpdateTrustLineTransactionType,
         nodeUUID),
     mMessage(message),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {}
+    mHistoryStorage(historyStorage) {}
 
 UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    HistoryStorage *historyStorage) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::UpdateTrustLineTransactionType),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {
+    mHistoryStorage(historyStorage) {
 
     deserializeFromBytes(
         buffer);
@@ -133,8 +133,9 @@ void UpdateTrustLineTransaction::logUpdatingTrustLineOperation() {
         mMessage->senderUUID,
         mMessage->newAmount());
 
-    mOperationsHistoryStorage->addRecord(
+    mHistoryStorage->saveRecord(
         record);
+    mHistoryStorage->commit();
 }
 
 void UpdateTrustLineTransaction::sendResponseCodeToContractor(

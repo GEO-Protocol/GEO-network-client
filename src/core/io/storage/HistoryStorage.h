@@ -3,20 +3,17 @@
 
 #include "../../common/NodeUUID.h"
 #include "../../common/Types.h"
-#include "../../trust_lines/TrustLine.h"
 #include "../../logger/Logger.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/multiprecision/MultiprecisionUtils.h"
 
-#include "../../db/operations_history_storage/record/base/Record.h"
-#include "../../db/operations_history_storage/record/payment/PaymentRecord.h"
-#include "../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
+#include "record/base/Record.h"
+#include "record/payment/PaymentRecord.h"
+#include "record/trust_line/TrustLineRecord.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
 #include <vector>
-
-using namespace db::operations_history_storage;
 
 class HistoryStorage {
 
@@ -24,25 +21,23 @@ public:
 
     HistoryStorage(
         sqlite3 *dbConnection,
-        const string &paymentsTableName,
-        const string &trustLinesTableName,
+        const string &tableName,
         Logger *logger);
 
-    bool commit();
+    void commit();
 
     void rollBack();
 
-    void saveTrustLineRecord(
-        TrustLineRecord::Shared trustLine);
+    void saveRecord(
+        Record::Shared record);
 
-    void savePaymentRecord(
-        PaymentRecord::Shared trustLine);
+    vector<pair<TrustLineRecord::Shared, DateTime>> allTrustLineRecords(
+        size_t recordsCount,
+        size_t fromRecord);
 
-    vector<TrustLineRecord::Shared> allTrustLineRecords();
-
-    vector<PaymentRecord::Shared> allPaymentRecords();
-
-    vector<Record::Shared> allRecords();
+    vector<pair<PaymentRecord::Shared, DateTime>> allPaymentRecords(
+        size_t recordsCount,
+        size_t fromRecord);
 
 private:
 
@@ -57,8 +52,7 @@ private:
 private:
 
     sqlite3 *mDataBase = nullptr;
-    string mPaymentsTableName;
-    string mTrustLinesTableName;
+    string mTableName;
     Logger *mLog;
     bool isTransactionBegin;
 };

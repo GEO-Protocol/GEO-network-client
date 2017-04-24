@@ -451,6 +451,7 @@ void TrustLinesManager::removeTrustLine(
     if (trustLineIsPresent(contractorUUID)) {
         mTrustLineHandler->deleteTrustLine(
             contractorUUID);
+        mTrustLineHandler->commit();
         mTrustLines.erase(contractorUUID);
 
         trustLineStateModifiedSignal(

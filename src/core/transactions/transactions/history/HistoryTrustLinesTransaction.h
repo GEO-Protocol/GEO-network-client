@@ -3,12 +3,10 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
-#include "../../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
-#include "../../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
+#include "../../../io/storage/HistoryStorage.h"
+#include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include <vector>
-
-using namespace db::operations_history_storage;
 
 class HistoryTrustLinesTransaction : public BaseTransaction {
 
@@ -19,7 +17,7 @@ public:
     HistoryTrustLinesTransaction(
         NodeUUID &nodeUUID,
         HistoryTrustLinesCommand::Shared command,
-        OperationsHistoryStorage *historyStorage,
+        HistoryStorage *historyStorage,
         Logger *logger);
 
     HistoryTrustLinesCommand::Shared command() const;
@@ -30,15 +28,12 @@ protected:
     const string logHeader() const;
 
 private:
-
     TransactionResult::SharedConst resultOk(
-        vector<TrustLineRecord::Shared> trustLineRecords);
+        vector<pair<TrustLineRecord::Shared, DateTime>> trustLineRecords);
 
 private:
-
     HistoryTrustLinesCommand::Shared mCommand;
-    OperationsHistoryStorage *mHistoryStorage;
-
+    HistoryStorage *mHistoryStorage;
 };
 
 

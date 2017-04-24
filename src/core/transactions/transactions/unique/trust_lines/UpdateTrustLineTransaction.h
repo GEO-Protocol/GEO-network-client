@@ -6,8 +6,8 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
-#include "../../../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
+#include "../../../../io/storage/HistoryStorage.h"
+#include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../network/messages/Message.hpp"
 #include "../../../../network/messages/trust_lines/UpdateTrustLineMessage.h"
@@ -20,8 +20,6 @@
 #include <memory>
 #include <utility>
 #include <cstdint>
-
-using namespace db::operations_history_storage;
 
 class UpdateTrustLineTransaction : public TrustLineTransaction {
 public:
@@ -39,12 +37,12 @@ public:
         const NodeUUID &nodeUUID,
         UpdateTrustLineMessage::Shared message,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        HistoryStorage *historyStorage);
 
     UpdateTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        HistoryStorage *historyStorage);
 
     UpdateTrustLineMessage::Shared message() const;
 
@@ -69,7 +67,7 @@ private:
 private:
     UpdateTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    OperationsHistoryStorage *mOperationsHistoryStorage;
+    HistoryStorage *mHistoryStorage;
 };
 
 

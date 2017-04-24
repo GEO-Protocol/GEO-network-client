@@ -4,24 +4,24 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     const NodeUUID &nodeUUID,
     AcceptTrustLineMessage::Shared message,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    HistoryStorage *historyStorage) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::AcceptTrustLineTransactionType,
         nodeUUID),
     mMessage(message),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {}
+    mHistoryStorage(historyStorage) {}
 
 AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    HistoryStorage *historyStorage) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::AcceptTrustLineTransactionType),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {
+    mHistoryStorage(historyStorage) {
 
     deserializeFromBytes(
         buffer);
@@ -117,8 +117,9 @@ void AcceptTrustLineTransaction::logAcceptingTrustLineOperation() {
         mMessage->senderUUID,
         mMessage->amount());
 
-    mOperationsHistoryStorage->addRecord(
+    mHistoryStorage->saveRecord(
         record);
+    mHistoryStorage->commit();
 }
 
 void AcceptTrustLineTransaction::sendResponseCodeToContractor(

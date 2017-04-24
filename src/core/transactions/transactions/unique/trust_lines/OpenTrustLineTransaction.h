@@ -7,8 +7,8 @@
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
-#include "../../../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
+#include "../../../../io/storage/HistoryStorage.h"
+#include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 
@@ -27,8 +27,6 @@
 #include <utility>
 #include <cstdint>
 
-using namespace db::operations_history_storage;
-
 class OpenTrustLineTransaction: public TrustLineTransaction {
 public:
     typedef shared_ptr<OpenTrustLineTransaction> Shared;
@@ -45,12 +43,12 @@ public:
         const NodeUUID &nodeUUID,
         OpenTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        HistoryStorage *historyStorage);
 
     OpenTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        HistoryStorage *historyStorage);
 
     OpenTrustLineCommand::Shared command() const;
 
@@ -92,7 +90,7 @@ private:
 
     OpenTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-    OperationsHistoryStorage *mOperationsHistoryStorage;
+    HistoryStorage *mHistoryStorage;
 };
 
 #endif //GEO_NETWORK_CLIENT_OPENTRUSTLINETRANSACTION_H

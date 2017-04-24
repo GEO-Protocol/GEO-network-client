@@ -14,7 +14,13 @@ set(SOURCE_FILES
         TransactionHandler.h
         TransactionHandler.cpp
         HistoryStorage.h
-        HistoryStorage.cpp)
+        HistoryStorage.cpp
+        record/base/Record.h
+        record/base/Record.cpp
+        record/trust_line/TrustLineRecord.h
+        record/trust_line/TrustLineRecord.cpp
+        record/payment/PaymentRecord.h
+        record/payment/PaymentRecord.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

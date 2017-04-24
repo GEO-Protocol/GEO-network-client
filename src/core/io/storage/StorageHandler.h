@@ -57,8 +57,7 @@ private:
     const string kTrustLineTableName = "trust_lines";
     const string kPaymentOperationStateTableName = "payment_operation_state";
     const string kTransactionTableName = "transactions";
-    const string kHistoryPaymentsTableName = "history_payments";
-    const string kHistoryTrustLinesTableName = "history_trust_lines";
+    const string kHistoryTableName = "history";
 
 private:
 
