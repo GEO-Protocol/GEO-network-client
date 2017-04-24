@@ -122,6 +122,7 @@ protected:
     // Stages handlers
     // TODO: Add throws specififcations
     TransactionResult::SharedConst runAmountReservationStage ();
+    TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
     TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
     TransactionResult::SharedConst runVotesCheckingStage ();

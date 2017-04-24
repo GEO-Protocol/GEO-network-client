@@ -32,8 +32,6 @@ public:
 private:
     NodeUUID mSourceNode;
     NodeUUID mDestinationNode;
-    bool mIsDirectPathPresent;
-    bool mIsReturnDirectPath;
     vector<vector<NodeUUID>> mPaths;
 
     size_t mCurrentPath;

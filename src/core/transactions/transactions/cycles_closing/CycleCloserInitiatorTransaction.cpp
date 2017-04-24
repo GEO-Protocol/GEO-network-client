@@ -233,6 +233,9 @@ throw (RuntimeError, bad_alloc)
         case Stages::Coordinator_AmountReservation:
             return runAmountReservationStage();
 
+        case Stages::Coordinator_PreviousNeighborRequestProcessing:
+            return runPreviousNeighborRequestProcessingStage();
+
         case Stages::Coordinator_FinalPathsConfigurationApproving:
             return runFinalParticipantsRequestsProcessingStage();
 
@@ -738,6 +741,15 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
         remoteNodePosition,
         PathStats::ReservationRequestSent);
 
+    if (path->isLastIntermediateNodeProcessed()) {
+        info() << "Further amount reservation request sent to the last node (" << remoteNode << ") ["
+               << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
+        mStep = Coordinator_PreviousNeighborRequestProcessing;
+        const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodePosition;
+        return resultWaitForMessageTypes(
+            {Message::Payments_IntermediateNodeReservationResponse},
+            kTimeout);
+    }
     info() << "Further amount reservation request sent to the node (" << remoteNode << ") ["
            << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
 
@@ -802,6 +814,45 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
         info() << "Go to the next node in path";
         return tryReserveNextIntermediateNodeAmount(path);
     }
+}
+
+TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeighborRequestProcessingStage()
+{
+    if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest))
+        return reject("No amount reservation request was received. Rolled back.");
+
+
+    const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
+    const auto kNeighbor = kMessage->senderUUID;
+    info() << "Coordiantor payment operation from node (" << kNeighbor << ")";
+    info() << "Requested amount reservation: " << kMessage->amount();
+
+
+    // Note: (copy of shared pointer is required)
+    const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
+    const auto kReservationAmount =
+        min(kMessage->amount(), *kIncomingAmount);
+
+    if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount)) {
+        sendMessage<IntermediateNodeReservationResponseMessage>(
+            kNeighbor,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseMessage::Rejected);
+        return reject("No incoming amount reservation is possible. Rolled back.");
+    }
+
+    sendMessage<IntermediateNodeReservationResponseMessage>(
+        kNeighbor,
+        currentNodeUUID(),
+        currentTransactionUUID(),
+        ResponseMessage::Accepted);
+
+    mStep = Coordinator_AmountReservation;
+    const auto kTimeout = kMaxMessageTransferLagMSec;
+    return resultWaitForMessageTypes(
+        {Message::Payments_CoordinatorReservationResponse},
+        kTimeout);
 }
 
 pair<BytesShared, size_t> CycleCloserInitiatorTransaction::serializeToBytes() const

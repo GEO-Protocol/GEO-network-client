@@ -52,6 +52,7 @@ protected:
         Coordinator_ReceiverResponseProcessing,
         Coordinator_AmountReservation,
         Coordinator_ShortPathAmountReservationResponseProcessing,
+        Coordinator_PreviousNeighborRequestProcessing,
         Coordinator_FinalPathsConfigurationApproving,
 
         Receiver_CoordinatorRequestApproving,
