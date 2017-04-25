@@ -166,13 +166,13 @@ void CloseTrustLineTransaction::closeTrustLine() {
 
 void CloseTrustLineTransaction::logClosingTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Closing,
         mCommand->contractorUUID());
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->historyStorage()->saveRecord(record);
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 TransactionResult::SharedConst CloseTrustLineTransaction::checkTransactionContext() {

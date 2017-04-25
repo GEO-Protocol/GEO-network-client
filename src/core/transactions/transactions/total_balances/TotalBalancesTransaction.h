@@ -35,7 +35,6 @@ protected:
     const string logHeader() const;
 
 private:
-
     TransactionResult::SharedConst resultOk(
         const TrustLineAmount &totalIncomingTrust,
         const TrustLineAmount &totalTrustUsedByContractor,
@@ -43,7 +42,6 @@ private:
         const TrustLineAmount &totalTrustUsedBySelf);
 
 private:
-
     TotalBalancesCommand::Shared mCommand;
     InitiateTotalBalancesMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;

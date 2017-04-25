@@ -111,14 +111,14 @@ void AcceptTrustLineTransaction::acceptTrustLine() {
 
 void AcceptTrustLineTransaction::logAcceptingTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Accepting,
         mMessage->senderUUID,
         mMessage->amount());
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->historyStorage()->saveRecord(record);
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 void AcceptTrustLineTransaction::sendResponseCodeToContractor(

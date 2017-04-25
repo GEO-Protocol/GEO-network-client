@@ -40,9 +40,6 @@ InitiateTotalBalancesMessage::Shared TotalBalancesTransaction::message() const {
 
 TransactionResult::SharedConst TotalBalancesTransaction::run() {
 
-    info() << "run\t";
-
-    info() << "run\t" << mTrustLinesManager->trustLines().size();
     TrustLineAmount totalIncomingTrust = 0;
     TrustLineAmount totalTrustUsedByContractor = 0;
     TrustLineAmount totalOutgoingTrust = 0;
@@ -58,7 +55,6 @@ TransactionResult::SharedConst TotalBalancesTransaction::run() {
     }
 
     if (mCommand != nullptr) {
-        info() << "internal command";
         return resultOk(
             totalIncomingTrust,
             totalTrustUsedByContractor,
@@ -66,9 +62,6 @@ TransactionResult::SharedConst TotalBalancesTransaction::run() {
             totalTrustUsedBySelf);
     }
     if (mMessage != nullptr) {
-        info() << "external message\t" << totalIncomingTrust << "\t" << totalTrustUsedByContractor
-               << "\t" << totalOutgoingTrust << "\t" << totalTrustUsedBySelf;
-        info() << "transactionUUID\t" << mMessage->transactionUUID();
         sendMessage<TotalBalancesResultMessage>(
             mMessage->senderUUID,
             mNodeUUID,
@@ -79,7 +72,7 @@ TransactionResult::SharedConst TotalBalancesTransaction::run() {
             totalTrustUsedBySelf);
         return make_shared<TransactionResult>(TransactionState::exit());
     }
-    info() << "something wrong: command and message are nulls";
+    error() << "something wrong: command and message are nulls";
     return make_shared<TransactionResult>(TransactionState::exit());
 }
 

@@ -16,6 +16,7 @@
 #include "../../../libs/sqlite3/sqlite3.h"
 
 #include <vector>
+#include <memory>
 
 class HistoryStorage {
 
@@ -25,8 +26,15 @@ public:
         const string &tableName,
         Logger *logger);
 
+    // TODO why it doesn't work
     void saveRecord(
         Record::Shared record);
+
+    void saveTrustLineRecord(
+        TrustLineRecord::Shared record);
+
+    void savePaymentRecord(
+        PaymentRecord::Shared record);
 
     vector<TrustLineRecord::Shared> allTrustLineRecords(
         size_t recordsCount,

@@ -209,14 +209,14 @@ void OpenTrustLineTransaction::openTrustLine() {
 
 void OpenTrustLineTransaction::logOpeningTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Opening,
         mCommand->contractorUUID(),
         mCommand->amount());
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->historyStorage()->saveRecord(record);
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::resultOk() {

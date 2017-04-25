@@ -25,7 +25,6 @@ protected:
     const string logHeader() const;
 
 private:
-
     void sendMessageToRemoteNode();
 
     void increaseRequestsCounter();
@@ -43,15 +42,12 @@ private:
             const TrustLineAmount &totalTrustUsedBySelf);
     
 private:
-
     const uint16_t kConnectionTimeout = 500;
     const uint16_t kMaxRequestsCount = 5;
 
 private:
-
     TotalBalancesRemouteNodeCommand::Shared mCommand;
     uint16_t mRequestCounter;
-
 };
 
 

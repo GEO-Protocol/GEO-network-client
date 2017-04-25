@@ -127,14 +127,14 @@ void UpdateTrustLineTransaction::updateIncomingTrustAmount() {
 
 void UpdateTrustLineTransaction::logUpdatingTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Updating,
         mMessage->senderUUID,
         mMessage->newAmount());
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->historyStorage()->saveRecord(record);
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 void UpdateTrustLineTransaction::sendResponseCodeToContractor(

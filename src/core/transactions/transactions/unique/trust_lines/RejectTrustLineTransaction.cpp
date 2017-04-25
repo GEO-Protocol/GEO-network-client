@@ -99,13 +99,13 @@ void RejectTrustLineTransaction::rejectTrustLine() {
 
 void RejectTrustLineTransaction::logRejectingTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Rejecting,
         mMessage->senderUUID);
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->historyStorage()->saveRecord(record);
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 bool RejectTrustLineTransaction::checkDebt() {

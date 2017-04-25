@@ -218,14 +218,14 @@ void SetTrustLineTransaction::setOutgoingTrustAmount() {
 
 void SetTrustLineTransaction::logSetTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Setting,
         mCommand->contractorUUID(),
         mCommand->newAmount());
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->historyStorage()->saveRecord(record);
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 TransactionResult::SharedConst SetTrustLineTransaction::resultOk() {

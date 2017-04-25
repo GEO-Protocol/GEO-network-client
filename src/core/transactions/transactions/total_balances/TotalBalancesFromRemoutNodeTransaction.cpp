@@ -19,8 +19,6 @@ TotalBalancesRemouteNodeCommand::Shared TotalBalancesFromRemoutNodeTransaction::
 
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::run() {
 
-    info() << "run\t" << currentTransactionUUID();
-
     if (!mContext.empty()) {
         return checkTransactionContext();
 
@@ -40,21 +38,18 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::run() {
 
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::checkTransactionContext() {
 
-    info() << "context size\t" << mContext.size();
     if (mContext.size() == 1) {
         auto responseMessage = *mContext.begin();
 
         if (responseMessage->typeID() == Message::MessageType::TotalBalance_Response) {
             TotalBalancesResultMessage::Shared response = static_pointer_cast<TotalBalancesResultMessage>(
                     responseMessage);
-
             return resultOk(
                 response->totalIncomingTrust(),
                 response->totalTrustUsedByContractor(),
                 response->totalOutgoingTrust(),
                 response->totalTrustUsedBySelf());
         }
-
         return resultRemoteNodeIsInaccessible();
 
     } else {
@@ -73,7 +68,6 @@ void TotalBalancesFromRemoutNodeTransaction::sendMessageToRemoteNode() {
 
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::waitingForResponseState() {
 
-    info() << "waitingForResponseState";
     return transactionResultFromState(
         TransactionState::waitForMessageTypes(
             {Message::MessageType::TotalBalance_Response},
@@ -83,7 +77,6 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::waitingFo
 void TotalBalancesFromRemoutNodeTransaction::increaseRequestsCounter() {
 
     mRequestCounter += 1;
-    info() << "increaseRequestsCounter\t" << mRequestCounter;
 }
 
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::resultOk(
@@ -95,13 +88,11 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::resultOk(
     stringstream s;
     s << totalIncomingTrust << "\t" << totalTrustUsedByContractor << "\t" << totalOutgoingTrust << "\t" << totalTrustUsedBySelf;
     string totalBalancesStrResult = s.str();
-    info() << "resultOk\t" << totalBalancesStrResult;
     return transactionResultFromCommand(mCommand->responseOk(totalBalancesStrResult));
 }
 
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::resultRemoteNodeIsInaccessible() {
 
-    info() << "resultRemoteNodeIsInaccessible";
     return transactionResultFromCommand(
             mCommand->responseRemoteNodeIsInaccessible());
 }
@@ -110,6 +101,5 @@ const string TotalBalancesFromRemoutNodeTransaction::logHeader() const
 {
     stringstream s;
     s << "[TotalBalancesFromRemoutNodeTA]";
-
     return s.str();
 }
