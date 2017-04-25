@@ -70,29 +70,29 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths()
             ResultRoutingTable2LevelMessage::Shared response = static_pointer_cast<ResultRoutingTable2LevelMessage>(
                 responseMessage);
             mRT2.insert(response->rt2().begin(), response->rt2().end());
-//#ifdef GETTING_PATHS_DEBUG_LOG
+#ifdef GETTING_PATHS_DEBUG_LOG
             info() << "receive RT2, size: " << mRT2.size();
-//            for (auto &nodeUUIDAndVect : mRT2) {
-//                for (auto const &nodeUUID : nodeUUIDAndVect.second) {
-//                    info() << "\t" << nodeUUID
-//                           << "\t" << nodeUUIDAndVect.first;
-//                }
-//            }
-//#endif
+            for (auto &nodeUUIDAndVect : mRT2) {
+                for (auto const &nodeUUID : nodeUUIDAndVect.second) {
+                    info() << "\t" << nodeUUID
+                           << "\t" << nodeUUIDAndVect.first;
+                }
+            }
+#endif
         }
         if (responseMessage->typeID() == Message::MessageType::Paths_ResultRoutingTableThirdLevel) {
             ResultRoutingTable3LevelMessage::Shared response = static_pointer_cast<ResultRoutingTable3LevelMessage>(
                 responseMessage);
             mRT3.insert(response->rt3().begin(), response->rt3().end());
-//#ifdef GETTING_PATHS_DEBUG_LOG
+#ifdef GETTING_PATHS_DEBUG_LOG
             info() << "receive RT3, size: " << mRT3.size();
-//            for (auto &nodeUUIDAndVect : mRT3) {
-//                for (auto const &nodeUUID : nodeUUIDAndVect.second) {
-//                    info() << "\t" << nodeUUID
-//                           << "\t" << nodeUUIDAndVect.first;
-//                }
-//            }
-//#endif
+            for (auto &nodeUUIDAndVect : mRT3) {
+                for (auto const &nodeUUID : nodeUUIDAndVect.second) {
+                    info() << "\t" << nodeUUID
+                           << "\t" << nodeUUIDAndVect.first;
+                }
+            }
+#endif
         }
     }
     mPathsManager->findPaths(

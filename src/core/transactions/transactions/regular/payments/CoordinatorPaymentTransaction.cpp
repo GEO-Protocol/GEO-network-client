@@ -304,31 +304,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
             PathsResource::Shared response = static_pointer_cast<PathsResource>(
                 responseResource);
 
-            // TODO for test
-//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
-//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
-//
-//            vector<NodeUUID> intermediateNodes;
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            intermediateNodes.push_back(*nodeUUID54Ptr);
-//            auto result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID55Ptr,
-//                intermediateNodes);
-//
-//            delete nodeUUID51Ptr;
-//            delete nodeUUID52Ptr;
-//            delete nodeUUID53Ptr;
-//            delete nodeUUID54Ptr;
-//            delete nodeUUID55Ptr;
-//
-//            addPathForFurtherProcessing(result);
-            // end test
-
             response->pathCollection()->resetCurrentPath();
             while (response->pathCollection()->hasNextPath()) {
                 auto path = response->pathCollection()->nextPath();

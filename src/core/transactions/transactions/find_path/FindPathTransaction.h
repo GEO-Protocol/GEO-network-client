@@ -50,7 +50,7 @@ protected:
 
 private:
 
-    const uint32_t kConnectionTimeout = 8000;
+    const uint32_t kConnectionTimeout = 1500;
 
 private:
 

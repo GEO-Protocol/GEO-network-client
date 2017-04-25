@@ -290,97 +290,51 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalParticip
     const auto kMessage = popNextMessage<ParticipantsConfigurationRequestMessage>();
     info() << "Final payment paths configuration request received from (" << kMessage->senderUUID << ")";
 
+    // Intermediate node requested final payment configuration.
+    auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
+        currentNodeUUID(),
+        currentTransactionUUID(),
+        ParticipantsConfigurationMessage::ForIntermediateNode);
 
-    // TODO : maby removed
-    if (kMessage->senderUUID == currentNodeUUID()){
-        // Receiver requested final payment configuration.
-        auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            ParticipantsConfigurationMessage::ForReceiverNode);
+    const auto kPathStats = mPathStats.get();
+    const auto kPath = kPathStats->path();
 
-        //for (const auto &pathUUIDAndPathStats : mPathsStats) {
-        const auto kPathStats = mPathStats.get();
-        const auto kPath = kPathStats->path();
+    // TODO maby remove
+    // If path was dropped (processed, but rejected) - exclude it.
+    if (!kPathStats->isValid())
+        return resultDone();
 
-        // If paths wasn't processed - exclude it.
-        if (!kPathStats->isLastIntermediateNodeProcessed())
-            return resultDone();
+    auto kIntermediateNodePathPos = 1;
+    while (kIntermediateNodePathPos != kPath->length()) {
+        if (kPath->nodes[kIntermediateNodePathPos] == kMessage->senderUUID)
+            break;
 
-        // If path was dropped (processed, but rejected) - exclude it.
-        if (!kPathStats->isValid())
-            return  resultDone();
-
-        const auto kReceiverPathPos = kPath->length();
-        const auto kIncomingNode = kPath->nodes[kReceiverPathPos - 1];
-
-        responseMessage->addPath(
-            kPathStats->maxFlow(),
-            kIncomingNode);
-
-#ifdef DEBUG
-        debug() << "Added path: ("
-                << kIncomingNode << ") ["
-                << kPathStats->maxFlow() << "]";
-#endif
-
-        const auto kReceiverNodeUUID = kMessage->senderUUID;
-        sendMessage(
-            kReceiverNodeUUID,
-            responseMessage);
-
-#ifdef DEBUG
-        debug() << "Final payment path configuration message sent to the (" << kReceiverNodeUUID << ")";
-#endif
-
-    } else {
-        // Intermediate node requested final payment configuration.
-        auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            ParticipantsConfigurationMessage::ForIntermediateNode);
-
-        const auto kPathStats = mPathStats.get();
-        const auto kPath = kPathStats->path();
-
-        // TODO maby remove
-        // If path was dropped (processed, but rejected) - exclude it.
-        if (!kPathStats->isValid())
-            return resultDone();
-
-        auto kIntermediateNodePathPos = 1;
-        while (kIntermediateNodePathPos != kPath->length()) {
-            if (kPath->nodes[kIntermediateNodePathPos] == kMessage->senderUUID)
-                break;
-
-            kIntermediateNodePathPos++;
-        }
-
-        const auto kIncomingNode = kPath->nodes[kIntermediateNodePathPos - 1];
-        const auto kOutgoingNode = kPath->nodes[kIntermediateNodePathPos + 1];
-
-        responseMessage->addPath(
-            kPathStats->maxFlow(),
-            kIncomingNode,
-            kOutgoingNode);
-
-#ifdef DEBUG
-        debug() << "Added path: ("
-                << kIncomingNode << "), ("
-                << kOutgoingNode << ") ["
-                << kPathStats->maxFlow() << "]";
-#endif
-
-        const auto kReceiverNodeUUID = kMessage->senderUUID;
-        sendMessage(
-            kReceiverNodeUUID,
-            responseMessage);
-
-#ifdef DEBUG
-        debug() << "Final payment path configuration message sent to the (" << kReceiverNodeUUID << ")";
-#endif
+        kIntermediateNodePathPos++;
     }
 
+    const auto kIncomingNode = kPath->nodes[kIntermediateNodePathPos - 1];
+    const auto kOutgoingNode = kPath->nodes[kIntermediateNodePathPos + 1];
+
+    responseMessage->addPath(
+        kPathStats->maxFlow(),
+        kIncomingNode,
+        kOutgoingNode);
+
+#ifdef DEBUG
+    debug() << "Added path: ("
+            << kIncomingNode << "), ("
+            << kOutgoingNode << ") ["
+            << kPathStats->maxFlow() << "]";
+#endif
+
+    const auto kReceiverNodeUUID = kMessage->senderUUID;
+    sendMessage(
+        kReceiverNodeUUID,
+        responseMessage);
+
+#ifdef DEBUG
+    debug() << "Final payment path configuration message sent to the (" << kReceiverNodeUUID << ")";
+#endif
 
     mNodesRequestedFinalConfiguration.insert(kMessage->senderUUID);
     if (mNodesRequestedFinalConfiguration.size() == mParticipantsVotesMessage->participantsCount()){

@@ -109,11 +109,11 @@ pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() co
         }
     }
     //----------------------------------------------------
-//#ifdef GETTING_PATHS_DEBUG_LOG
+#ifdef GETTING_PATHS_DEBUG_LOG
     cout << "ResultRoutingTable3LevelMessage::serializeToBytes message size: " << bytesCount << endl;
-//    Duration methodTime = utc_now() - startTime;
-//    cout << "ResultRoutingTable3LevelMessage::serializing time: " << methodTime << endl;
-//#endif
+    Duration methodTime = utc_now() - startTime;
+    cout << "ResultRoutingTable3LevelMessage::serializing time: " << methodTime << endl;
+#endif
     return make_pair(
         dataBytesShared,
         bytesCount);

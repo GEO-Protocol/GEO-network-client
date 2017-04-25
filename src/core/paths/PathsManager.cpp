@@ -1462,6 +1462,12 @@ void PathsManager::fillCycleTables() {
                 TrustLineAmount(0),
                 TrustLineAmount(100),
                 TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
     }
 
     if (mNodeUUID == *nodeUUID52Ptr) {
@@ -1484,6 +1490,12 @@ void PathsManager::fillCycleTables() {
             make_shared<TrustLine>(
                 *nodeUUID54Ptr,
                 TrustLineAmount(150),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(100),
                 TrustLineAmount(0),
                 TrustLineBalance(0)));
         ioTransaction->trustLineHandler()->saveTrustLine(

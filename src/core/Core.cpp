@@ -374,7 +374,7 @@ void Core::connectTrustLinesManagerSignals() {
 }
 
 void Core::connectDelayedTasksSignals(){
-    /*mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
+    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
             boost::bind(
                     &Core::onDelayedTaskCycleSixNodesSlot,
                     this
@@ -399,7 +399,7 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
-    #endif*/
+    #endif
 }
 
 void Core::connectResourcesManagerSignals() {
