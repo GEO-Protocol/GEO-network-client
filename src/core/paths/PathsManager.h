@@ -40,6 +40,8 @@ public:
 
     PathsCollection::Shared pathCollection() const;
 
+    void clearPathsCollection();
+
 private:
 
     void findDirectPath();

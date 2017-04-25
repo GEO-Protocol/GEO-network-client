@@ -16,9 +16,11 @@ ResultRoutingTable3LevelMessage::ResultRoutingTable3LevelMessage(
 
     TransactionMessage(buffer)
 {
+#ifdef GETTING_PATHS_DEBUG_LOG
     /*cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes start serializing" << endl;
     cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes rt3 size: " << mRT3.size() << endl;*/
     DateTime startTime = utc_now();
+#endif
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //-----------------------------------------------------
     RecordCount *rt3Count = new (buffer.get() + bytesBufferOffset) RecordCount;
@@ -42,9 +44,11 @@ ResultRoutingTable3LevelMessage::ResultRoutingTable3LevelMessage(
         //---------------------------------------------------
         mRT3.insert(make_pair(keyDesitnation, valueSources));
     }
+#ifdef GETTING_PATHS_DEBUG_LOG
     cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
 //    Duration methodTime = utc_now() - startTime;
 //    cout << "ResultRoutingTable3LevelMessage::deserializing time: " << methodTime << endl;
+#endif
 }
 
 const Message::MessageType ResultRoutingTable3LevelMessage::typeID() const {
@@ -59,10 +63,11 @@ unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& Resu
 pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() const
     throw(bad_alloc)
 {
-
+#ifdef GETTING_PATHS_DEBUG_LOG
     /*cout << "ResultRoutingTable3LevelMessage::serializeToBytes start serializing" << endl;
     cout << "ResultRoutingTable3LevelMessage::serializeToBytes rt3 size: " << mRT3.size() << endl;*/
     DateTime startTime = utc_now();
+#endif
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + rt3ByteSize();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -104,9 +109,11 @@ pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() co
         }
     }
     //----------------------------------------------------
+//#ifdef GETTING_PATHS_DEBUG_LOG
     cout << "ResultRoutingTable3LevelMessage::serializeToBytes message size: " << bytesCount << endl;
 //    Duration methodTime = utc_now() - startTime;
 //    cout << "ResultRoutingTable3LevelMessage::serializing time: " << methodTime << endl;
+//#endif
     return make_pair(
         dataBytesShared,
         bytesCount);

@@ -1,7 +1,7 @@
 #include "PaymentRecord.h"
 
 PaymentRecord::PaymentRecord(
-    const uuids::uuid &operationUUID,
+    const TransactionUUID &operationUUID,
     BytesShared buffer):
 
     Record(
@@ -36,7 +36,7 @@ PaymentRecord::PaymentRecord(
 }
 
 PaymentRecord::PaymentRecord(
-    const uuids::uuid &operationUUID,
+    const TransactionUUID &operationUUID,
     const PaymentRecord::PaymentOperationType operationType,
     const NodeUUID &contractorUUID,
     const TrustLineAmount &amount,
@@ -45,6 +45,23 @@ PaymentRecord::PaymentRecord(
     Record(
         Record::RecordType::PaymentRecordType,
         operationUUID),
+    mPaymentOperationType(operationType),
+    mContractorUUID(contractorUUID),
+    mAmount(amount),
+    mBalanceAfterOperation(balanceAfterOperation) {}
+
+PaymentRecord::PaymentRecord(
+    const TransactionUUID &operationUUID,
+    const PaymentRecord::PaymentOperationType operationType,
+    const NodeUUID &contractorUUID,
+    const TrustLineAmount &amount,
+    const TrustLineBalance &balanceAfterOperation,
+    const GEOEpochTimestamp geoEpochTimestamp):
+
+    Record(
+        Record::RecordType::PaymentRecordType,
+        operationUUID,
+        geoEpochTimestamp),
     mPaymentOperationType(operationType),
     mContractorUUID(contractorUUID),
     mAmount(amount),
@@ -73,54 +90,4 @@ const TrustLineAmount PaymentRecord::amount() const {
 const TrustLineBalance PaymentRecord::balanceAfterOperation() const {
 
     return mBalanceAfterOperation;
-}
-
-pair<BytesShared, size_t> PaymentRecord::serializeToBytes() {
-
-    size_t bytesCount = recordSize();
-
-    BytesShared bytesBuffer = tryCalloc(
-        bytesCount);
-    size_t bytesBufferOffset = 0;
-
-    SerializedPaymentOperationType operationType = (SerializedPaymentOperationType) mPaymentOperationType;
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        &operationType,
-        sizeof(SerializedPaymentOperationType));
-    bytesBufferOffset += sizeof(
-        SerializedPaymentOperationType);
-
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize);
-    bytesBufferOffset += NodeUUID::kBytesSize;
-
-    auto trustAmountBytes = trustLineAmountToBytes(
-        mAmount);
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        trustAmountBytes.data(),
-        kTrustLineAmountBytesCount);
-    bytesBufferOffset += kTrustLineAmountBytesCount;
-
-    auto trustBalanceBytes = trustLineBalanceToBytes(
-        mBalanceAfterOperation);
-    memcpy(
-        bytesBuffer.get() + bytesBufferOffset,
-        trustBalanceBytes.data(),
-        kTrustLineBalanceBytesCount);
-
-    return make_pair(
-        bytesBuffer,
-        bytesCount);
-}
-
-size_t PaymentRecord::recordSize() {
-
-    return sizeof(SerializedPaymentOperationType)
-           + NodeUUID::kBytesSize
-           + kTrustLineAmountBytesCount
-           + kTrustLineBalanceBytesCount;
 }

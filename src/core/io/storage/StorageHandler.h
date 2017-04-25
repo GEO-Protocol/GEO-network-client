@@ -10,6 +10,7 @@
 #include "HistoryStorage.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
+#include "IOTransaction.h"
 
 #include <boost/filesystem.hpp>
 #include <vector>
@@ -19,7 +20,6 @@ namespace fs = boost::filesystem;
 class StorageHandler {
 
 public:
-
     StorageHandler(
         const string &directory,
         const string &dataBaseName,
@@ -27,18 +27,12 @@ public:
 
     ~StorageHandler();
 
+    IOTransaction::Shared beginTransaction();
+
+    // TODO: need discussion (cycles)
     RoutingTablesHandler* routingTablesHandler();
 
-    TrustLineHandler* trustLineHandler();
-
-    PaymentOperationStateHandler* paymentOperationStateHandler();
-
-    TransactionHandler* transactionHandler();
-
-    HistoryStorage* historyStorage();
-
 private:
-
     static void checkDirectory(
         const string &directory);
 
@@ -46,12 +40,13 @@ private:
         const string &dataBaseName,
         const string &directory);
 
+    void beginTransactionQuery();
+
     LoggerStream info() const;
 
     const string logHeader() const;
 
 private:
-
     const string kRT2TableName = "RT2";
     const string kRT3TableName = "RT3";
     const string kTrustLineTableName = "trust_lines";
@@ -60,11 +55,9 @@ private:
     const string kHistoryTableName = "history";
 
 private:
-
     static sqlite3 *mDBConnection;
 
 private:
-
     Logger *mLog;
     RoutingTablesHandler mRoutingTablesHandler;
     TrustLineHandler mTrustLineHandler;

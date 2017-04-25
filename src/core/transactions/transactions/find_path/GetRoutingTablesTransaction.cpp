@@ -23,27 +23,39 @@ RequestRoutingTablesMessage::Shared GetRoutingTablesTransaction::message() const
 
 TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
 
-    info() << "run\tI am " << mNodeUUID;
     sendRoutingTables();
-
+#ifdef GETTING_PATHS_DEBUG_LOG
+    info() << "run\tI am " << mNodeUUID;
     info() << "message successfully sent to " << mMessage->senderUUID;
+#endif
     return make_shared<TransactionResult>(TransactionState::exit());
 }
 
 void GetRoutingTablesTransaction::sendRoutingTables() {
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
+#ifdef GETTING_PATHS_DEBUG_LOG
     info() << "sendRoutingTables\tRT1 size: " << mTrustLinesManager->rt1().size();
-    sendMessage<ResultRoutingTable1LevelMessage>(
-        mMessage->senderUUID,
-        mNodeUUID,
-        mMessage->transactionUUID(),
-        mTrustLinesManager->rt1());
+#endif
+    if (mTrustLinesManager->rt1().size() > 0) {
+        sendMessage<ResultRoutingTable1LevelMessage>(
+            mMessage->senderUUID,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            mTrustLinesManager->rt1());
+    }
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt2
-        = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2();
-    info() << "sendRoutingTables\tRT2 size: " << rt2.size();
+        = ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2();
     size_t rt2MessageCount = rt2.size() / kCountElementsPerMessage;
-    info() << "sendRoutingTables\tcount RT2 messages: " << (rt2MessageCount + 1);
+//#ifdef GETTING_PATHS_DEBUG_LOG
+    info() << "sendRoutingTables\tRT2 size: " << rt2.size();
+    size_t rt2MessageCountReal = rt2MessageCount;
+    if ((rt2.size() % kCountElementsPerMessage) != 0) {
+        rt2MessageCountReal++;
+    }
+    info() << "sendRoutingTables\tcount RT2 messages: " << rt2MessageCountReal;
+//#endif
     size_t idx = 0;
     auto itRT2 = rt2.begin();
     while (idx < rt2MessageCount) {
@@ -71,10 +83,16 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
     }
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt3
-        = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
-    info() << "sendRoutingTables\tRT3 size: " << rt3.size();
+        = ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
     size_t rt3MessageCount = rt3.size() / kCountElementsPerMessage;
-    info() << "sendRoutingTables\tcount RT3 messages: " << (rt3MessageCount + 1);
+//#ifdef GETTING_PATHS_DEBUG_LOG
+    info() << "sendRoutingTables\tRT3 size: " << rt3.size();
+    size_t rt3MessageCountReal = rt3MessageCount;
+    if ((rt3.size() % kCountElementsPerMessage) != 0) {
+        rt3MessageCountReal++;
+    }
+    info() << "sendRoutingTables\tcount RT3 messages: " << rt3MessageCountReal;
+//#endif
     idx = 0;
     auto itRT3 = rt3.begin();
     while (idx < rt3MessageCount) {

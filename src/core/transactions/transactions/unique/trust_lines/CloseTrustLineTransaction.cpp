@@ -4,24 +4,24 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
     const NodeUUID &nodeUUID,
     CloseTrustLineCommand::Shared command,
     TrustLinesManager *manager,
-    HistoryStorage *historyStorage) :
+    StorageHandler *storageHandler) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::CloseTrustLineTransactionType,
         nodeUUID),
     mCommand(command),
     mTrustLinesManager(manager),
-    mHistoryStorage(historyStorage) {}
+    mStorageHandler(storageHandler) {}
 
 CloseTrustLineTransaction::CloseTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    HistoryStorage *historyStorage) :
+    StorageHandler *storageHandler) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::CloseTrustLineTransactionType),
     mTrustLinesManager(manager),
-    mHistoryStorage(historyStorage) {
+    mStorageHandler(storageHandler) {
 
     deserializeFromBytes(
         buffer);
@@ -78,69 +78,60 @@ void CloseTrustLineTransaction::deserializeFromBytes(
 }
 
 TransactionResult::SharedConst CloseTrustLineTransaction::run() {
+    switch (mStep) {
 
-    try {
-        switch (mStep) {
-
-            case Stages::CheckUnicity: {
-                if (!isTransactionToContractorUnique()) {
-                    return resultConflictWithOtherOperation();
-                }
-
-                mStep = Stages::CheckOutgoingDirection;
+        case Stages::CheckUnicity: {
+            if (!isTransactionToContractorUnique()) {
+                return resultConflictWithOtherOperation();
             }
 
-            case Stages::CheckOutgoingDirection: {
-                if (!isOutgoingTrustLineDirectionExisting()) {
-                    return resultTrustLineAbsent();
-                }
+            mStep = Stages::CheckOutgoingDirection;
+        }
 
-                mStep = Stages::CheckDebt;
+        case Stages::CheckOutgoingDirection: {
+            if (!isOutgoingTrustLineDirectionExisting()) {
+                return resultTrustLineAbsent();
             }
 
-            case Stages::CheckDebt: {
-                if (checkDebt()) {
-                    suspendTrustLineDirectionToContractor();
+            mStep = Stages::CheckDebt;
+        }
 
-                } else {
-                    closeTrustLine();
-                    logClosingTrustLineOperation();
-                }
+        case Stages::CheckDebt: {
+            if (checkDebt()) {
+                suspendTrustLineDirectionToContractor();
 
-                mStep = Stages::CheckContext;
+            } else {
+                closeTrustLine();
+                logClosingTrustLineOperation();
             }
+
+            mStep = Stages::CheckContext;
+        }
 
         case Stages::CheckContext: {
             if (!mContext.empty()) {
                 return checkTransactionContext();
 
+            } else {
+
+                if (mRequestCounter < kMaxRequestsCount) {
+                    sendMessageToRemoteNode();
+                    increaseRequestsCounter();
+
                 } else {
-
-                    if (mRequestCounter < kMaxRequestsCount) {
-                        sendMessageToRemoteNode();
-                        increaseRequestsCounter();
-
-                    } else {
-                        return resultRemoteNodeIsInaccessible();
-                    }
-
+                    return resultRemoteNodeIsInaccessible();
                 }
 
-                return waitingForResponseState();
             }
 
-            default: {
-                throw ConflictError("CloseTrustLineTransaction::run: "
-                                        "Illegal step execution.");
-            }
-
+            return waitingForResponseState();
         }
 
-    } catch (exception &e) {
-        throw RuntimeError("CloseTrustLineTransaction::run: "
-                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
-                               "Crashed at step -> " + to_string(mStep) + ". "
-                               "Message -> " + string(e.what()));
+        default: {
+            throw ConflictError("CloseTrustLineTransaction::run: "
+                                    "Illegal step execution.");
+        }
+
     }
 }
 
@@ -180,9 +171,8 @@ void CloseTrustLineTransaction::logClosingTrustLineOperation() {
         TrustLineRecord::TrustLineOperationType::Closing,
         mCommand->contractorUUID());
 
-    mHistoryStorage->saveRecord(
-        record);
-    mHistoryStorage->commit();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->saveRecord(record);
 }
 
 TransactionResult::SharedConst CloseTrustLineTransaction::checkTransactionContext() {

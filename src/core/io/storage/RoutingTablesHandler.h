@@ -46,10 +46,6 @@ public:
         const NodeUUID &source,
         const NodeUUID &destination);
 
-    void commit();
-
-    void rollBack();
-
     vector<pair<NodeUUID, NodeUUID>> rt2Records();
 
     vector<pair<NodeUUID, NodeUUID>> rt3Records();
@@ -69,9 +65,6 @@ public:
     map<const NodeUUID, vector<NodeUUID>> routeRecordsMapSourceKeyOnRT3();
 
 private:
-
-    void prepareInserted();
-
     LoggerStream info() const;
 
     LoggerStream error() const;
@@ -79,11 +72,9 @@ private:
     const string logHeader() const;
 
 private:
-
     sqlite3 *mDataBase = nullptr;
     RoutingTableHandler mRoutingTable2Level;
     RoutingTableHandler mRoutingTable3Level;
-    bool isTransactionBegin;
     Logger *mLog;
 
 };

@@ -747,7 +747,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
         mStep = Coordinator_PreviousNeighborRequestProcessing;
         const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodePosition;
         return resultWaitForMessageTypes(
-            {Message::Payments_IntermediateNodeReservationResponse},
+            {Message::Payments_IntermediateNodeReservationRequest},
             kTimeout);
     }
     info() << "Further amount reservation request sent to the node (" << remoteNode << ") ["

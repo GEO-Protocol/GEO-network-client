@@ -2,10 +2,8 @@
 #define GEO_NETWORK_CLIENT_RECORD_H
 
 #include "../../../../common/Types.h"
-
-#include <boost/uuid/uuid.hpp>
-
-namespace uuids = boost::uuids;
+#include "../../../../transactions/transactions/base/TransactionUUID.h"
+#include "../../../../common/time/TimeUtils.h"
 
 class Record {
 public:
@@ -16,7 +14,6 @@ public:
         TrustLineRecordType = 1,
         PaymentRecordType
     };
-    typedef uint8_t SerializedRecordType;
 
 public:
     virtual const bool isTrustLineRecord() const;
@@ -25,25 +22,29 @@ public:
 
     const Record::RecordType recordType() const;
 
-    const uuids::uuid operationUUID() const;
+    const TransactionUUID operationUUID() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() = 0;
+    const DateTime timestamp() const;
 
 protected:
     Record();
 
     Record(
         const Record::RecordType recordType,
-        const uuids::uuid &operationUUID);
+        const TransactionUUID &operationUUID);
 
-    virtual size_t recordSize() = 0;
+    Record(
+        const Record::RecordType recordType,
+        const TransactionUUID &operationUUID,
+        const GEOEpochTimestamp geoEpochTimestamp);
 
 public:
     static const size_t kOperationUUIDBytesSize = 16;
 
 private:
     RecordType mRecordType;
-    uuids::uuid mOperationUUID;
+    TransactionUUID mOperationUUID;
+    DateTime mTimestamp;
 };
 
 #endif //GEO_NETWORK_CLIENT_RECORD_H

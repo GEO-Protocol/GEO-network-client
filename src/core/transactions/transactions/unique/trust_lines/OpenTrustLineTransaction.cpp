@@ -4,24 +4,24 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     const NodeUUID &nodeUUID,
     OpenTrustLineCommand::Shared command,
     TrustLinesManager *manager,
-    HistoryStorage *historyStorage) :
+    StorageHandler *storageHandler) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::OpenTrustLineTransactionType,
         nodeUUID),
     mCommand(command),
     mTrustLinesManager(manager),
-    mHistoryStorage(historyStorage) {}
+    mStorageHandler(storageHandler) {}
 
 OpenTrustLineTransaction::OpenTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    HistoryStorage *historyStorage) :
+    StorageHandler *storageHandler) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::OpenTrustLineTransactionType),
     mTrustLinesManager(manager),
-    mHistoryStorage(historyStorage) {
+    mStorageHandler(storageHandler) {
 
     deserializeFromBytes(
         buffer);
@@ -215,9 +215,8 @@ void OpenTrustLineTransaction::logOpeningTrustLineOperation() {
         mCommand->contractorUUID(),
         mCommand->amount());
 
-    mHistoryStorage->saveRecord(
-        record);
-    mHistoryStorage->commit();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->saveRecord(record);
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::resultOk() {

@@ -7,8 +7,7 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
 
     mDataBase(dbConnection),
     mTableName(tableName),
-    mLog(logger),
-    isTransactionBegin(false){
+    mLog(logger) {
 
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
         " (transaction_uuid BLOB NOT NULL, "
@@ -46,98 +45,11 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
     sqlite3_finalize(stmt);
 }
 
-void PaymentOperationStateHandler::prepareInserted() {
-
-    if (isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call prepareInsertred, but previous transaction isn't finished";
-#endif
-        return;
-    }
-    string query = "BEGIN TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::prepareInserted: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc != SQLITE_DONE) {
-        throw IOError("PaymentOperationStateHandler::prepareInserted: "
-                          "Run query; sqlite error: " + rc);
-    }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "transaction begin";
-#endif
-    isTransactionBegin = true;
-}
-
-void PaymentOperationStateHandler::commit() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call commit, but trunsaction wasn't started";
-#endif
-        return;
-    }
-    string query = "END TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::commit: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc != SQLITE_DONE) {
-        throw IOError("PaymentOperationStateHandler::commit: "
-                          "Run query; sqlite error: " + rc);
-    }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "transaction commit";
-#endif
-    isTransactionBegin = false;
-}
-
-void PaymentOperationStateHandler::rollBack() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call rollBack, but trunsaction wasn't started";
-#endif
-        return;
-    }
-    string query = "ROLLBACK;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::rollback: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc != SQLITE_DONE) {
-        throw IOError("PaymentOperationStateHandler::rollback: "
-                          "Run query; sqlite error: " + rc);
-    }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "rollBack done";
-#endif
-    isTransactionBegin = false;
-}
-
 void PaymentOperationStateHandler::saveRecord(
     const TransactionUUID &transactionUUID,
     BytesShared state,
     size_t stateBytesCount) {
 
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
     string query = "INSERT INTO " + mTableName +
         " (transaction_uuid, state, state_bytes_count, recording_time) VALUES(?, ?, ?, ?);";
     sqlite3_stmt *stmt;
@@ -183,9 +95,6 @@ void PaymentOperationStateHandler::saveRecord(
 void PaymentOperationStateHandler::deleteRecord(
     const TransactionUUID &transactionUUID) {
 
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
     string query = "DELETE FROM " + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);

@@ -6,7 +6,7 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../io/storage/HistoryStorage.h"
+#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
@@ -42,12 +42,12 @@ public:
         const NodeUUID &nodeUUID,
         CloseTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler);
 
     CloseTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler);
 
     CloseTrustLineCommand::Shared command() const;
 
@@ -93,7 +93,7 @@ private:
 
     CloseTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-    HistoryStorage *mHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 

@@ -7,7 +7,7 @@
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../io/storage/HistoryStorage.h"
+#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
@@ -43,12 +43,12 @@ public:
         const NodeUUID &nodeUUID,
         OpenTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler);
 
     OpenTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler);
 
     OpenTrustLineCommand::Shared command() const;
 
@@ -90,7 +90,7 @@ private:
 
     OpenTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-    HistoryStorage *mHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 #endif //GEO_NETWORK_CLIENT_OPENTRUSTLINETRANSACTION_H

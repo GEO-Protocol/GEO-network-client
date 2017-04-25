@@ -43,7 +43,7 @@ private:
 
 private:
 
-    const size_t kCountElementsPerMessage = 10;
+    const size_t kCountElementsPerMessage = 1000;
     const uint16_t kDelayMilliSecondsBetweenSendingMessages = 0;
 
 private:

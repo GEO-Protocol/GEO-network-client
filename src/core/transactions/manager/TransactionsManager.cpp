@@ -314,8 +314,7 @@ void TransactionsManager::launchOpenTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mStorageHandler->historyStorage()
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -341,8 +340,7 @@ void TransactionsManager::launchSetTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mStorageHandler->historyStorage()
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -367,8 +365,7 @@ void TransactionsManager::launchCloseTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mStorageHandler->historyStorage()
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -393,8 +390,7 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mStorageHandler->historyStorage()
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -415,8 +411,7 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mStorageHandler->historyStorage()
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -441,8 +436,7 @@ void TransactionsManager::launchRejectTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mStorageHandler->historyStorage()
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -742,7 +736,7 @@ void TransactionsManager::launchHistoryPaymentsTransaction(HistoryPaymentsComman
         auto transaction = make_shared<HistoryPaymentsTransaction>(
             mNodeUUID,
             command,
-            mStorageHandler->historyStorage(),
+            mStorageHandler,
             mLog);
 
         prepareAndSchedule(transaction);
@@ -763,7 +757,7 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCo
         auto transaction = make_shared<HistoryTrustLinesTransaction>(
             mNodeUUID,
             command,
-            mStorageHandler->historyStorage(),
+            mStorageHandler,
             mLog);
 
         prepareAndSchedule(transaction);

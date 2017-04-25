@@ -398,8 +398,8 @@ void IncomingMessagesHandler::tryCollectPacket(
                 *bytesCount,
                 bytesBodySharedConst
             );
-            cout << "IncomingMessagesHandler\tchannel: " << *channelNumber << "\tpacket: "
-                 << *packageNumber << "\treal packet number: " << realPacketNumber++ << endl;
+//            cout << "IncomingMessagesHandler\tchannel: " << *channelNumber << "\tpacket: "
+//                 << *packageNumber << "\treal packet number: " << realPacketNumber++ << endl;
             if (*channelNumber != previousChannel) {
                 previousChannel = *channelNumber;
                 realPacketNumber = 0;

@@ -212,10 +212,12 @@ unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> Routi
         }
         valueSources.push_back(source);
     }
-    result.insert(
-        make_pair(
-            currentDestination,
-            valueSources));
+    if (valueSources.size() > 0) {
+        result.insert(
+            make_pair(
+                currentDestination,
+                valueSources));
+    }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     /*Duration methodTime = utc_now() - startTime;

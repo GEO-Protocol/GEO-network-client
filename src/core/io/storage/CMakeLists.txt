@@ -20,7 +20,7 @@ set(SOURCE_FILES
         record/trust_line/TrustLineRecord.h
         record/trust_line/TrustLineRecord.cpp
         record/payment/PaymentRecord.h
-        record/payment/PaymentRecord.cpp)
+        record/payment/PaymentRecord.cpp IOTransaction.cpp IOTransaction.h)
 
 add_library(io__storage ${SOURCE_FILES})
 

@@ -6,7 +6,7 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../io/storage/HistoryStorage.h"
+#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../network/messages/Message.hpp"
@@ -30,12 +30,12 @@ public:
         const NodeUUID &nodeUUID,
         RejectTrustLineMessage::Shared message,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler);
 
     RejectTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler);
 
     RejectTrustLineMessage::Shared message() const;
 
@@ -60,7 +60,7 @@ private:
 private:
     RejectTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    HistoryStorage *mHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 

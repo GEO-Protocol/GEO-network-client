@@ -5,6 +5,7 @@
 
 #include "../../../../common/Types.h"
 #include "../../../../common/NodeUUID.h"
+#include "../../../../transactions/transactions/base/TransactionUUID.h"
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
@@ -28,19 +29,26 @@ public:
 
 public:
     TrustLineRecord(
-        const uuids::uuid &operationUUID,
+        const TransactionUUID &operationUUID,
         BytesShared buffer);
 
     TrustLineRecord(
-        const uuids::uuid &operationUUID,
+        const TransactionUUID &operationUUID,
         const TrustLineRecord::TrustLineOperationType operationType,
         const NodeUUID &contractorUUID);
 
     TrustLineRecord(
-        const uuids::uuid &operationUUID,
+        const TransactionUUID &operationUUID,
         const TrustLineRecord::TrustLineOperationType operationType,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
+
+    TrustLineRecord(
+        const TransactionUUID &operationUUID,
+        const TrustLineRecord::TrustLineOperationType operationType,
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &amount,
+        const GEOEpochTimestamp geoEpochTimestamp);
 
     const TrustLineOperationType trustLineOperationType() const;
 
@@ -48,13 +56,7 @@ public:
 
     const TrustLineAmount amount() const;
 
-    pair<BytesShared, size_t> serializeToBytes();
-
     const bool isTrustLineRecord() const;
-
-private:
-
-    size_t recordSize();
 
 private:
     TrustLineOperationType mTrustLineOperationType;

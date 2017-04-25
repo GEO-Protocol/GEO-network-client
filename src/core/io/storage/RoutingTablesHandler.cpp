@@ -9,8 +9,7 @@ RoutingTablesHandler::RoutingTablesHandler(
     mDataBase(dbConnection),
     mRoutingTable2Level(dbConnection, rt2TableName, logger),
     mRoutingTable3Level(dbConnection, rt3TableName, logger),
-    mLog(logger),
-    isTransactionBegin(false) {}
+    mLog(logger) {}
 
 vector<NodeUUID> RoutingTablesHandler::subRoutesSecondLevel(
     const NodeUUID &contractorUUID) {
@@ -173,97 +172,9 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
     return result;
 }
 
-void RoutingTablesHandler::commit() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call commit, but trunsaction wasn't started";
-#endif
-        return;
-    }
-    string query = "COMMIT TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTablesHandler::commit: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc != SQLITE_DONE) {
-        throw IOError("RoutingTablesHandler::commit: "
-                          "Run query; sqlite error: " + rc);
-    }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "transaction commit";
-#endif
-    isTransactionBegin = false;
-}
-
-void RoutingTablesHandler::rollBack() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call rollBack, but trunsaction wasn't started";
-#endif
-        return;
-    }
-    string query = "ROLLBACK TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTablesHandler::rollback: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc != SQLITE_DONE) {
-        throw IOError("RoutingTablesHandler::rollback: "
-                          "Run query; sqlite error: " + rc);
-    }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "rollBack done";
-#endif
-    isTransactionBegin = false;
-}
-
-void RoutingTablesHandler::prepareInserted() {
-
-    if (isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call prepareInsertred, but previous transaction isn't finished";
-#endif
-        return;
-    }
-    string query = "BEGIN TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTablesHandler::prepareInserted: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-        throw IOError("RoutingTablesHandler::prepareInserted: "
-                          "Run query; sqlite error: " + rc);
-    }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "transaction begin";
-#endif
-    isTransactionBegin = true;
-}
-
 void RoutingTablesHandler::saveRecordToRT2(
     const NodeUUID &source,
     const NodeUUID &destination) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
 
     mRoutingTable2Level.saveRecord(
         source,
@@ -274,10 +185,6 @@ void RoutingTablesHandler::saveRecordToRT3(
     const NodeUUID &source,
     const NodeUUID &destination) {
 
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
     mRoutingTable3Level.saveRecord(
         source,
         destination);
@@ -286,10 +193,6 @@ void RoutingTablesHandler::saveRecordToRT3(
 void RoutingTablesHandler::deleteRecordFromRT2(
     const NodeUUID &source,
     const NodeUUID &destination) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
 
     mRoutingTable2Level.deleteRecord(
         source,
@@ -305,10 +208,6 @@ void RoutingTablesHandler::deleteRecordFromRT2(
 void RoutingTablesHandler::deleteRecordFromRT3(
     const NodeUUID &source,
     const NodeUUID &destination) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
 
     mRoutingTable3Level.deleteRecord(
         source,

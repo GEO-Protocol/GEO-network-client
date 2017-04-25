@@ -46,10 +46,11 @@ vector<NodeUUID>& ResultRoutingTable1LevelMessage::rt1() {
 pair<BytesShared, size_t> ResultRoutingTable1LevelMessage::serializeToBytes() const
     throw(bad_alloc)
 {
-
+#ifdef GETTING_PATHS_DEBUG_LOG
     /*cout << "ResultRoutingTable1LevelMessage::serializeToBytes start serializing" << endl;
     cout << "ResultRoutingTable1LevelMessage::serializeToBytes rt1 size: " << mRT1.size() << endl;
     DateTime startTime = utc_now();*/
+#endif
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +
                         sizeof(RecordCount) + mRT1.size() * NodeUUID::kBytesSize;
@@ -77,9 +78,11 @@ pair<BytesShared, size_t> ResultRoutingTable1LevelMessage::serializeToBytes() co
         dataBytesOffset += NodeUUID::kBytesSize;
     }
     //----------------------------------------------------
+#ifdef GETTING_PATHS_DEBUG_LOG
     cout << "ResultRoutingTable1LevelMessage::serializeToBytes message size: " << bytesCount << endl;
     /*Duration methodTime = utc_now() - startTime;
     cout << "ResultRoutingTable1LevelMessage::serializing time: " << methodTime << endl;*/
+#endif
 
     return make_pair(
         dataBytesShared,

@@ -3,7 +3,7 @@
 HistoryPaymentsTransaction::HistoryPaymentsTransaction(
     NodeUUID &nodeUUID,
     HistoryPaymentsCommand::Shared command,
-    HistoryStorage *historyStorage,
+    StorageHandler *storageHandler,
     Logger *logger) :
 
     BaseTransaction(
@@ -11,7 +11,7 @@ HistoryPaymentsTransaction::HistoryPaymentsTransaction(
         nodeUUID,
         logger),
     mCommand(command),
-    mHistoryStorage(historyStorage)
+    mStorageHandler(storageHandler)
 {}
 
 HistoryPaymentsCommand::Shared HistoryPaymentsTransaction::command() const
@@ -21,27 +21,30 @@ HistoryPaymentsCommand::Shared HistoryPaymentsTransaction::command() const
 
 TransactionResult::SharedConst HistoryPaymentsTransaction::run()
 {
-    auto const paymentRecords = mHistoryStorage->allPaymentRecords(
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto const paymentRecords = ioTransaction->historyStorage()->allPaymentRecords(
         mCommand->historyCount(),
         mCommand->historyFrom());
     return resultOk(paymentRecords);
 }
 
 TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
-    vector<pair<PaymentRecord::Shared, DateTime>> paymentRecords)
+    vector<PaymentRecord::Shared> paymentRecords)
 {
     stringstream s;
     s << paymentRecords.size();
-    for (auto const &paymentRecordAndTimestamp : paymentRecords) {
-        s << "\t" << paymentRecordAndTimestamp.first->operationUUID() << "\t";
-        s << paymentRecordAndTimestamp.second << "\t";
-        s << paymentRecordAndTimestamp.first->contractorUUID() << "\t";
-        s << paymentRecordAndTimestamp.first->paymentOperationType() << "\t";
-        s << paymentRecordAndTimestamp.first->amount() << "\t";
-        s << paymentRecordAndTimestamp.first->balanceAfterOperation();
+    for (auto const &paymentRecord : paymentRecords) {
+        s << "\t" << paymentRecord->operationUUID() << "\t";
+        s << paymentRecord->timestamp() << "\t";
+        s << paymentRecord->contractorUUID() << "\t";
+        s << paymentRecord->paymentOperationType() << "\t";
+        s << paymentRecord->amount() << "\t";
+        s << paymentRecord->balanceAfterOperation();
     }
     string historyPaymentsStrResult = s.str();
-    return transactionResultFromCommand(mCommand->resultOk(historyPaymentsStrResult));
+    return transactionResultFromCommand(
+        mCommand->resultOk(
+            historyPaymentsStrResult));
 }
 
 const string HistoryPaymentsTransaction::logHeader() const

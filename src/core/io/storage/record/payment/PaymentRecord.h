@@ -5,6 +5,7 @@
 
 #include "../../../../common/Types.h"
 #include "../../../../common/NodeUUID.h"
+#include "../../../../transactions/transactions/base/TransactionUUID.h"
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../common/multiprecision/MultiprecisionUtils.h"
 
@@ -24,15 +25,23 @@ public:
 
 public:
     PaymentRecord(
-        const uuids::uuid &operationUUID,
+        const TransactionUUID &operationUUID,
         BytesShared buffer);
 
     PaymentRecord(
-        const uuids::uuid &operationUUID,
+        const TransactionUUID &operationUUID,
         const PaymentRecord::PaymentOperationType operationType,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount,
         const TrustLineBalance &balanceAfterOperation);
+
+    PaymentRecord(
+        const TransactionUUID &operationUUID,
+        const PaymentRecord::PaymentOperationType operationType,
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &amount,
+        const TrustLineBalance &balanceAfterOperation,
+        const GEOEpochTimestamp geoEpochTimestamp);
 
     const PaymentOperationType paymentOperationType() const;
 
@@ -42,13 +51,7 @@ public:
 
     const TrustLineBalance balanceAfterOperation() const;
 
-    pair<BytesShared, size_t> serializeToBytes();
-
     const bool isPaymentRecord() const;
-
-private:
-
-    size_t recordSize();
 
 private:
     PaymentOperationType mPaymentOperationType;
