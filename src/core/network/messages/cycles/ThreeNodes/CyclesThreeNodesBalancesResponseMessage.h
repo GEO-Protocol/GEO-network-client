@@ -25,7 +25,7 @@ public:
     CyclesThreeNodesBalancesResponseMessage(
         BytesShared buffer);
 
-    pair<BytesShared, size_t> serializeToBytes() const
+    virtual pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
 
     void addNeighborUUIDAndBalance(NodeUUID neighborUUID)

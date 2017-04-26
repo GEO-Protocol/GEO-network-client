@@ -26,7 +26,8 @@ public:
 
     vector<NodeUUID> Neighbors();
 
-    pair<BytesShared, size_t> serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
 
 protected:
     vector<NodeUUID> mNeighbors;

@@ -32,7 +32,7 @@ private:
 
     TransactionResult::SharedConst waitingForResponseState();
 
-    TransactionResult::SharedConst noResponseResult();
+    TransactionResult::SharedConst resultRemoteNodeIsInaccessible();
 
     TransactionResult::SharedConst checkTransactionContext();
 
@@ -41,9 +41,7 @@ private:
             const TrustLineAmount &totalTrustUsedByContractor,
             const TrustLineAmount &totalOutgoingTrust,
             const TrustLineAmount &totalTrustUsedBySelf);
-
-    TransactionResult::SharedConst unexpectedErrorResult();
-
+    
 private:
 
     const uint16_t kConnectionTimeout = 500;

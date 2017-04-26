@@ -39,28 +39,10 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
         case Stages::CheckJournal: {
             if (checkJournal()) {
                 sendResponseCodeToContractor(
-                    400);
-
-                return transactionResultFromMessage(
-                    mMessage->customCodeResult(
-                        400));
+                        400);
+                mStep = Stages::CheckIncomingDirection;
             }
-
-            mStep = Stages::CheckUnicity;
         }
-
-        case Stages::CheckUnicity: {
-            if (!isTransactionToContractorUnique()) {
-                sendResponseCodeToContractor(
-                    AcceptTrustLineMessage::kResultCodeTransactionConflict);
-
-                return transactionResultFromMessage(
-                    mMessage->resultTransactionConflict());
-            }
-
-            mStep = Stages::CheckIncomingDirection;
-        }
-
         case Stages::CheckIncomingDirection: {
             if (isIncomingTrustLineDirectionExisting()) {
 
@@ -99,12 +81,12 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
 }
 
 bool AcceptTrustLineTransaction::checkJournal() {
-
+//  todo add check journal method
     return false;
 }
 
 bool AcceptTrustLineTransaction::isTransactionToContractorUnique() {
-
+//    todo  CheckTransactionOnUnique
     return true;
 }
 

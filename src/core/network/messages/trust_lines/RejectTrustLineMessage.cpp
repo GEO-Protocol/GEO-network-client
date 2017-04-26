@@ -29,7 +29,7 @@ const NodeUUID &RejectTrustLineMessage::contractorUUID() const
 /*
  * ToDo: rewrite me with bytes deserializer
  */
-pair<BytesShared, size_t> RejectTrustLineMessage::serializeToBytes()
+pair<BytesShared, size_t> RejectTrustLineMessage::serializeToBytes() const
     throw (bad_alloc)
 {
 
@@ -82,17 +82,5 @@ MessageResult::SharedConst RejectTrustLineMessage::resultRejectDelayed()
             senderUUID,
             mTransactionUUID,
             kResultCodeRejectDelayed)
-    );
-}
-
-// todo: refactor me
-MessageResult::SharedConst RejectTrustLineMessage::resultTransactionConflict() const
-    throw (bad_alloc)
-{
-    return MessageResult::SharedConst(
-        new MessageResult(
-            senderUUID,
-            mTransactionUUID,
-            kResultCodeTransactionConflict)
     );
 }

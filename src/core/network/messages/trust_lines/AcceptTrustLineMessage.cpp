@@ -24,7 +24,9 @@ const TrustLineAmount &AcceptTrustLineMessage::amount() const
     return mTrustLineAmount;
 }
 
-pair<BytesShared, size_t> AcceptTrustLineMessage::serializeToBytes() {
+pair<BytesShared, size_t> AcceptTrustLineMessage::serializeToBytes() const
+    throw(bad_alloc)
+{
 
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second +
@@ -71,16 +73,5 @@ MessageResult::SharedConst AcceptTrustLineMessage::resultConflict() const {
             senderUUID,
             mTransactionUUID,
             kResultCodeConflict)
-    );
-}
-
-MessageResult::SharedConst AcceptTrustLineMessage::resultTransactionConflict() const {
-
-    // todo: refactor
-    return MessageResult::SharedConst(
-        new MessageResult(
-            senderUUID,
-            mTransactionUUID,
-            kResultCodeTransactionConflict)
     );
 }

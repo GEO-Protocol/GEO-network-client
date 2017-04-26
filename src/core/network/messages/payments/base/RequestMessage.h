@@ -22,7 +22,8 @@ public:
     const TrustLineAmount& amount() const;
 
 protected:
-    pair<BytesShared, size_t> serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
 
     const size_t kOffsetToInheritedBytes() const
         noexcept;

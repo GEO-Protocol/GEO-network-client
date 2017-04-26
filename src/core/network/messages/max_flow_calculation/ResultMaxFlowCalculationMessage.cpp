@@ -12,8 +12,8 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     BytesShared buffer):
 
-    SenderMessage(buffer) {
-
+    SenderMessage(buffer)
+{
     size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     RecordCount *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) RecordCount;
@@ -62,7 +62,9 @@ const Message::MessageType ResultMaxFlowCalculationMessage::typeID() const {
     return Message::MessageType::MaxFlow_ResultMaxFlowCalculation;
 }
 
-pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() {
+pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() const
+    throw(bad_alloc)
+{
 
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second

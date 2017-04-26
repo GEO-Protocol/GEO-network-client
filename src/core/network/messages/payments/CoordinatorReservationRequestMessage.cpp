@@ -36,7 +36,8 @@ const Message::MessageType CoordinatorReservationRequestMessage::typeID() const
 /**
  * @throws bad_alloc;
  */
-pair<BytesShared, size_t> CoordinatorReservationRequestMessage::serializeToBytes()
+pair<BytesShared, size_t> CoordinatorReservationRequestMessage::serializeToBytes() const
+    throw(bad_alloc)
 {    
     auto parentBytesAndCount = RequestMessage::serializeToBytes();
     size_t totalBytesCount =

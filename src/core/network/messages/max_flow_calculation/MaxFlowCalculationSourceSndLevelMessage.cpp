@@ -5,7 +5,7 @@ MaxFlowCalculationSourceSndLevelMessage::MaxFlowCalculationSourceSndLevelMessage
     const NodeUUID& targetUUID) :
 
     MaxFlowCalculationMessage(senderUUID, targetUUID)
-{};
+{}
 
 MaxFlowCalculationSourceSndLevelMessage::MaxFlowCalculationSourceSndLevelMessage(
     BytesShared buffer):

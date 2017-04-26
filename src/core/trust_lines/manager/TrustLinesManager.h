@@ -13,14 +13,20 @@
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
 #include "../../logger/Logger.h"
-#include "../../io/storage/StorageHandler.h"
+#include "../../io/storage/TrustLineHandler.h"
 
 #include <boost/signals2.hpp>
 #include <boost/functional/hash.hpp>
 
 #include <unordered_map>
 #include <vector>
+#ifdef MAC_OS
+#include <stdlib.h>
+#endif
+
+#ifdef LINUX
 #include <malloc.h>
+#endif
 
 
 using namespace std;
@@ -34,7 +40,7 @@ public:
 
 public:
     TrustLinesManager(
-        StorageHandler *storageHandler,
+        TrustLineHandler *trustLineHandler,
         Logger *logger)
         throw (bad_alloc, IOError);
 
@@ -181,7 +187,7 @@ private:
     unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> mTrustLines;
 
     unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
-    StorageHandler *mStorageHandler;
+    TrustLineHandler *mTrustLineHandler;
     Logger *mLogger;
 };
 

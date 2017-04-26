@@ -10,7 +10,9 @@ set(SOURCE_FILES
         TrustLineHandler.h
         TrustLineHandler.cpp
         PaymentOperationStateHandler.h
-        PaymentOperationStateHandler.cpp)
+        PaymentOperationStateHandler.cpp
+        TransactionHandler.h
+        TransactionHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

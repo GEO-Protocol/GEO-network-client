@@ -40,7 +40,9 @@ uint16_t Response::code() {
     return mCode;
 }
 
-pair<BytesShared, size_t> Response::serializeToBytes() {
+pair<BytesShared, size_t> Response::serializeToBytes() const
+    throw(bad_alloc)
+{
 
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 

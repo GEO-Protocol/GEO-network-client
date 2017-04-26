@@ -36,7 +36,9 @@ CyclesFourNodesBalancesRequestMessage::CyclesFourNodesBalancesRequestMessage(
     }
 }
 
-pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToBytes() {
+pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToBytes() const
+    throw(bad_alloc)
+{
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     const uint16_t neighborsCount = mNeighbors.size();
     size_t bytesCount = parentBytesAndCount.second

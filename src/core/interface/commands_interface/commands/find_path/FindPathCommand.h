@@ -21,10 +21,6 @@ public:
 
     CommandResult::SharedConst resultOk(string &path) const;
 
-    CommandResult::SharedConst resultNoPath() const;
-
-    CommandResult::SharedConst resultNoResponse() const;
-
 protected:
     void parse(
         const string &command);

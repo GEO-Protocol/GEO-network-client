@@ -51,6 +51,7 @@ void BytesDeserializer::copyInto (
     const size_t bytesCount)
     noexcept
 {
+
     memcpy(
         destination,
         buffer.get() + mCurrentOffset,

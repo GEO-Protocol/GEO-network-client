@@ -1,7 +1,6 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSSCHEDULER_H
 
-#include "../../common/Types.h"
 #include "../../common/time/TimeUtils.h"
 
 #include "../../network/messages/Message.hpp"
@@ -15,8 +14,6 @@
 #include "../transactions/result/TransactionResult.h"
 
 #include "../../resources/resources/BaseResource.h"
-
-#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 #include "../../common/exceptions/Exception.h"
 #include "../../common/exceptions/ValueError.h"
@@ -39,8 +36,8 @@
 using namespace std;
 
 namespace as = boost::asio;
-namespace storage = db::uuid_map_block_storage;
 namespace signals = boost::signals2;
+
 
 class TransactionsScheduler {
 public:
@@ -49,7 +46,6 @@ public:
 public:
     TransactionsScheduler(
         as::io_service &IOService,
-        storage::UUIDMapBlockStorage *storage,
         Logger *logger);
 
     void run();
@@ -118,7 +114,6 @@ public:
 
 private:
     as::io_service &mIOService;
-    storage::UUIDMapBlockStorage *mStorage;
     Logger *mLog;
 
     unique_ptr<as::steady_timer> mProcessingTimer;

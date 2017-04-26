@@ -18,7 +18,7 @@ public:
     const MessageType typeID() const
         noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes() const
+    virtual pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
 
 protected:

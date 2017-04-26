@@ -46,7 +46,9 @@ CyclesFourNodesBalancesResponseMessage::CyclesFourNodesBalancesResponseMessage(
     };
 }
 
-std::pair<BytesShared, size_t> CyclesFourNodesBalancesResponseMessage::serializeToBytes() {
+std::pair<BytesShared, size_t> CyclesFourNodesBalancesResponseMessage::serializeToBytes() const
+    throw(bad_alloc)
+{
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     uint16_t neighborsNodesCount = (uint16_t) mNeighborsUUID.size();

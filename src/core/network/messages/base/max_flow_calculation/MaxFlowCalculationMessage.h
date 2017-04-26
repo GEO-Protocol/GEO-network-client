@@ -22,7 +22,8 @@ public:
 public:
     const NodeUUID &targetUUID() const;
 
-    virtual pair<BytesShared, size_t> serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
 
     const bool isMaxFlowCalculationResponseMessage() const;
 

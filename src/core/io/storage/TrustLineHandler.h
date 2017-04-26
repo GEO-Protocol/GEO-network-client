@@ -17,7 +17,7 @@ class TrustLineHandler {
 public:
 
     TrustLineHandler(
-        const string &dataBasePath,
+        sqlite3 *dbConnection,
         const string &tableName,
         Logger *logger);
 
@@ -38,11 +38,6 @@ private:
 
     void prepareInserted();
 
-    void insert(
-        TrustLine::Shared trustLine);
-
-    void update(TrustLine::Shared trustLine);
-
     bool containsContractor(const NodeUUID &contractorUUID);
 
     LoggerStream info() const;
@@ -53,7 +48,7 @@ private:
 
 private:
 
-    sqlite3 *mDataBase;
+    sqlite3 *mDataBase = nullptr;
     string mTableName;
     Logger *mLog;
     bool isTransactionBegin;

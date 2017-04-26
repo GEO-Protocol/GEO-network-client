@@ -14,7 +14,6 @@
 #include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
 
-#include "../../db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 #include "../scheduler/TransactionsScheduler.h"
 
 #include "../../interface/commands_interface/commands/BaseUserCommand.h"
@@ -29,6 +28,7 @@
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
+#include "../../interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.h"
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/trust_lines/AcceptTrustLineMessage.h"
@@ -92,7 +92,6 @@
 #include <string>
 
 using namespace std;
-namespace storage = db::uuid_map_block_storage;
 namespace history = db::operations_history_storage;
 namespace signals = boost::signals2;
 
@@ -225,6 +224,9 @@ private:
     void launchGetPathTestTransaction(
         FindPathCommand::Shared command);
 
+    void launchGetFirstLevelContractorsTransaction(
+        GetFirstLevelContractorsCommand::Shared command);
+
     void launchGetRoutingTablesTransaction(
         RequestRoutingTablesMessage::Shared message);
 
@@ -272,7 +274,6 @@ private:
     StorageHandler *mStorageHandler;
     Logger *mLog;
 
-    unique_ptr<storage::UUIDMapBlockStorage> mStorage;
     unique_ptr<TransactionsScheduler> mScheduler;
 };
 

@@ -291,7 +291,7 @@ namespace db {
         void OperationsHistoryStorage::syncData() {
 
             fflush(mFileDescriptor);
-            fdatasync(mPOSIXFileDescriptor);
+            fsync(mPOSIXFileDescriptor);
         }
 
     }

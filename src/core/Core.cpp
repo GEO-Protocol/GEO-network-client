@@ -206,7 +206,7 @@ int Core::initTrustLinesManager() {
 
     try{
         mTrustLinesManager = new TrustLinesManager(
-            mStorageHandler,
+            mStorageHandler->trustLineHandler(),
             &mLog);
         mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
         return 0;
@@ -672,7 +672,7 @@ void Core::checkSomething() {
 void Core::printRTs() {
     NodeUUID *some_node = new NodeUUID("65b84dc1-31f8-45ce-8196-8efcc7648777");
     NodeUUID *dest_node = new NodeUUID("5062d6a9-e06b-4bcc-938c-6d9bd082f0eb");
-    mStorageHandler->routingTablesHandler()->routingTable2Level()->saveRecord(*some_node, *dest_node, TrustLineDirection::Incoming);
+    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*some_node, *dest_node);
 
     cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
     for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
@@ -681,18 +681,13 @@ void Core::printRTs() {
         << itTrustLine.second->outgoingTrustAmount() << " "
         << itTrustLine.second->balance() << endl;
     }
-    cout  << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections().size() << endl;
-    NodeUUID source;
-    NodeUUID target;
-    TrustLineDirection direction;
-    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsWithDirections()) {
-        std::tie(source, target, direction) = itRT2;
-        cout  << source << " " << target << " " << direction << endl;
+    cout  << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size() << endl;
+    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->rt2Records()) {
+        cout  << itRT2.first << " " << itRT2.second << endl;
     }
-    cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsWithDirections().size() << endl;
-    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsWithDirections()) {
-        std::tie(source, target, direction) = itRT3;
-        cout  << source << " " << target << " " << direction << endl;
+    cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size() << endl;
+    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
+        cout  << itRT3.first << " " << itRT3.second << endl;
     }
 }
 

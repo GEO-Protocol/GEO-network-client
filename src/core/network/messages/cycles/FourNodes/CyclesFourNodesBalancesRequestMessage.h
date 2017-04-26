@@ -22,7 +22,8 @@ public:
     CyclesFourNodesBalancesRequestMessage(
             BytesShared buffer);
 
-    pair<BytesShared, size_t> serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes()const
+        throw(bad_alloc);
 
     const MessageType typeID() const;
 

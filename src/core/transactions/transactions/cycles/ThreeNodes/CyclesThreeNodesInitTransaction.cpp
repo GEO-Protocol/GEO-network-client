@@ -36,7 +36,7 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     const TrustLineBalance kZeroBalance = 0;
     const auto contractorNeighbors =
-        mRoutingTablesHandler->routingTable2Level()->neighborsOf(
+        mRoutingTablesHandler->neighborsOfOnRT2(
             mContractorUUID);
     cout << "CyclesThreeNodesInitTransaction::mContractorUUID " << mContractorUUID << endl;
     stringstream ss;

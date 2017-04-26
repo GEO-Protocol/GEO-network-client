@@ -156,33 +156,18 @@ void CreditUsageCommand::parse(
         }
     }
 }
-
-CommandResult::SharedConst CreditUsageCommand::responseOK() const
-{
-    return makeResult(200);
-}
-
-CommandResult::SharedConst CreditUsageCommand::responseProtocolError() const
-{
-    return makeResult(401);
-}
+// TODO: deprecated
+//const size_t CreditUsageCommand::kMinRequestedBufferSize()
+//{
+//    static const size_t size =
+//            kOffsetToInheritedBytes()
+//            + NodeUUID::kBytesSize
+//            + kTrustLineAmountBytesCount;
+//
+//    return size;
+//}
 
 CommandResult::SharedConst CreditUsageCommand::responseNoConsensus () const
 {
     return makeResult(409);
-}
-
-CommandResult::SharedConst CreditUsageCommand::responseInsufficientFunds() const
-{
-    return makeResult(412);
-}
-
-CommandResult::SharedConst CreditUsageCommand::responseRemoteNodeIsInaccessible() const
-{
-    return makeResult(444);
-}
-
-CommandResult::SharedConst CreditUsageCommand::responseNoRoutes() const
-{
-    return makeResult(462);
 }

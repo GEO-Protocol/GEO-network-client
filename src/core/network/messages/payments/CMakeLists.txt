@@ -42,6 +42,4 @@ target_link_libraries(messages__payments
         messages__base__transaction
 
         common
-        exceptions
-        memory
-        multiprecision)
+        exceptions)

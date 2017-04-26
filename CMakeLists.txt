@@ -1,6 +1,14 @@
 ﻿cmake_minimum_required(VERSION 3.6)
 project(geo_network_client)
 
+
+# Available options are: LINUX | MAC_OS
+set(PLATFORM "LINUX")
+IF (${PLATFORM} MATCHES "MAC_OS")
+    add_definitions(-DMAC_OS)
+ENDIF (${PLATFORM} MATCHES "MAC_OS")
+
+
 #
 # Logs configuration
 #
@@ -19,11 +27,10 @@ add_definitions(-DNETWORK_DEBUG_LOG)
 #
 #add_definitions(-DROUTING_TABLES_PROPAGATION_DISABLED)
 
-# todo: change in the release version
 
+# todo: change in the release version
 # Available options are: DEBUG | RELEASE | REALEASE_WITH_DEBUG_LOG
 set(BUILD_CONFIGURATION "DEBUG")
-
 
 IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
     add_definitions(-DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION)
@@ -63,16 +70,7 @@ find_package(Boost COMPONENTS system filesystem thread date_time REQUIRED)
 #
 add_subdirectory(src/core/common/)
 add_subdirectory(src/core/common/exceptions)
-add_subdirectory(src/core/common/time)
-add_subdirectory(src/core/common/memory)
-add_subdirectory(src/core/common/multiprecision)
-add_subdirectory(src/core/db)
-#add_subdirectory(src/tests/db)
-add_subdirectory(src/core/io/routing_tables)
-add_subdirectory(src/tests/io/routing_tables)
-
-add_subdirectory(src/core/io/trust_lines)
-#add_subdirectory(src/tests/io/trust_lines)
+add_subdirectory(src/core/db/operations_history_storage)
 add_subdirectory(src/core/logger)
 add_subdirectory(src/core/interface)
 add_subdirectory(src/core/network)
@@ -116,10 +114,6 @@ target_link_libraries(geo_network_client
         interface__results
 
         db__operations_history_storage
-
-        io__trust_lines_storage
-        io__routing_tables_storage
-        io__storage
 
         paths
         trust_lines

@@ -24,7 +24,8 @@ public:
 
     const MessageType typeID() const;
 
-    pair<BytesShared, size_t> serializeToBytes();
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw(bad_alloc);
 
     const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
 

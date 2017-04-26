@@ -1,32 +1,16 @@
 #include "RoutingTablesHandler.h"
 
 RoutingTablesHandler::RoutingTablesHandler(
-    const string &dataBasePath,
+    sqlite3 *dbConnection,
     const string &rt2TableName,
     const string &rt3TableName,
     Logger *logger):
 
-    mRoutingTable2Level(dataBasePath, rt2TableName, logger),
-    mRoutingTable3Level(dataBasePath, rt3TableName, logger),
-    mLog(logger){
-
-    int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-    if (rc == SQLITE_OK) {
-    } else {
-        throw IOError("RoutingTablesHandler::connection "
-                          "Can't open database " + dataBasePath);
-    }
-}
-
-RoutingTableHandler* RoutingTablesHandler::routingTable2Level() {
-
-    return &mRoutingTable2Level;
-}
-
-RoutingTableHandler* RoutingTablesHandler::routingTable3Level() {
-
-    return &mRoutingTable3Level;
-}
+    mDataBase(dbConnection),
+    mRoutingTable2Level(dbConnection, rt2TableName, logger),
+    mRoutingTable3Level(dbConnection, rt3TableName, logger),
+    mLog(logger),
+    isTransactionBegin(false) {}
 
 vector<NodeUUID> RoutingTablesHandler::subRoutesSecondLevel(
     const NodeUUID &contractorUUID) {
@@ -189,11 +173,213 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
     return result;
 }
 
+bool RoutingTablesHandler::commit() {
+
+    if (!isTransactionBegin) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        error() << "call commit, but trunsaction wasn't started";
+#endif
+        return true;
+    }
+
+    string query = "COMMIT TRANSACTION;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTablesHandler::commit: "
+                          "Bad query");
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "transaction commit";
+#endif
+        isTransactionBegin = false;
+        return true;
+    } else if (rc == SQLITE_BUSY) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "database busy";
+#endif
+        return false;
+    } else {
+        error() << "commit error: " << rc;
+        throw IOError("RoutingTablesHandler::commit: "
+                          "Run query");
+    }
+}
+
+void RoutingTablesHandler::rollBack() {
+
+    if (!isTransactionBegin) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        error() << "call rollBack, but trunsaction wasn't started";
+#endif
+        return;
+    }
+
+    string query = "ROLLBACK TRANSACTION;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTablesHandler::rollback: "
+                          "Bad query");
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "rollBack done";
+#endif
+    } else {
+        throw IOError("RoutingTablesHandler::rollback: "
+                          "Run query");
+    }
+
+    isTransactionBegin = false;
+}
+
+void RoutingTablesHandler::prepareInserted() {
+
+    if (isTransactionBegin) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        error() << "call prepareInsertred, but previous transaction isn't finished";
+#endif
+        return;
+    }
+
+    string query = "BEGIN TRANSACTION;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTablesHandler::prepareInserted: "
+                          "Bad query");
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "transaction begin";
+#endif
+    } else {
+        throw IOError("RoutingTablesHandler::prepareInserted: "
+                          "Run query");
+    }
+    isTransactionBegin = true;
+}
+
+void RoutingTablesHandler::saveRecordToRT2(
+    const NodeUUID &source,
+    const NodeUUID &destination) {
+
+    if (!isTransactionBegin) {
+        prepareInserted();
+    }
+
+    mRoutingTable2Level.saveRecord(
+        source,
+        destination);
+}
+
+void RoutingTablesHandler::saveRecordToRT3(
+    const NodeUUID &source,
+    const NodeUUID &destination) {
+
+    if (!isTransactionBegin) {
+        prepareInserted();
+    }
+
+    mRoutingTable3Level.saveRecord(
+        source,
+        destination);
+}
+
+void RoutingTablesHandler::deleteRecordFromRT2(
+    const NodeUUID &source,
+    const NodeUUID &destination) {
+
+    if (!isTransactionBegin) {
+        prepareInserted();
+    }
+
+    mRoutingTable2Level.deleteRecord(
+        source,
+        destination);
+
+    if (!mRoutingTable2Level.isNodePresentAsDestination(
+        destination)) {
+        mRoutingTable3Level.deleteAllRecordsWithSource(
+            destination);
+    }
+}
+
+void RoutingTablesHandler::deleteRecordFromRT3(
+    const NodeUUID &source,
+    const NodeUUID &destination) {
+
+    if (!isTransactionBegin) {
+        prepareInserted();
+    }
+
+    mRoutingTable3Level.deleteRecord(
+        source,
+        destination);
+}
+
+vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::rt2Records() {
+
+    return mRoutingTable2Level.routeRecords();
+}
+
+vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::rt3Records() {
+
+    return mRoutingTable3Level.routeRecords();
+}
+
+set<NodeUUID> RoutingTablesHandler::neighborsOfOnRT2(
+    const NodeUUID &sourceUUID) {
+
+    return mRoutingTable2Level.neighborsOf(
+        sourceUUID);
+}
+
+set<NodeUUID> RoutingTablesHandler::neighborsOfOnRT3(
+    const NodeUUID &sourceUUID) {
+
+    return mRoutingTable3Level.neighborsOf(
+        sourceUUID);
+}
+
+unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> RoutingTablesHandler::routeRecordsMapDestinationKeyOnRT2() {
+
+    return mRoutingTable2Level.routeRecordsMapDestinationKey();
+}
+
+unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> RoutingTablesHandler::routeRecordsMapDestinationKeyOnRT3() {
+
+    return mRoutingTable3Level.routeRecordsMapDestinationKey();
+}
+
+map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourceKeyOnRT2() {
+
+    return mRoutingTable2Level.routeRecordsMapSourceKey();
+}
+
+map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourceKeyOnRT3() {
+
+    return mRoutingTable3Level.routeRecordsMapSourceKey();
+}
+
 void RoutingTablesHandler::closeConnections() {
 
     mRoutingTable2Level.closeConnection();
     mRoutingTable3Level.closeConnection();
-    sqlite3_close_v2(mDataBase);
+    if (mDataBase != nullptr) {
+        sqlite3_close_v2(mDataBase);
+    }
 }
 
 LoggerStream RoutingTablesHandler::info() const {

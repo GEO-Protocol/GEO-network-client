@@ -8,7 +8,4 @@ add_library(messages__base__transaction ${SOURCE_FILES})
 target_link_libraries(messages__base__transaction
 
         common
-        exceptions
-        memory
-#        transactions
-        )
+        exceptions)

@@ -8,5 +8,4 @@ target_link_libraries(messages__routing_tables
         messages__base__transaction
 
         common
-        exceptions
-        memory)
+        exceptions)

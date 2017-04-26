@@ -11,5 +11,4 @@ target_link_libraries(messages__response
         messages__base__transaction
 
         common
-        exceptions
-        memory)
+        exceptions)

@@ -15,7 +15,7 @@ class PaymentOperationStateHandler {
 public:
 
     PaymentOperationStateHandler(
-        const string &dataBasePath,
+        sqlite3 *dbConnection,
         const string &tableName,
         Logger *logger);
 
@@ -40,16 +40,6 @@ private:
 
     void prepareInserted();
 
-    void insert(
-        const TransactionUUID &transactionUUID,
-        BytesShared state,
-        size_t stateBytesCount);
-
-    void update(
-        const TransactionUUID &transactionUUID,
-        BytesShared state,
-        size_t stateBytesCount);
-
     LoggerStream info() const;
 
     LoggerStream error() const;
@@ -58,7 +48,7 @@ private:
 
 private:
 
-    sqlite3 *mDataBase;
+    sqlite3 *mDataBase = nullptr;
     string mTableName;
     Logger *mLog;
     bool isTransactionBegin;

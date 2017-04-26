@@ -3,7 +3,7 @@
 
 #include "../base/BaseTransaction.h"
 
-#include "../../../io/storage/RoutingTableHandler.h"
+#include "../../../io/storage/RoutingTablesHandler.h"
 #include "../../../network/messages/routing_tables/NeighborsRequestMessage.h"
 #include "../../../network/messages/routing_tables/NeighborsResponseMessage.h"
 
@@ -39,8 +39,7 @@ public:
     NeighborsCollectingTransaction(
         const NodeUUID &destinationNode,
         const uint8_t hopDistance,
-        RoutingTableHandler *routingTable2Level,
-        RoutingTableHandler *routingTable3Level,
+        RoutingTablesHandler *routingTables,
         Logger *logger)
         noexcept;
 
@@ -98,8 +97,7 @@ protected:
      */
     bool mSecondLevelNeighborsMustAlsoBeScanned;
 
-    RoutingTableHandler *mRoutingTable2Level;
-    RoutingTableHandler *mRoutingTable3Level;
+    RoutingTablesHandler *mRoutingTables;
 };
 
 

@@ -1,36 +1,28 @@
 #include "PaymentOperationStateHandler.h"
 
 PaymentOperationStateHandler::PaymentOperationStateHandler(
-    const string &dataBasePath,
+    sqlite3 *dbConnection,
     const string &tableName,
     Logger *logger):
 
+    mDataBase(dbConnection),
     mTableName(tableName),
     mLog(logger),
     isTransactionBegin(false){
-
-    int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDataBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-    if (rc == SQLITE_OK) {
-    } else {
-        throw IOError("PaymentOperationStateHandler::connection "
-                          "Can't open database " + dataBasePath);
-    }
 
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
         " (transaction_uuid BLOB NOT NULL, "
             "state BLOB NOT NULL, "
             "state_bytes_count INT NOT NULL);";
     sqlite3_stmt *stmt;
-    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::creating table: " + mTableName +
-                      " : Bad query");
+        throw IOError("PaymentOperationStateHandler::creating table: Bad query");
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
-        throw IOError("PaymentOperationStateHandler::creating table: " + mTableName +
-                      " : Run query");
+        throw IOError("PaymentOperationStateHandler::creating table: Run query");
     }
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
@@ -149,95 +141,6 @@ void PaymentOperationStateHandler::rollBack() {
     isTransactionBegin = false;
 }
 
-void PaymentOperationStateHandler::insert(
-    const TransactionUUID &transactionUUID,
-    BytesShared state,
-    size_t stateBytesCount) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
-    string query = "INSERT INTO " + mTableName +
-        " (transaction_uuid, state, state_bytes_count) VALUES(?, ?, ?);";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad query");
-    }
-    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of TransactionUUID");
-    }
-    rc = sqlite3_bind_blob(stmt, 2, state.get(), (int)stateBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of State");
-    }
-    rc = sqlite3_bind_int(stmt, 3, (int)stateBytesCount);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of State bytes count");
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "prepare inserting is completed successfully";
-#endif
-    } else {
-        throw IOError("PaymentOperationStateHandler::insert: "
-                          "Run query");
-    }
-}
-
-void PaymentOperationStateHandler::update(
-    const TransactionUUID &transactionUUID,
-    BytesShared state,
-    size_t stateBytesCount) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
-    string query = "UPDATE " + mTableName + " SET state = ?, state_bytes_count = ? WHERE transaction_uuid = ?;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::update: "
-                          "Bad query");
-    }
-    rc = sqlite3_bind_blob(stmt, 1, state.get(), (int)stateBytesCount, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::update: "
-                          "Bad binding of State");
-    }
-    rc = sqlite3_bind_int(stmt, 2, (int)stateBytesCount);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of State bytes count");
-    }
-    rc = sqlite3_bind_blob(stmt, 3, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::update: "
-                          "Bad binding of TransactionUUID");
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "prepare updating is completed successfully";
-#endif
-    } else {
-        throw IOError("PaymentOperationStateHandler::update: "
-                          "Run query");
-    }
-}
-
 void PaymentOperationStateHandler::saveRecord(
     const TransactionUUID &transactionUUID,
     BytesShared state,
@@ -327,12 +230,10 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::getState(
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::delete: "
+        throw IOError("PaymentOperationStateHandler::getState: "
                           "Bad binding of TransactionUUID");
     }
     rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
     if (rc == SQLITE_ROW) {
         size_t stateBytesCount = (size_t)sqlite3_column_int(stmt, 1);
         BytesShared state = tryMalloc(stateBytesCount);
@@ -340,8 +241,12 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::getState(
             state.get(),
             sqlite3_column_blob(stmt, 0),
             stateBytesCount);
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
         return make_pair(state, stateBytesCount);
     } else {
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
         throw NotFoundError("PaymentOperationStateHandler::getState: "
                                 "There are now records with requested transactionUUID");
     }
@@ -349,7 +254,9 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::getState(
 
 void PaymentOperationStateHandler::closeConnection() {
 
-    sqlite3_close_v2(mDataBase);
+    if (mDataBase != nullptr) {
+        sqlite3_close_v2(mDataBase);
+    }
 }
 
 LoggerStream PaymentOperationStateHandler::info() const {

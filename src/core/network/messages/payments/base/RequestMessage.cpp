@@ -29,7 +29,9 @@ const TrustLineAmount &RequestMessage::amount() const
  *
  * Throws bad_alloc;
  */
-pair<BytesShared, size_t> RequestMessage::serializeToBytes() {
+pair<BytesShared, size_t> RequestMessage::serializeToBytes() const
+    throw(bad_alloc)
+{
 
     auto serializedAmount = trustLineAmountToBytes(mAmount); // TODO: serialize only non-zero
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
