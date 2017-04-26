@@ -35,11 +35,6 @@ protected:
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
-    TransactionResult::SharedConst runPreviousNeighborVoutesRequestStage();
-    TransactionResult::SharedConst runCheckPreviousNeighborVoutesStage();
-    TransactionResult::SharedConst sendVoutesRequestMessageAndWaitForResponse(const NodeUUID &contractorUUID);
-
-
 
 protected:
     void deserializeFromBytes(

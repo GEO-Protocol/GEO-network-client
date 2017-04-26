@@ -7,6 +7,7 @@
 class VotesStatusRequestMessage :
         public TransactionMessage {
 
+public:
     VotesStatusRequestMessage(
             const NodeUUID &senderUUID,
             const TransactionUUID &transactionUUID) noexcept :

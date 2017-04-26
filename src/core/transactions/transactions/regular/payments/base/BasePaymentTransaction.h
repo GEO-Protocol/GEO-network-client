@@ -68,11 +68,13 @@ protected:
 
         Common_VotesChecking,
         Common_FinalPathsConfigurationChecking,
-        Common_PreviousNeighborVoutesRequestStage,
-        Common_CheckPreviousNeighborVoutesRequestStage,
-        Common_NextNeighborVoutesRequestStage,
-        Common_CheckNextNeighborVoutesStage,
-        Common_CheckCoordinatorNeighborVoutesStage,
+        Common_VotesRecoveryStage
+    };
+
+    enum VoutesRecoveryStages {
+        Common_PrepareNodesListToCheckVotes,
+        Common_CheckCoordinatorVotesStage,
+        Common_CheckIntermediateNodeVotesStage
     };
 
     // Stages handlers
@@ -89,6 +91,13 @@ protected:
     TransactionResult::SharedConst exitWithResult(
         const TransactionResult::SharedConst result,
         const char *message=nullptr);
+
+    TransactionResult::SharedConst runVotesRecoveryParenStage();
+    TransactionResult::SharedConst sendVoutesRequestMessageAndWaitForResponse(const NodeUUID &contractorUUID);
+    TransactionResult::SharedConst runPrepareListNodesToCheckNodes();
+    TransactionResult::SharedConst runCheckCoordinatorVotesStage();
+    TransactionResult::SharedConst runCheckIntermediateNodeVotesSage();
+
 
 protected:
     const bool reserveOutgoingAmount(
@@ -107,7 +116,6 @@ protected:
     void saveVoutes();
     void commit();
     void rollBack();
-
 
     uint32_t maxNetworkDelay (
         const uint16_t totalParticipantsCount) const;
@@ -152,6 +160,10 @@ protected:
     ParticipantsVotesMessage::Shared mParticipantsVotesMessage;
 
     map<NodeUUID, vector<AmountReservation::ConstShared>> mReservations;
+
+    // Votes recovery
+    vector<NodeUUID> mNodesToCheckVotes;
+    NodeUUID mCurrentNodeToCheckVotes;
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

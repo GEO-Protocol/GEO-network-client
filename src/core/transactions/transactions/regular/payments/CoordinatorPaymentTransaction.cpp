@@ -233,6 +233,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 throw (RuntimeError, bad_alloc)
 {
+    cout << "CoordinatorPaymentTransaction" << endl;
     switch (mStep) {
         case Stages::Coordinator_Initialisation:
             return runPaymentInitialisationStage();
@@ -251,6 +252,9 @@ throw (RuntimeError, bad_alloc)
 
         case Stages::Common_VotesChecking:
             return runVotesCheckingStage();
+
+        case Stages::Common_VotesRecoveryStage:
+            return runVotesRecoveryParenStage();
 
         default:
             throw RuntimeError(

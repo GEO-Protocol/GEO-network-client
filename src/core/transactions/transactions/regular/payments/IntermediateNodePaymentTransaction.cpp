@@ -36,6 +36,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
 {
+    cout << "IntermediateNodePaymentTransaction" << endl;
     switch (mStep) {
     case Stages::IntermediateNode_PreviousNeighborRequestProcessing:
         return runPreviousNeighborRequestProcessingStage();
@@ -54,6 +55,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
 
     case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
+
+    case Stages::Common_VotesRecoveryStage:
+        return runVotesRecoveryParenStage();
 
     default:
         throw RuntimeError(
@@ -213,46 +217,4 @@ const string IntermediateNodePaymentTransaction::logHeader() const
     s << "[IntermediateNodePaymentTA: " << currentTransactionUUID().stringUUID() << "] ";
 
     return s.str();
-}
-
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNeighborVoutesRequestStage() {
-
-    const auto kNeighbor = mMessage->senderUUID;
-    mStep = Stages::Common_CheckPreviousNeighborVoutesRequestStage;
-    return sendVoutesRequestMessageAndWaitForResponse(kNeighbor);
-}
-
-
-
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCheckPreviousNeighborVoutesStage() {
-
-    if(mContext.size() != 1) {
-        const NodeUUID kNextNeighbor;
-        mStep = Stages::Common_CheckCoordinatorNeighborVoutesStage;
-        return sendVoutesRequestMessageAndWaitForResponse(kNextNeighbor);
-    }
-    const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
-    if(kMessage->containsRejectVote()){
-        // todo add info message
-        return resultDone();
-    }
-    return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(kMaxPathLength));
-}
-
-TransactionResult::SharedConst IntermediateNodePaymentTransaction::sendVoutesRequestMessageAndWaitForResponse(
-        const NodeUUID &contractorUUID)
-{
-    auto requestMessage = make_shared<VotesStatusRequestMessage>(
-            mNodeUUID,
-            currentTransactionUUID()
-    );
-    sendMessage(
-            contractorUUID,
-            requestMessage
-    );
-    return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(kMaxPathLength));
 }

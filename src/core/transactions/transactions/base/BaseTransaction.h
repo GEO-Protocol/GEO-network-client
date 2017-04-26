@@ -236,6 +236,7 @@ protected:
     uint16_t mkExpectationResponsesCount = 0;
     uint16_t mkWaitingForResponseTime = 3000;
     uint16_t mStep = 1;
+    uint8_t mVotesRecoveryStep = 0;
 
 protected:
     TransactionType mType;

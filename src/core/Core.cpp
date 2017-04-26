@@ -7,7 +7,7 @@ Core::Core() {
 
 Core::~Core() {
 
-    cleanupMemory();
+//    cleanupMemory();
 }
 
 int Core::run() {
@@ -22,7 +22,7 @@ int Core::run() {
 
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
-
+        checkSomething();
         mLog.logSuccess("Core", "Processing started.");
         mIOService.run();
         return 0;
@@ -662,14 +662,11 @@ void Core::writePIDFile()
 }
 
 void Core::checkSomething() {
-    auto debtorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
-    stringstream ss;
-    copy(debtorsNeighborsUUIDs.begin(), debtorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
-    cout << "Nodes With positive balance: \n" << ss.str() << endl;
-    auto creditorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
-    stringstream ss1;
-    copy(creditorsNeighborsUUIDs.begin(), creditorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss1, "\n"));
-    cout << "Nodes With negative balance: \n" << ss1.str() << endl;
+    const NodeUUID debugNodeUUID = NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
+    if(mNodeUUID == debugNodeUUID) {
+        cout << "Debug mode. checkSomething" << endl;
+//        return recover("Debug recover");
+    }
 }
 
 void Core::printRTs() {

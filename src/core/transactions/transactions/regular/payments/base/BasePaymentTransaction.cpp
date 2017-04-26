@@ -1,5 +1,6 @@
 ﻿#include "BasePaymentTransaction.h"
-
+#include <chrono>
+#include <thread>
 
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
@@ -114,7 +115,13 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         message->coordinatorUUID(),
         kCurrentNodeUUID,
         currentTransactionUUID());
-
+    // todo remove debug code
+    const NodeUUID debugNodeUUID = NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
+    if(mNodeUUID == debugNodeUUID) {
+        cout << "Debug mode. Wait for recovery" << endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+        return recover("Debug recover");
+    }
     info() << "Final payment paths configuration requested from the coordinator.";
 
 
@@ -123,6 +130,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
 
     mStep = Stages::Common_FinalPathsConfigurationChecking;
+    // todo add debug code to drop node
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsPathsConfiguration},
         maxCoordinatorResponseTimeout());
@@ -201,7 +209,14 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
             mParticipantsVotesMessage);
 
         info() << "Votes list message transferred to the (" << kNextParticipant << ")";
-
+        // debug code
+        const NodeUUID debugNodeUUID = NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
+        if(mNodeUUID == debugNodeUUID) {
+            cout << "Debug mode. Wait for recovery" << endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+            return recover("Debug recover");
+        }
+        // debug code
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
@@ -213,7 +228,9 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
         // Now it must be propagated to all nodes in the votes list
         // as successfully signed transaction.
         propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
-
+        // debug code
+        cout << "propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);" << endl;
+        //debug code
         // Transaction may be committed (all votes are collected and checked).
         return approve();
     }
@@ -435,9 +452,9 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
     if (message != nullptr)
         info() << message;
 
-    // TODO: implement me;
-
-    return resultDone();
+    mStep = Stages::Common_VotesRecoveryStage;
+    mVotesRecoveryStep = VoutesRecoveryStages::Common_PrepareNodesListToCheckVotes;
+    return runVotesRecoveryParenStage();
 }
 
 uint32_t BasePaymentTransaction::maxNetworkDelay (
@@ -551,4 +568,101 @@ TransactionResult::SharedConst BasePaymentTransaction::exitWithResult(
         info() << message;
 
     return result;
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::runVotesRecoveryParenStage() {
+    switch (mVotesRecoveryStep) {
+        case VoutesRecoveryStages ::Common_PrepareNodesListToCheckVotes:
+            return runPrepareListNodesToCheckNodes();
+        case VoutesRecoveryStages ::Common_CheckCoordinatorVotesStage:
+            return runCheckCoordinatorVotesStage();
+        case VoutesRecoveryStages ::Common_CheckIntermediateNodeVotesStage:
+            return runCheckIntermediateNodeVotesSage();
+
+        default:
+            throw RuntimeError(
+                "CoordinatorPaymentTransaction::run(): "
+                    "invalid transaction step.");
+    }
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::sendVoutesRequestMessageAndWaitForResponse(
+    const NodeUUID &contractorUUID)
+{
+    auto requestMessage = make_shared<VotesStatusRequestMessage>(
+        mNodeUUID,
+        currentTransactionUUID()
+    );
+    sendMessage(
+        contractorUUID,
+        requestMessage
+    );
+    return resultWaitForMessageTypes(
+        {Message::Payments_ParticipantsVotes},
+        maxNetworkDelay(kMaxPathLength));
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToCheckNodes() {
+    const auto kCoordinatorUUID = mParticipantsVotesMessage->coordinatorUUID();
+    for(const auto kNodeUUIDAndVote: mParticipantsVotesMessage->votes()){
+        if (kNodeUUIDAndVote.first != kCoordinatorUUID)
+            mNodesToCheckVotes.push_back(kNodeUUIDAndVote.first);
+    }
+    // todo add check on zero MParicipationMessage
+    if(kCoordinatorUUID == mNodeUUID) {
+        mVotesRecoveryStep = VoutesRecoveryStages::Common_CheckIntermediateNodeVotesStage;
+        mCurrentNodeToCheckVotes = mNodesToCheckVotes.back();
+        mNodesToCheckVotes.pop_back();
+        return sendVoutesRequestMessageAndWaitForResponse(mCurrentNodeToCheckVotes);
+    }
+    mVotesRecoveryStep = VoutesRecoveryStages::Common_CheckCoordinatorVotesStage;
+    return sendVoutesRequestMessageAndWaitForResponse(kCoordinatorUUID);
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesStage() {
+
+    if (mContext.size() == 1) {
+        const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
+        if (mParticipantsVotesMessage->votes().size() > 0) {
+            saveVoutes();
+            if (kMessage->containsRejectVote()) {
+                mParticipantsVotesMessage = kMessage;
+                return reject("");
+            } else{
+                commit();
+                return resultDone();
+            }
+        }
+    }
+    // Coordinator Node is offline
+    mContext.clear();
+    mVotesRecoveryStep = VoutesRecoveryStages::Common_CheckIntermediateNodeVotesStage;
+    mCurrentNodeToCheckVotes = mNodesToCheckVotes.back();
+    mNodesToCheckVotes.pop_back();
+    return sendVoutesRequestMessageAndWaitForResponse(mCurrentNodeToCheckVotes);
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeVotesSage() {
+    if (mContext.size() == 1) {
+        const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
+        if (mParticipantsVotesMessage->votes().size() > 0) {
+            saveVoutes();
+            if (kMessage->containsRejectVote()) {
+                mParticipantsVotesMessage = kMessage;
+                return reject("");
+            } else {
+                commit();
+                return resultDone();
+            }
+        }
+    }
+    // Node that was asked has no information about transaction status
+    if (mNodesToCheckVotes.size() > 0){
+        // Ask another node from payment transaction
+        mCurrentNodeToCheckVotes = mNodesToCheckVotes.back();
+        mNodesToCheckVotes.pop_back();
+        return sendVoutesRequestMessageAndWaitForResponse(mCurrentNodeToCheckVotes);
+    }
+    // No nodes left to be asked. reject
+    return reject("");
 }
