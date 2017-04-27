@@ -58,7 +58,6 @@ protected:
         const char *message = nullptr);
 
 protected:
-
     TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (
         PathStats *pathStats);
 
@@ -90,11 +89,8 @@ protected:
         BytesShared buffer);
 
 protected:
-
     // Contains special stats data, such as current msx flow,
-    // for all paths involved into the transaction.
-    //unordered_map<PathUUID, unique_ptr<PathStats>, boost::hash<boost::uuids::uuid>> mPathsStats;
-
+    // for path involved into the transaction.
     unique_ptr<PathStats> mPathStats;
 
     // Contains nodes that has been requrested final paths configuration.

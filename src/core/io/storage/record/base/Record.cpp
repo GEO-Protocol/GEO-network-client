@@ -1,6 +1,7 @@
 #include "Record.h"
 
-Record::Record() {}
+Record::Record()
+{}
 
 Record::Record(
     const Record::RecordType recordType,
@@ -24,27 +25,27 @@ Record::Record(
             geoEpochTimestamp);
 }
 
-const bool Record::isTrustLineRecord() const {
-
+const bool Record::isTrustLineRecord() const
+{
     return false;
 }
 
-const bool Record::isPaymentRecord() const {
-
+const bool Record::isPaymentRecord() const
+{
     return false;
 }
 
-const Record::RecordType Record::recordType() const {
-
+const Record::RecordType Record::recordType() const
+{
     return mRecordType;
 }
 
-const TransactionUUID Record::operationUUID() const {
-
+const TransactionUUID Record::operationUUID() const
+{
     return mOperationUUID;
 }
 
-const DateTime Record::timestamp() const {
-
+const DateTime Record::timestamp() const
+{
     return mTimestamp;
 }

@@ -7,8 +7,8 @@ TransactionHandler::TransactionHandler(
 
     mDataBase(dbConnection),
     mTableName(tableName),
-    mLog(logger) {
-
+    mLog(logger)
+{
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    " (transaction_uuid BLOB NOT NULL, "
                        "transaction_body BLOB NOT NULL, "
@@ -24,7 +24,6 @@ TransactionHandler::TransactionHandler(
     } else {
         throw IOError("TransactionHandler::creating table: Run query");
     }
-
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_transaction_uuid_idx on " + mTableName + " (transaction_uuid);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -38,7 +37,6 @@ TransactionHandler::TransactionHandler(
         throw IOError("TransactionHandler::creating index for TransactionUUID: "
                           "Run query; sqlite error: " + rc);
     }
-
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
 }
@@ -46,8 +44,8 @@ TransactionHandler::TransactionHandler(
 void TransactionHandler::saveRecord(
     const TransactionUUID &transactionUUID,
     BytesShared transaction,
-    size_t transactionBytesCount) {
-
+    size_t transactionBytesCount)
+{
     string query = "INSERT OR REPLACE INTO " + mTableName +
                    " (transaction_uuid, transaction_body, transaction_bytes_count) VALUES(?, ?, ?);";
     sqlite3_stmt *stmt;
@@ -85,8 +83,8 @@ void TransactionHandler::saveRecord(
 }
 
 void TransactionHandler::deleteRecord(
-    const TransactionUUID &transactionUUID) {
-
+    const TransactionUUID &transactionUUID)
+{
     string query = "DELETE FROM " + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -113,8 +111,8 @@ void TransactionHandler::deleteRecord(
 }
 
 pair<BytesShared, size_t> TransactionHandler::getTransaction(
-    const TransactionUUID &transactionUUID) {
-
+    const TransactionUUID &transactionUUID)
+{
     string query = "SELECT transaction_body, transaction_bytes_count FROM "
                    + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
@@ -147,22 +145,22 @@ pair<BytesShared, size_t> TransactionHandler::getTransaction(
     }
 }
 
-LoggerStream TransactionHandler::info() const {
-
+LoggerStream TransactionHandler::info() const
+{
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->info(logHeader());
 }
 
-LoggerStream TransactionHandler::error() const {
-
+LoggerStream TransactionHandler::error() const
+{
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->error(logHeader());
 }
 
-const string TransactionHandler::logHeader() const {
-
+const string TransactionHandler::logHeader() const
+{
     stringstream s;
     s << "[TransactionHandler]";
     return s.str();

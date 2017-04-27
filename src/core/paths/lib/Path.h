@@ -40,9 +40,7 @@ public:
         const Path &p2);
 
 public:
-
     const vector<NodeUUID> nodes;
-
 };
 
 #endif // PATH_H

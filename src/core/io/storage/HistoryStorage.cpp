@@ -25,14 +25,52 @@ HistoryStorage::HistoryStorage(
     } else {
         throw IOError("HistoryStorage::creating table: Run query; sqlite error: " + rc);
     }
-
+    query = "CREATE INDEX IF NOT EXISTS " + mTableName
+            + "_operation_uuid_idx on " + mTableName + "(operation_uuid);";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::creating index for operation_uuid: "
+                          "Bad query; sqlite error: " + rc);
+    }
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_DONE) {
+    } else {
+        throw IOError("HistoryStorage::creating index for operation_uuid: "
+                          "Run query; sqlite error: " + rc);
+    }
+    query = "CREATE INDEX IF NOT EXISTS " + mTableName
+            + "_operation_timestamp_idx on " + mTableName + "(operation_timestamp);";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::creating index for operation_timestamp: "
+                          "Bad query; sqlite error: " + rc);
+    }
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_DONE) {
+    } else {
+        throw IOError("HistoryStorage::creating index for operation_timestamp: "
+                          "Run query; sqlite error: " + rc);
+    }
+    query = "CREATE INDEX IF NOT EXISTS " + mTableName
+            + "_record_type_idx on " + mTableName + "(record_type);";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::creating index for record_type: "
+                          "Bad query; sqlite error: " + rc);
+    }
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_DONE) {
+    } else {
+        throw IOError("HistoryStorage::creating index for record_type: "
+                          "Run query; sqlite error: " + rc);
+    }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
 }
 
 void HistoryStorage::saveRecord(
-    Record::Shared record) {
-
+    Record::Shared record)
+{
     string query = "INSERT INTO " + mTableName
                    + "(operation_uuid, operation_timestamp, record_type, record_body, record_body_bytes_count) "
                                                              "VALUES(?, ?, ?, ?, ?);";
@@ -112,8 +150,8 @@ void HistoryStorage::saveRecord(
 }
 
 void HistoryStorage::saveTrustLineRecord(
-    TrustLineRecord::Shared record) {
-
+    TrustLineRecord::Shared record)
+{
     string query = "INSERT INTO " + mTableName
                    + "(operation_uuid, operation_timestamp, record_type, record_body, record_body_bytes_count) "
                        "VALUES(?, ?, ?, ?, ?);";
@@ -168,8 +206,8 @@ void HistoryStorage::saveTrustLineRecord(
 }
 
 void HistoryStorage::savePaymentRecord(
-    PaymentRecord::Shared record) {
-
+    PaymentRecord::Shared record)
+{
     string query = "INSERT INTO " + mTableName
                    + "(operation_uuid, operation_timestamp, record_type, record_body, record_body_bytes_count) "
                        "VALUES(?, ?, ?, ?, ?);";
@@ -209,7 +247,6 @@ void HistoryStorage::savePaymentRecord(
         throw IOError("HistoryStorage::insert: "
                           "Bad binding of RecordBody bytes count; sqlite error: " + rc);
     }
-
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
@@ -225,8 +262,8 @@ void HistoryStorage::savePaymentRecord(
 
 vector<PaymentRecord::Shared> HistoryStorage::allPaymentRecords(
     size_t recordsCount,
-    size_t fromRecord) {
-
+    size_t fromRecord)
+{
     vector<PaymentRecord::Shared> result;
     for (auto const &itRecord : allRecordsByType(
         Record::RecordType::PaymentRecordType,
@@ -241,8 +278,8 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentRecords(
 
 vector<TrustLineRecord::Shared> HistoryStorage::allTrustLineRecords(
     size_t recordsCount,
-    size_t fromRecord) {
-
+    size_t fromRecord)
+{
     vector<TrustLineRecord::Shared> result;
     for (auto const &itRecord : allRecordsByType(
         Record::RecordType::TrustLineRecordType,

@@ -7,8 +7,8 @@ RoutingTableHandler::RoutingTableHandler(
 
     mDataBase(dbConnection),
     mTableName(tableName),
-    mLog(logger) {
-
+    mLog(logger)
+{
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                      "(source BLOB NOT NULL, "
                      "destination BLOB NOT NULL);";
@@ -24,7 +24,6 @@ RoutingTableHandler::RoutingTableHandler(
         throw IOError("RoutingTableHandler::creating table: "
                           "Run query; sqlite error: " + rc);
     }
-
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_source_idx on " + mTableName + "(source);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -38,7 +37,6 @@ RoutingTableHandler::RoutingTableHandler(
         throw IOError("RoutingTableHandler::creating index for Source: "
                           "Run query; sqlite error: " + rc);
     }
-
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
             + "_destination_idx on " + mTableName + "(destination);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -52,7 +50,6 @@ RoutingTableHandler::RoutingTableHandler(
         throw IOError("RoutingTableHandler::creating index for Destination: "
                           "Run query; sqlite error: " + rc);
     }
-
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_source_destination_unique_idx ON " + mTableName
             + " (source, destination)";
@@ -73,8 +70,8 @@ RoutingTableHandler::RoutingTableHandler(
 
 void RoutingTableHandler::deleteRecord(
     const NodeUUID &source,
-    const NodeUUID &destination) {
-
+    const NodeUUID &destination)
+{
     string query = "DELETE FROM " + mTableName + " WHERE source = ? AND destination = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
@@ -82,13 +79,11 @@ void RoutingTableHandler::deleteRecord(
         throw IOError("RoutingTableHandler::deleteRecord: "
                           "Bad query; sqlite error: " + rc);
     }
-
     rc = sqlite3_bind_blob(stmt, 1, source.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::deleteRecord: "
                           "Bad binding of Source; sqlite error: " + rc);
     }
-
     rc = sqlite3_bind_blob(stmt, 2, destination.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::deleteRecord: "
@@ -109,8 +104,8 @@ void RoutingTableHandler::deleteRecord(
 
 void RoutingTableHandler::saveRecord(
     const NodeUUID &source,
-    const NodeUUID &destination) {
-
+    const NodeUUID &destination)
+{
     string query = "INSERT OR REPLACE INTO " + mTableName +
                    "(source, destination) VALUES (?, ?);";
     sqlite3_stmt *stmt;
@@ -143,8 +138,8 @@ void RoutingTableHandler::saveRecord(
     }
 }
 
-vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords() {
-
+vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords()
+{
     DateTime startTime = utc_now();
     string countQuery = "SELECT count(*) FROM " + mTableName;
     sqlite3_stmt *stmt;
@@ -180,8 +175,8 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords() {
     return result;
 }
 
-unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> RoutingTableHandler::routeRecordsMapDestinationKey() {
-
+unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> RoutingTableHandler::routeRecordsMapDestinationKey()
+{
     DateTime startTime = utc_now();
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> result;
     string query = "SELECT source, destination FROM " + mTableName + " ORDER BY destination";
@@ -226,8 +221,8 @@ unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> Routi
 }
 
 set<NodeUUID> RoutingTableHandler::neighborsOf (
-    const NodeUUID &sourceUUID) {
-
+    const NodeUUID &sourceUUID)
+{
     DateTime startTime = utc_now();
     set<NodeUUID> result;
     string query = "SELECT destination FROM " + mTableName + " WHERE source = ?";
@@ -253,8 +248,8 @@ set<NodeUUID> RoutingTableHandler::neighborsOf (
     return result;
 }
 
-map<const NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapSourceKey() {
-
+map<const NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapSourceKey()
+{
     map<const NodeUUID, vector<NodeUUID>> result;
     string query = "SELECT source, destination FROM " + mTableName;
     sqlite3_stmt *stmt;
@@ -285,8 +280,8 @@ map<const NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapSource
     return result;
 }
 
-bool RoutingTableHandler::isNodePresentAsDestination(const NodeUUID &nodeUUID) {
-
+bool RoutingTableHandler::isNodePresentAsDestination(const NodeUUID &nodeUUID)
+{
     string query = "SELECT 1 FROM " + mTableName + " WHERE destination = ?";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
@@ -305,8 +300,8 @@ bool RoutingTableHandler::isNodePresentAsDestination(const NodeUUID &nodeUUID) {
     return rc == SQLITE_ROW;
 }
 
-void RoutingTableHandler::deleteAllRecordsWithSource(const NodeUUID &sourceUUID) {
-
+void RoutingTableHandler::deleteAllRecordsWithSource(const NodeUUID &sourceUUID)
+{
     string query = "DELETE FROM " + mTableName + " WHERE source = ?";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -329,27 +324,27 @@ void RoutingTableHandler::deleteAllRecordsWithSource(const NodeUUID &sourceUUID)
     sqlite3_finalize(stmt);
 }
 
-const string& RoutingTableHandler::tableName() const {
-
+const string& RoutingTableHandler::tableName() const
+{
     return mTableName;
 }
 
-LoggerStream RoutingTableHandler::info() const {
-
+LoggerStream RoutingTableHandler::info() const
+{
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->info(logHeader());
 }
 
-LoggerStream RoutingTableHandler::error() const {
-
+LoggerStream RoutingTableHandler::error() const
+{
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->error(logHeader());
 }
 
-const string RoutingTableHandler::logHeader() const {
-
+const string RoutingTableHandler::logHeader() const
+{
     stringstream s;
     s << "[RoutingTableHandler]";
     return s.str();

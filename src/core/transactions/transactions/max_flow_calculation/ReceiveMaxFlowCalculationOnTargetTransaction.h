@@ -29,7 +29,6 @@ protected:
     const string logHeader() const;
 
 private:
-
     void sendMessagesOnFirstLevel();
 
     void sendResultToInitiator();

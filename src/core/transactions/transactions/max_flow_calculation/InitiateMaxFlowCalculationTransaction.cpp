@@ -1,34 +1,34 @@
 #include "InitiateMaxFlowCalculationTransaction.h"
 
 InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
-        NodeUUID &nodeUUID,
-        InitiateMaxFlowCalculationCommand::Shared command,
-        TrustLinesManager *manager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *logger) :
+    NodeUUID &nodeUUID,
+    InitiateMaxFlowCalculationCommand::Shared command,
+    TrustLinesManager *manager,
+    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    Logger *logger) :
 
-        BaseTransaction(
-                BaseTransaction::TransactionType::InitiateMaxFlowCalculationTransactionType,
-                nodeUUID,
-                logger),
-        mCommand(command),
-        mTrustLinesManager(manager),
-        mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
-        mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager) {}
+    BaseTransaction(
+        BaseTransaction::TransactionType::InitiateMaxFlowCalculationTransactionType,
+        nodeUUID,
+        logger),
+    mCommand(command),
+    mTrustLinesManager(manager),
+    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+{}
 
-InitiateMaxFlowCalculationCommand::Shared InitiateMaxFlowCalculationTransaction::command() const {
-
+InitiateMaxFlowCalculationCommand::Shared InitiateMaxFlowCalculationTransaction::command() const
+{
     return mCommand;
 }
 
-TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
-
+TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
+{
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "initiator: " << mNodeUUID;
     info() << "run\t" << "target: " << mCommand->contractorUUID();
 #endif
-
     switch (mStep) {
         case Stages::SendRequestForCollectingTopology:
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
@@ -61,15 +61,15 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run() {
     }
 }
 
-void InitiateMaxFlowCalculationTransaction::sendMessageToRemoteNode() {
-
+void InitiateMaxFlowCalculationTransaction::sendMessageToRemoteNode()
+{
     sendMessage<InitiateMaxFlowCalculationMessage>(
         mCommand->contractorUUID(),
         currentNodeUUID());
 }
 
-void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel() {
-
+void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel()
+{
     vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
     for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
@@ -82,7 +82,8 @@ void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel() {
 
 }
 
-TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow() {
+TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow()
+{
     TrustLineAmount result = 0;
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "calculateMaxFlow\tstart found flow to: " << mCommand->contractorUUID();
@@ -126,7 +127,6 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow() {
             break;
         }
     }
-
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
     return result;
 }
@@ -134,8 +134,8 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow() {
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     const NodeUUID& nodeUUID,
     const TrustLineAmount& currentFlow,
-    byte level) {
-
+    byte level)
+{
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "calculateMaxFlow\t" << "go in: " << nodeUUID << "->"
                   << currentFlow << "->" << to_string(level);
@@ -201,6 +201,5 @@ const string InitiateMaxFlowCalculationTransaction::logHeader() const
 {
     stringstream s;
     s << "[InitiateMaxFlowCalculationTA]";
-
     return s.str();
 }

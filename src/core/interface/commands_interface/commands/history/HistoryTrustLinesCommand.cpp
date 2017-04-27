@@ -6,13 +6,13 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
 
         BaseUserCommand(
                 uuid,
-                identifier()) {
-
+                identifier())
+{
     parse(commandBuffer);
 }
 
-const string &HistoryTrustLinesCommand::identifier() {
-
+const string &HistoryTrustLinesCommand::identifier()
+{
     static const string identifier = "GET:/history/trust-lines";
     return identifier;
 }
@@ -21,15 +21,13 @@ const string &HistoryTrustLinesCommand::identifier() {
  * Throws ValueError if deserialization was unsuccessful.
  */
 void HistoryTrustLinesCommand::parse(
-        const string &command) {
-
+        const string &command)
+{
     const auto minCommandLength = 3;
-
     if (command.size() < minCommandLength) {
         throw ValueError("HistoryTrustLinesCommand::parse: "
                                  "Can't parse command. Received command is to short.");
     }
-
     size_t tabSeparator = command.find("\t");
     string historyFromStr = command.substr(
         0,
@@ -44,7 +42,6 @@ void HistoryTrustLinesCommand::parse(
         throw ValueError("HistoryTrustLinesCommand::parse: "
                                  "Can't parse command. Error occurred while parsing  'from' token.");
     }
-
     string historyCountStr = command.substr(
         tabSeparator + 1,
         command.size() - 1);
@@ -60,18 +57,18 @@ void HistoryTrustLinesCommand::parse(
     }
 }
 
-const size_t HistoryTrustLinesCommand::historyFrom() const {
-
+const size_t HistoryTrustLinesCommand::historyFrom() const
+{
     return mHistoryFrom;
 }
 
-const size_t HistoryTrustLinesCommand::historyCount() const {
-
+const size_t HistoryTrustLinesCommand::historyCount() const
+{
     return mHistoryCount;
 }
 
-CommandResult::SharedConst HistoryTrustLinesCommand::resultOk(string &historyTrustLinesStr) const {
-
+CommandResult::SharedConst HistoryTrustLinesCommand::resultOk(string &historyTrustLinesStr) const
+{
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),

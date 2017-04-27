@@ -3,7 +3,6 @@
 
 #include "../SenderMessage.h"
 
-
 class MaxFlowCalculationSourceFstLevelMessage:
     public SenderMessage {
 

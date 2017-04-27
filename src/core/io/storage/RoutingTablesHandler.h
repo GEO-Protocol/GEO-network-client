@@ -10,7 +10,6 @@
 class RoutingTablesHandler {
 
 public:
-
     RoutingTablesHandler(
         sqlite3 *dbConnection,
         const string &rt2TableName,
@@ -76,7 +75,6 @@ private:
     RoutingTableHandler mRoutingTable2Level;
     RoutingTableHandler mRoutingTable3Level;
     Logger *mLog;
-
 };
 
 

@@ -14,15 +14,16 @@ GetRoutingTablesTransaction::GetRoutingTablesTransaction(
 
     mMessage(message),
     mTrustLinesManager(manager),
-    mStorageHandler(storageHandler){}
+    mStorageHandler(storageHandler)
+{}
 
-RequestRoutingTablesMessage::Shared GetRoutingTablesTransaction::message() const {
-
+RequestRoutingTablesMessage::Shared GetRoutingTablesTransaction::message() const
+{
     return  mMessage;
 }
 
-TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
-
+TransactionResult::SharedConst GetRoutingTablesTransaction::run()
+{
     sendRoutingTables();
 #ifdef GETTING_PATHS_DEBUG_LOG
     info() << "run\tI am " << mNodeUUID;
@@ -31,8 +32,8 @@ TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
     return make_shared<TransactionResult>(TransactionState::exit());
 }
 
-void GetRoutingTablesTransaction::sendRoutingTables() {
-
+void GetRoutingTablesTransaction::sendRoutingTables()
+{
     auto ioTransaction = mStorageHandler->beginTransaction();
 #ifdef GETTING_PATHS_DEBUG_LOG
     info() << "sendRoutingTables\tRT1 size: " << mTrustLinesManager->rt1().size();
@@ -44,7 +45,6 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             mMessage->transactionUUID(),
             mTrustLinesManager->rt1());
     }
-
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt2
         = ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2();
     size_t rt2MessageCount = rt2.size() / kCountElementsPerMessage;
@@ -81,7 +81,6 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             subRT2);
         std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
-
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt3
         = ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
     size_t rt3MessageCount = rt3.size() / kCountElementsPerMessage;
@@ -124,6 +123,5 @@ const string GetRoutingTablesTransaction::logHeader() const
 {
     stringstream s;
     s << "[GetRoutingTablesTA]";
-
     return s.str();
 }

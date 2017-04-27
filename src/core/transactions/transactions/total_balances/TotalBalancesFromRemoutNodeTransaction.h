@@ -36,10 +36,10 @@ private:
     TransactionResult::SharedConst checkTransactionContext();
 
     TransactionResult::SharedConst resultOk(
-            const TrustLineAmount &totalIncomingTrust,
-            const TrustLineAmount &totalTrustUsedByContractor,
-            const TrustLineAmount &totalOutgoingTrust,
-            const TrustLineAmount &totalTrustUsedBySelf);
+        const TrustLineAmount &totalIncomingTrust,
+        const TrustLineAmount &totalTrustUsedByContractor,
+        const TrustLineAmount &totalOutgoingTrust,
+        const TrustLineAmount &totalTrustUsedBySelf);
     
 private:
     const uint16_t kConnectionTimeout = 500;

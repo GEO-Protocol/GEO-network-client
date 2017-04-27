@@ -11,23 +11,22 @@ public:
 
 public:
     TotalBalancesRemouteNodeCommand(
-            const CommandUUID &uuid,
-            const string &commandBuffer);
+        const CommandUUID &uuid,
+        const string &commandBuffer);
 
     static const string &identifier();
 
     const NodeUUID &contractorUUID() const;
 
-    CommandResult::SharedConst responseOk(string &totalBalancesStr) const;
+    CommandResult::SharedConst responseOk(
+        string &totalBalancesStr) const;
 
 protected:
-
     void parse(
-            const string &command);
+        const string &command);
 
 private:
     NodeUUID mContractorUUID;
-
 };
 
 

@@ -17,8 +17,6 @@ public:
         BytesShared buffer);
 
     const MessageType typeID() const;
-
 };
-
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSOURCESNDLEVELMESSAGE_H

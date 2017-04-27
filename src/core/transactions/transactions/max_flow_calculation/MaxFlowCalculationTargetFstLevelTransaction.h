@@ -28,7 +28,6 @@ protected:
 private:
     MaxFlowCalculationTargetFstLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-
 };
 
 

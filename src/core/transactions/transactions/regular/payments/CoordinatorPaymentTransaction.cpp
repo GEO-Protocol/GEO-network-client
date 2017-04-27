@@ -773,6 +773,28 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
     path->setNodeState(
         1, PathStats::NeighbourReservationApproved);
 
+    // shortage reservation
+    // TODO maby add if change path->maxFlow()
+    auto localReservationsCopy = mReservations;
+    for (auto const &itNodeAndReservations : localReservationsCopy) {
+        auto nodeReservations = itNodeAndReservations.second;
+        // TODO test this updating reservation; like in
+        // BasePaymentTransaction::runFinalPathsConfigurationProcessingStage
+        while (!nodeReservations.empty()) {
+            const auto kMinReservationIterator = min_element(
+                nodeReservations.cbegin(),
+                nodeReservations.cend());
+
+            const auto kMinReservation = *kMinReservationIterator;
+            shortageReservation(
+                itNodeAndReservations.first,
+                kMinReservation,
+                path->maxFlow());
+
+            // Prevent updating the same reservation twice
+            nodeReservations.erase(kMinReservationIterator);
+        }
+    }
 
     return runAmountReservationStage();
 }
@@ -799,7 +821,28 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
 
     path->shortageMaxFlow(message->amountReserved());
     info() << "Path max flow is now " << path->maxFlow();
+    if (path->isLastIntermediateNodeProcessed()) {
+        const auto kTotalAmount = totalReservedByAllPaths();
 
+        info() << "Current path reservation finished";
+        info() << "Total collected amount by all paths: " << kTotalAmount;
+
+        if (kTotalAmount > mCommand->amount()){
+            error() << "Total requested amount: " << mCommand->amount();
+            error() << "Total collected amount is greater than requested amount. "
+                "It indicates that some of the nodes doesn't follows the protocol, "
+                "or that an error is present in protocol itself.";
+
+            return resultDone();
+        }
+
+        if (kTotalAmount == mCommand->amount()){
+            info() << "Total requested amount: " << mCommand->amount() << ". Collected.";
+            info() << "Begin processing participants votes.";
+
+            return propagateVotesListAndWaitForConfigurationRequests();
+        }
+    }
 
     return runAmountReservationStage();
 }
@@ -872,6 +915,29 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         path->setNodeState(
             R_PathPosition,
             PathStats::ReservationApproved);
+
+        // shortage reservation
+        // TODO maby add if change path->maxFlow()
+        auto localReservationsCopy = mReservations;
+        for (auto const &itNodeAndReservations : localReservationsCopy) {
+            auto nodeReservations = itNodeAndReservations.second;
+            // TODO test this updating reservation; like in
+            // BasePaymentTransaction::runFinalPathsConfigurationProcessingStage
+            while (!nodeReservations.empty()) {
+                const auto kMinReservationIterator = min_element(
+                    nodeReservations.cbegin(),
+                    nodeReservations.cend());
+
+                const auto kMinReservation = *kMinReservationIterator;
+                shortageReservation(
+                    itNodeAndReservations.first,
+                    kMinReservation,
+                    path->maxFlow());
+
+                // Prevent updating the same reservation twice
+                nodeReservations.erase(kMinReservationIterator);
+            }
+        }
 
         info() << "(" << message->senderUUID << ") reserved " << reservedAmount;
         info() << "Path max flow is now " << path->maxFlow();

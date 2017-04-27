@@ -15,7 +15,6 @@
 class PathsManager {
 
 public:
-
     PathsManager(
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
@@ -43,7 +42,6 @@ public:
     void clearPathsCollection();
 
 private:
-
     void findDirectPath();
 
     void findPathsOnSecondLevel();
@@ -115,15 +113,12 @@ private:
     void testDeletingRT();
 
 private:
-
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     Logger *mLog;
     PathsCollection::Shared mPathCollection;
     NodeUUID mNodeUUID;
-
     NodeUUID mContractorUUID;
-
 };
 
 

@@ -9,7 +9,8 @@ ResultRoutingTable1LevelMessage::ResultRoutingTable1LevelMessage(
         senderUUID,
         transactionUUID),
 
-    mRT1(rt1) {}
+    mRT1(rt1)
+{}
 
 ResultRoutingTable1LevelMessage::ResultRoutingTable1LevelMessage(
     BytesShared buffer):
@@ -34,12 +35,13 @@ ResultRoutingTable1LevelMessage::ResultRoutingTable1LevelMessage(
     }
 }
 
-const Message::MessageType ResultRoutingTable1LevelMessage::typeID() const {
+const Message::MessageType ResultRoutingTable1LevelMessage::typeID() const
+{
     return Message::MessageType::Paths_ResultRoutingTableFirstLevel;
 }
 
-vector<NodeUUID>& ResultRoutingTable1LevelMessage::rt1() {
-
+vector<NodeUUID>& ResultRoutingTable1LevelMessage::rt1()
+{
     return mRT1;
 }
 
@@ -83,7 +85,6 @@ pair<BytesShared, size_t> ResultRoutingTable1LevelMessage::serializeToBytes() co
     /*Duration methodTime = utc_now() - startTime;
     cout << "ResultRoutingTable1LevelMessage::serializing time: " << methodTime << endl;*/
 #endif
-
     return make_pair(
         dataBytesShared,
         bytesCount);

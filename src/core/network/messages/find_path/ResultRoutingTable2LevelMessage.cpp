@@ -9,7 +9,8 @@ ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
         senderUUID,
         transactionUUID),
 
-    mRT2(rt2) {}
+    mRT2(rt2)
+{}
 
 ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
     BytesShared buffer) :
@@ -51,12 +52,13 @@ ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
 #endif
 }
 
-const Message::MessageType ResultRoutingTable2LevelMessage::typeID() const {
+const Message::MessageType ResultRoutingTable2LevelMessage::typeID() const
+{
     return Message::MessageType::Paths_ResultRoutingTableSecondLevel;
 }
 
-unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& ResultRoutingTable2LevelMessage::rt2() {
-
+unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& ResultRoutingTable2LevelMessage::rt2()
+{
     return mRT2;
 }
 
@@ -120,8 +122,8 @@ pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() co
 }
 
 
-size_t ResultRoutingTable2LevelMessage::rt2ByteSize() const {
-
+size_t ResultRoutingTable2LevelMessage::rt2ByteSize() const
+{
     size_t result = sizeof(RecordCount);
     for (auto const &nodeUUIDAndVector : mRT2) {
         result += NodeUUID::kBytesSize + sizeof(RecordCount) +

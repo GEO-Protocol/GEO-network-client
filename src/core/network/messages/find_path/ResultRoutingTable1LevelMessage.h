@@ -9,7 +9,6 @@
 #include "../../../common/time/TimeUtils.h"
 #include <vector>
 
-
 class ResultRoutingTable1LevelMessage:
     public TransactionMessage {
 
