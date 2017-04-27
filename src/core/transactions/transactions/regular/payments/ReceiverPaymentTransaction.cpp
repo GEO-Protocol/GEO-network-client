@@ -39,7 +39,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
 {
-    cout << "ReceiverPaymentTransaction" << endl;
+    cout << "ReceiverPaymentTransaction"  << to_string(mStep) << endl;
     switch (mStep) {
     case Stages::Receiver_CoordinatorRequestApproving:
         return runInitialisationStage();

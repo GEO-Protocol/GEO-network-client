@@ -396,32 +396,32 @@ void Core::connectTrustLinesManagerSignals() {
 }
 
 void Core::connectDelayedTasksSignals(){
-    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskCycleSixNodesSlot,
-                    this
-            )
-    );
-    mCyclesDelayedTasks->mFiveNodesCycleSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskCycleFiveNodesSlot,
-                    this
-            )
-    );
-    #ifdef TESTS
-    mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskCycleThreeNodesSlot,
-                    this
-            )
-    );
-    mCyclesDelayedTasks->mFourNodesCycleSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskCycleFourNodesSlot,
-                    this
-            )
-    );
-    #endif
+//    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
+//        boost::bind(
+//            &Core::onDelayedTaskCycleSixNodesSlot,
+//            this
+//        )
+//    );
+//    mCyclesDelayedTasks->mFiveNodesCycleSignal.connect(
+//        boost::bind(
+//            &Core::onDelayedTaskCycleFiveNodesSlot,
+//            this
+//        )
+//    );
+//    #ifdef TESTS
+//    mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
+//            boost::bind(
+//                    &Core::onDelayedTaskCycleThreeNodesSlot,
+//                    this
+//            )
+//    );
+//    mCyclesDelayedTasks->mFourNodesCycleSignal.connect(
+//            boost::bind(
+//                    &Core::onDelayedTaskCycleFourNodesSlot,
+//                    this
+//            )
+//    );
+//    #endif
 }
 
 void Core::connectResourcesManagerSignals() {
@@ -667,6 +667,7 @@ void Core::checkSomething() {
         cout << "Debug mode. checkSomething" << endl;
 //        return recover("Debug recover");
     }
+    printRTs();
 }
 
 void Core::printRTs() {

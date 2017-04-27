@@ -116,12 +116,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         kCurrentNodeUUID,
         currentTransactionUUID());
     // todo remove debug code
-    const NodeUUID debugNodeUUID = NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
-    if(mNodeUUID == debugNodeUUID) {
-        cout << "Debug mode. Wait for recovery" << endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-        return recover("Debug recover");
-    }
+//    const NodeUUID debugNodeUUID = NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
+//    if(mNodeUUID == debugNodeUUID) {
+//        cout << "Debug mode. Wait for recovery" << endl;
+//        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+//        return recover("Debug recover");
+//    }
     info() << "Final payment paths configuration requested from the coordinator.";
 
 
@@ -210,12 +210,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
 
         info() << "Votes list message transferred to the (" << kNextParticipant << ")";
         // debug code
-        const NodeUUID debugNodeUUID = NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
-        if(mNodeUUID == debugNodeUUID) {
-            cout << "Debug mode. Wait for recovery" << endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-            return recover("Debug recover");
-        }
+//        const NodeUUID debugNodeUUID = NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
+//        if(mNodeUUID == debugNodeUUID) {
+//            cout << "Debug mode. Wait for recovery" << endl;
+//            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+//            return recover("Debug recover");
+//        }
         // debug code
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
@@ -571,6 +571,7 @@ TransactionResult::SharedConst BasePaymentTransaction::exitWithResult(
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::runVotesRecoveryParenStage() {
+    cout << "BasePaymentTransaction::runVotesRecoveryParenStage()" << endl;
     switch (mVotesRecoveryStep) {
         case VoutesRecoveryStages ::Common_PrepareNodesListToCheckVotes:
             return runPrepareListNodesToCheckNodes();

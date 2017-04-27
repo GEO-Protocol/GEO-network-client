@@ -36,7 +36,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
 {
-    cout << "IntermediateNodePaymentTransaction" << endl;
+    cout << "IntermediateNodePaymentTransaction"  << to_string(mStep) << endl;
     switch (mStep) {
     case Stages::IntermediateNode_PreviousNeighborRequestProcessing:
         return runPreviousNeighborRequestProcessingStage();
