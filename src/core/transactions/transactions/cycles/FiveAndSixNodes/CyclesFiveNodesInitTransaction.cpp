@@ -39,7 +39,7 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
 #pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     if (mContext.size() == 0) {
-        info() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
+        info() << "CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
                 "No responses messages "
                 "Can't create cycles;";
 

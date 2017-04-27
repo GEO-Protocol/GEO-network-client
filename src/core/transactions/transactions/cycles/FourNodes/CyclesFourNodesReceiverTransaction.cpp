@@ -11,7 +11,6 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(manager),
-    mLogger(logger),
     mRequestMessage(message)
 {}
 

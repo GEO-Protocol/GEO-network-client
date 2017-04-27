@@ -41,7 +41,6 @@ protected:
     NodeUUID mDebtorContractorUUID;
     NodeUUID mCreditorContractorUUID;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
     RoutingTablesHandler *mRoutingTablesHandler;
 };
 

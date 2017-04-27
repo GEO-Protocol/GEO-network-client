@@ -13,7 +13,6 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(manager),
-    mLogger(logger),
     mRoutingTablesHandler(routingTablesHandler),
     mDebtorContractorUUID(debtorContractorUUID),
     mCreditorContractorUUID(creditorContractorUUID)

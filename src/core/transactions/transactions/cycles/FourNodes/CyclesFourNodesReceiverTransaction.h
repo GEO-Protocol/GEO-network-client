@@ -23,6 +23,5 @@ public:
 protected:
     CyclesFourNodesBalancesRequestMessage::Shared mRequestMessage;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
 };
 #endif //GEO_NETWORK_CLIENT_CYCLEFOURNODESRESPONSETRANSACTION_H

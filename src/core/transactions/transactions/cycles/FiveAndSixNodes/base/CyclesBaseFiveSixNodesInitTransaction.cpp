@@ -7,9 +7,9 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
     Logger *logger) :
     BaseTransaction(
         type,
-        nodeUUID),
-    mTrustLinesManager(manager),
-    mLogger(logger)
+        nodeUUID,
+        logger),
+    mTrustLinesManager(manager)
 {
 };
 

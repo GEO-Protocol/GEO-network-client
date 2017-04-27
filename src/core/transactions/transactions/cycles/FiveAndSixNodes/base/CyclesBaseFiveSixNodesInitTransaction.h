@@ -31,7 +31,6 @@ protected:
 
 protected:
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESINITTRANSACTION_H

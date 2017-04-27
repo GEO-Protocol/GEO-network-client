@@ -13,7 +13,6 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
         logger),
     mRoutingTablesHandler(routingTablesHandler),
     mTrustLinesManager(manager),
-    mLogger(logger),
     mContractorUUID(contractorUUID)
 {}
 
