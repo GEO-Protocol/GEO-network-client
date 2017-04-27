@@ -7,8 +7,7 @@ TransactionHandler::TransactionHandler(
 
     mDataBase(dbConnection),
     mTableName(tableName),
-    mLog(logger),
-    isTransactionBegin(false){
+    mLog(logger) {
 
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    " (transaction_uuid BLOB NOT NULL, "
@@ -17,7 +16,8 @@ TransactionHandler::TransactionHandler(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::creating table: Bad query");
+        throw IOError("TransactionHandler::creating table: "
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
@@ -30,112 +30,17 @@ TransactionHandler::TransactionHandler(
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionHandler::creating index for TransactionUUID: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("TransactionHandler::creating index for TransactionUUID: "
-                          "Run query");
+                          "Run query; sqlite error: " + rc);
     }
 
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-}
-
-void TransactionHandler::prepareInserted() {
-
-    if (isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call prepareInsertred, but previous transaction isn't finished";
-#endif
-        return;
-    }
-
-    string query = "BEGIN TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::prepareInserted: "
-                          "Bad query");
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "transaction begin";
-#endif
-    } else {
-        throw IOError("TransactionHandler::prepareInserted: "
-                          "Run query");
-    }
-    isTransactionBegin = true;
-}
-
-bool TransactionHandler::commit() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call commit, but trunsaction wasn't started";
-#endif
-        return true;
-    }
-
-    string query = "END TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::commit: Bad query");
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "transaction commit";
-#endif
-        isTransactionBegin = false;
-        return true;
-    } else if (rc == SQLITE_BUSY) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "database busy";
-#endif
-        return false;
-    } else {
-        info() << "commit error: " << rc;
-        throw IOError("TransactionHandler::commit: "
-                          "Run query");
-    }
-}
-
-void TransactionHandler::rollBack() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call rollBack, but trunsaction wasn't started";
-#endif
-        return;
-    }
-
-    string query = "ROLLBACK;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::rollback: Bad query");
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "rollBack done";
-#endif
-    } else {
-        throw IOError("TransactionHandler::rollback: "
-                          "Run query");
-    }
-    isTransactionBegin = false;
 }
 
 void TransactionHandler::saveRecord(
@@ -143,32 +48,28 @@ void TransactionHandler::saveRecord(
     BytesShared transaction,
     size_t transactionBytesCount) {
 
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
     string query = "INSERT OR REPLACE INTO " + mTableName +
                    " (transaction_uuid, transaction_body, transaction_bytes_count) VALUES(?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionHandler::insert or replace: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionHandler::insert or replace: "
-                          "Bad binding of TransactionUUID");
+                          "Bad binding of TransactionUUID; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 2, transaction.get(), (int)transactionBytesCount, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionHandler::insert or replace: "
-                          "Bad binding of Transaction body");
+                          "Bad binding of Transaction body; sqlite error: " + rc);
     }
     rc = sqlite3_bind_int(stmt, 3, (int)transactionBytesCount);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionHandler::insert or replace: "
-                          "Bad binding of Transaction bytes count");
+                          "Bad binding of Transaction bytes count; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -179,28 +80,24 @@ void TransactionHandler::saveRecord(
 #endif
     } else {
         throw IOError("TransactionHandler::insert or replace: "
-                          "Run query");
+                          "Run query; sqlite error: " + rc);
     }
 }
 
 void TransactionHandler::deleteRecord(
     const TransactionUUID &transactionUUID) {
 
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
     string query = "DELETE FROM " + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionHandler::delete: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionHandler::delete: "
-                          "Bad binding of TransactionUUID");
+                          "Bad binding of TransactionUUID; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -211,24 +108,25 @@ void TransactionHandler::deleteRecord(
 #endif
     } else {
         throw IOError("PaymentOperationStateHandler::delete: "
-                          "Run query");
+                          "Run query; sqlite error: " + rc);
     }
 }
 
 pair<BytesShared, size_t> TransactionHandler::getTransaction(
     const TransactionUUID &transactionUUID) {
 
-    string query = "SELECT transaction_body, transaction_bytes_count FROM " + mTableName + " WHERE transaction_uuid = ?;";
+    string query = "SELECT transaction_body, transaction_bytes_count FROM "
+                   + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionHandler::getTransaction: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionHandler::getTransaction: "
-                          "Bad binding of TransactionUUID");
+                          "Bad binding of TransactionUUID; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
@@ -246,13 +144,6 @@ pair<BytesShared, size_t> TransactionHandler::getTransaction(
         sqlite3_finalize(stmt);
         throw NotFoundError("TransactionHandler::getTransaction: "
                                 "There are now records with requested transactionUUID");
-    }
-}
-
-void TransactionHandler::closeConnection() {
-
-    if (mDataBase != nullptr) {
-        sqlite3_close_v2(mDataBase);
     }
 }
 

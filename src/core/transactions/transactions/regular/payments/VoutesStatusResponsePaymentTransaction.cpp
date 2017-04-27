@@ -3,20 +3,20 @@
 VoutesStatusResponsePaymentTransaction::VoutesStatusResponsePaymentTransaction(
         const NodeUUID &nodeUUID,
         VotesStatusRequestMessage::Shared message,
-        PaymentOperationStateHandler *paymentOperationStateHandler,
+        StorageHandler *storageHandler,
         Logger *logger):
         BaseTransaction(
                 BaseTransaction::TransactionType::VoutesStatusResponsePaymentTransaction,
                 nodeUUID,
                 logger),
-        mPaymentOperationStateHandler(paymentOperationStateHandler),
-        mRequestMessage(message),
-        mLogger(logger)
+        mStorageHandler(storageHandler),
+        mRequestMessage(message)
 {}
 
 TransactionResult::SharedConst VoutesStatusResponsePaymentTransaction::run() {
     try {
-        auto bufferAndSize = mPaymentOperationStateHandler->getState(mRequestMessage->transactionUUID());
+        auto ioTransation = mStorageHandler->beginTransaction();
+        auto bufferAndSize = ioTransation->paymentOperationStateHandler()->getState(mRequestMessage->transactionUUID());
         auto responseMessage = make_shared<ParticipantsVotesMessage>(
                 bufferAndSize.first
         );

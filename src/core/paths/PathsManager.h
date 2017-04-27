@@ -40,11 +40,17 @@ public:
 
     PathsCollection::Shared pathCollection() const;
 
+    void clearPathsCollection();
+
 private:
 
     void findDirectPath();
 
     void findPathsOnSecondLevel();
+
+    // TODO : it should be removed
+    void findPathsOnSecondLevelWithoutRoutingTables(
+        vector<NodeUUID> &contractorRT1);
 
     void findPathsOnThirdLevel();
 
@@ -96,6 +102,7 @@ private:
     NodeUUID* getPtrByNodeNumber(
         uint32_t number,
         vector<NodeUUID*> nodeUUIDPtrs);
+    void fillCycleTables();
 
     // TODO: remove after testing
     void testStorageHandler();

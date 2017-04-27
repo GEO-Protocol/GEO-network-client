@@ -34,23 +34,30 @@ public:
         vector<Message::MessageType> &&requiredMessageType,
         uint32_t noLongerThanMilliseconds = 0);
 
+    static TransactionState::SharedConst waitForMessageTypesAndAwakeAfterMilliseconds(
+        vector<Message::MessageType> &&requiredMessageType,
+        uint32_t noLongerThanMilliseconds = 0);
+
     static TransactionState::SharedConst waitForResourcesTypes(
         vector<BaseResource::ResourceType> &&requiredResourcesType,
         uint32_t noLongerThanMilliseconds = 0);
 
 public:
     TransactionState(
-        GEOEpochTimestamp awakeningTimestamp,
-        bool flushToPermanentStorage = false);
+        Message::MessageType requiredMessageType,
+        bool flushToPermanentStorage = false,
+        bool awakeOnMessage = true);
 
     TransactionState(
-        Message::MessageType requiredMessageType,
-        bool flushToPermanentStorage = false);
+        GEOEpochTimestamp awakeningTimestamp,
+        bool flushToPermanentStorage = false,
+        bool awakeOnMessage = true);
 
     TransactionState(
         GEOEpochTimestamp awakeTimestamp,
         Message::MessageType requiredMessageType,
-        bool flushToPermanentStorage = false);
+        bool flushToPermanentStorage = false,
+        bool awakeOnMessage = true);
 
 
     const GEOEpochTimestamp awakeningTimestamp() const;
@@ -65,11 +72,14 @@ public:
 
     const bool mustExit() const;
 
+    const bool mustBeAwakenedOnMessage() const;
+
 private:
     GEOEpochTimestamp mAwakeningTimestamp;
     vector<Message::MessageType> mRequiredMessageTypes;
     vector<BaseResource::ResourceType> mRequiredResourcesTypes;
     bool mFlushToPermanentStorage;
+    bool mMustBeAwakenedOnMessage;
 };
 
 

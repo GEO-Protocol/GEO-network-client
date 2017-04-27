@@ -4,7 +4,7 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     const NodeUUID &nodeUUID,
     RejectTrustLineMessage::Shared message,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    StorageHandler *storageHandler) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::RejectTrustLineTransactionType,
@@ -12,18 +12,18 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     ),
     mMessage(message),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {}
+    mStorageHandler(storageHandler) {}
 
 
 RejectTrustLineTransaction::RejectTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    StorageHandler *storageHandler) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::RejectTrustLineTransactionType),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {
+    mStorageHandler(storageHandler) {
 
     deserializeFromBytes(
         buffer);
@@ -99,13 +99,13 @@ void RejectTrustLineTransaction::rejectTrustLine() {
 
 void RejectTrustLineTransaction::logRejectingTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Rejecting,
         mMessage->senderUUID);
 
-    mOperationsHistoryStorage->addRecord(
-        record);
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 bool RejectTrustLineTransaction::checkDebt() {

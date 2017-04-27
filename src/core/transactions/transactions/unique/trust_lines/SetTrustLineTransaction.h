@@ -7,8 +7,8 @@
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
-#include "../../../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
+#include "../../../../io/storage/StorageHandler.h"
+#include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 
@@ -26,8 +26,6 @@
 #include <utility>
 #include <cstdint>
 
-using namespace db::operations_history_storage;
-
 class SetTrustLineTransaction: public TrustLineTransaction {
 public:
     typedef shared_ptr<SetTrustLineTransaction> Shared;
@@ -44,12 +42,12 @@ public:
         const NodeUUID &nodeUUID,
         SetTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        StorageHandler *storageHandler);
 
     SetTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        StorageHandler *storageHandler);
 
     SetTrustLineCommand::Shared command() const;
 
@@ -95,7 +93,7 @@ private:
 
     SetTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-    OperationsHistoryStorage *mOperationsHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 

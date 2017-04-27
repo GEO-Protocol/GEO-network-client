@@ -9,7 +9,7 @@
 #include "../../../../../logger/Logger.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../../io/storage/PaymentOperationStateHandler.h"
+#include "../../../../../io/storage/StorageHandler.h"
 
 #include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
@@ -32,7 +32,7 @@ public:
         const TransactionType type,
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
-        PaymentOperationStateHandler *paymentOperationStateHandler,
+        StorageHandler *storageHandler,
         Logger *log);
 
     BasePaymentTransaction(
@@ -40,22 +40,24 @@ public:
         const TransactionUUID &transactionUUID,
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
-        PaymentOperationStateHandler *paymentOperationStateHandler,
+        StorageHandler *storageHandler,
         Logger *log);
 
     BasePaymentTransaction(
-            const TransactionType type,
-            BytesShared buffer,
-            TrustLinesManager *trustLines,
-            PaymentOperationStateHandler *paymentOperationStateHandler,
-            Logger *log);
+        const TransactionType type,
+        BytesShared buffer,
+        TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
+        Logger *log);
 
 protected:
     enum Stages {
         Coordinator_Initialisation = 1,
+        Coordinator_ReceiverResourceProcessing,
         Coordinator_ReceiverResponseProcessing,
         Coordinator_AmountReservation,
         Coordinator_ShortPathAmountReservationResponseProcessing,
+        Coordinator_PreviousNeighborRequestProcessing,
         Coordinator_FinalPathsConfigurationApproving,
 
         Receiver_CoordinatorRequestApproving,
@@ -141,11 +143,14 @@ protected:
     // Specifies how long node may process transaction for some decision.
     static const uint16_t kExpectedNodeProcessingDelay = 1500; // milliseconds;
 
+    // Specifies how long node must wait for the resources from other transaction
+    static const uint16_t kMaxResourceTransferLagMSec = 2000; //
+
     static const auto kMaxPathLength = 7;
 
 protected:
     TrustLinesManager *mTrustLines;
-    PaymentOperationStateHandler *mPaymentOperationState;
+    StorageHandler *mStorageHandler;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.

@@ -17,13 +17,13 @@ public:
         const NodeUUID &currentNodeUUID,
         ReceiverInitPaymentRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
-        PaymentOperationStateHandler *paymentOperationStateHandler,
+        StorageHandler *storageHandler,
         Logger *log);
 
     ReceiverPaymentTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLines,
-        PaymentOperationStateHandler *paymentOperationStateHandler,
+        StorageHandler *storageHandler,
         Logger *log);
 
     TransactionResult::SharedConst run();

@@ -9,7 +9,6 @@
 #include "../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
-#include "../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
 #include "../../io/storage/StorageHandler.h"
 #include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
@@ -27,6 +26,7 @@
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/cycle_closer/CycleCloserCommand.h"
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 #include "../../interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.h"
 
@@ -62,12 +62,15 @@
 #include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.h"
 #include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesInitTransaction.h"
 #include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesReceiverTransaction.h"
+#include "../transactions/contractors_list/GetFirstLevelContractorsTransaction.h"
+
 
 
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 #include "../transactions/regular/payments/IntermediateNodePaymentTransaction.h"
 #include "../transactions/regular/payments/VoutesStatusResponsePaymentTransaction.h"
+#include "../transactions/regular/payments/CycleCloserInitiatorTransaction.h"
 
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
@@ -92,7 +95,6 @@
 #include <string>
 
 using namespace std;
-namespace history = db::operations_history_storage;
 namespace signals = boost::signals2;
 
 
@@ -109,7 +111,6 @@ public:
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResultsInterface *resultsInterface,
-        history::OperationsHistoryStorage *operationsHistoryStorage,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
         Logger *logger);
@@ -230,6 +231,10 @@ private:
     void launchGetRoutingTablesTransaction(
         RequestRoutingTablesMessage::Shared message);
 
+    // closeCycle transaction TODO : should be removed after testing
+    void launchTestCloseCycleTransaction(
+        CycleCloserCommand::Shared command);
+
     void launchCloseCycleTransaction(shared_ptr<vector<NodeUUID>>);
 
     // Signals connection to manager's slots
@@ -269,7 +274,6 @@ private:
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     ResultsInterface *mResultsInterface;
-    history::OperationsHistoryStorage *mOperationsHistoryStorage;
     PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;
     Logger *mLog;

@@ -6,8 +6,8 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
-#include "../../../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
+#include "../../../../io/storage/StorageHandler.h"
+#include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../network/messages/Message.hpp"
 #include "../../../../network/messages/trust_lines/RejectTrustLineMessage.h"
@@ -21,8 +21,6 @@
 #include <utility>
 #include <cstdint>
 
-using namespace db::operations_history_storage;
-
 class RejectTrustLineTransaction : public TrustLineTransaction {
 public:
     typedef shared_ptr<RejectTrustLineTransaction> Shared;
@@ -32,12 +30,12 @@ public:
         const NodeUUID &nodeUUID,
         RejectTrustLineMessage::Shared message,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        StorageHandler *storageHandler);
 
     RejectTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        StorageHandler *storageHandler);
 
     RejectTrustLineMessage::Shared message() const;
 
@@ -62,7 +60,7 @@ private:
 private:
     RejectTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    OperationsHistoryStorage *mOperationsHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 

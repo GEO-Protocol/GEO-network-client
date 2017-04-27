@@ -9,8 +9,7 @@ RoutingTablesHandler::RoutingTablesHandler(
     mDataBase(dbConnection),
     mRoutingTable2Level(dbConnection, rt2TableName, logger),
     mRoutingTable3Level(dbConnection, rt3TableName, logger),
-    mLog(logger),
-    isTransactionBegin(false) {}
+    mLog(logger) {}
 
 vector<NodeUUID> RoutingTablesHandler::subRoutesSecondLevel(
     const NodeUUID &contractorUUID) {
@@ -23,12 +22,12 @@ vector<NodeUUID> RoutingTablesHandler::subRoutesSecondLevel(
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesSecondLevel: "
-                              "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesSecondLevel: "
-                              "Bad Destination binding");
+                          "Bad Destination binding; sqlite error: " + rc);
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source((uint8_t*)sqlite3_column_blob(stmt, 0));
@@ -55,22 +54,22 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelContra
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad foundUUID binding");
+                          "Bad foundUUID binding; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 2, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad contractorUUID binding");
+                          "Bad contractorUUID binding; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 3, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad sourceUUID binding");
+                          "Bad sourceUUID binding; sqlite error: " + rc);
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source2Level((uint8_t*)sqlite3_column_blob(stmt, 0));
@@ -97,12 +96,12 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevel(
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, foundUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad foundUUID binding");
+                          "Bad foundUUID binding; sqlite error: " + rc);
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source2Level((uint8_t*)sqlite3_column_blob(stmt, 0));
@@ -133,32 +132,32 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, foundUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad foundUUID binding");
+                          "Bad foundUUID binding; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 2, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad contractorUUID binding");
+                          "Bad contractorUUID binding; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 3, foundUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad foundUUID binding");
+                          "Bad foundUUID binding; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 4, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad sourceUUID binding");
+                          "Bad sourceUUID binding; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 5, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                              "Bad sourceUUID binding");
+                          "Bad sourceUUID binding; sqlite error: " + rc);
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source2Level((uint8_t*)sqlite3_column_blob(stmt, 0));
@@ -173,111 +172,9 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
     return result;
 }
 
-bool RoutingTablesHandler::commit() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call commit, but trunsaction wasn't started";
-#endif
-        return true;
-    }
-
-    string query = "COMMIT TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTablesHandler::commit: "
-                          "Bad query");
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "transaction commit";
-#endif
-        isTransactionBegin = false;
-        return true;
-    } else if (rc == SQLITE_BUSY) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "database busy";
-#endif
-        return false;
-    } else {
-        error() << "commit error: " << rc;
-        throw IOError("RoutingTablesHandler::commit: "
-                          "Run query");
-    }
-}
-
-void RoutingTablesHandler::rollBack() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call rollBack, but trunsaction wasn't started";
-#endif
-        return;
-    }
-
-    string query = "ROLLBACK TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTablesHandler::rollback: "
-                          "Bad query");
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "rollBack done";
-#endif
-    } else {
-        throw IOError("RoutingTablesHandler::rollback: "
-                          "Run query");
-    }
-
-    isTransactionBegin = false;
-}
-
-void RoutingTablesHandler::prepareInserted() {
-
-    if (isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call prepareInsertred, but previous transaction isn't finished";
-#endif
-        return;
-    }
-
-    string query = "BEGIN TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTablesHandler::prepareInserted: "
-                          "Bad query");
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        info() << "transaction begin";
-#endif
-    } else {
-        throw IOError("RoutingTablesHandler::prepareInserted: "
-                          "Run query");
-    }
-    isTransactionBegin = true;
-}
-
 void RoutingTablesHandler::saveRecordToRT2(
     const NodeUUID &source,
     const NodeUUID &destination) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
 
     mRoutingTable2Level.saveRecord(
         source,
@@ -288,10 +185,6 @@ void RoutingTablesHandler::saveRecordToRT3(
     const NodeUUID &source,
     const NodeUUID &destination) {
 
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
     mRoutingTable3Level.saveRecord(
         source,
         destination);
@@ -300,10 +193,6 @@ void RoutingTablesHandler::saveRecordToRT3(
 void RoutingTablesHandler::deleteRecordFromRT2(
     const NodeUUID &source,
     const NodeUUID &destination) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
 
     mRoutingTable2Level.deleteRecord(
         source,
@@ -319,10 +208,6 @@ void RoutingTablesHandler::deleteRecordFromRT2(
 void RoutingTablesHandler::deleteRecordFromRT3(
     const NodeUUID &source,
     const NodeUUID &destination) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
 
     mRoutingTable3Level.deleteRecord(
         source,
@@ -371,15 +256,6 @@ map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourc
 map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourceKeyOnRT3() {
 
     return mRoutingTable3Level.routeRecordsMapSourceKey();
-}
-
-void RoutingTablesHandler::closeConnections() {
-
-    mRoutingTable2Level.closeConnection();
-    mRoutingTable3Level.closeConnection();
-    if (mDataBase != nullptr) {
-        sqlite3_close_v2(mDataBase);
-    }
 }
 
 LoggerStream RoutingTablesHandler::info() const {

@@ -23,45 +23,39 @@ RequestRoutingTablesMessage::Shared GetRoutingTablesTransaction::message() const
 
 TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
 
-    info() << "run\tI am " << mNodeUUID;
-
-    /*info() << "run\t TrustLinesSize: " << mTrustLinesManager->trustLines().size();
-    info() << "run\t" << "RT1 size: " << mTrustLinesManager->rt1().size();
-    for (auto const &itRT1 : mTrustLinesManager->rt1()) {
-        info() << "run\t\t" << itRT1;
-    }*/
-    /*for (auto const &itRT2 : mStorageHandler->routingTablesHandler()->routingTable2Level()->routeRecordsMapDestinationKey()) {
-        info() << "run\t\tkey: " << itRT2.first;
-        for (auto const &nodeUUID : itRT2.second) {
-            info() << "run\t\t\tvalue: " << nodeUUID;
-        }
-    }*/
-    /*for (auto const &itRT3 : mStorageHandler->routingTablesHandler()->routingTable3Level()->routeRecordsMapDestinationKey()) {
-        info() << "run\t\tkey: " << itRT3.first;
-        for (auto const &nodeUUID : itRT3.second) {
-            info() << "run\t\t\tvalue: " << nodeUUID;
-        }
-    }*/
-
     sendRoutingTables();
-
+#ifdef GETTING_PATHS_DEBUG_LOG
+    info() << "run\tI am " << mNodeUUID;
     info() << "message successfully sent to " << mMessage->senderUUID;
+#endif
     return make_shared<TransactionResult>(TransactionState::exit());
 }
 
 void GetRoutingTablesTransaction::sendRoutingTables() {
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
+#ifdef GETTING_PATHS_DEBUG_LOG
     info() << "sendRoutingTables\tRT1 size: " << mTrustLinesManager->rt1().size();
-    sendMessage<ResultRoutingTable1LevelMessage>(
-        mMessage->senderUUID,
-        mNodeUUID,
-        mMessage->transactionUUID(),
-        mTrustLinesManager->rt1());
+#endif
+    if (mTrustLinesManager->rt1().size() > 0) {
+        sendMessage<ResultRoutingTable1LevelMessage>(
+            mMessage->senderUUID,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            mTrustLinesManager->rt1());
+    }
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt2
-        = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2();
-    info() << "sendRoutingTables\tRT2 size: " << rt2.size();
+        = ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2();
     size_t rt2MessageCount = rt2.size() / kCountElementsPerMessage;
+#ifdef GETTING_PATHS_DEBUG_LOG
+    info() << "sendRoutingTables\tRT2 size: " << rt2.size();
+    size_t rt2MessageCountReal = rt2MessageCount;
+    if ((rt2.size() % kCountElementsPerMessage) != 0) {
+        rt2MessageCountReal++;
+    }
+    info() << "sendRoutingTables\tcount RT2 messages: " << rt2MessageCountReal;
+#endif
     size_t idx = 0;
     auto itRT2 = rt2.begin();
     while (idx < rt2MessageCount) {
@@ -76,6 +70,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             mMessage->transactionUUID(),
             subRT2);
         idx++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
     if (itRT2 != rt2.end()) {
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT2(itRT2, rt2.end());
@@ -84,12 +79,20 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             mNodeUUID,
             mMessage->transactionUUID(),
             subRT2);
+        std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
 
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt3
-        = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
-    info() << "sendRoutingTables\tRT3 size: " << rt3.size();
+        = ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
     size_t rt3MessageCount = rt3.size() / kCountElementsPerMessage;
+#ifdef GETTING_PATHS_DEBUG_LOG
+    info() << "sendRoutingTables\tRT3 size: " << rt3.size();
+    size_t rt3MessageCountReal = rt3MessageCount;
+    if ((rt3.size() % kCountElementsPerMessage) != 0) {
+        rt3MessageCountReal++;
+    }
+    info() << "sendRoutingTables\tcount RT3 messages: " << rt3MessageCountReal;
+#endif
     idx = 0;
     auto itRT3 = rt3.begin();
     while (idx < rt3MessageCount) {
@@ -104,6 +107,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             mMessage->transactionUUID(),
             subRT3);
         idx++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
     if (itRT3 != rt3.end()) {
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT3(itRT3, rt3.end());
@@ -112,6 +116,7 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             mNodeUUID,
             mMessage->transactionUUID(),
             subRT3);
+        std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
 }
 

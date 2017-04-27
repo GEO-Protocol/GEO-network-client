@@ -5,7 +5,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     const NodeUUID& currentNodeUUID,
     IntermediateNodeReservationRequestMessage::ConstShared message,
     TrustLinesManager* trustLines,
-    PaymentOperationStateHandler *paymentOperationStateHandler,
+    StorageHandler *storageHandler,
     Logger* log) :
 
     BasePaymentTransaction(
@@ -13,7 +13,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         trustLines,
-        paymentOperationStateHandler,
+        storageHandler,
         log),
     mMessage(message)
 {
@@ -23,14 +23,14 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BytesShared buffer,
     TrustLinesManager* trustLines,
-    PaymentOperationStateHandler *paymentOperationState,
+    StorageHandler *storageHandler,
     Logger* log) :
 
         BasePaymentTransaction(
                 BaseTransaction::IntermediateNodePaymentTransaction,
                 buffer,
                 trustLines,
-                paymentOperationState,
+                storageHandler,
                 log)
 {}
 

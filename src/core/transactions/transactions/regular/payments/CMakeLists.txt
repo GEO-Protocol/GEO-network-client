@@ -4,6 +4,9 @@ set(SOURCE_FILES
         base/BasePaymentTransaction.h
         base/BasePaymentTransaction.cpp
 
+        base/PathStats.h
+        base/PathStats.cpp
+
         CoordinatorPaymentTransaction.h
         CoordinatorPaymentTransaction.cpp
 
@@ -11,7 +14,13 @@ set(SOURCE_FILES
         ReceiverPaymentTransaction.cpp
 
         IntermediateNodePaymentTransaction.h
-        IntermediateNodePaymentTransaction.cpp VoutesStatusResponsePaymentTransaction.h VoutesStatusResponsePaymentTransaction.cpp)
+        IntermediateNodePaymentTransaction.cpp
+
+        VoutesStatusResponsePaymentTransaction.h
+        VoutesStatusResponsePaymentTransaction.cpp
+
+        CycleCloserInitiatorTransaction.h
+        CycleCloserInitiatorTransaction.cpp)
 
 add_library(transactions__payments ${SOURCE_FILES})
 target_link_libraries(transactions__payments

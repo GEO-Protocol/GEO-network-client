@@ -58,7 +58,6 @@ void OutgoingMessagesHandler::processOutgoingMessage(
             crcPacketAndCount.second,
             channelNumber);
 
-
         channel->addPacket(
             packetNumber,
             packet);
@@ -145,5 +144,3 @@ Packet::Shared OutgoingMessagesHandler::makePacket(
 
     return packetShared;
 }
-
-

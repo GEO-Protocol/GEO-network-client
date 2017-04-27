@@ -1,5 +1,4 @@
 ﻿#include "TransactionsManager.h"
-#include "../transactions/contractors_list/GetFirstLevelContractorsTransaction.h"
 
 /*!
  *
@@ -13,7 +12,6 @@ TransactionsManager::TransactionsManager(
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResultsInterface *resultsInterface,
-    history::OperationsHistoryStorage *operationsHistoryStorage,
     StorageHandler *storageHandler,
     PathsManager *pathsManager,
     Logger *logger) :
@@ -25,7 +23,6 @@ TransactionsManager::TransactionsManager(
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mResultsInterface(resultsInterface),
-    mOperationsHistoryStorage(operationsHistoryStorage),
     mStorageHandler(storageHandler),
     mPathsManager(pathsManager),
     mLog(logger),
@@ -72,7 +69,7 @@ void TransactionsManager::loadTransactions() {
 //                    transaction = new OpenTrustLineTransaction(
 //                        transactionBuffer,
 //                        mTrustLines,
-//                        mOperationsHistoryStorage
+//                        mStorageHandler->historyStorage()
 //                    );
 //                    break;
 //                }
@@ -81,7 +78,7 @@ void TransactionsManager::loadTransactions() {
 //                    transaction = new SetTrustLineTransaction(
 //                        transactionBuffer,
 //                        mTrustLines,
-//                        mOperationsHistoryStorage
+//                        mStorageHandler->historyStorage()
 //                    );
 //                    break;
 //                }
@@ -90,7 +87,7 @@ void TransactionsManager::loadTransactions() {
 //                    transaction = new CloseTrustLineTransaction(
 //                        transactionBuffer,
 //                        mTrustLines,
-//                        mOperationsHistoryStorage
+//                        mStorageHandler->historyStorage()
 //                    );
 //                    break;
 //                }
@@ -178,6 +175,11 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == HistoryTrustLinesCommand::identifier()){
         launchHistoryTrustLinesTransaction(
             static_pointer_cast<HistoryTrustLinesCommand>(
+                command));
+
+    } else if (command->identifier() == CycleCloserCommand::identifier()){
+        launchTestCloseCycleTransaction(
+            static_pointer_cast<CycleCloserCommand>(
                 command));
 
     } else if (command->identifier() == FindPathCommand::identifier()){
@@ -313,8 +315,7 @@ void TransactionsManager::launchOpenTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mOperationsHistoryStorage
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -340,8 +341,7 @@ void TransactionsManager::launchSetTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mOperationsHistoryStorage
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -366,8 +366,7 @@ void TransactionsManager::launchCloseTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mOperationsHistoryStorage
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -392,8 +391,7 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mOperationsHistoryStorage
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -414,8 +412,7 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mOperationsHistoryStorage
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -440,8 +437,7 @@ void TransactionsManager::launchRejectTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mOperationsHistoryStorage
-        );
+            mStorageHandler);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -639,7 +635,8 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mStorageHandler->paymentOperationStateHandler(),
+            mStorageHandler,
+            mResourcesManager,
             mLog));
 }
 
@@ -651,7 +648,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mStorageHandler->paymentOperationStateHandler(),
+            mStorageHandler,
             mLog));
 }
 
@@ -663,7 +660,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mStorageHandler->paymentOperationStateHandler(),
+            mStorageHandler,
             mLog));
 }
 
@@ -673,7 +670,7 @@ void TransactionsManager::launchVoutesResponsePaymentsTransaction(VotesStatusReq
             make_shared<VoutesStatusResponsePaymentTransaction>(
                     mNodeUUID,
                     message,
-                    mStorageHandler->paymentOperationStateHandler(),
+                    mStorageHandler,
                     mLog));
 }
 
@@ -754,7 +751,7 @@ void TransactionsManager::launchHistoryPaymentsTransaction(HistoryPaymentsComman
         auto transaction = make_shared<HistoryPaymentsTransaction>(
             mNodeUUID,
             command,
-            mOperationsHistoryStorage,
+            mStorageHandler,
             mLog);
 
         prepareAndSchedule(transaction);
@@ -775,7 +772,7 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCo
         auto transaction = make_shared<HistoryTrustLinesTransaction>(
             mNodeUUID,
             command,
-            mOperationsHistoryStorage,
+            mStorageHandler,
             mLog);
 
         prepareAndSchedule(transaction);
@@ -858,6 +855,27 @@ void TransactionsManager::launchPathsResourcesCollectTransaction(
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchFindPathTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+// TODO : should be removed after testing
+void TransactionsManager::launchTestCloseCycleTransaction(
+    CycleCloserCommand::Shared command) {
+
+    try {
+        auto transaction = make_shared<CycleCloserInitiatorTransaction>(
+            mNodeUUID,
+            command->path(),
+            mTrustLines,
+            mStorageHandler,
+            mLog);
+
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchTestCloseCycleTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }

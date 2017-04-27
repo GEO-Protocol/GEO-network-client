@@ -6,7 +6,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     const NodeUUID &currentNodeUUID,
     TrustLinesManager *trustLines,
-    PaymentOperationStateHandler *paymentOperationStateHandler,
+    StorageHandler *storageHandler,
     Logger *log) :
 
     BaseTransaction(
@@ -14,7 +14,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines),
-    mPaymentOperationState(paymentOperationStateHandler),
+    mStorageHandler(storageHandler),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -24,7 +24,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionUUID &transactionUUID,
     const NodeUUID &currentNodeUUID,
     TrustLinesManager *trustLines,
-    PaymentOperationStateHandler *paymentOperationStateHandler,
+    StorageHandler *storageHandler,
     Logger *log) :
 
     BaseTransaction(
@@ -33,7 +33,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines),
-    mPaymentOperationState(paymentOperationStateHandler),
+    mStorageHandler(storageHandler),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -42,14 +42,14 @@ BasePaymentTransaction::BasePaymentTransaction(
         const TransactionType type,
         BytesShared buffer,
         TrustLinesManager *trustLines,
-        PaymentOperationStateHandler *paymentOperationStateHandler,
+        StorageHandler *storageHandler,
         Logger *log) :
 
     BaseTransaction(
         type,
         log),
     mTrustLines(trustLines),
-    mPaymentOperationState(paymentOperationStateHandler)
+    mStorageHandler(storageHandler)
 {}
 
 /*
@@ -422,8 +422,9 @@ void BasePaymentTransaction::commit ()
 
 void BasePaymentTransaction::saveVoutes()
 {
+    const auto ioTransaction = mStorageHandler->beginTransaction();
     auto bufferAndSize = mParticipantsVotesMessage->serializeToBytes();
-    mPaymentOperationState->saveRecord(
+    ioTransaction->paymentOperationStateHandler()->saveRecord(
             mParticipantsVotesMessage->transactionUUID(),
             bufferAndSize.first,
             bufferAndSize.second

@@ -3,8 +3,11 @@
 
 
 #include "base/BasePaymentTransaction.h"
-
+#include "base/PathStats.h"
+#include "../../find_path/FindPathTransaction.h"
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
+
+#include "../../../../resources/manager/ResourcesManager.h"
 
 #include <boost/functional/hash.hpp>
 
@@ -28,14 +31,15 @@ public:
         const NodeUUID &kCurrentNodeUUID,
         const CreditUsageCommand::Shared kCommand,
         TrustLinesManager *trustLines,
-        PaymentOperationStateHandler *paymentOperationStateHandler,
+        StorageHandler *storageHandler,
+        ResourcesManager *resourcesManager,
         Logger *log)
         noexcept;
 
     CoordinatorPaymentTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLines,
-        PaymentOperationStateHandler *paymentOperationStateHandler,
+        StorageHandler *storageHandler,
         Logger *log)
         throw (bad_alloc);
 
@@ -50,89 +54,10 @@ protected:
     typedef boost::uuids::uuid PathUUID;
 
 protected:
-
-    // Describes payment path, it's nodes states,
-    // and max flow through it.
-    class PathStats {
-    public:
-        enum NodeState {
-            ReservationRequestDoesntSent = 0,
-
-            NeighbourReservationRequestSent,
-            NeighbourReservationApproved,
-
-            ReservationRequestSent,
-            ReservationApproved,
-            ReservationRejected,
-        };
-
-    public:
-        PathStats (
-            const Path::ConstShared path)
-            noexcept;
-
-        void setNodeState (
-            const uint8_t positionInPath,
-            const NodeState state)
-            throw(ValueError);
-
-        const TrustLineAmount &maxFlow () const
-            noexcept;
-
-        void shortageMaxFlow (
-            const TrustLineAmount &kAmount)
-            throw(ValueError);
-
-        const Path::ConstShared path () const
-            noexcept;
-
-        const pair<NodeUUID, uint8_t> currentIntermediateNodeAndPos () const
-            throw (NotFoundError);
-
-        const pair<NodeUUID, uint8_t> nextIntermediateNodeAndPos () const
-            throw (NotFoundError);
-
-        const bool reservationRequestSentToAllNodes () const
-            noexcept;
-
-        const bool isNeighborAmountReserved () const
-            noexcept;
-
-        const bool isWaitingForNeighborReservationResponse () const
-            noexcept;
-
-        const bool isWaitingForNeighborReservationPropagationResponse () const
-            noexcept;
-
-        const bool isWaitingForReservationResponse () const
-            noexcept;
-
-        const bool isReadyToSendNextReservationRequest () const
-            noexcept;
-
-        const bool isLastIntermediateNodeProcessed () const
-            noexcept;
-
-        const bool isValid () const
-            noexcept;
-
-        void setUnusable ()
-            noexcept;
-
-    protected:
-        const Path::ConstShared mPath;
-        TrustLineAmount mMaxPathFlow;
-        bool mIsValid;
-
-        // Contains states of each node in the path.
-        // See reservaions stage for the details.
-        vector<NodeState> mIntermediateNodesStates;
-    };
-
-protected:
     // Stages handlers
     // TODO: Add throws specififcations
     TransactionResult::SharedConst runPaymentInitialisationStage ();
+    TransactionResult::SharedConst runReceiverResourceProcessingStage();
     TransactionResult::SharedConst runReceiverResponseProcessingStage ();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
@@ -231,5 +156,7 @@ protected:
      * In case if several direct paths occurs - than it seems that paths collection is broken.
      */
     bool mDirectPathIsAllreadyProcessed;
+
+    ResourcesManager *mResourcesManager;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

@@ -23,6 +23,7 @@ PathsManager::PathsManager(
     //testMultiConnection();
     //printRTs();
     //testDeletingRT();
+    //fillCycleTables();
 }
 
 void PathsManager::findDirectPath() {
@@ -33,7 +34,9 @@ void PathsManager::findDirectPath() {
                 mNodeUUID,
                 mContractorUUID);
             mPathCollection->add(path);
-            //info() << "found direct path";
+#ifdef GETTING_PATHS_DEBUG_LOG
+            info() << "found direct path";
+#endif
             return;
         }
     }
@@ -41,8 +44,11 @@ void PathsManager::findDirectPath() {
 
 void PathsManager::findPathsOnSecondLevel() {
 
+#ifdef GETTING_PATHS_DEBUG_LOG
     DateTime startTime = utc_now();
-    for (auto const &nodeUUID : mStorageHandler->routingTablesHandler()->subRoutesSecondLevel(mContractorUUID)) {
+#endif
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    for (auto const &nodeUUID : ioTransaction->routingTablesHandler()->subRoutesSecondLevel(mContractorUUID)) {
         vector<NodeUUID> intermediateNodes;
         intermediateNodes.push_back(nodeUUID);
         Path path(
@@ -50,16 +56,51 @@ void PathsManager::findPathsOnSecondLevel() {
             mContractorUUID,
             intermediateNodes);
         mPathCollection->add(path);
-        //info() << "found path on second level";
+#ifdef GETTING_PATHS_DEBUG_LOG
+        info() << "found path on second level";
+#endif
     }
-    /*Duration methodTime = utc_now() - startTime;
-    info() << "findPathsOnSecondLevel method time: " << methodTime;*/
+#ifdef GETTING_PATHS_DEBUG_LOG
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSecondLevel method time: " << methodTime;
+#endif
+}
+
+void PathsManager::findPathsOnSecondLevelWithoutRoutingTables(
+    vector<NodeUUID> &contractorRT1) {
+
+#ifdef GETTING_PATHS_DEBUG_LOG
+    DateTime startTime = utc_now();
+#endif
+    for (auto const &nodeUUID1 : mTrustLinesManager->rt1()) {
+        for (auto const &nodeUUID2 : contractorRT1) {
+            if (nodeUUID1 == nodeUUID2) {
+                vector<NodeUUID> intermediateNodes;
+                intermediateNodes.push_back(nodeUUID1);
+                Path path(
+                    mNodeUUID,
+                    mContractorUUID,
+                    intermediateNodes);
+                mPathCollection->add(path);
+#ifdef GETTING_PATHS_DEBUG_LOG
+                info() << "found path on second level";
+#endif
+            }
+        }
+    }
+#ifdef GETTING_PATHS_DEBUG_LOG
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSecondLevel method time: " << methodTime;
+#endif
 }
 
 void PathsManager::findPathsOnThirdLevel() {
 
+#ifdef GETTING_PATHS_DEBUG_LOG
     DateTime startTime = utc_now();
-    for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelContractor(
+#endif
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    for (auto const &nodeUUIDAndNodeUUID : ioTransaction->routingTablesHandler()->subRoutesThirdLevelContractor(
             mContractorUUID,
             mNodeUUID)) {
         vector<NodeUUID> intermediateNodes;
@@ -70,21 +111,28 @@ void PathsManager::findPathsOnThirdLevel() {
             mContractorUUID,
             intermediateNodes);
         mPathCollection->add(path);
-        //info() << "found path on third level";
+#ifdef GETTING_PATHS_DEBUG_LOG
+        info() << "found path on third level";
+#endif
     }
-    /*Duration methodTime = utc_now() - startTime;
-    info() << "findPathsOnThirdLevel method time: " << methodTime;*/
+#ifdef GETTING_PATHS_DEBUG_LOG
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnThirdLevel method time: " << methodTime;
+#endif
 }
 
 void PathsManager::findPathsOnForthLevel(
     vector<NodeUUID> &contractorRT1) {
 
+#ifdef GETTING_PATHS_DEBUG_LOG
     DateTime startTime =  utc_now();
+#endif
+    auto ioTransaction = mStorageHandler->beginTransaction();
     for (auto const &nodeUUID : contractorRT1) {
         if (nodeUUID == mNodeUUID) {
             continue;
         }
-        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
+        for (auto const &nodeUUIDAndNodeUUID : ioTransaction->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
                 nodeUUID,
                 mNodeUUID,
                 mContractorUUID)) {
@@ -97,23 +145,30 @@ void PathsManager::findPathsOnForthLevel(
                 mContractorUUID,
                 intermediateNodes);
             mPathCollection->add(path);
-            //info() << "found path on forth level";
+#ifdef GETTING_PATHS_DEBUG_LOG
+            info() << "found path on forth level";
+#endif
         }
     }
-    /*Duration methodTime = utc_now() - startTime;
-    info() << "findPathsOnForthLevel method time: " << methodTime;*/
+#ifdef GETTING_PATHS_DEBUG_LOG
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnForthLevel method time: " << methodTime;
+#endif
 }
 
 void PathsManager::findPathsOnFifthLevel(
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
+#ifdef GETTING_PATHS_DEBUG_LOG
     DateTime startTime = utc_now();
+#endif
+    auto ioTransaction = mStorageHandler->beginTransaction();
     for (auto const &itRT2 : contractorRT2) {
         // TODO (mc) : need or not second condition (itRT2.first == contractorUUID)
         if (itRT2.first == mNodeUUID || itRT2.first == mContractorUUID) {
             continue;
         }
-        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
+        for (auto const &nodeUUIDAndNodeUUID : ioTransaction->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
                 itRT2.first,
                 mNodeUUID,
                 mContractorUUID)) {
@@ -133,25 +188,32 @@ void PathsManager::findPathsOnFifthLevel(
                     intermediateNodes);
                 mPathCollection->add(path);
                 intermediateNodes.pop_back();
-                //info() << "found path on fifth level";
+#ifdef GETTING_PATHS_DEBUG_LOG
+                info() << "found path on fifth level";
+#endif
             }
         }
     }
-    /*Duration methodTime = utc_now() - startTime;
-    info() << "findPathsOnFifthLevel method time: " << methodTime;*/
+#ifdef GETTING_PATHS_DEBUG_LOG
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnFifthLevel method time: " << methodTime;
+#endif
 }
 
 void PathsManager::findPathsOnSixthLevel(
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3,
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
+#ifdef GETTING_PATHS_DEBUG_LOG
     DateTime startTime = utc_now();
+#endif
+    auto ioTransaction = mStorageHandler->beginTransaction();
     for (auto const &itRT3 : contractorRT3) {
         // TODO (mc) : need or not second condition (itRT3.first == contractorUUID)
         if (itRT3.first == mNodeUUID || itRT3.first == mContractorUUID) {
             continue;
         }
-        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
+        for (auto const &nodeUUIDAndNodeUUID : ioTransaction->routingTablesHandler()->subRoutesThirdLevelWithForbiddenNodes(
                 itRT3.first,
                 mNodeUUID,
                 mContractorUUID)) {
@@ -177,15 +239,18 @@ void PathsManager::findPathsOnSixthLevel(
                         intermediateNodes);
                     mPathCollection->add(path);
                     intermediateNodes.pop_back();
-
-                    //info() << "found path on sixth level";
+#ifdef GETTING_PATHS_DEBUG_LOG
+                    info() << "found path on sixth level";
+#endif
                 }
                 intermediateNodes.pop_back();
             }
         }
     }
-    /*Duration methodTime = utc_now() - startTime;
-    info() << "findPathsOnSixthLevel method time: " << methodTime;*/
+#ifdef GETTING_PATHS_DEBUG_LOG
+    Duration methodTime = utc_now() - startTime;
+    info() << "findPathsOnSixthLevel method time: " << methodTime;
+#endif
 }
 
 vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevel(
@@ -213,7 +278,8 @@ vector<NodeUUID> PathsManager::intermediateNodesOnContractorFirstLevel(
 void PathsManager::findPathsOnSecondLevelTest() {
 
     DateTime startTime = utc_now();
-    for (auto const &nodeUUID : mStorageHandler->routingTablesHandler()->subRoutesSecondLevel(mContractorUUID)) {
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    for (auto const &nodeUUID : ioTransaction->routingTablesHandler()->subRoutesSecondLevel(mContractorUUID)) {
         Path path(
             mNodeUUID,
             mContractorUUID,
@@ -230,7 +296,8 @@ void PathsManager::findPathsOnSecondLevelTest() {
 void PathsManager::findPathsOnThirdLevelTest() {
 
     DateTime startTime = utc_now();
-    for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    for (auto const &nodeUUIDAndNodeUUID : ioTransaction->routingTablesHandler()->subRoutesThirdLevel(
             mContractorUUID)) {
         if (nodeUUIDAndNodeUUID.first == mContractorUUID || nodeUUIDAndNodeUUID.second == mNodeUUID) {
             continue;
@@ -254,11 +321,12 @@ void PathsManager::findPathsOnForthLevelTest(
     vector<NodeUUID> &contractorRT1) {
 
     DateTime startTime = utc_now();
+    auto ioTransaction = mStorageHandler->beginTransaction();
     for (auto const &nodeUUID : contractorRT1) {
         if (nodeUUID == mNodeUUID) {
             continue;
         }
-        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
+        for (auto const &nodeUUIDAndNodeUUID : ioTransaction->routingTablesHandler()->subRoutesThirdLevel(
                 nodeUUID)) {
             Path path(
                 mNodeUUID,
@@ -281,12 +349,13 @@ void PathsManager::findPathsOnFifthLevelTest(
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
     DateTime startTime = utc_now();
+    auto ioTransaction = mStorageHandler->beginTransaction();
     for (auto const &itRT2 : contractorRT2) {
         // TODO (mc) : need or not second condition (itRT2.first == contractorUUID)
         if (itRT2.first == mNodeUUID || itRT2.first == mContractorUUID) {
             continue;
         }
-        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
+        for (auto const &nodeUUIDAndNodeUUID : ioTransaction->routingTablesHandler()->subRoutesThirdLevel(
                 itRT2.first)) {
             for (auto const &nodeUUID : itRT2.second) {
                 vector<NodeUUID> intermediateNodes;
@@ -314,12 +383,13 @@ void PathsManager::findPathsOnSixthLevelTest(
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2) {
 
     DateTime startTime = utc_now();
+    auto ioTransaction = mStorageHandler->beginTransaction();
     for (auto const &itRT3 : contractorRT3) {
         // TODO (mc) : need or not second condition (itRT3.first == contractorUUID)
         if (itRT3.first == mNodeUUID || itRT3.first == mContractorUUID) {
             continue;
         }
-        for (auto const &nodeUUIDAndNodeUUID : mStorageHandler->routingTablesHandler()->subRoutesThirdLevel(
+        for (auto const &nodeUUIDAndNodeUUID : ioTransaction->routingTablesHandler()->subRoutesThirdLevel(
                 itRT3.first)) {
 
             for (auto const &nodeUUID : itRT3.second) {
@@ -384,14 +454,16 @@ void PathsManager::findPaths(
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3) {
 
     mContractorUUID = contractorUUID;
-
+#ifdef GETTING_PATHS_DEBUG_LOG
     info() << "start finding paths to " << contractorUUID;
     DateTime startTime = utc_now();
+#endif
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
         mContractorUUID);
     findDirectPath();
     findPathsOnSecondLevel();
+    //findPathsOnSecondLevelWithoutRoutingTables(contractorRT1);
     findPathsOnThirdLevel();
     findPathsOnForthLevel(
         contractorRT1);
@@ -400,7 +472,7 @@ void PathsManager::findPaths(
     findPathsOnSixthLevel(
         contractorRT3,
         contractorRT2);
-
+#ifdef GETTING_PATHS_DEBUG_LOG
     Duration methodTime = utc_now() - startTime;
     info() << "PathsManager::findPath\tmethod time: " << methodTime;
     info() << "total paths count: " << mPathCollection->count();
@@ -410,27 +482,31 @@ void PathsManager::findPaths(
             info() << "wrong path!!! ";
         }
     }
+#endif
 }
 
 void PathsManager::findPathsOnSelfArea(
     const NodeUUID &contractorUUID) {
 
     mContractorUUID = contractorUUID;
+#ifdef GETTING_PATHS_DEBUG_LOG
     info() << "start finding paths on self area to " << contractorUUID;
     DateTime startTime = utc_now();
+#endif
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
         mContractorUUID);
     findDirectPath();
     findPathsOnSecondLevel();
     findPathsOnThirdLevel();
-
+#ifdef GETTING_PATHS_DEBUG_LOG
     Duration methodTime = utc_now() - startTime;
     info() << "PathsManager::findPathsOnSelfArea\tmethod time: " << methodTime;
     info() << "total paths on self area count: " << mPathCollection->count();
     /*while (mPathCollection->hasNextPath()) {
         info() << mPathCollection->nextPath()->toString();
     }*/
+#endif
 }
 
 void PathsManager::findPathsTest(
@@ -470,6 +546,11 @@ PathsCollection::Shared PathsManager::pathCollection() const {
     return mPathCollection;
 }
 
+void PathsManager::clearPathsCollection() {
+
+    mPathCollection = nullptr;
+}
+
 void PathsManager::fillRoutingTables() {
 
     NodeUUID* nodeUUID90Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff90");
@@ -482,73 +563,66 @@ void PathsManager::fillRoutingTables() {
     NodeUUID* nodeUUID97Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff97");
     NodeUUID* nodeUUID98Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff98");
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff90")) {
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID92Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID96Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID97Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID98Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID90Ptr);
-        mStorageHandler->routingTablesHandler()->commit();
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID92Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID96Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID97Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID98Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID90Ptr);
 
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID90Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID92Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID96Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID97Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID98Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID97Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->commit();
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID92Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID96Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID97Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID98Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID97Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
     }
 
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff91")) {
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID93Ptr, *nodeUUID95Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID93Ptr, *nodeUUID91Ptr);
-        mStorageHandler->routingTablesHandler()->commit();
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID93Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID93Ptr, *nodeUUID91Ptr);
 
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
-        mStorageHandler->routingTablesHandler()->commit();
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
     }
 
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff94")) {
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID98Ptr, *nodeUUID95Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID97Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->commit();
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID96Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID96Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID98Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID98Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID97Ptr, *nodeUUID94Ptr);
 
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID90Ptr, *nodeUUID92Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID90Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
-        mStorageHandler->routingTablesHandler()->commit();
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID90Ptr, *nodeUUID92Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID90Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
     }
 
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff93")) {
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID95Ptr, *nodeUUID96Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID95Ptr, *nodeUUID93Ptr);
-        mStorageHandler->routingTablesHandler()->commit();
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID95Ptr, *nodeUUID96Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID95Ptr, *nodeUUID98Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID95Ptr, *nodeUUID93Ptr);
 
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
-        mStorageHandler->routingTablesHandler()->commit();
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
     }
 
     delete nodeUUID90Ptr;
@@ -570,65 +644,69 @@ void PathsManager::testStorageHandler() {
     NodeUUID* nodeUUID84Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff84");
     NodeUUID* nodeUUID85Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff85");
     NodeUUID* nodeUUID86Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff86");
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
-    mStorageHandler->routingTablesHandler()->rollBack();
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
-    mStorageHandler->routingTablesHandler()->commit();
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID84Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID85Ptr, *nodeUUID86Ptr);
-    mStorageHandler->routingTablesHandler()->commit();
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID82Ptr, *nodeUUID81Ptr);
-    mStorageHandler->routingTablesHandler()->rollBack();
-    mStorageHandler->routingTablesHandler()->commit();
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID84Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID81Ptr);
-    mStorageHandler->routingTablesHandler()->commit();
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+        ioTransaction->rollback();
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+    }
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID84Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID85Ptr, *nodeUUID86Ptr);
+    }
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID82Ptr, *nodeUUID81Ptr);
+        ioTransaction->rollback();
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID84Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID81Ptr);
+    }
 
-
-    vector<pair<NodeUUID, NodeUUID>> records = mStorageHandler->routingTablesHandler()->rt2Records();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    vector<pair<NodeUUID, NodeUUID>> records = ioTransaction->routingTablesHandler()->rt2Records();
     for (auto &record : records) {
         info() << record.first << " " << record.second;
     }
 
-    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
+    for (auto const &itMap : ioTransaction->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
         info() << "key: " << itMap.first;
         for (auto const &itVector : itMap.second) {
             info() << "\tvalue: " << itVector;
         }
     }
 
-    mStorageHandler->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID84Ptr);
+    ioTransaction->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
+    ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID84Ptr);
     info() << "after updating and deleting";
-    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
+    for (auto const &itMap : ioTransaction->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
         info() << "key: " << itMap.first;
         for (auto const &itVector : itMap.second) {
             info() << "\tvalue: " << itVector;
         }
     }
 
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID85Ptr, *nodeUUID81Ptr);
+    ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID85Ptr, *nodeUUID81Ptr);
     info() << "after updating absent elemnet";
-    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
+    for (auto const &itMap : ioTransaction->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
         info() << "key: " << itMap.first;
         for (auto const &itVector : itMap.second) {
             info() << "\tvalue: " << itVector;
         }
     }
 
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+    ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
     info() << "after updating real elemnet";
-    for (auto const &itMap : mStorageHandler->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
+    for (auto const &itMap : ioTransaction->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
         info() << "key: " << itMap.first;
         for (auto const &itVector : itMap.second) {
             info() << "\tvalue: " << itVector;
         }
     }
-    mStorageHandler->routingTablesHandler()->commit();
 
     info() << "all destinations for source: " << *nodeUUID81Ptr;
-    for (const auto &itVect : mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(*nodeUUID81Ptr)) {
+    for (const auto &itVect : ioTransaction->routingTablesHandler()->neighborsOfOnRT2(*nodeUUID81Ptr)) {
         info() << "\t\t\t" << itVect;
     }
 
@@ -643,17 +721,17 @@ void PathsManager::testStorageHandler() {
 
 void PathsManager::testTrustLineHandler() {
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
     for (auto const &trustLine : mTrustLinesManager->trustLines()) {
-        mStorageHandler->trustLineHandler()->saveTrustLine(trustLine.second);
+        ioTransaction->trustLineHandler()->saveTrustLine(trustLine.second);
     }
     TrustLine::Shared trLine = make_shared<TrustLine>(
         mNodeUUID,
         TrustLineAmount(100),
         TrustLineAmount(200),
         TrustLineBalance(-30));
-    mStorageHandler->trustLineHandler()->saveTrustLine(trLine);
-    mStorageHandler->trustLineHandler()->commit();
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
+    ioTransaction->trustLineHandler()->saveTrustLine(trLine);
+    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<
@@ -662,34 +740,34 @@ void PathsManager::testTrustLineHandler() {
     }
     trLine->setBalance(55);
     trLine->setIncomingTrustAmount(1000);
-    mStorageHandler->trustLineHandler()->saveTrustLine(trLine);
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
+    ioTransaction->trustLineHandler()->saveTrustLine(trLine);
+    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<
                rtrLine->outgoingTrustAmount() << " " <<
                rtrLine->balance();
     }
-    mStorageHandler->trustLineHandler()->rollBack();
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
+    ioTransaction->rollback();
+    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<
                rtrLine->outgoingTrustAmount() << " " <<
                rtrLine->balance();
     }
-    mStorageHandler->trustLineHandler()->deleteTrustLine(mNodeUUID);
-    for (const auto &rtrLine : mStorageHandler->trustLineHandler()->allTrustLines()) {
+    ioTransaction->trustLineHandler()->deleteTrustLine(mNodeUUID);
+    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
         info() << "read one trust line: " <<
                rtrLine->contractorNodeUUID() << " " <<
                rtrLine->incomingTrustAmount() << " " <<
                rtrLine->outgoingTrustAmount() << " " <<
                rtrLine->balance();
     }
-    mStorageHandler->trustLineHandler()->commit();
 }
 
 void PathsManager::testPaymentStateOperationsHandler() {
+    auto ioTransaction = mStorageHandler->beginTransaction();
     TransactionUUID transaction1;
     BytesShared state1 = tryMalloc(sizeof(uint8_t));
     uint8_t st1 = 2;
@@ -697,13 +775,17 @@ void PathsManager::testPaymentStateOperationsHandler() {
         state1.get(),
         &st1,
         sizeof(uint8_t));
-    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+    ioTransaction->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
     st1 = 22;
     memcpy(
         state1.get(),
         &st1,
         sizeof(uint8_t));
-    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+    try {
+        ioTransaction->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+    } catch (IOError) {
+        info() << "record alredy present";
+    }
     TransactionUUID transaction2;
     BytesShared state2 = tryMalloc(sizeof(uint16_t));
     uint16_t st2 = 88;
@@ -711,8 +793,8 @@ void PathsManager::testPaymentStateOperationsHandler() {
         state2.get(),
         &st2,
         sizeof(uint16_t));
-    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction2, state2, sizeof(uint16_t));
-    mStorageHandler->paymentOperationStateHandler()->commit();
+    ioTransaction->paymentOperationStateHandler()->saveRecord(transaction2, state2, sizeof(uint16_t));
+    ioTransaction->commit();
     TransactionUUID transaction3;
     BytesShared state3 = tryMalloc(sizeof(uint32_t));
     uint32_t st3 = 3;
@@ -720,10 +802,10 @@ void PathsManager::testPaymentStateOperationsHandler() {
         state3.get(),
         &st3,
         sizeof(uint32_t));
-    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
-    mStorageHandler->paymentOperationStateHandler()->rollBack();
+    ioTransaction->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
+    ioTransaction->rollback();
 
-    pair<BytesShared, size_t> stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction1);
+    pair<BytesShared, size_t> stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction1);
     uint32_t state = 0;
     memcpy(
         &state,
@@ -731,7 +813,7 @@ void PathsManager::testPaymentStateOperationsHandler() {
         stateBt.second);
     info() << stateBt.second << " " << (uint32_t)state;
     try {
-        stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction2);
+        stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction2);
         memcpy(
             &state,
             stateBt.first.get(),
@@ -741,7 +823,7 @@ void PathsManager::testPaymentStateOperationsHandler() {
         info() << "not found";
     }
     try {
-        stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction3);
+        stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction3);
         memcpy(
             &state,
             stateBt.first.get(),
@@ -756,20 +838,23 @@ void PathsManager::testPaymentStateOperationsHandler() {
         state1.get(),
         &st1_1,
         sizeof(uint32_t));
-    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint32_t));
-    mStorageHandler->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
-    mStorageHandler->paymentOperationStateHandler()->deleteRecord(transaction2);
-    mStorageHandler->paymentOperationStateHandler()->commit();
+    ioTransaction->paymentOperationStateHandler()->saveRecord(TransactionUUID(), state1, sizeof(uint32_t));
+    try {
+        ioTransaction->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
+    } catch (IOError) {
+        info() << "record alredy present";
+    }
+    ioTransaction->paymentOperationStateHandler()->deleteRecord(transaction2);
 
     info() << "after changes";
-    stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction1);
+    stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction1);
     memcpy(
         &state,
         stateBt.first.get(),
         stateBt.second);
     info() << stateBt.second << " " << state;
     try {
-        stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction2);
+        stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction2);
         memcpy(
             &state,
             stateBt.first.get(),
@@ -779,7 +864,7 @@ void PathsManager::testPaymentStateOperationsHandler() {
         info() << "not found";
     }
     try {
-        stateBt = mStorageHandler->paymentOperationStateHandler()->getState(transaction3);
+        stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction3);
         memcpy(
             &state,
             stateBt.first.get(),
@@ -789,7 +874,7 @@ void PathsManager::testPaymentStateOperationsHandler() {
         info() << "not found";
     }
     try {
-        stateBt = mStorageHandler->paymentOperationStateHandler()->getState(TransactionUUID());
+        stateBt = ioTransaction->paymentOperationStateHandler()->getState(TransactionUUID());
         memcpy(
             &state,
             stateBt.first.get(),
@@ -801,6 +886,7 @@ void PathsManager::testPaymentStateOperationsHandler() {
 }
 
 void PathsManager::testTransactionHandler() {
+    auto ioTransaction = mStorageHandler->beginTransaction();
     TransactionUUID transaction1;
     BytesShared tr1 = tryMalloc(sizeof(uint8_t));
     uint8_t st1 = 2;
@@ -808,13 +894,13 @@ void PathsManager::testTransactionHandler() {
         tr1.get(),
         &st1,
         sizeof(uint8_t));
-    mStorageHandler->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint8_t));
+    ioTransaction->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint8_t));
     st1 = 22;
     memcpy(
         tr1.get(),
         &st1,
         sizeof(uint8_t));
-    mStorageHandler->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint8_t));
+    ioTransaction->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint8_t));
     TransactionUUID transaction2;
     BytesShared tr2 = tryMalloc(sizeof(uint16_t));
     uint16_t st2 = 88;
@@ -822,8 +908,8 @@ void PathsManager::testTransactionHandler() {
         tr2.get(),
         &st2,
         sizeof(uint16_t));
-    mStorageHandler->transactionHandler()->saveRecord(transaction2, tr2, sizeof(uint16_t));
-    mStorageHandler->transactionHandler()->commit();
+    ioTransaction->transactionHandler()->saveRecord(transaction2, tr2, sizeof(uint16_t));
+    ioTransaction->commit();
     TransactionUUID transaction3;
     BytesShared tr3 = tryMalloc(sizeof(uint32_t));
     uint32_t st3 = 3;
@@ -831,10 +917,10 @@ void PathsManager::testTransactionHandler() {
         tr3.get(),
         &st3,
         sizeof(uint32_t));
-    mStorageHandler->transactionHandler()->saveRecord(transaction3, tr3, sizeof(uint32_t));
-    mStorageHandler->transactionHandler()->rollBack();
+    ioTransaction->transactionHandler()->saveRecord(transaction3, tr3, sizeof(uint32_t));
+    ioTransaction->rollback();
 
-    pair<BytesShared, size_t> stateBt = mStorageHandler->transactionHandler()->getTransaction(transaction1);
+    pair<BytesShared, size_t> stateBt = ioTransaction->transactionHandler()->getTransaction(transaction1);
     uint32_t tr = 0;
     memcpy(
         &tr,
@@ -842,7 +928,7 @@ void PathsManager::testTransactionHandler() {
         stateBt.second);
     info() << stateBt.second << " " << (uint32_t)tr;
     try {
-        stateBt = mStorageHandler->transactionHandler()->getTransaction(transaction2);
+        stateBt = ioTransaction->transactionHandler()->getTransaction(transaction2);
         memcpy(
             &tr,
             stateBt.first.get(),
@@ -852,7 +938,7 @@ void PathsManager::testTransactionHandler() {
         info() << "not found";
     }
     try {
-        stateBt = mStorageHandler->transactionHandler()->getTransaction(transaction3);
+        stateBt = ioTransaction->transactionHandler()->getTransaction(transaction3);
         memcpy(
             &tr,
             stateBt.first.get(),
@@ -867,20 +953,19 @@ void PathsManager::testTransactionHandler() {
         tr1.get(),
         &st1_1,
         sizeof(uint32_t));
-    mStorageHandler->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint32_t));
-    mStorageHandler->transactionHandler()->saveRecord(transaction3, tr3, sizeof(uint32_t));
-    mStorageHandler->transactionHandler()->deleteRecord(transaction2);
-    mStorageHandler->transactionHandler()->commit();
+    ioTransaction->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint32_t));
+    ioTransaction->transactionHandler()->saveRecord(transaction3, tr3, sizeof(uint32_t));
+    ioTransaction->transactionHandler()->deleteRecord(transaction2);
 
     info() << "after changes";
-    stateBt = mStorageHandler->transactionHandler()->getTransaction(transaction1);
+    stateBt = ioTransaction->transactionHandler()->getTransaction(transaction1);
     memcpy(
         &tr,
         stateBt.first.get(),
         stateBt.second);
     info() << stateBt.second << " " << tr;
     try {
-        stateBt = mStorageHandler->transactionHandler()->getTransaction(transaction2);
+        stateBt = ioTransaction->transactionHandler()->getTransaction(transaction2);
         memcpy(
             &tr,
             stateBt.first.get(),
@@ -890,7 +975,7 @@ void PathsManager::testTransactionHandler() {
         info() << "not found";
     }
     try {
-        stateBt = mStorageHandler->transactionHandler()->getTransaction(transaction3);
+        stateBt = ioTransaction->transactionHandler()->getTransaction(transaction3);
         memcpy(
             &tr,
             stateBt.first.get(),
@@ -900,7 +985,7 @@ void PathsManager::testTransactionHandler() {
         info() << "not found";
     }
     try {
-        stateBt = mStorageHandler->transactionHandler()->getTransaction(TransactionUUID());
+        stateBt = ioTransaction->transactionHandler()->getTransaction(TransactionUUID());
         memcpy(
             &tr,
             stateBt.first.get(),
@@ -932,6 +1017,7 @@ void PathsManager::fillBigRoutingTables() {
     }
 
     vector<uint32_t> firstLevelNodes;
+    auto ioTransaction = mStorageHandler->beginTransaction();
     while (firstLevelNodes.size() < firstLevelNode) {
         uint32_t  nextIdx = rand() % countNodes + 1;
         if(std::find(firstLevelNodes.begin(), firstLevelNodes.end(), nextIdx) != firstLevelNodes.end() ||
@@ -939,7 +1025,7 @@ void PathsManager::fillBigRoutingTables() {
             continue;
         }
         firstLevelNodes.push_back(nextIdx);
-        mStorageHandler->trustLineHandler()->saveTrustLine(
+        ioTransaction->trustLineHandler()->saveTrustLine(
             make_shared<TrustLine>(
                 *getPtrByNodeNumber(
                     nextIdx,
@@ -948,7 +1034,6 @@ void PathsManager::fillBigRoutingTables() {
                 TrustLineAmount(200),
                 TrustLineBalance(0)));
     }
-    mStorageHandler->trustLineHandler()->commit();
     info() << "PathsManager::fillBigRoutingTables first level done";
     set<uint32_t> secondLevelAllNodes;
     for (auto firstLevelIdx : firstLevelNodes) {
@@ -961,7 +1046,7 @@ void PathsManager::fillBigRoutingTables() {
             }
             secondLevelNodes.push_back(nextIdx);
             secondLevelAllNodes.insert(nextIdx);
-            mStorageHandler->routingTablesHandler()->saveRecordToRT2(
+            ioTransaction->routingTablesHandler()->saveRecordToRT2(
                 *getPtrByNodeNumber(
                     firstLevelIdx,
                     nodeUUIDPtrs),
@@ -969,7 +1054,6 @@ void PathsManager::fillBigRoutingTables() {
                     nextIdx,
                     nodeUUIDPtrs));
         }
-        mStorageHandler->routingTablesHandler()->commit();
         //info() << "fillBigRoutingTables:: second level commit";
     }
     info() << "fillBigRoutingTables:: second level done";
@@ -982,7 +1066,7 @@ void PathsManager::fillBigRoutingTables() {
                 continue;
             }
             thirdLevelNodes.push_back(nextIdx);
-            mStorageHandler->routingTablesHandler()->saveRecordToRT3(
+            ioTransaction->routingTablesHandler()->saveRecordToRT3(
                 *getPtrByNodeNumber(
                     secondLevelIdx,
                     nodeUUIDPtrs),
@@ -990,7 +1074,6 @@ void PathsManager::fillBigRoutingTables() {
                     nextIdx,
                     nodeUUIDPtrs));
         }
-        mStorageHandler->routingTablesHandler()->commit();
         //info() << "fillBigRoutingTables:: third level commit";
     }
     info() << "fillBigRoutingTables:: third level done";
@@ -1023,11 +1106,12 @@ NodeUUID* PathsManager::getPtrByNodeNumber(
 
 void PathsManager::testTime() {
 
-    info() << "testTime\t" << "RT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size();
-    info() << "testTime\t" << "RT2 map size opt5: " << mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2().size();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    info() << "testTime\t" << "RT2 size: " << ioTransaction->routingTablesHandler()->rt2Records().size();
+    info() << "testTime\t" << "RT2 map size opt5: " << ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2().size();
 
-    info() << "testTime\t" << "RT3 size: " << mStorageHandler->routingTablesHandler()->routeRecordsMapSourceKeyOnRT3().size();
-    info() << "testTime\t" << "RT3 map size opt5: " << mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3().size();
+    info() << "testTime\t" << "RT3 size: " << ioTransaction->routingTablesHandler()->routeRecordsMapSourceKeyOnRT3().size();
+    info() << "testTime\t" << "RT3 map size opt5: " << ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3().size();
 }
 
 void PathsManager::testMultiConnection() {
@@ -1244,6 +1328,7 @@ void PathsManager::testMultiConnection() {
 
 void PathsManager::printRTs() {
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
     info() << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
     for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
         info() << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
@@ -1251,12 +1336,12 @@ void PathsManager::printRTs() {
                << itTrustLine.second->outgoingTrustAmount() << " "
                << itTrustLine.second->balance();
     }
-    info() << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size();
-    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->rt2Records()) {
+    info() << "printRTs\tRT2 size: " << ioTransaction->routingTablesHandler()->rt2Records().size();
+    for (auto const itRT2 : ioTransaction->routingTablesHandler()->rt2Records()) {
         info() << itRT2.first << " " << itRT2.second;
     }
-    info() << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size();
-    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
+    info() << "printRTs\tRT3 size: " << ioTransaction->routingTablesHandler()->rt3Records().size();
+    for (auto const itRT3 : ioTransaction->routingTablesHandler()->rt3Records()) {
         info() << itRT3.first << " " << itRT3.second;
     }
 }
@@ -1269,71 +1354,82 @@ void PathsManager::testDeletingRT() {
     NodeUUID* nodeUUID84Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff84");
     NodeUUID* nodeUUID85Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff85");
     NodeUUID* nodeUUID86Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff86");
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID82Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID81Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
-    mStorageHandler->routingTablesHandler()->commit();
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID82Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID81Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
 
-    mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID82Ptr, *nodeUUID84Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID85Ptr, *nodeUUID86Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID82Ptr, *nodeUUID81Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID81Ptr, *nodeUUID83Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID83Ptr, *nodeUUID84Ptr);
-    mStorageHandler->routingTablesHandler()->saveRecordToRT3(*nodeUUID82Ptr, *nodeUUID86Ptr);
-    mStorageHandler->routingTablesHandler()->commit();
-
-    info() << "RT2:";
-    vector<pair<NodeUUID, NodeUUID>> records = mStorageHandler->routingTablesHandler()->rt2Records();
-    for (auto &record : records) {
-        info() << record.first << " " << record.second;
-    }
-    info() << "RT3:";
-    records = mStorageHandler->routingTablesHandler()->rt3Records();
-    for (auto &record : records) {
-        info() << record.first << " " << record.second;
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID82Ptr, *nodeUUID84Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID85Ptr, *nodeUUID86Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID82Ptr, *nodeUUID81Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID81Ptr, *nodeUUID83Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID83Ptr, *nodeUUID84Ptr);
+        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID82Ptr, *nodeUUID86Ptr);
     }
 
-    mStorageHandler->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID83Ptr, *nodeUUID82Ptr);
-    mStorageHandler->routingTablesHandler()->commit();
-    info() << "after first deleting " << *nodeUUID83Ptr << " " << *nodeUUID82Ptr;
-    info() << "RT2:";
-    records = mStorageHandler->routingTablesHandler()->rt2Records();
-    for (auto &record : records) {
-        info() << record.first << " " << record.second;
-    }
-    info() << "RT3:";
-    records = mStorageHandler->routingTablesHandler()->rt3Records();
-    for (auto &record : records) {
-        info() << record.first << " " << record.second;
-    }
-
-    mStorageHandler->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
-    mStorageHandler->routingTablesHandler()->commit();
-    info() << "after second deleting " << *nodeUUID81Ptr << " " << *nodeUUID83Ptr;
-    info() << "RT2:";
-    records = mStorageHandler->routingTablesHandler()->rt2Records();
-    for (auto &record : records) {
-        info() << record.first << " " << record.second;
-    }
-    info() << "RT3:";
-    records = mStorageHandler->routingTablesHandler()->rt3Records();
-    for (auto &record : records) {
-        info() << record.first << " " << record.second;
+    vector<pair<NodeUUID, NodeUUID>> records;
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        info() << "RT2:";
+        records = ioTransaction->routingTablesHandler()->rt2Records();
+        for (auto &record : records) {
+            info() << record.first << " " << record.second;
+        }
+        info() << "RT3:";
+        records = ioTransaction->routingTablesHandler()->rt3Records();
+        for (auto &record : records) {
+            info() << record.first << " " << record.second;
+        }
     }
 
-    mStorageHandler->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
-    mStorageHandler->routingTablesHandler()->commit();
-    info() << "after third deleting " << *nodeUUID81Ptr << " " << *nodeUUID82Ptr;
-    info() << "RT2:";
-    records = mStorageHandler->routingTablesHandler()->rt2Records();
-    for (auto &record : records) {
-        info() << record.first << " " << record.second;
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID83Ptr, *nodeUUID82Ptr);
+        info() << "after first deleting " << *nodeUUID83Ptr << " " << *nodeUUID82Ptr;
+        info() << "RT2:";
+        records = ioTransaction->routingTablesHandler()->rt2Records();
+        for (auto &record : records) {
+            info() << record.first << " " << record.second;
+        }
+        info() << "RT3:";
+        records = ioTransaction->routingTablesHandler()->rt3Records();
+        for (auto &record : records) {
+            info() << record.first << " " << record.second;
+        }
     }
-    info() << "RT3:";
-    records = mStorageHandler->routingTablesHandler()->rt3Records();
-    for (auto &record : records) {
-        info() << record.first << " " << record.second;
+
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
+        info() << "after second deleting " << *nodeUUID81Ptr << " " << *nodeUUID83Ptr;
+        info() << "RT2:";
+        records = ioTransaction->routingTablesHandler()->rt2Records();
+        for (auto &record : records) {
+            info() << record.first << " " << record.second;
+        }
+        info() << "RT3:";
+        records = ioTransaction->routingTablesHandler()->rt3Records();
+        for (auto &record : records) {
+            info() << record.first << " " << record.second;
+        }
+    }
+
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+        info() << "after third deleting " << *nodeUUID81Ptr << " " << *nodeUUID82Ptr;
+        info() << "RT2:";
+        records = ioTransaction->routingTablesHandler()->rt2Records();
+        for (auto &record : records) {
+            info() << record.first << " " << record.second;
+        }
+        info() << "RT3:";
+        records = ioTransaction->routingTablesHandler()->rt3Records();
+        for (auto &record : records) {
+            info() << record.first << " " << record.second;
+        }
     }
 
     delete nodeUUID81Ptr;
@@ -1342,6 +1438,109 @@ void PathsManager::testDeletingRT() {
     delete nodeUUID84Ptr;
     delete nodeUUID85Ptr;
     delete nodeUUID86Ptr;
+}
+
+void PathsManager::fillCycleTables() {
+
+    NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+    NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+    NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+    NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+    NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (mNodeUUID == *nodeUUID51Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(200),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID52Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(180),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(200),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID53Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(150),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(180),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID54Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(130),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(150),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID55Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(130),
+                TrustLineBalance(0)));
+    }
+
+    delete nodeUUID51Ptr;
+    delete nodeUUID52Ptr;
+    delete nodeUUID53Ptr;
+    delete nodeUUID54Ptr;
+    delete nodeUUID55Ptr;
 }
 
 LoggerStream PathsManager::info() const {

@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_VOUTESSTATUSRESPONSEPAYMENTTRANSACTION_H
 
 #include "../../base/BaseTransaction.h"
-#include "../../../../io/storage/PaymentOperationStateHandler.h"
+#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../../network/messages/payments/ParticipantsVotesMessage.h"
 
@@ -12,14 +12,13 @@ public:
     VoutesStatusResponsePaymentTransaction(
             const NodeUUID &nodeUUID,
             VotesStatusRequestMessage::Shared message,
-            PaymentOperationStateHandler *paymentOperationStateHandler,
+            StorageHandler *storageHandler,
             Logger *logger
     );
     TransactionResult::SharedConst run();
 
 protected:
     VotesStatusRequestMessage::Shared mRequestMessage;
-    PaymentOperationStateHandler *mPaymentOperationStateHandler;
-    Logger *mLogger;
+    StorageHandler *mStorageHandler;
 };
 #endif //GEO_NETWORK_CLIENT_VOUTESSTATUSRESPONSEPAYMENTTRANSACTION_H

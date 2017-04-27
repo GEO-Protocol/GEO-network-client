@@ -41,7 +41,8 @@
 #include "../messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 #include "../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
-
+#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
+#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"
@@ -138,6 +139,9 @@ private:
 
     unique_ptr<MessagesParser> mMessagesParser;
     vector<byte> mPacketsBuffer;
+
+    size_t realPacketNumber = 0;
+    size_t previousChannel = 0;
 };
 
 #endif //GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H

@@ -5,7 +5,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     const NodeUUID &currentNodeUUID,
     ReceiverInitPaymentRequestMessage::ConstShared message,
     TrustLinesManager *trustLines,
-    PaymentOperationStateHandler *paymentOperationStateHandler,
+    StorageHandler *storageHandler,
     Logger *log) :
 
     BasePaymentTransaction(
@@ -13,7 +13,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         trustLines,
-        paymentOperationStateHandler,
+        storageHandler,
         log),
     mMessage(message),
     mTotalReserved(0)
@@ -24,15 +24,14 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLines,
-    PaymentOperationStateHandler *paymentOperationStateHandler,
+    StorageHandler *storageHandler,
     Logger *log) :
-
         BasePaymentTransaction(
-                BaseTransaction::ReceiverPaymentTransaction,
-                buffer,
-                trustLines,
-                paymentOperationStateHandler,
-                log)
+            BaseTransaction::ReceiverPaymentTransaction,
+            buffer,
+            trustLines,
+            storageHandler,
+            log)
 {
     deserializeFromBytes(buffer);
 }

@@ -1,6 +1,4 @@
 ﻿#include "IncomingMessagesHandler.h"
-#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
-#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
     BytesShared messagePart,
@@ -400,6 +398,10 @@ void IncomingMessagesHandler::tryCollectPacket(
                 *bytesCount,
                 bytesBodySharedConst
             );
+            if (*channelNumber != previousChannel) {
+                previousChannel = *channelNumber;
+                realPacketNumber = 0;
+            }
 
         } catch (bad_alloc &) {
             throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "

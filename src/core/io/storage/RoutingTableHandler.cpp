@@ -15,14 +15,14 @@ RoutingTableHandler::RoutingTableHandler(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::creating table: " + mTableName +
-                              " : Bad query");
+        throw IOError("RoutingTableHandler::creating table: "
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
-        throw IOError("RoutingTableHandler::creating table: " + mTableName +
-                              " : Run query");
+        throw IOError("RoutingTableHandler::creating table: "
+                          "Run query; sqlite error: " + rc);
     }
 
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
@@ -30,13 +30,13 @@ RoutingTableHandler::RoutingTableHandler(
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::creating index for Source: "
-                              "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("RoutingTableHandler::creating index for Source: "
-                              "Run query");
+                          "Run query; sqlite error: " + rc);
     }
 
     query = "CREATE INDEX IF NOT EXISTS " + mTableName
@@ -44,13 +44,13 @@ RoutingTableHandler::RoutingTableHandler(
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::creating index for Destination: "
-                              "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("RoutingTableHandler::creating index for Destination: "
-                              "Run query");
+                          "Run query; sqlite error: " + rc);
     }
 
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
@@ -59,15 +59,14 @@ RoutingTableHandler::RoutingTableHandler(
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::creating unique index for Source and Destination: "
-                              "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("RoutingTableHandler::creating unique index for Source and Destination: "
-                              "Run query");
+                          "Run query; sqlite error: " + rc);
     }
-
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
 }
@@ -80,21 +79,21 @@ void RoutingTableHandler::deleteRecord(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::deleteRecord: Bad query");
+        throw IOError("RoutingTableHandler::deleteRecord: "
+                          "Bad query; sqlite error: " + rc);
     }
 
     rc = sqlite3_bind_blob(stmt, 1, source.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::deleteRecord: "
-                          "Bad binding of Source");
+                          "Bad binding of Source; sqlite error: " + rc);
     }
 
     rc = sqlite3_bind_blob(stmt, 2, destination.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::deleteRecord: "
-                          "Bad binding of Desitnation");
+                          "Bad binding of Desitnation; sqlite error: " + rc);
     }
-
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
@@ -103,7 +102,8 @@ void RoutingTableHandler::deleteRecord(
         info() << "deleting is completed successfully";
 #endif
     } else {
-        throw IOError("RoutingTableHandler::deleteRecord: Run query");
+        throw IOError("RoutingTableHandler::deleteRecord: "
+                          "Run query; sqlite error: " + rc);
     }
 }
 
@@ -117,20 +117,18 @@ void RoutingTableHandler::saveRecord(
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::insert or replace: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
-
     rc = sqlite3_bind_blob(stmt, 1, source.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::insert or replace: "
-                          "Bad binding of Source");
+                          "Bad binding of Source; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 2, destination.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::insert or replace: "
-                          "Bad binding of Desitnation");
+                          "Bad binding of Desitnation; sqlite error: " + rc);
     }
-
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
@@ -141,7 +139,7 @@ void RoutingTableHandler::saveRecord(
 #endif
     } else {
         throw IOError("RoutingTableHandler::insert or replace: "
-                          "Run query");
+                          "Run query; sqlite error: " + rc);
     }
 }
 
@@ -153,7 +151,7 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords() {
     int rc = sqlite3_prepare_v2( mDataBase, countQuery.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecords: "
-                          "Bad count query");
+                          "Bad count query; sqlite error: " + rc);
     }
     sqlite3_step(stmt);
     uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
@@ -165,7 +163,7 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTableHandler::routeRecords() {
     rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecords: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source((uint8_t *)sqlite3_column_blob(stmt, 0));
@@ -191,7 +189,7 @@ unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> Routi
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecordsMapDestinationKey: "
-                          "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     NodeUUID currentDestination;
     vector<NodeUUID> valueSources;
@@ -214,10 +212,12 @@ unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> Routi
         }
         valueSources.push_back(source);
     }
-    result.insert(
-        make_pair(
-            currentDestination,
-            valueSources));
+    if (valueSources.size() > 0) {
+        result.insert(
+            make_pair(
+                currentDestination,
+                valueSources));
+    }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     /*Duration methodTime = utc_now() - startTime;
@@ -235,12 +235,12 @@ set<NodeUUID> RoutingTableHandler::neighborsOf (
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::neighborsOf: "
-                              "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::neighborsOf: "
-                              "Bad Source binding");
+                          "Bad Source binding; sqlite error: " + rc);
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID destination((uint8_t *)sqlite3_column_blob(stmt, 0));
@@ -261,7 +261,7 @@ map<const NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapSource
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::routeRecordsMapSourceKey: "
-                              "Bad query");
+                          "Bad query; sqlite error: " + rc);
     }
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         NodeUUID source((uint8_t *)sqlite3_column_blob(stmt, 0));
@@ -291,11 +291,13 @@ bool RoutingTableHandler::isNodePresentAsDestination(const NodeUUID &nodeUUID) {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::isNodePresentAsDestination: Bad query");
+        throw IOError("RoutingTableHandler::isNodePresentAsDestination: "
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, nodeUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::isNodePresentAsDestination: Bad binding of nodeUUID");
+        throw IOError("RoutingTableHandler::isNodePresentAsDestination: "
+                          "Bad binding of nodeUUID; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -309,17 +311,19 @@ void RoutingTableHandler::deleteAllRecordsWithSource(const NodeUUID &sourceUUID)
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::deleteAllRecordsWithSource: Bad query");
+        throw IOError("RoutingTableHandler::deleteAllRecordsWithSource: "
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::deleteAllRecordsWithSource: "
-                          "Bad sourceUUID binding");
+                          "Bad sourceUUID binding; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         info() << "deleting error: " << rc;
-        throw IOError("RoutingTableHandler::deleteAllRecordsWithSource: Run query");
+        throw IOError("RoutingTableHandler::deleteAllRecordsWithSource: "
+                          "Run query; sqlite error: " + rc);
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
@@ -328,13 +332,6 @@ void RoutingTableHandler::deleteAllRecordsWithSource(const NodeUUID &sourceUUID)
 const string& RoutingTableHandler::tableName() const {
 
     return mTableName;
-}
-
-void RoutingTableHandler::closeConnection() {
-
-    if (mDataBase != nullptr) {
-        sqlite3_close_v2(mDataBase);
-    }
 }
 
 LoggerStream RoutingTableHandler::info() const {
