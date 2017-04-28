@@ -209,13 +209,13 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
             mParticipantsVotesMessage);
 
         info() << "Votes list message transferred to the (" << kNextParticipant << ")";
-        // debug code
-//        const NodeUUID debugNodeUUID = NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
-//        if(mNodeUUID == debugNodeUUID) {
-//            cout << "Debug mode. Wait for recovery" << endl;
-//            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-//            return recover("Debug recover");
-//        }
+//         debug code
+        const NodeUUID debugNodeUUID = NodeUUID("592aaaf6-0626-4a0b-9cd7-a09215feff9e");
+        if(mNodeUUID == debugNodeUUID) {
+            cout << "Debug mode. Wait for recovery Recovery" << endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+            return recover("Debug recover");
+        }
         // debug code
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
@@ -368,9 +368,25 @@ TransactionResult::SharedConst BasePaymentTransaction::reject(
     // Participants votes may not be received,
     // if transaction doesn't achieved votes processing state yet.
     if (mParticipantsVotesMessage != nullptr) {
+        saveVotes();
         mParticipantsVotesMessage->reject(currentNodeUUID());
         propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
     }
+
+    rollBack();
+    info() << "Transaction succesfully rolled back.";
+
+    return resultDone();
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::cancel(
+    const char *message)
+{
+    if (message)
+        info() << message;
+
+    // Participants votes may not be received,
+    // if transaction doesn't achieved votes processing state yet.
 
     rollBack();
     info() << "Transaction succesfully rolled back.";
@@ -401,6 +417,9 @@ void BasePaymentTransaction::commit ()
     info() << "Transaction committing...";
 
     // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
+    {
+        const auto ioTransaction = mStorageHandler->beginTransaction();
+    }
 
     for (const auto &kNodeUUIDAndReservations : mReservations)
         for (const auto &kReservation : kNodeUUIDAndReservations.second) {
@@ -415,12 +434,12 @@ void BasePaymentTransaction::commit ()
                        << " for (" << kNodeUUIDAndReservations.first << ")";
         }
 
-    saveVoutes();
+    saveVotes();
     info() << "Voutes saved.";
     info() << "Transaction committed.";
 }
 
-void BasePaymentTransaction::saveVoutes()
+void BasePaymentTransaction::saveVotes()
 {
     const auto ioTransaction = mStorageHandler->beginTransaction();
     auto bufferAndSize = mParticipantsVotesMessage->serializeToBytes();
@@ -622,11 +641,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToChec
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesStage() {
-
+    cout << "runCheckCoordinatorVotesStage()" << endl;
     if (mContext.size() == 1) {
         const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
         if (mParticipantsVotesMessage->votes().size() > 0) {
-            saveVoutes();
             if (kMessage->containsRejectVote()) {
                 mParticipantsVotesMessage = kMessage;
                 return reject("");
@@ -645,10 +663,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeVotesSage() {
+    cout << "runCheckIntermediateNodeVotesSage" << endl;
     if (mContext.size() == 1) {
         const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
         if (mParticipantsVotesMessage->votes().size() > 0) {
-            saveVoutes();
+            saveVotes();
             if (kMessage->containsRejectVote()) {
                 mParticipantsVotesMessage = kMessage;
                 return reject("");

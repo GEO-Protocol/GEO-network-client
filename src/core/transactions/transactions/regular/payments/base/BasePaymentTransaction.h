@@ -89,6 +89,8 @@ protected:
         const char *message = nullptr);
     virtual TransactionResult::SharedConst reject(
         const char *message = nullptr);
+    virtual TransactionResult::SharedConst cancel(
+        const char *message = nullptr);
 
     TransactionResult::SharedConst exitWithResult(
         const TransactionResult::SharedConst result,
@@ -115,7 +117,7 @@ protected:
         const AmountReservation::ConstShared kReservation,
         const TrustLineAmount &kNewAmount);
 
-    void saveVoutes();
+    void saveVotes();
     void commit();
     void rollBack();
 

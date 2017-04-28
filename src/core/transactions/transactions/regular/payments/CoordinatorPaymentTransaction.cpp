@@ -111,31 +111,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
 //    addPathForFurtherProcessing(p1);
 //    addPathForFurtherProcessing(p2);
 
-// TODO for test
-    NodeUUID *nodeUUID51Ptr = new NodeUUID("f6b1d2ab-19b9-4085-b943-a362ad011865");
-    NodeUUID *nodeUUID52Ptr = new NodeUUID("a718dd56-7704-4fb5-94ef-3dbbc4195b2f");
-    NodeUUID *nodeUUID53Ptr = new NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
-    NodeUUID *nodeUUID54Ptr = new NodeUUID("a2da327a-8d38-4466-bf8c-c5b3eac0025e");
-    NodeUUID *nodeUUID55Ptr = new NodeUUID("f1eccb61-9c0e-4ff7-9d5e-a40726fb6901");
-
-    vector<NodeUUID> intermediateNodes;
-    intermediateNodes.push_back(*nodeUUID52Ptr);
-    intermediateNodes.push_back(*nodeUUID53Ptr);
-    intermediateNodes.push_back(*nodeUUID54Ptr);
-    auto result = make_shared<const Path>(
-        *nodeUUID51Ptr,
-        *nodeUUID55Ptr,
-        intermediateNodes);
-
-    delete nodeUUID51Ptr;
-    delete nodeUUID52Ptr;
-    delete nodeUUID53Ptr;
-    delete nodeUUID54Ptr;
-    delete nodeUUID55Ptr;
-
-    addPathForFurtherProcessing(result);
-    // end test
-
     mResourcesManager->requestPaths(
         currentTransactionUUID(),
         mCommand->contractorUUID());
@@ -156,11 +131,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
                 responseResource);
 
             // TODO for test
-            NodeUUID *nodeUUID51Ptr = new NodeUUID("f6b1d2ab-19b9-4085-b943-a362ad011865");
-            NodeUUID *nodeUUID52Ptr = new NodeUUID("a718dd56-7704-4fb5-94ef-3dbbc4195b2f");
-            NodeUUID *nodeUUID53Ptr = new NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
-            NodeUUID *nodeUUID54Ptr = new NodeUUID("a2da327a-8d38-4466-bf8c-c5b3eac0025e");
-            NodeUUID *nodeUUID55Ptr = new NodeUUID("f1eccb61-9c0e-4ff7-9d5e-a40726fb6901");
+            NodeUUID *nodeUUID51Ptr = new NodeUUID("83f5325f-09b9-4af1-9539-ebd82592fa28");
+            NodeUUID *nodeUUID52Ptr = new NodeUUID("0cf32ef5-3028-42a3-b81b-dd32a3e15f96");
+            NodeUUID *nodeUUID53Ptr = new NodeUUID("592aaaf6-0626-4a0b-9cd7-a09215feff9e");
+            NodeUUID *nodeUUID54Ptr = new NodeUUID("03de0db2-140e-4a5b-aa0e-b2fbf25dceec");
+            NodeUUID *nodeUUID55Ptr = new NodeUUID("6801e258-b4b8-4b35-bdef-4b7d59ecb4ed");
 
             vector<NodeUUID> intermediateNodes;
             intermediateNodes.push_back(*nodeUUID52Ptr);
