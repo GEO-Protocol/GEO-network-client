@@ -152,7 +152,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
 {
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse))
-        reject("No valid amount reservation response received. Rolled back.");
+        return reject("No valid amount reservation response received. Rolled back.");
 
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();

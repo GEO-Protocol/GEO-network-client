@@ -61,7 +61,6 @@ protected:
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
     TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
     TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
-    TransactionResult::SharedConst runVotesCheckingStage ();
 
 protected:
     // Coordinator must return command result on transaction finishing.

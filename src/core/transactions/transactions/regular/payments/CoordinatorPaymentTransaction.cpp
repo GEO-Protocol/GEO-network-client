@@ -58,7 +58,7 @@ throw (RuntimeError, bad_alloc)
             return runFinalParticipantsRequestsProcessingStage();
 
         case Stages::Common_VotesChecking:
-            return runVotesCheckingStage();
+            return runVotesConsistencyCheckingStage();
 
         default:
             throw RuntimeError(
@@ -110,37 +110,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
         if (responseResource->type() == BaseResource::ResourceType::Paths) {
             PathsResource::Shared response = static_pointer_cast<PathsResource>(
                 responseResource);
-
-            // TODO for test
-            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
-            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
-
-            vector<NodeUUID> intermediateNodes;
-            intermediateNodes.push_back(*nodeUUID52Ptr);
-            intermediateNodes.push_back(*nodeUUID53Ptr);
-            intermediateNodes.push_back(*nodeUUID54Ptr);
-            auto result = make_shared<const Path>(
-                *nodeUUID51Ptr,
-                *nodeUUID55Ptr,
-                intermediateNodes);
-
-            delete nodeUUID51Ptr;
-            delete nodeUUID52Ptr;
-            delete nodeUUID53Ptr;
-            delete nodeUUID54Ptr;
-            delete nodeUUID55Ptr;
-
-            addPathForFurtherProcessing(result);
-            // end test
-
-//            response->pathCollection()->resetCurrentPath();
-//            while (response->pathCollection()->hasNextPath()) {
-//                auto path = response->pathCollection()->nextPath();
-//                addPathForFurtherProcessing(path);
-//            }
+            response->pathCollection()->resetCurrentPath();
+            while (response->pathCollection()->hasNextPath()) {
+                auto path = response->pathCollection()->nextPath();
+                addPathForFurtherProcessing(path);
+            }
         } else {
             // TODO: action on this case
             error() << "wrong resource type";
@@ -368,65 +342,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalParticipan
         maxNetworkDelay(1));
 }
 
-
-TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesCheckingStage ()
-{
-    // Votes message may be received twice:
-    // First time - as a request to check the transaction and to sing it in case if all correct.
-    // Second time - as a command to commit/rollback the transaction.
-    if (mTransactionIsVoted)
-        return runVotesConsistencyCheckingStage();
-
-
-    if (! contextIsValid(Message::Payments_ParticipantsVotes))
-        return reject("No participants votes received. Canceling.");
-
-
-    const auto kCurrentNodeUUID = currentNodeUUID();
-    auto message = popNextMessage<ParticipantsVotesMessage>();
-    info() << "Votes message received";
-
-
-    try {
-        // Check if current node is listed in the votes list.
-        // This check is needed to prevent processing message in case of missdelivering.
-        message->vote(kCurrentNodeUUID);
-
-    } catch (NotFoundError &) {
-        // It seems that current node wasn't listed in the votes list.
-        // This is possible only in case, when one node takes part in 2 parallel transactions,
-        // that have common UUID (transactions UUIDs collision).
-        // The probability of this is very small, but is present.
-        //
-        // In this case - the message must be simply ignored.
-
-        info() << "Votes message ignored due to transactions UUIDs collision detected.";
-        info() << "Waiting for another votes message.";
-
-        return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(message->participantsCount())); // ToDo: kMessage->participantsCount() must not be used (it is invalid)
-    }
-
-
-    if (message->containsRejectVote())
-        // Some node rejected the transaction.
-        // This node must simply roll back it's part of transaction and exit.
-        // No further message propagation is needed.
-        reject("Some participant node has been rejected the transaction. Rolling back.");
-
-
-    // Votes message must be saved for further processing on next awakening.
-    mParticipantsVotesMessage = message;
-
-
-    mStep = Stages::Common_FinalPathsConfigurationChecking;
-    return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsPathsConfiguration},
-        maxCoordinatorResponseTimeout());
-}
-
-
 /**
  * @brief CoordinatorPaymentTransaction::propagateVotesList
  * Collects all nodes from all paths into one votes list,
@@ -639,6 +554,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveNextInte
     } catch(NotFoundError) {
         info() << "No unprocessed paths are left.";
         info() << "Requested amount can't be collected. Canceling.";
+        rollBack();
         return resultInsufficientFundsError();
     }
 }
@@ -965,7 +881,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             }
         }
 
-        info() << "Switching to another path";
         return tryReserveNextIntermediateNodeAmount(path);
     }
 }
@@ -978,6 +893,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
 
     } catch (Exception &e) {
         info() << "No another paths are available. Canceling.";
+        rollBack();
         return resultInsufficientFundsError();
     }
 }
