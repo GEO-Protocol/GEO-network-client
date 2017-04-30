@@ -51,7 +51,10 @@ private:
         const TrustLineAmount& currentFlow,
         byte level);
 
-    TransactionResult::SharedConst resultOk(TrustLineAmount &maxFlowAmount);
+    TransactionResult::SharedConst resultOk(
+        TrustLineAmount &maxFlowAmount);
+
+    TransactionResult::SharedConst resultProtocolError();
 
 private:
     static const byte kMaxFlowLength=6;

@@ -22,18 +22,24 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
+    enum Stages {
+        SendRequestForRemouteNode = 1,
+        GetResponseFromRemouteNode
+    };
+
+protected:
     const string logHeader() const;
 
 private:
     void sendMessageToRemoteNode();
 
-    void increaseRequestsCounter();
-
     TransactionResult::SharedConst waitingForResponseState();
 
     TransactionResult::SharedConst resultRemoteNodeIsInaccessible();
 
-    TransactionResult::SharedConst checkTransactionContext();
+    TransactionResult::SharedConst resultProtocolError();
+
+    TransactionResult::SharedConst getRemouteNodeTotalBalances();
 
     TransactionResult::SharedConst resultOk(
         const TrustLineAmount &totalIncomingTrust,
@@ -43,11 +49,9 @@ private:
     
 private:
     const uint16_t kConnectionTimeout = 500;
-    const uint16_t kMaxRequestsCount = 5;
 
 private:
     TotalBalancesRemouteNodeCommand::Shared mCommand;
-    uint16_t mRequestCounter;
 };
 
 

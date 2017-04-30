@@ -9,8 +9,7 @@ TotalBalancesFromRemoutNodeTransaction::TotalBalancesFromRemoutNodeTransaction(
         BaseTransaction::TransactionType::InitiateTotalBalancesFromRemoutNodeTransactionType,
         nodeUUID,
         logger),
-    mCommand(command),
-    mRequestCounter(0)
+    mCommand(command)
 {}
 
 TotalBalancesRemouteNodeCommand::Shared TotalBalancesFromRemoutNodeTransaction::command() const
@@ -20,20 +19,27 @@ TotalBalancesRemouteNodeCommand::Shared TotalBalancesFromRemoutNodeTransaction::
 
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::run()
 {
-    if (!mContext.empty()) {
-        return checkTransactionContext();
-    } else {
-        if (mRequestCounter < kMaxRequestsCount) {
+    switch (mStep) {
+        case Stages::SendRequestForRemouteNode:
+            if (mCommand->contractorUUID() == currentNodeUUID()) {
+                error() << "Attempt to initialise operation against itself was prevented. Canceled.";
+                return resultProtocolError();
+            }
             sendMessageToRemoteNode();
-            increaseRequestsCounter();
-        } else {
-            return resultRemoteNodeIsInaccessible();
-        }
+            mStep = Stages::GetResponseFromRemouteNode;
+            return waitingForResponseState();
+        case Stages::GetResponseFromRemouteNode:
+            if (mContext.empty()) {
+                return resultRemoteNodeIsInaccessible();
+            }
+            return getRemouteNodeTotalBalances();
+        default:
+            throw ValueError("FindPathTransaction::run: "
+                                 "wrong value of mStep");
     }
-    return waitingForResponseState();
 }
 
-TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::checkTransactionContext()
+TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::getRemouteNodeTotalBalances()
 {
     if (mContext.size() == 1) {
         auto responseMessage = *mContext.begin();
@@ -46,7 +52,8 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::checkTran
                 response->totalOutgoingTrust(),
                 response->totalTrustUsedBySelf());
         }
-        return resultRemoteNodeIsInaccessible();
+        error() << "getRemouteNodeTotalBalances: unexpected message type";
+        return resultProtocolError();
     } else {
         throw ConflictError("TotalBalancesFromRemoutNodeTransaction::checkTransactionContext: "
                                 "Unexpected context size.");
@@ -69,11 +76,6 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::waitingFo
             kConnectionTimeout));
 }
 
-void TotalBalancesFromRemoutNodeTransaction::increaseRequestsCounter()
-{
-    mRequestCounter += 1;
-}
-
 TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::resultOk(
     const TrustLineAmount &totalIncomingTrust,
     const TrustLineAmount &totalTrustUsedByContractor,
@@ -90,6 +92,12 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::resultRem
 {
     return transactionResultFromCommand(
         mCommand->responseRemoteNodeIsInaccessible());
+}
+
+TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::resultProtocolError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseProtocolError());
 }
 
 const string TotalBalancesFromRemoutNodeTransaction::logHeader() const

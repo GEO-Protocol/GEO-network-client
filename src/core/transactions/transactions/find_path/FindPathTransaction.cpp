@@ -28,6 +28,11 @@ TransactionResult::SharedConst FindPathTransaction::run()
 #endif
     switch (mStep) {
         case Stages::SendRequestForGettingRoutingTables:
+            if (mContractorUUID == currentNodeUUID()) {
+                error() << "Attempt to initialise operation against itself was prevented. Canceled.";
+                return make_shared<const TransactionResult>(
+                    TransactionState::exit());
+            }
             sendMessageToRemoteNode();
             mStep = Stages::BuildAllPaths;
             return waitingForResponseState();

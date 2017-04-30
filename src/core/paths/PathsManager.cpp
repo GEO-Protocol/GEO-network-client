@@ -1460,7 +1460,7 @@ void PathsManager::fillCycleTablesTestCase0()
             make_shared<TrustLine>(
                 *nodeUUID55Ptr,
                 TrustLineAmount(0),
-                TrustLineAmount(100),
+                TrustLineAmount(190),
                 TrustLineBalance(0)));
         ioTransaction->trustLineHandler()->saveTrustLine(
             make_shared<TrustLine>(
@@ -1525,7 +1525,7 @@ void PathsManager::fillCycleTablesTestCase0()
         ioTransaction->trustLineHandler()->saveTrustLine(
             make_shared<TrustLine>(
                 *nodeUUID51Ptr,
-                TrustLineAmount(100),
+                TrustLineAmount(190),
                 TrustLineAmount(0),
                 TrustLineBalance(0)));
         ioTransaction->trustLineHandler()->saveTrustLine(
