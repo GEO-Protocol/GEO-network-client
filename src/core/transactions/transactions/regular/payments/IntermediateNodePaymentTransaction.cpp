@@ -66,6 +66,7 @@ pair<BytesShared, size_t> IntermediateNodePaymentTransaction::serializeToBytes()
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNeighborRequestProcessingStage()
 {
+    info() << "runPreviousNeighborRequestProcessingStage";
     const auto kNeighbor = mMessage->senderUUID;
     info() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
     info() << "Requested amount reservation: " << mMessage->amount();
@@ -102,6 +103,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage()
 {
+    info() << "runCoordinatorRequestProcessingStage";
     if (! contextIsValid(Message::Payments_CoordinatorReservationRequest))
         return reject("No coordinator request received. Rolled back.");
 
@@ -151,6 +153,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
 {
+    info() << "runNextNeighborResponseProcessingStage";
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse))
         return reject("No valid amount reservation response received. Rolled back.");
 
@@ -170,6 +173,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
 
     info() << "(" << kContractor << ") accepted amount reservation.";
+
+    // TODO : shortage reservation
+
     sendMessage<CoordinatorReservationResponseMessage>(
         mCoordinator,
         currentNodeUUID(),
@@ -186,6 +192,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
 {
+    info() << "runReservationProlongationStage";
     // In case if participants votes message is already received -
     // there is no need to prolong reservation, transaction may be proceeded.
     if (! mContext.empty())

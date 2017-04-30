@@ -138,6 +138,8 @@ protected:
     // is waiting for request appriving.
     PathUUID mCurrentAmountReservingPathIdentifier;
 
+    unordered_map<PathUUID, unique_ptr<PathStats>, boost::hash<boost::uuids::uuid>>::const_iterator mCurrentAmountReservingPathIterator;
+
     // Reservation stage contains it's own internal steps counter.
     byte mReservationsStage;
 

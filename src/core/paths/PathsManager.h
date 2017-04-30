@@ -100,7 +100,10 @@ private:
     NodeUUID* getPtrByNodeNumber(
         uint32_t number,
         vector<NodeUUID*> nodeUUIDPtrs);
-    void fillCycleTables();
+    void fillCycleTablesTestCase0();
+    void fillCycleTablesTestCase1();
+    void fillCycleTablesTestCase2();
+    void fillCycleTablesTestCase3();
 
     // TODO: remove after testing
     void testStorageHandler();

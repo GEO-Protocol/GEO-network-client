@@ -23,7 +23,10 @@ PathsManager::PathsManager(
     //testMultiConnection();
     //printRTs();
     //testDeletingRT();
-    //fillCycleTables();
+    //fillCycleTablesTestCase0();
+    //fillCycleTablesTestCase1();
+    //fillCycleTablesTestCase2();
+    //fillCycleTablesTestCase3();
 }
 
 void PathsManager::findDirectPath()
@@ -1437,7 +1440,7 @@ void PathsManager::testDeletingRT()
     delete nodeUUID86Ptr;
 }
 
-void PathsManager::fillCycleTables()
+void PathsManager::fillCycleTablesTestCase0()
 {
     NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
     NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
@@ -1538,6 +1541,313 @@ void PathsManager::fillCycleTables()
     delete nodeUUID53Ptr;
     delete nodeUUID54Ptr;
     delete nodeUUID55Ptr;
+}
+
+void PathsManager::fillCycleTablesTestCase1()
+{
+    NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+    NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+    NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+    NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+    NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+    NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (mNodeUUID == *nodeUUID51Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(180),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(150),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID52Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(180),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID56Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(50),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID53Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(150),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(180),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID54Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(180),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(150),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID55Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID56Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(150),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID56Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(50),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+    }
+
+    delete nodeUUID51Ptr;
+    delete nodeUUID52Ptr;
+    delete nodeUUID53Ptr;
+    delete nodeUUID54Ptr;
+    delete nodeUUID55Ptr;
+    delete nodeUUID56Ptr;
+}
+
+void PathsManager::fillCycleTablesTestCase2()
+{
+    NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+    NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+    NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+    NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+    NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (mNodeUUID == *nodeUUID51Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(300),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID52Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(180),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(300),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID53Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(150),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(180),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID54Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(50),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID55Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(150),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(50),
+                TrustLineBalance(0)));
+    }
+
+    delete nodeUUID51Ptr;
+    delete nodeUUID52Ptr;
+    delete nodeUUID53Ptr;
+    delete nodeUUID54Ptr;
+    delete nodeUUID55Ptr;
+}
+
+void PathsManager::fillCycleTablesTestCase3()
+{
+    NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+    NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+    NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+    NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+    NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+    NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (mNodeUUID == *nodeUUID51Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(200),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID52Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(180),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(200),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID53Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(150),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(180),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID54Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(50),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID55Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID56Ptr,
+                TrustLineAmount(200),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(150),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(50),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID56Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(200),
+                TrustLineBalance(0)));
+    }
+
+    delete nodeUUID51Ptr;
+    delete nodeUUID52Ptr;
+    delete nodeUUID53Ptr;
+    delete nodeUUID54Ptr;
+    delete nodeUUID55Ptr;
+    delete nodeUUID56Ptr;
 }
 
 LoggerStream PathsManager::info() const

@@ -11,7 +11,9 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         BaseTransaction::CycleCloserInitiatorTransaction,
         kCurrentNodeUUID,
         trustLines,
-        log)
+        log),
+    mReservationsStage(0),
+    mInitialTransactionAmount(0)
 {
     mStep = Stages::Coordinator_AmountReservation;
     mPathStats = make_unique<PathStats>(path);
@@ -34,7 +36,6 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
     throw (RuntimeError, bad_alloc)
 {
-    info() << "run\tstep: " << mStep;
     switch (mStep) {
         case Stages::Coordinator_AmountReservation:
             return runAmountReservationStage();
@@ -46,7 +47,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
             return runFinalParticipantsRequestsProcessingStage();
 
         case Stages::Common_VotesChecking:
-            return runVotesCheckingStage();
+            return runVotesConsistencyCheckingStage();
 
         default:
             throw RuntimeError(
@@ -57,34 +58,72 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReservationStage ()
 {
-    // Check if total outgoing possibilities of this node are not smaller,
-    // than total operation amount. In case if so - there is no reason to begin the operation:
-    // current node would not be able to pay such an amount.
-    // TODO : check if incoming and outgoing balances are not zero and calc minimum of them for init amount
-    /*const auto kTotalOutgoingPossibilities = *(mTrustLines->totalOutgoingAmount());
-    if (kTotalOutgoingPossibilities < mCommand->amount())
-        return resultInsufficientFundsError();*/
+    info() << "runAmountReservationStage";
+    switch (mReservationsStage) {
+        case 0: {
+            const auto kFirstIntermediateNode = mPathStats->path()->nodes[1];
+            if (! mTrustLines->isNeighbor(kFirstIntermediateNode)){
+                // Internal process error. Wrong path
+                error() << "Invalid path occurred. Node (" << kFirstIntermediateNode << ") is not listed in first level contractors list.";
+                throw RuntimeError(
+                    "CycleCloserInitiatorTransaction::runAmountReservationStage: "
+                        "invalid first level node occurred. ");
+            }
+            const auto kOutgoingPossibilities = *(mTrustLines->availableOutgoingAmount(
+                kFirstIntermediateNode));
 
-    const auto kPathStats = mPathStats.get();
-    if (kPathStats->isReadyToSendNextReservationRequest())
-        return tryReserveNextIntermediateNodeAmount(kPathStats);
+            const auto kLastIntermediateNode = mPathStats->path()->nodes[mPathStats->path()->length() - 2];
+            if (! mTrustLines->isNeighbor(kFirstIntermediateNode)){
+                // Internal process error. Wrong path
+                error() << "Invalid path occurred. Node (" << kLastIntermediateNode << ") is not listed in first level contractors list.";
+                throw RuntimeError(
+                    "CycleCloserInitiatorTransaction::runAmountReservationStage: "
+                        "invalid first level node occurred. ");
+            }
+            const auto kIncomingPossibilities = *(mTrustLines->availableIncomingAmount(
+                kLastIntermediateNode));
 
-    else if (kPathStats->isWaitingForNeighborReservationResponse())
-        return processNeighborAmountReservationResponse();
+            mInitialTransactionAmount = min(
+                kOutgoingPossibilities,
+                kIncomingPossibilities);
+            if (mInitialTransactionAmount == 0) {
+                info() << "Can't close cycle, because coordinator incoming or outgoing amount equal zero";
+                return resultDone();
+            }
+            mReservationsStage += 1;
+            // Note:
+            // next section must be executed immediately.
+            // (no "break" is needed).
+        }
 
-    else if (kPathStats->isWaitingForNeighborReservationPropagationResponse())
-        return processNeighborFurtherReservationResponse();
+        case 1: {
+            const auto kPathStats = mPathStats.get();
+            if (kPathStats->isReadyToSendNextReservationRequest())
+                return tryReserveNextIntermediateNodeAmount(kPathStats);
 
-    else if (kPathStats->isWaitingForReservationResponse())
-        return processRemoteNodeResponse();
+            else if (kPathStats->isWaitingForNeighborReservationResponse())
+                return processNeighborAmountReservationResponse();
 
-    throw RuntimeError(
-        "CycleCloserInitiatorTransaction::processAmountReservationStage: "
-            "unexpected behaviour occured.");
+            else if (kPathStats->isWaitingForNeighborReservationPropagationResponse())
+                return processNeighborFurtherReservationResponse();
+
+            else if (kPathStats->isWaitingForReservationResponse())
+                return processRemoteNodeResponse();
+
+            throw RuntimeError(
+                "CycleCloserInitiatorTransaction::runAmountReservationStage: "
+                    "unexpected behaviour occured.");
+        }
+        default:
+            throw ValueError(
+                "CycleCloserInitiatorTransaction::runAmountReservationStage: "
+                    "unexpected reservations stage occured.");
+    }
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalParticipantsRequestsProcessingStage ()
 {
+    info() << "runFinalParticipantsRequestsProcessingStage";
     if (! contextIsValid(Message::Payments_ParticipantsPathsConfigurationRequest))
         // Coordinator already signed the transaction and can't reject it.
         // But the remote intermediate node will newer receive
@@ -103,16 +142,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalParticip
     const auto kPathStats = mPathStats.get();
     const auto kPath = kPathStats->path();
 
-    // TODO maby remove
-    // If path was dropped (processed, but rejected) - exclude it.
-    if (!kPathStats->isValid())
-        return resultDone();
-
     auto kIntermediateNodePathPos = 1;
     while (kIntermediateNodePathPos != kPath->length()) {
         if (kPath->nodes[kIntermediateNodePathPos] == kMessage->senderUUID)
             break;
-
         kIntermediateNodePathPos++;
     }
 
@@ -160,57 +193,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalParticip
         maxNetworkDelay(1));
 }
 
-TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesCheckingStage ()
-{
-    // Votes message may be received twice:
-    // First time - as a request to check the transaction and to sing it in case if all correct.
-    // Second time - as a command to commit/rollback the transaction.
-    if (mTransactionIsVoted)
-        return runVotesConsistencyCheckingStage();
-
-    if (! contextIsValid(Message::Payments_ParticipantsVotes))
-        return reject("No participants votes received. Canceling.");
-
-    const auto kCurrentNodeUUID = currentNodeUUID();
-    auto message = popNextMessage<ParticipantsVotesMessage>();
-    info() << "Votes message received";
-
-    try {
-        // Check if current node is listed in the votes list.
-        // This check is needed to prevent processing message in case of missdelivering.
-        message->vote(kCurrentNodeUUID);
-
-    } catch (NotFoundError &) {
-        // It seems that current node wasn't listed in the votes list.
-        // This is possible only in case, when one node takes part in 2 parallel transactions,
-        // that have common UUID (transactions UUIDs collision).
-        // The probability of this is very small, but is present.
-        //
-        // In this case - the message must be simply ignored.
-
-        info() << "Votes message ignored due to transactions UUIDs collision detected.";
-        info() << "Waiting for another votes message.";
-
-        return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(message->participantsCount())); // ToDo: kMessage->participantsCount() must not be used (it is invalid)
-    }
-
-    if (message->containsRejectVote())
-        // Some node rejected the transaction.
-        // This node must simply roll back it's part of transaction and exit.
-        // No further message propagation is needed.
-        return reject("Some participant node has been rejected the transaction. Rolling back.");
-
-    // Votes message must be saved for further processing on next awakening.
-    mParticipantsVotesMessage = message;
-
-    mStep = Stages::Common_FinalPathsConfigurationChecking;
-    return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsPathsConfiguration},
-        maxCoordinatorResponseTimeout());
-}
-
 /**
  * @brief CycleCloserInitiatorTransaction::propagateVotesList
  * Collects all nodes from all paths into one votes list,
@@ -218,6 +200,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesChecking
  */
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesListAndWaitForConfigurationRequests ()
 {
+    info() << "propagateVotesListAndWaitForConfigurationRequests";
     const auto kCurrentNodeUUID = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
@@ -288,6 +271,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::tryReserveNextIntermediateNodeAmount (
     PathStats *pathStats)
 {
+    info() << "propagateVotesListAndWaitForConfigurationRequests";
     /*
      * Nodes scheme:
      *  R - remote node;
@@ -334,40 +318,19 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
     const NodeUUID &neighbor,
     PathStats *path)
 {
+    info() << "askNeighborToReserveAmount";
     const auto kCurrentNode = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
-    if (! mTrustLines->isNeighbor(neighbor)){
-        // Internal process error.
-        // No next path must be selected.
-        // Transaction execution must be cancelled.
-
-        error() << "Invalid path occurred. Node (" << neighbor << ") is not listed in first level contractors list.";
-        error() << "This may signal about protocol/data manipulations.";
-
-        throw RuntimeError(
-            "CycleCloserInitiatorTransaction::tryReserveNextIntermediateNodeAmount: "
-                "invalid first level node occurred. ");
-    }
-
-    // Note: copy of shared pointer is required
-    const auto kAvailableOutgoingAmount =  mTrustLines->availableOutgoingAmount(neighbor);
-    const auto kReservationAmount = *kAvailableOutgoingAmount;
-
-    if (kReservationAmount == 0) {
-        info() << "No payment amount is available for (" << neighbor << "). ";
-        return resultDone();
-    }
-
     // Try reserve amount locally.
-    path->shortageMaxFlow(kReservationAmount);
+    path->shortageMaxFlow(mInitialTransactionAmount);
     path->setNodeState(
         1,
         PathStats::NeighbourReservationRequestSent);
 
     reserveOutgoingAmount(
         neighbor,
-        kReservationAmount);
+        mInitialTransactionAmount);
 
     sendMessage<IntermediateNodeReservationRequestMessage>(
         neighbor,
@@ -384,6 +347,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
     const NodeUUID& neighbor,
     PathStats *path)
 {
+    info() << "askNeighborToApproveFurtherNodeReservation";
     const auto kCoordinator = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
     const auto kNeighborPathPosition = 1;
@@ -413,6 +377,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborAmountReservationResponse()
 {
+    info() << "processNeighborAmountReservationResponse";
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
         info() << "No neighbor node response received.";
         rollBack();
@@ -437,6 +402,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborFurtherReservationResponse()
 {
+    info() << "processNeighborFurtherReservationResponse";
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)) {
         info() << "Neighbor node doesn't sent coordinator response.";
         rollBack();
@@ -464,22 +430,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
     auto localReservationsCopy = mReservations;
     for (auto const &itNodeAndReservations : localReservationsCopy) {
         auto nodeReservations = itNodeAndReservations.second;
-        // TODO test this updating reservation; like in
-        // BasePaymentTransaction::runFinalPathsConfigurationProcessingStage
-        while (!nodeReservations.empty()) {
-            const auto kMinReservationIterator = min_element(
-                nodeReservations.cbegin(),
-                nodeReservations.cend());
-
-            const auto kMinReservation = *kMinReservationIterator;
-            shortageReservation(
-                itNodeAndReservations.first,
-                kMinReservation,
-                path->maxFlow());
-
-            // Prevent updating the same reservation twice
-            nodeReservations.erase(kMinReservationIterator);
+        if (nodeReservations.size() != 1) {
+            throw ValueError("CycleCloserInitiatorTransaction::processRemoteNodeResponse: "
+                                 "unexpected behaviour: between two nodes should be only one reservation.");
         }
+        shortageReservation(
+            itNodeAndReservations.first,
+            *nodeReservations.begin(),
+            path->maxFlow());
     }
 
     return runAmountReservationStage();
@@ -491,6 +449,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
     const byte remoteNodePosition,
     const NodeUUID& nextNodeAfterRemote)
 {
+    info() << "askRemoteNodeToApproveReservation";
     const auto kCoordinator = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
@@ -529,6 +488,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNodeResponse()
 {
+    info() << "processRemoteNodeResponse";
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)){
         error() << "Can't pay.";
         rollBack();
@@ -569,32 +529,24 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
         auto localReservationsCopy = mReservations;
         for (auto const &itNodeAndReservations : localReservationsCopy) {
             auto nodeReservations = itNodeAndReservations.second;
-            // TODO test this updating reservation; like in
-            // BasePaymentTransaction::runFinalPathsConfigurationProcessingStage
-            while (!nodeReservations.empty()) {
-                const auto kMinReservationIterator = min_element(
-                    nodeReservations.cbegin(),
-                    nodeReservations.cend());
-
-                const auto kMinReservation = *kMinReservationIterator;
-                shortageReservation(
-                    itNodeAndReservations.first,
-                    kMinReservation,
-                    path->maxFlow());
-
-                // Prevent updating the same reservation twice
-                nodeReservations.erase(kMinReservationIterator);
+            if (nodeReservations.size() != 1) {
+                throw ValueError("CycleCloserInitiatorTransaction::processRemoteNodeResponse: "
+                                     "unexpected behaviour: between two nodes should be only one reservation.");
             }
+            shortageReservation(
+                itNodeAndReservations.first,
+                *nodeReservations.begin(),
+                path->maxFlow());
         }
 
         info() << "(" << message->senderUUID << ") reserved " << reservedAmount;
         info() << "Path max flow is now " << path->maxFlow();
 
         if (path->isLastIntermediateNodeProcessed()) {
-            const auto kTotalAmount = totalReservedByAllPaths();
+            const auto kTotalAmount = mPathStats.get()->maxFlow();
 
             info() << "Current path reservation finished";
-            info() << "Total collected amount by all paths: " << kTotalAmount;
+            info() << "Total collected amount by cycle: " << kTotalAmount;
 
             return propagateVotesListAndWaitForConfigurationRequests();
         }
@@ -606,10 +558,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeighborRequestProcessingStage()
 {
-    if (contextIsValid(Message::Payments_CoordinatorReservationResponse)) {
-        return reject("Remote node rejected reservation. Can't pay. Rolled back.");
-    }
-
+    info() << "runPreviousNeighborRequestProcessingStage";
+    // TODO : add other checking or change error() message in contextIsValid()
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest))
         return reject("No amount reservation request was received. Rolled back.");
 
@@ -655,18 +605,6 @@ pair<BytesShared, size_t> CycleCloserInitiatorTransaction::serializeToBytes() co
 void CycleCloserInitiatorTransaction::deserializeFromBytes(BytesShared buffer)
 {
     // todo: add implementation
-}
-
-TrustLineAmount CycleCloserInitiatorTransaction::totalReservedByAllPaths() const
-{
-    TrustLineAmount totalAmount = 0;
-
-    auto path = mPathStats.get();
-
-    if (path->isValid())
-        totalAmount += path->maxFlow();
-
-    return totalAmount;
 }
 
 const string CycleCloserInitiatorTransaction::logHeader() const
