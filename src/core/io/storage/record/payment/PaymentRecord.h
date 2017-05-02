@@ -26,10 +26,6 @@ public:
 public:
     PaymentRecord(
         const TransactionUUID &operationUUID,
-        BytesShared buffer);
-
-    PaymentRecord(
-        const TransactionUUID &operationUUID,
         const PaymentRecord::PaymentOperationType operationType,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount,

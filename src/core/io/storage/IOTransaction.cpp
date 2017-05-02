@@ -18,27 +18,28 @@ IOTransaction::IOTransaction(
     mLog(logger)
 {}
 
-IOTransaction::~IOTransaction() {
+IOTransaction::~IOTransaction()
+{
     commit();
 }
 
-RoutingTablesHandler* IOTransaction::routingTablesHandler() {
-
+RoutingTablesHandler* IOTransaction::routingTablesHandler()
+{
     return mRoutingTablesHandler;
 }
 
-TrustLineHandler* IOTransaction::trustLineHandler() {
-
+TrustLineHandler* IOTransaction::trustLineHandler()
+{
     return mTrustLineHandler;
 }
 
-HistoryStorage* IOTransaction::historyStorage() {
-
+HistoryStorage* IOTransaction::historyStorage()
+{
     return mHistoryStorage;
 }
 
-PaymentOperationStateHandler* IOTransaction::paymentOperationStateHandler() {
-
+PaymentOperationStateHandler* IOTransaction::paymentOperationStateHandler()
+{
     return mPaymentOperationStateHandler;
 }
 
@@ -47,7 +48,8 @@ TransactionHandler* IOTransaction::transactionHandler() {
     return mTransactionHandler;
 }
 
-void IOTransaction::commit() {
+void IOTransaction::commit()
+{
     string query = "COMMIT TRANSACTION;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDBConnection, query.c_str(), -1, &stmt, 0);
@@ -65,7 +67,8 @@ void IOTransaction::commit() {
 #endif
 }
 
-void IOTransaction::rollback() {
+void IOTransaction::rollback()
+{
     string query = "ROLLBACK TRANSACTION;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDBConnection, query.c_str(), -1, &stmt, 0);

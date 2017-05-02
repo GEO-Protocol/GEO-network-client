@@ -203,7 +203,7 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermed
     for (const auto kNodesAndAmount : mPathsConfiguration) {
 
         const auto kIncomingNeighborUUID = *(kNodesAndAmount.first.cbegin());
-        const auto kOutgoingNeighborUUID = *(kNodesAndAmount.first.cbegin()++);
+        const auto kOutgoingNeighborUUID = *(next(kNodesAndAmount.first.cbegin()));
 
         const auto kAmount = *(kNodesAndAmount.second);
         const auto kSerializedAmount = trustLineAmountToBytes(kAmount);

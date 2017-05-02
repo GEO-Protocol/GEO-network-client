@@ -6,13 +6,13 @@ CycleCloserCommand::CycleCloserCommand(
 
     BaseUserCommand(
         uuid,
-        identifier()) {
-
+        identifier())
+{
     parse(commandBuffer);
 }
 
-const string &CycleCloserCommand::identifier() {
-
+const string &CycleCloserCommand::identifier()
+{
     static const string identifier = "GET:/cycle/close";
     return identifier;
 }
@@ -21,12 +21,11 @@ const string &CycleCloserCommand::identifier() {
  * Throws ValueError if deserialization was unsuccessful.
  */
 void CycleCloserCommand::parse(
-    const string &command) {
+    const string &command)
+{}
 
-}
-
-Path::ConstShared CycleCloserCommand::path() {
-
+Path::ConstShared CycleCloserCommand::path()
+{
     NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
     NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
     NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
@@ -52,8 +51,8 @@ Path::ConstShared CycleCloserCommand::path() {
     return result;
 }
 
-CommandResult::SharedConst CycleCloserCommand::resultOk() const {
-
+CommandResult::SharedConst CycleCloserCommand::resultOk() const
+{
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),

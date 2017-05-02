@@ -175,7 +175,11 @@ noexcept
 {
     return
         mIntermediateNodesStates[mIntermediateNodesStates.size()-1] !=
-        PathStats::ReservationRequestDoesntSent;
+        PathStats::ReservationRequestDoesntSent &&
+            mIntermediateNodesStates[mIntermediateNodesStates.size()-1] !=
+            PathStats::NeighbourReservationRequestSent &&
+            mIntermediateNodesStates[mIntermediateNodesStates.size()-1] !=
+            PathStats::NeighbourReservationApproved;
 }
 
 const bool PathStats::isValid() const

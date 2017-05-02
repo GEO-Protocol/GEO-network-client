@@ -15,7 +15,6 @@ public:
     typedef unordered_set<MaxFlowCalculationTrustLineWithPtr*> trustLineWithPtrHashSet;
 
 public:
-
     MaxFlowCalculationTrustLineManager(Logger *logger);
 
     void addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine);
@@ -45,7 +44,6 @@ private:
     } customLess;
 
 private:
-
     static const byte kResetTrustLinesHours = 0;
     static const byte kResetTrustLinesMinutes = 0;
     static const byte kResetTrustLinesSeconds = 60;
@@ -67,7 +65,6 @@ private:
     unordered_map<NodeUUID, trustLineWithPtrHashSet*> msTrustLines;
     map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
     Logger *mLog;
-
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H

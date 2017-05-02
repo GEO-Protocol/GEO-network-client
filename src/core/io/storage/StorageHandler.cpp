@@ -14,21 +14,21 @@ StorageHandler::StorageHandler(
     mPaymentOperationStateHandler(connection(dataBaseName, directory), kPaymentOperationStateTableName, logger),
     mTransactionHandler(connection(dataBaseName, directory), kTransactionTableName, logger),
     mHistoryStorage(connection(dataBaseName, directory), kHistoryTableName, logger),
-    mLog(logger) {
-
+    mLog(logger)
+{
     sqlite3_config(SQLITE_CONFIG_SINGLETHREAD);
 }
 
-StorageHandler::~StorageHandler() {
-
+StorageHandler::~StorageHandler()
+{
     if (mDBConnection != nullptr) {
         sqlite3_close_v2(mDBConnection);
     }
 }
 
 void StorageHandler::checkDirectory(
-    const string &directory) {
-
+    const string &directory)
+{
     if (!fs::is_directory(fs::path(directory))){
         fs::create_directories(
             fs::path(directory));
@@ -37,13 +37,11 @@ void StorageHandler::checkDirectory(
 
 sqlite3* StorageHandler::connection(
     const string &dataBaseName,
-    const string &directory) {
-
+    const string &directory)
+{
     checkDirectory(directory);
-
     if (mDBConnection != nullptr)
         return mDBConnection;
-
     string dataBasePath = directory + "/" + dataBaseName;
     int rc = sqlite3_open_v2(dataBasePath.c_str(), &mDBConnection, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
     if (rc == SQLITE_OK) {
@@ -54,11 +52,13 @@ sqlite3* StorageHandler::connection(
     return mDBConnection;
 }
 
-RoutingTablesHandler* StorageHandler::routingTablesHandler() {
+RoutingTablesHandler* StorageHandler::routingTablesHandler()
+{
     return &mRoutingTablesHandler;
 }
 
-IOTransaction::Shared StorageHandler::beginTransaction() {
+IOTransaction::Shared StorageHandler::beginTransaction()
+{
     beginTransactionQuery();
     return make_shared<IOTransaction>(
         mDBConnection,
@@ -70,7 +70,8 @@ IOTransaction::Shared StorageHandler::beginTransaction() {
         mLog);
 }
 
-void StorageHandler::beginTransactionQuery() {
+void StorageHandler::beginTransactionQuery()
+{
     string query = "BEGIN TRANSACTION;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDBConnection, query.c_str(), -1, &stmt, 0);
@@ -88,13 +89,15 @@ void StorageHandler::beginTransactionQuery() {
 #endif
 }
 
-LoggerStream StorageHandler::info() const {
+LoggerStream StorageHandler::info() const
+{
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->info(logHeader());
 }
 
-const string StorageHandler::logHeader() const {
+const string StorageHandler::logHeader() const
+{
     stringstream s;
     s << "[StorageHandler]";
     return s.str();

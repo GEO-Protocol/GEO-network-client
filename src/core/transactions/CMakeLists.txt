@@ -36,6 +36,7 @@ target_link_libraries(transactions
         transactions__total_balances
         transactions__history
         transactions__find_path
+        transactions__routing_tables
 
         common
         exceptions)

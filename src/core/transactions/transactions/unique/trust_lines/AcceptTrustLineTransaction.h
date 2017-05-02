@@ -17,6 +17,8 @@
 
 #include "../../../../common/exceptions/ConflictError.h"
 
+#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
+
 #include <memory>
 #include <utility>
 #include <cstdint>
@@ -37,12 +39,14 @@ public:
         const NodeUUID &nodeUUID,
         AcceptTrustLineMessage::Shared message,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     AcceptTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     AcceptTrustLineMessage::Shared message() const;
 

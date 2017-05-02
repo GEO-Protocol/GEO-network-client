@@ -6,7 +6,6 @@
 
 #include <vector>
 
-
 class ResultMaxFlowCalculationMessage:
     public SenderMessage {
 

@@ -8,8 +8,8 @@ class MaxFlowCalculationTrustLineWithPtr {
 
 public:
     MaxFlowCalculationTrustLineWithPtr(
-            const MaxFlowCalculationTrustLine::Shared maxFlowCalculationTrustLine,
-            unordered_set<MaxFlowCalculationTrustLineWithPtr*>* hashMapPtr);
+        const MaxFlowCalculationTrustLine::Shared maxFlowCalculationTrustLine,
+        unordered_set<MaxFlowCalculationTrustLineWithPtr*>* hashMapPtr);
 
     MaxFlowCalculationTrustLine::Shared maxFlowCalculationtrustLine();
 
@@ -18,7 +18,6 @@ public:
 private:
     MaxFlowCalculationTrustLine::Shared mMaxFlowCalulationTrustLine;
     unordered_set<MaxFlowCalculationTrustLineWithPtr*>* mHashSetPtr;
-
 };
 
 

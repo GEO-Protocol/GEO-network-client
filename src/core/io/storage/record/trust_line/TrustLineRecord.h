@@ -30,10 +30,6 @@ public:
 public:
     TrustLineRecord(
         const TransactionUUID &operationUUID,
-        BytesShared buffer);
-
-    TrustLineRecord(
-        const TransactionUUID &operationUUID,
         const TrustLineRecord::TrustLineOperationType operationType,
         const NodeUUID &contractorUUID);
 

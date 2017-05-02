@@ -4,11 +4,13 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     const NodeUUID &nodeUUID,
     AcceptTrustLineMessage::Shared message,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::AcceptTrustLineTransactionType,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mMessage(message),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {}
@@ -16,10 +18,12 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
 AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::AcceptTrustLineTransactionType),
+        BaseTransaction::TransactionType::AcceptTrustLineTransactionType,
+        logger),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {
 
@@ -66,6 +70,22 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
                 logAcceptingTrustLineOperation();
                 sendResponseCodeToContractor(
                     AcceptTrustLineMessage::kResultCodeAccepted);
+
+                if (!mTrustLinesManager->checkDirection(
+                    mMessage->senderUUID,
+                    TrustLineDirection::Both)) {
+                    const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                        currentNodeUUID(),
+                        currentNodeUUID(),
+                        currentNodeUUID(),
+                        mMessage->senderUUID,
+                        TrustLineStatesHandlerTransaction::TrustLineState::Created,
+                        0,
+                        mTrustLinesManager,
+                        mStorageHandler,
+                        mLog);
+                    launchSubsidiaryTransaction(kTransaction);
+                }
 
                 return transactionResultFromMessage(
                     mMessage->resultAccepted());

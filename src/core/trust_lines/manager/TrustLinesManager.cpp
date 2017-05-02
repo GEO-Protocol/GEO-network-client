@@ -353,7 +353,7 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
     const auto kAvailableAmount = *(kTL->availableAmount());
 
     // Previous reservation would be removed (updated),
-    // so it's amount must be added to the the available maount on the trust line.
+    // so it's amount must be added to the the available amount on the trust line.
     if (kAvailableAmount + reservation->amount() >= newAmount)
         return mAmountReservationsHandler->updateReservation(
             contractor,

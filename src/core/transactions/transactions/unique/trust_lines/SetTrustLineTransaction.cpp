@@ -4,11 +4,13 @@ SetTrustLineTransaction::SetTrustLineTransaction(
     const NodeUUID &nodeUUID,
     SetTrustLineCommand::Shared command,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::SetTrustLineTransactionType,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mCommand(command),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {}
@@ -16,10 +18,12 @@ SetTrustLineTransaction::SetTrustLineTransaction(
 SetTrustLineTransaction::SetTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::SetTrustLineTransactionType),
+        BaseTransaction::TransactionType::SetTrustLineTransactionType,
+        logger),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {
 

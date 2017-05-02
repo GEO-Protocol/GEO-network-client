@@ -13,7 +13,6 @@ public:
     typedef shared_ptr<PathsCollection> Shared;
 
 public:
-
     PathsCollection(
         const NodeUUID &sourceUUID,
         const NodeUUID &destinationUUID);
@@ -33,7 +32,6 @@ private:
     NodeUUID mSourceNode;
     NodeUUID mDestinationNode;
     vector<vector<NodeUUID>> mPaths;
-
     size_t mCurrentPath;
 };
 

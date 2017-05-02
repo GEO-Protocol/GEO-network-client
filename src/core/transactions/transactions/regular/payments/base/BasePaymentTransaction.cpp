@@ -176,6 +176,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
                     kCommonPathAmount);
 
                 // Prevent updating the same reservation twice
+                // TODO: (mc) test this
                 nodeReservations.erase(kMinReservationIterator);
             }
         }
@@ -427,6 +428,7 @@ void BasePaymentTransaction::commit ()
             else if (kReservation->direction() == AmountReservation::Incoming)
                 info() << "Committed reservation: [ <= ] " << kReservation->amount()
                        << " for (" << kNodeUUIDAndReservations.first << ")";
+            mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kReservation);
         }
 
     saveVotes();
@@ -559,18 +561,26 @@ const bool BasePaymentTransaction::shortageReservation (
         const auto kPreviousAmount = kReservation->amount();
 #endif
 
-        mTrustLines->updateAmountReservation(
+        auto updatedReservation = mTrustLines->updateAmountReservation(
             kContractor,
             kReservation,
             kNewAmount);
 
+        for (auto it = mReservations[kContractor].begin(); it != mReservations[kContractor].end(); it++){
+            if ((*it).get() == kReservation.get()) {
+                mReservations[kContractor].erase(it);
+                break;
+            }
+        }
+        mReservations[kContractor].push_back(updatedReservation);
+
 #ifdef DEBUG
         if (kReservation->direction() == AmountReservation::Incoming)
             info() << "Reservation for (" << kContractor << ") shortened "
-                   << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
+                   << "from " << kPreviousAmount << " to " << kNewAmount << " [<=]";
         else
             info() << "Reservation for (" << kContractor << ") shortened "
-                   << "from " << kPreviousAmount << " to " << kNewAmount << " [<=]";
+                   << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
 #endif
 
         return true;

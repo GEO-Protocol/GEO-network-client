@@ -59,33 +59,20 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
-    // todo: remove
-//        case Message::FirstLevelRoutingTableOutgoingMessageType: {
-//            return make_pair(
-//                true,
-//                static_pointer_cast<Message>(
-//                    make_shared<FirstLevelRoutingTableIncomingMessage>(messagePart)
-//                )
-//            );
-//        }
-//
-//        case Message::SecondLevelRoutingTableOutgoingMessageType: {
-//            return make_pair(
-//                true,
-//                static_pointer_cast<Message>(
-//                    make_shared<SecondLevelRoutingTableIncomingMessage>(messagePart)
-//                )
-//            );
-//        }
-//
-//        case Message::RoutingTableUpdateOutgoingMessageType: {
-//            return make_pair(
-//                true,
-//                static_pointer_cast<Message>(
-//                    make_shared<RoutingTableUpdateIncomingMessage>(messagePart)
-//                )
-//            );
-//        }
+        /*
+         * Routing tables exchange messages
+         */
+        case Message::RoutingTables_NotificationTrustLineCreated:
+            return messageCollected<NotificationTrustLineCreatedMessage>(messagePart);
+
+        case Message::RoutingTables_NotificationTrustLineRemoved:
+            return messageCollected<NotificationTrustLineRemovedMessage>(messagePart);
+
+        case Message::RoutingTables_NeighborsRequest:
+            return messageCollected<NeighborsRequestMessage>(messagePart);
+
+        case Message::RoutingTables_NeighborsResponse:
+            return messageCollected<NeighborsResponseMessage>(messagePart);
 
         /*
          * Payment operations messages

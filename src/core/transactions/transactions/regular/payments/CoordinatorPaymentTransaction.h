@@ -63,7 +63,6 @@ protected:
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
     TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
     TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
-    TransactionResult::SharedConst runVotesCheckingStage ();
 
 protected:
     // Coordinator must return command result on transaction finishing.
@@ -140,6 +139,8 @@ protected:
     // that was processed last, and potenially,
     // is waiting for request appriving.
     PathUUID mCurrentAmountReservingPathIdentifier;
+
+    unordered_map<PathUUID, unique_ptr<PathStats>, boost::hash<boost::uuids::uuid>>::const_iterator mCurrentAmountReservingPathIterator;
 
     // Reservation stage contains it's own internal steps counter.
     byte mReservationsStage;

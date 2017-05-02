@@ -6,13 +6,13 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
 
     BaseUserCommand(
         uuid,
-        identifier()) {
-
+        identifier())
+{
     parse(commandBuffer);
 }
 
-const string &HistoryPaymentsCommand::identifier() {
-
+const string &HistoryPaymentsCommand::identifier()
+{
     static const string identifier = "GET:/history/payments";
     return identifier;
 }
@@ -21,15 +21,13 @@ const string &HistoryPaymentsCommand::identifier() {
  * Throws ValueError if deserialization was unsuccessful.
  */
 void HistoryPaymentsCommand::parse(
-        const string &command) {
-
+        const string &command)
+{
     const auto minCommandLength = 3;
-
     if (command.size() < minCommandLength) {
         throw ValueError("HistoryPaymentsCommand::parse: "
                                  "Can't parse command. Received command is to short.");
     }
-
     size_t tabSeparator = command.find("\t");
     string historyFromStr = command.substr(
         0,
@@ -44,7 +42,6 @@ void HistoryPaymentsCommand::parse(
         throw ValueError("HistoryPaymentsCommand::parse: "
                                  "Can't parse command. Error occurred while parsing  'from' token.");
     }
-
     string historyCountStr = command.substr(
         tabSeparator + 1,
         command.size() - 1);
@@ -58,21 +55,20 @@ void HistoryPaymentsCommand::parse(
         throw ValueError("HistoryPaymentsCommand::parse: "
                                  "Can't parse command. Error occurred while parsing 'count' token.");
     }
-
 }
 
-const size_t HistoryPaymentsCommand::historyFrom() const {
-
+const size_t HistoryPaymentsCommand::historyFrom() const
+{
     return mHistoryFrom;
 }
 
-const size_t HistoryPaymentsCommand::historyCount() const {
-
+const size_t HistoryPaymentsCommand::historyCount() const
+{
     return mHistoryCount;
 }
 
-CommandResult::SharedConst HistoryPaymentsCommand::resultOk(string &historyPaymentsStr) const {
-
+CommandResult::SharedConst HistoryPaymentsCommand::resultOk(string &historyPaymentsStr) const
+{
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),

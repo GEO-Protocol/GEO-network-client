@@ -6,16 +6,16 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
 
     BaseUserCommand(
         uuid,
-        identifier()) {
-
+        identifier())
+{
     parse(commandBuffer);
 }
 
 InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
     BytesShared buffer) :
 
-    BaseUserCommand(identifier()) {
-
+    BaseUserCommand(identifier())
+{
     deserializeFromBytes(buffer);
 }
 
@@ -30,71 +30,67 @@ const NodeUUID &InitiateMaxFlowCalculationCommand::contractorUUID() const
     return mContractorUUID;
 }
 
-pair<BytesShared, size_t> InitiateMaxFlowCalculationCommand::serializeToBytes(){
-
+pair<BytesShared, size_t> InitiateMaxFlowCalculationCommand::serializeToBytes()
+{
     auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second +
-                        NodeUUID::kBytesSize;
+    size_t bytesCount = parentBytesAndCount.second
+                        + NodeUUID::kBytesSize;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
     memcpy(
-            dataBytesShared.get(),
-            parentBytesAndCount.first.get(),
-            parentBytesAndCount.second
-    );
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            mContractorUUID.data,
-            NodeUUID::kBytesSize);
+        dataBytesShared.get() + dataBytesOffset,
+        mContractorUUID.data,
+        NodeUUID::kBytesSize);
     //----------------------------------------------------
     return make_pair(
-            dataBytesShared,
-            bytesCount);
+        dataBytesShared,
+        bytesCount);
 }
 
 void InitiateMaxFlowCalculationCommand::deserializeFromBytes(
-        BytesShared buffer) {
-
+    BytesShared buffer)
+{
     BaseUserCommand::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = BaseUserCommand::kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(
-            mContractorUUID.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize);
+        mContractorUUID.data,
+        buffer.get() + bytesBufferOffset,
+        NodeUUID::kBytesSize);
 }
 
 /**
  * Throws ValueError if deserialization was unsuccessful.
  */
 void InitiateMaxFlowCalculationCommand::parse(
-        const string &command) {
-
+    const string &command)
+{
     const auto amountTokenOffset = NodeUUID::kHexSize + 1;
     const auto minCommandLength = amountTokenOffset;
-
     if (command.size() < minCommandLength) {
         throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
-                                 "Can't parse command. Received command is to short.");
+                             "Can't parse command. Received command is to short.");
     }
-
     try {
         string hexUUID = command.substr(
-                0,
-                NodeUUID::kHexSize);
+            0,
+            NodeUUID::kHexSize);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
-
     } catch (...) {
         throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
+                             "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 }
 
-CommandResult::SharedConst InitiateMaxFlowCalculationCommand::responseOk(string &maxFlowAmount) const
+CommandResult::SharedConst InitiateMaxFlowCalculationCommand::responseOk(
+    string &maxFlowAmount) const
 {
     return CommandResult::SharedConst(
         new CommandResult(

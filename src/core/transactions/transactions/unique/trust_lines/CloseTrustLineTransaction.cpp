@@ -4,11 +4,13 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
     const NodeUUID &nodeUUID,
     CloseTrustLineCommand::Shared command,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::CloseTrustLineTransactionType,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mCommand(command),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {}
@@ -16,10 +18,12 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
 CloseTrustLineTransaction::CloseTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::CloseTrustLineTransactionType),
+        BaseTransaction::TransactionType::CloseTrustLineTransactionType,
+        logger),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {
 

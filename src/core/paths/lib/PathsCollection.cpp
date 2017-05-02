@@ -6,11 +6,12 @@ PathsCollection::PathsCollection(
 
     mSourceNode(sourceUUID),
     mDestinationNode(destinationUUID),
-    mCurrentPath(0){}
+    mCurrentPath(0)
+{}
 
 void PathsCollection::add(
-    Path &path) {
-
+    Path &path)
+{
     if (path.sourceUUID() != mSourceNode || path.destinationUUID() != mDestinationNode) {
         throw ValueError("PathsCollection::add "
                              "Added path differs from current collection");
@@ -18,18 +19,18 @@ void PathsCollection::add(
     mPaths.push_back(path.intermediateUUIDs());
 }
 
-void PathsCollection::resetCurrentPath() {
-
+void PathsCollection::resetCurrentPath()
+{
     mCurrentPath = 0;
 }
 
-bool PathsCollection::hasNextPath() {
-
+bool PathsCollection::hasNextPath()
+{
     return (mCurrentPath < mPaths.size());
 }
 
-Path::Shared PathsCollection::nextPath() {
-
+Path::Shared PathsCollection::nextPath()
+{
     if (mCurrentPath > mPaths.size()) {
         throw IndexError("PathsCollection::nextPath "
                                  "no paths are available");
@@ -41,7 +42,7 @@ Path::Shared PathsCollection::nextPath() {
         mPaths.at(mCurrentPath - 1));
 }
 
-size_t PathsCollection::count() const {
-
+size_t PathsCollection::count() const
+{
     return mPaths.size();
 }

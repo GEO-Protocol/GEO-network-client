@@ -7,8 +7,8 @@ TrustLineHandler::TrustLineHandler(
 
     mDataBase(dbConnection),
     mTableName(tableName),
-    mLog(logger) {
-
+    mLog(logger)
+{
     sqlite3_stmt *stmt;
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
                    "(contractor BLOB NOT NULL, "
@@ -43,8 +43,8 @@ TrustLineHandler::TrustLineHandler(
     sqlite3_finalize(stmt);
 }
 
-vector<TrustLine::Shared> TrustLineHandler::allTrustLines () {
-
+vector<TrustLine::Shared> TrustLineHandler::allTrustLines ()
+{
     string queryCount = "SELECT count(*) FROM " + mTableName;
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, queryCount.c_str(), -1, &stmt, 0);
@@ -85,7 +85,6 @@ vector<TrustLine::Shared> TrustLineHandler::allTrustLines () {
                 balanceBytes,
                 balanceBytes + kTrustLineBalanceSerializeBytesCount);
         TrustLineBalance balance = bytesToTrustLineBalance(balanceBufferBytes);
-
         try {
             result.push_back(
                 make_shared<TrustLine>(
@@ -104,8 +103,8 @@ vector<TrustLine::Shared> TrustLineHandler::allTrustLines () {
 }
 
 void TrustLineHandler::deleteTrustLine(
-    const NodeUUID &contractorUUID) {
-
+    const NodeUUID &contractorUUID)
+{
     string query = "DELETE FROM " + mTableName + " WHERE contractor = ?";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
@@ -132,8 +131,8 @@ void TrustLineHandler::deleteTrustLine(
 }
 
 bool TrustLineHandler::containsContractor(
-    const NodeUUID &contractorUUID) {
-
+    const NodeUUID &contractorUUID)
+{
     string query = "SELECT contractor FROM " + mTableName + " WHERE contractor = ?";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
@@ -141,7 +140,6 @@ bool TrustLineHandler::containsContractor(
         throw IOError("TrustLineHandler::containsContractor: "
                           "Bad query; sqlite error: " + rc);
     }
-
     rc = sqlite3_bind_blob(stmt, 1, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::containsContractor: "
@@ -151,8 +149,8 @@ bool TrustLineHandler::containsContractor(
 }
 
 void TrustLineHandler::saveTrustLine(
-    TrustLine::Shared trustLine) {
-
+    TrustLine::Shared trustLine)
+{
     string query = "INSERT OR REPLACE INTO " + mTableName +
                    "(contractor, incoming_amount, outgoing_amount, balance) VALUES (?, ?, ?, ?);";
     sqlite3_stmt *stmt;
@@ -178,14 +176,12 @@ void TrustLineHandler::saveTrustLine(
         throw IOError("TrustLineHandler::insert or replace: "
                           "Bad binding of Outgoing Amount; sqlite error: " + rc);
     }
-
     vector<byte> balanceBufferBytes = trustLineBalanceToBytes(const_cast<TrustLineBalance&>(trustLine->balance()));
     rc = sqlite3_bind_blob(stmt, 4, balanceBufferBytes.data(), kTrustLineBalanceSerializeBytesCount, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::insert or replace: "
                           "Bad binding of Balance; sqlite error: " + rc);
     }
-
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
@@ -199,20 +195,22 @@ void TrustLineHandler::saveTrustLine(
     }
 }
 
-LoggerStream TrustLineHandler::info() const {
+LoggerStream TrustLineHandler::info() const
+{
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->info(logHeader());
 }
 
-LoggerStream TrustLineHandler::error() const {
-
+LoggerStream TrustLineHandler::error() const
+{
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->error(logHeader());
 }
 
-const string TrustLineHandler::logHeader() const {
+const string TrustLineHandler::logHeader() const
+{
     stringstream s;
     s << "[TrustLineHandler]";
     return s.str();

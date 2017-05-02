@@ -3,7 +3,6 @@
 
 #include "../base/transaction/TransactionMessage.h"
 
-
 class InitiateTotalBalancesMessage:
     public TransactionMessage {
 
@@ -16,6 +15,5 @@ public:
     const MessageType typeID() const
         noexcept;
 };
-
 
 #endif //GEO_NETWORK_CLIENT_INITIATETOTALBALANCESMESSAGE_H

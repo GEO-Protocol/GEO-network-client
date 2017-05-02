@@ -21,7 +21,6 @@ public:
     typedef shared_ptr<GetRoutingTablesTransaction> Shared;
 
 public:
-
     GetRoutingTablesTransaction(
         NodeUUID &nodeUUID,
         RequestRoutingTablesMessage::Shared message,
@@ -34,24 +33,19 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
-
     const string logHeader() const;
 
 private:
-
     void sendRoutingTables();
 
 private:
-
     const size_t kCountElementsPerMessage = 100;
     const uint16_t kDelayMilliSecondsBetweenSendingMessages = 5;
 
 private:
-
     RequestRoutingTablesMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
-
 };
 
 

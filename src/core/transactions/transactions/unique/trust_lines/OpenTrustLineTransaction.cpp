@@ -4,11 +4,13 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     const NodeUUID &nodeUUID,
     OpenTrustLineCommand::Shared command,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::OpenTrustLineTransactionType,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mCommand(command),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {}
@@ -16,10 +18,12 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
 OpenTrustLineTransaction::OpenTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::OpenTrustLineTransactionType),
+        BaseTransaction::TransactionType::OpenTrustLineTransactionType,
+        logger),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {
 
@@ -154,6 +158,22 @@ TransactionResult::SharedConst OpenTrustLineTransaction::checkTransactionContext
                 case AcceptTrustLineMessage::kResultCodeAccepted: {
                     openTrustLine();
                     logOpeningTrustLineOperation();
+
+                    if (!mTrustLinesManager->checkDirection(
+                        mCommand->contractorUUID(),
+                        TrustLineDirection::Both)) {
+                        const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                            currentNodeUUID(),
+                            currentNodeUUID(),
+                            currentNodeUUID(),
+                            mCommand->contractorUUID(),
+                            TrustLineStatesHandlerTransaction::TrustLineState::Created,
+                            0,
+                            mTrustLinesManager,
+                            mStorageHandler,
+                            mLog);
+                        launchSubsidiaryTransaction(kTransaction);
+                    }
 
                     return resultOk();
                 }

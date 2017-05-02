@@ -4,12 +4,13 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     const NodeUUID &nodeUUID,
     RejectTrustLineMessage::Shared message,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::RejectTrustLineTransactionType,
-        nodeUUID
-    ),
+        nodeUUID,
+        logger),
     mMessage(message),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {}
@@ -18,10 +19,12 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
 RejectTrustLineTransaction::RejectTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::RejectTrustLineTransactionType),
+        BaseTransaction::TransactionType::RejectTrustLineTransactionType,
+        logger),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {
 

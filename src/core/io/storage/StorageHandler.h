@@ -64,7 +64,6 @@ private:
     PaymentOperationStateHandler mPaymentOperationStateHandler;
     TransactionHandler mTransactionHandler;
     HistoryStorage mHistoryStorage;
-
     string mDirectory;
     string mDataBaseName;
 };

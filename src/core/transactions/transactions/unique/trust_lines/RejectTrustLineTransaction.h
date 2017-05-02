@@ -30,12 +30,14 @@ public:
         const NodeUUID &nodeUUID,
         RejectTrustLineMessage::Shared message,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     RejectTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     RejectTrustLineMessage::Shared message() const;
 

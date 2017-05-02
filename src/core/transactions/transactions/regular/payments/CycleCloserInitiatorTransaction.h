@@ -48,7 +48,6 @@ protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
     TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
-    TransactionResult::SharedConst runVotesCheckingStage ();
 
 protected:
     // Coordinator must return command result on transaction finishing.
@@ -60,7 +59,6 @@ protected:
         const char *message = nullptr);
 
 protected:
-
     TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (
         PathStats *pathStats);
 
@@ -84,20 +82,22 @@ protected:
 
     TransactionResult::SharedConst processRemoteNodeResponse();
 
-    TrustLineAmount totalReservedByAllPaths() const;
-
 protected:
     const string logHeader() const;
     void deserializeFromBytes(
         BytesShared buffer);
 
 protected:
-
     // Contains special stats data, such as current msx flow,
-    // for all paths involved into the transaction.
-    //unordered_map<PathUUID, unique_ptr<PathStats>, boost::hash<boost::uuids::uuid>> mPathsStats;
-
+    // for path involved into the transaction.
     unique_ptr<PathStats> mPathStats;
+
+    // Reservation stage contains it's own internal steps counter.
+    byte mReservationsStage;
+
+    // minimum value of Coordinator outgoing amount to first intremediate node
+    // and incoming amount from last intermediate node
+    TrustLineAmount mInitialTransactionAmount;
 
     // Contains nodes that has been requrested final paths configuration.
     // for more details, see TODO

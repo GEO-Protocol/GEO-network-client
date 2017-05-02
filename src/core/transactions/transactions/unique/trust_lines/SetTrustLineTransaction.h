@@ -42,12 +42,14 @@ public:
         const NodeUUID &nodeUUID,
         SetTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     SetTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     SetTrustLineCommand::Shared command() const;
 
