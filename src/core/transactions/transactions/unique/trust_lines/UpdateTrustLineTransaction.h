@@ -37,12 +37,14 @@ public:
         const NodeUUID &nodeUUID,
         UpdateTrustLineMessage::Shared message,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     UpdateTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     UpdateTrustLineMessage::Shared message() const;
 

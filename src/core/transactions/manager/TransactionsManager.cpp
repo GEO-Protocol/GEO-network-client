@@ -297,6 +297,25 @@ void TransactionsManager::processMessage(
     }else if(message->typeID() == Message::MessageType::Cycles_FourNodesBalancesRequest){
         launchFourNodesCyclesResponseTransaction(
                 static_pointer_cast<CyclesFourNodesBalancesRequestMessage>(message));
+
+    /*
+    * Routing tables exchange
+    */
+    } else if (message->typeID() == Message::MessageType::RoutingTables_NotificationTrustLineCreated) {
+        launchTrustLineStatesHandlerTransaction(
+            static_pointer_cast<NotificationTrustLineCreatedMessage>(message));
+
+    } else if (message->typeID() == Message::MessageType::RoutingTables_NotificationTrustLineRemoved) {
+        launchTrustLineStatesHandlerTransaction(
+            static_pointer_cast<NotificationTrustLineRemovedMessage>(message));
+
+    } else if (message->typeID() == Message::MessageType::RoutingTables_NeighborsRequest) {
+        launchGetFirstRoutingTableTransaction(
+            static_pointer_cast<NeighborsRequestMessage>(message));
+
+    } else if (message->typeID() == Message::MessageType::RoutingTables_NeighborsResponse) {
+        mScheduler->tryAttachMessageToTransaction(message);
+
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
@@ -314,9 +333,11 @@ void TransactionsManager::launchOpenTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mStorageHandler);
+            mStorageHandler,
+            mLog);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
 
         mScheduler->scheduleTransaction(transaction);
 
@@ -340,7 +361,8 @@ void TransactionsManager::launchSetTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mStorageHandler);
+            mStorageHandler,
+            mLog);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -365,7 +387,8 @@ void TransactionsManager::launchCloseTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
-            mStorageHandler);
+            mStorageHandler,
+            mLog);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -390,9 +413,11 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mStorageHandler);
+            mStorageHandler,
+            mLog);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
 
         mScheduler->scheduleTransaction(transaction);
 
@@ -411,7 +436,8 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mStorageHandler);
+            mStorageHandler,
+            mLog);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -436,7 +462,8 @@ void TransactionsManager::launchRejectTrustLineTransaction(
             mNodeUUID,
             message,
             mTrustLines,
-            mStorageHandler);
+            mStorageHandler,
+            mLog);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
 
@@ -731,7 +758,8 @@ void TransactionsManager::launchTotalBalancesRemoteNodeTransaction(
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchHistoryPaymentsTransaction(HistoryPaymentsCommand::Shared command) {
+void TransactionsManager::launchHistoryPaymentsTransaction(
+    HistoryPaymentsCommand::Shared command) {
     try {
         auto transaction = make_shared<HistoryPaymentsTransaction>(
             mNodeUUID,
@@ -752,7 +780,8 @@ void TransactionsManager::launchHistoryPaymentsTransaction(HistoryPaymentsComman
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCommand::Shared command) {
+void TransactionsManager::launchHistoryTrustLinesTransaction(
+    HistoryTrustLinesCommand::Shared command) {
     try {
         auto transaction = make_shared<HistoryTrustLinesTransaction>(
             mNodeUUID,
@@ -773,7 +802,8 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(HistoryTrustLinesCo
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchGetPathTestTransaction(FindPathCommand::Shared command) {
+void TransactionsManager::launchGetPathTestTransaction(
+    FindPathCommand::Shared command) {
     try {
         auto transaction = make_shared<GetPathTestTransaction>(
             mNodeUUID,
@@ -804,7 +834,8 @@ void TransactionsManager::launchGetFirstLevelContractorsTransaction(GetFirstLeve
  *
  * Throws MemoryError.
  */
-void TransactionsManager::launchGetRoutingTablesTransaction(RequestRoutingTablesMessage::Shared message) {
+void TransactionsManager::launchGetRoutingTablesTransaction(
+    RequestRoutingTablesMessage::Shared message) {
     try {
         auto transaction = make_shared<GetRoutingTablesTransaction>(
             mNodeUUID,
@@ -860,6 +891,73 @@ void TransactionsManager::launchTestCloseCycleTransaction(
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchTestCloseCycleTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchTrustLineStatesHandlerTransaction(
+    NotificationTrustLineCreatedMessage::Shared message) {
+    try {
+        auto transaction = make_shared<TrustLineStatesHandlerTransaction>(
+            mNodeUUID,
+            message->senderUUID,
+            message->nodeA,
+            message->nodeB,
+            TrustLineStatesHandlerTransaction::TrustLineState::Created,
+            message->hop,
+            mTrustLines,
+            mStorageHandler,
+            mLog);
+
+        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchTrustLineStatesHandlerTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchTrustLineStatesHandlerTransaction(
+    NotificationTrustLineRemovedMessage::Shared message) {
+    try {
+        auto transaction = make_shared<TrustLineStatesHandlerTransaction>(
+            mNodeUUID,
+            message->senderUUID,
+            message->nodeA,
+            message->nodeB,
+            TrustLineStatesHandlerTransaction::TrustLineState::Removed,
+            message->hop,
+            mTrustLines,
+            mStorageHandler,
+            mLog);
+
+        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchTrustLineStatesHandlerTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::launchGetFirstRoutingTableTransaction(
+    NeighborsRequestMessage::Shared message)
+{
+    try {
+        auto transaction = make_shared<GetFirstRoutingTableTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mLog);
+
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchGetFirstRoutingTableTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }
@@ -1130,5 +1228,6 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(CyclesFourNod
     }
 }
 
-void TransactionsManager::launchCloseCycleTransaction(shared_ptr<vector<NodeUUID>> path)
+void TransactionsManager::launchCloseCycleTransaction(
+    shared_ptr<vector<NodeUUID>> path)
 {}

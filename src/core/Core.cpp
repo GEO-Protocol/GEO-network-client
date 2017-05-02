@@ -374,32 +374,32 @@ void Core::connectTrustLinesManagerSignals() {
 }
 
 void Core::connectDelayedTasksSignals(){
-    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskCycleSixNodesSlot,
-                    this
-            )
-    );
-    mCyclesDelayedTasks->mFiveNodesCycleSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskCycleFiveNodesSlot,
-                    this
-            )
-    );
-    #ifdef TESTS
-    mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskCycleThreeNodesSlot,
-                    this
-            )
-    );
-    mCyclesDelayedTasks->mFourNodesCycleSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskCycleFourNodesSlot,
-                    this
-            )
-    );
-    #endif
+//    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
+//            boost::bind(
+//                    &Core::onDelayedTaskCycleSixNodesSlot,
+//                    this
+//            )
+//    );
+//    mCyclesDelayedTasks->mFiveNodesCycleSignal.connect(
+//            boost::bind(
+//                    &Core::onDelayedTaskCycleFiveNodesSlot,
+//                    this
+//            )
+//    );
+//    #ifdef TESTS
+//    mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
+//            boost::bind(
+//                    &Core::onDelayedTaskCycleThreeNodesSlot,
+//                    this
+//            )
+//    );
+//    mCyclesDelayedTasks->mFourNodesCycleSignal.connect(
+//            boost::bind(
+//                    &Core::onDelayedTaskCycleFourNodesSlot,
+//                    this
+//            )
+//    );
+//    #endif
 }
 
 void Core::connectResourcesManagerSignals() {
@@ -648,7 +648,7 @@ void Core::checkSomething() {
 void Core::printRTs() {
     NodeUUID *some_node = new NodeUUID("65b84dc1-31f8-45ce-8196-8efcc7648777");
     NodeUUID *dest_node = new NodeUUID("5062d6a9-e06b-4bcc-938c-6d9bd082f0eb");
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*some_node, *dest_node);
+    mStorageHandler->routingTablesHandler()->setRecordToRT2(*some_node, *dest_node);
 
     cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
     for (const auto itTrustLine : mTrustLinesManager->trustLines()) {

@@ -43,18 +43,20 @@
  *      then this param would be set to 1, and so on.
  */
 TrustLineStatesHandlerTransaction::TrustLineStatesHandlerTransaction (
+    const NodeUUID &nodeUUID,
     const NodeUUID &neighborSenderUUID,
     const NodeUUID &leftContractorUUID,
     const NodeUUID &rightContractorUUID,
     const TrustLineState trustLineState,
     const uint8_t hopDistance,
     TrustLinesManager *trustLines,
-    RoutingTablesHandler *routingTables,
+    StorageHandler *storageHandler,
     Logger *logger)
     noexcept :
 
     BaseTransaction(
         BaseTransaction::RoutingTables_TrustLineStatesHandler,
+        nodeUUID,
         logger),
     mLeftContractorUUID(leftContractorUUID),
     mRightContractorUUID(rightContractorUUID),
@@ -62,16 +64,22 @@ TrustLineStatesHandlerTransaction::TrustLineStatesHandlerTransaction (
     mNeighborSenderUUID(neighborSenderUUID),
     mCurrentHopDistance(hopDistance),
     mTrustLines(trustLines),
-    mRoutingTables(routingTables)
+    mStorageHandler(storageHandler)
 {}
 
 TransactionResult::SharedConst TrustLineStatesHandlerTransaction::run ()
     noexcept
 {
-    if (mTrustLineState == Created)
-        return processTrustLineCreation();
-    else
-        return processTrustLineRemoving();
+    info() << "run on " << to_string(mCurrentHopDistance) << " level from " << mNeighborSenderUUID << " node";
+    switch (mTrustLineState) {
+        case Created:
+            return processTrustLineCreation();
+        case Removed:
+            return processTrustLineRemoving();
+        default:
+            throw ValueError("TrustLineStatesHandlerTransaction::run: "
+                                 "unexpected Trust line state");
+    }
 }
 
 /*
@@ -81,6 +89,7 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::run ()
 TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLineRemoving()
     noexcept
 {
+    info() << "processTrustLineRemoving";
     if (mCurrentHopDistance < kRoutingTablesMaxLevel) {
         // Neighbor nodes must be notified about the newly added trust line.
 
@@ -96,13 +105,14 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
             mRightContractorUUID,
             mCurrentHopDistance+1);
 
-        for (const auto kNeighborAndTL : mTrustLines->trustLines())
+        for (const auto kNeighborAndTL : mTrustLines->trustLines()) {
             sendMessageAndPreventRecursion(
                 kNeighborAndTL.first,
                 kNotificationMessage);
+        }
     }
 
-
+    auto ioTransaction = mStorageHandler->beginTransaction();
     if (mCurrentHopDistance == 0) {
         // Transaction is executed on the node A or node B of the scheme.
         // In this case, second level routing table must be cleared from records
@@ -113,12 +123,12 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         // that has node B as a source.
         // Also, cascade removing of the related records of the third level routing table is needed.
 
-        for (const auto kNeighborOfCounterpartNode : mRoutingTables->neighborsOfOnRT2(mRightContractorUUID)) {
+        for (const auto kNeighborOfCounterpartNode : ioTransaction->routingTablesHandler()->neighborsOfOnRT2(mRightContractorUUID)) {
             removeRecordFromSecondLevel(
+                ioTransaction,
                 mRightContractorUUID,
                 kNeighborOfCounterpartNode);
         }
-        mRoutingTables->commit();
 
         return resultDone();
 
@@ -128,9 +138,9 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         // In this case, only one record must be removed from the second level routing table:
         // A-B.
         removeRecordFromSecondLevel(
+            ioTransaction,
             mRightContractorUUID,
             mNeighborSenderUUID);
-        mRoutingTables->commit();
 
         return resultDone();
 
@@ -139,9 +149,9 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         // Transaction is executed on the some of the nodes A2 or on some of the nodes B2 of the scheme.
         // In this case, only one record must be removed from third level routing table.
         removeRecordFromThirdLevel(
+            ioTransaction,
             mRightContractorUUID,
             mLeftContractorUUID);
-        mRoutingTables->commit();
 
         return resultDone();
     }
@@ -159,6 +169,7 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
 TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLineCreation ()
     noexcept
 {
+    info() << "processTrustLineCreation";
     if (mCurrentHopDistance < kRoutingTablesMaxLevel) {
         // Neighbor nodes must be notified about the newly added trust line.
 
@@ -174,14 +185,16 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
             mRightContractorUUID,
             mCurrentHopDistance+1);
 
-        for (const auto kNeighborAndTL : mTrustLines->trustLines())
+        for (const auto kNeighborAndTL : mTrustLines->trustLines()) {
             sendMessageAndPreventRecursion(
                 kNeighborAndTL.first,
                 kNotification);
+        }
     }
 
-
+    auto ioTransaction = mStorageHandler->beginTransaction();
     if (mCurrentHopDistance == 0) {
+        info() << "0 hop distance level";
         // Transaction is executed on the node A or node B of the scheme.
         //
         // In this case neighbors of the node B must be collected,
@@ -190,9 +203,11 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         // and written to tne 3-th level routing table.
 
         const auto kTransaction = make_shared<NeighborsCollectingTransaction>(
+            currentNodeUUID(),
             mRightContractorUUID,
+            currentNodeUUID(),
             mCurrentHopDistance,
-            mRoutingTables,
+            mStorageHandler,
             mLog);
 
         launchSubsidiaryTransaction(kTransaction);
@@ -200,15 +215,22 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
     }
 
     if (mCurrentHopDistance == 1) {
+        info() << "1 hop distance level";
         // Transaction is executed on the one of A1 nodes, or one of B1 nodes.
         //
         // In this case neighbors of the node B must be collected,
         // then written to the 3-d level routing table.
 
+        writeRecordToSecondLevel(
+            ioTransaction,
+            mLeftContractorUUID,
+            mRightContractorUUID);
         const auto kTransaction = make_shared<NeighborsCollectingTransaction>(
+            currentNodeUUID(),
             mRightContractorUUID,
+            mNeighborSenderUUID,
             mCurrentHopDistance,
-            mRoutingTables,
+            mStorageHandler,
             mLog);
 
         launchSubsidiaryTransaction(kTransaction);
@@ -216,12 +238,14 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
     }
 
     if (mCurrentHopDistance == 2) {
+        info() << "2 hop distance level";
         // Transaction is executed on the one of A2 nodes, or one of B2 nodes.
         //
         // No additional neighbors requests are needed.
         // Only node B must be written to the 3th level routing table.
 
         writeRecordToThirdLevel(
+            ioTransaction,
             mLeftContractorUUID,
             mRightContractorUUID);
 
@@ -252,6 +276,7 @@ void TrustLineStatesHandlerTransaction::sendMessageAndPreventRecursion (
     sendMessage(
         addressee,
         message);
+    info() << "send notification message to " << addressee;
 
     // ToDo: check if remote node received the notification.
 }
@@ -265,20 +290,19 @@ void TrustLineStatesHandlerTransaction::sendMessageAndPreventRecursion (
  * WARN: this method does'nt commits changes.
  */
 void TrustLineStatesHandlerTransaction::removeRecordFromSecondLevel (
+    IOTransaction::Shared ioTransaction,
     const NodeUUID &source,
     const NodeUUID &destination)
     noexcept
 {
     try {
-        // todo: rename to "remove"
-        mRoutingTables->deleteRecordFromRT2(
+        ioTransaction->routingTablesHandler()->removeRecordFromRT2(
             source,
             destination);
     } catch (IOError &) {}
 
     try {
-        // todo: rename to "remove"
-        mRoutingTables->deleteRecordFromRT2(
+        ioTransaction->routingTablesHandler()->removeRecordFromRT2(
             destination,
             source);
     } catch (IOError &) {}
@@ -290,37 +314,57 @@ void TrustLineStatesHandlerTransaction::removeRecordFromSecondLevel (
  * WARN: this method does'nt commits changes.
  */
 void TrustLineStatesHandlerTransaction::removeRecordFromThirdLevel (
+    IOTransaction::Shared ioTransaction,
     const NodeUUID &source,
     const NodeUUID &destination)
     noexcept
 {
     try {
-        mRoutingTables->deleteRecordFromRT3(
+        ioTransaction->routingTablesHandler()->removeRecordFromRT3(
             source,
             destination);
     } catch (IOError &) {}
 
     try {
-        mRoutingTables->deleteRecordFromRT3(
+        ioTransaction->routingTablesHandler()->removeRecordFromRT3(
             destination,
             source);
     } catch (IOError &) {}
 }
 
 /**
+ * Inserts or updates (@source -> @destination) record to the second level routing table.
+ */
+void TrustLineStatesHandlerTransaction::writeRecordToSecondLevel (
+    IOTransaction::Shared ioTransaction,
+    const NodeUUID &source,
+    const NodeUUID &destination)
+throw (IOError)
+{
+    ioTransaction->routingTablesHandler()->setRecordToRT2(
+        source,
+        destination);
+    debug() << "Record (" << source << " - " << destination << ") has been written to the RT2.";
+}
+
+/**
  * Inserts or updates (@source -> @destination) record to the third level routing table.
  */
 void TrustLineStatesHandlerTransaction::writeRecordToThirdLevel (
+    IOTransaction::Shared ioTransaction,
     const NodeUUID &source,
     const NodeUUID &destination)
     throw (IOError)
 {
-    // todo: rename to "set";
-    // todo: remove direction from the signature;
-    mRoutingTables->saveRecordToRT3(
+    ioTransaction->routingTablesHandler()->setRecordToRT3(
         source,
         destination);
+    debug() << "Record (" << source << " - " << destination << ") has been written to the RT3.";
+}
 
-    // ToDo: use autocommit structure
-    mRoutingTables->commit();
+const string TrustLineStatesHandlerTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[TrustLineStatesHandlerTA: " << currentTransactionUUID() << "]";
+    return s.str();
 }

@@ -23,6 +23,8 @@
 #include "../../../../common/exceptions/ConflictError.h"
 #include "../../../../common/exceptions/RuntimeError.h"
 
+#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
+
 #include <memory>
 #include <utility>
 #include <cstdint>
@@ -43,12 +45,14 @@ public:
         const NodeUUID &nodeUUID,
         OpenTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     OpenTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        StorageHandler *storageHandler);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     OpenTrustLineCommand::Shared command() const;
 

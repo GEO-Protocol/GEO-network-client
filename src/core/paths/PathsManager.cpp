@@ -563,64 +563,64 @@ void PathsManager::fillRoutingTables()
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff90")) {
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID92Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID97Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID94Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID92Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID96Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID97Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID98Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID90Ptr);
 
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID92Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID97Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID94Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID97Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID92Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID96Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID97Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID98Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID97Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
     }
 
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff91")) {
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID93Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID93Ptr, *nodeUUID91Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID93Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID93Ptr, *nodeUUID91Ptr);
 
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
     }
 
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff94")) {
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID98Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID97Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID96Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID96Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID98Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID98Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID97Ptr, *nodeUUID94Ptr);
 
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID90Ptr, *nodeUUID92Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID90Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID90Ptr, *nodeUUID92Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID90Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
     }
 
     if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff93")) {
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID95Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID95Ptr, *nodeUUID93Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID95Ptr, *nodeUUID96Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID95Ptr, *nodeUUID98Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID95Ptr, *nodeUUID93Ptr);
 
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
     }
 
     delete nodeUUID90Ptr;
@@ -644,22 +644,22 @@ void PathsManager::testStorageHandler()
     NodeUUID* nodeUUID86Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff86");
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
         ioTransaction->rollback();
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
     }
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID84Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID85Ptr, *nodeUUID86Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID83Ptr, *nodeUUID84Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID85Ptr, *nodeUUID86Ptr);
     }
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID82Ptr, *nodeUUID81Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID82Ptr, *nodeUUID81Ptr);
         ioTransaction->rollback();
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID84Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID81Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID84Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID83Ptr, *nodeUUID81Ptr);
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
@@ -675,8 +675,8 @@ void PathsManager::testStorageHandler()
         }
     }
 
-    ioTransaction->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
-    ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID84Ptr);
+    ioTransaction->routingTablesHandler()->removeRecordFromRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
+    ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID84Ptr);
     info() << "after updating and deleting";
     for (auto const &itMap : ioTransaction->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
         info() << "key: " << itMap.first;
@@ -685,7 +685,7 @@ void PathsManager::testStorageHandler()
         }
     }
 
-    ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID85Ptr, *nodeUUID81Ptr);
+    ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID85Ptr, *nodeUUID81Ptr);
     info() << "after updating absent elemnet";
     for (auto const &itMap : ioTransaction->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
         info() << "key: " << itMap.first;
@@ -694,7 +694,7 @@ void PathsManager::testStorageHandler()
         }
     }
 
-    ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+    ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
     info() << "after updating real elemnet";
     for (auto const &itMap : ioTransaction->routingTablesHandler()->routeRecordsMapSourceKeyOnRT2()) {
         info() << "key: " << itMap.first;
@@ -1045,7 +1045,7 @@ void PathsManager::fillBigRoutingTables()
             }
             secondLevelNodes.push_back(nextIdx);
             secondLevelAllNodes.insert(nextIdx);
-            ioTransaction->routingTablesHandler()->saveRecordToRT2(
+            ioTransaction->routingTablesHandler()->setRecordToRT2(
                 *getPtrByNodeNumber(
                     firstLevelIdx,
                     nodeUUIDPtrs),
@@ -1065,7 +1065,7 @@ void PathsManager::fillBigRoutingTables()
                 continue;
             }
             thirdLevelNodes.push_back(nextIdx);
-            ioTransaction->routingTablesHandler()->saveRecordToRT3(
+            ioTransaction->routingTablesHandler()->setRecordToRT3(
                 *getPtrByNodeNumber(
                     secondLevelIdx,
                     nodeUUIDPtrs),
@@ -1356,17 +1356,17 @@ void PathsManager::testDeletingRT()
     NodeUUID* nodeUUID86Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff86");
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID82Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID83Ptr, *nodeUUID81Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID83Ptr, *nodeUUID82Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID83Ptr, *nodeUUID81Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
 
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID82Ptr, *nodeUUID84Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID85Ptr, *nodeUUID86Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID82Ptr, *nodeUUID81Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID81Ptr, *nodeUUID83Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID83Ptr, *nodeUUID84Ptr);
-        ioTransaction->routingTablesHandler()->saveRecordToRT3(*nodeUUID82Ptr, *nodeUUID86Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID82Ptr, *nodeUUID84Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID85Ptr, *nodeUUID86Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID82Ptr, *nodeUUID81Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID81Ptr, *nodeUUID83Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID83Ptr, *nodeUUID84Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID82Ptr, *nodeUUID86Ptr);
     }
 
     vector<pair<NodeUUID, NodeUUID>> records;
@@ -1386,7 +1386,7 @@ void PathsManager::testDeletingRT()
 
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID83Ptr, *nodeUUID82Ptr);
+        ioTransaction->routingTablesHandler()->removeRecordFromRT2(*nodeUUID83Ptr, *nodeUUID82Ptr);
         info() << "after first deleting " << *nodeUUID83Ptr << " " << *nodeUUID82Ptr;
         info() << "RT2:";
         records = ioTransaction->routingTablesHandler()->rt2Records();
@@ -1402,7 +1402,7 @@ void PathsManager::testDeletingRT()
 
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
+        ioTransaction->routingTablesHandler()->removeRecordFromRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
         info() << "after second deleting " << *nodeUUID81Ptr << " " << *nodeUUID83Ptr;
         info() << "RT2:";
         records = ioTransaction->routingTablesHandler()->rt2Records();
@@ -1418,7 +1418,7 @@ void PathsManager::testDeletingRT()
 
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->routingTablesHandler()->deleteRecordFromRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+        ioTransaction->routingTablesHandler()->removeRecordFromRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
         info() << "after third deleting " << *nodeUUID81Ptr << " " << *nodeUUID82Ptr;
         info() << "RT2:";
         records = ioTransaction->routingTablesHandler()->rt2Records();

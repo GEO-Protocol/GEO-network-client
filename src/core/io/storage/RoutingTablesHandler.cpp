@@ -173,7 +173,7 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
     return result;
 }
 
-void RoutingTablesHandler::saveRecordToRT2(
+void RoutingTablesHandler::setRecordToRT2(
     const NodeUUID &source,
     const NodeUUID &destination)
 {
@@ -182,7 +182,7 @@ void RoutingTablesHandler::saveRecordToRT2(
         destination);
 }
 
-void RoutingTablesHandler::saveRecordToRT3(
+void RoutingTablesHandler::setRecordToRT3(
     const NodeUUID &source,
     const NodeUUID &destination)
 {
@@ -191,7 +191,7 @@ void RoutingTablesHandler::saveRecordToRT3(
         destination);
 }
 
-void RoutingTablesHandler::deleteRecordFromRT2(
+void RoutingTablesHandler::removeRecordFromRT2(
     const NodeUUID &source,
     const NodeUUID &destination)
 {
@@ -206,7 +206,7 @@ void RoutingTablesHandler::deleteRecordFromRT2(
     }
 }
 
-void RoutingTablesHandler::deleteRecordFromRT3(
+void RoutingTablesHandler::removeRecordFromRT3(
     const NodeUUID &source,
     const NodeUUID &destination)
 {

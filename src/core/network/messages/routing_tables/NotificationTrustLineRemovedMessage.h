@@ -15,6 +15,9 @@ class NotificationTrustLineRemovedMessage:
     public SenderMessage {
 
 public:
+    typedef shared_ptr<NotificationTrustLineRemovedMessage> Shared;
+
+public:
     NotificationTrustLineRemovedMessage(
         const NodeUUID &senderUUID,
         const NodeUUID &nodeA,

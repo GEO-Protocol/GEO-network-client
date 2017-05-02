@@ -4,11 +4,13 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     const NodeUUID &nodeUUID,
     UpdateTrustLineMessage::Shared message,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::UpdateTrustLineTransactionType,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mMessage(message),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {}
@@ -16,10 +18,12 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
 UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    StorageHandler *storageHandler) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::UpdateTrustLineTransactionType),
+        BaseTransaction::TransactionType::UpdateTrustLineTransactionType,
+        logger),
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {
 

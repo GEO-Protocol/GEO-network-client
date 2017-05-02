@@ -29,19 +29,19 @@ public:
         const NodeUUID &sourceUUID,
         const NodeUUID &contractorUUID);
 
-    void saveRecordToRT2(
+    void setRecordToRT2(
         const NodeUUID &source,
         const NodeUUID &destination);
 
-    void saveRecordToRT3(
+    void setRecordToRT3(
         const NodeUUID &source,
         const NodeUUID &destination);
 
-    void deleteRecordFromRT2(
+    void removeRecordFromRT2(
         const NodeUUID &source,
         const NodeUUID &destination);
 
-    void deleteRecordFromRT3(
+    void removeRecordFromRT3(
         const NodeUUID &source,
         const NodeUUID &destination);
 
