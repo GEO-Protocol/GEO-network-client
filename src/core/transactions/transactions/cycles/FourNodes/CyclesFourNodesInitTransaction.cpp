@@ -60,7 +60,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     if (mContext.size() != 2) {
-        cout << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
+        info() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
                    "Responses messages count not equals to 2; "
                    "Can't create cycles;";
 
@@ -136,4 +136,12 @@ set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCredito
             commonNeighbors.begin()));
 
     return commonNeighbors;
+}
+
+const string CyclesFourNodesInitTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesFourNodesInitTransactionTA: " << currentTransactionUUID().stringUUID() << "] ";
+
+    return s.str();
 }

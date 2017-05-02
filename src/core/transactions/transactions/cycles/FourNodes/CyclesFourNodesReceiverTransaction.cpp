@@ -39,3 +39,11 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
         sendMessage(mRequestMessage->senderUUID, kMessage);
     return finishTransaction();
 }
+
+const string CyclesFourNodesReceiverTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesFourNodesReceiverTransactionTA: " << currentTransactionUUID().stringUUID() << "] ";
+
+    return s.str();
+}

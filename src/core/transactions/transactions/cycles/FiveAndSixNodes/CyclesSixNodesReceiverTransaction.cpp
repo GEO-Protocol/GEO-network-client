@@ -52,3 +52,11 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
     }
     return resultDone();
 }
+
+const string CyclesSixNodesReceiverTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesSixNodesReceiverTransactionTA: " << currentTransactionUUID().stringUUID() << "] ";
+
+    return s.str();
+}

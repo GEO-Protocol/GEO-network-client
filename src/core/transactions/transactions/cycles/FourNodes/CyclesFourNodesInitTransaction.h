@@ -35,6 +35,7 @@ protected:
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 protected:
+    const string logHeader() const;
     set<NodeUUID> commonNeighborsForDebtorAndCreditorNodes();
 
 protected:

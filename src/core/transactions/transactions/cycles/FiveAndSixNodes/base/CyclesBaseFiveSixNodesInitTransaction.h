@@ -28,6 +28,7 @@ protected:
 
     virtual TransactionResult::SharedConst runCollectDataAndSendMessagesStage() = 0;
     virtual TransactionResult::SharedConst runParseMessageAndCreateCyclesStage() = 0;
+    virtual const string logHeader() const = 0;
 
 protected:
     TrustLinesManager *mTrustLinesManager;

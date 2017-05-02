@@ -21,6 +21,9 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
+    const string logHeader() const;
+
+protected:
     CyclesFourNodesBalancesRequestMessage::Shared mRequestMessage;
     TrustLinesManager *mTrustLinesManager;
 };

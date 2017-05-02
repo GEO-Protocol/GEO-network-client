@@ -57,4 +57,10 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run() {
 
 }
 #pragma clang diagnostic pop
+const string CyclesFiveNodesReceiverTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesFiveNodesReceiverTransactionTA: " << currentTransactionUUID().stringUUID() << "] ";
 
+    return s.str();
+}
