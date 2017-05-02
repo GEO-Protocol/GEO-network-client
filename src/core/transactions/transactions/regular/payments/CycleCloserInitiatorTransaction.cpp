@@ -9,7 +9,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     noexcept :
 
     BasePaymentTransaction(
-        BaseTransaction::CycleCloserInitiatorTransaction,
+        BaseTransaction::Payments_CycleCloserInitiatorTransaction,
         kCurrentNodeUUID,
         trustLines,
         storageHandler,
@@ -29,7 +29,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     throw (bad_alloc) :
 
     BasePaymentTransaction(
-        BaseTransaction::CycleCloserInitiatorTransaction,
+        BaseTransaction::Payments_CycleCloserInitiatorTransaction,
         buffer,
         trustLines,
         storageHandler,

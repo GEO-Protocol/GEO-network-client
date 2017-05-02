@@ -81,7 +81,7 @@ public:
         ReceiverPaymentTransaction,
         IntermediateNodePaymentTransaction,
         VoutesStatusResponsePaymentTransaction,
-        CycleCloserInitiatorTransaction,
+        Payments_CycleCloserInitiatorTransaction,
 
         // Max flow calculation
         InitiateMaxFlowCalculationTransactionType,

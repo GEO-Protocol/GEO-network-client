@@ -17,7 +17,7 @@ public:
         const NodeUUID &debtorContractorUUID,
         const NodeUUID &creditorContractorUUID,
         TrustLinesManager *manager,
-        RoutingTablesHandler *routingTablesHandler,
+        StorageHandler *storageHandler,
         Logger *logger);
 
     TransactionResult::SharedConst run();
@@ -42,7 +42,7 @@ protected:
     NodeUUID mDebtorContractorUUID;
     NodeUUID mCreditorContractorUUID;
     TrustLinesManager *mTrustLinesManager;
-    RoutingTablesHandler *mRoutingTablesHandler;
+    StorageHandler *mStorageHandler;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETFOURNODESNEIGHBORBALANCESTRANSACTION_H
