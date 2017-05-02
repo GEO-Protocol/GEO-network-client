@@ -1,6 +1,6 @@
-#include "TransactionHandler.h"
+#include "TransactionsHandler.h"
 
-TransactionHandler::TransactionHandler(
+TransactionsHandler::TransactionsHandler(
     sqlite3 *dbConnection,
     const string &tableName,
     Logger *logger):
@@ -16,32 +16,32 @@ TransactionHandler::TransactionHandler(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::creating table: "
+        throw IOError("TransactionsHandler::creating table: "
                           "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
-        throw IOError("TransactionHandler::creating table: Run query");
+        throw IOError("TransactionsHandler::creating table: Run query");
     }
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_transaction_uuid_idx on " + mTableName + " (transaction_uuid);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::creating index for TransactionUUID: "
+        throw IOError("TransactionsHandler::creating index for TransactionUUID: "
                           "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
-        throw IOError("TransactionHandler::creating index for TransactionUUID: "
+        throw IOError("TransactionsHandler::creating index for TransactionUUID: "
                           "Run query; sqlite error: " + rc);
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
 }
 
-void TransactionHandler::saveRecord(
+void TransactionsHandler::saveRecord(
     const TransactionUUID &transactionUUID,
     BytesShared transaction,
     size_t transactionBytesCount)
@@ -51,22 +51,22 @@ void TransactionHandler::saveRecord(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::insert or replace: "
+        throw IOError("TransactionsHandler::insert or replace: "
                           "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::insert or replace: "
+        throw IOError("TransactionsHandler::insert or replace: "
                           "Bad binding of TransactionUUID; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 2, transaction.get(), (int)transactionBytesCount, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::insert or replace: "
+        throw IOError("TransactionsHandler::insert or replace: "
                           "Bad binding of Transaction body; sqlite error: " + rc);
     }
     rc = sqlite3_bind_int(stmt, 3, (int)transactionBytesCount);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::insert or replace: "
+        throw IOError("TransactionsHandler::insert or replace: "
                           "Bad binding of Transaction bytes count; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
@@ -77,24 +77,24 @@ void TransactionHandler::saveRecord(
         info() << "prepare inserting or replacing is completed successfully";
 #endif
     } else {
-        throw IOError("TransactionHandler::insert or replace: "
+        throw IOError("TransactionsHandler::insert or replace: "
                           "Run query; sqlite error: " + rc);
     }
 }
 
-void TransactionHandler::deleteRecord(
+void TransactionsHandler::deleteRecord(
     const TransactionUUID &transactionUUID)
 {
     string query = "DELETE FROM " + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::delete: "
+        throw IOError("TransactionsHandler::delete: "
                           "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::delete: "
+        throw IOError("TransactionsHandler::delete: "
                           "Bad binding of TransactionUUID; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
@@ -110,7 +110,7 @@ void TransactionHandler::deleteRecord(
     }
 }
 
-pair<BytesShared, size_t> TransactionHandler::getTransaction(
+pair<BytesShared, size_t> TransactionsHandler::getTransaction(
     const TransactionUUID &transactionUUID)
 {
     string query = "SELECT transaction_body, transaction_bytes_count FROM "
@@ -118,12 +118,12 @@ pair<BytesShared, size_t> TransactionHandler::getTransaction(
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::getTransaction: "
+        throw IOError("TransactionsHandler::getTransaction: "
                           "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("TransactionHandler::getTransaction: "
+        throw IOError("TransactionsHandler::getTransaction: "
                           "Bad binding of TransactionUUID; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
@@ -140,28 +140,68 @@ pair<BytesShared, size_t> TransactionHandler::getTransaction(
     } else {
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
-        throw NotFoundError("TransactionHandler::getTransaction: "
+        throw NotFoundError("TransactionsHandler::getTransaction: "
                                 "There are now records with requested transactionUUID");
     }
 }
 
-LoggerStream TransactionHandler::info() const
+vector<pair<BytesShared, size_t>> TransactionsHandler::allTransactions()
+{
+    string queryCount = "SELECT count(*) FROM " + mTableName;
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2( mDataBase, queryCount.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::allTransactions: "
+                          "Bad count query; sqlite error: " + rc);
+    }
+    sqlite3_step(stmt);
+    uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    vector<pair<BytesShared, size_t>> result;
+    result.reserve(rowCount);
+    string query = "SELECT transaction_body, transaction_bytes_count FROM "
+                   + mTableName + ";";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("TransactionsHandler::allTransactions: "
+                          "Bad query; sqlite error: " + rc);
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        size_t stateBytesCount = (size_t) sqlite3_column_int(stmt, 1);
+        BytesShared state = tryMalloc(stateBytesCount);
+        memcpy(
+            state.get(),
+            sqlite3_column_blob(stmt, 0),
+            stateBytesCount);
+
+        result.push_back(
+            make_pair(
+                state,
+                stateBytesCount));
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+LoggerStream TransactionsHandler::info() const
 {
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->info(logHeader());
 }
 
-LoggerStream TransactionHandler::error() const
+LoggerStream TransactionsHandler::error() const
 {
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->error(logHeader());
 }
 
-const string TransactionHandler::logHeader() const
+const string TransactionsHandler::logHeader() const
 {
     stringstream s;
-    s << "[TransactionHandler]";
+    s << "[TransactionsHandler]";
     return s.str();
 }

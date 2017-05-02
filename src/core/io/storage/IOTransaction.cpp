@@ -6,7 +6,7 @@ IOTransaction::IOTransaction(
     TrustLineHandler *trustLineHandler,
     HistoryStorage *historyStorage,
     PaymentOperationStateHandler *paymentOperationStorage,
-    TransactionHandler *transactionHandler,
+    TransactionsHandler *transactionHandler,
     Logger *logger) :
 
     mDBConnection(dbConnection),
@@ -15,6 +15,7 @@ IOTransaction::IOTransaction(
     mHistoryStorage(historyStorage),
     mPaymentOperationStateHandler(paymentOperationStorage),
     mTransactionHandler(transactionHandler),
+    mIsTransactionBegin(true),
     mLog(logger)
 {}
 
@@ -43,13 +44,19 @@ PaymentOperationStateHandler* IOTransaction::paymentOperationStateHandler()
     return mPaymentOperationStateHandler;
 }
 
-TransactionHandler* IOTransaction::transactionHandler() {
+TransactionsHandler* IOTransaction::transactionHandler() {
 
     return mTransactionHandler;
 }
 
 void IOTransaction::commit()
 {
+    if (!mIsTransactionBegin) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "transaction don't commit it was rollbacked";
+#endif
+        return;
+    }
     string query = "COMMIT TRANSACTION;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDBConnection, query.c_str(), -1, &stmt, 0);
@@ -84,6 +91,7 @@ void IOTransaction::rollback()
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "rollBack done";
 #endif
+    mIsTransactionBegin = false;
 }
 
 LoggerStream IOTransaction::info() const

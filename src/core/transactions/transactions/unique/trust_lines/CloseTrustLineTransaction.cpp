@@ -107,6 +107,19 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
             } else {
                 closeTrustLine();
                 logClosingTrustLineOperation();
+                if (!mTrustLinesManager->isNeighbor(mCommand->contractorUUID())) {
+                    const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                        currentNodeUUID(),
+                        currentNodeUUID(),
+                        currentNodeUUID(),
+                        mCommand->contractorUUID(),
+                        TrustLineStatesHandlerTransaction::TrustLineState::Removed,
+                        0,
+                        mTrustLinesManager,
+                        mStorageHandler,
+                        mLog);
+                    launchSubsidiaryTransaction(kTransaction);
+                }
             }
 
             mStep = Stages::CheckContext;

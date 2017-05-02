@@ -392,7 +392,7 @@ void TransactionsManager::launchCloseTrustLineTransaction(
             mLog);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-
+        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
         mScheduler->scheduleTransaction(transaction);
 
     } catch (bad_alloc &) {
@@ -467,7 +467,7 @@ void TransactionsManager::launchRejectTrustLineTransaction(
             mLog);
 
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-
+        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
         mScheduler->scheduleTransaction(transaction);
 
     } catch (bad_alloc &) {
@@ -1082,7 +1082,7 @@ void TransactionsManager::onSubsidiaryTransactionReady(
 
     mScheduler->postponeTransaction(
         transaction,
-        5000
+        50
     );
 }
 
