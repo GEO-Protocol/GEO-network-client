@@ -6,7 +6,7 @@
 #include "TrustLineHandler.h"
 #include "HistoryStorage.h"
 #include "PaymentOperationStateHandler.h"
-#include "TransactionHandler.h"
+#include "TransactionsHandler.h"
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
@@ -22,7 +22,7 @@ public:
         TrustLineHandler *trustLineHandler,
         HistoryStorage *historyStorage,
         PaymentOperationStateHandler *paymentOperationStorage,
-        TransactionHandler *transactionHandler,
+        TransactionsHandler *transactionHandler,
         Logger *logger);
 
     ~IOTransaction();
@@ -35,7 +35,7 @@ public:
 
     PaymentOperationStateHandler *paymentOperationStateHandler();
 
-    TransactionHandler *transactionHandler();
+    TransactionsHandler *transactionHandler();
 
     void commit();
 
@@ -54,7 +54,8 @@ private:
     TrustLineHandler *mTrustLineHandler;
     HistoryStorage *mHistoryStorage;
     PaymentOperationStateHandler *mPaymentOperationStateHandler;
-    TransactionHandler *mTransactionHandler;
+    TransactionsHandler *mTransactionHandler;
+    bool mIsTransactionBegin;
     Logger *mLog;
 };
 

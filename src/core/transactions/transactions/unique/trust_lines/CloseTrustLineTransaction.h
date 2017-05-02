@@ -21,6 +21,8 @@
 
 #include "../../../../common/exceptions/ConflictError.h"
 
+#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
+
 #include <memory>
 #include <utility>
 #include <cstdint>
