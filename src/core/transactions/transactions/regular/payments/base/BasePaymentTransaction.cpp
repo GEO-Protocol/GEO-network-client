@@ -473,10 +473,15 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
     if (message != nullptr)
         info() << message;
 
+    if(mTransactionIsVoted){
+        mStep = Stages::Common_VotesRecoveryStage;
+        mVotesRecoveryStep = VoutesRecoveryStages::Common_PrepareNodesListToCheckVotes;
+        return runVotesRecoveryParentStage();
+    } else {
+        return resultDone();
+    }
 
-    mStep = Stages::Common_VotesRecoveryStage;
-    mVotesRecoveryStep = VoutesRecoveryStages::Common_PrepareNodesListToCheckVotes;
-    return runVotesRecoveryParentStage();
+
 }
 
 uint32_t BasePaymentTransaction::maxNetworkDelay (
