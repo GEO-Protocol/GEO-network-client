@@ -36,23 +36,15 @@ public:
         throw (bad_alloc);
 
 protected:
-    // TODO: move it into separate *.h file.
-    typedef boost::uuids::uuid PathUUID;
-
-protected:
     // Stages handlers
     // TODO: Add throws specififcations
+    TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
     TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
 
 protected:
-    // Coordinator must return command result on transaction finishing.
-    // Therefore this methods are overriden.
-    TransactionResult::SharedConst approve();
-    TransactionResult::SharedConst recover(
-        const char *message = nullptr);
     TransactionResult::SharedConst reject(
         const char *message = nullptr);
 
@@ -82,16 +74,17 @@ protected:
 
 protected:
     const string logHeader() const;
+
     void deserializeFromBytes(
         BytesShared buffer);
+
+    void checkPath(
+        const Path::ConstShared path);
 
 protected:
     // Contains special stats data, such as current msx flow,
     // for path involved into the transaction.
     unique_ptr<PathStats> mPathStats;
-
-    // Reservation stage contains it's own internal steps counter.
-    byte mReservationsStage;
 
     // minimum value of Coordinator outgoing amount to first intremediate node
     // and incoming amount from last intermediate node

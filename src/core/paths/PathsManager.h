@@ -46,10 +46,6 @@ private:
 
     void findPathsOnSecondLevel();
 
-    // TODO : it should be removed
-    void findPathsOnSecondLevelWithoutRoutingTables(
-        vector<NodeUUID> &contractorRT1);
-
     void findPathsOnThirdLevel();
 
     void findPathsOnForthLevel(

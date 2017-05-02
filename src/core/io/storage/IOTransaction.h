@@ -37,11 +37,11 @@ public:
 
     TransactionsHandler *transactionHandler();
 
-    void commit();
-
     void rollback();
 
 private:
+    void commit();
+
     LoggerStream info() const;
 
     LoggerStream error() const;

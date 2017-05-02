@@ -281,3 +281,10 @@ TransactionResult::SharedConst CloseTrustLineTransaction::resultProtocolError() 
     return transactionResultFromCommand(
             mCommand->responseProtocolError());
 }
+
+const string CloseTrustLineTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CloseTrustLineTA: " << currentTransactionUUID() << "]";
+    return s.str();
+}

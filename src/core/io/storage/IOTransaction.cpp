@@ -26,26 +26,46 @@ IOTransaction::~IOTransaction()
 
 RoutingTablesHandler* IOTransaction::routingTablesHandler()
 {
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::routingTablesHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
     return mRoutingTablesHandler;
 }
 
 TrustLineHandler* IOTransaction::trustLineHandler()
 {
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::trustLineHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
     return mTrustLineHandler;
 }
 
 HistoryStorage* IOTransaction::historyStorage()
 {
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::historyStorage: "
+                          "transaction was rollback, it can't be use now");
+    }
     return mHistoryStorage;
 }
 
 PaymentOperationStateHandler* IOTransaction::paymentOperationStateHandler()
 {
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::paymentOperationStateHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
     return mPaymentOperationStateHandler;
 }
 
-TransactionsHandler* IOTransaction::transactionHandler() {
-
+TransactionsHandler* IOTransaction::transactionHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::transactionHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
     return mTransactionHandler;
 }
 

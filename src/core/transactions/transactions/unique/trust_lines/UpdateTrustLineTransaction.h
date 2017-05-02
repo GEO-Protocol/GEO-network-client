@@ -50,6 +50,9 @@ public:
 
     TransactionResult::SharedConst run();
 
+protected:
+    const string logHeader() const;
+
 private:
     bool checkJournal();
 

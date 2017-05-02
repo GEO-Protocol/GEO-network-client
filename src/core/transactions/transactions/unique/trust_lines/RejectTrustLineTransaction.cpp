@@ -138,3 +138,10 @@ void RejectTrustLineTransaction::sendResponseCodeToContractor(
         mMessage->transactionUUID(),
         code);
 }
+
+const string RejectTrustLineTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[RejectTrustLineTA: " << currentTransactionUUID() << "]";
+    return s.str();
+}

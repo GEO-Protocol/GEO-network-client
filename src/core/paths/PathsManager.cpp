@@ -69,34 +69,6 @@ void PathsManager::findPathsOnSecondLevel()
 #endif
 }
 
-void PathsManager::findPathsOnSecondLevelWithoutRoutingTables(
-    vector<NodeUUID> &contractorRT1)
-{
-#ifdef GETTING_PATHS_DEBUG_LOG
-    DateTime startTime = utc_now();
-#endif
-    for (auto const &nodeUUID1 : mTrustLinesManager->rt1()) {
-        for (auto const &nodeUUID2 : contractorRT1) {
-            if (nodeUUID1 == nodeUUID2) {
-                vector<NodeUUID> intermediateNodes;
-                intermediateNodes.push_back(nodeUUID1);
-                Path path(
-                    mNodeUUID,
-                    mContractorUUID,
-                    intermediateNodes);
-                mPathCollection->add(path);
-#ifdef GETTING_PATHS_DEBUG_LOG
-                info() << "found path on second level";
-#endif
-            }
-        }
-    }
-#ifdef GETTING_PATHS_DEBUG_LOG
-    Duration methodTime = utc_now() - startTime;
-    info() << "findPathsOnSecondLevel method time: " << methodTime;
-#endif
-}
-
 void PathsManager::findPathsOnThirdLevel()
 {
 #ifdef GETTING_PATHS_DEBUG_LOG
@@ -463,7 +435,6 @@ void PathsManager::findPaths(
         mContractorUUID);
     findDirectPath();
     findPathsOnSecondLevel();
-    //findPathsOnSecondLevelWithoutRoutingTables(contractorRT1);
     findPathsOnThirdLevel();
     findPathsOnForthLevel(
         contractorRT1);
@@ -792,7 +763,6 @@ void PathsManager::testPaymentStateOperationsHandler()
         &st2,
         sizeof(uint16_t));
     ioTransaction->paymentOperationStateHandler()->saveRecord(transaction2, state2, sizeof(uint16_t));
-    ioTransaction->commit();
     TransactionUUID transaction3;
     BytesShared state3 = tryMalloc(sizeof(uint32_t));
     uint32_t st3 = 3;
