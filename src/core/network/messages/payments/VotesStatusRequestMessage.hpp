@@ -15,6 +15,10 @@ public:
                 senderUUID,
                 transactionUUID){};
 
+    VotesStatusRequestMessage(
+        BytesShared buffer) noexcept :
+    TransactionMessage(buffer){};
+
 public:
     const MessageType typeID() const{
         return Message::MessageType::Payments_VoutesStatusRequest;

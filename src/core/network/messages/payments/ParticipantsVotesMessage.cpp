@@ -19,6 +19,18 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
     deserializeFromBytes(buffer);
 }
 
+ParticipantsVotesMessage::ParticipantsVotesMessage(
+    const NodeUUID &senderUUID,
+    const ParticipantsVotesMessage::Shared &message
+):
+    TransactionMessage(
+        senderUUID,
+        message->transactionUUID())
+{
+    mCoordinatorUUID = message->coordinatorUUID();
+    mVotes = message->votes();
+}
+
 /**
  * Inserts new participant into participants list with default vote (Uncertain).
  *
@@ -273,7 +285,6 @@ void ParticipantsVotesMessage::approve(
 
     mVotes[participant] = Vote::Approved;
 }
-
 
 bool ParticipantsVotesMessage::containsRejectVote() const {
     for (const auto &participantAndVote : mVotes) {

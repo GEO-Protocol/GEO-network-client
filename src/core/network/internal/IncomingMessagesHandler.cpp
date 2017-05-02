@@ -13,11 +13,8 @@ pair<bool, Message::Shared> MessagesParser::processMessage(
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
     BytesShared messagePart) {
-//    cout << "_________________________" << endl;
-//    cout << "MessagesParser::tryDeserializeMessage " << endl;
     try {
         uint16_t *messageIdentifier = new (messagePart.get()) uint16_t;
-//        cout << messageIdentifier << ";" << *messageIdentifier << endl;
         auto deserializedData = tryDeserializeRequest(
             *messageIdentifier,
             messagePart
@@ -120,9 +117,12 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         case Message::Payments_ParticipantsPathsConfiguration:
             return messageCollected<ParticipantsConfigurationMessage>(messagePart);
 
-        /*
-         * Cycles processing messages
-         */
+        case Message::Payments_VoutesStatusRequest:
+            return messageCollected<VotesStatusRequestMessage>(messagePart);
+
+            /*
+             * Cycles processing messages
+             */
         case Message::Cycles_SixNodesMiddleware: {
             return make_pair(
                 true,

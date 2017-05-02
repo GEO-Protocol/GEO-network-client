@@ -57,7 +57,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
         return runVotesCheckingStage();
 
     case Stages::Common_VotesRecoveryStage:
-        return runVotesRecoveryParenStage();
+        return runVotesRecoveryParentStage();
 
     default:
         throw RuntimeError(

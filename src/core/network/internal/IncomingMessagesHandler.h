@@ -27,6 +27,7 @@
 #include "../messages/payments/ParticipantsVotesMessage.h"
 #include "../messages/payments/ParticipantsConfigurationRequestMessage.h"
 #include "../messages/payments/ParticipantsConfigurationMessage.h"
+#include "../messages/payments/VotesStatusRequestMessage.hpp"
 #include "../messages/response/Response.h"
 #include "../messages/total_balances/InitiateTotalBalancesMessage.h"
 #include "../messages/total_balances/TotalBalancesResultMessage.h"

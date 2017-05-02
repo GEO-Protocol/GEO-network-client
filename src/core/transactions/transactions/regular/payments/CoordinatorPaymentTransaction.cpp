@@ -65,7 +65,7 @@ throw (RuntimeError, bad_alloc)
             return runVotesCheckingStage();
 
         case Stages::Common_VotesRecoveryStage:
-            return runVotesRecoveryParenStage();
+            return runVotesRecoveryParentStage();
 
         default:
             throw RuntimeError(
@@ -131,35 +131,35 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
                 responseResource);
 
             // TODO for test
-            NodeUUID *nodeUUID51Ptr = new NodeUUID("83f5325f-09b9-4af1-9539-ebd82592fa28");
-            NodeUUID *nodeUUID52Ptr = new NodeUUID("0cf32ef5-3028-42a3-b81b-dd32a3e15f96");
-            NodeUUID *nodeUUID53Ptr = new NodeUUID("592aaaf6-0626-4a0b-9cd7-a09215feff9e");
-            NodeUUID *nodeUUID54Ptr = new NodeUUID("03de0db2-140e-4a5b-aa0e-b2fbf25dceec");
-            NodeUUID *nodeUUID55Ptr = new NodeUUID("6801e258-b4b8-4b35-bdef-4b7d59ecb4ed");
-
-            vector<NodeUUID> intermediateNodes;
-            intermediateNodes.push_back(*nodeUUID52Ptr);
-            intermediateNodes.push_back(*nodeUUID53Ptr);
-            intermediateNodes.push_back(*nodeUUID54Ptr);
-            auto result = make_shared<const Path>(
-                *nodeUUID51Ptr,
-                *nodeUUID55Ptr,
-                intermediateNodes);
-
-            delete nodeUUID51Ptr;
-            delete nodeUUID52Ptr;
-            delete nodeUUID53Ptr;
-            delete nodeUUID54Ptr;
-            delete nodeUUID55Ptr;
-
-            addPathForFurtherProcessing(result);
+//            NodeUUID *nodeUUID51Ptr = new NodeUUID("83f5325f-09b9-4af1-9539-ebd82592fa28");
+//            NodeUUID *nodeUUID52Ptr = new NodeUUID("0cf32ef5-3028-42a3-b81b-dd32a3e15f96");
+//            NodeUUID *nodeUUID53Ptr = new NodeUUID("592aaaf6-0626-4a0b-9cd7-a09215feff9e");
+//            NodeUUID *nodeUUID54Ptr = new NodeUUID("03de0db2-140e-4a5b-aa0e-b2fbf25dceec");
+//            NodeUUID *nodeUUID55Ptr = new NodeUUID("6801e258-b4b8-4b35-bdef-4b7d59ecb4ed");
+//
+//            vector<NodeUUID> intermediateNodes;
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID53Ptr);
+//            intermediateNodes.push_back(*nodeUUID54Ptr);
+//            auto result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID55Ptr,
+//                intermediateNodes);
+//
+//            delete nodeUUID51Ptr;
+//            delete nodeUUID52Ptr;
+//            delete nodeUUID53Ptr;
+//            delete nodeUUID54Ptr;
+//            delete nodeUUID55Ptr;
+//
+//            addPathForFurtherProcessing(result);
             // end test
 
-//            response->pathCollection()->resetCurrentPath();
-//            while (response->pathCollection()->hasNextPath()) {
-//                auto path = response->pathCollection()->nextPath();
-//                addPathForFurtherProcessing(path);
-//            }
+            response->pathCollection()->resetCurrentPath();
+            while (response->pathCollection()->hasNextPath()) {
+                auto path = response->pathCollection()->nextPath();
+                addPathForFurtherProcessing(path);
+            }
         } else {
             // TODO: action on this case
             error() << "wrong resource type";

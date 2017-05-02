@@ -20,14 +20,17 @@ TransactionResult::SharedConst VoutesStatusResponsePaymentTransaction::run() {
         auto responseMessage = make_shared<ParticipantsVotesMessage>(
                 bufferAndSize.first
         );
-    } catch(NotFoundError){
+        sendMessage(
+            mRequestMessage->senderUUID,
+            responseMessage);
+    } catch(NotFoundError) {
         const auto kZeroUUID = NodeUUID::empty();
         auto responseMessage = make_shared<ParticipantsVotesMessage>(
-                mNodeUUID,
-                mRequestMessage->transactionUUID(),
-                kZeroUUID
+            mNodeUUID,
+            mRequestMessage->transactionUUID(),
+            kZeroUUID
         );
-    sendMessage(
+        sendMessage(
             mRequestMessage->senderUUID,
             responseMessage);
     };
