@@ -267,3 +267,10 @@ TransactionResult::SharedConst OpenTrustLineTransaction::resultProtocolError() {
     return transactionResultFromCommand(
             mCommand->responseProtocolError());
 }
+
+const string OpenTrustLineTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[OpenTrustLineTA: " << currentTransactionUUID() << "]";
+    return s.str();
+}

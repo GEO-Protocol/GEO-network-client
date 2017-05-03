@@ -53,6 +53,19 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run() {
             } else {
                 rejectTrustLine();
                 logRejectingTrustLineOperation();
+                if (!mTrustLinesManager->isNeighbor(mMessage->contractorUUID())) {
+                    const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                        currentNodeUUID(),
+                        currentNodeUUID(),
+                        currentNodeUUID(),
+                        mMessage->contractorUUID(),
+                        TrustLineStatesHandlerTransaction::TrustLineState::Removed,
+                        0,
+                        mTrustLinesManager,
+                        mStorageHandler,
+                        mLog);
+                    launchSubsidiaryTransaction(kTransaction);
+                }
                 sendResponseCodeToContractor(
                         RejectTrustLineMessage::kResultCodeRejected);
 
@@ -124,4 +137,11 @@ void RejectTrustLineTransaction::sendResponseCodeToContractor(
         mNodeUUID,
         mMessage->transactionUUID(),
         code);
+}
+
+const string RejectTrustLineTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[RejectTrustLineTA: " << currentTransactionUUID() << "]";
+    return s.str();
 }

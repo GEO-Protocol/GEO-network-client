@@ -21,6 +21,8 @@
 
 #include "../../../../common/exceptions/ConflictError.h"
 
+#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
+
 #include <memory>
 #include <utility>
 #include <cstdint>
@@ -56,6 +58,9 @@ public:
     pair<BytesShared, size_t> serializeToBytes() const;
 
     TransactionResult::SharedConst run();
+
+protected:
+    const string logHeader() const;
 
 private:
     void deserializeFromBytes(

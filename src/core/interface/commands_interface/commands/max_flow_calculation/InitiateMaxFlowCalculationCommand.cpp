@@ -30,42 +30,6 @@ const NodeUUID &InitiateMaxFlowCalculationCommand::contractorUUID() const
     return mContractorUUID;
 }
 
-pair<BytesShared, size_t> InitiateMaxFlowCalculationCommand::serializeToBytes()
-{
-    auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
-    size_t bytesCount = parentBytesAndCount.second
-                        + NodeUUID::kBytesSize;
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-    //----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    dataBytesOffset += parentBytesAndCount.second;
-    //----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize);
-    //----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
-}
-
-void InitiateMaxFlowCalculationCommand::deserializeFromBytes(
-    BytesShared buffer)
-{
-    BaseUserCommand::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = BaseUserCommand::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize);
-}
-
 /**
  * Throws ValueError if deserialization was unsuccessful.
  */
@@ -98,5 +62,3 @@ CommandResult::SharedConst InitiateMaxFlowCalculationCommand::responseOk(
             200,
             maxFlowAmount));
 }
-
-

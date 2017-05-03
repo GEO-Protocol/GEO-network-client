@@ -22,15 +22,10 @@ public:
 
     const NodeUUID &contractorUUID() const;
 
-    pair<BytesShared, size_t> serializeToBytes();
-
     CommandResult::SharedConst responseOk(
         string &maxFlowAmount) const;
 
 protected:
-    void deserializeFromBytes(
-        BytesShared buffer);
-
     void parse(
         const string &command);
 

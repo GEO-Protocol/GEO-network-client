@@ -126,8 +126,8 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         for (const auto kNeighborOfCounterpartNode : ioTransaction->routingTablesHandler()->neighborsOfOnRT2(mRightContractorUUID)) {
             removeRecordFromSecondLevel(
                 ioTransaction,
-                mRightContractorUUID,
-                kNeighborOfCounterpartNode);
+                kNeighborOfCounterpartNode,
+                mRightContractorUUID);
         }
 
         return resultDone();
@@ -139,8 +139,8 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         // A-B.
         removeRecordFromSecondLevel(
             ioTransaction,
-            mRightContractorUUID,
-            mNeighborSenderUUID);
+            mNeighborSenderUUID,
+            mRightContractorUUID);
 
         return resultDone();
 
@@ -150,8 +150,8 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         // In this case, only one record must be removed from third level routing table.
         removeRecordFromThirdLevel(
             ioTransaction,
-            mRightContractorUUID,
-            mLeftContractorUUID);
+            mLeftContractorUUID,
+            mRightContractorUUID);
 
         return resultDone();
     }
@@ -300,12 +300,6 @@ void TrustLineStatesHandlerTransaction::removeRecordFromSecondLevel (
             source,
             destination);
     } catch (IOError &) {}
-
-    try {
-        ioTransaction->routingTablesHandler()->removeRecordFromRT2(
-            destination,
-            source);
-    } catch (IOError &) {}
 }
 
 /**
@@ -323,12 +317,6 @@ void TrustLineStatesHandlerTransaction::removeRecordFromThirdLevel (
         ioTransaction->routingTablesHandler()->removeRecordFromRT3(
             source,
             destination);
-    } catch (IOError &) {}
-
-    try {
-        ioTransaction->routingTablesHandler()->removeRecordFromRT3(
-            destination,
-            source);
     } catch (IOError &) {}
 }
 

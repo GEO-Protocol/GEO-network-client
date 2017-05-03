@@ -6,7 +6,7 @@ IOTransaction::IOTransaction(
     TrustLineHandler *trustLineHandler,
     HistoryStorage *historyStorage,
     PaymentOperationStateHandler *paymentOperationStorage,
-    TransactionHandler *transactionHandler,
+    TransactionsHandler *transactionHandler,
     Logger *logger) :
 
     mDBConnection(dbConnection),
@@ -15,6 +15,7 @@ IOTransaction::IOTransaction(
     mHistoryStorage(historyStorage),
     mPaymentOperationStateHandler(paymentOperationStorage),
     mTransactionHandler(transactionHandler),
+    mIsTransactionBegin(true),
     mLog(logger)
 {}
 
@@ -25,31 +26,57 @@ IOTransaction::~IOTransaction()
 
 RoutingTablesHandler* IOTransaction::routingTablesHandler()
 {
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::routingTablesHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
     return mRoutingTablesHandler;
 }
 
 TrustLineHandler* IOTransaction::trustLineHandler()
 {
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::trustLineHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
     return mTrustLineHandler;
 }
 
 HistoryStorage* IOTransaction::historyStorage()
 {
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::historyStorage: "
+                          "transaction was rollback, it can't be use now");
+    }
     return mHistoryStorage;
 }
 
 PaymentOperationStateHandler* IOTransaction::paymentOperationStateHandler()
 {
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::paymentOperationStateHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
     return mPaymentOperationStateHandler;
 }
 
-TransactionHandler* IOTransaction::transactionHandler() {
-
+TransactionsHandler* IOTransaction::transactionHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::transactionHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
     return mTransactionHandler;
 }
 
 void IOTransaction::commit()
 {
+    if (!mIsTransactionBegin) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "transaction don't commit it was rollbacked";
+#endif
+        return;
+    }
     string query = "COMMIT TRANSACTION;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDBConnection, query.c_str(), -1, &stmt, 0);
@@ -84,6 +111,7 @@ void IOTransaction::rollback()
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "rollBack done";
 #endif
+    mIsTransactionBegin = false;
 }
 
 LoggerStream IOTransaction::info() const

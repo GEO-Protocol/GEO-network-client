@@ -11,8 +11,8 @@ set(SOURCE_FILES
         TrustLineHandler.cpp
         PaymentOperationStateHandler.h
         PaymentOperationStateHandler.cpp
-        TransactionHandler.h
-        TransactionHandler.cpp
+        TransactionsHandler.h
+        TransactionsHandler.cpp
         HistoryStorage.h
         HistoryStorage.cpp
         record/base/Record.h
