@@ -265,3 +265,10 @@ TransactionResult::SharedConst SetTrustLineTransaction::resultCurrentIncomingDeb
     return transactionResultFromCommand(
             mCommand->responseCurrentIncomingDebtIsGreaterThanNewAmount());
 }
+
+const string SetTrustLineTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[SetTrustLineTA: " << currentTransactionUUID() << "]";
+    return s.str();
+}

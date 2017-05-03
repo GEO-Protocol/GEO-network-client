@@ -150,3 +150,10 @@ void UpdateTrustLineTransaction::sendResponseCodeToContractor(
         mMessage->transactionUUID(),
         code);
 }
+
+const string UpdateTrustLineTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[UpdateTrustLineTA: " << currentTransactionUUID() << "]";
+    return s.str();
+}

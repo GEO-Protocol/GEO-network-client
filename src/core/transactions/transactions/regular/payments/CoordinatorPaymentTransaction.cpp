@@ -282,7 +282,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
             response->pathCollection()->resetCurrentPath();
             while (response->pathCollection()->hasNextPath()) {
                 auto path = response->pathCollection()->nextPath();
-                addPathForFurtherProcessing(path);
+                if (isPathValid(path)) {
+                    addPathForFurtherProcessing(path);
+                }
             }
         } else {
             // TODO: action on this case
@@ -1275,4 +1277,21 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         return propagateVotesListAndWaitForConfigurationRequests();
     }
     return tryProcessNextPath();
+}
+
+bool CoordinatorPaymentTransaction::isPathValid(
+    Path::Shared path) const
+{
+    auto itGlobal = path->nodes.begin();
+    while (itGlobal != path->nodes.end() - 1) {
+        auto itLocal = itGlobal + 1;
+        while (itLocal != path->nodes.end()) {
+            if (*itGlobal == *itLocal) {
+                return false;
+            }
+            itLocal++;
+        }
+        itGlobal++;
+    }
+    return true;
 }
