@@ -9,14 +9,19 @@ ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
         senderUUID,
         transactionUUID),
 
-    mRT2(rt2) {}
+    mRT2(rt2)
+{}
 
 ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
     BytesShared buffer) :
 
     TransactionMessage(buffer)
 {
-
+#ifdef GETTING_PATHS_DEBUG_LOG
+    /*cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes start serializing" << endl;
+    cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes rt2 size: " << mRT2.size() << endl;
+    DateTime startTime = utc_now();*/
+#endif
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     RecordCount *rt2Count = new (buffer.get() + bytesBufferOffset) RecordCount;
@@ -40,24 +45,31 @@ ResultRoutingTable2LevelMessage::ResultRoutingTable2LevelMessage(
         //---------------------------------------------------
         mRT2.insert(make_pair(keyDesitnation, valueSources));
     }
+#ifdef GETTING_PATHS_DEBUG_LOG
+    cout << "ResultRoutingTable2LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
+//    Duration methodTime = utc_now() - startTime;
+//    cout << "ResultRoutingTable2LevelMessage::deserializing time: " << methodTime << endl;
+#endif
 }
 
-const Message::MessageType ResultRoutingTable2LevelMessage::typeID() const {
+const Message::MessageType ResultRoutingTable2LevelMessage::typeID() const
+{
     return Message::MessageType::Paths_ResultRoutingTableSecondLevel;
 }
 
-unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& ResultRoutingTable2LevelMessage::rt2() {
-
+unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& ResultRoutingTable2LevelMessage::rt2()
+{
     return mRT2;
 }
 
 pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() const
     throw(bad_alloc)
 {
-
+#ifdef GETTING_PATHS_DEBUG_LOG
     /*cout << "ResultRoutingTable2LevelMessage::serializeToBytes start serializing" << endl;
     cout << "ResultRoutingTable2LevelMessage::serializeToBytes rt2 size: " << mRT2.size() << endl;
     DateTime startTime = utc_now();*/
+#endif
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + rt2ByteSize();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -99,17 +111,19 @@ pair<BytesShared, size_t> ResultRoutingTable2LevelMessage::serializeToBytes() co
         }
     }
     //----------------------------------------------------
-    /*cout << "ResultRoutingTable2LevelMessage::serializeToBytes message size: " << bytesCount << endl;
-    Duration methodTime = utc_now() - startTime;
-    cout << "ResultRoutingTable2LevelMessage::serializing time: " << methodTime << endl;*/
+#ifdef GETTING_PATHS_DEBUG_LOG
+    cout << "ResultRoutingTable2LevelMessage::serializeToBytes message size: " << bytesCount << endl;
+//    Duration methodTime = utc_now() - startTime;
+//    cout << "ResultRoutingTable2LevelMessage::serializing time: " << methodTime << endl;
+#endif
     return make_pair(
         dataBytesShared,
         bytesCount);
 }
 
 
-size_t ResultRoutingTable2LevelMessage::rt2ByteSize() const {
-
+size_t ResultRoutingTable2LevelMessage::rt2ByteSize() const
+{
     size_t result = sizeof(RecordCount);
     for (auto const &nodeUUIDAndVector : mRT2) {
         result += NodeUUID::kBytesSize + sizeof(RecordCount) +

@@ -4,26 +4,29 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     const NodeUUID &nodeUUID,
     RejectTrustLineMessage::Shared message,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::RejectTrustLineTransactionType,
-        nodeUUID
-    ),
+        nodeUUID,
+        logger),
     mMessage(message),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {}
+    mStorageHandler(storageHandler) {}
 
 
 RejectTrustLineTransaction::RejectTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::RejectTrustLineTransactionType),
+        BaseTransaction::TransactionType::RejectTrustLineTransactionType,
+        logger),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {
+    mStorageHandler(storageHandler) {
 
     deserializeFromBytes(
         buffer);
@@ -50,6 +53,19 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run() {
             } else {
                 rejectTrustLine();
                 logRejectingTrustLineOperation();
+                if (!mTrustLinesManager->isNeighbor(mMessage->contractorUUID())) {
+                    const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                        currentNodeUUID(),
+                        currentNodeUUID(),
+                        currentNodeUUID(),
+                        mMessage->contractorUUID(),
+                        TrustLineStatesHandlerTransaction::TrustLineState::Removed,
+                        0,
+                        mTrustLinesManager,
+                        mStorageHandler,
+                        mLog);
+                    launchSubsidiaryTransaction(kTransaction);
+                }
                 sendResponseCodeToContractor(
                         RejectTrustLineMessage::kResultCodeRejected);
 
@@ -99,13 +115,13 @@ void RejectTrustLineTransaction::rejectTrustLine() {
 
 void RejectTrustLineTransaction::logRejectingTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Rejecting,
         mMessage->senderUUID);
 
-    mOperationsHistoryStorage->addRecord(
-        record);
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 bool RejectTrustLineTransaction::checkDebt() {
@@ -121,4 +137,11 @@ void RejectTrustLineTransaction::sendResponseCodeToContractor(
         mNodeUUID,
         mMessage->transactionUUID(),
         code);
+}
+
+const string RejectTrustLineTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[RejectTrustLineTA: " << currentTransactionUUID() << "]";
+    return s.str();
 }

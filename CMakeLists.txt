@@ -4,9 +4,14 @@ project(geo_network_client)
 
 # Available options are: LINUX | MAC_OS
 set(PLATFORM "LINUX")
+
 IF (${PLATFORM} MATCHES "MAC_OS")
     add_definitions(-DMAC_OS)
 ENDIF (${PLATFORM} MATCHES "MAC_OS")
+
+IF (${PLATFORM} MATCHES "LINUX")
+    add_definitions(-DLINUX)
+ENDIF (${PLATFORM} MATCHES "LINUX")
 
 
 #
@@ -21,6 +26,7 @@ add_definitions(-DNETWORK_DEBUG_LOG)
 #add_definitions(-DSCHEDULER_DEBUG_LOG)
 #add_definitions(-DMAX_FLOW_CALCULATION_DEBUG_LOG)
 #add_definitions(-DSTORAGE_HANDLER_DEBUG_LOG)
+#add_definitions(-DGETTING_PATHS_DEBUG_LOG)
 
 #
 # Subsystems configuration
@@ -70,7 +76,6 @@ find_package(Boost COMPONENTS system filesystem thread date_time REQUIRED)
 #
 add_subdirectory(src/core/common/)
 add_subdirectory(src/core/common/exceptions)
-add_subdirectory(src/core/db/operations_history_storage)
 add_subdirectory(src/core/logger)
 add_subdirectory(src/core/interface)
 add_subdirectory(src/core/network)
@@ -112,8 +117,6 @@ target_link_libraries(geo_network_client
         network
         interface__commands
         interface__results
-
-        db__operations_history_storage
 
         paths
         trust_lines

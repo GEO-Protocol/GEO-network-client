@@ -7,8 +7,8 @@
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
-#include "../../../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
+#include "../../../../io/storage/StorageHandler.h"
+#include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
 
@@ -23,11 +23,11 @@
 #include "../../../../common/exceptions/ConflictError.h"
 #include "../../../../common/exceptions/RuntimeError.h"
 
+#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
+
 #include <memory>
 #include <utility>
 #include <cstdint>
-
-using namespace db::operations_history_storage;
 
 class OpenTrustLineTransaction: public TrustLineTransaction {
 public:
@@ -45,18 +45,23 @@ public:
         const NodeUUID &nodeUUID,
         OpenTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     OpenTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     OpenTrustLineCommand::Shared command() const;
 
     pair<BytesShared, size_t> serializeToBytes() const;
 
     TransactionResult::SharedConst run();
+
+protected:
+    const string logHeader() const;
 
 private:
     void deserializeFromBytes(
@@ -92,7 +97,7 @@ private:
 
     OpenTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-    OperationsHistoryStorage *mOperationsHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 #endif //GEO_NETWORK_CLIENT_OPENTRUSTLINETRANSACTION_H

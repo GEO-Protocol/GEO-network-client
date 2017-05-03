@@ -4,7 +4,8 @@
 #include "NeighborsCollectingTransaction.h"
 
 #include "../../../common/Constraints.h"
-#include "../../../io/storage/RoutingTablesHandler.h"
+#include "../../../io/storage/StorageHandler.h"
+//#include "../../../io/storage/IOTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 
 #include "../../../network/messages/routing_tables/NotificationTrustLineRemovedMessage.h"
@@ -26,6 +27,7 @@ public:
 
 public:
     TrustLineStatesHandlerTransaction(
+        const NodeUUID &nodeUUID,
         const NodeUUID &neighborSenderUUID,
         const NodeUUID &leftContractorUUID,
         const NodeUUID &rightContractorUUID,
@@ -34,7 +36,7 @@ public:
 
         TrustLinesManager *trustLines,
 
-        RoutingTablesHandler *routingTables,
+        StorageHandler *storageHandler,
         Logger *logger)
         noexcept;
 
@@ -50,16 +52,25 @@ protected:
 
 protected:
     void removeRecordFromSecondLevel (
+        IOTransaction::Shared ioTransaction,
         const NodeUUID &source,
         const NodeUUID &destination)
         noexcept;
 
     void removeRecordFromThirdLevel (
+        IOTransaction::Shared ioTransaction,
         const NodeUUID &source,
         const NodeUUID &destination)
         noexcept;
 
+    void writeRecordToSecondLevel (
+        IOTransaction::Shared ioTransaction,
+        const NodeUUID &source,
+        const NodeUUID &destination)
+        throw (IOError);
+
     void writeRecordToThirdLevel (
+        IOTransaction::Shared ioTransaction,
         const NodeUUID &source,
         const NodeUUID &destination)
         throw (IOError);
@@ -68,6 +79,9 @@ protected:
         const NodeUUID &addressee,
         const Message::Shared message)
         noexcept;
+
+protected:
+    const string logHeader() const;
 
 protected:
     /*
@@ -94,7 +108,7 @@ protected:
     const uint8_t mCurrentHopDistance;
 
     TrustLinesManager *mTrustLines;
-    RoutingTablesHandler *mRoutingTables;
+    StorageHandler *mStorageHandler;
 };
 
 

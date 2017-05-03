@@ -9,7 +9,6 @@
 #include "../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
-#include "../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
 #include "../../io/storage/StorageHandler.h"
 #include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
@@ -26,6 +25,7 @@
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/cycle_closer/CycleCloserCommand.h"
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 #include "../../interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.h"
 
@@ -33,6 +33,11 @@
 #include "../../network/messages/trust_lines/AcceptTrustLineMessage.h"
 #include "../../network/messages/trust_lines/RejectTrustLineMessage.h"
 #include "../../network/messages/trust_lines/UpdateTrustLineMessage.h"
+
+#include "../../network/messages/routing_tables/NotificationTrustLineCreatedMessage.h"
+#include "../../network/messages/routing_tables/NotificationTrustLineRemovedMessage.h"
+#include "../../network/messages/routing_tables/NeighborsRequestMessage.h"
+#include "../../network/messages/routing_tables/NeighborsResponseMessage.h"
 #include "../../network/messages/response/Response.h"
 
 #include "../../resources/manager/ResourcesManager.h"
@@ -66,6 +71,7 @@
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 #include "../transactions/regular/payments/IntermediateNodePaymentTransaction.h"
+#include "../transactions/regular/payments/CycleCloserInitiatorTransaction.h"
 
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
@@ -85,12 +91,14 @@
 #include "../transactions/find_path/FindPathTransaction.h"
 #include "../transactions/find_path/GetRoutingTablesTransaction.h"
 
+#include "../transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
+#include "../transactions/routing_tables/GetFirstRoutingTableTransaction.h"
+
 #include <boost/signals2.hpp>
 
 #include <string>
 
 using namespace std;
-namespace history = db::operations_history_storage;
 namespace signals = boost::signals2;
 
 
@@ -107,7 +115,6 @@ public:
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResultsInterface *resultsInterface,
-        history::OperationsHistoryStorage *operationsHistoryStorage,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
         Logger *logger);
@@ -225,7 +232,22 @@ private:
     void launchGetRoutingTablesTransaction(
         RequestRoutingTablesMessage::Shared message);
 
-    void launchCloseCycleTransaction(shared_ptr<vector<NodeUUID>>);
+    // closeCycle transaction TODO : should be removed after testing
+    void launchTestCloseCycleTransaction(
+        CycleCloserCommand::Shared command);
+
+    void launchCloseCycleTransaction(
+        shared_ptr<vector<NodeUUID>>);
+
+    // routing tables exchange transactions
+    void launchTrustLineStatesHandlerTransaction(
+        NotificationTrustLineCreatedMessage::Shared message);
+
+    void launchTrustLineStatesHandlerTransaction(
+        NotificationTrustLineRemovedMessage::Shared message);
+
+    void launchGetFirstRoutingTableTransaction(
+        NeighborsRequestMessage::Shared message);
 
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(
@@ -264,7 +286,6 @@ private:
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     ResultsInterface *mResultsInterface;
-    history::OperationsHistoryStorage *mOperationsHistoryStorage;
     PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;
     Logger *mLog;

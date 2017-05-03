@@ -14,8 +14,8 @@ TotalBalancesResultMessage::TotalBalancesResultMessage(
     mTotalIncomingTrust(totalIncomingTrust),
     mTotalTrustUsedByContractor(totalTrustUsedByContractor),
     mTotalOutgoingTrust(totalOutgoingTrust),
-    mTotalTrustUsedBySelf(totalTrustUsedBySelf) {}
-
+    mTotalTrustUsedBySelf(totalTrustUsedBySelf)
+{}
 
 TotalBalancesResultMessage::TotalBalancesResultMessage(
     BytesShared buffer):
@@ -49,69 +49,73 @@ TotalBalancesResultMessage::TotalBalancesResultMessage(
 
 }
 
-const Message::MessageType TotalBalancesResultMessage::typeID() const {
+const Message::MessageType TotalBalancesResultMessage::typeID() const
+{
     return Message::MessageType::TotalBalance_Response;
 }
 
 pair<BytesShared, size_t> TotalBalancesResultMessage::serializeToBytes() const
     throw(bad_alloc)
 {
-
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + 4 * kTrustLineAmountBytesCount;
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
     memcpy(
-            dataBytesShared.get(),
-            parentBytesAndCount.first.get(),
-            parentBytesAndCount.second);
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     vector<byte> buffer = trustLineAmountToBytes(mTotalIncomingTrust);
     memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            buffer.data(),
-            buffer.size());
+        dataBytesShared.get() + dataBytesOffset,
+        buffer.data(),
+        buffer.size());
     dataBytesOffset += kTrustLineAmountBytesCount;
     //----------------------------------------------------
     buffer = trustLineAmountToBytes(mTotalTrustUsedByContractor);
     memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            buffer.data(),
-            buffer.size());
+        dataBytesShared.get() + dataBytesOffset,
+        buffer.data(),
+        buffer.size());
     dataBytesOffset += kTrustLineAmountBytesCount;
     //----------------------------------------------------
     buffer = trustLineAmountToBytes(mTotalOutgoingTrust);
     memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            buffer.data(),
-            buffer.size());
+        dataBytesShared.get() + dataBytesOffset,
+        buffer.data(),
+        buffer.size());
     dataBytesOffset += kTrustLineAmountBytesCount;
     //----------------------------------------------------
     buffer = trustLineAmountToBytes(mTotalTrustUsedBySelf);
     memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            buffer.data(),
-            buffer.size());
+        dataBytesShared.get() + dataBytesOffset,
+        buffer.data(),
+        buffer.size());
     //----------------------------------------------------
     return make_pair(
-            dataBytesShared,
-            bytesCount);
+        dataBytesShared,
+        bytesCount);
 }
 
-const TrustLineAmount& TotalBalancesResultMessage::totalIncomingTrust() const {
+const TrustLineAmount& TotalBalancesResultMessage::totalIncomingTrust() const
+{
     return mTotalIncomingTrust;
 }
 
-const TrustLineAmount& TotalBalancesResultMessage::totalTrustUsedByContractor() const {
+const TrustLineAmount& TotalBalancesResultMessage::totalTrustUsedByContractor() const
+{
     return mTotalTrustUsedByContractor;
 }
 
-const TrustLineAmount& TotalBalancesResultMessage::totalOutgoingTrust() const {
+const TrustLineAmount& TotalBalancesResultMessage::totalOutgoingTrust() const
+{
     return mTotalOutgoingTrust;
 }
 
-const TrustLineAmount& TotalBalancesResultMessage::totalTrustUsedBySelf() const {
+const TrustLineAmount& TotalBalancesResultMessage::totalTrustUsedBySelf() const
+{
     return mTotalTrustUsedBySelf;
 }

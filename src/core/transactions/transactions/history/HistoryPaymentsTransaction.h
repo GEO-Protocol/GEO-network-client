@@ -3,12 +3,10 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
-#include "../../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
-#include "../../../db/operations_history_storage/record/payment/PaymentRecord.h"
+#include "../../../io/storage/StorageHandler.h"
+#include "../../../io/storage/record/payment/PaymentRecord.h"
 
 #include <vector>
-
-using namespace db::operations_history_storage;
 
 class HistoryPaymentsTransaction : public BaseTransaction {
 
@@ -19,7 +17,7 @@ public:
     HistoryPaymentsTransaction(
         NodeUUID &nodeUUID,
         HistoryPaymentsCommand::Shared command,
-        OperationsHistoryStorage *historyStorage,
+        StorageHandler *storageHandler,
         Logger *logger);
 
     HistoryPaymentsCommand::Shared command() const;
@@ -30,15 +28,12 @@ protected:
     const string logHeader() const;
 
 private:
-
     TransactionResult::SharedConst resultOk(
         vector<PaymentRecord::Shared> paymentRecords);
 
 private:
-
     HistoryPaymentsCommand::Shared mCommand;
-    OperationsHistoryStorage *mHistoryStorage;
-
+    StorageHandler *mStorageHandler;
 };
 
 

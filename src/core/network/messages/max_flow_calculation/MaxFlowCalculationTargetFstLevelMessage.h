@@ -10,7 +10,6 @@ public:
     typedef shared_ptr<MaxFlowCalculationTargetFstLevelMessage> Shared;
 
 public:
-
     MaxFlowCalculationTargetFstLevelMessage(
         const NodeUUID& senderUUID,
         const NodeUUID& targetUUID);
@@ -19,8 +18,6 @@ public:
         BytesShared buffer);
 
     const MessageType typeID() const;
-
 };
-
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTARGETFSTLEVELMESSAGE_H

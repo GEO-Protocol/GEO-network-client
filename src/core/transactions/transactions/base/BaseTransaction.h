@@ -64,6 +64,7 @@ public:
         // Routing tables
         RoutingTables_TrustLineStatesHandler,
         RoutingTables_NeighborsCollecting,
+        RoutingTables_GetFirstRoutingTable,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction,
@@ -79,6 +80,7 @@ public:
         CoordinatorPaymentTransaction,
         ReceiverPaymentTransaction,
         IntermediateNodePaymentTransaction,
+        CycleCloserInitiatorTransaction,
 
         // Max flow calculation
         InitiateMaxFlowCalculationTransactionType,

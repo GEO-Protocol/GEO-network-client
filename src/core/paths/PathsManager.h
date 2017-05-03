@@ -15,7 +15,6 @@
 class PathsManager {
 
 public:
-
     PathsManager(
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
@@ -40,8 +39,9 @@ public:
 
     PathsCollection::Shared pathCollection() const;
 
-private:
+    void clearPathsCollection();
 
+private:
     void findDirectPath();
 
     void findPathsOnSecondLevel();
@@ -96,6 +96,10 @@ private:
     NodeUUID* getPtrByNodeNumber(
         uint32_t number,
         vector<NodeUUID*> nodeUUIDPtrs);
+    void fillCycleTablesTestCase0();
+    void fillCycleTablesTestCase1();
+    void fillCycleTablesTestCase2();
+    void fillCycleTablesTestCase3();
 
     // TODO: remove after testing
     void testStorageHandler();
@@ -108,15 +112,12 @@ private:
     void testDeletingRT();
 
 private:
-
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     Logger *mLog;
     PathsCollection::Shared mPathCollection;
     NodeUUID mNodeUUID;
-
     NodeUUID mContractorUUID;
-
 };
 
 

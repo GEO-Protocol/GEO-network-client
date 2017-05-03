@@ -6,19 +6,19 @@ FindPathCommand::FindPathCommand(
 
     BaseUserCommand(
         uuid,
-        identifier()) {
-
+        identifier())
+{
     parse(commandBuffer);
 }
 
-const string &FindPathCommand::identifier() {
-
+const string &FindPathCommand::identifier()
+{
     static const string identifier = "GET:/contractors/path";
     return identifier;
 }
 
-const NodeUUID &FindPathCommand::contractorUUID() const {
-
+const NodeUUID &FindPathCommand::contractorUUID() const
+{
     return mContractorUUID;
 }
 
@@ -26,8 +26,8 @@ const NodeUUID &FindPathCommand::contractorUUID() const {
  * Throws ValueError if deserialization was unsuccessful.
  */
 void FindPathCommand::parse(
-        const string &command) {
-
+        const string &command)
+{
     const auto amountTokenOffset = NodeUUID::kHexSize + 1;
     const auto minCommandLength = amountTokenOffset;
 
@@ -46,11 +46,10 @@ void FindPathCommand::parse(
         throw ValueError("FindPathCommand::parse: "
                                  "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
-
 }
 
-CommandResult::SharedConst FindPathCommand::resultOk(string &path) const {
-
+CommandResult::SharedConst FindPathCommand::resultOk(string &path) const
+{
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),

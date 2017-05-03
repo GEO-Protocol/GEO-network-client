@@ -62,10 +62,6 @@ int Core::initCoreComponents() {
         return -1;
     }
 
-    initCode = initOperationsHistoryStorage();
-    if (initCode != 0)
-        return initCode;
-
     initCode = initCommunicator(conf);
     if (initCode != 0)
         return initCode;
@@ -150,23 +146,6 @@ int Core::initSettings() {
     }
 }
 
-int Core::initOperationsHistoryStorage() {
-
-    try{
-        mOperationsHistoryStorage = new history::OperationsHistoryStorage(
-            "io/history",
-            "operations_storage.dat");
-
-        mLog.logSuccess("Core", "Operations history storage is successfully initialised");
-        return 0;
-
-    } catch (const std::exception &e) {
-        mLog.logException("Core", e);
-        return -1;
-    }
-
-}
-
 int Core::initCommunicator(
     const json &conf) {
 
@@ -206,7 +185,7 @@ int Core::initTrustLinesManager() {
 
     try{
         mTrustLinesManager = new TrustLinesManager(
-            mStorageHandler->trustLineHandler(),
+            mStorageHandler,
             &mLog);
         mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
         return 0;
@@ -266,7 +245,6 @@ int Core::initTransactionsManager() {
             mMaxFlowCalculationTrustLimeManager,
             mMaxFlowCalculationCacheManager,
             mResultsInterface,
-            mOperationsHistoryStorage,
             mStorageHandler,
             mPathsManager,
             &mLog
@@ -550,10 +528,6 @@ void Core::cleanupMemory() {
         delete mSettings;
     }
 
-    if (mOperationsHistoryStorage != nullptr) {
-        delete mOperationsHistoryStorage;
-    }
-
     if (mCommunicator != nullptr) {
         delete mCommunicator;
     }
@@ -602,7 +576,6 @@ void Core::cleanupMemory() {
 void Core::zeroPointers() {
 
     mSettings = nullptr;
-    mOperationsHistoryStorage = nullptr;
     mCommunicator = nullptr;
     mCommandsInterface = nullptr;
     mResultsInterface = nullptr;
@@ -675,7 +648,7 @@ void Core::checkSomething() {
 void Core::printRTs() {
     NodeUUID *some_node = new NodeUUID("65b84dc1-31f8-45ce-8196-8efcc7648777");
     NodeUUID *dest_node = new NodeUUID("5062d6a9-e06b-4bcc-938c-6d9bd082f0eb");
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*some_node, *dest_node);
+    mStorageHandler->routingTablesHandler()->setRecordToRT2(*some_node, *dest_node);
 
     cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
     for (const auto itTrustLine : mTrustLinesManager->trustLines()) {

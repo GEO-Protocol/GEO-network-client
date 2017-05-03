@@ -80,7 +80,9 @@ private:
         Channel::Shared channel);
 
 private:
-    static const constexpr size_t kMaxIncomingBufferSize = 1024;
+    // ToDo: consider using dynamic buffers for better memory usage.
+    // ToDo: tune this parameter in according to the tests for huge size RT exchanging.
+    static const constexpr size_t kMaxIncomingBufferSize = 508 * 16;
 
     as::io_service &mIOService;
     NodeUUID &mNodeUUID;

@@ -13,7 +13,6 @@
 class PaymentOperationStateHandler {
 
 public:
-
     PaymentOperationStateHandler(
         sqlite3 *dbConnection,
         const string &tableName,
@@ -30,16 +29,7 @@ public:
     void deleteRecord(
         const TransactionUUID &transactionUUID);
 
-    bool commit();
-
-    void rollBack();
-
-    void closeConnection();
-
 private:
-
-    void prepareInserted();
-
     LoggerStream info() const;
 
     LoggerStream error() const;
@@ -47,12 +37,9 @@ private:
     const string logHeader() const;
 
 private:
-
     sqlite3 *mDataBase = nullptr;
     string mTableName;
     Logger *mLog;
-    bool isTransactionBegin;
-
 };
 
 

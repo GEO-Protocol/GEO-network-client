@@ -38,7 +38,7 @@ AmountReservation::ConstShared AmountReservationsHandler::reserve(
 
     } else {
         // Reservations container is absent and should be created.
-        auto reservationsContainer = make_unique<vector<AmountReservation::ConstShared>>(1);
+        auto reservationsContainer = make_unique<vector<AmountReservation::ConstShared>>();
         reservationsContainer->push_back(kReservation);
         mReservations.insert(
             make_pair(
@@ -115,6 +115,9 @@ void AmountReservationsHandler::free(
         for (auto it=reservations->cbegin(); it!=reservations->cend(); ++it){
             if (*it == reservation) {
                 reservations->erase(it);
+                if (reservations->size() == 0) {
+                    mReservations.erase(iterator);
+                }
                 return;
             }
         }

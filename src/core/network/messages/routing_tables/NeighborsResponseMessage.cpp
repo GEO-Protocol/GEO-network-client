@@ -67,14 +67,46 @@ void NeighborsResponseMessage::appendNeighbor (
 pair<BytesShared, size_t> NeighborsResponseMessage::serializeToBytes () const
     throw (bad_alloc)
 {
-    BytesSerializer serializer;
-
-    serializer.enqueue(TransactionMessage::serializeToBytes());
-    serializer.enqueue((uint16_t)mNeighbors.size());
-
-    for (const auto kNeighbor : mNeighbors)
-        serializer.enqueue(kNeighbor);
-
-    return serializer.collect();
+    // TODO serialization doesn't work correctly
+//    BytesSerializer serializer;
+//
+//    serializer.enqueue(TransactionMessage::serializeToBytes());
+//    serializer.enqueue((uint16_t)mNeighbors.size());
+//
+//    for (const auto kNeighbor : mNeighbors) {
+//        cout << "NeighborsResponseMessage::serializeToBytes node: " << kNeighbor << endl;
+//        serializer.enqueue(kNeighbor);
+//    }
+//
+//    return serializer.collect();
+    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+    size_t bytesCount = parentBytesAndCount.second +
+                        sizeof(uint16_t) + mNeighbors.size() * NodeUUID::kBytesSize;
+    BytesShared dataBytesShared = tryCalloc(bytesCount);
+    size_t dataBytesOffset = 0;
+    //----------------------------------------------------
+    memcpy(
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second);
+    dataBytesOffset += parentBytesAndCount.second;
+    //----------------------------------------------------
+    uint16_t rt1Size = (uint16_t)mNeighbors.size();
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &rt1Size,
+        sizeof(uint16_t));
+    dataBytesOffset += sizeof(uint16_t);
+    //----------------------------------------------------
+    for (auto const &itRT1 : mNeighbors) {
+        memcpy(
+            dataBytesShared.get() + dataBytesOffset,
+            itRT1.data,
+            NodeUUID::kBytesSize);
+        dataBytesOffset += NodeUUID::kBytesSize;
+    }
+    return make_pair(
+        dataBytesShared,
+        bytesCount);
 }
 

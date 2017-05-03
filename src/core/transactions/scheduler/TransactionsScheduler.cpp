@@ -66,8 +66,13 @@ void TransactionsScheduler::killTransaction(
 void TransactionsScheduler::tryAttachMessageToTransaction(
     Message::Shared message) {
     // TODO: check the message type before the loop
-    // TODO: Refactor me
     for (auto const &transactionAndState : *mTransactions) {
+
+        if (message->isTransactionMessage()) {
+            if (static_pointer_cast<TransactionMessage>(message)->transactionUUID() != transactionAndState.first->currentTransactionUUID()) {
+                continue;
+            }
+        }
 
 //       Check if this is CycleTransaction
         if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction and
@@ -81,23 +86,22 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
             return;
         }
 
-
         for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
             if (message->typeID() != messageType) {
                 continue;
             }
+
             transactionAndState.first->pushContext(message);
-            launchTransaction(transactionAndState.first);
-            return;
-        }
-        if (transactionAndState.second->awakeningTimestamp() != 0 and transactionAndState.second->acceptedMessagesTypes().size() == 0){
-            transactionAndState.first->pushContext(message);
+            if (transactionAndState.second->mustBeAwakenedOnMessage()) {
+                launchTransaction(transactionAndState.first);
+            }
             return;
         }
     }
     throw NotFoundError(
         "TransactionsScheduler::handleMessage: "
             "invalid/unexpected message/response received");
+
 }
 
 void TransactionsScheduler::tryAttachResourceToTransaction(

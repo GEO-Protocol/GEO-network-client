@@ -4,24 +4,28 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     const NodeUUID &nodeUUID,
     AcceptTrustLineMessage::Shared message,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::AcceptTrustLineTransactionType,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mMessage(message),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {}
+    mStorageHandler(storageHandler) {}
 
 AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    OperationsHistoryStorage *historyStorage) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::AcceptTrustLineTransactionType),
+        BaseTransaction::TransactionType::AcceptTrustLineTransactionType,
+        logger),
     mTrustLinesManager(manager),
-    mOperationsHistoryStorage(historyStorage) {
+    mStorageHandler(storageHandler) {
 
     deserializeFromBytes(
         buffer);
@@ -67,6 +71,22 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
                 sendResponseCodeToContractor(
                     AcceptTrustLineMessage::kResultCodeAccepted);
 
+                if (!mTrustLinesManager->checkDirection(
+                    mMessage->senderUUID,
+                    TrustLineDirection::Both)) {
+                    const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                        currentNodeUUID(),
+                        currentNodeUUID(),
+                        currentNodeUUID(),
+                        mMessage->senderUUID,
+                        TrustLineStatesHandlerTransaction::TrustLineState::Created,
+                        0,
+                        mTrustLinesManager,
+                        mStorageHandler,
+                        mLog);
+                    launchSubsidiaryTransaction(kTransaction);
+                }
+
                 return transactionResultFromMessage(
                     mMessage->resultAccepted());
             }
@@ -111,14 +131,14 @@ void AcceptTrustLineTransaction::acceptTrustLine() {
 
 void AcceptTrustLineTransaction::logAcceptingTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Accepting,
         mMessage->senderUUID,
         mMessage->amount());
 
-    mOperationsHistoryStorage->addRecord(
-        record);
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 void AcceptTrustLineTransaction::sendResponseCodeToContractor(
@@ -129,4 +149,11 @@ void AcceptTrustLineTransaction::sendResponseCodeToContractor(
         mNodeUUID,
         mMessage->transactionUUID(),
         code);
+}
+
+const string AcceptTrustLineTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[AcceptTrustLineTA: " << currentTransactionUUID() << "]";
+    return s.str();
 }
