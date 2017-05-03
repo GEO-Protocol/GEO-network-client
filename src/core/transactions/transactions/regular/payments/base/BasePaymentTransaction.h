@@ -44,11 +44,13 @@ public:
         Logger *log);
 
     BasePaymentTransaction(
-        const TransactionType type,
         BytesShared buffer,
+        const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Logger *log);
+
+    virtual pair<BytesShared, size_t> serializeToBytes() const;
 
 protected:
     enum Stages {

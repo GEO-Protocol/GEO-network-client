@@ -73,6 +73,8 @@ public:
     friend const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
         TransactionsScheduler *scheduler);
 
+    void addTransactionAndState(BaseTransaction::Shared transaction, TransactionState::SharedConst state);
+
 private:
     void launchTransaction(
         BaseTransaction::Shared transaction);

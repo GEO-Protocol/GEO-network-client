@@ -149,6 +149,11 @@ protected:
         const NodeUUID &nodeUUID,
         Logger *log=nullptr);
 
+    BaseTransaction(
+        BytesShared buffer,
+        const NodeUUID &nodeUUID,
+        Logger *log=nullptr);
+
     [[deprecated("Use sendMessage() instead.")]]
     void addMessage(
         Message::Shared message,

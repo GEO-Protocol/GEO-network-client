@@ -23,12 +23,13 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     BytesShared buffer,
+    const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Logger *log) :
         BasePaymentTransaction(
-            BaseTransaction::ReceiverPaymentTransaction,
             buffer,
+            nodeUUID,
             trustLines,
             storageHandler,
             log)

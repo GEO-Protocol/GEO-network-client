@@ -38,6 +38,7 @@ public:
 
     CoordinatorPaymentTransaction(
         BytesShared buffer,
+        const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Logger *log)

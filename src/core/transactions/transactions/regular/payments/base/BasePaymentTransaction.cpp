@@ -39,14 +39,15 @@ BasePaymentTransaction::BasePaymentTransaction(
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
-        const TransactionType type,
         BytesShared buffer,
+        const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Logger *log) :
 
     BaseTransaction(
-        type,
+        buffer,
+        nodeUUID,
         log),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler)
@@ -712,4 +713,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
     }
     // No nodes left to be asked. reject
     return reject("");
+}
+
+pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const {
+    return BaseTransaction::serializeToBytes();
 }

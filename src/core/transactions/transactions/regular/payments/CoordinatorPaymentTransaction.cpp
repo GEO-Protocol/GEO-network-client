@@ -25,13 +25,14 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BytesShared buffer,
+    const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Logger *log)
     throw (bad_alloc) :
     BasePaymentTransaction(
-        BaseTransaction::CoordinatorPaymentTransaction,
         buffer,
+        nodeUUID,
         trustLines,
         storageHandler,
         log)
