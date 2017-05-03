@@ -39,8 +39,7 @@ public:
 
     ParticipantsVotesMessage(
         const NodeUUID &senderUUID,
-        const ParticipantsVotesMessage::Shared &message
-    );
+        const ParticipantsVotesMessage::Shared &message);
 
     void addParticipant(
         const NodeUUID &participant);

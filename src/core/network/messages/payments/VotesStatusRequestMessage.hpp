@@ -5,23 +5,15 @@
 
 
 class VotesStatusRequestMessage :
-        public TransactionMessage {
+    public TransactionMessage {
 
 public:
-    VotesStatusRequestMessage(
-            const NodeUUID &senderUUID,
-            const TransactionUUID &transactionUUID) noexcept :
-            TransactionMessage(
-                senderUUID,
-                transactionUUID){};
 
-    VotesStatusRequestMessage(
-        BytesShared buffer) noexcept :
-    TransactionMessage(buffer){};
+    using TransactionMessage::TransactionMessage;
 
 public:
     const MessageType typeID() const{
-        return Message::MessageType::Payments_VoutesStatusRequest;
+        return Message::Payments_VotesStatusRequest;
     };
 };
 

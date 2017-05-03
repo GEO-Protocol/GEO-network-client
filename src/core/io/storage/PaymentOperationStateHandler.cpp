@@ -118,19 +118,19 @@ void PaymentOperationStateHandler::deleteRecord(
     }
 }
 
-pair<BytesShared, size_t> PaymentOperationStateHandler::getState(
+pair<BytesShared, size_t> PaymentOperationStateHandler::byTransaction(
     const TransactionUUID &transactionUUID)
 {
     string query = "SELECT state, state_bytes_count FROM " + mTableName + " WHERE transaction_uuid = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::getState: "
+        throw IOError("PaymentOperationStateHandler::byTransaction: "
                           "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("PaymentOperationStateHandler::getState: "
+        throw IOError("PaymentOperationStateHandler::byTransaction: "
                           "Bad binding of TransactionUUID; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
@@ -147,7 +147,7 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::getState(
     } else {
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
-        throw NotFoundError("PaymentOperationStateHandler::getState: "
+        throw NotFoundError("PaymentOperationStateHandler::byTransaction: "
                                 "There are now records with requested transactionUUID");
     }
 }

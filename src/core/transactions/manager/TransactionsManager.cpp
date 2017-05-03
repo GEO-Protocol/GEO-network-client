@@ -283,7 +283,7 @@ void TransactionsManager::processMessage(
             launchIntermediateNodePaymentTransaction(
                     static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
         }
-    } else if(message->typeID() == Message::MessageType::Payments_VoutesStatusRequest){
+    } else if(message->typeID() == Message::MessageType::Payments_VotesStatusRequest){
         launchVoutesResponsePaymentsTransaction(
                 static_pointer_cast<VotesStatusRequestMessage>(message));
     } else if (message->typeID() == Message::MessageType::Cycles_SixNodesMiddleware) {
@@ -691,14 +691,15 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             mLog));
 }
 
-void TransactionsManager::launchVoutesResponsePaymentsTransaction(VotesStatusRequestMessage::Shared message)
+void TransactionsManager::launchVoutesResponsePaymentsTransaction(
+    VotesStatusRequestMessage::Shared message)
 {
     prepareAndSchedule(
-            make_shared<VoutesStatusResponsePaymentTransaction>(
-                    mNodeUUID,
-                    message,
-                    mStorageHandler,
-                    mLog));
+        make_shared<VotesStatusResponsePaymentTransaction>(
+            mNodeUUID,
+            message,
+            mStorageHandler,
+            mLog));
 }
 
 /*!

@@ -47,8 +47,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
         );
     }
     else {
-        error() << "CyclesSixNodesReceiverTransaction:"
-        "Wrong path size";
+        error() << "Wrong path size";
     }
     return resultDone();
 }
@@ -56,7 +55,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
 const string CyclesSixNodesReceiverTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CyclesSixNodesReceiverTransactionTA: " << currentTransactionUUID().stringUUID() << "] ";
+    s << "[CyclesSixNodesReceiverTransactionTA: " << currentTransactionUUID() << "] ";
 
     return s.str();
 }

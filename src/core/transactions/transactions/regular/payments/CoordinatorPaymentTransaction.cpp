@@ -41,7 +41,6 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 throw (RuntimeError, bad_alloc)
 {
-    cout << "CoordinatorPaymentTransaction"  << to_string(mStep) << endl;
     switch (mStep) {
         case Stages::Coordinator_Initialisation:
             return runPaymentInitialisationStage();
@@ -64,7 +63,7 @@ throw (RuntimeError, bad_alloc)
         case Stages::Common_VotesChecking:
             return runVotesConsistencyCheckingStage();
 
-        case Stages::Common_VotesRecoveryStage:
+        case Stages::Common_Recovery:
             return runVotesRecoveryParentStage();
 
         default:
@@ -343,39 +342,37 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
     info() << "runAmountReservationStage";
     switch (mReservationsStage) {
     case 0: {
-            initAmountsReservationOnNextPath();
-            mReservationsStage += 1;
-            cout << "mReservationsStage: " << to_string(mReservationsStage) << endl;
-
-            // Note:
-            // next section must be executed immediately.
-            // (no "break" is needed).
+        initAmountsReservationOnNextPath();
+        mReservationsStage += 1;
+        // Note:
+        // next section must be executed immediately.
+        // (no "break" is needed).
         }
 
     case 1: {
-            const auto kPathStats = currentAmountReservationPathStats();
-            if (kPathStats->path()->length() == 2) {
-                // In case if path contains only sender and receiver -
-                // middleware nodes reservation must be omitted.
-                return tryReserveAmountDirectlyOnReceiver(kPathStats);
-            }
-
-            else if (kPathStats->isReadyToSendNextReservationRequest())
-                return tryReserveNextIntermediateNodeAmount(kPathStats);
-
-            else if (kPathStats->isWaitingForNeighborReservationResponse())
-                return processNeighborAmountReservationResponse();
-
-            else if (kPathStats->isWaitingForNeighborReservationPropagationResponse())
-                return processNeighborFurtherReservationResponse();
-
-            else if (kPathStats->isWaitingForReservationResponse())
-                return processRemoteNodeResponse();
-
-            throw RuntimeError(
-                "CoordinatorPaymentTransaction::processAmountReservationStage: "
-                "unexpected behaviour occured.");
+        const auto kPathStats = currentAmountReservationPathStats();
+        if (kPathStats->path()->length() == 2) {
+            // In case if path contains only sender and receiver -
+            // middleware nodes reservation must be omitted.
+            return tryReserveAmountDirectlyOnReceiver(kPathStats);
         }
+
+        else if (kPathStats->isReadyToSendNextReservationRequest())
+            return tryReserveNextIntermediateNodeAmount(kPathStats);
+
+        else if (kPathStats->isWaitingForNeighborReservationResponse())
+            return processNeighborAmountReservationResponse();
+
+        else if (kPathStats->isWaitingForNeighborReservationPropagationResponse())
+            return processNeighborFurtherReservationResponse();
+
+        else if (kPathStats->isWaitingForReservationResponse())
+            return processRemoteNodeResponse();
+
+        throw RuntimeError(
+            "CoordinatorPaymentTransaction::processAmountReservationStage: "
+            "unexpected behaviour occured.");
+    }
 
     default:
         throw ValueError(

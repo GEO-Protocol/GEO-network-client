@@ -25,18 +25,16 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
     Logger* log) :
-
         BasePaymentTransaction(
-                BaseTransaction::IntermediateNodePaymentTransaction,
-                buffer,
-                trustLines,
-                storageHandler,
-                log)
+            BaseTransaction::IntermediateNodePaymentTransaction,
+            buffer,
+            trustLines,
+            storageHandler,
+            log)
 {}
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
 {
-    cout << "IntermediateNodePaymentTransaction"  << to_string(mStep) << endl;
     switch (mStep) {
     case Stages::IntermediateNode_PreviousNeighborRequestProcessing:
         return runPreviousNeighborRequestProcessingStage();
@@ -56,7 +54,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
     case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
 
-    case Stages::Common_VotesRecoveryStage:
+    case Stages::Common_Recovery:
         return runVotesRecoveryParentStage();
 
     default:

@@ -38,7 +38,6 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
 {
-    cout << "ReceiverPaymentTransaction"  << to_string(mStep) << endl;
     switch (mStep) {
     case Stages::Receiver_CoordinatorRequestApproving:
         return runInitialisationStage();
@@ -52,7 +51,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
     case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
 
-    case Stages::Common_VotesRecoveryStage:
+    case Stages::Common_Recovery:
         return runVotesRecoveryParentStage();
 
     default:

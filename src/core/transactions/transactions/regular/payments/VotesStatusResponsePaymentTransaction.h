@@ -6,10 +6,10 @@
 #include "../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../../network/messages/payments/ParticipantsVotesMessage.h"
 
-class VoutesStatusResponsePaymentTransaction:
+class VotesStatusResponsePaymentTransaction:
         public BaseTransaction{
 public:
-    VoutesStatusResponsePaymentTransaction(
+    VotesStatusResponsePaymentTransaction(
             const NodeUUID &nodeUUID,
             VotesStatusRequestMessage::Shared message,
             StorageHandler *storageHandler,
@@ -18,7 +18,7 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
-    VotesStatusRequestMessage::Shared mRequestMessage;
+    VotesStatusRequestMessage::Shared mRequest;
     StorageHandler *mStorageHandler;
 };
 #endif //GEO_NETWORK_CLIENT_VOUTESSTATUSRESPONSEPAYMENTTRANSACTION_H

@@ -474,8 +474,8 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
         info() << message;
 
 
-    mStep = Stages::Common_VotesRecoveryStage;
-    mVotesRecoveryStep = VoutesRecoveryStages::Common_PrepareNodesListToCheckVotes;
+    mStep = Stages::Common_Recovery;
+    mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
     return runVotesRecoveryParentStage();
 }
 
@@ -602,11 +602,11 @@ TransactionResult::SharedConst BasePaymentTransaction::exitWithResult(
 
 TransactionResult::SharedConst BasePaymentTransaction::runVotesRecoveryParentStage() {
     switch (mVotesRecoveryStep) {
-        case VoutesRecoveryStages ::Common_PrepareNodesListToCheckVotes:
+        case VotesRecoveryStages ::Common_PrepareNodesListToCheckVotes:
             return runPrepareListNodesToCheckNodes();
-        case VoutesRecoveryStages ::Common_CheckCoordinatorVotesStage:
+        case VotesRecoveryStages ::Common_CheckCoordinatorVotesStage:
             return runCheckCoordinatorVotesStage();
-        case VoutesRecoveryStages ::Common_CheckIntermediateNodeVotesStage:
+        case VotesRecoveryStages ::Common_CheckIntermediateNodeVotesStage:
             return runCheckIntermediateNodeVotesSage();
 
         default:
@@ -641,12 +641,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToChec
             mNodesToCheckVotes.push_back(kNodeUUIDAndVote.first);
     }
     if(kCoordinatorUUID == mNodeUUID) {
-        mVotesRecoveryStep = VoutesRecoveryStages::Common_CheckIntermediateNodeVotesStage;
+        mVotesRecoveryStep = VotesRecoveryStages::Common_CheckIntermediateNodeVotesStage;
         mCurrentNodeToCheckVotes = mNodesToCheckVotes.back();
         mNodesToCheckVotes.pop_back();
         return sendVotesRequestMessageAndWaitForResponse(mCurrentNodeToCheckVotes);
     }
-    mVotesRecoveryStep = VoutesRecoveryStages::Common_CheckCoordinatorVotesStage;
+    mVotesRecoveryStep = VotesRecoveryStages::Common_CheckCoordinatorVotesStage;
     return sendVotesRequestMessageAndWaitForResponse(kCoordinatorUUID);
 }
 
@@ -673,7 +673,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     }
     // Coordinator Node is offline
     mContext.clear();
-    mVotesRecoveryStep = VoutesRecoveryStages::Common_CheckIntermediateNodeVotesStage;
+    mVotesRecoveryStep = VotesRecoveryStages::Common_CheckIntermediateNodeVotesStage;
     mCurrentNodeToCheckVotes = mNodesToCheckVotes.back();
     mNodesToCheckVotes.pop_back();
     return sendVotesRequestMessageAndWaitForResponse(mCurrentNodeToCheckVotes);

@@ -36,7 +36,7 @@ public:
         Payments_ParticipantsVotes,
         Payments_ParticipantsPathsConfiguration,
         Payments_ParticipantsPathsConfigurationRequest,
-        Payments_VoutesStatusRequest,
+        Payments_VotesStatusRequest,
 
         /*
          * Cycles

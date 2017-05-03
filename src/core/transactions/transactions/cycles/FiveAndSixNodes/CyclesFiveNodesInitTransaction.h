@@ -5,6 +5,7 @@
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 
+
 class CyclesFiveNodesInitTransaction :
     public CyclesBaseFiveSixNodesInitTransaction{
 
@@ -21,6 +22,7 @@ public:
 
 protected:
     const string logHeader() const;
+
 protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();

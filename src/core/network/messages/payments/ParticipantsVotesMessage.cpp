@@ -21,14 +21,13 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
 
 ParticipantsVotesMessage::ParticipantsVotesMessage(
     const NodeUUID &senderUUID,
-    const ParticipantsVotesMessage::Shared &message
-):
+    const ParticipantsVotesMessage::Shared &message):
     TransactionMessage(
         senderUUID,
-        message->transactionUUID())
+        message->transactionUUID()),
+    mCoordinatorUUID(message->coordinatorUUID()),
+    mVotes(message->votes())
 {
-    mCoordinatorUUID = message->coordinatorUUID();
-    mVotes = message->votes();
 }
 
 /**

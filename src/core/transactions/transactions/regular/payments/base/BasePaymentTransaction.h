@@ -70,10 +70,10 @@ protected:
 
         Common_VotesChecking,
         Common_FinalPathsConfigurationChecking,
-        Common_VotesRecoveryStage
+        Common_Recovery
     };
 
-    enum VoutesRecoveryStages {
+    enum VotesRecoveryStages {
         Common_PrepareNodesListToCheckVotes,
         Common_CheckCoordinatorVotesStage,
         Common_CheckIntermediateNodeVotesStage

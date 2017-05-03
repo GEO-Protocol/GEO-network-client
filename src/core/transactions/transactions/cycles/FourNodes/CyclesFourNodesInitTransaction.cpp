@@ -60,9 +60,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     if (mContext.size() != 2) {
-        info() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
-                   "Responses messages count not equals to 2; "
-                   "Can't create cycles;";
+        info() << "No responses messages are present. Can't create cycles paths;";
 
         return resultDone();
     }
@@ -81,8 +79,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
         (firstContractorBalance < zeroBalance and secondContractorBalance < zeroBalance) or
         (firstContractorBalance == zeroBalance and secondContractorBalance == zeroBalance)) {
 
-        info() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
-                  "Balances between initiator node and (" << firstContractorUUID <<  "), or "
+        info() << "Balances between initiator node and (" << firstContractorUUID <<  "), or "
                   "between initiator node and (" << secondContractorUUID << ") was changed. "
                   "Cannot create cycles.";
         return resultDone();
@@ -141,7 +138,7 @@ set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCredito
 const string CyclesFourNodesInitTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CyclesFourNodesInitTransactionTA: " << currentTransactionUUID().stringUUID() << "] ";
+    s << "[CyclesFourNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
 
     return s.str();
 }
