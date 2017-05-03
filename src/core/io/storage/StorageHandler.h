@@ -6,7 +6,7 @@
 #include "RoutingTableHandler.h"
 #include "TrustLineHandler.h"
 #include "PaymentOperationStateHandler.h"
-#include "TransactionHandler.h"
+#include "TransactionsHandler.h"
 #include "HistoryStorage.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
@@ -62,7 +62,7 @@ private:
     RoutingTablesHandler mRoutingTablesHandler;
     TrustLineHandler mTrustLineHandler;
     PaymentOperationStateHandler mPaymentOperationStateHandler;
-    TransactionHandler mTransactionHandler;
+    TransactionsHandler mTransactionHandler;
     HistoryStorage mHistoryStorage;
     string mDirectory;
     string mDataBaseName;

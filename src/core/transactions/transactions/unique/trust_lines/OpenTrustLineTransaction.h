@@ -60,6 +60,9 @@ public:
 
     TransactionResult::SharedConst run();
 
+protected:
+    const string logHeader() const;
+
 private:
     void deserializeFromBytes(
         BytesShared buffer);

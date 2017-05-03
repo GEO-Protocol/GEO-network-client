@@ -69,34 +69,6 @@ void PathsManager::findPathsOnSecondLevel()
 #endif
 }
 
-void PathsManager::findPathsOnSecondLevelWithoutRoutingTables(
-    vector<NodeUUID> &contractorRT1)
-{
-#ifdef GETTING_PATHS_DEBUG_LOG
-    DateTime startTime = utc_now();
-#endif
-    for (auto const &nodeUUID1 : mTrustLinesManager->rt1()) {
-        for (auto const &nodeUUID2 : contractorRT1) {
-            if (nodeUUID1 == nodeUUID2) {
-                vector<NodeUUID> intermediateNodes;
-                intermediateNodes.push_back(nodeUUID1);
-                Path path(
-                    mNodeUUID,
-                    mContractorUUID,
-                    intermediateNodes);
-                mPathCollection->add(path);
-#ifdef GETTING_PATHS_DEBUG_LOG
-                info() << "found path on second level";
-#endif
-            }
-        }
-    }
-#ifdef GETTING_PATHS_DEBUG_LOG
-    Duration methodTime = utc_now() - startTime;
-    info() << "findPathsOnSecondLevel method time: " << methodTime;
-#endif
-}
-
 void PathsManager::findPathsOnThirdLevel()
 {
 #ifdef GETTING_PATHS_DEBUG_LOG
@@ -463,7 +435,6 @@ void PathsManager::findPaths(
         mContractorUUID);
     findDirectPath();
     findPathsOnSecondLevel();
-    //findPathsOnSecondLevelWithoutRoutingTables(contractorRT1);
     findPathsOnThirdLevel();
     findPathsOnForthLevel(
         contractorRT1);
@@ -792,7 +763,6 @@ void PathsManager::testPaymentStateOperationsHandler()
         &st2,
         sizeof(uint16_t));
     ioTransaction->paymentOperationStateHandler()->saveRecord(transaction2, state2, sizeof(uint16_t));
-    ioTransaction->commit();
     TransactionUUID transaction3;
     BytesShared state3 = tryMalloc(sizeof(uint32_t));
     uint32_t st3 = 3;
@@ -885,113 +855,128 @@ void PathsManager::testPaymentStateOperationsHandler()
 
 void PathsManager::testTransactionHandler()
 {
-    auto ioTransaction = mStorageHandler->beginTransaction();
     TransactionUUID transaction1;
     BytesShared tr1 = tryMalloc(sizeof(uint8_t));
-    uint8_t st1 = 2;
-    memcpy(
-        tr1.get(),
-        &st1,
-        sizeof(uint8_t));
-    ioTransaction->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint8_t));
-    st1 = 22;
-    memcpy(
-        tr1.get(),
-        &st1,
-        sizeof(uint8_t));
-    ioTransaction->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint8_t));
     TransactionUUID transaction2;
     BytesShared tr2 = tryMalloc(sizeof(uint16_t));
-    uint16_t st2 = 88;
-    memcpy(
-        tr2.get(),
-        &st2,
-        sizeof(uint16_t));
-    ioTransaction->transactionHandler()->saveRecord(transaction2, tr2, sizeof(uint16_t));
-    ioTransaction->commit();
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        uint8_t st1 = 2;
+        memcpy(
+            tr1.get(),
+            &st1,
+            sizeof(uint8_t));
+        ioTransaction->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint8_t));
+        st1 = 22;
+        memcpy(
+            tr1.get(),
+            &st1,
+            sizeof(uint8_t));
+        ioTransaction->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint8_t));
+        uint16_t st2 = 88;
+        memcpy(
+            tr2.get(),
+            &st2,
+            sizeof(uint16_t));
+        ioTransaction->transactionHandler()->saveRecord(transaction2, tr2, sizeof(uint16_t));
+    }
     TransactionUUID transaction3;
     BytesShared tr3 = tryMalloc(sizeof(uint32_t));
-    uint32_t st3 = 3;
-    memcpy(
-        tr3.get(),
-        &st3,
-        sizeof(uint32_t));
-    ioTransaction->transactionHandler()->saveRecord(transaction3, tr3, sizeof(uint32_t));
-    ioTransaction->rollback();
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        uint32_t st3 = 3;
+        memcpy(
+            tr3.get(),
+            &st3,
+            sizeof(uint32_t));
+        ioTransaction->transactionHandler()->saveRecord(transaction3, tr3, sizeof(uint32_t));
+        ioTransaction->rollback();
+    }
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        pair <BytesShared, size_t> stateBt = ioTransaction->transactionHandler()->getTransaction(transaction1);
+        uint32_t tr = 0;
+        memcpy(
+            &tr,
+            stateBt.first.get(),
+            stateBt.second);
+        info() << stateBt.second << " " << (uint32_t) tr;
+        try {
+            stateBt = ioTransaction->transactionHandler()->getTransaction(transaction2);
+            memcpy(
+                &tr,
+                stateBt.first.get(),
+                stateBt.second);
+            info() << stateBt.second << " " << tr;
+        } catch (NotFoundError) {
+            info() << "not found";
+        }
+        try {
+            stateBt = ioTransaction->transactionHandler()->getTransaction(transaction3);
+            memcpy(
+                &tr,
+                stateBt.first.get(),
+                stateBt.second);
+            info() << stateBt.second << " " << tr;
+        } catch (NotFoundError) {
+            info() << "not found";
+        }
+        tr1 = tryMalloc(sizeof(uint32_t));
+        uint32_t st1_1 = 101;
+        memcpy(
+            tr1.get(),
+            &st1_1,
+            sizeof(uint32_t));
+        ioTransaction->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint32_t));
+        ioTransaction->transactionHandler()->saveRecord(transaction3, tr3, sizeof(uint32_t));
+        ioTransaction->transactionHandler()->deleteRecord(transaction2);
 
-    pair<BytesShared, size_t> stateBt = ioTransaction->transactionHandler()->getTransaction(transaction1);
-    uint32_t tr = 0;
-    memcpy(
-        &tr,
-        stateBt.first.get(),
-        stateBt.second);
-    info() << stateBt.second << " " << (uint32_t)tr;
-    try {
-        stateBt = ioTransaction->transactionHandler()->getTransaction(transaction2);
+        info() << "after changes";
+        stateBt = ioTransaction->transactionHandler()->getTransaction(transaction1);
         memcpy(
             &tr,
             stateBt.first.get(),
             stateBt.second);
         info() << stateBt.second << " " << tr;
-    } catch (NotFoundError) {
-        info() << "not found";
-    }
-    try {
-        stateBt = ioTransaction->transactionHandler()->getTransaction(transaction3);
-        memcpy(
-            &tr,
-            stateBt.first.get(),
-            stateBt.second);
-        info() << stateBt.second << " " << tr;
-    } catch (NotFoundError) {
-        info() << "not found";
-    }
-    tr1 = tryMalloc(sizeof(uint32_t));
-    uint32_t st1_1 = 101;
-    memcpy(
-        tr1.get(),
-        &st1_1,
-        sizeof(uint32_t));
-    ioTransaction->transactionHandler()->saveRecord(transaction1, tr1, sizeof(uint32_t));
-    ioTransaction->transactionHandler()->saveRecord(transaction3, tr3, sizeof(uint32_t));
-    ioTransaction->transactionHandler()->deleteRecord(transaction2);
-
-    info() << "after changes";
-    stateBt = ioTransaction->transactionHandler()->getTransaction(transaction1);
-    memcpy(
-        &tr,
-        stateBt.first.get(),
-        stateBt.second);
-    info() << stateBt.second << " " << tr;
-    try {
-        stateBt = ioTransaction->transactionHandler()->getTransaction(transaction2);
-        memcpy(
-            &tr,
-            stateBt.first.get(),
-            stateBt.second);
-        info() << stateBt.second << " " << tr;
-    } catch (NotFoundError) {
-        info() << "not found";
-    }
-    try {
-        stateBt = ioTransaction->transactionHandler()->getTransaction(transaction3);
-        memcpy(
-            &tr,
-            stateBt.first.get(),
-            stateBt.second);
-        info() << stateBt.second << " " << tr;
-    } catch (NotFoundError) {
-        info() << "not found";
-    }
-    try {
-        stateBt = ioTransaction->transactionHandler()->getTransaction(TransactionUUID());
-        memcpy(
-            &tr,
-            stateBt.first.get(),
-            stateBt.second);
-        info() << stateBt.second << " " << tr;
-    } catch (NotFoundError) {
-        info() << "not found";
+        try {
+            stateBt = ioTransaction->transactionHandler()->getTransaction(transaction2);
+            memcpy(
+                &tr,
+                stateBt.first.get(),
+                stateBt.second);
+            info() << stateBt.second << " " << tr;
+        } catch (NotFoundError) {
+            info() << "not found";
+        }
+        try {
+            stateBt = ioTransaction->transactionHandler()->getTransaction(transaction3);
+            memcpy(
+                &tr,
+                stateBt.first.get(),
+                stateBt.second);
+            info() << stateBt.second << " " << tr;
+        } catch (NotFoundError) {
+            info() << "not found";
+        }
+        try {
+            stateBt = ioTransaction->transactionHandler()->getTransaction(TransactionUUID());
+            memcpy(
+                &tr,
+                stateBt.first.get(),
+                stateBt.second);
+            info() << stateBt.second << " " << tr;
+        } catch (NotFoundError) {
+            info() << "not found";
+        }
+        info() << "all transactions:";
+        vector <pair<BytesShared, size_t>> transactions = ioTransaction->transactionHandler()->allTransactions();
+        for (const auto transaction : transactions) {
+            memcpy(
+                &tr,
+                transaction.first.get(),
+                transaction.second);
+            info() << transaction.second << " " << tr;
+        }
     }
 }
 

@@ -124,8 +124,12 @@ protected:
 
 protected:
     const string logHeader() const;
+
     void deserializeFromBytes(
         BytesShared buffer);
+
+    bool isPathValid(
+        Path::Shared path) const;
 
 protected:
     CreditUsageCommand::Shared mCommand;
