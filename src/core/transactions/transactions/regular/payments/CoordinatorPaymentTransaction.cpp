@@ -257,7 +257,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
 
     info() << "Collected paths:";
     for (const auto &identifierAndStats : mPathsStats)
-        info() << "{" << identifierAndStats.second->path()->toString() << "}";
+        info() << "[" << identifierAndStats.first << "] {" << identifierAndStats.second->path()->toString() << "}";
 
 
     // Sending message to the receiver note to approve the payment receiving.
@@ -411,6 +411,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalParticipan
         for (const auto &pathUUIDAndPathStats : mPathsStats) {
             const auto kPathStats = pathUUIDAndPathStats.second.get();
             const auto kPath = kPathStats->path();
+
+            // if path is direct path - exclude it
+            if (kPath->nodes.size() == 2) {
+                continue;
+            }
 
             // If paths wasn't processed - exclude it.
             if (!kPathStats->isLastIntermediateNodeProcessed())
@@ -589,6 +594,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     const PathUUID pathUUID,
     PathStats *pathStats)
 {
+    info() << "tryReserveAmountDirectlyOnReceiver";
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(pathStats->path()->length() == 2);
 #endif
@@ -822,7 +828,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
         PathStats::ReservationRequestSent);
 
 
-    // TODO commen why 3
+    // TODO delay equals 3 becouse in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationResponse},
         maxNetworkDelay(3));
@@ -834,16 +840,24 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
         info() << "No neighbor node response received. Switching to another path.";
         // dropping reservation to first node
+        currentAmountReservationPathStats()->shortageMaxFlow(0);
         auto firstIntermediateNode = currentAmountReservationPathStats()->path()->nodes[1];
         auto nodeReservations = mReservations[firstIntermediateNode];
-        for (auto const pathUUIDAndReservation : nodeReservations) {
-            if (pathUUIDAndReservation.first == mCurrentAmountReservingPathIdentifier) {
-                info() << "Dropping reservation: [ => ] " << pathUUIDAndReservation.second->amount()
+        auto itPathUUIDAndReservation = nodeReservations.begin();
+        while (itPathUUIDAndReservation != nodeReservations.end()) {
+            if (itPathUUIDAndReservation->first == mCurrentAmountReservingPathIdentifier) {
+                info() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
                        << " for (" << firstIntermediateNode << ") [" << mCurrentAmountReservingPathIdentifier << "]";
                 mTrustLines->dropAmountReservation(
                     firstIntermediateNode,
-                    pathUUIDAndReservation.second);
+                    itPathUUIDAndReservation->second);
+                nodeReservations.erase(itPathUUIDAndReservation);
+            } else {
+                itPathUUIDAndReservation++;
             }
+        }
+        if (nodeReservations.size() == 0) {
+            mReservations.erase(firstIntermediateNode);
         }
         return tryProcessNextPath();
     }
@@ -980,6 +994,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     // Response from te remote node will go throught other nodes in the path.
     // So them would be able to shortage it's reservations (if needed).
     // Total wait timeout must take note of this.
+    // TODO check this timeout
     const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodePosition;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationResponse},
@@ -1176,7 +1191,7 @@ TrustLineAmount CoordinatorPaymentTransaction::totalReservedByAllPaths() const
 const string CoordinatorPaymentTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CoordinatorPaymentTA: " << currentTransactionUUID().stringUUID() << "] ";
+    s << "[CoordinatorPaymentTA: " << currentTransactionUUID() << "] ";
 
     return s.str();
 }
@@ -1207,6 +1222,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::reject(
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountReservationResponseProcessingStage ()
 {
+    info() << "runDirectAmountReservationResponseProcessingStage";
     if (not contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
         info() << "No reservation response was received from the receiver node. "
                << "Amount reservation is impossible. Switching to another path.";
@@ -1249,6 +1265,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
 
         return propagateVotesListAndWaitForConfigurationRequests();
     }
+    mStep = Stages::Coordinator_AmountReservation;
     return tryProcessNextPath();
 }
 
@@ -1277,14 +1294,21 @@ void CoordinatorPaymentTransaction::dropReservationsOnCurrentPath()
 
     auto firstIntermediateNode = kPathStats->path()->nodes[1];
     auto nodeReservations = mReservations[firstIntermediateNode];
-    for (auto const pathUUIDAndReservation : nodeReservations) {
-        if (pathUUIDAndReservation.first == mCurrentAmountReservingPathIdentifier) {
-            info() << "Dropping reservation: [ => ] " << pathUUIDAndReservation.second->amount()
+    auto itPathUUIDAndReservation = nodeReservations.begin();
+    while (itPathUUIDAndReservation != nodeReservations.end()) {
+        if (itPathUUIDAndReservation->first == mCurrentAmountReservingPathIdentifier) {
+            info() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
                    << " for (" << firstIntermediateNode << ") [" << mCurrentAmountReservingPathIdentifier << "]";
             mTrustLines->dropAmountReservation(
                 firstIntermediateNode,
-                pathUUIDAndReservation.second);
+                itPathUUIDAndReservation->second);
+            nodeReservations.erase(itPathUUIDAndReservation);
+        } else {
+            itPathUUIDAndReservation++;
         }
+    }
+    if (nodeReservations.size() == 0) {
+        mReservations.erase(firstIntermediateNode);
     }
 
     const auto lastProcessedNodeAndPos = kPathStats->currentIntermediateNodeAndPos();

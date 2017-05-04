@@ -249,7 +249,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathConfiguration
     mStep = Stages::IntermediateNode_ReservationProlongation;
     // TODO correct delay time
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes},
+        {Message::Payments_ParticipantsVotes,
+        Message::Payments_IntermediateNodeReservationRequest},
         maxNetworkDelay(kMaxPathLength));
 }
 
@@ -464,24 +465,33 @@ void BasePaymentTransaction::rollBack ()
 void BasePaymentTransaction::rollBack (
     const PathUUID &pathUUID)
 {
-    for (const auto &kNodeUUIDAndReservations : mReservations)
-        for (const auto &kPathUUIDAndReservation : kNodeUUIDAndReservations.second) {
-            if (kPathUUIDAndReservation.first == pathUUID) {
+    for (auto itNodeUUIDAndReservations = mReservations.begin(); itNodeUUIDAndReservations != mReservations.end(); itNodeUUIDAndReservations++) {
+        auto itPathUUIDAndReservation = itNodeUUIDAndReservations->second.begin();
+        while (itPathUUIDAndReservation != itNodeUUIDAndReservations->second.end()) {
+            if (itPathUUIDAndReservation->first == pathUUID) {
                 mTrustLines->dropAmountReservation(
-                    kNodeUUIDAndReservations.first,
-                    kPathUUIDAndReservation.second);
+                    itNodeUUIDAndReservations->first,
+                    itPathUUIDAndReservation->second);
 
-                if (kPathUUIDAndReservation.second->direction() == AmountReservation::Outgoing)
-                    info() << "Dropping reservation: [ => ] " << kPathUUIDAndReservation.second->amount()
-                           << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first
+                if (itPathUUIDAndReservation->second->direction() == AmountReservation::Outgoing)
+                    info() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
+                           << " for (" << itNodeUUIDAndReservations->first << ") [" << itPathUUIDAndReservation->first
                            << "]";
 
-                else if (kPathUUIDAndReservation.second->direction() == AmountReservation::Incoming)
-                    info() << "Dropping reservation: [ <= ] " << kPathUUIDAndReservation.second->amount()
-                           << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first
+                else if (itPathUUIDAndReservation->second->direction() == AmountReservation::Incoming)
+                    info() << "Dropping reservation: [ <= ] " << itPathUUIDAndReservation->second->amount()
+                           << " for (" << itNodeUUIDAndReservations->first << ") [" << itPathUUIDAndReservation->first
                            << "]";
+
+                itNodeUUIDAndReservations->second.erase(itPathUUIDAndReservation);
+                } else {
+                    itPathUUIDAndReservation++;
+                }
             }
+        if (itNodeUUIDAndReservations->second.size() == 0) {
+            mReservations.erase(itNodeUUIDAndReservations);
         }
+    }
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::recover (

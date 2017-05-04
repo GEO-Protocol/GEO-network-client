@@ -208,15 +208,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     return resultWaitForMessageTypes(
         {Message::Payments_FinalPathConfiguration},
         maxNetworkDelay(kMaxPathLength));
-
-//    mStep = Stages::IntermediateNode_ReservationProlongation;
-//    return resultWaitForMessageTypes(
-//        {Message::Payments_ParticipantsVotes},
-//        maxNetworkDelay(kMaxPathLength));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
 {
+    if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest)) {
+        mMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
+        return runPreviousNeighborRequestProcessingStage();
+    }
     info() << "runReservationProlongationStage";
     // In case if participants votes message is already received -
     // there is no need to prolong reservation, transaction may be proceeded.

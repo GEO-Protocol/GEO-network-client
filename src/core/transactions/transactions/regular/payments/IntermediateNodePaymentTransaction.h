@@ -41,7 +41,7 @@ protected:
     const string logHeader() const;
 
 protected:
-    const IntermediateNodeReservationRequestMessage::ConstShared mMessage;
+    IntermediateNodeReservationRequestMessage::ConstShared mMessage;
 
     TrustLineAmount mLastReservedAmount;
     NodeUUID mCoordinator;
