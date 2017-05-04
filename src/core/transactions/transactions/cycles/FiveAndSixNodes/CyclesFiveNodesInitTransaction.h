@@ -4,6 +4,8 @@
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
+#include "../../../../paths/lib/Path.h"
+
 
 
 class CyclesFiveNodesInitTransaction :
@@ -13,6 +15,7 @@ public:
     CyclesFiveNodesInitTransaction(
         const NodeUUID &nodeUUID,
         TrustLinesManager *manager,
+        StorageHandler *storageHandler,
         Logger *logger);
 
     const BaseTransaction::TransactionType transactionType() const;

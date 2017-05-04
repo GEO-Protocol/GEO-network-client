@@ -16,6 +16,7 @@ public:
         const TransactionType type,
         const NodeUUID &nodeUUID,
         TrustLinesManager *manager,
+        StorageHandler *storageHandler,
         Logger *logger);
 
     TransactionResult::SharedConst run();
@@ -32,6 +33,7 @@ protected:
 
 protected:
     TrustLinesManager *mTrustLinesManager;
+    StorageHandler *mStorageHandler;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESINITTRANSACTION_H

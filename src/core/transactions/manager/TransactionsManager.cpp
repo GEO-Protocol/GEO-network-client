@@ -1122,10 +1122,10 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(const NodeUUID &
             mNodeUUID,
             contractorUUID,
             mTrustLines,
-            mStorageHandler->routingTablesHandler(),
+            mStorageHandler,
             mLog
         );
-        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
+//        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1158,9 +1158,9 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction() {
         auto transaction = make_shared<CyclesSixNodesInitTransaction>(
             mNodeUUID,
             mTrustLines,
+            mStorageHandler,
             mLog
         );
-        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
 
@@ -1193,9 +1193,9 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
         auto transaction = make_shared<CyclesFiveNodesInitTransaction>(
             mNodeUUID,
             mTrustLines,
+            mStorageHandler,
             mLog
         );
-        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1229,7 +1229,7 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(const NodeUUID &d
                 debtorUUID,
                 creditorUUID,
                 mTrustLines,
-                mStorageHandler->routingTablesHandler(),
+                mStorageHandler,
                 mLog
         );
         subscribeCloseCycleTransaction(transaction->closeCycleSignal);

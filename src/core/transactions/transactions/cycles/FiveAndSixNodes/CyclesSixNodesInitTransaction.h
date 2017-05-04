@@ -12,6 +12,7 @@ public:
     CyclesSixNodesInitTransaction(
         const NodeUUID &nodeUUID,
         TrustLinesManager *manager,
+        StorageHandler *storageHandler,
         Logger *logger);
 
     const BaseTransaction::TransactionType transactionType() const;

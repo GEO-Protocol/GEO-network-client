@@ -4,12 +4,14 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
     const TransactionType type,
     const NodeUUID &nodeUUID,
     TrustLinesManager *manager,
+    StorageHandler *storageHandler,
     Logger *logger) :
     BaseTransaction(
         type,
         nodeUUID,
         logger),
-    mTrustLinesManager(manager)
+    mTrustLinesManager(manager),
+    mStorageHandler(storageHandler)
 {
 };
 

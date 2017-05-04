@@ -5,7 +5,7 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     const NodeUUID &debtorContractorUUID,
     const NodeUUID &creditorContractorUUID,
     TrustLinesManager *manager,
-    RoutingTablesHandler *routingTablesHandler,
+    StorageHandler *storageHandler,
     Logger *logger) :
 
     BaseTransaction(
@@ -13,7 +13,7 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(manager),
-    mRoutingTablesHandler(routingTablesHandler),
+    mStorageHandler(storageHandler),
     mDebtorContractorUUID(debtorContractorUUID),
     mCreditorContractorUUID(creditorContractorUUID)
 {}
@@ -118,9 +118,9 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
 }
 
 set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCreditorNodes() {
-    const auto creditorsNeighbors = mRoutingTablesHandler->neighborsOfOnRT2(
+    const auto creditorsNeighbors = mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(
         mCreditorContractorUUID);
-    const auto debtorsNeighbors = mRoutingTablesHandler->neighborsOfOnRT2(
+    const auto debtorsNeighbors = mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(
         mDebtorContractorUUID);
     set<NodeUUID> commonNeighbors;
     set_intersection(
