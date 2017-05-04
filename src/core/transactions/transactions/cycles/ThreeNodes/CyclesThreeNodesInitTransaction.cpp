@@ -89,8 +89,6 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
             mNodeUUID,
             mContractorUUID,
             nodeUUIDAndBalance};
-        auto sCycle = make_shared<vector<NodeUUID>>(cycle);
-        closeCycleSignal(sCycle);
         #ifdef TESTS
             ResultCycles.push_back(cycle);
         #endif

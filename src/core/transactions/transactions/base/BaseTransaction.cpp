@@ -153,7 +153,6 @@ void BaseTransaction::clearContext() {
 }
 
 pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const {
-
     size_t bytesCount = sizeof(SerializedTransactionType) +
         TransactionUUID::kBytesSize +
         sizeof(uint16_t);
@@ -202,13 +201,6 @@ void BaseTransaction::deserializeFromBytes(
         TransactionUUID::kBytesSize
     );
     bytesBufferOffset += TransactionUUID::kBytesSize;
-    //-----------------------------------------------------
-    memcpy(
-        mNodeUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
-    bytesBufferOffset += NodeUUID::kBytesSize;
     //-----------------------------------------------------
     uint16_t *step = new (buffer.get() + bytesBufferOffset) uint16_t;
     mStep = *step;

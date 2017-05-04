@@ -42,6 +42,7 @@ namespace signals = boost::signals2;
 class TransactionsScheduler {
 public:
     typedef signals::signal<void(CommandResult::SharedConst)> CommandResultSignal;
+    typedef signals::signal<void(BaseTransaction::Shared)> SerializeTransactionSignal;
 
 public:
     TransactionsScheduler(
@@ -95,9 +96,6 @@ private:
         BaseTransaction::Shared transaction,
         TransactionState::SharedConst state);
 
-    void serializeTransaction(
-        BaseTransaction::Shared transaction);
-
     void forgetTransaction(
         BaseTransaction::Shared transaction);
 
@@ -113,6 +111,7 @@ private:
 
 public:
     mutable CommandResultSignal commandResultIsReadySignal;
+    mutable SerializeTransactionSignal serializeTransactionSignal;
 
 private:
     as::io_service &mIOService;

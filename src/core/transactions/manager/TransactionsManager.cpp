@@ -33,6 +33,7 @@ TransactionsManager::TransactionsManager(
 {
 
     subscribeForCommandResult(mScheduler->commandResultIsReadySignal);
+    subscribeForSerializeTransaction(mScheduler->serializeTransactionSignal);
 
     try {
         loadTransactions();
@@ -47,13 +48,9 @@ void TransactionsManager::loadTransactions() {
     const auto ioTransaction = mStorageHandler->beginTransaction();
     const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
     for(const auto kTABufferAndSize: serializedTAs) {
-        BaseTransaction::TransactionType TrasnsactionTypeId;
-        memcpy(
-            &TrasnsactionTypeId,
-            kTABufferAndSize.first.get(),
-            sizeof(TrasnsactionTypeId)
-        );
-        switch (TrasnsactionTypeId) {
+        BaseTransaction::SerializedTransactionType *transactionType = new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
+        auto TransactionTypeId = *transactionType;
+        switch (TransactionTypeId) {
             case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
                 auto transaction = make_shared<CoordinatorPaymentTransaction>(
                     kTABufferAndSize.first,
@@ -979,6 +976,18 @@ void TransactionsManager::subscribeForOutgoingMessages(
     );
 }
 
+void TransactionsManager::subscribeForSerializeTransaction(
+    TransactionsScheduler::SerializeTransactionSignal &signal) {
+
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onSerializeTransaction,
+            this,
+            _1
+        )
+    );
+}
+
 void TransactionsManager::subscribeForCommandResult(
     TransactionsScheduler::CommandResultSignal &signal) {
 
@@ -988,16 +997,6 @@ void TransactionsManager::subscribeForCommandResult(
             this,
             _1
         )
-    );
-}
-
-void TransactionsManager::subscribeCloseCycleTransaction(BaseTransaction::LaunchCloseCycleSignal &signal) {
-    signal.connect(
-            boost::bind(
-                    &TransactionsManager::launchCloseCycleTransaction,
-                    this,
-                    _1
-            )
     );
 }
 
@@ -1079,7 +1078,6 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(const NodeUUID &
             mStorageHandler->routingTablesHandler(),
             mLog
         );
-        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1114,7 +1112,6 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction() {
             mTrustLines,
             mLog
         );
-        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
 
@@ -1149,7 +1146,6 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
             mTrustLines,
             mLog
         );
-        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1186,7 +1182,6 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(const NodeUUID &d
                 mStorageHandler->routingTablesHandler(),
                 mLog
         );
-        subscribeCloseCycleTransaction(transaction->closeCycleSignal);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1213,6 +1208,44 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(CyclesFourNod
     }
 }
 
-void TransactionsManager::launchCloseCycleTransaction(
-    shared_ptr<vector<NodeUUID>> path)
-{}
+void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transaction) {
+    const auto kTransactionTypeId = transaction->transactionType();
+    const auto ioTransaction = mStorageHandler->beginTransaction();
+    switch (kTransactionTypeId) {
+        case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
+            const auto kChildTransaction = static_pointer_cast<CoordinatorPaymentTransaction>(transaction);
+            const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
+            ioTransaction->transactionHandler()->saveRecord(
+                kChildTransaction->currentTransactionUUID(),
+                transactionBytesAndCount.first,
+                transactionBytesAndCount.second
+            );
+            break;
+        }
+        case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
+            const auto kChildTransaction = static_pointer_cast<IntermediateNodePaymentTransaction>(transaction);
+            const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
+            ioTransaction->transactionHandler()->saveRecord(
+                kChildTransaction->currentTransactionUUID(),
+                transactionBytesAndCount.first,
+                transactionBytesAndCount.second
+            );
+            break;
+        }
+        case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
+            const auto kChildTransaction = static_pointer_cast<ReceiverPaymentTransaction>(transaction);
+            const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
+            ioTransaction->transactionHandler()->saveRecord(
+                kChildTransaction->currentTransactionUUID(),
+                transactionBytesAndCount.first,
+                transactionBytesAndCount.second
+            );
+            break;
+        }
+        default: {
+            throw RuntimeError(
+                "TrustLinesManager::onSerializeTransaction. "
+                    "Unexpected transaction type identifier.");
+        }
+    }
+}

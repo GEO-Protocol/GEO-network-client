@@ -413,10 +413,10 @@ void BasePaymentTransaction::commit ()
 {
     info() << "Transaction committing...";
 
-    // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
-    {
-        const auto ioTransaction = mStorageHandler->beginTransaction();
-    }
+//    // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
+//    {
+//        const auto ioTransaction = mStorageHandler->beginTransaction();
+//    }
 
     for (const auto &kNodeUUIDAndReservations : mReservations)
         for (const auto &kReservation : kNodeUUIDAndReservations.second) {
@@ -435,6 +435,11 @@ void BasePaymentTransaction::commit ()
     saveVotes();
     info() << "Voutes saved.";
     info() << "Transaction committed.";
+    // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
+    {
+        const auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->transactionHandler()->deleteRecord(currentTransactionUUID());
+    }
 }
 
 void BasePaymentTransaction::saveVotes()

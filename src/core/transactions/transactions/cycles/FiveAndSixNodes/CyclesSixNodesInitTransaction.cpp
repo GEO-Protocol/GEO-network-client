@@ -96,8 +96,6 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                                                   kNodeUUID,
                                                   (*(NodeUIDandPairOfPathandBalace->second))[2],
                                                   (*(NodeUIDandPairOfPathandBalace->second))[1]};
-                auto sCycle = make_shared<vector<NodeUUID>>(stepCyclePath);
-                closeCycleSignal(sCycle);
                 #ifdef TESTS
                 ResultCycles.push_back(stepCyclePath);
                 #endif

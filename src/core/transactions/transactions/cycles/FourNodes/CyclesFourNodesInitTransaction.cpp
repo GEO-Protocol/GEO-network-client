@@ -99,8 +99,6 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
                     kNodeUUIDSecondMessage,
                     mCreditorContractorUUID};
                 // Run transaction to close cycle
-                auto sCycle = make_shared<vector<NodeUUID>>(stepPath);
-                closeCycleSignal(sCycle);
                 #ifdef TESTS
                     ResultCycles.push_back(stepPath);
                 #endif
