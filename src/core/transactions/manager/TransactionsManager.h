@@ -68,9 +68,6 @@
 #include "../transactions/cycles/FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.h"
 #include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesInitTransaction.h"
 #include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesReceiverTransaction.h"
-#include "../transactions/contractors_list/GetFirstLevelContractorsTransaction.h"
-
-
 
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"

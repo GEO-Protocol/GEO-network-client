@@ -387,7 +387,6 @@ void Core::connectDelayedTasksSignals(){
         )
     );
     #ifdef TESTS
-    cout << "Tests works" << endl;
     mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
             boost::bind(
                     &Core::onDelayedTaskCycleThreeNodesSlot,

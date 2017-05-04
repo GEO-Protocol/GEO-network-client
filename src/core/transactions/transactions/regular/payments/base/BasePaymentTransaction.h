@@ -21,6 +21,7 @@
 #include "../../../../../network/messages/payments/ParticipantsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsVotesMessage.h"
 #include "../../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
+#include "../../../../../network/messages/payments/FinalPathConfigurationMessage.h"
 
 
 // TODO: Add restoring of the reservations after transaction deserialization.
@@ -69,6 +70,7 @@ protected:
         IntermediateNode_ReservationProlongation,
 
         Common_VotesChecking,
+        Common_FinalPathConfigurationChecking,
         Common_FinalPathsConfigurationChecking,
         Common_Recovery
     };
@@ -76,13 +78,18 @@ protected:
     enum VotesRecoveryStages {
         Common_PrepareNodesListToCheckVotes,
         Common_CheckCoordinatorVotesStage,
-        Common_CheckIntermediateNodeVotesStage
+        Common_CheckIntermediateNodeVotesStage,
     };
+
+protected:
+    // TODO: move it into separate *.h file.
+    typedef uint16_t PathUUID;
 
     // Stages handlers
     virtual TransactionResult::SharedConst runVotesCheckingStage();
     virtual TransactionResult::SharedConst runVotesConsistencyCheckingStage();
     virtual TransactionResult::SharedConst runFinalPathsConfigurationProcessingStage();
+    virtual TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
 
     virtual TransactionResult::SharedConst approve();
     virtual TransactionResult::SharedConst recover(
@@ -106,20 +113,27 @@ protected:
 protected:
     const bool reserveOutgoingAmount(
         const NodeUUID &neighborNode,
-        const TrustLineAmount& amount);
+        const TrustLineAmount& amount,
+        const PathUUID &pathUUID);
 
     const bool reserveIncomingAmount(
         const NodeUUID &neighborNode,
-        const TrustLineAmount& amount);
+        const TrustLineAmount& amount,
+        const PathUUID &pathUUID);
 
     const bool shortageReservation(
         const NodeUUID kContractor,
         const AmountReservation::ConstShared kReservation,
-        const TrustLineAmount &kNewAmount);
+        const TrustLineAmount &kNewAmount,
+        const PathUUID &pathUUID);
 
     void saveVotes();
     void commit();
+
     void rollBack();
+
+    void rollBack(
+        const PathUUID &pathUUID);
 
     uint32_t maxNetworkDelay (
         const uint16_t totalParticipantsCount) const;
@@ -166,11 +180,13 @@ protected:
     // so the votes message must be saved for further processing.
     ParticipantsVotesMessage::Shared mParticipantsVotesMessage;
 
-    map<NodeUUID, vector<AmountReservation::ConstShared>> mReservations;
+    map<NodeUUID, vector<pair<PathUUID, AmountReservation::ConstShared>>> mReservations;
 
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;
     NodeUUID mCurrentNodeToCheckVotes;
+
+
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

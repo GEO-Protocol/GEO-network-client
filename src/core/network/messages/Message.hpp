@@ -13,6 +13,10 @@ public:
     typedef shared_ptr<Message> Shared;
 
 public:
+    // TODO: move it into separate *.h file.
+    typedef uint16_t PathUUID;
+
+public:
     enum MessageType {
         /*
          * Trust lines
@@ -37,6 +41,7 @@ public:
         Payments_ParticipantsPathsConfiguration,
         Payments_ParticipantsPathsConfigurationRequest,
         Payments_VotesStatusRequest,
+        Payments_FinalPathConfiguration,
 
         /*
          * Cycles

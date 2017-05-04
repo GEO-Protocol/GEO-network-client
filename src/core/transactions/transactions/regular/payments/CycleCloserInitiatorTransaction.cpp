@@ -156,7 +156,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalParticip
     responseMessage->addPath(
         kPathStats->maxFlow(),
         kIncomingNode,
-        kOutgoingNode);
+        kOutgoingNode,
+        0);
 
 #ifdef DEBUG
     debug() << "Added path: ("
@@ -331,12 +332,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
 
     reserveOutgoingAmount(
         neighbor,
-        mInitialTransactionAmount);
+        mInitialTransactionAmount,
+        0);
 
     sendMessage<IntermediateNodeReservationRequestMessage>(
         neighbor,
         kCurrentNode,
         kTransactionUUID,
+        0,
         path->maxFlow());
 
     return resultWaitForMessageTypes(
@@ -362,6 +365,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
         neighbor,
         kCoordinator,
         kTransactionUUID,
+        0,
         path->maxFlow(),
         kNextAfterNeighborNode);
 
@@ -437,8 +441,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
         }
         shortageReservation(
             itNodeAndReservations.first,
-            *nodeReservations.begin(),
-            path->maxFlow());
+            (*nodeReservations.begin()).second,
+            path->maxFlow(),
+            0);
     }
 
     return runAmountReservationStage();
@@ -458,6 +463,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
         remoteNode,
         kCoordinator,
         kTransactionUUID,
+        0,
         path->maxFlow(),
         nextNodeAfterRemote);
 
@@ -536,8 +542,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
             }
             shortageReservation(
                 itNodeAndReservations.first,
-                *nodeReservations.begin(),
-                path->maxFlow());
+                (*nodeReservations.begin()).second,
+                path->maxFlow(),
+                0);
         }
 
         info() << "(" << message->senderUUID << ") reserved " << reservedAmount;
@@ -574,11 +581,12 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     const auto kReservationAmount =
         min(kMessage->amount(), *kIncomingAmount);
 
-    if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount)) {
+    if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount, 0)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
+            0,
             ResponseMessage::Rejected);
         return reject("No incoming amount reservation is possible. Rolled back.");
     }
@@ -587,7 +595,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         kNeighbor,
         currentNodeUUID(),
         currentTransactionUUID(),
-        ResponseMessage::Accepted);
+        0,
+        ResponseMessage::Accepted,
+        kReservationAmount);
 
     mStep = Coordinator_AmountReservation;
     const auto kTimeout = kMaxMessageTransferLagMSec;

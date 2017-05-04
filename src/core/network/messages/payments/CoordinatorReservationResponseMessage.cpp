@@ -4,12 +4,14 @@
 CoordinatorReservationResponseMessage::CoordinatorReservationResponseMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
+    const PathUUID& pathUUID,
     const ResponseMessage::OperationState state,
     const TrustLineAmount& reservedAmount):
 
     ResponseMessage(
         senderUUID,
         transactionUUID,
+        pathUUID,
         state),
     mAmountReserved(reservedAmount)
 {}

@@ -30,11 +30,15 @@ ParticipantsConfigurationMessage::ParticipantsConfigurationMessage(
  */
 void ParticipantsConfigurationMessage::addPath (
     const TrustLineAmount &commonPathAmount,
-    const NodeUUID &incomingNode)
+    const NodeUUID &incomingNode,
+    const PathUUID &pathUUID)
     throw (ValueError, bad_alloc)
 {
     const NodesSet kNodesList = {incomingNode};
-    addPath(kNodesList, commonPathAmount);
+    addPath(
+        kNodesList,
+        commonPathAmount,
+        pathUUID);
 }
 
 /**
@@ -46,11 +50,15 @@ void ParticipantsConfigurationMessage::addPath (
 void ParticipantsConfigurationMessage::addPath (
     const TrustLineAmount &commonPathAmount,
     const NodeUUID &incomingNode,
-    const NodeUUID &outgoingNode)
+    const NodeUUID &outgoingNode,
+    const PathUUID &pathUUID)
     throw (ValueError, bad_alloc)
 {
     const NodesSet kNodesList = {incomingNode, outgoingNode};
-    addPath(kNodesList, commonPathAmount);
+    addPath(
+        kNodesList,
+        commonPathAmount,
+        pathUUID);
 }
 
 /**
@@ -61,7 +69,8 @@ void ParticipantsConfigurationMessage::addPath (
  */
 void ParticipantsConfigurationMessage::addPath (
     const NodesSet &nodes,
-    const TrustLineAmount &commonPathAmount)
+    const TrustLineAmount &commonPathAmount,
+    const PathUUID &pathUUID)
     throw (ValueError, bad_alloc)
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
@@ -86,16 +95,17 @@ void ParticipantsConfigurationMessage::addPath (
             "nodes set contains equal nodes.");
 
     for (const auto &kRecords : mPathsConfiguration)
-        if (kRecords.first == nodes)
+        if (std::get<2>(kRecords) == pathUUID)
             throw ValueError(
                 "ParticipantsConfigurationMessage::addPath: "
-                "message already contains this pair of nodes.");
+                "message already contains this path.");
 #endif
 
-    const auto kRecord = std::make_pair(
+    const auto kRecord = std::make_tuple(
         nodes,
         make_shared<const TrustLineAmount>(
-            commonPathAmount));
+            commonPathAmount),
+        pathUUID);
 
     mPathsConfiguration.push_back(kRecord);
 }
@@ -155,7 +165,8 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermed
     const auto kTotalPathsCount = mPathsConfiguration.size();
     const auto kPathRecordSize =
         NodeUUID::kBytesSize * 2
-        + kTrustLineAmountBytesCount;
+        + kTrustLineAmountBytesCount
+        + sizeof(PathUUID);
 
     const auto kBufferSize =
         kParentBytesAndCount.second
@@ -200,13 +211,15 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermed
 
     // Nodes UUIDs and amount
     auto currentPathRecordOffset = kFirstPathRecordOffset;
-    for (const auto kNodesAndAmount : mPathsConfiguration) {
+    for (const auto kNodesAndAmountAndPathUUID : mPathsConfiguration) {
 
-        const auto kIncomingNeighborUUID = *(kNodesAndAmount.first.cbegin());
-        const auto kOutgoingNeighborUUID = *(next(kNodesAndAmount.first.cbegin()));
+        const auto kIncomingNeighborUUID = *(std::get<0>(kNodesAndAmountAndPathUUID).cbegin());
+        const auto kOutgoingNeighborUUID = *(std::get<0>(kNodesAndAmountAndPathUUID).cbegin());
 
-        const auto kAmount = *(kNodesAndAmount.second);
+        const auto kAmount = *(std::get<1>(kNodesAndAmountAndPathUUID));
         const auto kSerializedAmount = trustLineAmountToBytes(kAmount);
+
+        const auto kSerializedPathUUID = std::get<2>(kNodesAndAmountAndPathUUID);
 
         memcpy(
             currentPathRecordOffset,
@@ -223,6 +236,10 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForIntermed
             kSerializedAmount.data(),
             kSerializedAmount.size());
 
+        memcpy(
+            currentPathRecordOffset + NodeUUID::kBytesSize * 2 + kSerializedAmount.size(),
+            &kSerializedPathUUID,
+            sizeof(PathUUID));
 
         currentPathRecordOffset += kPathRecordSize;
     }
@@ -264,7 +281,8 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForReceiver
     const auto kTotalPathsCount = mPathsConfiguration.size();
     const auto kPathRecordSize =
         NodeUUID::kBytesSize
-        + kTrustLineAmountBytesCount;
+        + kTrustLineAmountBytesCount
+        + sizeof(PathUUID);
 
     const auto kBufferSize =
         kParentBytesAndCount.second
@@ -309,11 +327,12 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForReceiver
 
     // Nodes UUIDs and amount
     auto currentPathRecordOffset = kFirstPathRecordOffset;
-    for (const auto kNodesAndAmount : mPathsConfiguration) {
+    for (const auto kNodesAndAmountAndPathUUID : mPathsConfiguration) {
 
-        const auto kIncomingNeighborUUID = *(kNodesAndAmount.first.cbegin());
-        const auto kAmount = *(kNodesAndAmount.second);
+        const auto kIncomingNeighborUUID = *(std::get<0>(kNodesAndAmountAndPathUUID).cbegin());
+        const auto kAmount = *(std::get<1>(kNodesAndAmountAndPathUUID));
         const auto kSerializedAmount = trustLineAmountToBytes(kAmount);
+        const auto kSerializedPathUUID = std::get<2>(kNodesAndAmountAndPathUUID);
 
         memcpy(
             currentPathRecordOffset,
@@ -324,6 +343,11 @@ pair<BytesShared, size_t> ParticipantsConfigurationMessage::serializeForReceiver
             currentPathRecordOffset + NodeUUID::kBytesSize,
             kSerializedAmount.data(),
             kSerializedAmount.size());
+
+        memcpy(
+            currentPathRecordOffset + NodeUUID::kBytesSize + kSerializedAmount.size(),
+            &kSerializedPathUUID,
+            sizeof(PathUUID));
 
         currentPathRecordOffset += kPathRecordSize;
     }
@@ -381,13 +405,17 @@ void ParticipantsConfigurationMessage::deserializeFromBytes (
                 currentOffset + NodeUUID::kBytesSize,
                 kTrustLineAmountBytesCount);
 
+            PathUUID *pathUUID = new (currentOffset + NodeUUID::kBytesSize + kTrustLineAmountBytesCount) PathUUID;
+
             const TrustLineAmount kCommonPathAmount = bytesToTrustLineAmount(commonPathAmountBytes);
             const NodesSet kNodesSet = {incomingNodeUUID};
+            const PathUUID kPathUUID = *pathUUID;
             mPathsConfiguration.push_back(
-                std::make_pair(
+                std::make_tuple(
                     kNodesSet,
                     make_shared<const TrustLineAmount>(
-                        kCommonPathAmount)));
+                        kCommonPathAmount),
+                    kPathUUID));
 
             continue;
         }
@@ -411,20 +439,24 @@ void ParticipantsConfigurationMessage::deserializeFromBytes (
                 currentOffset + NodeUUID::kBytesSize * 2,
                 kTrustLineAmountBytesCount);
 
+            PathUUID *pathUUID = new (currentOffset + NodeUUID::kBytesSize * 2 + kTrustLineAmountBytesCount) PathUUID;
+
             const TrustLineAmount kCommonPathAmount = bytesToTrustLineAmount(commonPathAmountBytes);
             const NodesSet kNodesSet = {incomingNodeUUID, outgoingNodeUUID};
+            const PathUUID kPathUUID = *pathUUID;
             mPathsConfiguration.push_back(
-                std::make_pair(
+                std::make_tuple(
                     kNodesSet,
                     make_shared<const TrustLineAmount>(
-                        kCommonPathAmount)));
+                        kCommonPathAmount),
+                    kPathUUID));
 
             continue;
         }
     }
 }
 
-const vector< pair<ParticipantsConfigurationMessage::NodesSet, ConstSharedTrustLineAmount>>&
+const vector< tuple<ParticipantsConfigurationMessage::NodesSet, ConstSharedTrustLineAmount, Message::PathUUID>>&
 ParticipantsConfigurationMessage::nodesAndFinalReservationAmount () const
     noexcept
 {

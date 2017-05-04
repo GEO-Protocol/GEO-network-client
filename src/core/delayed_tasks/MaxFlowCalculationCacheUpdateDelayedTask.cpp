@@ -18,11 +18,6 @@ MaxFlowCalculationCacheUpdateDelayedTask::MaxFlowCalculationCacheUpdateDelayedTa
     mMaxFlowCalculationCacheUpdateTimer->expires_from_now(
         chrono::milliseconds(
             microsecondsDelay.total_milliseconds()));
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
-    info() << "constructor at " << utc_now();
-    info() << "closest time: " << nextAwakeningTimestamp;
-    info() << "microseconds delay: " << chrono::microseconds(microsecondsDelay).count();
-#endif
     mMaxFlowCalculationCacheUpdateTimer->async_wait(boost::bind(
         &MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheUpdate,
         this,
@@ -40,11 +35,6 @@ void MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheU
     mMaxFlowCalculationCacheUpdateTimer->expires_from_now(
         chrono::microseconds(
             microsecondsDelay.total_milliseconds()));
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
-    info() << "run at " << utc_now();
-    info() << "closest time: " << nextAwakeningTimestamp;
-    info() << "microseconds delay: " << chrono::microseconds(microsecondsDelay).count();
-#endif
     mMaxFlowCalculationCacheUpdateTimer->async_wait(boost::bind(
         &MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheUpdate,
         this,
