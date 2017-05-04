@@ -110,6 +110,12 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             /*
              * Cycles processing messages
              */
+        case Message::Payments_FinalPathConfiguration:
+            return messageCollected<FinalPathConfigurationMessage>(messagePart);
+
+        /*
+         * Cycles processing messages
+         */
         case Message::Cycles_SixNodesMiddleware: {
             return make_pair(
                 true,

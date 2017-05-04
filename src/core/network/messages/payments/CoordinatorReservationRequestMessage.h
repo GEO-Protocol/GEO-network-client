@@ -16,6 +16,7 @@ public:
     CoordinatorReservationRequestMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID& transactionUUID,
+        const PathUUID &pathUUID,
         const TrustLineAmount& amount,
         const NodeUUID& nextNodeInThePath);
 

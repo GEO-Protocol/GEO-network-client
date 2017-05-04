@@ -48,6 +48,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
     case Stages::IntermediateNode_NextNeighborResponseProcessing:
         return runNextNeighborResponseProcessingStage();
 
+    case Stages::Common_FinalPathConfigurationChecking:
+        return runFinalPathConfigurationProcessingStage();
+
     case Stages::IntermediateNode_ReservationProlongation:
         return runReservationProlongationStage();
 
@@ -86,11 +89,12 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     const auto kReservationAmount =
         min(mMessage->amount(), *kIncomingAmount);
 
-    if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount)) {
+    if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount, mMessage->pathUUID())) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
+            mMessage->pathUUID(),
             ResponseMessage::Rejected);
         return reject("No incoming amount reservation is possible. Rolled back.");
     }
@@ -101,7 +105,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         kNeighbor,
         currentNodeUUID(),
         currentTransactionUUID(),
-        ResponseMessage::Accepted);
+        mMessage->pathUUID(),
+        ResponseMessage::Accepted,
+        kReservationAmount);
 
 
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
@@ -135,11 +141,12 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         kMessage->amount(),
         *kOutgoingAmount);
 
-    if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount)) {
+    if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount, kMessage->pathUUID())) {
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
             currentTransactionUUID(),
+            kMessage->pathUUID(),
             ResponseMessage::Rejected);
 
         return reject("No amount reservation is possible. Rolled back.");
@@ -151,6 +158,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         kNextNode,
         currentNodeUUID(),
         currentTransactionUUID(),
+        kMessage->pathUUID(),
         reservationAmount);
 
     clearContext();
@@ -176,6 +184,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             mCoordinator,
             currentNodeUUID(),
             currentTransactionUUID(),
+            kMessage->pathUUID(),
             ResponseMessage::Rejected);
         return reject("Amount reservation rejected by the neighbor node. Rolled back.");
     }
@@ -183,20 +192,36 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
     info() << "(" << kContractor << ") accepted amount reservation.";
 
-    // TODO : shortage reservation
+    // shortage local reservation on current path
+    for (const auto &nodeReservation : mReservations) {
+        for (const auto &pathUUIDAndreservation : nodeReservation.second) {
+            if (pathUUIDAndreservation.first == kMessage->pathUUID()) {
+                shortageReservation(
+                    nodeReservation.first,
+                    pathUUIDAndreservation.second,
+                    mLastReservedAmount,
+                    pathUUIDAndreservation.first);
+            }
+        }
+    }
 
     sendMessage<CoordinatorReservationResponseMessage>(
         mCoordinator,
         currentNodeUUID(),
         currentTransactionUUID(),
+        kMessage->pathUUID(),
         ResponseMessage::Accepted,
         mLastReservedAmount);
 
-
-    mStep = Stages::IntermediateNode_ReservationProlongation;
+    mStep = Stages::Common_FinalPathConfigurationChecking;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes},
+        {Message::Payments_FinalPathConfiguration},
         maxNetworkDelay(kMaxPathLength));
+
+//    mStep = Stages::IntermediateNode_ReservationProlongation;
+//    return resultWaitForMessageTypes(
+//        {Message::Payments_ParticipantsVotes},
+//        maxNetworkDelay(kMaxPathLength));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()

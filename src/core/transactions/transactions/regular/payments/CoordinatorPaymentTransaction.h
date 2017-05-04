@@ -51,10 +51,6 @@ public:
         throw (bad_alloc);
 
 protected:
-    // TODO: move it into separate *.h file.
-    typedef boost::uuids::uuid PathUUID;
-
-protected:
     // Stages handlers
     // TODO: Add throws specififcations
     TransactionResult::SharedConst runPaymentInitialisationStage ();
@@ -96,6 +92,7 @@ protected:
     TransactionResult::SharedConst tryProcessNextPath();
 
     TransactionResult::SharedConst tryReserveAmountDirectlyOnReceiver (
+        const PathUUID pathUUID,
         PathStats *pathStats);
 
     TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (
@@ -123,6 +120,11 @@ protected:
 
     TrustLineAmount totalReservedByAllPaths() const;
 
+    void dropReservationsOnCurrentPath();
+
+    void sendFinalPathConfiguration(
+        const TrustLineAmount &finalPathAmount);
+
 protected:
     const string logHeader() const;
 
@@ -137,7 +139,7 @@ protected:
 
     // Contains special stats data, such as current msx flow,
     // for all paths involved into the transaction.
-    unordered_map<PathUUID, unique_ptr<PathStats>, boost::hash<boost::uuids::uuid>> mPathsStats;
+    unordered_map<PathUUID, unique_ptr<PathStats>> mPathsStats;
 
     // Used in amount reservations stage.
     // Contains identifier of the path,
@@ -145,7 +147,7 @@ protected:
     // is waiting for request appriving.
     PathUUID mCurrentAmountReservingPathIdentifier;
 
-    unordered_map<PathUUID, unique_ptr<PathStats>, boost::hash<boost::uuids::uuid>>::const_iterator mCurrentAmountReservingPathIterator;
+    vector<PathUUID> mPathUUIDs;
 
     // Reservation stage contains it's own internal steps counter.
     byte mReservationsStage;

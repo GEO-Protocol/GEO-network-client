@@ -59,16 +59,18 @@ public:
 
     void addPath(
         const TrustLineAmount &commonPathAmount,
-        const NodeUUID &incomingNode)
+        const NodeUUID &incomingNode,
+        const PathUUID &pathUUID)
         throw (ValueError, bad_alloc);
 
     void addPath(
         const TrustLineAmount &commonPathAmount,
         const NodeUUID &incomingNode,
-        const NodeUUID &outgoingNode)
+        const NodeUUID &outgoingNode,
+        const PathUUID &pathUUID)
         throw (ValueError, bad_alloc);
 
-    const vector< pair<NodesSet, ConstSharedTrustLineAmount>>& nodesAndFinalReservationAmount()
+    const vector< tuple<NodesSet, ConstSharedTrustLineAmount, PathUUID>>& nodesAndFinalReservationAmount()
         const noexcept;
 
     const MessageType typeID() const;
@@ -79,7 +81,8 @@ public:
 protected:
     void addPath(
         const NodesSet &nodes,
-        const TrustLineAmount &commonPathAmount)
+        const TrustLineAmount &commonPathAmount,
+        const PathUUID &pathUUID)
         throw (ValueError, bad_alloc);
 
 protected:
@@ -111,6 +114,6 @@ protected:
     // Scheme for receiver node:
     // Paths = ({NodeUUID, CommonPathAmount}, ..., {NodeUUID, CommonPathAmount})
     // (second NodeUUID is omitted because receiver node doesn't have outgoing nodes involved into the transaction)
-    vector< pair<NodesSet, ConstSharedTrustLineAmount>> mPathsConfiguration;
+    vector< tuple<NodesSet, ConstSharedTrustLineAmount, PathUUID>> mPathsConfiguration;
 };
 #endif //GEO_NETWORK_CLIENT_PARTICIPANTSFINALCONFIGURATIONMESSAGE_H
