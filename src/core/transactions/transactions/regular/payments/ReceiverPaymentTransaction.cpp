@@ -87,6 +87,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
             kCoordinator,
             currentNodeUUID(),
             currentTransactionUUID(),
+            mMessage->pathUUID(),
             ReceiverInitPaymentResponseMessage::Rejected);
 
         return exitWithResult(
@@ -99,6 +100,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
         kCoordinator,
         currentNodeUUID(),
         currentTransactionUUID(),
+        mMessage->pathUUID(),
         ReceiverInitPaymentResponseMessage::Accepted);
 
 
@@ -142,7 +144,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
     // Note: copy of shared pointer is required.
     const auto kAvailableAmount = mTrustLines->availableIncomingAmount(kNeighbor);
-    if (kMessage->amount() > *kAvailableAmount || ! reserveIncomingAmount(kNeighbor, kMessage->amount())) {
+    if (kMessage->amount() > *kAvailableAmount || ! reserveIncomingAmount(kNeighbor, kMessage->amount(), kMessage->pathUUID())) {
         // Receiver must not confirm reservation in case if requested amount is less than available.
         // Intermediate nodes may decrease requested reservation amount, but receiver must not do this.
         // It must stay synchronised with previous node.
@@ -163,6 +165,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
+            kMessage->pathUUID(),
             ResponseMessage::Rejected);
 
         // Begin accepting other reservation messages
@@ -179,6 +182,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
+            kMessage->pathUUID(),
             ResponseMessage::Rejected);
 
         return reject(
@@ -193,7 +197,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         kNeighbor,
         currentNodeUUID(),
         currentTransactionUUID(),
-        ResponseMessage::Accepted);
+        kMessage->pathUUID(),
+        ResponseMessage::Accepted,
+        kMessage->amount());
 
 
     if (mTotalReserved == mMessage->amount()) {

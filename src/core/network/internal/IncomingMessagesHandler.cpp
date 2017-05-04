@@ -107,6 +107,9 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         case Message::Payments_ParticipantsPathsConfiguration:
             return messageCollected<ParticipantsConfigurationMessage>(messagePart);
 
+        case Message::Payments_FinalPathConfiguration:
+            return messageCollected<FinalPathConfigurationMessage>(messagePart);
+
         /*
          * Cycles processing messages
          */

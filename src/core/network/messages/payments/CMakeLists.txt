@@ -32,7 +32,10 @@ set(SOURCE_FILES
         ParticipantsConfigurationMessage.h
 
         ParticipantsConfigurationRequestMessage.cpp
-        ParticipantsConfigurationRequestMessage.h)
+        ParticipantsConfigurationRequestMessage.h
+
+        FinalPathConfigurationMessage.cpp
+        FinalPathConfigurationMessage.h)
 
 add_library(messages__payments ${SOURCE_FILES})
 target_link_libraries(messages__payments
