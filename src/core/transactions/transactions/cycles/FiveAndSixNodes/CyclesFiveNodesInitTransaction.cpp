@@ -1,5 +1,4 @@
 #include "CyclesFiveNodesInitTransaction.h"
-#include "../../regular/payments/CycleCloserInitiatorTransaction.h"
 
 const BaseTransaction::TransactionType CyclesFiveNodesInitTransaction::transactionType() const{
     return BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction;

@@ -25,13 +25,14 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BytesShared buffer,
+    const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Logger *log)
     throw (bad_alloc) :
     BasePaymentTransaction(
-        BaseTransaction::CoordinatorPaymentTransaction,
         buffer,
+        nodeUUID,
         trustLines,
         storageHandler,
         log)
@@ -1193,13 +1194,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoConsensusE
 pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() const
     throw (bad_alloc)
 {
-    // todo: add implementation
-    return make_pair(make_shared<byte>(0), 0);
+    return BasePaymentTransaction::serializeToBytes();
 }
 
 void CoordinatorPaymentTransaction::deserializeFromBytes(BytesShared buffer)
 {
-    // todo: add implementation
+    BasePaymentTransaction::deserializeFromBytes(buffer);
 }
 
 TrustLineAmount CoordinatorPaymentTransaction::totalReservedByAllPaths() const

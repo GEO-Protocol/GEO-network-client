@@ -37,14 +37,15 @@ BasePaymentTransaction::BasePaymentTransaction(
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
-        const TransactionType type,
         BytesShared buffer,
+        const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Logger *log) :
 
     BaseTransaction(
-        type,
+        buffer,
+        nodeUUID,
         log),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler)
@@ -455,10 +456,10 @@ void BasePaymentTransaction::commit ()
 {
     info() << "Transaction committing...";
 
-    // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
-    {
-        const auto ioTransaction = mStorageHandler->beginTransaction();
-    }
+//    // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
+//    {
+//        const auto ioTransaction = mStorageHandler->beginTransaction();
+//    }
 
     for (const auto &kNodeUUIDAndReservations : mReservations)
         for (const auto &kPathUUIDAndReservation : kNodeUUIDAndReservations.second) {
@@ -477,6 +478,11 @@ void BasePaymentTransaction::commit ()
     saveVotes();
     info() << "Voutes saved.";
     info() << "Transaction committed.";
+    // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
+    {
+        const auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->transactionHandler()->deleteRecord(currentTransactionUUID());
+    }
 }
 
 void BasePaymentTransaction::saveVotes()
@@ -539,10 +545,15 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
     if (message != nullptr)
         info() << message;
 
+    if(mTransactionIsVoted){
+        mStep = Stages::Common_VotesRecoveryStage;
+        mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
+        return runVotesRecoveryParentStage();
+    } else {
+        return resultDone();
+    }
 
-    mStep = Stages::Common_Recovery;
-    mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
-    return runVotesRecoveryParentStage();
+
 }
 
 uint32_t BasePaymentTransaction::maxNetworkDelay (
@@ -778,4 +789,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
     }
     // No nodes left to be asked. reject
     return reject("");
+}
+
+pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const {
+    return BaseTransaction::serializeToBytes();
 }

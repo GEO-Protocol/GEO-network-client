@@ -45,11 +45,13 @@ public:
         Logger *log);
 
     BasePaymentTransaction(
-        const TransactionType type,
         BytesShared buffer,
+        const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         Logger *log);
+
+    virtual pair<BytesShared, size_t> serializeToBytes() const;
 
 protected:
     enum Stages {
@@ -78,7 +80,7 @@ protected:
     enum VotesRecoveryStages {
         Common_PrepareNodesListToCheckVotes,
         Common_CheckCoordinatorVotesStage,
-        Common_CheckIntermediateNodeVotesStage,
+        Common_CheckIntermediateNodeVotesStage
     };
 
 protected:

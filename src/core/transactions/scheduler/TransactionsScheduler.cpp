@@ -218,7 +218,7 @@ void TransactionsScheduler::processTransactionState(
 
     if (state->mustBeRescheduled()){
         if (state->needSerialize())
-            serializeTransaction(transaction);
+            serializeTransactionSignal(transaction);
 
         // From the C++ reference:
         //
@@ -234,26 +234,6 @@ void TransactionsScheduler::processTransactionState(
     } else {
         forgetTransaction(transaction);
     }
-}
-
-void TransactionsScheduler::serializeTransaction(
-    BaseTransaction::Shared transaction) {
-
-    auto transactionBytesAndCount = transaction->serializeToBytes();
-//    if (!mStorage->isExist(storage::uuids::uuid(transaction->currentTransactionUUID()))) {
-//        mStorage->write(
-//            storage::uuids::uuid(transaction->currentTransactionUUID()),
-//            transactionBytesAndCount.first.get(),
-//            transactionBytesAndCount.second
-//        );
-//
-//    } else {
-//        mStorage->rewrite(
-//            storage::uuids::uuid(transaction->currentTransactionUUID()),
-//            transactionBytesAndCount.first.get(),
-//            transactionBytesAndCount.second
-//        );
-//    }
 }
 
 void TransactionsScheduler::forgetTransaction(
@@ -395,4 +375,8 @@ const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
     TransactionsScheduler *scheduler) {
 
     return scheduler->mTransactions.get();
+}
+
+void TransactionsScheduler::addTransactionAndState(BaseTransaction::Shared transaction, TransactionState::SharedConst state) {
+    mTransactions->insert(make_pair(transaction, state));
 }

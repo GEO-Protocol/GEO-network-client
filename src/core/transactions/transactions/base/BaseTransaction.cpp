@@ -20,6 +20,16 @@ BaseTransaction::BaseTransaction(
 {}
 
 BaseTransaction::BaseTransaction(
+    BytesShared buffer,
+    const NodeUUID &nodeUUID,
+    Logger *log) :
+    mLog(log),
+    mNodeUUID(nodeUUID)
+{
+    deserializeFromBytes(buffer);
+}
+
+BaseTransaction::BaseTransaction(
     const TransactionType type,
     const NodeUUID &nodeUUID,
     Logger *log) :
@@ -143,9 +153,7 @@ void BaseTransaction::clearContext() {
 }
 
 pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const {
-
     size_t bytesCount = sizeof(SerializedTransactionType) +
-        NodeUUID::kBytesSize +
         TransactionUUID::kBytesSize +
         sizeof(uint16_t);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -165,13 +173,6 @@ pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const {
         TransactionUUID::kBytesSize
     );
     dataBytesOffset += TransactionUUID::kBytesSize;
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mNodeUUID.data,
-        NodeUUID::kBytesSize
-    );
-    dataBytesOffset += NodeUUID::kBytesSize;
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
@@ -200,13 +201,6 @@ void BaseTransaction::deserializeFromBytes(
         TransactionUUID::kBytesSize
     );
     bytesBufferOffset += TransactionUUID::kBytesSize;
-    //-----------------------------------------------------
-    memcpy(
-        mNodeUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
-    bytesBufferOffset += NodeUUID::kBytesSize;
     //-----------------------------------------------------
     uint16_t *step = new (buffer.get() + bytesBufferOffset) uint16_t;
     mStep = *step;

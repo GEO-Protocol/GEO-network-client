@@ -1,6 +1,5 @@
 #include "CyclesThreeNodesInitTransaction.h"
 
-
 CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,

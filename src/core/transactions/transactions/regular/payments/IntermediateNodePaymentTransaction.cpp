@@ -22,15 +22,16 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BytesShared buffer,
+    const NodeUUID &nodeUUID,
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
     Logger* log) :
         BasePaymentTransaction(
-            BaseTransaction::IntermediateNodePaymentTransaction,
-            buffer,
-            trustLines,
-            storageHandler,
-            log)
+                buffer,
+                nodeUUID,
+                trustLines,
+                storageHandler,
+                log)
 {}
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()

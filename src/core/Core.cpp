@@ -635,12 +635,6 @@ void Core::writePIDFile()
 }
 
 void Core::checkSomething() {
-    const NodeUUID debugNodeUUID = NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
-    if(mNodeUUID == debugNodeUUID) {
-        cout << "Debug mode. checkSomething" << endl;
-//        return recover("Debug recover");
-    }
-    printRTs();
 }
 
 void Core::printRTs() {

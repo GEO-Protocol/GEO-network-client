@@ -22,14 +22,15 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
 
 CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     BytesShared buffer,
+    const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     Logger *log)
     throw (bad_alloc) :
 
     BasePaymentTransaction(
-        BaseTransaction::Payments_CycleCloserInitiatorTransaction,
         buffer,
+        nodeUUID,
         trustLines,
         storageHandler,
         log)

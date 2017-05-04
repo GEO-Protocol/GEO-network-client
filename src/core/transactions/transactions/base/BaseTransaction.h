@@ -37,9 +37,6 @@ public:
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
 
-    // todo: [review: hsc]: move this out of here!
-    typedef signals::signal<void(shared_ptr<vector<NodeUUID>>)> LaunchCloseCycleSignal;
-
 public:
     // TODO: add other states shortcuts here
     TransactionResult::Shared resultDone () const;
@@ -150,6 +147,11 @@ protected:
     BaseTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
+        const NodeUUID &nodeUUID,
+        Logger *log=nullptr);
+
+    BaseTransaction(
+        BytesShared buffer,
         const NodeUUID &nodeUUID,
         Logger *log=nullptr);
 

@@ -247,9 +247,6 @@ private:
     void launchTestCloseCycleTransaction(
         CycleCloserCommand::Shared command);
 
-    void launchCloseCycleTransaction(
-        shared_ptr<vector<NodeUUID>>);
-
     // routing tables exchange transactions
     void launchTrustLineStatesHandlerTransaction(
         NotificationTrustLineCreatedMessage::Shared message);
@@ -270,10 +267,9 @@ private:
     void subscribeForCommandResult(
         TransactionsScheduler::CommandResultSignal &signal);
 
-    void subscribeCloseCycleTransaction(
-         BaseTransaction::LaunchCloseCycleSignal &signal);
+    void subscribeForSerializeTransaction(
+        TransactionsScheduler::SerializeTransactionSignal &signal);
 
-    
     // Slots
     void onSubsidiaryTransactionReady(
         BaseTransaction::Shared transaction);
@@ -284,6 +280,9 @@ private:
 
     void onCommandResultReady(
         CommandResult::SharedConst result);
+
+    void onSerializeTransaction(BaseTransaction::Shared transaction);
+
 
 protected:
     void prepareAndSchedule(
