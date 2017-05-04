@@ -9,6 +9,7 @@
 #include "../../../../../logger/Logger.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../../io/storage/StorageHandler.h"
 
 #include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
@@ -19,6 +20,7 @@
 #include "../../../../../network/messages/payments/ParticipantsConfigurationRequestMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsVotesMessage.h"
+#include "../../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 
 
 // TODO: Add restoring of the reservations after transaction deserialization.
@@ -30,6 +32,7 @@ public:
         const TransactionType type,
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
         Logger *log);
 
     BasePaymentTransaction(
@@ -37,20 +40,24 @@ public:
         const TransactionUUID &transactionUUID,
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
         Logger *log);
 
     BasePaymentTransaction(
         const TransactionType type,
         BytesShared buffer,
         TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
         Logger *log);
 
 protected:
     enum Stages {
         Coordinator_Initialisation = 1,
+        Coordinator_ReceiverResourceProcessing,
         Coordinator_ReceiverResponseProcessing,
         Coordinator_AmountReservation,
         Coordinator_ShortPathAmountReservationResponseProcessing,
+        Coordinator_PreviousNeighborRequestProcessing,
         Coordinator_FinalPathsConfigurationApproving,
 
         Receiver_CoordinatorRequestApproving,
@@ -63,6 +70,13 @@ protected:
 
         Common_VotesChecking,
         Common_FinalPathsConfigurationChecking,
+        Common_Recovery
+    };
+
+    enum VotesRecoveryStages {
+        Common_PrepareNodesListToCheckVotes,
+        Common_CheckCoordinatorVotesStage,
+        Common_CheckIntermediateNodeVotesStage
     };
 
     // Stages handlers
@@ -75,10 +89,19 @@ protected:
         const char *message = nullptr);
     virtual TransactionResult::SharedConst reject(
         const char *message = nullptr);
+    virtual TransactionResult::SharedConst cancel(
+        const char *message = nullptr);
 
     TransactionResult::SharedConst exitWithResult(
         const TransactionResult::SharedConst result,
         const char *message=nullptr);
+
+    TransactionResult::SharedConst runVotesRecoveryParentStage();
+    TransactionResult::SharedConst sendVotesRequestMessageAndWaitForResponse(const NodeUUID &contractorUUID);
+    TransactionResult::SharedConst runPrepareListNodesToCheckNodes();
+    TransactionResult::SharedConst runCheckCoordinatorVotesStage();
+    TransactionResult::SharedConst runCheckIntermediateNodeVotesSage();
+
 
 protected:
     const bool reserveOutgoingAmount(
@@ -94,6 +117,7 @@ protected:
         const AmountReservation::ConstShared kReservation,
         const TrustLineAmount &kNewAmount);
 
+    void saveVotes();
     void commit();
     void rollBack();
 
@@ -121,10 +145,14 @@ protected:
     // Specifies how long node may process transaction for some decision.
     static const uint16_t kExpectedNodeProcessingDelay = 1500; // milliseconds;
 
+    // Specifies how long node must wait for the resources from other transaction
+    static const uint16_t kMaxResourceTransferLagMSec = 2000; //
+
     static const auto kMaxPathLength = 7;
 
 protected:
     TrustLinesManager *mTrustLines;
+    StorageHandler *mStorageHandler;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.
@@ -139,6 +167,10 @@ protected:
     ParticipantsVotesMessage::Shared mParticipantsVotesMessage;
 
     map<NodeUUID, vector<AmountReservation::ConstShared>> mReservations;
+
+    // Votes recovery
+    vector<NodeUUID> mNodesToCheckVotes;
+    NodeUUID mCurrentNodeToCheckVotes;
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

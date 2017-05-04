@@ -8,6 +8,9 @@ class NotificationTrustLineCreatedMessage:
     public NotificationTrustLineRemovedMessage {
 
 public:
+    typedef shared_ptr<NotificationTrustLineCreatedMessage> Shared;
+
+public:
     using NotificationTrustLineRemovedMessage::NotificationTrustLineRemovedMessage;
 
     virtual const MessageType typeID() const

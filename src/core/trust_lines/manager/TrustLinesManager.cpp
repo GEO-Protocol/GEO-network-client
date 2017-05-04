@@ -1,11 +1,11 @@
 ﻿#include "TrustLinesManager.h"
 
 TrustLinesManager::TrustLinesManager(
-    TrustLineHandler *trustLineHandler,
+    StorageHandler *storageHandler,
     Logger *logger)
     throw (bad_alloc, IOError) :
 
-    mTrustLineHandler(trustLineHandler),
+    mStorageHandler(storageHandler),
     mLogger(logger)
 {
     mAmountReservationsHandler = make_unique<AmountReservationsHandler>();
@@ -16,7 +16,8 @@ TrustLinesManager::TrustLinesManager(
 void TrustLinesManager::loadTrustLinesFromDisk ()
     throw (IOError)
 {
-    const auto kTrustLines = mTrustLineHandler->allTrustLines();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    const auto kTrustLines = ioTransaction->trustLineHandler()->allTrustLines();
     mTrustLines.reserve(kTrustLines.size());
 
     for (auto const kTrustLine : kTrustLines) {
@@ -352,7 +353,7 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
     const auto kAvailableAmount = *(kTL->availableAmount());
 
     // Previous reservation would be removed (updated),
-    // so it's amount must be added to the the available maount on the trust line.
+    // so it's amount must be added to the the available amount on the trust line.
     if (kAvailableAmount + reservation->amount() >= newAmount)
         return mAmountReservationsHandler->updateReservation(
             contractor,
@@ -416,8 +417,8 @@ void TrustLinesManager::saveToDisk(
     if (trustLineIsPresent(trustLine->contractorNodeUUID())) {
         alreadyExisted = true;
     }
-    mTrustLineHandler->saveTrustLine(trustLine);
-    mTrustLineHandler->commit();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->trustLineHandler()->saveTrustLine(trustLine);
     try {
         mTrustLines.insert(
             make_pair(
@@ -449,7 +450,8 @@ void TrustLinesManager::removeTrustLine(
     const NodeUUID &contractorUUID) {
 
     if (trustLineIsPresent(contractorUUID)) {
-        mTrustLineHandler->deleteTrustLine(
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->trustLineHandler()->deleteTrustLine(
             contractorUUID);
         mTrustLines.erase(contractorUUID);
 

@@ -36,12 +36,12 @@ protected:
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 protected:
+    const string logHeader() const;
     set<NodeUUID> getNeighborsWithContractor();
 
 protected:
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
     RoutingTablesHandler *mRoutingTablesHandler;
 };
 

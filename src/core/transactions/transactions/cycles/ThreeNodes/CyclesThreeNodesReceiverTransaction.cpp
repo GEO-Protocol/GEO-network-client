@@ -12,7 +12,6 @@ CyclesThreeNodesReceiverTransaction::CyclesThreeNodesReceiverTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(manager),
-    mLogger(logger),
     mRequestMessage(message)
 {}
 
@@ -44,5 +43,11 @@ TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run() {
     return finishTransaction();
 }
 
+const string CyclesThreeNodesReceiverTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesThreeNodesReceiverTransactionTA: " << currentTransactionUUID() << "] ";
 
+    return s.str();
+}
 

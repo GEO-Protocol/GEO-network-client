@@ -7,7 +7,7 @@ Core::Core() {
 
 Core::~Core() {
 
-    cleanupMemory();
+//    cleanupMemory();
 }
 
 int Core::run() {
@@ -22,7 +22,7 @@ int Core::run() {
 
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
-
+        checkSomething();
         mLog.logSuccess("Core", "Processing started.");
         mIOService.run();
         return 0;
@@ -61,10 +61,6 @@ int Core::initCoreComponents() {
         mLog.logFatal("Core", "Can't read UUID of the node from the settings.");
         return -1;
     }
-
-    initCode = initOperationsHistoryStorage();
-    if (initCode != 0)
-        return initCode;
 
     initCode = initCommunicator(conf);
     if (initCode != 0)
@@ -150,23 +146,6 @@ int Core::initSettings() {
     }
 }
 
-int Core::initOperationsHistoryStorage() {
-
-    try{
-        mOperationsHistoryStorage = new history::OperationsHistoryStorage(
-            "io/history",
-            "operations_storage.dat");
-
-        mLog.logSuccess("Core", "Operations history storage is successfully initialised");
-        return 0;
-
-    } catch (const std::exception &e) {
-        mLog.logException("Core", e);
-        return -1;
-    }
-
-}
-
 int Core::initCommunicator(
     const json &conf) {
 
@@ -206,7 +185,7 @@ int Core::initTrustLinesManager() {
 
     try{
         mTrustLinesManager = new TrustLinesManager(
-            mStorageHandler->trustLineHandler(),
+            mStorageHandler,
             &mLog);
         mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
         return 0;
@@ -266,7 +245,6 @@ int Core::initTransactionsManager() {
             mMaxFlowCalculationTrustLimeManager,
             mMaxFlowCalculationCacheManager,
             mResultsInterface,
-            mOperationsHistoryStorage,
             mStorageHandler,
             mPathsManager,
             &mLog
@@ -397,16 +375,16 @@ void Core::connectTrustLinesManagerSignals() {
 
 void Core::connectDelayedTasksSignals(){
     mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskCycleSixNodesSlot,
-                    this
-            )
+        boost::bind(
+            &Core::onDelayedTaskCycleSixNodesSlot,
+            this
+        )
     );
     mCyclesDelayedTasks->mFiveNodesCycleSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskCycleFiveNodesSlot,
-                    this
-            )
+        boost::bind(
+            &Core::onDelayedTaskCycleFiveNodesSlot,
+            this
+        )
     );
     #ifdef TESTS
     mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
@@ -550,10 +528,6 @@ void Core::cleanupMemory() {
         delete mSettings;
     }
 
-    if (mOperationsHistoryStorage != nullptr) {
-        delete mOperationsHistoryStorage;
-    }
-
     if (mCommunicator != nullptr) {
         delete mCommunicator;
     }
@@ -602,7 +576,6 @@ void Core::cleanupMemory() {
 void Core::zeroPointers() {
 
     mSettings = nullptr;
-    mOperationsHistoryStorage = nullptr;
     mCommunicator = nullptr;
     mCommandsInterface = nullptr;
     mResultsInterface = nullptr;
@@ -662,20 +635,18 @@ void Core::writePIDFile()
 }
 
 void Core::checkSomething() {
-    auto debtorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
-    stringstream ss;
-    copy(debtorsNeighborsUUIDs.begin(), debtorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
-    cout << "Nodes With positive balance: \n" << ss.str() << endl;
-    auto creditorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
-    stringstream ss1;
-    copy(creditorsNeighborsUUIDs.begin(), creditorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss1, "\n"));
-    cout << "Nodes With negative balance: \n" << ss1.str() << endl;
+    const NodeUUID debugNodeUUID = NodeUUID("c3642755-7b0a-4420-b7b0-2dcf578d88ca");
+    if(mNodeUUID == debugNodeUUID) {
+        cout << "Debug mode. checkSomething" << endl;
+//        return recover("Debug recover");
+    }
+    printRTs();
 }
 
 void Core::printRTs() {
     NodeUUID *some_node = new NodeUUID("65b84dc1-31f8-45ce-8196-8efcc7648777");
     NodeUUID *dest_node = new NodeUUID("5062d6a9-e06b-4bcc-938c-6d9bd082f0eb");
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*some_node, *dest_node);
+    mStorageHandler->routingTablesHandler()->setRecordToRT2(*some_node, *dest_node);
 
     cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
     for (const auto itTrustLine : mTrustLinesManager->trustLines()) {

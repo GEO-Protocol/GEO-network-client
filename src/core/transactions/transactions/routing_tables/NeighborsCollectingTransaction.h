@@ -3,7 +3,7 @@
 
 #include "../base/BaseTransaction.h"
 
-#include "../../../io/storage/RoutingTablesHandler.h"
+#include "../../../io/storage/StorageHandler.h"
 #include "../../../network/messages/routing_tables/NeighborsRequestMessage.h"
 #include "../../../network/messages/routing_tables/NeighborsResponseMessage.h"
 
@@ -37,9 +37,11 @@ class NeighborsCollectingTransaction:
 
 public:
     NeighborsCollectingTransaction(
+        const NodeUUID &nodeUUID,
         const NodeUUID &destinationNode,
+        const NodeUUID &initiatorNode,
         const uint8_t hopDistance,
-        RoutingTablesHandler *routingTables,
+        StorageHandler *storageHandler,
         Logger *logger)
         noexcept;
 
@@ -72,8 +74,11 @@ protected:
         noexcept;
 
 protected:
+    const string logHeader() const;
+
+protected:
     enum Stages {
-        NeighborsRequestSending,
+        NeighborsRequestSending = 1,
         NeighborsInfoProcessing
     };
 
@@ -81,6 +86,11 @@ protected:
      * UUID of the node, that must be asked for neighbors info.
      */
     const NodeUUID mDestinationNodeUUID;
+
+    /*
+     * UUID of the node, trust lines of which are forbidden to insert.
+     */
+    const NodeUUID mForbiddenForPopulatingNode;
 
     /*
      * Intermediate nodes count between the node that created or updated it's trust line,
@@ -97,7 +107,7 @@ protected:
      */
     bool mSecondLevelNeighborsMustAlsoBeScanned;
 
-    RoutingTablesHandler *mRoutingTables;
+    StorageHandler *mStorageHandler;
 };
 
 

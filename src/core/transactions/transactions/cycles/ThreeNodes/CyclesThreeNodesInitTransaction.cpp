@@ -13,7 +13,6 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
         logger),
     mRoutingTablesHandler(routingTablesHandler),
     mTrustLinesManager(manager),
-    mLogger(logger),
     mContractorUUID(contractorUUID)
 {}
 
@@ -38,11 +37,6 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
     const auto contractorNeighbors =
         mRoutingTablesHandler->neighborsOfOnRT2(
             mContractorUUID);
-    cout << "CyclesThreeNodesInitTransaction::mContractorUUID " << mContractorUUID << endl;
-    stringstream ss;
-    copy(contractorNeighbors.begin(), contractorNeighbors.end(), ostream_iterator<NodeUUID>(ss, " "));
-    cout << ss.str() << endl;
-    cout << "CyclesThreeNodesInitTransaction::End" << endl;
     set<NodeUUID> ownNeighbors, commonNeighbors;
     for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()){
 
@@ -113,4 +107,12 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     #endif
 
     return finishTransaction();
+}
+
+const string CyclesThreeNodesInitTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesThreeNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
+
+    return s.str();
 }

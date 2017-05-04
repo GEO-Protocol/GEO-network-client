@@ -64,6 +64,7 @@ public:
         // Routing tables
         RoutingTables_TrustLineStatesHandler,
         RoutingTables_NeighborsCollecting,
+        RoutingTables_GetFirstRoutingTable,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction,
@@ -79,6 +80,8 @@ public:
         CoordinatorPaymentTransaction,
         ReceiverPaymentTransaction,
         IntermediateNodePaymentTransaction,
+        VoutesStatusResponsePaymentTransaction,
+        CycleCloserInitiatorTransaction,
 
         // Max flow calculation
         InitiateMaxFlowCalculationTransactionType,
@@ -239,6 +242,7 @@ protected:
     uint16_t mkExpectationResponsesCount = 0;
     uint16_t mkWaitingForResponseTime = 3000;
     uint16_t mStep = 1;
+    uint8_t mVotesRecoveryStep = 0;
 
 protected:
     TransactionType mType;

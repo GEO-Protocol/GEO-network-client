@@ -12,8 +12,6 @@
 #        time
 #        exceptions
 #
-#        db__operations_history_storage
-#
 #        settings
 #        network
 #

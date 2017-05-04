@@ -2,19 +2,24 @@
 
 TrustLineTransaction::TrustLineTransaction(
     const BaseTransaction::TransactionType type,
-    const NodeUUID &nodeUUID) :
+    const NodeUUID &nodeUUID,
+    Logger *logger) :
 
     BaseTransaction(
         type,
-        nodeUUID) {
+        nodeUUID,
+        logger) {
 
     setExpectationResponsesCounter(kResponsesCount);
 }
 
 TrustLineTransaction::TrustLineTransaction(
-    const BaseTransaction::TransactionType type) :
+    const BaseTransaction::TransactionType type,
+    Logger *logger) :
 
-    BaseTransaction(type) {
+    BaseTransaction(
+        type,
+        logger) {
 
     setExpectationResponsesCounter(kResponsesCount);
 }

@@ -10,7 +10,10 @@
 #include "../messages/trust_lines/UpdateTrustLineMessage.h"
 #include "../messages/trust_lines/RejectTrustLineMessage.h"
 
-// todo: include routing table
+#include "../messages/routing_tables/NotificationTrustLineCreatedMessage.h"
+#include "../messages/routing_tables/NotificationTrustLineRemovedMessage.h"
+#include "../messages/routing_tables/NeighborsRequestMessage.h"
+#include "../messages/routing_tables/NeighborsResponseMessage.h"
 
 #include "../messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
@@ -27,6 +30,7 @@
 #include "../messages/payments/ParticipantsVotesMessage.h"
 #include "../messages/payments/ParticipantsConfigurationRequestMessage.h"
 #include "../messages/payments/ParticipantsConfigurationMessage.h"
+#include "../messages/payments/VotesStatusRequestMessage.hpp"
 #include "../messages/response/Response.h"
 #include "../messages/total_balances/InitiateTotalBalancesMessage.h"
 #include "../messages/total_balances/TotalBalancesResultMessage.h"
@@ -41,7 +45,8 @@
 #include "../messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 #include "../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
-
+#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
+#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/ConflictError.h"
@@ -138,6 +143,9 @@ private:
 
     unique_ptr<MessagesParser> mMessagesParser;
     vector<byte> mPacketsBuffer;
+
+    size_t realPacketNumber = 0;
+    size_t previousChannel = 0;
 };
 
 #endif //GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H

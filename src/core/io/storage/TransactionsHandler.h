@@ -1,5 +1,5 @@
-#ifndef GEO_NETWORK_CLIENT_TRANSACTIONHANDLER_H
-#define GEO_NETWORK_CLIENT_TRANSACTIONHANDLER_H
+#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSHANDLER_H
+#define GEO_NETWORK_CLIENT_TRANSACTIONSHANDLER_H
 
 #include "../../logger/Logger.h"
 #include "../../transactions/transactions/base/TransactionUUID.h"
@@ -10,11 +10,12 @@
 
 #include "../../../libs/sqlite3/sqlite3.h"
 
-class TransactionHandler {
+#include <vector>
+
+class TransactionsHandler {
 
 public:
-
-    TransactionHandler(
+    TransactionsHandler(
         sqlite3 *dbConnection,
         const string &tableName,
         Logger *logger);
@@ -30,16 +31,9 @@ public:
     void deleteRecord(
         const TransactionUUID &transactionUUID);
 
-    bool commit();
-
-    void rollBack();
-
-    void closeConnection();
+    vector<pair<BytesShared, size_t>> allTransactions();
 
 private:
-
-    void prepareInserted();
-
     LoggerStream info() const;
 
     LoggerStream error() const;
@@ -47,13 +41,10 @@ private:
     const string logHeader() const;
 
 private:
-
     sqlite3 *mDataBase = nullptr;
     string mTableName;
     Logger *mLog;
-    bool isTransactionBegin;
-
 };
 
 
-#endif //GEO_NETWORK_CLIENT_TRANSACTIONHANDLER_H
+#endif //GEO_NETWORK_CLIENT_TRANSACTIONSHANDLER_H

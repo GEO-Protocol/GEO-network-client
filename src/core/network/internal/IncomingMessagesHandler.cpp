@@ -1,6 +1,4 @@
 ﻿#include "IncomingMessagesHandler.h"
-#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
-#include "../messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 
 pair<bool, Message::Shared> MessagesParser::processMessage(
     BytesShared messagePart,
@@ -15,11 +13,8 @@ pair<bool, Message::Shared> MessagesParser::processMessage(
 
 pair<bool, Message::Shared> MessagesParser::tryDeserializeMessage(
     BytesShared messagePart) {
-//    cout << "_________________________" << endl;
-//    cout << "MessagesParser::tryDeserializeMessage " << endl;
     try {
         uint16_t *messageIdentifier = new (messagePart.get()) uint16_t;
-//        cout << messageIdentifier << ";" << *messageIdentifier << endl;
         auto deserializedData = tryDeserializeRequest(
             *messageIdentifier,
             messagePart
@@ -64,33 +59,20 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
             );
         }
 
-    // todo: remove
-//        case Message::FirstLevelRoutingTableOutgoingMessageType: {
-//            return make_pair(
-//                true,
-//                static_pointer_cast<Message>(
-//                    make_shared<FirstLevelRoutingTableIncomingMessage>(messagePart)
-//                )
-//            );
-//        }
-//
-//        case Message::SecondLevelRoutingTableOutgoingMessageType: {
-//            return make_pair(
-//                true,
-//                static_pointer_cast<Message>(
-//                    make_shared<SecondLevelRoutingTableIncomingMessage>(messagePart)
-//                )
-//            );
-//        }
-//
-//        case Message::RoutingTableUpdateOutgoingMessageType: {
-//            return make_pair(
-//                true,
-//                static_pointer_cast<Message>(
-//                    make_shared<RoutingTableUpdateIncomingMessage>(messagePart)
-//                )
-//            );
-//        }
+        /*
+         * Routing tables exchange messages
+         */
+        case Message::RoutingTables_NotificationTrustLineCreated:
+            return messageCollected<NotificationTrustLineCreatedMessage>(messagePart);
+
+        case Message::RoutingTables_NotificationTrustLineRemoved:
+            return messageCollected<NotificationTrustLineRemovedMessage>(messagePart);
+
+        case Message::RoutingTables_NeighborsRequest:
+            return messageCollected<NeighborsRequestMessage>(messagePart);
+
+        case Message::RoutingTables_NeighborsResponse:
+            return messageCollected<NeighborsResponseMessage>(messagePart);
 
         /*
          * Payment operations messages
@@ -122,9 +104,12 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         case Message::Payments_ParticipantsPathsConfiguration:
             return messageCollected<ParticipantsConfigurationMessage>(messagePart);
 
-        /*
-         * Cycles processing messages
-         */
+        case Message::Payments_VotesStatusRequest:
+            return messageCollected<VotesStatusRequestMessage>(messagePart);
+
+            /*
+             * Cycles processing messages
+             */
         case Message::Cycles_SixNodesMiddleware: {
             return make_pair(
                 true,
@@ -400,6 +385,10 @@ void IncomingMessagesHandler::tryCollectPacket(
                 *bytesCount,
                 bytesBodySharedConst
             );
+            if (*channelNumber != previousChannel) {
+                previousChannel = *channelNumber;
+                realPacketNumber = 0;
+            }
 
         } catch (bad_alloc &) {
             throw MemoryError("IncomingMessagesHandler::tryCollectPacket: "

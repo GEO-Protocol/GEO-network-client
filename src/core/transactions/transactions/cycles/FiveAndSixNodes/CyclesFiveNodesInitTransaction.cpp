@@ -39,10 +39,7 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
 #pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     if (mContext.size() == 0) {
-        info() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
-                "No responses messages "
-                "Can't create cycles;";
-
+        info() << "No responses messages are present. Can't create cycles paths";
         return resultDone();
     }
     TrustLineBalance zeroBalance = 0;
@@ -124,3 +121,10 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
     return resultDone();
 }
 #pragma clang diagnostic pop
+
+const string CyclesFiveNodesInitTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesFiveNodesInitTA: " << currentTransactionUUID() << "] ";
+    return s.str();
+}

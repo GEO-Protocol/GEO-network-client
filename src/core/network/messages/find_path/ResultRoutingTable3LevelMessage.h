@@ -17,7 +17,6 @@ public:
     typedef shared_ptr<ResultRoutingTable3LevelMessage> Shared;
 
 public:
-
     ResultRoutingTable3LevelMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID &transactionUUID,
@@ -41,9 +40,7 @@ private:
     size_t rt3ByteSize() const;
 
 private:
-
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> mRT3;
-
 };
 
 

@@ -8,9 +8,10 @@ CyclesFiveNodesReceiverTransaction::CyclesFiveNodesReceiverTransaction(
     Logger *logger) :
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_FiveNodesReceiverTransaction,
-        nodeUUID),
+        nodeUUID,
+        logger
+    ),
     mTrustLinesManager(manager),
-    mLogger(logger),
     mInBetweenNodeTopologyMessage(message)
 {}
 
@@ -56,4 +57,10 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run() {
 
 }
 #pragma clang diagnostic pop
+const string CyclesFiveNodesReceiverTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesFiveNodesReceiverTransactionTA: " << currentTransactionUUID() << "] ";
 
+    return s.str();
+}

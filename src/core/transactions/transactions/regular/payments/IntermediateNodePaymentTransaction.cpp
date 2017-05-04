@@ -5,6 +5,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     const NodeUUID& currentNodeUUID,
     IntermediateNodeReservationRequestMessage::ConstShared message,
     TrustLinesManager* trustLines,
+    StorageHandler *storageHandler,
     Logger* log) :
 
     BasePaymentTransaction(
@@ -12,6 +13,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         trustLines,
+        storageHandler,
         log),
     mMessage(message)
 {
@@ -21,13 +23,14 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BytesShared buffer,
     TrustLinesManager* trustLines,
+    StorageHandler *storageHandler,
     Logger* log) :
-
-    BasePaymentTransaction(
-        BaseTransaction::IntermediateNodePaymentTransaction,
-        buffer,
-        trustLines,
-        log)
+        BasePaymentTransaction(
+            BaseTransaction::IntermediateNodePaymentTransaction,
+            buffer,
+            trustLines,
+            storageHandler,
+            log)
 {}
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
@@ -51,6 +54,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
     case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
 
+    case Stages::Common_Recovery:
+        return runVotesRecoveryParentStage();
+
     default:
         throw RuntimeError(
             "IntermediateNodePaymentTransaction::run: "
@@ -66,6 +72,7 @@ pair<BytesShared, size_t> IntermediateNodePaymentTransaction::serializeToBytes()
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNeighborRequestProcessingStage()
 {
+    info() << "runPreviousNeighborRequestProcessingStage";
     const auto kNeighbor = mMessage->senderUUID;
     info() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
     info() << "Requested amount reservation: " << mMessage->amount();
@@ -102,6 +109,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage()
 {
+    info() << "runCoordinatorRequestProcessingStage";
     if (! contextIsValid(Message::Payments_CoordinatorReservationRequest))
         return reject("No coordinator request received. Rolled back.");
 
@@ -151,8 +159,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
 {
+    info() << "runNextNeighborResponseProcessingStage";
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse))
-        reject("No valid amount reservation response received. Rolled back.");
+        return reject("No valid amount reservation response received. Rolled back.");
 
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
@@ -170,6 +179,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
 
     info() << "(" << kContractor << ") accepted amount reservation.";
+
+    // TODO : shortage reservation
+
     sendMessage<CoordinatorReservationResponseMessage>(
         mCoordinator,
         currentNodeUUID(),
@@ -186,6 +198,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
 {
+    info() << "runReservationProlongationStage";
     // In case if participants votes message is already received -
     // there is no need to prolong reservation, transaction may be proceeded.
     if (! mContext.empty())

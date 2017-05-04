@@ -20,6 +20,9 @@ public:
     mutable LaunchCloseCycleSignal closeCycleSignal;
 
 protected:
+    const string logHeader() const;
+
+protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 

@@ -37,6 +37,10 @@ public:
     ParticipantsVotesMessage(
         BytesShared buffer);
 
+    ParticipantsVotesMessage(
+        const NodeUUID &senderUUID,
+        const ParticipantsVotesMessage::Shared &message);
+
     void addParticipant(
         const NodeUUID &participant);
 

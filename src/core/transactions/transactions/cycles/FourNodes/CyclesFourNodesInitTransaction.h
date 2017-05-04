@@ -35,13 +35,13 @@ protected:
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 protected:
+    const string logHeader() const;
     set<NodeUUID> commonNeighborsForDebtorAndCreditorNodes();
 
 protected:
     NodeUUID mDebtorContractorUUID;
     NodeUUID mCreditorContractorUUID;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
     RoutingTablesHandler *mRoutingTablesHandler;
 };
 

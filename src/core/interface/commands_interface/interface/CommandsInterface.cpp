@@ -185,6 +185,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == CycleCloserCommand::identifier()) {
+            command = new CycleCloserCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == FindPathCommand::identifier()) {
             command = new FindPathCommand(
                 uuid,

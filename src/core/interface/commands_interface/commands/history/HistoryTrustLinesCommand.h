@@ -23,14 +23,12 @@ public:
     const size_t historyCount() const;
 
 protected:
-
     void parse(
             const string &command);
 
 private:
     size_t mHistoryFrom;
     size_t mHistoryCount;
-
 };
 
 

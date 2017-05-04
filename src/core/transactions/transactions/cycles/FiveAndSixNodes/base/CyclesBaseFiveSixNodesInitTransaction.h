@@ -28,10 +28,10 @@ protected:
 
     virtual TransactionResult::SharedConst runCollectDataAndSendMessagesStage() = 0;
     virtual TransactionResult::SharedConst runParseMessageAndCreateCyclesStage() = 0;
+    virtual const string logHeader() const = 0;
 
 protected:
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESINITTRANSACTION_H

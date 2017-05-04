@@ -5,6 +5,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     const NodeUUID &currentNodeUUID,
     ReceiverInitPaymentRequestMessage::ConstShared message,
     TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
     Logger *log) :
 
     BasePaymentTransaction(
@@ -12,6 +13,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         trustLines,
+        storageHandler,
         log),
     mMessage(message),
     mTotalReserved(0)
@@ -22,13 +24,14 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
     Logger *log) :
-
-    BasePaymentTransaction(
-        BaseTransaction::ReceiverPaymentTransaction,
-        buffer,
-        trustLines,
-        log)
+        BasePaymentTransaction(
+            BaseTransaction::ReceiverPaymentTransaction,
+            buffer,
+            trustLines,
+            storageHandler,
+            log)
 {
     deserializeFromBytes(buffer);
 }
@@ -47,6 +50,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
 
     case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
+
+    case Stages::Common_Recovery:
+        return runVotesRecoveryParentStage();
 
     default:
         throw RuntimeError(

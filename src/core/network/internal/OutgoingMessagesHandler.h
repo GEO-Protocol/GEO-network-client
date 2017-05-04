@@ -47,6 +47,7 @@ private:
 
 private:
     size_t mMaxFlowCalculationTraffic;
+    size_t totalCountPackages = 0;
 
 };
 

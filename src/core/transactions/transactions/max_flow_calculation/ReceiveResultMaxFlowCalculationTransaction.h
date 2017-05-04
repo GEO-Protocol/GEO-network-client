@@ -31,7 +31,6 @@ private:
     ResultMaxFlowCalculationMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
-
 };
 
 

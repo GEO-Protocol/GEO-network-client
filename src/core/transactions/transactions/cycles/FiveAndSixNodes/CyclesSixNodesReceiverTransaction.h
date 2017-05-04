@@ -19,9 +19,11 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
+    const string logHeader() const;
+
+protected:
 //    Nodes Balances that are mutual between core node and contract node
     CyclesSixNodesInBetweenMessage::Shared mInBetweenNodeTopologyMessage;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
 };
 #endif //GEO_NETWORK_CLIENT_CYCLESSIXNODESRESPONSETRANSACTION_H
