@@ -42,9 +42,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
     case Stages::Receiver_AmountReservationsProcessing:
         return runAmountReservationStage();
 
-    case Stages::Common_FinalPathsConfigurationChecking:
-        return runFinalPathsConfigurationProcessingStage();
-
     case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
 

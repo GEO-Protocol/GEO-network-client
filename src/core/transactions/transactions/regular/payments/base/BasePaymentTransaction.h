@@ -21,6 +21,8 @@
 #include "../../../../../network/messages/payments/ParticipantsVotesMessage.h"
 #include "../../../../../network/messages/payments/FinalPathConfigurationMessage.h"
 
+#include "PathStats.h"
+
 
 // TODO: Add restoring of the reservations after transaction deserialization.
 class BasePaymentTransaction:
@@ -54,7 +56,6 @@ protected:
         Coordinator_AmountReservation,
         Coordinator_ShortPathAmountReservationResponseProcessing,
         Coordinator_PreviousNeighborRequestProcessing,
-        Coordinator_FinalPathsConfigurationApproving,
 
         Receiver_CoordinatorRequestApproving,
         Receiver_AmountReservationsProcessing,
@@ -65,7 +66,6 @@ protected:
         IntermediateNode_ReservationProlongation,
 
         Common_VotesChecking,
-        Common_FinalPathsConfigurationChecking,
         Common_FinalPathConfigurationChecking,
     };
 
@@ -76,7 +76,6 @@ protected:
     // Stages handlers
     virtual TransactionResult::SharedConst runVotesCheckingStage();
     virtual TransactionResult::SharedConst runVotesConsistencyCheckingStage();
-    virtual TransactionResult::SharedConst runFinalPathsConfigurationProcessingStage();
     virtual TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
 
     virtual TransactionResult::SharedConst approve();
@@ -127,6 +126,18 @@ protected:
 
     void propagateVotesMessageToAllParticipants (
         const ParticipantsVotesMessage::Shared kMessage) const;
+
+    void dropReservationsOnPath(
+        PathStats *pathStats,
+        PathUUID pathUUID);
+
+    void sendFinalPathConfiguration(
+        PathStats* pathStats,
+        PathUUID pathUUID,
+        const TrustLineAmount &finalPathAmount);
+
+    // TODO remove after testing;
+    void printReservations();
 
 protected:
     // Specifies how long node must wait for the response from the remote node.

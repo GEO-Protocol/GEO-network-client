@@ -45,9 +45,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
         case Stages::Coordinator_PreviousNeighborRequestProcessing:
             return runPreviousNeighborRequestProcessingStage();
 
-        case Stages::Coordinator_FinalPathsConfigurationApproving:
-            return runFinalParticipantsRequestsProcessingStage();
-
         case Stages::Common_VotesChecking:
             return runVotesConsistencyCheckingStage();
 
@@ -196,9 +193,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalParticip
  * Collects all nodes from all paths into one votes list,
  * and propagates it to the next node in the votes list.
  */
-TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesListAndWaitForConfigurationRequests ()
+TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesListAndWaitForVoutingResult()
 {
-    info() << "propagateVotesListAndWaitForConfigurationRequests";
+    info() << "propagateVotesListAndWaitForVoutingResult";
     const auto kCurrentNodeUUID = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
@@ -253,23 +250,17 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
         message);
 
     info() << "Votes message constructed and sent to the (" << message->firstParticipant() << ")";
-    info() << "Begin accepting final payment paths configuration requests.";
 
-    // Participants votes message would be used further
-    // in final paths configurations requests processing stage.
-    mParticipantsVotesMessage = message;
-
-    // Now coordinator begins responding to the final configuration requests of the participants.
-    mStep = Stages::Coordinator_FinalPathsConfigurationApproving;
+    mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsPathsConfigurationRequest},
-        maxNetworkDelay(1));
+        {Message::Payments_ParticipantsVotes},
+        maxNetworkDelay(5));
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::tryReserveNextIntermediateNodeAmount (
     PathStats *pathStats)
 {
-    info() << "propagateVotesListAndWaitForConfigurationRequests";
+    info() << "propagateVotesListAndWaitForVoutingResult";
     /*
      * Nodes scheme:
      *  R - remote node;
@@ -445,13 +436,15 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
 
         // send final path amount to all intermediate nodes on path
         sendFinalPathConfiguration(
+            mPathStats.get(),
+            0,
             path->maxFlow());
         const auto kTotalAmount = mPathStats.get()->maxFlow();
 
         info() << "Current path reservation finished";
         info() << "Total collected amount by cycle: " << kTotalAmount;
 
-        return propagateVotesListAndWaitForConfigurationRequests();
+        return propagateVotesListAndWaitForVoutingResult();
     }
 
     return runAmountReservationStage();
@@ -506,7 +499,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
     info() << "processRemoteNodeResponse";
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)){
         error() << "Can't pay.";
-        rollBack();
+        dropReservationsOnPath(
+            mPathStats.get(),
+            0);
         return resultDone();
     }
 
@@ -561,13 +556,15 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
 
             // send final path amount to all intermediate nodes on path
             sendFinalPathConfiguration(
+                mPathStats.get(),
+                0,
                 path->maxFlow());
             const auto kTotalAmount = mPathStats.get()->maxFlow();
 
             info() << "Current path reservation finished";
             info() << "Total collected amount by cycle: " << kTotalAmount;
 
-            return propagateVotesListAndWaitForConfigurationRequests();
+            return propagateVotesListAndWaitForVoutingResult();
         }
 
         info() << "Go to the next node in path";
@@ -640,21 +637,6 @@ void CycleCloserInitiatorTransaction::checkPath(
             itLocal++;
         }
         itGlobal++;
-    }
-}
-
-void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
-    const TrustLineAmount &finalPathAmount)
-{
-    info() << "sendFinalPathConfiguration";
-    for (const auto &intermediateNode : mPathStats->path()->intermediateUUIDs()) {
-        info() << "send message with final path amount info for node " << intermediateNode;
-        sendMessage<FinalPathConfigurationMessage>(
-            intermediateNode,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            0,
-            finalPathAmount);
     }
 }
 

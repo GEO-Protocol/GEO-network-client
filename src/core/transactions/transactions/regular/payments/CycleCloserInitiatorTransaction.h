@@ -41,7 +41,7 @@ protected:
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
-    TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
+    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
     TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
 
 protected:
@@ -80,9 +80,6 @@ protected:
 
     void checkPath(
         const Path::ConstShared path);
-
-    void sendFinalPathConfiguration(
-        const TrustLineAmount &finalPathAmount);
 
 protected:
     // Contains special stats data, such as current msx flow,

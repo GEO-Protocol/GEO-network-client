@@ -101,6 +101,7 @@ private:
     void fillCycleTablesTestCase2();
     void fillCycleTablesTestCase3();
     void fillCycleTablesTestCase4();
+    void fillCycleTablesTestCase5();
 
     // TODO: remove after testing
     void testStorageHandler();

@@ -48,9 +48,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
     case Stages::IntermediateNode_ReservationProlongation:
         return runReservationProlongationStage();
 
-    case Stages::Common_FinalPathsConfigurationChecking:
-        return runFinalPathsConfigurationProcessingStage();
-
     case Stages::Common_VotesChecking:
         return runVotesCheckingStage();
 
@@ -239,13 +236,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
     info() << "runReservationProlongationStage";
     // In case if participants votes message is already received -
     // there is no need to prolong reservation, transaction may be proceeded.
-    if (! mContext.empty())
-        if (mContext.at(0)->typeID() == Message::Payments_ParticipantsVotes) {
-            mStep = Stages::Common_VotesChecking;
-            return runVotesCheckingStage();
-        }
-
-    return reject("No participants votes message received. Rolling back.");
+    if (!contextIsValid(Message::Payments_ParticipantsVotes)) {
+        return reject("No participants votes message received. Rolling back.");
+    }
+    mStep = Stages::Common_VotesChecking;
+    return runVotesCheckingStage();
 }
 
 void IntermediateNodePaymentTransaction::deserializeFromBytes(

@@ -55,7 +55,7 @@ protected:
     TransactionResult::SharedConst runReceiverResponseProcessingStage ();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
-    TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
+    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
     TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
 
 protected:
@@ -116,11 +116,6 @@ protected:
     TransactionResult::SharedConst processRemoteNodeResponse();
 
     TrustLineAmount totalReservedByAllPaths() const;
-
-    void dropReservationsOnCurrentPath();
-
-    void sendFinalPathConfiguration(
-        const TrustLineAmount &finalPathAmount);
 
 protected:
     const string logHeader() const;
