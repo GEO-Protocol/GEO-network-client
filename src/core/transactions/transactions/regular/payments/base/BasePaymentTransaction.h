@@ -119,7 +119,8 @@ protected:
     uint32_t maxCoordinatorResponseTimeout() const;
 
     const bool contextIsValid(
-        Message::MessageType messageType) const;
+        Message::MessageType messageType,
+        bool showErrorMessage = true) const;
 
     const bool positiveVoteIsPresent (
         const ParticipantsVotesMessage::ConstShared kMessage) const;

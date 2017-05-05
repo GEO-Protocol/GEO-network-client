@@ -428,8 +428,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
 
     // shortage reservation
     // TODO maby add if change path->maxFlow()
-    auto localReservationsCopy = mReservations;
-    for (auto const &itNodeAndReservations : localReservationsCopy) {
+    for (auto const &itNodeAndReservations : mReservations) {
         auto nodeReservations = itNodeAndReservations.second;
         if (nodeReservations.size() != 1) {
             throw ValueError("CycleCloserInitiatorTransaction::processRemoteNodeResponse: "
@@ -440,6 +439,19 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
             (*nodeReservations.begin()).second,
             path->maxFlow(),
             0);
+    }
+
+    if (path->isLastIntermediateNodeProcessed()) {
+
+        // send final path amount to all intermediate nodes on path
+        sendFinalPathConfiguration(
+            path->maxFlow());
+        const auto kTotalAmount = mPathStats.get()->maxFlow();
+
+        info() << "Current path reservation finished";
+        info() << "Total collected amount by cycle: " << kTotalAmount;
+
+        return propagateVotesListAndWaitForConfigurationRequests();
     }
 
     return runAmountReservationStage();
@@ -529,8 +541,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
 
         // shortage reservation
         // TODO maby add if change path->maxFlow()
-        auto localReservationsCopy = mReservations;
-        for (auto const &itNodeAndReservations : localReservationsCopy) {
+        for (auto const &itNodeAndReservations : mReservations) {
             auto nodeReservations = itNodeAndReservations.second;
             if (nodeReservations.size() != 1) {
                 throw ValueError("CycleCloserInitiatorTransaction::processRemoteNodeResponse: "
@@ -547,6 +558,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
         info() << "Path max flow is now " << path->maxFlow();
 
         if (path->isLastIntermediateNodeProcessed()) {
+
+            // send final path amount to all intermediate nodes on path
+            sendFinalPathConfiguration(
+                path->maxFlow());
             const auto kTotalAmount = mPathStats.get()->maxFlow();
 
             info() << "Current path reservation finished";
@@ -563,8 +578,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeighborRequestProcessingStage()
 {
     info() << "runPreviousNeighborRequestProcessingStage";
-    // TODO : add other checking or change error() message in contextIsValid()
-    if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest))
+    if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false))
         return reject("No amount reservation request was received. Rolled back.");
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
@@ -615,10 +629,10 @@ void CycleCloserInitiatorTransaction::checkPath(
                                  "paths contains repeated nodes");
         }
     }
-    auto itGlobal = path->intermediateUUIDs().begin();
-    while (itGlobal != path->intermediateUUIDs().end() - 1) {
+    auto itGlobal = path->nodes.begin() + 1;
+    while (itGlobal != path->nodes.end() - 2) {
         auto itLocal = itGlobal + 1;
-        while (itLocal != path->intermediateUUIDs().end()) {
+        while (itLocal != path->nodes.end() - 1) {
             if (*itGlobal == *itLocal) {
                 throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
                                      "paths contains repeated nodes");
@@ -626,6 +640,21 @@ void CycleCloserInitiatorTransaction::checkPath(
             itLocal++;
         }
         itGlobal++;
+    }
+}
+
+void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
+    const TrustLineAmount &finalPathAmount)
+{
+    info() << "sendFinalPathConfiguration";
+    for (const auto &intermediateNode : mPathStats->path()->intermediateUUIDs()) {
+        info() << "send message with final path amount info for node " << intermediateNode;
+        sendMessage<FinalPathConfigurationMessage>(
+            intermediateNode,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            0,
+            finalPathAmount);
     }
 }
 
@@ -644,7 +673,7 @@ void CycleCloserInitiatorTransaction::deserializeFromBytes(BytesShared buffer)
 const string CycleCloserInitiatorTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CycleCloserInitiatorTA: " << currentTransactionUUID().stringUUID() << "] ";
+    s << "[CycleCloserInitiatorTA: " << currentTransactionUUID() << "] ";
     return s.str();
 }
 

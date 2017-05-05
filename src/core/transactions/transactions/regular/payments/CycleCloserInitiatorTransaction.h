@@ -81,6 +81,9 @@ protected:
     void checkPath(
         const Path::ConstShared path);
 
+    void sendFinalPathConfiguration(
+        const TrustLineAmount &finalPathAmount);
+
 protected:
     // Contains special stats data, such as current msx flow,
     // for path involved into the transaction.

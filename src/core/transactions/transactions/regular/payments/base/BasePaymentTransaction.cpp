@@ -361,15 +361,18 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
 }
 
 const bool BasePaymentTransaction::contextIsValid(
-    Message::MessageType messageType) const
+    Message::MessageType messageType,
+    bool showErrorMessage) const
 {
     if (mContext.empty())
         return false;
 
     if (mContext.size() > 1 || mContext.at(0)->typeID() != messageType) {
-        error() << "Unexpected message received. "
-                   "It seems that remote node doesn't follows the protocol. "
-                   "Canceling.";
+        if (showErrorMessage) {
+            error() << "Unexpected message received. "
+                "It seems that remote node doesn't follows the protocol. "
+                "Canceling.";
+        }
 
         return false;
     }
@@ -465,7 +468,8 @@ void BasePaymentTransaction::rollBack ()
 void BasePaymentTransaction::rollBack (
     const PathUUID &pathUUID)
 {
-    for (auto itNodeUUIDAndReservations = mReservations.begin(); itNodeUUIDAndReservations != mReservations.end(); itNodeUUIDAndReservations++) {
+    auto itNodeUUIDAndReservations = mReservations.begin();
+    while(itNodeUUIDAndReservations != mReservations.end()) {
         auto itPathUUIDAndReservation = itNodeUUIDAndReservations->second.begin();
         while (itPathUUIDAndReservation != itNodeUUIDAndReservations->second.end()) {
             if (itPathUUIDAndReservation->first == pathUUID) {
@@ -490,7 +494,9 @@ void BasePaymentTransaction::rollBack (
             }
         if (itNodeUUIDAndReservations->second.size() == 0) {
             mReservations.erase(itNodeUUIDAndReservations);
-        }
+        } //else {
+            itNodeUUIDAndReservations++;
+        //}
     }
 }
 

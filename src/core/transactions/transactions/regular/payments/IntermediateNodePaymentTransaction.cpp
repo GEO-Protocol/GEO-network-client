@@ -87,19 +87,16 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             currentTransactionUUID(),
             mMessage->pathUUID(),
             ResponseMessage::Rejected);
-        return reject("No incoming amount reservation is possible. Rolled back.");
+    } else {
+        mLastReservedAmount = kReservationAmount;
+        sendMessage<IntermediateNodeReservationResponseMessage>(
+            kNeighbor,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            mMessage->pathUUID(),
+            ResponseMessage::Accepted,
+            kReservationAmount);
     }
-
-
-    mLastReservedAmount = kReservationAmount;
-    sendMessage<IntermediateNodeReservationResponseMessage>(
-        kNeighbor,
-        currentNodeUUID(),
-        currentTransactionUUID(),
-        mMessage->pathUUID(),
-        ResponseMessage::Accepted,
-        kReservationAmount);
-
 
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
@@ -123,6 +120,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
     const auto kNextNode = kMessage->nextNodeInPathUUID();
     mCoordinator = kMessage->senderUUID;
+    mLastProcessedPath = kMessage->pathUUID();
 
 
 
@@ -140,7 +138,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
             kMessage->pathUUID(),
             ResponseMessage::Rejected);
 
-        return reject("No amount reservation is possible. Rolled back.");
+        info() << "No amount reservation is possible. Rolled back.";
+        rollBack(kMessage->pathUUID());
+        mStep = Stages::IntermediateNode_ReservationProlongation;
+        // TODO correct delay time
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes,
+             Message::Payments_IntermediateNodeReservationRequest},
+            maxNetworkDelay(kMaxPathLength));
     }
 
 
@@ -162,8 +167,16 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
 {
     info() << "runNextNeighborResponseProcessingStage";
-    if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse))
-        return reject("No valid amount reservation response received. Rolled back.");
+    if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
+        info() << "No valid amount reservation response received. Rolled back.";
+        rollBack(mLastProcessedPath);
+        mStep = Stages::IntermediateNode_ReservationProlongation;
+        // TODO correct delay time
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes,
+             Message::Payments_IntermediateNodeReservationRequest},
+            maxNetworkDelay(kMaxPathLength));
+    }
 
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
@@ -177,7 +190,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             currentTransactionUUID(),
             kMessage->pathUUID(),
             ResponseMessage::Rejected);
-        return reject("Amount reservation rejected by the neighbor node. Rolled back.");
+        info() << "Amount reservation rejected by the neighbor node.";
+        rollBack(kMessage->pathUUID());
+        mStep = Stages::IntermediateNode_ReservationProlongation;
+        // TODO correct delay time
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes,
+             Message::Payments_IntermediateNodeReservationRequest},
+            maxNetworkDelay(kMaxPathLength));
     }
 
 
@@ -212,7 +232,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
 {
-    if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest)) {
+    if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
         mMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
         return runPreviousNeighborRequestProcessingStage();
     }
@@ -237,7 +257,7 @@ void IntermediateNodePaymentTransaction::deserializeFromBytes(
 const string IntermediateNodePaymentTransaction::logHeader() const
 {
     stringstream s;
-    s << "[IntermediateNodePaymentTA: " << currentTransactionUUID().stringUUID() << "] ";
+    s << "[IntermediateNodePaymentTA: " << currentTransactionUUID() << "] ";
 
     return s.str();
 }

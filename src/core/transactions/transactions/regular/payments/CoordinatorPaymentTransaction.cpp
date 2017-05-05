@@ -105,7 +105,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourceProcessingStage()
 {
-    if (mResources.size() == 1) {
+    if (mResources.size() != 0) {
         auto responseResource = *mResources.begin();
         if (responseResource->type() == BaseResource::ResourceType::Paths) {
 
@@ -233,6 +233,41 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
 //            delete nodeUUID56Ptr;
             //end test case3
 
+            // TODO for test case4
+//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+//            NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
+//
+//            vector<NodeUUID> intermediateNodes;
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID53Ptr);
+//            intermediateNodes.push_back(*nodeUUID54Ptr);
+//            auto result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID56Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//            intermediateNodes.clear();
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID53Ptr);
+//            intermediateNodes.push_back(*nodeUUID55Ptr);
+//            result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID56Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//
+//            delete nodeUUID51Ptr;
+//            delete nodeUUID52Ptr;
+//            delete nodeUUID53Ptr;
+//            delete nodeUUID54Ptr;
+//            delete nodeUUID55Ptr;
+//            delete nodeUUID56Ptr;
+            //end test case4
+
             PathsResource::Shared response = static_pointer_cast<PathsResource>(
                 responseResource);
             response->pathCollection()->resetCurrentPath();
@@ -243,12 +278,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
                 }
             }
         } else {
-            // TODO: action on this case
-            error() << "wrong resource type";
+            throw Exception("CoordinatorPaymentTransaction::runReceiverResourceProcessingStage: "
+                                "unexpected resource type");
         }
     } else {
-        // TODO: action on this case
-        error() << "wrong resources size";
+        error() << "resources are empty";
+        return resultNoPathsError();
     }
 
     // If there is no one path to the receiver - transaction can't proceed.
@@ -828,7 +863,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
         PathStats::ReservationRequestSent);
 
 
-    // TODO delay equals 3 becouse in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
+    // delay is equal 3 becouse in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationResponse},
         maxNetworkDelay(3));
@@ -991,14 +1026,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     info() << "Further amount reservation request sent to the node (" << remoteNode << ") ["
            << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
 
-    // Response from te remote node will go throught other nodes in the path.
-    // So them would be able to shortage it's reservations (if needed).
-    // Total wait timeout must take note of this.
-    // TODO check this timeout
-    const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodePosition;
+    // delay is equal 3 becouse in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationResponse},
-        kTimeout);
+        maxNetworkDelay(3));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeResponse()
@@ -1024,13 +1055,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
 
     if (0 == message->amountReserved()) {
+        info() << "Remote node rejected reservation. Switching to another path.";
+        dropReservationsOnCurrentPath();
+
         path->setUnusable();
         path->setNodeState(
             R_PathPosition,
             PathStats::ReservationRejected);
 
-        info() << "Remote node rejected reservation. Switching to another path.";
-        dropReservationsOnCurrentPath();
         return tryProcessNextPath();
 
     } else {
@@ -1313,6 +1345,7 @@ void CoordinatorPaymentTransaction::dropReservationsOnCurrentPath()
 
     const auto lastProcessedNodeAndPos = kPathStats->currentIntermediateNodeAndPos();
     const auto lastProcessedNode = lastProcessedNodeAndPos.first;
+    info() << "current node " << lastProcessedNode;
     for (const auto &intermediateNode : kPathStats->path()->intermediateUUIDs()) {
         if (intermediateNode == lastProcessedNode) {
             break;

@@ -29,8 +29,7 @@ TransactionResult::SharedConst MaxFlowCalculationSourceSndLevelTransaction::run(
     info() << "run\t" << "target: " << mMessage->targetUUID();
 #endif
     sendResultToInitiator();
-    return make_shared<const TransactionResult>(
-        TransactionState::exit());
+    return resultDone();
 }
 
 void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator()
@@ -114,6 +113,6 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
 const string MaxFlowCalculationSourceSndLevelTransaction::logHeader() const
 {
     stringstream s;
-    s << "[MaxFlowCalculationSourceSndLevelTA]";
+    s << "[MaxFlowCalculationSourceSndLevelTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

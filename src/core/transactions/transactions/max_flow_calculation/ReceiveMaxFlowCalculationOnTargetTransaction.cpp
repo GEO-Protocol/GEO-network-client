@@ -31,8 +31,7 @@ TransactionResult::SharedConst ReceiveMaxFlowCalculationOnTargetTransaction::run
 #endif
     sendResultToInitiator();
     sendMessagesOnFirstLevel();
-    return make_shared<const TransactionResult>(
-        TransactionState::exit());
+    return resultDone();
 
 }
 
@@ -115,6 +114,6 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel()
 const string ReceiveMaxFlowCalculationOnTargetTransaction::logHeader() const
 {
     stringstream s;
-    s << "[ReceiveMaxFlowCalculationOnTargetTA]";
+    s << "[ReceiveMaxFlowCalculationOnTargetTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

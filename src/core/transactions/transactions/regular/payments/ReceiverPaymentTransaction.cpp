@@ -68,7 +68,7 @@ void ReceiverPaymentTransaction::deserializeFromBytes(BytesShared buffer)
 const string ReceiverPaymentTransaction::logHeader() const
 {
     stringstream s;
-    s << "[ReceiverPaymentTA: " << currentTransactionUUID().stringUUID() << "] ";
+    s << "[ReceiverPaymentTA: " << currentTransactionUUID() << "] ";
     return s.str();
 }
 

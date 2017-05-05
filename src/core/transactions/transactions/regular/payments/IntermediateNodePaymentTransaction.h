@@ -45,6 +45,7 @@ protected:
 
     TrustLineAmount mLastReservedAmount;
     NodeUUID mCoordinator;
+    PathUUID mLastProcessedPath;
 };
 
 

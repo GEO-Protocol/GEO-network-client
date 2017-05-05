@@ -103,6 +103,6 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::resultPro
 const string TotalBalancesFromRemoutNodeTransaction::logHeader() const
 {
     stringstream s;
-    s << "[TotalBalancesFromRemoutNodeTA]";
+    s << "[TotalBalancesFromRemoutNodeTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

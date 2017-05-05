@@ -40,13 +40,12 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
             mNodeUUID,
             mMessage->senderUUID);
     }
-    return make_shared<const TransactionResult>(
-        TransactionState::exit());
+    return resultDone();
 }
 
 const string MaxFlowCalculationSourceFstLevelTransaction::logHeader() const
 {
     stringstream s;
-    s << "[MaxFlowCalculationSourceFstLevelTA]";
+    s << "[MaxFlowCalculationSourceFstLevelTA: " << currentTransactionUUID() << "]";
     return s.str();
 }
