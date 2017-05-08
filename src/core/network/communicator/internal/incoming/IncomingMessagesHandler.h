@@ -1,8 +1,6 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 #define GEO_NETWORK_CLIENT_INCOMINGCONNECTIONSHANDLER_H
 
-#include "PacketsManager.h"
-
 #include "../common/Types.h"
 #include "../../internal/incoming/IncomingNodesHandler.h"
 #include "../../../../common/exceptions/ValueError.h"

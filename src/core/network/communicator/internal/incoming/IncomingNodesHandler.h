@@ -3,7 +3,6 @@
 
 #include "../common/Types.h"
 #include "IncomingRemoteNode.h"
-#include "PacketsManager.h"
 #include "MessageParser.h"
 
 #include "../../../../common/time/TimeUtils.h"

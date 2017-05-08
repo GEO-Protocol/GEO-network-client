@@ -3,7 +3,6 @@
 
 #include "../common/Types.h"
 #include "../packet/packet.h"
-#include "PacketsManager.h"
 #include "IncomingChannel.h"
 #include "MessageParser.h"
 

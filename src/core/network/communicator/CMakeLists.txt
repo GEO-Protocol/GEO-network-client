@@ -24,6 +24,9 @@ set(SOURCE_FILES
         internal/incoming/MessageParser.h
         internal/incoming/MessageParser.cpp
 
+        internal/uuid2address/UUID2Address.h
+        internal/uuid2address/UUID2Address.cpp
+
         internal/packet/packet.h
 
 
@@ -37,8 +40,8 @@ set(SOURCE_FILES
         internal/outgoing/OutgoingRemoteNode.cpp
 
 
-        internal/uuid2address/UUID2Address.h
-        internal/uuid2address/UUID2Address.cpp
+#        internal/uuid2address/UUID2Address.h
+#        internal/uuid2address/UUID2Address.cpp
 
 
         )
