@@ -207,9 +207,8 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
         return false;
     }
 
-
     auto channel = findChannel(channelIndex);
-    channel->reserveSlots(totalPacketsCount);
+    channel->reservePacketsSlots(totalPacketsCount);
     channel->addPacket(
         packetIndex,
         mBuffer.data() + PacketHeader::kSize,

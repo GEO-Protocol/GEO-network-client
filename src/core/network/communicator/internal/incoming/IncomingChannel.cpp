@@ -1,61 +1,83 @@
 #include "IncomingChannel.h"
 
 
-/**
- * @brief IncomingChannel::reservePacketsSlots
- *
- * Each packet contains information about total count of packets of the message.
- * Thus, this method may be called right after first packet received to speedup packets collecting.
- * It used only in optimasation approaches.
- */
 IncomingChannel::IncomingChannel(
     MessagesParser &messagesParser,
     TimePoint &nodeHandlerLastUpdate)
     noexcept :
 
-    mExpectedPacketsCount(0),
     mLastRemoteNodeHandlerUpdated(nodeHandlerLastUpdate),
-    mMessagesParser(messagesParser)
+    mMessagesParser(messagesParser),
+    mExpectedPacketsCount(0)
 {}
 
 IncomingChannel::~IncomingChannel()
+    noexcept
 {
     clear();
 }
 
-
-void IncomingChannel::reserveSlots(
+/**
+ * Reserves memory for expected packets "count";
+ * This method is used for optimisation purposes only.
+ */
+void IncomingChannel::reservePacketsSlots(
     const PacketHeader::TotalPacketsCount count)
+    noexcept(false)
 {
-    if (mExpectedPacketsCount < count) {
+    // Note:
+    // Theoretically, it is possible,
+    // that sender node will begin sending several messages into common channel.
+    // Each packet contains info about message total packets count.
+    // So, theoretically, "count" may change from call to call.
+    if (mExpectedPacketsCount != count) {
         mExpectedPacketsCount = count;
         mPackets.reserve(count);
     }
 }
 
+/**
+ * Inserts packet bytes to the corresponding packet slot of the channel.
+ *
+ * @param index - specifies packet slot index.
+ * @param bytes - bytes sequence of the packet.
+ * @param bytesCount - count of bytes in sequence "bytes".
+ *
+ *
+ * @throws bad_alloc;
+ */
 void IncomingChannel::addPacket(
     const PacketHeader::PacketIndex index,
     byte *bytes,
     const PacketHeader::PacketSize bytesCount)
+    noexcept(false)
 {
-    void* buffer = malloc(bytesCount);
+    auto buffer = malloc(bytesCount);
     if (buffer == nullptr) {
         throw bad_alloc();
     }
 
-    // remove previous packet
+    // In case if sender node begins sending several message into common channel -
+    // packets collision is possible.
+    //
+    // In case if packet slot is already occupied - no exception should be thrown.
+    // Otherwise, both packets would be lost, even if last one potentially may be fully received.
+    //
+    // To prevent memory leak - previous one packet must be dropped.
     if (mPackets.count(index) > 0){
         free(mPackets[index].first);
     }
+
 
     memcpy(
         buffer,
         bytes,
         bytesCount);
 
-    mPackets[index] = make_pair(
-        buffer,
-        bytesCount);
+    mPackets.emplace(
+        index, make_pair(
+            buffer,
+            bytesCount));
 
     mLastUpdated = chrono::steady_clock::now();
     mLastRemoteNodeHandlerUpdated = mLastUpdated;
@@ -99,7 +121,7 @@ pair<bool, Message::Shared> IncomingChannel::tryCollectMessage()
  */
 void IncomingChannel::clear()
     noexcept
-{
+{    
     for (const auto &kIndexAndPacketData : mPackets) {
         free(kIndexAndPacketData.second.first);
     }
@@ -107,16 +129,19 @@ void IncomingChannel::clear()
 }
 
 Packet::Size IncomingChannel::receivedPacketsCount() const
+    noexcept
 {
     return static_cast<Packet::Size>(mPackets.size());
 }
 
 Packet::Size IncomingChannel::expectedPacketsCount() const
+    noexcept
 {
     return mExpectedPacketsCount;
 }
 
 const TimePoint &IncomingChannel::lastUpdated() const
+    noexcept
 {
     return mLastUpdated;
 }
