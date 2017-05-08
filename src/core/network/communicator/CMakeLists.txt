@@ -7,7 +7,7 @@ set(SOURCE_FILES
         Communicator.h
 
         internal/common/Types.h
-
+        internal/common/Packet.hpp
 
         internal/incoming/IncomingMessagesHandler.h
         internal/incoming/IncomingMessagesHandler.cpp
@@ -26,8 +26,6 @@ set(SOURCE_FILES
 
         internal/uuid2address/UUID2Address.h
         internal/uuid2address/UUID2Address.cpp
-
-        internal/packet/packet.h
 
 
         internal/outgoing/OutgoingMessagesHandler.h

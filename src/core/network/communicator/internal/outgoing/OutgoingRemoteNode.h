@@ -2,9 +2,9 @@
 #define OUTGOINGREMOTENODE_H
 
 #include "../common/Types.h"
-
-#include "../packet/packet.h"
+#include "../common/Packet.hpp"
 #include "../uuid2address/UUID2Address.h"
+
 #include "../../../messages/Message.hpp"
 
 #include "../../../../common/NodeUUID.h"

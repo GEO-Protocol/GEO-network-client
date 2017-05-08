@@ -5,6 +5,7 @@
 #include <boost/bind.hpp>
 #include <boost/signals2.hpp>
 
+#include <string>
 #include <chrono>
 
 
@@ -22,5 +23,8 @@ namespace signals = boost::signals2;
 
 using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
+
+using Host = std::string;
+using Port = uint16_t;
 
 #endif // NETWORK_COMMON_TYPES_H

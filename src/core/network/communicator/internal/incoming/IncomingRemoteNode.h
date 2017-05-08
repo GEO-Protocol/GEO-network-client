@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_INCOMINGREMOTENODE_H
 
 #include "../common/Types.h"
-#include "../packet/packet.h"
+#include "../common/Packet.hpp"
 #include "IncomingChannel.h"
 #include "MessageParser.h"
 

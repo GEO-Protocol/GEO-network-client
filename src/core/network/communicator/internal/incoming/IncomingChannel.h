@@ -2,7 +2,7 @@
 #define GEO_NETWORK_CLIENT_INCOMINGCHANNEL_H
 
 #include "../common/Types.h"
-#include "../packet/packet.h"
+#include "../common/Packet.hpp"
 #include "MessageParser.h"
 
 #include "../../../messages/Message.hpp"

@@ -2,44 +2,44 @@
 
 
 Communicator::Communicator(
-    IOService &ioService,
-    const string &interface,
-    const uint16_t port,
-    const string &uuid2AddressHost,
-    const uint16_t uuid2AddressPort,
+    IOService &IOService,
+    const Host &interface,
+    const Port port,
+    const Host &UUID2AddressHost,
+    const Port UUID2AddressPort,
     Logger &logger):
 
-    mIOService(ioService),
     mInterface(interface),
     mPort(port),
+    mIOService(IOService),
+    mLog(logger),
     mSocket(
         make_unique<UDPSocket>(
-            ioService,
-            boost::asio::ip::udp::endpoint(
-                boost::asio::ip::udp::v4(),
+            IOService,
+            udp::endpoint(
+                udp::v4(),
                 port))),
+
     mUUID2AddressService(
         make_unique<UUID2Address>(
-            ioService,
-            uuid2AddressHost,
-            uuid2AddressPort)),
+            IOService,
+            UUID2AddressHost,
+            UUID2AddressPort)),
+
     mIncomingMessagesHandler(
         make_unique<IncomingMessagesHandler>(
-            ioService,
+            IOService,
             *mSocket,
             logger)),
+
     mOutgoingMessagesHandler(
         make_unique<OutgoingMessagesHandler>(
-            ioService,
+            IOService,
             *mSocket,
             *mUUID2AddressService,
-            logger)),
-    mLog(logger)
+            logger))
 {
-    // Chain signals directly.
-    // If mIncomingMessagesHandler would signal about newly parsed message -
-    // it would be directly processed by the internal core logic,
-    // with no intermediate slot in the communicator.
+    // Direct signals chaining.
     mIncomingMessagesHandler->signalMessageParsed.connect(
         signalMessageReceived);
 }
@@ -47,7 +47,7 @@ Communicator::Communicator(
 /**
  * Registers current node into the UUID2Address service.
  *
- * @returns true in case of success, otherwise - returns false.
+ * @returns "true" in case of success, otherwise - returns "false".
  */
 bool Communicator::joinUUID2Address(
     const NodeUUID &nodeUUID)
@@ -63,8 +63,8 @@ bool Communicator::joinUUID2Address(
 
     } catch (std::exception &e) {
         mLog.error("Communicator::joinUUID2Address")
-            << "Can't register in global nodes addresses cache. "
-            << "Internal error: " << e.what();
+            << "Can't register in global nodes addresses space. "
+            << "Internal error details: " << e.what();
     }
 
     return false;
