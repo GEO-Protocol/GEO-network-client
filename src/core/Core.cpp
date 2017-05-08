@@ -10,31 +10,50 @@ Core::~Core() {
     cleanupMemory();
 }
 
-int Core::run() {
+int Core::run()
+{
+    writePIDFile();
 
-    auto initCode = initCoreComponents();
+    auto initCode = initSubsystems();
     if (initCode != 0) {
-        mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
+        mLog.logFatal("Core", "Can't be initialised. Process will now be stopped.");
         return initCode;
     }
-    try {
-        writePIDFile();
 
+    try {
+        mCommunicator->joinUUID2Address(mNodeUUID);
         mCommunicator->beginAcceptMessages();
-        mCommandsInterface->beginAcceptCommands();
+
+
+        //        mCommandsInterface->beginAcceptCommands();
 
         mLog.logSuccess("Core", "Processing started.");
+
+
+        if (mNodeUUID == NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff00")){
+
+            const auto message = make_shared<DebugMessage>();
+            NodeUUID uuid("13e5cf8c-5834-4e52-b65b-f9281dd1ff01");
+
+    //        this_thread::sleep_for(chrono::seconds(10));
+            for (int i=0; i<300; ++i){
+                mCommunicator->sendMessage(
+                    message,
+                    uuid);
+            }
+        }
+
         mIOService.run();
         return 0;
 
-    } catch (const std::exception &e) {
+    } catch (Exception &e) {
         mLog.logException("Core", e);
         return -1;
     }
 
 }
 
-int Core::initCoreComponents() {
+int Core::initSubsystems() {
 
     int initCode;
 
@@ -152,13 +171,12 @@ int Core::initCommunicator(
     try {
         mCommunicator = new Communicator(
             mIOService,
-            mNodeUUID,
             mSettings->interface(&conf),
             mSettings->port(&conf),
             mSettings->uuid2addressHost(&conf),
             mSettings->uuid2addressPort(&conf),
-            &mLog
-        );
+            mLog);
+
         mLog.logSuccess("Core", "Network communicator is successfully initialised");
         return 0;
 
@@ -334,7 +352,7 @@ int Core::initPathsManager() {
 void Core::connectCommunicatorSignals() {
 
     //communicator's signal to transactions manager slot
-    mCommunicator->messageReceivedSignal.connect(
+    mCommunicator->signalMessageReceived.connect(
         boost::bind(
             &Core::onMessageReceivedSlot,
             this,
@@ -457,10 +475,10 @@ void Core::onMessageSendSlot(
     const NodeUUID &contractorUUID) {
 
     try{
-        mCommunicator->sendMessage(
-            message,
-            contractorUUID
-        );
+//        mCommunicator->sendMessage(
+//            message,
+//            contractorUUID
+//        );
 
     } catch (exception &e) {
         mLog.logException("Core", e);

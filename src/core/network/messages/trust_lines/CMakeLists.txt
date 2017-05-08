@@ -25,5 +25,6 @@ set(SOURCE_FILES
 add_library(messages__trust_lines ${SOURCE_FILES})
 target_link_libraries(messages__trust_lines
         common
-        exceptions)
+        exceptions
+        messages__result)
 
