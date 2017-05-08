@@ -11,6 +11,7 @@ using namespace std;
 class Message {
 public:
     typedef shared_ptr<Message> Shared;
+    typedef uint16_t SerializedType;
 
 public:
     enum MessageType {
@@ -83,6 +84,11 @@ public:
 
         // ToDo: remove this
         ResponseMessageType = 1000,
+
+        /*
+         * DEBUG
+         */
+        Debug,
     };
 
 public:
@@ -136,8 +142,11 @@ public:
 
     virtual const MessageType typeID() const = 0;
 
+    /**
+     * @throws bad_alloc;
+     */
     virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc)
+        noexcept(false)
     {
         const uint16_t kMessageType = typeID();
         auto buffer = tryMalloc(sizeof(kMessageType));

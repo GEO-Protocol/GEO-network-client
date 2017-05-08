@@ -15,6 +15,9 @@ add_subdirectory(result)   # todo: there is no common responses in the system, t
 
 
 set(SOURCE_FILES
+        debug/DebugMessage.h
+        debug/DebugMessage.cpp
+
         SenderMessage.cpp   # todo: why are not this message in base?
         SenderMessage.h     # todo: why are not this message in base?
         Message.hpp)        # todo: why are not this message in base?

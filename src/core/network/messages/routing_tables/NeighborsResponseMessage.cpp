@@ -70,9 +70,9 @@ pair<BytesShared, size_t> NeighborsResponseMessage::serializeToBytes () const
     BytesSerializer serializer;
 
     serializer.enqueue(TransactionMessage::serializeToBytes());
-    serializer.enqueue((uint16_t)mNeighbors.size());
+    serializer.copy((uint16_t)mNeighbors.size());
 
-    for (const auto kNeighbor : mNeighbors)
+    for (const auto &kNeighbor : mNeighbors)
         serializer.enqueue(kNeighbor);
 
     return serializer.collect();
