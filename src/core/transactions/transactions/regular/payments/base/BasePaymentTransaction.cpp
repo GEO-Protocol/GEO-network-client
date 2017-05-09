@@ -5,6 +5,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     const NodeUUID &currentNodeUUID,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log) :
 
     BaseTransaction(
@@ -12,6 +13,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -21,6 +23,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionUUID &transactionUUID,
     const NodeUUID &currentNodeUUID,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log) :
 
     BaseTransaction(
@@ -29,6 +32,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -37,12 +41,14 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     BytesShared buffer,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log) :
 
     BaseTransaction(
         type,
         log),
-    mTrustLines(trustLines)
+    mTrustLines(trustLines),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 /*
@@ -143,8 +149,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathConfiguration
 {
     info() << "runFinalPathConfigurationProcessingStage";
     if (! contextIsValid(Message::Payments_FinalPathConfiguration))
-        // Transaction can't be voted so far.
-        // As a result - it may be simply cancelled;
         return reject("No final paths configuration was received from the coordinator. Rejected.");
 
 
@@ -175,11 +179,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathConfiguration
     }
 
     mStep = Stages::IntermediateNode_ReservationProlongation;
-    // TODO correct delay time
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes,
         Message::Payments_IntermediateNodeReservationRequest},
-        maxNetworkDelay(kMaxPathLength));
+        maxNetworkDelay(kMaxPathLength - 2));
 }
 
 /*
@@ -379,6 +382,9 @@ void BasePaymentTransaction::commit ()
             mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
         }
 
+    // reset initiator cashe, becouse after changing balanses
+    // we need updated information on max flow calculation transaction
+    mMaxFlowCalculationCacheManager->resetInititorCache();
     info() << "Transaction committed.";
 }
 
@@ -444,15 +450,13 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
 }
 
 uint32_t BasePaymentTransaction::maxNetworkDelay (
-    const uint16_t totalParticipantsCount) const
+    const uint16_t totalHopsCount) const
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
-    assert(totalParticipantsCount > 0);
+    assert(totalHopsCount > 0);
 #endif
 
-    return
-        + (totalParticipantsCount * kMaxMessageTransferLagMSec * 2) // double message trip
-        + (totalParticipantsCount * kExpectedNodeProcessingDelay);
+    return totalHopsCount * kMaxMessageTransferLagMSec;
 }
 
 uint32_t BasePaymentTransaction::maxCoordinatorResponseTimeout () const

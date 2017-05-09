@@ -33,6 +33,7 @@ public:
         const NodeUUID &kCurrentNodeUUID,
         const CreditUsageCommand::Shared kCommand,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
         Logger *log)
         noexcept;
@@ -40,11 +41,13 @@ public:
     CoordinatorPaymentTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        ResourcesManager *resourcesManager,
         Logger *log)
         throw (bad_alloc);
 
     TransactionResult::SharedConst run()
-        throw (RuntimeError, bad_alloc);
+        noexcept;
 
     pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
@@ -76,6 +79,7 @@ protected:
     TransactionResult::SharedConst resultNoResponseError();
     TransactionResult::SharedConst resultInsufficientFundsError();
     TransactionResult::SharedConst resultNoConsensusError();
+    TransactionResult::SharedConst resultUnexpectedError();
 
 protected:
     void addPathForFurtherProcessing(

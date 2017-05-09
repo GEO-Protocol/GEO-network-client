@@ -20,17 +20,19 @@ public:
         const NodeUUID &kCurrentNodeUUID,
         Path::ConstShared path,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log)
         noexcept;
 
     CycleCloserInitiatorTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log)
         throw (bad_alloc);
 
     TransactionResult::SharedConst run()
-        throw (RuntimeError, bad_alloc);
+        noexcept;
 
     pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);

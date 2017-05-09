@@ -4,6 +4,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     const NodeUUID &kCurrentNodeUUID,
     const CreditUsageCommand::Shared kCommand,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
     Logger *log)
     noexcept :
@@ -12,6 +13,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
         kCurrentNodeUUID,
         trustLines,
+        maxFlowCalculationCacheManager,
         log),
     mCommand(kCommand),
     mResourcesManager(resourcesManager),
@@ -24,6 +26,8 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    ResourcesManager *resourcesManager,
     Logger *log)
     throw (bad_alloc) :
 
@@ -31,12 +35,14 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
         buffer,
         trustLines,
-        log)
+        maxFlowCalculationCacheManager,
+        log),
+    mResourcesManager(resourcesManager)
 {}
 
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
-throw (RuntimeError, bad_alloc)
+    noexcept
 {
     try {
         switch (mStep) {
@@ -65,7 +71,7 @@ throw (RuntimeError, bad_alloc)
         }
     } catch (...) {
         recover("Something happens wrong in method run(). Transaction will be recovered");
-        // TODO return result of command
+        return resultUnexpectedError();
     }
 }
 
@@ -102,7 +108,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     return transactionResultFromState(
         TransactionState::waitForResourcesTypes(
             {BaseResource::ResourceType::Paths},
-            kMaxResourceTransferLagMSec));
+            maxNetworkDelay(2)));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourceProcessingStage()
@@ -534,7 +540,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes,
         Message::Payments_TTLProlongation},
-        maxNetworkDelay(message->participantsCount()));
+        maxNetworkDelay(message->participantsCount() + 1));
 }
 
 
@@ -624,7 +630,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     mStep = Stages::Coordinator_ShortPathAmountReservationResponseProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationResponse},
-        maxNetworkDelay(1));
+        maxNetworkDelay(2));
 }
 
 
@@ -757,7 +763,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationResponse,
         Message::Payments_TTLProlongation},
-        maxNetworkDelay(1));
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToApproveFurtherNodeReservation(
@@ -794,7 +800,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationResponse,
         Message::Payments_TTLProlongation},
-        maxNetworkDelay(3));
+        maxNetworkDelay(4));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmountReservationResponse()
@@ -823,6 +829,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         if (nodeReservations->second.size() == 0) {
             mReservations.erase(firstIntermediateNode);
         }
+        // sending message to receiver that transaction continues
+        sendMessage<TTLPolongationMessage>(
+            mCommand->contractorUUID(),
+            currentNodeUUID(),
+            currentTransactionUUID());
         return tryProcessNextPath();
     }
 
@@ -865,6 +876,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
+        // sending message to receiver that transaction continues
+        sendMessage<TTLPolongationMessage>(
+            mCommand->contractorUUID(),
+            currentNodeUUID(),
+            currentTransactionUUID());
         info() << "Switching to another path.";
         return tryProcessNextPath();
     }
@@ -875,6 +891,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
+        // sending message to receiver that transaction continues
+        sendMessage<TTLPolongationMessage>(
+            mCommand->contractorUUID(),
+            currentNodeUUID(),
+            currentTransactionUUID());
         return tryProcessNextPath();
     }
 
@@ -965,7 +986,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationResponse,
         Message::Payments_TTLProlongation},
-        maxNetworkDelay(3));
+        maxNetworkDelay(4));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeResponse()
@@ -975,6 +996,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
+        // sending message to receiver that transaction continues
+        sendMessage<TTLPolongationMessage>(
+            mCommand->contractorUUID(),
+            currentNodeUUID(),
+            currentTransactionUUID());
         info() << "Switching to another path.";
         return tryProcessNextPath();
     }
@@ -997,6 +1023,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
+        // sending message to receiver that transaction continues
+        sendMessage<TTLPolongationMessage>(
+            mCommand->contractorUUID(),
+            currentNodeUUID(),
+            currentTransactionUUID());
 
         path->setUnusable();
         path->setNodeState(
@@ -1145,6 +1176,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoConsensusE
 {
     return transactionResultFromCommand(
         mCommand->responseNoConsensus());
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::resultUnexpectedError()
+{
+    return transactionResultFromCommand(
+        mCommand->responseUnexpectedError());
 }
 
 pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() const

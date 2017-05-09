@@ -5,6 +5,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     const NodeUUID& currentNodeUUID,
     IntermediateNodeReservationRequestMessage::ConstShared message,
     TrustLinesManager* trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger* log) :
 
     BasePaymentTransaction(
@@ -12,6 +13,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         trustLines,
+        maxFlowCalculationCacheManager,
         log),
     mMessage(message)
 {
@@ -21,16 +23,19 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BytesShared buffer,
     TrustLinesManager* trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger* log) :
 
     BasePaymentTransaction(
         BaseTransaction::IntermediateNodePaymentTransaction,
         buffer,
         trustLines,
+        maxFlowCalculationCacheManager,
         log)
 {}
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
+    noexcept
 {
     try {
         switch (mStep) {
@@ -105,7 +110,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationRequest},
-        maxNetworkDelay(2));
+        maxNetworkDelay(3));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage()
@@ -145,13 +150,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         info() << "No amount reservation is possible. Rolled back.";
         rollBack(kMessage->pathUUID());
         mStep = Stages::IntermediateNode_ReservationProlongation;
-        // TODO correct delay time
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes,
              Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength));
+            maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
-
 
     mLastReservedAmount = reservationAmount;
     sendMessage<IntermediateNodeReservationRequestMessage>(
@@ -175,17 +178,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         info() << "No valid amount reservation response received. Rolled back.";
         rollBack(mLastProcessedPath);
         mStep = Stages::IntermediateNode_ReservationProlongation;
-        // TODO correct delay time
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes,
              Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength));
+            maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
-
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
     const auto kContractor = kMessage->senderUUID;
-
 
     if (kMessage->state() == IntermediateNodeReservationResponseMessage::Rejected){
         sendMessage<CoordinatorReservationResponseMessage>(
@@ -197,13 +197,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         info() << "Amount reservation rejected by the neighbor node.";
         rollBack(kMessage->pathUUID());
         mStep = Stages::IntermediateNode_ReservationProlongation;
-        // TODO correct delay time
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes,
              Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength));
+            maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
-
 
     info() << "(" << kContractor << ") accepted amount reservation.";
 
@@ -231,7 +229,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     mStep = Stages::Common_FinalPathConfigurationChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_FinalPathConfiguration},
-        maxNetworkDelay(kMaxPathLength));
+        maxNetworkDelay((kMaxPathLength - 2) * 4));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
@@ -257,7 +255,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
             {Message::Payments_IntermediateNodeReservationRequest,
             Message::Payments_ParticipantsVotes,
             Message::Payments_TTLProlongation},
-            maxNetworkDelay(1));
+            maxNetworkDelay(2));
     }
     mStep = Stages::Common_VotesChecking;
     return runVotesCheckingStage();
@@ -286,7 +284,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificat
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes,
          Message::Payments_IntermediateNodeReservationRequest},
-        maxNetworkDelay(kMaxPathLength));
+        maxNetworkDelay((kMaxPathLength - 2) * 4));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()
@@ -304,7 +302,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
         {Message::Payments_IntermediateNodeReservationRequest,
          Message::Payments_ParticipantsVotes,
          Message::Payments_TTLProlongation},
-        maxNetworkDelay(1));
+        maxNetworkDelay(2));
 }
 
 void IntermediateNodePaymentTransaction::deserializeFromBytes(

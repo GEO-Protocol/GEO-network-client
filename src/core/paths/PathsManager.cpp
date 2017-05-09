@@ -14,7 +14,6 @@ PathsManager::PathsManager(
 {
     // TODO remove from here
     //testStorageHandler();
-    //fillRoutingTables();
     //fillBigRoutingTables();
     //testTrustLineHandler();
     //testPaymentStateOperationsHandler();
@@ -523,91 +522,6 @@ void PathsManager::clearPathsCollection()
     mPathCollection = nullptr;
 }
 
-void PathsManager::fillRoutingTables()
-{
-    NodeUUID* nodeUUID90Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff90");
-    NodeUUID* nodeUUID91Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff91");
-    NodeUUID* nodeUUID92Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff92");
-    NodeUUID* nodeUUID93Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff93");
-    NodeUUID* nodeUUID94Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff94");
-    NodeUUID* nodeUUID95Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff95");
-    NodeUUID* nodeUUID96Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff96");
-    NodeUUID* nodeUUID97Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff97");
-    NodeUUID* nodeUUID98Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff98");
-
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff90")) {
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID92Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID97Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID90Ptr);
-
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID92Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID97Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID97Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
-    }
-
-    if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff91")) {
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID93Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID93Ptr, *nodeUUID91Ptr);
-
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
-    }
-
-    if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff94")) {
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID98Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID97Ptr, *nodeUUID94Ptr);
-
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID90Ptr, *nodeUUID92Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID90Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
-    }
-
-    if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff93")) {
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID95Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID95Ptr, *nodeUUID93Ptr);
-
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
-    }
-
-    delete nodeUUID90Ptr;
-    delete nodeUUID91Ptr;
-    delete nodeUUID92Ptr;
-    delete nodeUUID93Ptr;
-    delete nodeUUID94Ptr;
-    delete nodeUUID95Ptr;
-    delete nodeUUID96Ptr;
-    delete nodeUUID97Ptr;
-    delete nodeUUID98Ptr;
-}
-
 void PathsManager::testStorageHandler()
 {
     NodeUUID* nodeUUID81Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff81");
@@ -619,18 +533,17 @@ void PathsManager::testStorageHandler()
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID82Ptr, *nodeUUID81Ptr);
         ioTransaction->rollback();
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
     }
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID83Ptr, *nodeUUID84Ptr);
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID85Ptr, *nodeUUID86Ptr);
     }
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID82Ptr, *nodeUUID81Ptr);
-        ioTransaction->rollback();
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID84Ptr);
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID83Ptr, *nodeUUID81Ptr);

@@ -28,12 +28,6 @@ set(SOURCE_FILES
         ParticipantsVotesMessage.cpp
         ParticipantsVotesMessage.h
 
-        ParticipantsConfigurationMessage.cpp
-        ParticipantsConfigurationMessage.h
-
-        ParticipantsConfigurationRequestMessage.cpp
-        ParticipantsConfigurationRequestMessage.h
-
         FinalPathConfigurationMessage.cpp
         FinalPathConfigurationMessage.h
 

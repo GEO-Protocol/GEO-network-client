@@ -661,6 +661,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             mNodeUUID,
             command,
             mTrustLines,
+            mMaxFlowCalculationCacheManager,
             mResourcesManager,
             mLog));
 }
@@ -673,6 +674,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             mNodeUUID,
             message,
             mTrustLines,
+            mMaxFlowCalculationCacheManager,
             mLog));
 }
 
@@ -684,6 +686,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             mNodeUUID,
             message,
             mTrustLines,
+            mMaxFlowCalculationCacheManager,
             mLog));
 }
 /*!
@@ -884,6 +887,7 @@ void TransactionsManager::launchTestCloseCycleTransaction(
             mNodeUUID,
             command->path(),
             mTrustLines,
+            mMaxFlowCalculationCacheManager,
             mLog);
 
         prepareAndSchedule(transaction);

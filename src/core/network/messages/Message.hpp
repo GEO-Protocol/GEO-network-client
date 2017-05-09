@@ -38,8 +38,6 @@ public:
         Payments_IntermediateNodeReservationRequest,
         Payments_IntermediateNodeReservationResponse,
         Payments_ParticipantsVotes,
-        Payments_ParticipantsPathsConfiguration,
-        Payments_ParticipantsPathsConfigurationRequest,
         Payments_FinalPathConfiguration,
         Payments_TTLProlongation,
 

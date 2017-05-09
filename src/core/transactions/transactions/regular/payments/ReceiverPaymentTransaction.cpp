@@ -5,6 +5,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     const NodeUUID &currentNodeUUID,
     ReceiverInitPaymentRequestMessage::ConstShared message,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log) :
 
     BasePaymentTransaction(
@@ -12,6 +13,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         trustLines,
+        maxFlowCalculationCacheManager,
         log),
     mMessage(message),
     mTotalReserved(0)
@@ -22,18 +24,21 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log) :
 
     BasePaymentTransaction(
         BaseTransaction::ReceiverPaymentTransaction,
         buffer,
         trustLines,
+        maxFlowCalculationCacheManager,
         log)
 {
     deserializeFromBytes(buffer);
 }
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
+    noexcept
 {
     try {
         switch (mStep) {
@@ -81,7 +86,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
     const auto kCoordinator = mMessage->senderUUID;
     info() << "Operation for " << mMessage->amount() << " initialised by the (" << kCoordinator << ")";
 
-
     // Check if total incoming possibilities of the node are <= of the payment amount.
     // If not - there is no reason to process the operation at all.
     // (reject operation)
@@ -99,14 +103,12 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
             "Operation rejected due to insufficient funds.");
     }
 
-
     sendMessage<ReceiverInitPaymentResponseMessage>(
         kCoordinator,
         currentNodeUUID(),
         currentTransactionUUID(),
         mMessage->pathUUID(),
         ReceiverInitPaymentResponseMessage::Accepted);
-
 
     // Begin waiting for amount reservation requests.
     // There is non-zero probability, that first couple of paths will fail.
@@ -115,15 +117,26 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
     // TODO: enhancement: send aproximate paths count to receiver, so it will be able to wait correct timeout.
     mStep = Stages::Receiver_AmountReservationsProcessing;
     return resultWaitForMessageTypes(
-        {Message::Payments_IntermediateNodeReservationRequest},
-        maxNetworkDelay(kMaxPathLength * 3));
+        {Message::Payments_IntermediateNodeReservationRequest,
+        Message::Payments_TTLProlongation},
+        maxNetworkDelay((kMaxPathLength - 1) * 4));
 }
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationStage()
 {
+    info() << "runAmountReservationStage";
+    if (contextIsValid(Message::Payments_TTLProlongation, false)) {
+        // current path was rejected and need reset delay time
+        // TODO check if message sender is coordinator
+        info() << "Receive TTL prolongation message";
+        clearContext();
+        return resultWaitForMessageTypes(
+            {Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongation},
+            maxNetworkDelay((kMaxPathLength - 1) * 4));
+    }
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest))
         return reject("No amount reservation request was received. Rolled back.");
-
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
     const auto kNeighbor = kMessage->senderUUID;
@@ -139,10 +152,10 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         //
         // TODO: enhancement: send aproximate paths count to receiver, so it will be able to wait correct timeout.
         return resultWaitForMessageTypes(
-            {Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength));
+            {Message::Payments_IntermediateNodeReservationRequest,
+            Message::Payments_TTLProlongation},
+            maxNetworkDelay((kMaxPathLength - 1) * 4));
     }
-
 
     info() << "Amount reservation for " << kMessage->amount() << " request received from " << kNeighbor;
 
@@ -174,8 +187,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
         // Begin accepting other reservation messages
         return resultWaitForMessageTypes(
-            {Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength + 1));
+            {Message::Payments_IntermediateNodeReservationRequest,
+            Message::Payments_TTLProlongation},
+            maxNetworkDelay((kMaxPathLength - 1) * 4));
 
     }
 
@@ -195,7 +209,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             "Rolled back.");
     }
 
-
     info() << "Reserved locally: " << kMessage->amount();
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
@@ -204,7 +217,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         kMessage->pathUUID(),
         ResponseMessage::Accepted,
         kMessage->amount());
-
 
     if (mTotalReserved == mMessage->amount()) {
         // Reserved amount is enough to move to votes processing stage.
@@ -216,13 +228,14 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(kMaxPathLength * 3));
+            maxNetworkDelay(kMaxPathLength - 1));
 
     } else {
         // Waiting for another reservation request
         return resultWaitForMessageTypes(
-            {Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength + 1));
+            {Message::Payments_IntermediateNodeReservationRequest,
+            Message::Payments_TTLProlongation},
+            maxNetworkDelay((kMaxPathLength - 1) * 4));
     }
 }
 
@@ -240,7 +253,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStage
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes,
          Message::Payments_TTLProlongation},
-        maxNetworkDelay(1));
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTransaction()
@@ -258,7 +271,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
     // transactions is still alive and we continue waiting for messages
     info() << "Transactions is still alive. Continue waiting for messages";
     mStep = Stages::Common_VotesChecking;
-    // TODO correct delay time
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
         maxNetworkDelay(kMaxPathLength));

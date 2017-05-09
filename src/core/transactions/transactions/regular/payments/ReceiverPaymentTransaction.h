@@ -17,14 +17,17 @@ public:
         const NodeUUID &currentNodeUUID,
         ReceiverInitPaymentRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
     ReceiverPaymentTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run()
+        noexcept;
 
     pair<BytesShared, size_t> serializeToBytes();
 

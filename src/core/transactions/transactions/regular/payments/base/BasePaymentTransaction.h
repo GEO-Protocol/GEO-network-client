@@ -9,6 +9,7 @@
 #include "../../../../../logger/Logger.h"
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 #include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
@@ -16,8 +17,6 @@
 #include "../../../../../network/messages/payments/CoordinatorReservationResponseMessage.h"
 #include "../../../../../network/messages/payments/IntermediateNodeReservationRequestMessage.h"
 #include "../../../../../network/messages/payments/IntermediateNodeReservationResponseMessage.h"
-#include "../../../../../network/messages/payments/ParticipantsConfigurationRequestMessage.h"
-#include "../../../../../network/messages/payments/ParticipantsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsVotesMessage.h"
 #include "../../../../../network/messages/payments/FinalPathConfigurationMessage.h"
 #include "../../../../../network/messages/payments/TTLPolongationMessage.h"
@@ -34,6 +33,7 @@ public:
         const TransactionType type,
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
     BasePaymentTransaction(
@@ -41,12 +41,14 @@ public:
         const TransactionUUID &transactionUUID,
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
     BasePaymentTransaction(
         const TransactionType type,
         BytesShared buffer,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
 protected:
@@ -116,7 +118,7 @@ protected:
         const PathUUID &pathUUID);
 
     uint32_t maxNetworkDelay (
-        const uint16_t totalParticipantsCount) const;
+        const uint16_t totalHopsCount) const;
 
     uint32_t maxCoordinatorResponseTimeout() const;
 
@@ -146,9 +148,6 @@ protected:
     // (it is not only network transfer timeout).
     static const uint16_t kMaxMessageTransferLagMSec = 1500; // milliseconds
 
-    // Specifies how long node may process transaction for some decision.
-    static const uint16_t kExpectedNodeProcessingDelay = 1500; // milliseconds;
-
     // Specifies how long node must wait for the resources from other transaction
     static const uint16_t kMaxResourceTransferLagMSec = 2000; //
 
@@ -156,6 +155,7 @@ protected:
 
 protected:
     TrustLinesManager *mTrustLines;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.

@@ -31,9 +31,6 @@ protected:
     const size_t kOffsetToInheritedBytes() const
         noexcept;
 
-    void deserializeFromBytes(
-        BytesShared buffer);
-
 protected:
     TrustLineAmount mAmount;
     PathUUID mPathUUID;

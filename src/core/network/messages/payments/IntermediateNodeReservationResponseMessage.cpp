@@ -21,7 +21,14 @@ IntermediateNodeReservationResponseMessage::IntermediateNodeReservationResponseM
     ResponseMessage(
         buffer)
 {
-    deserializeFromBytes(buffer);
+    auto parentMessageOffset = ResponseMessage::kOffsetToInheritedBytes();
+    auto amountOffset = buffer.get() + parentMessageOffset;
+    auto amountEndOffset = amountOffset + kTrustLineAmountBytesCount; // TODO: deserialize only non-zero
+    vector<byte> amountBytes(
+        amountOffset,
+        amountEndOffset);
+
+    mAmountReserved = bytesToTrustLineAmount(amountBytes);
 }
 
 const TrustLineAmount& IntermediateNodeReservationResponseMessage::amountReserved() const
@@ -56,19 +63,6 @@ throw(bad_alloc)
     return make_pair(
         dataBytesShared,
         bytesCount);
-}
-
-void IntermediateNodeReservationResponseMessage::deserializeFromBytes(
-    BytesShared buffer)
-{
-    auto parentMessageOffset = ResponseMessage::kOffsetToInheritedBytes();
-    auto amountOffset = buffer.get() + parentMessageOffset;
-    auto amountEndOffset = amountOffset + kTrustLineAmountBytesCount; // TODO: deserialize only non-zero
-    vector<byte> amountBytes(
-        amountOffset,
-        amountEndOffset);
-
-    mAmountReserved = bytesToTrustLineAmount(amountBytes);
 }
 
 const Message::MessageType IntermediateNodeReservationResponseMessage::typeID() const

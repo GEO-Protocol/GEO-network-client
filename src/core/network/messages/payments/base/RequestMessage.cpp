@@ -19,7 +19,17 @@ RequestMessage::RequestMessage(
 
     TransactionMessage(buffer)
 {
-    deserializeFromBytes(buffer);
+    auto parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes();
+    auto bytesBufferOffset = buffer.get() + parentMessageOffset;
+    PathUUID *pathUUID = new (bytesBufferOffset) PathUUID;
+    mPathUUID = *pathUUID;
+    bytesBufferOffset += sizeof(PathUUID);
+    auto amountEndOffset = bytesBufferOffset + kTrustLineBalanceBytesCount; // TODO: deserialize only non-zero
+    vector<byte> amountBytes(
+        bytesBufferOffset,
+        amountEndOffset);
+
+    mAmount = bytesToTrustLineAmount(amountBytes);
 }
 
 const TrustLineAmount &RequestMessage::amount() const
@@ -83,18 +93,3 @@ const size_t RequestMessage::kOffsetToInheritedBytes() const
     return offset;
 }
 
-void RequestMessage::deserializeFromBytes(
-    BytesShared buffer)
-{
-    auto parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes();
-    auto bytesBufferOffset = buffer.get() + parentMessageOffset;
-    PathUUID *pathUUID = new (bytesBufferOffset) PathUUID;
-    mPathUUID = *pathUUID;
-    bytesBufferOffset += sizeof(PathUUID);
-    auto amountEndOffset = bytesBufferOffset + kTrustLineBalanceBytesCount; // TODO: deserialize only non-zero
-    vector<byte> amountBytes(
-        bytesBufferOffset,
-        amountEndOffset);
-
-    mAmount = bytesToTrustLineAmount(amountBytes);
-}

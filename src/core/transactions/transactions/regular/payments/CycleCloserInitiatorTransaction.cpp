@@ -4,6 +4,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     const NodeUUID &kCurrentNodeUUID,
     Path::ConstShared path,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log)
     noexcept :
 
@@ -11,6 +12,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         BaseTransaction::CycleCloserInitiatorTransaction,
         kCurrentNodeUUID,
         trustLines,
+        maxFlowCalculationCacheManager,
         log),
     mInitialTransactionAmount(0)
 {
@@ -21,6 +23,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
 CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     BytesShared buffer,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log)
     throw (bad_alloc) :
 
@@ -28,12 +31,13 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         BaseTransaction::CycleCloserInitiatorTransaction,
         buffer,
         trustLines,
+        maxFlowCalculationCacheManager,
         log)
 {}
 
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
-    throw (RuntimeError, bad_alloc)
+    noexcept
 {
     try {
         switch (mStep) {

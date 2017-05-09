@@ -90,7 +90,6 @@ private:
     const string logHeader() const;
 
     // TODO : remove after testing
-    void fillRoutingTables();
     void fillBigRoutingTables();
     string nodeUUIDName(uint32_t number);
     NodeUUID* getPtrByNodeNumber(

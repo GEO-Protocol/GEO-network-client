@@ -28,8 +28,6 @@
 #include "../messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../messages/payments/ReceiverInitPaymentResponseMessage.h"
 #include "../messages/payments/ParticipantsVotesMessage.h"
-#include "../messages/payments/ParticipantsConfigurationRequestMessage.h"
-#include "../messages/payments/ParticipantsConfigurationMessage.h"
 #include "../messages/payments/FinalPathConfigurationMessage.h"
 #include "../messages/payments/TTLPolongationMessage.h"
 #include "../messages/response/Response.h"
