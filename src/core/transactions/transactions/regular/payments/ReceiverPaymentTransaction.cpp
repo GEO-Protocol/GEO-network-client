@@ -35,20 +35,27 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
 {
-    switch (mStep) {
-    case Stages::Receiver_CoordinatorRequestApproving:
-        return runInitialisationStage();
+    try {
+        switch (mStep) {
+            case Stages::Receiver_CoordinatorRequestApproving:
+                return runInitialisationStage();
 
-    case Stages::Receiver_AmountReservationsProcessing:
-        return runAmountReservationStage();
+            case Stages::Receiver_AmountReservationsProcessing:
+                return runAmountReservationStage();
 
-    case Stages::Common_VotesChecking:
-        return runVotesCheckingStage();
+            case Stages::Common_VotesChecking:
+                return runVotesCheckingStageWithCoordinatorClarification();
 
-    default:
-        throw RuntimeError(
-            "ReceiverPaymentTransaction::run(): "
-            "invalid stage number occurred");
+            case Stages::Common_ClarificationTransaction:
+                return runClarificationOfTransaction();
+
+            default:
+                throw RuntimeError(
+                    "ReceiverPaymentTransaction::run(): "
+                        "invalid stage number occurred");
+        }
+    } catch (...) {
+        recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
 
@@ -133,7 +140,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         // TODO: enhancement: send aproximate paths count to receiver, so it will be able to wait correct timeout.
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength * 3));
+            maxNetworkDelay(kMaxPathLength));
     }
 
 
@@ -168,7 +175,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         // Begin accepting other reservation messages
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength * 3));
+            maxNetworkDelay(kMaxPathLength + 1));
 
     }
 
@@ -215,6 +222,44 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         // Waiting for another reservation request
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength * 3));
+            maxNetworkDelay(kMaxPathLength + 1));
     }
+}
+
+TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()
+{
+    if (contextIsValid(Message::Payments_ParticipantsVotes, false)) {
+        return runVotesCheckingStage();
+    }
+    info() << "Send TTLTransaction message to coordinator " << mMessage->senderUUID;
+    sendMessage<TTLPolongationMessage>(
+        mMessage->senderUUID,
+        currentNodeUUID(),
+        currentTransactionUUID());
+    mStep = Stages::Common_ClarificationTransaction;
+    return resultWaitForMessageTypes(
+        {Message::Payments_ParticipantsVotes,
+         Message::Payments_TTLProlongation},
+        maxNetworkDelay(1));
+}
+
+TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTransaction()
+{
+    // on this stage we can also receive and ParticipantsVotes messages
+    // and on this cases we process it properly
+    info() << "runClarificationOfTransaction";
+    if (contextIsValid(Message::MessageType::Payments_ParticipantsVotes, false)) {
+        mStep = Stages::Common_VotesChecking;
+        return runVotesCheckingStage();
+    }
+    if (!contextIsValid(Message::MessageType::Payments_TTLProlongation)) {
+        return reject("No participants votes message received. Transaction was closed. Rolling Back");
+    }
+    // transactions is still alive and we continue waiting for messages
+    info() << "Transactions is still alive. Continue waiting for messages";
+    mStep = Stages::Common_VotesChecking;
+    // TODO correct delay time
+    return resultWaitForMessageTypes(
+        {Message::Payments_ParticipantsVotes},
+        maxNetworkDelay(kMaxPathLength));
 }

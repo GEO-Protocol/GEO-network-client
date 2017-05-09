@@ -35,23 +35,27 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
     throw (RuntimeError, bad_alloc)
 {
-    switch (mStep) {
-        case Stages::Coordinator_Initialisation:
-            return runInitialisationStage();
+    try {
+        switch (mStep) {
+            case Stages::Coordinator_Initialisation:
+                return runInitialisationStage();
 
-        case Stages::Coordinator_AmountReservation:
-            return runAmountReservationStage();
+            case Stages::Coordinator_AmountReservation:
+                return runAmountReservationStage();
 
-        case Stages::Coordinator_PreviousNeighborRequestProcessing:
-            return runPreviousNeighborRequestProcessingStage();
+            case Stages::Coordinator_PreviousNeighborRequestProcessing:
+                return runPreviousNeighborRequestProcessingStage();
 
-        case Stages::Common_VotesChecking:
-            return runVotesConsistencyCheckingStage();
+            case Stages::Common_VotesChecking:
+                return runVotesConsistencyCheckingStage();
 
-        default:
-            throw RuntimeError(
-                "CycleCloserInitiatorTransaction::run(): "
-                    "invalid transaction step.");
+            default:
+                throw RuntimeError(
+                    "CycleCloserInitiatorTransaction::run(): "
+                        "invalid transaction step.");
+        }
+    } catch(...) {
+        recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
 
@@ -113,79 +117,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
     throw RuntimeError(
         "CycleCloserInitiatorTransaction::runAmountReservationStage: "
             "unexpected behaviour occured.");
-}
-
-TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalParticipantsRequestsProcessingStage ()
-{
-    info() << "runFinalParticipantsRequestsProcessingStage";
-    if (! contextIsValid(Message::Payments_ParticipantsPathsConfigurationRequest))
-        // Coordinator already signed the transaction and can't reject it.
-        // But the remote intermediate node will newer receive
-        // the response and must not sign the transaction.
-        return recover("No final configuration request was received. Recovering.");
-
-    const auto kMessage = popNextMessage<ParticipantsConfigurationRequestMessage>();
-    info() << "Final payment paths configuration request received from (" << kMessage->senderUUID << ")";
-
-    // Intermediate node requested final payment configuration.
-    auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
-        currentNodeUUID(),
-        currentTransactionUUID(),
-        ParticipantsConfigurationMessage::ForIntermediateNode);
-
-    const auto kPathStats = mPathStats.get();
-    const auto kPath = kPathStats->path();
-
-    auto kIntermediateNodePathPos = 1;
-    while (kIntermediateNodePathPos != kPath->length()) {
-        if (kPath->nodes[kIntermediateNodePathPos] == kMessage->senderUUID)
-            break;
-        kIntermediateNodePathPos++;
-    }
-
-    const auto kIncomingNode = kPath->nodes[kIntermediateNodePathPos - 1];
-    const auto kOutgoingNode = kPath->nodes[kIntermediateNodePathPos + 1];
-
-    responseMessage->addPath(
-        kPathStats->maxFlow(),
-        kIncomingNode,
-        kOutgoingNode,
-        0);
-
-#ifdef DEBUG
-    debug() << "Added path: ("
-            << kIncomingNode << "), ("
-            << kOutgoingNode << ") ["
-            << kPathStats->maxFlow() << "]";
-#endif
-
-    const auto kReceiverNodeUUID = kMessage->senderUUID;
-    sendMessage(
-        kReceiverNodeUUID,
-        responseMessage);
-
-#ifdef DEBUG
-    debug() << "Final payment path configuration message sent to the (" << kReceiverNodeUUID << ")";
-#endif
-
-    mNodesRequestedFinalConfiguration.insert(kMessage->senderUUID);
-    if (mNodesRequestedFinalConfiguration.size() == mParticipantsVotesMessage->participantsCount()){
-
-#ifdef DEBUG
-        debug() << "All involved nodes has been requested final payment path configuration. "
-            "Begin waiting for the signed votes message";
-#endif
-
-        mStep = Stages::Common_VotesChecking;
-        return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(2));
-    }
-
-    // Waiting for the rest nodes to request final payment paths configuration
-    return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsPathsConfigurationRequest},
-        maxNetworkDelay(1));
 }
 
 /**

@@ -54,16 +54,16 @@ pair<BytesShared, size_t> RequestMessage::serializeToBytes() const
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
 
-    auto amountOffset = initialOffset + parentBytesAndCount.second;
+    auto bytesBufferOffset = initialOffset + parentBytesAndCount.second;
 
     memcpy(
-        amountOffset,
+        bytesBufferOffset,
         &mPathUUID,
         sizeof(PathUUID));
-    amountOffset += sizeof(PathUUID);
+    bytesBufferOffset += sizeof(PathUUID);
 
     memcpy(
-        amountOffset,
+        bytesBufferOffset,
         serializedAmount.data(),
         kTrustLineAmountBytesCount);
 
@@ -87,13 +87,13 @@ void RequestMessage::deserializeFromBytes(
     BytesShared buffer)
 {
     auto parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes();
-    auto amountOffset = buffer.get() + parentMessageOffset;
-    PathUUID *pathUUID = new (amountOffset) PathUUID;
+    auto bytesBufferOffset = buffer.get() + parentMessageOffset;
+    PathUUID *pathUUID = new (bytesBufferOffset) PathUUID;
     mPathUUID = *pathUUID;
-    amountOffset += sizeof(PathUUID);
-    auto amountEndOffset = amountOffset + kTrustLineBalanceBytesCount; // TODO: deserialize only non-zero
+    bytesBufferOffset += sizeof(PathUUID);
+    auto amountEndOffset = bytesBufferOffset + kTrustLineBalanceBytesCount; // TODO: deserialize only non-zero
     vector<byte> amountBytes(
-        amountOffset,
+        bytesBufferOffset,
         amountEndOffset);
 
     mAmount = bytesToTrustLineAmount(amountBytes);

@@ -31,6 +31,8 @@ public:
 protected:
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage();
+    TransactionResult::SharedConst runClarificationOfTransaction();
+    TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
 
 protected:
     void deserializeFromBytes(

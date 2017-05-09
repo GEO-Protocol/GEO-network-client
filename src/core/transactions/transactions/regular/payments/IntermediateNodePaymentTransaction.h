@@ -33,6 +33,8 @@ protected:
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
+    TransactionResult::SharedConst runClarificationOfTransaction();
+    TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
 
 protected:
     void deserializeFromBytes(

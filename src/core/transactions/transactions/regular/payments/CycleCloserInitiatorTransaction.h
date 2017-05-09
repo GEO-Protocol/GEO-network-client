@@ -42,7 +42,6 @@ protected:
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
-    TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
 
 protected:
     TransactionResult::SharedConst reject(

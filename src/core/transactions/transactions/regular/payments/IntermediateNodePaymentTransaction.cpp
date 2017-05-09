@@ -32,29 +32,36 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
 {
-    switch (mStep) {
-    case Stages::IntermediateNode_PreviousNeighborRequestProcessing:
-        return runPreviousNeighborRequestProcessingStage();
+    try {
+        switch (mStep) {
+            case Stages::IntermediateNode_PreviousNeighborRequestProcessing:
+                return runPreviousNeighborRequestProcessingStage();
 
-    case Stages::IntermediateNode_CoordinatorRequestProcessing:
-        return runCoordinatorRequestProcessingStage();
+            case Stages::IntermediateNode_CoordinatorRequestProcessing:
+                return runCoordinatorRequestProcessingStage();
 
-    case Stages::IntermediateNode_NextNeighborResponseProcessing:
-        return runNextNeighborResponseProcessingStage();
+            case Stages::IntermediateNode_NextNeighborResponseProcessing:
+                return runNextNeighborResponseProcessingStage();
 
-    case Stages::Common_FinalPathConfigurationChecking:
-        return runFinalPathConfigurationProcessingStage();
+            case Stages::Common_FinalPathConfigurationChecking:
+                return runFinalPathConfigurationProcessingStage();
 
-    case Stages::IntermediateNode_ReservationProlongation:
-        return runReservationProlongationStage();
+            case Stages::Common_ClarificationTransaction:
+                return runClarificationOfTransaction();
 
-    case Stages::Common_VotesChecking:
-        return runVotesCheckingStage();
+            case Stages::IntermediateNode_ReservationProlongation:
+                return runReservationProlongationStage();
 
-    default:
-        throw RuntimeError(
-            "IntermediateNodePaymentTransaction::run: "
-            "unexpected stage occurred.");
+            case Stages::Common_VotesChecking:
+                return runVotesCheckingStageWithCoordinatorClarification();
+
+            default:
+                throw RuntimeError(
+                    "IntermediateNodePaymentTransaction::run: "
+                        "unexpected stage occurred.");
+        }
+    } catch (...) {
+        recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
 
@@ -229,18 +236,75 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
 {
+    info() << "runReservationProlongationStage";
+    // on this stage we can receive IntermediateNodeReservationRequest message
+    // and on this case we process PreviousNeighborRequestProcessing stage
     if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
         mMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
         return runPreviousNeighborRequestProcessingStage();
     }
-    info() << "runReservationProlongationStage";
     // In case if participants votes message is already received -
     // there is no need to prolong reservation, transaction may be proceeded.
+    // Node is clarifying of coordinator if transaction is still alive
     if (!contextIsValid(Message::Payments_ParticipantsVotes)) {
-        return reject("No participants votes message received. Rolling back.");
+        info() << "Send TTLTransaction message to coordinator " << mCoordinator;
+        sendMessage<TTLPolongationMessage>(
+            mCoordinator,
+            currentNodeUUID(),
+            currentTransactionUUID());
+        mStep = Stages::Common_ClarificationTransaction;
+        return resultWaitForMessageTypes(
+            {Message::Payments_IntermediateNodeReservationRequest,
+            Message::Payments_ParticipantsVotes,
+            Message::Payments_TTLProlongation},
+            maxNetworkDelay(1));
     }
     mStep = Stages::Common_VotesChecking;
     return runVotesCheckingStage();
+}
+
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificationOfTransaction()
+{
+    // on this stage we can receive IntermediateNodeReservationRequest and ParticipantsVotes messages
+    // and on this cases we process it properly
+    info() << "runClarificationOfTransaction";
+    if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
+        mMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
+        return runPreviousNeighborRequestProcessingStage();
+    }
+    if (contextIsValid(Message::MessageType::Payments_ParticipantsVotes, false)) {
+        mStep = Stages::Common_VotesChecking;
+        return runVotesCheckingStage();
+    }
+    if (!contextIsValid(Message::MessageType::Payments_TTLProlongation)) {
+        return reject("No participants votes message received. Transaction was closed. Rolling Back");
+    }
+    // transactions is still alive and we continue waiting for messages
+    info() << "Transactions is still alive. Continue waiting for messages";
+    mStep = Stages::IntermediateNode_ReservationProlongation;
+    // TODO correct delay time
+    return resultWaitForMessageTypes(
+        {Message::Payments_ParticipantsVotes,
+         Message::Payments_IntermediateNodeReservationRequest},
+        maxNetworkDelay(kMaxPathLength));
+}
+
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()
+{
+    if (contextIsValid(Message::Payments_ParticipantsVotes, false)) {
+        return runVotesCheckingStage();
+    }
+    info() << "Send TTLTransaction message to coordinator " << mCoordinator;
+    sendMessage<TTLPolongationMessage>(
+        mCoordinator,
+        currentNodeUUID(),
+        currentTransactionUUID());
+    mStep = Stages::Common_ClarificationTransaction;
+    return resultWaitForMessageTypes(
+        {Message::Payments_IntermediateNodeReservationRequest,
+         Message::Payments_ParticipantsVotes,
+         Message::Payments_TTLProlongation},
+        maxNetworkDelay(1));
 }
 
 void IntermediateNodePaymentTransaction::deserializeFromBytes(

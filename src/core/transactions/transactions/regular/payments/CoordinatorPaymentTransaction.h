@@ -13,6 +13,8 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <chrono>
+#include <thread>
 
 /**
  * TODO: Implement intermedaite reservations shortage for the big transactions.
@@ -56,7 +58,6 @@ protected:
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
     TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
-    TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
 
 protected:
     // Coordinator must return command result on transaction finishing.

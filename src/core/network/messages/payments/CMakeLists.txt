@@ -35,7 +35,10 @@ set(SOURCE_FILES
         ParticipantsConfigurationRequestMessage.h
 
         FinalPathConfigurationMessage.cpp
-        FinalPathConfigurationMessage.h)
+        FinalPathConfigurationMessage.h
+
+        TTLPolongationMessage.h
+        TTLPolongationMessage.cpp)
 
 add_library(messages__payments ${SOURCE_FILES})
 target_link_libraries(messages__payments

@@ -70,6 +70,16 @@ bool Path::containsIntermediateNodes() const
     return nodes.size() > 2;
 }
 
+int Path::positionOfNode(const NodeUUID &nodeUUID) const
+{
+    for (int nodeIdx = 0; nodeIdx < nodes.size(); nodeIdx++) {
+        if (nodes.at(nodeIdx) == nodeUUID) {
+            return nodeIdx;
+        }
+    }
+    return -1;
+}
+
 const string Path::toString() const
 {
     stringstream s;

@@ -191,6 +191,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathConfiguration
 TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyCheckingStage()
 {
     info() << "runVotesConsistencyCheckingStage";
+    // this case can be only in Coordinator transaction.
+    // Intermediate node or Receiver can send request if transaction is still alive.
+    if (contextIsValid(Message::Payments_TTLProlongation, false)) {
+        return runTTLTransactionResponce();
+    }
     if (! contextIsValid(Message::Payments_ParticipantsVotes))
         // In case if no votes are present - transaction can't be simply cancelled.
         // It must go through recovery stage to avoid inconsistency.
@@ -565,6 +570,17 @@ TransactionResult::SharedConst BasePaymentTransaction::exitWithResult(
     return result;
 }
 
+TransactionResult::SharedConst BasePaymentTransaction::runTTLTransactionResponce()
+{
+    auto kMessage = popNextMessage<TTLPolongationMessage>();
+    sendMessage<TTLPolongationMessage>(
+        kMessage->senderUUID,
+        currentNodeUUID(),
+        currentTransactionUUID());
+    info() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
+    return resultContinuePreviousState();
+}
+
 void BasePaymentTransaction::dropReservationsOnPath(
     PathStats *pathStats,
     PathUUID pathUUID)
@@ -623,14 +639,5 @@ void BasePaymentTransaction::sendFinalPathConfiguration(
             currentTransactionUUID(),
             pathUUID,
             finalPathAmount);
-    }
-}
-
-void BasePaymentTransaction::printReservations() {
-    info() << "print reservations";
-    for(const auto nodeUUIDAndReservations : mReservations) {
-        for (const auto pathUUIDAndReservation : nodeUUIDAndReservations.second) {
-            info() << "{" << nodeUUIDAndReservations.first << "} [" << pathUUIDAndReservation.first << "] " << pathUUIDAndReservation.second->amount();
-        }
     }
 }

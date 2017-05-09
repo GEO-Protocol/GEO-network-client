@@ -38,29 +38,34 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 throw (RuntimeError, bad_alloc)
 {
-    switch (mStep) {
-        case Stages::Coordinator_Initialisation:
-            return runPaymentInitialisationStage();
+    try {
+        switch (mStep) {
+            case Stages::Coordinator_Initialisation:
+                return runPaymentInitialisationStage();
 
-        case Stages::Coordinator_ReceiverResourceProcessing:
-            return runReceiverResourceProcessingStage();
+            case Stages::Coordinator_ReceiverResourceProcessing:
+                return runReceiverResourceProcessingStage();
 
-        case Stages::Coordinator_ReceiverResponseProcessing:
-            return runReceiverResponseProcessingStage();
+            case Stages::Coordinator_ReceiverResponseProcessing:
+                return runReceiverResponseProcessingStage();
 
-        case Stages::Coordinator_AmountReservation:
-            return runAmountReservationStage();
+            case Stages::Coordinator_AmountReservation:
+                return runAmountReservationStage();
 
-        case Stages::Coordinator_ShortPathAmountReservationResponseProcessing:
-            return runDirectAmountReservationResponseProcessingStage();
+            case Stages::Coordinator_ShortPathAmountReservationResponseProcessing:
+                return runDirectAmountReservationResponseProcessingStage();
 
-        case Stages::Common_VotesChecking:
-            return runVotesConsistencyCheckingStage();
+            case Stages::Common_VotesChecking:
+                return runVotesConsistencyCheckingStage();
 
-        default:
-            throw RuntimeError(
-                "CoordinatorPaymentTransaction::run(): "
-                    "invalid transaction step.");
+            default:
+                throw RuntimeError(
+                    "CoordinatorPaymentTransaction::run(): "
+                        "invalid transaction step.");
+        }
+    } catch (...) {
+        recover("Something happens wrong in method run(). Transaction will be recovered");
+        // TODO return result of command
     }
 }
 
@@ -303,6 +308,40 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
 //            delete nodeUUID55Ptr;
             //end test case5
 
+            // TODO for test case6
+//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+//
+//            vector<NodeUUID> intermediateNodes;
+//            auto result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID54Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//            intermediateNodes.clear();
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID54Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//            intermediateNodes.clear();
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID53Ptr);
+//            result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID54Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//
+//            delete nodeUUID51Ptr;
+//            delete nodeUUID52Ptr;
+//            delete nodeUUID53Ptr;
+//            delete nodeUUID54Ptr;
+            //end test case6
+
             PathsResource::Shared response = static_pointer_cast<PathsResource>(
                 responseResource);
             response->pathCollection()->resetCurrentPath();
@@ -369,38 +408,42 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
     info() << "runAmountReservationStage";
     switch (mReservationsStage) {
     case 0: {
-            initAmountsReservationOnNextPath();
-            mReservationsStage += 1;
+        initAmountsReservationOnNextPath();
+        mReservationsStage += 1;
 
-            // Note:
-            // next section must be executed immediately.
-            // (no "break" is needed).
+        // Note:
+        // next section must be executed immediately.
+        // (no "break" is needed).
         }
 
     case 1: {
-            const auto kPathStats = currentAmountReservationPathStats();
-            if (kPathStats->path()->length() == 2) {
-                // In case if path contains only sender and receiver -
-                // middleware nodes reservation must be omitted.
-                return tryReserveAmountDirectlyOnReceiver(
-                    mCurrentAmountReservingPathIdentifier,
-                    kPathStats);
-            }
+        // nodes can clarify if transaction is still alive
+        if (contextIsValid(Message::MessageType::Payments_TTLProlongation, false)) {
+            return runTTLTransactionResponce();
+        }
+        const auto kPathStats = currentAmountReservationPathStats();
+        if (kPathStats->path()->length() == 2) {
+            // In case if path contains only sender and receiver -
+            // middleware nodes reservation must be omitted.
+            return tryReserveAmountDirectlyOnReceiver(
+                mCurrentAmountReservingPathIdentifier,
+                kPathStats);
+        }
 
-            else if (kPathStats->isReadyToSendNextReservationRequest())
-                return tryReserveNextIntermediateNodeAmount(kPathStats);
+        else if (kPathStats->isReadyToSendNextReservationRequest())
+            return tryReserveNextIntermediateNodeAmount(kPathStats);
 
-            else if (kPathStats->isWaitingForNeighborReservationResponse())
-                return processNeighborAmountReservationResponse();
+        else if (kPathStats->isWaitingForNeighborReservationResponse())
+            return processNeighborAmountReservationResponse();
 
-            else if (kPathStats->isWaitingForNeighborReservationPropagationResponse())
-                return processNeighborFurtherReservationResponse();
+        else if (kPathStats->isWaitingForNeighborReservationPropagationResponse())
+            return processNeighborFurtherReservationResponse();
 
-            else if (kPathStats->isWaitingForReservationResponse())
-                return processRemoteNodeResponse();
+        else if (kPathStats->isWaitingForReservationResponse())
+            return processRemoteNodeResponse();
 
-            throw RuntimeError(
-                "CoordinatorPaymentTransaction::processAmountReservationStage: "
+        throw RuntimeError(
+            "CoordinatorPaymentTransaction::processAmountReservationStage: "
                 "unexpected behaviour occured.");
         }
 
@@ -409,152 +452,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
             "CoordinatorPaymentTransaction::processAmountReservationStage: "
             "unexpected reservations stage occured.");
     }
-}
-
-TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalParticipantsRequestsProcessingStage ()
-{
-    info() << "runFinalParticipantsRequestsProcessingStage";
-    if (! contextIsValid(Message::Payments_ParticipantsPathsConfigurationRequest))
-        // Coordinator already signed the transaction and can't reject it.
-        // But the remote intermediate node will newer receive
-        // the response and must not sign the transaction.
-        return recover("No final configuration request was received. Recovering.");
-
-
-    const auto kMessage = popNextMessage<ParticipantsConfigurationRequestMessage>();
-    info() << "Final payment paths configuration request received from (" << kMessage->senderUUID << ")";
-
-
-    if (kMessage->senderUUID == mCommand->contractorUUID()){
-        // Receiver requested final payment configuration.
-        auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            ParticipantsConfigurationMessage::ForReceiverNode);
-
-        for (const auto &pathUUIDAndPathStats : mPathsStats) {
-            const auto kPathStats = pathUUIDAndPathStats.second.get();
-            const auto kPath = kPathStats->path();
-
-            if (pathUUIDAndPathStats.second->path()->length() > 2)
-                // If paths wasn't processed - exclude it.
-                if (!kPathStats->isLastIntermediateNodeProcessed())
-                    continue;
-
-            if (pathUUIDAndPathStats.second->path()->length() > 2)
-                // If path was dropped (processed, but rejected) - exclude it.
-                if (!kPathStats->isValid())
-                    continue;
-
-            const auto kReceiverPathPos = kPath->length() - 1;
-            const auto kIncomingNode = kPath->nodes[kReceiverPathPos - 1];
-
-            responseMessage->addPath(
-                kPathStats->maxFlow(),
-                kIncomingNode,
-                pathUUIDAndPathStats.first);
-
-#ifdef DEBUG
-            debug() << "Added path: ("
-                    << kIncomingNode << ") {"
-                    << kPathStats->maxFlow() << "} ["
-                    << pathUUIDAndPathStats.first << "]";
-#endif
-        }
-
-        const auto kReceiverNodeUUID = kMessage->senderUUID;
-        sendMessage(
-            kReceiverNodeUUID,
-            responseMessage);
-
-#ifdef DEBUG
-        debug() << "Final payment path configuration message sent to the (" << kReceiverNodeUUID << ")";
-#endif
-
-    } else {
-        // Intermediate node requested final payment configuration.
-        auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            ParticipantsConfigurationMessage::ForIntermediateNode);
-
-        for (const auto &pathUUIDAndPathStats : mPathsStats) {
-            const auto kPathStats = pathUUIDAndPathStats.second.get();
-            const auto kPath = kPathStats->path();
-
-            // if path is direct path - exclude it
-            if (kPath->nodes.size() == 2) {
-                continue;
-            }
-
-            // If paths wasn't processed - exclude it.
-            if (!kPathStats->isLastIntermediateNodeProcessed())
-                continue;
-
-            // If path was dropped (processed, but rejected) - exclude it.
-            if (!kPathStats->isValid())
-                continue;
-
-
-            auto kIntermediateNodePathPos = 1;
-            while (kIntermediateNodePathPos != kPath->length()) {
-                if (kPath->nodes[kIntermediateNodePathPos] == kMessage->senderUUID)
-                    break;
-
-                kIntermediateNodePathPos++;
-            }
-
-            // If path doesn't contain sender node
-            if (kIntermediateNodePathPos == kPath->length())
-                continue;
-
-            const auto kIncomingNode = kPath->nodes[kIntermediateNodePathPos - 1];
-            const auto kOutgoingNode = kPath->nodes[kIntermediateNodePathPos + 1];
-
-            responseMessage->addPath(
-                kPathStats->maxFlow(),
-                kIncomingNode,
-                kOutgoingNode,
-                pathUUIDAndPathStats.first);
-
-#ifdef DEBUG
-            debug() << "Added path: ("
-                    << kIncomingNode << "), ("
-                    << kOutgoingNode << ") {"
-                    << kPathStats->maxFlow() << "} ["
-                    << pathUUIDAndPathStats.first << "]";
-#endif
-        }
-
-        const auto kReceiverNodeUUID = kMessage->senderUUID;
-        sendMessage(
-            kReceiverNodeUUID,
-            responseMessage);
-
-#ifdef DEBUG
-        debug() << "Final payment path configuration message sent to the (" << kReceiverNodeUUID << ")";
-#endif
-    }
-
-
-    mNodesRequestedFinalConfiguration.insert(kMessage->senderUUID);
-    if (mNodesRequestedFinalConfiguration.size() == mParticipantsVotesMessage->participantsCount()){
-
-#ifdef DEBUG
-        debug() << "All involved nodes has been requested final payment path configuration. "
-                   "Begin waiting for the signed votes message";
-#endif
-
-        mStep = Stages::Common_VotesChecking;
-        return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(2));
-    }
-
-    // Waiting for the rest nodes to request final payment paths configuration
-    return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsPathsConfigurationRequest},
-        maxNetworkDelay(1));
 }
 
 /**
@@ -635,8 +532,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes},
-        maxNetworkDelay(5));
+        {Message::Payments_ParticipantsVotes,
+        Message::Payments_TTLProlongation},
+        maxNetworkDelay(message->participantsCount()));
 }
 
 
@@ -857,7 +755,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         path->maxFlow());
 
     return resultWaitForMessageTypes(
-        {Message::Payments_IntermediateNodeReservationResponse},
+        {Message::Payments_IntermediateNodeReservationResponse,
+        Message::Payments_TTLProlongation},
         maxNetworkDelay(1));
 }
 
@@ -893,7 +792,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
 
     // delay is equal 3 becouse in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
     return resultWaitForMessageTypes(
-        {Message::Payments_CoordinatorReservationResponse},
+        {Message::Payments_CoordinatorReservationResponse,
+        Message::Payments_TTLProlongation},
         maxNetworkDelay(3));
 }
 
@@ -965,7 +865,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
-        printReservations();
         info() << "Switching to another path.";
         return tryProcessNextPath();
     }
@@ -1064,7 +963,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
 
     // delay is equal 3 becouse in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
     return resultWaitForMessageTypes(
-        {Message::Payments_CoordinatorReservationResponse},
+        {Message::Payments_CoordinatorReservationResponse,
+        Message::Payments_TTLProlongation},
         maxNetworkDelay(3));
 }
 
@@ -1195,7 +1095,20 @@ void CoordinatorPaymentTransaction::switchToNextPath()
             "CoordinatorPaymentTransaction::switchToNextPath: "
             "no paths are available");
 
+    // to avoid not actual reservations in case of processing path,
+    // which contains node on first position, which also is present in path,
+    // processed just before, we need delay
+    auto justProcessedPath = currentAmountReservationPathStats();
     mCurrentAmountReservingPathIdentifier = *mPathUUIDs.cbegin();
+    auto currentPath = currentAmountReservationPathStats();
+    auto currentFirstIntermediateNode = currentPath->path()->nodes[1];
+    auto posCurrentFirstIntermediateNodeInJustProcessedPath = justProcessedPath->path()->positionOfNode(currentFirstIntermediateNode);
+    if (posCurrentFirstIntermediateNodeInJustProcessedPath > 1
+        // if checked node was processed on previous path
+        && justProcessedPath->currentIntermediateNodeAndPos().second > posCurrentFirstIntermediateNodeInJustProcessedPath) {
+        info() << "delay between process paths to avoid not actual reservations";
+        std::this_thread::sleep_for(std::chrono::milliseconds(maxNetworkDelay(1)));
+    }
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultOK()

@@ -20,6 +20,7 @@
 #include "../../../../../network/messages/payments/ParticipantsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsVotesMessage.h"
 #include "../../../../../network/messages/payments/FinalPathConfigurationMessage.h"
+#include "../../../../../network/messages/payments/TTLPolongationMessage.h"
 
 #include "PathStats.h"
 
@@ -67,6 +68,7 @@ protected:
 
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,
+        Common_ClarificationTransaction
     };
 
 protected:
@@ -77,6 +79,7 @@ protected:
     virtual TransactionResult::SharedConst runVotesCheckingStage();
     virtual TransactionResult::SharedConst runVotesConsistencyCheckingStage();
     virtual TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
+    virtual TransactionResult::SharedConst runTTLTransactionResponce();
 
     virtual TransactionResult::SharedConst approve();
     virtual TransactionResult::SharedConst recover(
@@ -135,9 +138,6 @@ protected:
         PathStats* pathStats,
         PathUUID pathUUID,
         const TrustLineAmount &finalPathAmount);
-
-    // TODO remove after testing;
-    void printReservations();
 
 protected:
     // Specifies how long node must wait for the response from the remote node.

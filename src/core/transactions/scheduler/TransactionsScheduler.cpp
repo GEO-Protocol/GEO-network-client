@@ -216,6 +216,9 @@ void TransactionsScheduler::processTransactionState(
     BaseTransaction::Shared transaction,
     TransactionState::SharedConst state) {
 
+    if (state->mustSavePreviousStateState()) {
+        return;
+    }
     if (state->mustBeRescheduled()){
         if (state->needSerialize())
             serializeTransaction(transaction);

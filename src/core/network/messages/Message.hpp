@@ -41,6 +41,7 @@ public:
         Payments_ParticipantsPathsConfiguration,
         Payments_ParticipantsPathsConfigurationRequest,
         Payments_FinalPathConfiguration,
+        Payments_TTLProlongation,
 
         /*
          * Cycles
