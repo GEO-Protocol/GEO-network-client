@@ -68,16 +68,14 @@ void IncomingChannel::addPacket(
         free(mPackets[index].first);
     }
 
-
     memcpy(
         buffer,
         bytes,
         bytesCount);
 
-    mPackets.emplace(
-        index, make_pair(
-            buffer,
-            bytesCount));
+    mPackets[index] = make_pair(
+        buffer,
+        bytesCount);
 
     mLastUpdated = chrono::steady_clock::now();
     mLastRemoteNodeHandlerUpdated = mLastUpdated;
@@ -85,35 +83,43 @@ void IncomingChannel::addPacket(
 
 pair<bool, Message::Shared> IncomingChannel::tryCollectMessage()
 {
-    if (receivedPacketsCount() != expectedPacketsCount())
+    if (receivedPacketsCount() != expectedPacketsCount()) {
         return make_pair(false, Message::Shared(nullptr));
+    }
 
+    size_t totalBytesReceived = 0;
+    for (const auto &kPacketIndexAndData : mPackets) {
+         totalBytesReceived = kPacketIndexAndData.second.second;
+    }
+
+    if (totalBytesReceived <= Packet::kMaxSize - PacketHeader::kSize) {
+        // ToDo: optimisation is present:
+        // Message consists only one packet.
+        // No need for additional copying of it's content into the intermediate buffer.
+    }
+
+    // Message consists more than one packet.
+    // To be able to deserialize them - all packets must be chained into
+    // one memory block.
+    auto buffer = tryMalloc(totalBytesReceived);
+
+    size_t currentBufferOffset = 0;
+    for (PacketHeader::TotalPacketsCount index=0; index<receivedPacketsCount(); ++index) {
+        const auto &kPacketBytesAndBytesCount = mPackets[index];
+        memcpy(
+            buffer.get() + currentBufferOffset,
+            kPacketBytesAndBytesCount.first,
+            kPacketBytesAndBytesCount.second);
+
+        currentBufferOffset += kPacketBytesAndBytesCount.second;
+    }
+
+    // ToDo: check crc32
     return make_pair(false, Message::Shared(nullptr));
-
-//    // Collecting buffer from several packets
-//    size_t totalBytesCount = 0;
-//    for (PacketHeader::PacketIndex index=0; index<receivedPacketsCount(); ++index)
-//        totalBytesCount += mPackets[index].second;
-
-//    // Copying all the packets into one buffer.
-//    size_t currentBufferOffset = 0;
-//    auto buffer = tryMalloc(totalBytesCount);
-
-//    for (PacketHeader::PacketIndex index=0; index<receivedPacketsCount(); ++index) {
-//        const auto kPacketBytesAndBytesCount = mPackets[index];
-//        memcpy(
-//            buffer.get() + currentBufferOffset,
-//            kPacketBytesAndBytesCount.first,
-//            kPacketBytesAndBytesCount.second);
-
-//        currentBufferOffset += kPacketBytesAndBytesCount.second;
-//    }
-
-//    // ToDo: check crc32
 
 //    return mMessagesParser.processBytesSequence(
 //        buffer,
-//        totalBytesCount-sizeof(uint32_t));
+//        totalBytesReceived - Packet::kCRCChecksumBytesCount);
 }
 
 /**

@@ -10,42 +10,50 @@ IncomingNodesHandler::IncomingNodesHandler(
     mLog(logger)
 {}
 
+/**
+ * @returns handler for processing incoming traffic from the remote node.
+ *
+ * @param endpoint - UDP endpoint of the remote node.
+ */
 IncomingRemoteNode* IncomingNodesHandler::handler (
     const UDPEndpoint &endpoint)
     noexcept
 {
-    const auto k = key(endpoint);
+    const auto kEndpointKey = key(endpoint);
 
-    if (mNodes.count(k) == 0) {
+    if (mNodes.count(kEndpointKey) == 0) {
         mNodes.emplace(
-            k,
+            kEndpointKey,
             make_unique<IncomingRemoteNode>(
                 endpoint,
                 mMessagesParser,
                 mLog));
     }
 
-    return mNodes[k].get();
+    return mNodes[kEndpointKey].get();
 }
 
+/**
+ * Drops handlers whose TTL has been expired.
+ */
 void IncomingNodesHandler::removeOutdatedEndpoints()
 {
-    if (mNodes.size() == 0) {
+    if (not mNodes.size()) {
         return;
     }
-
-    static const auto kMaxTTL = chrono::seconds(10);
-    const auto kNow = chrono::steady_clock::now();
 
 #ifdef NETWORK_DEBUG_LOG
     debug() << "Outdated endpoints removing started";
 #endif
 
+    static const auto kMaxHandlerTTL = chrono::seconds(10);
+    const auto kNow = chrono::steady_clock::now();
+
     forward_list<uint64_t> obsoleteIndexes;
     size_t totalOboleteIndexesCount = 0;
 
     for (const auto &keyAndNodeHandler : mNodes) {
-        if (kNow - keyAndNodeHandler.second->lastUpdated() >= kMaxTTL) {
+        if (kNow - keyAndNodeHandler.second->lastUpdated() >= kMaxHandlerTTL) {
             obsoleteIndexes.push_front(keyAndNodeHandler.first);
             ++totalOboleteIndexesCount;
         }
@@ -57,7 +65,7 @@ void IncomingNodesHandler::removeOutdatedEndpoints()
         mNodes.shrink_to_fit();
 
     } else {
-        // Prevent map reallocation
+        // Prevent map rehashing on elements dropping
         mNodes.reserve(mNodes.size());
 
         for (const auto &kObsoleteIndex: obsoleteIndexes) {

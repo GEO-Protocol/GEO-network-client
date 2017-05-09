@@ -74,15 +74,24 @@ void IncomingMessagesHandler::handleReceivedInfo(
 
 #ifdef NETWORK_DEBUG_LOG
             if (mIncomingBuffer.size() > PacketHeader::kSize) {
-                const PacketHeader::ChannelIndex channelIndex = *(new(mIncomingBuffer.data() + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
-                const PacketHeader::PacketIndex packetIndex = *(new(mIncomingBuffer.data() + PacketHeader::kPacketIndexOffset) PacketHeader::ChannelIndex) + 1;
-                const PacketHeader::TotalPacketsCount totalPacketsCount = *(new(mIncomingBuffer.data() + PacketHeader::kPacketsCountOffset) PacketHeader::TotalPacketsCount);
+                const PacketHeader::ChannelIndex kChannelIndex =
+                    *(reinterpret_cast<PacketHeader::ChannelIndex*>(
+                        mIncomingBuffer.data() + PacketHeader::kChannelIndexOffset));
+
+                const PacketHeader::PacketIndex kPacketIndex =
+                    (*(reinterpret_cast<PacketHeader::PacketIndex*>(
+                        mIncomingBuffer.data() + PacketHeader::kPacketIndexOffset))) + 1;
+
+                const PacketHeader::TotalPacketsCount kTotalPacketsCount =
+                    *(reinterpret_cast<PacketHeader::TotalPacketsCount*>(
+                        mIncomingBuffer.data() + PacketHeader::kPacketsCountOffset));
 
                 this->debug()
                     << setw(4) << bytesTransferred <<  "B RX [ <= ] "
                     << mRemoteEndpointBuffer.address() << ":" << mRemoteEndpointBuffer.port() << "; "
-                    << "Channel: " << setw(6) << static_cast<int>(channelIndex) << "; "
-                    << "Packet: " << setw(6) << static_cast<int>(packetIndex) << "/" << totalPacketsCount;
+                    << "Channel: " << setw(9) << (kChannelIndex) << "; "
+                    << "Packet: " << setw(3) << static_cast<size_t>(kPacketIndex)
+                    << "/" << static_cast<size_t>(kTotalPacketsCount);
             }
 #endif
 
@@ -113,7 +122,7 @@ void IncomingMessagesHandler::handleReceivedInfo(
 void IncomingMessagesHandler::rescheduleCleaning()
     noexcept
 {
-    const auto kCleaningInterval = boost::posix_time::seconds(10);
+    const auto kCleaningInterval = boost::posix_time::seconds(30);
 
     mCleaningTimer.expires_from_now(kCleaningInterval);
     mCleaningTimer.async_wait([this] (const boost::system::error_code &_) {

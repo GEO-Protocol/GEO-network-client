@@ -38,7 +38,7 @@ Message::Shared IncomingRemoteNode::popNextMessage()
 
 /**
  * Scans all channels of the node, and removes those that are obsolete.
- * Channel is considered obsolete, in case if it does't receives any message for some period of time.
+ * Channel is considered obsolete, in case if it doesn't receives any message for some period of time.
  * Please, see method internals for details about max TTL of the channel.
  */
 void IncomingRemoteNode::dropOutdatedChannels()
@@ -130,8 +130,6 @@ void IncomingRemoteNode::processIncomingBytesSequence (
         mBuffer.reserve(
             mBuffer.capacity() + 1024);
     }
-//    mBuffer.resize(
-//        mBuffer.size() + count);
 
 
     // Appending received data to the previously received
@@ -160,18 +158,30 @@ void IncomingRemoteNode::processIncomingBytesSequence (
  */
 bool IncomingRemoteNode::tryCollectNextPacket ()
 {
-    if (mBuffer.size() < Packet::kMinSize)
+    if (mBuffer.size() < Packet::kMinSize) {
         return false;
+    }
 
     // Header parsing
-    const PacketHeader::PacketSize headerAndBodyBytesCount = *( new(mBuffer.data()) PacketHeader::PacketSize);
-    const PacketHeader::ChannelIndex channelIndex = *( new(mBuffer.data() + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
-    const PacketHeader::PacketIndex packetIndex = *( new(mBuffer.data() + PacketHeader::kPacketIndexOffset) PacketHeader::PacketIndex);
-    const PacketHeader::TotalPacketsCount totalPacketsCount = *( new(mBuffer.data() + PacketHeader::kPacketsCountOffset) PacketHeader::TotalPacketsCount);
+    const PacketHeader::PacketSize kHeaderAndBodyBytesCount =
+        *(reinterpret_cast<PacketHeader::PacketSize*>(
+            mBuffer.data()));
+
+    const PacketHeader::ChannelIndex kChannelIndex =
+        *(reinterpret_cast<PacketHeader::ChannelIndex*>(
+            mBuffer.data() + PacketHeader::kChannelIndexOffset));
+
+    const PacketHeader::PacketIndex packetIndex =
+        *(reinterpret_cast<PacketHeader::PacketIndex*>(
+            mBuffer.data() + PacketHeader::kPacketIndexOffset));
+
+    const PacketHeader::TotalPacketsCount totalPacketsCount =
+        *(reinterpret_cast<PacketHeader::TotalPacketsCount*>(
+            mBuffer.data() + PacketHeader::kPacketsCountOffset));
 
 
-    if (headerAndBodyBytesCount < Packet::kMinSize
-        || headerAndBodyBytesCount > Packet::kMaxSize) {
+    if (kHeaderAndBodyBytesCount < Packet::kMinSize
+        || kHeaderAndBodyBytesCount > Packet::kMaxSize) {
 
         // Packet bytes count field can't be less than minimal header size,
         // and can't be greater than max packet size.
@@ -195,36 +205,32 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
         || packetIndex > totalPacketsCount) {
 
         // Invalid bytes flow occured.
-
         dropEntireIncomingFlow();
 
         // ToDo: ban the node.
         return false;
     }
 
-    if (mBuffer.size() < headerAndBodyBytesCount) {
+    if (mBuffer.size() < kHeaderAndBodyBytesCount) {
         // There is no sufficient data to start collecting packet.
         return false;
     }
 
-    auto channel = findChannel(channelIndex);
+    auto channel = findChannel(kChannelIndex);
     channel->reservePacketsSlots(totalPacketsCount);
     channel->addPacket(
         packetIndex,
         mBuffer.data() + PacketHeader::kSize,
-        headerAndBodyBytesCount - PacketHeader::kSize);
+        kHeaderAndBodyBytesCount - PacketHeader::kSize);
 
     // Cut bytes transferred to the packet from the buffer
     mBuffer.erase(
-        mBuffer.begin(),
-        mBuffer.begin() + headerAndBodyBytesCount);
+        mBuffer.cbegin(),
+        mBuffer.cbegin() + kHeaderAndBodyBytesCount);
 
-
-    if (channel->receivedPacketsCount() == totalPacketsCount) {
-        const auto kFlagAndMessage = channel->tryCollectMessage();
-        if (kFlagAndMessage.first) {
-            mCollectedMessages.push_back(kFlagAndMessage.second);
-        }
+    const auto kFlagAndMessage = channel->tryCollectMessage();
+    if (kFlagAndMessage.first) {
+        mCollectedMessages.push_back(kFlagAndMessage.second);
     }
 
     // Return true if one more potential packet is present in buffer.
@@ -260,7 +266,7 @@ LoggerStream IncomingRemoteNode::debug() const
     noexcept
 {
 #ifdef NETWORK_DEBUG_LOG
-    return mLog.debug("IncomingRemoteNode");
+    return mLog.debug("Communicator / IncomingRemoteNode");
 #endif
 
 #ifndef NETWORK_DEBUG_LOG

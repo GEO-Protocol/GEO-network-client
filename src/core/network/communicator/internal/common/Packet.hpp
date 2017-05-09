@@ -8,29 +8,29 @@
  * Network packet scheme:
  *
  *   2B - Packet size;
- *   2B - Channel index;
- *   2B - Total packets count;
+ *   4B - Channel index;
+ *   1B - Total packets count;
  *   1B - Current packet index;
  *   nB - Packet content, where n == (max packet size - packet header size)
  */
 class PacketHeader {
 public:
     typedef uint16_t PacketSize;
-    typedef uint16_t ChannelIndex;
-    typedef uint16_t TotalPacketsCount;
+    typedef uint32_t ChannelIndex;
 
-    // Note: one message may contains no more than 2**8 = 256 pakcets.
-    // The max message size depends on max packet size:
+    // Note: one message may contains no more than 2**8 = 256 packets.
+    // Max message size depends on max packet size:
     // for the public network (Internet transfer) the appropriate packet size is 508 bytes.
-    // The packet header may contains 7 bytes. As the result, data segment of the packet may contains 501 byte.
+    // Packet header may contains 8 bytes. As the result, data segment of the packet may contains 500 byte.
     // The max message size = ~125kB.
-    typedef uint8_t  PacketIndex;
+    typedef uint8_t TotalPacketsCount;
+    typedef TotalPacketsCount PacketIndex;
 
     static const constexpr size_t kSize =
         sizeof(PacketSize)
       + sizeof(ChannelIndex)
-      + sizeof(PacketIndex)
-      + sizeof(TotalPacketsCount);
+      + sizeof(TotalPacketsCount)
+      + sizeof(PacketIndex);
 
 
     static const uint16_t kPacketSizeOffset   = 0;
@@ -46,6 +46,8 @@ public:
     typedef PacketHeader::PacketSize Size;
     typedef PacketHeader::TotalPacketsCount Count;
     typedef PacketHeader::TotalPacketsCount Index;
+
+    static const size_t kCRCChecksumBytesCount = sizeof(uint32_t);
 
 #ifdef ENGINE_TYPE_DC
     // In most cases, datacenter network is capable to process large UDP packets.

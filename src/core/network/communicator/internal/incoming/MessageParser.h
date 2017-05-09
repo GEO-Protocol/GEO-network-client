@@ -1,6 +1,7 @@
 #ifndef MESSAGEPARSER_H
 #define MESSAGEPARSER_H
 
+#include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
 // todo: remove this message type
@@ -46,6 +47,10 @@
 #include "../../../messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../../messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 
+#ifdef DEBUG
+#include "../../../messages/debug/DebugMessage.h"
+#endif
+
 #include "../../../../logger/Logger.h"
 
 #include <utility>
@@ -61,7 +66,7 @@ public:
         noexcept;
 
     pair<bool, Message::Shared> processBytesSequence(
-        BytesShared bytes,
+        BytesShared buffer,
         const size_t count);
 
     MessagesParser& operator= (

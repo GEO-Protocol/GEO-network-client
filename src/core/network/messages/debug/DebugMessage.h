@@ -8,7 +8,11 @@ class DebugMessage:
     public TransactionMessage {
 
 public:
-    DebugMessage();
+    DebugMessage()
+        noexcept;
+
+    DebugMessage(
+        BytesShared bytes);
 
     const MessageType typeID() const;
 };

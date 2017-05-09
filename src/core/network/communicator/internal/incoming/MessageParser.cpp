@@ -9,14 +9,16 @@ MessagesParser::MessagesParser(
 {}
 
 pair<bool, Message::Shared> MessagesParser::processBytesSequence(
-    BytesShared bytes,
+    BytesShared buffer,
     const size_t count) {
 
-    if (count < kMinimalMessageSize || bytes == nullptr)
+    if (count < kMinimalMessageSize || buffer == nullptr) {
         return messageInvalidOrIncomplete();
+    }
 
     try {
-        const Message::SerializedType kMessageIdentifier = *bytes;
+        const Message::SerializedType kMessageIdentifier =
+            *(reinterpret_cast<Message::SerializedType*>(buffer.get()));
 
         switch(kMessageIdentifier) {
 
@@ -24,13 +26,13 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
          * Trust lines operations
          */
         case Message::TrustLines_Open:
-            return messageCollected<AcceptTrustLineMessage>(bytes);
+            return messageCollected<AcceptTrustLineMessage>(buffer);
 
         case Message::TrustLines_Close:
-            return messageCollected<RejectTrustLineMessage>(bytes);
+            return messageCollected<RejectTrustLineMessage>(buffer);
 
         case Message::TrustLines_Set:
-            return messageCollected<UpdateTrustLineMessage>(bytes);
+            return messageCollected<UpdateTrustLineMessage>(buffer);
 
 
         /*
@@ -42,99 +44,109 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
          * Payment operations messages
          */
         case Message::Payments_CoordinatorReservationRequest:
-            return messageCollected<CoordinatorReservationRequestMessage>(bytes);
+            return messageCollected<CoordinatorReservationRequestMessage>(buffer);
 
         case Message::Payments_CoordinatorReservationResponse:
-            return messageCollected<CoordinatorReservationResponseMessage>(bytes);
+            return messageCollected<CoordinatorReservationResponseMessage>(buffer);
 
         case Message::Payments_ReceiverInitPaymentRequest:
-            return messageCollected<ReceiverInitPaymentRequestMessage>(bytes);
+            return messageCollected<ReceiverInitPaymentRequestMessage>(buffer);
 
         case Message::Payments_ReceiverInitPaymentResponse:
-            return messageCollected<ReceiverInitPaymentResponseMessage>(bytes);
+            return messageCollected<ReceiverInitPaymentResponseMessage>(buffer);
 
         case Message::Payments_IntermediateNodeReservationRequest:
-            return messageCollected<IntermediateNodeReservationRequestMessage>(bytes);
+            return messageCollected<IntermediateNodeReservationRequestMessage>(buffer);
 
         case Message::Payments_IntermediateNodeReservationResponse:
-            return messageCollected<IntermediateNodeReservationResponseMessage>(bytes);
+            return messageCollected<IntermediateNodeReservationResponseMessage>(buffer);
 
 
-            /*
-             * Cycles processing messages
-             */
+        /*
+         * Cycles processing messages
+         */
         case Message::Cycles_SixNodesMiddleware:
-            return messageCollected<CyclesSixNodesInBetweenMessage>(bytes);
+            return messageCollected<CyclesSixNodesInBetweenMessage>(buffer);
 
         case Message::Cycles_FiveNodesMiddleware:
-            return messageCollected<CyclesFiveNodesInBetweenMessage>(bytes);
+            return messageCollected<CyclesFiveNodesInBetweenMessage>(buffer);
 
         case Message::Cycles_SixNodesBoundary:
-            return messageCollected<CyclesSixNodesBoundaryMessage>(bytes);
+            return messageCollected<CyclesSixNodesBoundaryMessage>(buffer);
 
         case Message::Cycles_FiveNodesBoundary:
-            return messageCollected<CyclesFiveNodesBoundaryMessage>(bytes);
+            return messageCollected<CyclesFiveNodesBoundaryMessage>(buffer);
 
         case Message::Cycles_ThreeNodesBalancesResponse:
-            return messageCollected<CyclesThreeNodesBalancesResponseMessage>(bytes);
+            return messageCollected<CyclesThreeNodesBalancesResponseMessage>(buffer);
 
         case Message::Cycles_FourNodesBalancesRequest:
-            return messageCollected<CyclesFourNodesBalancesRequestMessage>(bytes);
+            return messageCollected<CyclesFourNodesBalancesRequestMessage>(buffer);
 
         case Message::Cycles_FourNodesBalancesResponse:
-            return messageCollected<CyclesFourNodesBalancesResponseMessage>(bytes);
+            return messageCollected<CyclesFourNodesBalancesResponseMessage>(buffer);
 
         case Message::Cycles_ThreeNodesBalancesRequest:
-            return messageCollected<CyclesThreeNodesBalancesRequestMessage>(bytes);
+            return messageCollected<CyclesThreeNodesBalancesRequestMessage>(buffer);
 
 
         /*
          * Max flow calculation messages
          */
         case Message::MaxFlow_InitiateCalculation:
-            return messageCollected<InitiateMaxFlowCalculationMessage>(bytes);
+            return messageCollected<InitiateMaxFlowCalculationMessage>(buffer);
 
         case Message::MaxFlow_ResultMaxFlowCalculation:
-            return messageCollected<ResultMaxFlowCalculationMessage>(bytes);
+            return messageCollected<ResultMaxFlowCalculationMessage>(buffer);
 
         case Message::MaxFlow_CalculationSourceFirstLevel:
-            return messageCollected<MaxFlowCalculationSourceFstLevelMessage>(bytes);
+            return messageCollected<MaxFlowCalculationSourceFstLevelMessage>(buffer);
 
         case Message::MaxFlow_CalculationTargetFirstLevel:
-            return messageCollected<MaxFlowCalculationTargetFstLevelMessage>(bytes);
+            return messageCollected<MaxFlowCalculationTargetFstLevelMessage>(buffer);
 
         case Message::MaxFlow_CalculationSourceSecondLevel:
-            return messageCollected<MaxFlowCalculationSourceSndLevelMessage>(bytes);
+            return messageCollected<MaxFlowCalculationSourceSndLevelMessage>(buffer);
 
         case Message::MaxFlow_CalculationTargetSecondLevel:
-            return messageCollected<MaxFlowCalculationTargetSndLevelMessage>(bytes);
+            return messageCollected<MaxFlowCalculationTargetSndLevelMessage>(buffer);
 
 
         /*
          * Total Balances Messages
          */
         case Message::TotalBalance_Request:
-            return messageCollected<InitiateTotalBalancesMessage>(bytes);
+            return messageCollected<InitiateTotalBalancesMessage>(buffer);
 
         case Message::TotalBalance_Response:
-            return messageCollected<TotalBalancesResultMessage>(bytes);
+            return messageCollected<TotalBalancesResultMessage>(buffer);
 
 
         /*
          * Find Path Messages
          */
         case Message::Paths_RequestRoutingTables:
-            return messageCollected<RequestRoutingTablesMessage>(bytes);
+            return messageCollected<RequestRoutingTablesMessage>(buffer);
 
         case Message::Paths_ResultRoutingTableFirstLevel:
-            return messageCollected<ResultRoutingTable1LevelMessage>(bytes);
+            return messageCollected<ResultRoutingTable1LevelMessage>(buffer);
 
         case Message::Paths_ResultRoutingTableSecondLevel:
-            return messageCollected<ResultRoutingTable2LevelMessage>(bytes);
+            return messageCollected<ResultRoutingTable2LevelMessage>(buffer);
 
         case Message::Paths_ResultRoutingTableThirdLevel:
-            return messageCollected<ResultRoutingTable3LevelMessage>(bytes);
+            return messageCollected<ResultRoutingTable3LevelMessage>(buffer);
 
+
+#ifdef DEBUG
+        /*
+         * Debug messages
+         *
+         */
+        case Message::Debug:
+            return messageCollected<DebugMessage>(buffer);
+
+#endif // DEBUG
 
         default: {
             auto errors = mLog.error("MessagesParser::processBytesSequence");
@@ -142,10 +154,8 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         }
         }
 
-    } catch (exception &e) {
+    } catch (exception &) {
         return messageInvalidOrIncomplete();
-        auto errors = mLog.error("MessagesParser::processBytesSequence");
-        errors << "Message can't be parsed: " << e.what();
     }
 }
 

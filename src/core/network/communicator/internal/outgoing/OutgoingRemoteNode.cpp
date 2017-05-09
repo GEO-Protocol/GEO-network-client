@@ -26,9 +26,19 @@ void OutgoingRemoteNode::sendMessage(
         // In case if queue already contains packets -
         // then async handler is already scheduled.
         // Otherwise - it must be initialised.
-        auto packetsSendingAlreadyScheduled = mPacketsQueue.size() > 0;
+        bool packetsSendingAlreadyScheduled = mPacketsQueue.size() > 0;
 
         auto bytesAndBytesCount = message->serializeToBytes();
+
+#ifdef NETWORK_DEBUG_LOG
+        const Message::SerializedType kMessageType = *bytesAndBytesCount.first;
+
+        debug()
+            << "Message with type "
+            << static_cast<size_t>(kMessageType)
+            << " postponed for the sending";
+#endif
+
         populateQueueWithNewPackets(
             bytesAndBytesCount.first.get(),
             bytesAndBytesCount.second);
@@ -63,13 +73,13 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
     byte *messageData,
     const size_t messageBytesCount)
 {
-    const auto kMessageWithCRC32BytesCount = messageBytesCount + sizeof(uint32_t);
+    const auto kMessageSizeWithCRC32 = messageBytesCount + sizeof(uint32_t);
 
     PacketHeader::TotalPacketsCount kTotalPacketsCount =
         static_cast<PacketHeader::TotalPacketsCount>(
-            kMessageWithCRC32BytesCount / Packet::kMaxSize);
+            kMessageSizeWithCRC32 / Packet::kMaxSize);
 
-    if (kMessageWithCRC32BytesCount % Packet::kMaxSize != 0)
+    if (kMessageSizeWithCRC32 % Packet::kMaxSize != 0)
         kTotalPacketsCount += 1;
 
 
@@ -82,6 +92,8 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
     size_t processedBytesCount = 0;
     if (kTotalPacketsCount > 1) {
         for (Packet::Index packetIndex=0; packetIndex<kTotalPacketsCount-1; ++packetIndex) {
+
+            // ToDo: remove all previously created packets from the queue to prevent memory leak.
             auto buffer = static_cast<byte*>(malloc(Packet::kMaxSize));
 
             memcpy(
@@ -121,16 +133,20 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
 
     // Writing last packet
     const PacketHeader::PacketIndex kLastPacketIndex = kTotalPacketsCount - 1;
-    const Packet::Size kLastPacketSize =
-          kMessageWithCRC32BytesCount
-        - processedBytesCount
-        + PacketHeader::kSize;
-    auto buffer = static_cast<byte*>(malloc(kLastPacketSize));
+    const PacketHeader::PacketSize kLastPacketSize =
+        static_cast<PacketHeader::PacketSize>(
+            kMessageSizeWithCRC32 - processedBytesCount) + PacketHeader::kSize;
+
+    byte *buffer = static_cast<byte*>(malloc(kLastPacketSize));
+    if (buffer == nullptr) {
+        // ToDo: remove all previously created packets from the queue to prevent memory leak.
+        throw bad_alloc();
+    }
 
     memcpy(
         buffer + PacketHeader::kPacketSizeOffset,
         &kLastPacketSize,
-        sizeof(Packet::kMaxSize));
+        sizeof(kLastPacketSize));
 
     memcpy(
         buffer + PacketHeader::kChannelIndexOffset,
@@ -150,9 +166,9 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
     memcpy(
         buffer + PacketHeader::kDataOffset,
         messageData + processedBytesCount,
-        kLastPacketSize - sizeof(uint32_t) - PacketHeader::kSize);
+        kLastPacketSize - sizeof(crcChecksum) - PacketHeader::kSize);
 
-    processedBytesCount += kLastPacketSize - sizeof(uint32_t) - PacketHeader::kSize;
+    processedBytesCount += kLastPacketSize - sizeof(crcChecksum) - PacketHeader::kSize;
 
     // Copying CRC32 checksum
     memcpy(
@@ -203,15 +219,21 @@ void OutgoingRemoteNode::beginPacketsSending()
                 }
 
 #ifdef NETWORK_DEBUG_LOG
-                const uint16_t channelIndex = *(new(packetDataAndSize.first + PacketHeader::kChannelIndexOffset) uint16_t);
-                const uint16_t packetIndex = *(new(packetDataAndSize.first + PacketHeader::kPacketIndexOffset) uint16_t) + 1;
-                const uint16_t totalPacketsCount = *(new(packetDataAndSize.first + PacketHeader::kPacketsCountOffset) uint16_t);
+                const PacketHeader::ChannelIndex channelIndex =
+                    *(new(packetDataAndSize.first + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
+
+                const PacketHeader::PacketIndex packetIndex =
+                    *(new(packetDataAndSize.first + PacketHeader::kPacketIndexOffset) PacketHeader::PacketIndex) + 1;
+
+                const PacketHeader::TotalPacketsCount totalPacketsCount =
+                    *(new(packetDataAndSize.first + PacketHeader::kPacketsCountOffset) PacketHeader::TotalPacketsCount);
 
                 this->debug()
                     << setw(4) << bytesTransferred <<  "B TX [ => ] "
                     << endpoint.address() << ":" << endpoint.port() << "; "
-                    << "Channel: " << setw(6) << channelIndex << "; "
-                    << "Packet: " << setw(6) << packetIndex << "/" << totalPacketsCount;
+                    << "Channel: " << setw(10) << static_cast<size_t>(channelIndex) << "; "
+                    << "Packet: " << setw(3) << static_cast<size_t>(packetIndex)
+                    << "/" << static_cast<size_t>(totalPacketsCount);
 #endif
 
                 // Removing packet from the memory
@@ -260,7 +282,7 @@ LoggerStream OutgoingRemoteNode::debug() const
 {
 #ifdef NETWORK_DEBUG_LOG
     return mLog.debug(
-        string("OutgoingRemoteNode [")
+        string("Communicator / OutgoingRemoteNode [")
         + mRemoteNodeUUID.stringUUID()
         + string("]"));
 #endif
