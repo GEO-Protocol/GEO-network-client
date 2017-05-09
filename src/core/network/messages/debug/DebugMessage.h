@@ -14,7 +14,7 @@ public:
     DebugMessage(
         BytesShared bytes);
 
-    const MessageType typeID() const;
+    virtual const MessageType typeID() const;
 };
 
 #endif // DEBUGMESSAGE_H

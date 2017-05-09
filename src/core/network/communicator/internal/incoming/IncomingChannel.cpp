@@ -17,10 +17,6 @@ IncomingChannel::~IncomingChannel()
     clear();
 }
 
-/**
- * Reserves memory for expected packets "count";
- * This method is used for optimisation purposes only.
- */
 void IncomingChannel::reservePacketsSlots(
     const PacketHeader::TotalPacketsCount count)
     noexcept(false)
@@ -77,8 +73,8 @@ void IncomingChannel::addPacket(
         buffer,
         bytesCount);
 
-    mLastUpdated = chrono::steady_clock::now();
-    mLastRemoteNodeHandlerUpdated = mLastUpdated;
+    mLastPacketReceived = chrono::steady_clock::now();
+    mLastRemoteNodeHandlerUpdated = mLastPacketReceived;
 }
 
 pair<bool, Message::Shared> IncomingChannel::tryCollectMessage()
@@ -114,12 +110,25 @@ pair<bool, Message::Shared> IncomingChannel::tryCollectMessage()
         currentBufferOffset += kPacketBytesAndBytesCount.second;
     }
 
-    // ToDo: check crc32
-    return make_pair(false, Message::Shared(nullptr));
 
-//    return mMessagesParser.processBytesSequence(
-//        buffer,
-//        totalBytesReceived - Packet::kCRCChecksumBytesCount);
+    // CRC Checking
+    boost::crc_32_type crc;
+    crc.process_bytes(
+        buffer.get(),
+        totalBytesReceived - sizeof(uint32_t));
+
+    uint32_t calculatedCRC = crc.checksum();
+    uint32_t receivedCRC = *(reinterpret_cast<uint32_t*>(
+        buffer.get() + totalBytesReceived - sizeof(uint32_t)));
+
+    if (receivedCRC != calculatedCRC) {
+        cout << "CRC Error!";
+        return make_pair(false, Message::Shared(nullptr));
+    }
+
+    return mMessagesParser.processBytesSequence(
+        buffer,
+        totalBytesReceived - Packet::kCRCChecksumBytesCount);
 }
 
 /**
@@ -149,5 +158,5 @@ Packet::Size IncomingChannel::expectedPacketsCount() const
 const TimePoint &IncomingChannel::lastUpdated() const
     noexcept
 {
-    return mLastUpdated;
+    return mLastPacketReceived;
 }

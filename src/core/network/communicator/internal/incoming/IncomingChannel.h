@@ -10,6 +10,7 @@
 #include "../../../../common/exceptions/ConflictError.h"
 
 #include <boost/unordered_map.hpp>
+#include <boost/crc.hpp>
 
 #include <utility>
 #include <limits>
@@ -19,6 +20,9 @@
 using namespace std;
 
 
+/**
+ * Collects incoming packets from the remote node.
+ */
 class IncomingChannel {
 public:
     using Unique = unique_ptr<IncomingChannel>;
@@ -57,7 +61,7 @@ public:
         noexcept;
 
 protected:
-    TimePoint mLastUpdated;
+    TimePoint mLastPacketReceived;
     TimePoint &mLastRemoteNodeHandlerUpdated;
 
     MessagesParser &mMessagesParser;
