@@ -78,10 +78,10 @@ pair<BytesShared, size_t> IntermediateNodePaymentTransaction::serializeToBytes()
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNeighborRequestProcessingStage()
 {
-    info() << "runPreviousNeighborRequestProcessingStage";
+    debug() << "runPreviousNeighborRequestProcessingStage";
     const auto kNeighbor = mMessage->senderUUID;
-    info() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
-    info() << "Requested amount reservation: " << mMessage->amount();
+    debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
+    debug() << "Requested amount reservation: " << mMessage->amount();
 
 
     // Note: (copy of shared pointer is required)
@@ -115,12 +115,12 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage()
 {
-    info() << "runCoordinatorRequestProcessingStage";
+    debug() << "runCoordinatorRequestProcessingStage";
     if (! contextIsValid(Message::Payments_CoordinatorReservationRequest))
         return reject("No coordinator request received. Rolled back.");
 
 
-    info() << "Coordinator further reservation request received.";
+    debug() << "Coordinator further reservation request received.";
 
 
     // TODO: add check for previous nodes amount reservation
@@ -130,8 +130,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     const auto kNextNode = kMessage->nextNodeInPathUUID();
     mCoordinator = kMessage->senderUUID;
     mLastProcessedPath = kMessage->pathUUID();
-
-
 
     // Note: copy of shared pointer is required
     const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
@@ -147,7 +145,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
             kMessage->pathUUID(),
             ResponseMessage::Rejected);
 
-        info() << "No amount reservation is possible. Rolled back.";
+        debug() << "No amount reservation is possible. Rolled back.";
         rollBack(kMessage->pathUUID());
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
@@ -173,9 +171,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
 {
-    info() << "runNextNeighborResponseProcessingStage";
+    debug() << "runNextNeighborResponseProcessingStage";
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
-        info() << "No valid amount reservation response received. Rolled back.";
+        debug() << "No valid amount reservation response received. Rolled back.";
         rollBack(mLastProcessedPath);
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
@@ -194,7 +192,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             currentTransactionUUID(),
             kMessage->pathUUID(),
             ResponseMessage::Rejected);
-        info() << "Amount reservation rejected by the neighbor node.";
+        debug() << "Amount reservation rejected by the neighbor node.";
         rollBack(kMessage->pathUUID());
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
@@ -203,7 +201,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
-    info() << "(" << kContractor << ") accepted amount reservation.";
+    debug() << "(" << kContractor << ") accepted amount reservation.";
 
     // shortage local reservation on current path
     for (const auto &nodeReservation : mReservations) {
@@ -234,7 +232,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
 {
-    info() << "runReservationProlongationStage";
+    debug() << "runReservationProlongationStage";
     // on this stage we can receive IntermediateNodeReservationRequest message
     // and on this case we process PreviousNeighborRequestProcessing stage
     if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
@@ -245,7 +243,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
     // there is no need to prolong reservation, transaction may be proceeded.
     // Node is clarifying of coordinator if transaction is still alive
     if (!contextIsValid(Message::Payments_ParticipantsVotes)) {
-        info() << "Send TTLTransaction message to coordinator " << mCoordinator;
+        debug() << "Send TTLTransaction message to coordinator " << mCoordinator;
         sendMessage<TTLPolongationMessage>(
             mCoordinator,
             currentNodeUUID(),
@@ -265,7 +263,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificat
 {
     // on this stage we can receive IntermediateNodeReservationRequest and ParticipantsVotes messages
     // and on this cases we process it properly
-    info() << "runClarificationOfTransaction";
+    debug() << "runClarificationOfTransaction";
     if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
         mMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
         return runPreviousNeighborRequestProcessingStage();
@@ -278,7 +276,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificat
         return reject("No participants votes message received. Transaction was closed. Rolling Back");
     }
     // transactions is still alive and we continue waiting for messages
-    info() << "Transactions is still alive. Continue waiting for messages";
+    debug() << "Transactions is still alive. Continue waiting for messages";
     mStep = Stages::IntermediateNode_ReservationProlongation;
     // TODO correct delay time
     return resultWaitForMessageTypes(
@@ -292,7 +290,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
     if (contextIsValid(Message::Payments_ParticipantsVotes, false)) {
         return runVotesCheckingStage();
     }
-    info() << "Send TTLTransaction message to coordinator " << mCoordinator;
+    debug() << "Send TTLTransaction message to coordinator " << mCoordinator;
     sendMessage<TTLPolongationMessage>(
         mCoordinator,
         currentNodeUUID(),

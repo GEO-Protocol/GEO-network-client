@@ -19,7 +19,6 @@ PathsManager::PathsManager(
     //testPaymentStateOperationsHandler();
     //testTransactionHandler();
     //testTime();
-    //testMultiConnection();
     //printRTs();
     //testDeletingRT();
     //fillCycleTablesTestCase0();
@@ -605,90 +604,105 @@ void PathsManager::testStorageHandler()
 
 void PathsManager::testTrustLineHandler()
 {
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    for (auto const &trustLine : mTrustLinesManager->trustLines()) {
-        ioTransaction->trustLineHandler()->saveTrustLine(trustLine.second);
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        for (auto const &trustLine : mTrustLinesManager->trustLines()) {
+            ioTransaction->trustLineHandler()->saveTrustLine(trustLine.second);
+        }
     }
-    TrustLine::Shared trLine = make_shared<TrustLine>(
-        mNodeUUID,
-        TrustLineAmount(100),
-        TrustLineAmount(200),
-        TrustLineBalance(-30));
-    ioTransaction->trustLineHandler()->saveTrustLine(trLine);
-    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
-        info() << "read one trust line: " <<
-               rtrLine->contractorNodeUUID() << " " <<
-               rtrLine->incomingTrustAmount() << " " <<
-               rtrLine->outgoingTrustAmount() << " " <<
-               rtrLine->balance();
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        TrustLine::Shared trLine = make_shared<TrustLine>(
+            mNodeUUID,
+            TrustLineAmount(100),
+            TrustLineAmount(200),
+            TrustLineBalance(-30));
+        ioTransaction->trustLineHandler()->saveTrustLine(trLine);
+        for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
+            info() << "read one trust line: " <<
+                   rtrLine->contractorNodeUUID() << " " <<
+                   rtrLine->incomingTrustAmount() << " " <<
+                   rtrLine->outgoingTrustAmount() << " " <<
+                   rtrLine->balance();
+        }
+
+        trLine->setBalance(55);
+        trLine->setIncomingTrustAmount(1000);
+        ioTransaction->trustLineHandler()->saveTrustLine(trLine);
+        for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
+            info() << "read one trust line: " <<
+                   rtrLine->contractorNodeUUID() << " " <<
+                   rtrLine->incomingTrustAmount() << " " <<
+                   rtrLine->outgoingTrustAmount() << " " <<
+                   rtrLine->balance();
+        }
+        ioTransaction->rollback();
     }
-    trLine->setBalance(55);
-    trLine->setIncomingTrustAmount(1000);
-    ioTransaction->trustLineHandler()->saveTrustLine(trLine);
-    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
-        info() << "read one trust line: " <<
-               rtrLine->contractorNodeUUID() << " " <<
-               rtrLine->incomingTrustAmount() << " " <<
-               rtrLine->outgoingTrustAmount() << " " <<
-               rtrLine->balance();
-    }
-    ioTransaction->rollback();
-    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
-        info() << "read one trust line: " <<
-               rtrLine->contractorNodeUUID() << " " <<
-               rtrLine->incomingTrustAmount() << " " <<
-               rtrLine->outgoingTrustAmount() << " " <<
-               rtrLine->balance();
-    }
-    ioTransaction->trustLineHandler()->deleteTrustLine(mNodeUUID);
-    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
-        info() << "read one trust line: " <<
-               rtrLine->contractorNodeUUID() << " " <<
-               rtrLine->incomingTrustAmount() << " " <<
-               rtrLine->outgoingTrustAmount() << " " <<
-               rtrLine->balance();
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
+            info() << "read one trust line: " <<
+                   rtrLine->contractorNodeUUID() << " " <<
+                   rtrLine->incomingTrustAmount() << " " <<
+                   rtrLine->outgoingTrustAmount() << " " <<
+                   rtrLine->balance();
+        }
+        ioTransaction->trustLineHandler()->deleteTrustLine(mNodeUUID);
+        for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
+            info() << "read one trust line: " <<
+                   rtrLine->contractorNodeUUID() << " " <<
+                   rtrLine->incomingTrustAmount() << " " <<
+                   rtrLine->outgoingTrustAmount() << " " <<
+                   rtrLine->balance();
+        }
     }
 }
 
 void PathsManager::testPaymentStateOperationsHandler()
 {
-    auto ioTransaction = mStorageHandler->beginTransaction();
     TransactionUUID transaction1;
-    BytesShared state1 = tryMalloc(sizeof(uint8_t));
-    uint8_t st1 = 2;
-    memcpy(
-        state1.get(),
-        &st1,
-        sizeof(uint8_t));
-    ioTransaction->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
-    st1 = 22;
-    memcpy(
-        state1.get(),
-        &st1,
-        sizeof(uint8_t));
-    try {
-        ioTransaction->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
-    } catch (IOError) {
-        info() << "record alredy present";
-    }
     TransactionUUID transaction2;
+    BytesShared state1 = tryMalloc(sizeof(uint8_t));
     BytesShared state2 = tryMalloc(sizeof(uint16_t));
-    uint16_t st2 = 88;
-    memcpy(
-        state2.get(),
-        &st2,
-        sizeof(uint16_t));
-    ioTransaction->paymentOperationStateHandler()->saveRecord(transaction2, state2, sizeof(uint16_t));
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        uint8_t st1 = 2;
+        memcpy(
+            state1.get(),
+            &st1,
+            sizeof(uint8_t));
+        ioTransaction->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+        st1 = 22;
+        memcpy(
+            state1.get(),
+            &st1,
+            sizeof(uint8_t));
+        try {
+            ioTransaction->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+        } catch (IOError) {
+            info() << "record alredy present";
+        }
+        uint16_t st2 = 88;
+        memcpy(
+            state2.get(),
+            &st2,
+            sizeof(uint16_t));
+        ioTransaction->paymentOperationStateHandler()->saveRecord(transaction2, state2, sizeof(uint16_t));
+    }
     TransactionUUID transaction3;
     BytesShared state3 = tryMalloc(sizeof(uint32_t));
-    uint32_t st3 = 3;
-    memcpy(
-        state3.get(),
-        &st3,
-        sizeof(uint32_t));
-    ioTransaction->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
-    ioTransaction->rollback();
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        uint32_t st3 = 3;
+        memcpy(
+            state3.get(),
+            &st3,
+            sizeof(uint32_t));
+        ioTransaction->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
+        ioTransaction->rollback();
+    }
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
     pair<BytesShared, size_t> stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction1);
     uint32_t state = 0;
     memcpy(
@@ -1013,218 +1027,6 @@ void PathsManager::testTime()
 
     info() << "testTime\t" << "RT3 size: " << ioTransaction->routingTablesHandler()->routeRecordsMapSourceKeyOnRT3().size();
     info() << "testTime\t" << "RT3 map size opt5: " << ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3().size();
-}
-
-void PathsManager::testMultiConnection()
-{
-    string queryCreateTable = "CREATE TABLE IF NOT EXISTS test_table "
-        "(field1 INTEGER NOT NULL, "
-        "field2 INTEGER NOT NULL);";
-    string queryBegin = "BEGIN TRANSACTION;";
-    string queryInsert = "INSERT INTO test_table (field1, field2) VALUES (?, ?);";
-    string queryCommit = "END TRANSACTION;";
-    string selectQuery = "SELECT * FROM test_table";
-
-    sqlite3_stmt *stmt1;
-    sqlite3_stmt *stmt2;
-
-    sqlite3 *database1;
-    sqlite3 *database2;
-
-    int rc = sqlite3_open_v2("io/storageDB", &database1, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-    if (rc == SQLITE_OK) {
-    } else {
-        throw IOError("PathsManager::testMultiConnection "
-                          "Can't open database 1");
-    }
-
-    // create table conn1
-    rc = sqlite3_prepare_v2( database1, queryCreateTable.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 creating table : Bad query");
-    }
-    rc = sqlite3_step(stmt1);
-    if (rc == SQLITE_DONE) {
-    } else {
-        info() << "testMultiConnection 1 creating table error: " << rc;
-        throw IOError("PathsManager::testMultiConnection 1 creating table : Run query");
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-
-    rc = sqlite3_open_v2("io/storageDB", &database2, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-    if (rc == SQLITE_OK) {
-    } else {
-        throw IOError("PathsManager::testMultiConnection "
-                          "Can't open database 2");
-    }
-
-    // create table conn2
-    rc = sqlite3_prepare_v2( database2, queryCreateTable.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 creating table : Bad query");
-    }
-    rc = sqlite3_step(stmt2);
-    if (rc == SQLITE_DONE) {
-    } else {
-        throw IOError("PathsManager::testMultiConnection 2 creating table : Run query");
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    // transaction 1 begin
-    rc = sqlite3_prepare_v2( database1, queryBegin.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 prepareInserted: Bad query");
-    }
-    rc = sqlite3_step(stmt1);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 1 transaction begin";
-    } else {
-        info() << "testMultiConnection 1 prepareInserted error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 1 prepareInserted: Run query");
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-    // transaction 1 insert
-    rc = sqlite3_prepare_v2(database1, queryInsert.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 insert: Bad query");
-    }
-    rc = sqlite3_bind_int(stmt1, 1, 1);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 insert: Bad binding of field1");
-    }
-    rc = sqlite3_bind_int(stmt1, 2, 11);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 insert: Bad binding of field2");
-    }
-    rc = sqlite3_step(stmt1);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 1 inserting is completed successfully";
-    } else {
-        info() << "testMultiConnection 1 insert error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 1 insert: Run query");
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-    // transaction 1 select
-    rc = sqlite3_prepare_v2(database1, selectQuery.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 select: Bad query");
-    }
-    while (sqlite3_step(stmt1) == SQLITE_ROW) {
-        info() << "testMultiConnection 1 select " << sqlite3_column_int(stmt1, 0) << " " << sqlite3_column_int(stmt1, 0);
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-    // transaction 2 begin
-    rc = sqlite3_prepare_v2( database2, queryBegin.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 prepareInserted: Bad query");
-    }
-    rc = sqlite3_step(stmt2);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 2 transaction begin";
-    } else {
-        info() << "testMultiConnection 2 prepareInserted error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 2 prepareInserted: Run query");
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    // transaction 2 insert
-    rc = sqlite3_prepare_v2(database2, queryInsert.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 insert: Bad query");
-    }
-    rc = sqlite3_bind_int(stmt2, 1, 2);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 insert: Bad binding of field1");
-    }
-    rc = sqlite3_bind_int(stmt2, 2, 22);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 insert: Bad binding of field2");
-    }
-    rc = sqlite3_step(stmt2);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 2 inserting is completed successfully";
-    } else {
-        info() << "testMultiConnection 2 insert error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 2 insert: Run query");
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    // transaction 2 select
-    rc = sqlite3_prepare_v2(database2, selectQuery.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 select: Bad query");
-    }
-    while (sqlite3_step(stmt2) == SQLITE_ROW) {
-        info() << "testMultiConnection 2 select " << sqlite3_column_int(stmt2, 0) << " " << sqlite3_column_int(stmt2, 0);
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    // transaction 1 commit
-    rc = sqlite3_prepare_v2( database1, queryCommit.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 commit: Bad query");
-    }
-    rc = sqlite3_step(stmt1);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 1 transaction commit";
-    } else {
-        info() << "testMultiConnection 1 commit error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 1 commit: Run query");
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-    // transaction 2 commit
-    rc = sqlite3_prepare_v2( database2, queryCommit.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 commit: Bad query");
-    }
-    rc = sqlite3_step(stmt2);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 2 transaction commit";
-    } else {
-        info() << "testMultiConnection 2 commit error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 2 commit: Run query");
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    // transaction 1 select
-    rc = sqlite3_prepare_v2(database1, selectQuery.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 select: Bad query");
-    }
-    while (sqlite3_step(stmt1) == SQLITE_ROW) {
-        info() << "testMultiConnection 1 select " << sqlite3_column_int(stmt1, 0) << " " << sqlite3_column_int(stmt1, 0);
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-    // transaction 2 select
-    rc = sqlite3_prepare_v2(database2, selectQuery.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 select: Bad query");
-    }
-    while (sqlite3_step(stmt2) == SQLITE_ROW) {
-        info() << "testMultiConnection 2 select " << sqlite3_column_int(stmt2, 0) << " " << sqlite3_column_int(stmt2, 0);
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    sqlite3_close_v2(database1);
-    sqlite3_close_v2(database2);
 }
 
 void PathsManager::printRTs()

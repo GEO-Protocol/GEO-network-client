@@ -109,7 +109,6 @@ private:
     void testPaymentStateOperationsHandler();
     void testTransactionHandler();
     void testTime();
-    void testMultiConnection();
     void printRTs();
     void testDeletingRT();
 

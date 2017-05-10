@@ -84,7 +84,7 @@ const string ReceiverPaymentTransaction::logHeader() const
 TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStage()
 {
     const auto kCoordinator = mMessage->senderUUID;
-    info() << "Operation for " << mMessage->amount() << " initialised by the (" << kCoordinator << ")";
+    debug() << "Operation for " << mMessage->amount() << " initialised by the (" << kCoordinator << ")";
 
     // Check if total incoming possibilities of the node are <= of the payment amount.
     // If not - there is no reason to process the operation at all.
@@ -124,11 +124,11 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationStage()
 {
-    info() << "runAmountReservationStage";
+    debug() << "runAmountReservationStage";
     if (contextIsValid(Message::Payments_TTLProlongation, false)) {
         // current path was rejected and need reset delay time
         // TODO check if message sender is coordinator
-        info() << "Receive TTL prolongation message";
+        debug() << "Receive TTL prolongation message";
         clearContext();
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeReservationRequest,
@@ -157,7 +157,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             maxNetworkDelay((kMaxPathLength - 1) * 4));
     }
 
-    info() << "Amount reservation for " << kMessage->amount() << " request received from " << kNeighbor;
+    debug() << "Amount reservation for " << kMessage->amount() << " request received from " << kNeighbor;
 
     // Note: copy of shared pointer is required.
     const auto kAvailableAmount = mTrustLines->availableIncomingAmount(kNeighbor);
@@ -209,7 +209,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             "Rolled back.");
     }
 
-    info() << "Reserved locally: " << kMessage->amount();
+    debug() << "Reserved locally: " << kMessage->amount();
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
         currentNodeUUID(),
@@ -244,7 +244,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStage
     if (contextIsValid(Message::Payments_ParticipantsVotes, false)) {
         return runVotesCheckingStage();
     }
-    info() << "Send TTLTransaction message to coordinator " << mMessage->senderUUID;
+    debug() << "Send TTLTransaction message to coordinator " << mMessage->senderUUID;
     sendMessage<TTLPolongationMessage>(
         mMessage->senderUUID,
         currentNodeUUID(),
@@ -260,7 +260,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
 {
     // on this stage we can also receive and ParticipantsVotes messages
     // and on this cases we process it properly
-    info() << "runClarificationOfTransaction";
+    debug() << "runClarificationOfTransaction";
     if (contextIsValid(Message::MessageType::Payments_ParticipantsVotes, false)) {
         mStep = Stages::Common_VotesChecking;
         return runVotesCheckingStage();
@@ -269,7 +269,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
         return reject("No participants votes message received. Transaction was closed. Rolling Back");
     }
     // transactions is still alive and we continue waiting for messages
-    info() << "Transactions is still alive. Continue waiting for messages";
+    debug() << "Transactions is still alive. Continue waiting for messages";
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},

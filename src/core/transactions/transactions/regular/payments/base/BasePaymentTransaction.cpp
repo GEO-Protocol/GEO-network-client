@@ -57,7 +57,7 @@ BasePaymentTransaction::BasePaymentTransaction(
  */
 TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 {
-    info() << "runVotesCheckingStage";
+    debug() << "runVotesCheckingStage";
     // Votes message may be received twice:
     // First time - as a request to check the transaction and to sing it in case if all correct.
     // Second time - as a command to commit/rollback the transaction.
@@ -73,7 +73,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
     const auto kCurrentNodeUUID = currentNodeUUID();
     auto message = popNextMessage<ParticipantsVotesMessage>();
-    info() << "Votes message received";
+    debug() << "Votes message received";
 
 
     try {
@@ -89,8 +89,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         //
         // In this case - the message must be simply ignored.
 
-        info() << "Votes message ignored due to transactions UUIDs collision detected.";
-        info() << "Waiting for another votes message.";
+        debug() << "Votes message ignored due to transactions UUIDs collision detected.";
+        debug() << "Waiting for another votes message.";
 
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
@@ -110,7 +110,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
     // TODO: flush
 
-    info() << "Voted +";
+    debug() << "Voted +";
 
     try {
         // Try to get next participant from the message.
@@ -125,7 +125,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
             kNextParticipant,
             message);
 
-        info() << "Votes list message transferred to the (" << kNextParticipant << ")";
+        debug() << "Votes list message transferred to the (" << kNextParticipant << ")";
 
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
@@ -147,7 +147,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
 TransactionResult::SharedConst BasePaymentTransaction::runFinalPathConfigurationProcessingStage ()
 {
-    info() << "runFinalPathConfigurationProcessingStage";
+    debug() << "runFinalPathConfigurationProcessingStage";
     if (! contextIsValid(Message::Payments_FinalPathConfiguration))
         return reject("No final paths configuration was received from the coordinator. Rejected.");
 
@@ -157,7 +157,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathConfiguration
     // TODO: check if message was really received from the coordinator;
 
 
-    info() << "Final payment path configuration received";
+    debug() << "Final payment path configuration received";
 
     // path was cancelled, drop all reservations belong it
     if (kMessage->amount() == 0) {
@@ -193,7 +193,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathConfiguration
  */
 TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyCheckingStage()
 {
-    info() << "runVotesConsistencyCheckingStage";
+    debug() << "runVotesConsistencyCheckingStage";
     // this case can be only in Coordinator transaction.
     // Intermediate node or Receiver can send request if transaction is still alive.
     if (contextIsValid(Message::Payments_TTLProlongation, false)) {
@@ -206,7 +206,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
 
 
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
-    info () << "Participants votes message received.";
+    debug () << "Participants votes message received.";
 
     // Checking if no one node has been deleted current nodes sign.
     // (Message modification protection)
@@ -232,7 +232,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     if (kMessage->achievedConsensus()){
         // In case if votes message received again -
 
-        info() << "Votes list received. Consensus achieved.";
+        debug() << "Votes list received. Consensus achieved.";
         return approve();
 
     } else {
@@ -339,7 +339,7 @@ TransactionResult::SharedConst BasePaymentTransaction::reject(
     }
 
     rollBack();
-    info() << "Transaction succesfully rolled back.";
+    debug() << "Transaction succesfully rolled back.";
 
     return resultDone();
 }
@@ -356,7 +356,7 @@ TransactionResult::SharedConst BasePaymentTransaction::reject(
  */
 TransactionResult::SharedConst BasePaymentTransaction::approve()
 {
-    info() << "Transaction approved. Committing.";
+    debug() << "Transaction approved. Committing.";
 
     commit();
     return resultDone();
@@ -364,7 +364,7 @@ TransactionResult::SharedConst BasePaymentTransaction::approve()
 
 void BasePaymentTransaction::commit ()
 {
-    info() << "Transaction committing...";
+    debug() << "Transaction committing...";
 
     // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
 
@@ -373,11 +373,11 @@ void BasePaymentTransaction::commit ()
             mTrustLines->useReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
 
             if (kPathUUIDAndReservation.second->direction() == AmountReservation::Outgoing)
-                info() << "Committed reservation: [ => ] " << kPathUUIDAndReservation.second->amount()
+                debug() << "Committed reservation: [ => ] " << kPathUUIDAndReservation.second->amount()
                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
 
             else if (kPathUUIDAndReservation.second->direction() == AmountReservation::Incoming)
-                info() << "Committed reservation: [ <= ] " << kPathUUIDAndReservation.second->amount()
+                debug() << "Committed reservation: [ <= ] " << kPathUUIDAndReservation.second->amount()
                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
             mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
         }
@@ -385,7 +385,7 @@ void BasePaymentTransaction::commit ()
     // reset initiator cashe, becouse after changing balanses
     // we need updated information on max flow calculation transaction
     mMaxFlowCalculationCacheManager->resetInititorCache();
-    info() << "Transaction committed.";
+    debug() << "Transaction committed.";
 }
 
 void BasePaymentTransaction::rollBack ()
@@ -395,11 +395,11 @@ void BasePaymentTransaction::rollBack ()
             mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
 
             if (kPathUUIDAndReservation.second->direction() == AmountReservation::Outgoing)
-                info() << "Dropping reservation: [ => ] " << kPathUUIDAndReservation.second->amount()
+                debug() << "Dropping reservation: [ => ] " << kPathUUIDAndReservation.second->amount()
                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
 
             else if (kPathUUIDAndReservation.second->direction() == AmountReservation::Incoming)
-                info() << "Dropping reservation: [ <= ] " << kPathUUIDAndReservation.second->amount()
+                debug() << "Dropping reservation: [ <= ] " << kPathUUIDAndReservation.second->amount()
                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
         }
 }
@@ -417,12 +417,12 @@ void BasePaymentTransaction::rollBack (
                     itPathUUIDAndReservation->second);
 
                 if (itPathUUIDAndReservation->second->direction() == AmountReservation::Outgoing)
-                    info() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
+                    debug() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
                            << " for (" << itNodeUUIDAndReservations->first << ") [" << itPathUUIDAndReservation->first
                            << "]";
 
                 else if (itPathUUIDAndReservation->second->direction() == AmountReservation::Incoming)
-                    info() << "Dropping reservation: [ <= ] " << itPathUUIDAndReservation->second->amount()
+                    debug() << "Dropping reservation: [ <= ] " << itPathUUIDAndReservation->second->amount()
                            << " for (" << itNodeUUIDAndReservations->first << ") [" << itPathUUIDAndReservation->first
                            << "]";
 
@@ -486,7 +486,7 @@ const bool BasePaymentTransaction::positiveVoteIsPresent (
 void BasePaymentTransaction::propagateVotesMessageToAllParticipants (
     const ParticipantsVotesMessage::Shared kMessage) const
 {
-    info() << "propagateVotesMessageToAllParticipants";
+    debug() << "propagateVotesMessageToAllParticipants";
     const auto kCurrentNodeUUID = currentNodeUUID();
 
     auto participant = kMessage->firstParticipant();
@@ -550,10 +550,10 @@ const bool BasePaymentTransaction::shortageReservation (
 
 #ifdef DEBUG
         if (kReservation->direction() == AmountReservation::Incoming)
-            info() << "Reservation for (" << kContractor << ") [" << pathUUID << "] shortened "
+            debug() << "Reservation for (" << kContractor << ") [" << pathUUID << "] shortened "
                    << "from " << kPreviousAmount << " to " << kNewAmount << " [<=]";
         else
-            info() << "Reservation for (" << kContractor << ") [" << pathUUID << "] shortened "
+            debug() << "Reservation for (" << kContractor << ") [" << pathUUID << "] shortened "
                    << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
 #endif
 
@@ -581,7 +581,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runTTLTransactionResponce
         kMessage->senderUUID,
         currentNodeUUID(),
         currentTransactionUUID());
-    info() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
+    debug() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
     return resultContinuePreviousState();
 }
 
@@ -589,7 +589,7 @@ void BasePaymentTransaction::dropReservationsOnPath(
     PathStats *pathStats,
     PathUUID pathUUID)
 {
-    info() << "dropReservationsOnPath";
+    debug() << "dropReservationsOnPath";
     pathStats->shortageMaxFlow(0);
 
     auto firstIntermediateNode = pathStats->path()->nodes[1];
@@ -598,7 +598,7 @@ void BasePaymentTransaction::dropReservationsOnPath(
     auto itPathUUIDAndReservation = nodeReservations->second.begin();
     while (itPathUUIDAndReservation != nodeReservations->second.end()) {
         if (itPathUUIDAndReservation->first == pathUUID) {
-            info() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
+            debug() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
                    << " for (" << firstIntermediateNode << ") [" << pathUUID << "]";
             mTrustLines->dropAmountReservation(
                 firstIntermediateNode,
@@ -614,12 +614,12 @@ void BasePaymentTransaction::dropReservationsOnPath(
 
     const auto lastProcessedNodeAndPos = pathStats->currentIntermediateNodeAndPos();
     const auto lastProcessedNode = lastProcessedNodeAndPos.first;
-    info() << "current node " << lastProcessedNode;
+    debug() << "current node " << lastProcessedNode;
     for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
         if (intermediateNode == lastProcessedNode) {
             break;
         }
-        info() << "send message with drop reservation info for node " << intermediateNode;
+        debug() << "send message with drop reservation info for node " << intermediateNode;
         sendMessage<FinalPathConfigurationMessage>(
             intermediateNode,
             currentNodeUUID(),
@@ -634,9 +634,9 @@ void BasePaymentTransaction::sendFinalPathConfiguration(
     PathUUID pathUUID,
     const TrustLineAmount &finalPathAmount)
 {
-    info() << "sendFinalPathConfiguration";
+    debug() << "sendFinalPathConfiguration";
     for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
-        info() << "send message with final path amount info for node " << intermediateNode;
+        debug() << "send message with final path amount info for node " << intermediateNode;
         sendMessage<FinalPathConfigurationMessage>(
             intermediateNode,
             currentNodeUUID(),
