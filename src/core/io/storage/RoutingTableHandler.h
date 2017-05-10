@@ -18,7 +18,6 @@
 class RoutingTableHandler {
 
 public:
-
     RoutingTableHandler(
         sqlite3 *dbConnection,
         const string &tableName,
@@ -48,7 +47,6 @@ public:
     const string &tableName() const;
 
 private:
-
     LoggerStream info() const;
 
     LoggerStream error() const;
@@ -56,11 +54,9 @@ private:
     const string logHeader() const;
 
 private:
-
     sqlite3 *mDataBase = nullptr;
     string mTableName;
     Logger *mLog;
-
 };
 
 

@@ -3,6 +3,7 @@
 
 
 #include "base/BasePaymentTransaction.h"
+#include "base/PathStats.h"
 #include "../../find_path/FindPathTransaction.h"
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 
@@ -12,6 +13,8 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <chrono>
+#include <thread>
 
 /**
  * TODO: Implement intermedaite reservations shortage for the big transactions.
@@ -30,6 +33,7 @@ public:
         const NodeUUID &kCurrentNodeUUID,
         const CreditUsageCommand::Shared kCommand,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
         Logger *log)
         noexcept;
@@ -37,98 +41,16 @@ public:
     CoordinatorPaymentTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        ResourcesManager *resourcesManager,
         Logger *log)
         throw (bad_alloc);
 
     TransactionResult::SharedConst run()
-        throw (RuntimeError, bad_alloc);
+        noexcept;
 
     pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
-
-protected:
-    // TODO: move it into separate *.h file.
-    typedef boost::uuids::uuid PathUUID;
-
-protected:
-
-    // Describes payment path, it's nodes states,
-    // and max flow through it.
-    class PathStats {
-    public:
-        enum NodeState {
-            ReservationRequestDoesntSent = 0,
-
-            NeighbourReservationRequestSent,
-            NeighbourReservationApproved,
-
-            ReservationRequestSent,
-            ReservationApproved,
-            ReservationRejected,
-        };
-
-    public:
-        PathStats (
-            const Path::ConstShared path)
-            noexcept;
-
-        void setNodeState (
-            const uint8_t positionInPath,
-            const NodeState state)
-            throw(ValueError);
-
-        const TrustLineAmount &maxFlow () const
-            noexcept;
-
-        void shortageMaxFlow (
-            const TrustLineAmount &kAmount)
-            throw(ValueError);
-
-        const Path::ConstShared path () const
-            noexcept;
-
-        const pair<NodeUUID, uint8_t> currentIntermediateNodeAndPos () const
-            throw (NotFoundError);
-
-        const pair<NodeUUID, uint8_t> nextIntermediateNodeAndPos () const
-            throw (NotFoundError);
-
-        const bool reservationRequestSentToAllNodes () const
-            noexcept;
-
-        const bool isNeighborAmountReserved () const
-            noexcept;
-
-        const bool isWaitingForNeighborReservationResponse () const
-            noexcept;
-
-        const bool isWaitingForNeighborReservationPropagationResponse () const
-            noexcept;
-
-        const bool isWaitingForReservationResponse () const
-            noexcept;
-
-        const bool isReadyToSendNextReservationRequest () const
-            noexcept;
-
-        const bool isLastIntermediateNodeProcessed () const
-            noexcept;
-
-        const bool isValid () const
-            noexcept;
-
-        void setUnusable ()
-            noexcept;
-
-    protected:
-        const Path::ConstShared mPath;
-        TrustLineAmount mMaxPathFlow;
-        bool mIsValid;
-
-        // Contains states of each node in the path.
-        // See reservaions stage for the details.
-        vector<NodeState> mIntermediateNodesStates;
-    };
 
 protected:
     // Stages handlers
@@ -138,9 +60,7 @@ protected:
     TransactionResult::SharedConst runReceiverResponseProcessingStage ();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
-    TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
-    TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
-    TransactionResult::SharedConst runVotesCheckingStage ();
+    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
 
 protected:
     // Coordinator must return command result on transaction finishing.
@@ -159,6 +79,7 @@ protected:
     TransactionResult::SharedConst resultNoResponseError();
     TransactionResult::SharedConst resultInsufficientFundsError();
     TransactionResult::SharedConst resultNoConsensusError();
+    TransactionResult::SharedConst resultUnexpectedError();
 
 protected:
     void addPathForFurtherProcessing(
@@ -173,6 +94,7 @@ protected:
     TransactionResult::SharedConst tryProcessNextPath();
 
     TransactionResult::SharedConst tryReserveAmountDirectlyOnReceiver (
+        const PathUUID pathUUID,
         PathStats *pathStats);
 
     TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (
@@ -202,21 +124,27 @@ protected:
 
 protected:
     const string logHeader() const;
+
     void deserializeFromBytes(
         BytesShared buffer);
+
+    bool isPathValid(
+        Path::Shared path) const;
 
 protected:
     CreditUsageCommand::Shared mCommand;
 
     // Contains special stats data, such as current msx flow,
     // for all paths involved into the transaction.
-    unordered_map<PathUUID, unique_ptr<PathStats>, boost::hash<boost::uuids::uuid>> mPathsStats;
+    unordered_map<PathUUID, unique_ptr<PathStats>> mPathsStats;
 
     // Used in amount reservations stage.
     // Contains identifier of the path,
     // that was processed last, and potenially,
     // is waiting for request appriving.
     PathUUID mCurrentAmountReservingPathIdentifier;
+
+    vector<PathUUID> mPathUUIDs;
 
     // Reservation stage contains it's own internal steps counter.
     byte mReservationsStage;

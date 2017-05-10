@@ -40,7 +40,6 @@ protected:
     const string logHeader() const;
 
 private:
-
     void sendMessageToRemoteNode();
 
     void sendMessagesOnFirstLevel();
@@ -52,21 +51,21 @@ private:
         const TrustLineAmount& currentFlow,
         byte level);
 
-    TransactionResult::SharedConst resultOk(TrustLineAmount &maxFlowAmount);
+    TransactionResult::SharedConst resultOk(
+        TrustLineAmount &maxFlowAmount);
+
+    TransactionResult::SharedConst resultProtocolError();
 
 private:
-
     static const byte kMaxFlowLength=6;
     static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 2000;
 
 private:
-
     InitiateMaxFlowCalculationCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     set<NodeUUID> forbiddenNodeUUIDs;
-
 };
 
 

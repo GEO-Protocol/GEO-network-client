@@ -13,7 +13,7 @@ MaxFlowCalculationSourceSndLevelMessage::MaxFlowCalculationSourceSndLevelMessage
     MaxFlowCalculationMessage(buffer)
 {}
 
-const Message::MessageType MaxFlowCalculationSourceSndLevelMessage::typeID() const {
-
+const Message::MessageType MaxFlowCalculationSourceSndLevelMessage::typeID() const
+{
     return Message::MessageType::MaxFlow_CalculationSourceSecondLevel;
 }

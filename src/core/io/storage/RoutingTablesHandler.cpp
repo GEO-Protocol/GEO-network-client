@@ -9,12 +9,12 @@ RoutingTablesHandler::RoutingTablesHandler(
     mDataBase(dbConnection),
     mRoutingTable2Level(dbConnection, rt2TableName, logger),
     mRoutingTable3Level(dbConnection, rt3TableName, logger),
-    mLog(logger),
-    isTransactionBegin(false) {}
+    mLog(logger)
+{}
 
 vector<NodeUUID> RoutingTablesHandler::subRoutesSecondLevel(
-    const NodeUUID &contractorUUID) {
-
+    const NodeUUID &contractorUUID)
+{
     vector<NodeUUID> result;
     sqlite3_stmt *stmt;
     string query = "SELECT source FROM "
@@ -42,8 +42,8 @@ vector<NodeUUID> RoutingTablesHandler::subRoutesSecondLevel(
 
 vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelContractor(
         const NodeUUID &contractorUUID,
-        const NodeUUID &sourceUUID) {
-
+        const NodeUUID &sourceUUID)
+{
     vector<pair<NodeUUID, NodeUUID>> result;
     sqlite3_stmt *stmt;
     // TODO (mc) : need or not compare rt3.source with sourceUUID and rt2.source with contractorUUID
@@ -86,8 +86,8 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelContra
 }
 
 vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevel(
-    const NodeUUID &foundUUID) {
-
+    const NodeUUID &foundUUID)
+{
     vector<pair<NodeUUID, NodeUUID>> result;
     sqlite3_stmt *stmt;
     string query = "SELECT rt2.source, rt3.source FROM "
@@ -120,8 +120,8 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevel(
 vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithForbiddenNodes(
         const NodeUUID &foundUUID,
         const NodeUUID &sourceUUID,
-        const NodeUUID &contractorUUID) {
-
+        const NodeUUID &contractorUUID)
+{
     vector<pair<NodeUUID, NodeUUID>> result;
     sqlite3_stmt *stmt;
     // TODO (mc) : need or not compare rt3.source with sourceUUID
@@ -173,124 +173,28 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
     return result;
 }
 
-void RoutingTablesHandler::commit() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call commit, but trunsaction wasn't started";
-#endif
-        return;
-    }
-    string query = "COMMIT TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTablesHandler::commit: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc != SQLITE_DONE) {
-        throw IOError("RoutingTablesHandler::commit: "
-                          "Run query; sqlite error: " + rc);
-    }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "transaction commit";
-#endif
-    isTransactionBegin = false;
-}
-
-void RoutingTablesHandler::rollBack() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call rollBack, but trunsaction wasn't started";
-#endif
-        return;
-    }
-    string query = "ROLLBACK TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTablesHandler::rollback: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc != SQLITE_DONE) {
-        throw IOError("RoutingTablesHandler::rollback: "
-                          "Run query; sqlite error: " + rc);
-    }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "rollBack done";
-#endif
-    isTransactionBegin = false;
-}
-
-void RoutingTablesHandler::prepareInserted() {
-
-    if (isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call prepareInsertred, but previous transaction isn't finished";
-#endif
-        return;
-    }
-    string query = "BEGIN TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTablesHandler::prepareInserted: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc == SQLITE_DONE) {
-        throw IOError("RoutingTablesHandler::prepareInserted: "
-                          "Run query; sqlite error: " + rc);
-    }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "transaction begin";
-#endif
-    isTransactionBegin = true;
-}
-
-void RoutingTablesHandler::saveRecordToRT2(
+void RoutingTablesHandler::setRecordToRT2(
     const NodeUUID &source,
-    const NodeUUID &destination) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
+    const NodeUUID &destination)
+{
     mRoutingTable2Level.saveRecord(
         source,
         destination);
 }
 
-void RoutingTablesHandler::saveRecordToRT3(
+void RoutingTablesHandler::setRecordToRT3(
     const NodeUUID &source,
-    const NodeUUID &destination) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
+    const NodeUUID &destination)
+{
     mRoutingTable3Level.saveRecord(
         source,
         destination);
 }
 
-void RoutingTablesHandler::deleteRecordFromRT2(
+void RoutingTablesHandler::removeRecordFromRT2(
     const NodeUUID &source,
-    const NodeUUID &destination) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
+    const NodeUUID &destination)
+{
     mRoutingTable2Level.deleteRecord(
         source,
         destination);
@@ -302,79 +206,75 @@ void RoutingTablesHandler::deleteRecordFromRT2(
     }
 }
 
-void RoutingTablesHandler::deleteRecordFromRT3(
+void RoutingTablesHandler::removeRecordFromRT3(
     const NodeUUID &source,
-    const NodeUUID &destination) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
-
+    const NodeUUID &destination)
+{
     mRoutingTable3Level.deleteRecord(
         source,
         destination);
 }
 
-vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::rt2Records() {
-
+vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::rt2Records()
+{
     return mRoutingTable2Level.routeRecords();
 }
 
-vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::rt3Records() {
-
+vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::rt3Records()
+{
     return mRoutingTable3Level.routeRecords();
 }
 
 set<NodeUUID> RoutingTablesHandler::neighborsOfOnRT2(
-    const NodeUUID &sourceUUID) {
-
+    const NodeUUID &sourceUUID)
+{
     return mRoutingTable2Level.neighborsOf(
         sourceUUID);
 }
 
 set<NodeUUID> RoutingTablesHandler::neighborsOfOnRT3(
-    const NodeUUID &sourceUUID) {
-
+    const NodeUUID &sourceUUID)
+{
     return mRoutingTable3Level.neighborsOf(
         sourceUUID);
 }
 
-unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> RoutingTablesHandler::routeRecordsMapDestinationKeyOnRT2() {
-
+unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> RoutingTablesHandler::routeRecordsMapDestinationKeyOnRT2()
+{
     return mRoutingTable2Level.routeRecordsMapDestinationKey();
 }
 
-unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> RoutingTablesHandler::routeRecordsMapDestinationKeyOnRT3() {
-
+unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> RoutingTablesHandler::routeRecordsMapDestinationKeyOnRT3()
+{
     return mRoutingTable3Level.routeRecordsMapDestinationKey();
 }
 
-map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourceKeyOnRT2() {
-
+map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourceKeyOnRT2()
+{
     return mRoutingTable2Level.routeRecordsMapSourceKey();
 }
 
-map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourceKeyOnRT3() {
-
+map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourceKeyOnRT3()
+{
     return mRoutingTable3Level.routeRecordsMapSourceKey();
 }
 
-LoggerStream RoutingTablesHandler::info() const {
-
+LoggerStream RoutingTablesHandler::info() const
+{
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->info(logHeader());
 }
 
-LoggerStream RoutingTablesHandler::error() const {
-
+LoggerStream RoutingTablesHandler::error() const
+{
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
     return mLog->error(logHeader());
 }
 
-const string RoutingTablesHandler::logHeader() const {
-
+const string RoutingTablesHandler::logHeader() const
+{
     stringstream s;
     s << "[RoutingTablesHandler]";
     return s.str();

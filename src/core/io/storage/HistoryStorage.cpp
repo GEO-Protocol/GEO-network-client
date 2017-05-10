@@ -7,8 +7,7 @@ HistoryStorage::HistoryStorage(
 
     mDataBase(dbConnection),
     mTableName(tableName),
-    mLog(logger),
-    isTransactionBegin(false)
+    mLog(logger)
 {
     sqlite3_stmt *stmt;
     string query = "CREATE TABLE IF NOT EXISTS " + mTableName +
@@ -26,94 +25,52 @@ HistoryStorage::HistoryStorage(
     } else {
         throw IOError("HistoryStorage::creating table: Run query; sqlite error: " + rc);
     }
-
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-}
-
-void HistoryStorage::commit() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call commit, but trunsaction wasn't started";
-#endif
-        return;
-    }
-    string query = "COMMIT TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    query = "CREATE INDEX IF NOT EXISTS " + mTableName
+            + "_operation_uuid_idx on " + mTableName + "(operation_uuid);";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("HistoryStorage::commit: Bad query; sqlite error: " + rc);
+        throw IOError("HistoryStorage::creating index for operation_uuid: "
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc != SQLITE_DONE) {
-        throw IOError("HistoryStorage::commit: Run query; sqlite error: " + rc);
+    if (rc == SQLITE_DONE) {
+    } else {
+        throw IOError("HistoryStorage::creating index for operation_uuid: "
+                          "Run query; sqlite error: " + rc);
     }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "transaction commit";
-#endif
-    isTransactionBegin = false;
-}
-
-void HistoryStorage::rollBack() {
-
-    if (!isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call rollBack, but trunsaction wasn't started";
-#endif
-        return;
-    }
-    string query = "ROLLBACK TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    query = "CREATE INDEX IF NOT EXISTS " + mTableName
+            + "_operation_timestamp_idx on " + mTableName + "(operation_timestamp);";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("HistoryStorage::rollback: Bad query; sqlite error: " + rc);
+        throw IOError("HistoryStorage::creating index for operation_timestamp: "
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    if (rc != SQLITE_DONE) {
-        throw IOError("HistoryStorage::rollback: Run query; sqlite error: " + rc);
+    if (rc == SQLITE_DONE) {
+    } else {
+        throw IOError("HistoryStorage::creating index for operation_timestamp: "
+                          "Run query; sqlite error: " + rc);
     }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "rollBack done";
-#endif
-    isTransactionBegin = false;
-}
-
-void HistoryStorage::prepareInserted() {
-
-    if (isTransactionBegin) {
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-        error() << "call prepareInsertred, but previous transaction isn't finished";
-#endif
-        return;
-    }
-    string query = "BEGIN TRANSACTION;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    query = "CREATE INDEX IF NOT EXISTS " + mTableName
+            + "_record_type_idx on " + mTableName + "(record_type);";
+    rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("HistoryStorage::prepareInserted: Bad query; sqlite error: " + rc);
+        throw IOError("HistoryStorage::creating index for record_type: "
+                          "Bad query; sqlite error: " + rc);
     }
     rc = sqlite3_step(stmt);
+    if (rc == SQLITE_DONE) {
+    } else {
+        throw IOError("HistoryStorage::creating index for record_type: "
+                          "Run query; sqlite error: " + rc);
+    }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    if (rc != SQLITE_DONE) {
-        throw IOError("HistoryStorage::prepareInserted: Run query; sqlite error: " + rc);
-    }
-#ifdef STORAGE_HANDLER_DEBUG_LOG
-    info() << "transaction begin";
-#endif
-    isTransactionBegin = true;
 }
 
-void HistoryStorage::saveRecord(Record::Shared record) {
-
-    if (!isTransactionBegin) {
-        prepareInserted();
-    }
+void HistoryStorage::saveRecord(
+    Record::Shared record)
+{
     string query = "INSERT INTO " + mTableName
                    + "(operation_uuid, operation_timestamp, record_type, record_body, record_body_bytes_count) "
                                                              "VALUES(?, ?, ?, ?, ?);";
@@ -128,7 +85,7 @@ void HistoryStorage::saveRecord(Record::Shared record) {
         throw IOError("HistoryStorage::insert: "
                           "Bad binding of OperationUUID; sqlite error: " + rc);
     }
-    GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(utc_now());
+    GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(record->timestamp());
     rc = sqlite3_bind_int64(stmt, 2, timestamp);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert: "
@@ -139,13 +96,97 @@ void HistoryStorage::saveRecord(Record::Shared record) {
         throw IOError("HistoryStorage::insert: "
                           "Bad binding of RecordType; sqlite error: " + rc);
     }
-    auto serializedRecordAndSize = record->serializeToBytes();
-    rc = sqlite3_bind_blob(stmt, 4, serializedRecordAndSize.first.get(), (int)serializedRecordAndSize.second, SQLITE_STATIC);
+    switch (record->recordType()) {
+        case Record::RecordType::PaymentRecordType: {
+            auto serializedPymentRecordAndSize = serializedPaymentRecordBody(
+                static_pointer_cast<PaymentRecord>(
+                    record));
+            rc = sqlite3_bind_blob(stmt, 4, serializedPymentRecordAndSize.first.get(),
+                                   (int) serializedPymentRecordAndSize.second, SQLITE_STATIC);
+            if (rc != SQLITE_OK) {
+                throw IOError("HistoryStorage::insert: "
+                                  "Bad binding of RecordBody; sqlite error: " + rc);
+            }
+            rc = sqlite3_bind_int(stmt, 5, (int) serializedPymentRecordAndSize.second);
+            if (rc != SQLITE_OK) {
+                throw IOError("HistoryStorage::insert: "
+                                  "Bad binding of RecordBody bytes count; sqlite error: " + rc);
+            }
+            break;
+        }
+        case Record::RecordType::TrustLineRecordType: {
+            auto serializedTrustLineRecordAndSize = serializedTrustLineRecordBody(
+                static_pointer_cast<TrustLineRecord>(
+                    record));
+            rc = sqlite3_bind_blob(stmt, 4, serializedTrustLineRecordAndSize.first.get(),
+                                   (int) serializedTrustLineRecordAndSize.second,
+                                   SQLITE_STATIC);
+            if (rc != SQLITE_OK) {
+                throw IOError("HistoryStorage::insert: "
+                                  "Bad binding of RecordBody; sqlite error: " + rc);
+            }
+            rc = sqlite3_bind_int(stmt, 5, (int) serializedTrustLineRecordAndSize.second);
+            if (rc != SQLITE_OK) {
+                throw IOError("HistoryStorage::insert: "
+                                  "Bad binding of RecordBody bytes count; sqlite error: " + rc);
+            }
+            break;
+        }
+        default:
+            throw ValueError("HistoryStorage::saveRecord: invalid record type");
+    }
+
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "prepare inserting is completed successfully";
+#endif
+    } else {
+        throw IOError("HistoryStorage::insert: "
+                          "Run query; sqlite error: " + rc);
+    }
+}
+
+void HistoryStorage::saveTrustLineRecord(
+    TrustLineRecord::Shared record)
+{
+    string query = "INSERT INTO " + mTableName
+                   + "(operation_uuid, operation_timestamp, record_type, record_body, record_body_bytes_count) "
+                       "VALUES(?, ?, ?, ?, ?);";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::insert: "
+                          "Bad query; sqlite error: " + rc);
+    }
+    rc = sqlite3_bind_blob(stmt, 1, record->operationUUID().data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::insert: "
+                          "Bad binding of OperationUUID; sqlite error: " + rc);
+    }
+    GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(record->timestamp());
+    rc = sqlite3_bind_int64(stmt, 2, timestamp);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::insert: "
+                          "Bad binding of Timestamp; sqlite error: " + rc);
+    }
+    rc = sqlite3_bind_int(stmt, 3, record->recordType());
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::insert: "
+                          "Bad binding of RecordType; sqlite error: " + rc);
+    }
+    auto serializedTrustLineRecordAndSize = serializedTrustLineRecordBody(
+        record);
+    rc = sqlite3_bind_blob(stmt, 4, serializedTrustLineRecordAndSize.first.get(),
+                           (int) serializedTrustLineRecordAndSize.second,
+                           SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert: "
                           "Bad binding of RecordBody; sqlite error: " + rc);
     }
-    rc = sqlite3_bind_int(stmt, 5, (int)serializedRecordAndSize.second);
+    rc = sqlite3_bind_int(stmt, 5, (int) serializedTrustLineRecordAndSize.second);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert: "
                           "Bad binding of RecordBody bytes count; sqlite error: " + rc);
@@ -164,12 +205,100 @@ void HistoryStorage::saveRecord(Record::Shared record) {
     }
 }
 
-vector<pair<PaymentRecord::Shared, DateTime>> HistoryStorage::allPaymentRecords(
-    size_t recordsCount,
-    size_t fromRecord) {
+void HistoryStorage::savePaymentRecord(
+    PaymentRecord::Shared record)
+{
+    string query = "INSERT INTO " + mTableName
+                   + "(operation_uuid, operation_timestamp, record_type, record_body, record_body_bytes_count) "
+                       "VALUES(?, ?, ?, ?, ?);";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::insert: "
+                          "Bad query; sqlite error: " + rc);
+    }
+    rc = sqlite3_bind_blob(stmt, 1, record->operationUUID().data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::insert: "
+                          "Bad binding of OperationUUID; sqlite error: " + rc);
+    }
+    GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(record->timestamp());
+    rc = sqlite3_bind_int64(stmt, 2, timestamp);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::insert: "
+                          "Bad binding of Timestamp; sqlite error: " + rc);
+    }
+    rc = sqlite3_bind_int(stmt, 3, record->recordType());
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::insert: "
+                          "Bad binding of RecordType; sqlite error: " + rc);
+    }
 
-    vector<pair<PaymentRecord::Shared, DateTime>> result;
-    string query = "SELECT operation_uuid, record_body, record_body_bytes_count, operation_timestamp FROM "
+    auto serializedPymentRecordAndSize = serializedPaymentRecordBody(
+        record);
+    rc = sqlite3_bind_blob(stmt, 4, serializedPymentRecordAndSize.first.get(),
+                           (int) serializedPymentRecordAndSize.second, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::insert: "
+                          "Bad binding of RecordBody; sqlite error: " + rc);
+    }
+    rc = sqlite3_bind_int(stmt, 5, (int) serializedPymentRecordAndSize.second);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::insert: "
+                          "Bad binding of RecordBody bytes count; sqlite error: " + rc);
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "prepare inserting is completed successfully";
+#endif
+    } else {
+        throw IOError("HistoryStorage::insert: "
+                          "Run query; sqlite error: " + rc);
+    }
+}
+
+vector<PaymentRecord::Shared> HistoryStorage::allPaymentRecords(
+    size_t recordsCount,
+    size_t fromRecord)
+{
+    vector<PaymentRecord::Shared> result;
+    for (auto const &itRecord : allRecordsByType(
+        Record::RecordType::PaymentRecordType,
+        recordsCount,
+        fromRecord)) {
+        result.push_back(
+            static_pointer_cast<PaymentRecord>(
+                itRecord));
+    }
+    return result;
+}
+
+vector<TrustLineRecord::Shared> HistoryStorage::allTrustLineRecords(
+    size_t recordsCount,
+    size_t fromRecord)
+{
+    vector<TrustLineRecord::Shared> result;
+    for (auto const &itRecord : allRecordsByType(
+        Record::RecordType::TrustLineRecordType,
+        recordsCount,
+        fromRecord)) {
+        result.push_back(
+            static_pointer_cast<TrustLineRecord>(
+                itRecord));
+    }
+    return result;
+}
+
+vector<Record::Shared> HistoryStorage::allRecordsByType(
+    Record::RecordType recordType,
+    size_t recordsCount,
+    size_t fromRecord)
+{
+    vector<Record::Shared> result;
+    string query = "SELECT operation_uuid, operation_timestamp, record_body, record_body_bytes_count FROM "
                    + mTableName + " WHERE record_type = ? LIMIT ? OFFSET ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -177,7 +306,7 @@ vector<pair<PaymentRecord::Shared, DateTime>> HistoryStorage::allPaymentRecords(
         throw IOError("HistoryStorage::allPaymentRecords: "
                           "Bad query; sqlite error: " + rc);
     }
-    rc = sqlite3_bind_int(stmt, 1, Record::RecordType::PaymentRecordType);
+    rc = sqlite3_bind_int(stmt, 1, recordType);
     if (rc != SQLITE_OK) {
         throw IOError("HistoryStorage::insert: "
                           "Bad binding of RecordType; sqlite error: " + rc);
@@ -192,85 +321,198 @@ vector<pair<PaymentRecord::Shared, DateTime>> HistoryStorage::allPaymentRecords(
         throw IOError("HistoryStorage::insert: "
                           "Bad binding of fromRecord; sqlite error: " + rc);
     }
-    while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        uuids::uuid operationUUID;
-        memcpy(
-            operationUUID.data,
-            sqlite3_column_blob(stmt, 0),
-            Record::kOperationUUIDBytesSize);
-        size_t recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 2);
-        BytesShared recordBody = tryMalloc(recordBodyBytesCount);
-        memcpy(
-            recordBody.get(),
-            sqlite3_column_blob(stmt, 1),
-            recordBodyBytesCount);
-        GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 3);
-        result.push_back(
-            make_pair(
-                make_shared<PaymentRecord>(
-                    operationUUID,
-                    recordBody),
-                dateTimeFromGEOEpochTimestamp(
-                    timestamp)));
+    switch (recordType) {
+        case Record::RecordType::TrustLineRecordType:
+            while (sqlite3_step(stmt) == SQLITE_ROW ) {
+                result.push_back(
+                    deserializeTrustLineRecord(
+                        stmt));
+            }
+            break;
+        case Record::RecordType::PaymentRecordType:
+            while (sqlite3_step(stmt) == SQLITE_ROW ) {
+                result.push_back(
+                    deserializePaymentRecord(
+                        stmt));
+            }
+            break;
+        default:
+            throw ValueError("HistoryStorage::allRecordsByType: invalid record type");
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return result;
 }
 
-vector<pair<TrustLineRecord::Shared, DateTime>> HistoryStorage::allTrustLineRecords(
-    size_t recordsCount,
-    size_t fromRecord) {
+pair<BytesShared, size_t> HistoryStorage::serializedTrustLineRecordBody(
+    TrustLineRecord::Shared trustLineRecord)
+{
+    size_t recordBodySize = sizeof(TrustLineRecord::SerializedTrustLineOperationType) + NodeUUID::kBytesSize;
+    if (trustLineRecord->trustLineOperationType() != TrustLineRecord::TrustLineOperationType::Closing &&
+        trustLineRecord->trustLineOperationType() != TrustLineRecord::TrustLineOperationType::Rejecting) {
+        recordBodySize += kTrustLineAmountBytesCount;
+    }
 
-    vector<pair<TrustLineRecord::Shared, DateTime>> result;
-    string query = "SELECT operation_uuid, record_body, record_body_bytes_count, operation_timestamp FROM "
-                   + mTableName + " WHERE record_type = ? LIMIT ? OFFSET ?;";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("HistoryStorage::allPaymentRecords: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_bind_int(stmt, 1, Record::RecordType::TrustLineRecordType);
-    if (rc != SQLITE_OK) {
-        throw IOError("HistoryStorage::insert: "
-                          "Bad binding of RecordType; sqlite error: " + rc);
-    }
-    rc = sqlite3_bind_int(stmt, 2, (int)recordsCount);
-    if (rc != SQLITE_OK) {
-        throw IOError("HistoryStorage::insert: "
-                          "Bad binding of recordsCount; sqlite error: " + rc);
-    }
-    rc = sqlite3_bind_int(stmt, 3, (int)fromRecord);
-    if (rc != SQLITE_OK) {
-        throw IOError("HistoryStorage::insert: "
-                          "Bad binding of fromRecord; sqlite error: " + rc);
-    }
-    while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        uuids::uuid operationUUID;
-        memcpy(
-            operationUUID.data,
-            sqlite3_column_blob(stmt, 0),
-            Record::kOperationUUIDBytesSize);
-        size_t recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 2);
-        BytesShared recordBody = tryMalloc(recordBodyBytesCount);
-        memcpy(
-            recordBody.get(),
-            sqlite3_column_blob(stmt, 1),
-            recordBodyBytesCount);
+    BytesShared bytesBuffer = tryCalloc(
+        recordBodySize);
+    size_t bytesBufferOffset = 0;
 
-        GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 3);
-        result.push_back(
-            make_pair(
-                make_shared<TrustLineRecord>(
-                    operationUUID,
-                    recordBody),
-                dateTimeFromGEOEpochTimestamp(
-                    timestamp)));
+    TrustLineRecord::SerializedTrustLineOperationType operationType
+        = (TrustLineRecord::SerializedTrustLineOperationType) trustLineRecord->trustLineOperationType();
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        &operationType,
+        sizeof(TrustLineRecord::SerializedTrustLineOperationType));
+    bytesBufferOffset += sizeof(
+        TrustLineRecord::SerializedTrustLineOperationType);
+
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        trustLineRecord->contractorUUID().data,
+        NodeUUID::kBytesSize);
+    bytesBufferOffset += NodeUUID::kBytesSize;
+
+    if (trustLineRecord->trustLineOperationType() != TrustLineRecord::TrustLineOperationType::Closing &&
+        trustLineRecord->trustLineOperationType() != TrustLineRecord::TrustLineOperationType::Rejecting) {
+        auto trustAmountBytes = trustLineAmountToBytes(
+            trustLineRecord->amount());
+
+        memcpy(
+            bytesBuffer.get() + bytesBufferOffset,
+            trustAmountBytes.data(),
+            kTrustLineAmountBytesCount);
     }
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    return result;
+    return make_pair(
+        bytesBuffer,
+        recordBodySize);
+}
+
+pair<BytesShared, size_t> HistoryStorage::serializedPaymentRecordBody(
+    PaymentRecord::Shared paymentRecord)
+{
+    size_t recordBodySize = sizeof(PaymentRecord::SerializedPaymentOperationType)
+           + NodeUUID::kBytesSize
+           + kTrustLineAmountBytesCount
+           + kTrustLineBalanceBytesCount;
+
+    BytesShared bytesBuffer = tryCalloc(
+        recordBodySize);
+    size_t bytesBufferOffset = 0;
+
+    PaymentRecord::SerializedPaymentOperationType operationType
+        = (PaymentRecord::SerializedPaymentOperationType) paymentRecord->paymentOperationType();
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        &operationType,
+        sizeof(PaymentRecord::SerializedPaymentOperationType));
+    bytesBufferOffset += sizeof(
+        PaymentRecord::SerializedPaymentOperationType);
+
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        paymentRecord->contractorUUID().data,
+        NodeUUID::kBytesSize);
+    bytesBufferOffset += NodeUUID::kBytesSize;
+
+    auto trustAmountBytes = trustLineAmountToBytes(
+        paymentRecord->amount());
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        trustAmountBytes.data(),
+        kTrustLineAmountBytesCount);
+    bytesBufferOffset += kTrustLineAmountBytesCount;
+
+    auto trustBalanceBytes = trustLineBalanceToBytes(
+        paymentRecord->balanceAfterOperation());
+    memcpy(
+        bytesBuffer.get() + bytesBufferOffset,
+        trustBalanceBytes.data(),
+        kTrustLineBalanceBytesCount);
+
+    return make_pair(
+        bytesBuffer,
+        recordBodySize);
+}
+
+TrustLineRecord::Shared HistoryStorage::deserializeTrustLineRecord(
+    sqlite3_stmt *stmt)
+{
+    TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
+    GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
+    size_t recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
+    BytesShared recordBody = tryMalloc(recordBodyBytesCount);
+    memcpy(
+        recordBody.get(),
+        sqlite3_column_blob(stmt, 2),
+        recordBodyBytesCount);
+
+    size_t dataBufferOffset = 0;
+    TrustLineRecord::SerializedTrustLineOperationType *operationType =
+        new (recordBody.get() + dataBufferOffset) TrustLineRecord::SerializedTrustLineOperationType;
+    dataBufferOffset += sizeof(
+        TrustLineRecord::SerializedTrustLineOperationType);
+
+    NodeUUID contractorUUID(recordBody.get() + dataBufferOffset);
+    dataBufferOffset += NodeUUID::kBytesSize;
+
+    TrustLineAmount amount(0);
+    if (*operationType != TrustLineRecord::TrustLineOperationType::Closing &&
+        *operationType != TrustLineRecord::TrustLineOperationType::Rejecting) {
+        vector<byte> amountBytes(
+            recordBody.get() + dataBufferOffset,
+            recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
+
+        amount = bytesToTrustLineAmount(
+            amountBytes);
+    }
+    return make_shared<TrustLineRecord>(
+        operationUUID,
+        (TrustLineRecord::TrustLineOperationType) *operationType,
+        contractorUUID,
+        amount,
+        timestamp);
+}
+
+PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
+    sqlite3_stmt *stmt)
+{
+    TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
+    GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
+    size_t recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
+    BytesShared recordBody = tryMalloc(recordBodyBytesCount);
+    memcpy(
+        recordBody.get(),
+        sqlite3_column_blob(stmt, 2),
+        recordBodyBytesCount);
+
+    size_t dataBufferOffset = 0;
+    PaymentRecord::SerializedPaymentOperationType *operationType
+        = new (recordBody.get() + dataBufferOffset) PaymentRecord::SerializedPaymentOperationType;
+    dataBufferOffset += sizeof(
+        PaymentRecord::SerializedPaymentOperationType);
+
+    NodeUUID contractorUUID(recordBody.get() + dataBufferOffset);
+    dataBufferOffset += NodeUUID::kBytesSize;
+
+    vector<byte> amountBytes(
+        recordBody.get() + dataBufferOffset,
+        recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
+    TrustLineAmount amount = bytesToTrustLineAmount(
+        amountBytes);
+    dataBufferOffset += kTrustLineAmountBytesCount;
+
+    vector<byte> balanceBytes(
+        recordBody.get() + dataBufferOffset,
+        recordBody.get() + dataBufferOffset + kTrustLineBalanceBytesCount);
+    TrustLineBalance balanceAfterOperation = bytesToTrustLineBalance(
+        balanceBytes);
+    return make_shared<PaymentRecord>(
+        operationUUID,
+        (PaymentRecord::PaymentOperationType) *operationType,
+        contractorUUID,
+        amount,
+        balanceAfterOperation,
+        timestamp);
 }
 
 LoggerStream HistoryStorage::info() const

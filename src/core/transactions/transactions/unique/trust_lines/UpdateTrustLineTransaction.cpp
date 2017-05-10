@@ -4,24 +4,28 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     const NodeUUID &nodeUUID,
     UpdateTrustLineMessage::Shared message,
     TrustLinesManager *manager,
-    HistoryStorage *historyStorage) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::UpdateTrustLineTransactionType,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mMessage(message),
     mTrustLinesManager(manager),
-    mHistoryStorage(historyStorage) {}
+    mStorageHandler(storageHandler) {}
 
 UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    HistoryStorage *historyStorage) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::UpdateTrustLineTransactionType),
+        BaseTransaction::TransactionType::UpdateTrustLineTransactionType,
+        logger),
     mTrustLinesManager(manager),
-    mHistoryStorage(historyStorage) {
+    mStorageHandler(storageHandler) {
 
     deserializeFromBytes(
         buffer);
@@ -127,15 +131,14 @@ void UpdateTrustLineTransaction::updateIncomingTrustAmount() {
 
 void UpdateTrustLineTransaction::logUpdatingTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Updating,
         mMessage->senderUUID,
         mMessage->newAmount());
 
-    mHistoryStorage->saveRecord(
-        record);
-    mHistoryStorage->commit();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 void UpdateTrustLineTransaction::sendResponseCodeToContractor(
@@ -146,4 +149,11 @@ void UpdateTrustLineTransaction::sendResponseCodeToContractor(
         mNodeUUID,
         mMessage->transactionUUID(),
         code);
+}
+
+const string UpdateTrustLineTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[UpdateTrustLineTA: " << currentTransactionUUID() << "]";
+    return s.str();
 }

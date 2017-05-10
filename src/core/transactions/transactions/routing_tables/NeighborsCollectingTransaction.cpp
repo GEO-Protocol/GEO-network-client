@@ -9,18 +9,22 @@
  *      must be discovered in the network.
  */
 NeighborsCollectingTransaction::NeighborsCollectingTransaction (
+    const NodeUUID &nodeUUID,
     const NodeUUID &destinationNode,
+    const NodeUUID &forbiddenForPopulatingNode,
     const uint8_t hopDistance,
-    RoutingTablesHandler *routingTables,
+    StorageHandler *storageHandler,
     Logger *logger)
     noexcept :
 
     BaseTransaction(
         BaseTransaction::RoutingTables_NeighborsCollecting,
+        nodeUUID,
         logger),
     mDestinationNodeUUID(destinationNode),
+    mForbiddenForPopulatingNode(forbiddenForPopulatingNode),
     mHopDistance(hopDistance),
-    mRoutingTables(routingTables),
+    mStorageHandler(storageHandler),
     mSecondLevelNeighborsMustAlsoBeScanned(true)
 {}
 
@@ -44,6 +48,7 @@ TransactionResult::SharedConst NeighborsCollectingTransaction::run ()
 TransactionResult::SharedConst NeighborsCollectingTransaction::processNeighborsRequestSending ()
     noexcept
 {
+    info() << "processNeighborsRequestSending";
     // ToDo: ensure request was delivered to the remote node. Retry in case of error.
 
     // Nothing critical would happen in case if request would be lost in the network.
@@ -59,11 +64,11 @@ TransactionResult::SharedConst NeighborsCollectingTransaction::processNeighborsR
     // ToDo: ask for neighbors checksum first, and run full synchronisation only in case it is different from the checksum calculated on this node.
     // This will dramatically decrease traffic and takes advantage of recursive nature of this operation.
 
-
     sendMessage<NeighborsRequestMessage>(
         mDestinationNodeUUID,
         currentNodeUUID(),
         currentTransactionUUID());
+    info() << "send request message to " << mDestinationNodeUUID;
 
     mStep = Stages::NeighborsInfoProcessing;
 
@@ -75,6 +80,7 @@ TransactionResult::SharedConst NeighborsCollectingTransaction::processNeighborsR
 TransactionResult::SharedConst NeighborsCollectingTransaction::processReceivedNeighborsInfo ()
     noexcept
 {
+    info() << "processReceivedNeighborsInfo";
     if (mContext.empty()) {
         debug() << "No neighbors info message was received. Can't proceed.";
         return resultDone();
@@ -82,15 +88,19 @@ TransactionResult::SharedConst NeighborsCollectingTransaction::processReceivedNe
 
     for (size_t i=0; i<mContext.size(); ++i) {
         const auto kMessage = popNextMessage<NeighborsResponseMessage>();
+        info() << "received neighbors count: " << kMessage->neighbors().size();
         processNeighbors(
             kMessage->neighbors());
     }
+    return resultDone();
 }
 
 void NeighborsCollectingTransaction::processNeighbors (
     const vector<NodeUUID> &neighbors)
     noexcept
 {
+    info() << "processNeighbors on hop: " << to_string(mHopDistance);
+    info() << "SecondLevelNeighborsMustAlsoBeScanned: " << mSecondLevelNeighborsMustAlsoBeScanned;
     if (mHopDistance == 0) {
         if (mSecondLevelNeighborsMustAlsoBeScanned) {
             // Note: all records are written to the database before child transactions would be spawned.
@@ -125,9 +135,10 @@ void NeighborsCollectingTransaction::populateSecondLevelRoutingTable (
     const NodeUUID &source)
     noexcept
 {
-    for (const auto kNeighbor : neighbors)
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    for (const auto kNeighbor : neighbors) {
         try {
-            mRoutingTables->saveRecordToRT2(
+            ioTransaction->routingTablesHandler()->setRecordToRT2(
                 source,
                 kNeighbor);
 
@@ -136,8 +147,7 @@ void NeighborsCollectingTransaction::populateSecondLevelRoutingTable (
         } catch (IOError &) {
             error() << "Record (" << source << " - " << kNeighbor << ") can't be written to the RT2.";
         }
-
-    mRoutingTables->commit();
+    }
 }
 
 /**
@@ -148,9 +158,13 @@ void NeighborsCollectingTransaction::populateThirdLevelRoutingTable (
     const NodeUUID &source)
     noexcept
 {
-    for (const auto kNeighbor : neighbors)
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    for (const auto kNeighbor : neighbors) {
+        if (kNeighbor == mForbiddenForPopulatingNode) {
+            continue;
+        }
         try {
-            mRoutingTables->saveRecordToRT3(
+            ioTransaction->routingTablesHandler()->setRecordToRT3(
                 source,
                 kNeighbor);
 
@@ -159,19 +173,21 @@ void NeighborsCollectingTransaction::populateThirdLevelRoutingTable (
         } catch (IOError &) {
             error() << "Record (" << source << " - " << kNeighbor << ") can't be written to the RT3.";
         }
-
-    mRoutingTables->commit();
+    }
 }
 
 void NeighborsCollectingTransaction::spawnChildNeighborsScanningTransactions (
     const vector<NodeUUID> &neighbors)
     noexcept
 {
+    info() << "spawnChildNeighborsScanningTransactions";
     for (const auto kNeighbor : neighbors){
         const auto kTransaction = make_shared<NeighborsCollectingTransaction>(
+            currentNodeUUID(),
             kNeighbor,
+            mDestinationNodeUUID,
             mHopDistance,
-            mRoutingTables,
+            mStorageHandler,
             mLog);
 
         // Prevent infinite network scanning
@@ -180,4 +196,11 @@ void NeighborsCollectingTransaction::spawnChildNeighborsScanningTransactions (
         launchSubsidiaryTransaction(kTransaction);
         debug() << "Child neighbors scanning transaction spawned with (" << kNeighbor << ") as destination.";
     }
+}
+
+const string NeighborsCollectingTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[NeighborsCollectingTA: " << currentTransactionUUID() << "]";
+    return s.str();
 }

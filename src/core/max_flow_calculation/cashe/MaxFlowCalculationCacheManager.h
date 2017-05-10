@@ -9,6 +9,7 @@
 #include <map>
 #include <unordered_map>
 #include <set>
+#include <boost/functional/hash.hpp>
 
 class MaxFlowCalculationCacheManager {
 
@@ -32,8 +33,8 @@ public:
 
 private:
     static const byte kResetSenderCacheHours = 0;
-    static const byte kResetSenderCacheMinutes = 0;
-    static const byte kResetSenderCacheSeconds = 50;
+    static const byte kResetSenderCacheMinutes = 18;
+    static const byte kResetSenderCacheSeconds = 0;
 
     static Duration& kResetSenderCacheDuration() {
         static auto duration = Duration(
@@ -44,8 +45,8 @@ private:
     }
 
     static const byte kResetInitiatorCacheHours = 0;
-    static const byte kResetInitiatorCacheMinutes = 0;
-    static const byte kResetInitiatorCacheSeconds = 20;
+    static const byte kResetInitiatorCacheMinutes = 18;
+    static const byte kResetInitiatorCacheSeconds = 0;
 
     static Duration& kResetInitiatorCacheDuration() {
         static auto duration = Duration(
@@ -71,7 +72,7 @@ private:
     const string logHeader() const;
 
 private:
-    unordered_map<NodeUUID, MaxFlowCalculationCache::Shared> mCaches;
+    unordered_map<NodeUUID, MaxFlowCalculationCache::Shared, boost::hash<boost::uuids::uuid>> mCaches;
     map<DateTime, NodeUUID*> msCache;
     pair<bool, DateTime> mInitiatorCache;
     Logger *mLog;

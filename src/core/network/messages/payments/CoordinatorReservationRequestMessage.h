@@ -16,6 +16,7 @@ public:
     CoordinatorReservationRequestMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID& transactionUUID,
+        const PathUUID &pathUUID,
         const TrustLineAmount& amount,
         const NodeUUID& nextNodeInThePath);
 
@@ -28,9 +29,6 @@ public:
 
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
-
-    void deserializeFromBytes(
-            BytesShared buffer);
 
 protected:
      NodeUUID mNextPathNode;

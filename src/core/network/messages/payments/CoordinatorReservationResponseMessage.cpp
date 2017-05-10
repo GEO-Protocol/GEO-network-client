@@ -4,12 +4,14 @@
 CoordinatorReservationResponseMessage::CoordinatorReservationResponseMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
+    const PathUUID& pathUUID,
     const ResponseMessage::OperationState state,
     const TrustLineAmount& reservedAmount):
 
     ResponseMessage(
         senderUUID,
         transactionUUID,
+        pathUUID,
         state),
     mAmountReserved(reservedAmount)
 {}
@@ -20,7 +22,14 @@ CoordinatorReservationResponseMessage::CoordinatorReservationResponseMessage(
     ResponseMessage(
         buffer)
 {
-    deserializeFromBytes(buffer);
+    auto parentMessageOffset = ResponseMessage::kOffsetToInheritedBytes();
+    auto amountOffset = buffer.get() + parentMessageOffset;
+    auto amountEndOffset = amountOffset + kTrustLineAmountBytesCount; // TODO: deserialize only non-zero
+    vector<byte> amountBytes(
+        amountOffset,
+        amountEndOffset);
+
+    mAmountReserved = bytesToTrustLineAmount(amountBytes);
 }
 
 const TrustLineAmount&CoordinatorReservationResponseMessage::amountReserved() const
@@ -60,17 +69,4 @@ pair<BytesShared, size_t> CoordinatorReservationResponseMessage::serializeToByte
 const Message::MessageType CoordinatorReservationResponseMessage::typeID() const
 {
     return Message::Payments_CoordinatorReservationResponse;
-}
-
-void CoordinatorReservationResponseMessage::deserializeFromBytes(
-    BytesShared buffer)
-{
-    auto parentMessageOffset = ResponseMessage::kOffsetToInheritedBytes();
-    auto amountOffset = buffer.get() + parentMessageOffset;
-    auto amountEndOffset = amountOffset + kTrustLineAmountBytesCount; // TODO: deserialize only non-zero
-    vector<byte> amountBytes(
-        amountOffset,
-        amountEndOffset);
-
-    mAmountReserved = bytesToTrustLineAmount(amountBytes);
 }

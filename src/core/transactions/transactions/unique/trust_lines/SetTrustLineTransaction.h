@@ -7,7 +7,7 @@
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../io/storage/HistoryStorage.h"
+#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
@@ -42,18 +42,23 @@ public:
         const NodeUUID &nodeUUID,
         SetTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     SetTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     SetTrustLineCommand::Shared command() const;
 
     pair<BytesShared, size_t> serializeToBytes() const;
 
     TransactionResult::SharedConst run();
+
+protected:
+    const string logHeader() const;
 
 private:
     void deserializeFromBytes(
@@ -93,7 +98,7 @@ private:
 
     SetTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-    HistoryStorage *mHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 

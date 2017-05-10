@@ -33,6 +33,11 @@
 #include "../../network/messages/trust_lines/AcceptTrustLineMessage.h"
 #include "../../network/messages/trust_lines/RejectTrustLineMessage.h"
 #include "../../network/messages/trust_lines/UpdateTrustLineMessage.h"
+
+#include "../../network/messages/routing_tables/NotificationTrustLineCreatedMessage.h"
+#include "../../network/messages/routing_tables/NotificationTrustLineRemovedMessage.h"
+#include "../../network/messages/routing_tables/NeighborsRequestMessage.h"
+#include "../../network/messages/routing_tables/NeighborsResponseMessage.h"
 #include "../../network/messages/response/Response.h"
 
 #include "../../resources/manager/ResourcesManager.h"
@@ -66,6 +71,7 @@
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 #include "../transactions/regular/payments/IntermediateNodePaymentTransaction.h"
+#include "../transactions/regular/payments/CycleCloserInitiatorTransaction.h"
 
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
@@ -85,7 +91,8 @@
 #include "../transactions/find_path/FindPathTransaction.h"
 #include "../transactions/find_path/GetRoutingTablesTransaction.h"
 
-#include "../transactions/cycles_closing/CycleCloserInitiatorTransaction.h"
+#include "../transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
+#include "../transactions/routing_tables/GetFirstRoutingTableTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -229,7 +236,18 @@ private:
     void launchTestCloseCycleTransaction(
         CycleCloserCommand::Shared command);
 
-    void launchCloseCycleTransaction(shared_ptr<vector<NodeUUID>>);
+    void launchCloseCycleTransaction(
+        shared_ptr<vector<NodeUUID>>);
+
+    // routing tables exchange transactions
+    void launchTrustLineStatesHandlerTransaction(
+        NotificationTrustLineCreatedMessage::Shared message);
+
+    void launchTrustLineStatesHandlerTransaction(
+        NotificationTrustLineRemovedMessage::Shared message);
+
+    void launchGetFirstRoutingTableTransaction(
+        NeighborsRequestMessage::Shared message);
 
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(

@@ -163,21 +163,19 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Paths_ResultRoutingTableThirdLevel:
             return messageCollected<ResultRoutingTable3LevelMessage>(buffer);
 
-
 #ifdef DEBUG
         /*
          * Debug messages
-         *
          */
         case Message::Debug:
             return messageCollected<DebugMessage>(buffer);
-
-#endif // DEBUG
+#endif
 
         default: {
-            auto errors = mLog.error("MessagesParser::processBytesSequence");
-            errors << "Unexpected message identifier occured (" << kMessageIdentifier << "). Message dropped.";
+            mLog.error("MessagesParser::processBytesSequence")
+                << "Unexpected message identifier occured (" << kMessageIdentifier << "). Message dropped.";
         }
+
         }
 
     } catch (exception &) {

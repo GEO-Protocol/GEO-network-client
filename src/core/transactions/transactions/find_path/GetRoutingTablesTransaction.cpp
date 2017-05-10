@@ -14,36 +14,48 @@ GetRoutingTablesTransaction::GetRoutingTablesTransaction(
 
     mMessage(message),
     mTrustLinesManager(manager),
-    mStorageHandler(storageHandler){}
+    mStorageHandler(storageHandler)
+{}
 
-RequestRoutingTablesMessage::Shared GetRoutingTablesTransaction::message() const {
-
+RequestRoutingTablesMessage::Shared GetRoutingTablesTransaction::message() const
+{
     return  mMessage;
 }
 
-TransactionResult::SharedConst GetRoutingTablesTransaction::run() {
-
-    info() << "run\tI am " << mNodeUUID;
+TransactionResult::SharedConst GetRoutingTablesTransaction::run()
+{
     sendRoutingTables();
-
+#ifdef GETTING_PATHS_DEBUG_LOG
+    info() << "run\tI am " << mNodeUUID;
     info() << "message successfully sent to " << mMessage->senderUUID;
-    return make_shared<TransactionResult>(TransactionState::exit());
+#endif
+    return resultDone();
 }
 
-void GetRoutingTablesTransaction::sendRoutingTables() {
-
-    /*info() << "sendRoutingTables\tRT1 size: " << mTrustLinesManager->rt1().size();
-    sendMessage<ResultRoutingTable1LevelMessage>(
-        mMessage->senderUUID,
-        mNodeUUID,
-        mMessage->transactionUUID(),
-        mTrustLinesManager->rt1());
-
+void GetRoutingTablesTransaction::sendRoutingTables()
+{
+    auto ioTransaction = mStorageHandler->beginTransaction();
+#ifdef GETTING_PATHS_DEBUG_LOG
+    info() << "sendRoutingTables\tRT1 size: " << mTrustLinesManager->rt1().size();
+#endif
+    if (mTrustLinesManager->rt1().size() > 0) {
+        sendMessage<ResultRoutingTable1LevelMessage>(
+            mMessage->senderUUID,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            mTrustLinesManager->rt1());
+    }
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt2
-        = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2();
-    info() << "sendRoutingTables\tRT2 size: " << rt2.size();
+        = ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT2();
     size_t rt2MessageCount = rt2.size() / kCountElementsPerMessage;
-    info() << "sendRoutingTables\tcount RT2 messages: " << (rt2MessageCount + 1);
+#ifdef GETTING_PATHS_DEBUG_LOG
+    info() << "sendRoutingTables\tRT2 size: " << rt2.size();
+    size_t rt2MessageCountReal = rt2MessageCount;
+    if ((rt2.size() % kCountElementsPerMessage) != 0) {
+        rt2MessageCountReal++;
+    }
+    info() << "sendRoutingTables\tcount RT2 messages: " << rt2MessageCountReal;
+#endif
     size_t idx = 0;
     auto itRT2 = rt2.begin();
     while (idx < rt2MessageCount) {
@@ -68,14 +80,19 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
             mMessage->transactionUUID(),
             subRT2);
         std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
-    }*/
-
+    }
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt3
-        = mStorageHandler->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
-    info() << "sendRoutingTables\tRT3 size: " << rt3.size();
+        = ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
     size_t rt3MessageCount = rt3.size() / kCountElementsPerMessage;
-    info() << "sendRoutingTables\tcount RT3 messages: " << (rt3MessageCount + 1);
-    size_t idx = 0;
+#ifdef GETTING_PATHS_DEBUG_LOG
+    info() << "sendRoutingTables\tRT3 size: " << rt3.size();
+    size_t rt3MessageCountReal = rt3MessageCount;
+    if ((rt3.size() % kCountElementsPerMessage) != 0) {
+        rt3MessageCountReal++;
+    }
+    info() << "sendRoutingTables\tcount RT3 messages: " << rt3MessageCountReal;
+#endif
+    idx = 0;
     auto itRT3 = rt3.begin();
     while (idx < rt3MessageCount) {
         auto itRT3First = itRT3;
@@ -105,7 +122,6 @@ void GetRoutingTablesTransaction::sendRoutingTables() {
 const string GetRoutingTablesTransaction::logHeader() const
 {
     stringstream s;
-    s << "[GetRoutingTablesTA]";
-
+    s << "[GetRoutingTablesTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

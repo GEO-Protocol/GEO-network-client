@@ -3,7 +3,7 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
-#include "../../../io/storage/HistoryStorage.h"
+#include "../../../io/storage/StorageHandler.h"
 #include "../../../io/storage/record/payment/PaymentRecord.h"
 
 #include <vector>
@@ -17,7 +17,7 @@ public:
     HistoryPaymentsTransaction(
         NodeUUID &nodeUUID,
         HistoryPaymentsCommand::Shared command,
-        HistoryStorage *historyStorage,
+        StorageHandler *storageHandler,
         Logger *logger);
 
     HistoryPaymentsCommand::Shared command() const;
@@ -29,11 +29,11 @@ protected:
 
 private:
     TransactionResult::SharedConst resultOk(
-        vector<pair<PaymentRecord::Shared, DateTime>> paymentRecords);
+        vector<PaymentRecord::Shared> paymentRecords);
 
 private:
     HistoryPaymentsCommand::Shared mCommand;
-    HistoryStorage *mHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 

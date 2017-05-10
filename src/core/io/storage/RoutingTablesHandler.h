@@ -10,7 +10,6 @@
 class RoutingTablesHandler {
 
 public:
-
     RoutingTablesHandler(
         sqlite3 *dbConnection,
         const string &rt2TableName,
@@ -30,25 +29,21 @@ public:
         const NodeUUID &sourceUUID,
         const NodeUUID &contractorUUID);
 
-    void saveRecordToRT2(
+    void setRecordToRT2(
         const NodeUUID &source,
         const NodeUUID &destination);
 
-    void saveRecordToRT3(
+    void setRecordToRT3(
         const NodeUUID &source,
         const NodeUUID &destination);
 
-    void deleteRecordFromRT2(
+    void removeRecordFromRT2(
         const NodeUUID &source,
         const NodeUUID &destination);
 
-    void deleteRecordFromRT3(
+    void removeRecordFromRT3(
         const NodeUUID &source,
         const NodeUUID &destination);
-
-    void commit();
-
-    void rollBack();
 
     vector<pair<NodeUUID, NodeUUID>> rt2Records();
 
@@ -69,9 +64,6 @@ public:
     map<const NodeUUID, vector<NodeUUID>> routeRecordsMapSourceKeyOnRT3();
 
 private:
-
-    void prepareInserted();
-
     LoggerStream info() const;
 
     LoggerStream error() const;
@@ -79,13 +71,10 @@ private:
     const string logHeader() const;
 
 private:
-
     sqlite3 *mDataBase = nullptr;
     RoutingTableHandler mRoutingTable2Level;
     RoutingTableHandler mRoutingTable3Level;
-    bool isTransactionBegin;
     Logger *mLog;
-
 };
 
 

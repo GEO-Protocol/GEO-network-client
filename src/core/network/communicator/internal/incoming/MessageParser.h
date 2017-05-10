@@ -31,8 +31,8 @@
 #include "../../../messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../messages/payments/ReceiverInitPaymentResponseMessage.h"
 #include "../../../messages/payments/ParticipantsVotesMessage.h"
-#include "../../../messages/payments/ParticipantsConfigurationRequestMessage.h"
-#include "../../../messages/payments/ParticipantsConfigurationMessage.h"
+#include "../../../messages/payments/FinalPathConfigurationMessage.h"
+#include "../../../messages/payments/TTLPolongationMessage.h"
 
 #include "../../../messages/total_balances/InitiateTotalBalancesMessage.h"
 #include "../../../messages/total_balances/TotalBalancesResultMessage.h"

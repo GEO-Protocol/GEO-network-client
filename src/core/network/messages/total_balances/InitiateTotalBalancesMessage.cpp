@@ -1,6 +1,5 @@
 #include "InitiateTotalBalancesMessage.h"
 
-
 const Message::MessageType InitiateTotalBalancesMessage::typeID() const
     noexcept
 {

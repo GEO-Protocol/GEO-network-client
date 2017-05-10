@@ -28,7 +28,6 @@ protected:
 
 private:
     NodeUUID mContractorUUID;
-
 };
 
 

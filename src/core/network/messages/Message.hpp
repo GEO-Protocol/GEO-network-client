@@ -14,6 +14,10 @@ public:
     typedef uint16_t SerializedType;
 
 public:
+    // TODO: move it into separate *.h file.
+    typedef uint16_t PathUUID;
+
+public:
     enum MessageType {
         /*
          * Trust lines
@@ -35,8 +39,8 @@ public:
         Payments_IntermediateNodeReservationRequest,
         Payments_IntermediateNodeReservationResponse,
         Payments_ParticipantsVotes,
-        Payments_ParticipantsPathsConfiguration,
-        Payments_ParticipantsPathsConfigurationRequest,
+        Payments_FinalPathConfiguration,
+        Payments_TTLProlongation,
 
         /*
          * Cycles

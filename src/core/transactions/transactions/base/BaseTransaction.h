@@ -49,6 +49,7 @@ public:
         uint32_t noLongerThanMilliseconds) const;
     TransactionResult::Shared resultAwaikAfterMilliseconds(
         uint32_t responseWaitTime) const ;
+    TransactionResult::Shared resultContinuePreviousState() const;
 
 public:
     ~BaseTransaction() = default;
@@ -64,6 +65,7 @@ public:
         // Routing tables
         RoutingTables_TrustLineStatesHandler,
         RoutingTables_NeighborsCollecting,
+        RoutingTables_GetFirstRoutingTable,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction,

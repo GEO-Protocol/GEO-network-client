@@ -3,7 +3,7 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
-#include "../../../io/storage/HistoryStorage.h"
+#include "../../../io/storage/StorageHandler.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include <vector>
@@ -17,7 +17,7 @@ public:
     HistoryTrustLinesTransaction(
         NodeUUID &nodeUUID,
         HistoryTrustLinesCommand::Shared command,
-        HistoryStorage *historyStorage,
+        StorageHandler *storageHandler,
         Logger *logger);
 
     HistoryTrustLinesCommand::Shared command() const;
@@ -29,11 +29,11 @@ protected:
 
 private:
     TransactionResult::SharedConst resultOk(
-        vector<pair<TrustLineRecord::Shared, DateTime>> trustLineRecords);
+        vector<TrustLineRecord::Shared> trustLineRecords);
 
 private:
     HistoryTrustLinesCommand::Shared mCommand;
-    HistoryStorage *mHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 

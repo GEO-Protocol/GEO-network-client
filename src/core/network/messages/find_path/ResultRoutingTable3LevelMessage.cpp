@@ -9,16 +9,19 @@ ResultRoutingTable3LevelMessage::ResultRoutingTable3LevelMessage(
         senderUUID,
         transactionUUID),
 
-    mRT3(rt3){}
+    mRT3(rt3)
+{}
 
 ResultRoutingTable3LevelMessage::ResultRoutingTable3LevelMessage(
     BytesShared buffer):
 
     TransactionMessage(buffer)
 {
+#ifdef GETTING_PATHS_DEBUG_LOG
     /*cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes start serializing" << endl;
     cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes rt3 size: " << mRT3.size() << endl;*/
     DateTime startTime = utc_now();
+#endif
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //-----------------------------------------------------
     RecordCount *rt3Count = new (buffer.get() + bytesBufferOffset) RecordCount;
@@ -42,27 +45,31 @@ ResultRoutingTable3LevelMessage::ResultRoutingTable3LevelMessage(
         //---------------------------------------------------
         mRT3.insert(make_pair(keyDesitnation, valueSources));
     }
+#ifdef GETTING_PATHS_DEBUG_LOG
     cout << "ResultRoutingTable3LevelMessage::deserializeFromBytes message size: " << bytesBufferOffset << endl;
 //    Duration methodTime = utc_now() - startTime;
 //    cout << "ResultRoutingTable3LevelMessage::deserializing time: " << methodTime << endl;
+#endif
 }
 
-const Message::MessageType ResultRoutingTable3LevelMessage::typeID() const {
+const Message::MessageType ResultRoutingTable3LevelMessage::typeID() const
+{
     return Message::MessageType::Paths_ResultRoutingTableThirdLevel;
 }
 
-unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& ResultRoutingTable3LevelMessage::rt3() {
-
+unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>>& ResultRoutingTable3LevelMessage::rt3()
+{
     return mRT3;
 }
 
 pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() const
     throw(bad_alloc)
 {
-
+#ifdef GETTING_PATHS_DEBUG_LOG
     /*cout << "ResultRoutingTable3LevelMessage::serializeToBytes start serializing" << endl;
     cout << "ResultRoutingTable3LevelMessage::serializeToBytes rt3 size: " << mRT3.size() << endl;*/
     DateTime startTime = utc_now();
+#endif
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + rt3ByteSize();
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -104,15 +111,18 @@ pair<BytesShared, size_t> ResultRoutingTable3LevelMessage::serializeToBytes() co
         }
     }
     //----------------------------------------------------
+#ifdef GETTING_PATHS_DEBUG_LOG
     cout << "ResultRoutingTable3LevelMessage::serializeToBytes message size: " << bytesCount << endl;
-//    Duration methodTime = utc_now() - startTime;
-//    cout << "ResultRoutingTable3LevelMessage::serializing time: " << methodTime << endl;
+    Duration methodTime = utc_now() - startTime;
+    cout << "ResultRoutingTable3LevelMessage::serializing time: " << methodTime << endl;
+#endif
     return make_pair(
         dataBytesShared,
         bytesCount);
 }
 
-size_t ResultRoutingTable3LevelMessage::rt3ByteSize() const {
+size_t ResultRoutingTable3LevelMessage::rt3ByteSize() const
+{
     size_t result = sizeof(RecordCount);
     for (auto const &nodeUUIDAndVector : mRT3) {
         result += NodeUUID::kBytesSize + sizeof(RecordCount) +

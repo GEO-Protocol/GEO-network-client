@@ -36,7 +36,7 @@ int Core::run()
             NodeUUID uuid("13e5cf8c-5834-4e52-b65b-f9281dd1ff01");
 
     //        this_thread::sleep_for(chrono::seconds(10));
-            for (int i=0; i<300; ++i){
+            for (int i=0; i<10000; ++i){
                 mCommunicator->sendMessage(
                     message,
                     uuid);

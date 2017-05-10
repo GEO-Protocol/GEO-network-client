@@ -4,12 +4,14 @@
 CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
+    const PathUUID &pathUUID,
     const TrustLineAmount& amount,
     const NodeUUID& nextNodeInThePath) :
 
     RequestMessage(
         senderUUID,
         transactionUUID,
+        pathUUID,
         amount),
     mNextPathNode(nextNodeInThePath)
 {}
@@ -19,7 +21,13 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
 
     RequestMessage(buffer)
 {
-    deserializeFromBytes(buffer);
+    auto parentMessageOffset = RequestMessage::kOffsetToInheritedBytes();
+    auto nextNodeUUIDOffset = buffer.get() + parentMessageOffset;
+
+    memcpy(
+        mNextPathNode.data,
+        nextNodeUUIDOffset,
+        mNextPathNode.kBytesSize);
 }
 
 
@@ -63,17 +71,3 @@ pair<BytesShared, size_t> CoordinatorReservationRequestMessage::serializeToBytes
         buffer,
         totalBytesCount);
 }
-
-void CoordinatorReservationRequestMessage::deserializeFromBytes(
-    BytesShared buffer)
-{
-    auto parentMessageOffset = RequestMessage::kOffsetToInheritedBytes();
-    auto nextNodeUUIDOffset = buffer.get() + parentMessageOffset;
-
-    memcpy(
-        mNextPathNode.data,
-        nextNodeUUIDOffset,
-        mNextPathNode.kBytesSize);
-}
-
-

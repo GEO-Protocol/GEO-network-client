@@ -6,7 +6,7 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../io/storage/HistoryStorage.h"
+#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../network/messages/Message.hpp"
@@ -16,6 +16,8 @@
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 
 #include "../../../../common/exceptions/ConflictError.h"
+
+#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
 
 #include <memory>
 #include <utility>
@@ -30,16 +32,21 @@ public:
         const NodeUUID &nodeUUID,
         RejectTrustLineMessage::Shared message,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     RejectTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     RejectTrustLineMessage::Shared message() const;
 
     TransactionResult::SharedConst run();
+
+protected:
+    const string logHeader() const;
 
 private:
     bool isTransactionToContractorUnique();
@@ -60,7 +67,7 @@ private:
 private:
     RejectTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    HistoryStorage *mHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 

@@ -4,24 +4,28 @@ SetTrustLineTransaction::SetTrustLineTransaction(
     const NodeUUID &nodeUUID,
     SetTrustLineCommand::Shared command,
     TrustLinesManager *manager,
-    HistoryStorage *historyStorage) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::SetTrustLineTransactionType,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mCommand(command),
     mTrustLinesManager(manager),
-    mHistoryStorage(historyStorage) {}
+    mStorageHandler(storageHandler) {}
 
 SetTrustLineTransaction::SetTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
-    HistoryStorage *historyStorage) :
+    StorageHandler *storageHandler,
+    Logger *logger) :
 
     TrustLineTransaction(
-        BaseTransaction::TransactionType::SetTrustLineTransactionType),
+        BaseTransaction::TransactionType::SetTrustLineTransactionType,
+        logger),
     mTrustLinesManager(manager),
-    mHistoryStorage(historyStorage) {
+    mStorageHandler(storageHandler) {
 
     deserializeFromBytes(
         buffer);
@@ -218,15 +222,14 @@ void SetTrustLineTransaction::setOutgoingTrustAmount() {
 
 void SetTrustLineTransaction::logSetTrustLineOperation() {
 
-    Record::Shared record = make_shared<TrustLineRecord>(
+    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::TrustLineOperationType::Setting,
         mCommand->contractorUUID(),
         mCommand->newAmount());
 
-    mHistoryStorage->saveRecord(
-        record);
-    mHistoryStorage->commit();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
 TransactionResult::SharedConst SetTrustLineTransaction::resultOk() {
@@ -261,4 +264,11 @@ TransactionResult::SharedConst SetTrustLineTransaction::resultProtocolError() {
 TransactionResult::SharedConst SetTrustLineTransaction::resultCurrentIncomingDebtIsGreaterThanNewAmount() {
     return transactionResultFromCommand(
             mCommand->responseCurrentIncomingDebtIsGreaterThanNewAmount());
+}
+
+const string SetTrustLineTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[SetTrustLineTA: " << currentTransactionUUID() << "]";
+    return s.str();
 }

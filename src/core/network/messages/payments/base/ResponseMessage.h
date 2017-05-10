@@ -18,12 +18,15 @@ public:
     ResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
+        const PathUUID &pathUUID,
         const OperationState state);
 
     ResponseMessage(
         BytesShared buffer);
 
     const OperationState state() const;
+
+    const PathUUID pathUUID() const;
 
 protected:
     typedef byte SerializedOperationState;
@@ -35,6 +38,7 @@ protected:
 
 private:
     OperationState mState;
+    PathUUID mPathUUID;
 };
 
 #endif // RESPONSEMESSAGE_H

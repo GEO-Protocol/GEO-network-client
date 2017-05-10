@@ -1,13 +1,14 @@
 #include "ResultMaxFlowCalculationMessage.h"
 
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
-        const NodeUUID& senderUUID,
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
-        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows) :
+    const NodeUUID& senderUUID,
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows) :
 
-        SenderMessage(senderUUID),
-        mOutgoingFlows(outgoingFlows),
-        mIncomingFlows(incomingFlows){};
+    SenderMessage(senderUUID),
+    mOutgoingFlows(outgoingFlows),
+    mIncomingFlows(incomingFlows)
+{}
 
 ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     BytesShared buffer):
@@ -57,15 +58,14 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
     }
 }
 
-const Message::MessageType ResultMaxFlowCalculationMessage::typeID() const {
-
+const Message::MessageType ResultMaxFlowCalculationMessage::typeID() const
+{
     return Message::MessageType::MaxFlow_ResultMaxFlowCalculation;
 }
 
 pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() const
     throw(bad_alloc)
 {
-
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
                         + sizeof(RecordCount) + mOutgoingFlows.size() * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount)
@@ -128,14 +128,17 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() co
         bytesCount);
 }
 
-const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> ResultMaxFlowCalculationMessage::outgoingFlows() const {
+const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> ResultMaxFlowCalculationMessage::outgoingFlows() const
+{
     return mOutgoingFlows;
 }
 
-const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> ResultMaxFlowCalculationMessage::incomingFlows() const {
+const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> ResultMaxFlowCalculationMessage::incomingFlows() const
+{
     return mIncomingFlows;
 }
 
-const bool ResultMaxFlowCalculationMessage::isMaxFlowCalculationResponseMessage() const {
+const bool ResultMaxFlowCalculationMessage::isMaxFlowCalculationResponseMessage() const
+{
     return true;
 }

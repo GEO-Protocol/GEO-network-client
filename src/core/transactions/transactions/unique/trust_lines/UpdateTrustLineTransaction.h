@@ -6,7 +6,7 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../io/storage/HistoryStorage.h"
+#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../network/messages/Message.hpp"
@@ -37,16 +37,21 @@ public:
         const NodeUUID &nodeUUID,
         UpdateTrustLineMessage::Shared message,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     UpdateTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        HistoryStorage *historyStorage);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     UpdateTrustLineMessage::Shared message() const;
 
     TransactionResult::SharedConst run();
+
+protected:
+    const string logHeader() const;
 
 private:
     bool checkJournal();
@@ -67,7 +72,7 @@ private:
 private:
     UpdateTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    HistoryStorage *mHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 

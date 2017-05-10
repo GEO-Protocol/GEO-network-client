@@ -17,20 +17,25 @@ public:
         const NodeUUID &currentNodeUUID,
         ReceiverInitPaymentRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
     ReceiverPaymentTransaction(
         BytesShared buffer,
         TrustLinesManager *trustLines,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run()
+        noexcept;
 
     pair<BytesShared, size_t> serializeToBytes();
 
 protected:
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage();
+    TransactionResult::SharedConst runClarificationOfTransaction();
+    TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
 
 protected:
     void deserializeFromBytes(

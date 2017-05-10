@@ -28,12 +28,10 @@ public:
         Logger *logger);
 
 public:
-
     void runSignalMaxFlowCalculationCacheUpdate(
         const boost::system::error_code &error);
 
 private:
-
     DateTime minimalAwakeningTimestamp();
 
     void updateCache();
