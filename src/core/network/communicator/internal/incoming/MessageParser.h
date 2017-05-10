@@ -4,14 +4,18 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-// todo: remove this message type
+// ToDo: remove this message type
 #include "../../../messages/response/Response.h"
 
+// ToDo: reorganize this messages
 #include "../../../messages/trust_lines/AcceptTrustLineMessage.h"
 #include "../../../messages/trust_lines/UpdateTrustLineMessage.h"
 #include "../../../messages/trust_lines/RejectTrustLineMessage.h"
 
-// todo: include routing table
+#include "../../../messages/routing_tables/NotificationTrustLineCreatedMessage.h"
+#include "../../../messages/routing_tables/NotificationTrustLineRemovedMessage.h"
+#include "../../../messages/routing_tables/NeighborsRequestMessage.h"
+#include "../../../messages/routing_tables/NeighborsResponseMessage.h"
 
 #include "../../../messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"

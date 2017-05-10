@@ -26,18 +26,35 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
          * Trust lines operations
          */
         case Message::TrustLines_Open:
+            // ToDo: Replace it with proper request message
+            // (OpenTrustLineRequestMessage)
             return messageCollected<AcceptTrustLineMessage>(buffer);
 
         case Message::TrustLines_Close:
+            // ToDo: Replace it with proper request message
+            // (CloseTrustLineRequestMessage)
             return messageCollected<RejectTrustLineMessage>(buffer);
 
         case Message::TrustLines_Set:
+            // ToDo: Replace it with proper request message
+            // (SetTrustLineRequestMessage)
             return messageCollected<UpdateTrustLineMessage>(buffer);
 
 
         /*
          * ToDo: Add routing tables messages
          */
+        case Message::RoutingTables_NotificationTrustLineCreated:
+            return messageCollected<NotificationTrustLineCreatedMessage>(buffer);
+
+        case Message::RoutingTables_NotificationTrustLineRemoved:
+            return messageCollected<NotificationTrustLineRemovedMessage>(buffer);
+
+        case Message::RoutingTables_NeighborsRequest:
+            return messageCollected<NeighborsRequestMessage>(buffer);
+
+        case Message::RoutingTables_NeighborsResponse:
+            return messageCollected<NeighborsResponseMessage>(buffer);
 
 
         /*
@@ -60,6 +77,15 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 
         case Message::Payments_IntermediateNodeReservationResponse:
             return messageCollected<IntermediateNodeReservationResponseMessage>(buffer);
+
+        case Message::Payments_ParticipantsVotes:
+            return messageCollected<ParticipantsVotesMessage>(buffer);
+
+        case Message::Payments_FinalPathConfiguration:
+            return messageCollected<FinalPathConfigurationMessage>(buffer);
+
+        case Message::Payments_TTLProlongation:
+            return messageCollected<TTLPolongationMessage>(buffer);
 
 
         /*
