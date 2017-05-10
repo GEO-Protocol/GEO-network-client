@@ -19,6 +19,7 @@ public:
     CoordinatorReservationResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
+        const PathUUID &pathUUID,
         const OperationState state,
         const TrustLineAmount &reservedAmount=0);
 
@@ -32,8 +33,6 @@ public:
 
 protected:
     const MessageType typeID() const;
-    void deserializeFromBytes(
-        BytesShared buffer);
 
 protected:
     TrustLineAmount mAmountReserved;

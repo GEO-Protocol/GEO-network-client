@@ -1,10 +1,12 @@
 #include "MaxFlowCalculationTrustLineManager.h"
 
 MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
-        Logger *logger):
-        mLog(logger) {}
+    Logger *logger):
+    mLog(logger)
+{}
 
-void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine) {
+void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine)
+{
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
         auto newHashSet = new unordered_set<MaxFlowCalculationTrustLineWithPtr*>();
@@ -31,24 +33,22 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLin
 }
 
 vector<MaxFlowCalculationTrustLine::Shared> MaxFlowCalculationTrustLineManager::sortedTrustLines(
-        const NodeUUID &nodeUUID) {
-
+        const NodeUUID &nodeUUID)
+{
     vector<MaxFlowCalculationTrustLine::Shared> result;
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(nodeUUID);
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
         return result;
     }
-
     for (auto trustLineAndPtr : *nodeUUIDAndSetFlows->second) {
         result.push_back(trustLineAndPtr->maxFlowCalculationtrustLine());
     }
-
     std::sort(result.begin(), result.end(), customLess);
     return result;
 }
 
-void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts() {
-
+void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts()
+{
     for (auto &nodeUUIDAndTrustLine : msTrustLines) {
         for (auto &trustLine : *nodeUUIDAndTrustLine.second) {
             trustLine->maxFlowCalculationtrustLine()->setUsedAmount(0);
@@ -56,8 +56,8 @@ void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts() {
     }
 }
 
-void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines() {
-
+void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
+{
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "deleteLegacyTrustLines\t" << "delete legacy trustLines set";
     info() << "deleteLegacyTrustLines\t" << "mapTrustLinesCount: " << trustLinesCounts();
@@ -99,7 +99,8 @@ void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines() {
 #endif
 }
 
-size_t MaxFlowCalculationTrustLineManager::trustLinesCounts() const {
+size_t MaxFlowCalculationTrustLineManager::trustLinesCounts() const
+{
     size_t countTrustLines = 0;
     for (const auto &nodeUUIDAndTrustLines : msTrustLines) {
         countTrustLines += (nodeUUIDAndTrustLines.second)->size();
@@ -107,7 +108,8 @@ size_t MaxFlowCalculationTrustLineManager::trustLinesCounts() const {
     return countTrustLines;
 }
 
-void MaxFlowCalculationTrustLineManager::printTrustLines() const {
+void MaxFlowCalculationTrustLineManager::printTrustLines() const
+{
     info() << "print\t" << "trustLineMap size: " << msTrustLines.size();
     for (const auto &nodeUUIDAndTrustLines : msTrustLines) {
         info() << "print\t" << "key: " << nodeUUIDAndTrustLines.first;
@@ -118,8 +120,8 @@ void MaxFlowCalculationTrustLineManager::printTrustLines() const {
     }
 }
 
-DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const {
-
+DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const
+{
     DateTime result = utc_now() + kResetTrustLinesDuration();
     // if there are cached trust lines, then take closest trust line removing time as result closest time event
     // else take trust line life time as result closest time event
@@ -132,18 +134,17 @@ DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const {
     return result;
 }
 
-LoggerStream MaxFlowCalculationTrustLineManager::info() const {
-
+LoggerStream MaxFlowCalculationTrustLineManager::info() const
+{
     if (nullptr == mLog)
         throw Exception("logger is not initialised");
 
     return mLog->info(logHeader());
 }
 
-const string MaxFlowCalculationTrustLineManager::logHeader() const {
-
+const string MaxFlowCalculationTrustLineManager::logHeader() const
+{
     stringstream s;
     s << "[MaxFlowCalculationTrustLineManager]";
-
     return s.str();
 }

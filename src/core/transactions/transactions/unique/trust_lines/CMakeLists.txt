@@ -25,6 +25,4 @@ target_link_libraries(transactions__trustlines
         #        time
         exceptions
 
-        db__operations_history_storage
-
         network__messages)

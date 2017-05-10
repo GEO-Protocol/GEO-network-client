@@ -29,22 +29,18 @@ protected:
     const string logHeader() const;
 
 private:
-
     TransactionResult::SharedConst waitingForResourcesState();
 
     TransactionResult::SharedConst checkResourcesContext();
 
 private:
-
     const uint32_t kConnectionTimeout = 4000;
     const uint16_t kMaxRequestsCount = 1;
 
 private:
-
     FindPathCommand::Shared mCommand;
     ResourcesManager *mResourcesManager;
     uint16_t mRequestCounter;
-
 };
 
 

@@ -15,13 +15,12 @@ public:
 
     static const string &identifier();
 
-    CommandResult::SharedConst resultOk(string &totalBalancesStr) const;
+    CommandResult::SharedConst resultOk(
+        string &totalBalancesStr) const;
 
 protected:
-
     void parse(
         const string &command);
-
 };
 
 

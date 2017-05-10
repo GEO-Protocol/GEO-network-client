@@ -28,7 +28,6 @@ protected:
     const string logHeader() const;
 
 private:
-
     void sendResultToInitiator();
 
     void sendCachedResultToInitiator(
@@ -38,7 +37,6 @@ private:
     MaxFlowCalculationTargetSndLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-
 };
 
 

@@ -1,50 +1,48 @@
 #include "ReceiveMaxFlowCalculationOnTargetTransaction.h"
 
 ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetTransaction(
-        const NodeUUID &nodeUUID,
-        InitiateMaxFlowCalculationMessage::Shared message,
-        TrustLinesManager *manager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *logger) :
+    const NodeUUID &nodeUUID,
+    InitiateMaxFlowCalculationMessage::Shared message,
+    TrustLinesManager *manager,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    Logger *logger) :
 
-        BaseTransaction(
-                BaseTransaction::TransactionType::ReceiveMaxFlowCalculationOnTargetTransactionType,
-                nodeUUID,
-                logger),
-        mMessage(message),
-        mTrustLinesManager(manager),
-        mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager) {}
+    BaseTransaction(
+        BaseTransaction::TransactionType::ReceiveMaxFlowCalculationOnTargetTransactionType,
+        nodeUUID,
+        logger),
+    mMessage(message),
+    mTrustLinesManager(manager),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+{}
 
-InitiateMaxFlowCalculationMessage::Shared ReceiveMaxFlowCalculationOnTargetTransaction::message() const {
-
+InitiateMaxFlowCalculationMessage::Shared ReceiveMaxFlowCalculationOnTargetTransaction::message() const
+{
     return mMessage;
 }
 
-TransactionResult::SharedConst ReceiveMaxFlowCalculationOnTargetTransaction::run() {
-
+TransactionResult::SharedConst ReceiveMaxFlowCalculationOnTargetTransaction::run()
+{
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "target: " << mNodeUUID;
     info() << "run\t" << "initiator: " << mMessage->senderUUID;
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 #endif
-
     sendResultToInitiator();
     sendMessagesOnFirstLevel();
-    return make_shared<const TransactionResult>(
-        TransactionState::exit());
+    return resultDone();
 
 }
 
-void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator() {
-
+void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()
+{
     MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr
         = mMaxFlowCalculationCacheManager->cacheByNode(mMessage->senderUUID);
     if (maxFlowCalculationCachePtr != nullptr) {
         sendCachedResultToInitiator(maxFlowCalculationCachePtr);
         return;
     }
-
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows;
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
@@ -53,18 +51,15 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator() {
                 incomingFlow);
         }
     }
-
     sendMessage<ResultMaxFlowCalculationMessage>(
         mMessage->senderUUID,
         mNodeUUID,
         outgoingFlows,
         incomingFlows);
-
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "sendResultToInitiator\t" << "send to " << mMessage->senderUUID;
     info() << "sendResultToInitiator\t" << "IncomingFlows: " << incomingFlows.size();
 #endif
-
     mMaxFlowCalculationCacheManager->addCache(
         mMessage->senderUUID,
         make_shared<MaxFlowCalculationCache>(
@@ -73,12 +68,11 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator() {
 }
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
-    MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr) {
-
+    MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr)
+{
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->senderUUID;
 #endif
-
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsForSending;
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlowsForSending;
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
@@ -88,11 +82,9 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
                 incomingFlow);
         }
     }
-
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "sendCachedResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
 #endif
-
     if (incomingFlowsForSending.size() > 0) {
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->senderUUID,
@@ -102,18 +94,16 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
     }
 }
 
-void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel() {
-
+void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel()
+{
     vector<NodeUUID> incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
     for (auto const &nodeUUIDIncomingFlow : incomingFlowUuids) {
         if (nodeUUIDIncomingFlow == mMessage->senderUUID) {
             continue;
         }
-
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
         info() << "sendFirst\t" << nodeUUIDIncomingFlow;
 #endif
-
         sendMessage<MaxFlowCalculationTargetFstLevelMessage>(
             nodeUUIDIncomingFlow,
             mNodeUUID,
@@ -124,6 +114,6 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel() {
 const string ReceiveMaxFlowCalculationOnTargetTransaction::logHeader() const
 {
     stringstream s;
-    s << "[ReceiveMaxFlowCalculationOnTargetTA]";
+    s << "[ReceiveMaxFlowCalculationOnTargetTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

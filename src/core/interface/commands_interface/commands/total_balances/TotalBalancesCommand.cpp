@@ -6,22 +6,24 @@ TotalBalancesCommand::TotalBalancesCommand(
 
     BaseUserCommand(
         uuid,
-        identifier()) {
-
+        identifier())
+{
     parse(commandBuffer);
 }
 
-const string &TotalBalancesCommand::identifier() {
-
+const string &TotalBalancesCommand::identifier()
+{
     static const string identifier = "GET:/stats/balances/total";
     return identifier;
 }
 
 void TotalBalancesCommand::parse(
-        const string &command) {}
+    const string &command)
+{}
 
-CommandResult::SharedConst TotalBalancesCommand::resultOk(string &totalBalancesStr) const {
-
+CommandResult::SharedConst TotalBalancesCommand::resultOk(
+    string &totalBalancesStr) const
+{
     return CommandResult::SharedConst(
         new CommandResult(
             UUID(),

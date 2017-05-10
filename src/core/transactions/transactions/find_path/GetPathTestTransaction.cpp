@@ -13,26 +13,24 @@ GetPathTestTransaction::GetPathTestTransaction(
 
     mCommand(command),
     mResourcesManager(resourcesManager),
-    mRequestCounter(0) {}
+    mRequestCounter(0)
+{}
 
-FindPathCommand::Shared GetPathTestTransaction::command() const {
-
+FindPathCommand::Shared GetPathTestTransaction::command() const
+{
     return mCommand;
 }
 
-TransactionResult::SharedConst GetPathTestTransaction::run() {
-
+TransactionResult::SharedConst GetPathTestTransaction::run()
+{
     info() << "run\t" << currentTransactionUUID() << " I am " << mNodeUUID;
     info() << "run\tget paths to " << mCommand->contractorUUID();
-
     if (!mResources.empty()) {
         return checkResourcesContext();
-
     } else {
         if (mRequestCounter >= kMaxRequestsCount) {
             error() << "no resources";
-            return make_shared<const TransactionResult>(
-                TransactionState::exit());
+            return resultDone();
         }
         if (mRequestCounter == 0) {
             info() << "run\t request resources";
@@ -45,8 +43,8 @@ TransactionResult::SharedConst GetPathTestTransaction::run() {
     return waitingForResourcesState();
 }
 
-TransactionResult::SharedConst GetPathTestTransaction::waitingForResourcesState() {
-
+TransactionResult::SharedConst GetPathTestTransaction::waitingForResourcesState()
+{
     info() << "waitingForResourcesState";
     return transactionResultFromState(
         TransactionState::waitForResourcesTypes(
@@ -54,12 +52,11 @@ TransactionResult::SharedConst GetPathTestTransaction::waitingForResourcesState(
             kConnectionTimeout));
 }
 
-TransactionResult::SharedConst GetPathTestTransaction::checkResourcesContext() {
-
+TransactionResult::SharedConst GetPathTestTransaction::checkResourcesContext()
+{
     info() << "checkResourcesContext\tresources size: " << mResources.size();
     if (mResources.size() == 1) {
         auto responseResource = *mResources.begin();
-
         if (responseResource->type() == BaseResource::ResourceType::Paths) {
             PathsResource::Shared response = static_pointer_cast<PathsResource>(
                 responseResource);
@@ -68,14 +65,10 @@ TransactionResult::SharedConst GetPathTestTransaction::checkResourcesContext() {
             while (response->pathCollection()->hasNextPath()) {
                 info() << response->pathCollection()->nextPath()->toString();
             }*/
-            return make_shared<const TransactionResult>(
-                TransactionState::exit());
+            return resultDone();
         }
-
         error() << "checkResourcesContext\twrong resource type";
-        return make_shared<const TransactionResult>(
-            TransactionState::exit());
-
+        return resultDone();
     } else {
         throw ConflictError("GetPathTestTransaction::checkTransactionContext: "
                                 "Unexpected context size.");
@@ -85,7 +78,6 @@ TransactionResult::SharedConst GetPathTestTransaction::checkResourcesContext() {
 const string GetPathTestTransaction::logHeader() const
 {
     stringstream s;
-    s << "[GetPathTestTA]";
-
+    s << "[GetPathTestTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

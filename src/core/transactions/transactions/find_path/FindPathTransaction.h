@@ -35,32 +35,26 @@ protected:
     const string logHeader() const;
 
 private:
-
     void sendMessageToRemoteNode();
-
-    void increaseRequestsCounter();
 
     TransactionResult::SharedConst waitingForResponseState();
 
-    TransactionResult::SharedConst checkTransactionContext();
-
     TransactionResult::SharedConst buildPaths();
 
+protected:
+    enum Stages {
+        SendRequestForGettingRoutingTables = 1,
+        BuildAllPaths
+    };
+
 private:
-
-    const uint32_t kConnectionTimeout = 3000;
-    const uint16_t kMaxRequestsCount = 1;
-
+    // ToDo: move to separate config file 
+    const uint32_t kConnectionTimeout = 1500;
 private:
-
     NodeUUID mContractorUUID;
     TransactionUUID mRequestedTransactionUUID;
     PathsManager *mPathsManager;
     ResourcesManager *mResourcesManager;
-    uint16_t mRequestCounter;
-
-    size_t previousContextSize;
-    bool isReceiveContractorRT1;
     vector<NodeUUID> mRT1;
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> mRT2;
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> mRT3;

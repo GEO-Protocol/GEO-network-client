@@ -15,10 +15,12 @@ class TrustLineTransaction : public BaseTransaction {
 protected:
     TrustLineTransaction(
         const BaseTransaction::TransactionType type,
-        const NodeUUID &nodeUUID);
+        const NodeUUID &nodeUUID,
+        Logger *logger);
 
     TrustLineTransaction(
-        const BaseTransaction::TransactionType type);
+        const BaseTransaction::TransactionType type,
+        Logger *logger);
 
     void increaseRequestsCounter();
 

@@ -11,15 +11,16 @@ MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTra
         nodeUUID,
         logger),
     mMessage(message),
-    mTrustLinesManager(manager) {}
+    mTrustLinesManager(manager)
+{}
 
-MaxFlowCalculationTargetFstLevelMessage::Shared MaxFlowCalculationTargetFstLevelTransaction::message() const {
-
+MaxFlowCalculationTargetFstLevelMessage::Shared MaxFlowCalculationTargetFstLevelTransaction::message() const
+{
     return mMessage;
 }
 
-TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run() {
-
+TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run()
+{
 #ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
     info() << "run\t" << "Iam: " << mNodeUUID;
     info() << "run\t" << "sender: " << mMessage->senderUUID;
@@ -27,7 +28,6 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 #endif
-
     vector<NodeUUID> incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
     for (auto const &nodeUUIDIncomingFlow : incomingFlowUuids) {
         if (nodeUUIDIncomingFlow == mMessage->senderUUID || nodeUUIDIncomingFlow == mMessage->targetUUID()) {
@@ -37,20 +37,16 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
         info() << "sendFirst\t" << nodeUUIDIncomingFlow;
 #endif
         sendMessage<MaxFlowCalculationTargetSndLevelMessage>(
-                nodeUUIDIncomingFlow,
-                mNodeUUID,
-                mMessage->targetUUID());
+            nodeUUIDIncomingFlow,
+            mNodeUUID,
+            mMessage->targetUUID());
     }
-
-    return make_shared<const TransactionResult>(
-        TransactionState::exit());
-
+    return resultDone();
 }
 
 const string MaxFlowCalculationTargetFstLevelTransaction::logHeader() const
 {
     stringstream s;
-    s << "[MaxFlowCalculationTargetFstLevelTA]";
-
+    s << "[MaxFlowCalculationTargetFstLevelTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

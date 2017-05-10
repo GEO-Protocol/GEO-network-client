@@ -14,12 +14,15 @@ public:
     RequestMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
+        const PathUUID &pathUUID,
         const TrustLineAmount &amount);
 
     RequestMessage(
         BytesShared buffer);
 
     const TrustLineAmount& amount() const;
+
+    const PathUUID& pathUUID() const;
 
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes() const
@@ -28,11 +31,9 @@ protected:
     const size_t kOffsetToInheritedBytes() const
         noexcept;
 
-    void deserializeFromBytes(
-        BytesShared buffer);
-
 protected:
     TrustLineAmount mAmount;
+    PathUUID mPathUUID;
 };
 
 #endif // REQUESTMESSAGE_H

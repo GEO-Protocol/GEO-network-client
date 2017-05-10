@@ -1,32 +1,48 @@
 ﻿#include "TransactionState.h"
 
 TransactionState::TransactionState(
-    GEOEpochTimestamp awakeningTimestamp,
-    bool flushToPermanentStorage) :
-
-    mAwakeningTimestamp(awakeningTimestamp) {
-
-    mFlushToPermanentStorage = flushToPermanentStorage;
-}
-
-TransactionState::TransactionState(
     Message::MessageType requiredMessageType,
-    bool flushToPermanentStorage) {
+    bool flushToPermanentStorage,
+    bool awakeOnMessage) :
 
+    mAwakeningTimestamp(0),
+    mFlushToPermanentStorage(flushToPermanentStorage),
+    mMustBeAwakenedOnMessage(awakeOnMessage),
+    mMustSavePreviousStateState(false)
+{
     mRequiredMessageTypes.push_back(requiredMessageType);
-    mFlushToPermanentStorage = flushToPermanentStorage;
 }
 
 TransactionState::TransactionState(
     GEOEpochTimestamp awakeningTimestamp,
+    bool flushToPermanentStorage,
+    bool awakeOnMessage) :
+
+    mFlushToPermanentStorage(flushToPermanentStorage),
+    mMustBeAwakenedOnMessage(awakeOnMessage),
+    mAwakeningTimestamp(awakeningTimestamp),
+    mMustSavePreviousStateState(false)
+{}
+
+TransactionState::TransactionState(
+    GEOEpochTimestamp awakeningTimestamp,
     Message::MessageType requiredMessageType,
-    bool flushToPermanentStorage) :
+    bool flushToPermanentStorage,
+    bool awakeOnMessage) :
 
-    mAwakeningTimestamp(awakeningTimestamp) {
-
+    mFlushToPermanentStorage(flushToPermanentStorage),
+    mMustBeAwakenedOnMessage(awakeOnMessage),
+    mAwakeningTimestamp(awakeningTimestamp),
+    mMustSavePreviousStateState(false)
+{
     mRequiredMessageTypes.push_back(requiredMessageType);
-    mFlushToPermanentStorage = flushToPermanentStorage;
 }
+
+TransactionState::TransactionState(
+    bool mustSavePreviousState) :
+
+    mMustSavePreviousStateState(mustSavePreviousState)
+{}
 
 /*!
  * Returns TransactionState that simply closes the transaction.
@@ -97,6 +113,27 @@ TransactionState::SharedConst TransactionState::waitForMessageTypes(
     return const_pointer_cast<const TransactionState>(state);
 }
 
+TransactionState::SharedConst TransactionState::waitForMessageTypesAndAwakeAfterMilliseconds(
+    vector<Message::MessageType> &&requiredMessageType,
+    uint32_t noLongerThanMilliseconds)
+{
+    TransactionState::Shared state;
+    if (noLongerThanMilliseconds == 0) {
+        state = const_pointer_cast<TransactionState> (TransactionState::exit());
+
+    } else {
+        state = make_shared<TransactionState>(
+            microsecondsSinceGEOEpoch(
+                utc_now() + pt::microseconds(noLongerThanMilliseconds * 1000)),
+            false,
+            false);
+    }
+
+    state->mRequiredMessageTypes = requiredMessageType;
+
+    return const_pointer_cast<const TransactionState>(state);
+}
+
 TransactionState::SharedConst TransactionState::waitForResourcesTypes(
     vector<BaseResource::ResourceType> &&requiredResourcesType,
     uint32_t noLongerThanMilliseconds) {
@@ -113,6 +150,13 @@ TransactionState::SharedConst TransactionState::waitForResourcesTypes(
 
     state->mRequiredResourcesTypes = requiredResourcesType;
 
+    return const_pointer_cast<const TransactionState>(state);
+}
+
+TransactionState::SharedConst TransactionState::continueWithPreviousState()
+{
+    TransactionState::Shared state;
+    state = make_shared<TransactionState>(true);
     return const_pointer_cast<const TransactionState>(state);
 }
 
@@ -145,4 +189,14 @@ const bool TransactionState::mustBeRescheduled() const {
 const bool TransactionState::mustExit() const {
 
     return !mustBeRescheduled();
+}
+
+const bool TransactionState::mustBeAwakenedOnMessage() const
+{
+    return mMustBeAwakenedOnMessage;
+}
+
+const bool TransactionState::mustSavePreviousStateState() const
+{
+    return mMustSavePreviousStateState;
 }

@@ -18,8 +18,11 @@ SenderMessage::SenderMessage(
         NodeUUID::kBytesSize);
 }
 
+/**
+ * @throws bad_alloc;
+ */
 pair<BytesShared, size_t> SenderMessage::serializeToBytes() const
-    throw (bad_alloc)
+    noexcept(false)
 {
     BytesSerializer serializer;
 

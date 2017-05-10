@@ -5,6 +5,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     const NodeUUID &currentNodeUUID,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log) :
 
     BaseTransaction(
@@ -12,6 +13,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -21,6 +23,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionUUID &transactionUUID,
     const NodeUUID &currentNodeUUID,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log) :
 
     BaseTransaction(
@@ -29,6 +32,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         currentNodeUUID,
         log),
     mTrustLines(trustLines),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -37,12 +41,14 @@ BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
     BytesShared buffer,
     TrustLinesManager *trustLines,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log) :
 
     BaseTransaction(
         type,
         log),
-    mTrustLines(trustLines)
+    mTrustLines(trustLines),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 /*
@@ -51,6 +57,7 @@ BasePaymentTransaction::BasePaymentTransaction(
  */
 TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 {
+    info() << "runVotesCheckingStage";
     // Votes message may be received twice:
     // First time - as a request to check the transaction and to sing it in case if all correct.
     // Second time - as a command to commit/rollback the transaction.
@@ -97,84 +104,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         // No further message propagation is needed.
         reject("Some participant node has been rejected the transaction. Rolling back.");
 
-
-    // It is possible, that next neighbor node has been reserved less amount,
-    // than previous one neighbor node.
-    //
-    // Asking  the coordinator for the final paths configuration prevents
-    // using different amount on incoming and outgoing paths.
-    // It is the same step as amount shortage for intermediate nodes.
-    sendMessage<ParticipantsConfigurationRequestMessage>(
-        message->coordinatorUUID(),
-        kCurrentNodeUUID,
-        currentTransactionUUID());
-
-    info() << "Final payment paths configuration requested from the coordinator.";
-
-
-    // Votes message must be saved for further processing on next awakening.
-    mParticipantsVotesMessage = message;
-
-
-    mStep = Stages::Common_FinalPathsConfigurationChecking;
-    return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsPathsConfiguration},
-        maxCoordinatorResponseTimeout());
-}
-
-TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfigurationProcessingStage ()
-{
-    if (! contextIsValid(Message::Payments_ParticipantsPathsConfiguration))
-        // Transaction can't be voted so far.
-        // As a result - it may be simply cancelled;
-        return reject("No final paths configuration was received from the coordinator. Rejected.");
-
-
-    const auto kCurrentNodeUUID = currentNodeUUID();
-    const auto kMessage = popNextMessage<ParticipantsConfigurationMessage>();
-
-    // TODO: check if message was really received from the coordinator;
-
-
-    info() << "Final payment paths configuration received";
-
-    // ToDo: check if node may sign the message
-    // (is previous nodes in the paths signed the transaction, etc)
-
-    // TODO: check behaviour when message wasn't approved
-
-
-    // Shortening all reservations that belongs to this node.
-    //
-    // Note: reservations copy is needed to be able to remove records from the reservations map.
-    // This approach significantly simplifies the logic
-    // and gives ability to not update the same reservation twice.
-    auto localReservationsCopy = mReservations;
-    for (const auto kNodesAndFinalAmount : kMessage->nodesAndFinalReservationAmount()) {
-        const auto kCommonPathAmount = *kNodesAndFinalAmount.second;
-
-        for (const auto kNode : kNodesAndFinalAmount.first) {
-            auto& nodeReservations = localReservationsCopy[kNode];
-
-            while (! nodeReservations.empty()) {
-                const auto kMinReservationIterator = min_element(
-                    nodeReservations.cbegin(),
-                    nodeReservations.cend());
-
-                const auto kMinReservation = *kMinReservationIterator;
-                shortageReservation(
-                    kNode,
-                    kMinReservation,
-                    kCommonPathAmount);
-
-                // Prevent updating the same reservation twice
-                nodeReservations.erase(kMinReservationIterator);
-            }
-        }
-    }
-
-
-    mParticipantsVotesMessage->approve(kCurrentNodeUUID);
+    // TODO : insert propagate message here
+    message->approve(kCurrentNodeUUID);
     mTransactionIsVoted = true;
 
     // TODO: flush
@@ -185,32 +116,73 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
         // Try to get next participant from the message.
         // In case if this node is the last node in votes list -
         // then it must be propagated to all nodes as successfully signed transaction.
-        const auto kNextParticipant = mParticipantsVotesMessage->nextParticipant(kCurrentNodeUUID);
+        const auto kNextParticipant = message->nextParticipant(kCurrentNodeUUID);
 
         // NotFoundError wasn't thrown.
         // Current node is not last in the votes list.
         // Message must be transferred to the next node in the list.
         sendMessage(
             kNextParticipant,
-            mParticipantsVotesMessage);
+            message);
 
         info() << "Votes list message transferred to the (" << kNextParticipant << ")";
 
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(mParticipantsVotesMessage->participantsCount()));
+            maxNetworkDelay(message->participantsCount()));
 
     } catch (NotFoundError &) {
         // There are no nodes left in the votes list.
         // Current node is the last node that has signed the transaction.
         // Now it must be propagated to all nodes in the votes list
         // as successfully signed transaction.
-        propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
+        propagateVotesMessageToAllParticipants(message);
 
         // Transaction may be committed (all votes are collected and checked).
         return approve();
     }
+
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::runFinalPathConfigurationProcessingStage ()
+{
+    info() << "runFinalPathConfigurationProcessingStage";
+    if (! contextIsValid(Message::Payments_FinalPathConfiguration))
+        return reject("No final paths configuration was received from the coordinator. Rejected.");
+
+
+    const auto kMessage = popNextMessage<FinalPathConfigurationMessage>();
+
+    // TODO: check if message was really received from the coordinator;
+
+
+    info() << "Final payment path configuration received";
+
+    // path was cancelled, drop all reservations belong it
+    if (kMessage->amount() == 0) {
+        rollBack(kMessage->pathUUID());
+    } else {
+
+        // Shortening all reservations that belongs to this node and path.
+        for (const auto &nodeAndReservations : mReservations) {
+            for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
+                if (pathUUIDAndReservation.first == kMessage->pathUUID()) {
+                    shortageReservation(
+                        nodeAndReservations.first,
+                        pathUUIDAndReservation.second,
+                        kMessage->amount(),
+                        pathUUIDAndReservation.first);
+                }
+            }
+        }
+    }
+
+    mStep = Stages::IntermediateNode_ReservationProlongation;
+    return resultWaitForMessageTypes(
+        {Message::Payments_ParticipantsVotes,
+        Message::Payments_IntermediateNodeReservationRequest},
+        maxNetworkDelay(kMaxPathLength - 2));
 }
 
 /*
@@ -221,6 +193,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runFinalPathsConfiguratio
  */
 TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyCheckingStage()
 {
+    info() << "runVotesConsistencyCheckingStage";
+    // this case can be only in Coordinator transaction.
+    // Intermediate node or Receiver can send request if transaction is still alive.
+    if (contextIsValid(Message::Payments_TTLProlongation, false)) {
+        return runTTLTransactionResponce();
+    }
     if (! contextIsValid(Message::Payments_ParticipantsVotes))
         // In case if no votes are present - transaction can't be simply cancelled.
         // It must go through recovery stage to avoid inconsistency.
@@ -268,7 +246,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
 
 const bool BasePaymentTransaction::reserveOutgoingAmount(
     const NodeUUID& neighborNode,
-    const TrustLineAmount& amount)
+    const TrustLineAmount& amount,
+    const PathUUID &pathUUID)
 {
     try {
         const auto kReservation = mTrustLines->reserveAmount(
@@ -277,10 +256,13 @@ const bool BasePaymentTransaction::reserveOutgoingAmount(
             amount);
 
 #ifdef DEBUG
-        debug() << "Reserved " << amount << " for (" << neighborNode << ") [Outgoing amount reservation].";
+        debug() << "Reserved " << amount << " for (" << neighborNode << ") [" << pathUUID << "] [Outgoing amount reservation].";
 #endif
 
-        mReservations[neighborNode].push_back(kReservation);
+        mReservations[neighborNode].push_back(
+            make_pair(
+                pathUUID,
+                kReservation));
         return true;
 
     } catch (Exception &) {}
@@ -290,7 +272,8 @@ const bool BasePaymentTransaction::reserveOutgoingAmount(
 
 const bool BasePaymentTransaction::reserveIncomingAmount(
     const NodeUUID& neighborNode,
-    const TrustLineAmount& amount)
+    const TrustLineAmount& amount,
+    const PathUUID &pathUUID)
 {
     try {
         const auto kReservation = mTrustLines->reserveIncomingAmount(
@@ -299,10 +282,13 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
             amount);
 
 #ifdef DEBUG
-        debug() << "Reserved " << amount << " for (" << neighborNode << ") [Incoming amount reservation].";
+        debug() << "Reserved " << amount << " for (" << neighborNode << ") [" << pathUUID << "] [Incoming amount reservation].";
 #endif
 
-        mReservations[neighborNode].push_back(kReservation);
+        mReservations[neighborNode].push_back(
+            make_pair(
+                pathUUID,
+                kReservation));
         return true;
 
     } catch (Exception &) {}
@@ -311,15 +297,18 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
 }
 
 const bool BasePaymentTransaction::contextIsValid(
-    Message::MessageType messageType) const
+    Message::MessageType messageType,
+    bool showErrorMessage) const
 {
     if (mContext.empty())
         return false;
 
     if (mContext.size() > 1 || mContext.at(0)->typeID() != messageType) {
-        error() << "Unexpected message received. "
-                   "It seems that remote node doesn't follows the protocol. "
-                   "Canceling.";
+        if (showErrorMessage) {
+            error() << "Unexpected message received. "
+                "It seems that remote node doesn't follows the protocol. "
+                "Canceling.";
+        }
 
         return false;
     }
@@ -380,35 +369,74 @@ void BasePaymentTransaction::commit ()
     // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
 
     for (const auto &kNodeUUIDAndReservations : mReservations)
-        for (const auto &kReservation : kNodeUUIDAndReservations.second) {
-            mTrustLines->useReservation(kNodeUUIDAndReservations.first, kReservation);
+        for (const auto &kPathUUIDAndReservation : kNodeUUIDAndReservations.second) {
+            mTrustLines->useReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
 
-            if (kReservation->direction() == AmountReservation::Outgoing)
-                info() << "Committed reservation: [ => ] " << kReservation->amount()
-                       << " for (" << kNodeUUIDAndReservations.first << ")";
+            if (kPathUUIDAndReservation.second->direction() == AmountReservation::Outgoing)
+                info() << "Committed reservation: [ => ] " << kPathUUIDAndReservation.second->amount()
+                       << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
 
-            else if (kReservation->direction() == AmountReservation::Incoming)
-                info() << "Committed reservation: [ <= ] " << kReservation->amount()
-                       << " for (" << kNodeUUIDAndReservations.first << ")";
+            else if (kPathUUIDAndReservation.second->direction() == AmountReservation::Incoming)
+                info() << "Committed reservation: [ <= ] " << kPathUUIDAndReservation.second->amount()
+                       << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
+            mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
         }
 
+    // reset initiator cashe, becouse after changing balanses
+    // we need updated information on max flow calculation transaction
+    mMaxFlowCalculationCacheManager->resetInititorCache();
     info() << "Transaction committed.";
 }
 
 void BasePaymentTransaction::rollBack ()
 {
     for (const auto &kNodeUUIDAndReservations : mReservations)
-        for (const auto &kReservation : kNodeUUIDAndReservations.second) {
-            mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kReservation);
+        for (const auto &kPathUUIDAndReservation : kNodeUUIDAndReservations.second) {
+            mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
 
-            if (kReservation->direction() == AmountReservation::Outgoing)
-                info() << "Dropping reservation: [ => ] " << kReservation->amount()
-                       << " for (" << kNodeUUIDAndReservations.first << ")";
+            if (kPathUUIDAndReservation.second->direction() == AmountReservation::Outgoing)
+                info() << "Dropping reservation: [ => ] " << kPathUUIDAndReservation.second->amount()
+                       << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
 
-            else if (kReservation->direction() == AmountReservation::Incoming)
-                info() << "Dropping reservation: [ <= ] " << kReservation->amount()
-                       << " for (" << kNodeUUIDAndReservations.first << ")";
+            else if (kPathUUIDAndReservation.second->direction() == AmountReservation::Incoming)
+                info() << "Dropping reservation: [ <= ] " << kPathUUIDAndReservation.second->amount()
+                       << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
         }
+}
+
+void BasePaymentTransaction::rollBack (
+    const PathUUID &pathUUID)
+{
+    auto itNodeUUIDAndReservations = mReservations.begin();
+    while(itNodeUUIDAndReservations != mReservations.end()) {
+        auto itPathUUIDAndReservation = itNodeUUIDAndReservations->second.begin();
+        while (itPathUUIDAndReservation != itNodeUUIDAndReservations->second.end()) {
+            if (itPathUUIDAndReservation->first == pathUUID) {
+                mTrustLines->dropAmountReservation(
+                    itNodeUUIDAndReservations->first,
+                    itPathUUIDAndReservation->second);
+
+                if (itPathUUIDAndReservation->second->direction() == AmountReservation::Outgoing)
+                    info() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
+                           << " for (" << itNodeUUIDAndReservations->first << ") [" << itPathUUIDAndReservation->first
+                           << "]";
+
+                else if (itPathUUIDAndReservation->second->direction() == AmountReservation::Incoming)
+                    info() << "Dropping reservation: [ <= ] " << itPathUUIDAndReservation->second->amount()
+                           << " for (" << itNodeUUIDAndReservations->first << ") [" << itPathUUIDAndReservation->first
+                           << "]";
+
+                itPathUUIDAndReservation = itNodeUUIDAndReservations->second.erase(itPathUUIDAndReservation);
+                } else {
+                    itPathUUIDAndReservation++;
+                }
+            }
+        if (itNodeUUIDAndReservations->second.size() == 0) {
+            itNodeUUIDAndReservations = mReservations.erase(itNodeUUIDAndReservations);
+        } else {
+            itNodeUUIDAndReservations++;
+        }
+    }
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::recover (
@@ -422,15 +450,13 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
 }
 
 uint32_t BasePaymentTransaction::maxNetworkDelay (
-    const uint16_t totalParticipantsCount) const
+    const uint16_t totalHopsCount) const
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
-    assert(totalParticipantsCount > 0);
+    assert(totalHopsCount > 0);
 #endif
 
-    return
-        + (totalParticipantsCount * kMaxMessageTransferLagMSec * 2) // double message trip
-        + (totalParticipantsCount * kExpectedNodeProcessingDelay);
+    return totalHopsCount * kMaxMessageTransferLagMSec;
 }
 
 uint32_t BasePaymentTransaction::maxCoordinatorResponseTimeout () const
@@ -460,6 +486,7 @@ const bool BasePaymentTransaction::positiveVoteIsPresent (
 void BasePaymentTransaction::propagateVotesMessageToAllParticipants (
     const ParticipantsVotesMessage::Shared kMessage) const
 {
+    info() << "propagateVotesMessageToAllParticipants";
     const auto kCurrentNodeUUID = currentNodeUUID();
 
     auto participant = kMessage->firstParticipant();
@@ -491,7 +518,8 @@ void BasePaymentTransaction::propagateVotesMessageToAllParticipants (
 const bool BasePaymentTransaction::shortageReservation (
     const NodeUUID kContractor,
     const AmountReservation::ConstShared kReservation,
-    const TrustLineAmount &kNewAmount)
+    const TrustLineAmount &kNewAmount,
+    const PathUUID &pathUUID)
 {
     if (kNewAmount > kReservation->amount())
         throw ValueError(
@@ -503,18 +531,30 @@ const bool BasePaymentTransaction::shortageReservation (
         const auto kPreviousAmount = kReservation->amount();
 #endif
 
-        mTrustLines->updateAmountReservation(
+        auto updatedReservation = mTrustLines->updateAmountReservation(
             kContractor,
             kReservation,
             kNewAmount);
 
+        for (auto it = mReservations[kContractor].begin(); it != mReservations[kContractor].end(); it++){
+            // TODO detaild check this condition
+            if ((*it).second.get() == kReservation.get() && (*it).first == pathUUID) {
+                mReservations[kContractor].erase(it);
+                break;
+            }
+        }
+        mReservations[kContractor].push_back(
+            make_pair(
+                pathUUID,
+                updatedReservation));
+
 #ifdef DEBUG
         if (kReservation->direction() == AmountReservation::Incoming)
-            info() << "Reservation for (" << kContractor << ") shortened "
-                   << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
-        else
-            info() << "Reservation for (" << kContractor << ") shortened "
+            info() << "Reservation for (" << kContractor << ") [" << pathUUID << "] shortened "
                    << "from " << kPreviousAmount << " to " << kNewAmount << " [<=]";
+        else
+            info() << "Reservation for (" << kContractor << ") [" << pathUUID << "] shortened "
+                   << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
 #endif
 
         return true;
@@ -532,4 +572,76 @@ TransactionResult::SharedConst BasePaymentTransaction::exitWithResult(
         info() << message;
 
     return result;
+}
+
+TransactionResult::SharedConst BasePaymentTransaction::runTTLTransactionResponce()
+{
+    auto kMessage = popNextMessage<TTLPolongationMessage>();
+    sendMessage<TTLPolongationMessage>(
+        kMessage->senderUUID,
+        currentNodeUUID(),
+        currentTransactionUUID());
+    info() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
+    return resultContinuePreviousState();
+}
+
+void BasePaymentTransaction::dropReservationsOnPath(
+    PathStats *pathStats,
+    PathUUID pathUUID)
+{
+    info() << "dropReservationsOnPath";
+    pathStats->shortageMaxFlow(0);
+
+    auto firstIntermediateNode = pathStats->path()->nodes[1];
+    // TODO add checking if not find
+    auto nodeReservations = mReservations.find(firstIntermediateNode);
+    auto itPathUUIDAndReservation = nodeReservations->second.begin();
+    while (itPathUUIDAndReservation != nodeReservations->second.end()) {
+        if (itPathUUIDAndReservation->first == pathUUID) {
+            info() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
+                   << " for (" << firstIntermediateNode << ") [" << pathUUID << "]";
+            mTrustLines->dropAmountReservation(
+                firstIntermediateNode,
+                itPathUUIDAndReservation->second);
+            itPathUUIDAndReservation = nodeReservations->second.erase(itPathUUIDAndReservation);
+        } else {
+            itPathUUIDAndReservation++;
+        }
+    }
+    if (nodeReservations->second.size() == 0) {
+        mReservations.erase(firstIntermediateNode);
+    }
+
+    const auto lastProcessedNodeAndPos = pathStats->currentIntermediateNodeAndPos();
+    const auto lastProcessedNode = lastProcessedNodeAndPos.first;
+    info() << "current node " << lastProcessedNode;
+    for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
+        if (intermediateNode == lastProcessedNode) {
+            break;
+        }
+        info() << "send message with drop reservation info for node " << intermediateNode;
+        sendMessage<FinalPathConfigurationMessage>(
+            intermediateNode,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            pathUUID,
+            0);
+    }
+}
+
+void BasePaymentTransaction::sendFinalPathConfiguration(
+    PathStats* pathStats,
+    PathUUID pathUUID,
+    const TrustLineAmount &finalPathAmount)
+{
+    info() << "sendFinalPathConfiguration";
+    for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
+        info() << "send message with final path amount info for node " << intermediateNode;
+        sendMessage<FinalPathConfigurationMessage>(
+            intermediateNode,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            pathUUID,
+            finalPathAmount);
+    }
 }

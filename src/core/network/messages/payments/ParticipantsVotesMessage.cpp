@@ -16,7 +16,46 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
     BytesShared buffer) :
     TransactionMessage(buffer)
 {
-    deserializeFromBytes(buffer);
+    const auto kParticipantRecordSize =
+        NodeUUID::kBytesSize
+        + sizeof(SerializedVote);
+
+    // Offsets
+    const auto kCoordinatorUUIDOffset =
+        buffer.get()
+        + TransactionMessage::kOffsetToInheritedBytes();
+
+    const auto kRecordsCountOffset =
+        kCoordinatorUUIDOffset
+        + NodeUUID::kBytesSize;
+
+    const auto kFirstRecordOffset =
+        kRecordsCountOffset
+        + sizeof(RecordsCount);
+
+
+    // Deserialization
+    memcpy(
+        mCoordinatorUUID.data,
+        kCoordinatorUUIDOffset,
+        NodeUUID::kBytesSize);
+
+    auto currentOffset = kFirstRecordOffset;
+    const RecordsCount kRecordsCount = *(kRecordsCountOffset);
+
+    for (RecordsCount i=0; i<kRecordsCount; ++i) {
+        NodeUUID participantUUID;
+        memcpy(
+            participantUUID.data,
+            currentOffset,
+            NodeUUID::kBytesSize);
+
+        const SerializedVote kVote =
+            *(currentOffset + NodeUUID::kBytesSize);
+
+        mVotes[participantUUID] = Vote(kVote);
+        currentOffset += kParticipantRecordSize;
+    }
 }
 
 /**
@@ -195,51 +234,6 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
         kBufferSize);
 }
 
-void ParticipantsVotesMessage::deserializeFromBytes(
-    BytesShared buffer)
-{
-    const auto kParticipantRecordSize =
-        NodeUUID::kBytesSize
-        + sizeof(SerializedVote);
-
-    // Offsets
-    const auto kCoordinatorUUIDOffset =
-        buffer.get()
-        + TransactionMessage::kOffsetToInheritedBytes();
-
-    const auto kRecordsCountOffset =
-        kCoordinatorUUIDOffset
-        + NodeUUID::kBytesSize;
-
-    const auto kFirstRecordOffset =
-        kRecordsCountOffset
-        + sizeof(RecordsCount);
-
-
-    // Deserialization
-    memcpy(
-        mCoordinatorUUID.data,
-        kCoordinatorUUIDOffset,
-        NodeUUID::kBytesSize);
-
-    auto currentOffset = kFirstRecordOffset;
-    const RecordsCount kRecordsCount = *(kRecordsCountOffset);
-
-    for (RecordsCount i=0; i<kRecordsCount; ++i) {
-        NodeUUID participantUUID;
-        memcpy(
-            participantUUID.data,
-            currentOffset,
-            NodeUUID::kBytesSize);
-
-        const SerializedVote kVote =
-            *(currentOffset + NodeUUID::kBytesSize);
-
-        mVotes[participantUUID] = Vote(kVote);
-        currentOffset += kParticipantRecordSize;
-    }
-}
-
 /**
  * Sets vote of the "participant" to "rejected".
  * Checks if "participant" is listed in votes list.
@@ -303,7 +297,9 @@ size_t ParticipantsVotesMessage::participantsCount () const
     return mVotes.size();
 }
 
+#ifdef DEBUG
 const boost::container::flat_map<NodeUUID, ParticipantsVotesMessage::Vote>& ParticipantsVotesMessage::votes() const
 {
     return mVotes;
 }
+#endif

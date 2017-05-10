@@ -6,8 +6,8 @@
 #include "../../../../common/Types.h"
 #include "../../../../common/memory/MemoryUtils.h"
 
-#include "../../../../db/operations_history_storage/storage/OperationsHistoryStorage.h"
-#include "../../../../db/operations_history_storage/record/trust_line/TrustLineRecord.h"
+#include "../../../../io/storage/StorageHandler.h"
+#include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
 
 #include "../../../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 
@@ -21,11 +21,11 @@
 
 #include "../../../../common/exceptions/ConflictError.h"
 
+#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
+
 #include <memory>
 #include <utility>
 #include <cstdint>
-
-using namespace db::operations_history_storage;
 
 class CloseTrustLineTransaction: public TrustLineTransaction {
 public:
@@ -44,18 +44,23 @@ public:
         const NodeUUID &nodeUUID,
         CloseTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     CloseTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
-        OperationsHistoryStorage *historyStorage);
+        StorageHandler *storageHandler,
+        Logger *logger);
 
     CloseTrustLineCommand::Shared command() const;
 
     pair<BytesShared, size_t> serializeToBytes() const;
 
     TransactionResult::SharedConst run();
+
+protected:
+    const string logHeader() const;
 
 private:
     void deserializeFromBytes(
@@ -95,7 +100,7 @@ private:
 
     CloseTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
-    OperationsHistoryStorage *mOperationsHistoryStorage;
+    StorageHandler *mStorageHandler;
 };
 
 

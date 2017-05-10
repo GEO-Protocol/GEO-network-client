@@ -14,25 +14,22 @@ MaxFlowCalculationMessage::MaxFlowCalculationMessage (
     BytesShared buffer) :
     SenderMessage(buffer)
 {
-
     memcpy(
         mTargetUUID.data,
         buffer.get() + SenderMessage::kOffsetToInheritedBytes(),
         NodeUUID::kBytesSize);
 }
 
-const NodeUUID &MaxFlowCalculationMessage::targetUUID() const {
-
+const NodeUUID &MaxFlowCalculationMessage::targetUUID() const
+{
     return mTargetUUID;
 }
 
 pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() const
     throw(bad_alloc)
 {
-
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second + NodeUUID::kBytesSize;
-
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -53,9 +50,8 @@ pair<BytesShared, size_t> MaxFlowCalculationMessage::serializeToBytes() const
 }
 
 void MaxFlowCalculationMessage::deserializeFromBytes(
-    BytesShared buffer) {
-
-//    SenderMessage::deserializeFromBytes(buffer);
+    BytesShared buffer)
+{
     size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     memcpy(
@@ -64,12 +60,13 @@ void MaxFlowCalculationMessage::deserializeFromBytes(
         NodeUUID::kBytesSize);
 }
 
-const size_t MaxFlowCalculationMessage::kOffsetToInheritedBytes() {
-
+const size_t MaxFlowCalculationMessage::kOffsetToInheritedBytes()
+{
     static const size_t offset = sizeof(MessageType) + NodeUUID::kBytesSize;
     return offset;
 }
 
-const bool MaxFlowCalculationMessage::isMaxFlowCalculationResponseMessage() const {
+const bool MaxFlowCalculationMessage::isMaxFlowCalculationResponseMessage() const
+{
     return true;
 }

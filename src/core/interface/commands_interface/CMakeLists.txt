@@ -37,9 +37,13 @@ set(SOURCE_FILES
         commands/contractors_list/GetFirstLevelContractorsCommand.cpp
 
         commands/find_path/FindPathCommand.h
-        commands/find_path/FindPathCommand.cpp)
+        commands/find_path/FindPathCommand.cpp
+
+        commands/cycle_closer/CycleCloserCommand.h
+        commands/cycle_closer/CycleCloserCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands
         ${Boost_SYSTEM_LIBRARY}
+        ${Boost_FILESYSTEM_LIBRARY}
         common)

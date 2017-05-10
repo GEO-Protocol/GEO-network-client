@@ -2,8 +2,8 @@
 
 MaxFlowCalculationCache::MaxFlowCalculationCache(
     const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
-    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows) {
-
+    const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows)
+{
     for (auto &nodeUUIDAndFlow : outgoingFlows) {
         mOutgoingFlows.insert(nodeUUIDAndFlow);
     }
@@ -14,8 +14,8 @@ MaxFlowCalculationCache::MaxFlowCalculationCache(
 
 bool MaxFlowCalculationCache::containsIncomingFlow(
     const NodeUUID &nodeUUID,
-    ConstSharedTrustLineAmount flow) {
-
+    ConstSharedTrustLineAmount flow)
+{
     auto nodeUUIDAndFlow = mIncomingFlows.find(nodeUUID);
     if (nodeUUIDAndFlow == mIncomingFlows.end()) {
         mIncomingFlows.insert(
@@ -40,8 +40,8 @@ bool MaxFlowCalculationCache::containsIncomingFlow(
 
 bool MaxFlowCalculationCache::containsOutgoingFlow(
     const NodeUUID &nodeUUID,
-    const ConstSharedTrustLineAmount flow) {
-
+    const ConstSharedTrustLineAmount flow)
+{
     auto nodeUUIDAndFlow = mOutgoingFlows.find(nodeUUID);
     if (nodeUUIDAndFlow == mOutgoingFlows.end()) {
         mOutgoingFlows.insert(

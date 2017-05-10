@@ -11,7 +11,6 @@
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
 
-
 class ResultRoutingTable2LevelMessage:
     public TransactionMessage {
 
