@@ -4,6 +4,10 @@
 #include "../../common/Types.h"
 #include "../../common/memory/MemoryUtils.h"
 
+#include "../communicator/internal/common/Packet.hpp"
+
+#include <limits>
+
 
 using namespace std;
 
@@ -97,6 +101,16 @@ public:
 
 public:
     virtual ~Message() = default;
+
+    /*
+     * Returns max allowed size of the message in bytes.
+     */
+    static size_t maxSize()
+    {
+        return
+             numeric_limits<PacketHeader::PacketIndex>::max() * Packet::kMaxSize -
+            (numeric_limits<PacketHeader::PacketIndex>::max() * PacketHeader::kSize);
+    }
 
     /*
      * Base "Message" is abstract.
