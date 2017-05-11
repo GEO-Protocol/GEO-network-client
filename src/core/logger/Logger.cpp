@@ -5,7 +5,7 @@
 
 
 LoggerStream::LoggerStream(
-    Logger &logger,
+    Logger *logger,
     const string &group,
     const string &subsystem,
     const StreamType type) :
@@ -18,6 +18,12 @@ LoggerStream::LoggerStream(
 
 LoggerStream::~LoggerStream()
 {
+    if (mLogger == nullptr)
+        return;
+
+    if (mType == Dummy)
+        return;
+
     if (mType == Transaction) {
         // if this message was received from the transaction,
         // but transactions log was disabled -
@@ -29,11 +35,18 @@ LoggerStream::~LoggerStream()
 
     auto message = this->str();
     if (message.size() > 0) {
-        mLogger.logRecord(
+        mLogger->logRecord(
             mGroup,
             mSubsystem,
             message);
     }
+
+
+}
+
+LoggerStream LoggerStream::dummy()
+{
+    return LoggerStream(nullptr, "", "", Dummy);
 }
 
 LoggerStream::LoggerStream(
@@ -85,19 +98,19 @@ void Logger::logFatal(
 LoggerStream Logger::info(
     const string &subsystem)
 {
-    return LoggerStream(*this, "INFO", subsystem);
+    return LoggerStream(this, "INFO", subsystem);
 }
 
 LoggerStream Logger::error(
     const string &subsystem)
 {
-    return LoggerStream(*this, "ERROR", subsystem);
+    return LoggerStream(this, "ERROR", subsystem);
 }
 
 LoggerStream Logger::debug(
     const string &subsystem)
 {
-    return LoggerStream(*this, "DEBUG", subsystem);
+    return LoggerStream(this, "DEBUG", subsystem);
 }
 
 const string Logger::formatMessage(

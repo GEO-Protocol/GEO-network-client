@@ -15,9 +15,12 @@ add_subdirectory(result)   # todo: there is no common responses in the system, t
 
 
 set(SOURCE_FILES
+        Message.hpp         # todo: why are not this message in base?
         SenderMessage.cpp   # todo: why are not this message in base?
         SenderMessage.h     # todo: why are not this message in base?
-        Message.hpp)        # todo: why are not this message in base?
+
+        debug/DebugMessage.h
+        debug/DebugMessage.cpp)
 
 
 add_library(network__messages ${SOURCE_FILES})

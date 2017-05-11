@@ -25,6 +25,14 @@
 #include <boost/filesystem.hpp>
 #include <boost/signals2.hpp>
 
+
+
+
+#include "network/messages/debug/DebugMessage.h"
+
+
+
+
 using namespace std;
 
 namespace as = boost::asio;
@@ -40,7 +48,7 @@ public:
     int run();
 
 private:
-    int initCoreComponents();
+    int initSubsystems();
 
     int initSettings();
 

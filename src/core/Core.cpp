@@ -7,34 +7,38 @@ Core::Core() {
 
 Core::~Core() {
 
-//    cleanupMemory();
+    cleanupMemory();
 }
 
-int Core::run() {
+int Core::run()
+{
+    writePIDFile();
 
-    auto initCode = initCoreComponents();
+    auto initCode = initSubsystems();
     if (initCode != 0) {
-        mLog.logFatal("Core", "Core components can't be initialised. Process will now be closed.");
+        mLog.logFatal("Core", "Can't be initialised. Process will now be stopped.");
         return initCode;
     }
-    try {
-        writePIDFile();
 
+    try {
+        mCommunicator->joinUUID2Address(mNodeUUID);
         mCommunicator->beginAcceptMessages();
+
         mCommandsInterface->beginAcceptCommands();
-        checkSomething();
+
         mLog.logSuccess("Core", "Processing started.");
+
         mIOService.run();
         return 0;
 
-    } catch (const std::exception &e) {
+    } catch (Exception &e) {
         mLog.logException("Core", e);
         return -1;
     }
 
 }
 
-int Core::initCoreComponents() {
+int Core::initSubsystems() {
 
     int initCode;
 
@@ -152,13 +156,12 @@ int Core::initCommunicator(
     try {
         mCommunicator = new Communicator(
             mIOService,
-            mNodeUUID,
             mSettings->interface(&conf),
             mSettings->port(&conf),
             mSettings->uuid2addressHost(&conf),
             mSettings->uuid2addressPort(&conf),
-            &mLog
-        );
+            mLog);
+
         mLog.logSuccess("Core", "Network communicator is successfully initialised");
         return 0;
 
@@ -183,7 +186,7 @@ int Core::initResultsInterface() {
 
 int Core::initTrustLinesManager() {
 
-    try{
+    try {
         mTrustLinesManager = new TrustLinesManager(
             mStorageHandler,
             &mLog);
@@ -334,7 +337,7 @@ int Core::initPathsManager() {
 void Core::connectCommunicatorSignals() {
 
     //communicator's signal to transactions manager slot
-    mCommunicator->messageReceivedSignal.connect(
+    mCommunicator->signalMessageReceived.connect(
         boost::bind(
             &Core::onMessageReceivedSlot,
             this,
@@ -374,17 +377,17 @@ void Core::connectTrustLinesManagerSignals() {
 }
 
 void Core::connectDelayedTasksSignals(){
-    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
-        boost::bind(
-            &Core::onDelayedTaskCycleSixNodesSlot,
-            this
-        )
+    /*mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
+            boost::bind(
+                    &Core::onDelayedTaskCycleSixNodesSlot,
+                    this
+            )
     );
     mCyclesDelayedTasks->mFiveNodesCycleSignal.connect(
-        boost::bind(
-            &Core::onDelayedTaskCycleFiveNodesSlot,
-            this
-        )
+            boost::bind(
+                    &Core::onDelayedTaskCycleFiveNodesSlot,
+                    this
+            )
     );
     #ifdef TESTS
     mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
@@ -399,7 +402,7 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
-    #endif
+    #endif*/
 }
 
 void Core::connectResourcesManagerSignals() {
@@ -457,10 +460,10 @@ void Core::onMessageSendSlot(
     const NodeUUID &contractorUUID) {
 
     try{
-        mCommunicator->sendMessage(
-            message,
-            contractorUUID
-        );
+//        mCommunicator->sendMessage(
+//            message,
+//            contractorUUID
+//        );
 
     } catch (exception &e) {
         mLog.logException("Core", e);
@@ -635,28 +638,36 @@ void Core::writePIDFile()
 }
 
 void Core::checkSomething() {
+    auto debtorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
+    stringstream ss;
+    copy(debtorsNeighborsUUIDs.begin(), debtorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
+    cout << "Nodes With positive balance: \n" << ss.str() << endl;
+    auto creditorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
+    stringstream ss1;
+    copy(creditorsNeighborsUUIDs.begin(), creditorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss1, "\n"));
+    cout << "Nodes With negative balance: \n" << ss1.str() << endl;
 }
 
 void Core::printRTs() {
-    NodeUUID *some_node = new NodeUUID("65b84dc1-31f8-45ce-8196-8efcc7648777");
-    NodeUUID *dest_node = new NodeUUID("5062d6a9-e06b-4bcc-938c-6d9bd082f0eb");
-    mStorageHandler->routingTablesHandler()->setRecordToRT2(*some_node, *dest_node);
+//    NodeUUID *some_node = new NodeUUID("65b84dc1-31f8-45ce-8196-8efcc7648777");
+//    NodeUUID *dest_node = new NodeUUID("5062d6a9-e06b-4bcc-938c-6d9bd082f0eb");
+//    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*some_node, *dest_node);
 
-    cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
-    for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
-        cout  << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
-        << itTrustLine.second->incomingTrustAmount() << " "
-        << itTrustLine.second->outgoingTrustAmount() << " "
-        << itTrustLine.second->balance() << endl;
-    }
-    cout  << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size() << endl;
-    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->rt2Records()) {
-        cout  << itRT2.first << " " << itRT2.second << endl;
-    }
-    cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size() << endl;
-    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
-        cout  << itRT3.first << " " << itRT3.second << endl;
-    }
+//    cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
+//    for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
+//        cout  << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
+//        << itTrustLine.second->incomingTrustAmount() << " "
+//        << itTrustLine.second->outgoingTrustAmount() << " "
+//        << itTrustLine.second->balance() << endl;
+//    }
+//    cout  << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size() << endl;
+//    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->rt2Records()) {
+//        cout  << itRT2.first << " " << itRT2.second << endl;
+//    }
+//    cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size() << endl;
+//    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
+//        cout  << itRT3.first << " " << itRT3.second << endl;
+//    }
 }
 
 void Core::test_ThreeNodesTransaction() {

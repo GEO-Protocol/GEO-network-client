@@ -4,6 +4,10 @@
 #include "../../common/Types.h"
 #include "../../common/memory/MemoryUtils.h"
 
+#include "../communicator/internal/common/Packet.hpp"
+
+#include <limits>
+
 
 using namespace std;
 
@@ -11,6 +15,7 @@ using namespace std;
 class Message {
 public:
     typedef shared_ptr<Message> Shared;
+    typedef uint16_t SerializedType;
 
 public:
     // TODO: move it into separate *.h file.
@@ -90,10 +95,25 @@ public:
 
         // ToDo: remove this
         ResponseMessageType = 1000,
+
+        /*
+         * DEBUG
+         */
+        Debug,
     };
 
 public:
     virtual ~Message() = default;
+
+    /*
+     * Returns max allowed size of the message in bytes.
+     */
+    static size_t maxSize()
+    {
+        return
+             numeric_limits<PacketHeader::PacketIndex>::max() * Packet::kMaxSize -
+            (numeric_limits<PacketHeader::PacketIndex>::max() * PacketHeader::kSize);
+    }
 
     /*
      * Base "Message" is abstract.
@@ -143,8 +163,11 @@ public:
 
     virtual const MessageType typeID() const = 0;
 
+    /**
+     * @throws bad_alloc;
+     */
     virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc)
+        noexcept(false)
     {
         const uint16_t kMessageType = typeID();
         auto buffer = tryMalloc(sizeof(kMessageType));

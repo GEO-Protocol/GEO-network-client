@@ -1,6 +1,10 @@
 #include "BytesSerializer.h"
 
 
+/**
+ * @param bytesCount - specifies how many bytes must be reserved in to the memory
+ *      for the object serialzation.
+ */
 BytesSerializer::BaseSerializationRecord::BaseSerializationRecord (
     const size_t bytesCount)
     noexcept :
@@ -10,6 +14,11 @@ BytesSerializer::BaseSerializationRecord::BaseSerializationRecord (
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(bytesCount > 0);
 #endif
+}
+
+BytesSerializer::BaseSerializationRecord::~BaseSerializationRecord()
+{
+    // Empty virtual descructor is needed, because class contains virtual methods.
 }
 
 size_t BytesSerializer::BaseSerializationRecord::bytesCount () const
@@ -50,11 +59,15 @@ void* BytesSerializer::InlineRecord::pointer () const
     return mBytes.get();
 }
 
-
+/**
+ * Enqueues the address of the "src" for the serialization in the future.
+ *
+ * @throws bad_alloc;
+ */
 void BytesSerializer::enqueue (
     const void *src,
     const size_t bytesCount)
-    throw (bad_alloc&)
+    noexcept(false)
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(bytesCount > 0);
@@ -66,10 +79,16 @@ void BytesSerializer::enqueue (
             bytesCount));
 }
 
+/**
+ * Copies the shared pointer to this serializer.
+ * SAFE FOR USAGE WITH TEMPORARY copy of shared pointer.
+ *
+ * @throws bad_alloc;
+ */
 void BytesSerializer::enqueue (
     const BytesShared bytes,
     const size_t bytesCount)
-    throw (bad_alloc&)
+    noexcept(false)
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(bytesCount > 0);
@@ -81,9 +100,18 @@ void BytesSerializer::enqueue (
             bytesCount));
 }
 
+/**
+ * Copies the shared pointer to this serializer.
+ * This is a shortcut method for fast enqueuing of the results
+ * of the serialization methods of other objects.
+ *
+ * SAFE FOR USAGE WITH TEMPORARY copy of shared pointer.
+ *
+ * @throws bad_alloc;
+ */
 void BytesSerializer::enqueue (
     pair<BytesShared, size_t> bytesAndSize)
-    throw (bad_alloc &)
+    noexcept(false)
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(bytesAndSize.second > 0);
@@ -94,59 +122,104 @@ void BytesSerializer::enqueue (
         bytesAndSize.second);
 }
 
-void BytesSerializer::enqueue (
+/**
+ * SAFE FOR USAGE WITH TEMPORARY VALUE.
+ *
+ * @throws bad_alloc;
+ */
+void BytesSerializer::copy (
     const uint16_t value)
-    throw (bad_alloc&)
+    noexcept(false)
 {
     mRecords.push_back(
         new InlineUInt16TRecord(value));
 }
 
-void BytesSerializer::enqueue (
+/**
+ * SAFE FOR USAGE WITH TEMPORARY VALUE.
+ *
+ * @throws bad_alloc;
+ */
+void BytesSerializer::copy (
     const uint32_t value)
-    throw (bad_alloc&)
+    noexcept(false)
 {
     mRecords.push_back(
         new InlineUInt32TRecord(value));
 }
 
-void BytesSerializer::enqueue (
+/**
+ * SAFE FOR USAGE WITH TEMPORARY VALUE.
+ *
+ * @throws bad_alloc;
+ */
+void BytesSerializer::copy (
     const size_t value)
-    throw (bad_alloc&)
+    noexcept(false)
 {
     mRecords.push_back(
         new InlineSizeTRecord(value));
 }
 
-void BytesSerializer::enqueue (
+/**
+ * SAFE FOR USAGE WITH TEMPORARY VALUE.
+ *
+ * @throws bad_alloc;
+ */
+void BytesSerializer::copy (
     const bool value)
-    throw (bad_alloc&)
+    noexcept(false)
 {
     mRecords.push_back(
         new InlineBoolRecord(value));
 }
 
-void BytesSerializer::enqueue (
+/**
+ * SAFE FOR USAGE WITH TEMPORARY VALUE.
+ *
+ * @throws bad_alloc;
+ */
+void BytesSerializer::copy(
+    const NodeUUID &nodeUUID)
+    noexcept(false)
+{
+    copy(
+        nodeUUID.data,
+        NodeUUID::kBytesSize);
+}
+
+/**
+ * SAFE FOR USAGE WITH TEMPORARY VALUE.
+ *
+ * @throws bad_alloc;
+ */
+void BytesSerializer::copy (
     byte value)
-    throw (bad_alloc&)
+    noexcept(false)
 {
     mRecords.push_back(
         new InlineByteRecord(value));
 }
 
+/**
+ * @throws bad_alloc;
+ */
 void BytesSerializer::enqueue (
     const NodeUUID &nodeUUID)
-    throw (bad_alloc&)
+    noexcept(false)
 {
     enqueue(
         nodeUUID.data,
         NodeUUID::kBytesSize);
 }
 
+/**
+ * @throws bad_alloc;
+ */
 void BytesSerializer::copy (
     const void *src,
     const size_t bytesCount)
-    throw (bad_alloc &)
+    noexcept(false)
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(bytesCount > 0);
@@ -163,9 +236,12 @@ void BytesSerializer::copy (
         bytesCount);
 }
 
+/**
+ * @throws bad_alloc;
+ */
 void BytesSerializer::copy (
     vector<byte> &bytes)
-    throw (bad_alloc&)
+    noexcept(false)
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(bytes.size() > 0);
@@ -176,29 +252,48 @@ void BytesSerializer::copy (
         bytes.size());
 }
 
-void BytesSerializer::enqueue (BytesSerializer &otherContainer)
-    throw (bad_alloc&)
+/**
+ * Chains other serializer into this one,
+ * by copying its records into internal storage.
+ *
+ * @throws bad_alloc;
+ */
+void BytesSerializer::merge (
+    BytesSerializer &otherContainer)
+    noexcept(false)
 {
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(otherContainer.mRecords.size() > 0);
 #endif
 
-    mRecords.reserve(otherContainer.mRecords.size());
-    for (const auto kRecord : otherContainer.mRecords)
-        mRecords.push_back(kRecord);
+    if (otherContainer.mRecords.size() > 0) {
+        mRecords.reserve(otherContainer.mRecords.size());
+        for (const auto kRecord : otherContainer.mRecords)
+            mRecords.push_back(kRecord);
+    }
 }
 
+/**
+ * Calculates total bytes count needed for all the data,
+ * allocates memory segment of the needed length and populates it by the data
+ * from all collected internal records.
+ *
+ * @returns shared buffer with populated data.
+ *
+ * @throws bad_alloc;
+ */
 const pair<BytesShared, size_t> BytesSerializer::collect () const
-    throw (bad_alloc&)
+    noexcept(false)
 {
     if (mRecords.size() == 0)
         throw NotFoundError(
-            "BytesSerializer::data: "
-                "there are no sources for collecting.");
+            "BytesSerializer::collect: "
+            "there are no sources for collecting.");
 
     size_t totalBytesCount = 0;
-    for (const auto kRecord : mRecords)
+    for (const auto kRecord : mRecords) {
         totalBytesCount += kRecord->bytesCount();
+    }
 
 
     auto buffer = tryMalloc(totalBytesCount);
@@ -210,6 +305,8 @@ const pair<BytesShared, size_t> BytesSerializer::collect () const
             kRecord->bytesCount());
 
         currentBufferOffset += kRecord->bytesCount();
+
+        delete kRecord;
     }
 
     return make_pair(
