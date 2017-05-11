@@ -24,25 +24,10 @@ int Core::run()
         mCommunicator->joinUUID2Address(mNodeUUID);
         mCommunicator->beginAcceptMessages();
 
-
-        //        mCommandsInterface->beginAcceptCommands();
+        mCommandsInterface->beginAcceptCommands();
 
         mLog.logSuccess("Core", "Processing started.");
-
-
-        if (mNodeUUID == NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff00")){
-
-            const auto message = make_shared<DebugMessage>();
-            NodeUUID uuid("13e5cf8c-5834-4e52-b65b-f9281dd1ff01");
-
-    //        this_thread::sleep_for(chrono::seconds(10));
-            for (int i=0; i<10000; ++i){
-                mCommunicator->sendMessage(
-                    message,
-                    uuid);
-            }
-        }
-
+s
         mIOService.run();
         return 0;
 
@@ -201,9 +186,9 @@ int Core::initResultsInterface() {
 
 int Core::initTrustLinesManager() {
 
-    try{
+    try {
         mTrustLinesManager = new TrustLinesManager(
-            mStorageHandler->trustLineHandler(),
+            mStorageHandler,
             &mLog);
         mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
         return 0;
@@ -664,25 +649,25 @@ void Core::checkSomething() {
 }
 
 void Core::printRTs() {
-    NodeUUID *some_node = new NodeUUID("65b84dc1-31f8-45ce-8196-8efcc7648777");
-    NodeUUID *dest_node = new NodeUUID("5062d6a9-e06b-4bcc-938c-6d9bd082f0eb");
-    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*some_node, *dest_node);
+//    NodeUUID *some_node = new NodeUUID("65b84dc1-31f8-45ce-8196-8efcc7648777");
+//    NodeUUID *dest_node = new NodeUUID("5062d6a9-e06b-4bcc-938c-6d9bd082f0eb");
+//    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*some_node, *dest_node);
 
-    cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
-    for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
-        cout  << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
-        << itTrustLine.second->incomingTrustAmount() << " "
-        << itTrustLine.second->outgoingTrustAmount() << " "
-        << itTrustLine.second->balance() << endl;
-    }
-    cout  << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size() << endl;
-    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->rt2Records()) {
-        cout  << itRT2.first << " " << itRT2.second << endl;
-    }
-    cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size() << endl;
-    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
-        cout  << itRT3.first << " " << itRT3.second << endl;
-    }
+//    cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
+//    for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
+//        cout  << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
+//        << itTrustLine.second->incomingTrustAmount() << " "
+//        << itTrustLine.second->outgoingTrustAmount() << " "
+//        << itTrustLine.second->balance() << endl;
+//    }
+//    cout  << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size() << endl;
+//    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->rt2Records()) {
+//        cout  << itRT2.first << " " << itRT2.second << endl;
+//    }
+//    cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size() << endl;
+//    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
+//        cout  << itRT3.first << " " << itRT3.second << endl;
+//    }
 }
 
 void Core::test_ThreeNodesTransaction() {
