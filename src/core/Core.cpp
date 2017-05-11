@@ -27,7 +27,7 @@ int Core::run()
         mCommandsInterface->beginAcceptCommands();
 
         mLog.logSuccess("Core", "Processing started.");
-s
+
         mIOService.run();
         return 0;
 
