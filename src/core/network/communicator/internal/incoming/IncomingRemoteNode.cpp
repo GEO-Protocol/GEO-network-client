@@ -60,7 +60,7 @@ void IncomingRemoteNode::dropOutdatedChannels()
         if (kNow - indexAndChannel.second->lastUpdated() > kMaxTTL) {
             const auto kChannelIndex = indexAndChannel.first;
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
             debug() << "Channel " << kChannelIndex
                     << " of the endpoint " << mEndpoint << " is outdated. Dropped.";
 #endif
@@ -257,7 +257,8 @@ IncomingChannel* IncomingRemoteNode::findChannel(
             index,
             make_unique<IncomingChannel>(
                 mMessagesParser,
-                mLastUpdated));
+                mLastUpdated,
+                mLog));
 
     return mChannels[index].get();
 }
@@ -265,11 +266,11 @@ IncomingChannel* IncomingRemoteNode::findChannel(
 LoggerStream IncomingRemoteNode::debug() const
     noexcept
 {
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     return mLog.debug("Communicator / IncomingRemoteNode");
 #endif
 
-#ifndef NETWORK_DEBUG_LOG
+#ifndef DEBUG_LOG_NETWORK_COMMUNICATOR
     return LoggerStream();
 #endif
 }

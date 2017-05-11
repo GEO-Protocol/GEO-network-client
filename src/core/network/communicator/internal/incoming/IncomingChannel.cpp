@@ -3,11 +3,13 @@
 
 IncomingChannel::IncomingChannel(
     MessagesParser &messagesParser,
-    TimePoint &nodeHandlerLastUpdate)
+    TimePoint &nodeHandlerLastUpdate,
+    Logger &logger)
     noexcept :
 
     mLastRemoteNodeHandlerUpdated(nodeHandlerLastUpdate),
     mMessagesParser(messagesParser),
+    mLog(logger),
     mExpectedPacketsCount(0)
 {}
 
@@ -23,8 +25,9 @@ void IncomingChannel::reservePacketsSlots(
 {
     // Note:
     // Theoretically, it is possible,
-    // that sender node will begin sending several messages into common channel.
-    // Each packet contains info about message total packets count.
+    // that sender node will begin sending several messages into one channel.
+    //
+    // Each packet contains info about total packets count of the message.
     // So, theoretically, "count" may change from call to call.
     if (mExpectedPacketsCount != count) {
         mExpectedPacketsCount = count;
@@ -53,13 +56,15 @@ void IncomingChannel::addPacket(
         throw bad_alloc();
     }
 
-    // In case if sender node begins sending several message into common channel -
+    // In case if sender node begins sending several messages into one channel -
     // packets collision is possible.
     //
-    // In case if packet slot is already occupied - no exception should be thrown.
-    // Otherwise, both packets would be lost, even if last one potentially may be fully received.
+    // In case if packet slot is already occupied - no exception should be thrown,
+    // and packet processing must be continued. Otherwise, both packets would be lost,
+    // and no one message would be collected.
     //
-    // To prevent memory leak - previous one packet must be dropped.
+    //
+    // To prevent memory leak - previous packet must be dropped.
     if (mPackets.count(index) > 0){
         free(mPackets[index].first);
     }
@@ -89,14 +94,14 @@ pair<bool, Message::Shared> IncomingChannel::tryCollectMessage()
     }
 
     if (totalBytesReceived <= Packet::kMaxSize - PacketHeader::kSize) {
-        // ToDo: optimisation is present:
+        // ToDo: (optimisation):
         // Message consists only one packet.
         // No need for additional copying of it's content into the intermediate buffer.
+        // Problem to convert it to the shared buffer and don't drop it on exit.
     }
 
     // Message consists more than one packet.
-    // To be able to deserialize them - all packets must be chained into
-    // one memory block.
+    // To be able to deserialize them - all packets must be chained into one memory block.
     auto buffer = tryMalloc(totalBytesReceived);
 
     size_t currentBufferOffset = 0;
@@ -122,7 +127,12 @@ pair<bool, Message::Shared> IncomingChannel::tryCollectMessage()
         buffer.get() + totalBytesReceived - sizeof(uint32_t)));
 
     if (receivedCRC != calculatedCRC) {
-        cout << "CRC Error!";
+
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+        mLog.debug("IncomingChannel::tryCollectMessage: ")
+            << "CRC of the received packet doesn't equal to the expected one";
+#endif
+
         return make_pair(false, Message::Shared(nullptr));
     }
 

@@ -42,7 +42,7 @@ void IncomingNodesHandler::removeOutdatedEndpoints()
         return;
     }
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
     debug() << "Outdated endpoints removing started";
 #endif
 
@@ -69,7 +69,8 @@ void IncomingNodesHandler::removeOutdatedEndpoints()
         mNodes.reserve(mNodes.size());
 
         for (const auto &kObsoleteIndex: obsoleteIndexes) {
-#ifdef NETWORK_DEBUG_LOG
+
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
             const auto kEndpoint = mNodes[kObsoleteIndex]->endpoint();
             debug() << "Remote node handler for the " << kEndpoint << " is outdated. Dropped.";
 #endif
@@ -81,7 +82,7 @@ void IncomingNodesHandler::removeOutdatedEndpoints()
     }
 
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
     if (mNodes.size() > 0) {
         debug() << mNodes.size() << " enpoint connection(s) are alive.";
     }
@@ -92,7 +93,7 @@ void IncomingNodesHandler::removeOutdatedEndpoints()
 
 void IncomingNodesHandler::removeOutdatedChannelsOfPresentEndpoints()
 {
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
     debug() << "Outdated channels removing started";
 #endif
 
@@ -100,7 +101,7 @@ void IncomingNodesHandler::removeOutdatedChannelsOfPresentEndpoints()
         indexAndHandler.second->dropOutdatedChannels();
     }
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
     debug() << "Outdated channels removing finished";
 #endif
 }
@@ -122,11 +123,11 @@ uint64_t IncomingNodesHandler::key(
 LoggerStream IncomingNodesHandler::debug() const
     noexcept
 {
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     return mLog.debug("IncomingNodesHandler");
 #endif
 
-#ifndef NETWORK_DEBUG_LOG
+#ifndef DEBUG_LOG_NETWORK_COMMUNICATOR
     return LoggerStream();
 #endif
 }

@@ -72,7 +72,7 @@ void IncomingMessagesHandler::handleReceivedInfo(
 
         } else {
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
             if (mIncomingBuffer.size() > PacketHeader::kSize) {
                 const PacketHeader::ChannelIndex kChannelIndex =
                     *(reinterpret_cast<PacketHeader::ChannelIndex*>(
@@ -127,18 +127,18 @@ void IncomingMessagesHandler::rescheduleCleaning()
     mCleaningTimer.expires_from_now(kCleaningInterval);
     mCleaningTimer.async_wait([this] (const boost::system::error_code &_) {
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
         this->debug() << "Automatic cleaning started";
-#endif // NETWORK_DEBUG_LOG
+#endif
 
         this->mRemoteNodesHandler.removeOutdatedEndpoints();
         this->mRemoteNodesHandler.removeOutdatedChannelsOfPresentEndpoints();
 
         this->rescheduleCleaning();
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
         this->debug() << "Automatic cleaning finished";
-#endif // NETWORK_DEBUG_LOG
+#endif
     });
 }
 
@@ -157,11 +157,11 @@ LoggerStream IncomingMessagesHandler::errors() const
 LoggerStream IncomingMessagesHandler::debug() const
     noexcept
 {
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     return mLog.debug("IncomingMessagesHandler");
 #endif
 
-#ifndef NETWORK_DEBUG_LOG
+#ifndef DEBUG_LOG_NETWORK_COMMUNICATOR
     return LoggerStream();
 #endif
 }
