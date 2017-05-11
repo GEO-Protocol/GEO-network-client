@@ -61,8 +61,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     // Votes message may be received twice:
     // First time - as a request to check the transaction and to sing it in case if all correct.
     // Second time - as a command to commit/rollback the transaction.
-    debug() << "\n\n" << mTransactionIsVoted;
-
     if (mTransactionIsVoted)
         return runVotesConsistencyCheckingStage();
 
