@@ -14,19 +14,20 @@ PathsManager::PathsManager(
 {
     // TODO remove from here
     //testStorageHandler();
-    //fillRoutingTables();
     //fillBigRoutingTables();
     //testTrustLineHandler();
     //testPaymentStateOperationsHandler();
     //testTransactionHandler();
     //testTime();
-    //testMultiConnection();
     //printRTs();
     //testDeletingRT();
     //fillCycleTablesTestCase0();
     //fillCycleTablesTestCase1();
     //fillCycleTablesTestCase2();
     //fillCycleTablesTestCase3();
+    //fillCycleTablesTestCase4();
+    //fillCycleTablesTestCase5();
+    //fillCycleTablesTestCase6();
 }
 
 void PathsManager::findDirectPath()
@@ -520,91 +521,6 @@ void PathsManager::clearPathsCollection()
     mPathCollection = nullptr;
 }
 
-void PathsManager::fillRoutingTables()
-{
-    NodeUUID* nodeUUID90Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff90");
-    NodeUUID* nodeUUID91Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff91");
-    NodeUUID* nodeUUID92Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff92");
-    NodeUUID* nodeUUID93Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff93");
-    NodeUUID* nodeUUID94Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff94");
-    NodeUUID* nodeUUID95Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff95");
-    NodeUUID* nodeUUID96Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff96");
-    NodeUUID* nodeUUID97Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff97");
-    NodeUUID* nodeUUID98Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff98");
-
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff90")) {
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID92Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID97Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID94Ptr, *nodeUUID90Ptr);
-
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID92Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID97Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID94Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID97Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
-    }
-
-    if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff91")) {
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID93Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID93Ptr, *nodeUUID91Ptr);
-
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
-    }
-
-    if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff94")) {
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID98Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID97Ptr, *nodeUUID94Ptr);
-
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID90Ptr, *nodeUUID92Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID90Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID90Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID92Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID93Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID95Ptr, *nodeUUID96Ptr);
-    }
-
-    if (!mNodeUUID.stringUUID().compare("13e5cf8c-5834-4e52-b65b-f9281dd1ff93")) {
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID95Ptr, *nodeUUID96Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID95Ptr, *nodeUUID98Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID95Ptr, *nodeUUID93Ptr);
-
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID96Ptr, *nodeUUID95Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID94Ptr);
-        ioTransaction->routingTablesHandler()->setRecordToRT3(*nodeUUID98Ptr, *nodeUUID95Ptr);
-    }
-
-    delete nodeUUID90Ptr;
-    delete nodeUUID91Ptr;
-    delete nodeUUID92Ptr;
-    delete nodeUUID93Ptr;
-    delete nodeUUID94Ptr;
-    delete nodeUUID95Ptr;
-    delete nodeUUID96Ptr;
-    delete nodeUUID97Ptr;
-    delete nodeUUID98Ptr;
-}
-
 void PathsManager::testStorageHandler()
 {
     NodeUUID* nodeUUID81Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff81");
@@ -616,18 +532,17 @@ void PathsManager::testStorageHandler()
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID82Ptr, *nodeUUID81Ptr);
         ioTransaction->rollback();
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
     }
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
+        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID82Ptr);
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID83Ptr, *nodeUUID84Ptr);
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID85Ptr, *nodeUUID86Ptr);
     }
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID82Ptr, *nodeUUID81Ptr);
-        ioTransaction->rollback();
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID83Ptr);
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID81Ptr, *nodeUUID84Ptr);
         ioTransaction->routingTablesHandler()->setRecordToRT2(*nodeUUID83Ptr, *nodeUUID81Ptr);
@@ -689,90 +604,105 @@ void PathsManager::testStorageHandler()
 
 void PathsManager::testTrustLineHandler()
 {
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    for (auto const &trustLine : mTrustLinesManager->trustLines()) {
-        ioTransaction->trustLineHandler()->saveTrustLine(trustLine.second);
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        for (auto const &trustLine : mTrustLinesManager->trustLines()) {
+            ioTransaction->trustLineHandler()->saveTrustLine(trustLine.second);
+        }
     }
-    TrustLine::Shared trLine = make_shared<TrustLine>(
-        mNodeUUID,
-        TrustLineAmount(100),
-        TrustLineAmount(200),
-        TrustLineBalance(-30));
-    ioTransaction->trustLineHandler()->saveTrustLine(trLine);
-    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
-        info() << "read one trust line: " <<
-               rtrLine->contractorNodeUUID() << " " <<
-               rtrLine->incomingTrustAmount() << " " <<
-               rtrLine->outgoingTrustAmount() << " " <<
-               rtrLine->balance();
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        TrustLine::Shared trLine = make_shared<TrustLine>(
+            mNodeUUID,
+            TrustLineAmount(100),
+            TrustLineAmount(200),
+            TrustLineBalance(-30));
+        ioTransaction->trustLineHandler()->saveTrustLine(trLine);
+        for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
+            info() << "read one trust line: " <<
+                   rtrLine->contractorNodeUUID() << " " <<
+                   rtrLine->incomingTrustAmount() << " " <<
+                   rtrLine->outgoingTrustAmount() << " " <<
+                   rtrLine->balance();
+        }
+
+        trLine->setBalance(55);
+        trLine->setIncomingTrustAmount(1000);
+        ioTransaction->trustLineHandler()->saveTrustLine(trLine);
+        for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
+            info() << "read one trust line: " <<
+                   rtrLine->contractorNodeUUID() << " " <<
+                   rtrLine->incomingTrustAmount() << " " <<
+                   rtrLine->outgoingTrustAmount() << " " <<
+                   rtrLine->balance();
+        }
+        ioTransaction->rollback();
     }
-    trLine->setBalance(55);
-    trLine->setIncomingTrustAmount(1000);
-    ioTransaction->trustLineHandler()->saveTrustLine(trLine);
-    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
-        info() << "read one trust line: " <<
-               rtrLine->contractorNodeUUID() << " " <<
-               rtrLine->incomingTrustAmount() << " " <<
-               rtrLine->outgoingTrustAmount() << " " <<
-               rtrLine->balance();
-    }
-    ioTransaction->rollback();
-    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
-        info() << "read one trust line: " <<
-               rtrLine->contractorNodeUUID() << " " <<
-               rtrLine->incomingTrustAmount() << " " <<
-               rtrLine->outgoingTrustAmount() << " " <<
-               rtrLine->balance();
-    }
-    ioTransaction->trustLineHandler()->deleteTrustLine(mNodeUUID);
-    for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
-        info() << "read one trust line: " <<
-               rtrLine->contractorNodeUUID() << " " <<
-               rtrLine->incomingTrustAmount() << " " <<
-               rtrLine->outgoingTrustAmount() << " " <<
-               rtrLine->balance();
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
+            info() << "read one trust line: " <<
+                   rtrLine->contractorNodeUUID() << " " <<
+                   rtrLine->incomingTrustAmount() << " " <<
+                   rtrLine->outgoingTrustAmount() << " " <<
+                   rtrLine->balance();
+        }
+        ioTransaction->trustLineHandler()->deleteTrustLine(mNodeUUID);
+        for (const auto &rtrLine : ioTransaction->trustLineHandler()->allTrustLines()) {
+            info() << "read one trust line: " <<
+                   rtrLine->contractorNodeUUID() << " " <<
+                   rtrLine->incomingTrustAmount() << " " <<
+                   rtrLine->outgoingTrustAmount() << " " <<
+                   rtrLine->balance();
+        }
     }
 }
 
 void PathsManager::testPaymentStateOperationsHandler()
 {
-    auto ioTransaction = mStorageHandler->beginTransaction();
     TransactionUUID transaction1;
-    BytesShared state1 = tryMalloc(sizeof(uint8_t));
-    uint8_t st1 = 2;
-    memcpy(
-        state1.get(),
-        &st1,
-        sizeof(uint8_t));
-    ioTransaction->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
-    st1 = 22;
-    memcpy(
-        state1.get(),
-        &st1,
-        sizeof(uint8_t));
-    try {
-        ioTransaction->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
-    } catch (IOError) {
-        info() << "record alredy present";
-    }
     TransactionUUID transaction2;
+    BytesShared state1 = tryMalloc(sizeof(uint8_t));
     BytesShared state2 = tryMalloc(sizeof(uint16_t));
-    uint16_t st2 = 88;
-    memcpy(
-        state2.get(),
-        &st2,
-        sizeof(uint16_t));
-    ioTransaction->paymentOperationStateHandler()->saveRecord(transaction2, state2, sizeof(uint16_t));
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        uint8_t st1 = 2;
+        memcpy(
+            state1.get(),
+            &st1,
+            sizeof(uint8_t));
+        ioTransaction->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+        st1 = 22;
+        memcpy(
+            state1.get(),
+            &st1,
+            sizeof(uint8_t));
+        try {
+            ioTransaction->paymentOperationStateHandler()->saveRecord(transaction1, state1, sizeof(uint8_t));
+        } catch (IOError) {
+            info() << "record alredy present";
+        }
+        uint16_t st2 = 88;
+        memcpy(
+            state2.get(),
+            &st2,
+            sizeof(uint16_t));
+        ioTransaction->paymentOperationStateHandler()->saveRecord(transaction2, state2, sizeof(uint16_t));
+    }
     TransactionUUID transaction3;
     BytesShared state3 = tryMalloc(sizeof(uint32_t));
-    uint32_t st3 = 3;
-    memcpy(
-        state3.get(),
-        &st3,
-        sizeof(uint32_t));
-    ioTransaction->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
-    ioTransaction->rollback();
+    {
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        uint32_t st3 = 3;
+        memcpy(
+            state3.get(),
+            &st3,
+            sizeof(uint32_t));
+        ioTransaction->paymentOperationStateHandler()->saveRecord(transaction3, state3, sizeof(uint32_t));
+        ioTransaction->rollback();
+    }
 
+    auto ioTransaction = mStorageHandler->beginTransaction();
     pair<BytesShared, size_t> stateBt = ioTransaction->paymentOperationStateHandler()->byTransaction(transaction1);
     uint32_t state = 0;
     memcpy(
@@ -1099,218 +1029,6 @@ void PathsManager::testTime()
     info() << "testTime\t" << "RT3 map size opt5: " << ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3().size();
 }
 
-void PathsManager::testMultiConnection()
-{
-    string queryCreateTable = "CREATE TABLE IF NOT EXISTS test_table "
-        "(field1 INTEGER NOT NULL, "
-        "field2 INTEGER NOT NULL);";
-    string queryBegin = "BEGIN TRANSACTION;";
-    string queryInsert = "INSERT INTO test_table (field1, field2) VALUES (?, ?);";
-    string queryCommit = "END TRANSACTION;";
-    string selectQuery = "SELECT * FROM test_table";
-
-    sqlite3_stmt *stmt1;
-    sqlite3_stmt *stmt2;
-
-    sqlite3 *database1;
-    sqlite3 *database2;
-
-    int rc = sqlite3_open_v2("io/storageDB", &database1, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-    if (rc == SQLITE_OK) {
-    } else {
-        throw IOError("PathsManager::testMultiConnection "
-                          "Can't open database 1");
-    }
-
-    // create table conn1
-    rc = sqlite3_prepare_v2( database1, queryCreateTable.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 creating table : Bad query");
-    }
-    rc = sqlite3_step(stmt1);
-    if (rc == SQLITE_DONE) {
-    } else {
-        info() << "testMultiConnection 1 creating table error: " << rc;
-        throw IOError("PathsManager::testMultiConnection 1 creating table : Run query");
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-
-    rc = sqlite3_open_v2("io/storageDB", &database2, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-    if (rc == SQLITE_OK) {
-    } else {
-        throw IOError("PathsManager::testMultiConnection "
-                          "Can't open database 2");
-    }
-
-    // create table conn2
-    rc = sqlite3_prepare_v2( database2, queryCreateTable.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 creating table : Bad query");
-    }
-    rc = sqlite3_step(stmt2);
-    if (rc == SQLITE_DONE) {
-    } else {
-        throw IOError("PathsManager::testMultiConnection 2 creating table : Run query");
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    // transaction 1 begin
-    rc = sqlite3_prepare_v2( database1, queryBegin.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 prepareInserted: Bad query");
-    }
-    rc = sqlite3_step(stmt1);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 1 transaction begin";
-    } else {
-        info() << "testMultiConnection 1 prepareInserted error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 1 prepareInserted: Run query");
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-    // transaction 1 insert
-    rc = sqlite3_prepare_v2(database1, queryInsert.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 insert: Bad query");
-    }
-    rc = sqlite3_bind_int(stmt1, 1, 1);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 insert: Bad binding of field1");
-    }
-    rc = sqlite3_bind_int(stmt1, 2, 11);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 insert: Bad binding of field2");
-    }
-    rc = sqlite3_step(stmt1);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 1 inserting is completed successfully";
-    } else {
-        info() << "testMultiConnection 1 insert error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 1 insert: Run query");
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-    // transaction 1 select
-    rc = sqlite3_prepare_v2(database1, selectQuery.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 select: Bad query");
-    }
-    while (sqlite3_step(stmt1) == SQLITE_ROW) {
-        info() << "testMultiConnection 1 select " << sqlite3_column_int(stmt1, 0) << " " << sqlite3_column_int(stmt1, 0);
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-    // transaction 2 begin
-    rc = sqlite3_prepare_v2( database2, queryBegin.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 prepareInserted: Bad query");
-    }
-    rc = sqlite3_step(stmt2);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 2 transaction begin";
-    } else {
-        info() << "testMultiConnection 2 prepareInserted error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 2 prepareInserted: Run query");
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    // transaction 2 insert
-    rc = sqlite3_prepare_v2(database2, queryInsert.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 insert: Bad query");
-    }
-    rc = sqlite3_bind_int(stmt2, 1, 2);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 insert: Bad binding of field1");
-    }
-    rc = sqlite3_bind_int(stmt2, 2, 22);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 insert: Bad binding of field2");
-    }
-    rc = sqlite3_step(stmt2);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 2 inserting is completed successfully";
-    } else {
-        info() << "testMultiConnection 2 insert error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 2 insert: Run query");
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    // transaction 2 select
-    rc = sqlite3_prepare_v2(database2, selectQuery.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 select: Bad query");
-    }
-    while (sqlite3_step(stmt2) == SQLITE_ROW) {
-        info() << "testMultiConnection 2 select " << sqlite3_column_int(stmt2, 0) << " " << sqlite3_column_int(stmt2, 0);
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    // transaction 1 commit
-    rc = sqlite3_prepare_v2( database1, queryCommit.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 commit: Bad query");
-    }
-    rc = sqlite3_step(stmt1);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 1 transaction commit";
-    } else {
-        info() << "testMultiConnection 1 commit error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 1 commit: Run query");
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-    // transaction 2 commit
-    rc = sqlite3_prepare_v2( database2, queryCommit.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 commit: Bad query");
-    }
-    rc = sqlite3_step(stmt2);
-    if (rc == SQLITE_DONE) {
-        info() << "testMultiConnection 2 transaction commit";
-    } else {
-        info() << "testMultiConnection 2 commit error: " << rc;
-        //throw IOError("PathsManager::testMultiConnection 2 commit: Run query");
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    // transaction 1 select
-    rc = sqlite3_prepare_v2(database1, selectQuery.c_str(), -1, &stmt1, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 1 select: Bad query");
-    }
-    while (sqlite3_step(stmt1) == SQLITE_ROW) {
-        info() << "testMultiConnection 1 select " << sqlite3_column_int(stmt1, 0) << " " << sqlite3_column_int(stmt1, 0);
-    }
-    sqlite3_reset(stmt1);
-    sqlite3_finalize(stmt1);
-
-    // transaction 2 select
-    rc = sqlite3_prepare_v2(database2, selectQuery.c_str(), -1, &stmt2, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("PathsManager::testMultiConnection 2 select: Bad query");
-    }
-    while (sqlite3_step(stmt2) == SQLITE_ROW) {
-        info() << "testMultiConnection 2 select " << sqlite3_column_int(stmt2, 0) << " " << sqlite3_column_int(stmt2, 0);
-    }
-    sqlite3_reset(stmt2);
-    sqlite3_finalize(stmt2);
-
-    sqlite3_close_v2(database1);
-    sqlite3_close_v2(database2);
-}
-
 void PathsManager::printRTs()
 {
     auto ioTransaction = mStorageHandler->beginTransaction();
@@ -1328,6 +1046,14 @@ void PathsManager::printRTs()
     info() << "printRTs\tRT3 size: " << ioTransaction->routingTablesHandler()->rt3Records().size();
     for (auto const itRT3 : ioTransaction->routingTablesHandler()->rt3Records()) {
         info() << itRT3.first << " " << itRT3.second;
+    }
+    info() << "print incoming flows size: " << mTrustLinesManager->incomingFlows().size();
+    for (auto const itIncomingFlow : mTrustLinesManager->incomingFlows()) {
+        info() << itIncomingFlow.first << " " << *itIncomingFlow.second.get();
+    }
+    info() << "print outgoing flows size: " << mTrustLinesManager->outgoingFlows().size();
+    for (auto const itOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
+        info() << itOutgoingFlow.first << " " << *itOutgoingFlow.second.get();
     }
 }
 
@@ -1833,6 +1559,303 @@ void PathsManager::fillCycleTablesTestCase3()
     delete nodeUUID54Ptr;
     delete nodeUUID55Ptr;
     delete nodeUUID56Ptr;
+}
+
+void PathsManager::fillCycleTablesTestCase4()
+{
+    NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+    NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+    NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+    NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+    NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+    NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (mNodeUUID == *nodeUUID51Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(300),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID52Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(200),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(300),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID53Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(180),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(200),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID54Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID56Ptr,
+                TrustLineAmount(150),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(180),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID55Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID56Ptr,
+                TrustLineAmount(50),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID56Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(150),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(50),
+                TrustLineBalance(0)));
+    }
+
+    delete nodeUUID51Ptr;
+    delete nodeUUID52Ptr;
+    delete nodeUUID53Ptr;
+    delete nodeUUID54Ptr;
+    delete nodeUUID55Ptr;
+    delete nodeUUID56Ptr;
+}
+
+void PathsManager::fillCycleTablesTestCase5()
+{
+    NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+    NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+    NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+    NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+    NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (mNodeUUID == *nodeUUID51Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(200),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID52Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(200),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(150),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(200),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID53Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(200),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(200),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID54Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID55Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(150),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID55Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(200),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+    }
+
+    delete nodeUUID51Ptr;
+    delete nodeUUID52Ptr;
+    delete nodeUUID53Ptr;
+    delete nodeUUID54Ptr;
+    delete nodeUUID55Ptr;
+}
+
+void PathsManager::fillCycleTablesTestCase6()
+{
+    NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+    NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+    NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+    NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    if (mNodeUUID == *nodeUUID51Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(200),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID52Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(50),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(150),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(200),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID53Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID54Ptr,
+                TrustLineAmount(100),
+                TrustLineAmount(0),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(150),
+                TrustLineBalance(0)));
+    }
+
+    if (mNodeUUID == *nodeUUID54Ptr) {
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID51Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID52Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(50),
+                TrustLineBalance(0)));
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            make_shared<TrustLine>(
+                *nodeUUID53Ptr,
+                TrustLineAmount(0),
+                TrustLineAmount(100),
+                TrustLineBalance(0)));
+    }
+
+    delete nodeUUID51Ptr;
+    delete nodeUUID52Ptr;
+    delete nodeUUID53Ptr;
+    delete nodeUUID54Ptr;
 }
 
 LoggerStream PathsManager::info() const

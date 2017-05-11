@@ -32,6 +32,8 @@ public:
 
     bool containsIntermediateNodes() const;
 
+    int positionOfNode(const NodeUUID &nodeUUID) const;
+
     const size_t length() const;
     const string toString() const;
 

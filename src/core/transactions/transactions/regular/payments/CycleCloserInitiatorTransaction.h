@@ -21,6 +21,7 @@ public:
         Path::ConstShared path,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log)
         noexcept;
 
@@ -29,11 +30,12 @@ public:
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log)
         throw (bad_alloc);
 
     TransactionResult::SharedConst run()
-        throw (RuntimeError, bad_alloc);
+        noexcept;
 
     pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
@@ -44,8 +46,7 @@ protected:
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
-    TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
-    TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
+    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
 
 protected:
     TransactionResult::SharedConst reject(

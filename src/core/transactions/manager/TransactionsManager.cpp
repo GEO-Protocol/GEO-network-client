@@ -57,6 +57,8 @@ void TransactionsManager::loadTransactions() {
                     mNodeUUID,
                     mTrustLines,
                     mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
+                    mResourcesManager,
                     mLog);
                 mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
@@ -67,6 +69,7 @@ void TransactionsManager::loadTransactions() {
                     mNodeUUID,
                     mTrustLines,
                     mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
                     mLog);
                 mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
@@ -77,6 +80,7 @@ void TransactionsManager::loadTransactions() {
                     mNodeUUID,
                     mTrustLines,
                     mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
                     mLog);
                 mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
@@ -634,6 +638,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
             command,
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
             mResourcesManager,
             mLog));
 }
@@ -647,6 +652,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
             message,
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
             mLog));
 }
 
@@ -659,6 +665,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
             message,
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
             mLog));
 }
 
@@ -881,6 +888,7 @@ void TransactionsManager::launchTestCloseCycleTransaction(
             command->path(),
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
             mLog);
 
         prepareAndSchedule(transaction);
@@ -1091,6 +1099,7 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(const NodeUUID &
             contractorUUID,
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
             mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -1126,6 +1135,7 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction() {
             mNodeUUID,
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
             mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -1161,6 +1171,7 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
             mNodeUUID,
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
             mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
@@ -1197,6 +1208,7 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(const NodeUUID &d
                 creditorUUID,
                 mTrustLines,
                 mStorageHandler,
+                mMaxFlowCalculationCacheManager,
                 mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);

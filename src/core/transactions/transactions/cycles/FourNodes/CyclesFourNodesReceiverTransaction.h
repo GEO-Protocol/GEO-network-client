@@ -3,6 +3,7 @@
 
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
+
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 

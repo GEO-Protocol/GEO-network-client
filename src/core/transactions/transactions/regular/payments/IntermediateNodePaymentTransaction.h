@@ -18,6 +18,7 @@ public:
         IntermediateNodeReservationRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
     IntermediateNodePaymentTransaction(
@@ -25,9 +26,11 @@ public:
         const NodeUUID &nodeUUID,
         TrustLinesManager* trustLines,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger* log);
 
-    TransactionResult::SharedConst run();
+    TransactionResult::SharedConst run()
+        noexcept;
 
     pair<BytesShared, size_t> serializeToBytes();
 
@@ -36,6 +39,8 @@ protected:
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
+    TransactionResult::SharedConst runClarificationOfTransaction();
+    TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
 
 protected:
     void deserializeFromBytes(
@@ -44,10 +49,11 @@ protected:
     const string logHeader() const;
 
 protected:
-    const IntermediateNodeReservationRequestMessage::ConstShared mMessage;
+    IntermediateNodeReservationRequestMessage::ConstShared mMessage;
 
     TrustLineAmount mLastReservedAmount;
     NodeUUID mCoordinator;
+    PathUUID mLastProcessedPath;
 };
 
 

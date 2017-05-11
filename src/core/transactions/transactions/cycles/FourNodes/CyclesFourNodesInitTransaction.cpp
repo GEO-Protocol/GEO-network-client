@@ -6,6 +6,7 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     const NodeUUID &creditorContractorUUID,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
 
     BaseTransaction(
@@ -15,7 +16,8 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler),
     mDebtorContractorUUID(debtorContractorUUID),
-    mCreditorContractorUUID(creditorContractorUUID)
+    mCreditorContractorUUID(creditorContractorUUID),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::run() {

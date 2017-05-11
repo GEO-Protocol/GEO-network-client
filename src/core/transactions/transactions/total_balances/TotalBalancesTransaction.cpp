@@ -70,11 +70,10 @@ TransactionResult::SharedConst TotalBalancesTransaction::run()
             totalTrustUsedByContractor,
             totalOutgoingTrust,
             totalTrustUsedBySelf);
-        return make_shared<TransactionResult>(
-            TransactionState::exit());
+        return resultDone();
     }
     error() << "something wrong: command and message are nulls";
-    return make_shared<TransactionResult>(TransactionState::exit());
+    return resultDone();
 }
 
 TransactionResult::SharedConst TotalBalancesTransaction::resultOk(
@@ -95,6 +94,6 @@ TransactionResult::SharedConst TotalBalancesTransaction::resultOk(
 const string TotalBalancesTransaction::logHeader() const
 {
     stringstream s;
-    s << "[TotalBalancesTA]";
+    s << "[TotalBalancesTA: " << currentNodeUUID() << "]";
     return s.str();
 }

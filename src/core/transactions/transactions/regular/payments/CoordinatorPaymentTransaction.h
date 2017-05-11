@@ -13,6 +13,8 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <chrono>
+#include <thread>
 
 /**
  * TODO: Implement intermedaite reservations shortage for the big transactions.
@@ -32,6 +34,7 @@ public:
         const CreditUsageCommand::Shared kCommand,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
         Logger *log)
         noexcept;
@@ -41,11 +44,13 @@ public:
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        ResourcesManager *resourcesManager,
         Logger *log)
         throw (bad_alloc);
 
     TransactionResult::SharedConst run()
-        throw (RuntimeError, bad_alloc);
+        noexcept;
 
     pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
@@ -58,8 +63,7 @@ protected:
     TransactionResult::SharedConst runReceiverResponseProcessingStage ();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
-    TransactionResult::SharedConst propagateVotesListAndWaitForConfigurationRequests ();
-    TransactionResult::SharedConst runFinalParticipantsRequestsProcessingStage ();
+    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
 
 protected:
     // Coordinator must return command result on transaction finishing.
@@ -78,6 +82,7 @@ protected:
     TransactionResult::SharedConst resultNoResponseError();
     TransactionResult::SharedConst resultInsufficientFundsError();
     TransactionResult::SharedConst resultNoConsensusError();
+    TransactionResult::SharedConst resultUnexpectedError();
 
 protected:
     void addPathForFurtherProcessing(
@@ -119,11 +124,6 @@ protected:
     TransactionResult::SharedConst processRemoteNodeResponse();
 
     TrustLineAmount totalReservedByAllPaths() const;
-
-    void dropReservationsOnCurrentPath();
-
-    void sendFinalPathConfiguration(
-        const TrustLineAmount &finalPathAmount);
 
 protected:
     const string logHeader() const;

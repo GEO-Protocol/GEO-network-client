@@ -7,7 +7,8 @@ TransactionState::TransactionState(
 
     mAwakeningTimestamp(0),
     mFlushToPermanentStorage(flushToPermanentStorage),
-    mMustBeAwakenedOnMessage(awakeOnMessage)
+    mMustBeAwakenedOnMessage(awakeOnMessage),
+    mMustSavePreviousStateState(false)
 {
     mRequiredMessageTypes.push_back(requiredMessageType);
 }
@@ -19,7 +20,8 @@ TransactionState::TransactionState(
 
     mFlushToPermanentStorage(flushToPermanentStorage),
     mMustBeAwakenedOnMessage(awakeOnMessage),
-    mAwakeningTimestamp(awakeningTimestamp)
+    mAwakeningTimestamp(awakeningTimestamp),
+    mMustSavePreviousStateState(false)
 {}
 
 TransactionState::TransactionState(
@@ -30,10 +32,17 @@ TransactionState::TransactionState(
 
     mFlushToPermanentStorage(flushToPermanentStorage),
     mMustBeAwakenedOnMessage(awakeOnMessage),
-    mAwakeningTimestamp(awakeningTimestamp)
+    mAwakeningTimestamp(awakeningTimestamp),
+    mMustSavePreviousStateState(false)
 {
     mRequiredMessageTypes.push_back(requiredMessageType);
 }
+
+TransactionState::TransactionState(
+    bool mustSavePreviousState) :
+
+    mMustSavePreviousStateState(mustSavePreviousState)
+{}
 
 /*!
  * Returns TransactionState that simply closes the transaction.
@@ -144,6 +153,13 @@ TransactionState::SharedConst TransactionState::waitForResourcesTypes(
     return const_pointer_cast<const TransactionState>(state);
 }
 
+TransactionState::SharedConst TransactionState::continueWithPreviousState()
+{
+    TransactionState::Shared state;
+    state = make_shared<TransactionState>(true);
+    return const_pointer_cast<const TransactionState>(state);
+}
+
 const GEOEpochTimestamp TransactionState::awakeningTimestamp() const {
 
     return mAwakeningTimestamp;
@@ -178,4 +194,9 @@ const bool TransactionState::mustExit() const {
 const bool TransactionState::mustBeAwakenedOnMessage() const
 {
     return mMustBeAwakenedOnMessage;
+}
+
+const bool TransactionState::mustSavePreviousStateState() const
+{
+    return mMustSavePreviousStateState;
 }

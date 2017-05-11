@@ -3,6 +3,7 @@
 
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../../io/storage/RoutingTablesHandler.h"
 #include "../../../../paths/lib/Path.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
@@ -22,6 +23,7 @@ public:
         const NodeUUID &contractorUUID,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *logger);
 
     TransactionResult::SharedConst run();
@@ -43,6 +45,7 @@ protected:
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_THREENODESINITTRANSACTION_H

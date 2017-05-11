@@ -5,6 +5,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     Path::ConstShared path,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log)
     noexcept :
 
@@ -13,6 +14,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         kCurrentNodeUUID,
         trustLines,
         storageHandler,
+        maxFlowCalculationCacheManager,
         log),
     mInitialTransactionAmount(0)
 {
@@ -25,6 +27,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log)
     throw (bad_alloc) :
 
@@ -33,16 +36,18 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         nodeUUID,
         trustLines,
         storageHandler,
+        maxFlowCalculationCacheManager,
         log)
 {}
 
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
-    throw (RuntimeError, bad_alloc)
+    noexcept
 {
-    switch (mStep) {
-        case Stages::Coordinator_Initialisation:
-            return runInitialisationStage();
+    try {
+        switch (mStep) {
+            case Stages::Coordinator_Initialisation:
+                return runInitialisationStage();
 
         case Stages::Coordinator_AmountReservation:
             return runAmountReservationStage();
@@ -50,16 +55,16 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
         case Stages::Coordinator_PreviousNeighborRequestProcessing:
             return runPreviousNeighborRequestProcessingStage();
 
-        case Stages::Coordinator_FinalPathsConfigurationApproving:
-            return runFinalParticipantsRequestsProcessingStage();
-
         case Stages::Common_VotesChecking:
             return runVotesConsistencyCheckingStage();
 
-        default:
-            throw RuntimeError(
-                "CycleCloserInitiatorTransaction::run(): "
-                    "invalid transaction step.");
+            default:
+                throw RuntimeError(
+                    "CycleCloserInitiatorTransaction::run(): "
+                        "invalid transaction step.");
+        }
+    } catch(...) {
+        recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
 
@@ -95,7 +100,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
         kOutgoingPossibilities,
         kIncomingPossibilities);
     if (mInitialTransactionAmount == 0) {
-        info() << "Can't close cycle, because coordinator incoming or outgoing amount equal zero";
+        debug() << "Can't close cycle, because coordinator incoming or outgoing amount equal zero";
         return resultDone();
     }
     mStep = Stages::Coordinator_AmountReservation;
@@ -104,7 +109,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReservationStage ()
 {
-    info() << "runAmountReservationStage";
+    debug() << "runAmountReservationStage";
     const auto kPathStats = mPathStats.get();
     if (kPathStats->isReadyToSendNextReservationRequest())
         return tryReserveNextIntermediateNodeAmount(kPathStats);
@@ -123,87 +128,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
             "unexpected behaviour occured.");
 }
 
-TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalParticipantsRequestsProcessingStage ()
-{
-    info() << "runFinalParticipantsRequestsProcessingStage";
-    if (! contextIsValid(Message::Payments_ParticipantsPathsConfigurationRequest))
-        // Coordinator already signed the transaction and can't reject it.
-        // But the remote intermediate node will newer receive
-        // the response and must not sign the transaction.
-        return recover("No final configuration request was received. Recovering.");
-
-    const auto kMessage = popNextMessage<ParticipantsConfigurationRequestMessage>();
-    info() << "Final payment paths configuration request received from (" << kMessage->senderUUID << ")";
-
-    // Intermediate node requested final payment configuration.
-    auto responseMessage = make_shared<ParticipantsConfigurationMessage>(
-        currentNodeUUID(),
-        currentTransactionUUID(),
-        ParticipantsConfigurationMessage::ForIntermediateNode);
-
-    const auto kPathStats = mPathStats.get();
-    const auto kPath = kPathStats->path();
-
-    auto kIntermediateNodePathPos = 1;
-    while (kIntermediateNodePathPos != kPath->length()) {
-        if (kPath->nodes[kIntermediateNodePathPos] == kMessage->senderUUID)
-            break;
-        kIntermediateNodePathPos++;
-    }
-
-    const auto kIncomingNode = kPath->nodes[kIntermediateNodePathPos - 1];
-    const auto kOutgoingNode = kPath->nodes[kIntermediateNodePathPos + 1];
-
-    responseMessage->addPath(
-        kPathStats->maxFlow(),
-        kIncomingNode,
-        kOutgoingNode,
-        0);
-
-#ifdef DEBUG
-    debug() << "Added path: ("
-            << kIncomingNode << "), ("
-            << kOutgoingNode << ") ["
-            << kPathStats->maxFlow() << "]";
-#endif
-
-    const auto kReceiverNodeUUID = kMessage->senderUUID;
-    sendMessage(
-        kReceiverNodeUUID,
-        responseMessage);
-
-#ifdef DEBUG
-    debug() << "Final payment path configuration message sent to the (" << kReceiverNodeUUID << ")";
-#endif
-
-    mNodesRequestedFinalConfiguration.insert(kMessage->senderUUID);
-    if (mNodesRequestedFinalConfiguration.size() == mParticipantsVotesMessage->participantsCount()){
-
-#ifdef DEBUG
-        debug() << "All involved nodes has been requested final payment path configuration. "
-            "Begin waiting for the signed votes message";
-#endif
-
-        mStep = Stages::Common_VotesChecking;
-        return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(2));
-    }
-
-    // Waiting for the rest nodes to request final payment paths configuration
-    return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsPathsConfigurationRequest},
-        maxNetworkDelay(1));
-}
-
 /**
  * @brief CycleCloserInitiatorTransaction::propagateVotesList
  * Collects all nodes from all paths into one votes list,
  * and propagates it to the next node in the votes list.
  */
-TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesListAndWaitForConfigurationRequests ()
+TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesListAndWaitForVoutingResult()
 {
-    info() << "propagateVotesListAndWaitForConfigurationRequests";
+    debug() << "propagateVotesListAndWaitForVoutingResult";
     const auto kCurrentNodeUUID = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
@@ -257,24 +189,18 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
         message->firstParticipant(),
         message);
 
-    info() << "Votes message constructed and sent to the (" << message->firstParticipant() << ")";
-    info() << "Begin accepting final payment paths configuration requests.";
+    debug() << "Votes message constructed and sent to the (" << message->firstParticipant() << ")";
 
-    // Participants votes message would be used further
-    // in final paths configurations requests processing stage.
-    mParticipantsVotesMessage = message;
-
-    // Now coordinator begins responding to the final configuration requests of the participants.
-    mStep = Stages::Coordinator_FinalPathsConfigurationApproving;
+    mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsPathsConfigurationRequest},
-        maxNetworkDelay(1));
+        {Message::Payments_ParticipantsVotes},
+        maxNetworkDelay(5));
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::tryReserveNextIntermediateNodeAmount (
     PathStats *pathStats)
 {
-    info() << "propagateVotesListAndWaitForConfigurationRequests";
+    debug() << "propagateVotesListAndWaitForVoutingResult";
     /*
      * Nodes scheme:
      *  R - remote node;
@@ -301,7 +227,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::tryReserveNextIn
                     pathStats);
 
         } else {
-            info() << "Processing " << int(R_PathPosition) << " node in path: (" << R_UUID << ").";
+            debug() << "Processing " << int(R_PathPosition) << " node in path: (" << R_UUID << ").";
 
             return askRemoteNodeToApproveReservation(
                 pathStats,
@@ -311,8 +237,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::tryReserveNextIn
         }
 
     } catch(NotFoundError) {
-        info() << "No unprocessed paths are left.";
-        info() << "Requested amount can't be collected. Canceling.";
+        debug() << "No unprocessed paths are left.";
+        debug() << "Requested amount can't be collected. Canceling.";
         return resultDone();
     }
 }
@@ -321,7 +247,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
     const NodeUUID &neighbor,
     PathStats *path)
 {
-    info() << "askNeighborToReserveAmount";
+    debug() << "askNeighborToReserveAmount";
     const auto kCurrentNode = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
@@ -352,7 +278,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
     const NodeUUID& neighbor,
     PathStats *path)
 {
-    info() << "askNeighborToApproveFurtherNodeReservation";
+    debug() << "askNeighborToApproveFurtherNodeReservation";
     const auto kCoordinator = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
     const auto kNeighborPathPosition = 1;
@@ -370,7 +296,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
         path->maxFlow(),
         kNextAfterNeighborNode);
 
-    info() << "Further amount reservation request sent to the node (" << neighbor << ") [" << path->maxFlow() << "]";
+    debug() << "Further amount reservation request sent to the node (" << neighbor << ") [" << path->maxFlow() << "]";
 
     path->setNodeState(
         kNeighborPathPosition,
@@ -383,9 +309,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborAmountReservationResponse()
 {
-    info() << "processNeighborAmountReservationResponse";
+    debug() << "processNeighborAmountReservationResponse";
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
-        info() << "No neighbor node response received.";
+        debug() << "No neighbor node response received.";
         rollBack();
         return resultDone();
     }
@@ -399,7 +325,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
         return resultDone();
     }
 
-    info() << "(" << message->senderUUID << ") approved reservation request.";
+    debug() << "(" << message->senderUUID << ") approved reservation request.";
     auto path = mPathStats.get();
     path->setNodeState(
         1, PathStats::NeighbourReservationApproved);
@@ -408,16 +334,16 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborFurtherReservationResponse()
 {
-    info() << "processNeighborFurtherReservationResponse";
+    debug() << "processNeighborFurtherReservationResponse";
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)) {
-        info() << "Neighbor node doesn't sent coordinator response.";
+        debug() << "Neighbor node doesn't sent coordinator response.";
         rollBack();
         return resultDone();
     }
 
     auto message = popNextMessage<CoordinatorReservationResponseMessage>();
     if (message->state() != CoordinatorReservationResponseMessage::Accepted) {
-        info() << "Neighbor node doesn't accepted coordinator request.";
+        debug() << "Neighbor node doesn't accepted coordinator request.";
         rollBack();
         return resultDone();
     }
@@ -426,15 +352,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
     path->setNodeState(
         1,
         PathStats::ReservationApproved);
-    info() << "Neighbor node accepted coordinator request. Reserved: " << message->amountReserved();
+    debug() << "Neighbor node accepted coordinator request. Reserved: " << message->amountReserved();
 
     path->shortageMaxFlow(message->amountReserved());
-    info() << "Path max flow is now " << path->maxFlow();
+    debug() << "Path max flow is now " << path->maxFlow();
 
     // shortage reservation
     // TODO maby add if change path->maxFlow()
-    auto localReservationsCopy = mReservations;
-    for (auto const &itNodeAndReservations : localReservationsCopy) {
+    for (auto const &itNodeAndReservations : mReservations) {
         auto nodeReservations = itNodeAndReservations.second;
         if (nodeReservations.size() != 1) {
             throw ValueError("CycleCloserInitiatorTransaction::processRemoteNodeResponse: "
@@ -447,6 +372,21 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
             0);
     }
 
+    if (path->isLastIntermediateNodeProcessed()) {
+
+        // send final path amount to all intermediate nodes on path
+        sendFinalPathConfiguration(
+            mPathStats.get(),
+            0,
+            path->maxFlow());
+        const auto kTotalAmount = mPathStats.get()->maxFlow();
+
+        debug() << "Current path reservation finished";
+        debug() << "Total collected amount by cycle: " << kTotalAmount;
+
+        return propagateVotesListAndWaitForVoutingResult();
+    }
+
     return runAmountReservationStage();
 }
 
@@ -456,7 +396,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
     const byte remoteNodePosition,
     const NodeUUID& nextNodeAfterRemote)
 {
-    info() << "askRemoteNodeToApproveReservation";
+    debug() << "askRemoteNodeToApproveReservation";
     const auto kCoordinator = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
@@ -473,7 +413,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
         PathStats::ReservationRequestSent);
 
     if (path->isLastIntermediateNodeProcessed()) {
-        info() << "Further amount reservation request sent to the last node (" << remoteNode << ") ["
+        debug() << "Further amount reservation request sent to the last node (" << remoteNode << ") ["
                << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
         mStep = Coordinator_PreviousNeighborRequestProcessing;
         const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodePosition;
@@ -482,7 +422,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
             Message::Payments_CoordinatorReservationResponse},
             kTimeout);
     }
-    info() << "Further amount reservation request sent to the node (" << remoteNode << ") ["
+    debug() << "Further amount reservation request sent to the node (" << remoteNode << ") ["
            << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
 
     // Response from te remote node will go throught other nodes in the path.
@@ -496,10 +436,12 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNodeResponse()
 {
-    info() << "processRemoteNodeResponse";
+    debug() << "processRemoteNodeResponse";
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)){
         error() << "Can't pay.";
-        rollBack();
+        dropReservationsOnPath(
+            mPathStats.get(),
+            0);
         return resultDone();
     }
 
@@ -520,7 +462,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
             R_PathPosition,
             PathStats::ReservationRejected);
 
-        info() << "Remote node rejected reservation. Can't pay";
+        debug() << "Remote node rejected reservation. Can't pay";
         rollBack();
         return resultDone();
 
@@ -534,8 +476,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
 
         // shortage reservation
         // TODO maby add if change path->maxFlow()
-        auto localReservationsCopy = mReservations;
-        for (auto const &itNodeAndReservations : localReservationsCopy) {
+        for (auto const &itNodeAndReservations : mReservations) {
             auto nodeReservations = itNodeAndReservations.second;
             if (nodeReservations.size() != 1) {
                 throw ValueError("CycleCloserInitiatorTransaction::processRemoteNodeResponse: "
@@ -548,34 +489,39 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
                 0);
         }
 
-        info() << "(" << message->senderUUID << ") reserved " << reservedAmount;
-        info() << "Path max flow is now " << path->maxFlow();
+        debug() << "(" << message->senderUUID << ") reserved " << reservedAmount;
+        debug() << "Path max flow is now " << path->maxFlow();
 
         if (path->isLastIntermediateNodeProcessed()) {
+
+            // send final path amount to all intermediate nodes on path
+            sendFinalPathConfiguration(
+                mPathStats.get(),
+                0,
+                path->maxFlow());
             const auto kTotalAmount = mPathStats.get()->maxFlow();
 
-            info() << "Current path reservation finished";
-            info() << "Total collected amount by cycle: " << kTotalAmount;
+            debug() << "Current path reservation finished";
+            debug() << "Total collected amount by cycle: " << kTotalAmount;
 
-            return propagateVotesListAndWaitForConfigurationRequests();
+            return propagateVotesListAndWaitForVoutingResult();
         }
 
-        info() << "Go to the next node in path";
+        debug() << "Go to the next node in path";
         return tryReserveNextIntermediateNodeAmount(path);
     }
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeighborRequestProcessingStage()
 {
-    info() << "runPreviousNeighborRequestProcessingStage";
-    // TODO : add other checking or change error() message in contextIsValid()
-    if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest))
+    debug() << "runPreviousNeighborRequestProcessingStage";
+    if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false))
         return reject("No amount reservation request was received. Rolled back.");
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
     const auto kNeighbor = kMessage->senderUUID;
-    info() << "Coordiantor payment operation from node (" << kNeighbor << ")";
-    info() << "Requested amount reservation: " << kMessage->amount();
+    debug() << "Coordiantor payment operation from node (" << kNeighbor << ")";
+    debug() << "Requested amount reservation: " << kMessage->amount();
 
     // Note: (copy of shared pointer is required)
     const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
@@ -620,10 +566,10 @@ void CycleCloserInitiatorTransaction::checkPath(
                                  "paths contains repeated nodes");
         }
     }
-    auto itGlobal = path->intermediateUUIDs().begin();
-    while (itGlobal != path->intermediateUUIDs().end() - 1) {
+    auto itGlobal = path->nodes.begin() + 1;
+    while (itGlobal != path->nodes.end() - 2) {
         auto itLocal = itGlobal + 1;
-        while (itLocal != path->intermediateUUIDs().end()) {
+        while (itLocal != path->nodes.end() - 1) {
             if (*itGlobal == *itLocal) {
                 throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
                                      "paths contains repeated nodes");
@@ -649,7 +595,7 @@ void CycleCloserInitiatorTransaction::deserializeFromBytes(BytesShared buffer)
 const string CycleCloserInitiatorTransaction::logHeader() const
 {
     stringstream s;
-    s << "[CycleCloserInitiatorTA: " << currentTransactionUUID().stringUUID() << "] ";
+    s << "[CycleCloserInitiatorTA: " << currentTransactionUUID() << "] ";
     return s.str();
 }
 

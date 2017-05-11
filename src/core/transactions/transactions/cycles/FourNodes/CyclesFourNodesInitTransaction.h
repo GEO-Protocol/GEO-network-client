@@ -3,6 +3,7 @@
 
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../../io/storage/RoutingTablesHandler.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
@@ -18,6 +19,7 @@ public:
         const NodeUUID &creditorContractorUUID,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *logger);
 
     TransactionResult::SharedConst run();
@@ -40,6 +42,7 @@ protected:
     NodeUUID mCreditorContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETFOURNODESNEIGHBORBALANCESTRANSACTION_H

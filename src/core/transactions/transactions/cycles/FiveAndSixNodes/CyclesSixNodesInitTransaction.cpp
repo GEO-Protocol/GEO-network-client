@@ -23,12 +23,14 @@ CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
     const NodeUUID &nodeUUID,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction,
         nodeUUID,
         manager,
         storageHandler,
+        maxFlowCalculationCacheManager,
         logger)
 {}
 

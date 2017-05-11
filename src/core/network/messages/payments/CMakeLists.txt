@@ -28,16 +28,13 @@ set(SOURCE_FILES
     ParticipantsVotesMessage.cpp
     ParticipantsVotesMessage.h
 
-    ParticipantsConfigurationMessage.cpp
-    ParticipantsConfigurationMessage.h
-
-    ParticipantsConfigurationRequestMessage.cpp
-    ParticipantsConfigurationRequestMessage.h
-
     VotesStatusRequestMessage.hpp
 
     FinalPathConfigurationMessage.cpp
-    FinalPathConfigurationMessage.h)
+    FinalPathConfigurationMessage.h
+
+    TTLPolongationMessage.h
+    TTLPolongationMessage.cpp)
 
 add_library(messages__payments ${SOURCE_FILES})
 target_link_libraries(messages__payments

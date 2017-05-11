@@ -90,7 +90,6 @@ private:
     const string logHeader() const;
 
     // TODO : remove after testing
-    void fillRoutingTables();
     void fillBigRoutingTables();
     string nodeUUIDName(uint32_t number);
     NodeUUID* getPtrByNodeNumber(
@@ -100,6 +99,9 @@ private:
     void fillCycleTablesTestCase1();
     void fillCycleTablesTestCase2();
     void fillCycleTablesTestCase3();
+    void fillCycleTablesTestCase4();
+    void fillCycleTablesTestCase5();
+    void fillCycleTablesTestCase6();
 
     // TODO: remove after testing
     void testStorageHandler();
@@ -107,7 +109,6 @@ private:
     void testPaymentStateOperationsHandler();
     void testTransactionHandler();
     void testTime();
-    void testMultiConnection();
     void printRTs();
     void testDeletingRT();
 

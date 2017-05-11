@@ -5,6 +5,7 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
     const NodeUUID &contractorUUID,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
 
     BaseTransaction(
@@ -13,7 +14,8 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
         logger),
     mTrustLinesManager(manager),
     mContractorUUID(contractorUUID),
-    mStorageHandler(storageHandler)
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run() {
@@ -98,6 +100,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
             cyclePath,
             mTrustLinesManager,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
             mLog
         );
         launchSubsidiaryTransaction(kTransaction);

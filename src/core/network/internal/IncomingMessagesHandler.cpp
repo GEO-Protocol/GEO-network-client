@@ -98,12 +98,6 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
         case Message::Payments_ParticipantsVotes:
             return messageCollected<ParticipantsVotesMessage>(messagePart);
 
-        case Message::Payments_ParticipantsPathsConfigurationRequest:
-            return messageCollected<ParticipantsConfigurationRequestMessage>(messagePart);
-
-        case Message::Payments_ParticipantsPathsConfiguration:
-            return messageCollected<ParticipantsConfigurationMessage>(messagePart);
-
         case Message::Payments_VotesStatusRequest:
             return messageCollected<VotesStatusRequestMessage>(messagePart);
 
@@ -112,6 +106,9 @@ pair<bool, Message::Shared> MessagesParser::tryDeserializeRequest(
              */
         case Message::Payments_FinalPathConfiguration:
             return messageCollected<FinalPathConfigurationMessage>(messagePart);
+
+        case Message::Payments_TTLProlongation:
+            return messageCollected<TTLPolongationMessage>(messagePart);
 
         /*
          * Cycles processing messages

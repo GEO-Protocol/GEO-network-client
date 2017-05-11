@@ -29,7 +29,7 @@ TransactionResult::SharedConst GetRoutingTablesTransaction::run()
     info() << "run\tI am " << mNodeUUID;
     info() << "message successfully sent to " << mMessage->senderUUID;
 #endif
-    return make_shared<TransactionResult>(TransactionState::exit());
+    return resultDone();
 }
 
 void GetRoutingTablesTransaction::sendRoutingTables()
@@ -122,6 +122,6 @@ void GetRoutingTablesTransaction::sendRoutingTables()
 const string GetRoutingTablesTransaction::logHeader() const
 {
     stringstream s;
-    s << "[GetRoutingTablesTA]";
+    s << "[GetRoutingTablesTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

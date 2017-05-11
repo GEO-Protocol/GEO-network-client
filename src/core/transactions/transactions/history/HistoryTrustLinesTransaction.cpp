@@ -49,6 +49,6 @@ TransactionResult::SharedConst HistoryTrustLinesTransaction::resultOk(
 const string HistoryTrustLinesTransaction::logHeader() const
 {
     stringstream s;
-    s << "[HistoryTrustLinesTA]";
+    s << "[HistoryTrustLinesTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

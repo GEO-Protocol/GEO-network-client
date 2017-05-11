@@ -39,7 +39,7 @@ public:
     NeighborsCollectingTransaction(
         const NodeUUID &nodeUUID,
         const NodeUUID &destinationNode,
-        const NodeUUID &initiatorNode,
+        const NodeUUID &forbiddenForPopulatingNode,
         const uint8_t hopDistance,
         StorageHandler *storageHandler,
         Logger *logger)

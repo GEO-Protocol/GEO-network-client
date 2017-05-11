@@ -12,11 +12,13 @@ MaxFlowCalculationCache::MaxFlowCalculationCache(
     }
 }
 
+// check if incoming flow already cached
 bool MaxFlowCalculationCache::containsIncomingFlow(
     const NodeUUID &nodeUUID,
     ConstSharedTrustLineAmount flow)
 {
     auto nodeUUIDAndFlow = mIncomingFlows.find(nodeUUID);
+    // if not present then insert
     if (nodeUUIDAndFlow == mIncomingFlows.end()) {
         mIncomingFlows.insert(
             make_pair(
@@ -25,6 +27,12 @@ bool MaxFlowCalculationCache::containsIncomingFlow(
         return false;
     } else {
         auto sharedFlow = (*nodeUUIDAndFlow).second;
+        // if flow present but now it is zero, then delete
+        if (*flow.get() == TrustLine::kZeroAmount()) {
+            mIncomingFlows.erase(nodeUUIDAndFlow);
+            return false;
+        }
+        // if flow differs then update
         if (*sharedFlow.get() != *flow.get()) {
             mIncomingFlows.erase(nodeUUIDAndFlow);
             mIncomingFlows.insert(
@@ -32,17 +40,18 @@ bool MaxFlowCalculationCache::containsIncomingFlow(
                     nodeUUID,
                     flow));
             return false;
-        } else {
-            return true;
         }
     }
+    return true;
 }
 
+// check if inoutgoing flow already cached
 bool MaxFlowCalculationCache::containsOutgoingFlow(
     const NodeUUID &nodeUUID,
     const ConstSharedTrustLineAmount flow)
 {
     auto nodeUUIDAndFlow = mOutgoingFlows.find(nodeUUID);
+    // if not present then insert
     if (nodeUUIDAndFlow == mOutgoingFlows.end()) {
         mOutgoingFlows.insert(
             make_pair(
@@ -51,6 +60,12 @@ bool MaxFlowCalculationCache::containsOutgoingFlow(
         return false;
     } else {
         auto sharedFlow = (*nodeUUIDAndFlow).second;
+        // if flow present but now it is zero, then delete
+        if (*flow.get() == TrustLine::kZeroAmount()) {
+            mOutgoingFlows.erase(nodeUUIDAndFlow);
+            return false;
+        }
+        // if flow differs then update
         if (*sharedFlow.get() != *flow.get()) {
             mOutgoingFlows.erase(nodeUUIDAndFlow);
             mOutgoingFlows.insert(
@@ -58,8 +73,7 @@ bool MaxFlowCalculationCache::containsOutgoingFlow(
                     nodeUUID,
                     flow));
             return false;
-        } else {
-            return true;
         }
     }
+    return true;
 }

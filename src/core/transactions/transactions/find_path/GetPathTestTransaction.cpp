@@ -30,8 +30,7 @@ TransactionResult::SharedConst GetPathTestTransaction::run()
     } else {
         if (mRequestCounter >= kMaxRequestsCount) {
             error() << "no resources";
-            return make_shared<const TransactionResult>(
-                TransactionState::exit());
+            return resultDone();
         }
         if (mRequestCounter == 0) {
             info() << "run\t request resources";
@@ -66,12 +65,10 @@ TransactionResult::SharedConst GetPathTestTransaction::checkResourcesContext()
             while (response->pathCollection()->hasNextPath()) {
                 info() << response->pathCollection()->nextPath()->toString();
             }*/
-            return make_shared<const TransactionResult>(
-                TransactionState::exit());
+            return resultDone();
         }
         error() << "checkResourcesContext\twrong resource type";
-        return make_shared<const TransactionResult>(
-            TransactionState::exit());
+        return resultDone();
     } else {
         throw ConflictError("GetPathTestTransaction::checkTransactionContext: "
                                 "Unexpected context size.");
@@ -81,6 +78,6 @@ TransactionResult::SharedConst GetPathTestTransaction::checkResourcesContext()
 const string GetPathTestTransaction::logHeader() const
 {
     stringstream s;
-    s << "[GetPathTestTA]";
+    s << "[GetPathTestTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

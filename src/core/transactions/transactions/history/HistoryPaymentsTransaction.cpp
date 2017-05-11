@@ -50,6 +50,6 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
 const string HistoryPaymentsTransaction::logHeader() const
 {
     stringstream s;
-    s << "[HistoryPaymentsTA]";
+    s << "[HistoryPaymentsTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

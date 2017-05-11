@@ -74,7 +74,5 @@ LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::error() const
 
 const string MaxFlowCalculationCacheUpdateDelayedTask::logHeader() const
 {
-    stringstream s;
-    s << "[MaxFlowCalculationCacheUpdateDelayedTask]";
-    return s.str();
+    return "[MaxFlowCalculationCacheUpdateDelayedTask]";
 }

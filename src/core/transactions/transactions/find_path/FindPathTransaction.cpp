@@ -30,8 +30,7 @@ TransactionResult::SharedConst FindPathTransaction::run()
         case Stages::SendRequestForGettingRoutingTables:
             if (mContractorUUID == currentNodeUUID()) {
                 error() << "Attempt to initialise operation against itself was prevented. Canceled.";
-                return make_shared<const TransactionResult>(
-                    TransactionState::exit());
+                return resultDone();
             }
             sendMessageToRemoteNode();
             mStep = Stages::BuildAllPaths;
@@ -47,8 +46,7 @@ TransactionResult::SharedConst FindPathTransaction::run()
                         mRequestedTransactionUUID,
                         mPathsManager->pathCollection()));
                 mStep = Stages::SendRequestForGettingRoutingTables;
-                return make_shared<const TransactionResult>(
-                    TransactionState::exit());
+                return resultDone();
             }
         default:
             throw ValueError("FindPathTransaction::run: "
@@ -116,8 +114,7 @@ TransactionResult::SharedConst FindPathTransaction::buildPaths()
             mRequestedTransactionUUID,
             mPathsManager->pathCollection()));
     mPathsManager->clearPathsCollection();
-    return make_shared<const TransactionResult>(
-        TransactionState::exit());
+    return resultDone();
 }
 
 void FindPathTransaction::sendMessageToRemoteNode()
@@ -150,6 +147,6 @@ TransactionResult::SharedConst FindPathTransaction::waitingForResponseState()
 const string FindPathTransaction::logHeader() const
 {
     stringstream s;
-    s << "[FindPathTA]";
+    s << "[FindPathTA: " << currentTransactionUUID() << "]";
     return s.str();
 }

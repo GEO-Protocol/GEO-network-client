@@ -34,9 +34,6 @@ public:
 protected:
     const MessageType typeID() const;
 
-    void deserializeFromBytes(
-        BytesShared buffer);
-
 protected:
     TrustLineAmount mAmountReserved;
 };

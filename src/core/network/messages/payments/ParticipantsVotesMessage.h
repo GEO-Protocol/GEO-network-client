@@ -79,9 +79,6 @@ protected:
     typedef uint32_t RecordsCount;
     typedef byte SerializedVote;
 
-    virtual void deserializeFromBytes(
-        BytesShared buffer);
-
 protected:
     /* It is necessary to use flat map here:
      * this container predicts order in which

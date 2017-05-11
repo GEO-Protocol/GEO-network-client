@@ -99,6 +99,12 @@ TransactionResult::Shared BaseTransaction::resultAwaikAfterMilliseconds(
             responseWaitTime));
 }
 
+TransactionResult::Shared BaseTransaction::resultContinuePreviousState() const
+{
+    return make_shared<TransactionResult>(
+        TransactionState::continueWithPreviousState());
+}
+
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
 
     return mType;

@@ -8,6 +8,7 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <boost/functional/hash.hpp>
 
 class MaxFlowCalculationTrustLineManager {
 
@@ -15,11 +16,14 @@ public:
     typedef unordered_set<MaxFlowCalculationTrustLineWithPtr*> trustLineWithPtrHashSet;
 
 public:
-    MaxFlowCalculationTrustLineManager(Logger *logger);
+    MaxFlowCalculationTrustLineManager(
+        Logger *logger);
 
-    void addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine);
+    void addTrustLine(
+        MaxFlowCalculationTrustLine::Shared trustLine);
 
-    vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines(const NodeUUID &nodeUUID);
+    vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines(
+        const NodeUUID &nodeUUID);
 
     void resetAllUsedAmounts();
 
@@ -45,8 +49,8 @@ private:
 
 private:
     static const byte kResetTrustLinesHours = 0;
-    static const byte kResetTrustLinesMinutes = 0;
-    static const byte kResetTrustLinesSeconds = 60;
+    static const byte kResetTrustLinesMinutes = 20;
+    static const byte kResetTrustLinesSeconds = 0;
 
     static Duration& kResetTrustLinesDuration() {
         static auto duration = Duration(
@@ -62,7 +66,7 @@ private:
     const string logHeader() const;
 
 private:
-    unordered_map<NodeUUID, trustLineWithPtrHashSet*> msTrustLines;
+    unordered_map<NodeUUID, trustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
     map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
     Logger *mLog;
 };

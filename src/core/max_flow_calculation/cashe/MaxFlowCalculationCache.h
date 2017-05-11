@@ -3,10 +3,12 @@
 
 #include "../../common/Types.h"
 #include "../../common/NodeUUID.h"
+#include "../../trust_lines/TrustLine.h"
 #include "../../common/time/TimeUtils.h"
 
 #include <unordered_map>
 #include <vector>
+#include <boost/functional/hash.hpp>
 
 class MaxFlowCalculationCache {
 
@@ -26,8 +28,8 @@ public:
         ConstSharedTrustLineAmount flow);
 
 private:
-    unordered_map<NodeUUID, ConstSharedTrustLineAmount> mIncomingFlows;
-    unordered_map<NodeUUID, ConstSharedTrustLineAmount> mOutgoingFlows;
+    unordered_map<NodeUUID, ConstSharedTrustLineAmount, boost::hash<boost::uuids::uuid>> mIncomingFlows;
+    unordered_map<NodeUUID, ConstSharedTrustLineAmount, boost::hash<boost::uuids::uuid>> mOutgoingFlows;
 };
 
 

@@ -57,14 +57,13 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
     info() << "run\t" << "afterInsert mapTrustLinesCount: " << mMaxFlowCalculationTrustLineManager->trustLinesCounts();
     mMaxFlowCalculationTrustLineManager->printTrustLines();
 #endif
-    return make_shared<const TransactionResult>(
-        TransactionState::exit());
+    return resultDone();
 }
 
 const string ReceiveResultMaxFlowCalculationTransaction::logHeader() const
 {
     stringstream s;
-    s << "[ReceiveResultMaxFlowCalculationTA]";
+    s << "[ReceiveResultMaxFlowCalculationTA: " << currentTransactionUUID() << "]";
     return s.str();
 }
 

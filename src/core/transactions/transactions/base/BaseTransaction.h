@@ -46,6 +46,7 @@ public:
         uint32_t noLongerThanMilliseconds) const;
     TransactionResult::Shared resultAwaikAfterMilliseconds(
         uint32_t responseWaitTime) const ;
+    TransactionResult::Shared resultContinuePreviousState() const;
 
 public:
     ~BaseTransaction() = default;

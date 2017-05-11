@@ -28,12 +28,14 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
     const NodeUUID &nodeUUID,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction,
         nodeUUID,
         manager,
         storageHandler,
+        maxFlowCalculationCacheManager,
         logger)
 {};
 
@@ -108,6 +110,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
                     cyclePath,
                     mTrustLinesManager,
                     mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
                     mLog
                 );
                 launchSubsidiaryTransaction(kTransaction);

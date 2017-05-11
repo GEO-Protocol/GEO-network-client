@@ -13,6 +13,7 @@ public:
         const NodeUUID &nodeUUID,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *logger);
 
     const BaseTransaction::TransactionType transactionType() const;

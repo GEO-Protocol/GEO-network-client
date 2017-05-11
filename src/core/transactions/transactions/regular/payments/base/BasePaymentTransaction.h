@@ -10,6 +10,7 @@
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../io/storage/StorageHandler.h"
+#include "../../../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 #include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
@@ -17,11 +18,12 @@
 #include "../../../../../network/messages/payments/CoordinatorReservationResponseMessage.h"
 #include "../../../../../network/messages/payments/IntermediateNodeReservationRequestMessage.h"
 #include "../../../../../network/messages/payments/IntermediateNodeReservationResponseMessage.h"
-#include "../../../../../network/messages/payments/ParticipantsConfigurationRequestMessage.h"
-#include "../../../../../network/messages/payments/ParticipantsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsVotesMessage.h"
 #include "../../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../../../network/messages/payments/FinalPathConfigurationMessage.h"
+#include "../../../../../network/messages/payments/TTLPolongationMessage.h"
+
+#include "PathStats.h"
 
 
 // TODO: Add restoring of the reservations after transaction deserialization.
@@ -34,6 +36,7 @@ public:
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
     BasePaymentTransaction(
@@ -42,6 +45,7 @@ public:
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
     BasePaymentTransaction(
@@ -49,6 +53,7 @@ public:
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
@@ -61,7 +66,6 @@ protected:
         Coordinator_AmountReservation,
         Coordinator_ShortPathAmountReservationResponseProcessing,
         Coordinator_PreviousNeighborRequestProcessing,
-        Coordinator_FinalPathsConfigurationApproving,
 
         Receiver_CoordinatorRequestApproving,
         Receiver_AmountReservationsProcessing,
@@ -74,7 +78,9 @@ protected:
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,
         Common_FinalPathsConfigurationChecking,
-        Common_Recovery
+        Common_Recovery,
+        Common_ClarificationTransaction
+
     };
 
     enum VotesRecoveryStages {
@@ -90,8 +96,8 @@ protected:
     // Stages handlers
     virtual TransactionResult::SharedConst runVotesCheckingStage();
     virtual TransactionResult::SharedConst runVotesConsistencyCheckingStage();
-    virtual TransactionResult::SharedConst runFinalPathsConfigurationProcessingStage();
     virtual TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
+    virtual TransactionResult::SharedConst runTTLTransactionResponce();
 
     virtual TransactionResult::SharedConst approve();
     virtual TransactionResult::SharedConst recover(
@@ -138,18 +144,28 @@ protected:
         const PathUUID &pathUUID);
 
     uint32_t maxNetworkDelay (
-        const uint16_t totalParticipantsCount) const;
+        const uint16_t totalHopsCount) const;
 
     uint32_t maxCoordinatorResponseTimeout() const;
 
     const bool contextIsValid(
-        Message::MessageType messageType) const;
+        Message::MessageType messageType,
+        bool showErrorMessage = true) const;
 
     const bool positiveVoteIsPresent (
         const ParticipantsVotesMessage::ConstShared kMessage) const;
 
     void propagateVotesMessageToAllParticipants (
         const ParticipantsVotesMessage::Shared kMessage) const;
+
+    void dropReservationsOnPath(
+        PathStats *pathStats,
+        PathUUID pathUUID);
+
+    void sendFinalPathConfiguration(
+        PathStats* pathStats,
+        PathUUID pathUUID,
+        const TrustLineAmount &finalPathAmount);
 
     size_t reservationsSizeInBytes() const;
 
@@ -160,9 +176,6 @@ protected:
     // (it is not only network transfer timeout).
     static const uint16_t kMaxMessageTransferLagMSec = 1500; // milliseconds
 
-    // Specifies how long node may process transaction for some decision.
-    static const uint16_t kExpectedNodeProcessingDelay = 1500; // milliseconds;
-
     // Specifies how long node must wait for the resources from other transaction
     static const uint16_t kMaxResourceTransferLagMSec = 2000; //
 
@@ -171,6 +184,7 @@ protected:
 protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.

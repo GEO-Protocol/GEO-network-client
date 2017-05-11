@@ -21,7 +21,13 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
 
     RequestMessage(buffer)
 {
-    deserializeFromBytes(buffer);
+    auto parentMessageOffset = RequestMessage::kOffsetToInheritedBytes();
+    auto nextNodeUUIDOffset = buffer.get() + parentMessageOffset;
+
+    memcpy(
+        mNextPathNode.data,
+        nextNodeUUIDOffset,
+        mNextPathNode.kBytesSize);
 }
 
 
@@ -65,17 +71,3 @@ pair<BytesShared, size_t> CoordinatorReservationRequestMessage::serializeToBytes
         buffer,
         totalBytesCount);
 }
-
-void CoordinatorReservationRequestMessage::deserializeFromBytes(
-    BytesShared buffer)
-{
-    auto parentMessageOffset = RequestMessage::kOffsetToInheritedBytes();
-    auto nextNodeUUIDOffset = buffer.get() + parentMessageOffset;
-
-    memcpy(
-        mNextPathNode.data,
-        nextNodeUUIDOffset,
-        mNextPathNode.kBytesSize);
-}
-
-
