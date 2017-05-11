@@ -1047,6 +1047,14 @@ void PathsManager::printRTs()
     for (auto const itRT3 : ioTransaction->routingTablesHandler()->rt3Records()) {
         info() << itRT3.first << " " << itRT3.second;
     }
+    info() << "print incoming flows size: " << mTrustLinesManager->incomingFlows().size();
+    for (auto const itIncomingFlow : mTrustLinesManager->incomingFlows()) {
+        info() << itIncomingFlow.first << " " << *itIncomingFlow.second.get();
+    }
+    info() << "print outgoing flows size: " << mTrustLinesManager->outgoingFlows().size();
+    for (auto const itOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
+        info() << itOutgoingFlow.first << " " << *itOutgoingFlow.second.get();
+    }
 }
 
 void PathsManager::testDeletingRT()

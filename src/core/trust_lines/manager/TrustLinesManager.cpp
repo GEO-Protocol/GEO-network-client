@@ -509,13 +509,11 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFl
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableIncomingAmount();
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(
                 make_pair(
                     nodeUUIDAndTrustLine.first,
                     make_shared<const TrustLineAmount>(
                         *trustLineAmountPtr)));
-        }
     }
     return result;
 }
@@ -525,13 +523,11 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFl
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         auto trustLineAmountShared = nodeUUIDAndTrustLine.second->availableAmount();
         auto trustLineAmountPtr = trustLineAmountShared.get();
-        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(
                 make_pair(
                     nodeUUIDAndTrustLine.first,
                     make_shared<const TrustLineAmount>(
                         *trustLineAmountPtr)));
-        }
     }
     return result;
 }

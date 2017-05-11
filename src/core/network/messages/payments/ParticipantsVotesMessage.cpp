@@ -297,7 +297,9 @@ size_t ParticipantsVotesMessage::participantsCount () const
     return mVotes.size();
 }
 
+#ifdef DEBUG
 const boost::container::flat_map<NodeUUID, ParticipantsVotesMessage::Vote>& ParticipantsVotesMessage::votes() const
 {
     return mVotes;
 }
+#endif

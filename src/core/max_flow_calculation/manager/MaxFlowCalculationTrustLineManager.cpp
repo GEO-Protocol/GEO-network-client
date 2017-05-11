@@ -5,7 +5,8 @@ MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
     mLog(logger)
 {}
 
-void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine)
+void MaxFlowCalculationTrustLineManager::addTrustLine(
+    MaxFlowCalculationTrustLine::Shared trustLine)
 {
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
@@ -33,7 +34,7 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(MaxFlowCalculationTrustLin
 }
 
 vector<MaxFlowCalculationTrustLine::Shared> MaxFlowCalculationTrustLineManager::sortedTrustLines(
-        const NodeUUID &nodeUUID)
+    const NodeUUID &nodeUUID)
 {
     vector<MaxFlowCalculationTrustLine::Shared> result;
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(nodeUUID);
@@ -115,7 +116,7 @@ void MaxFlowCalculationTrustLineManager::printTrustLines() const
         info() << "print\t" << "key: " << nodeUUIDAndTrustLines.first;
         for (auto &itTrustLine : *nodeUUIDAndTrustLines.second) {
             MaxFlowCalculationTrustLine::Shared trustLine = itTrustLine->maxFlowCalculationtrustLine();
-            info() << "print\t" << "value: " << trustLine->targetUUID() << " " << trustLine->amount();
+            info() << "print\t" << "value: " << trustLine->targetUUID() << " " << *trustLine->amount().get();
         }
     }
 }
