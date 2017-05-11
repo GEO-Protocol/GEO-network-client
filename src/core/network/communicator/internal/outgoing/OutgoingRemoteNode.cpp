@@ -29,8 +29,16 @@ void OutgoingRemoteNode::sendMessage(
         bool packetsSendingAlreadyScheduled = mPacketsQueue.size() > 0;
 
         auto bytesAndBytesCount = message->serializeToBytes();
+        if (bytesAndBytesCount.second > Message::maxSize()) {
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+            debug() << "Message is too big to be transferred via the network";
+#endif
+            // Method can't snd should not throw exceptions.
+            // Message would be simply ignored.
+        }
+
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         const Message::SerializedType kMessageType = *bytesAndBytesCount.first;
 
         debug()
@@ -218,7 +226,7 @@ void OutgoingRemoteNode::beginPacketsSending()
                     }
                 }
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
                 const PacketHeader::ChannelIndex channelIndex =
                     *(new(packetDataAndSize.first + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
 
@@ -280,14 +288,14 @@ LoggerStream OutgoingRemoteNode::errors() const
 
 LoggerStream OutgoingRemoteNode::debug() const
 {
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     return mLog.debug(
         string("Communicator / OutgoingRemoteNode [")
         + mRemoteNodeUUID.stringUUID()
         + string("]"));
 #endif
 
-#ifndef NETWORK_DEBUG_LOG
+#ifndef DEBUG_LOG_NETWORK_COMMUNICATOR
     return LoggerStream::dummy();
 #endif
 }

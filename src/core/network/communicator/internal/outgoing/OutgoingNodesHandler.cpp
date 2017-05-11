@@ -58,7 +58,7 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
         return;
     }
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
     debug() << "Outdated nodes handlers removing started";
 #endif
 
@@ -94,7 +94,7 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
             continue;
         }
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
         debug() << "Remote node handler for the (" << nodeUUIDAndLastAccess.first << ") is outdated. Dropped.";
 #endif
 
@@ -115,7 +115,7 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
     }
 
 
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
     if (mNodes.size() > 0) {
         debug() << mNodes.size() << " nodes handler(s) are (is) alive";
     }
@@ -126,11 +126,11 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
 LoggerStream OutgoingNodesHandler::debug() const
     noexcept
 {
-#ifdef NETWORK_DEBUG_LOG
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
     return mLog.debug("OutgoingNodesHandler");
 #endif
 
-#ifndef NETWORK_DEBUG_LOG
+#ifndef DEBUG_LOG_NETWORK_COMMUNICATOR
     return LoggerStream::dummy();
 #endif
 }

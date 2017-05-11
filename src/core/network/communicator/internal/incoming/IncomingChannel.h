@@ -30,7 +30,8 @@ public:
 public:
     IncomingChannel(
         MessagesParser &messageParser,
-        TimePoint &nodeHandlerLastUpdate)
+        TimePoint &nodeHandlerLastUpdate,
+        Logger &logger)
         noexcept;
 
     ~IncomingChannel()
@@ -65,6 +66,7 @@ protected:
     TimePoint &mLastRemoteNodeHandlerUpdated;
 
     MessagesParser &mMessagesParser;
+    Logger &mLog;
     Packet::Size mExpectedPacketsCount;
 
     boost::unordered_map<PacketHeader::PacketIndex, pair<void*, PacketHeader::PacketSize>> mPackets;
