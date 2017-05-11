@@ -546,7 +546,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
         info() << message;
 
     if(mTransactionIsVoted){
-        mStep = Stages::Common_VotesRecoveryStage;
+        mStep = Stages::Common_Recovery;
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         return runVotesRecoveryParentStage();
     } else {
@@ -791,6 +791,29 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
     return reject("");
 }
 
+
+
 pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const {
-    return BaseTransaction::serializeToBytes();
+    const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
+    // parent part
+//    size_t bytesCount = parentBytesAndCount.second
+//                        + neighborsCount * NodeUUID::kBytesSize;
+//
+//    BytesShared dataBytesShared = tryCalloc(bytesCount);
+//    size_t dataBytesOffset = 0;
+    return parentBytesAndCount;
+}
+
+size_t BasePaymentTransaction::reservationsSizeInBytes() const {
+    size_t reservationSizeInBytes = 0;
+    for (auto it=mReservations.begin(); it!=mReservations.end(); it++){
+        reservationSizeInBytes += NodeUUID::kBytesSize + (
+                                                     uint16_t + // Path
+                                                     kTrustLineAmountBytesCount +  // Reservetion Amount
+                                                     TransactionUUID::kBytesSize + // Reservation Transaction UUID
+                                                     uint8_t) * it->second.size() // Reservation Direction
+            + uint16_t; // Vector Size
+
+    }
+    return 0;
 }

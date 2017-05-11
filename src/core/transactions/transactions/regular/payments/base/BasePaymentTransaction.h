@@ -151,6 +151,8 @@ protected:
     void propagateVotesMessageToAllParticipants (
         const ParticipantsVotesMessage::Shared kMessage) const;
 
+    size_t reservationsSizeInBytes() const;
+
 protected:
     // Specifies how long node must wait for the response from the remote node.
     // This timeout must take into account also that remote node may process other transaction,
@@ -187,7 +189,6 @@ protected:
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;
     NodeUUID mCurrentNodeToCheckVotes;
-
 
 };
 
