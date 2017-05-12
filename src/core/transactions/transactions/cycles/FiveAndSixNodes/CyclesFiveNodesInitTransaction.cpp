@@ -27,11 +27,15 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
 CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
     const NodeUUID &nodeUUID,
     TrustLinesManager *manager,
+    StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction,
         nodeUUID,
         manager,
+        storageHandler,
+        maxFlowCalculationCacheManager,
         logger)
 {};
 
@@ -39,10 +43,7 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
 #pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     if (mContext.size() == 0) {
-        info() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
-                "No responses messages "
-                "Can't create cycles;";
-
+        info() << "No responses messages are present. Can't create cycles paths";
         return resultDone();
     }
     TrustLineBalance zeroBalance = 0;
@@ -95,13 +96,27 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
             auto NodeUIIDAndPathRange = mCreditors.equal_range(kNodeUUID);
             for (auto s_it = NodeUIIDAndPathRange.first; s_it != NodeUIIDAndPathRange.second; ++s_it) {
                 //  Find minMax flow between 3 value. 1 in map. 1 in boundaryNodes. 1 we get from creditor first node in path
-                vector <NodeUUID> stepCyclePath = {stepPathDebtors[0],
+                vector <NodeUUID> stepCyclePath = {
                                                    stepPathDebtors[1],
                                                    stepPathDebtors[2],
                                                    kNodeUUID,
                                                    s_it->second->back()};
-                auto sCycle = make_shared<vector<NodeUUID>>(stepCyclePath);
-                closeCycleSignal(sCycle);
+                const auto cyclePath = make_shared<Path>(
+                    mNodeUUID,
+                    mNodeUUID,
+                    stepCyclePath);
+                const auto kTransaction = make_shared<CycleCloserInitiatorTransaction>(
+                    mNodeUUID,
+                    cyclePath,
+                    mTrustLinesManager,
+                    mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
+                    mLog
+                );
+                launchSubsidiaryTransaction(kTransaction);
+//                auto sCycle = make_shared<vector<NodeUUID>>(stepCyclePath);
+//                closeCycleSignal(sCycle);
+
                 #ifdef TESTS
                     ResultCycles.push_back(stepCyclePath);
                 #endif
@@ -124,3 +139,10 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
     return resultDone();
 }
 #pragma clang diagnostic pop
+
+const string CyclesFiveNodesInitTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesFiveNodesInitTA: " << currentTransactionUUID() << "] ";
+    return s.str();
+}

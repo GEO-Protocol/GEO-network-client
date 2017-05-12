@@ -16,11 +16,14 @@ public:
     typedef unordered_set<MaxFlowCalculationTrustLineWithPtr*> trustLineWithPtrHashSet;
 
 public:
-    MaxFlowCalculationTrustLineManager(Logger *logger);
+    MaxFlowCalculationTrustLineManager(
+        Logger *logger);
 
-    void addTrustLine(MaxFlowCalculationTrustLine::Shared trustLine);
+    void addTrustLine(
+        MaxFlowCalculationTrustLine::Shared trustLine);
 
-    vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines(const NodeUUID &nodeUUID);
+    vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines(
+        const NodeUUID &nodeUUID);
 
     void resetAllUsedAmounts();
 

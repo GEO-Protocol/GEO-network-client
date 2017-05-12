@@ -49,7 +49,6 @@ CyclesDelayedTasks::CyclesDelayedTasks(as::io_service &ioService):mIOService(ioS
     #ifdef TESTS
         TimeStarted = 120;
     #endif
-    TimeStarted = 120;
     mSixNodesCycleTimer = unique_ptr<as::deadline_timer> (new as::deadline_timer(
             mIOService,
             boost::posix_time::seconds(5)

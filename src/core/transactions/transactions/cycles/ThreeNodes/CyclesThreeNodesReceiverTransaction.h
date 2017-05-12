@@ -23,8 +23,10 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
+    const string logHeader() const;
+
+protected:
     CyclesThreeNodesBalancesRequestMessage::Shared mRequestMessage;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
 };
 #endif //GEO_NETWORK_CLIENT_THREENODESRESPONSETRANSACTION_H

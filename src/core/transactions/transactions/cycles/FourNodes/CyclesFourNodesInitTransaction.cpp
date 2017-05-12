@@ -5,7 +5,8 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     const NodeUUID &debtorContractorUUID,
     const NodeUUID &creditorContractorUUID,
     TrustLinesManager *manager,
-    RoutingTablesHandler *routingTablesHandler,
+    StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
 
     BaseTransaction(
@@ -13,10 +14,10 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(manager),
-    mLogger(logger),
-    mRoutingTablesHandler(routingTablesHandler),
+    mStorageHandler(storageHandler),
     mDebtorContractorUUID(debtorContractorUUID),
-    mCreditorContractorUUID(creditorContractorUUID)
+    mCreditorContractorUUID(creditorContractorUUID),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::run() {
@@ -61,9 +62,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     if (mContext.size() != 2) {
-        cout << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
-                   "Responses messages count not equals to 2; "
-                   "Can't create cycles;";
+        info() << "No responses messages are present. Can't create cycles paths;";
 
         return resultDone();
     }
@@ -82,8 +81,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
         (firstContractorBalance < zeroBalance and secondContractorBalance < zeroBalance) or
         (firstContractorBalance == zeroBalance and secondContractorBalance == zeroBalance)) {
 
-        info() << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
-                  "Balances between initiator node and (" << firstContractorUUID <<  "), or "
+        info() << "Balances between initiator node and (" << firstContractorUUID <<  "), or "
                   "between initiator node and (" << secondContractorUUID << ") was changed. "
                   "Cannot create cycles.";
         return resultDone();
@@ -100,8 +98,6 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
                     kNodeUUIDSecondMessage,
                     mCreditorContractorUUID};
                 // Run transaction to close cycle
-                auto sCycle = make_shared<vector<NodeUUID>>(stepPath);
-                closeCycleSignal(sCycle);
                 #ifdef TESTS
                     ResultCycles.push_back(stepPath);
                 #endif
@@ -122,9 +118,9 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
 }
 
 set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCreditorNodes() {
-    const auto creditorsNeighbors = mRoutingTablesHandler->neighborsOfOnRT2(
+    const auto creditorsNeighbors = mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(
         mCreditorContractorUUID);
-    const auto debtorsNeighbors = mRoutingTablesHandler->neighborsOfOnRT2(
+    const auto debtorsNeighbors = mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(
         mDebtorContractorUUID);
     set<NodeUUID> commonNeighbors;
     set_intersection(
@@ -137,4 +133,12 @@ set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCredito
             commonNeighbors.begin()));
 
     return commonNeighbors;
+}
+
+const string CyclesFourNodesInitTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesFourNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
+
+    return s.str();
 }

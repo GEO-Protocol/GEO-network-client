@@ -23,7 +23,7 @@ public:
         BytesShared state,
         size_t stateBytesCount);
 
-    pair<BytesShared, size_t> getState(
+    pair<BytesShared, size_t> byTransaction(
         const TransactionUUID &transactionUUID);
 
     void deleteRecord(
