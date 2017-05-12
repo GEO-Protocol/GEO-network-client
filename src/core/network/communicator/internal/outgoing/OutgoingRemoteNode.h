@@ -10,6 +10,7 @@
 #include "../../../../common/NodeUUID.h"
 #include "../../../../common/memory/MemoryUtils.h"
 #include "../../../../logger/Logger.h"
+#include "../../../../common/exceptions/Exception.h"
 
 #include <boost/crc.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -66,7 +67,7 @@ protected:
 
     queue<pair<byte*, Packet::Size>> mPacketsQueue;
     PacketHeader::ChannelIndex mNextAvailableChannelIndex;
-    boost::asio::steady_timer mPacketsSendingTimeoutTimer;
+
 };
 
 #endif // OUTGOINGREMOTENODE_H

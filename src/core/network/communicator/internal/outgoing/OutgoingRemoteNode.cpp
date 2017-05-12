@@ -14,8 +14,7 @@ OutgoingRemoteNode::OutgoingRemoteNode(
     mIOService(ioService),
     mSocket(socket),
     mLog(logger),
-    mNextAvailableChannelIndex(0),
-    mPacketsSendingTimeoutTimer(ioService)
+    mNextAvailableChannelIndex(0)
 {}
 
 void OutgoingRemoteNode::sendMessage(
@@ -30,20 +29,17 @@ void OutgoingRemoteNode::sendMessage(
 
         auto bytesAndBytesCount = message->serializeToBytes();
         if (bytesAndBytesCount.second > Message::maxSize()) {
-
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-            debug() << "Message is too big to be transferred via the network";
-#endif
-            // Method can't snd should not throw exceptions.
-            // Message would be simply ignored.
+            errors() << "Message is too big to be transferred via the network";
+            return;
         }
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        const Message::SerializedType kMessageType = *(reinterpret_cast<Message::SerializedType*>(
-                                                           bytesAndBytesCount.first.get()));
+        const Message::SerializedType kMessageType =
+            *(reinterpret_cast<Message::SerializedType*>(
+                bytesAndBytesCount.first.get()));
 
         debug()
-            << "Message with type "
+            << "Message of type "
             << static_cast<size_t>(kMessageType)
             << " postponed for the sending";
 #endif
@@ -57,7 +53,7 @@ void OutgoingRemoteNode::sendMessage(
         }
 
     } catch (exception &e) {
-        mLog.error("OutgoingRemoteNode::sendMessage")
+        errors()
             << "Exception occured: "
             << e.what();
     }
@@ -195,90 +191,83 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
 
 void OutgoingRemoteNode::beginPacketsSending()
 {
-    const auto kOnErrorDelaySeconds = 5;
+    if (mPacketsQueue.size() == 0) {
+        return;
+    }
 
+
+    UDPEndpoint endpoint;
     try {
-        auto endpoint = mUUID2AddressService.endpoint(mRemoteNodeUUID);
+        endpoint = mUUID2AddressService.endpoint(mRemoteNodeUUID);
 
-        const auto packetDataAndSize = mPacketsQueue.front();
-        mSocket.async_send_to(
-            boost::asio::buffer(
-                packetDataAndSize.first,
-                packetDataAndSize.second),
-            endpoint,
-            [this, endpoint, kOnErrorDelaySeconds] (const boost::system::error_code &error, const size_t bytesTransferred) {
-                const auto packetDataAndSize = mPacketsQueue.front();
+    } catch (exception &) {
+        errors()
+            << "Endpoint can't be fetched from uuid2address. "
+            << "No messages can be sent. Outgoing queue cleared.";
 
-                if (bytesTransferred != packetDataAndSize.second) {
-                    if (error) {
-                        errors()
-                            << "OutgoingRemoteNode::beginPacketsSending: "
-                            << "Next packet can't be sent to the node (" << mRemoteNodeUUID << "). "
-                            << "Error code: " << error.value();
+        while (mPacketsQueue.size() > 0) {
+            const auto packetDataAndSize = mPacketsQueue.front();
+            free(packetDataAndSize.first);
+            mPacketsQueue.pop();
+        }
 
-                        mPacketsSendingTimeoutTimer.expires_from_now(
-                            chrono::seconds(kOnErrorDelaySeconds));
+        return;
+    }
 
-                        mPacketsSendingTimeoutTimer.async_wait(
-                            [this] (const boost::system::error_code &){
-                                this->beginPacketsSending(); });
 
-                        // Removing packet from the memory
-                        free(packetDataAndSize.first);
-                        mPacketsQueue.pop();
-                        if (mPacketsQueue.size() > 0) {
-                            beginPacketsSending();
-                        }
+    const auto packetDataAndSize = mPacketsQueue.front();
+    mSocket.async_send_to(
+        boost::asio::buffer(
+            packetDataAndSize.first,
+            packetDataAndSize.second),
+        endpoint,
+        [this, endpoint] (const boost::system::error_code &error, const size_t bytesTransferred) {
 
-                        return;
-                    }
+            const auto packetDataAndSize = mPacketsQueue.front();
+            if (bytesTransferred != packetDataAndSize.second) {
+                if (error) {
+                    errors()
+                        << "OutgoingRemoteNode::beginPacketsSending: "
+                        << "Next packet can't be sent to the node (" << mRemoteNodeUUID << "). "
+                        << "Error code: " << error.value();
                 }
-
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-                const PacketHeader::ChannelIndex channelIndex =
-                    *(new(packetDataAndSize.first + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
-
-                const PacketHeader::PacketIndex packetIndex =
-                    *(new(packetDataAndSize.first + PacketHeader::kPacketIndexOffset) PacketHeader::PacketIndex) + 1;
-
-                const PacketHeader::TotalPacketsCount totalPacketsCount =
-                    *(new(packetDataAndSize.first + PacketHeader::kPacketsCountOffset) PacketHeader::TotalPacketsCount);
-
-                this->debug()
-                    << setw(4) << bytesTransferred <<  "B TX [ => ] "
-                    << endpoint.address() << ":" << endpoint.port() << "; "
-                    << "Channel: " << setw(10) << static_cast<size_t>(channelIndex) << "; "
-                    << "Packet: " << setw(3) << static_cast<size_t>(packetIndex)
-                    << "/" << static_cast<size_t>(totalPacketsCount);
-#endif
 
                 // Removing packet from the memory
                 free(packetDataAndSize.first);
                 mPacketsQueue.pop();
-
                 if (mPacketsQueue.size() > 0) {
                     beginPacketsSending();
                 }
-            });
 
+                return;
+            }
 
-    } catch (exception &e) {
-        errors()
-            << "OutgoingRemoteNode::beginPacketsSending: "
-            << "Next packet can't be sent to the node (" << mRemoteNodeUUID << "). "
-            << "Exception details are: " << e.what() << " "
-            << "Sending data to this node would be suspended for " << kOnErrorDelaySeconds << " seconds. "
-            << "Current packet sending would be retried.";
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+            const PacketHeader::ChannelIndex channelIndex =
+                *(new(packetDataAndSize.first + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
 
-        mPacketsSendingTimeoutTimer.expires_from_now(
-            chrono::seconds(kOnErrorDelaySeconds));
+            const PacketHeader::PacketIndex packetIndex =
+                *(new(packetDataAndSize.first + PacketHeader::kPacketIndexOffset) PacketHeader::PacketIndex) + 1;
 
-        mPacketsSendingTimeoutTimer.async_wait(
-            [this] (const boost::system::error_code &){
-                this->beginPacketsSending(); });
+            const PacketHeader::TotalPacketsCount totalPacketsCount =
+                *(new(packetDataAndSize.first + PacketHeader::kPacketsCountOffset) PacketHeader::TotalPacketsCount);
 
-        return;
-    }
+            this->debug()
+                << setw(4) << bytesTransferred <<  "B TX [ => ] "
+                << endpoint.address() << ":" << endpoint.port() << "; "
+                << "Channel: " << setw(10) << static_cast<size_t>(channelIndex) << "; "
+                << "Packet: " << setw(3) << static_cast<size_t>(packetIndex)
+                << "/" << static_cast<size_t>(totalPacketsCount);
+#endif
+
+            // Removing packet from the memory
+            free(packetDataAndSize.first);
+            mPacketsQueue.pop();
+
+            if (mPacketsQueue.size() > 0) {
+                beginPacketsSending();
+            }
+        });
 }
 
 PacketHeader::ChannelIndex OutgoingRemoteNode::nextChannelIndex()
@@ -291,7 +280,9 @@ PacketHeader::ChannelIndex OutgoingRemoteNode::nextChannelIndex()
 LoggerStream OutgoingRemoteNode::errors() const
 {
     return mLog.error(
-        string("OutgoingRemoteNode [") + mRemoteNodeUUID.stringUUID() + string("]"));
+        string("Communicator / OutgoingRemoteNode [")
+        + mRemoteNodeUUID.stringUUID()
+        + string("]"));
 }
 
 LoggerStream OutgoingRemoteNode::debug() const
