@@ -115,7 +115,6 @@ void IncomingMessagesHandler::handleReceivedInfo(
 
 
     // In all cases - messages receiving should be continued.
-    // WARNING: stack permanent growing
     beginReceivingData();
 }
 

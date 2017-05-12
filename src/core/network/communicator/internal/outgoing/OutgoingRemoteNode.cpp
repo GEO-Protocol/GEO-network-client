@@ -39,7 +39,8 @@ void OutgoingRemoteNode::sendMessage(
         }
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        const Message::SerializedType kMessageType = *bytesAndBytesCount.first;
+        const Message::SerializedType kMessageType = *(reinterpret_cast<Message::SerializedType*>(
+                                                           bytesAndBytesCount.first.get()));
 
         debug()
             << "Message with type "
@@ -221,6 +222,13 @@ void OutgoingRemoteNode::beginPacketsSending()
                         mPacketsSendingTimeoutTimer.async_wait(
                             [this] (const boost::system::error_code &){
                                 this->beginPacketsSending(); });
+
+                        // Removing packet from the memory
+                        free(packetDataAndSize.first);
+                        mPacketsQueue.pop();
+                        if (mPacketsQueue.size() > 0) {
+                            beginPacketsSending();
+                        }
 
                         return;
                     }
