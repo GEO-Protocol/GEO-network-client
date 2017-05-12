@@ -6,12 +6,12 @@
 #include "../../../network/messages/routing_tables/NeighborsRequestMessage.h"
 #include "../../../network/messages/routing_tables/NeighborsResponseMessage.h"
 
-#include <vector>
 
-class GetFirstRoutingTableTransaction : public BaseTransaction {
+class GetFirstRoutingTableTransaction :
+    public BaseTransaction {
 
 public:
-    typedef shared_ptr<GetFirstRoutingTableTransaction> Shared;
+    using Shared = shared_ptr<GetFirstRoutingTableTransaction>;
 
 public:
     GetFirstRoutingTableTransaction(

@@ -49,7 +49,7 @@ public:
     TransactionResult::Shared resultContinuePreviousState() const;
 
 public:
-    ~BaseTransaction() = default;
+    virtual ~BaseTransaction() = default;
 
     enum TransactionType {
         OpenTrustLineTransactionType = 1,
