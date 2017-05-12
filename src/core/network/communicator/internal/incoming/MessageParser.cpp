@@ -163,6 +163,15 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Paths_ResultRoutingTableThirdLevel:
             return messageCollected<ResultRoutingTable3LevelMessage>(buffer);
 
+
+        /*
+         * Response message
+         * ToDo: remove it after trust lines messages refactoring
+         */
+        case Message::ResponseMessageType:
+            return messageCollected<Response>(buffer);
+
+
 #ifdef DEBUG
         /*
          * Debug messages
@@ -174,6 +183,7 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         default: {
             mLog.error("MessagesParser::processBytesSequence")
                 << "Unexpected message identifier occured (" << kMessageIdentifier << "). Message dropped.";
+            return messageInvalidOrIncomplete();
         }
 
         }
