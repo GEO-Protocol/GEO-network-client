@@ -106,16 +106,24 @@ void IncomingRemoteNode::processIncomingBytesSequence (
         return;
     }
 
-    while ((mBuffer.size() + count) < mBuffer.capacity()) {
+    while (mBuffer.capacity() < (mBuffer.size() + count)) {
 
 #ifdef LINUX
         // Reserve one more memory page (often 4096 B)
+        //
+        // There is no reason, to reserve less than one memory page:
+        // internally reserve will call malloc(),
+        // and it would allocate at least one memory page.
+        // In case if less than one memory page would be allocated -
+        // malloc should be called more often and it would decrease performance.
         mBuffer.reserve(
             mBuffer.capacity() + static_cast<size_t>(getpagesize()));
         continue;
 #endif
 
 #ifdef MAC_OS
+        // It is expected than one memory page is 4096B.
+        // ToDo: find way to get memory page size on the Mac.
         mBuffer.reserve(
             mBuffer.capacity() + 4096);
         continue;
