@@ -31,7 +31,7 @@ Message::Shared IncomingRemoteNode::popNextMessage()
     if (not mCollectedMessages.size())
         return Message::Shared(nullptr);
 
-    const auto &kMessage = mCollectedMessages.at(0);
+    const auto kMessage = *(prev(mCollectedMessages.cend()));
     mCollectedMessages.pop_back();
     return kMessage;
 }
