@@ -23,7 +23,6 @@ int Core::run()
     try {
         mCommunicator->joinUUID2Address(mNodeUUID);
         mCommunicator->beginAcceptMessages();
-
         mCommandsInterface->beginAcceptCommands();
 
         mLog.logSuccess("Core", "Processing started.");
@@ -460,10 +459,10 @@ void Core::onMessageSendSlot(
     const NodeUUID &contractorUUID) {
 
     try{
-//        mCommunicator->sendMessage(
-//            message,
-//            contractorUUID
-//        );
+        mCommunicator->sendMessage(
+            message,
+            contractorUUID
+        );
 
     } catch (exception &e) {
         mLog.logException("Core", e);

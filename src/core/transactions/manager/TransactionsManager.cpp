@@ -988,6 +988,8 @@ void TransactionsManager::subscribeForSubsidiaryTransactions(
 void TransactionsManager::subscribeForOutgoingMessages(
     BaseTransaction::SendMessageSignal &signal) {
 
+    // ToDo: connect signals of transaction and core dirctly (signal -> signal)
+    // Boost allows this type of connectivity.
     signal.connect(
         boost::bind(
             &TransactionsManager::onTransactionOutgoingMessageReady,
