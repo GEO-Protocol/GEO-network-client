@@ -41,13 +41,24 @@ IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
     # Debug logs configuration
     #
     add_definitions(
+        # Subsystems
         -DDEBUG_LOG_NETWORK_COMMUNICATOR
-        # -DDEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
-
-        -DDEBUG_LOG_SCHEDULER # ToDo: change me in relevant transaction code
-        -DDEBUG_LOG_MAX_FLOW_CALCULATION # ToDo: change me in relevant transaction code
+#        -DDEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
         -DDEBUG_LOG_STORAGE_HANDLER # ToDo: change me in relevant transaction code
+
+        # Transactions control
+        -DDEBUG_LOG_TRANSACTIONS_MANAGER
+        -DDEBUG_LOG_SCHEDULER # ToDo: change me in relevant transaction code
+
+        # Transactions
+        -DDEBUG_LOG_TRUST_LINES_PROCESSING
+        -DDEBUG_LOG_ROUTING_TABLES_PROCESSING
+        -DDEBUG_LOG_MAX_FLOW_CALCULATION # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
+
+
     )
 
 ENDIF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
