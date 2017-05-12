@@ -22,7 +22,6 @@ IF (${PLATFORM} MATCHES "LINUX")
     add_definitions(-DLINUX)
 ENDIF (${PLATFORM} MATCHES "LINUX")
 
-
 #
 # Debug options
 # (available options are: DEBUG | RELEASE)

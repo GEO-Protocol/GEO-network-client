@@ -3,9 +3,13 @@
 
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../../io/storage/RoutingTablesHandler.h"
+#include "../../../../paths/lib/Path.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
+
+#include "../../regular/payments/CycleCloserInitiatorTransaction.h"
 
 #include <set>
 
@@ -18,13 +22,11 @@ public:
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
         TrustLinesManager *manager,
-        RoutingTablesHandler *routingTablesHandler,
+        StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *logger);
 
     TransactionResult::SharedConst run();
-
-public:
-    mutable LaunchCloseCycleSignal closeCycleSignal;
 
 protected:
     enum Stages {
@@ -36,13 +38,14 @@ protected:
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 protected:
+    const string logHeader() const;
     set<NodeUUID> getNeighborsWithContractor();
 
 protected:
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
-    RoutingTablesHandler *mRoutingTablesHandler;
+    StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_THREENODESINITTRANSACTION_H

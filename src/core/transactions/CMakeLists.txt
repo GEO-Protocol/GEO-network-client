@@ -13,6 +13,7 @@ add_subdirectory(transactions/total_balances)
 add_subdirectory(transactions/history)
 add_subdirectory(transactions/find_path)
 add_subdirectory(transactions/routing_tables)
+add_subdirectory(transactions/trustlines_list)
 
 set(SOURCE_FILES
         manager/TransactionsManager.h
@@ -21,10 +22,7 @@ set(SOURCE_FILES
         scheduler/TransactionsScheduler.h
         scheduler/TransactionsScheduler.cpp
         
-        transactions/base/TransactionUUID.h
-
-        transactions/contractors_list/GetFirstLevelContractorsTransaction.h
-        transactions/contractors_list/GetFirstLevelContractorsTransaction.cpp)
+        transactions/base/TransactionUUID.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions
@@ -35,6 +33,7 @@ target_link_libraries(transactions
         transactions__result
         transactions__total_balances
         transactions__history
+        transactions__trustlines_list
         transactions__find_path
         transactions__routing_tables
 

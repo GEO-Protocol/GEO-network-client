@@ -33,6 +33,7 @@ public:
         const NodeUUID &kCurrentNodeUUID,
         const CreditUsageCommand::Shared kCommand,
         TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
         Logger *log)
@@ -40,7 +41,9 @@ public:
 
     CoordinatorPaymentTransaction(
         BytesShared buffer,
+        const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
         Logger *log)

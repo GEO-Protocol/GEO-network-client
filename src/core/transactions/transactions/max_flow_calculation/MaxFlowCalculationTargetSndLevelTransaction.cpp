@@ -42,14 +42,16 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator()
     }
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlows()) {
-        if (outgoingFlow.first == mMessage->senderUUID) {
+        if (*outgoingFlow.second.get() > TrustLine::kZeroAmount()
+            && outgoingFlow.first == mMessage->senderUUID) {
             outgoingFlows.push_back(
                 outgoingFlow);
         }
     }
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows;
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
-        if (incomingFlow.first != mMessage->senderUUID
+        if (*incomingFlow.second.get() > TrustLine::kZeroAmount()
+            && incomingFlow.first != mMessage->senderUUID
             && incomingFlow.first != mMessage->targetUUID()) {
             incomingFlows.push_back(
                 incomingFlow);
@@ -60,16 +62,18 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator()
     info() << "sendResultToInitiator\t" << "OutgoingFlows: " << outgoingFlows.size();
     info() << "sendResultToInitiator\t" << "IncomingFlows: " << incomingFlows.size();
 #endif
-    sendMessage<ResultMaxFlowCalculationMessage>(
-        mMessage->targetUUID(),
-        mNodeUUID,
-        outgoingFlows,
-        incomingFlows);
-    mMaxFlowCalculationCacheManager->addCache(
-        mMessage->targetUUID(),
-        make_shared<MaxFlowCalculationCache>(
+    if (outgoingFlows.size() > 0 || incomingFlows.size() > 0) {
+        sendMessage<ResultMaxFlowCalculationMessage>(
+            mMessage->targetUUID(),
+            mNodeUUID,
             outgoingFlows,
-            incomingFlows));
+            incomingFlows);
+        mMaxFlowCalculationCacheManager->addCache(
+            mMessage->targetUUID(),
+            make_shared<MaxFlowCalculationCache>(
+                outgoingFlows,
+                incomingFlows));
+    }
 }
 
 void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(

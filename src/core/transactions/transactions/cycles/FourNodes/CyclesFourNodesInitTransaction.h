@@ -3,6 +3,7 @@
 
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../../io/storage/RoutingTablesHandler.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
@@ -17,13 +18,11 @@ public:
         const NodeUUID &debtorContractorUUID,
         const NodeUUID &creditorContractorUUID,
         TrustLinesManager *manager,
-        RoutingTablesHandler *routingTablesHandler,
+        StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *logger);
 
     TransactionResult::SharedConst run();
-
-public:
-    mutable LaunchCloseCycleSignal closeCycleSignal;
 
 protected:
     enum Stages {
@@ -35,14 +34,15 @@ protected:
     TransactionResult::SharedConst runParseMessageAndCreateCyclesStage();
 
 protected:
+    const string logHeader() const;
     set<NodeUUID> commonNeighborsForDebtorAndCreditorNodes();
 
 protected:
     NodeUUID mDebtorContractorUUID;
     NodeUUID mCreditorContractorUUID;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
-    RoutingTablesHandler *mRoutingTablesHandler;
+    StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETFOURNODESNEIGHBORBALANCESTRANSACTION_H

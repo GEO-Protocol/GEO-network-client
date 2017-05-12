@@ -4,6 +4,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     const NodeUUID &kCurrentNodeUUID,
     const CreditUsageCommand::Shared kCommand,
     TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
     Logger *log)
@@ -13,6 +14,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
         kCurrentNodeUUID,
         trustLines,
+        storageHandler,
         maxFlowCalculationCacheManager,
         log),
     mCommand(kCommand),
@@ -25,16 +27,19 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BytesShared buffer,
+    const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
+
     Logger *log)
     throw (bad_alloc) :
-
     BasePaymentTransaction(
-        BaseTransaction::CoordinatorPaymentTransaction,
         buffer,
+        nodeUUID,
         trustLines,
+        storageHandler,
         maxFlowCalculationCacheManager,
         log),
     mResourcesManager(resourcesManager)
@@ -64,10 +69,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
             case Stages::Common_VotesChecking:
                 return runVotesConsistencyCheckingStage();
 
-            default:
-                throw RuntimeError(
-                    "CoordinatorPaymentTransaction::run(): "
-                        "invalid transaction step.");
+                default:
+                    throw RuntimeError(
+                        "CoordinatorPaymentTransaction::run(): "
+                            "invalid transaction step.");
         }
     } catch (...) {
         recover("Something happens wrong in method run(). Transaction will be recovered");
@@ -78,13 +83,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitialisationStage ()
 {
-    info() << "Operation initialised to the node (" << mCommand->contractorUUID() << ")";
-    info() << "Command UUID: " << mCommand->UUID();
-    info() << "Operation amount: " << mCommand->amount();
+    debug() << "Operation initialised to the node (" << mCommand->contractorUUID() << ")";
+    debug() << "Command UUID: " << mCommand->UUID();
+    debug() << "Operation amount: " << mCommand->amount();
 
 
     if (mCommand->contractorUUID() == currentNodeUUID()) {
-        info() << "Attempt to initialise operation against itself was prevented. Canceled.";
+        debug() << "Attempt to initialise operation against itself was prevented. Canceled.";
         return resultProtocolError();
     }
 
@@ -99,6 +104,18 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
 
     // TODO: Read paths from paths manager.
     // TODO: Ensure paths shuffling
+
+    NodeUUID sender = currentNodeUUID();
+//    NodeUUID b("13e5cf8c-5834-4e52-b65b-f9281dd1ff01");
+//    NodeUUID c("13e5cf8c-5834-4e52-b65b-f9281dd1ff02");
+//    NodeUUID receiver("13e5cf8c-5834-4e52-b65b-f9281dd1ff03");
+    //    auto p1 = make_shared<const Path>(
+//        Path(sender, receiver));
+//    auto p2 = make_shared<const Path>(
+//        Path(sender, receiver, {c}));
+
+//    addPathForFurtherProcessing(p1);
+//    addPathForFurtherProcessing(p2);
 
     mResourcesManager->requestPaths(
         currentTransactionUUID(),
@@ -241,115 +258,34 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
 //            delete nodeUUID56Ptr;
             //end test case3
 
-            // TODO for test case4
-//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
-//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
-//            NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
-//
-//            vector<NodeUUID> intermediateNodes;
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            intermediateNodes.push_back(*nodeUUID54Ptr);
-//            auto result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID56Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//            intermediateNodes.clear();
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            intermediateNodes.push_back(*nodeUUID55Ptr);
-//            result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID56Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//
-//            delete nodeUUID51Ptr;
-//            delete nodeUUID52Ptr;
-//            delete nodeUUID53Ptr;
-//            delete nodeUUID54Ptr;
-//            delete nodeUUID55Ptr;
-//            delete nodeUUID56Ptr;
-            //end test case4
-
-            // TODO for test case5
-//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
-//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
-//
-//            vector<NodeUUID> intermediateNodes;
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            auto result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID55Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//            intermediateNodes.clear();
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID55Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//            intermediateNodes.clear();
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID54Ptr);
-//            result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID55Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//
-//            delete nodeUUID51Ptr;
-//            delete nodeUUID52Ptr;
-//            delete nodeUUID53Ptr;
-//            delete nodeUUID54Ptr;
-//            delete nodeUUID55Ptr;
-            //end test case5
-
-            // TODO for test case6
-//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
-//
-//            vector<NodeUUID> intermediateNodes;
-//            auto result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID54Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//            intermediateNodes.clear();
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID54Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//            intermediateNodes.clear();
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID54Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//
-//            delete nodeUUID51Ptr;
-//            delete nodeUUID52Ptr;
-//            delete nodeUUID53Ptr;
-//            delete nodeUUID54Ptr;
-            //end test case6
-
             PathsResource::Shared response = static_pointer_cast<PathsResource>(
                 responseResource);
+
+            // TODO for test Votes
+//            NodeUUID *nodeUUID51Ptr = new NodeUUID("83f5325f-09b9-4af1-9539-ebd82592fa28");
+//            NodeUUID *nodeUUID52Ptr = new NodeUUID("0cf32ef5-3028-42a3-b81b-dd32a3e15f96");
+//            NodeUUID *nodeUUID53Ptr = new NodeUUID("592aaaf6-0626-4a0b-9cd7-a09215feff9e");
+//            NodeUUID *nodeUUID54Ptr = new NodeUUID("03de0db2-140e-4a5b-aa0e-b2fbf25dceec");
+//            NodeUUID *nodeUUID55Ptr = new NodeUUID("6801e258-b4b8-4b35-bdef-4b7d59ecb4ed");
+//
+//            vector<NodeUUID> intermediateNodes;
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID53Ptr);
+//            intermediateNodes.push_back(*nodeUUID54Ptr);
+//            auto result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID55Ptr,
+//                intermediateNodes);
+//
+//            delete nodeUUID51Ptr;
+//            delete nodeUUID52Ptr;
+//            delete nodeUUID53Ptr;
+//            delete nodeUUID54Ptr;
+//            delete nodeUUID55Ptr;
+//
+//            addPathForFurtherProcessing(result);
+            // end test
+
             response->pathCollection()->resetCurrentPath();
             while (response->pathCollection()->hasNextPath()) {
                 auto path = response->pathCollection()->nextPath();
@@ -366,13 +302,15 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
         return resultNoPathsError();
     }
 
+
+
     // If there is no one path to the receiver - transaction can't proceed.
     if (mPathsStats.empty())
         return resultNoPathsError();
 
-    info() << "Collected paths:";
+    debug() << "Collected paths:";
     for (const auto &identifierAndStats : mPathsStats)
-        info() << "[" << identifierAndStats.first << "] {" << identifierAndStats.second->path()->toString() << "}";
+        debug() << "[" << identifierAndStats.first << "] {" << identifierAndStats.second->path()->toString() << "}";
 
 
     // Sending message to the receiver note to approve the payment receiving.
@@ -404,14 +342,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverRespons
             "Receiver rejected payment operation. Canceling.");
 
 
-    info() << "Receiver accepted operation. Begin reserving amounts.";
+    debug() << "Receiver accepted operation. Begin reserving amounts.";
     mStep = Stages::Coordinator_AmountReservation;
     return resultFlushAndContinue();
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservationStage ()
 {
-    info() << "runAmountReservationStage";
+    debug() << "runAmountReservationStage";
     switch (mReservationsStage) {
     case 0: {
         initAmountsReservationOnNextPath();
@@ -467,7 +405,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
  */
 TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVoutingResult()
 {
-    info() << "propagateVotesListAndWaitForVoutingResult";
+    debug() << "propagateVotesListAndWaitForVoutingResult";
     const auto kCurrentNodeUUID = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
@@ -534,7 +472,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
         message->firstParticipant(),
         message);
 
-    info() << "Votes message constructed and sent to the (" << message->firstParticipant() << ")";
+    debug() << "Votes message constructed and sent to the (" << message->firstParticipant() << ")";
 
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
@@ -561,7 +499,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     const PathUUID pathUUID,
     PathStats *pathStats)
 {
-    info() << "tryReserveAmountDirectlyOnReceiver";
+    debug() << "tryReserveAmountDirectlyOnReceiver";
 #ifdef INTERNAL_ARGUMENTS_VALIDATION
     assert(pathStats->path()->length() == 2);
 #endif
@@ -578,7 +516,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     mDirectPathIsAllreadyProcessed = true;
 
 
-    info() << "Direct path occurred (coordinator -> receiver). "
+    debug() << "Direct path occurred (coordinator -> receiver). "
            << "Trying to reserve amount directly on the receiver side.";
 
 
@@ -593,7 +531,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     // If not - there is no reason to send any reservations requests.
     const auto kAvailableOutgoingAmount = mTrustLines->availableOutgoingAmount(kContractor);
     if (*kAvailableOutgoingAmount == TrustLineAmount(0)) {
-        info() << "There is no direct outgoing amount available for the receiver node. "
+        debug() << "There is no direct outgoing amount available for the receiver node. "
                << "Switching to another path.";
 
         pathStats->setUnusable();
@@ -624,8 +562,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
         mCurrentAmountReservingPathIdentifier,
         kReservationAmount);
 
-    info() << "Reservation request for " << *kAvailableOutgoingAmount << " sent directly to the receiver node.";
-
+    debug() << "Reservation request for " << *kAvailableOutgoingAmount << " sent directly to the receiver node.";
 
     mStep = Stages::Coordinator_ShortPathAmountReservationResponseProcessing;
     return resultWaitForMessageTypes(
@@ -637,7 +574,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
 TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveNextIntermediateNodeAmount (
     PathStats *pathStats)
 {
-    info() << "tryReserveNextIntermediateNodeAmount";
+    debug() << "tryReserveNextIntermediateNodeAmount";
     /*
      * Nodes scheme:
      *  R - remote node;
@@ -664,7 +601,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveNextInte
                     pathStats);
 
         } else {
-            info() << "Processing " << int(R_PathPosition) << " node in path: (" << R_UUID << ").";
+            debug() << "Processing " << int(R_PathPosition) << " node in path: (" << R_UUID << ").";
 
             return askRemoteNodeToApproveReservation(
                 pathStats,
@@ -674,8 +611,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveNextInte
         }
 
     } catch(NotFoundError) {
-        info() << "No unprocessed paths are left.";
-        info() << "Requested amount can't be collected. Canceling.";
+        debug() << "No unprocessed paths are left.";
+        debug() << "Requested amount can't be collected. Canceling.";
         rollBack();
         return resultInsufficientFundsError();
     }
@@ -707,7 +644,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     const NodeUUID &neighbor,
     PathStats *path)
 {
-    info() << "askNeighborToReserveAmount";
+    debug() << "askNeighborToReserveAmount";
     const auto kCurrentNode = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
@@ -732,9 +669,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     const auto kReservationAmount = min(*kAvailableOutgoingAmount, kRemainingAmountForProcessing);
 
     if (kReservationAmount == 0) {
-        info() << "AvailableOutgoingAmount " << *kAvailableOutgoingAmount;
-        info() << "RemainingAmountForProcessing " << kRemainingAmountForProcessing;
-        info() << "No payment amount is available for (" << neighbor << "). "
+        debug() << "AvailableOutgoingAmount " << *kAvailableOutgoingAmount;
+        debug() << "RemainingAmountForProcessing " << kRemainingAmountForProcessing;
+        debug() << "No payment amount is available for (" << neighbor << "). "
                   "Switching to another path.";
 
         path->setUnusable();
@@ -770,7 +707,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     const NodeUUID& neighbor,
     PathStats *path)
 {
-    info() << "askNeighborToApproveFurtherNodeReservation";
+    debug() << "askNeighborToApproveFurtherNodeReservation";
     const auto kCoordinator = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
     const auto kNeighborPathPosition = 1;
@@ -789,7 +726,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
         path->maxFlow(),
         kNextAfterNeighborNode);
 
-    info() << "Further amount reservation request sent to the node (" << neighbor << ") [" << path->maxFlow() << "]";
+    debug() << "Further amount reservation request sent to the node (" << neighbor << ") [" << path->maxFlow() << "]";
 
     path->setNodeState(
         kNeighborPathPosition,
@@ -805,9 +742,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmountReservationResponse()
 {
-    info() << "processNeighborAmountReservationResponse";
+    debug() << "processNeighborAmountReservationResponse";
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
-        info() << "No neighbor node response received. Switching to another path.";
+        debug() << "No neighbor node response received. Switching to another path.";
         // dropping reservation to first node
         currentAmountReservationPathStats()->shortageMaxFlow(0);
         auto firstIntermediateNode = currentAmountReservationPathStats()->path()->nodes[1];
@@ -816,7 +753,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         auto itPathUUIDAndReservation = nodeReservations->second.begin();
         while (itPathUUIDAndReservation != nodeReservations->second.end()) {
             if (itPathUUIDAndReservation->first == mCurrentAmountReservingPathIdentifier) {
-                info() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
+                debug() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
                        << " for (" << firstIntermediateNode << ") [" << mCurrentAmountReservingPathIdentifier << "]";
                 mTrustLines->dropAmountReservation(
                     firstIntermediateNode,
@@ -847,7 +784,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
     }
 
 
-    info() << "(" << message->senderUUID << ") approved reservation request.";
+    debug() << "(" << message->senderUUID << ") approved reservation request.";
     auto path = currentAmountReservationPathStats();
     path->setNodeState(
         1, PathStats::NeighbourReservationApproved);
@@ -871,7 +808,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFurtherReservationResponse()
 {
-    info() << "processNeighborFurtherReservationResponse";
+    debug() << "processNeighborFurtherReservationResponse";
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)) {
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
@@ -881,13 +818,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             mCommand->contractorUUID(),
             currentNodeUUID(),
             currentTransactionUUID());
-        info() << "Switching to another path.";
+        debug() << "Switching to another path.";
         return tryProcessNextPath();
     }
 
     auto message = popNextMessage<CoordinatorReservationResponseMessage>();
     if (message->state() != CoordinatorReservationResponseMessage::Accepted) {
-        info() << "Neighbor node doesn't accepted coordinator request.";
+        debug() << "Neighbor node doesn't accepted coordinator request.";
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
@@ -904,10 +841,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     path->setNodeState(
         1,
         PathStats::ReservationApproved);
-    info() << "Neighbor node accepted coordinator request. Reserved: " << message->amountReserved();
+    debug() << "Neighbor node accepted coordinator request. Reserved: " << message->amountReserved();
 
     path->shortageMaxFlow(message->amountReserved());
-    info() << "Path max flow is now " << path->maxFlow();
+    debug() << "Path max flow is now " << path->maxFlow();
 
     // shortage reservation
     // TODO maby add if change path->maxFlow()
@@ -933,8 +870,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
 
         const auto kTotalAmount = totalReservedByAllPaths();
 
-        info() << "Current path reservation finished";
-        info() << "Total collected amount by all paths: " << kTotalAmount;
+        debug() << "Current path reservation finished";
+        debug() << "Total collected amount by all paths: " << kTotalAmount;
 
         if (kTotalAmount > mCommand->amount()){
             error() << "Total requested amount: " << mCommand->amount();
@@ -946,8 +883,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         }
 
         if (kTotalAmount == mCommand->amount()){
-            info() << "Total requested amount: " << mCommand->amount() << ". Collected.";
-            info() << "Begin processing participants votes.";
+            debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
+            debug() << "Begin processing participants votes.";
 
             return propagateVotesListAndWaitForVoutingResult();
         }
@@ -963,7 +900,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     const byte remoteNodePosition,
     const NodeUUID& nextNodeAfterRemote)
 {
-    info() << "askRemoteNodeToApproveReservation";
+    debug() << "askRemoteNodeToApproveReservation";
     const auto kCoordinator = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
@@ -979,7 +916,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
         remoteNodePosition,
         PathStats::ReservationRequestSent);
 
-    info() << "Further amount reservation request sent to the node (" << remoteNode << ") ["
+    debug() << "Further amount reservation request sent to the node (" << remoteNode << ") ["
            << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
 
     // delay is equal 3 becouse in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
@@ -991,7 +928,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeResponse()
 {
-    info() << "processRemoteNodeResponse";
+    debug() << "processRemoteNodeResponse";
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)){
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
@@ -1001,7 +938,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             mCommand->contractorUUID(),
             currentNodeUUID(),
             currentTransactionUUID());
-        info() << "Switching to another path.";
+        debug() << "Switching to another path.";
         return tryProcessNextPath();
     }
 
@@ -1019,7 +956,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
 
     if (0 == message->amountReserved()) {
-        info() << "Remote node rejected reservation. Switching to another path.";
+        debug() << "Remote node rejected reservation. Switching to another path.";
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
@@ -1058,8 +995,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             }
         }
 
-        info() << "(" << message->senderUUID << ") reserved " << reservedAmount;
-        info() << "Path max flow is now " << path->maxFlow();
+        debug() << "(" << message->senderUUID << ") reserved " << reservedAmount;
+        debug() << "Path max flow is now " << path->maxFlow();
 
         if (path->isLastIntermediateNodeProcessed()) {
 
@@ -1071,8 +1008,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
             const auto kTotalAmount = totalReservedByAllPaths();
 
-            info() << "Current path reservation finished";
-            info() << "Total collected amount by all paths: " << kTotalAmount;
+            debug() << "Current path reservation finished";
+            debug() << "Total collected amount by all paths: " << kTotalAmount;
 
             if (kTotalAmount > mCommand->amount()){
                 error() << "Total requested amount: " << mCommand->amount();
@@ -1084,8 +1021,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             }
 
             if (kTotalAmount == mCommand->amount()){
-                info() << "Total requested amount: " << mCommand->amount() << ". Collected.";
-                info() << "Begin processing participants votes.";
+                debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
+                debug() << "Begin processing participants votes.";
 
                 return propagateVotesListAndWaitForVoutingResult();
             }
@@ -1098,13 +1035,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath()
 {
-    info() << "tryProcessNextPath";
+    debug() << "tryProcessNextPath";
     try {
         switchToNextPath();
         return runAmountReservationStage();
 
     } catch (Exception &e) {
-        info() << "No another paths are available. Canceling.";
+        debug() << "No another paths are available. Canceling.";
         rollBack();
         return resultInsufficientFundsError();
     }
@@ -1137,7 +1074,7 @@ void CoordinatorPaymentTransaction::switchToNextPath()
     if (posCurrentFirstIntermediateNodeInJustProcessedPath > 1
         // if checked node was processed on previous path
         && justProcessedPath->currentIntermediateNodeAndPos().second > posCurrentFirstIntermediateNodeInJustProcessedPath) {
-        info() << "delay between process paths to avoid not actual reservations";
+        debug() << "delay between process paths to avoid not actual reservations";
         std::this_thread::sleep_for(std::chrono::milliseconds(maxNetworkDelay(1)));
     }
 }
@@ -1187,13 +1124,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultUnexpectedEr
 pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() const
     throw (bad_alloc)
 {
-    // todo: add implementation
-    return make_pair(make_shared<byte>(0), 0);
+    return BasePaymentTransaction::serializeToBytes();
 }
 
 void CoordinatorPaymentTransaction::deserializeFromBytes(BytesShared buffer)
 {
-    // todo: add implementation
+    BasePaymentTransaction::deserializeFromBytes(buffer);
 }
 
 TrustLineAmount CoordinatorPaymentTransaction::totalReservedByAllPaths() const
@@ -1246,9 +1182,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::reject(
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountReservationResponseProcessingStage ()
 {
-    info() << "runDirectAmountReservationResponseProcessingStage";
+    debug() << "runDirectAmountReservationResponseProcessingStage";
     if (not contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
-        info() << "No reservation response was received from the receiver node. "
+        debug() << "No reservation response was received from the receiver node. "
                << "Amount reservation is impossible. Switching to another path.";
 
         mStep = Stages::Coordinator_AmountReservation;
@@ -1260,7 +1196,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
 
     if (not kMessage->state() == IntermediateNodeReservationResponseMessage::Accepted) {
-        info() << "Receiver node rejected reservation. "
+        debug() << "Receiver node rejected reservation. "
                << "Switching to another path.";
 
         pathStats->setUnusable();
@@ -1271,8 +1207,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
 
 
     const auto kTotalAmount = totalReservedByAllPaths();
-    info() << "Current path reservation finished";
-    info() << "Total collected amount by all paths: " << kTotalAmount;
+    debug() << "Current path reservation finished";
+    debug() << "Total collected amount by all paths: " << kTotalAmount;
 
     if (kTotalAmount > mCommand->amount()){
         error() << "Total requested amount: " << mCommand->amount();
@@ -1284,8 +1220,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
     }
 
     if (kTotalAmount == mCommand->amount()){
-        info() << "Total requested amount: " << mCommand->amount() << ". Collected.";
-        info() << "Begin processing participants votes.";
+        debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
+        debug() << "Begin processing participants votes.";
 
         return propagateVotesListAndWaitForVoutingResult();
     }

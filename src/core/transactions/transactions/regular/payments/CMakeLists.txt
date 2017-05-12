@@ -16,6 +16,9 @@ set(SOURCE_FILES
         IntermediateNodePaymentTransaction.h
         IntermediateNodePaymentTransaction.cpp
 
+        VotesStatusResponsePaymentTransaction.h
+        VotesStatusResponsePaymentTransaction.cpp
+
         CycleCloserInitiatorTransaction.h
         CycleCloserInitiatorTransaction.cpp)
 

@@ -3,6 +3,7 @@
 
 #include "../../common/Types.h"
 #include "../../common/NodeUUID.h"
+#include "../../trust_lines/TrustLine.h"
 #include "../../common/time/TimeUtils.h"
 
 #include <unordered_map>

@@ -22,11 +22,15 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
 CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
     const NodeUUID &nodeUUID,
     TrustLinesManager *manager,
+    StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction,
         nodeUUID,
         manager,
+        storageHandler,
+        maxFlowCalculationCacheManager,
         logger)
 {}
 
@@ -35,10 +39,7 @@ CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
 #pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
     if (mContext.size() == 0) {
-        cout << "CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage: "
-                "No responses messages "
-                "Can't create cycles;";
-
+        info() << "No responses messages are present. Can't create cycles paths;";
         return resultDone();
     }
     const TrustLineBalance kZeroBalance = 0;
@@ -99,8 +100,6 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                                                   kNodeUUID,
                                                   (*(NodeUIDandPairOfPathandBalace->second))[2],
                                                   (*(NodeUIDandPairOfPathandBalace->second))[1]};
-                auto sCycle = make_shared<vector<NodeUUID>>(stepCyclePath);
-                closeCycleSignal(sCycle);
                 #ifdef TESTS
                 ResultCycles.push_back(stepCyclePath);
                 #endif
@@ -124,4 +123,12 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
     mContext.clear();
 
     return finishTransaction();
+}
+
+const string CyclesSixNodesInitTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesSixNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
+
+    return s.str();
 }

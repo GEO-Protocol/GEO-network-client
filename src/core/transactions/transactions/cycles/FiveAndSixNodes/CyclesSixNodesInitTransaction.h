@@ -12,12 +12,14 @@ public:
     CyclesSixNodesInitTransaction(
         const NodeUUID &nodeUUID,
         TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *logger);
 
     const BaseTransaction::TransactionType transactionType() const;
 
-public:
-    mutable LaunchCloseCycleSignal closeCycleSignal;
+protected:
+    const string logHeader() const;
 
 protected:
     TransactionResult::SharedConst runCollectDataAndSendMessagesStage();
