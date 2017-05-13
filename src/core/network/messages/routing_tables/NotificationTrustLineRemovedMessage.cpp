@@ -37,7 +37,7 @@ pair<BytesShared, size_t> NotificationTrustLineRemovedMessage::serializeToBytes 
     serializer.enqueue(SenderMessage::serializeToBytes());
     serializer.enqueue(nodeA);
     serializer.enqueue(nodeB);
-    serializer.enqueue(hop);
+    serializer.copy(hop);
 
     return serializer.collect();
 }

@@ -20,6 +20,7 @@
 #include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
+#include "../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
@@ -27,7 +28,8 @@
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/cycle_closer/CycleCloserCommand.h"
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
-#include "../../interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/trust_lines/AcceptTrustLineMessage.h"
@@ -67,10 +69,10 @@
 #include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesInitTransaction.h"
 #include "../transactions/cycles/FiveAndSixNodes/CyclesSixNodesReceiverTransaction.h"
 
-
 #include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/regular/payments/ReceiverPaymentTransaction.h"
 #include "../transactions/regular/payments/IntermediateNodePaymentTransaction.h"
+#include "../transactions/regular/payments/VotesStatusResponsePaymentTransaction.h"
 #include "../transactions/regular/payments/CycleCloserInitiatorTransaction.h"
 
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
@@ -86,6 +88,9 @@
 
 #include "../transactions/history/HistoryPaymentsTransaction.h"
 #include "../transactions/history/HistoryTrustLinesTransaction.h"
+
+#include "../transactions/trustlines_list/GetFirstLevelContractorsTransaction.h"
+#include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
 
 #include "../transactions/find_path/GetPathTestTransaction.h"
 #include "../transactions/find_path/FindPathTransaction.h"
@@ -205,6 +210,9 @@ private:
     void launchIntermediateNodePaymentTransaction(
         IntermediateNodeReservationRequestMessage::Shared message);
 
+    void launchVoutesResponsePaymentsTransaction(
+            VotesStatusRequestMessage::Shared message);
+
     // Total balances transaction
     void launchTotalBalancesTransaction(
             TotalBalancesCommand::Shared command);
@@ -229,15 +237,15 @@ private:
     void launchGetFirstLevelContractorsTransaction(
         GetFirstLevelContractorsCommand::Shared command);
 
+    void launchGetTrustlinesTransaction(
+            GetTrustLinesCommand::Shared command);
+
     void launchGetRoutingTablesTransaction(
         RequestRoutingTablesMessage::Shared message);
 
     // closeCycle transaction TODO : should be removed after testing
     void launchTestCloseCycleTransaction(
         CycleCloserCommand::Shared command);
-
-    void launchCloseCycleTransaction(
-        shared_ptr<vector<NodeUUID>>);
 
     // routing tables exchange transactions
     void launchTrustLineStatesHandlerTransaction(
@@ -259,10 +267,9 @@ private:
     void subscribeForCommandResult(
         TransactionsScheduler::CommandResultSignal &signal);
 
-    void subscribeCloseCycleTransaction(
-         BaseTransaction::LaunchCloseCycleSignal &signal);
+    void subscribeForSerializeTransaction(
+        TransactionsScheduler::SerializeTransactionSignal &signal);
 
-    
     // Slots
     void onSubsidiaryTransactionReady(
         BaseTransaction::Shared transaction);
@@ -273,6 +280,9 @@ private:
 
     void onCommandResultReady(
         CommandResult::SharedConst result);
+
+    void onSerializeTransaction(BaseTransaction::Shared transaction);
+
 
 protected:
     void prepareAndSchedule(

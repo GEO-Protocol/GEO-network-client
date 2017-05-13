@@ -3,6 +3,7 @@
 
 #include "../../../base/BaseTransaction.h"
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 class CyclesBaseFiveSixNodesInitTransaction :
     public BaseTransaction {
@@ -16,6 +17,8 @@ public:
         const TransactionType type,
         const NodeUUID &nodeUUID,
         TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *logger);
 
     TransactionResult::SharedConst run();
@@ -28,10 +31,13 @@ protected:
 
     virtual TransactionResult::SharedConst runCollectDataAndSendMessagesStage() = 0;
     virtual TransactionResult::SharedConst runParseMessageAndCreateCyclesStage() = 0;
+    virtual const string logHeader() const = 0;
 
 protected:
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
+    StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLESFIVESIXNODESINITTRANSACTION_H

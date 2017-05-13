@@ -4,14 +4,16 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     const NodeUUID &kCurrentNodeUUID,
     Path::ConstShared path,
     TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log)
     noexcept :
 
     BasePaymentTransaction(
-        BaseTransaction::CycleCloserInitiatorTransaction,
+        BaseTransaction::Payments_CycleCloserInitiatorTransaction,
         kCurrentNodeUUID,
         trustLines,
+        storageHandler,
         maxFlowCalculationCacheManager,
         log),
     mInitialTransactionAmount(0)
@@ -22,15 +24,18 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
 
 CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     BytesShared buffer,
+    const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log)
     throw (bad_alloc) :
 
     BasePaymentTransaction(
-        BaseTransaction::CycleCloserInitiatorTransaction,
         buffer,
+        nodeUUID,
         trustLines,
+        storageHandler,
         maxFlowCalculationCacheManager,
         log)
 {}
@@ -44,14 +49,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
             case Stages::Coordinator_Initialisation:
                 return runInitialisationStage();
 
-            case Stages::Coordinator_AmountReservation:
-                return runAmountReservationStage();
+        case Stages::Coordinator_AmountReservation:
+            return runAmountReservationStage();
 
-            case Stages::Coordinator_PreviousNeighborRequestProcessing:
-                return runPreviousNeighborRequestProcessingStage();
+        case Stages::Coordinator_PreviousNeighborRequestProcessing:
+            return runPreviousNeighborRequestProcessingStage();
 
-            case Stages::Common_VotesChecking:
-                return runVotesConsistencyCheckingStage();
+        case Stages::Common_VotesChecking:
+            return runVotesConsistencyCheckingStage();
 
             default:
                 throw RuntimeError(

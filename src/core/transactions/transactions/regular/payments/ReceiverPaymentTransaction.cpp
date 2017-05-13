@@ -5,6 +5,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     const NodeUUID &currentNodeUUID,
     ReceiverInitPaymentRequestMessage::ConstShared message,
     TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log) :
 
@@ -13,6 +14,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         trustLines,
+        storageHandler,
         maxFlowCalculationCacheManager,
         log),
     mMessage(message),
@@ -23,16 +25,18 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 
 ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     BytesShared buffer,
+    const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log) :
-
-    BasePaymentTransaction(
-        BaseTransaction::ReceiverPaymentTransaction,
-        buffer,
-        trustLines,
-        maxFlowCalculationCacheManager,
-        log)
+        BasePaymentTransaction(
+            buffer,
+            nodeUUID,
+            trustLines,
+            storageHandler,
+            maxFlowCalculationCacheManager,
+            log)
 {
     deserializeFromBytes(buffer);
 }
@@ -41,23 +45,27 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
     noexcept
 {
     try {
-        switch (mStep) {
-            case Stages::Receiver_CoordinatorRequestApproving:
-                return runInitialisationStage();
+    switch (mStep) {
+    case Stages::Receiver_CoordinatorRequestApproving:
+        return runInitialisationStage();
 
-            case Stages::Receiver_AmountReservationsProcessing:
-                return runAmountReservationStage();
+    case Stages::Receiver_AmountReservationsProcessing:
+        return runAmountReservationStage();
 
-            case Stages::Common_VotesChecking:
-                return runVotesCheckingStageWithCoordinatorClarification();
+    case Stages::Common_VotesChecking:
+        return runVotesCheckingStageWithCoordinatorClarification();
 
-            case Stages::Common_ClarificationTransaction:
-                return runClarificationOfTransaction();
+    case Stages::Common_ClarificationTransaction:
+        return runClarificationOfTransaction();
 
-            default:
-                throw RuntimeError(
-                    "ReceiverPaymentTransaction::run(): "
-                        "invalid stage number occurred");
+    case Stages::Common_Recovery:
+        return runVotesRecoveryParentStage();
+
+
+    default:
+        throw RuntimeError(
+            "ReceiverPaymentTransaction::run(): "
+            "invalid stage number occurred");
         }
     } catch (...) {
         recover("Something happens wrong in method run(). Transaction will be recovered");

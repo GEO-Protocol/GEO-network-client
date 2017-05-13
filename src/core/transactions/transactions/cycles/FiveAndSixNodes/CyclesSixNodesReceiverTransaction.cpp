@@ -8,9 +8,9 @@ CyclesSixNodesReceiverTransaction::CyclesSixNodesReceiverTransaction(
     Logger *logger) :
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_SixNodesReceiverTransaction,
-        nodeUUID),
+        nodeUUID,
+        logger),
     mTrustLinesManager(manager),
-    mLogger(logger),
     mInBetweenNodeTopologyMessage(message) {
 }
 
@@ -47,8 +47,15 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
         );
     }
     else {
-        mLogger->error("CyclesSixNodesReceiverTransaction:"
-        "Wrong path size");
+        error() << "Wrong path size";
     }
     return resultDone();
+}
+
+const string CyclesSixNodesReceiverTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesSixNodesReceiverTransactionTA: " << currentTransactionUUID() << "] ";
+
+    return s.str();
 }

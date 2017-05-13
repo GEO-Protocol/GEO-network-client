@@ -17,12 +17,15 @@ public:
         const NodeUUID &currentNodeUUID,
         ReceiverInitPaymentRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
     ReceiverPaymentTransaction(
         BytesShared buffer,
+        const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 

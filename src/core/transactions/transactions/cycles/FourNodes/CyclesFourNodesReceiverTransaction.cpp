@@ -11,7 +11,6 @@ CyclesFourNodesReceiverTransaction::CyclesFourNodesReceiverTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(manager),
-    mLogger(logger),
     mRequestMessage(message)
 {}
 
@@ -39,4 +38,12 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
     if (kMessage->NeighborsUUID().size() > 0)
         sendMessage(mRequestMessage->senderUUID, kMessage);
     return finishTransaction();
+}
+
+const string CyclesFourNodesReceiverTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesFourNodesReceiverTransactionTA: " << currentTransactionUUID() << "] ";
+
+    return s.str();
 }

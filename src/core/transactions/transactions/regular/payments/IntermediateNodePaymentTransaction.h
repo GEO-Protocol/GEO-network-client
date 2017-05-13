@@ -17,12 +17,15 @@ public:
         const NodeUUID &currentNodeUUID,
         IntermediateNodeReservationRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
 
     IntermediateNodePaymentTransaction(
         BytesShared buffer,
+        const NodeUUID &nodeUUID,
         TrustLinesManager* trustLines,
+        StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger* log);
 

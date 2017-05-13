@@ -41,7 +41,6 @@ void ResultsInterface::writeResult(
                     "Can't open FIFO file.");
         }
     }
-
     if (write(mFIFODescriptor, bytes, bytesCount) != bytesCount) {
         close(mFIFODescriptor);
 

@@ -3,6 +3,7 @@
 
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
+
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 
@@ -21,8 +22,10 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
+    const string logHeader() const;
+
+protected:
     CyclesFourNodesBalancesRequestMessage::Shared mRequestMessage;
     TrustLinesManager *mTrustLinesManager;
-    Logger *mLogger;
 };
 #endif //GEO_NETWORK_CLIENT_CYCLEFOURNODESRESPONSETRANSACTION_H

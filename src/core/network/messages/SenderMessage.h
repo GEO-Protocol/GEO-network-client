@@ -28,7 +28,7 @@ public:
         noexcept;
 
     virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc);
+        noexcept(false);
 
 protected:
     virtual const size_t kOffsetToInheritedBytes() const

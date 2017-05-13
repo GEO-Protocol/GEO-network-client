@@ -3,7 +3,7 @@
 
 #include "base/BasePaymentTransaction.h"
 #include "base/PathStats.h"
-
+#include "../../../../io/storage/StorageHandler.h"
 #include <boost/functional/hash.hpp>
 
 #include <unordered_map>
@@ -20,13 +20,16 @@ public:
         const NodeUUID &kCurrentNodeUUID,
         Path::ConstShared path,
         TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log)
         noexcept;
 
     CycleCloserInitiatorTransaction(
         BytesShared buffer,
+        const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
+        StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log)
         throw (bad_alloc);

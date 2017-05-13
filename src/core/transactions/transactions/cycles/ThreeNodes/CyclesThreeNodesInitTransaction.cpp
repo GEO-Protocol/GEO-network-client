@@ -4,17 +4,18 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,
     TrustLinesManager *manager,
-    RoutingTablesHandler *routingTablesHandler,
+    StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_ThreeNodesInitTransaction,
         nodeUUID,
         logger),
-    mRoutingTablesHandler(routingTablesHandler),
     mTrustLinesManager(manager),
-    mLogger(logger),
-    mContractorUUID(contractorUUID)
+    mContractorUUID(contractorUUID),
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run() {
@@ -36,13 +37,8 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     const TrustLineBalance kZeroBalance = 0;
     const auto contractorNeighbors =
-        mRoutingTablesHandler->neighborsOfOnRT2(
+        mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(
             mContractorUUID);
-    cout << "CyclesThreeNodesInitTransaction::mContractorUUID " << mContractorUUID << endl;
-    stringstream ss;
-    copy(contractorNeighbors.begin(), contractorNeighbors.end(), ostream_iterator<NodeUUID>(ss, " "));
-    cout << ss.str() << endl;
-    cout << "CyclesThreeNodesInitTransaction::End" << endl;
     set<NodeUUID> ownNeighbors, commonNeighbors;
     for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()){
 
@@ -92,11 +88,22 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     const auto neighborsAndBalances = message->NeighborsAndBalances();
     for(const auto &nodeUUIDAndBalance : neighborsAndBalances ){
         vector<NodeUUID> cycle = {
-            mNodeUUID,
             mContractorUUID,
             nodeUUIDAndBalance};
-        auto sCycle = make_shared<vector<NodeUUID>>(cycle);
-        closeCycleSignal(sCycle);
+        // Path object is common object. For cycle - destination and sourse node is the same
+        const auto cyclePath = make_shared<Path>(
+            mNodeUUID,
+            mNodeUUID,
+            cycle);
+        const auto kTransaction = make_shared<CycleCloserInitiatorTransaction>(
+            mNodeUUID,
+            cyclePath,
+            mTrustLinesManager,
+            mStorageHandler,
+            mMaxFlowCalculationCacheManager,
+            mLog
+        );
+        launchSubsidiaryTransaction(kTransaction);
         #ifdef TESTS
             ResultCycles.push_back(cycle);
         #endif
@@ -113,4 +120,12 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     #endif
 
     return finishTransaction();
+}
+
+const string CyclesThreeNodesInitTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[CyclesThreeNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
+
+    return s.str();
 }

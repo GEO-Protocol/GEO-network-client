@@ -1,5 +1,6 @@
 #include "GetFirstRoutingTableTransaction.h"
 
+
 GetFirstRoutingTableTransaction::GetFirstRoutingTableTransaction(
     NodeUUID &nodeUUID,
     NeighborsRequestMessage::Shared message,
@@ -15,32 +16,49 @@ GetFirstRoutingTableTransaction::GetFirstRoutingTableTransaction(
     mTrustLinesManager(manager)
 {}
 
-NeighborsRequestMessage::Shared GetFirstRoutingTableTransaction::message() const
-{
-    return  mMessage;
-}
+//NeighborsRequestMessage::Shared GetFirstRoutingTableTransaction::message() const
+//{
+//    return  mMessage;
+//}
 
 TransactionResult::SharedConst GetFirstRoutingTableTransaction::run()
 {
-    info() << "Get neigbors request receive from " << mMessage->senderUUID;
-    auto neighbors = mTrustLinesManager->rt1();
+#ifdef DEBUG_LOG_ROUTING_TABLES_PROCESSING
+    debug() << "Neighbors request received from (" << mMessage->senderUUID << ")";
+#endif
+
+    const auto kNeighbors = mTrustLinesManager->rt1();
+    if (kNeighbors.size() == 1) {
+
+#ifdef DEBUG_LOG_ROUTING_TABLES_PROCESSING
+        debug() << "No neighbors (except newly created one) are present. "
+                   "No reason to send response. "
+                   "Exit.";
+#endif
+
+        return resultDone();
+    }
+
+
     auto neighborsResponseMessage = make_shared<NeighborsResponseMessage>(
         mNodeUUID,
         mMessage->transactionUUID(),
-        neighbors.size());
-    for (const auto neighbor : neighbors) {
+        kNeighbors.size());
+
+    for (const auto &neighbor : kNeighbors) {
         if (neighbor != mMessage->senderUUID) {
             neighborsResponseMessage->appendNeighbor(
                 neighbor);
         }
     }
-    info() << "sending neighors size: " << neighborsResponseMessage->neighbors().size();
-    if (neighborsResponseMessage->neighbors().size() > 0) {
-        info() << "send message to " << mMessage->senderUUID;
-        sendMessage(
-            mMessage->senderUUID,
-            neighborsResponseMessage);
-    }
+
+#ifdef DEBUG_LOG_ROUTING_TABLES_PROCESSING
+        debug() << "Collected " << neighborsResponseMessage->neighbors().size() << " neighbor node(s).";
+#endif
+
+    sendMessage(
+        mMessage->senderUUID,
+        neighborsResponseMessage);
     return resultDone();
 }
 

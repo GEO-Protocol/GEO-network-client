@@ -4,6 +4,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     const NodeUUID &kCurrentNodeUUID,
     const CreditUsageCommand::Shared kCommand,
     TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
     Logger *log)
@@ -13,6 +14,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
         kCurrentNodeUUID,
         trustLines,
+        storageHandler,
         maxFlowCalculationCacheManager,
         log),
     mCommand(kCommand),
@@ -25,16 +27,19 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     BytesShared buffer,
+    const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
+
     Logger *log)
     throw (bad_alloc) :
-
     BasePaymentTransaction(
-        BaseTransaction::CoordinatorPaymentTransaction,
         buffer,
+        nodeUUID,
         trustLines,
+        storageHandler,
         maxFlowCalculationCacheManager,
         log),
     mResourcesManager(resourcesManager)
@@ -64,10 +69,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
             case Stages::Common_VotesChecking:
                 return runVotesConsistencyCheckingStage();
 
-            default:
-                throw RuntimeError(
-                    "CoordinatorPaymentTransaction::run(): "
-                        "invalid transaction step.");
+                default:
+                    throw RuntimeError(
+                        "CoordinatorPaymentTransaction::run(): "
+                            "invalid transaction step.");
         }
     } catch (...) {
         recover("Something happens wrong in method run(). Transaction will be recovered");
@@ -100,6 +105,18 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     // TODO: Read paths from paths manager.
     // TODO: Ensure paths shuffling
 
+    NodeUUID sender = currentNodeUUID();
+//    NodeUUID b("13e5cf8c-5834-4e52-b65b-f9281dd1ff01");
+//    NodeUUID c("13e5cf8c-5834-4e52-b65b-f9281dd1ff02");
+//    NodeUUID receiver("13e5cf8c-5834-4e52-b65b-f9281dd1ff03");
+    //    auto p1 = make_shared<const Path>(
+//        Path(sender, receiver));
+//    auto p2 = make_shared<const Path>(
+//        Path(sender, receiver, {c}));
+
+//    addPathForFurtherProcessing(p1);
+//    addPathForFurtherProcessing(p2);
+
     mResourcesManager->requestPaths(
         currentTransactionUUID(),
         mCommand->contractorUUID());
@@ -117,8 +134,158 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
         auto responseResource = *mResources.begin();
         if (responseResource->type() == BaseResource::ResourceType::Paths) {
 
+            // TODO for test case0
+//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+//
+//            vector<NodeUUID> intermediateNodes;
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID53Ptr);
+//            intermediateNodes.push_back(*nodeUUID54Ptr);
+//            auto result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID55Ptr,
+//                intermediateNodes);
+//
+//            delete nodeUUID51Ptr;
+//            delete nodeUUID52Ptr;
+//            delete nodeUUID53Ptr;
+//            delete nodeUUID54Ptr;
+//            delete nodeUUID55Ptr;
+//
+//            addPathForFurtherProcessing(result);
+            // end test case0
+
+            // TODO for test case1
+//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+//            NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
+//
+//            vector<NodeUUID> intermediateNodes;
+//            intermediateNodes.push_back(*nodeUUID53Ptr);
+//            intermediateNodes.push_back(*nodeUUID54Ptr);
+//            auto result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID52Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//            intermediateNodes.clear();
+//            intermediateNodes.push_back(*nodeUUID55Ptr);
+//            intermediateNodes.push_back(*nodeUUID56Ptr);
+//            result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID52Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//
+//            delete nodeUUID51Ptr;
+//            delete nodeUUID52Ptr;
+//            delete nodeUUID53Ptr;
+//            delete nodeUUID54Ptr;
+//            delete nodeUUID55Ptr;
+//            delete nodeUUID56Ptr;
+            //end test case1
+
+            // TODO for test case2
+//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+//
+//            vector<NodeUUID> intermediateNodes;
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID53Ptr);
+//            auto result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID55Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//            intermediateNodes.clear();
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID54Ptr);
+//            result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID55Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//
+//            delete nodeUUID51Ptr;
+//            delete nodeUUID52Ptr;
+//            delete nodeUUID53Ptr;
+//            delete nodeUUID54Ptr;
+//            delete nodeUUID55Ptr;
+            //end test case2
+
+            // TODO for test case3
+//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
+//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+//            NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
+//
+//            vector<NodeUUID> intermediateNodes;
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID53Ptr);
+//            intermediateNodes.push_back(*nodeUUID55Ptr);
+//            auto result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID56Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//            intermediateNodes.clear();
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID54Ptr);
+//            intermediateNodes.push_back(*nodeUUID55Ptr);
+//            result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID56Ptr,
+//                intermediateNodes);
+//            addPathForFurtherProcessing(result);
+//
+//            delete nodeUUID51Ptr;
+//            delete nodeUUID52Ptr;
+//            delete nodeUUID53Ptr;
+//            delete nodeUUID54Ptr;
+//            delete nodeUUID55Ptr;
+//            delete nodeUUID56Ptr;
+            //end test case3
+
             PathsResource::Shared response = static_pointer_cast<PathsResource>(
                 responseResource);
+
+            // TODO for test Votes
+//            NodeUUID *nodeUUID51Ptr = new NodeUUID("83f5325f-09b9-4af1-9539-ebd82592fa28");
+//            NodeUUID *nodeUUID52Ptr = new NodeUUID("0cf32ef5-3028-42a3-b81b-dd32a3e15f96");
+//            NodeUUID *nodeUUID53Ptr = new NodeUUID("592aaaf6-0626-4a0b-9cd7-a09215feff9e");
+//            NodeUUID *nodeUUID54Ptr = new NodeUUID("03de0db2-140e-4a5b-aa0e-b2fbf25dceec");
+//            NodeUUID *nodeUUID55Ptr = new NodeUUID("6801e258-b4b8-4b35-bdef-4b7d59ecb4ed");
+//
+//            vector<NodeUUID> intermediateNodes;
+//            intermediateNodes.push_back(*nodeUUID52Ptr);
+//            intermediateNodes.push_back(*nodeUUID53Ptr);
+//            intermediateNodes.push_back(*nodeUUID54Ptr);
+//            auto result = make_shared<const Path>(
+//                *nodeUUID51Ptr,
+//                *nodeUUID55Ptr,
+//                intermediateNodes);
+//
+//            delete nodeUUID51Ptr;
+//            delete nodeUUID52Ptr;
+//            delete nodeUUID53Ptr;
+//            delete nodeUUID54Ptr;
+//            delete nodeUUID55Ptr;
+//
+//            addPathForFurtherProcessing(result);
+            // end test
+
             response->pathCollection()->resetCurrentPath();
             while (response->pathCollection()->hasNextPath()) {
                 auto path = response->pathCollection()->nextPath();
@@ -134,6 +301,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
         error() << "resources are empty";
         return resultNoPathsError();
     }
+
+
 
     // If there is no one path to the receiver - transaction can't proceed.
     if (mPathsStats.empty())
@@ -955,13 +1124,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultUnexpectedEr
 pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() const
     throw (bad_alloc)
 {
-    // todo: add implementation
-    return make_pair(make_shared<byte>(0), 0);
+    return BasePaymentTransaction::serializeToBytes();
 }
 
 void CoordinatorPaymentTransaction::deserializeFromBytes(BytesShared buffer)
 {
-    // todo: add implementation
+    BasePaymentTransaction::deserializeFromBytes(buffer);
 }
 
 TrustLineAmount CoordinatorPaymentTransaction::totalReservedByAllPaths() const

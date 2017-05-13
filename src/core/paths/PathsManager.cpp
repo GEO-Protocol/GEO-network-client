@@ -703,7 +703,7 @@ void PathsManager::testPaymentStateOperationsHandler()
     }
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    pair<BytesShared, size_t> stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction1);
+    pair<BytesShared, size_t> stateBt = ioTransaction->paymentOperationStateHandler()->byTransaction(transaction1);
     uint32_t state = 0;
     memcpy(
         &state,
@@ -711,7 +711,7 @@ void PathsManager::testPaymentStateOperationsHandler()
         stateBt.second);
     info() << stateBt.second << " " << (uint32_t)state;
     try {
-        stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction2);
+        stateBt = ioTransaction->paymentOperationStateHandler()->byTransaction(transaction2);
         memcpy(
             &state,
             stateBt.first.get(),
@@ -721,7 +721,7 @@ void PathsManager::testPaymentStateOperationsHandler()
         info() << "not found";
     }
     try {
-        stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction3);
+        stateBt = ioTransaction->paymentOperationStateHandler()->byTransaction(transaction3);
         memcpy(
             &state,
             stateBt.first.get(),
@@ -745,14 +745,14 @@ void PathsManager::testPaymentStateOperationsHandler()
     ioTransaction->paymentOperationStateHandler()->deleteRecord(transaction2);
 
     info() << "after changes";
-    stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction1);
+    stateBt = ioTransaction->paymentOperationStateHandler()->byTransaction(transaction1);
     memcpy(
         &state,
         stateBt.first.get(),
         stateBt.second);
     info() << stateBt.second << " " << state;
     try {
-        stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction2);
+        stateBt = ioTransaction->paymentOperationStateHandler()->byTransaction(transaction2);
         memcpy(
             &state,
             stateBt.first.get(),
@@ -762,7 +762,7 @@ void PathsManager::testPaymentStateOperationsHandler()
         info() << "not found";
     }
     try {
-        stateBt = ioTransaction->paymentOperationStateHandler()->getState(transaction3);
+        stateBt = ioTransaction->paymentOperationStateHandler()->byTransaction(transaction3);
         memcpy(
             &state,
             stateBt.first.get(),
@@ -772,7 +772,7 @@ void PathsManager::testPaymentStateOperationsHandler()
         info() << "not found";
     }
     try {
-        stateBt = ioTransaction->paymentOperationStateHandler()->getState(TransactionUUID());
+        stateBt = ioTransaction->paymentOperationStateHandler()->byTransaction(TransactionUUID());
         memcpy(
             &state,
             stateBt.first.get(),

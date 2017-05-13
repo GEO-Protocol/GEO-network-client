@@ -5,6 +5,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     const NodeUUID& currentNodeUUID,
     IntermediateNodeReservationRequestMessage::ConstShared message,
     TrustLinesManager* trustLines,
+    StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger* log) :
 
@@ -13,6 +14,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         message->transactionUUID(),
         currentNodeUUID,
         trustLines,
+        storageHandler,
         maxFlowCalculationCacheManager,
         log),
     mMessage(message)
@@ -22,21 +24,22 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
 
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     BytesShared buffer,
+    const NodeUUID &nodeUUID,
     TrustLinesManager* trustLines,
+    StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger* log) :
-
-    BasePaymentTransaction(
-        BaseTransaction::IntermediateNodePaymentTransaction,
-        buffer,
-        trustLines,
-        maxFlowCalculationCacheManager,
-        log)
+        BasePaymentTransaction(
+                buffer,
+                nodeUUID,
+                trustLines,
+                storageHandler,
+                maxFlowCalculationCacheManager,
+                log)
 {}
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
-    noexcept
-{
+    noexcept {
     try {
         switch (mStep) {
             case Stages::IntermediateNode_PreviousNeighborRequestProcessing:
@@ -60,6 +63,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
             case Stages::Common_VotesChecking:
                 return runVotesCheckingStageWithCoordinatorClarification();
 
+            case Stages::Common_Recovery:
+                return runVotesRecoveryParentStage();
             default:
                 throw RuntimeError(
                     "IntermediateNodePaymentTransaction::run: "
