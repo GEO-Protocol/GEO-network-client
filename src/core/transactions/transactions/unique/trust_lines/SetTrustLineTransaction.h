@@ -91,8 +91,6 @@ private:
 
     TransactionResult::SharedConst resultProtocolError();
 
-
-
 private:
     const uint16_t kConnectionTimeout = 2000;
     const uint16_t kMaxRequestsCount = 5;

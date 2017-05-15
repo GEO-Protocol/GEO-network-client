@@ -40,46 +40,60 @@ RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
 TransactionResult::SharedConst RejectTrustLineTransaction::run() {
 
     try {
-        if (isIncomingTrustLineDirectionExisting()) {
+        switch (mStep) {
 
-            if (checkDebt()) {
-                suspendTrustLineDirectionFromContractor();
-                sendResponseCodeToContractor(
-                        RejectTrustLineMessage::kResultCodeRejectDelayed);
-
-                return transactionResultFromMessage(
-                        mMessage->resultRejectDelayed());
-
-            } else {
-                rejectTrustLine();
-                logRejectingTrustLineOperation();
-                if (!mTrustLinesManager->isNeighbor(mMessage->contractorUUID())) {
-                    const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
-                        currentNodeUUID(),
-                        currentNodeUUID(),
-                        currentNodeUUID(),
-                        mMessage->contractorUUID(),
-                        TrustLineStatesHandlerTransaction::TrustLineState::Removed,
-                        0,
-                        mTrustLinesManager,
-                        mStorageHandler,
-                        mLog);
-                    launchSubsidiaryTransaction(kTransaction);
-                }
-                sendResponseCodeToContractor(
-                        RejectTrustLineMessage::kResultCodeRejected);
-
-                return transactionResultFromMessage(
+            case Stages::CheckContractorUUIDValidity: {
+                if (!isContractorUUIDValid(mMessage->senderUUID))
+                    return transactionResultFromMessage(
                         mMessage->resultRejected());
+                mStep = Stages::CheckIncomingDirection;
             }
+            case Stages::CheckIncomingDirection: {
+                if (isIncomingTrustLineDirectionExisting()) {
 
-        } else {
-            sendResponseCodeToContractor(
-                    RejectTrustLineMessage::kResultCodeTrustLineAbsent);
-            return transactionResultFromMessage(
-                    mMessage->resultRejected());
+                    if (checkDebt()) {
+                        suspendTrustLineDirectionFromContractor();
+                        sendResponseCodeToContractor(
+                            RejectTrustLineMessage::kResultCodeRejectDelayed);
+
+                        return transactionResultFromMessage(
+                            mMessage->resultRejectDelayed());
+
+                    } else {
+                        rejectTrustLine();
+                        logRejectingTrustLineOperation();
+                        if (!mTrustLinesManager->isNeighbor(mMessage->contractorUUID())) {
+                            const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                                currentNodeUUID(),
+                                currentNodeUUID(),
+                                currentNodeUUID(),
+                                mMessage->contractorUUID(),
+                                TrustLineStatesHandlerTransaction::TrustLineState::Removed,
+                                0,
+                                mTrustLinesManager,
+                                mStorageHandler,
+                                mLog);
+                            launchSubsidiaryTransaction(kTransaction);
+                        }
+                        sendResponseCodeToContractor(
+                            RejectTrustLineMessage::kResultCodeRejected);
+
+                        return transactionResultFromMessage(
+                            mMessage->resultRejected());
+                    }
+
+                } else {
+                    sendResponseCodeToContractor(
+                        RejectTrustLineMessage::kResultCodeTrustLineAbsent);
+                    return transactionResultFromMessage(
+                        mMessage->resultRejected());
+                }
+            }
+            default: {
+                throw ConflictError("UpdateTrustLineTransaction::run: "
+                                        "Illegal step execution.");
+            }
         }
-
     } catch (exception &e) {
         throw RuntimeError("RejectTrustLineTransaction::run: "
                                "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +

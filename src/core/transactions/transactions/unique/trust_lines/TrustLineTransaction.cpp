@@ -79,3 +79,10 @@ const size_t TrustLineTransaction::kOffsetToDataBytes() {
                                  + sizeof(uint16_t);
     return offset;
 }
+
+bool TrustLineTransaction::isContractorUUIDValid(const NodeUUID &contractorUUID){
+    if(contractorUUID == mNodeUUID){
+        return false;
+    }
+    return true;
+}

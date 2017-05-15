@@ -55,7 +55,9 @@ pair<BytesShared, size_t> AcceptTrustLineMessage::serializeToBytes() const
     );
 }
 
-MessageResult::SharedConst AcceptTrustLineMessage::resultAccepted() const {
+MessageResult::SharedConst AcceptTrustLineMessage::resultAccepted() const
+noexcept
+{
     // todo: refactor
     return MessageResult::SharedConst(
         new MessageResult(
@@ -65,13 +67,25 @@ MessageResult::SharedConst AcceptTrustLineMessage::resultAccepted() const {
     );
 }
 
-MessageResult::SharedConst AcceptTrustLineMessage::resultConflict() const {
-
+MessageResult::SharedConst AcceptTrustLineMessage::resultConflict() const
+noexcept
+{
     // todo: refactor
     return MessageResult::SharedConst(
         new MessageResult(
             senderUUID,
             mTransactionUUID,
             kResultCodeConflict)
+    );
+}
+
+MessageResult::SharedConst AcceptTrustLineMessage::resultRejected() const
+noexcept
+{
+    return MessageResult::SharedConst(
+        new MessageResult(
+            senderUUID,
+            mTransactionUUID,
+            kResultCodeRejected)
     );
 }
