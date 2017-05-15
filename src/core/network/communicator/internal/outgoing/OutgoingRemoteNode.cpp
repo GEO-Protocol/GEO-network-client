@@ -14,7 +14,9 @@ OutgoingRemoteNode::OutgoingRemoteNode(
     mIOService(ioService),
     mSocket(socket),
     mLog(logger),
-    mNextAvailableChannelIndex(0)
+    mNextAvailableChannelIndex(0),
+    mCyclesStats(boost::posix_time::microsec_clock::universal_time(), 0),
+    mSendingDelayTimer(mIOService)
 {}
 
 void OutgoingRemoteNode::sendMessage(
@@ -219,6 +221,30 @@ void OutgoingRemoteNode::beginPacketsSending()
     }
 
 
+    // The next code inserts delay between sending packets in case of high traffic.
+    const auto kShortSendingTimeInterval = boost::posix_time::milliseconds(20);
+    const auto kTimeoutFromLastSending = boost::posix_time::microsec_clock::universal_time() - mCyclesStats.first;
+    if (kTimeoutFromLastSending < kShortSendingTimeInterval) {
+        // Increasing short sendings counter.
+        mCyclesStats.second += 1;
+
+        const auto kMaxShortSendings = 30;
+        if (mCyclesStats.second > kMaxShortSendings) {
+            mCyclesStats.second = 0;
+            mSendingDelayTimer.expires_from_now(kShortSendingTimeInterval);
+            mSendingDelayTimer.async_wait([this] (const boost::system::error_code &_){
+                this->beginPacketsSending();
+                debug() << "Sending delayed";
+
+            });
+            return;
+        }
+
+    } else {
+        mCyclesStats.second = 0;
+    }
+
+
     const auto packetDataAndSize = mPacketsQueue.front();
     mSocket.async_send_to(
         boost::asio::buffer(
@@ -268,6 +294,9 @@ void OutgoingRemoteNode::beginPacketsSending()
             free(packetDataAndSize.first);
             mPacketsQueue.pop();
 
+
+
+            mCyclesStats.first = boost::posix_time::microsec_clock::universal_time();
             if (mPacketsQueue.size() > 0) {
                 beginPacketsSending();
             }
