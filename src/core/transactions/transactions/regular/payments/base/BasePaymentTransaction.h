@@ -91,7 +91,7 @@ protected:
 
 protected:
     // TODO: move it into separate *.h file.
-    typedef uint16_t PathUUID;
+    typedef uint64_t PathUUID;
 
     // Stages handlers
     virtual TransactionResult::SharedConst runVotesCheckingStage();
