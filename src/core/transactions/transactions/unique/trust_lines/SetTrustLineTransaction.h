@@ -32,7 +32,8 @@ public:
 
 private:
     enum Stages {
-        CheckUnicity = 1,
+        CheckContractorUUIDValidity = 1,
+        CheckUnicity,
         CheckOutgoingDirection,
         CheckContext
     };

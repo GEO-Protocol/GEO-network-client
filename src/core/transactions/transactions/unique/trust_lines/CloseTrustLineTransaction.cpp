@@ -84,6 +84,12 @@ void CloseTrustLineTransaction::deserializeFromBytes(
 TransactionResult::SharedConst CloseTrustLineTransaction::run() {
     switch (mStep) {
 
+        case Stages::CheckContractorUUIDValidity: {
+            if (!isContractorUUIDValid(mCommand->contractorUUID()))
+                return resultProtocolError();
+            mStep = Stages::CheckUnicity;
+        }
+
         case Stages::CheckUnicity: {
             if (!isTransactionToContractorUnique()) {
                 return resultConflictWithOtherOperation();
