@@ -118,6 +118,12 @@ public:
     ConstSharedTrustLineAmount availableIncomingAmount(
         const NodeUUID &contractor);
 
+    ConstSharedTrustLineAmount availableOutgoingCycleAmount(
+        const NodeUUID &contractor);
+
+    ConstSharedTrustLineAmount availableIncomingCycleAmount(
+        const NodeUUID &contractor);
+
     ConstSharedTrustLineAmount totalOutgoingAmount()
         const throw (bad_alloc);
 
@@ -165,6 +171,9 @@ public:
 
     vector<NodeUUID> getFirstLevelNodesForCycles(
             TrustLineBalance maxFlow);
+
+    // TODO remove after testing
+    void printRTs();
 
 protected:
     void loadTrustLinesFromDisk ()

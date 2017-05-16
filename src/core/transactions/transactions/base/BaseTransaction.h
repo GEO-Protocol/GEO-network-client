@@ -80,6 +80,7 @@ public:
         IntermediateNodePaymentTransaction,
         VoutesStatusResponsePaymentTransaction,
         Payments_CycleCloserInitiatorTransaction,
+        Payments_CycleCloserIntermediateNodeTransaction,
 
         // Max flow calculation
         InitiateMaxFlowCalculationTransactionType,

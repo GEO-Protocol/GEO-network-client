@@ -248,6 +248,31 @@ set<NodeUUID> RoutingTableHandler::neighborsOf (
     return result;
 }
 
+vector<NodeUUID> RoutingTableHandler::allSourcesForDestination(
+    const NodeUUID &destination)
+{
+    vector<NodeUUID> result;
+    string query = "SELECT source FROM " + mTableName + " WHERE destination = ?";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTableHandler::allSourcesForDestination: "
+                          "Bad query; sqlite error: " + rc);
+    }
+    rc = sqlite3_bind_blob(stmt, 1, destination.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("RoutingTableHandler::allSourcesForDestination: "
+                          "Bad Destination binding; sqlite error: " + rc);
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+        NodeUUID source((uint8_t *)sqlite3_column_blob(stmt, 0));
+        result.push_back(source);
+    }
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 map<const NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapSourceKey()
 {
     map<const NodeUUID, vector<NodeUUID>> result;
@@ -280,27 +305,8 @@ map<const NodeUUID, vector<NodeUUID>> RoutingTableHandler::routeRecordsMapSource
     return result;
 }
 
-bool RoutingTableHandler::isNodePresentAsDestination(const NodeUUID &nodeUUID)
-{
-    string query = "SELECT 1 FROM " + mTableName + " WHERE destination = ?";
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::isNodePresentAsDestination: "
-                          "Bad query; sqlite error: " + rc);
-    }
-    rc = sqlite3_bind_blob(stmt, 1, nodeUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
-    if (rc != SQLITE_OK) {
-        throw IOError("RoutingTableHandler::isNodePresentAsDestination: "
-                          "Bad binding of nodeUUID; sqlite error: " + rc);
-    }
-    rc = sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    return rc == SQLITE_ROW;
-}
-
-void RoutingTableHandler::deleteAllRecordsWithSource(const NodeUUID &sourceUUID)
+void RoutingTableHandler::deleteAllRecordsWithSource(
+    const NodeUUID &sourceUUID)
 {
     string query = "DELETE FROM " + mTableName + " WHERE source = ?";
     sqlite3_stmt *stmt;

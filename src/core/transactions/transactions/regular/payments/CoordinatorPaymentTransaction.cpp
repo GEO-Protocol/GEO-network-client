@@ -22,7 +22,10 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mReservationsStage(0),
     mDirectPathIsAllreadyProcessed(false)
 {
+    debug() << "constructor with stage";
     mStep = Stages::Coordinator_Initialisation;
+    debug() << "run: stage: " << mStep;
+    debug() << "mReservationsStage: " << (int)mReservationsStage;
 }
 
 CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
@@ -43,12 +46,18 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         maxFlowCalculationCacheManager,
         log),
     mResourcesManager(resourcesManager)
-{}
+{
+    debug() << "constructor with deserialization";
+    debug() << "run: stage: " << mStep;
+    debug() << "mReservationsStage: " << (int)mReservationsStage;
+}
 
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
     noexcept
 {
+    debug() << "run: stage: " << mStep;
+    debug() << "mReservationsStage: " << (int)mReservationsStage;
     try {
         switch (mStep) {
             case Stages::Coordinator_Initialisation:
@@ -334,17 +343,15 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverRespons
             resultNoResponseError(),
             "Receiver reservation response wasn't received. Canceling.");
 
-
     const auto kMessage = popNextMessage<ReceiverInitPaymentResponseMessage>();
     if (kMessage->state() != ReceiverInitPaymentResponseMessage::Accepted)
         return exitWithResult(
             resultDone(),
             "Receiver rejected payment operation. Canceling.");
 
-
     debug() << "Receiver accepted operation. Begin reserving amounts.";
     mStep = Stages::Coordinator_AmountReservation;
-    return resultFlushAndContinue();
+    return runAmountReservationStage();
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservationStage ()
@@ -415,7 +422,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     // todo: make this atomic
     mTransactionIsVoted = true;
 
-    auto message = make_shared<ParticipantsVotesMessage>(
+    mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
         kCurrentNodeUUID,
         kTransactionUUID,
         kCurrentNodeUUID);
@@ -450,7 +457,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
             if (nodeUUID == kCurrentNodeUUID)
                 continue;
 
-            message->addParticipant(nodeUUID);
+            mParticipantsVotesMessage->addParticipant(nodeUUID);
 
 #ifdef DEBUG
             totalParticipantsCount++;
@@ -462,23 +469,23 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 #ifdef DEBUG
     debug() << "Total participants included: " << totalParticipantsCount;
     debug() << "Participants order is the next:";
-    for (const auto kNodeUUIDAndVote : message->votes()) {
+    for (const auto kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
         debug() << kNodeUUIDAndVote.first;
     }
 #endif
 
     // Begin message propagation
     sendMessage(
-        message->firstParticipant(),
-        message);
+        mParticipantsVotesMessage->firstParticipant(),
+        mParticipantsVotesMessage);
 
-    debug() << "Votes message constructed and sent to the (" << message->firstParticipant() << ")";
+    debug() << "Votes message constructed and sent to the (" << mParticipantsVotesMessage->firstParticipant() << ")";
 
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes,
         Message::Payments_TTLProlongation},
-        maxNetworkDelay(message->participantsCount() + 1));
+        maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1));
 }
 
 

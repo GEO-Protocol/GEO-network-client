@@ -36,13 +36,15 @@ public:
     set<NodeUUID> neighborsOf (
         const NodeUUID &sourceUUID);
 
+    vector<NodeUUID> allSourcesForDestination(
+        const NodeUUID &destination);
+
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> routeRecordsMapDestinationKey();
 
     map<const NodeUUID, vector<NodeUUID>> routeRecordsMapSourceKey();
 
-    bool isNodePresentAsDestination(const NodeUUID &nodeUUID);
-
-    void deleteAllRecordsWithSource(const NodeUUID &sourceUUID);
+    void deleteAllRecordsWithSource(
+        const NodeUUID &sourceUUID);
 
     const string &tableName() const;
 

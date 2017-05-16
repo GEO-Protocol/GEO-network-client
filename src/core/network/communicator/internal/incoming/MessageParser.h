@@ -30,8 +30,13 @@
 #include "../../../messages/payments/IntermediateNodeReservationResponseMessage.h"
 #include "../../../messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../messages/payments/ReceiverInitPaymentResponseMessage.h"
+#include "../../../messages/payments/CoordinatorCycleReservationRequestMessage.h"
+#include "../../../messages/payments/CoordinatorCycleReservationResponseMessage.h"
+#include "../../../messages/payments/IntermediateNodeCycleReservationRequestMessage.h"
+#include "../../../messages/payments/IntermediateNodeCycleReservationResponseMessage.h"
 #include "../../../messages/payments/ParticipantsVotesMessage.h"
 #include "../../../messages/payments/FinalPathConfigurationMessage.h"
+#include "../../../messages/payments/FinalPathCycleConfigurationMessage.h"
 #include "../../../messages/payments/TTLPolongationMessage.h"
 
 #include "../../../messages/total_balances/InitiateTotalBalancesMessage.h"

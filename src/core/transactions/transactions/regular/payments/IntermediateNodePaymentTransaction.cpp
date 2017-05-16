@@ -30,12 +30,12 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger* log) :
         BasePaymentTransaction(
-                buffer,
-                nodeUUID,
-                trustLines,
-                storageHandler,
-                maxFlowCalculationCacheManager,
-                log)
+            buffer,
+            nodeUUID,
+            trustLines,
+            storageHandler,
+            maxFlowCalculationCacheManager,
+            log)
 {}
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
@@ -283,7 +283,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificat
     // transactions is still alive and we continue waiting for messages
     debug() << "Transactions is still alive. Continue waiting for messages";
     mStep = Stages::IntermediateNode_ReservationProlongation;
-    // TODO correct delay time
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes,
          Message::Payments_IntermediateNodeReservationRequest},

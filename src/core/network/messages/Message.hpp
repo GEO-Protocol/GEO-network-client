@@ -42,11 +42,16 @@ public:
         Payments_CoordinatorReservationResponse,
         Payments_IntermediateNodeReservationRequest,
         Payments_IntermediateNodeReservationResponse,
+
+        Payments_CoordinatorCycleReservationRequest,
+        Payments_CoordinatorCycleReservationResponse,
+        Payments_IntermediateNodeCycleReservationRequest,
+        Payments_IntermediateNodeCycleReservationResponse,
+
         Payments_ParticipantsVotes,
-        Payments_ParticipantsPathsConfiguration,
-        Payments_ParticipantsPathsConfigurationRequest,
         Payments_VotesStatusRequest,
         Payments_FinalPathConfiguration,
+        Payments_FinalPathCycleConfiguration,
         Payments_TTLProlongation,
 
         /*

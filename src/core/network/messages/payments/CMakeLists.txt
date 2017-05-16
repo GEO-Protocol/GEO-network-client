@@ -7,6 +7,12 @@ set(SOURCE_FILES
     base/ResponseMessage.h
     base/ResponseMessage.cpp
 
+    base/RequestCycleMessage.h
+    base/RequestCycleMessage.cpp
+
+    base/ResponseCycleMessage.h
+    base/ResponseCycleMessage.cpp
+
     ReceiverInitPaymentRequestMessage.h
     ReceiverInitPaymentRequestMessage.cpp
 
@@ -25,6 +31,18 @@ set(SOURCE_FILES
     IntermediateNodeReservationResponseMessage.h
     IntermediateNodeReservationResponseMessage.cpp
 
+    CoordinatorCycleReservationRequestMessage.h
+    CoordinatorCycleReservationRequestMessage.cpp
+
+    CoordinatorCycleReservationResponseMessage.h
+    CoordinatorCycleReservationResponseMessage.cpp
+
+    IntermediateNodeCycleReservationRequestMessage.h
+    IntermediateNodeCycleReservationRequestMessage.cpp
+
+    IntermediateNodeCycleReservationResponseMessage.h
+    IntermediateNodeCycleReservationResponseMessage.cpp
+
     ParticipantsVotesMessage.cpp
     ParticipantsVotesMessage.h
 
@@ -32,6 +50,9 @@ set(SOURCE_FILES
 
     FinalPathConfigurationMessage.cpp
     FinalPathConfigurationMessage.h
+
+    FinalPathCycleConfigurationMessage.h
+    FinalPathCycleConfigurationMessage.cpp
 
     TTLPolongationMessage.h
     TTLPolongationMessage.cpp)

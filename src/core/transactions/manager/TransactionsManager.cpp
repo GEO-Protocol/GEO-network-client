@@ -45,54 +45,65 @@ TransactionsManager::TransactionsManager(
 
 void TransactionsManager::loadTransactions() {
 
-    const auto ioTransaction = mStorageHandler->beginTransaction();
-    const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
-    for(const auto kTABufferAndSize: serializedTAs) {
-        BaseTransaction::SerializedTransactionType *transactionType = new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
-        auto TransactionTypeId = *transactionType;
-        switch (TransactionTypeId) {
-            case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
-                auto transaction = make_shared<CoordinatorPaymentTransaction>(
-                    kTABufferAndSize.first,
-                    mNodeUUID,
-                    mTrustLines,
-                    mStorageHandler,
-                    mMaxFlowCalculationCacheManager,
-                    mResourcesManager,
-                    mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
-                break;
-            }
-            case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
-                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
-                    kTABufferAndSize.first,
-                    mNodeUUID,
-                    mTrustLines,
-                    mStorageHandler,
-                    mMaxFlowCalculationCacheManager,
-                    mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
-                break;
-            }
-            case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
-                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
-                    kTABufferAndSize.first,
-                    mNodeUUID,
-                    mTrustLines,
-                    mStorageHandler,
-                    mMaxFlowCalculationCacheManager,
-                    mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
-                break;
-            }
-            default: {
-                throw RuntimeError(
-                    "TrustLinesManager::loadTransactions. "
-                        "Unexpected transaction type identifier.");
-            }
-        }
-
-    }
+//    const auto ioTransaction = mStorageHandler->beginTransaction();
+//    const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
+//    for(const auto kTABufferAndSize: serializedTAs) {
+//        BaseTransaction::SerializedTransactionType *transactionType = new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
+//        auto TransactionTypeId = *transactionType;
+//        switch (TransactionTypeId) {
+//            case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
+//                auto transaction = make_shared<CoordinatorPaymentTransaction>(
+//                    kTABufferAndSize.first,
+//                    mNodeUUID,
+//                    mTrustLines,
+//                    mStorageHandler,
+//                    mMaxFlowCalculationCacheManager,
+//                    mResourcesManager,
+//                    mLog);
+//                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+//                break;
+//            }
+//            case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
+//                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
+//                    kTABufferAndSize.first,
+//                    mNodeUUID,
+//                    mTrustLines,
+//                    mStorageHandler,
+//                    mMaxFlowCalculationCacheManager,
+//                    mLog);
+//                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+//                break;
+//            }
+//            case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
+//                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
+//                    kTABufferAndSize.first,
+//                    mNodeUUID,
+//                    mTrustLines,
+//                    mStorageHandler,
+//                    mMaxFlowCalculationCacheManager,
+//                    mLog);
+//                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+//                break;
+//            }
+//            case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
+//                auto transaction = make_shared<CycleCloserInitiatorTransaction>(
+//                    kTABufferAndSize.first,
+//                    mNodeUUID,
+//                    mTrustLines,
+//                    mStorageHandler,
+//                    mMaxFlowCalculationCacheManager,
+//                    mLog);
+//                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+//                break;
+//            }
+//            default: {
+//                throw RuntimeError(
+//                    "TrustLinesManager::loadTransactions. "
+//                        "Unexpected transaction type identifier.");
+//            }
+//        }
+//
+//    }
 }
 
 /*!
@@ -257,6 +268,18 @@ void TransactionsManager::processMessage(
         } catch (NotFoundError &) {
             launchIntermediateNodePaymentTransaction(
                     static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
+        }
+    } else if (message->typeID() == Message::Payments_IntermediateNodeCycleReservationRequest) {
+        // It is possible, that transaction was already initialised
+        // by the ReceiverInitPaymentRequest.
+        // In this case - message must be simply attached to it,
+        // no new transaction must be launched.
+        try {
+            mScheduler->tryAttachMessageToTransaction(message);
+
+        } catch (NotFoundError &) {
+            launchCycleCloserIntermediateNodeTransaction(
+                static_pointer_cast<IntermediateNodeCycleReservationRequestMessage>(message));
         }
     } else if(message->typeID() == Message::MessageType::Payments_VotesStatusRequest){
         launchVoutesResponsePaymentsTransaction(
@@ -661,6 +684,19 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
 {
     prepareAndSchedule(
         make_shared<IntermediateNodePaymentTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mStorageHandler,
+            mMaxFlowCalculationCacheManager,
+            mLog));
+}
+
+void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
+    IntermediateNodeCycleReservationRequestMessage::Shared message)
+{
+    prepareAndSchedule(
+        make_shared<CycleCloserIntermediateNodeTransaction>(
             mNodeUUID,
             message,
             mTrustLines,
@@ -1105,6 +1141,7 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(const NodeUUID &
             mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -1141,6 +1178,7 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction() {
             mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
         mScheduler->scheduleTransaction(transaction);
 
     } catch (bad_alloc &) {
@@ -1177,6 +1215,7 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
             mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -1214,6 +1253,7 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(const NodeUUID &d
                 mLog
         );
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
+        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -1240,6 +1280,8 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(CyclesFourNod
 }
 
 void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transaction) {
+
+
     const auto kTransactionTypeId = transaction->transactionType();
     const auto ioTransaction = mStorageHandler->beginTransaction();
     switch (kTransactionTypeId) {
@@ -1265,6 +1307,16 @@ void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transac
         }
         case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
             const auto kChildTransaction = static_pointer_cast<ReceiverPaymentTransaction>(transaction);
+            const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
+            ioTransaction->transactionHandler()->saveRecord(
+                kChildTransaction->currentTransactionUUID(),
+                transactionBytesAndCount.first,
+                transactionBytesAndCount.second
+            );
+            break;
+        }
+        case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
+            const auto kChildTransaction = static_pointer_cast<CycleCloserInitiatorTransaction>(transaction);
             const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
             ioTransaction->transactionHandler()->saveRecord(
                 kChildTransaction->currentTransactionUUID(),
