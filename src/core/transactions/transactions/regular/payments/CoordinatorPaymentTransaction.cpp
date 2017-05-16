@@ -390,7 +390,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     // todo: make this atomic
     mTransactionIsVoted = true;
 
-    auto message = make_shared<ParticipantsVotesMessage>(
+    mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
         kCurrentNodeUUID,
         kTransactionUUID,
         kCurrentNodeUUID);
@@ -425,7 +425,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
             if (nodeUUID == kCurrentNodeUUID)
                 continue;
 
-            message->addParticipant(nodeUUID);
+            mParticipantsVotesMessage->addParticipant(nodeUUID);
 
 #ifdef DEBUG
             totalParticipantsCount++;
@@ -437,23 +437,23 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 #ifdef DEBUG
     debug() << "Total participants included: " << totalParticipantsCount;
     debug() << "Participants order is the next:";
-    for (const auto kNodeUUIDAndVote : message->votes()) {
+    for (const auto kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
         debug() << kNodeUUIDAndVote.first;
     }
 #endif
 
     // Begin message propagation
     sendMessage(
-        message->firstParticipant(),
-        message);
+        mParticipantsVotesMessage->firstParticipant(),
+        mParticipantsVotesMessage);
 
-    debug() << "Votes message constructed and sent to the (" << message->firstParticipant() << ")";
+    debug() << "Votes message constructed and sent to the (" << mParticipantsVotesMessage->firstParticipant() << ")";
 
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes,
         Message::Payments_TTLProlongation},
-        maxNetworkDelay(message->participantsCount() + 1));
+        maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1));
 }
 
 

@@ -143,14 +143,15 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
 
     const auto kCurrentNodeUUID = currentNodeUUID();
-    auto message = popNextMessage<ParticipantsVotesMessage>();
+    mParticipantsVotesMessage = popNextMessage<ParticipantsVotesMessage>();
+
     debug() << "Votes message received";
 
 
     try {
         // Check if current node is listed in the votes list.
         // This check is needed to prevent processing message in case of missdelivering.
-        message->vote(kCurrentNodeUUID);
+        mParticipantsVotesMessage->vote(kCurrentNodeUUID);
 
     } catch (NotFoundError &) {
         // It seems that current node wasn't listed in the votes list.
@@ -165,18 +166,18 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(message->participantsCount())); // ToDo: kMessage->participantsCount() must not be used (it is invalid)
+            maxNetworkDelay(mParticipantsVotesMessage->participantsCount())); // ToDo: kMessage->participantsCount() must not be used (it is invalid)
     }
 
 
-    if (message->containsRejectVote())
+    if (mParticipantsVotesMessage->containsRejectVote())
         // Some node rejected the transaction.
         // This node must simply roll back it's part of transaction and exit.
         // No further message propagation is needed.
         reject("Some participant node has been rejected the transaction. Rolling back.");
 
     // TODO : insert propagate message here
-    message->approve(kCurrentNodeUUID);
+    mParticipantsVotesMessage->approve(kCurrentNodeUUID);
     mTransactionIsVoted = true;
 
     // TODO: flush
@@ -187,7 +188,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         // Try to get next participant from the message.
         // In case if this node is the last node in votes list -
         // then it must be propagated to all nodes as successfully signed transaction.
-        const auto kNextParticipant = message->nextParticipant(kCurrentNodeUUID);
+        const auto kNextParticipant = mParticipantsVotesMessage->nextParticipant(kCurrentNodeUUID);
         const auto kNewParticipantsVotesMessage  = make_shared<ParticipantsVotesMessage>(
             mNodeUUID,
             mParticipantsVotesMessage
@@ -205,7 +206,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(message->participantsCount()));
+            maxNetworkDelay(mParticipantsVotesMessage->participantsCount()));
 
     } catch (NotFoundError &) {
         // There are no nodes left in the votes list.
