@@ -14,7 +14,9 @@ OutgoingRemoteNode::OutgoingRemoteNode(
     mIOService(ioService),
     mSocket(socket),
     mLog(logger),
-    mNextAvailableChannelIndex(0)
+    mNextAvailableChannelIndex(0),
+    mCyclesStats(boost::posix_time::microsec_clock::universal_time(), 0),
+    mSendingDelayTimer(mIOService)
 {}
 
 void OutgoingRemoteNode::sendMessage(
@@ -78,13 +80,13 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
     byte *messageData,
     const size_t messageBytesCount)
 {
-    const auto kMessageSizeWithCRC32 = messageBytesCount + sizeof(uint32_t);
+    const auto kMessageContentWithCRC32BytesCount = messageBytesCount + sizeof(uint32_t);
 
     PacketHeader::TotalPacketsCount kTotalPacketsCount =
         static_cast<PacketHeader::TotalPacketsCount>(
-            kMessageSizeWithCRC32 / Packet::kMaxSize);
+            kMessageContentWithCRC32BytesCount / Packet::kMaxSize);
 
-    if (kMessageSizeWithCRC32 % Packet::kMaxSize != 0)
+    if (kMessageContentWithCRC32BytesCount % Packet::kMaxSize != 0)
         kTotalPacketsCount += 1;
 
 
@@ -94,12 +96,19 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
         messageBytesCount);
 
 
-    size_t processedBytesCount = 0;
+    size_t messageContentBytesProcessed = 0;
+    Packet::Index packetIndex = 0;
     if (kTotalPacketsCount > 1) {
-        for (Packet::Index packetIndex=0; packetIndex<kTotalPacketsCount-1; ++packetIndex) {
+        for (; packetIndex<kTotalPacketsCount-1; ++packetIndex) {
 
             // ToDo: remove all previously created packets from the queue to prevent memory leak.
             auto buffer = static_cast<byte*>(malloc(Packet::kMaxSize));
+            if (buffer == nullptr) {
+                // Memory error occured.
+                // Current packet can't be enqueued, so there is no reason to try to enqueue the rest packets.
+                // Already created packets would be removed from the queue on the cleaning stage.
+                throw bad_alloc();
+            }
 
             memcpy(
                 buffer,
@@ -123,10 +132,10 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
 
             memcpy(
                 buffer + PacketHeader::kDataOffset,
-                messageData + processedBytesCount,
+                messageData + messageContentBytesProcessed,
                 Packet::kMaxSize - PacketHeader::kSize);
 
-            processedBytesCount += Packet::kMaxSize;
+            messageContentBytesProcessed += Packet::kMaxSize - PacketHeader::kSize;
 
             const auto packetMaxSize = Packet::kMaxSize;
             mPacketsQueue.push(
@@ -137,19 +146,16 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
     }
 
     // Writing last packet
-    const PacketHeader::PacketIndex kLastPacketIndex = kTotalPacketsCount - 1;
     const PacketHeader::PacketSize kLastPacketSize =
-        static_cast<PacketHeader::PacketSize>(
-            kMessageSizeWithCRC32 - processedBytesCount) + PacketHeader::kSize;
+        static_cast<PacketHeader::PacketSize>(kMessageContentWithCRC32BytesCount - messageContentBytesProcessed) + PacketHeader::kSize;
 
     byte *buffer = static_cast<byte*>(malloc(kLastPacketSize));
     if (buffer == nullptr) {
-        // ToDo: remove all previously created packets from the queue to prevent memory leak.
         throw bad_alloc();
     }
 
     memcpy(
-        buffer + PacketHeader::kPacketSizeOffset,
+        buffer,
         &kLastPacketSize,
         sizeof(kLastPacketSize));
 
@@ -165,23 +171,23 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
 
     memcpy(
         buffer + PacketHeader::kPacketIndexOffset,
-        &kLastPacketIndex,
-        sizeof(kLastPacketIndex));
+        &packetIndex,
+        sizeof(packetIndex));
 
     memcpy(
         buffer + PacketHeader::kDataOffset,
-        messageData + processedBytesCount,
+        messageData + messageContentBytesProcessed,
         kLastPacketSize - sizeof(crcChecksum) - PacketHeader::kSize);
 
-    processedBytesCount += kLastPacketSize - sizeof(crcChecksum) - PacketHeader::kSize;
+    messageContentBytesProcessed += kLastPacketSize - sizeof(crcChecksum) - PacketHeader::kSize;
 
     // Copying CRC32 checksum
     memcpy(
-        buffer + PacketHeader::kDataOffset + processedBytesCount,
+        buffer + PacketHeader::kDataOffset + kLastPacketSize - sizeof(crcChecksum) - PacketHeader::kSize,
         &crcChecksum,
         sizeof(crcChecksum));
 
-    processedBytesCount += sizeof(crcChecksum);
+    messageContentBytesProcessed += sizeof(crcChecksum);
 
     mPacketsQueue.push(
         make_pair(
@@ -200,7 +206,7 @@ void OutgoingRemoteNode::beginPacketsSending()
     try {
         endpoint = mUUID2AddressService.endpoint(mRemoteNodeUUID);
 
-    } catch (exception &) {
+    } catch  (exception &) {
         errors()
             << "Endpoint can't be fetched from uuid2address. "
             << "No messages can be sent. Outgoing queue cleared.";
@@ -212,6 +218,30 @@ void OutgoingRemoteNode::beginPacketsSending()
         }
 
         return;
+    }
+
+
+    // The next code inserts delay between sending packets in case of high traffic.
+    const auto kShortSendingTimeInterval = boost::posix_time::milliseconds(20);
+    const auto kTimeoutFromLastSending = boost::posix_time::microsec_clock::universal_time() - mCyclesStats.first;
+    if (kTimeoutFromLastSending < kShortSendingTimeInterval) {
+        // Increasing short sendings counter.
+        mCyclesStats.second += 1;
+
+        const auto kMaxShortSendings = 30;
+        if (mCyclesStats.second > kMaxShortSendings) {
+            mCyclesStats.second = 0;
+            mSendingDelayTimer.expires_from_now(kShortSendingTimeInterval);
+            mSendingDelayTimer.async_wait([this] (const boost::system::error_code &_){
+                this->beginPacketsSending();
+                debug() << "Sending delayed";
+
+            });
+            return;
+        }
+
+    } else {
+        mCyclesStats.second = 0;
     }
 
 
@@ -264,6 +294,9 @@ void OutgoingRemoteNode::beginPacketsSending()
             free(packetDataAndSize.first);
             mPacketsQueue.pop();
 
+
+
+            mCyclesStats.first = boost::posix_time::microsec_clock::universal_time();
             if (mPacketsQueue.size() > 0) {
                 beginPacketsSending();
             }

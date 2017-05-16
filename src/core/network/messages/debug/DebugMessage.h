@@ -15,6 +15,9 @@ public:
         BytesShared bytes);
 
     virtual const MessageType typeID() const;
+
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+        throw (bad_alloc);
 };
 
 #endif // DEBUGMESSAGE_H

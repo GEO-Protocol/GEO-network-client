@@ -17,7 +17,6 @@
 #include <queue>
 
 
-
 class OutgoingRemoteNode {
 public:
     using Shared = shared_ptr<OutgoingRemoteNode>;
@@ -67,6 +66,11 @@ protected:
 
     queue<pair<byte*, Packet::Size>> mPacketsQueue;
     PacketHeader::ChannelIndex mNextAvailableChannelIndex;
+
+    // This pair contains date time of last packet sendind
+    // and count of sending operations, that would be done in interval, less than 50 msecs between 2 operations.
+    pair<boost::posix_time::ptime, size_t> mCyclesStats;
+    as::deadline_timer mSendingDelayTimer;
 
 };
 
