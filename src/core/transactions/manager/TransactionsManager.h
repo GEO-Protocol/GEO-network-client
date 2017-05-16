@@ -30,6 +30,7 @@
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/routing_tables/UpdateRoutingTablesCommand.h"
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/trust_lines/AcceptTrustLineMessage.h"
@@ -98,6 +99,7 @@
 
 #include "../transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
 #include "../transactions/routing_tables/GetFirstRoutingTableTransaction.h"
+#include "../transactions/routing_tables/UpdateRoutingTablesTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -238,10 +240,13 @@ private:
         GetFirstLevelContractorsCommand::Shared command);
 
     void launchGetTrustlinesTransaction(
-            GetTrustLinesCommand::Shared command);
+        GetTrustLinesCommand::Shared command);
 
     void launchGetRoutingTablesTransaction(
         RequestRoutingTablesMessage::Shared message);
+
+    void launchUpdateRoutingTablesTransaction(
+        UpdateRoutingTablesCommand::Shared command);
 
     // closeCycle transaction TODO : should be removed after testing
     void launchTestCloseCycleTransaction(
@@ -286,7 +291,8 @@ private:
 
 protected:
     void prepareAndSchedule(
-        BaseTransaction::Shared transaction);
+        BaseTransaction::Shared transaction,
+        bool subsidiaryTransactionSubscribe=false);
 
 private:
     NodeUUID &mNodeUUID;

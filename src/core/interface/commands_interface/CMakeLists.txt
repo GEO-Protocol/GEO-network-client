@@ -43,7 +43,10 @@ set(SOURCE_FILES
         commands/find_path/FindPathCommand.cpp
 
         commands/cycle_closer/CycleCloserCommand.h
-        commands/cycle_closer/CycleCloserCommand.cpp)
+        commands/cycle_closer/CycleCloserCommand.cpp
+
+        commands/routing_tables/UpdateRoutingTablesCommand.h
+        commands/routing_tables/UpdateRoutingTablesCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

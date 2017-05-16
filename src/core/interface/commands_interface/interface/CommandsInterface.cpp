@@ -205,6 +205,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == UpdateRoutingTablesCommand::identifier()) {
+            command = new UpdateRoutingTablesCommand(
+                uuid,
+                buffer);
+
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "

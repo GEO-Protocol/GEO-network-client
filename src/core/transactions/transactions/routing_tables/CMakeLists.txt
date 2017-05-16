@@ -6,7 +6,7 @@ set(SOURCE_FILES
         NeighborsCollectingTransaction.h
         NeighborsCollectingTransaction.cpp
         GetFirstRoutingTableTransaction.h
-        GetFirstRoutingTableTransaction.cpp)
+        GetFirstRoutingTableTransaction.cpp UpdateRoutingTablesTransaction.h UpdateRoutingTablesTransaction.cpp)
 
 add_library(transactions__routing_tables ${SOURCE_FILES})
 target_link_libraries(transactions__routing_tables

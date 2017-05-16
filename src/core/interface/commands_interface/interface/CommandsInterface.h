@@ -18,6 +18,8 @@
 #include "../commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../commands/find_path/FindPathCommand.h"
 #include "../commands/cycle_closer/CycleCloserCommand.h"
+#include "../commands/routing_tables/UpdateRoutingTablesCommand.h"
+
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"

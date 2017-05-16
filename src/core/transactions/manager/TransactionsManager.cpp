@@ -168,6 +168,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<GetTrustLinesCommand>(
                 command));
 
+    } else if (command->identifier() == UpdateRoutingTablesCommand::identifier()){
+        launchUpdateRoutingTablesTransaction(
+            static_pointer_cast<UpdateRoutingTablesCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -815,8 +820,8 @@ void TransactionsManager::launchGetPathTestTransaction(
     }
 }
 
-void TransactionsManager::launchGetFirstLevelContractorsTransaction(GetFirstLevelContractorsCommand::Shared command)
-{
+void TransactionsManager::launchGetFirstLevelContractorsTransaction(
+    GetFirstLevelContractorsCommand::Shared command) {
     prepareAndSchedule(
         make_shared<GetFirstLevelContractorsTransaction>(
             mNodeUUID,
@@ -825,8 +830,8 @@ void TransactionsManager::launchGetFirstLevelContractorsTransaction(GetFirstLeve
             mLog));
 }
 
-void TransactionsManager::launchGetTrustlinesTransaction(GetTrustLinesCommand::Shared command)
-{
+void TransactionsManager::launchGetTrustlinesTransaction(
+    GetTrustLinesCommand::Shared command) {
     prepareAndSchedule(
         make_shared<GetFirstLevelContractorsBalancesTransaction>(
             mNodeUUID,
@@ -834,6 +839,19 @@ void TransactionsManager::launchGetTrustlinesTransaction(GetTrustLinesCommand::S
             mTrustLines,
             mLog));
 }
+
+void TransactionsManager::launchUpdateRoutingTablesTransaction(
+    UpdateRoutingTablesCommand::Shared command) {
+    prepareAndSchedule(
+        make_shared<UpdateRoutingTablesTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mStorageHandler,
+            mLog),
+    true);
+}
+
 /*!
  *
  * Throws MemoryError.
@@ -1085,10 +1103,14 @@ void TransactionsManager::onSubsidiaryTransactionReady(
  * @throws bad_alloc;
  */
 void TransactionsManager::prepareAndSchedule(
-    BaseTransaction::Shared transaction)
+    BaseTransaction::Shared transaction,
+    bool subsidiaryTransactionSubscribe)
 {
     subscribeForOutgoingMessages(
         transaction->outgoingMessageIsReadySignal);
+    if (subsidiaryTransactionSubscribe)
+        subscribeForSubsidiaryTransactions(
+            transaction->runSubsidiaryTransactionSignal);
 
     mScheduler->scheduleTransaction(
         transaction);

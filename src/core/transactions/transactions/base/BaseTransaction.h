@@ -63,6 +63,7 @@ public:
         RoutingTables_TrustLineStatesHandler,
         RoutingTables_NeighborsCollecting,
         RoutingTables_GetFirstRoutingTable,
+        RoutingTables_UpdateRoutingTable,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction,
