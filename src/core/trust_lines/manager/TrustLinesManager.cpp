@@ -380,6 +380,11 @@ const bool TrustLinesManager::trustLineIsPresent (
     return mTrustLines.count(contractorUUID) > 0;
 }
 
+const bool TrustLinesManager::reservationIsPresent(
+    const NodeUUID &contractorUUID) const {
+    return mAmountReservationsHandler->isReservationPresent(contractorUUID);
+}
+
 void TrustLinesManager::saveToDisk(
     TrustLine::Shared trustLine) {
 

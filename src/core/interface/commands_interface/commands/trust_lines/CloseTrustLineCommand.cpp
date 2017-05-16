@@ -97,3 +97,10 @@ const size_t CloseTrustLineCommand::kRequestedBufferSize() {
     static const size_t size = kOffsetToInheritedBytes() + NodeUUID::kBytesSize;
     return size;
 }
+
+
+CommandResult::SharedConst CloseTrustLineCommand::responseOK(uint16_t code) const
+noexcept
+{
+    return makeResult(code);
+}

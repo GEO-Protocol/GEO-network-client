@@ -35,6 +35,7 @@ private:
     enum Stages {
         CheckContractorUUIDValidity = 1,
         CheckUnicity,
+        SendNotifyMessageToContractor,
         CheckOutgoingDirection,
         CheckDebt,
         CheckContext
@@ -71,21 +72,19 @@ private:
 
     bool isOutgoingTrustLineDirectionExisting();
 
-    bool checkDebt();
+    bool trustLineIsAvailableForDelete();
 
-    void suspendTrustLineDirectionToContractor();
+    bool checkDebt();
 
     void closeTrustLine();
 
     void logClosingTrustLineOperation();
 
-    TransactionResult::SharedConst checkTransactionContext();
-
     void sendMessageToRemoteNode();
 
     TransactionResult::SharedConst waitingForResponseState();
 
-    TransactionResult::SharedConst resultOk();
+    TransactionResult::SharedConst resultOk(uint16_t code);
 
     TransactionResult::SharedConst resultTrustLineAbsent();
 

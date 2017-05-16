@@ -123,6 +123,9 @@ public:
     const bool trustLineIsPresent (
         const NodeUUID &contractorUUID) const;
 
+    const bool reservationIsPresent(
+        const NodeUUID &contractorUUID) const;
+
     const bool isNeighbor(
         const NodeUUID &node) const;
 

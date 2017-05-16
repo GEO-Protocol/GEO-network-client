@@ -199,3 +199,9 @@ vector<AmountReservation::ConstShared> AmountReservationsHandler::reservations(
             "AmountReservationsHandler::reservations: bad alloc.");
     }
 }
+
+const bool AmountReservationsHandler::isReservationPresent(const NodeUUID &trustLineContractor) const {
+    if (mReservations.find(trustLineContractor) == mReservations.end())
+        return false;
+    return true;
+}

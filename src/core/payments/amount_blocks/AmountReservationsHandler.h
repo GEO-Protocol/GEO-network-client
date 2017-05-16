@@ -34,6 +34,9 @@ public:
         const AmountReservation::ReservationDirection direction,
         const TransactionUUID *transactionUUID = nullptr) const;
 
+    const bool isReservationPresent(
+        const NodeUUID &trustLineContractor) const;
+
 protected:
     // One trust line may hold several amount reservations,
     // so the vector<AmountReservation::ConstShared> is used (reservations container).
