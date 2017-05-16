@@ -108,8 +108,9 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
 
         case Stages::CheckDebt: {
             if (checkDebt()) {
-                suspendTrustLineDirectionToContractor();
-
+//                suspendTrustLineDirectionToContractor();
+            // todo add close and delete trastline logic
+                info() << "Add close and delete trastline logic";
             } else {
                 closeTrustLine();
                 logClosingTrustLineOperation();
@@ -172,13 +173,6 @@ bool CloseTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
 bool CloseTrustLineTransaction::checkDebt() {
 
     return mTrustLinesManager->balanceRange(mCommand->contractorUUID()) == BalanceRange::Positive;
-}
-
-void CloseTrustLineTransaction::suspendTrustLineDirectionToContractor() {
-
-    mTrustLinesManager->suspendDirection(
-        mCommand->contractorUUID(),
-        TrustLineDirection::Outgoing);
 }
 
 void CloseTrustLineTransaction::closeTrustLine() {

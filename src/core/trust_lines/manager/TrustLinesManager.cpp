@@ -52,9 +52,6 @@ void TrustLinesManager::open(
         mTrustLines[contractorUUID] = trustLine;
     }
 
-    // ToDo: [hsc: review] Denis, what does this activation do?
-    trustLine->activateOutgoingDirection();
-
     trustLine->setOutgoingTrustAmount(amount);
     saveToDisk(trustLine);
 }
@@ -88,8 +85,6 @@ void TrustLinesManager::close(
     } else {
         trustLine->setOutgoingTrustAmount(0);
 
-        // ToDo: [hsc: review] Denis, what does this suspending do?
-        trustLine->suspendOutgoingDirection();
         saveToDisk(trustLine);
     }
 }
@@ -107,7 +102,6 @@ void TrustLinesManager::accept(
         TrustLine::Shared trustLine = it->second;
         if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setIncomingTrustAmount(amount);
-            trustLine->activateIncomingDirection();
             saveToDisk(trustLine);
         } else {
             throw ConflictError("TrustLinesManager::accept: "
@@ -122,7 +116,6 @@ void TrustLinesManager::accept(
                 amount,
                 0,
                 0);
-            trustLine->activateIncomingDirection();
 
         } catch (std::bad_alloc &e) {
             throw MemoryError("TrustLinesManager::accept: "
@@ -149,7 +142,6 @@ void TrustLinesManager::reject(
                     removeTrustLine(contractorUUID);
                 } else {
                     trustLine->setIncomingTrustAmount(0);
-                    trustLine->suspendIncomingDirection();
                     saveToDisk(trustLine);
                 }
 
@@ -184,27 +176,6 @@ const BalanceRange TrustLinesManager::balanceRange(
     const NodeUUID &contractorUUID) const {
 
     return mTrustLines.at(contractorUUID)->balanceRange();
-}
-
-void TrustLinesManager::suspendDirection(
-    const NodeUUID &contractorUUID,
-    const TrustLineDirection direction) {
-
-    switch(direction) {
-
-        case TrustLineDirection::Incoming: {
-            mTrustLines.at(contractorUUID)->suspendIncomingDirection();
-        }
-
-        case TrustLineDirection::Outgoing: {
-            mTrustLines.at(contractorUUID)->suspendOutgoingDirection();
-        }
-
-        default: {
-            throw ConflictError("TrustLinesManager::suspendDirection: "
-                                    "Illegal trust line direction for suspending.");
-        }
-    }
 }
 
 void TrustLinesManager::setIncomingTrustAmount(

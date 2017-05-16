@@ -52,7 +52,6 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run() {
                 if (isIncomingTrustLineDirectionExisting()) {
 
                     if (checkDebt()) {
-                        suspendTrustLineDirectionFromContractor();
                         sendResponseCodeToContractor(
                             RejectTrustLineMessage::kResultCodeRejectDelayed);
 
@@ -111,14 +110,6 @@ bool RejectTrustLineTransaction::isIncomingTrustLineDirectionExisting() {
 
     return mTrustLinesManager->checkDirection(mMessage->contractorUUID(), TrustLineDirection::Incoming) ||
         mTrustLinesManager->checkDirection(mMessage->contractorUUID(), TrustLineDirection::Both);
-}
-
-void RejectTrustLineTransaction::suspendTrustLineDirectionFromContractor() {
-
-    return mTrustLinesManager->suspendDirection(
-        mMessage->contractorUUID(),
-        TrustLineDirection::Incoming);
-
 }
 
 void RejectTrustLineTransaction::rejectTrustLine() {

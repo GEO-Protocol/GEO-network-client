@@ -114,18 +114,11 @@ private:
         const TrustLineBalance &balance,
         vector<byte> &buffer);
 
-    void directionStateToBytes(
-        TrustState state,
-        vector<byte> &buffer);
-
     void parseTrustAmount(
         const byte *buffer,
         TrustLineAmount &variable);
 
     void parseBalance(
-        const byte *buffer);
-
-    TrustState parseDirectionState(
         const byte *buffer);
 
 private:
@@ -145,9 +138,6 @@ private:
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
     TrustLineBalance mBalance;
-
-    // <incoming direction state, outgoing direction state>
-    pair<TrustState, TrustState> mTrustLineState;
 
 };
 

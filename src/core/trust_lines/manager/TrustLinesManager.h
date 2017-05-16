@@ -67,10 +67,6 @@ public:
     const BalanceRange balanceRange(
         const NodeUUID &contractorUUID) const;
 
-    void suspendDirection(
-        const NodeUUID &contractorUUID,
-        const TrustLineDirection direction);
-
     void setIncomingTrustAmount(
         const NodeUUID &contractor,
         const TrustLineAmount &amount);
