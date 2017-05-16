@@ -1082,7 +1082,7 @@ void CoordinatorPaymentTransaction::switchToNextPath()
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultOK()
 {
     return transactionResultFromCommand(
-        mCommand->responseOK());
+        mCommand->responseCreated());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoPathsError()
