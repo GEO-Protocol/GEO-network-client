@@ -71,6 +71,8 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
+    const boost::container::flat_map<NodeUUID, ParticipantsVotesMessage::Vote>& votes() const;
+
 #ifdef DEBUG
     const boost::container::flat_map<NodeUUID, Vote>& votes() const;
 #endif

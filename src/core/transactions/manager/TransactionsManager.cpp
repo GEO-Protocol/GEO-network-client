@@ -36,8 +36,7 @@ TransactionsManager::TransactionsManager(
     subscribeForSerializeTransaction(mScheduler->serializeTransactionSignal);
 
     try {
-        // todo remove debug code
-        // loadTransactions();
+         loadTransactions();
 
     } catch (exception &e) {
         throw RuntimeError(e.what());
