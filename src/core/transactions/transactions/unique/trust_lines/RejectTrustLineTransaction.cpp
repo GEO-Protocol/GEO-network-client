@@ -39,65 +39,35 @@ RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
 
 TransactionResult::SharedConst RejectTrustLineTransaction::run() {
 
-    try {
-        switch (mStep) {
+    // Check if CoordinatorUUId is Valid
+    if (!isContractorUUIDValid(mMessage->contractorUUID()))
+        return transactionResultFromMessage(mMessage->resultRejected());
 
-            case Stages::CheckContractorUUIDValidity: {
-                if (!isContractorUUIDValid(mMessage->senderUUID))
-                    return transactionResultFromMessage(
-                        mMessage->resultRejected());
-                mStep = Stages::CheckIncomingDirection;
-            }
-            case Stages::CheckIncomingDirection: {
-                if (isIncomingTrustLineDirectionExisting()) {
-
-                    if (checkDebt()) {
-                        sendResponseCodeToContractor(
-                            RejectTrustLineMessage::kResultCodeRejectDelayed);
-
-                        return transactionResultFromMessage(
-                            mMessage->resultRejectDelayed());
-
-                    } else {
-                        rejectTrustLine();
-                        logRejectingTrustLineOperation();
-                        if (!mTrustLinesManager->isNeighbor(mMessage->contractorUUID())) {
-                            const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
-                                currentNodeUUID(),
-                                currentNodeUUID(),
-                                currentNodeUUID(),
-                                mMessage->contractorUUID(),
-                                TrustLineStatesHandlerTransaction::TrustLineState::Removed,
-                                0,
-                                mTrustLinesManager,
-                                mStorageHandler,
-                                mLog);
-                            launchSubsidiaryTransaction(kTransaction);
-                        }
-                        sendResponseCodeToContractor(
-                            RejectTrustLineMessage::kResultCodeRejected);
-
-                        return transactionResultFromMessage(
-                            mMessage->resultRejected());
-                    }
-
-                } else {
-                    sendResponseCodeToContractor(
-                        RejectTrustLineMessage::kResultCodeTrustLineAbsent);
-                    return transactionResultFromMessage(
-                        mMessage->resultRejected());
-                }
-            }
-            default: {
-                throw ConflictError("UpdateTrustLineTransaction::run: "
-                                        "Illegal step execution.");
-            }
+    if (!isIncomingTrustLineDirectionExisting())
+        return transactionResultFromMessage(
+            mMessage->resultRejected());
+    // check if  Trustline is available for delete
+    if (trustLineIsAvailableForDelete()) {
+        // close trustline
+        rejectTrustLine();
+        // update routing tables;
+        if (!mTrustLinesManager->isNeighbor(mMessage->contractorUUID())) {
+            const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                currentNodeUUID(),
+                currentNodeUUID(),
+                currentNodeUUID(),
+                mMessage->contractorUUID(),
+                TrustLineStatesHandlerTransaction::TrustLineState::Removed,
+                0,
+                mTrustLinesManager,
+                mStorageHandler,
+                mLog);
+            launchSubsidiaryTransaction(kTransaction);
         }
-    } catch (exception &e) {
-        throw RuntimeError("RejectTrustLineTransaction::run: "
-                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
-                               "Crashed at step -> " + to_string(mStep) + ". "
-                               "Message -> " + string(e.what()));
+        return resultDone();
+    } else {
+        mTrustLinesManager->setOutgoingTrustAmount(mMessage->contractorUUID(), 0);
+        return resultDone();
     }
 }
 
@@ -149,4 +119,17 @@ const string RejectTrustLineTransaction::logHeader() const
     stringstream s;
     s << "[RejectTrustLineTA: " << currentTransactionUUID() << "]";
     return s.str();
+}
+
+bool RejectTrustLineTransaction::trustLineIsAvailableForDelete() {
+    const auto zeroBalance = TrustLineBalance(0);
+    const auto zeroAmount = TrustLineAmount(0);
+
+    if (mTrustLinesManager->balance(mMessage->contractorUUID()) == zeroBalance
+        and mTrustLinesManager->outgoingTrustAmount(mMessage->contractorUUID()) == zeroAmount
+        and mTrustLinesManager->incomingTrustAmount(mMessage->contractorUUID()) == zeroAmount
+        and not mTrustLinesManager->reservationIsPresent(mMessage->contractorUUID())){
+        return true;
+    }
+    return false;
 }

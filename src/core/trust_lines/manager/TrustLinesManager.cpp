@@ -72,19 +72,11 @@ void TrustLinesManager::close(
                 "Сan't close outgoing trust line: outgoing amount equals to zero. "
                 "It seems that trust line has been already closed. ");
 
-    const auto kAvailableIncomingAmount = trustLine->availableIncomingAmount();
-    if (*kAvailableIncomingAmount != trustLine->outgoingTrustAmount())
-        throw PreconditionFailedError(
-            "TrustLinesManager::close: "
-                "Сan not close outgoing trust line. Contractor already used part of amount.");
-
-
     if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
         removeTrustLine(contractorUUID);
 
     } else {
         trustLine->setOutgoingTrustAmount(0);
-
         saveToDisk(trustLine);
     }
 }
@@ -137,7 +129,6 @@ void TrustLinesManager::reject(
         auto it = mTrustLines.find(contractorUUID);
         TrustLine::Shared trustLine = it->second;
         if (trustLine->incomingTrustAmount() > TrustLine::kZeroAmount()) {
-            if (trustLine->balance() >= TrustLine::kZeroBalance()) {
                 if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
                 } else {
@@ -145,14 +136,9 @@ void TrustLinesManager::reject(
                     saveToDisk(trustLine);
                 }
 
-            } else {
-                throw PreconditionFailedError("TrustLinesManager::reject: "
-                                                  "Сan not reject incoming trust line. User already used part of amount.");
-            }
-
         } else {
             throw ValueError("TrustLinesManager::reject: "
-                                 "Сan not reject incoming trust line. Incoming trust line amount less or equals to zero.");
+                                 "Сan not reject incoming trust line. Incoming trust line amount less already equals to zero.");
         }
 
     } else {

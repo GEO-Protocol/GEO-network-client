@@ -61,6 +61,8 @@ private:
 
     bool checkDebt();
 
+    bool trustLineIsAvailableForDelete();
+
     void suspendTrustLineDirectionFromContractor();
 
     void rejectTrustLine();

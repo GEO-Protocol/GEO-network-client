@@ -224,11 +224,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
             //end test case2
 
             // TODO for test case3
-            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
-            NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
+            NodeUUID *nodeUUID51Ptr = new NodeUUID("2fe666ec-9b0f-4545-82c7-7d87558b4af6");
+            NodeUUID *nodeUUID52Ptr = new NodeUUID("e2a5576a-5297-4d30-bb8e-86fc40a80d5f");
+            NodeUUID *nodeUUID53Ptr = new NodeUUID("5b51069f-18f0-4972-8559-34c4cf5753d1");
+            NodeUUID *nodeUUID55Ptr = new NodeUUID("a2478f91-1a3e-4392-a620-450b5cd3b123");
+            NodeUUID *nodeUUID56Ptr = new NodeUUID("e2e4e5a4-18a7-4677-88e1-8895b40175f1");
 
             vector<NodeUUID> intermediateNodes;
             intermediateNodes.push_back(*nodeUUID52Ptr);
