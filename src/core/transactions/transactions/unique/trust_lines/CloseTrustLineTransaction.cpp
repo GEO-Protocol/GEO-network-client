@@ -94,7 +94,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run() {
     // Notify Contractor that trustline will be be closed
     sendMessageToRemoteNode();
 
-    // Close Trustline is available for delete
+    // check if  Trustline is available for delete
     if (trustLineIsAvailableForDelete()) {
         // close trustline
         closeTrustLine();

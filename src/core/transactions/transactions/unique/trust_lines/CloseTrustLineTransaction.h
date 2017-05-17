@@ -31,16 +31,6 @@ class CloseTrustLineTransaction: public TrustLineTransaction {
 public:
     typedef shared_ptr<CloseTrustLineTransaction> Shared;
 
-private:
-    enum Stages {
-        CheckContractorUUIDValidity = 1,
-        CheckUnicity,
-        SendNotifyMessageToContractor,
-        CheckOutgoingDirection,
-        CheckDebt,
-        CheckContext
-    };
-
 public:
     CloseTrustLineTransaction(
         const NodeUUID &nodeUUID,

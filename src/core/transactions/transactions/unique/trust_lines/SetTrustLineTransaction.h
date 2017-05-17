@@ -33,6 +33,7 @@ public:
 private:
     enum Stages {
         CheckContractorUUIDValidity = 1,
+        CheckAmountValidity,
         CheckUnicity,
         CheckOutgoingDirection,
         CheckContext
@@ -90,6 +91,9 @@ private:
     TransactionResult::SharedConst resultCurrentIncomingDebtIsGreaterThanNewAmount();
 
     TransactionResult::SharedConst resultProtocolError();
+
+protected:
+    bool isAmountValid(const NodeUUID &contractorUUID, const TrustLineAmount &amount);
 
 private:
     const uint16_t kConnectionTimeout = 2000;

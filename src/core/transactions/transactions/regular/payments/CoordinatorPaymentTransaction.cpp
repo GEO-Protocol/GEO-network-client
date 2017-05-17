@@ -224,50 +224,39 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
             //end test case2
 
             // TODO for test case3
-//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
-//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
-//            NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
-//
-//            vector<NodeUUID> intermediateNodes;
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            intermediateNodes.push_back(*nodeUUID55Ptr);
-//            auto result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID56Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//            intermediateNodes.clear();
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID54Ptr);
-//            intermediateNodes.push_back(*nodeUUID55Ptr);
-//            result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID56Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//
-//            delete nodeUUID51Ptr;
-//            delete nodeUUID52Ptr;
-//            delete nodeUUID53Ptr;
-//            delete nodeUUID54Ptr;
-//            delete nodeUUID55Ptr;
-//            delete nodeUUID56Ptr;
+            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
+            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
+            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
+            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
+            NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
+
+            vector<NodeUUID> intermediateNodes;
+            intermediateNodes.push_back(*nodeUUID52Ptr);
+            intermediateNodes.push_back(*nodeUUID53Ptr);
+            intermediateNodes.push_back(*nodeUUID55Ptr);
+            auto result = make_shared<const Path>(
+                *nodeUUID51Ptr,
+                *nodeUUID56Ptr,
+                intermediateNodes);
+            addPathForFurtherProcessing(result);
+
+            delete nodeUUID51Ptr;
+            delete nodeUUID52Ptr;
+            delete nodeUUID53Ptr;
+            delete nodeUUID55Ptr;
+            delete nodeUUID56Ptr;
             //end test case3
 
-            PathsResource::Shared response = static_pointer_cast<PathsResource>(
-                responseResource);
+//            PathsResource::Shared response = static_pointer_cast<PathsResource>(
+//                responseResource);
 
-            response->pathCollection()->resetCurrentPath();
-            while (response->pathCollection()->hasNextPath()) {
-                auto path = response->pathCollection()->nextPath();
-                if (isPathValid(path)) {
-                    addPathForFurtherProcessing(path);
-                }
-            }
+//            response->pathCollection()->resetCurrentPath();
+//            while (response->pathCollection()->hasNextPath()) {
+//                auto path = response->pathCollection()->nextPath();
+//                if (isPathValid(path)) {
+//                    addPathForFurtherProcessing(path);
+//                }
+//            }
         } else {
             throw Exception("CoordinatorPaymentTransaction::runReceiverResourceProcessingStage: "
                                 "unexpected resource type");
