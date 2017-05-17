@@ -44,6 +44,7 @@ private:
     const string mGroup;
     const string mSubsystem;
     const StreamType mType;
+    const string mLogfile = "operations.log";
 };
 
 
@@ -88,6 +89,12 @@ private:
         const string &group);
 
     void logRecord(
+        const string &group,
+        const string &subsystem,
+        const string &message);
+
+    void logRecordFile(
+        const string &logFileName,
         const string &group,
         const string &subsystem,
         const string &message);
