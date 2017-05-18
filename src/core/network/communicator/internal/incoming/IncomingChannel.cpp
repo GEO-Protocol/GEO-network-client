@@ -90,7 +90,7 @@ pair<bool, Message::Shared> IncomingChannel::tryCollectMessage()
 
     size_t totalBytesReceived = 0;
     for (const auto &kPacketIndexAndData : mPackets) {
-         totalBytesReceived = kPacketIndexAndData.second.second;
+         totalBytesReceived += kPacketIndexAndData.second.second;
     }
 
     if (totalBytesReceived <= Packet::kMaxSize - PacketHeader::kSize) {
