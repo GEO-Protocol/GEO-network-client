@@ -4,6 +4,8 @@
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
+#include "../../regular/payments/CycleCloserInitiatorTransaction.h"
+#include "../../../../paths/lib/Path.h"
 
 class CyclesSixNodesInitTransaction :
         public CyclesBaseFiveSixNodesInitTransaction{

@@ -21,7 +21,7 @@ MaxFlowCalculationSourceFstLevelMessage::Shared MaxFlowCalculationSourceFstLevel
 
 TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run()
 {
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "run\t" << "Iam: " << mNodeUUID;
     info() << "run\t" << "sender: " << mMessage->senderUUID;
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
@@ -32,7 +32,7 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
         if (nodeUUIDOutgoingFlow == mMessage->senderUUID) {
             continue;
         }
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
         info() << "sendFirst\t" << nodeUUIDOutgoingFlow;
 #endif
         sendMessage<MaxFlowCalculationSourceSndLevelMessage>(

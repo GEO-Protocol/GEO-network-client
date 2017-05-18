@@ -73,8 +73,7 @@ public:
 
     const TrustLineBalance& balance() const;
 
-    //todo rename availableOutgoingAmount
-    ConstSharedTrustLineAmount availableAmount() const;
+    ConstSharedTrustLineAmount availableOutgoingAmount() const;
 
     ConstSharedTrustLineAmount availableIncomingAmount() const;
 

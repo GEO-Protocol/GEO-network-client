@@ -75,6 +75,7 @@
 #include "../transactions/regular/payments/IntermediateNodePaymentTransaction.h"
 #include "../transactions/regular/payments/VotesStatusResponsePaymentTransaction.h"
 #include "../transactions/regular/payments/CycleCloserInitiatorTransaction.h"
+#include "../transactions/regular/payments/CycleCloserIntermediateNodeTransaction.h"
 
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
@@ -211,6 +212,9 @@ private:
 
     void launchIntermediateNodePaymentTransaction(
         IntermediateNodeReservationRequestMessage::Shared message);
+
+    void launchCycleCloserIntermediateNodeTransaction(
+        IntermediateNodeCycleReservationRequestMessage::Shared message);
 
     void launchVoutesResponsePaymentsTransaction(
             VotesStatusRequestMessage::Shared message);

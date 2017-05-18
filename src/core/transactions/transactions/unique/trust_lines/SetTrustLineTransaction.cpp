@@ -169,7 +169,6 @@ TransactionResult::SharedConst SetTrustLineTransaction::checkTransactionContext(
                 case UpdateTrustLineMessage::kResultCodeAccepted: {
                     setOutgoingTrustAmount();
                     logSetTrustLineOperation();
-
                     return resultOk();
                 }
 
@@ -240,6 +239,9 @@ void SetTrustLineTransaction::logSetTrustLineOperation() {
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     ioTransaction->historyStorage()->saveTrustLineRecord(record);
+    ioTransaction->trustLineHandler()->saveTrustLine(
+        mTrustLinesManager->trustLines().at(
+            mCommand->contractorUUID()));
 }
 
 TransactionResult::SharedConst SetTrustLineTransaction::resultOk() {

@@ -3,6 +3,8 @@
 
 
 #include "base/BasePaymentTransaction.h"
+#include "../../cycles/FourNodes/CyclesFourNodesInitTransaction.h"
+#include "../../cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 
 
 class IntermediateNodePaymentTransaction:
@@ -43,6 +45,15 @@ protected:
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
 
 protected:
+    // Intermediate node must launch close cyles 3 and 4 transactions.
+    // Therefore this methods are overriden.
+    TransactionResult::SharedConst approve();
+
+protected:
+    void launchFourCyclesClosingTransactions();
+
+    void launchThreeCyclesClosingTransactions();
+
     void deserializeFromBytes(
         BytesShared buffer);
 

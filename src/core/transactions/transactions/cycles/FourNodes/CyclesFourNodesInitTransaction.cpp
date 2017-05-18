@@ -20,7 +20,8 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
-TransactionResult::SharedConst CyclesFourNodesInitTransaction::run() {
+TransactionResult::SharedConst CyclesFourNodesInitTransaction::run()
+{
     switch (mStep) {
         case Stages::CollectDataAndSendMessage:
             return runCollectDataAndSendMessageStage();
@@ -35,8 +36,9 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::run() {
     }
 }
 
-TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage() {
-
+TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage()
+{
+    debug() << "runCollectDataAndSendMessageStage from " << mDebtorContractorUUID << " to " << mCreditorContractorUUID;
     set<NodeUUID> neighbors = commonNeighborsForDebtorAndCreditorNodes();
     if (neighbors.size() == 0){
         info() << "CyclesFourNodesInitTransaction::runCollectDataAndSendMessageStage: "
@@ -56,11 +58,15 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
         neighbors);
 
     mStep = Stages::ParseMessageAndCreateCycles;
-    return resultAwaikAfterMilliseconds(
-            mkWaitingForResponseTime);
+    return make_shared<TransactionResult>(
+        TransactionState::waitForMessageTypesAndAwakeAfterMilliseconds(
+            {Message::MessageType::Cycles_FourNodesBalancesResponse},
+            mkWaitingForResponseTime));
 }
 
-TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
+TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage()
+{
+    debug() << "runParseMessageAndCreateCyclesStage";
     if (mContext.size() != 2) {
         info() << "No responses messages are present. Can't create cycles paths;";
 
@@ -93,11 +99,24 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
         for (auto &kNodeUUIDSecondMessage: secondMessage->NeighborsUUID()){
             if (kNodeUUIDSecondMessage == kNodeUUIDFirstMessage){
                 vector<NodeUUID> stepPath = {
-                    mNodeUUID,
                     mDebtorContractorUUID,
                     kNodeUUIDSecondMessage,
                     mCreditorContractorUUID};
-                // Run transaction to close cycle
+                debug() << "build path: " << mNodeUUID << " -> " << mDebtorContractorUUID
+                        << " -> " << kNodeUUIDSecondMessage << " -> " << mCreditorContractorUUID
+                        << " -> " << mNodeUUID;
+                const auto cyclePath = make_shared<Path>(
+                    mNodeUUID,
+                    mNodeUUID,
+                    stepPath);
+                const auto kTransaction = make_shared<CycleCloserInitiatorTransaction>(
+                    mNodeUUID,
+                    cyclePath,
+                    mTrustLinesManager,
+                    mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
+                    mLog);
+                launchSubsidiaryTransaction(kTransaction);
                 #ifdef TESTS
                     ResultCycles.push_back(stepPath);
                 #endif
@@ -117,7 +136,8 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
     return resultDone();
 }
 
-set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCreditorNodes() {
+set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCreditorNodes()
+{
     const auto creditorsNeighbors = mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(
         mCreditorContractorUUID);
     const auto debtorsNeighbors = mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(

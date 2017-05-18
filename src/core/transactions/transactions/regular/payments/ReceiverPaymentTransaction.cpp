@@ -44,32 +44,32 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
     noexcept
 {
-    try {
-    switch (mStep) {
-    case Stages::Receiver_CoordinatorRequestApproving:
-        return runInitialisationStage();
+    //try {
+        switch (mStep) {
+            case Stages::Receiver_CoordinatorRequestApproving:
+                return runInitialisationStage();
 
-    case Stages::Receiver_AmountReservationsProcessing:
-        return runAmountReservationStage();
+            case Stages::Receiver_AmountReservationsProcessing:
+                return runAmountReservationStage();
 
-    case Stages::Common_VotesChecking:
-        return runVotesCheckingStageWithCoordinatorClarification();
+            case Stages::Common_VotesChecking:
+                return runVotesCheckingStageWithCoordinatorClarification();
 
-    case Stages::Common_ClarificationTransaction:
-        return runClarificationOfTransaction();
+            case Stages::Common_ClarificationTransaction:
+                return runClarificationOfTransaction();
 
-    case Stages::Common_Recovery:
-        return runVotesRecoveryParentStage();
+            case Stages::Common_Recovery:
+                return runVotesRecoveryParentStage();
 
 
-    default:
-        throw RuntimeError(
-            "ReceiverPaymentTransaction::run(): "
-            "invalid stage number occurred");
+            default:
+                throw RuntimeError(
+                    "ReceiverPaymentTransaction::run(): "
+                        "invalid stage number occurred");
         }
-    } catch (...) {
-        recover("Something happens wrong in method run(). Transaction will be recovered");
-    }
+//    } catch (...) {
+//        recover("Something happens wrong in method run(). Transaction will be recovered");
+//    }
 }
 
 pair<BytesShared, size_t> ReceiverPaymentTransaction::serializeToBytes()
@@ -282,4 +282,39 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
         maxNetworkDelay(kMaxPathLength));
+}
+
+TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
+{
+    launchThreeCyclesClosingTransactions();
+    BasePaymentTransaction::approve();
+    //savePaymentOperationIntoHistory();
+    return resultDone();
+}
+
+// TODO :error with balance: balance should be total
+void ReceiverPaymentTransaction::savePaymentOperationIntoHistory()
+{
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->savePaymentRecord(
+        make_shared<PaymentRecord>(
+            currentTransactionUUID(),
+            PaymentRecord::PaymentOperationType::IncomingPaymentType,
+            mMessage->senderUUID,
+            mMessage->amount(),
+            mTrustLines->balance(mMessage->senderUUID)));
+}
+
+void ReceiverPaymentTransaction::launchThreeCyclesClosingTransactions()
+{
+    for (auto const nodeUUIDAndReservations : mReservations) {
+        const auto kTransaction = make_shared<CyclesThreeNodesInitTransaction>(
+            currentNodeUUID(),
+            nodeUUIDAndReservations.first,
+            mTrustLines,
+            mStorageHandler,
+            mMaxFlowCalculationCacheManager,
+            mLog);
+        launchSubsidiaryTransaction(kTransaction);
+    }
 }

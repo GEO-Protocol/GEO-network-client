@@ -23,7 +23,7 @@ InitiateMaxFlowCalculationMessage::Shared ReceiveMaxFlowCalculationOnTargetTrans
 
 TransactionResult::SharedConst ReceiveMaxFlowCalculationOnTargetTransaction::run()
 {
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "run\t" << "target: " << mNodeUUID;
     info() << "run\t" << "initiator: " << mMessage->senderUUID;
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
@@ -51,7 +51,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()
                 incomingFlow);
         }
     }
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendResultToInitiator\t" << "send to " << mMessage->senderUUID;
     info() << "sendResultToInitiator\t" << "IncomingFlows: " << incomingFlows.size();
 #endif
@@ -72,7 +72,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
     MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr)
 {
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->senderUUID;
 #endif
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsForSending;
@@ -84,7 +84,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
                 incomingFlow);
         }
     }
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendCachedResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
 #endif
     if (incomingFlowsForSending.size() > 0) {
@@ -103,7 +103,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendMessagesOnFirstLevel()
         if (nodeUUIDIncomingFlow == mMessage->senderUUID) {
             continue;
         }
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
         info() << "sendFirst\t" << nodeUUIDIncomingFlow;
 #endif
         sendMessage<MaxFlowCalculationTargetFstLevelMessage>(

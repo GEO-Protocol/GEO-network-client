@@ -21,7 +21,7 @@ MaxFlowCalculationTargetFstLevelMessage::Shared MaxFlowCalculationTargetFstLevel
 
 TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run()
 {
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "run\t" << "Iam: " << mNodeUUID;
     info() << "run\t" << "sender: " << mMessage->senderUUID;
     info() << "run\t" << "target: " << mMessage->targetUUID();
@@ -33,7 +33,7 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
         if (nodeUUIDIncomingFlow == mMessage->senderUUID || nodeUUIDIncomingFlow == mMessage->targetUUID()) {
             continue;
         }
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
         info() << "sendFirst\t" << nodeUUIDIncomingFlow;
 #endif
         sendMessage<MaxFlowCalculationTargetSndLevelMessage>(

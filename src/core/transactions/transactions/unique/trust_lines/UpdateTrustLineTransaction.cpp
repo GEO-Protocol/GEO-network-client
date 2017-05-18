@@ -146,6 +146,9 @@ void UpdateTrustLineTransaction::logUpdatingTrustLineOperation() {
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     ioTransaction->historyStorage()->saveTrustLineRecord(record);
+    ioTransaction->trustLineHandler()->saveTrustLine(
+        mTrustLinesManager->trustLines().at(
+            mMessage->senderUUID));
 }
 
 void UpdateTrustLineTransaction::sendResponseCodeToContractor(

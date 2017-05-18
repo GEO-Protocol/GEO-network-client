@@ -71,6 +71,9 @@ TransactionsHandler* IOTransaction::transactionHandler()
 
 void IOTransaction::commit()
 {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+    info() << "commit";
+#endif
     if (!mIsTransactionBegin) {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
         info() << "transaction don't commit it was rollbacked";
@@ -96,6 +99,9 @@ void IOTransaction::commit()
 
 void IOTransaction::rollback()
 {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+    info() << "rollback";
+#endif
     string query = "ROLLBACK TRANSACTION;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDBConnection, query.c_str(), -1, &stmt, 0);

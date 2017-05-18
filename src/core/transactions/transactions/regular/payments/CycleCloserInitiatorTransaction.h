@@ -8,6 +8,8 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <chrono>
+#include <thread>
 
 class CycleCloserInitiatorTransaction : public BasePaymentTransaction {
 
@@ -84,6 +86,10 @@ protected:
 
     void checkPath(
         const Path::ConstShared path);
+
+    void sendFinalPathConfiguration(
+        PathStats* pathStats,
+        const TrustLineAmount &finalPathAmount);
 
 protected:
     // Contains special stats data, such as current msx flow,

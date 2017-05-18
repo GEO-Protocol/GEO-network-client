@@ -11,18 +11,19 @@ TrustLine::TrustLine(
     mOutgoingTrustAmount(outgoingAmount),
     mBalance(nodeBalance) {
 
-    if (mBalance > kZeroBalance()){
-        if (mBalance > mIncomingTrustAmount) {
-            throw ValueError("TrustLine::TrustLine: "
-                                 "Balance can't be greater than incoming trust amount.");
-        }
-
-    } else {
-        if (-mBalance > mOutgoingTrustAmount) {
-            throw ValueError("TrustLine::TrustLine: "
-                                 "Balance can't be less than outgoing trust amount.");
-        }
-    }
+    // todo zero amounts checking
+//    if (mBalance > kZeroBalance()){
+//        if (mBalance > mOutgoingTrustAmount and  mIncomingTrustAmount == kZeroAmount()) {
+//            throw ValueError("TrustLine::TrustLine: "
+//                                 "Balance can't be greater than incoming trust amount.");
+//        }
+//
+//    } else {
+//        if (-mBalance > mIncomingTrustAmount) {
+//            throw ValueError("TrustLine::TrustLine: "
+//                                 "Balance can't be less than outgoing trust amount.");
+//        }
+//    }
 }
 
 TrustLine::TrustLine(
@@ -132,7 +133,7 @@ const TrustLineBalance &TrustLine::balance() const {
 /*!
  * Returns amount that is availale to use on the trust line.
  */
-ConstSharedTrustLineAmount TrustLine::availableAmount() const
+ConstSharedTrustLineAmount TrustLine::availableOutgoingAmount() const
 {
     return make_shared<const TrustLineAmount>(
         mIncomingTrustAmount + mBalance);
@@ -357,14 +358,20 @@ bool operator==(
  *
  * @param amount - specifies how much should be cleared/used.
  */
+// TODO : check again this conditions
 void TrustLine::pay(
     const TrustLineAmount &amount)
 {
+    cout << "TrustLine::pay: amount " << amount << " balance " << mBalance << " incoming amount " << mIncomingTrustAmount << endl;
     const auto kNewBalance = mBalance - amount;
-    if (abs(kNewBalance) > mIncomingTrustAmount)
+    if (kNewBalance < kZeroBalance() && abs(kNewBalance) > mIncomingTrustAmount) {
         throw OverflowError(
             "TrustLine::useCredit: attempt of using more than incoming credit amount.");
-
+    }
+    if (kNewBalance > kZeroBalance() && kNewBalance > mOutgoingTrustAmount) {
+        throw OverflowError(
+            "TrustLine::useCredit: attempt of using more than incoming credit amount.");
+    }
     mBalance = kNewBalance;
 }
 
@@ -374,13 +381,19 @@ void TrustLine::pay(
  *
  * @param amount - specifies how much should be cleared/used.
  */
+// TODO : check again this conditions
 void TrustLine::acceptPayment(
     const TrustLineAmount &amount)
 {
+    cout << "TrustLine::acceptPayment: amount " << amount << " balance " << mBalance << " outgoing amount " << mOutgoingTrustAmount << endl;
     const auto kNewBalance = mBalance + amount;
-    if (abs(kNewBalance) > mOutgoingTrustAmount)
+    if (kNewBalance < kZeroBalance() && abs(kNewBalance) > mIncomingTrustAmount) {
         throw OverflowError(
-            "TrustLine::useCredit: attempt of using more than outgoing credit amount.");
-
+            "TrustLine::useCredit: attempt of using more than incoming credit amount.");
+    }
+    if (kNewBalance > kZeroBalance() && kNewBalance > mOutgoingTrustAmount) {
+        throw OverflowError(
+            "TrustLine::useCredit: attempt of using more than incoming credit amount.");
+    }
     mBalance = kNewBalance;
 }

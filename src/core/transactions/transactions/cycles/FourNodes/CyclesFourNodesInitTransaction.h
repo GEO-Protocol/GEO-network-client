@@ -7,6 +7,9 @@
 #include "../../../../io/storage/RoutingTablesHandler.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
+#include "../../../../paths/lib/Path.h"
+#include "../../regular/payments/CycleCloserInitiatorTransaction.h"
+
 #include <set>
 
 class CyclesFourNodesInitTransaction :
