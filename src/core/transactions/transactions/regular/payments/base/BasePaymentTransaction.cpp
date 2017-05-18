@@ -812,7 +812,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToChec
     // Add all nodes that could be ased for Votes Status.
     //Ignore self and CoodinatorNOde. Coordinator wil be asked first
     const auto kCoordinatorUUID = mParticipantsVotesMessage->coordinatorUUID();
-    for(const auto kNodeUUIDAndVote: mParticipantsVotesMessage->votes()){
+    for(const auto &kNodeUUIDAndVote: mParticipantsVotesMessage->votes()){
         if (kNodeUUIDAndVote.first != kCoordinatorUUID and kNodeUUIDAndVote.first != mNodeUUID)
             mNodesToCheckVotes.push_back(kNodeUUIDAndVote.first);
     }

@@ -164,7 +164,8 @@ void Logger::logRecordFile(
     const string &logFileName,
     const string &group,
     const string &subsystem,
-    const string &message) {
+    const string &message)
+{
     ofstream logfile;
     logfile.open(logFileName);
     logfile << recordPrefix(group)

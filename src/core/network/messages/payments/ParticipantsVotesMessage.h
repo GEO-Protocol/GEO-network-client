@@ -73,10 +73,6 @@ public:
 
     const boost::container::flat_map<NodeUUID, ParticipantsVotesMessage::Vote>& votes() const;
 
-#ifdef DEBUG
-    const boost::container::flat_map<NodeUUID, Vote>& votes() const;
-#endif
-
 protected:
     typedef uint32_t RecordsCount;
     typedef byte SerializedVote;
