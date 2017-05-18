@@ -50,6 +50,7 @@ protected:
 private:
     // ToDo: move to separate config file 
     const uint32_t kConnectionTimeout = 1500;
+
 private:
     NodeUUID mContractorUUID;
     TransactionUUID mRequestedTransactionUUID;
