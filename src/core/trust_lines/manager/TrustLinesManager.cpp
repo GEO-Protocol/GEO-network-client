@@ -584,6 +584,15 @@ vector<NodeUUID> TrustLinesManager::rt1() const {
     return result;
 }
 
+ConstSharedTrustLineBalance TrustLinesManager::totalBalance() const
+{
+    TrustLineBalance result = TrustLine::kZeroBalance();
+    for (const auto trustLine : mTrustLines) {
+        result += trustLine.second->balance();
+    }
+    return make_shared<const TrustLineBalance>(result);
+}
+
 /**
  *
  * @throws NotFoundError - in case if no trust line with exact contractor.

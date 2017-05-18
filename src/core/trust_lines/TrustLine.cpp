@@ -437,7 +437,6 @@ bool operator==(
 void TrustLine::pay(
     const TrustLineAmount &amount)
 {
-    cout << "TrustLine::pay: amount " << amount << " balance " << mBalance << " incoming amount " << mIncomingTrustAmount << endl;
     const auto kNewBalance = mBalance - amount;
     if (kNewBalance < kZeroBalance() && abs(kNewBalance) > mIncomingTrustAmount) {
         throw OverflowError(
@@ -460,7 +459,6 @@ void TrustLine::pay(
 void TrustLine::acceptPayment(
     const TrustLineAmount &amount)
 {
-    cout << "TrustLine::acceptPayment: amount " << amount << " balance " << mBalance << " outgoing amount " << mOutgoingTrustAmount << endl;
     const auto kNewBalance = mBalance + amount;
     if (kNewBalance < kZeroBalance() && abs(kNewBalance) > mIncomingTrustAmount) {
         throw OverflowError(

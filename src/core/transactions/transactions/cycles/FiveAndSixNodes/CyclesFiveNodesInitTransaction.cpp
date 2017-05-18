@@ -1,10 +1,12 @@
 #include "CyclesFiveNodesInitTransaction.h"
 
-const BaseTransaction::TransactionType CyclesFiveNodesInitTransaction::transactionType() const{
+const BaseTransaction::TransactionType CyclesFiveNodesInitTransaction::transactionType() const
+{
     return BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction;
 }
 
-TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAndSendMessagesStage() {
+TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAndSendMessagesStage()
+{
     debug() << "runCollectDataAndSendMessagesStage";
     vector<NodeUUID> firstLevelNodesNegativeBalance = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
     vector<NodeUUID> firstLevelNodesPositiveBalance = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
@@ -42,7 +44,8 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
+TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage()
+{
     if (mContext.size() == 0) {
         info() << "No responses messages are present. Can't create cycles paths";
         return resultDone();

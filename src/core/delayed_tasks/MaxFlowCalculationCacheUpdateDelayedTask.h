@@ -38,6 +38,8 @@ private:
 
     LoggerStream info() const;
 
+    LoggerStream debug() const;
+
     LoggerStream error() const;
 
     const string logHeader() const;

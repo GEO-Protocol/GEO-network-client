@@ -84,7 +84,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
 {
     debug() << "runParseMessageAndCreateCyclesStage";
     if (mContext.size() != 1){
-        return finishTransaction();
+        return resultDone();
     }
     #ifdef TESTS
     vector<vector<NodeUUID>> ResultCycles;
@@ -125,7 +125,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     cout << "CyclesThreeNodesInitTransaction::End" << endl;
     #endif
 
-    return finishTransaction();
+    return resultDone();
 }
 
 const string CyclesThreeNodesInitTransaction::logHeader() const
