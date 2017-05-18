@@ -378,12 +378,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
 
     if (path->isLastIntermediateNodeProcessed()) {
 
-        // send final path amount to all intermediate nodes on path
-        sendFinalPathConfiguration(
-            mPathStats.get(),
-            path->maxFlow());
         const auto kTotalAmount = mPathStats.get()->maxFlow();
-
         debug() << "Current path reservation finished";
         debug() << "Total collected amount by cycle: " << kTotalAmount;
 
@@ -505,6 +500,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
             debug() << "Current path reservation finished";
             debug() << "Total collected amount by cycle: " << kTotalAmount;
 
+            // this delay is set up to shure that FinalPathConfigurationMessage
+            // will be delivered before ParticipantsVotesMessage
+            std::this_thread::sleep_for(std::chrono::milliseconds(maxNetworkDelay(1)));
             return propagateVotesListAndWaitForVoutingResult();
         }
 

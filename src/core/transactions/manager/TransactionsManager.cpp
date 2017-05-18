@@ -45,65 +45,65 @@ TransactionsManager::TransactionsManager(
 
 void TransactionsManager::loadTransactions() {
 
-//    const auto ioTransaction = mStorageHandler->beginTransaction();
-//    const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
-//    for(const auto kTABufferAndSize: serializedTAs) {
-//        BaseTransaction::SerializedTransactionType *transactionType = new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
-//        auto TransactionTypeId = *transactionType;
-//        switch (TransactionTypeId) {
-//            case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
-//                auto transaction = make_shared<CoordinatorPaymentTransaction>(
-//                    kTABufferAndSize.first,
-//                    mNodeUUID,
-//                    mTrustLines,
-//                    mStorageHandler,
-//                    mMaxFlowCalculationCacheManager,
-//                    mResourcesManager,
-//                    mLog);
-//                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
-//                break;
-//            }
-//            case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
-//                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
-//                    kTABufferAndSize.first,
-//                    mNodeUUID,
-//                    mTrustLines,
-//                    mStorageHandler,
-//                    mMaxFlowCalculationCacheManager,
-//                    mLog);
-//                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
-//                break;
-//            }
-//            case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
-//                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
-//                    kTABufferAndSize.first,
-//                    mNodeUUID,
-//                    mTrustLines,
-//                    mStorageHandler,
-//                    mMaxFlowCalculationCacheManager,
-//                    mLog);
-//                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
-//                break;
-//            }
-//            case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
-//                auto transaction = make_shared<CycleCloserInitiatorTransaction>(
-//                    kTABufferAndSize.first,
-//                    mNodeUUID,
-//                    mTrustLines,
-//                    mStorageHandler,
-//                    mMaxFlowCalculationCacheManager,
-//                    mLog);
-//                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
-//                break;
-//            }
-//            default: {
-//                throw RuntimeError(
-//                    "TrustLinesManager::loadTransactions. "
-//                        "Unexpected transaction type identifier.");
-//            }
-//        }
-//
-//    }
+    const auto ioTransaction = mStorageHandler->beginTransaction();
+    const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
+    for(const auto kTABufferAndSize: serializedTAs) {
+        BaseTransaction::SerializedTransactionType *transactionType = new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
+        auto TransactionTypeId = *transactionType;
+        switch (TransactionTypeId) {
+            case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
+                auto transaction = make_shared<CoordinatorPaymentTransaction>(
+                    kTABufferAndSize.first,
+                    mNodeUUID,
+                    mTrustLines,
+                    mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
+                    mResourcesManager,
+                    mLog);
+                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                break;
+            }
+            case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
+                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
+                    kTABufferAndSize.first,
+                    mNodeUUID,
+                    mTrustLines,
+                    mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
+                    mLog);
+                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                break;
+            }
+            case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
+                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
+                    kTABufferAndSize.first,
+                    mNodeUUID,
+                    mTrustLines,
+                    mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
+                    mLog);
+                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                break;
+            }
+            case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
+                auto transaction = make_shared<CycleCloserInitiatorTransaction>(
+                    kTABufferAndSize.first,
+                    mNodeUUID,
+                    mTrustLines,
+                    mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
+                    mLog);
+                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                break;
+            }
+            default: {
+                throw RuntimeError(
+                    "TrustLinesManager::loadTransactions. "
+                        "Unexpected transaction type identifier.");
+            }
+        }
+
+    }
 }
 
 /*!
@@ -653,43 +653,49 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
 }
 
 void TransactionsManager::launchCoordinatorPaymentTransaction(
-    CreditUsageCommand::Shared command) {
-
-    prepareAndSchedule(
-        make_shared<CoordinatorPaymentTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mResourcesManager,
-            mLog));
+    CreditUsageCommand::Shared command)
+{
+    auto transaction = make_shared<CoordinatorPaymentTransaction>(
+        mNodeUUID,
+        command,
+        mTrustLines,
+        mStorageHandler,
+        mMaxFlowCalculationCacheManager,
+        mResourcesManager,
+        mLog);
+    subscribeForSubsidiaryTransactions(
+        transaction->runSubsidiaryTransactionSignal);
+    prepareAndSchedule(transaction);
 }
 
 void TransactionsManager::launchReceiverPaymentTransaction(
     ReceiverInitPaymentRequestMessage::Shared message)
 {
-    prepareAndSchedule(
-        make_shared<ReceiverPaymentTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog));
+    auto transaction = make_shared<ReceiverPaymentTransaction>(
+        mNodeUUID,
+        message,
+        mTrustLines,
+        mStorageHandler,
+        mMaxFlowCalculationCacheManager,
+        mLog);
+    subscribeForSubsidiaryTransactions(
+        transaction->runSubsidiaryTransactionSignal);
+    prepareAndSchedule(transaction);
 }
 
 void TransactionsManager::launchIntermediateNodePaymentTransaction(
     IntermediateNodeReservationRequestMessage::Shared message)
 {
-    prepareAndSchedule(
-        make_shared<IntermediateNodePaymentTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog));
+    auto transaction = make_shared<IntermediateNodePaymentTransaction>(
+        mNodeUUID,
+        message,
+        mTrustLines,
+        mStorageHandler,
+        mMaxFlowCalculationCacheManager,
+        mLog);
+    subscribeForSubsidiaryTransactions(
+        transaction->runSubsidiaryTransactionSignal);
+    prepareAndSchedule(transaction);
 }
 
 void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
@@ -850,7 +856,8 @@ void TransactionsManager::launchGetPathTestTransaction(
     }
 }
 
-void TransactionsManager::launchGetFirstLevelContractorsTransaction(GetFirstLevelContractorsCommand::Shared command)
+void TransactionsManager::launchGetFirstLevelContractorsTransaction(
+    GetFirstLevelContractorsCommand::Shared command)
 {
     prepareAndSchedule(
         make_shared<GetFirstLevelContractorsTransaction>(
@@ -860,7 +867,8 @@ void TransactionsManager::launchGetFirstLevelContractorsTransaction(GetFirstLeve
             mLog));
 }
 
-void TransactionsManager::launchGetTrustlinesTransaction(GetTrustLinesCommand::Shared command)
+void TransactionsManager::launchGetTrustlinesTransaction(
+    GetTrustLinesCommand::Shared command)
 {
     prepareAndSchedule(
         make_shared<GetFirstLevelContractorsBalancesTransaction>(

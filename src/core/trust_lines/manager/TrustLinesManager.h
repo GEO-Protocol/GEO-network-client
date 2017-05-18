@@ -88,8 +88,7 @@ public:
     const TrustLineBalance &balance(
         const NodeUUID &contractorUUID);
 
-    // TODO: rename to "reserveOutgoingAmount"
-    AmountReservation::ConstShared reserveAmount(
+    AmountReservation::ConstShared reserveOutgoingAmount(
         const NodeUUID &contractor,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);
@@ -112,17 +111,21 @@ public:
         const NodeUUID &contractor,
         const AmountReservation::ConstShared reservation);
 
+    // available outgoing amount considering reservations
     ConstSharedTrustLineAmount availableOutgoingAmount(
-        const NodeUUID &contractor);
+        const NodeUUID &contractor) const;
 
+    // available incoming amount considering reservations
     ConstSharedTrustLineAmount availableIncomingAmount(
-        const NodeUUID &contractor);
+        const NodeUUID &contractor) const;
 
+    // available outgoing amount considering reservations for cycles
     ConstSharedTrustLineAmount availableOutgoingCycleAmount(
-        const NodeUUID &contractor);
+        const NodeUUID &contractor) const;
 
+    // available incoming amount considering reservations for cycles
     ConstSharedTrustLineAmount availableIncomingCycleAmount(
-        const NodeUUID &contractor);
+        const NodeUUID &contractor) const;
 
     ConstSharedTrustLineAmount totalOutgoingAmount()
         const throw (bad_alloc);

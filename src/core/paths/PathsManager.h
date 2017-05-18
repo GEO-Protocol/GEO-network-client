@@ -103,15 +103,6 @@ private:
     void fillCycleTablesTestCase5();
     void fillCycleTablesTestCase6();
 
-    // TODO: remove after testing
-    void testStorageHandler();
-    void testTrustLineHandler();
-    void testPaymentStateOperationsHandler();
-    void testTransactionHandler();
-    void testTime();
-    void printRTs();
-    void testDeletingRT();
-
 private:
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;

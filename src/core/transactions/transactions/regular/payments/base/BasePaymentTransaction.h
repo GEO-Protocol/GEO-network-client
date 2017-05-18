@@ -140,6 +140,7 @@ protected:
         const PathUUID &pathUUID);
 
     void saveVotes();
+
     void commit();
 
     void rollBack();

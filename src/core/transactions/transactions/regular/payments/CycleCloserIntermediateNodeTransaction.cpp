@@ -234,6 +234,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     // path was cancelled, drop all reservations belong it
     if (kMessage->amount() == 0) {
         rollBack();
+        return resultDone();
     } else {
 
         // Shortening all reservations that belongs to this node and path.

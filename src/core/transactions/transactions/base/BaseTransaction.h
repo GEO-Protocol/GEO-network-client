@@ -230,6 +230,7 @@ protected:
     TransactionResult::SharedConst transactionResultFromState(
         TransactionState::SharedConst state);
 
+    [[deprecated]]
     TransactionResult::SharedConst finishTransaction();
 
     virtual const string logHeader() const;

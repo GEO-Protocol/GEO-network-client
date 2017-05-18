@@ -138,6 +138,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
     // Note: copy of shared pointer is required
     const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
+    debug() << "requested reservation amount is " << kMessage->amount();
+    debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
     TrustLineAmount reservationAmount = min(
         kMessage->amount(),
         *kOutgoingAmount);
@@ -305,6 +307,68 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
          Message::Payments_ParticipantsVotes,
          Message::Payments_TTLProlongation},
         maxNetworkDelay(2));
+}
+
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
+{
+    launchFourCyclesClosingTransactions();
+    launchThreeCyclesClosingTransactions();
+    BasePaymentTransaction::approve();
+    return resultDone();
+}
+
+void IntermediateNodePaymentTransaction::launchFourCyclesClosingTransactions()
+{
+    vector<pair<NodeUUID, NodeUUID>> debtorsAndCreditorsFourCycles;
+    map<PathUUID, NodeUUID> pathsReservations;
+    for (const auto &itNodeUUIDAndReservations : mReservations) {
+        for (const auto &itPathUUIDAndReservation : itNodeUUIDAndReservations.second) {
+            auto pathReservation = pathsReservations.find(itPathUUIDAndReservation.first);
+            if (pathReservation == pathsReservations.end()) {
+                pathsReservations.insert(
+                    make_pair(
+                        itPathUUIDAndReservation.first,
+                        itNodeUUIDAndReservations.first));
+            } else {
+                if (itPathUUIDAndReservation.second->direction() == AmountReservation::Outgoing) {
+                    debtorsAndCreditorsFourCycles.push_back(
+                        make_pair(
+                            pathReservation->second,
+                            itNodeUUIDAndReservations.first));
+                } else if (itPathUUIDAndReservation.second->direction() == AmountReservation::Incoming) {
+                    debtorsAndCreditorsFourCycles.push_back(
+                        make_pair(
+                            itNodeUUIDAndReservations.first,
+                            pathReservation->second));
+                }
+            }
+        }
+    }
+    for (auto const &debtorAndCreditor : debtorsAndCreditorsFourCycles) {
+        const auto kTransaction = make_shared<CyclesFourNodesInitTransaction>(
+            currentNodeUUID(),
+            debtorAndCreditor.first,
+            debtorAndCreditor.second,
+            mTrustLines,
+            mStorageHandler,
+            mMaxFlowCalculationCacheManager,
+            mLog);
+        launchSubsidiaryTransaction(kTransaction);
+    }
+}
+
+void IntermediateNodePaymentTransaction::launchThreeCyclesClosingTransactions()
+{
+    for (auto const nodeUUIDAndReservations : mReservations) {
+        const auto kTransaction = make_shared<CyclesThreeNodesInitTransaction>(
+            currentNodeUUID(),
+            nodeUUIDAndReservations.first,
+            mTrustLines,
+            mStorageHandler,
+            mMaxFlowCalculationCacheManager,
+            mLog);
+        launchSubsidiaryTransaction(kTransaction);
+    }
 }
 
 void IntermediateNodePaymentTransaction::deserializeFromBytes(

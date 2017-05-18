@@ -6,7 +6,7 @@ const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactio
 }
 
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndSendMessagesStage() {
-    debug() << "CyclesSixNodesInitTransaction";
+    debug() << "runCollectDataAndSendMessagesStage";
     const auto firstLevelNodes = mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalance();
     vector<NodeUUID> path;
     path.push_back(mNodeUUID);

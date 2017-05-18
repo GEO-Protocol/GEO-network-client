@@ -5,6 +5,7 @@ const BaseTransaction::TransactionType CyclesFiveNodesInitTransaction::transacti
 }
 
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAndSendMessagesStage() {
+    debug() << "runCollectDataAndSendMessagesStage";
     vector<NodeUUID> firstLevelNodesNegativeBalance = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
     vector<NodeUUID> firstLevelNodesPositiveBalance = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
     vector<NodeUUID> path;
