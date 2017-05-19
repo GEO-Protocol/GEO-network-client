@@ -18,7 +18,8 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
-TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run() {
+TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run()
+{
     switch (mStep){
         case Stages::CollectDataAndSendMessage:
             return runCollectDataAndSendMessageStage();
@@ -33,7 +34,8 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run() {
     }
 }
 
-set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
+set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor()
+{
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     const TrustLineBalance kZeroBalance = 0;
     const auto contractorNeighbors =
@@ -63,8 +65,9 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor() {
     return commonNeighbors;
 }
 
-TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAndSendMessageStage() {
-
+TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAndSendMessageStage()
+{
+    debug() << "runCollectDataAndSendMessageStage to " << mContractorUUID;
     set<NodeUUID> neighbors = getNeighborsWithContractor();
     sendMessage<CyclesThreeNodesBalancesRequestMessage>(
         mContractorUUID,
@@ -77,9 +80,11 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runCollectDataAn
         mkStandardConnectionTimeout);
 }
 
-TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
+TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageAndCreateCyclesStage()
+{
+    debug() << "runParseMessageAndCreateCyclesStage";
     if (mContext.size() != 1){
-        return finishTransaction();
+        return resultDone();
     }
     #ifdef TESTS
     vector<vector<NodeUUID>> ResultCycles;
@@ -95,14 +100,15 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
             mNodeUUID,
             mNodeUUID,
             cycle);
+        debug() << "build cycle: " << mNodeUUID << " -> " << mContractorUUID
+                << " -> " << nodeUUIDAndBalance << " -> " << mNodeUUID;
         const auto kTransaction = make_shared<CycleCloserInitiatorTransaction>(
             mNodeUUID,
             cyclePath,
             mTrustLinesManager,
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
-            mLog
-        );
+            mLog);
         launchSubsidiaryTransaction(kTransaction);
         #ifdef TESTS
             ResultCycles.push_back(cycle);
@@ -119,7 +125,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     cout << "CyclesThreeNodesInitTransaction::End" << endl;
     #endif
 
-    return finishTransaction();
+    return resultDone();
 }
 
 const string CyclesThreeNodesInitTransaction::logHeader() const

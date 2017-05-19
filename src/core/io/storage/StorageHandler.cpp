@@ -72,6 +72,9 @@ IOTransaction::Shared StorageHandler::beginTransaction()
 
 void StorageHandler::beginTransactionQuery()
 {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+    info() << "beginTransactionQuery";
+#endif
     string query = "BEGIN TRANSACTION;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDBConnection, query.c_str(), -1, &stmt, 0);

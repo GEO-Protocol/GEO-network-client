@@ -37,7 +37,7 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run() {
     }
     if (kMessage->NeighborsUUID().size() > 0)
         sendMessage(mRequestMessage->senderUUID, kMessage);
-    return finishTransaction();
+    return resultDone();
 }
 
 const string CyclesFourNodesReceiverTransaction::logHeader() const

@@ -3,6 +3,7 @@
 
 
 #include "base/BasePaymentTransaction.h"
+#include "../../cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 
 
 class ReceiverPaymentTransaction:
@@ -41,6 +42,15 @@ protected:
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
 
 protected:
+    // Receiver must must save payment operation into history.
+    // Therefore this methods are overriden.
+    TransactionResult::SharedConst approve();
+
+protected:
+    void savePaymentOperationIntoHistory();
+
+    void launchThreeCyclesClosingTransactions();
+
     void deserializeFromBytes(
         BytesShared buffer);
 

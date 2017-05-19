@@ -70,7 +70,7 @@ TrustLineStatesHandlerTransaction::TrustLineStatesHandlerTransaction (
 TransactionResult::SharedConst TrustLineStatesHandlerTransaction::run ()
     noexcept
 {
-    info() << "run on " << to_string(mCurrentHopDistance) << " level from " << mNeighborSenderUUID << " node";
+    debug() << "run on " << to_string(mCurrentHopDistance) << " level from " << mNeighborSenderUUID << " node";
     switch (mTrustLineState) {
         case Created:
             return processTrustLineCreation();
@@ -89,7 +89,7 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::run ()
 TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLineRemoving()
     noexcept
 {
-    info() << "processTrustLineRemoving";
+    debug() << "processTrustLineRemoving";
     if (mCurrentHopDistance < kRoutingTablesMaxLevel) {
         // Neighbor nodes must be notified about the newly added trust line.
 
@@ -126,8 +126,8 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
         for (const auto kNeighborOfCounterpartNode : ioTransaction->routingTablesHandler()->neighborsOfOnRT2(mRightContractorUUID)) {
             removeRecordFromSecondLevel(
                 ioTransaction,
-                kNeighborOfCounterpartNode,
-                mRightContractorUUID);
+                mRightContractorUUID,
+                kNeighborOfCounterpartNode);
         }
 
         return resultDone();
@@ -169,7 +169,7 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
 TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLineCreation ()
     noexcept
 {
-    info() << "processTrustLineCreation";
+    debug() << "processTrustLineCreation";
     if (mCurrentHopDistance < kRoutingTablesMaxLevel) {
         // Neighbor nodes must be notified about the newly added trust line.
 
@@ -276,7 +276,7 @@ void TrustLineStatesHandlerTransaction::sendMessageAndPreventRecursion (
     sendMessage(
         addressee,
         message);
-    info() << "send notification message to " << addressee;
+    debug() << "send notification message to " << addressee;
 
     // ToDo: check if remote node received the notification.
 }

@@ -1,14 +1,10 @@
 ﻿#include "Core.h"
 
-Core::Core() {
+Core::Core()
+{}
 
-    zeroPointers();
-}
-
-Core::~Core() {
-
-    cleanupMemory();
-}
+Core::~Core()
+{}
 
 int Core::run()
 {
@@ -139,7 +135,7 @@ int Core::initSubsystems() {
 int Core::initSettings() {
 
     try {
-        mSettings = new Settings();
+        mSettings = make_unique<Settings>();
         mLog.logSuccess("Core", "Settings are successfully initialised");
         return 0;
 
@@ -153,7 +149,7 @@ int Core::initCommunicator(
     const json &conf) {
 
     try {
-        mCommunicator = new Communicator(
+        mCommunicator = make_unique<Communicator>(
             mIOService,
             mSettings->interface(&conf),
             mSettings->port(&conf),
@@ -173,7 +169,8 @@ int Core::initCommunicator(
 int Core::initResultsInterface() {
 
     try {
-        mResultsInterface = new ResultsInterface(&mLog);
+        mResultsInterface = make_unique<ResultsInterface>(
+            &mLog);
         mLog.logSuccess("Core", "Results interface is successfully initialised");
         return 0;
 
@@ -186,8 +183,8 @@ int Core::initResultsInterface() {
 int Core::initTrustLinesManager() {
 
     try {
-        mTrustLinesManager = new TrustLinesManager(
-            mStorageHandler,
+        mTrustLinesManager = make_unique<TrustLinesManager>(
+            mStorageHandler.get(),
             &mLog);
         mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
         return 0;
@@ -201,7 +198,8 @@ int Core::initTrustLinesManager() {
 int Core::initMaxFlowCalculationTrustLineManager() {
 
     try{
-        mMaxFlowCalculationTrustLimeManager = new MaxFlowCalculationTrustLineManager(&mLog);
+        mMaxFlowCalculationTrustLimeManager = make_unique<MaxFlowCalculationTrustLineManager>(
+            &mLog);
         mLog.logSuccess("Core", "Max flow calculation Trust lines manager is successfully initialised");
         return 0;
 
@@ -214,7 +212,8 @@ int Core::initMaxFlowCalculationTrustLineManager() {
 int Core::initMaxFlowCalculationCacheManager() {
 
     try {
-        mMaxFlowCalculationCacheManager = new MaxFlowCalculationCacheManager(&mLog);
+        mMaxFlowCalculationCacheManager = make_unique<MaxFlowCalculationCacheManager>(
+            &mLog);
         mLog.logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
         return 0;
 
@@ -227,7 +226,7 @@ int Core::initMaxFlowCalculationCacheManager() {
 int Core::initResourcesManager() {
 
     try {
-        mResourcesManager = new ResourcesManager();
+        mResourcesManager = make_unique<ResourcesManager>();
         mLog.logSuccess("Core", "Resources manager is successfully initialized");
         return 0;
     } catch (const std::exception &e) {
@@ -239,18 +238,17 @@ int Core::initResourcesManager() {
 int Core::initTransactionsManager() {
 
     try {
-        mTransactionsManager = new TransactionsManager(
+        mTransactionsManager = make_unique<TransactionsManager>(
             mNodeUUID,
             mIOService,
-            mTrustLinesManager,
-            mResourcesManager,
-            mMaxFlowCalculationTrustLimeManager,
-            mMaxFlowCalculationCacheManager,
-            mResultsInterface,
-            mStorageHandler,
-            mPathsManager,
-            &mLog
-        );
+            mTrustLinesManager.get(),
+            mResourcesManager.get(),
+            mMaxFlowCalculationTrustLimeManager.get(),
+            mMaxFlowCalculationCacheManager.get(),
+            mResultsInterface.get(),
+            mStorageHandler.get(),
+            mPathsManager.get(),
+            &mLog);
         mLog.logSuccess("Core", "Transactions handler is successfully initialised");
         return 0;
 
@@ -262,12 +260,12 @@ int Core::initTransactionsManager() {
 
 int Core::initDelayedTasks() {
     try{
-        mCyclesDelayedTasks = new CyclesDelayedTasks(
+        mCyclesDelayedTasks = make_unique<CyclesDelayedTasks>(
                 mIOService);
-        mMaxFlowCalculationCacheUpdateDelayedTask = new MaxFlowCalculationCacheUpdateDelayedTask(
+        mMaxFlowCalculationCacheUpdateDelayedTask = make_unique<MaxFlowCalculationCacheUpdateDelayedTask>(
                 mIOService,
-                mMaxFlowCalculationCacheManager,
-                mMaxFlowCalculationTrustLimeManager,
+                mMaxFlowCalculationCacheManager.get(),
+                mMaxFlowCalculationTrustLimeManager.get(),
                 &mLog);
         mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
         return 0;
@@ -280,10 +278,9 @@ int Core::initDelayedTasks() {
 int Core::initCommandsInterface() {
 
     try {
-        mCommandsInterface = new CommandsInterface(
+        mCommandsInterface = make_unique<CommandsInterface>(
             mIOService,
-            &mLog
-        );
+            &mLog);
         mLog.logSuccess("Core", "Commands interface is successfully initialised");
         return 0;
 
@@ -305,7 +302,7 @@ void Core::connectCommandsInterfaceSignals ()
 int Core::initStorageHandler() {
 
     try {
-        mStorageHandler = new StorageHandler(
+        mStorageHandler = make_unique<StorageHandler>(
             "io",
             "storageDB",
             &mLog);
@@ -320,10 +317,10 @@ int Core::initStorageHandler() {
 int Core::initPathsManager() {
 
     try {
-        mPathsManager = new PathsManager(
+        mPathsManager = make_unique<PathsManager>(
             mNodeUUID,
-            mTrustLinesManager,
-            mStorageHandler,
+            mTrustLinesManager.get(),
+            mStorageHandler.get(),
             &mLog);
         mLog.logSuccess("Core", "Paths Manager is successfully initialised");
         return 0;
@@ -376,7 +373,7 @@ void Core::connectTrustLinesManagerSignals() {
 }
 
 void Core::connectDelayedTasksSignals(){
-    /*mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
+    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
             boost::bind(
                     &Core::onDelayedTaskCycleSixNodesSlot,
                     this
@@ -401,7 +398,7 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
-    #endif*/
+    #endif
 }
 
 void Core::connectResourcesManagerSignals() {
@@ -522,72 +519,6 @@ void Core::onResourceCollectedSlot(
         mLog.logException("Core", e);
     }
 
-}
-
-void Core::cleanupMemory() {
-
-    if (mSettings != nullptr) {
-        delete mSettings;
-    }
-
-    if (mCommunicator != nullptr) {
-        delete mCommunicator;
-    }
-
-    if (mResultsInterface != nullptr) {
-        delete mResultsInterface;
-    }
-
-    if (mTrustLinesManager != nullptr) {
-        delete mTrustLinesManager;
-    }
-
-    if (mResourcesManager != nullptr) {
-        delete mResourcesManager;
-    }
-
-    if (mTransactionsManager != nullptr) {
-        delete mTransactionsManager;
-    }
-
-    if (mCommandsInterface != nullptr) {
-        delete mCommandsInterface;
-    }
-
-    if (mMaxFlowCalculationTrustLimeManager != nullptr) {
-        delete mMaxFlowCalculationTrustLimeManager;
-    }
-
-    if (mMaxFlowCalculationCacheManager != nullptr) {
-        delete mMaxFlowCalculationCacheManager;
-    }
-
-    if (mMaxFlowCalculationCacheUpdateDelayedTask != nullptr) {
-        delete mMaxFlowCalculationCacheUpdateDelayedTask;
-    }
-
-/*    if (mStorageHandler != nullptr) {
-        delete mStorageHandler;
-    }*/
-
-    if (mPathsManager != nullptr) {
-        delete mPathsManager;
-    }
-}
-
-void Core::zeroPointers() {
-
-    mSettings = nullptr;
-    mCommunicator = nullptr;
-    mCommandsInterface = nullptr;
-    mResultsInterface = nullptr;
-    mTrustLinesManager = nullptr;
-    mResourcesManager = nullptr;
-    mTransactionsManager = nullptr;
-    mCyclesDelayedTasks = nullptr;
-    mMaxFlowCalculationTrustLimeManager = nullptr;
-    mMaxFlowCalculationCacheManager = nullptr;
-    mMaxFlowCalculationCacheUpdateDelayedTask = nullptr;
 }
 
 //}

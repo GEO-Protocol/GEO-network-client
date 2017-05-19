@@ -43,7 +43,7 @@ private:
             MaxFlowCalculationTrustLine::Shared b) {
             auto aTrustLineFreeAmountPtr = a.get()->freeAmount();
             auto bTrustLineFreeAmountPtr = b.get()->freeAmount();
-            return *aTrustLineFreeAmountPtr > *bTrustLineFreeAmountPtr;
+            return *aTrustLineFreeAmountPtr.get() > *bTrustLineFreeAmountPtr.get();
         }
     } customLess;
 

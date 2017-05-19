@@ -120,10 +120,6 @@ private:
     void onResourceCollectedSlot(
         BaseResource::Shared resource);
 
-    void zeroPointers();
-
-    void cleanupMemory();
-
     void writePIDFile();
 
     void checkSomething();
@@ -140,19 +136,19 @@ protected:
     NodeUUID mNodeUUID;
     as::io_service mIOService;
 
-    Settings *mSettings;
-    Communicator *mCommunicator;
-    CommandsInterface *mCommandsInterface;
-    ResultsInterface *mResultsInterface;
-    TrustLinesManager *mTrustLinesManager;
-    ResourcesManager *mResourcesManager;
-    TransactionsManager *mTransactionsManager;
-    CyclesDelayedTasks *mCyclesDelayedTasks;
-    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLimeManager;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    MaxFlowCalculationCacheUpdateDelayedTask *mMaxFlowCalculationCacheUpdateDelayedTask;
-    StorageHandler *mStorageHandler;
-    PathsManager *mPathsManager;
+    unique_ptr<Settings> mSettings;
+    unique_ptr<Communicator> mCommunicator;
+    unique_ptr<CommandsInterface> mCommandsInterface;
+    unique_ptr<ResultsInterface> mResultsInterface;
+    unique_ptr<TrustLinesManager> mTrustLinesManager;
+    unique_ptr<ResourcesManager> mResourcesManager;
+    unique_ptr<TransactionsManager> mTransactionsManager;
+    unique_ptr<CyclesDelayedTasks> mCyclesDelayedTasks;
+    unique_ptr<MaxFlowCalculationTrustLineManager> mMaxFlowCalculationTrustLimeManager;
+    unique_ptr<MaxFlowCalculationCacheManager> mMaxFlowCalculationCacheManager;
+    unique_ptr<MaxFlowCalculationCacheUpdateDelayedTask> mMaxFlowCalculationCacheUpdateDelayedTask;
+    unique_ptr<StorageHandler> mStorageHandler;
+    unique_ptr<PathsManager> mPathsManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

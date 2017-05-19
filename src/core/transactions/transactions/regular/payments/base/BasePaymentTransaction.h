@@ -18,9 +18,14 @@
 #include "../../../../../network/messages/payments/CoordinatorReservationResponseMessage.h"
 #include "../../../../../network/messages/payments/IntermediateNodeReservationRequestMessage.h"
 #include "../../../../../network/messages/payments/IntermediateNodeReservationResponseMessage.h"
+#include "../../../../../network/messages/payments/CoordinatorCycleReservationRequestMessage.h"
+#include "../../../../../network/messages/payments/CoordinatorCycleReservationResponseMessage.h"
+#include "../../../../../network/messages/payments/IntermediateNodeCycleReservationRequestMessage.h"
+#include "../../../../../network/messages/payments/IntermediateNodeCycleReservationResponseMessage.h"
 #include "../../../../../network/messages/payments/ParticipantsVotesMessage.h"
 #include "../../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../../../network/messages/payments/FinalPathConfigurationMessage.h"
+#include "../../../../../network/messages/payments/FinalPathCycleConfigurationMessage.h"
 #include "../../../../../network/messages/payments/TTLPolongationMessage.h"
 
 #include "PathStats.h"
@@ -77,7 +82,6 @@ protected:
 
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,
-        Common_FinalPathsConfigurationChecking,
         Common_Recovery,
         Common_ClarificationTransaction
 
@@ -136,6 +140,7 @@ protected:
         const PathUUID &pathUUID);
 
     void saveVotes();
+
     void commit();
 
     void rollBack();

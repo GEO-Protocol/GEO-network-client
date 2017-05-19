@@ -30,6 +30,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
         return resultDone();
     auto kFirstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
 //  Update message path and send to next level nodes
+    info() << "current depth: " << to_string(kCurrentDepth);
     if ((kCurrentDepth==1)) {
         mInBetweenNodeTopologyMessage->addNodeToPath(mNodeUUID);
         for(const auto &kNodeUUIDAndBalance: kFirstLevelNodes)
@@ -40,7 +41,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
     }
     if (kCurrentDepth==2){
         path.push_back(mNodeUUID);
-        sendMessage<CyclesFiveNodesBoundaryMessage>(
+        sendMessage<CyclesSixNodesBoundaryMessage>(
             path.front(),
             path,
             kFirstLevelNodes

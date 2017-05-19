@@ -1,10 +1,13 @@
 #include "CyclesFiveNodesInitTransaction.h"
 
-const BaseTransaction::TransactionType CyclesFiveNodesInitTransaction::transactionType() const{
+const BaseTransaction::TransactionType CyclesFiveNodesInitTransaction::transactionType() const
+{
     return BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction;
 }
 
-TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAndSendMessagesStage() {
+TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAndSendMessagesStage()
+{
+    debug() << "runCollectDataAndSendMessagesStage";
     vector<NodeUUID> firstLevelNodesNegativeBalance = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
     vector<NodeUUID> firstLevelNodesPositiveBalance = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
     vector<NodeUUID> path;
@@ -41,16 +44,18 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
+TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage()
+{
     if (mContext.size() == 0) {
         info() << "No responses messages are present. Can't create cycles paths";
         return resultDone();
     }
+    debug() << "Try to collect path";
     TrustLineBalance zeroBalance = 0;
     CycleMap mCreditors;
     TrustLineBalance creditorsStepFlow;
     for(const auto &mess: mContext){
-        auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
+        auto message = static_pointer_cast<CyclesFiveNodesBoundaryMessage>(mess);
         const auto stepPath = make_shared<vector<NodeUUID>>(message->Path());
         //  It has to be exactly nodes count in path
         if (stepPath->size() != 2)
@@ -79,7 +84,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
     TrustLineBalance debtorsStepFlow;
     TrustLineBalance commonStepMaxFlow;
     for(const auto &mess: mContext) {
-        auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
+        auto message = static_pointer_cast<CyclesFiveNodesBoundaryMessage>(mess);
         debtorsStepFlow = mTrustLinesManager->balance(message->Path()[1]);
         //  If it is Creditors branch - skip it
         if (debtorsStepFlow < zeroBalance)
@@ -101,6 +106,10 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
                                                    stepPathDebtors[2],
                                                    kNodeUUID,
                                                    s_it->second->back()};
+
+                stringstream ss;
+                copy(stepCyclePath.begin(), stepCyclePath.end(), ostream_iterator<NodeUUID>(ss, ","));
+                debug() << "CyclesFiveNodesInitTransaction::CyclePath " << ss.str();
                 const auto cyclePath = make_shared<Path>(
                     mNodeUUID,
                     mNodeUUID,
@@ -127,13 +136,13 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
         }
     }
     #ifdef TESTS
-    cout << "CyclesSixNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size()) << endl;
+    debug() << "CyclesSixNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size());
     for (vector<NodeUUID> KCyclePath: ResultCycles){
         stringstream ss;
         copy(KCyclePath.begin(), KCyclePath.end(), ostream_iterator<NodeUUID>(ss, ","));
-        cout << "CyclesSixNodesInitTransaction::CyclePath " << ss.str() << endl;
+        debug() << "CyclesFiveNodesInitTransaction::CyclePath " << ss.str();
     }
-    cout << "CyclesSixNodesInitTransaction::End" << endl;
+    debug() << "CyclesFiveNodesInitTransaction::End";
     #endif
     mContext.clear();
     return resultDone();

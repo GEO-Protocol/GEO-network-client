@@ -14,8 +14,7 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
-{
-};
+{};
 
 TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::run() {
     switch (mStep) {

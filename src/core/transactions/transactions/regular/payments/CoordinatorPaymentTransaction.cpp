@@ -49,6 +49,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
     noexcept
 {
+    debug() << "run: stage: " << mStep;
     try {
         switch (mStep) {
             case Stages::Coordinator_Initialisation:
@@ -101,21 +102,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     if (kTotalOutgoingPossibilities < mCommand->amount())
         return resultInsufficientFundsError();
 
-
-    // TODO: Read paths from paths manager.
     // TODO: Ensure paths shuffling
 
     NodeUUID sender = currentNodeUUID();
-//    NodeUUID b("13e5cf8c-5834-4e52-b65b-f9281dd1ff01");
-//    NodeUUID c("13e5cf8c-5834-4e52-b65b-f9281dd1ff02");
-//    NodeUUID receiver("13e5cf8c-5834-4e52-b65b-f9281dd1ff03");
-    //    auto p1 = make_shared<const Path>(
-//        Path(sender, receiver));
-//    auto p2 = make_shared<const Path>(
-//        Path(sender, receiver, {c}));
-
-//    addPathForFurtherProcessing(p1);
-//    addPathForFurtherProcessing(p2);
 
     mResourcesManager->requestPaths(
         currentTransactionUUID(),
@@ -134,158 +123,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
         auto responseResource = *mResources.begin();
         if (responseResource->type() == BaseResource::ResourceType::Paths) {
 
-            // TODO for test case0
-//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
-//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
-//
-//            vector<NodeUUID> intermediateNodes;
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            intermediateNodes.push_back(*nodeUUID54Ptr);
-//            auto result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID55Ptr,
-//                intermediateNodes);
-//
-//            delete nodeUUID51Ptr;
-//            delete nodeUUID52Ptr;
-//            delete nodeUUID53Ptr;
-//            delete nodeUUID54Ptr;
-//            delete nodeUUID55Ptr;
-//
-//            addPathForFurtherProcessing(result);
-            // end test case0
-
-            // TODO for test case1
-//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
-//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
-//            NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
-//
-//            vector<NodeUUID> intermediateNodes;
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            intermediateNodes.push_back(*nodeUUID54Ptr);
-//            auto result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID52Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//            intermediateNodes.clear();
-//            intermediateNodes.push_back(*nodeUUID55Ptr);
-//            intermediateNodes.push_back(*nodeUUID56Ptr);
-//            result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID52Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//
-//            delete nodeUUID51Ptr;
-//            delete nodeUUID52Ptr;
-//            delete nodeUUID53Ptr;
-//            delete nodeUUID54Ptr;
-//            delete nodeUUID55Ptr;
-//            delete nodeUUID56Ptr;
-            //end test case1
-
-            // TODO for test case2
-//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
-//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
-//
-//            vector<NodeUUID> intermediateNodes;
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            auto result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID55Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//            intermediateNodes.clear();
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID54Ptr);
-//            result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID55Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//
-//            delete nodeUUID51Ptr;
-//            delete nodeUUID52Ptr;
-//            delete nodeUUID53Ptr;
-//            delete nodeUUID54Ptr;
-//            delete nodeUUID55Ptr;
-            //end test case2
-
-            // TODO for test case3
-//            NodeUUID *nodeUUID51Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff51");
-//            NodeUUID *nodeUUID52Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff52");
-//            NodeUUID *nodeUUID53Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff53");
-//            NodeUUID *nodeUUID54Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff54");
-//            NodeUUID *nodeUUID55Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff55");
-//            NodeUUID *nodeUUID56Ptr = new NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff56");
-//
-//            vector<NodeUUID> intermediateNodes;
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            intermediateNodes.push_back(*nodeUUID55Ptr);
-//            auto result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID56Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//            intermediateNodes.clear();
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID54Ptr);
-//            intermediateNodes.push_back(*nodeUUID55Ptr);
-//            result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID56Ptr,
-//                intermediateNodes);
-//            addPathForFurtherProcessing(result);
-//
-//            delete nodeUUID51Ptr;
-//            delete nodeUUID52Ptr;
-//            delete nodeUUID53Ptr;
-//            delete nodeUUID54Ptr;
-//            delete nodeUUID55Ptr;
-//            delete nodeUUID56Ptr;
-            //end test case3
-
             PathsResource::Shared response = static_pointer_cast<PathsResource>(
                 responseResource);
-
-            // TODO for test Votes
-//            NodeUUID *nodeUUID51Ptr = new NodeUUID("83f5325f-09b9-4af1-9539-ebd82592fa28");
-//            NodeUUID *nodeUUID52Ptr = new NodeUUID("0cf32ef5-3028-42a3-b81b-dd32a3e15f96");
-//            NodeUUID *nodeUUID53Ptr = new NodeUUID("592aaaf6-0626-4a0b-9cd7-a09215feff9e");
-//            NodeUUID *nodeUUID54Ptr = new NodeUUID("03de0db2-140e-4a5b-aa0e-b2fbf25dceec");
-//            NodeUUID *nodeUUID55Ptr = new NodeUUID("6801e258-b4b8-4b35-bdef-4b7d59ecb4ed");
-//
-//            vector<NodeUUID> intermediateNodes;
-//            intermediateNodes.push_back(*nodeUUID52Ptr);
-//            intermediateNodes.push_back(*nodeUUID53Ptr);
-//            intermediateNodes.push_back(*nodeUUID54Ptr);
-//            auto result = make_shared<const Path>(
-//                *nodeUUID51Ptr,
-//                *nodeUUID55Ptr,
-//                intermediateNodes);
-//
-//            delete nodeUUID51Ptr;
-//            delete nodeUUID52Ptr;
-//            delete nodeUUID53Ptr;
-//            delete nodeUUID54Ptr;
-//            delete nodeUUID55Ptr;
-//
-//            addPathForFurtherProcessing(result);
-            // end test
-
             response->pathCollection()->resetCurrentPath();
             while (response->pathCollection()->hasNextPath()) {
                 auto path = response->pathCollection()->nextPath();
@@ -334,17 +173,15 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverRespons
             resultNoResponseError(),
             "Receiver reservation response wasn't received. Canceling.");
 
-
     const auto kMessage = popNextMessage<ReceiverInitPaymentResponseMessage>();
     if (kMessage->state() != ReceiverInitPaymentResponseMessage::Accepted)
         return exitWithResult(
             resultDone(),
             "Receiver rejected payment operation. Canceling.");
 
-
     debug() << "Receiver accepted operation. Begin reserving amounts.";
     mStep = Stages::Coordinator_AmountReservation;
-    return resultFlushAndContinue();
+    return runAmountReservationStage();
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservationStage ()
@@ -403,7 +240,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
  * Collects all nodes from all paths into one votes list,
  * and propagates it to the next node in the votes list.
  */
-TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVoutingResult()
+TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVoutingResult(
+    bool shouldSetUpDelay)
 {
     debug() << "propagateVotesListAndWaitForVoutingResult";
     const auto kCurrentNodeUUID = currentNodeUUID();
@@ -415,7 +253,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     // todo: make this atomic
     mTransactionIsVoted = true;
 
-    auto message = make_shared<ParticipantsVotesMessage>(
+    mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
         kCurrentNodeUUID,
         kTransactionUUID,
         kCurrentNodeUUID);
@@ -450,7 +288,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
             if (nodeUUID == kCurrentNodeUUID)
                 continue;
 
-            message->addParticipant(nodeUUID);
+            mParticipantsVotesMessage->addParticipant(nodeUUID);
 
 #ifdef DEBUG
             totalParticipantsCount++;
@@ -462,23 +300,35 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 #ifdef DEBUG
     debug() << "Total participants included: " << totalParticipantsCount;
     debug() << "Participants order is the next:";
-    for (const auto kNodeUUIDAndVote : message->votes()) {
+    for (const auto kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
         debug() << kNodeUUIDAndVote.first;
     }
 #endif
 
+    if (shouldSetUpDelay) {
+        auto lastProcessedPath = currentAmountReservationPathStats();
+        if (lastProcessedPath->path()->positionOfNode(
+            mParticipantsVotesMessage->firstParticipant()) > 0) {
+            debug() << "delay before sending ParticipantsVotesMessage";
+            // this delay is set up to shure that FinalPathConfigurationMessage
+            // will be delivered before ParticipantsVotesMessage
+            // in case when first participant is present in last processed path
+            std::this_thread::sleep_for(std::chrono::milliseconds(maxNetworkDelay(1)));
+        }
+    }
+
     // Begin message propagation
     sendMessage(
-        message->firstParticipant(),
-        message);
+        mParticipantsVotesMessage->firstParticipant(),
+        mParticipantsVotesMessage);
 
-    debug() << "Votes message constructed and sent to the (" << message->firstParticipant() << ")";
+    debug() << "Votes message constructed and sent to the (" << mParticipantsVotesMessage->firstParticipant() << ")";
 
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes,
         Message::Payments_TTLProlongation},
-        maxNetworkDelay(message->participantsCount() + 1));
+        maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1));
 }
 
 
@@ -886,7 +736,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
             debug() << "Begin processing participants votes.";
 
-            return propagateVotesListAndWaitForVoutingResult();
+            return propagateVotesListAndWaitForVoutingResult(false);
         }
         return tryProcessNextPath();
     }
@@ -1024,7 +874,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                 debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
                 debug() << "Begin processing participants votes.";
 
-                return propagateVotesListAndWaitForVoutingResult();
+                return propagateVotesListAndWaitForVoutingResult(true);
             }
             return tryProcessNextPath();
         }
@@ -1054,6 +904,7 @@ PathStats* CoordinatorPaymentTransaction::currentAmountReservationPathStats()
 
 void CoordinatorPaymentTransaction::switchToNextPath()
 {
+    auto justProcessedPath = currentAmountReservationPathStats();
     if (! mPathUUIDs.empty()) {
         mPathUUIDs.erase(mPathUUIDs.cbegin());
     }
@@ -1066,7 +917,6 @@ void CoordinatorPaymentTransaction::switchToNextPath()
     // to avoid not actual reservations in case of processing path,
     // which contains node on first position, which also is present in path,
     // processed just before, we need delay
-    auto justProcessedPath = currentAmountReservationPathStats();
     mCurrentAmountReservingPathIdentifier = *mPathUUIDs.cbegin();
     auto currentPath = currentAmountReservationPathStats();
     auto currentFirstIntermediateNode = currentPath->path()->nodes[1];
@@ -1158,7 +1008,9 @@ const string CoordinatorPaymentTransaction::logHeader() const
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 {
+    launchThreeCyclesClosingTransactions();
     BasePaymentTransaction::approve();
+    savePaymentOperationIntoHistory();
     return resultOK();
 }
 
@@ -1223,7 +1075,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
         debug() << "Begin processing participants votes.";
 
-        return propagateVotesListAndWaitForVoutingResult();
+        return propagateVotesListAndWaitForVoutingResult(false);
     }
     mStep = Stages::Coordinator_AmountReservation;
     return tryProcessNextPath();
@@ -1244,4 +1096,31 @@ bool CoordinatorPaymentTransaction::isPathValid(
         itGlobal++;
     }
     return true;
+}
+
+void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory()
+{
+    debug() << "savePaymentOperationIntoHistory";
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->savePaymentRecord(
+        make_shared<PaymentRecord>(
+            currentTransactionUUID(),
+            PaymentRecord::PaymentOperationType::OutgoingPaymentType,
+            mCommand->contractorUUID(),
+            mCommand->amount(),
+            *mTrustLines->totalBalance().get()));
+}
+
+void CoordinatorPaymentTransaction::launchThreeCyclesClosingTransactions()
+{
+    for (auto const nodeUUIDAndReservations : mReservations) {
+        const auto kTransaction = make_shared<CyclesThreeNodesInitTransaction>(
+            currentNodeUUID(),
+            nodeUUIDAndReservations.first,
+            mTrustLines,
+            mStorageHandler,
+            mMaxFlowCalculationCacheManager,
+            mLog);
+        launchSubsidiaryTransaction(kTransaction);
+    }
 }

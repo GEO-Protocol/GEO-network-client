@@ -78,11 +78,26 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Payments_IntermediateNodeReservationResponse:
             return messageCollected<IntermediateNodeReservationResponseMessage>(buffer);
 
+        case Message::Payments_CoordinatorCycleReservationRequest:
+            return messageCollected<CoordinatorCycleReservationRequestMessage>(buffer);
+
+        case Message::Payments_CoordinatorCycleReservationResponse:
+            return messageCollected<CoordinatorCycleReservationResponseMessage>(buffer);
+
+        case Message::Payments_IntermediateNodeCycleReservationRequest:
+            return messageCollected<IntermediateNodeCycleReservationRequestMessage>(buffer);
+
+        case Message::Payments_IntermediateNodeCycleReservationResponse:
+            return messageCollected<IntermediateNodeCycleReservationResponseMessage>(buffer);
+
         case Message::Payments_ParticipantsVotes:
             return messageCollected<ParticipantsVotesMessage>(buffer);
 
         case Message::Payments_FinalPathConfiguration:
             return messageCollected<FinalPathConfigurationMessage>(buffer);
+
+        case Message::Payments_FinalPathCycleConfiguration:
+            return messageCollected<FinalPathCycleConfigurationMessage>(buffer);
 
         case Message::Payments_TTLProlongation:
             return messageCollected<TTLPolongationMessage>(buffer);

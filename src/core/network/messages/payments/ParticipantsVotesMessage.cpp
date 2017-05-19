@@ -44,11 +44,7 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
     const RecordsCount kRecordsCount = *(kRecordsCountOffset);
 
     for (RecordsCount i=0; i<kRecordsCount; ++i) {
-        NodeUUID participantUUID;
-        memcpy(
-            participantUUID.data,
-            currentOffset,
-            NodeUUID::kBytesSize);
+        NodeUUID participantUUID(currentOffset);
 
         const SerializedVote kVote =
             *(currentOffset + NodeUUID::kBytesSize);
@@ -66,8 +62,7 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
         message->transactionUUID()),
     mCoordinatorUUID(message->coordinatorUUID()),
     mVotes(message->votes())
-{
-}
+{}
 
 /**
  * Inserts new participant into participants list with default vote (Uncertain).

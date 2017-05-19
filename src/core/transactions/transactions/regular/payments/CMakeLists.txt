@@ -20,7 +20,10 @@ set(SOURCE_FILES
         VotesStatusResponsePaymentTransaction.cpp
 
         CycleCloserInitiatorTransaction.h
-        CycleCloserInitiatorTransaction.cpp)
+        CycleCloserInitiatorTransaction.cpp
+
+        CycleCloserIntermediateNodeTransaction.h
+        CycleCloserIntermediateNodeTransaction.cpp)
 
 add_library(transactions__payments ${SOURCE_FILES})
 target_link_libraries(transactions__payments

@@ -132,4 +132,14 @@ inline TrustLineBalance bytesToTrustLineBalance(
     return balance;
 }
 
+inline TrustLineAmount absoluteBalanceAmount(
+    const TrustLineBalance &balance)
+{
+    if (balance > TrustLineBalance(0)) {
+        return TrustLineAmount(balance);
+    } else {
+        return TrustLineAmount(-1 * balance);
+    }
+}
+
 #endif //GEO_NETWORK_CLIENT_MULTIPRECISIONUTILS_H

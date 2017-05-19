@@ -25,14 +25,14 @@ MaxFlowCalculationCache::Shared MaxFlowCalculationCacheManager::cacheByNode(
 
 void MaxFlowCalculationCacheManager::updateCaches()
 {
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "updateCaches\t" << "mCaches size: " << mCaches.size();
     info() << "updateCaches\t" << "msCaches size: " << msCache.size();
 #endif
     for (auto &timeAndNodeUUID : msCache) {
         if (utc_now() - timeAndNodeUUID.first > kResetSenderCacheDuration()) {
             NodeUUID* keyUUIDPtr = timeAndNodeUUID.second;
-#ifdef  MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "updateCaches\t" << *keyUUIDPtr;
 #endif
             mCaches.erase(*keyUUIDPtr);
@@ -43,7 +43,7 @@ void MaxFlowCalculationCacheManager::updateCaches()
         }
     }
     if (mInitiatorCache.first && utc_now() - mInitiatorCache.second > kResetInitiatorCacheDuration()) {
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
         info() << "updateCaches\t" << "reset Initiator cache";
 #endif
         mInitiatorCache.first = false;

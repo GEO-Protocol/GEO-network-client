@@ -80,6 +80,7 @@ public:
         IntermediateNodePaymentTransaction,
         VoutesStatusResponsePaymentTransaction,
         Payments_CycleCloserInitiatorTransaction,
+        Payments_CycleCloserIntermediateNodeTransaction,
 
         // Max flow calculation
         InitiateMaxFlowCalculationTransactionType,
@@ -229,6 +230,7 @@ protected:
     TransactionResult::SharedConst transactionResultFromState(
         TransactionState::SharedConst state);
 
+    [[deprecated]]
     TransactionResult::SharedConst finishTransaction();
 
     virtual const string logHeader() const;

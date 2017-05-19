@@ -8,6 +8,9 @@
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 
 #include "../../../../resources/manager/ResourcesManager.h"
+#include "../../../../io/storage/record/payment/PaymentRecord.h"
+
+#include "../../cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 
 #include <boost/functional/hash.hpp>
 
@@ -63,7 +66,8 @@ protected:
     TransactionResult::SharedConst runReceiverResponseProcessingStage ();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
-    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
+    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult(
+        bool shouldSetUpDelay);
 
 protected:
     // Coordinator must return command result on transaction finishing.
@@ -124,6 +128,10 @@ protected:
     TransactionResult::SharedConst processRemoteNodeResponse();
 
     TrustLineAmount totalReservedByAllPaths() const;
+
+    void savePaymentOperationIntoHistory();
+
+    void launchThreeCyclesClosingTransactions();
 
 protected:
     const string logHeader() const;

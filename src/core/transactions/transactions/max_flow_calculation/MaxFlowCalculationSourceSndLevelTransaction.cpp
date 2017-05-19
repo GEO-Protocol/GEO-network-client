@@ -23,7 +23,7 @@ MaxFlowCalculationSourceSndLevelMessage::Shared MaxFlowCalculationSourceSndLevel
 
 TransactionResult::SharedConst MaxFlowCalculationSourceSndLevelTransaction::run()
 {
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "run\t" << "Iam: " << mNodeUUID;
     info() << "run\t" << "sender: " << mMessage->senderUUID;
     info() << "run\t" << "target: " << mMessage->targetUUID();
@@ -40,7 +40,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator()
         sendCachedResultToInitiator(maxFlowCalculationCachePtr);
         return;
     }
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendResultToInitiator\t" << "send to " << mMessage->targetUUID();
 #endif
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
@@ -60,7 +60,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator()
                 incomingFlow);
         }
     }
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendResult\t" << "OutgoingFlows: " << outgoingFlows.size();
     info() << "sendResult\t" << "IncomingFlows: " << incomingFlows.size();
 #endif
@@ -81,7 +81,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator()
 void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
     MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr)
 {
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID();
 #endif
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsForSending;
@@ -93,7 +93,6 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
                 outgoingFlow);
         }
     }
-    info() << "outgoing flows successfully processed";
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlowsForSending;
     for (auto const &incomingFlow : mTrustLinesManager->incomingFlows()) {
         auto trustLineAmountShared = incomingFlow.second;
@@ -103,8 +102,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
                 incomingFlow);
         }
     }
-    info() << "incoming flows successfully processed";
-#ifdef MAX_FLOW_CALCULATION_DEBUG_LOG
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendCachedResultToInitiator\t" << "OutgoingFlows: " << outgoingFlowsForSending.size();
     info() << "sendCachedResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
 #endif

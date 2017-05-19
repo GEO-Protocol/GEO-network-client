@@ -199,10 +199,15 @@ void RoutingTablesHandler::removeRecordFromRT2(
         source,
         destination);
 
-    if (!mRoutingTable2Level.isNodePresentAsDestination(
-        destination)) {
+    auto allSourcesForDestination = mRoutingTable2Level.allSourcesForDestination(
+        destination);
+    if (allSourcesForDestination.size() == 0) {
         mRoutingTable3Level.deleteAllRecordsWithSource(
             destination);
+    } else if (allSourcesForDestination.size() == 1) {
+        mRoutingTable3Level.deleteRecord(
+            destination,
+            allSourcesForDestination.front());
     }
 }
 

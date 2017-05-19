@@ -1,11 +1,14 @@
 #include "CyclesSixNodesInitTransaction.h"
+#include "../../../../paths/lib/Path.h"
 
-const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactionType() const{
+const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactionType() const
+{
     return BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction;
 }
 
-TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndSendMessagesStage() {
-    cout << "CyclesSixNodesInitTransaction" << endl;
+TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndSendMessagesStage()
+{
+    debug() << "runCollectDataAndSendMessagesStage";
     const auto firstLevelNodes = mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalance();
     vector<NodeUUID> path;
     path.push_back(mNodeUUID);
@@ -37,7 +40,8 @@ CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
+TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAndCreateCyclesStage()
+{
     if (mContext.size() == 0) {
         info() << "No responses messages are present. Can't create cycles paths;";
         return resultDone();
@@ -94,12 +98,28 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                 if (((*NodeUIDandPairOfPathandBalace->second)[2] == stepPath[1]) or ((*NodeUIDandPairOfPathandBalace->second)[1] == stepPath[2]))
                     continue;
                 //  Find minMax flow between 3 value. 1 in map. 1 in boundaryNodes. 1 we get from creditor first node in path
-                vector<NodeUUID> stepCyclePath = {stepPath[0],
+                vector<NodeUUID> stepCyclePath = {
                                                   stepPath[1],
                                                   stepPath[2],
                                                   kNodeUUID,
                                                   (*(NodeUIDandPairOfPathandBalace->second))[2],
                                                   (*(NodeUIDandPairOfPathandBalace->second))[1]};
+                stringstream ss;
+                copy(stepCyclePath.begin(), stepCyclePath.end(), ostream_iterator<NodeUUID>(ss, ","));
+                debug() << "runParseMessageAndCreateCyclesStage::ResultPath " << ss.str();
+                const auto cyclePath = make_shared<Path>(
+                    mNodeUUID,
+                    mNodeUUID,
+                    stepCyclePath);
+                const auto kTransaction = make_shared<CycleCloserInitiatorTransaction>(
+                    mNodeUUID,
+                    cyclePath,
+                    mTrustLinesManager,
+                    mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
+                    mLog
+                );
+                launchSubsidiaryTransaction(kTransaction);
                 #ifdef TESTS
                 ResultCycles.push_back(stepCyclePath);
                 #endif
@@ -112,17 +132,17 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
         }
     }
     #ifdef TESTS
-    cout << "CyclesFiveNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size()) << endl;
+    debug() << "CyclesFiveNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size());
     for (vector<NodeUUID> KCyclePath: ResultCycles){
         stringstream ss;
         copy(KCyclePath.begin(), KCyclePath.end(), ostream_iterator<NodeUUID>(ss, ","));
-        cout << "CyclesFiveNodesInitTransaction::CyclePath " << ss.str() << endl;
+        debug() << "CyclesFiveNodesInitTransaction::CyclePath " << ss.str();
     }
-    cout << "CyclesFiveNodesInitTransaction::End" << endl;
+    debug() << "CyclesFiveNodesInitTransaction::End";
     #endif
     mContext.clear();
 
-    return finishTransaction();
+    return resultDone();
 }
 
 const string CyclesSixNodesInitTransaction::logHeader() const
