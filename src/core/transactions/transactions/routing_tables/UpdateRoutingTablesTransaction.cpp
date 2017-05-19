@@ -1,4 +1,5 @@
 #include "UpdateRoutingTablesTransaction.h"
+#include "../../../network/messages/routing_tables/CRC32Rt2RequestMessage.hpp"
 
 UpdateRoutingTablesTransaction::UpdateRoutingTablesTransaction(
     NodeUUID &nodeUUID,

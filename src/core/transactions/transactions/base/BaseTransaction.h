@@ -64,6 +64,7 @@ public:
         RoutingTables_NeighborsCollecting,
         RoutingTables_GetFirstRoutingTable,
         RoutingTables_UpdateRoutingTable,
+        RoutingTables_CRC32Rt2Response,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction,
