@@ -30,7 +30,7 @@ void CyclesDelayedTasks::RunSignalSixNodes(const boost::system::error_code &erro
 
 CyclesDelayedTasks::CyclesDelayedTasks(as::io_service &ioService):mIOService(ioService){
 //    todo add set Time started to 60*6
-    int TimeStarted = rand() % 60 * 6;
+    int TimeStarted = rand() % 60 *60 * 6;
     #ifdef TESTS
     TimeStarted = 120;
     #endif
@@ -45,7 +45,7 @@ CyclesDelayedTasks::CyclesDelayedTasks(as::io_service &ioService):mIOService(ioS
             as::placeholders::error
     ));
     //    todo add set Time started to 60*6
-    TimeStarted = rand() % 60 * 6;
+    TimeStarted = rand() % 60 * 60 * 6;
     #ifdef TESTS
         TimeStarted = 120;
     #endif
