@@ -84,7 +84,6 @@ protected:
         Common_FinalPathConfigurationChecking,
         Common_Recovery,
         Common_ClarificationTransaction
-
     };
 
     enum VotesRecoveryStages {

@@ -57,6 +57,22 @@ BasePaymentTransaction::BasePaymentTransaction(
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
+    mStep = Stages::Common_Recovery;
+
+    // mParticipantsVotesMessage
+    size_t participantsVotesMessageBytesCount;
+    memcpy(&participantsVotesMessageBytesCount,
+           buffer.get() + bytesBufferOffset,
+           sizeof(size_t)
+    );
+
+    BytesShared participantsVotesMessageBytes = tryMalloc(participantsVotesMessageBytesCount);
+    memcpy(&participantsVotesMessageBytes,
+           buffer.get() + bytesBufferOffset,
+           participantsVotesMessageBytesCount
+    );
+
+    mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(participantsVotesMessageBytes);
 
     // mReservations count
     uint64_t reservationsCount;
@@ -577,7 +593,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
     if (message != nullptr)
         info() << message;
 
-    if(mTransactionIsVoted){
+    if(mTransactionIsVoted and mParticipantsVotesMessage != nullptr){
         mStep = Stages::Common_Recovery;
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         return runVotesRecoveryParentStage();
@@ -826,8 +842,8 @@ TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToChec
     //Ignore self and CoodinatorNOde. Coordinator wil be asked first
     const auto kCoordinatorUUID = mParticipantsVotesMessage->coordinatorUUID();
     for(const auto &kNodeUUIDAndVote: mParticipantsVotesMessage->votes()){
-        if (kNodeUUIDAndVote->first != kCoordinatorUUID and kNodeUUIDAndVote->first != mNodeUUID)
-            mNodesToCheckVotes.push_back(kNodeUUIDAndVote->first);
+        if (kNodeUUIDAndVote.first != kCoordinatorUUID and kNodeUUIDAndVote.first != mNodeUUID)
+            mNodesToCheckVotes.push_back(kNodeUUIDAndVote.first);
     }
     if(kCoordinatorUUID == mNodeUUID) {
         mVotesRecoveryStep = VotesRecoveryStages::Common_CheckIntermediateNodeVotesStage;
@@ -904,8 +920,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
 
 pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const {
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
+    // mParticipantsVotesMessage Part
+    const auto kBufferAndSizeParticipantsVotesMessage = mParticipantsVotesMessage->serializeToBytes();
     // parent part
     size_t bytesCount = parentBytesAndCount.second
+                        + kBufferAndSizeParticipantsVotesMessage.second
                         + reservationsSizeInBytes();
 //
     BytesShared dataBytesShared = tryCalloc(bytesCount);
@@ -918,6 +937,21 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const {
         parentBytesAndCount.second
     );
     dataBytesOffset += parentBytesAndCount.second;
+
+    // mParticipantsVotesMessage Part
+    memcpy(dataBytesShared.get() + dataBytesOffset,
+           &kBufferAndSizeParticipantsVotesMessage.second,
+           sizeof(size_t));
+
+    dataBytesOffset += sizeof(size_t);
+
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        kBufferAndSizeParticipantsVotesMessage.first.get(),
+        kBufferAndSizeParticipantsVotesMessage.second
+    );
+    dataBytesOffset += kBufferAndSizeParticipantsVotesMessage.second;
+
     // Reservation Part
     const auto kmReservationSize = mReservations.size();
     memcpy(
