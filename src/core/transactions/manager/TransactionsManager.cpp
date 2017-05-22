@@ -178,6 +178,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<GetTrustLinesCommand>(
                 command));
 
+    } else if (command->identifier() == GetTrustLineCommand::identifier()){
+        launchGetTrustlineTransaction(
+            static_pointer_cast<GetTrustLineCommand>(
+                command));
+
     } else if (command->identifier() == UpdateRoutingTablesCommand::identifier()){
         launchUpdateRoutingTablesTransaction(
             static_pointer_cast<UpdateRoutingTablesCommand>(
@@ -877,6 +882,17 @@ void TransactionsManager::launchGetTrustlinesTransaction(
 {
     prepareAndSchedule(
         make_shared<GetFirstLevelContractorsBalancesTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mLog));
+}
+
+void TransactionsManager::launchGetTrustlineTransaction(
+    GetTrustLineCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<GetFirstLevelContractorBalanceTransaction>(
             mNodeUUID,
             command,
             mTrustLines,

@@ -16,6 +16,8 @@
 #include "../commands/history/HistoryTrustLinesCommand.h"
 #include "../commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../commands/trust_lines_list/GetTrustLinesCommand.h"
+#include "../commands/trust_lines_list/GetTrustLineCommand.h"
+
 #include "../commands/find_path/FindPathCommand.h"
 #include "../commands/cycle_closer/CycleCloserCommand.h"
 #include "../commands/routing_tables/UpdateRoutingTablesCommand.h"

@@ -15,11 +15,12 @@ public:
     GetTrustLinesCommand(
         const CommandUUID &uuid,
         const string &commandBuffer)
-    noexcept;
+        noexcept;
 
     static const string &identifier();
 
-    CommandResult::SharedConst resultOk(string &neighbors) const;
+    CommandResult::SharedConst resultOk(
+        string &neighbors) const;
 
 protected:
     void parse(const string &command);

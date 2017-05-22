@@ -30,6 +30,8 @@
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
+
 #include "../../interface/commands_interface/commands/routing_tables/UpdateRoutingTablesCommand.h"
 
 #include "../../network/messages/Message.hpp"
@@ -93,6 +95,8 @@
 
 #include "../transactions/trustlines_list/GetFirstLevelContractorsTransaction.h"
 #include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
+#include "../transactions/trustlines_list/GetFirstLevelContractorBalanceTransaction.h"
+
 
 #include "../transactions/find_path/GetPathTestTransaction.h"
 #include "../transactions/find_path/FindPathTransaction.h"
@@ -245,6 +249,9 @@ private:
 
     void launchGetTrustlinesTransaction(
         GetTrustLinesCommand::Shared command);
+
+    void launchGetTrustlineTransaction(
+        GetTrustLineCommand::Shared command);
 
     void launchGetRoutingTablesTransaction(
         RequestRoutingTablesMessage::Shared message);

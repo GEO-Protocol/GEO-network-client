@@ -97,6 +97,7 @@ public:
         // Contractors
         ContractorsList,
         TrustlinesList,
+        TrustLineOne,
 
         // TotalBalances
         TotalBalancesTransactionType,

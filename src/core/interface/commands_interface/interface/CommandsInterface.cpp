@@ -205,6 +205,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == GetTrustLineCommand::identifier()) {
+            command = new GetTrustLineCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == UpdateRoutingTablesCommand::identifier()) {
             command = new UpdateRoutingTablesCommand(
                 uuid,

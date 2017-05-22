@@ -21,9 +21,11 @@ GetFirstLevelContractorsCommand::Shared GetFirstLevelContractorsTransaction::com
 TransactionResult::SharedConst GetFirstLevelContractorsTransaction::run() {
     const auto kNeighborsCount = mTrustLinesManager->trustLines().size();
     stringstream ss;
-    ss << to_string(kNeighborsCount) << "\t";
-    for (const auto kNodeUUIDAndTrustline: mTrustLinesManager->trustLines())
-        ss << kNodeUUIDAndTrustline.first << "\t";
+    ss << to_string(kNeighborsCount);
+    for (const auto kNodeUUIDAndTrustline: mTrustLinesManager->trustLines()) {
+        ss << "\t";
+        ss << kNodeUUIDAndTrustline.first;
+    }
     ss << "\n";
     string kResultInfo = ss.str();
     return transactionResultFromCommand(mCommand->resultOk(kResultInfo));
