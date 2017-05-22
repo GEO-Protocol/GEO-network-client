@@ -70,7 +70,6 @@ void GetRoutingTablesTransaction::sendRoutingTables()
             mMessage->transactionUUID(),
             subRT2);
         idx++;
-//        std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
     if (itRT2 != rt2.end()) {
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT2(itRT2, rt2.end());
@@ -79,7 +78,6 @@ void GetRoutingTablesTransaction::sendRoutingTables()
             mNodeUUID,
             mMessage->transactionUUID(),
             subRT2);
-        std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
     unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> rt3
         = ioTransaction->routingTablesHandler()->routeRecordsMapDestinationKeyOnRT3();
@@ -106,7 +104,6 @@ void GetRoutingTablesTransaction::sendRoutingTables()
             mMessage->transactionUUID(),
             subRT3);
         idx++;
-//        std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
     if (itRT3 != rt3.end()) {
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> subRT3(itRT3, rt3.end());
@@ -115,7 +112,6 @@ void GetRoutingTablesTransaction::sendRoutingTables()
             mNodeUUID,
             mMessage->transactionUUID(),
             subRT3);
-        std::this_thread::sleep_for(std::chrono::milliseconds(kDelayMilliSecondsBetweenSendingMessages));
     }
 }
 

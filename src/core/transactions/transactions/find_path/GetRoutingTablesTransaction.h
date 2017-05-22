@@ -40,7 +40,6 @@ private:
 
 private:
     const size_t kCountElementsPerMessage = 100;
-    const uint16_t kDelayMilliSecondsBetweenSendingMessages = 5;
 
 private:
     RequestRoutingTablesMessage::Shared mMessage;

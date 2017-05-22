@@ -49,6 +49,7 @@ protected:
 
     TrustLineAmount mLastReservedAmount;
     NodeUUID mCoordinator;
+    uint8_t mCycleLength;
 };
 
 

@@ -1,11 +1,13 @@
 #include "CyclesSixNodesInitTransaction.h"
 #include "../../../../paths/lib/Path.h"
 
-const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactionType() const{
+const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactionType() const
+{
     return BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction;
 }
 
-TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndSendMessagesStage() {
+TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndSendMessagesStage()
+{
     debug() << "runCollectDataAndSendMessagesStage";
     const auto firstLevelNodes = mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalance();
     vector<NodeUUID> path;
@@ -38,7 +40,8 @@ CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAndCreateCyclesStage() {
+TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAndCreateCyclesStage()
+{
     if (mContext.size() == 0) {
         info() << "No responses messages are present. Can't create cycles paths;";
         return resultDone();
@@ -139,7 +142,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
     #endif
     mContext.clear();
 
-    return finishTransaction();
+    return resultDone();
 }
 
 const string CyclesSixNodesInitTransaction::logHeader() const

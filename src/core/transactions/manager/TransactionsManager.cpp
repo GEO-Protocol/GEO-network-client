@@ -96,6 +96,17 @@ void TransactionsManager::loadTransactions() {
                 mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
+            case BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction: {
+                auto transaction = make_shared<CycleCloserIntermediateNodeTransaction>(
+                    kTABufferAndSize.first,
+                    mNodeUUID,
+                    mTrustLines,
+                    mStorageHandler,
+                    mMaxFlowCalculationCacheManager,
+                    mLog);
+                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                break;
+            }
             default: {
                 throw RuntimeError(
                     "TrustLinesManager::loadTransactions. "
@@ -1363,6 +1374,16 @@ void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transac
         }
         case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
             const auto kChildTransaction = static_pointer_cast<CycleCloserInitiatorTransaction>(transaction);
+            const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
+            ioTransaction->transactionHandler()->saveRecord(
+                kChildTransaction->currentTransactionUUID(),
+                transactionBytesAndCount.first,
+                transactionBytesAndCount.second
+            );
+            break;
+        }
+        case BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction: {
+            const auto kChildTransaction = static_pointer_cast<CycleCloserIntermediateNodeTransaction>(transaction);
             const auto transactionBytesAndCount = kChildTransaction->serializeToBytes();
             ioTransaction->transactionHandler()->saveRecord(
                 kChildTransaction->currentTransactionUUID(),

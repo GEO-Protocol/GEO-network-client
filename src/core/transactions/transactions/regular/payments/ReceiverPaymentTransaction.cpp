@@ -288,13 +288,13 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
 {
     launchThreeCyclesClosingTransactions();
     BasePaymentTransaction::approve();
-    //savePaymentOperationIntoHistory();
+    savePaymentOperationIntoHistory();
     return resultDone();
 }
 
-// TODO :error with balance: balance should be total
 void ReceiverPaymentTransaction::savePaymentOperationIntoHistory()
 {
+    debug() << "savePaymentOperationIntoHistory";
     auto ioTransaction = mStorageHandler->beginTransaction();
     ioTransaction->historyStorage()->savePaymentRecord(
         make_shared<PaymentRecord>(
@@ -302,7 +302,7 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory()
             PaymentRecord::PaymentOperationType::IncomingPaymentType,
             mMessage->senderUUID,
             mMessage->amount(),
-            mTrustLines->balance(mMessage->senderUUID)));
+            *mTrustLines->totalBalance().get()));
 }
 
 void ReceiverPaymentTransaction::launchThreeCyclesClosingTransactions()

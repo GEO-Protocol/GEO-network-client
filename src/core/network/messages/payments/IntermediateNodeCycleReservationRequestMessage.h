@@ -11,11 +11,25 @@ public:
     typedef shared_ptr<const IntermediateNodeCycleReservationRequestMessage> ConstShared;
 
 public:
-    using RequestCycleMessage::RequestCycleMessage;
+    IntermediateNodeCycleReservationRequestMessage(
+        const NodeUUID& senderUUID,
+        const TransactionUUID& transactionUUID,
+        const TrustLineAmount& amount,
+        uint8_t cucleLength);
+
+    IntermediateNodeCycleReservationRequestMessage(
+        BytesShared buffer);
+
+    uint8_t cycleLength() const;
 
 protected:
     const MessageType typeID() const;
 
+    virtual pair<BytesShared, size_t> serializeToBytes() const
+    throw(bad_alloc);
+
+protected:
+    uint8_t mCycleLength;
 };
 
 

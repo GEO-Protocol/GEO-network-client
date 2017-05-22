@@ -15,7 +15,8 @@ public:
         const NodeUUID& senderUUID,
         const TransactionUUID& transactionUUID,
         const TrustLineAmount& amount,
-        const NodeUUID& nextNodeInThePath);
+        const NodeUUID& nextNodeInThePath,
+        uint8_t cucleLength);
 
     CoordinatorCycleReservationRequestMessage(
         BytesShared buffer);
@@ -24,11 +25,14 @@ public:
 
     const Message::MessageType typeID() const;
 
+    uint8_t cycleLength() const;
+
     virtual pair<BytesShared, size_t> serializeToBytes() const
     throw(bad_alloc);
 
 protected:
     NodeUUID mNextPathNode;
+    uint8_t mCycleLength;
 };
 
 

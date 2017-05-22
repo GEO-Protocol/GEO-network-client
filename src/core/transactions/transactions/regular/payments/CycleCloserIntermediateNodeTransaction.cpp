@@ -79,6 +79,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     debug() << "Requested amount reservation: " << mMessage->amount();
 
 
+    mCycleLength = mMessage->cycleLength();
     // Note: (copy of shared pointer is required)
     const auto kIncomingAmount = mTrustLines->availableIncomingCycleAmount(kNeighbor);
     const auto kReservationAmount =
@@ -122,6 +123,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     const auto kMessage = popNextMessage<CoordinatorCycleReservationRequestMessage>();
     const auto kNextNode = kMessage->nextNodeInPathUUID();
     mCoordinator = kMessage->senderUUID;
+    mCycleLength = kMessage->cycleLength();
 
     // Note: copy of shared pointer is required
     const auto kOutgoingAmount = mTrustLines->availableOutgoingCycleAmount(kNextNode);
@@ -146,7 +148,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
         kNextNode,
         currentNodeUUID(),
         currentTransactionUUID(),
-        reservationAmount);
+        reservationAmount,
+        mCycleLength);
 
     clearContext();
     mStep = Stages::IntermediateNode_NextNeighborResponseProcessing;

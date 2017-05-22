@@ -272,7 +272,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
         neighbor,
         kCurrentNode,
         kTransactionUUID,
-        path->maxFlow());
+        path->maxFlow(),
+        path->path()->length());
 
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeCycleReservationResponse},
@@ -298,7 +299,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
         kCoordinator,
         kTransactionUUID,
         path->maxFlow(),
-        kNextAfterNeighborNode);
+        kNextAfterNeighborNode,
+        path->path()->length());
 
     debug() << "Further amount reservation request sent to the node (" << neighbor << ") [" << path->maxFlow() << "]";
 
@@ -403,7 +405,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
         kCoordinator,
         kTransactionUUID,
         path->maxFlow(),
-        nextNodeAfterRemote);
+        nextNodeAfterRemote,
+        path->path()->length());
 
     path->setNodeState(
         remoteNodePosition,

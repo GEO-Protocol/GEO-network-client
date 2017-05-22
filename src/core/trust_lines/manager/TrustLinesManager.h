@@ -166,6 +166,9 @@ public:
 
     vector<NodeUUID> rt1() const;
 
+    // total balance to all 1st level neighbors
+    ConstSharedTrustLineBalance totalBalance() const;
+
     [[deprecated("Buggy function. Use trustLineReadOnly instead")]]
     const TrustLine::Shared trustLine(
         const NodeUUID &contractorUUID) const;

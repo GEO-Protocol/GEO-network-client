@@ -1011,7 +1011,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 {
     launchThreeCyclesClosingTransactions();
     BasePaymentTransaction::approve();
-    //savePaymentOperationIntoHistory();
+    savePaymentOperationIntoHistory();
     return resultOK();
 }
 
@@ -1099,7 +1099,6 @@ bool CoordinatorPaymentTransaction::isPathValid(
     return true;
 }
 
-// TODO :error with balance: balance should be total
 void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory()
 {
     debug() << "savePaymentOperationIntoHistory";
@@ -1110,8 +1109,7 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory()
             PaymentRecord::PaymentOperationType::OutgoingPaymentType,
             mCommand->contractorUUID(),
             mCommand->amount(),
-            mTrustLines->balance(mCommand->contractorUUID())));
-    debug() << "history saved";
+            *mTrustLines->totalBalance().get()));
 }
 
 void CoordinatorPaymentTransaction::launchThreeCyclesClosingTransactions()

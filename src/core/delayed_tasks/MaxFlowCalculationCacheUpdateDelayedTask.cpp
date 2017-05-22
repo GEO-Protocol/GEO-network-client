@@ -15,10 +15,6 @@ MaxFlowCalculationCacheUpdateDelayedTask::MaxFlowCalculationCacheUpdateDelayedTa
         mIOService);
 
     Duration microsecondsDelay = minimalAwakeningTimestamp() - utc_now();
-#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    auto duration = chrono::milliseconds(microsecondsDelay.total_milliseconds());
-    cout << "MaxFlowCalculationCacheUpdateDelayedTask constructor, next launch: " << duration.count() << " ms" << endl;
-#endif
     mMaxFlowCalculationCacheUpdateTimer->expires_from_now(
         chrono::milliseconds(
             microsecondsDelay.total_milliseconds()));
@@ -38,7 +34,7 @@ void MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheU
     Duration microsecondsDelay = minimalAwakeningTimestamp() - utc_now();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     auto duration = chrono::milliseconds(microsecondsDelay.total_milliseconds());
-    cout << "MaxFlowCalculationCacheUpdateDelayedTask, next launch: " << duration.count() << " ms" << endl;
+    debug() << "next launch: " << duration.count() << " ms" << endl;
 #endif
     mMaxFlowCalculationCacheUpdateTimer->expires_from_now(
         chrono::milliseconds(
@@ -54,9 +50,9 @@ DateTime MaxFlowCalculationCacheUpdateDelayedTask::minimalAwakeningTimestamp()
     DateTime closestCacheManagerTimeEvent = mMaxFlowCalculationCacheMnager->closestTimeEvent();
     DateTime closestTrustLineManagerTimeEvent = mMaxFlowCalculationTrustLineManager->closestTimeEvent();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    cout << "MaxFlowCalculationCacheUpdateDelayedTask::minimalAwakeningTimestamp Cache Manager closest time: "
+    debug() << "minimalAwakeningTimestamp Cache Manager closest time: "
          <<  closestCacheManagerTimeEvent << endl;
-    cout << "MaxFlowCalculationCacheUpdateDelayedTask::minimalAwakeningTimestamp TrustLine Manager closest time: "
+    debug() << "minimalAwakeningTimestamp TrustLine Manager closest time: "
          <<  closestTrustLineManagerTimeEvent << endl;
 #endif
     if (closestCacheManagerTimeEvent < closestTrustLineManagerTimeEvent) {
@@ -70,6 +66,13 @@ void MaxFlowCalculationCacheUpdateDelayedTask::updateCache()
 {
     mMaxFlowCalculationCacheMnager->updateCaches();
     mMaxFlowCalculationTrustLineManager->deleteLegacyTrustLines();
+}
+
+LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::debug() const
+{
+    if (nullptr == mLog)
+        throw Exception("logger is not initialised");
+    return mLog->debug(logHeader());
 }
 
 LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::info() const
