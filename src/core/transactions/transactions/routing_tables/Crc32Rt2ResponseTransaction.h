@@ -2,7 +2,8 @@
 #define GEO_NETWORK_CLIENT_CRC32RT2RESPONSETRANSACTION_H
 
 #include "../base/BaseTransaction.h"
-#include "../../../network/messages/routing_tables/CRC32Rt2RequestMessage.hpp"
+#include "../../../network/messages/routing_tables/CRC32Rt2RequestMessage.h"
+#include "../../../network/messages/routing_tables/CRC32Rt2ResponseMessage.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 
 
@@ -15,7 +16,7 @@ public:
 public:
     Crc32Rt2ResponseTransaction(
         NodeUUID &nodeUUID,
-        CRC32Rt2RequestMessage &message,
+        CRC32Rt2RequestMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Logger *logger)
@@ -26,6 +27,6 @@ public:
 private:
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
-
+    CRC32Rt2RequestMessage::Shared mRequestMessage;
 };
 #endif //GEO_NETWORK_CLIENT_CRC32RT2RESPONSETRANSACTION_H

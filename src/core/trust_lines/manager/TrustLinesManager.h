@@ -144,6 +144,10 @@ public:
     void removeTrustLine(
         const NodeUUID &contractorUUID);
 
+    uint32_t crc32SumFirstLevel(const NodeUUID &contractorUUID);
+
+    uint32_t crc32SumSecondLevel(const NodeUUID &contractorUUID);
+
     vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
 
     vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;

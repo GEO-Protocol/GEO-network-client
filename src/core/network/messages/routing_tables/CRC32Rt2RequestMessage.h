@@ -6,16 +6,21 @@
 
 
 class CRC32Rt2RequestMessage :
-    public  SenderMessage{
+    public SenderMessage {
 
 public:
+    typedef shared_ptr<CRC32Rt2RequestMessage> Shared;
 
+public:
     using SenderMessage::SenderMessage;
 
 public:
-    const MessageType typeID() const{
-        return Message::RoutingTables_CRC32Rt2RequestMessage;
-    };
+
+    pair<BytesShared, size_t> serializeToBytes() const
+    throw (bad_alloc);
+
+    virtual const MessageType typeID() const
+    noexcept;
 };
 
 

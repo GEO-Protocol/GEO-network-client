@@ -1,5 +1,4 @@
 #include "UpdateRoutingTablesTransaction.h"
-#include "../../../network/messages/routing_tables/CRC32Rt2RequestMessage.hpp"
 
 UpdateRoutingTablesTransaction::UpdateRoutingTablesTransaction(
     NodeUUID &nodeUUID,
@@ -22,7 +21,43 @@ UpdateRoutingTablesCommand::Shared UpdateRoutingTablesTransaction::command() con
 }
 
 TransactionResult::SharedConst UpdateRoutingTablesTransaction::run() {
-    for(auto kNodeUUID: mTrustLinesManager->rt1()){
+
+    switch (mStep) {
+        case sendCRC32Rt2SRequestMessage:
+            return checkCRC32rt2Sum();
+        case UpdateRT2:
+            return updateRoughtingTables();
+        default:
+            throw ValueError("UpdateRoutingTablesTransaction::run: "
+                                 "unexpected Trust line state");
+    }
+
+}
+
+TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkCRC32rt2Sum() {
+    auto message = make_shared<CRC32Rt2RequestMessage>(mNodeUUID);
+    for(const auto kNodeUUID: mTrustLinesManager->rt1())
+        sendMessage(
+            kNodeUUID,
+            message);
+
+    return resultWaitForMessageTypes(
+        {Message::RoutingTables_CRC32Rt2ResponseMessage},
+        mkStandardConnectionTimeout);
+}
+
+TransactionResult::SharedConst UpdateRoutingTablesTransaction::updateRoughtingTables(){
+
+    set<NodeUUID> neighborsForUpdate;
+    for(const auto kNodeUUID: mTrustLinesManager->rt1())
+        neighborsForUpdate.insert(kNodeUUID);
+    if(mContext.size()>0) {
+        auto stepMessage = popNextMessage<CRC32Rt2ResponseMessage>();
+        auto stepCRC32rt1 = mTrustLinesManager->crc32SumSecondLevel(stepMessage->senderUUID);
+        if (stepCRC32rt1 == stepMessage->crc32Rt2Sum())
+            neighborsForUpdate.erase(stepMessage->senderUUID);
+    }
+    for(auto kNodeUUID: neighborsForUpdate){
         auto transaction = make_shared<NeighborsCollectingTransaction>(
             mNodeUUID,
             kNodeUUID,

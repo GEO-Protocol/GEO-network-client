@@ -577,6 +577,14 @@ void Core::checkSomething() {
 //    copy(creditorsNeighborsUUIDs.begin(), creditorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss1, "\n"));
 //    cout << "Nodes With negative balance: \n" << ss1.str() << endl;
     printRTs();
+
+    stringstream ss;
+    auto Node1 = mTrustLinesManager->rt1().front();
+    auto c1 = mTrustLinesManager->crc32SumFirstLevel(Node1);
+
+    ss << c1 << endl;
+    cout << ss.str();
+
 }
 
 void Core::printRTs() {

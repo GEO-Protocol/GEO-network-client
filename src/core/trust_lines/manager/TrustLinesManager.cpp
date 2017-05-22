@@ -1,4 +1,6 @@
-﻿#include "TrustLinesManager.h"
+﻿#include <boost/crc.hpp>
+#include "TrustLinesManager.h"
+#include "../../common/NodeUUID.h"
 
 TrustLinesManager::TrustLinesManager(
     StorageHandler *storageHandler,
@@ -731,3 +733,28 @@ void TrustLinesManager::printRTs()
         debug << trLine.first << " " << *availableOutgoingCycleAmount(trLine.first) << endl;
     }
 }
+
+uint32_t TrustLinesManager::crc32SumFirstLevel(const NodeUUID &contractorUUID) {
+    boost::crc_32_type result;
+    set<NodeUUID> firstLevelContractors;
+    stringstream ss;
+    for(const auto kNodeUUIDAndTrustline: mTrustLines)
+        if(kNodeUUIDAndTrustline.first != contractorUUID)
+            firstLevelContractors.insert(kNodeUUIDAndTrustline.first);
+    for(const auto kNodeUUID: firstLevelContractors)
+        ss << kNodeUUID;
+    result.process_bytes(ss.str().data(), ss.str().length());
+    return result.checksum();
+}
+
+uint32_t TrustLinesManager::crc32SumSecondLevel(const NodeUUID &contractorUUID) {
+    boost::crc_32_type result;
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto secondLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT2(contractorUUID);
+    stringstream ss;
+    for(const auto kNodeUUID: secondLevelContractors)
+        ss << kNodeUUID;
+    result.process_bytes(ss.str().data(), ss.str().length());
+    return result.checksum();
+}
+
