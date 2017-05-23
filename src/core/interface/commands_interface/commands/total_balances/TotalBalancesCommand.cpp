@@ -13,7 +13,7 @@ TotalBalancesCommand::TotalBalancesCommand(
 
 const string &TotalBalancesCommand::identifier()
 {
-    static const string identifier = "GET:/stats/balances/total";
+    static const string identifier = "GET:stats/balance/total";
     return identifier;
 }
 
