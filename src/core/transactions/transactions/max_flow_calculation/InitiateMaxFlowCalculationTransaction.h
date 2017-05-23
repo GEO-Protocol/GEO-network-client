@@ -40,19 +40,21 @@ protected:
     const string logHeader() const;
 
 private:
-    void sendMessageToRemoteNode();
+    void sendMessagesToContractors();
 
     void sendMessagesOnFirstLevel();
 
-    TrustLineAmount calculateMaxFlow();
+    TrustLineAmount calculateMaxFlow(
+        const NodeUUID &contractorUUID);
 
     TrustLineAmount calculateOneNode(
         const NodeUUID& nodeUUID,
+        const NodeUUID& contractorUUID,
         const TrustLineAmount& currentFlow,
         byte level);
 
     TransactionResult::SharedConst resultOk(
-        TrustLineAmount &maxFlowAmount);
+        vector<pair<NodeUUID, TrustLineAmount>> &maxFlows);
 
     TransactionResult::SharedConst resultProtocolError();
 

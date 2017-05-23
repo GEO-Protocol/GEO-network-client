@@ -393,7 +393,7 @@ pair<BytesShared, size_t> HistoryStorage::serializedPaymentRecordBody(
     size_t recordBodySize = sizeof(PaymentRecord::SerializedPaymentOperationType)
            + NodeUUID::kBytesSize
            + kTrustLineAmountBytesCount
-           + kTrustLineBalanceBytesCount;
+           + kTrustLineBalanceSerializeBytesCount;
 
     BytesShared bytesBuffer = tryCalloc(
         recordBodySize);
@@ -427,7 +427,7 @@ pair<BytesShared, size_t> HistoryStorage::serializedPaymentRecordBody(
     memcpy(
         bytesBuffer.get() + bytesBufferOffset,
         trustBalanceBytes.data(),
-        kTrustLineBalanceBytesCount);
+        kTrustLineBalanceSerializeBytesCount);
 
     return make_pair(
         bytesBuffer,
@@ -503,7 +503,7 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
 
     vector<byte> balanceBytes(
         recordBody.get() + dataBufferOffset,
-        recordBody.get() + dataBufferOffset + kTrustLineBalanceBytesCount);
+        recordBody.get() + dataBufferOffset + kTrustLineBalanceSerializeBytesCount);
     TrustLineBalance balanceAfterOperation = bytesToTrustLineBalance(
         balanceBytes);
     return make_shared<PaymentRecord>(
