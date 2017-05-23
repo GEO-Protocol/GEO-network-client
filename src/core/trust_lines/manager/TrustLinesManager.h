@@ -67,10 +67,6 @@ public:
     const BalanceRange balanceRange(
         const NodeUUID &contractorUUID) const;
 
-    void suspendDirection(
-        const NodeUUID &contractorUUID,
-        const TrustLineDirection direction);
-
     void setIncomingTrustAmount(
         const NodeUUID &contractor,
         const TrustLineAmount &amount);
@@ -136,6 +132,9 @@ public:
     const bool trustLineIsPresent (
         const NodeUUID &contractorUUID) const;
 
+    const bool reservationIsPresent(
+        const NodeUUID &contractorUUID) const;
+
     const bool isNeighbor(
         const NodeUUID &node) const;
 
@@ -144,6 +143,10 @@ public:
 
     void removeTrustLine(
         const NodeUUID &contractorUUID);
+
+    uint32_t crc32SumFirstLevel(const NodeUUID &contractorUUID);
+
+    uint32_t crc32SumSecondLevel(const NodeUUID &contractorUUID);
 
     vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
 

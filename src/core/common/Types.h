@@ -37,11 +37,6 @@ enum BalanceRange {
     Positive = 3
 };
 
-enum TrustState {
-    NonActivated = 0,
-    Active = 1,
-    Suspended = 2
-};
 typedef uint8_t SerializedTrustLineState;
 
 enum TrustLineDirection {

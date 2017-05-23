@@ -34,6 +34,9 @@ public:
 
     static const size_t kRequestedBufferSize();
 
+    CommandResult::SharedConst responseOK(uint16_t code) const
+    noexcept;
+
 private:
     void deserializeFromBytes(
         BytesShared buffer);

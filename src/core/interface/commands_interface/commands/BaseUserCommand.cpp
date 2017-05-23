@@ -110,7 +110,7 @@ CommandResult::SharedConst BaseUserCommand::responseProtocolError() const
 CommandResult::SharedConst BaseUserCommand::responseTrustlineIsAbsent() const
     noexcept
 {
-    return makeResult(404);
+    return makeResult(405);
 }
 
 CommandResult::SharedConst BaseUserCommand::responseCurrentIncomingDebtIsGreaterThanNewAmount() const

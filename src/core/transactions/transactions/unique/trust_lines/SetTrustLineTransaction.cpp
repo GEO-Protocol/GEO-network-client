@@ -85,6 +85,16 @@ TransactionResult::SharedConst SetTrustLineTransaction::run() {
     try {
         switch (mStep) {
 
+            case Stages::CheckContractorUUIDValidity: {
+                if (!isContractorUUIDValid(mCommand->contractorUUID()))
+                    return resultProtocolError();
+                mStep = Stages::CheckAmountValidity;
+            }
+            case Stages::CheckAmountValidity: {
+                if (!isAmountValid(mCommand->contractorUUID(), mCommand->newAmount()))
+                    return resultProtocolError();
+                mStep = Stages::CheckUnicity;
+            }
             case Stages::CheckUnicity: {
                 if (!isTransactionToContractorUnique()) {
                     return resultConflictWithOtherOperation();
@@ -273,4 +283,8 @@ const string SetTrustLineTransaction::logHeader() const
     stringstream s;
     s << "[SetTrustLineTA: " << currentTransactionUUID() << "]";
     return s.str();
+}
+
+bool SetTrustLineTransaction::isAmountValid(const NodeUUID &contractorUUID, const TrustLineAmount &amount){
+    return true;
 }

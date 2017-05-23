@@ -27,6 +27,12 @@ class RejectTrustLineTransaction : public TrustLineTransaction {
 public:
     typedef shared_ptr<RejectTrustLineTransaction> Shared;
 
+private:
+    enum Stages{
+        CheckContractorUUIDValidity = 1,
+        CheckIncomingDirection
+    };
+
 public:
     RejectTrustLineTransaction(
         const NodeUUID &nodeUUID,
@@ -54,6 +60,8 @@ private:
     bool isIncomingTrustLineDirectionExisting();
 
     bool checkDebt();
+
+    bool trustLineIsAvailableForDelete();
 
     void suspendTrustLineDirectionFromContractor();
 

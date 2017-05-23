@@ -27,7 +27,8 @@ public:
 
 private:
     enum Stages{
-        CheckJournal = 1,
+        CheckContractorUUIDValidity = 1,
+        CheckJournal,
         CheckUnicity,
         CheckIncomingDirection
     };

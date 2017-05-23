@@ -22,7 +22,7 @@ int Core::run()
         mCommandsInterface->beginAcceptCommands();
 
         mLog.logSuccess("Core", "Processing started.");
-
+        checkSomething();
         mIOService.run();
         return 0;
 
@@ -568,36 +568,42 @@ void Core::writePIDFile()
 }
 
 void Core::checkSomething() {
-    auto debtorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
+//    auto debtorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
+//    stringstream ss;
+//    copy(debtorsNeighborsUUIDs.begin(), debtorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
+//    cout << "Nodes With positive balance: \n" << ss.str() << endl;
+//    auto creditorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
+//    stringstream ss1;
+//    copy(creditorsNeighborsUUIDs.begin(), creditorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss1, "\n"));
+//    cout << "Nodes With negative balance: \n" << ss1.str() << endl;
+    printRTs();
+
     stringstream ss;
-    copy(debtorsNeighborsUUIDs.begin(), debtorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
-    cout << "Nodes With positive balance: \n" << ss.str() << endl;
-    auto creditorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
-    stringstream ss1;
-    copy(creditorsNeighborsUUIDs.begin(), creditorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss1, "\n"));
-    cout << "Nodes With negative balance: \n" << ss1.str() << endl;
+    auto Node1 = mTrustLinesManager->rt1().front();
+    auto c1 = mTrustLinesManager->crc32SumFirstLevel(Node1);
+
+    ss << c1 << endl;
+    cout << ss.str();
+
 }
 
 void Core::printRTs() {
-//    NodeUUID *some_node = new NodeUUID("65b84dc1-31f8-45ce-8196-8efcc7648777");
-//    NodeUUID *dest_node = new NodeUUID("5062d6a9-e06b-4bcc-938c-6d9bd082f0eb");
-//    mStorageHandler->routingTablesHandler()->saveRecordToRT2(*some_node, *dest_node);
 
-//    cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size();
-//    for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
-//        cout  << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
-//        << itTrustLine.second->incomingTrustAmount() << " "
-//        << itTrustLine.second->outgoingTrustAmount() << " "
-//        << itTrustLine.second->balance() << endl;
-//    }
-//    cout  << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size() << endl;
-//    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->rt2Records()) {
-//        cout  << itRT2.first << " " << itRT2.second << endl;
-//    }
-//    cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size() << endl;
-//    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
-//        cout  << itRT3.first << " " << itRT3.second << endl;
-//    }
+    cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size() << endl;
+    for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
+        cout  << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
+        << itTrustLine.second->incomingTrustAmount() << " "
+        << itTrustLine.second->outgoingTrustAmount() << " "
+        << itTrustLine.second->balance() << endl;
+    }
+    cout  << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size() << endl;
+    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->rt2Records()) {
+        cout  << itRT2.first << " " << itRT2.second << endl;
+    }
+    cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size() << endl;
+    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
+        cout  << itRT3.first << " " << itRT3.second << endl;
+    }
 }
 
 void Core::test_ThreeNodesTransaction() {

@@ -36,7 +36,7 @@ TransactionsManager::TransactionsManager(
     subscribeForSerializeTransaction(mScheduler->serializeTransactionSignal);
 
     try {
-        loadTransactions();
+         loadTransactions();
 
     } catch (exception &e) {
         throw RuntimeError(e.what());
@@ -187,6 +187,16 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == GetTrustLinesCommand::identifier()){
         launchGetTrustlinesTransaction(
             static_pointer_cast<GetTrustLinesCommand>(
+                command));
+
+    } else if (command->identifier() == GetTrustLineCommand::identifier()){
+        launchGetTrustlineTransaction(
+            static_pointer_cast<GetTrustLineCommand>(
+                command));
+
+    } else if (command->identifier() == UpdateRoutingTablesCommand::identifier()){
+        launchUpdateRoutingTablesTransaction(
+            static_pointer_cast<UpdateRoutingTablesCommand>(
                 command));
 
     } else {
@@ -888,6 +898,30 @@ void TransactionsManager::launchGetTrustlinesTransaction(
             mTrustLines,
             mLog));
 }
+
+void TransactionsManager::launchGetTrustlineTransaction(
+    GetTrustLineCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<GetFirstLevelContractorBalanceTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mLog));
+}
+
+void TransactionsManager::launchUpdateRoutingTablesTransaction(
+    UpdateRoutingTablesCommand::Shared command) {
+    prepareAndSchedule(
+        make_shared<UpdateRoutingTablesTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mStorageHandler,
+            mLog),
+    true);
+}
+
 /*!
  *
  * Throws MemoryError.
@@ -1139,10 +1173,14 @@ void TransactionsManager::onSubsidiaryTransactionReady(
  * @throws bad_alloc;
  */
 void TransactionsManager::prepareAndSchedule(
-    BaseTransaction::Shared transaction)
+    BaseTransaction::Shared transaction,
+    bool subsidiaryTransactionSubscribe)
 {
     subscribeForOutgoingMessages(
         transaction->outgoingMessageIsReadySignal);
+    if (subsidiaryTransactionSubscribe)
+        subscribeForSubsidiaryTransactions(
+            transaction->runSubsidiaryTransactionSignal);
 
     mScheduler->scheduleTransaction(
         transaction);

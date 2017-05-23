@@ -31,14 +31,6 @@ class CloseTrustLineTransaction: public TrustLineTransaction {
 public:
     typedef shared_ptr<CloseTrustLineTransaction> Shared;
 
-private:
-    enum Stages {
-        CheckUnicity = 1,
-        CheckOutgoingDirection,
-        CheckDebt,
-        CheckContext
-    };
-
 public:
     CloseTrustLineTransaction(
         const NodeUUID &nodeUUID,
@@ -70,21 +62,19 @@ private:
 
     bool isOutgoingTrustLineDirectionExisting();
 
-    bool checkDebt();
+    bool trustLineIsAvailableForDelete();
 
-    void suspendTrustLineDirectionToContractor();
+    bool checkDebt();
 
     void closeTrustLine();
 
     void logClosingTrustLineOperation();
 
-    TransactionResult::SharedConst checkTransactionContext();
-
     void sendMessageToRemoteNode();
 
     TransactionResult::SharedConst waitingForResponseState();
 
-    TransactionResult::SharedConst resultOk();
+    TransactionResult::SharedConst resultOk(uint16_t code);
 
     TransactionResult::SharedConst resultTrustLineAbsent();
 

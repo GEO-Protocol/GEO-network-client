@@ -32,6 +32,8 @@ protected:
     virtual void deserializeFromBytes(
         BytesShared buffer);
 
+    virtual bool isContractorUUIDValid(const NodeUUID &contractorUUID);
+
     const size_t kOffsetToDataBytes();
 
 protected:
