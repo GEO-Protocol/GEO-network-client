@@ -70,8 +70,6 @@ private:
 
     bool isOutgoingTrustLineDirectionExisting();
 
-    TransactionResult::SharedConst checkTransactionContext();
-
     void sendMessageToRemoteNode();
 
     TransactionResult::SharedConst waitingForResponseState();
@@ -80,25 +78,16 @@ private:
 
     void logSetTrustLineOperation();
 
-    TransactionResult::SharedConst resultOk();
+    TransactionResult::SharedConst responseOk();
 
-    TransactionResult::SharedConst resultTrustLineIsAbsent();
+    TransactionResult::SharedConst responseTrustlineIsAbsent();
 
-    TransactionResult::SharedConst resultConflictWithOtherOperation();
-
-    TransactionResult::SharedConst resultRemoteNodeIsInaccessible();
-
-    TransactionResult::SharedConst resultCurrentIncomingDebtIsGreaterThanNewAmount();
-
-    TransactionResult::SharedConst resultProtocolError();
+    TransactionResult::SharedConst responseProtocolError();
 
 protected:
-    bool isAmountValid(const NodeUUID &contractorUUID, const TrustLineAmount &amount);
+    bool isAmountValid(const TrustLineAmount &amount);
 
 private:
-    const uint16_t kConnectionTimeout = 2000;
-    const uint16_t kMaxRequestsCount = 5;
-
     SetTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;

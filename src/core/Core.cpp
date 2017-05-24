@@ -22,7 +22,6 @@ int Core::run()
         mCommandsInterface->beginAcceptCommands();
 
         mLog.logSuccess("Core", "Processing started.");
-        checkSomething();
         mIOService.run();
         return 0;
 
@@ -487,11 +486,11 @@ void Core::onDelayedTaskCycleFiveNodesSlot() {
 }
 
 void Core::onDelayedTaskCycleFourNodesSlot() {
-//    test_FourNodesTransaction();
+    test_FourNodesTransaction();
 }
 
 void Core::onDelayedTaskCycleThreeNodesSlot() {
-//    test_ThreeNodesTransaction();
+    test_ThreeNodesTransaction();
 }
 
 void Core::onPathsResourceRequestedSlot(
@@ -521,39 +520,6 @@ void Core::onResourceCollectedSlot(
 
 }
 
-//}
-
-//void Core::JustToTestSomething() {
-//    mTrustLinesManager->getFirstLevelNodesForCycles();
-//    auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles();
-//    TrustLineBalance bal = 70;
-//    TrustLineBalance max_flow = 30;
-//    vector<NodeUUID> path;
-//    vector<pair<NodeUUID, TrustLineBalance>> boundaryNodes;
-//    boundaryNodes.push_back(make_pair(mNodeUUID, bal ));
-//    path.push_back(mNodeUUID);
-////    for(const auto &value: firstLevelNodes){
-//
-////
-//    auto message = Message::Shared(new BoundaryNodeTopolodyMessage(
-//            max_flow,
-//            2,
-//            path,
-//            boundaryNodes
-//    ));
-//    auto buffer = message->serializeToBytes();
-//    auto new_message = new BoundaryNodeTopolodyMessage(buffer.first);
-//    cout << "lets see what we have " << endl;
-    //    mTransactionsManager->launchGetTopologyAndBalancesTransaction(static_pointer_cast<BoundaryNodeTopologyMessage>(
-//            message
-//    )
-//    );
-//}
-//
-//void Core::onDelayedTaskMaxFlowCalculationCacheUpdateSlot() {
-//    mTransactionsManager->launchMaxFlowCalculationCacheUpdateTransaction();
-//}
-
 void Core::writePIDFile()
 {
     try {
@@ -578,17 +544,17 @@ void Core::checkSomething() {
 //    cout << "Nodes With negative balance: \n" << ss1.str() << endl;
     printRTs();
 
-    stringstream ss;
-    auto Node1 = mTrustLinesManager->rt1().front();
-    auto c1 = mTrustLinesManager->crc32SumFirstLevel(Node1);
-
-    ss << c1 << endl;
-    cout << ss.str();
+//    stringstream ss;
+//    auto Node1 = mTrustLinesManager->rt1().front();
+//    auto c1 = mTrustLinesManager->crc32SumFirstLevel(Node1);
+//
+//    ss << c1 << endl;
+//    cout << ss.str();
 
 }
 
 void Core::printRTs() {
-
+    cout << "Cyurrent UUID" << mNodeUUID << endl;
     cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size() << endl;
     for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
         cout  << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "

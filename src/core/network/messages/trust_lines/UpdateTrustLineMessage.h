@@ -23,18 +23,6 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
 
-    MessageResult::SharedConst resultAccepted() const
-        noexcept;
-
-    MessageResult::SharedConst resultRejected() const
-        noexcept;
-
-    MessageResult::SharedConst resultConflict() const
-        noexcept;
-
-    MessageResult::SharedConst resultTransactionConflict() const
-        noexcept;
-
     const MessageType typeID() const
         noexcept;
 

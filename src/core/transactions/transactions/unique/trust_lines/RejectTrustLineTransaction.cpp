@@ -66,7 +66,7 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run() {
         }
         return resultDone();
     } else {
-        mTrustLinesManager->setOutgoingTrustAmount(mMessage->contractorUUID(), 0);
+        mTrustLinesManager->setIncomingTrustAmount(mMessage->contractorUUID(), 0);
         return resultDone();
     }
 }
