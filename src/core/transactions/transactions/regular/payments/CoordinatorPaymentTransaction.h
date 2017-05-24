@@ -10,8 +10,6 @@
 #include "../../../../resources/manager/ResourcesManager.h"
 #include "../../../../io/storage/record/payment/PaymentRecord.h"
 
-#include "../../cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
-
 #include <boost/functional/hash.hpp>
 
 #include <unordered_map>
@@ -131,7 +129,7 @@ protected:
 
     void savePaymentOperationIntoHistory();
 
-    void launchThreeCyclesClosingTransactions();
+    void runBuildThreeNodesCyclesSignal();
 
 protected:
     const string logHeader() const;

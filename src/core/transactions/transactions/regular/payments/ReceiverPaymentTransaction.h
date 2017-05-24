@@ -1,10 +1,7 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 #define GEO_NETWORK_CLIENT_RECEIVERPAYMENTTRANSACTION_H
 
-
 #include "base/BasePaymentTransaction.h"
-#include "../../cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
-
 
 class ReceiverPaymentTransaction:
     public BasePaymentTransaction {
@@ -49,7 +46,7 @@ protected:
 protected:
     void savePaymentOperationIntoHistory();
 
-    void launchThreeCyclesClosingTransactions();
+    void runBuildThreeNodesCyclesSignal();
 
     void deserializeFromBytes(
         BytesShared buffer);

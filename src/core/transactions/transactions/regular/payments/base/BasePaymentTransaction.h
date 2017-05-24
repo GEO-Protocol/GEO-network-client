@@ -30,10 +30,16 @@
 
 #include "PathStats.h"
 
+namespace signals = boost::signals2;
 
 // TODO: Add restoring of the reservations after transaction deserialization.
 class BasePaymentTransaction:
     public BaseTransaction {
+
+public:
+    typedef signals::signal<void(vector<NodeUUID> &contractorUUID)> BuildCycleThreeNodesSignal;
+    typedef signals::signal<void(vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors)> BuildCycleFourNodesSignal;
+    typedef signals::signal<void()> CycleWasClosedSignal;
 
 public:
     BasePaymentTransaction(
@@ -185,6 +191,13 @@ protected:
     static const uint16_t kMaxResourceTransferLagMSec = 2000; //
 
     static const auto kMaxPathLength = 7;
+
+public:
+    mutable BuildCycleThreeNodesSignal mBuildCycleThreeNodesSignal;
+
+    mutable BuildCycleFourNodesSignal mBuildCycleFourNodesSignal;
+
+    mutable CycleWasClosedSignal cycleWasClosedSignal;
 
 protected:
     TrustLinesManager *mTrustLines;

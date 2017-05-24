@@ -42,6 +42,8 @@ public:
     pair<BytesShared, size_t> serializeToBytes() const
         throw (bad_alloc);
 
+    TransactionResult::Shared resultDone () const;
+
 protected:
     // Stages handlers
     // TODO: Add throws specififcations
@@ -49,10 +51,6 @@ protected:
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
-
-protected:
-    TransactionResult::SharedConst reject(
-        const char *message = nullptr);
 
 protected:
     TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (

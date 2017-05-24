@@ -1008,7 +1008,7 @@ const string CoordinatorPaymentTransaction::logHeader() const
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 {
-    launchThreeCyclesClosingTransactions();
+    runBuildThreeNodesCyclesSignal();
     BasePaymentTransaction::approve();
     savePaymentOperationIntoHistory();
     return resultOK();
@@ -1111,16 +1111,14 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory()
             *mTrustLines->totalBalance().get()));
 }
 
-void CoordinatorPaymentTransaction::launchThreeCyclesClosingTransactions()
+void CoordinatorPaymentTransaction::runBuildThreeNodesCyclesSignal()
 {
+    vector<NodeUUID> contractorsUUID;
+    contractorsUUID.reserve(mReservations.size());
     for (auto const nodeUUIDAndReservations : mReservations) {
-        const auto kTransaction = make_shared<CyclesThreeNodesInitTransaction>(
-            currentNodeUUID(),
-            nodeUUIDAndReservations.first,
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-        launchSubsidiaryTransaction(kTransaction);
+        contractorsUUID.push_back(
+            nodeUUIDAndReservations.first);
     }
+    mBuildCycleThreeNodesSignal(
+        contractorsUUID);
 }

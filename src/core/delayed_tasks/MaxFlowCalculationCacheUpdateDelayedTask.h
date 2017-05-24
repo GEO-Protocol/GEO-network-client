@@ -16,7 +16,6 @@
 using namespace std;
 
 namespace as = boost::asio;
-namespace signals = boost::signals2;
 
 class MaxFlowCalculationCacheUpdateDelayedTask {
 

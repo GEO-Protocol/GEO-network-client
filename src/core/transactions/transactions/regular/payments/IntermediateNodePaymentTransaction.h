@@ -1,11 +1,7 @@
 ﻿#ifndef INTERMEDIATENODEPAYMENTTRANSACTION_H
 #define INTERMEDIATENODEPAYMENTTRANSACTION_H
 
-
 #include "base/BasePaymentTransaction.h"
-#include "../../cycles/FourNodes/CyclesFourNodesInitTransaction.h"
-#include "../../cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
-
 
 class IntermediateNodePaymentTransaction:
     public BasePaymentTransaction {
@@ -50,9 +46,9 @@ protected:
     TransactionResult::SharedConst approve();
 
 protected:
-    void launchFourCyclesClosingTransactions();
+    void runBuildFourNodesCyclesSignal();
 
-    void launchThreeCyclesClosingTransactions();
+    void runBuildThreeNodesCyclesSignal();
 
     void deserializeFromBytes(
         BytesShared buffer);

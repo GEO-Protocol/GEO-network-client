@@ -311,13 +311,13 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
 {
-    launchFourCyclesClosingTransactions();
-    launchThreeCyclesClosingTransactions();
+    runBuildFourNodesCyclesSignal();
+    runBuildThreeNodesCyclesSignal();
     BasePaymentTransaction::approve();
     return resultDone();
 }
 
-void IntermediateNodePaymentTransaction::launchFourCyclesClosingTransactions()
+void IntermediateNodePaymentTransaction::runBuildFourNodesCyclesSignal()
 {
     vector<pair<NodeUUID, NodeUUID>> debtorsAndCreditorsFourCycles;
     map<PathUUID, NodeUUID> pathsReservations;
@@ -344,31 +344,20 @@ void IntermediateNodePaymentTransaction::launchFourCyclesClosingTransactions()
             }
         }
     }
-    for (auto const &debtorAndCreditor : debtorsAndCreditorsFourCycles) {
-        const auto kTransaction = make_shared<CyclesFourNodesInitTransaction>(
-            currentNodeUUID(),
-            debtorAndCreditor.first,
-            debtorAndCreditor.second,
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-        launchSubsidiaryTransaction(kTransaction);
-    }
+    mBuildCycleFourNodesSignal(
+        debtorsAndCreditorsFourCycles);
 }
 
-void IntermediateNodePaymentTransaction::launchThreeCyclesClosingTransactions()
+void IntermediateNodePaymentTransaction::runBuildThreeNodesCyclesSignal()
 {
+    vector<NodeUUID> contractorsUUID;
+    contractorsUUID.reserve(mReservations.size());
     for (auto const nodeUUIDAndReservations : mReservations) {
-        const auto kTransaction = make_shared<CyclesThreeNodesInitTransaction>(
-            currentNodeUUID(),
-            nodeUUIDAndReservations.first,
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-        launchSubsidiaryTransaction(kTransaction);
+        contractorsUUID.push_back(
+            nodeUUIDAndReservations.first);
     }
+    mBuildCycleThreeNodesSignal(
+        contractorsUUID);
 }
 
 void IntermediateNodePaymentTransaction::deserializeFromBytes(

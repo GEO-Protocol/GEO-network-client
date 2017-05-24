@@ -286,7 +286,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
 {
-    launchThreeCyclesClosingTransactions();
+    runBuildThreeNodesCyclesSignal();
     BasePaymentTransaction::approve();
     savePaymentOperationIntoHistory();
     return resultDone();
@@ -305,16 +305,14 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory()
             *mTrustLines->totalBalance().get()));
 }
 
-void ReceiverPaymentTransaction::launchThreeCyclesClosingTransactions()
+void ReceiverPaymentTransaction::runBuildThreeNodesCyclesSignal()
 {
+    vector<NodeUUID> contractorsUUID;
+    contractorsUUID.reserve(mReservations.size());
     for (auto const nodeUUIDAndReservations : mReservations) {
-        const auto kTransaction = make_shared<CyclesThreeNodesInitTransaction>(
-            currentNodeUUID(),
-            nodeUUIDAndReservations.first,
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-        launchSubsidiaryTransaction(kTransaction);
+        contractorsUUID.push_back(
+            nodeUUIDAndReservations.first);
     }
+    mBuildCycleThreeNodesSignal(
+        contractorsUUID);
 }

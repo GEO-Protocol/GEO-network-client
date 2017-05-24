@@ -36,6 +36,7 @@ public:
 
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
+    typedef signals::signal<void()> CycleIsReadyForClosingSignal;
 
 public:
     // TODO: add other states shortcuts here
@@ -241,6 +242,7 @@ protected:
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
+    mutable CycleIsReadyForClosingSignal cycleIsReadyForClosingSignal;
 
 protected:
     uint16_t mkStandardConnectionTimeout = 1500; //miliseconds

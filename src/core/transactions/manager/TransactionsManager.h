@@ -14,6 +14,7 @@
 #include "../../logger/Logger.h"
 
 #include "../scheduler/TransactionsScheduler.h"
+#include "../../cycles/CyclesManager.h"
 
 #include "../../interface/commands_interface/commands/BaseUserCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
@@ -136,17 +137,28 @@ public:
         const NodeUUID &contractorUUID);
 
     //  Cycles Transactions
-    void launchFourNodesCyclesInitTransaction(const NodeUUID &debtorUUID, const NodeUUID &creditorUUID);
-    void launchFourNodesCyclesResponseTransaction(CyclesFourNodesBalancesRequestMessage::Shared message);
+    void launchFourNodesCyclesInitTransaction(
+        const NodeUUID &debtorUUID,
+        const NodeUUID &creditorUUID);
 
-    void launchThreeNodesCyclesInitTransaction(const NodeUUID &contractorUUID);
-    void launchThreeNodesCyclesResponseTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message);
+    void launchFourNodesCyclesResponseTransaction(
+        CyclesFourNodesBalancesRequestMessage::Shared message);
+
+    void launchThreeNodesCyclesInitTransaction(
+        const NodeUUID &contractorUUID);
+
+    void launchThreeNodesCyclesResponseTransaction(
+        CyclesThreeNodesBalancesRequestMessage::Shared message);
 
     void launchSixNodesCyclesInitTransaction();
-    void launchSixNodesCyclesResponseTransaction(CyclesSixNodesInBetweenMessage::Shared message);
+
+    void launchSixNodesCyclesResponseTransaction(
+        CyclesSixNodesInBetweenMessage::Shared message);
 
     void launchFiveNodesCyclesInitTransaction();
-    void launchFiveNodesCyclesResponseTransaction(CyclesFiveNodesInBetweenMessage::Shared message);
+
+    void launchFiveNodesCyclesResponseTransaction(
+        CyclesFiveNodesInBetweenMessage::Shared message);
 
     // Resources transactions handlers
     void attachResourceToTransaction(
@@ -274,6 +286,21 @@ private:
     void subscribeForSerializeTransaction(
         TransactionsScheduler::SerializeTransactionSignal &signal);
 
+    void subscribeForBuidCyclesThreeNodesTransaction(
+        BasePaymentTransaction::BuildCycleThreeNodesSignal &signal);
+
+    void subscribeForBuidCyclesFourNodesTransaction(
+        BasePaymentTransaction::BuildCycleFourNodesSignal &signal);
+
+    void subscribeForCloseCycleTransaction(
+        CyclesManager::CloseCycleSignal &signal);
+
+    void subscribeForTryCloseCycle(
+        BaseTransaction::CycleIsReadyForClosingSignal &signal);
+
+    void subscribeForTryCloseCycleAgain(
+        BasePaymentTransaction::CycleWasClosedSignal &signal);
+
     // Slots
     void onSubsidiaryTransactionReady(
         BaseTransaction::Shared transaction);
@@ -285,8 +312,19 @@ private:
     void onCommandResultReady(
         CommandResult::SharedConst result);
 
-    void onSerializeTransaction(BaseTransaction::Shared transaction);
+    void onSerializeTransaction(
+        BaseTransaction::Shared transaction);
 
+    void onBuidCycleThreeNodesTransaction(
+        vector<NodeUUID> &contractorsUUID);
+
+    void onBuidCycleFourNodesTransaction(
+        vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors);
+
+    void onCloseCycleTransaction(
+        Path::ConstShared cycle);
+
+    void onTryCloseCycle();
 
 protected:
     void prepareAndSchedule(
@@ -305,6 +343,7 @@ private:
     Logger *mLog;
 
     unique_ptr<TransactionsScheduler> mScheduler;
+    unique_ptr<CyclesManager> mCyclesManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H

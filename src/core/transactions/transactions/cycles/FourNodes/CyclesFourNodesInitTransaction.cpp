@@ -5,8 +5,8 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     const NodeUUID &debtorContractorUUID,
     const NodeUUID &creditorContractorUUID,
     TrustLinesManager *manager,
+    CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
 
     BaseTransaction(
@@ -14,10 +14,10 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(manager),
+    mCyclesManager(cyclesManager),
     mStorageHandler(storageHandler),
     mDebtorContractorUUID(debtorContractorUUID),
-    mCreditorContractorUUID(creditorContractorUUID),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mCreditorContractorUUID(creditorContractorUUID)
 {}
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::run()
@@ -95,6 +95,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
     #ifdef TESTS
         vector<vector<NodeUUID>> ResultCycles;
     #endif
+    bool isBuildCycles = false;
     for (auto &kNodeUUIDFirstMessage: firstMessage->NeighborsUUID()){
         for (auto &kNodeUUIDSecondMessage: secondMessage->NeighborsUUID()){
             if (kNodeUUIDSecondMessage == kNodeUUIDFirstMessage){
@@ -109,21 +110,18 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
                     mNodeUUID,
                     mNodeUUID,
                     stepPath);
-                const auto kTransaction = make_shared<CycleCloserInitiatorTransaction>(
-                    mNodeUUID,
-                    cyclePath,
-                    mTrustLinesManager,
-                    mStorageHandler,
-                    mMaxFlowCalculationCacheManager,
-                    mLog);
-                launchSubsidiaryTransaction(kTransaction);
+                mCyclesManager->addCycle(
+                    cyclePath);
+                isBuildCycles = true;
                 #ifdef TESTS
                     ResultCycles.push_back(stepPath);
                 #endif
             }
         }
     }
-
+    if (isBuildCycles) {
+        cycleIsReadyForClosingSignal();
+    }
     #ifdef TESTS
         cout << "CyclesThreeNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size()) << endl;
         for (vector<NodeUUID> KCyclePath: ResultCycles){

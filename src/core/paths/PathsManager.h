@@ -89,20 +89,6 @@ private:
 
     const string logHeader() const;
 
-    // TODO : remove after testing
-    void fillBigRoutingTables();
-    string nodeUUIDName(uint32_t number);
-    NodeUUID* getPtrByNodeNumber(
-        uint32_t number,
-        vector<NodeUUID*> nodeUUIDPtrs);
-    void fillCycleTablesTestCase0();
-    void fillCycleTablesTestCase1();
-    void fillCycleTablesTestCase2();
-    void fillCycleTablesTestCase3();
-    void fillCycleTablesTestCase4();
-    void fillCycleTablesTestCase5();
-    void fillCycleTablesTestCase6();
-
 private:
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;

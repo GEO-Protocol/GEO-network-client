@@ -4,8 +4,8 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
     const NodeUUID &nodeUUID,
     const NodeUUID &contractorUUID,
     TrustLinesManager *manager,
+    CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
 
     BaseTransaction(
@@ -13,9 +13,9 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(manager),
+    mCyclesManager(cyclesManager),
     mContractorUUID(contractorUUID),
-    mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mStorageHandler(storageHandler)
 {}
 
 TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run()
@@ -102,14 +102,8 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
             cycle);
         debug() << "build cycle: " << mNodeUUID << " -> " << mContractorUUID
                 << " -> " << nodeUUIDAndBalance << " -> " << mNodeUUID;
-        const auto kTransaction = make_shared<CycleCloserInitiatorTransaction>(
-            mNodeUUID,
-            cyclePath,
-            mTrustLinesManager,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-        launchSubsidiaryTransaction(kTransaction);
+        mCyclesManager->addCycle(
+            cyclePath);
         #ifdef TESTS
             ResultCycles.push_back(cycle);
         #endif
@@ -124,7 +118,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     }
     cout << "CyclesThreeNodesInitTransaction::End" << endl;
     #endif
-
+    cycleIsReadyForClosingSignal();
     return resultDone();
 }
 

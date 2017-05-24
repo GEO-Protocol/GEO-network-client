@@ -595,6 +595,12 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     }
 }
 
+TransactionResult::Shared CycleCloserInitiatorTransaction::resultDone() const
+{
+    cycleWasClosedSignal();
+    return BaseTransaction::resultDone();
+}
+
 pair<BytesShared, size_t> CycleCloserInitiatorTransaction::serializeToBytes() const
     throw (bad_alloc)
 {
@@ -612,11 +618,4 @@ const string CycleCloserInitiatorTransaction::logHeader() const
     stringstream s;
     s << "[CycleCloserInitiatorTA: " << currentTransactionUUID() << "] ";
     return s.str();
-}
-
-TransactionResult::SharedConst CycleCloserInitiatorTransaction::reject(
-    const char *message)
-{
-    BasePaymentTransaction::reject(message);
-    return resultDone();
 }
