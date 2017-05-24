@@ -29,7 +29,7 @@ protected:
 
 private:
     TransactionResult::SharedConst resultOk(
-        vector<TrustLineRecord::Shared> trustLineRecords);
+        const vector<TrustLineRecord::Shared> &records);
 
 private:
     HistoryTrustLinesCommand::Shared mCommand;

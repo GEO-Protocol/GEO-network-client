@@ -20,7 +20,7 @@ public:
 
     static const string &identifier();
 
-    const NodeUUID &contractorUUID() const;
+    const vector<NodeUUID> &contractors() const;
 
     CommandResult::SharedConst responseOk(
         string &maxFlowAmount) const;
@@ -30,7 +30,8 @@ protected:
         const string &command);
 
 private:
-    NodeUUID mContractorUUID;
+    size_t mContractorsCount;
+    vector<NodeUUID> mContractors;
 };
 
 

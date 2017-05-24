@@ -49,12 +49,6 @@ DateTime MaxFlowCalculationCacheUpdateDelayedTask::minimalAwakeningTimestamp()
 {
     DateTime closestCacheManagerTimeEvent = mMaxFlowCalculationCacheMnager->closestTimeEvent();
     DateTime closestTrustLineManagerTimeEvent = mMaxFlowCalculationTrustLineManager->closestTimeEvent();
-#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    debug() << "minimalAwakeningTimestamp Cache Manager closest time: "
-         <<  closestCacheManagerTimeEvent << endl;
-    debug() << "minimalAwakeningTimestamp TrustLine Manager closest time: "
-         <<  closestTrustLineManagerTimeEvent << endl;
-#endif
     if (closestCacheManagerTimeEvent < closestTrustLineManagerTimeEvent) {
         return closestCacheManagerTimeEvent;
     } else {
