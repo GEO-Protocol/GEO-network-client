@@ -29,22 +29,44 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::run()
 }
 
 TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
-    vector<PaymentRecord::Shared> paymentRecords)
+    const vector<PaymentRecord::Shared> &records)
 {
-    stringstream s;
-    s << paymentRecords.size();
-    for (auto const &paymentRecord : paymentRecords) {
-        s << "\t" << paymentRecord->operationUUID() << "\t";
-        s << paymentRecord->timestamp() << "\t";
-        s << paymentRecord->contractorUUID() << "\t";
-        s << paymentRecord->paymentOperationType() << "\t";
-        s << paymentRecord->amount() << "\t";
-        s << paymentRecord->balanceAfterOperation();
+    const auto kUnixEpoch = DateTime(boost::gregorian::date(1970,1,1));
+    const auto kSeparator = BaseUserCommand::kTokensSeparator;
+
+    stringstream stream;
+    stream << records.size();
+    for (auto const &kRecord : records) {
+        // Formatting operation date time to the Unix timestamp
+        const auto kUnixTimestampMicrosec = (kRecord->timestamp() - kUnixEpoch).total_microseconds();
+
+        // Formatting operation type
+        const auto kOperationType = kRecord->paymentOperationType();
+        string formattedOperationType = "";
+        if (kOperationType == PaymentRecord::IncomingPaymentType) {
+            formattedOperationType = "incoming";
+
+        } else if (kOperationType == PaymentRecord::OutgoingPaymentType) {
+            formattedOperationType = "outgoing";
+
+        } else {
+            throw RuntimeError(
+                "HistoryPaymentsTransaction::resultOk: "
+                "unexpected operation type occured.");
+        }
+
+        stream << kSeparator << kRecord->operationUUID() << kSeparator;
+        stream << kUnixTimestampMicrosec << kSeparator;
+        stream << kRecord->contractorUUID() << kSeparator;
+        stream << formattedOperationType << kSeparator;
+        stream << kRecord->amount() << kSeparator;
+        stream << kRecord->balanceAfterOperation();
     }
-    string historyPaymentsStrResult = s.str();
+
+    auto result = stream.str();
     return transactionResultFromCommand(
         mCommand->resultOk(
-            historyPaymentsStrResult));
+            result));
 }
 
 const string HistoryPaymentsTransaction::logHeader() const
