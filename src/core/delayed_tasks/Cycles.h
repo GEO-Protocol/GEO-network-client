@@ -4,6 +4,8 @@
 #include <boost/signals2.hpp>
 #include <boost/asio.hpp>
 #include <iostream>
+#include <boost/asio/steady_timer.hpp>
+
 
 using namespace std;
 
@@ -28,17 +30,17 @@ public:
 
 private:
     as::io_service &mIOService;
-    const int mSixNodesSignalRepeatTimeSeconds = 24*60;
-    const int mFiveNodesSignalRepeatTimeSeconds = 24*60;
+    const int mSixNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
+    const int mFiveNodesSignalRepeatTimeSeconds = 24* 60 * 60;
 
     const int mFourNodesSignalRepeatTimeSeconds = 24*60;
     const int mThreeNodesSignalRepeatTimeSeconds = 24*60;
 
 
-    unique_ptr<as::deadline_timer> mSixNodesCycleTimer;
-    unique_ptr<as::deadline_timer> mFiveNodesCycleTimer;
-    unique_ptr<as::deadline_timer> mFourNodesCycleTimer;
-    unique_ptr<as::deadline_timer> mThreeNodesCycleTimer;
+    unique_ptr<as::steady_timer> mSixNodesCycleTimer;
+    unique_ptr<as::steady_timer> mFiveNodesCycleTimer;
+    unique_ptr<as::steady_timer> mFourNodesCycleTimer;
+    unique_ptr<as::steady_timer> mThreeNodesCycleTimer;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLES_H
