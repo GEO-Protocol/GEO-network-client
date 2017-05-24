@@ -71,9 +71,7 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
-#ifdef DEBUG
-    const boost::container::flat_map<NodeUUID, Vote>& votes() const;
-#endif
+    const boost::container::flat_map<NodeUUID, ParticipantsVotesMessage::Vote>& votes() const;
 
 protected:
     typedef uint32_t RecordsCount;

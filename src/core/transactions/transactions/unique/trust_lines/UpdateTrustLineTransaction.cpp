@@ -38,88 +38,31 @@ UpdateTrustLineMessage::Shared UpdateTrustLineTransaction::message() const {
 
 TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
 
-    try {
-        switch (mStep) {
+    // Check if CoordinatorUUId is Valid
+    if (!isContractorUUIDValid(mMessage->senderUUID))
+        // todo add production log
+        return resultDone();
 
-            case Stages::CheckJournal: {
-                if (checkJournal()) {
-                    sendResponseCodeToContractor(
-                        400);
+    if (!isIncomingTrustLineDirectionExisting())
+        // todo add production log
+        return resultDone();
 
-                    return transactionResultFromMessage(
-                        make_shared<const MessageResult>(
-                            currentNodeUUID(),
-                            currentTransactionUUID(),
-                            400));
-                }
+    if (!isAmountValid(mMessage->newAmount()))
+        // todo add production log
+        return resultDone();
 
-                mStep = Stages::CheckIncomingDirection;
-            }
+    // check if  Trustline is available for delete
+    updateIncomingTrustAmount();
+    logUpdatingTrustLineOperation();
 
-            case Stages::CheckIncomingDirection: {
-                if (isIncomingTrustLineDirectionExisting()) {
-
-                    if (isIncomingTrustLineCouldBeModified()) {
-                        updateIncomingTrustAmount();
-                        logUpdatingTrustLineOperation();
-                        sendResponseCodeToContractor(
-                            UpdateTrustLineMessage::kResultCodeAccepted);
-
-                        return transactionResultFromMessage(
-                            mMessage->resultAccepted());
-
-                    } else {
-                        sendResponseCodeToContractor(
-                            UpdateTrustLineMessage::kResultCodeRejected);
-
-                        return transactionResultFromMessage(
-                            mMessage->resultRejected());
-                    }
-
-                } else {
-                    sendResponseCodeToContractor(
-                        UpdateTrustLineMessage::kResultCodeTrustLineAbsent);
-
-                    return transactionResultFromMessage(
-                        mMessage->resultConflict());
-                }
-
-            }
-
-            default: {
-                throw ConflictError("UpdateTrustLineTransaction::run: "
-                                        "Illegal step execution.");
-            }
-
-        }
-
-    } catch (exception &e) {
-        throw RuntimeError("UpdateTrustLineTransaction::run: "
-                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
-                               "Crashed at step -> " + to_string(mStep) + ". "
-                               "Message -> " + string(e.what()));
-    }
-}
-
-bool UpdateTrustLineTransaction::checkJournal() {
-// todo add method to check journal
-    return false;
-}
-
-bool UpdateTrustLineTransaction::isTransactionToContractorUnique() {
-    // todo Add method to check transaction unique
-    return true;
+    updateIncomingTrustAmount();
+    return resultDone();
 }
 
 bool UpdateTrustLineTransaction::isIncomingTrustLineDirectionExisting() {
 
     return mTrustLinesManager->checkDirection(mMessage->senderUUID, TrustLineDirection::Incoming) ||
            mTrustLinesManager->checkDirection(mMessage->senderUUID, TrustLineDirection::Both);
-}
-
-bool UpdateTrustLineTransaction::isIncomingTrustLineCouldBeModified() {
-
-    return mTrustLinesManager->incomingTrustAmount(mMessage->senderUUID) <= mMessage->newAmount();
 }
 
 void UpdateTrustLineTransaction::updateIncomingTrustAmount() {
@@ -144,19 +87,13 @@ void UpdateTrustLineTransaction::logUpdatingTrustLineOperation() {
             mMessage->senderUUID));
 }
 
-void UpdateTrustLineTransaction::sendResponseCodeToContractor(
-    const uint16_t code) {
-
-    sendMessage<Response>(
-        mMessage->senderUUID,
-        mNodeUUID,
-        mMessage->transactionUUID(),
-        code);
-}
-
 const string UpdateTrustLineTransaction::logHeader() const
 {
     stringstream s;
     s << "[UpdateTrustLineTA: " << currentTransactionUUID() << "]";
     return s.str();
+}
+
+bool UpdateTrustLineTransaction::isAmountValid(const TrustLineAmount &amount){
+    return amount > TrustLine::kZeroAmount();
 }

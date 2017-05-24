@@ -128,6 +128,6 @@ LoggerStream IncomingNodesHandler::debug() const
 #endif
 
 #ifndef DEBUG_LOG_NETWORK_COMMUNICATOR
-    return LoggerStream();
+    return LoggerStream::dummy();
 #endif
 }

@@ -64,6 +64,8 @@ public:
         RoutingTables_TrustLineStatesHandler,
         RoutingTables_NeighborsCollecting,
         RoutingTables_GetFirstRoutingTable,
+        RoutingTables_UpdateRoutingTable,
+        RoutingTables_CRC32Rt2Response,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction,
@@ -96,6 +98,7 @@ public:
         // Contractors
         ContractorsList,
         TrustlinesList,
+        TrustLineOne,
 
         // TotalBalances
         TotalBalancesTransactionType,

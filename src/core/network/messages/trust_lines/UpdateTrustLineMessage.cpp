@@ -58,37 +58,3 @@ pair<BytesShared, size_t> UpdateTrustLineMessage::serializeToBytes() const
         bytesCount
     );
 }
-
-MessageResult::SharedConst UpdateTrustLineMessage::resultAccepted() const
-    noexcept
-{
-
-    return MessageResult::SharedConst(
-        new MessageResult(
-            senderUUID,
-            mTransactionUUID,
-            kResultCodeAccepted)
-    );
-}
-
-MessageResult::SharedConst UpdateTrustLineMessage::resultRejected() const
-    noexcept
-{
-    return MessageResult::SharedConst(
-        new MessageResult(
-            senderUUID,
-            mTransactionUUID,
-            kResultCodeRejected)
-    );
-}
-
-MessageResult::SharedConst UpdateTrustLineMessage::resultConflict() const
-    noexcept
-{
-    return MessageResult::SharedConst(
-        new MessageResult(
-            senderUUID,
-            mTransactionUUID,
-            kResultCodeTrustLineAbsent)
-    );
-}

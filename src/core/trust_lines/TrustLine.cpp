@@ -24,9 +24,6 @@ TrustLine::TrustLine(
 //                                 "Balance can't be less than outgoing trust amount.");
 //        }
 //    }
-
-    mTrustLineState.first = TrustState::NonActivated;
-    mTrustLineState.second = TrustState::NonActivated;
 }
 
 TrustLine::TrustLine(
@@ -39,8 +36,6 @@ TrustLine::TrustLine(
     mOutgoingTrustAmount(outgoingAmount),
     mBalance(0) {
 
-    mTrustLineState.first = TrustState::NonActivated;
-    mTrustLineState.second = TrustState::NonActivated;
 }
 
 TrustLine::TrustLine(
@@ -49,8 +44,6 @@ TrustLine::TrustLine(
 
     mContractorNodeUUID(contractorUUID) {
 
-    mTrustLineState.first = TrustState::NonActivated;
-    mTrustLineState.second = TrustState::NonActivated;
     deserialize(buffer);
 }
 
@@ -115,26 +108,6 @@ void TrustLine::setBalance(
         }
     }
     mBalance = balance;
-}
-
-void TrustLine::activateOutgoingDirection() {
-
-    mTrustLineState.second = TrustState::Active;
-}
-
-void TrustLine::suspendOutgoingDirection() {
-
-    mTrustLineState.second = TrustState::Suspended;
-}
-
-void TrustLine::activateIncomingDirection() {
-
-    mTrustLineState.first = TrustState::Active;
-}
-
-void TrustLine::suspendIncomingDirection() {
-
-    mTrustLineState.first = TrustState::Suspended;
 }
 
 const NodeUUID &TrustLine::contractorNodeUUID() const {
@@ -242,19 +215,6 @@ vector<byte> TrustLine::serialize() {
             mBalance,
             buffer
         );
-
-        directionStateToBytes(
-            mTrustLineState.first,
-            buffer
-        );
-
-        directionStateToBytes(
-            mTrustLineState.second,
-            buffer
-        );
-
-        // todo: (hsc) check if this serializes the sign
-
         return buffer;
 
     } catch (exception &e) {
@@ -285,16 +245,6 @@ void TrustLine::deserialize(
         bufferOffset += kTrustAmountPartSize;
 
         parseBalance(
-            buffer + bufferOffset
-        );
-        bufferOffset += kBalancePartSize + kSignBytePartSize;
-
-        mTrustLineState.first = parseDirectionState(
-            buffer + bufferOffset
-        );
-        bufferOffset += sizeof(SerializedTrustLineState);
-
-        mTrustLineState.second = parseDirectionState(
             buffer + bufferOffset
         );
 
@@ -333,24 +283,6 @@ void TrustLine::balanceToBytes(
     );
 }
 
-void TrustLine::directionStateToBytes(
-    TrustState state,
-    vector<byte> &buffer) {
-
-    SerializedTrustLineState directionState = (SerializedTrustLineState) state;
-
-    BytesShared dataBytesBuffer = tryMalloc(sizeof(SerializedTrustLineState));
-    memcpy(
-      dataBytesBuffer.get(),
-      &directionState,
-      sizeof(SerializedTrustLineState)
-    );
-
-    for (size_t it = 0; it < sizeof(SerializedTrustLineState); ++it) {
-        buffer.push_back(dataBytesBuffer.get()[it]);
-    }
-}
-
 /*!
  * todo: (hsc) think how to refactor this a little bit
  *
@@ -384,13 +316,6 @@ void TrustLine::parseBalance(
     );
 
     mBalance = bytesToTrustLineBalance(bytesVector);
-}
-
-TrustState TrustLine::parseDirectionState(
-    const byte *buffer) {
-
-    SerializedTrustLineState *directionState = new (const_cast<byte *> (buffer)) SerializedTrustLineState;
-    return static_cast<TrustState>(*directionState);
 }
 
 /*!

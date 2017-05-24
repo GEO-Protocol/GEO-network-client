@@ -29,21 +29,55 @@ TransactionResult::SharedConst HistoryTrustLinesTransaction::run()
 }
 
 TransactionResult::SharedConst HistoryTrustLinesTransaction::resultOk(
-    vector<TrustLineRecord::Shared> trustLineRecords)
+    const vector<TrustLineRecord::Shared> &records)
 {
-    stringstream s;
-    s << trustLineRecords.size();
-    for (auto const &trustLineRecord : trustLineRecords) {
-        s << "\t" << trustLineRecord->operationUUID() << "\t";
-        s << trustLineRecord->timestamp() << "\t";
-        s << trustLineRecord->contractorUUID() << "\t";
-        s << trustLineRecord->trustLineOperationType() << "\t";
-        s << trustLineRecord->amount();
+    const auto kUnixEpoch = DateTime(boost::gregorian::date(1970,1,1));
+    const auto kSeparator = BaseUserCommand::kTokensSeparator;
+
+    stringstream stream;
+    stream << records.size();
+    for (auto const &kRecord : records) {
+        // Formatting operation date time to the Unix timestamp
+        const auto kUnixTimestampMicrosec = (kRecord->timestamp() - kUnixEpoch).total_microseconds();
+
+        // Formatting operation type
+        const auto kOperationType = kRecord->trustLineOperationType();
+        string formattedOperationType = "";
+        if (kOperationType == TrustLineRecord::Opening) {
+            formattedOperationType = "opening";
+
+        } else if (kOperationType == TrustLineRecord::Accepting) {
+            formattedOperationType = "accepting";
+
+        } else if (kOperationType == TrustLineRecord::Setting) {
+            formattedOperationType = "setting";
+
+        } else if (kOperationType == TrustLineRecord::Updating) {
+            formattedOperationType = "updating";
+
+        } else if (kOperationType == TrustLineRecord::Closing) {
+            formattedOperationType = "closing";
+
+        } else if (kOperationType == TrustLineRecord::Rejecting) {
+            formattedOperationType = "rejecting";
+
+        } else {
+            throw RuntimeError(
+                "HistoryTrustLinesTransaction::resultOk: "
+                "unexpected operation type occured.");
+        }
+
+        stream << kSeparator << kRecord->operationUUID() << kSeparator;
+        stream << kUnixTimestampMicrosec << kSeparator;
+        stream << kRecord->contractorUUID() << kSeparator;
+        stream << formattedOperationType << kSeparator;
+        stream << kRecord->amount();
     }
-    string historyTrustLinesStrResult = s.str();
+
+    auto result = stream.str();
     return transactionResultFromCommand(
         mCommand->resultOk(
-            historyTrustLinesStrResult));
+            result));
 }
 
 const string HistoryTrustLinesTransaction::logHeader() const

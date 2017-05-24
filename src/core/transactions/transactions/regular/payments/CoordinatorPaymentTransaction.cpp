@@ -931,8 +931,9 @@ void CoordinatorPaymentTransaction::switchToNextPath()
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultOK()
 {
+    string transactionUUID = mTransactionUUID.stringUUID();
     return transactionResultFromCommand(
-        mCommand->responseOK());
+        mCommand->responseOK(transactionUUID));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoPathsError()

@@ -35,10 +35,18 @@ LoggerStream::~LoggerStream()
 
     auto message = this->str();
     if (message.size() > 0) {
+        mLogger->logRecordFile(
+            mLogfile,
+            mGroup,
+            mSubsystem,
+            message);
+
+#ifdef DEBUG
         mLogger->logRecord(
             mGroup,
             mSubsystem,
             message);
+#endif
     }
 
 
@@ -140,6 +148,7 @@ const string Logger::recordPrefix(
     return s.str();
 }
 
+
 void Logger::logRecord(
     const string &group,
     const string &subsystem,
@@ -149,4 +158,18 @@ void Logger::logRecord(
          << subsystem << "\t"
          << formatMessage(message) << endl;
     cout.flush();
+}
+
+void Logger::logRecordFile(
+    const string &logFileName,
+    const string &group,
+    const string &subsystem,
+    const string &message)
+{
+    ofstream logfile;
+    logfile.open(logFileName);
+    logfile << recordPrefix(group)
+         << subsystem << "\t"
+         << formatMessage(message) << endl;
+    logfile.close();
 }

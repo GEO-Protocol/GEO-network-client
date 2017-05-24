@@ -1,4 +1,6 @@
-﻿#include "TrustLinesManager.h"
+﻿#include <boost/crc.hpp>
+#include "TrustLinesManager.h"
+#include "../../common/NodeUUID.h"
 
 TrustLinesManager::TrustLinesManager(
     StorageHandler *storageHandler,
@@ -52,9 +54,6 @@ void TrustLinesManager::open(
         mTrustLines[contractorUUID] = trustLine;
     }
 
-    // ToDo: [hsc: review] Denis, what does this activation do?
-    trustLine->activateOutgoingDirection();
-
     trustLine->setOutgoingTrustAmount(amount);
     saveToDisk(trustLine);
 }
@@ -75,21 +74,11 @@ void TrustLinesManager::close(
                 "Сan't close outgoing trust line: outgoing amount equals to zero. "
                 "It seems that trust line has been already closed. ");
 
-    const auto kAvailableIncomingAmount = availableIncomingAmount(contractorUUID);
-    if (*kAvailableIncomingAmount != trustLine->outgoingTrustAmount())
-        throw PreconditionFailedError(
-            "TrustLinesManager::close: "
-                "Сan not close outgoing trust line. Contractor already used part of amount.");
-
-
     if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
         removeTrustLine(contractorUUID);
 
     } else {
         trustLine->setOutgoingTrustAmount(0);
-
-        // ToDo: [hsc: review] Denis, what does this suspending do?
-        trustLine->suspendOutgoingDirection();
         saveToDisk(trustLine);
     }
 }
@@ -107,7 +96,6 @@ void TrustLinesManager::accept(
         TrustLine::Shared trustLine = it->second;
         if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
             trustLine->setIncomingTrustAmount(amount);
-            trustLine->activateIncomingDirection();
             saveToDisk(trustLine);
         } else {
             throw ConflictError("TrustLinesManager::accept: "
@@ -122,7 +110,6 @@ void TrustLinesManager::accept(
                 amount,
                 0,
                 0);
-            trustLine->activateIncomingDirection();
 
         } catch (std::bad_alloc &e) {
             throw MemoryError("TrustLinesManager::accept: "
@@ -144,23 +131,16 @@ void TrustLinesManager::reject(
         auto it = mTrustLines.find(contractorUUID);
         TrustLine::Shared trustLine = it->second;
         if (trustLine->incomingTrustAmount() > TrustLine::kZeroAmount()) {
-            if (trustLine->balance() >= TrustLine::kZeroBalance()) {
                 if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
                     removeTrustLine(contractorUUID);
                 } else {
                     trustLine->setIncomingTrustAmount(0);
-                    trustLine->suspendIncomingDirection();
                     saveToDisk(trustLine);
                 }
 
-            } else {
-                throw PreconditionFailedError("TrustLinesManager::reject: "
-                                                  "Сan not reject incoming trust line. User already used part of amount.");
-            }
-
         } else {
             throw ValueError("TrustLinesManager::reject: "
-                                 "Сan not reject incoming trust line. Incoming trust line amount less or equals to zero.");
+                                 "Сan not reject incoming trust line. Incoming trust line amount less already equals to zero.");
         }
 
     } else {
@@ -184,27 +164,6 @@ const BalanceRange TrustLinesManager::balanceRange(
     const NodeUUID &contractorUUID) const {
 
     return mTrustLines.at(contractorUUID)->balanceRange();
-}
-
-void TrustLinesManager::suspendDirection(
-    const NodeUUID &contractorUUID,
-    const TrustLineDirection direction) {
-
-    switch(direction) {
-
-        case TrustLineDirection::Incoming: {
-            mTrustLines.at(contractorUUID)->suspendIncomingDirection();
-        }
-
-        case TrustLineDirection::Outgoing: {
-            mTrustLines.at(contractorUUID)->suspendOutgoingDirection();
-        }
-
-        default: {
-            throw ConflictError("TrustLinesManager::suspendDirection: "
-                                    "Illegal trust line direction for suspending.");
-        }
-    }
 }
 
 void TrustLinesManager::setIncomingTrustAmount(
@@ -435,6 +394,11 @@ const bool TrustLinesManager::trustLineIsPresent (
     const NodeUUID &contractorUUID) const {
 
     return mTrustLines.count(contractorUUID) > 0;
+}
+
+const bool TrustLinesManager::reservationIsPresent(
+    const NodeUUID &contractorUUID) const {
+    return mAmountReservationsHandler->isReservationPresent(contractorUUID);
 }
 
 void TrustLinesManager::saveToDisk(
@@ -778,3 +742,28 @@ void TrustLinesManager::printRTs()
         debug << trLine.first << " " << *availableOutgoingCycleAmount(trLine.first) << endl;
     }
 }
+
+uint32_t TrustLinesManager::crc32SumFirstLevel(const NodeUUID &contractorUUID) {
+    boost::crc_32_type result;
+    set<NodeUUID> firstLevelContractors;
+    stringstream ss;
+    for(const auto kNodeUUIDAndTrustline: mTrustLines)
+        if(kNodeUUIDAndTrustline.first != contractorUUID)
+            firstLevelContractors.insert(kNodeUUIDAndTrustline.first);
+    for(const auto kNodeUUID: firstLevelContractors)
+        ss << kNodeUUID;
+    result.process_bytes(ss.str().data(), ss.str().length());
+    return result.checksum();
+}
+
+uint32_t TrustLinesManager::crc32SumSecondLevel(const NodeUUID &contractorUUID) {
+    boost::crc_32_type result;
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto secondLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT2(contractorUUID);
+    stringstream ss;
+    for(const auto kNodeUUID: secondLevelContractors)
+        ss << kNodeUUID;
+    result.process_bytes(ss.str().data(), ss.str().length());
+    return result.checksum();
+}
+

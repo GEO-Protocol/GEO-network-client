@@ -22,7 +22,7 @@ CloseTrustLineCommand::CloseTrustLineCommand(
 
 const string &CloseTrustLineCommand::identifier() {
 
-    static const string identifier = "REMOVE:contractors/trust-lines";
+    static const string identifier = "CLOSE:contractors/trust-lines";
     return identifier;
 }
 
@@ -86,7 +86,6 @@ void CloseTrustLineCommand::parse(
             CommandUUID::kHexSize
         );
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
-
     } catch (...) {
         throw ValueError("CloseTrustLineCommand::parse: "
                              "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
@@ -97,4 +96,11 @@ const size_t CloseTrustLineCommand::kRequestedBufferSize() {
 
     static const size_t size = kOffsetToInheritedBytes() + NodeUUID::kBytesSize;
     return size;
+}
+
+
+CommandResult::SharedConst CloseTrustLineCommand::responseOK(uint16_t code) const
+noexcept
+{
+    return makeResult(code);
 }

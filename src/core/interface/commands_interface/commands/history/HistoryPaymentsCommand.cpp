@@ -13,7 +13,7 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
 
 const string &HistoryPaymentsCommand::identifier()
 {
-    static const string identifier = "GET:/history/payments";
+    static const string identifier = "GET:history/payments";
     return identifier;
 }
 

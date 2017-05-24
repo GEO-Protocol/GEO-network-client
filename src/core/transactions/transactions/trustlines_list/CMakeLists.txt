@@ -6,8 +6,11 @@ set(SOURCE_FILES
 
         GetFirstLevelContractorsBalancesTransaction.h
         GetFirstLevelContractorsBalancesTransaction.cpp
-        )
+
+        GetFirstLevelContractorBalanceTransaction.h
+        GetFirstLevelContractorBalanceTransaction.cpp)
 
 add_library(transactions__trustlines_list ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines_list
-        transactions__base)
+        transactions__base
+        interface__commands)

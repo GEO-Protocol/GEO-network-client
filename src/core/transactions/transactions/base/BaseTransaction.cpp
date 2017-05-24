@@ -214,7 +214,7 @@ void BaseTransaction::deserializeFromBytes(
 
 const size_t BaseTransaction::kOffsetToInheritedBytes() {
 
-    static const size_t offset = sizeof(uint16_t) + NodeUUID::kBytesSize + TransactionUUID::kBytesSize + sizeof(uint16_t);
+    static const size_t offset = sizeof(uint16_t) + TransactionUUID::kBytesSize + sizeof(uint16_t);
     return offset;
 }
 

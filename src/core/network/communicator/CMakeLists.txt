@@ -36,12 +36,6 @@ set(SOURCE_FILES
 
         internal/outgoing/OutgoingRemoteNode.h
         internal/outgoing/OutgoingRemoteNode.cpp
-
-
-#        internal/uuid2address/UUID2Address.h
-#        internal/uuid2address/UUID2Address.cpp
-
-
         )
 
 
@@ -51,4 +45,5 @@ target_link_libraries(network__communicator
 
         common
         exceptions
+        logger
         network__messages)

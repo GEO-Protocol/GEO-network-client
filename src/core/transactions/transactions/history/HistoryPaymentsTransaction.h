@@ -29,7 +29,7 @@ protected:
 
 private:
     TransactionResult::SharedConst resultOk(
-        vector<PaymentRecord::Shared> paymentRecords);
+        const vector<PaymentRecord::Shared> &records);
 
 private:
     HistoryPaymentsCommand::Shared mCommand;

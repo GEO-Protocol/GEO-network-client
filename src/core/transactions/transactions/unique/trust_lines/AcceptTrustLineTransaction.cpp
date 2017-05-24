@@ -40,6 +40,13 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
 
     switch (mStep) {
 
+        case Stages::CheckContractorUUIDValidity: {
+            if (!isContractorUUIDValid(mMessage->senderUUID))
+                return transactionResultFromMessage(
+                    mMessage->resultRejected());
+            mStep = Stages::CheckJournal;
+        }
+
         case Stages::CheckJournal: {
             if (checkJournal()) {
                 sendResponseCodeToContractor(

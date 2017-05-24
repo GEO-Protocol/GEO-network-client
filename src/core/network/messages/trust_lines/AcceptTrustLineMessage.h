@@ -22,14 +22,20 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
-    MessageResult::SharedConst resultAccepted() const;
+    MessageResult::SharedConst resultAccepted() const
+    noexcept;
 
-    MessageResult::SharedConst resultConflict() const;
+    MessageResult::SharedConst resultConflict() const
+    noexcept;
+
+    MessageResult::SharedConst resultRejected() const
+    noexcept;
 
     const MessageType typeID() const;
 
 public:
     static const uint16_t kResultCodeAccepted = 200;
+    static const uint16_t kResultCodeRejected = 401;
     static const uint16_t kResultCodeConflict = 409;
 // There are more than one transaction with same type that are processed at one moment
 

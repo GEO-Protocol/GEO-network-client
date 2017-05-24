@@ -73,6 +73,8 @@ public:
         RoutingTables_NeighborsResponse,
         RoutingTables_NotificationTrustLineCreated,
         RoutingTables_NotificationTrustLineRemoved,
+        RoutingTables_CRC32Rt2RequestMessage,
+        RoutingTables_CRC32Rt2ResponseMessage,
 
         /*
          * Paths

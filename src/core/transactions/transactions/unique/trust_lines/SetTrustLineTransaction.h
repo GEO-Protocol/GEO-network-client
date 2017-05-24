@@ -32,7 +32,9 @@ public:
 
 private:
     enum Stages {
-        CheckUnicity = 1,
+        CheckContractorUUIDValidity = 1,
+        CheckAmountValidity,
+        CheckUnicity,
         CheckOutgoingDirection,
         CheckContext
     };
@@ -68,8 +70,6 @@ private:
 
     bool isOutgoingTrustLineDirectionExisting();
 
-    TransactionResult::SharedConst checkTransactionContext();
-
     void sendMessageToRemoteNode();
 
     TransactionResult::SharedConst waitingForResponseState();
@@ -78,24 +78,16 @@ private:
 
     void logSetTrustLineOperation();
 
-    TransactionResult::SharedConst resultOk();
+    TransactionResult::SharedConst responseOk();
 
-    TransactionResult::SharedConst resultTrustLineIsAbsent();
+    TransactionResult::SharedConst responseTrustlineIsAbsent();
 
-    TransactionResult::SharedConst resultConflictWithOtherOperation();
+    TransactionResult::SharedConst responseProtocolError();
 
-    TransactionResult::SharedConst resultRemoteNodeIsInaccessible();
-
-    TransactionResult::SharedConst resultCurrentIncomingDebtIsGreaterThanNewAmount();
-
-    TransactionResult::SharedConst resultProtocolError();
-
-
+protected:
+    bool isAmountValid(const TrustLineAmount &amount);
 
 private:
-    const uint16_t kConnectionTimeout = 2000;
-    const uint16_t kMaxRequestsCount = 5;
-
     SetTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;

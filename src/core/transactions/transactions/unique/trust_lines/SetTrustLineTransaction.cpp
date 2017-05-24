@@ -82,56 +82,25 @@ void SetTrustLineTransaction::deserializeFromBytes(
 
 TransactionResult::SharedConst SetTrustLineTransaction::run() {
 
-    try {
-        switch (mStep) {
+    // Check if CoordinatorUUId is Valid
+    if (!isContractorUUIDValid(mCommand->contractorUUID()))
+        return responseProtocolError();
 
-            case Stages::CheckUnicity: {
-                if (!isTransactionToContractorUnique()) {
-                    return resultConflictWithOtherOperation();
-                }
-
-                mStep = Stages::CheckOutgoingDirection;
-            }
-
-            case Stages::CheckOutgoingDirection: {
-                if (!isOutgoingTrustLineDirectionExisting()) {
-                    return resultTrustLineIsAbsent();
-                }
-
-                mStep = Stages::CheckContext;
-            }
-
-        case Stages::CheckContext: {
-            if (!mContext.empty()) {
-                return checkTransactionContext();
-
-                } else {
-
-                    if (mRequestCounter < kMaxRequestsCount) {
-                        increaseRequestsCounter();
-                        sendMessageToRemoteNode();
-
-                    } else {
-                        return resultRemoteNodeIsInaccessible();
-                    }
-
-                }
-                return waitingForResponseState();
-            }
-
-            default: {
-                throw ConflictError("SetTrustLineTransaction::run: "
-                                        "Illegal step execution.");
-            }
-
-        }
-
-    } catch (exception &e) {
-        throw RuntimeError("SetTrustLineTransaction::run: "
-                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
-                               "Crashed at step -> " + to_string(mStep) + ". "
-                               "Message -> " + string(e.what()));
+    // Check if TrustLine exist
+    if (!isOutgoingTrustLineDirectionExisting()) {
+        return responseTrustlineIsAbsent();
     }
+
+    // Check if amount correct
+    if (!isAmountValid(mCommand->newAmount()))
+        return responseProtocolError();
+    // Notify Contractor that trustLine will be be closed
+    sendMessageToRemoteNode();
+
+    // check if  TrustLine is available for delete
+    setOutgoingTrustAmount();
+    logSetTrustLineOperation();
+    return responseOk();
 }
 
 bool SetTrustLineTransaction::isTransactionToContractorUnique() {
@@ -145,50 +114,6 @@ bool SetTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
            mTrustLinesManager->checkDirection(mCommand->contractorUUID(), TrustLineDirection::Both);
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::checkTransactionContext() {
-
-    if (mkExpectationResponsesCount == mContext.size()) {
-        auto responseMessage = *mContext.begin();
-
-        if (responseMessage->typeID() == Message::MessageType::ResponseMessageType) {
-            Response::Shared response = static_pointer_cast<Response>(
-                responseMessage);
-
-            switch (response->code()) {
-
-                case UpdateTrustLineMessage::kResultCodeAccepted: {
-                    setOutgoingTrustAmount();
-                    logSetTrustLineOperation();
-                    return resultOk();
-                }
-
-                case UpdateTrustLineMessage::kResultCodeRejected: {
-
-                    return resultCurrentIncomingDebtIsGreaterThanNewAmount();
-                }
-
-                case UpdateTrustLineMessage::kResultCodeTrustLineAbsent: {
-                    //todo add TrustLine synchronization
-                    throw RuntimeError("CloseTrustLineTransaction::checkTransactionContext:"
-                                               "TrustLines data out of sync");
-                }
-
-                default: {
-                    break;
-                }
-
-            }
-
-        }
-
-        return resultProtocolError();
-
-    } else {
-        throw ConflictError("SetTrustLineTransaction::checkTransactionContext: "
-                                "Unexpected context size.");
-    }
-}
-
 void SetTrustLineTransaction::sendMessageToRemoteNode() {
 
     sendMessage<SetTrustLineMessage>(
@@ -196,20 +121,6 @@ void SetTrustLineTransaction::sendMessageToRemoteNode() {
         mNodeUUID,
         mTransactionUUID,
         mCommand->newAmount());
-}
-
-TransactionResult::SharedConst SetTrustLineTransaction::waitingForResponseState() {
-
-    TransactionState *transactionState = new TransactionState(
-        microsecondsSinceGEOEpoch(
-            utc_now() + pt::microseconds(kConnectionTimeout * 1000)),
-        Message::MessageType::ResponseMessageType,
-        false);
-
-
-    return transactionResultFromState(
-        TransactionState::SharedConst(
-            transactionState));
 }
 
 void SetTrustLineTransaction::setOutgoingTrustAmount() {
@@ -234,38 +145,21 @@ void SetTrustLineTransaction::logSetTrustLineOperation() {
             mCommand->contractorUUID()));
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::resultOk() {
+TransactionResult::SharedConst SetTrustLineTransaction::responseOk() {
 
     return transactionResultFromCommand(
             mCommand->responseCreated());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::resultTrustLineIsAbsent() {
+TransactionResult::SharedConst SetTrustLineTransaction::responseTrustlineIsAbsent() {
 
     return transactionResultFromCommand(
             mCommand->responseTrustlineIsAbsent());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::resultConflictWithOtherOperation() {
-
-    return transactionResultFromCommand(
-            mCommand->responseConflictWithOtherOperation());
-}
-
-TransactionResult::SharedConst SetTrustLineTransaction::resultRemoteNodeIsInaccessible() {
-
-    return transactionResultFromCommand(
-            mCommand->responseRemoteNodeIsInaccessible());
-}
-
-TransactionResult::SharedConst SetTrustLineTransaction::resultProtocolError() {
+TransactionResult::SharedConst SetTrustLineTransaction::responseProtocolError() {
     return transactionResultFromCommand(
             mCommand->responseProtocolError());
-}
-
-TransactionResult::SharedConst SetTrustLineTransaction::resultCurrentIncomingDebtIsGreaterThanNewAmount() {
-    return transactionResultFromCommand(
-            mCommand->responseCurrentIncomingDebtIsGreaterThanNewAmount());
 }
 
 const string SetTrustLineTransaction::logHeader() const
@@ -273,4 +167,8 @@ const string SetTrustLineTransaction::logHeader() const
     stringstream s;
     s << "[SetTrustLineTA: " << currentTransactionUUID() << "]";
     return s.str();
+}
+
+bool SetTrustLineTransaction::isAmountValid(const TrustLineAmount &amount){
+    return amount > TrustLine::kZeroAmount();
 }

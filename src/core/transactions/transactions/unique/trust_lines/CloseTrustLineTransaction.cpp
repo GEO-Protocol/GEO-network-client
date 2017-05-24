@@ -82,73 +82,41 @@ void CloseTrustLineTransaction::deserializeFromBytes(
 }
 
 TransactionResult::SharedConst CloseTrustLineTransaction::run() {
-    switch (mStep) {
 
-        case Stages::CheckUnicity: {
-            if (!isTransactionToContractorUnique()) {
-                return resultConflictWithOtherOperation();
-            }
+    // Check if CoordinatorUUId is Valid
+    if (!isContractorUUIDValid(mCommand->contractorUUID()))
+        return resultProtocolError();
 
-            mStep = Stages::CheckOutgoingDirection;
+    // Check if TrustLine exist
+    if (!isOutgoingTrustLineDirectionExisting()) {
+        return resultTrustLineAbsent();
+    }
+    // Notify Contractor that trustline will be be closed
+    sendMessageToRemoteNode();
+
+    // check if  Trustline is available for delete
+    if (trustLineIsAvailableForDelete()) {
+        // close trustline
+        closeTrustLine();
+        logClosingTrustLineOperation();
+        // update routing tables;
+        if (!mTrustLinesManager->isNeighbor(mCommand->contractorUUID())) {
+            const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                currentNodeUUID(),
+                currentNodeUUID(),
+                currentNodeUUID(),
+                mCommand->contractorUUID(),
+                TrustLineStatesHandlerTransaction::TrustLineState::Removed,
+                0,
+                mTrustLinesManager,
+                mStorageHandler,
+                mLog);
+            launchSubsidiaryTransaction(kTransaction);
         }
-
-        case Stages::CheckOutgoingDirection: {
-            if (!isOutgoingTrustLineDirectionExisting()) {
-                return resultTrustLineAbsent();
-            }
-
-            mStep = Stages::CheckDebt;
-        }
-
-        case Stages::CheckDebt: {
-            if (checkDebt()) {
-                suspendTrustLineDirectionToContractor();
-
-            } else {
-                closeTrustLine();
-                logClosingTrustLineOperation();
-                if (!mTrustLinesManager->isNeighbor(mCommand->contractorUUID())) {
-                    const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
-                        currentNodeUUID(),
-                        currentNodeUUID(),
-                        currentNodeUUID(),
-                        mCommand->contractorUUID(),
-                        TrustLineStatesHandlerTransaction::TrustLineState::Removed,
-                        0,
-                        mTrustLinesManager,
-                        mStorageHandler,
-                        mLog);
-                    launchSubsidiaryTransaction(kTransaction);
-                }
-            }
-
-            mStep = Stages::CheckContext;
-        }
-
-        case Stages::CheckContext: {
-            if (!mContext.empty()) {
-                return checkTransactionContext();
-
-            } else {
-
-                if (mRequestCounter < kMaxRequestsCount) {
-                    sendMessageToRemoteNode();
-                    increaseRequestsCounter();
-
-                } else {
-                    return resultRemoteNodeIsInaccessible();
-                }
-
-            }
-
-            return waitingForResponseState();
-        }
-
-        default: {
-            throw ConflictError("CloseTrustLineTransaction::run: "
-                                    "Illegal step execution.");
-        }
-
+        return resultOk(200);
+    } else {
+        mTrustLinesManager->setOutgoingTrustAmount(mCommand->contractorUUID(), 0);
+        return resultOk(202);
     }
 }
 
@@ -168,13 +136,6 @@ bool CloseTrustLineTransaction::checkDebt() {
     return mTrustLinesManager->balanceRange(mCommand->contractorUUID()) == BalanceRange::Positive;
 }
 
-void CloseTrustLineTransaction::suspendTrustLineDirectionToContractor() {
-
-    mTrustLinesManager->suspendDirection(
-        mCommand->contractorUUID(),
-        TrustLineDirection::Outgoing);
-}
-
 void CloseTrustLineTransaction::closeTrustLine() {
 
     mTrustLinesManager->close(
@@ -190,45 +151,6 @@ void CloseTrustLineTransaction::logClosingTrustLineOperation() {
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     ioTransaction->historyStorage()->saveTrustLineRecord(record);
-}
-
-TransactionResult::SharedConst CloseTrustLineTransaction::checkTransactionContext() {
-
-    if (mkExpectationResponsesCount == mContext.size()) {
-        auto responseMessage = *mContext.begin();
-
-        if (responseMessage->typeID() == Message::MessageType::ResponseMessageType) {
-            Response::Shared response = static_pointer_cast<Response>(
-                responseMessage);
-
-            switch (response->code()) {
-
-                case RejectTrustLineMessage::kResultCodeRejected: {
-                    return resultOk();
-                }
-
-                case RejectTrustLineMessage::kResultCodeRejectDelayed: {
-                    return resultOk();
-                }
-
-                case RejectTrustLineMessage::kResultCodeTrustLineAbsent: {
-                    //todo add TrustLine synchronization
-                    throw RuntimeError("CloseTrustLineTransaction::checkTransactionContext:"
-                    "TrustLines data out of sync");
-                }
-
-                default: {
-                    break;
-                }
-            }
-        }
-
-        return resultProtocolError();
-
-    } else {
-        throw ConflictError("CloseTrustLineTransaction::checkTransactionContext: "
-                                "Unexpected context size.");
-    }
 }
 
 void CloseTrustLineTransaction::sendMessageToRemoteNode() {
@@ -253,10 +175,10 @@ TransactionResult::SharedConst CloseTrustLineTransaction::waitingForResponseStat
         TransactionState::SharedConst(transactionState));
 }
 
-TransactionResult::SharedConst CloseTrustLineTransaction::resultOk() {
+TransactionResult::SharedConst CloseTrustLineTransaction::resultOk(uint16_t code) {
 
     return transactionResultFromCommand(
-        mCommand->responseOK());
+        mCommand->responseOK(code));
 }
 
 TransactionResult::SharedConst CloseTrustLineTransaction::resultTrustLineAbsent() {
@@ -287,4 +209,16 @@ const string CloseTrustLineTransaction::logHeader() const
     stringstream s;
     s << "[CloseTrustLineTA: " << currentTransactionUUID() << "]";
     return s.str();
+}
+
+bool CloseTrustLineTransaction::trustLineIsAvailableForDelete() {
+    const auto zeroBalance = TrustLineBalance(0);
+    const auto zeroAmount = TrustLineAmount(0);
+
+    if (mTrustLinesManager->balance(mCommand->contractorUUID()) == zeroBalance
+        and mTrustLinesManager->incomingTrustAmount(mCommand->contractorUUID()) == zeroAmount
+        and not mTrustLinesManager->reservationIsPresent(mCommand->contractorUUID())){
+        return true;
+    }
+    return false;
 }

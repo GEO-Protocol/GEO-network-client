@@ -13,7 +13,7 @@ HistoryTrustLinesCommand::HistoryTrustLinesCommand(
 
 const string &HistoryTrustLinesCommand::identifier()
 {
-    static const string identifier = "GET:/history/trust-lines";
+    static const string identifier = "GET:history/trust-lines";
     return identifier;
 }
 

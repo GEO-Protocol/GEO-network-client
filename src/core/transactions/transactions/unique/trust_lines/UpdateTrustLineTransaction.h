@@ -25,13 +25,6 @@ class UpdateTrustLineTransaction : public TrustLineTransaction {
 public:
     typedef shared_ptr<UpdateTrustLineTransaction> Shared;
 
-private:
-    enum Stages{
-        CheckJournal = 1,
-        CheckUnicity,
-        CheckIncomingDirection
-    };
-
 public:
     UpdateTrustLineTransaction(
         const NodeUUID &nodeUUID,
@@ -54,20 +47,14 @@ protected:
     const string logHeader() const;
 
 private:
-    bool checkJournal();
-
-    bool isTransactionToContractorUnique();
 
     bool isIncomingTrustLineDirectionExisting();
 
-    bool isIncomingTrustLineCouldBeModified();
+    bool isAmountValid(const TrustLineAmount &amount);
 
     void updateIncomingTrustAmount();
 
     void logUpdatingTrustLineOperation();
-
-    void sendResponseCodeToContractor(
-        const uint16_t code);
 
 private:
     UpdateTrustLineMessage::Shared mMessage;
