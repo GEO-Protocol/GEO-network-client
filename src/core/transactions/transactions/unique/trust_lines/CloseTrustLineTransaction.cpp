@@ -216,7 +216,6 @@ bool CloseTrustLineTransaction::trustLineIsAvailableForDelete() {
     const auto zeroAmount = TrustLineAmount(0);
 
     if (mTrustLinesManager->balance(mCommand->contractorUUID()) == zeroBalance
-        and mTrustLinesManager->outgoingTrustAmount(mCommand->contractorUUID()) == zeroAmount
         and mTrustLinesManager->incomingTrustAmount(mCommand->contractorUUID()) == zeroAmount
         and not mTrustLinesManager->reservationIsPresent(mCommand->contractorUUID())){
         return true;
