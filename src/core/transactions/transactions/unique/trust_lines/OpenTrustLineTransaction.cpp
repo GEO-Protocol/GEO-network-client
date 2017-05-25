@@ -186,8 +186,3 @@ const string OpenTrustLineTransaction::logHeader() const
     s << "[OpenTrustLineTA: " << currentTransactionUUID() << "]";
     return s.str();
 }
-
-LoggerStream OpenTrustLineTransaction::info() const
-{
-    return mLog->info(logHeader());
-}

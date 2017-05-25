@@ -33,9 +33,6 @@ protected:
     const string logHeader() const
         noexcept;
 
-    LoggerStream info() const
-        noexcept;
-
     void updateHistory(
         IOTransaction::Shared ioTransaction);
 

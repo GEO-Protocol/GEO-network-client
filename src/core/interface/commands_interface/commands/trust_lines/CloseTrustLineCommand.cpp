@@ -32,9 +32,3 @@ const NodeUUID &CloseTrustLineCommand::contractorUUID() const
 {
     return mContractorUUID;
 }
-
-size_t CloseTrustLineCommand::kRequestedBufferSize()
-{
-    static const size_t size = kOffsetToInheritedBytes() + NodeUUID::kBytesSize;
-    return size;
-}

@@ -108,9 +108,3 @@ const string CloseTrustLineTransaction::logHeader() const
     s << "[CloseTrustLineTA: " << currentTransactionUUID() << "]";
     return s.str();
 }
-
-LoggerStream CloseTrustLineTransaction::info() const
-    noexcept
-{
-    return mLog->info(logHeader());
-}

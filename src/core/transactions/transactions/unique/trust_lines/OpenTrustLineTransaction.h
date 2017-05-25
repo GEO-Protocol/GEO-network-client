@@ -46,8 +46,6 @@ public:
 protected:
     const string logHeader() const;
 
-    LoggerStream info() const;
-
     TransactionResult::SharedConst initOperation();
 
     TransactionResult::SharedConst processResponse();

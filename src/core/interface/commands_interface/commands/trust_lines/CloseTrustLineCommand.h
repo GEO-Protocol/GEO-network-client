@@ -2,8 +2,8 @@
 #define GEO_NETWORK_CLIENT_CLOSETRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../../results_interface/result/CommandResult.h"
 
+#include "../../../results_interface/result/CommandResult.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 
@@ -23,10 +23,6 @@ public:
 
     const NodeUUID &contractorUUID() const
         noexcept;
-
-    // ToDo: must be removed, or moved to the protected
-    [[deprecated]]
-    static size_t kRequestedBufferSize();
 
     [[deprecated("Remove it when parent class would be updated")]]
     virtual void parse(
