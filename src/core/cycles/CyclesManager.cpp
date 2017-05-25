@@ -1,10 +1,47 @@
 #include "CyclesManager.h"
 
 CyclesManager::CyclesManager(
+    TransactionsScheduler *transactionsScheduler,
+    as::io_service &ioService,
     Logger *logger) :
+
+    mTransactionScheduler(transactionsScheduler),
+    mIOService(ioService),
     mLog(logger)
 {
     mCurrentCycleClosingState = CycleClosingState::ThreeNodes;
+
+    //    todo add set Time started to 60*6
+    srand(time(NULL));
+    int timeStarted = rand() % 60 * 60 * 6;
+#ifdef TESTS
+    timeStarted = 60;
+#endif
+    mFiveNodesCycleTimer = make_unique<as::steady_timer>(
+        mIOService);
+    mFiveNodesCycleTimer->expires_from_now(
+        std::chrono::seconds(
+            timeStarted));
+    mFiveNodesCycleTimer->async_wait(
+        boost::bind(
+            &CyclesManager::runSignalFiveNodes,
+            this,
+            as::placeholders::error));
+    //    todo add set Time started to 60*6
+    timeStarted = rand() % 60 * 60 * 6;
+#ifdef TESTS
+    timeStarted = 60;
+#endif
+    mSixNodesCycleTimer = make_unique<as::steady_timer>(
+        mIOService);
+    mSixNodesCycleTimer->expires_from_now(
+        std::chrono::seconds(
+            timeStarted));
+    mSixNodesCycleTimer->async_wait(
+        boost::bind(
+            &CyclesManager::runSignalSixNodes,
+            this,
+            as::placeholders::error));
 }
 
 void CyclesManager::addCycle(
@@ -50,14 +87,18 @@ void CyclesManager::closeOneCycle()
             cycles.erase(cycles.begin());
             debug() << "closeCycleSignal " << cycle->toString();
             closeCycleSignal(cycle);
+            debug() << "3 NC count: " << mThreeNodesCycles.size()
+                    << " 4 NC count: " << mFourNodesCycles.size()
+                    << " 5 NC count: " << mFiveNodesCycles.size()
+                    << " 6 NC count: " << mSixNodesCycles.size();
             return;
         }
         incrementCurrentCycleClosingState();
     } while (currentCycleClosingState != mCurrentCycleClosingState);
 }
 
-vector<Path::ConstShared> CyclesManager::cyclesVector(
-    CycleClosingState currentCycleClosingState) const
+vector<Path::ConstShared>& CyclesManager::cyclesVector(
+    CycleClosingState currentCycleClosingState)
 {
     switch (currentCycleClosingState) {
         case CycleClosingState::ThreeNodes:
@@ -88,6 +129,42 @@ void CyclesManager::incrementCurrentCycleClosingState()
             mCurrentCycleClosingState = CycleClosingState::ThreeNodes;
             break;
     }
+}
+
+void CyclesManager::runSignalFiveNodes(
+    const boost::system::error_code &error)
+{
+    if (error) {
+        cout << error.message() << endl;
+    }
+    mFiveNodesCycleTimer->cancel();
+    mFiveNodesCycleTimer->expires_from_now(
+        std::chrono::seconds(
+            mFiveNodesSignalRepeatTimeSeconds));
+    mFiveNodesCycleTimer->async_wait(
+        boost::bind(
+            &CyclesManager::runSignalFiveNodes,
+            this,
+            as::placeholders::error));
+    buildFiveNodesCyclesSignal();
+}
+
+void CyclesManager::runSignalSixNodes(
+    const boost::system::error_code &error)
+{
+    if (error) {
+        cout << error.message() << endl;
+    }
+    mSixNodesCycleTimer->cancel();
+    mSixNodesCycleTimer->expires_from_now(
+        std::chrono::seconds(
+            mSixNodesSignalRepeatTimeSeconds));
+    mSixNodesCycleTimer->async_wait(
+        boost::bind(
+            &CyclesManager::runSignalSixNodes,
+            this,
+            as::placeholders::error));
+    buildSixNodesCyclesSignal();
 }
 
 LoggerStream CyclesManager::info() const

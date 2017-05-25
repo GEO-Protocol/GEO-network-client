@@ -304,6 +304,12 @@ private:
     void subscribeForBuidCyclesFourNodesTransaction(
         BasePaymentTransaction::BuildCycleFourNodesSignal &signal);
 
+    void subscribeForBuidCyclesFiveNodesTransaction(
+        CyclesManager::BuildFiveNodesCyclesSignal &signal);
+
+    void subscribeForBuidCyclesSixNodesTransaction(
+        CyclesManager::BuildSixNodesCyclesSignal &signal);
+
     void subscribeForCloseCycleTransaction(
         CyclesManager::CloseCycleSignal &signal);
 
@@ -332,6 +338,10 @@ private:
 
     void onBuidCycleFourNodesTransaction(
         vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors);
+
+    void onBuidCycleFiveNodesTransaction();
+
+    void onBuidCycleSixNodesTransaction();
 
     void onCloseCycleTransaction(
         Path::ConstShared cycle);

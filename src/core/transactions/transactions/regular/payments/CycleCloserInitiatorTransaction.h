@@ -4,6 +4,8 @@
 #include "base/BasePaymentTransaction.h"
 #include "base/PathStats.h"
 #include "../../../../io/storage/StorageHandler.h"
+#include "../../../../cycles/CyclesManager.h"
+
 #include <boost/functional/hash.hpp>
 
 #include <unordered_map>
@@ -22,6 +24,7 @@ public:
         const NodeUUID &kCurrentNodeUUID,
         Path::ConstShared path,
         TrustLinesManager *trustLines,
+        CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log)
@@ -31,6 +34,7 @@ public:
         BytesShared buffer,
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
+        CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log)
@@ -43,6 +47,12 @@ public:
         throw (bad_alloc);
 
     TransactionResult::Shared resultDone () const;
+
+    const NodeUUID& coordinatorUUID() const;
+
+    const uint8_t cycleLength() const;
+
+    const Stages stage() const;
 
 protected:
     // Stages handlers
@@ -101,6 +111,9 @@ protected:
     // Contains nodes that has been requrested final paths configuration.
     // for more details, see TODO
     unordered_set<NodeUUID> mNodesRequestedFinalConfiguration;
+
+    // for resolving reservation conflicts
+    CyclesManager *mCyclesManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLECLOSERINITIATORTRANSACTION_H

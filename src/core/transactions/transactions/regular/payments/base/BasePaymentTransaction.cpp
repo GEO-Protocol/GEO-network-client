@@ -507,8 +507,7 @@ void BasePaymentTransaction::commit ()
     mMaxFlowCalculationCacheManager->resetInititorCache();
     debug() << "Transaction committed.";
     saveVotes();
-    info() << "Voutes saved.";
-    info() << "Transaction committed.";
+    debug() << "Voutes saved.";
     // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
     {
         auto ioTransaction = mStorageHandler->beginTransaction();

@@ -4,6 +4,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     const NodeUUID& currentNodeUUID,
     IntermediateNodeCycleReservationRequestMessage::ConstShared message,
     TrustLinesManager* trustLines,
+    CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger* log) :
@@ -16,7 +17,8 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log),
-    mMessage(message)
+    mMessage(message),
+    mCyclesManager(cyclesManager)
 {
     mStep = Stages::IntermediateNode_PreviousNeighborRequestProcessing;
 }
@@ -25,6 +27,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     BytesShared buffer,
     const NodeUUID &nodeUUID,
     TrustLinesManager* trustLines,
+    CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger* log) :
@@ -34,7 +37,8 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
-        log)
+        log),
+    mCyclesManager(cyclesManager)
 {}
 
 TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
@@ -123,7 +127,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     const auto kMessage = popNextMessage<CoordinatorCycleReservationRequestMessage>();
     const auto kNextNode = kMessage->nextNodeInPathUUID();
     mCoordinator = kMessage->senderUUID;
-    mCycleLength = kMessage->cycleLength();
 
     // Note: copy of shared pointer is required
     const auto kOutgoingAmount = mTrustLines->availableOutgoingCycleAmount(kNextNode);
@@ -256,6 +259,21 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
         maxNetworkDelay(kMaxPathLength - 2));
+}
+
+const NodeUUID& CycleCloserIntermediateNodeTransaction::coordinatorUUID() const
+{
+    return mCoordinator;
+}
+
+const uint8_t CycleCloserIntermediateNodeTransaction::cycleLength() const
+{
+    return mCycleLength;
+}
+
+const BasePaymentTransaction::Stages CycleCloserIntermediateNodeTransaction::stage() const
+{
+    return (BasePaymentTransaction::Stages)mStep;
 }
 
 void CycleCloserIntermediateNodeTransaction::deserializeFromBytes(

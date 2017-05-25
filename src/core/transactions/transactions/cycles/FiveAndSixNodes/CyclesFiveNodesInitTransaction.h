@@ -4,10 +4,7 @@
 #include "base/CyclesBaseFiveSixNodesInitTransaction.h"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesInBetweenMessage.hpp"
 #include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
-#include "../../regular/payments/CycleCloserInitiatorTransaction.h"
 #include "../../../../paths/lib/Path.h"
-
-
 
 class CyclesFiveNodesInitTransaction :
     public CyclesBaseFiveSixNodesInitTransaction{
@@ -16,8 +13,8 @@ public:
     CyclesFiveNodesInitTransaction(
         const NodeUUID &nodeUUID,
         TrustLinesManager *manager,
+        CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *logger);
 
     const BaseTransaction::TransactionType transactionType() const;

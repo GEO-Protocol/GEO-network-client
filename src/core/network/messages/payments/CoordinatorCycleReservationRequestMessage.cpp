@@ -4,15 +4,13 @@ CoordinatorCycleReservationRequestMessage::CoordinatorCycleReservationRequestMes
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
     const TrustLineAmount& amount,
-    const NodeUUID& nextNodeInThePath,
-    uint8_t cycleLength) :
+    const NodeUUID& nextNodeInThePath) :
 
     RequestCycleMessage(
         senderUUID,
         transactionUUID,
         amount),
-    mNextPathNode(nextNodeInThePath),
-    mCycleLength(cycleLength)
+    mNextPathNode(nextNodeInThePath)
 {}
 
 CoordinatorCycleReservationRequestMessage::CoordinatorCycleReservationRequestMessage(
@@ -27,19 +25,11 @@ CoordinatorCycleReservationRequestMessage::CoordinatorCycleReservationRequestMes
         mNextPathNode.data,
         nextNodeUUIDOffset,
         mNextPathNode.kBytesSize);
-    auto cycleLengthOffset = nextNodeUUIDOffset + mNextPathNode.kBytesSize;
-    uint8_t *cycleLength = new (cycleLengthOffset) uint8_t;
-    mCycleLength = *cycleLength;
 }
 
 const NodeUUID& CoordinatorCycleReservationRequestMessage::nextNodeInPathUUID() const
 {
     return mNextPathNode;
-}
-
-uint8_t CoordinatorCycleReservationRequestMessage::cycleLength() const
-{
-    return mCycleLength;
 }
 
 const Message::MessageType CoordinatorCycleReservationRequestMessage::typeID() const
@@ -56,8 +46,7 @@ pair<BytesShared, size_t> CoordinatorCycleReservationRequestMessage::serializeTo
     auto parentBytesAndCount = RequestCycleMessage::serializeToBytes();
     size_t totalBytesCount =
         + parentBytesAndCount.second
-        + mNextPathNode.kBytesSize
-        + sizeof(uint8_t);
+        + mNextPathNode.kBytesSize;
 
     BytesShared buffer = tryMalloc(totalBytesCount);
     auto initialOffset = buffer.get();
@@ -73,13 +62,6 @@ pair<BytesShared, size_t> CoordinatorCycleReservationRequestMessage::serializeTo
         nextPathNodeOffset,
         mNextPathNode.data,
         mNextPathNode.kBytesSize);
-
-    auto cycleLengthOffset = nextPathNodeOffset + mNextPathNode.kBytesSize;
-
-    memcpy(
-        cycleLengthOffset,
-        &mCycleLength,
-        sizeof(uint8_t));
 
     return make_pair(
         buffer,

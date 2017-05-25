@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CYCLECLOSERINTERMEDIATENODETRANSACTION_H
 
 #include "base/BasePaymentTransaction.h"
+#include "../../../../cycles/CyclesManager.h"
 
 class CycleCloserIntermediateNodeTransaction : public BasePaymentTransaction {
 
@@ -14,6 +15,7 @@ public:
         const NodeUUID &currentNodeUUID,
         IntermediateNodeCycleReservationRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
+        CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger *log);
@@ -22,6 +24,7 @@ public:
         BytesShared buffer,
         const NodeUUID &nodeUUID,
         TrustLinesManager* trustLines,
+        CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger* log);
@@ -30,6 +33,12 @@ public:
     noexcept;
 
     pair<BytesShared, size_t> serializeToBytes();
+
+    const NodeUUID& coordinatorUUID() const;
+
+    const uint8_t cycleLength() const;
+
+    const Stages stage() const;
 
 protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
@@ -50,6 +59,9 @@ protected:
     TrustLineAmount mLastReservedAmount;
     NodeUUID mCoordinator;
     uint8_t mCycleLength;
+
+    // for resolving reservation conflicts
+    CyclesManager *mCyclesManager;
 };
 
 

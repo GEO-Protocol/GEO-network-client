@@ -6,8 +6,12 @@
 #include "../logger/Logger.h"
 
 #include <boost/signals2.hpp>
+#include <boost/asio.hpp>
+#include <boost/asio/steady_timer.hpp>
+
 #include <vector>
 
+namespace as = boost::asio;
 namespace signals = boost::signals2;
 
 class CyclesManager {
@@ -20,10 +24,14 @@ public:
     };
 
 public:
+    typedef signals::signal<void()> BuildSixNodesCyclesSignal;
+    typedef signals::signal<void()> BuildFiveNodesCyclesSignal;
     typedef signals::signal<void(Path::ConstShared cycle)> CloseCycleSignal;
 
 public:
     CyclesManager(
+        TransactionsScheduler *transactionsScheduler,
+        as::io_service &ioService,
         Logger *logger);
 
     void closeOneCycle();
@@ -32,8 +40,15 @@ public:
         Path::ConstShared);
 
 private:
-    vector<Path::ConstShared> cyclesVector(
-        CycleClosingState currentCycleClosingState) const;
+    void runSignalSixNodes(
+        const boost::system::error_code &error);
+
+    void runSignalFiveNodes(
+        const boost::system::error_code &error);
+
+private:
+    vector<Path::ConstShared>& cyclesVector(
+        CycleClosingState currentCycleClosingState);
 
     void incrementCurrentCycleClosingState();
 
@@ -46,8 +61,17 @@ private:
 public:
     mutable CloseCycleSignal closeCycleSignal;
 
+    mutable BuildSixNodesCyclesSignal buildSixNodesCyclesSignal;
+
+    mutable BuildFiveNodesCyclesSignal buildFiveNodesCyclesSignal;
+
+private:
+    const int mSixNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
+    const int mFiveNodesSignalRepeatTimeSeconds = 24* 60 * 60;
+
 private:
     TransactionsScheduler *mTransactionScheduler;
+    as::io_service &mIOService;
     vector<Path::ConstShared> mThreeNodesCycles;
     vector<Path::ConstShared> mFourNodesCycles;
     vector<Path::ConstShared> mFiveNodesCycles;
@@ -55,6 +79,9 @@ private:
 
     CycleClosingState mCurrentCycleClosingState;
     Logger *mLog;
+
+    unique_ptr<as::steady_timer> mSixNodesCycleTimer;
+    unique_ptr<as::steady_timer> mFiveNodesCycleTimer;
 };
 
 

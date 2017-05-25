@@ -1,5 +1,4 @@
 #include "CyclesSixNodesInitTransaction.h"
-#include "../../../../paths/lib/Path.h"
 
 const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactionType() const
 {
@@ -9,6 +8,11 @@ const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactio
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndSendMessagesStage()
 {
     debug() << "runCollectDataAndSendMessagesStage";
+    // todo: remove this checking
+    if (mNodeUUID.stringUUID() != "77cfae4c-eac6-40f4-9b39-5d22fa1cd38a") {
+        debug() << "skip this launch";
+        return resultDone();
+    }
     const auto firstLevelNodes = mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalance();
     vector<NodeUUID> path;
     path.push_back(mNodeUUID);
@@ -25,15 +29,15 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
 CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
     const NodeUUID &nodeUUID,
     TrustLinesManager *manager,
+    CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction,
         nodeUUID,
         manager,
+        cyclesManager,
         storageHandler,
-        maxFlowCalculationCacheManager,
         logger)
 {}
 
@@ -42,6 +46,7 @@ CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
 #pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAndCreateCyclesStage()
 {
+    debug() << "runParseMessageAndCreateCyclesStage";
     if (mContext.size() == 0) {
         info() << "No responses messages are present. Can't create cycles paths;";
         return resultDone();
@@ -111,15 +116,8 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                     mNodeUUID,
                     mNodeUUID,
                     stepCyclePath);
-                const auto kTransaction = make_shared<CycleCloserInitiatorTransaction>(
-                    mNodeUUID,
-                    cyclePath,
-                    mTrustLinesManager,
-                    mStorageHandler,
-                    mMaxFlowCalculationCacheManager,
-                    mLog
-                );
-                launchSubsidiaryTransaction(kTransaction);
+                mCyclesManager->addCycle(
+                    cyclePath);
                 #ifdef TESTS
                 ResultCycles.push_back(stepCyclePath);
                 #endif
@@ -141,7 +139,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
     debug() << "CyclesFiveNodesInitTransaction::End";
     #endif
     mContext.clear();
-
+    cycleIsReadyForClosingSignal();
     return resultDone();
 }
 
@@ -149,6 +147,5 @@ const string CyclesSixNodesInitTransaction::logHeader() const
 {
     stringstream s;
     s << "[CyclesSixNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
-
     return s.str();
 }

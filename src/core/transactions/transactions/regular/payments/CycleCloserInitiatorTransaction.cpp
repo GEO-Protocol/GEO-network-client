@@ -4,6 +4,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     const NodeUUID &kCurrentNodeUUID,
     Path::ConstShared path,
     TrustLinesManager *trustLines,
+    CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log)
@@ -16,6 +17,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log),
+    mCyclesManager(cyclesManager),
     mInitialTransactionAmount(0)
 {
     mStep = Stages::Coordinator_Initialisation;
@@ -26,6 +28,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     BytesShared buffer,
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
+    CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger *log)
@@ -37,7 +40,8 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
-        log)
+        log),
+    mCyclesManager(cyclesManager)
 {}
 
 
@@ -299,8 +303,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
         kCoordinator,
         kTransactionUUID,
         path->maxFlow(),
-        kNextAfterNeighborNode,
-        path->path()->length());
+        kNextAfterNeighborNode);
 
     debug() << "Further amount reservation request sent to the node (" << neighbor << ") [" << path->maxFlow() << "]";
 
@@ -405,8 +408,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
         kCoordinator,
         kTransactionUUID,
         path->maxFlow(),
-        nextNodeAfterRemote,
-        path->path()->length());
+        nextNodeAfterRemote);
 
     path->setNodeState(
         remoteNodePosition,
@@ -593,6 +595,21 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
             currentTransactionUUID(),
             finalPathAmount);
     }
+}
+
+const NodeUUID& CycleCloserInitiatorTransaction::coordinatorUUID() const
+{
+    return currentNodeUUID();
+}
+
+const uint8_t CycleCloserInitiatorTransaction::cycleLength() const
+{
+    return (uint8_t)mPathStats->path()->length();
+}
+
+const BasePaymentTransaction::Stages CycleCloserInitiatorTransaction::stage() const
+{
+    return (BasePaymentTransaction::Stages)mStep;
 }
 
 TransactionResult::Shared CycleCloserInitiatorTransaction::resultDone() const
