@@ -79,7 +79,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
     // Processing response
     if (mContext.size() == 0) {
         info() << "Attempt to open trust line to the node " << kContractor << " failed. "
-               << "Remote node is unexpected.";
+               << "Remote node is inaccessible.";
         return resultRemoteNodeIsInaccessible();
     }
 
