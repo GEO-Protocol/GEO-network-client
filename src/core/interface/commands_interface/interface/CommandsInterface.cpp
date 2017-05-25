@@ -2,7 +2,7 @@
 
 
 CommandsParser::CommandsParser(
-    Logger *log):
+    Logger &log):
 
     mLog(log) {}
 
@@ -222,14 +222,14 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
         }
 
     } catch (bad_alloc &) {
-        auto errors = mLog->error("CommandsParser::tryParseCommand");
+        auto errors = mLog.error("CommandsParser::tryParseCommand");
         errors << "Memory allocation error occurred on command instance creation. "
                << "Command was dropped. ";
 
         return commandIsInvalidOrIncomplete();
 
     } catch (exception &e){
-        mLog->logException("CommandsParser", e);
+        mLog.logException("CommandsParser", e);
         return commandIsInvalidOrIncomplete();
     }
 
@@ -270,7 +270,7 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::commandIsInvalidOrIncomplete
 
 CommandsInterface::CommandsInterface(
     as::io_service &ioService,
-    Logger *logger) :
+    Logger &logger) :
 
     mIOService(ioService),
     mLog(logger){
@@ -419,7 +419,7 @@ void CommandsInterface::handleTimeout(
     const boost::system::error_code &error) {
 
     if (error) {
-        mLog->logError("CommandsInterface::handleTimeout", error.message());
+        mLog.logError("CommandsInterface::handleTimeout", error.message());
     }
 
     asyncReceiveNextCommand();

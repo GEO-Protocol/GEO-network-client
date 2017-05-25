@@ -44,7 +44,7 @@ public:
 public:
     TrustLinesManager(
         StorageHandler *storageHandler,
-        Logger *logger)
+        Logger &logger)
         throw (bad_alloc, IOError);
 
     void open(
@@ -223,7 +223,7 @@ private:
 
     unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
     StorageHandler *mStorageHandler;
-    Logger *mLogger;
+    Logger &mLogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H

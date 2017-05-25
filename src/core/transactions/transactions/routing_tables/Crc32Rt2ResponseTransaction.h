@@ -19,7 +19,7 @@ public:
         CRC32Rt2RequestMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger)
+        Logger &logger)
     noexcept;
 
     TransactionResult::SharedConst run();

@@ -4,7 +4,7 @@ CyclesThreeNodesReceiverTransaction::CyclesThreeNodesReceiverTransaction(
     const NodeUUID &nodeUUID,
     CyclesThreeNodesBalancesRequestMessage::Shared message,
     TrustLinesManager *manager,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_ThreeNodesReceiverTransaction,

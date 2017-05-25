@@ -5,7 +5,7 @@ GetRoutingTablesTransaction::GetRoutingTablesTransaction(
     RequestRoutingTablesMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    Logger *logger):
+    Logger &logger):
 
     BaseTransaction(
         BaseTransaction::TransactionType::GetRoutingTablesTransactionType,

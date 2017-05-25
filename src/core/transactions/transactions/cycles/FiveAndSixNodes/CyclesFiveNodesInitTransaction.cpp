@@ -32,7 +32,7 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *logger) :
+    Logger &logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction,
         nodeUUID,

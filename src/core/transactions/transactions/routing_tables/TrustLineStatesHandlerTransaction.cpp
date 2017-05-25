@@ -51,7 +51,7 @@ TrustLineStatesHandlerTransaction::TrustLineStatesHandlerTransaction (
     const uint8_t hopDistance,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
-    Logger *logger)
+    Logger &logger)
     noexcept :
 
     BaseTransaction(

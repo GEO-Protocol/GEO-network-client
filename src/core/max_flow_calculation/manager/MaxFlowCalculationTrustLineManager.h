@@ -17,7 +17,7 @@ public:
 
 public:
     MaxFlowCalculationTrustLineManager(
-        Logger *logger);
+        Logger &logger);
 
     void addTrustLine(
         MaxFlowCalculationTrustLine::Shared trustLine);
@@ -68,7 +68,7 @@ private:
 private:
     unordered_map<NodeUUID, trustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
     map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
-    Logger *mLog;
+    Logger &mLog;
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H

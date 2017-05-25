@@ -39,7 +39,7 @@ public:
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
-        Logger *log)
+        Logger &log)
         noexcept;
 
     CoordinatorPaymentTransaction(
@@ -49,7 +49,7 @@ public:
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
-        Logger *log)
+        Logger &log)
         throw (bad_alloc);
 
     TransactionResult::SharedConst run()

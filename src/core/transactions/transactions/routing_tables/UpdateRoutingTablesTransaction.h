@@ -20,7 +20,7 @@ public:
         UpdateRoutingTablesCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger)
+        Logger &logger)
     noexcept;
 
     enum Stages {

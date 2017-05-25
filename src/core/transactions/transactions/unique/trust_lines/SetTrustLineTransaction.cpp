@@ -5,7 +5,7 @@ SetTrustLineTransaction::SetTrustLineTransaction(
     SetTrustLineCommand::Shared command,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::SetTrustLineTransactionType,
@@ -19,7 +19,7 @@ SetTrustLineTransaction::SetTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::SetTrustLineTransactionType,

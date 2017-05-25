@@ -5,7 +5,7 @@ CyclesSixNodesReceiverTransaction::CyclesSixNodesReceiverTransaction(
     const NodeUUID &nodeUUID,
     CyclesSixNodesInBetweenMessage::Shared message,
     TrustLinesManager *manager,
-    Logger *logger) :
+    Logger &logger) :
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_SixNodesReceiverTransaction,
         nodeUUID,

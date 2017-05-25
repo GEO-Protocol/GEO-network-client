@@ -3,7 +3,7 @@
 TotalBalancesFromRemoutNodeTransaction::TotalBalancesFromRemoutNodeTransaction(
     NodeUUID &nodeUUID,
     TotalBalancesRemouteNodeCommand::Shared command,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::InitiateTotalBalancesFromRemoutNodeTransactionType,

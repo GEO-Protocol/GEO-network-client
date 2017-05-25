@@ -4,7 +4,7 @@ GetPathTestTransaction::GetPathTestTransaction(
     NodeUUID &nodeUUID,
     FindPathCommand::Shared command,
     ResourcesManager *resourcesManager,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::GetPathTestTransactionType,

@@ -6,8 +6,7 @@ set(SOURCE_FILES
         BaseTransaction.h
         BaseTransaction.cpp
 
-        UniqueTransaction.h
-        UniqueTransaction.cpp)
+        )
 
 add_library(transactions__base ${SOURCE_FILES})
 target_link_libraries(transactions__base

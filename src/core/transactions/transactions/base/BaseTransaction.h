@@ -134,31 +134,31 @@ protected:
     // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
-        Logger *log=nullptr);
+        Logger &log);
 
     // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
-        Logger *log=nullptr);
+        Logger &log);
 
     // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
-        Logger *log=nullptr);
+        Logger &log);
 
     // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
         const NodeUUID &nodeUUID,
-        Logger *log=nullptr);
+        Logger &log);
 
     BaseTransaction(
         BytesShared buffer,
         const NodeUUID &nodeUUID,
-        Logger *log=nullptr);
+        Logger &log);
 
     [[deprecated("Use sendMessage() instead.")]]
     void addMessage(
@@ -259,7 +259,7 @@ protected:
     deque<Message::Shared> mContext;
     deque<BaseResource::Shared> mResources;
 
-    Logger *mLog;
+    Logger &mLog;
 };
 
 
