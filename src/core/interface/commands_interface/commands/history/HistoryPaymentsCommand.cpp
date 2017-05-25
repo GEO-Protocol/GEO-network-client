@@ -28,10 +28,10 @@ void HistoryPaymentsCommand::parse(
         throw ValueError("HistoryPaymentsCommand::parse: "
                                  "Can't parse command. Received command is to short.");
     }
-    size_t tabSeparator = command.find("\t");
+    size_t tokenSeparatorPos = command.find(kTokensSeparator);
     string historyFromStr = command.substr(
         0,
-        tabSeparator);
+        tokenSeparatorPos);
     if (historyFromStr.at(0) == '-') {
         throw ValueError("HistoryPaymentsCommand::parse: "
                                  "Can't parse command. 'from' token can't be negative.");
@@ -43,7 +43,7 @@ void HistoryPaymentsCommand::parse(
                                  "Can't parse command. Error occurred while parsing  'from' token.");
     }
     string historyCountStr = command.substr(
-        tabSeparator + 1,
+        tokenSeparatorPos + 1,
         command.size() - 1);
     if (historyCountStr.at(0) == '-') {
         throw ValueError("HistoryPaymentsCommand::parse: "

@@ -23,15 +23,15 @@ const string &HistoryTrustLinesCommand::identifier()
 void HistoryTrustLinesCommand::parse(
         const string &command)
 {
-    const auto minCommandLength = 3;
+    const auto minCommandLength = 13;
     if (command.size() < minCommandLength) {
         throw ValueError("HistoryTrustLinesCommand::parse: "
                                  "Can't parse command. Received command is to short.");
     }
-    size_t tabSeparator = command.find("\t");
+    size_t tokenSeparatorPos = command.find(kTokensSeparator);
     string historyFromStr = command.substr(
         0,
-        tabSeparator);
+        tokenSeparatorPos);
     if (historyFromStr.at(0) == '-') {
         throw ValueError("HistoryTrustLinesCommand::parse: "
                                   "Can't parse command. 'from' token can't be negative.");
@@ -42,10 +42,10 @@ void HistoryTrustLinesCommand::parse(
         throw ValueError("HistoryTrustLinesCommand::parse: "
                                  "Can't parse command. Error occurred while parsing  'from' token.");
     }
-    size_t nextTabSeparator = command.find("\t", tabSeparator + 1);
+    size_t nextTokenSeparatorPos = command.find(kTokensSeparator, tokenSeparatorPos + 1);
     string historyCountStr = command.substr(
-        tabSeparator + 1,
-        nextTabSeparator);
+        tokenSeparatorPos + 1,
+        nextTokenSeparatorPos);
     if (historyCountStr.at(0) == '-') {
         throw ValueError("HistoryTrustLinesCommand::parse: "
                                  "Can't parse command. 'count' token can't be negative.");
@@ -56,11 +56,11 @@ void HistoryTrustLinesCommand::parse(
         throw ValueError("HistoryTrustLinesCommand::parse: "
                                  "Can't parse command. Error occurred while parsing 'count' token.");
     }
-    tabSeparator = nextTabSeparator;
-    nextTabSeparator = command.find("\t", tabSeparator + 1);
+    tokenSeparatorPos = nextTokenSeparatorPos;
+    nextTokenSeparatorPos = command.find(kTokensSeparator, tokenSeparatorPos + 1);
     string timeFromStr = command.substr(
-        tabSeparator + 1,
-        nextTabSeparator);
+        tokenSeparatorPos + 1,
+        nextTokenSeparatorPos);
     if (timeFromStr == kNullParameter) {
         mIsTimeFromPresent = false;
     } else {
@@ -74,9 +74,9 @@ void HistoryTrustLinesCommand::parse(
                                  "Can't parse command. Error occurred while parsing 'timeFrom' token.");
         }
     }
-    tabSeparator = nextTabSeparator;
+    tokenSeparatorPos = nextTokenSeparatorPos;
     string timeToStr = command.substr(
-        tabSeparator + 1,
+        tokenSeparatorPos + 1,
         command.size() - 1);
     if (timeToStr == kNullParameter) {
         mIsTimeToPresent = false;

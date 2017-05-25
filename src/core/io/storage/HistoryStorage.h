@@ -38,7 +38,11 @@ public:
 
     vector<TrustLineRecord::Shared> allTrustLineRecords(
         size_t recordsCount,
-        size_t fromRecord);
+        size_t fromRecord,
+        DateTime timeFrom,
+        bool isTimeFromPresent,
+        DateTime timeTo,
+        bool isTimeToPresent);
 
     vector<PaymentRecord::Shared> allPaymentRecords(
         size_t recordsCount,
@@ -56,11 +60,6 @@ private:
 
     PaymentRecord::Shared deserializePaymentRecord(
         sqlite3_stmt *stmt);
-
-    vector<Record::Shared> allRecordsByType(
-        Record::RecordType recordType,
-        size_t recordsCount,
-        size_t fromRecord);
 
     LoggerStream info() const;
 
