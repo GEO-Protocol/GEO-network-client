@@ -1,149 +1,68 @@
 #include "OpenTrustLineCommand.h"
 
+
 OpenTrustLineCommand::OpenTrustLineCommand(
     const CommandUUID &uuid,
     const string &commandBuffer):
 
     BaseUserCommand(
         uuid,
-        identifier()
-    ) {
-
-    parse(commandBuffer);
-}
-
-OpenTrustLineCommand::OpenTrustLineCommand(
-    BytesShared buffer) :
-
-    BaseUserCommand(identifier()) {
-
-    deserializeFromBytes(buffer);
-}
-
-const string &OpenTrustLineCommand::identifier() {
-
-    static const string identifier = "CREATE:contractors/trust-lines";
-    return identifier;
-}
-
-const NodeUUID &OpenTrustLineCommand::contractorUUID() const {
-
-    return mContractorUUID;
-}
-
-const TrustLineAmount &OpenTrustLineCommand::amount() const {
-
-    return mAmount;
-}
-
-pair<BytesShared, size_t> OpenTrustLineCommand::serializeToBytes(){
-
-    auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second +
-        NodeUUID::kBytesSize +
-        kTrustLineAmountBytesCount;
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-    //----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
-    dataBytesOffset += parentBytesAndCount.second;
-    //----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize
-    );
-    dataBytesOffset += NodeUUID::kBytesSize;
-    //----------------------------------------------------
-    vector<byte> buffer = trustLineAmountToBytes(mAmount);
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        buffer.data(),
-        buffer.size()
-    );
-    //----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount
-    );
-}
-
-void OpenTrustLineCommand::deserializeFromBytes(
-    BytesShared buffer) {
-
-    BaseUserCommand::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = BaseUserCommand::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
-    bytesBufferOffset += NodeUUID::kBytesSize;
-    //----------------------------------------------------
-    vector<byte> amountBytes(
-        buffer.get() + bytesBufferOffset,
-        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-
-    mAmount = bytesToTrustLineAmount(amountBytes);
-}
-
-/**
- * Throws ValueError if deserialization was unsuccessful.
- */
-void OpenTrustLineCommand::parse(
-    const string &command) {
-
+        identifier())
+{
     const auto amountTokenOffset = NodeUUID::kHexSize + 1;
     const auto minCommandLength = amountTokenOffset + 1;
 
-    if (command.size() < minCommandLength) {
-        throw ValueError("OpenTrustLineCommand::parse: "
-                             "Can't parse command. Received command is to short.");
+    if (commandBuffer.size() < minCommandLength) {
+        throw ValueError(
+            "OpenTrustLineCommand::parse: "
+            "Can't parse command. Received command is to short.");
     }
 
     try {
-        string hexUUID = command.substr(
-            0,
-            NodeUUID::kHexSize
-        );
+        string hexUUID = commandBuffer.substr(0, NodeUUID::kHexSize);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
 
     } catch (...) {
-        throw ValueError("OpenTrustLineCommand::parse: "
-                             "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
+        throw ValueError(
+            "OpenTrustLineCommand::parse: "
+            "can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
 
     try {
-        for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < command.length(); ++commandSeparatorPosition) {
-            if (command.at(commandSeparatorPosition) == kCommandsSeparator) {
+        for (size_t commandSeparatorPosition = amountTokenOffset; commandSeparatorPosition < commandBuffer.length(); ++commandSeparatorPosition) {
+            if (commandBuffer.at(commandSeparatorPosition) == kCommandsSeparator) {
                 mAmount = TrustLineAmount(
-                    command.substr(
+                    commandBuffer.substr(
                         amountTokenOffset,
-                        commandSeparatorPosition - amountTokenOffset
-                    )
-                );
+                        commandSeparatorPosition - amountTokenOffset));
             }
         }
 
     } catch (...) {
-        throw ValueError("OpenTrustLineCommand::parse: "
-                             "Can't parse command. Error occurred while parsing 'Amount' token.");
+        throw ValueError(
+            "OpenTrustLineCommand::parse: "
+            "can't parse command. Error occurred while parsing 'Amount' token.");
     }
 
     if (mAmount == TrustLineAmount(0)){
-        throw ValueError("OpenTrustLineCommand::parse: "
-                             "Can't parse command. Received 'Amount' can't be 0.");
+        throw ValueError(
+            "OpenTrustLineCommand::parse: "
+            "Can't parse command. Received 'Amount' can't be 0.");
     }
 }
 
-const size_t OpenTrustLineCommand::kRequestedBufferSize() {
+const string &OpenTrustLineCommand::identifier()
+{
+    static const string identifier = "CREATE:contractors/trust-lines";
+    return identifier;
+}
 
-    static const size_t size = kOffsetToInheritedBytes() + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
-    return size;
+const NodeUUID &OpenTrustLineCommand::contractorUUID() const
+{
+    return mContractorUUID;
+}
+
+const TrustLineAmount &OpenTrustLineCommand::amount() const
+{
+    return mAmount;
 }

@@ -40,6 +40,8 @@ public:
 
     const DateTime &timestampAccepted() const;
 
+    // TODO: remove noexcept
+    // TODO: split methods into classes
     CommandResult::SharedConst responseOK() const
         noexcept;
     CommandResult::SharedConst responseCreated() const
@@ -52,6 +54,9 @@ public:
         noexcept;
     CommandResult::SharedConst responseTrustlineIsAlreadyPresent() const
         noexcept;
+
+    CommandResult::SharedConst responseTrustlineRejected() const;
+
     CommandResult::SharedConst responseInsufficientFunds() const
         noexcept;
     CommandResult::SharedConst responseConflictWithOtherOperation() const

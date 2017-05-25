@@ -33,7 +33,7 @@ protected:
     const string logHeader() const
         noexcept;
 
-    LoggerStream info()
+    LoggerStream info() const
         noexcept;
 
     void updateHistory(

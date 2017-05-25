@@ -47,18 +47,14 @@ public:
         Logger *logger)
         throw (bad_alloc, IOError);
 
-    // TODO: remove thhrow(...)
-    // TODO: add IO transaction as argument
     void open(
+        IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount)
-        throw (ConflictError, IOError);
-
+        const TrustLineAmount &amount);
 
     void close(
         IOTransaction::Shared IOTransaction,
-        const NodeUUID &contractorUUID)
-        noexcept(false);
+        const NodeUUID &contractorUUID);
 
     // TODO: remove thhrow(...)
     // TODO: add IO transaction as argument

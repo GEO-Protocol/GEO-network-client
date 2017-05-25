@@ -20,12 +20,12 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
 
 TransactionResult::SharedConst CloseTrustLineTransaction::run()
 {
-    if (mCommand->contractorUUID() == mNodeUUID) {
+    const auto kContractor = mCommand->contractorUUID();
+
+    if (kContractor == mNodeUUID) {
         info() << "Attempt to launch transaction against itself was prevented.";
         return resultProtocolError();
     }
-
-    const auto kContractor = mCommand->contractorUUID();
 
     // Trust line must be removed (updated) in the trust lines storage,
     // and history record about the operation must be written to the history storage.
@@ -98,7 +98,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::resultTrustLineIsAbsen
 TransactionResult::SharedConst CloseTrustLineTransaction::resultProtocolError()
 {
     return transactionResultFromCommand(
-            mCommand->responseProtocolError());
+        mCommand->responseProtocolError());
 }
 
 const string CloseTrustLineTransaction::logHeader() const
@@ -109,7 +109,7 @@ const string CloseTrustLineTransaction::logHeader() const
     return s.str();
 }
 
-LoggerStream CloseTrustLineTransaction::info()
+LoggerStream CloseTrustLineTransaction::info() const
     noexcept
 {
     return mLog->info(logHeader());

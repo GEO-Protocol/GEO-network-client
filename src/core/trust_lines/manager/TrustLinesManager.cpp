@@ -30,32 +30,41 @@ void TrustLinesManager::loadTrustLinesFromDisk ()
     }
 }
 
+/**
+ * @throws ConflictError
+ * @throws bad_alloc
+ */
 void TrustLinesManager::open(
+    IOTransaction::Shared IOTransaction,
     const NodeUUID &contractorUUID,
     const TrustLineAmount &amount)
-    throw (ConflictError, IOError)
 {
-    TrustLine::Shared trustLine = nullptr;
+    if (trustLineIsPresent(contractorUUID) and outgoingTrustAmount(contractorUUID) > 0) {
+        throw ConflictError(
+            "TrustLinesManager::open: "
+            "can't open outgoing trust line. There is an already present one.");
 
-    if (trustLineIsPresent(contractorUUID)) {
-        trustLine = mTrustLines.find(contractorUUID)->second;
-        if (trustLine->outgoingTrustAmount() != TrustLine::kZeroAmount())
-            throw ConflictError(
-                "TrustLinesManager::open: "
-                    "Сan't open outgoing trust line. There is already present one.");
-
-    } else {
-        trustLine = make_shared<TrustLine>(
-            contractorUUID,
-            0,
-            amount,
-            0);
-
-        mTrustLines[contractorUUID] = trustLine;
     }
 
-    trustLine->setOutgoingTrustAmount(amount);
-    saveToDisk(trustLine);
+    if (not trustLineIsPresent(contractorUUID)) {
+        auto trustLine = make_shared<TrustLine>(
+            contractorUUID, 0, amount, 0);
+
+        mTrustLines[contractorUUID] = trustLine;
+        saveToDisk(
+            IOTransaction,
+            trustLine);
+        return;
+    }
+
+    if (outgoingTrustAmount(contractorUUID) == 0) {
+        auto trustLine = mTrustLines[contractorUUID];
+        trustLine->setOutgoingTrustAmount(amount);
+        saveToDisk(
+            IOTransaction,
+            trustLine);
+        return;
+    }
 }
 
 /**
