@@ -69,6 +69,7 @@ protected:
     virtual void deserializeFromBytes(
         BytesShared buffer);
 
+    [[deprecated("move parse logic into the command's constructor")]]
     virtual void parse(
         const string &commandBuffer) = 0;
 

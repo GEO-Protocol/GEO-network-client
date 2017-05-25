@@ -2,19 +2,14 @@
 #define GEO_NETWORK_CLIENT_CLOSETRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../CommandUUID.h"
 #include "../../../results_interface/result/CommandResult.h"
-
-#include "../../../../common/Types.h"
-#include "../../../../common/NodeUUID.h"
-#include "../../../../common/memory/MemoryUtils.h"
 
 #include "../../../../common/exceptions/ValueError.h"
 
-#include <memory>
-#include <utility>
 
-class CloseTrustLineCommand: public BaseUserCommand {
+class CloseTrustLineCommand:
+    public BaseUserCommand {
+
 public:
     typedef shared_ptr<CloseTrustLineCommand> Shared;
 
@@ -23,26 +18,19 @@ public:
         const CommandUUID &uuid,
         const string &commandBuffer);
 
-    CloseTrustLineCommand(
-        BytesShared buffer);
+    static const string &identifier()
+        noexcept;
 
-    static const string &identifier();
+    const NodeUUID &contractorUUID() const
+        noexcept;
 
-    const NodeUUID &contractorUUID() const;
+    // ToDo: must be removed, or moved to the protected
+    [[deprecated]]
+    static size_t kRequestedBufferSize();
 
-    pair<BytesShared, size_t> serializeToBytes();
-
-    static const size_t kRequestedBufferSize();
-
-    CommandResult::SharedConst responseOK(uint16_t code) const
-    noexcept;
-
-private:
-    void deserializeFromBytes(
-        BytesShared buffer);
-
-    void parse(
-        const string &command);
+    [[deprecated("Remove it when parent class would be updated")]]
+    virtual void parse(
+        const string &_){}
 
 private:
     NodeUUID mContractorUUID;

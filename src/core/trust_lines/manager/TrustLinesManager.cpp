@@ -58,28 +58,39 @@ void TrustLinesManager::open(
     saveToDisk(trustLine);
 }
 
+/**
+ * @throws NotFoundError
+ * @throws IOError
+ */
 void TrustLinesManager::close(
+    IOTransaction::Shared IOTransaction,
     const NodeUUID &contractorUUID)
-    throw (NotFoundError, PreconditionFailedError, IOError)
 {
-    if (not trustLineIsPresent(contractorUUID))
+    if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
             "TrustLinesManager::close: "
-                "Trust line doesn't exist.");
+            "trust line doesn't exist.");
+    }
 
     auto trustLine = mTrustLines.find(contractorUUID)->second;
-    if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount())
-        throw PreconditionFailedError(
+    if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
+        throw NotFoundError(
             "TrustLinesManager::close: "
-                "Сan't close outgoing trust line: outgoing amount equals to zero. "
+                "can't close outgoing trust line: outgoing amount equals to zero. "
                 "It seems that trust line has been already closed. ");
+    }
 
-    if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
-        removeTrustLine(contractorUUID);
+
+    trustLine->setOutgoingTrustAmount(0);
+    if (trustLine->incomingTrustAmount() == 0 and trustLine->balance() == 0) {
+        removeTrustLine(
+            IOTransaction,
+            contractorUUID);
 
     } else {
-        trustLine->setOutgoingTrustAmount(0);
-        saveToDisk(trustLine);
+        saveToDisk(
+            IOTransaction,
+            trustLine);
     }
 }
 
@@ -402,13 +413,45 @@ const bool TrustLinesManager::reservationIsPresent(
 }
 
 void TrustLinesManager::saveToDisk(
+    IOTransaction::Shared IOTransaction,
     TrustLine::Shared trustLine) {
 
     bool alreadyExisted = false;
-
     if (trustLineIsPresent(trustLine->contractorNodeUUID())) {
         alreadyExisted = true;
     }
+
+    IOTransaction->trustLineHandler()->saveTrustLine(trustLine);
+    try {
+        mTrustLines.insert(
+            make_pair(
+                trustLine->contractorNodeUUID(),
+                trustLine));
+
+        } catch (std::bad_alloc&) {
+            throw MemoryError("TrustLinesManager::saveToDisk: "
+                                  "Can not reallocate STL container memory for new trust line instance.");
+        }
+
+    if (alreadyExisted) {
+        trustLineStateModifiedSignal(
+            trustLine->contractorNodeUUID(),
+            trustLine->direction());
+
+    } else {
+        trustLineCreatedSignal(
+            trustLine->contractorNodeUUID(),
+            trustLine->direction());
+    }
+}
+
+void TrustLinesManager::saveToDisk(TrustLine::Shared trustLine)
+{
+    bool alreadyExisted = false;
+    if (trustLineIsPresent(trustLine->contractorNodeUUID())) {
+        alreadyExisted = true;
+    }
+
     auto ioTransaction = mStorageHandler->beginTransaction();
     ioTransaction->trustLineHandler()->saveTrustLine(trustLine);
     try {
@@ -432,6 +475,24 @@ void TrustLinesManager::saveToDisk(
             trustLine->contractorNodeUUID(),
             trustLine->direction());
     }
+}
+
+/**
+ * @throws IOError
+ * @throws NotFoundError
+ */
+void TrustLinesManager::removeTrustLine(
+    IOTransaction::Shared IOTransaction,
+    const NodeUUID &contractorUUID)
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            "TrustLinesManager::removeTrustLine: "
+            "There is no trust line to the contractor.");
+    }
+
+    IOTransaction->trustLineHandler()->deleteTrustLine(contractorUUID);
+    mTrustLines.erase(contractorUUID);
 }
 
 /**
