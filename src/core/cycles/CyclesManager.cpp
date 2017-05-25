@@ -87,10 +87,6 @@ void CyclesManager::closeOneCycle()
             cycles->erase(cycles->begin());
             debug() << "closeCycleSignal " << cycle->toString();
             closeCycleSignal(cycle);
-            debug() << "3 NC count: " << mThreeNodesCycles.size()
-                    << " 4 NC count: " << mFourNodesCycles.size()
-                    << " 5 NC count: " << mFiveNodesCycles.size()
-                    << " 6 NC count: " << mSixNodesCycles.size();
             return;
         }
         incrementCurrentCycleClosingState();

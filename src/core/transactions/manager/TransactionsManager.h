@@ -313,7 +313,7 @@ private:
     void subscribeForCloseCycleTransaction(
         CyclesManager::CloseCycleSignal &signal);
 
-    void subscribeForTryCloseNewCycleSignal(
+    void subscribeForTryCloseNextCycleSignal(
         TransactionsScheduler::CycleCloserTransactionWasFinishedSignal &signal);
 
     // Slots
@@ -343,7 +343,7 @@ private:
     void onCloseCycleTransaction(
         Path::ConstShared cycle);
 
-    void onTryCloseNewCycleSlot();
+    void onTryCloseNextCycleSlot();
 
 protected:
     void prepareAndSchedule(

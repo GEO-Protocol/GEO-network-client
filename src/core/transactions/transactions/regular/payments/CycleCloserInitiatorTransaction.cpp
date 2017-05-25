@@ -607,11 +607,6 @@ const uint8_t CycleCloserInitiatorTransaction::cycleLength() const
     return (uint8_t)mPathStats->path()->length();
 }
 
-const BasePaymentTransaction::Stages CycleCloserInitiatorTransaction::stage() const
-{
-    return (BasePaymentTransaction::Stages)mStep;
-}
-
 pair<BytesShared, size_t> CycleCloserInitiatorTransaction::serializeToBytes() const
     throw (bad_alloc)
 {

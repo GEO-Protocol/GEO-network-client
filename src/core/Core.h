@@ -12,7 +12,6 @@
 #include "trust_lines/manager/TrustLinesManager.h"
 #include "resources/manager/ResourcesManager.h"
 #include "transactions/manager/TransactionsManager.h"
-#include "delayed_tasks/Cycles.h"
 #include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
@@ -81,8 +80,6 @@ private:
 
     void connectTrustLinesManagerSignals();
 
-    void connectDelayedTasksSignals();
-
     void connectResourcesManagerSignals();
 
     void connectSignalsToSlots();
@@ -105,14 +102,6 @@ private:
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
-    void onDelayedTaskCycleSixNodesSlot();
-
-    void onDelayedTaskCycleFiveNodesSlot();
-
-    void onDelayedTaskCycleThreeNodesSlot();
-
-    void onDelayedTaskCycleFourNodesSlot();
-
     void onPathsResourceRequestedSlot(
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationNodeUUID);
@@ -123,10 +112,6 @@ private:
     void writePIDFile();
 
     void checkSomething();
-
-    void test_FourNodesTransaction();
-
-    void test_ThreeNodesTransaction();
 
     void printRTs();
 
@@ -143,7 +128,6 @@ protected:
     unique_ptr<TrustLinesManager> mTrustLinesManager;
     unique_ptr<ResourcesManager> mResourcesManager;
     unique_ptr<TransactionsManager> mTransactionsManager;
-    unique_ptr<CyclesDelayedTasks> mCyclesDelayedTasks;
     unique_ptr<MaxFlowCalculationTrustLineManager> mMaxFlowCalculationTrustLimeManager;
     unique_ptr<MaxFlowCalculationCacheManager> mMaxFlowCalculationCacheManager;
     unique_ptr<MaxFlowCalculationCacheUpdateDelayedTask> mMaxFlowCalculationCacheUpdateDelayedTask;

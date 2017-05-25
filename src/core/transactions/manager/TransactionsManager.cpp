@@ -47,6 +47,8 @@ TransactionsManager::TransactionsManager(
         mCyclesManager->buildFiveNodesCyclesSignal);
     subscribeForBuidCyclesSixNodesTransaction(
         mCyclesManager->buildSixNodesCyclesSignal);
+    subscribeForTryCloseNextCycleSignal(
+        mScheduler->cycleCloserTransactionWasFinishedSignal);
 
     try {
          loadTransactions();
@@ -1183,12 +1185,12 @@ void TransactionsManager::subscribeForCloseCycleTransaction(
             _1));
 }
 
-void TransactionsManager::subscribeForTryCloseNewCycleSignal(
+void TransactionsManager::subscribeForTryCloseNextCycleSignal(
     TransactionsScheduler::CycleCloserTransactionWasFinishedSignal &signal)
 {
     signal.connect(
         boost::bind(
-            &TransactionsManager::onTryCloseNewCycleSlot,
+            &TransactionsManager::onTryCloseNextCycleSlot,
             this));
 }
 
@@ -1296,7 +1298,7 @@ void TransactionsManager::onCloseCycleTransaction(
     }
 }
 
-void TransactionsManager::onTryCloseNewCycleSlot()
+void TransactionsManager::onTryCloseNextCycleSlot()
 {
     mCyclesManager->closeOneCycle();
 }

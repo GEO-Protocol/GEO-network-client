@@ -259,8 +259,6 @@ int Core::initTransactionsManager() {
 
 int Core::initDelayedTasks() {
     try{
-        mCyclesDelayedTasks = make_unique<CyclesDelayedTasks>(
-                mIOService);
         mMaxFlowCalculationCacheUpdateDelayedTask = make_unique<MaxFlowCalculationCacheUpdateDelayedTask>(
                 mIOService,
                 mMaxFlowCalculationCacheManager.get(),
@@ -371,35 +369,6 @@ void Core::connectTrustLinesManagerSignals() {
     );
 }
 
-void Core::connectDelayedTasksSignals(){
-//    mCyclesDelayedTasks->mSixNodesCycleSignal.connect(
-//            boost::bind(
-//                    &Core::onDelayedTaskCycleSixNodesSlot,
-//                    this
-//            )
-//    );
-//    mCyclesDelayedTasks->mFiveNodesCycleSignal.connect(
-//            boost::bind(
-//                    &Core::onDelayedTaskCycleFiveNodesSlot,
-//                    this
-//            )
-//    );
-//    #ifdef TESTS
-//    mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
-//            boost::bind(
-//                    &Core::onDelayedTaskCycleThreeNodesSlot,
-//                    this
-//            )
-//    );
-//    mCyclesDelayedTasks->mFourNodesCycleSignal.connect(
-//            boost::bind(
-//                    &Core::onDelayedTaskCycleFourNodesSlot,
-//                    this
-//            )
-//    );
-//    #endif
-}
-
 void Core::connectResourcesManagerSignals() {
 
     mResourcesManager->requestPathsResourcesSignal.connect(
@@ -419,12 +388,11 @@ void Core::connectResourcesManagerSignals() {
         )
     );
 }
-void Core::connectSignalsToSlots() {
-
+void Core::connectSignalsToSlots()
+{
     connectCommandsInterfaceSignals();
     connectCommunicatorSignals();
     connectTrustLinesManagerSignals();
-    connectDelayedTasksSignals();
     connectResourcesManagerSignals();
 }
 
@@ -475,22 +443,6 @@ void Core::onTrustLineStateModifiedSlot(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction) {
 
-}
-
-void Core::onDelayedTaskCycleSixNodesSlot() {
-    mTransactionsManager->launchSixNodesCyclesInitTransaction();
-}
-
-void Core::onDelayedTaskCycleFiveNodesSlot() {
-    mTransactionsManager->launchFiveNodesCyclesInitTransaction();
-}
-
-void Core::onDelayedTaskCycleFourNodesSlot() {
-    test_FourNodesTransaction();
-}
-
-void Core::onDelayedTaskCycleThreeNodesSlot() {
-    test_ThreeNodesTransaction();
 }
 
 void Core::onPathsResourceRequestedSlot(
@@ -569,36 +521,5 @@ void Core::printRTs() {
     cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size() << endl;
     for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
         cout  << itRT3.first << " " << itRT3.second << endl;
-    }
-}
-
-void Core::test_ThreeNodesTransaction() {
-    cout << "Nodes With Positive Balance" << endl;
-    const auto kNeighborsUUIDs = mTrustLinesManager->getFirstLevelNodesForCycles(0);
-    stringstream ss;
-    copy(kNeighborsUUIDs.begin(), kNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
-    cout << "test_ThreeNodesTransaction::Nodes With positive balance: \n" << ss.str() << endl;
-    for(const auto &kNodeUUID: kNeighborsUUIDs) {
-            mTransactionsManager->launchThreeNodesCyclesInitTransaction(kNodeUUID);
-    }
-}
-
-void Core::test_FourNodesTransaction() {
-    cout << "Nodes With Positive Balance" << endl;
-    auto debtorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
-    stringstream ss;
-    copy(debtorsNeighborsUUIDs.begin(), debtorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
-    cout << "test_FourNodesTransaction::Nodes With positive balance: \n" << ss.str() << endl;
-    auto creditorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
-    stringstream ss1;
-    copy(creditorsNeighborsUUIDs.begin(), creditorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss1, "\n"));
-    cout << "test_FourNodesTransaction::Nodes With negative balance: \n" << ss1.str() << endl;
-    for(const auto &kCreditorNodeUUID: creditorsNeighborsUUIDs) {
-        for (const auto &kDebtorNodeUUID: debtorsNeighborsUUIDs) {
-            cout << "_______________________________" << endl;
-            cout << "Debtor UUID:  " << kDebtorNodeUUID << endl;
-            cout << "Credior UUID:   " << kCreditorNodeUUID << endl;
-            mTransactionsManager->launchFourNodesCyclesInitTransaction(kDebtorNodeUUID, kCreditorNodeUUID);
-        }
     }
 }

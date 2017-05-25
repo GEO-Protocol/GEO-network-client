@@ -178,6 +178,13 @@ protected:
 
     size_t reservationsSizeInBytes() const;
 
+public:
+    virtual const NodeUUID& coordinatorUUID() const;
+
+    virtual const uint8_t cycleLength() const;
+
+    const Stages stage() const;
+
 protected:
     // Specifies how long node must wait for the response from the remote node.
     // This timeout must take into account also that remote node may process other transaction,

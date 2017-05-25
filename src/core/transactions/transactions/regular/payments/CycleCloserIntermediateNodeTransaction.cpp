@@ -271,11 +271,6 @@ const uint8_t CycleCloserIntermediateNodeTransaction::cycleLength() const
     return mCycleLength;
 }
 
-const BasePaymentTransaction::Stages CycleCloserIntermediateNodeTransaction::stage() const
-{
-    return (BasePaymentTransaction::Stages)mStep;
-}
-
 void CycleCloserIntermediateNodeTransaction::deserializeFromBytes(
     BytesShared buffer)
 {

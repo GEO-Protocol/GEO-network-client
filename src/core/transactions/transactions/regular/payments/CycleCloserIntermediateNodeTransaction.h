@@ -38,8 +38,6 @@ public:
 
     const uint8_t cycleLength() const;
 
-    const Stages stage() const;
-
 protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();

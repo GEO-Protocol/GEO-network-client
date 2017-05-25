@@ -158,10 +158,6 @@ protected:
     // Reservation stage contains it's own internal steps counter.
     byte mReservationsStage;
 
-    // Contains nodes that has been requrested final paths configuration.
-    // for more details, see TODO
-    unordered_set<NodeUUID> mNodesRequestedFinalConfiguration;
-
     /*
      * If true - then it means that direct path betweeen coordinator and receiver has been already processed.
      * Otherwise is set to the false (by default).

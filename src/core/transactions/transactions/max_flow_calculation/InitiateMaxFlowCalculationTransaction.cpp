@@ -44,12 +44,12 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
                 }
             }
             if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
-                for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->outgoingFlows()) {
-                    auto trustLineAmountShared = nodeUUIDAndTrustLine.second;
+                for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
+                    auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
                     mMaxFlowCalculationTrustLineManager->addTrustLine(
                         make_shared<MaxFlowCalculationTrustLine>(
                             mNodeUUID,
-                            nodeUUIDAndTrustLine.first,
+                            nodeUUIDAndOutgoingFlow.first,
                             trustLineAmountShared));
                 }
                 sendMessagesOnFirstLevel();

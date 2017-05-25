@@ -1029,3 +1029,18 @@ size_t BasePaymentTransaction::reservationsSizeInBytes() const {
     reservationSizeInBytes += sizeof(uint64_t); // map Size
     return reservationSizeInBytes;
 }
+
+const NodeUUID& BasePaymentTransaction::coordinatorUUID() const
+{
+    return currentNodeUUID();
+}
+
+const uint8_t BasePaymentTransaction::cycleLength() const
+{
+    return 0;
+}
+
+const BasePaymentTransaction::Stages BasePaymentTransaction::stage() const
+{
+    return (BasePaymentTransaction::Stages)mStep;
+}

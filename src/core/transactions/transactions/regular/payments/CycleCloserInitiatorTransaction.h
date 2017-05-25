@@ -50,8 +50,6 @@ public:
 
     const uint8_t cycleLength() const;
 
-    const Stages stage() const;
-
 protected:
     // Stages handlers
     // TODO: Add throws specififcations
@@ -105,10 +103,6 @@ protected:
     // minimum value of Coordinator outgoing amount to first intremediate node
     // and incoming amount from last intermediate node
     TrustLineAmount mInitialTransactionAmount;
-
-    // Contains nodes that has been requrested final paths configuration.
-    // for more details, see TODO
-    unordered_set<NodeUUID> mNodesRequestedFinalConfiguration;
 
     // for resolving reservation conflicts
     CyclesManager *mCyclesManager;

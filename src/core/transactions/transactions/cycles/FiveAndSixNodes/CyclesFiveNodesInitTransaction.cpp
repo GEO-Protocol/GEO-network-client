@@ -8,11 +8,6 @@ const BaseTransaction::TransactionType CyclesFiveNodesInitTransaction::transacti
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAndSendMessagesStage()
 {
     debug() << "runCollectDataAndSendMessagesStage";
-    // todo: remove this checking
-    if (mNodeUUID.stringUUID() != "c6b567e9-42e8-43da-bbb3-46482d52b200") {
-        debug() << "skip this launch";
-        return resultDone();
-    }
     vector<NodeUUID> firstLevelNodesNegativeBalance = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
     vector<NodeUUID> firstLevelNodesPositiveBalance = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
     vector<NodeUUID> path;
