@@ -52,7 +52,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::initOperation()
 
     mStep = Stages::ResponseProcessing;
     return resultWaitForMessageTypes(
-        {Message::Message::ResponseMessageType}, // ToDo: replace Message::Message::ResponseMessageType by the proper message
+        {Message::ResponseMessageType}, // ToDo: replace Message::ResponseMessageType by the proper message
         3000);
 }
 
