@@ -20,7 +20,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *log);
+        Logger &log);
 
     ReceiverPaymentTransaction(
         BytesShared buffer,
@@ -28,7 +28,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *log);
+        Logger &log);
 
     TransactionResult::SharedConst run()
         noexcept;

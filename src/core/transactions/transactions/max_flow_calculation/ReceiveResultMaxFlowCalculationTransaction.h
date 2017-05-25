@@ -18,7 +18,7 @@ public:
         ResultMaxFlowCalculationMessage::Shared message,
         TrustLinesManager *manager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-        Logger *logger);
+        Logger &logger);
 
     ResultMaxFlowCalculationMessage::Shared message() const;
 

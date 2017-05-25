@@ -37,7 +37,7 @@ public:
         TrustLinesManager *trustLines,
 
         StorageHandler *storageHandler,
-        Logger *logger)
+        Logger &logger)
         noexcept;
 
     TransactionResult::SharedConst run()

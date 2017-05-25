@@ -5,7 +5,7 @@ GetFirstRoutingTableTransaction::GetFirstRoutingTableTransaction(
     NodeUUID &nodeUUID,
     NeighborsRequestMessage::Shared message,
     TrustLinesManager *manager,
-    Logger *logger):
+    Logger &logger):
 
     BaseTransaction(
         BaseTransaction::TransactionType::RoutingTables_GetFirstRoutingTable,

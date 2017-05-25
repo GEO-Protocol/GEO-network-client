@@ -45,13 +45,13 @@ public:
         SetTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     SetTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     SetTrustLineCommand::Shared command() const;
 

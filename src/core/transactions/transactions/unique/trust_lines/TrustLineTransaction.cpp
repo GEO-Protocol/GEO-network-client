@@ -3,7 +3,7 @@
 TrustLineTransaction::TrustLineTransaction(
     const BaseTransaction::TransactionType type,
     const NodeUUID &nodeUUID,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         type,
@@ -15,7 +15,7 @@ TrustLineTransaction::TrustLineTransaction(
 
 TrustLineTransaction::TrustLineTransaction(
     const BaseTransaction::TransactionType type,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         type,

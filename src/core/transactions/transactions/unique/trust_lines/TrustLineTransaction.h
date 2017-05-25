@@ -16,11 +16,11 @@ protected:
     TrustLineTransaction(
         const BaseTransaction::TransactionType type,
         const NodeUUID &nodeUUID,
-        Logger *logger);
+        Logger &logger);
 
     TrustLineTransaction(
         const BaseTransaction::TransactionType type,
-        Logger *logger);
+        Logger &logger);
 
     void increaseRequestsCounter();
 

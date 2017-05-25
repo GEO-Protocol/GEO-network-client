@@ -10,7 +10,7 @@ IncomingMessagesHandler::IncomingMessagesHandler(
     mSocket(socket),
     mIOService(ioService),
     mLog(logger),
-    mMessagesParser(logger),
+    mMessagesParser(&logger),
     mRemoteNodesHandler(
         mMessagesParser,
         mLog),

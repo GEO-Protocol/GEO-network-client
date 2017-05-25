@@ -7,7 +7,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
-    Logger *log)
+    Logger &log)
     noexcept :
 
     BasePaymentTransaction(
@@ -33,7 +33,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
 
-    Logger *log)
+    Logger &log)
     throw (bad_alloc) :
     BasePaymentTransaction(
         buffer,

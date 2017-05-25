@@ -18,7 +18,7 @@ public:
         NodeUUID &nodeUUID,
         HistoryPaymentsCommand::Shared command,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     HistoryPaymentsCommand::Shared command() const;
 

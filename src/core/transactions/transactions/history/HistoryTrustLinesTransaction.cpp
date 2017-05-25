@@ -4,7 +4,7 @@ HistoryTrustLinesTransaction::HistoryTrustLinesTransaction(
     NodeUUID &nodeUUID,
     HistoryTrustLinesCommand::Shared command,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryTrustLinesTransactionType,

@@ -24,7 +24,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *log)
+        Logger &log)
         noexcept;
 
     CycleCloserInitiatorTransaction(
@@ -33,7 +33,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *log)
+        Logger &log)
         throw (bad_alloc);
 
     TransactionResult::SharedConst run()

@@ -6,7 +6,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *log)
+    Logger &log)
     noexcept :
 
     BasePaymentTransaction(
@@ -28,7 +28,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *log)
+    Logger &log)
     throw (bad_alloc) :
 
     BasePaymentTransaction(

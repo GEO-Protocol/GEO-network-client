@@ -96,3 +96,56 @@ const NodeUUID Settings::nodeUUID(const json *conf) const {
             "Settings::nodeUUID: can't read node uuid.");
     }
 }
+
+/*
+ * Returns host of the uuid2address service;
+ * Throws RuntimeError in case when settings can't be read.
+ */
+const uint16_t Settings::influxDbPort(const json *conf) const {
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    try {
+        return (*conf).at("influxDB").at("port");
+    } catch (...) {
+        throw RuntimeError(
+            "Settings::uuid2addressHost: can't read node interface settings.");
+    }
+}
+
+
+/*
+ * Returns host of the uuid2address service;
+ * Throws RuntimeError in case when settings can't be read.
+ */
+const string Settings::influxDbHost(const json *conf) const {
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    try {
+        return (*conf).at("influxDB").at("host");
+    } catch (...) {
+        throw RuntimeError(
+            "Settings::uuid2addressHost: can't read node interface settings.");
+    }
+}
+
+/*
+ * Returns host of the uuid2address service;
+ * Throws RuntimeError in case when settings can't be read.
+ */
+const string Settings::influxDbName(const json *conf) const {
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    try {
+        return (*conf).at("influxDB").at("database");
+    } catch (...) {
+        throw RuntimeError(
+            "Settings::uuid2addressHost: can't read node interface settings.");
+    }
+}
+

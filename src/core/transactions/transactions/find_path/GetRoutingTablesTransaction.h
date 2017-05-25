@@ -26,7 +26,7 @@ public:
         RequestRoutingTablesMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     RequestRoutingTablesMessage::Shared message() const;
 

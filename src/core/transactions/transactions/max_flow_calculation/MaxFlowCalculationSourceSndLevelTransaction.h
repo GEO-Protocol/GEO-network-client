@@ -18,7 +18,7 @@ public:
         MaxFlowCalculationSourceSndLevelMessage::Shared message,
         TrustLinesManager *manager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *logger);
+        Logger &logger);
 
     MaxFlowCalculationSourceSndLevelMessage::Shared message() const;
 

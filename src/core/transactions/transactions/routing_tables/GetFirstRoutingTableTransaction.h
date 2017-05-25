@@ -18,7 +18,7 @@ public:
         NodeUUID &nodeUUID,
         NeighborsRequestMessage::Shared message,
         TrustLinesManager *manager,
-        Logger *logger);
+        Logger &logger);
 
     NeighborsRequestMessage::Shared message() const;
 

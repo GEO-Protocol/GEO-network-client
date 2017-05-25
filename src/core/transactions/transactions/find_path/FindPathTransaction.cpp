@@ -6,7 +6,7 @@ FindPathTransaction::FindPathTransaction(
     const TransactionUUID &requestedTransactionUUID,
     PathsManager *pathsManager,
     ResourcesManager *resourcesManager,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::FindPathTransactionType,
