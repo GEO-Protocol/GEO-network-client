@@ -19,7 +19,7 @@ public:
             InitiateMaxFlowCalculationMessage::Shared message,
             TrustLinesManager *manager,
             MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-            Logger *logger);
+            Logger &logger);
 
     InitiateMaxFlowCalculationMessage::Shared message() const;
 

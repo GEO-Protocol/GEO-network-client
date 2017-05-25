@@ -23,7 +23,7 @@ public:
     StorageHandler(
         const string &directory,
         const string &dataBaseName,
-        Logger *logger);
+        Logger &logger);
 
     ~StorageHandler();
 
@@ -58,7 +58,7 @@ private:
     static sqlite3 *mDBConnection;
 
 private:
-    Logger *mLog;
+    Logger &mLog;
     RoutingTablesHandler mRoutingTablesHandler;
     TrustLineHandler mTrustLineHandler;
     PaymentOperationStateHandler mPaymentOperationStateHandler;

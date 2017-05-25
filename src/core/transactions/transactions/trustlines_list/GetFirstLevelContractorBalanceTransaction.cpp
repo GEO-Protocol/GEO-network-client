@@ -4,7 +4,7 @@ GetFirstLevelContractorBalanceTransaction::GetFirstLevelContractorBalanceTransac
     NodeUUID &nodeUUID,
     GetTrustLineCommand::Shared command,
     TrustLinesManager *manager,
-    Logger *logger)
+    Logger &logger)
 noexcept:
     BaseTransaction(
         BaseTransaction::TrustLineOne,

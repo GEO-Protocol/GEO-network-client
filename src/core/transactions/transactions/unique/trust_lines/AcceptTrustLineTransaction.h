@@ -41,13 +41,13 @@ public:
         AcceptTrustLineMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     AcceptTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     AcceptTrustLineMessage::Shared message() const;
 

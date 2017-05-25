@@ -24,7 +24,7 @@ public:
     HistoryStorage(
         sqlite3 *dbConnection,
         const string &tableName,
-        Logger *logger);
+        Logger &logger);
 
     // TODO why it doesn't work
     void saveRecord(
@@ -71,7 +71,7 @@ private:
 private:
     sqlite3 *mDataBase = nullptr;
     string mTableName;
-    Logger *mLog;
+    Logger &mLog;
 };
 
 

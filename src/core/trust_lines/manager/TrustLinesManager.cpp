@@ -4,7 +4,7 @@
 
 TrustLinesManager::TrustLinesManager(
     StorageHandler *storageHandler,
-    Logger *logger)
+    Logger &logger)
     throw (bad_alloc, IOError) :
 
     mStorageHandler(storageHandler),
@@ -778,7 +778,7 @@ ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount () const
 
 void TrustLinesManager::printRTs()
 {
-    LoggerStream debug = mLogger->debug("TrustLinesManager::printRts");
+    LoggerStream debug = mLogger.debug("TrustLinesManager::printRts");
     auto ioTransaction = mStorageHandler->beginTransaction();
     debug << "printRTs\tRT1 size: " << trustLines().size() << endl;
     for (const auto itTrustLine : trustLines()) {

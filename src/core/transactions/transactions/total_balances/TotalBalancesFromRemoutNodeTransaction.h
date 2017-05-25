@@ -15,7 +15,7 @@ public:
     TotalBalancesFromRemoutNodeTransaction(
         NodeUUID &nodeUUID,
         TotalBalancesRemouteNodeCommand::Shared command,
-        Logger *logger);
+        Logger &logger);
 
     TotalBalancesRemouteNodeCommand::Shared command() const;
 

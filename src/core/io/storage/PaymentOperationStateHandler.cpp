@@ -3,7 +3,7 @@
 PaymentOperationStateHandler::PaymentOperationStateHandler(
     sqlite3 *dbConnection,
     const string &tableName,
-    Logger *logger):
+    Logger &logger):
 
     mDataBase(dbConnection),
     mTableName(tableName),
@@ -154,16 +154,16 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::byTransaction(
 
 LoggerStream PaymentOperationStateHandler::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->info(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.info(logHeader());
 }
 
 LoggerStream PaymentOperationStateHandler::error() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->error(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.error(logHeader());
 }
 
 const string PaymentOperationStateHandler::logHeader() const

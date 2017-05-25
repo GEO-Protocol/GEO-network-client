@@ -7,7 +7,7 @@ IOTransaction::IOTransaction(
     HistoryStorage *historyStorage,
     PaymentOperationStateHandler *paymentOperationStorage,
     TransactionsHandler *transactionHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     mDBConnection(dbConnection),
     mRoutingTablesHandler(routingTablesHandler),
@@ -122,16 +122,16 @@ void IOTransaction::rollback()
 
 LoggerStream IOTransaction::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->info(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.info(logHeader());
 }
 
 LoggerStream IOTransaction::error() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->error(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.error(logHeader());
 }
 
 const string IOTransaction::logHeader() const

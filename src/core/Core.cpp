@@ -1,18 +1,20 @@
 ﻿#include "Core.h"
 
 Core::Core()
-{}
+{
+}
 
 Core::~Core()
 {}
 
 int Core::run()
 {
-    writePIDFile();
+
 
     auto initCode = initSubsystems();
+    writePIDFile();
     if (initCode != 0) {
-        mLog.logFatal("Core", "Can't be initialised. Process will now be stopped.");
+        mLog->logFatal("Core", "Can't be initialised. Process will now be stopped.");
         return initCode;
     }
 
@@ -21,12 +23,12 @@ int Core::run()
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
 
-        mLog.logSuccess("Core", "Processing started.");
+        mLog->logSuccess("Core", "Processing started.");
         mIOService.run();
         return 0;
 
     } catch (Exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 
@@ -37,6 +39,8 @@ int Core::initSubsystems() {
     int initCode;
 
     initCode = initSettings();
+
+
     if (initCode != 0)
         return initCode;
 
@@ -48,7 +52,7 @@ int Core::initSubsystems() {
         conf = mSettings->loadParsedJSON();
 
     } catch (std::exception &e) {
-        mLog.logException("Settings", e);
+        mLog->logException("Settings", e);
         return -1;
     }
 
@@ -56,9 +60,14 @@ int Core::initSubsystems() {
         mNodeUUID = mSettings->nodeUUID(&conf);
 
     } catch (RuntimeError &) {
-        mLog.logFatal("Core", "Can't read UUID of the node from the settings.");
+        // todo what to do if settings cannot initiaize
+//        mLog->logFatal("Core", "Can't read UUID of the node from the settings.");
         return -1;
     }
+
+    initCode = initLogger(conf);
+    if (initCode != 0)
+        return initCode;
 
     initCode = initCommunicator(conf);
     if (initCode != 0)
@@ -135,18 +144,37 @@ int Core::initSettings() {
 
     try {
         mSettings = make_unique<Settings>();
-        mLog.logSuccess("Core", "Settings are successfully initialised");
+        // mLog.logSuccess("Core", "Settings are successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {
-        mLog.logException("Core", e);
+        //  mLog.logException("Core", e);
+        return -1;
+    }
+}
+
+int Core::initLogger(
+    const json &conf)
+{
+    try {
+        mLog = make_unique<Logger>(
+            mNodeUUID,
+            mIOService,
+            mSettings->influxDbHost(&conf),
+            mSettings->influxDbName(&conf),
+            mSettings->influxDbPort(&conf)
+        );
+        return 0;
+    } catch (const std::exception &e) {
+        // todo add notify that loger canot be initialize
+    //        mLog.logException("Core", e);
         return -1;
     }
 }
 
 int Core::initCommunicator(
-    const json &conf) {
-
+    const json &conf)
+{
     try {
         mCommunicator = make_unique<Communicator>(
             mIOService,
@@ -154,13 +182,13 @@ int Core::initCommunicator(
             mSettings->port(&conf),
             mSettings->uuid2addressHost(&conf),
             mSettings->uuid2addressPort(&conf),
-            mLog);
+            *mLog.get());
 
-        mLog.logSuccess("Core", "Network communicator is successfully initialised");
+        mLog->logSuccess("Core", "Network communicator is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -169,12 +197,12 @@ int Core::initResultsInterface() {
 
     try {
         mResultsInterface = make_unique<ResultsInterface>(
-            &mLog);
-        mLog.logSuccess("Core", "Results interface is successfully initialised");
+            *mLog.get());
+        mLog->logSuccess("Core", "Results interface is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -184,12 +212,12 @@ int Core::initTrustLinesManager() {
     try {
         mTrustLinesManager = make_unique<TrustLinesManager>(
             mStorageHandler.get(),
-            &mLog);
-        mLog.logSuccess("Core", "Trust lines manager is successfully initialised");
+            *mLog.get());
+        mLog->logSuccess("Core", "Trust lines manager is successfully initialised");
         return 0;
 
     }catch(const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -198,12 +226,12 @@ int Core::initMaxFlowCalculationTrustLineManager() {
 
     try{
         mMaxFlowCalculationTrustLimeManager = make_unique<MaxFlowCalculationTrustLineManager>(
-            &mLog);
-        mLog.logSuccess("Core", "Max flow calculation Trust lines manager is successfully initialised");
+            *mLog.get());
+        mLog->logSuccess("Core", "Max flow calculation Trust lines manager is successfully initialised");
         return 0;
 
     }catch(const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -212,12 +240,12 @@ int Core::initMaxFlowCalculationCacheManager() {
 
     try {
         mMaxFlowCalculationCacheManager = make_unique<MaxFlowCalculationCacheManager>(
-            &mLog);
-        mLog.logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
+            *mLog.get());
+        mLog->logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -226,10 +254,10 @@ int Core::initResourcesManager() {
 
     try {
         mResourcesManager = make_unique<ResourcesManager>();
-        mLog.logSuccess("Core", "Resources manager is successfully initialized");
+        mLog->logSuccess("Core", "Resources manager is successfully initialized");
         return 0;
     } catch (const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -247,12 +275,12 @@ int Core::initTransactionsManager() {
             mResultsInterface.get(),
             mStorageHandler.get(),
             mPathsManager.get(),
-            &mLog);
-        mLog.logSuccess("Core", "Transactions handler is successfully initialised");
+            *mLog.get());
+        mLog->logSuccess("Core", "Transactions handler is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -265,11 +293,11 @@ int Core::initDelayedTasks() {
                 mIOService,
                 mMaxFlowCalculationCacheManager.get(),
                 mMaxFlowCalculationTrustLimeManager.get(),
-                &mLog);
-        mLog.logSuccess("Core", "DelayedTasks is successfully initialised");
+                *mLog.get());
+        mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
         return 0;
     } catch (const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -279,12 +307,12 @@ int Core::initCommandsInterface() {
     try {
         mCommandsInterface = make_unique<CommandsInterface>(
             mIOService,
-            &mLog);
-        mLog.logSuccess("Core", "Commands interface is successfully initialised");
+            *mLog.get());
+        mLog->logSuccess("Core", "Commands interface is successfully initialised");
         return 0;
 
     } catch (const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -304,11 +332,11 @@ int Core::initStorageHandler() {
         mStorageHandler = make_unique<StorageHandler>(
             "io",
             "storageDB",
-            &mLog);
-        mLog.logSuccess("Core", "Storage handler is successfully initialised");
+            *mLog.get());
+        mLog->logSuccess("Core", "Storage handler is successfully initialised");
         return 0;
     } catch (const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -320,11 +348,11 @@ int Core::initPathsManager() {
             mNodeUUID,
             mTrustLinesManager.get(),
             mStorageHandler.get(),
-            &mLog);
-        mLog.logSuccess("Core", "Paths Manager is successfully initialised");
+            *mLog.get());
+        mLog->logSuccess("Core", "Paths Manager is successfully initialised");
         return 0;
     } catch (const std::exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
         return -1;
     }
 }
@@ -435,7 +463,7 @@ void Core::onCommandReceivedSlot (
         mTransactionsManager->processCommand(command);
 
     } catch(exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
     }
 }
 
@@ -446,7 +474,7 @@ void Core::onMessageReceivedSlot(
         mTransactionsManager->processMessage(message);
 
     } catch(exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
     }
 }
 
@@ -461,7 +489,7 @@ void Core::onMessageSendSlot(
         );
 
     } catch (exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
     }
 }
 
@@ -502,7 +530,7 @@ void Core::onPathsResourceRequestedSlot(
             destinationNodeUUID);
 
     } catch (exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
     }
 
 }
@@ -515,7 +543,7 @@ void Core::onResourceCollectedSlot(
             resource);
 
     } catch (exception &e) {
-        mLog.logException("Core", e);
+        mLog->logException("Core", e);
     }
 
 }
@@ -528,29 +556,13 @@ void Core::writePIDFile()
         pidFile.close();
 
     } catch (std::exception &e) {
-        auto errors = mLog.error("Core");
+        auto errors = mLog->error("Core");
         errors << "Can't write/update pid file. Error message is: " << e.what();
     }
 }
 
 void Core::checkSomething() {
-//    auto debtorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
-//    stringstream ss;
-//    copy(debtorsNeighborsUUIDs.begin(), debtorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss, "\n"));
-//    cout << "Nodes With positive balance: \n" << ss.str() << endl;
-//    auto creditorsNeighborsUUIDs = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
-//    stringstream ss1;
-//    copy(creditorsNeighborsUUIDs.begin(), creditorsNeighborsUUIDs.end(), ostream_iterator<NodeUUID>(ss1, "\n"));
-//    cout << "Nodes With negative balance: \n" << ss1.str() << endl;
     printRTs();
-
-//    stringstream ss;
-//    auto Node1 = mTrustLinesManager->rt1().front();
-//    auto c1 = mTrustLinesManager->crc32SumFirstLevel(Node1);
-//
-//    ss << c1 << endl;
-//    cout << ss.str();
-
 }
 
 void Core::printRTs() {

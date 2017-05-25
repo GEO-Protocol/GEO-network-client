@@ -31,13 +31,13 @@ public:
         UpdateTrustLineMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     UpdateTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     UpdateTrustLineMessage::Shared message() const;
 

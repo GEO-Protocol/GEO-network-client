@@ -21,7 +21,7 @@ public:
     RoutingTableHandler(
         sqlite3 *dbConnection,
         const string &tableName,
-        Logger *logger);
+        Logger &logger);
 
     void saveRecord(
         const NodeUUID &source,
@@ -58,7 +58,7 @@ private:
 private:
     sqlite3 *mDataBase = nullptr;
     string mTableName;
-    Logger *mLog;
+    Logger &mLog;
 };
 
 

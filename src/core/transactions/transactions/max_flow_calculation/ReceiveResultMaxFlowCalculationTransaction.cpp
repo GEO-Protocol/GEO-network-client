@@ -5,7 +5,7 @@ ReceiveResultMaxFlowCalculationTransaction::ReceiveResultMaxFlowCalculationTrans
     ResultMaxFlowCalculationMessage::Shared message,
     TrustLinesManager *manager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::ReceiveResultMaxFlowCalculationTransactionType,

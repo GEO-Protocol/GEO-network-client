@@ -5,7 +5,7 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     RejectTrustLineMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::RejectTrustLineTransactionType,
@@ -20,7 +20,7 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::RejectTrustLineTransactionType,

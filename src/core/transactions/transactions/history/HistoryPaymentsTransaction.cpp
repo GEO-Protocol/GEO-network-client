@@ -4,7 +4,7 @@ HistoryPaymentsTransaction::HistoryPaymentsTransaction(
     NodeUUID &nodeUUID,
     HistoryPaymentsCommand::Shared command,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryPaymentsTransactionType,

@@ -16,7 +16,7 @@ public:
         const NodeUUID &nodeUUID,
         MaxFlowCalculationSourceFstLevelMessage::Shared message,
         TrustLinesManager *trustLinesManager,
-        Logger *logger);
+        Logger &logger);
 
     MaxFlowCalculationSourceFstLevelMessage::Shared message() const;
 

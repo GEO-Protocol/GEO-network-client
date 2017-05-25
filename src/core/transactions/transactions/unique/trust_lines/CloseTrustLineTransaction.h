@@ -24,7 +24,7 @@ public:
         CloseTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger)
+        Logger &logger)
         noexcept;
 
     TransactionResult::SharedConst run();
