@@ -118,7 +118,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     }
     cout << "CyclesThreeNodesInitTransaction::End" << endl;
     #endif
-    cycleIsReadyForClosingSignal();
+    mCyclesManager->closeOneCycle();
     return resultDone();
 }
 

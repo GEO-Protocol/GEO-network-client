@@ -6,8 +6,6 @@
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/base/transaction/TransactionMessage.h"
 #include "../../network/messages/response/Response.h"
-#include "../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
-#include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 
 
 #include "../transactions/base/BaseTransaction.h"
@@ -43,6 +41,8 @@ class TransactionsScheduler {
 public:
     typedef signals::signal<void(CommandResult::SharedConst)> CommandResultSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> SerializeTransactionSignal;
+    typedef signals::signal<void()> CycleCloserTransactionWasFinishedSignal;
+
 
 public:
     TransactionsScheduler(
@@ -75,6 +75,9 @@ public:
         TransactionsScheduler *scheduler);
 
     void addTransactionAndState(BaseTransaction::Shared transaction, TransactionState::SharedConst state);
+
+    const BaseTransaction::Shared transactionByUUID(
+        const TransactionUUID &transactionUUID) const;
 
 private:
     void launchTransaction(
@@ -112,6 +115,9 @@ private:
 public:
     mutable CommandResultSignal commandResultIsReadySignal;
     mutable SerializeTransactionSignal serializeTransactionSignal;
+    // this signal used for notofication of CyclesMAnager that CycleCloser transaction was finished
+    // and it can try launch new CycleCloser transaction
+    mutable CycleCloserTransactionWasFinishedSignal cycleCloserTransactionWasFinishedSignal;
 
 private:
     as::io_service &mIOService;

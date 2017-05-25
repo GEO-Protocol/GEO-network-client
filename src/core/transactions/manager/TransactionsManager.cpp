@@ -1183,21 +1183,12 @@ void TransactionsManager::subscribeForCloseCycleTransaction(
             _1));
 }
 
-void TransactionsManager::subscribeForTryCloseCycle(
-    BaseTransaction::CycleIsReadyForClosingSignal &signal)
+void TransactionsManager::subscribeForTryCloseNewCycleSignal(
+    TransactionsScheduler::CycleCloserTransactionWasFinishedSignal &signal)
 {
     signal.connect(
         boost::bind(
-            &TransactionsManager::onTryCloseCycle,
-            this));
-}
-
-void TransactionsManager::subscribeForTryCloseCycleAgain(
-    BasePaymentTransaction::CycleWasClosedSignal &signal)
-{
-    signal.connect(
-        boost::bind(
-            &TransactionsManager::onTryCloseCycle,
+            &TransactionsManager::onTryCloseNewCycleSlot,
             this));
 }
 
@@ -1296,7 +1287,6 @@ void TransactionsManager::onCloseCycleTransaction(
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
             mLog);
-        subscribeForTryCloseCycleAgain(transaction->cycleWasClosedSignal);
         prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
@@ -1306,7 +1296,7 @@ void TransactionsManager::onCloseCycleTransaction(
     }
 }
 
-void TransactionsManager::onTryCloseCycle()
+void TransactionsManager::onTryCloseNewCycleSlot()
 {
     mCyclesManager->closeOneCycle();
 }
@@ -1342,7 +1332,6 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(
             mStorageHandler,
             mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForTryCloseCycle(transaction->cycleIsReadyForClosingSignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -1379,7 +1368,6 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction()
             mStorageHandler,
             mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForTryCloseCycle(transaction->cycleIsReadyForClosingSignal);
         mScheduler->scheduleTransaction(transaction);
 
     } catch (bad_alloc &) {
@@ -1417,7 +1405,6 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction()
             mStorageHandler,
             mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForTryCloseCycle(transaction->cycleIsReadyForClosingSignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -1458,7 +1445,6 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(
             mStorageHandler,
             mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForTryCloseCycle(transaction->cycleIsReadyForClosingSignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(

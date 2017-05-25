@@ -121,11 +121,6 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                 #ifdef TESTS
                 ResultCycles.push_back(stepCyclePath);
                 #endif
-                //    Todo run cycles
-//                Startsignal
-                // Потрібно ставити первірку на доречність перекриття цилів
-                // Ця транакція має верта нам дані про те через який трастлайн неможна зробити перрозрахунок
-//                stepCyclePath.clear();
             }
         }
     }
@@ -139,7 +134,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
     debug() << "CyclesFiveNodesInitTransaction::End";
     #endif
     mContext.clear();
-    cycleIsReadyForClosingSignal();
+    mCyclesManager->closeOneCycle();
     return resultDone();
 }
 

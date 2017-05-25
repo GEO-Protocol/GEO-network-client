@@ -82,9 +82,9 @@ void CyclesManager::closeOneCycle()
     do {
         auto cycles = cyclesVector(
             mCurrentCycleClosingState);
-        if (!cycles.empty()) {
-            auto cycle = *cycles.begin();
-            cycles.erase(cycles.begin());
+        if (!cycles->empty()) {
+            auto cycle = *cycles->begin();
+            cycles->erase(cycles->begin());
             debug() << "closeCycleSignal " << cycle->toString();
             closeCycleSignal(cycle);
             debug() << "3 NC count: " << mThreeNodesCycles.size()
@@ -97,18 +97,18 @@ void CyclesManager::closeOneCycle()
     } while (currentCycleClosingState != mCurrentCycleClosingState);
 }
 
-vector<Path::ConstShared>& CyclesManager::cyclesVector(
+vector<Path::ConstShared>* CyclesManager::cyclesVector(
     CycleClosingState currentCycleClosingState)
 {
     switch (currentCycleClosingState) {
         case CycleClosingState::ThreeNodes:
-            return mThreeNodesCycles;
+            return &mThreeNodesCycles;
         case CycleClosingState::FourNodes:
-            return mFourNodesCycles;
+            return &mFourNodesCycles;
         case CycleClosingState::FiveNodes:
-            return mFiveNodesCycles;
+            return &mFiveNodesCycles;
         case CycleClosingState::SixNodes:
-            return mSixNodesCycles;
+            return &mSixNodesCycles;
     }
 }
 

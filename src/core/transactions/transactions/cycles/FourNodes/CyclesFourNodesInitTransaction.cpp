@@ -120,7 +120,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
         }
     }
     if (isBuildCycles) {
-        cycleIsReadyForClosingSignal();
+        mCyclesManager->closeOneCycle();
     }
     #ifdef TESTS
         cout << "CyclesThreeNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size()) << endl;

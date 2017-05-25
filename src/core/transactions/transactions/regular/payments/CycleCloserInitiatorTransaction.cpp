@@ -612,12 +612,6 @@ const BasePaymentTransaction::Stages CycleCloserInitiatorTransaction::stage() co
     return (BasePaymentTransaction::Stages)mStep;
 }
 
-TransactionResult::Shared CycleCloserInitiatorTransaction::resultDone() const
-{
-    cycleWasClosedSignal();
-    return BaseTransaction::resultDone();
-}
-
 pair<BytesShared, size_t> CycleCloserInitiatorTransaction::serializeToBytes() const
     throw (bad_alloc)
 {

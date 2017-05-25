@@ -74,7 +74,9 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
             }
         }
 
-//       Check if this is CycleTransaction
+        // Six and five nodes cycles should be discovered only once per day,
+        // so, theoretically, only one discovering transaction may exist at once,
+        // and message may be attached to first found transaction.
         if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction and
             message->typeID() == Message::MessageType::Cycles_SixNodesBoundary) {
             transactionAndState.first->pushContext(message);
@@ -248,6 +250,9 @@ void TransactionsScheduler::forgetTransaction(
 //        );
 //    } catch (IndexError &) {}
 
+    if (transaction->transactionType() == BaseTransaction::Payments_CycleCloserInitiatorTransaction) {
+        cycleCloserTransactionWasFinishedSignal();
+    }
     mTransactions->erase(transaction);
 }
 
@@ -382,4 +387,21 @@ const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
 
 void TransactionsScheduler::addTransactionAndState(BaseTransaction::Shared transaction, TransactionState::SharedConst state) {
     mTransactions->insert(make_pair(transaction, state));
+}
+
+const BaseTransaction::Shared TransactionsScheduler::transactionByUUID(
+    const TransactionUUID &transactionUUID) const
+{
+    for (const auto &transactionAndState : *mTransactions.get()) {
+        if (transactionAndState.first->currentTransactionUUID() == transactionUUID) {
+            if (transactionAndState.first->transactionType() != BaseTransaction::Payments_CycleCloserInitiatorTransaction &&
+                transactionAndState.first->transactionType() != BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
+                throw ValueError("TransactionsScheduler::transactionByUUID: "
+                                     "requested transaction doesn't belong to CycleClosing transactions");
+            }
+            return transactionAndState.first;
+        }
+    }
+    throw ValueError("TransactionsScheduler::transactionByUUID: "
+                         "there is no transaction with requested UUID");
 }

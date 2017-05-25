@@ -47,7 +47,7 @@ private:
         const boost::system::error_code &error);
 
 private:
-    vector<Path::ConstShared>& cyclesVector(
+    vector<Path::ConstShared>* cyclesVector(
         CycleClosingState currentCycleClosingState);
 
     void incrementCurrentCycleClosingState();

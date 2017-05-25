@@ -39,7 +39,6 @@ class BasePaymentTransaction:
 public:
     typedef signals::signal<void(vector<NodeUUID> &contractorUUID)> BuildCycleThreeNodesSignal;
     typedef signals::signal<void(vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors)> BuildCycleFourNodesSignal;
-    typedef signals::signal<void()> CycleWasClosedSignal;
 
 public:
     BasePaymentTransaction(
@@ -195,8 +194,6 @@ public:
     mutable BuildCycleThreeNodesSignal mBuildCycleThreeNodesSignal;
 
     mutable BuildCycleFourNodesSignal mBuildCycleFourNodesSignal;
-
-    mutable CycleWasClosedSignal cycleWasClosedSignal;
 
 protected:
     TrustLinesManager *mTrustLines;
