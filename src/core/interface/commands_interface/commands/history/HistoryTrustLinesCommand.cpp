@@ -28,7 +28,8 @@ void HistoryTrustLinesCommand::parse(
         throw ValueError("HistoryTrustLinesCommand::parse: "
                                  "Can't parse command. Received command is to short.");
     }
-    size_t tokenSeparatorPos = command.find(kTokensSeparator);
+    size_t tokenSeparatorPos = command.find(
+        kTokensSeparator);
     string historyFromStr = command.substr(
         0,
         tokenSeparatorPos);
@@ -42,10 +43,13 @@ void HistoryTrustLinesCommand::parse(
         throw ValueError("HistoryTrustLinesCommand::parse: "
                                  "Can't parse command. Error occurred while parsing  'from' token.");
     }
-    size_t nextTokenSeparatorPos = command.find(kTokensSeparator, tokenSeparatorPos + 1);
+
+    size_t nextTokenSeparatorPos = command.find(
+        kTokensSeparator,
+        tokenSeparatorPos + 1);
     string historyCountStr = command.substr(
         tokenSeparatorPos + 1,
-        nextTokenSeparatorPos);
+        nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (historyCountStr.at(0) == '-') {
         throw ValueError("HistoryTrustLinesCommand::parse: "
                                  "Can't parse command. 'count' token can't be negative.");
@@ -57,10 +61,12 @@ void HistoryTrustLinesCommand::parse(
                                  "Can't parse command. Error occurred while parsing 'count' token.");
     }
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = command.find(kTokensSeparator, tokenSeparatorPos + 1);
+    nextTokenSeparatorPos = command.find(
+        kTokensSeparator,
+        tokenSeparatorPos + 1);
     string timeFromStr = command.substr(
         tokenSeparatorPos + 1,
-        nextTokenSeparatorPos);
+        nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (timeFromStr == kNullParameter) {
         mIsTimeFromPresent = false;
     } else {
@@ -74,10 +80,12 @@ void HistoryTrustLinesCommand::parse(
                                  "Can't parse command. Error occurred while parsing 'timeFrom' token.");
         }
     }
+
     tokenSeparatorPos = nextTokenSeparatorPos;
+    nextTokenSeparatorPos = command.size() - 1;
     string timeToStr = command.substr(
         tokenSeparatorPos + 1,
-        command.size() - 1);
+        nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (timeToStr == kNullParameter) {
         mIsTimeToPresent = false;
     } else {
