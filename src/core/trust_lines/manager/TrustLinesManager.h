@@ -129,6 +129,14 @@ public:
     ConstSharedTrustLineAmount totalIncomingAmount()
         const throw (bad_alloc);
 
+    // get all reservations (all transactions) to requested contractor
+    vector<AmountReservation::ConstShared> reservationsToContractor(
+        const NodeUUID &contractorUUID) const;
+
+    // get all reservations (all transactions) from requested contractor
+    vector<AmountReservation::ConstShared> reservationsFromContractor(
+        const NodeUUID &contractorUUID) const;
+
     const bool trustLineIsPresent (
         const NodeUUID &contractorUUID) const;
 

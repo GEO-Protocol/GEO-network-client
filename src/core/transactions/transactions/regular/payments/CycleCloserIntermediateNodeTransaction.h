@@ -44,6 +44,8 @@ protected:
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
     TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
+    // run after waiting on releasing amount by rollbacking conflicted transaction
+    TransactionResult::SharedConst runCoordinatorRequestProcessingStageAgain();
 
 protected:
     void deserializeFromBytes(
@@ -58,8 +60,17 @@ protected:
     NodeUUID mCoordinator;
     uint8_t mCycleLength;
 
+    // fields, wor continue process coordinator request after releasing conflicted reservation
+    // transaction on which reservation we pretend
+    TransactionUUID mConflictedTransaction;
+    NodeUUID mNextNode;
+    TrustLineAmount mReservationAmount;
+
     // for resolving reservation conflicts
     CyclesManager *mCyclesManager;
+
+private:
+    const uint16_t kWaitingForReleasingAmountMSec = 50;
 };
 
 

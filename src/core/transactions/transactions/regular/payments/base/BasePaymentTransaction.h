@@ -37,6 +37,9 @@ class BasePaymentTransaction:
     public BaseTransaction {
 
 public:
+    typedef shared_ptr<BasePaymentTransaction> Shared;
+
+public:
     typedef signals::signal<void(vector<NodeUUID> &contractorUUID)> BuildCycleThreeNodesSignal;
     typedef signals::signal<void(vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors)> BuildCycleFourNodesSignal;
 
@@ -88,7 +91,10 @@ protected:
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,
         Common_Recovery,
-        Common_ClarificationTransaction
+        Common_ClarificationTransaction,
+
+        Common_RollbackByOtherTransaction,
+        Common_WaitForAmountReleasing,
     };
 
     enum VotesRecoveryStages {
@@ -124,6 +130,7 @@ protected:
     TransactionResult::SharedConst runPrepareListNodesToCheckNodes();
     TransactionResult::SharedConst runCheckCoordinatorVotesStage();
     TransactionResult::SharedConst runCheckIntermediateNodeVotesSage();
+    TransactionResult::SharedConst runRollbackByOtherTransactionStage();
 
 
 protected:
@@ -183,7 +190,9 @@ public:
 
     virtual const uint8_t cycleLength() const;
 
-    const Stages stage() const;
+    bool isCommonVotesCheckingstage() const;
+
+    void setRollbackByOtherTransactionStage();
 
 protected:
     // Specifies how long node must wait for the response from the remote node.

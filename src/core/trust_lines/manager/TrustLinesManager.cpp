@@ -706,6 +706,22 @@ ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount () const
     return totalAmount;
 }
 
+vector<AmountReservation::ConstShared> TrustLinesManager::reservationsToContractor(
+    const NodeUUID &contractorUUID) const
+{
+    return mAmountReservationsHandler->contractorReservations(
+        contractorUUID,
+        AmountReservation::ReservationDirection::Outgoing);
+}
+
+vector<AmountReservation::ConstShared> TrustLinesManager::reservationsFromContractor(
+    const NodeUUID &contractorUUID) const
+{
+    return mAmountReservationsHandler->contractorReservations(
+        contractorUUID,
+        AmountReservation::ReservationDirection::Incoming);
+}
+
 void TrustLinesManager::printRTs()
 {
     LoggerStream debug = mLogger->debug("TrustLinesManager::printRts");

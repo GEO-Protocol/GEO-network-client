@@ -402,6 +402,6 @@ const BaseTransaction::Shared TransactionsScheduler::transactionByUUID(
             return transactionAndState.first;
         }
     }
-    throw ValueError("TransactionsScheduler::transactionByUUID: "
+    throw NotFoundError("TransactionsScheduler::transactionByUUID: "
                          "there is no transaction with requested UUID");
 }

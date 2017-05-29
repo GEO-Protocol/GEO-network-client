@@ -917,6 +917,13 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
     return reject("");
 }
 
+TransactionResult::SharedConst BasePaymentTransaction::runRollbackByOtherTransactionStage()
+{
+    debug() << "runRollbackByOtherTransactionStage";
+    rollBack();
+    return resultDone();
+}
+
 pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const {
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     // mParticipantsVotesMessage Part
@@ -1040,7 +1047,12 @@ const uint8_t BasePaymentTransaction::cycleLength() const
     return 0;
 }
 
-const BasePaymentTransaction::Stages BasePaymentTransaction::stage() const
+bool BasePaymentTransaction::isCommonVotesCheckingstage() const
 {
-    return (BasePaymentTransaction::Stages)mStep;
+    return mStep == Common_VotesChecking;
+}
+
+void BasePaymentTransaction::setRollbackByOtherTransactionStage()
+{
+    mStep = Common_RollbackByOtherTransaction;
 }

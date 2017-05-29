@@ -11,7 +11,6 @@ CyclesManager::CyclesManager(
 {
     mCurrentCycleClosingState = CycleClosingState::ThreeNodes;
 
-    //    todo add set Time started to 60*6
     srand(time(NULL));
     int timeStarted = rand() % 60 * 60 * 6;
 #ifdef TESTS
@@ -27,7 +26,6 @@ CyclesManager::CyclesManager(
             &CyclesManager::runSignalFiveNodes,
             this,
             as::placeholders::error));
-    //    todo add set Time started to 60*6
     timeStarted = rand() % 60 * 60 * 6;
 #ifdef TESTS
     timeStarted = 60;
@@ -136,7 +134,7 @@ void CyclesManager::runSignalFiveNodes(
     mFiveNodesCycleTimer->cancel();
     mFiveNodesCycleTimer->expires_from_now(
         std::chrono::seconds(
-            mFiveNodesSignalRepeatTimeSeconds));
+            kFiveNodesSignalRepeatTimeSeconds));
     mFiveNodesCycleTimer->async_wait(
         boost::bind(
             &CyclesManager::runSignalFiveNodes,
@@ -154,13 +152,64 @@ void CyclesManager::runSignalSixNodes(
     mSixNodesCycleTimer->cancel();
     mSixNodesCycleTimer->expires_from_now(
         std::chrono::seconds(
-            mSixNodesSignalRepeatTimeSeconds));
+            kSixNodesSignalRepeatTimeSeconds));
     mSixNodesCycleTimer->async_wait(
         boost::bind(
             &CyclesManager::runSignalSixNodes,
             this,
             as::placeholders::error));
     buildSixNodesCyclesSignal();
+}
+
+bool CyclesManager::isChellengerTransactionWinReservation(
+    BasePaymentTransaction::Shared chellengerTransaction,
+    BasePaymentTransaction::Shared reservedTransaction)
+{
+    if (reservedTransaction->transactionType() != BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction
+        && reservedTransaction->transactionType() != BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction) {
+        return false;
+    }
+    if (reservedTransaction->isCommonVotesCheckingstage()) {
+        return false;
+    }
+    if (chellengerTransaction->cycleLength() != reservedTransaction->cycleLength()) {
+        return chellengerTransaction->cycleLength() > reservedTransaction->cycleLength();
+    }
+    return chellengerTransaction->coordinatorUUID() > reservedTransaction->coordinatorUUID();
+}
+
+bool CyclesManager::resolveReservationConflict(
+    const TransactionUUID &challengerTransactionUUID,
+    const TransactionUUID &reservedTransactionUUID)
+{
+    auto challengerTransaction = static_pointer_cast<BasePaymentTransaction>(
+        mTransactionScheduler->transactionByUUID(
+            challengerTransactionUUID));
+    auto reservedTransaction = static_pointer_cast<BasePaymentTransaction>(
+        mTransactionScheduler->transactionByUUID(
+            reservedTransactionUUID));
+    if (isChellengerTransactionWinReservation(
+        challengerTransaction,
+        reservedTransaction)) {
+        reservedTransaction->setRollbackByOtherTransactionStage();
+        mTransactionScheduler->postponeTransaction(
+            reservedTransaction,
+            kPostponningRollbackTransactionTimeMSec);
+        return true;
+    }
+    return false;
+}
+
+bool CyclesManager::isTransactionStillAlive(
+    const TransactionUUID &transactionUUID)
+{
+    try {
+        mTransactionScheduler->transactionByUUID(
+            transactionUUID);
+        return true;
+    } catch (NotFoundError &e) {
+        return false;
+    }
 }
 
 LoggerStream CyclesManager::info() const

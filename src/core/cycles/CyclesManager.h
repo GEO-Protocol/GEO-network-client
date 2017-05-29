@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CYCLESMANAGER_H
 
 #include "../transactions/scheduler/TransactionsScheduler.h"
+#include "../transactions/transactions/regular/payments/base/BasePaymentTransaction.h"
 #include "../paths/lib/Path.h"
 #include "../logger/Logger.h"
 
@@ -39,6 +40,13 @@ public:
     void addCycle(
         Path::ConstShared);
 
+    bool resolveReservationConflict(
+        const TransactionUUID &challengerTransactionUUID,
+        const TransactionUUID &reservedTransactionUUID);
+
+    bool isTransactionStillAlive(
+        const TransactionUUID &transactionUUID);
+
 private:
     void runSignalSixNodes(
         const boost::system::error_code &error);
@@ -46,11 +54,14 @@ private:
     void runSignalFiveNodes(
         const boost::system::error_code &error);
 
-private:
     vector<Path::ConstShared>* cyclesVector(
         CycleClosingState currentCycleClosingState);
 
     void incrementCurrentCycleClosingState();
+
+    bool isChellengerTransactionWinReservation(
+        BasePaymentTransaction::Shared chellengerTransaction,
+        BasePaymentTransaction::Shared reservedTransaction);
 
     LoggerStream info() const;
 
@@ -66,8 +77,9 @@ public:
     mutable BuildFiveNodesCyclesSignal buildFiveNodesCyclesSignal;
 
 private:
-    const int mSixNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
-    const int mFiveNodesSignalRepeatTimeSeconds = 24* 60 * 60;
+    const uint32_t kSixNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
+    const uint32_t kFiveNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
+    const uint16_t kPostponningRollbackTransactionTimeMSec = 10;
 
 private:
     TransactionsScheduler *mTransactionScheduler;

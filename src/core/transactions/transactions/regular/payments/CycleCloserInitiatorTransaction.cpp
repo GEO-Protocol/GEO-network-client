@@ -53,19 +53,22 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
             case Stages::Coordinator_Initialisation:
                 return runInitialisationStage();
 
-        case Stages::Coordinator_AmountReservation:
-            return runAmountReservationStage();
+            case Stages::Coordinator_AmountReservation:
+                return runAmountReservationStage();
 
-        case Stages::Coordinator_PreviousNeighborRequestProcessing:
-            return runPreviousNeighborRequestProcessingStage();
+            case Stages::Coordinator_PreviousNeighborRequestProcessing:
+                return runPreviousNeighborRequestProcessingStage();
 
-        case Stages::Common_VotesChecking:
-            return runVotesConsistencyCheckingStage();
+            case Stages::Common_VotesChecking:
+                return runVotesConsistencyCheckingStage();
+
+            case Stages::Common_RollbackByOtherTransaction:
+                return runRollbackByOtherTransactionStage();
 
             default:
                 throw RuntimeError(
                     "CycleCloserInitiatorTransaction::run(): "
-                        "invalid transaction step.");
+                       "invalid transaction step.");
         }
     } catch(...) {
         recover("Something happens wrong in method run(). Transaction will be recovered");
