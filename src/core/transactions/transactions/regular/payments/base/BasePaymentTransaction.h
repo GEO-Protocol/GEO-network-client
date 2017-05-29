@@ -87,14 +87,15 @@ protected:
         IntermediateNode_CoordinatorRequestProcessing,
         IntermediateNode_NextNeighborResponseProcessing,
         IntermediateNode_ReservationProlongation,
+        IntermediateNodeCycle_WaitForOutgoingAmountReleasing,
+        IntermediateNodeCycle_WaitForIncomingAmountReleasing,
 
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,
         Common_Recovery,
         Common_ClarificationTransaction,
 
-        Common_RollbackByOtherTransaction,
-        Common_WaitForAmountReleasing,
+        Common_RollbackByOtherTransaction
     };
 
     enum VotesRecoveryStages {

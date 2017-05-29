@@ -46,6 +46,7 @@ protected:
     TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
     // run after waiting on releasing amount by rollbacking conflicted transaction
     TransactionResult::SharedConst runCoordinatorRequestProcessingStageAgain();
+    TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
 
 protected:
     void deserializeFromBytes(
@@ -64,6 +65,7 @@ protected:
     // transaction on which reservation we pretend
     TransactionUUID mConflictedTransaction;
     NodeUUID mNextNode;
+    NodeUUID mPreviousNode;
     TrustLineAmount mReservationAmount;
 
     // for resolving reservation conflicts
