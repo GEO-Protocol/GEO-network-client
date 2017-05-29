@@ -1,6 +1,6 @@
 #include "MaxFlowCalculationCacheManager.h"
 
-MaxFlowCalculationCacheManager::MaxFlowCalculationCacheManager(Logger *logger):
+MaxFlowCalculationCacheManager::MaxFlowCalculationCacheManager(Logger &logger):
     mLog(logger)
 {
     mInitiatorCache.first = false;
@@ -92,9 +92,9 @@ DateTime MaxFlowCalculationCacheManager::closestTimeEvent() const
 
 LoggerStream MaxFlowCalculationCacheManager::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->info(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.info(logHeader());
 }
 
 const string MaxFlowCalculationCacheManager::logHeader() const

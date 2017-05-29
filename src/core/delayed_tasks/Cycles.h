@@ -14,7 +14,7 @@ namespace signals = boost::signals2;
 
 class CyclesDelayedTasks {
 public:
-    CyclesDelayedTasks(as::io_service &mIOService);
+    CyclesDelayedTasks(as::io_service &IOService);
 
     signals::signal<void()> mSixNodesCycleSignal;
     signals::signal<void()> mFiveNodesCycleSignal;

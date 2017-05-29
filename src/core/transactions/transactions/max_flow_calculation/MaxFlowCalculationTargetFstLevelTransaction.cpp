@@ -4,7 +4,7 @@ MaxFlowCalculationTargetFstLevelTransaction::MaxFlowCalculationTargetFstLevelTra
     const NodeUUID &nodeUUID,
     MaxFlowCalculationTargetFstLevelMessage::Shared message,
     TrustLinesManager *manager,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationTargetFstLevelTransactionType,

@@ -1,277 +1,187 @@
 #include "OpenTrustLineTransaction.h"
 
+
 OpenTrustLineTransaction::OpenTrustLineTransaction(
     const NodeUUID &nodeUUID,
     OpenTrustLineCommand::Shared command,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger)
+    noexcept :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::OpenTrustLineTransactionType,
         nodeUUID,
         logger),
     mCommand(command),
-    mTrustLinesManager(manager),
-    mStorageHandler(storageHandler) {}
+    mTrustLines(manager),
+    mStorageHandler(storageHandler)
+{}
 
-OpenTrustLineTransaction::OpenTrustLineTransaction(
-    BytesShared buffer,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Logger *logger) :
+TransactionResult::SharedConst OpenTrustLineTransaction::run()
+{
+    switch (mStep) {
+    case Stages::Initialization:
+        return initOperation();
 
-    TrustLineTransaction(
-        BaseTransaction::TransactionType::OpenTrustLineTransactionType,
-        logger),
-    mTrustLinesManager(manager),
-    mStorageHandler(storageHandler) {
+    case Stages::ResponseProcessing:
+        return processResponse();
 
-    deserializeFromBytes(
-        buffer);
-}
-
-OpenTrustLineCommand::Shared OpenTrustLineTransaction::command() const {
-
-    return mCommand;
-}
-
-pair<BytesShared, size_t> OpenTrustLineTransaction::serializeToBytes() const {
-
-    auto parentBytesAndCount = TrustLineTransaction::serializeToBytes();
-    auto commandBytesAndCount = mCommand->serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second
-                        + commandBytesAndCount.second;
-
-    BytesShared dataBytesShared = tryMalloc(
-        bytesCount);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + parentBytesAndCount.second,
-        commandBytesAndCount.first.get(),
-        commandBytesAndCount.second);
-    //-----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
-}
-
-void OpenTrustLineTransaction::deserializeFromBytes(
-    BytesShared buffer) {
-
-    TrustLineTransaction::deserializeFromBytes(
-        buffer);
-
-    BytesShared commandBufferShared = tryMalloc(
-        OpenTrustLineCommand::kRequestedBufferSize());
-    //-----------------------------------------------------
-    memcpy(
-        commandBufferShared.get(),
-        buffer.get() + TrustLineTransaction::kOffsetToDataBytes(),
-        OpenTrustLineCommand::kRequestedBufferSize());
-    //-----------------------------------------------------
-    mCommand = make_shared<OpenTrustLineCommand>(
-        commandBufferShared);
-}
-
-TransactionResult::SharedConst OpenTrustLineTransaction::run() {
-
-    try {
-        switch (mStep) {
-
-            case Stages::CheckContractorUUIDValidity: {
-                if (!isContractorUUIDValid(mCommand->contractorUUID()))
-                    return resultProtocolError();
-                mStep = Stages::CheckUnicity;
-            }
-
-            case Stages::CheckUnicity: {
-                if (!isTransactionToContractorUnique()) {
-                    return resultConflictWithOtherOperation();
-                }
-
-                mStep = Stages::CheckOutgoingDirection;
-            }
-
-            case Stages::CheckOutgoingDirection: {
-                if (isOutgoingTrustLineDirectionExisting()) {
-                    return resultTrustLineIsAlreadyPresent();
-                }
-
-                mStep = Stages::CheckContext;
-            }
-
-        case Stages::CheckContext: {
-            if (!mContext.empty()) {
-                return checkTransactionContext();
-
-                } else {
-
-                    if (mRequestCounter < kMaxRequestsCount) {
-                        sendMessageToRemoteNode();
-                        increaseRequestsCounter();
-
-                    } else {
-                        return resultRemoteNodeIsInaccessible();
-                    }
-
-                }
-                return waitingForResponseState();
-            }
-
-            default: {
-                throw ConflictError("OpenTrustLineTransaction::run: "
-                                        "Illegal step execution.");
-            }
-
-        }
-
-    } catch (exception &e){
-        throw RuntimeError("OpenTrustLineTransaction::run: "
-                               "TransactionUUID -> " + mTransactionUUID.stringUUID() + ". " +
-                               "Crashed at step -> " + to_string(mStep) );
+    default:
+        throw RuntimeError(
+            "OpenTrustLineTransaction::run: "
+            "unexpected step occured.");
     }
 }
 
-bool OpenTrustLineTransaction::isTransactionToContractorUnique() {
+TransactionResult::SharedConst OpenTrustLineTransaction::initOperation()
+{
+    const auto kContractor = mCommand->contractorUUID();
 
-    return true;
-}
-
-bool OpenTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
-
-    return mTrustLinesManager->checkDirection(mCommand->contractorUUID(), TrustLineDirection::Outgoing) ||
-        mTrustLinesManager->checkDirection(mCommand->contractorUUID(), TrustLineDirection::Both);
-}
-
-TransactionResult::SharedConst OpenTrustLineTransaction::checkTransactionContext() {
-
-    if (mkExpectationResponsesCount == mContext.size()) {
-        auto responseMessage = *mContext.begin();
-
-        if (responseMessage->typeID() == Message::MessageType::ResponseMessageType) {
-            Response::Shared response = static_pointer_cast<Response>(
-                responseMessage);
-
-            switch (response->code()) {
-
-                case AcceptTrustLineMessage::kResultCodeAccepted: {
-                    openTrustLine();
-                    logOpeningTrustLineOperation();
-
-                    if (!mTrustLinesManager->checkDirection(
-                        mCommand->contractorUUID(),
-                        TrustLineDirection::Both)) {
-                        const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
-                            currentNodeUUID(),
-                            currentNodeUUID(),
-                            currentNodeUUID(),
-                            mCommand->contractorUUID(),
-                            TrustLineStatesHandlerTransaction::TrustLineState::Created,
-                            0,
-                            mTrustLinesManager,
-                            mStorageHandler,
-                            mLog);
-                        launchSubsidiaryTransaction(kTransaction);
-                    }
-
-                    return resultOk();
-                }
-
-                case AcceptTrustLineMessage::kResultCodeConflict: {
-                    return resultConflictWithOtherOperation();
-                }
-
-                default:{
-                    break;
-                }
-
-            }
-
-        }
+    if (kContractor == mNodeUUID) {
+        info() << "Attempt to launch transaction against itself was prevented.";
         return resultProtocolError();
-
-    } else {
-        throw ConflictError("OpenTrustLineTransaction::checkTransactionContext: "
-                                "Unexpected context size.");
     }
-}
 
-void OpenTrustLineTransaction::sendMessageToRemoteNode() {
 
+    if (mTrustLines->isNeighbor(kContractor) and
+        mTrustLines->outgoingTrustAmount(kContractor) > 0) {
+
+        info() << "Attempt to re-open trust line to the node " << kContractor << " prevented. "
+               << "There is an outgoing trust line already present. "
+               << "Set trust line must be used in this case.";
+        return resultTrustLineIsAlreadyPresent();
+    }
+
+    // Requesting remote node to open trust line.
+    // It is OK, if this message would be lost: in this case trust line would not be opened on both sides.
+    // (this node will wait an approve from the remote node, and opent it's TL only on approve receiving)
+    //
+    // In case if message would be received by the contractor, it would accept the trust line,
+    // but the response would be lost - then trasnaction desync would appear,
+    // but it would also handled on the next operations
+    // (for example, in payment operations).
     sendMessage<OpenTrustLineMessage>(
-        mCommand->contractorUUID(),
+        kContractor,
         mNodeUUID,
         mTransactionUUID,
         mCommand->amount());
+
+    mStep = Stages::ResponseProcessing;
+    return resultWaitForMessageTypes(
+        {Message::ResponseMessageType}, // ToDo: replace Message::ResponseMessageType by the proper message
+        3000);
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::waitingForResponseState() {
+TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
+{
+    const auto kContractor = mCommand->contractorUUID();
 
-    TransactionState *transactionState = new TransactionState(
-        microsecondsSinceGEOEpoch(
-            utc_now() + pt::microseconds(kConnectionTimeout * 1000)),
-        Message::MessageType::ResponseMessageType,
-        false);
+    // Processing response
+    if (mContext.size() == 0) {
+        info() << "Attempt to open trust line to the node " << kContractor << " failed. "
+               << "Remote node is inaccessible.";
+        return resultRemoteNodeIsInaccessible();
+    }
 
-    return transactionResultFromState(
-        TransactionState::SharedConst(
-            transactionState));
-}
+    const auto kMessage = popNextMessage<Response>();
+    if (kMessage->code() != AcceptTrustLineMessage::kResultCodeAccepted) {
+        info() << "Attempt to open trust line to the node " << kContractor << " failed. "
+               << "Remote node rejected the request.";
+        return resultRejected();
+    }
 
-void OpenTrustLineTransaction::openTrustLine() {
-
-    mTrustLinesManager->open(
-        mCommand->contractorUUID(),
-        mCommand->amount());
-
-}
-
-void OpenTrustLineTransaction::logOpeningTrustLineOperation() {
-
-    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
-        uuid(mTransactionUUID),
-        TrustLineRecord::TrustLineOperationType::Opening,
-        mCommand->contractorUUID(),
-        mCommand->amount());
 
     auto ioTransaction = mStorageHandler->beginTransaction();
+    try {
+        mTrustLines->open(
+            ioTransaction,
+            kContractor,
+            mCommand->amount());
+
+        updateHistory(ioTransaction);
+
+
+        // Launching transaction for routing tables population
+        if (mTrustLines->trustLineReadOnly(kContractor)->direction() != TrustLineDirection::Both) {
+            const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                currentNodeUUID(),
+                currentNodeUUID(),
+                currentNodeUUID(),
+                mCommand->contractorUUID(),
+                TrustLineStatesHandlerTransaction::Created,
+                0,
+                mTrustLines,
+                mStorageHandler,
+                mLog);
+
+            launchSubsidiaryTransaction(kTransaction);
+        }
+
+        info() << "Trust line to the node " << kContractor << " was successfully opened.";
+        return resultOK();
+
+
+    } catch (ConflictError &) {
+        ioTransaction->rollback();
+        info() << "Attempt to open trust line to the node " << kContractor << " failed. "
+               << "It seems that other transaction already opened the trust line during response receiveing.";
+        return resultTrustLineIsAlreadyPresent();
+
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        info() << "Attempt to open trust line to the node " << kContractor << " failed. "
+               << "IO transaction can't be completed. "
+               << "Details are: " << e.what();
+
+        // Rethrowing the exception,
+        // because the TA can't finish propely and no result may be returned.
+        throw e;
+    }
+}
+
+void OpenTrustLineTransaction::updateHistory(
+    IOTransaction::Shared ioTransaction)
+{
+#ifndef TESTS
+    auto record = make_shared<TrustLineRecord>(
+        uuid(mTransactionUUID),
+        TrustLineRecord::Opening,
+        mCommand->contractorUUID(),
+        mCommand->amount());
+
     ioTransaction->historyStorage()->saveTrustLineRecord(record);
+#endif
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::resultOk() {
-
+TransactionResult::SharedConst OpenTrustLineTransaction::resultOK() const
+{
     return transactionResultFromCommand(
-            mCommand->responseCreated());
+        mCommand->responseCreated());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::resultTrustLineIsAlreadyPresent() {
-
+TransactionResult::SharedConst OpenTrustLineTransaction::resultTrustLineIsAlreadyPresent() const
+{
     return transactionResultFromCommand(
-            mCommand->responseTrustlineIsAlreadyPresent());
+        mCommand->responseTrustlineIsAlreadyPresent());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::resultConflictWithOtherOperation() {
-
+TransactionResult::SharedConst OpenTrustLineTransaction::resultRejected() const
+{
     return transactionResultFromCommand(
-            mCommand->responseConflictWithOtherOperation());
+        mCommand->responseTrustlineRejected());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::resultRemoteNodeIsInaccessible() {
-
+TransactionResult::SharedConst OpenTrustLineTransaction::resultRemoteNodeIsInaccessible() const
+{
     return transactionResultFromCommand(
-            mCommand->responseRemoteNodeIsInaccessible());
+        mCommand->responseRemoteNodeIsInaccessible());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::resultProtocolError() {
+TransactionResult::SharedConst OpenTrustLineTransaction::resultProtocolError() const
+{
     return transactionResultFromCommand(
-            mCommand->responseProtocolError());
+        mCommand->responseProtocolError());
 }
 
 const string OpenTrustLineTransaction::logHeader() const

@@ -7,7 +7,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger* log) :
+    Logger &log) :
 
     BasePaymentTransaction(
         BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction,
@@ -30,7 +30,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger* log) :
+    Logger &log) :
     BasePaymentTransaction(
         buffer,
         nodeUUID,

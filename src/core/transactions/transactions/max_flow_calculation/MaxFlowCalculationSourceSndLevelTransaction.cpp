@@ -5,7 +5,7 @@ MaxFlowCalculationSourceSndLevelTransaction::MaxFlowCalculationSourceSndLevelTra
     MaxFlowCalculationSourceSndLevelMessage::Shared message,
     TrustLinesManager *manager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationSourceSndLevelTransactionType,

@@ -50,7 +50,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *log);
+        Logger &log);
 
     BasePaymentTransaction(
         const TransactionType type,
@@ -59,7 +59,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *log);
+        Logger &log);
 
     BasePaymentTransaction(
         BytesShared buffer,
@@ -67,7 +67,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *log);
+        Logger &log);
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 

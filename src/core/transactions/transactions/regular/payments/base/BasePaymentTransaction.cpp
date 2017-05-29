@@ -6,7 +6,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *log) :
+    Logger &log) :
 
     BaseTransaction(
         type,
@@ -26,7 +26,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *log) :
+    Logger &log) :
 
     BaseTransaction(
         type,
@@ -46,7 +46,7 @@ BasePaymentTransaction::BasePaymentTransaction(
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *log) :
+        Logger &log) :
 
     BaseTransaction(
         buffer,
@@ -592,7 +592,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
     if (message != nullptr)
         info() << message;
 
-    if(mTransactionIsVoted and mParticipantsVotesMessage != nullptr){
+    if(mTransactionIsVoted and (mParticipantsVotesMessage != nullptr)){
         mStep = Stages::Common_Recovery;
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         return runVotesRecoveryParentStage();

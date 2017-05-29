@@ -19,7 +19,7 @@ public:
         NodeUUID &nodeUUID,
         GetFirstLevelContractorsCommand::Shared command,
         TrustLinesManager *manager,
-        Logger *logger)
+        Logger &logger)
     noexcept;
 
     GetFirstLevelContractorsCommand::Shared command() const;

@@ -3,7 +3,7 @@
 RoutingTableHandler::RoutingTableHandler(
     sqlite3 *dbConnection,
     const string &tableName,
-    Logger *logger) :
+    Logger &logger) :
 
     mDataBase(dbConnection),
     mTableName(tableName),
@@ -337,16 +337,12 @@ const string& RoutingTableHandler::tableName() const
 
 LoggerStream RoutingTableHandler::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->info(logHeader());
+    return mLog.info(logHeader());
 }
 
 LoggerStream RoutingTableHandler::error() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->error(logHeader());
+    return mLog.error(logHeader());
 }
 
 const string RoutingTableHandler::logHeader() const

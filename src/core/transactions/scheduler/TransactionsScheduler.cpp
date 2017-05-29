@@ -3,7 +3,7 @@
 
 TransactionsScheduler::TransactionsScheduler(
     as::io_service &IOService,
-    Logger *logger) :
+    Logger &logger) :
 
     mIOService(IOService),
     mLog(logger),
@@ -154,7 +154,7 @@ void TransactionsScheduler::launchTransaction(
         );
 
     } catch (exception &e) {
-        auto errors = mLog->error("TransactionScheduler");
+        auto errors = mLog.error("TransactionScheduler");
         errors << "Transaction error occurred. "
                << "TypeID: " << transaction->transactionType() << "; "
                << "UUID: " << transaction->currentTransactionUUID() << "; "
@@ -338,7 +338,7 @@ void TransactionsScheduler::handleAwakening(
 
     if (error && error != as::error::operation_aborted) {
 
-        auto errors = mLog->error("TransactionsScheduler::handleAwakening");
+        auto errors = mLog.error("TransactionsScheduler::handleAwakening");
         if (errorsCount < 10) {
             errors << "Error occurred on planned awakening. Details: " << error.message().c_str()
                    << ". Next awakening would be scheduled for" << errorsCount << " seconds from now.";

@@ -7,7 +7,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger* log) :
+    Logger &log) :
 
     BasePaymentTransaction(
         BaseTransaction::IntermediateNodePaymentTransaction,
@@ -28,7 +28,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger* log) :
+    Logger &log) :
         BasePaymentTransaction(
             buffer,
             nodeUUID,

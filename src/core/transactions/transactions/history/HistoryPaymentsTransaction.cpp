@@ -4,7 +4,7 @@ HistoryPaymentsTransaction::HistoryPaymentsTransaction(
     NodeUUID &nodeUUID,
     HistoryPaymentsCommand::Shared command,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::HistoryPaymentsTransactionType,
@@ -24,7 +24,15 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::run()
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto const paymentRecords = ioTransaction->historyStorage()->allPaymentRecords(
         mCommand->historyCount(),
-        mCommand->historyFrom());
+        mCommand->historyFrom(),
+        mCommand->timeFrom(),
+        mCommand->isTimeFromPresent(),
+        mCommand->timeTo(),
+        mCommand->isTimeToPresent(),
+        mCommand->lowBoundaryAmount(),
+        mCommand->isLowBoundaryAmountPresent(),
+        mCommand->highBoundaryAmount(),
+        mCommand->isHighBoundaryAmountPresent());
     return resultOk(paymentRecords);
 }
 

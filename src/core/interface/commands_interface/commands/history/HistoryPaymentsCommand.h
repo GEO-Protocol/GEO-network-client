@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_HISTORYPAYMENTSCOMMAND_H
 
 #include "../BaseUserCommand.h"
+#include "../../../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 class HistoryPaymentsCommand : public BaseUserCommand {
@@ -22,13 +23,40 @@ public:
 
     const size_t historyCount() const;
 
+    const DateTime timeFrom() const;
+
+    const DateTime timeTo() const;
+
+    const bool isTimeFromPresent() const;
+
+    const bool isTimeToPresent() const;
+
+    const TrustLineAmount& lowBoundaryAmount() const;
+
+    const TrustLineAmount& highBoundaryAmount() const;
+
+    const bool isLowBoundaryAmountPresent() const;
+
+    const bool isHighBoundaryAmountPresent() const;
+
 protected:
     void parse(
         const string &command);
 
 private:
+    string kNullParameter = "null";
+
+private:
     size_t mHistoryFrom;
     size_t mHistoryCount;
+    DateTime mTimeFrom;
+    DateTime mTimeTo;
+    bool mIsTimeFromPresent;
+    bool mIsTimeToPresent;
+    TrustLineAmount mLowBoundaryAmount;
+    TrustLineAmount mHighBoundaryAmount;
+    bool mIsLowBoundartAmountPresent;
+    bool mIsHighBoundaryAmountPresent;
 };
 
 

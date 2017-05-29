@@ -40,6 +40,8 @@ public:
 
     const DateTime &timestampAccepted() const;
 
+    // TODO: remove noexcept
+    // TODO: split methods into classes
     CommandResult::SharedConst responseOK() const
         noexcept;
     CommandResult::SharedConst responseCreated() const
@@ -52,6 +54,9 @@ public:
         noexcept;
     CommandResult::SharedConst responseTrustlineIsAlreadyPresent() const
         noexcept;
+
+    CommandResult::SharedConst responseTrustlineRejected() const;
+
     CommandResult::SharedConst responseInsufficientFunds() const
         noexcept;
     CommandResult::SharedConst responseConflictWithOtherOperation() const
@@ -69,6 +74,7 @@ protected:
     virtual void deserializeFromBytes(
         BytesShared buffer);
 
+    [[deprecated("move parse logic into the command's constructor")]]
     virtual void parse(
         const string &commandBuffer) = 0;
 

@@ -27,7 +27,7 @@ public:
         const TransactionUUID &requestedTransactionUUID,
         PathsManager *pathsManager,
         ResourcesManager *resourcesManager,
-        Logger *logger);
+        Logger &logger);
 
     TransactionResult::SharedConst run();
 

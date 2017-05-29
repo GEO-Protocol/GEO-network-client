@@ -18,7 +18,7 @@ public:
     TrustLineHandler(
         sqlite3 *dbConnection,
         const string &tableName,
-        Logger *logger);
+        Logger &logger);
 
     void saveTrustLine(
         TrustLine::Shared trustLine);
@@ -39,7 +39,7 @@ private:
 private:
     sqlite3 *mDataBase = nullptr;
     string mTableName;
-    Logger *mLog;
+    Logger &mLog;
 };
 
 

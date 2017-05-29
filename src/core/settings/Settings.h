@@ -33,6 +33,15 @@ public:
     const uint16_t uuid2addressPort(
         const json *conf = nullptr) const;
 
+    const string influxDbName(
+        const json *conf = nullptr) const;
+
+    const string influxDbHost(
+        const json *conf = nullptr) const;
+
+    const uint16_t influxDbPort(
+        const json *conf = nullptr) const;
+
     json loadParsedJSON() const;
 };
 

@@ -5,7 +5,7 @@ sqlite3 *StorageHandler::mDBConnection = nullptr;
 StorageHandler::StorageHandler(
     const string &directory,
     const string &dataBaseName,
-    Logger *logger):
+    Logger &logger):
 
     mDirectory(directory),
     mDataBaseName(dataBaseName),
@@ -94,9 +94,9 @@ void StorageHandler::beginTransactionQuery()
 
 LoggerStream StorageHandler::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->info(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.info(logHeader());
 }
 
 const string StorageHandler::logHeader() const

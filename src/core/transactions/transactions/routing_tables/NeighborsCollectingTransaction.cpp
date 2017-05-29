@@ -14,7 +14,7 @@ NeighborsCollectingTransaction::NeighborsCollectingTransaction (
     const NodeUUID &forbiddenForPopulatingNode,
     const uint8_t hopDistance,
     StorageHandler *storageHandler,
-    Logger *logger)
+    Logger &logger)
     noexcept :
 
     BaseTransaction(

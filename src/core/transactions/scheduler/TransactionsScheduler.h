@@ -47,7 +47,7 @@ public:
 public:
     TransactionsScheduler(
         as::io_service &IOService,
-        Logger *logger);
+        Logger &logger);
 
     void run();
 
@@ -121,7 +121,7 @@ public:
 
 private:
     as::io_service &mIOService;
-    Logger *mLog;
+    Logger &mLog;
 
     unique_ptr<as::steady_timer> mProcessingTimer;
     unique_ptr<map<BaseTransaction::Shared, TransactionState::SharedConst>> mTransactions;

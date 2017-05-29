@@ -24,7 +24,7 @@ public:
         as::io_service &mIOService,
         MaxFlowCalculationCacheManager *maxflowCalculationCacheMnager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-        Logger *logger);
+        Logger &logger);
 
 public:
     void runSignalMaxFlowCalculationCacheUpdate(
@@ -48,7 +48,7 @@ private:
     unique_ptr<as::steady_timer> mMaxFlowCalculationCacheUpdateTimer;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheMnager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
-    Logger *mLog;
+    Logger &mLog;
 };
 
 

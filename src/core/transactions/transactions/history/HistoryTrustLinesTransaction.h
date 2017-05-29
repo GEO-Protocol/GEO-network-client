@@ -18,7 +18,7 @@ public:
         NodeUUID &nodeUUID,
         HistoryTrustLinesCommand::Shared command,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     HistoryTrustLinesCommand::Shared command() const;
 

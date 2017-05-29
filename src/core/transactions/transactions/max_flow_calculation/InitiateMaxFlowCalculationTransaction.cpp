@@ -6,7 +6,7 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
     TrustLinesManager *manager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::InitiateMaxFlowCalculationTransactionType,

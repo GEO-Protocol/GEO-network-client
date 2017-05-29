@@ -4,7 +4,7 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     const NodeUUID &nodeUUID,
     VotesStatusRequestMessage::Shared message,
     StorageHandler *storageHandler,
-    Logger *logger):
+    Logger &logger):
     BaseTransaction(
         BaseTransaction::TransactionType::VoutesStatusResponsePaymentTransaction,
         nodeUUID,

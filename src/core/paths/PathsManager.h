@@ -19,7 +19,7 @@ public:
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
         StorageHandler* storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     void findPaths(
         const NodeUUID &contractorUUID,
@@ -92,7 +92,7 @@ private:
 private:
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
-    Logger *mLog;
+    Logger &mLog;
     PathsCollection::Shared mPathCollection;
     NodeUUID mNodeUUID;
     NodeUUID mContractorUUID;

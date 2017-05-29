@@ -14,7 +14,7 @@
 class MaxFlowCalculationCacheManager {
 
 public:
-    MaxFlowCalculationCacheManager(Logger *logger);
+    MaxFlowCalculationCacheManager(Logger &logger);
 
     void addCache(const NodeUUID &keyUUID, MaxFlowCalculationCache::Shared cache);
 
@@ -75,7 +75,7 @@ private:
     unordered_map<NodeUUID, MaxFlowCalculationCache::Shared, boost::hash<boost::uuids::uuid>> mCaches;
     map<DateTime, NodeUUID*> msCache;
     pair<bool, DateTime> mInitiatorCache;
-    Logger *mLog;
+    Logger &mLog;
 };
 
 

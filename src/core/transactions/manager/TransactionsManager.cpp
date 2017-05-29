@@ -14,7 +14,7 @@ TransactionsManager::TransactionsManager(
     ResultsInterface *resultsInterface,
     StorageHandler *storageHandler,
     PathsManager *pathsManager,
-    Logger *logger) :
+    Logger &logger) :
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
@@ -1214,7 +1214,7 @@ void TransactionsManager::onCommandResultReady(
     try {
         auto message = result->serialize();
 
-        mLog->logSuccess(
+        mLog.logSuccess(
             "Transactions manager::onCommandResultReady",
             message
         );

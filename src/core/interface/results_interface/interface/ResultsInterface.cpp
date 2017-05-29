@@ -1,7 +1,7 @@
 #include "ResultsInterface.h"
 
 ResultsInterface::ResultsInterface(
-    Logger *logger) :
+    Logger &logger) :
 
     mLog(logger) {
 
@@ -72,7 +72,7 @@ void ResultsInterface::writeResult(
     Timestamp start_time_s = posix::microsec_clock::universal_time();
     MicrosecondsTimestamp starttime_m = microsecondsTimestamp(start_time_s);
 
-    auto debug = mLog->debug("ResultsInterface");
+    auto debug = mLog.debug("ResultsInterface");
     debug << starttime_m;
     #endif
 

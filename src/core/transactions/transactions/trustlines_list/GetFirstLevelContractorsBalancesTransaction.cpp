@@ -4,7 +4,7 @@ GetFirstLevelContractorsBalancesTransaction::GetFirstLevelContractorsBalancesTra
     NodeUUID &nodeUUID,
     GetTrustLinesCommand::Shared command,
     TrustLinesManager *manager,
-    Logger *logger)
+    Logger &logger)
     noexcept:
     BaseTransaction(
         BaseTransaction::TrustlinesList,

@@ -3,7 +3,7 @@
 TransactionsHandler::TransactionsHandler(
     sqlite3 *dbConnection,
     const string &tableName,
-    Logger *logger):
+    Logger &logger):
 
     mDataBase(dbConnection),
     mTableName(tableName),
@@ -187,16 +187,16 @@ vector<pair<BytesShared, size_t>> TransactionsHandler::allTransactions()
 
 LoggerStream TransactionsHandler::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->info(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.info(logHeader());
 }
 
 LoggerStream TransactionsHandler::error() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->error(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.error(logHeader());
 }
 
 const string TransactionsHandler::logHeader() const

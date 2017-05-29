@@ -16,7 +16,7 @@ public:
     PaymentOperationStateHandler(
         sqlite3 *dbConnection,
         const string &tableName,
-        Logger *logger);
+        Logger &logger);
 
     void saveRecord(
         const TransactionUUID &transactionUUID,
@@ -39,7 +39,7 @@ private:
 private:
     sqlite3 *mDataBase = nullptr;
     string mTableName;
-    Logger *mLog;
+    Logger &mLog;
 };
 
 

@@ -4,7 +4,7 @@ RoutingTablesHandler::RoutingTablesHandler(
     sqlite3 *dbConnection,
     const string &rt2TableName,
     const string &rt3TableName,
-    Logger *logger):
+    Logger &logger):
 
     mDataBase(dbConnection),
     mRoutingTable2Level(dbConnection, rt2TableName, logger),
@@ -266,16 +266,16 @@ map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourc
 
 LoggerStream RoutingTablesHandler::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->info(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.info(logHeader());
 }
 
 LoggerStream RoutingTablesHandler::error() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->error(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.error(logHeader());
 }
 
 const string RoutingTablesHandler::logHeader() const

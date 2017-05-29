@@ -23,7 +23,7 @@ public:
         HistoryStorage *historyStorage,
         PaymentOperationStateHandler *paymentOperationStorage,
         TransactionsHandler *transactionHandler,
-        Logger *logger);
+        Logger &logger);
 
     ~IOTransaction();
 
@@ -56,7 +56,7 @@ private:
     PaymentOperationStateHandler *mPaymentOperationStateHandler;
     TransactionsHandler *mTransactionHandler;
     bool mIsTransactionBegin;
-    Logger *mLog;
+    Logger &mLog;
 };
 
 

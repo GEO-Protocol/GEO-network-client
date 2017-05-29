@@ -71,7 +71,7 @@ using namespace std;
 class MessagesParser {
 public:
     MessagesParser(
-        Logger &logger)
+        Logger *logger)
         noexcept;
 
     pair<bool, Message::Shared> processBytesSequence(
@@ -94,7 +94,7 @@ protected:
         CollectedMessageType message) const;
 
 protected:
-    Logger &mLog;
+    Logger *mLog;
 };
 
 
