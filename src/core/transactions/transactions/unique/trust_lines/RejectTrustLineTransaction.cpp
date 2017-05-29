@@ -15,103 +15,54 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {}
 
-
-RejectTrustLineTransaction::RejectTrustLineTransaction(
-    BytesShared buffer,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Logger &logger) :
-
-    TrustLineTransaction(
-        BaseTransaction::TransactionType::RejectTrustLineTransactionType,
-        logger),
-    mTrustLinesManager(manager),
-    mStorageHandler(storageHandler) {
-
-    deserializeFromBytes(
-        buffer);
-}
-
-RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const {
-
+RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const
+{
     return mMessage;
 }
 
-TransactionResult::SharedConst RejectTrustLineTransaction::run() {
+TransactionResult::SharedConst RejectTrustLineTransaction::run()
+{
+    const auto kContractor = mMessage->contractorUUID();
 
-    // Check if CoordinatorUUId is Valid
-    if (!isContractorUUIDValid(mMessage->contractorUUID()))
+    if (kContractor == mNodeUUID) {
+        info() << "Attempt to launch transaction against itself was prevented.";
         return transactionResultFromMessage(mMessage->resultRejected());
-
-    if (!isIncomingTrustLineDirectionExisting())
-        return transactionResultFromMessage(
-            mMessage->resultRejected());
-    // check if  Trustline is available for delete
-    if (trustLineIsAvailableForDelete()) {
-        // close trustline
-        rejectTrustLine();
-        // update routing tables;
-        if (!mTrustLinesManager->isNeighbor(mMessage->contractorUUID())) {
-            const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
-                currentNodeUUID(),
-                currentNodeUUID(),
-                currentNodeUUID(),
-                mMessage->contractorUUID(),
-                TrustLineStatesHandlerTransaction::TrustLineState::Removed,
-                0,
-                mTrustLinesManager,
-                mStorageHandler,
-                mLog);
-            launchSubsidiaryTransaction(kTransaction);
-        }
-        return resultDone();
-    } else {
-        mTrustLinesManager->setIncomingTrustAmount(mMessage->contractorUUID(), 0);
-        return resultDone();
     }
-}
 
-bool RejectTrustLineTransaction::isTransactionToContractorUnique() {
-
-    return true;
-}
-
-bool RejectTrustLineTransaction::isIncomingTrustLineDirectionExisting() {
-
-    return mTrustLinesManager->checkDirection(mMessage->contractorUUID(), TrustLineDirection::Incoming) ||
-        mTrustLinesManager->checkDirection(mMessage->contractorUUID(), TrustLineDirection::Both);
-}
-
-void RejectTrustLineTransaction::rejectTrustLine() {
-
-    mTrustLinesManager->reject(
-        mMessage->contractorUUID());
-}
-
-void RejectTrustLineTransaction::logRejectingTrustLineOperation() {
-
-    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
-        uuid(mTransactionUUID),
-        TrustLineRecord::TrustLineOperationType::Rejecting,
-        mMessage->senderUUID);
-
+    // Trust line must be removed (updated) in the trust lines storage,
+    // and history record about the operation must be written to the history storage.
+    // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->historyStorage()->saveTrustLineRecord(record);
-}
+    // -----------------------------------------------------------
+    try {
+        // note: io transaction would commit automatically on destructor call.
+        // there is no need to call commit manually.
+        mTrustLinesManager->reject(
+            ioTransaction,
+            kContractor);
+        updateHistory(ioTransaction);
 
-bool RejectTrustLineTransaction::checkDebt() {
+        info() << "Trust line to the node " << kContractor << " closed successfully.";
+        return resultDone();
 
-    return mTrustLinesManager->balanceRange(mMessage->contractorUUID()) == BalanceRange::Negative;
-}
+    } catch (NotFoundError &e) {
+        ioTransaction->rollback();
+        info() << "Attempt to close trust line to the node " << kContractor << " failed. "
+               << "There is no outgoing trust line to this node is present. "
+               << "Details are: " << e.what();
 
-void RejectTrustLineTransaction::sendResponseCodeToContractor(
-    const uint16_t code) {
+        return resultDone();
 
-    sendMessage<Response>(
-        mMessage->senderUUID,
-        mNodeUUID,
-        mMessage->transactionUUID(),
-        code);
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        info() << "Attempt to close trust line to the node " << kContractor << " failed. "
+               << "IO transaction can't be completed. "
+               << "Details are: " << e.what();
+
+        // Rethrowing the exception,
+        // because the TA can't finish propely and no result may be returned.
+        throw e;
+    }
 }
 
 const string RejectTrustLineTransaction::logHeader() const
@@ -121,15 +72,13 @@ const string RejectTrustLineTransaction::logHeader() const
     return s.str();
 }
 
-bool RejectTrustLineTransaction::trustLineIsAvailableForDelete() {
-    const auto zeroBalance = TrustLineBalance(0);
-    const auto zeroAmount = TrustLineAmount(0);
+void RejectTrustLineTransaction::updateHistory(
+    IOTransaction::Shared ioTransaction)
+{
+    auto record = make_shared<TrustLineRecord>(
+        uuid(mTransactionUUID),
+        TrustLineRecord::Rejecting,
+        mMessage->contractorUUID());
 
-    if (mTrustLinesManager->balance(mMessage->contractorUUID()) == zeroBalance
-        and mTrustLinesManager->outgoingTrustAmount(mMessage->contractorUUID()) == zeroAmount
-        and mTrustLinesManager->incomingTrustAmount(mMessage->contractorUUID()) == zeroAmount
-        and not mTrustLinesManager->reservationIsPresent(mMessage->contractorUUID())){
-        return true;
-    }
-    return false;
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }

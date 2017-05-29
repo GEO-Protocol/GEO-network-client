@@ -27,22 +27,10 @@ class RejectTrustLineTransaction : public TrustLineTransaction {
 public:
     typedef shared_ptr<RejectTrustLineTransaction> Shared;
 
-private:
-    enum Stages{
-        CheckContractorUUIDValidity = 1,
-        CheckIncomingDirection
-    };
-
 public:
     RejectTrustLineTransaction(
         const NodeUUID &nodeUUID,
         RejectTrustLineMessage::Shared message,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Logger &logger);
-
-    RejectTrustLineTransaction(
-        BytesShared buffer,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Logger &logger);
@@ -55,22 +43,8 @@ protected:
     const string logHeader() const;
 
 private:
-    bool isTransactionToContractorUnique();
-
-    bool isIncomingTrustLineDirectionExisting();
-
-    bool checkDebt();
-
-    bool trustLineIsAvailableForDelete();
-
-    void suspendTrustLineDirectionFromContractor();
-
-    void rejectTrustLine();
-
-    void logRejectingTrustLineOperation();
-
-    void sendResponseCodeToContractor(
-        const uint16_t code);
+    void updateHistory(
+        IOTransaction::Shared ioTransaction);
 
 private:
     RejectTrustLineMessage::Shared mMessage;

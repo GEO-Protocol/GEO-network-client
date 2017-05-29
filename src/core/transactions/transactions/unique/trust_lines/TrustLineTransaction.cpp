@@ -24,18 +24,8 @@ TrustLineTransaction::TrustLineTransaction(
     setExpectationResponsesCounter(kResponsesCount);
 }
 
-void TrustLineTransaction::increaseRequestsCounter() {
-
-    mRequestCounter += 1;
-}
-
-void TrustLineTransaction::resetRequestsCounter() {
-
-    mRequestCounter = 0;
-}
-
-pair<BytesShared, size_t> TrustLineTransaction::serializeToBytes() const {
-
+pair<BytesShared, size_t> TrustLineTransaction::serializeToBytes() const
+{
     auto parentBytesAndCount = BaseTransaction::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second +
@@ -62,8 +52,8 @@ pair<BytesShared, size_t> TrustLineTransaction::serializeToBytes() const {
 }
 
 void TrustLineTransaction::deserializeFromBytes(
-    BytesShared buffer) {
-
+    BytesShared buffer)
+{
     BaseTransaction::deserializeFromBytes(
         buffer);
 
@@ -73,16 +63,9 @@ void TrustLineTransaction::deserializeFromBytes(
     mRequestCounter = *requestsCounter;
 }
 
-const size_t TrustLineTransaction::kOffsetToDataBytes() {
-
+const size_t TrustLineTransaction::kOffsetToDataBytes()
+{
     const size_t offset = BaseTransaction::kOffsetToInheritedBytes()
                                  + sizeof(uint16_t);
     return offset;
-}
-
-bool TrustLineTransaction::isContractorUUIDValid(const NodeUUID &contractorUUID){
-    if(contractorUUID == mNodeUUID){
-        return false;
-    }
-    return true;
 }

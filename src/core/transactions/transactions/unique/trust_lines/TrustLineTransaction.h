@@ -10,7 +10,8 @@
 #include <utility>
 #include <stdint.h>
 
-class TrustLineTransaction : public BaseTransaction {
+class TrustLineTransaction:
+    public BaseTransaction {
 
 protected:
     TrustLineTransaction(
@@ -22,17 +23,11 @@ protected:
         const BaseTransaction::TransactionType type,
         Logger &logger);
 
-    void increaseRequestsCounter();
-
-    void resetRequestsCounter();
-
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
 protected:
     virtual void deserializeFromBytes(
         BytesShared buffer);
-
-    virtual bool isContractorUUIDValid(const NodeUUID &contractorUUID);
 
     const size_t kOffsetToDataBytes();
 

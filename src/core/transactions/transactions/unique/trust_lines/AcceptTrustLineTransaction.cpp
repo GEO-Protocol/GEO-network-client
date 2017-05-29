@@ -12,24 +12,8 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
         nodeUUID,
         logger),
     mMessage(message),
-    mTrustLinesManager(manager),
+    mTrustLines(manager),
     mStorageHandler(storageHandler) {}
-
-AcceptTrustLineTransaction::AcceptTrustLineTransaction(
-    BytesShared buffer,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Logger &logger) :
-
-    TrustLineTransaction(
-        BaseTransaction::TransactionType::AcceptTrustLineTransactionType,
-        logger),
-    mTrustLinesManager(manager),
-    mStorageHandler(storageHandler) {
-
-    deserializeFromBytes(
-        buffer);
-}
 
 AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
 
@@ -38,114 +22,63 @@ AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
 
 TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
 
-    switch (mStep) {
+    const auto kContractor = mMessage->senderUUID;
 
-        case Stages::CheckContractorUUIDValidity: {
-            if (!isContractorUUIDValid(mMessage->senderUUID))
-                return transactionResultFromMessage(
-                    mMessage->resultRejected());
-            mStep = Stages::CheckJournal;
-        }
-
-        case Stages::CheckJournal: {
-            if (checkJournal()) {
-                sendResponseCodeToContractor(
-                        400);
-                mStep = Stages::CheckIncomingDirection;
-            }
-        }
-        case Stages::CheckIncomingDirection: {
-            if (isIncomingTrustLineDirectionExisting()) {
-
-                if (isIncomingTrustLineAlreadyAccepted()) {
-                    sendResponseCodeToContractor(
-                        AcceptTrustLineMessage::kResultCodeAccepted);
-
-                    return transactionResultFromMessage(
-                        mMessage->resultAccepted());
-
-                } else {
-                    sendResponseCodeToContractor(
-                        AcceptTrustLineMessage::kResultCodeConflict);
-
-                    return transactionResultFromMessage(
-                        mMessage->resultConflict());
-                }
-
-            } else {
-                acceptTrustLine();
-                logAcceptingTrustLineOperation();
-                sendResponseCodeToContractor(
-                    AcceptTrustLineMessage::kResultCodeAccepted);
-
-                if (!mTrustLinesManager->checkDirection(
-                    mMessage->senderUUID,
-                    TrustLineDirection::Both)) {
-                    const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
-                        currentNodeUUID(),
-                        currentNodeUUID(),
-                        currentNodeUUID(),
-                        mMessage->senderUUID,
-                        TrustLineStatesHandlerTransaction::TrustLineState::Created,
-                        0,
-                        mTrustLinesManager,
-                        mStorageHandler,
-                        mLog);
-                    launchSubsidiaryTransaction(kTransaction);
-                }
-
-                return transactionResultFromMessage(
-                    mMessage->resultAccepted());
-            }
-        }
-
-        default: {
-            throw ConflictError("AcceptTrustLineTransaction::run: "
-                                    "Illegal step execution.");
-        }
-
+    if (kContractor == mNodeUUID) {
+        info() << "Attempt to launch transaction against itself was prevented.";
+        sendResponseCodeToContractor(mMessage->kResultCodeRejected);
+        return transactionResultFromMessage(
+            mMessage->resultRejected());
     }
-}
-
-bool AcceptTrustLineTransaction::checkJournal() {
-//  todo add check journal method
-    return false;
-}
-
-bool AcceptTrustLineTransaction::isTransactionToContractorUnique() {
-//    todo  CheckTransactionOnUnique
-    return true;
-}
-
-bool AcceptTrustLineTransaction::isIncomingTrustLineDirectionExisting() {
-
-    return mTrustLinesManager->checkDirection(mMessage->senderUUID, TrustLineDirection::Incoming) ||
-        mTrustLinesManager->checkDirection(mMessage->senderUUID, TrustLineDirection::Both);
-}
-
-bool AcceptTrustLineTransaction::isIncomingTrustLineAlreadyAccepted() {
-
-
-    return mTrustLinesManager->incomingTrustAmount(mMessage->senderUUID) == mMessage->amount();
-}
-
-void AcceptTrustLineTransaction::acceptTrustLine() {
-
-    mTrustLinesManager->accept(
-        mMessage->senderUUID,
-        mMessage->amount());
-}
-
-void AcceptTrustLineTransaction::logAcceptingTrustLineOperation() {
-
-    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
-        uuid(mTransactionUUID),
-        TrustLineRecord::TrustLineOperationType::Accepting,
-        mMessage->senderUUID,
-        mMessage->amount());
 
     auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->historyStorage()->saveTrustLineRecord(record);
+    try {
+        mTrustLines->accept(
+            ioTransaction,
+            kContractor,
+            mMessage->amount());
+
+        updateHistory(ioTransaction);
+
+
+        // Launching transaction for routing tables population
+        if (mTrustLines->trustLineReadOnly(kContractor)->direction() != TrustLineDirection::Both) {
+            const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                currentNodeUUID(),
+                currentNodeUUID(),
+                currentNodeUUID(),
+                mMessage->senderUUID,
+                TrustLineStatesHandlerTransaction::Created,
+                0,
+                mTrustLines,
+                mStorageHandler,
+                mLog);
+
+            launchSubsidiaryTransaction(kTransaction);
+        }
+
+        info() << "Trust line to the node " << kContractor << " was successfully opened.";
+        sendResponseCodeToContractor(mMessage->kResultCodeAccepted);
+        return transactionResultFromMessage(mMessage->resultAccepted());
+
+    } catch (ConflictError &) {
+        ioTransaction->rollback();
+        info() << "Attempt to open trust line to the node " << kContractor << " failed. "
+               << "It seems that other transaction already opened the trust line during response receiveing.";
+        sendResponseCodeToContractor(mMessage->kResultCodeConflict);
+        return transactionResultFromMessage(mMessage->resultConflict());
+
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        info() << "Attempt to open trust line to the node " << kContractor << " failed. "
+               << "IO transaction can't be completed. "
+               << "Details are: " << e.what();
+
+        // Rethrowing the exception,
+        // because the TA can't finish propely and no result may be returned.
+        sendResponseCodeToContractor(mMessage->kResultCodeRejected);
+        throw e;
+    }
 }
 
 void AcceptTrustLineTransaction::sendResponseCodeToContractor(
@@ -163,4 +96,16 @@ const string AcceptTrustLineTransaction::logHeader() const
     stringstream s;
     s << "[AcceptTrustLineTA: " << currentTransactionUUID() << "]";
     return s.str();
+}
+
+void AcceptTrustLineTransaction::updateHistory(
+    IOTransaction::Shared ioTransaction)
+{
+    auto record = make_shared<TrustLineRecord>(
+        uuid(mTransactionUUID),
+        TrustLineRecord::Accepting,
+        mMessage->senderUUID,
+        mMessage->amount());
+
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }

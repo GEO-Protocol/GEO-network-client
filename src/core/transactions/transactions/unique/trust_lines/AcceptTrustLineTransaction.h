@@ -23,28 +23,16 @@
 #include <utility>
 #include <cstdint>
 
-class AcceptTrustLineTransaction : public TrustLineTransaction {
+class AcceptTrustLineTransaction:
+    public TrustLineTransaction {
+
 public:
     typedef shared_ptr<AcceptTrustLineTransaction> Shared;
-
-private:
-    enum Stages{
-        CheckContractorUUIDValidity = 1,
-        CheckJournal,
-        CheckUnicity,
-        CheckIncomingDirection
-    };
 
 public:
     AcceptTrustLineTransaction(
         const NodeUUID &nodeUUID,
         AcceptTrustLineMessage::Shared message,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Logger &logger);
-
-    AcceptTrustLineTransaction(
-        BytesShared buffer,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         Logger &logger);
@@ -56,25 +44,17 @@ public:
 protected:
     const string logHeader() const;
 
-private:
-    bool checkJournal();
+protected:
 
-    bool isTransactionToContractorUnique();
-
-    bool isIncomingTrustLineDirectionExisting();
-
-    bool isIncomingTrustLineAlreadyAccepted();
-
-    void acceptTrustLine();
-
-    void logAcceptingTrustLineOperation();
+    void updateHistory(
+        IOTransaction::Shared ioTransaction);
 
     void sendResponseCodeToContractor(
         const uint16_t code);
 
-private:
+protected:
     AcceptTrustLineMessage::Shared mMessage;
-    TrustLinesManager *mTrustLinesManager;
+    TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
 };
 
