@@ -39,13 +39,13 @@ public:
         RejectTrustLineMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     RejectTrustLineTransaction(
         BytesShared buffer,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     RejectTrustLineMessage::Shared message() const;
 

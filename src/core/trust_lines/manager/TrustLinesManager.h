@@ -13,7 +13,10 @@
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
 #include "../../logger/Logger.h"
+
+// TODO: remove storage handler include (IO transactions must be transferred as arguments)
 #include "../../io/storage/StorageHandler.h"
+#include "../../io/storage/IOTransaction.h"
 
 #include <boost/signals2.hpp>
 #include <boost/functional/hash.hpp>
@@ -41,22 +44,26 @@ public:
 public:
     TrustLinesManager(
         StorageHandler *storageHandler,
-        Logger *logger)
+        Logger &logger)
         throw (bad_alloc, IOError);
 
     void open(
+        IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount)
-        throw (ConflictError, IOError);
+        const TrustLineAmount &amount);
 
     void close(
-        const NodeUUID &contractorUUID)
-        throw (NotFoundError, PreconditionFailedError, IOError);
+        IOTransaction::Shared IOTransaction,
+        const NodeUUID &contractorUUID);
 
+    // TODO: remove thhrow(...)
+    // TODO: add IO transaction as argument
     void accept(
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
 
+    // TODO: remove thhrow(...)
+    // TODO: add IO transaction as argument
     void reject(
         const NodeUUID &contractorUUID);
 
@@ -139,8 +146,18 @@ public:
         const NodeUUID &node) const;
 
     void saveToDisk(
+        IOTransaction::Shared IOTransaction,
         TrustLine::Shared trustLine);
 
+    [[deprecated]]
+    void saveToDisk(
+        TrustLine::Shared trustLine);
+
+    void removeTrustLine(
+        IOTransaction::Shared IOTransaction,
+        const NodeUUID &contractorUUID);
+
+    [[deprecated]]
     void removeTrustLine(
         const NodeUUID &contractorUUID);
 
@@ -206,7 +223,7 @@ private:
 
     unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
     StorageHandler *mStorageHandler;
-    Logger *mLogger;
+    Logger &mLogger;
 };
 
 #endif //GEO_NETWORK_CLIENT_TRUSTLINESMANAGER_H

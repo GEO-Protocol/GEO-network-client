@@ -3,7 +3,7 @@
 
 BaseTransaction::BaseTransaction(
     const BaseTransaction::TransactionType type,
-    Logger *log) :
+    Logger &log) :
 
     mType(type),
     mLog(log)
@@ -12,7 +12,7 @@ BaseTransaction::BaseTransaction(
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
-    Logger *log) :
+    Logger &log) :
 
     mType(type),
     mLog(log),
@@ -22,7 +22,7 @@ BaseTransaction::BaseTransaction(
 BaseTransaction::BaseTransaction(
     BytesShared buffer,
     const NodeUUID &nodeUUID,
-    Logger *log) :
+    Logger &log) :
     mLog(log),
     mNodeUUID(nodeUUID)
 {
@@ -32,7 +32,7 @@ BaseTransaction::BaseTransaction(
 BaseTransaction::BaseTransaction(
     const TransactionType type,
     const NodeUUID &nodeUUID,
-    Logger *log) :
+    Logger &log) :
 
     mType(type),
     mLog(log),
@@ -43,7 +43,7 @@ BaseTransaction::BaseTransaction(
     const TransactionType type,
     const TransactionUUID &transactionUUID,
     const NodeUUID &nodeUUID,
-    Logger *log) :
+    Logger &log) :
 
     mType(type),
     mLog(log),
@@ -219,24 +219,27 @@ const size_t BaseTransaction::kOffsetToInheritedBytes() {
 }
 
 TransactionResult::SharedConst BaseTransaction::transactionResultFromCommand(
-    CommandResult::SharedConst result) {
+    CommandResult::SharedConst result) const {
 
+    // todo: refactor me
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setCommandResult(result);
     return TransactionResult::SharedConst(transactionResult);
 }
 
 TransactionResult::SharedConst BaseTransaction::transactionResultFromMessage(
-    MessageResult::SharedConst messageResult) {
+    MessageResult::SharedConst messageResult) const {
 
+    // todo: refactor me
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setMessageResult(messageResult);
     return TransactionResult::SharedConst(transactionResult);
 }
 
 TransactionResult::SharedConst BaseTransaction::transactionResultFromState(
-    TransactionState::SharedConst state) {
+    TransactionState::SharedConst state) const {
 
+    // todo: refactor me
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setTransactionState(state);
     return TransactionResult::SharedConst(transactionResult);
@@ -256,27 +259,16 @@ const string BaseTransaction::logHeader() const
 
 LoggerStream BaseTransaction::info() const
 {
-    // TODO: remove me. Logger must be initialised in constructor by default
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
 
-    return mLog->info(logHeader());
+    return mLog.info(logHeader());
 }
 
 LoggerStream BaseTransaction::error() const
 {
-    // TODO: remove me. Logger must be initialised in constructor by default
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-
-    return mLog->error(logHeader());
+    return mLog.error(logHeader());
 }
 
 LoggerStream BaseTransaction::debug() const
 {
-    // TODO: remove me. Logger must be initialised in constructor by default
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-
-    return mLog->debug(logHeader());
+    return mLog.debug(logHeader());
 }

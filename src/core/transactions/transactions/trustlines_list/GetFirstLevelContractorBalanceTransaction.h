@@ -18,7 +18,7 @@ public:
         NodeUUID &nodeUUID,
         GetTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        Logger *logger)
+        Logger &logger)
         noexcept;
 
     GetTrustLineCommand::Shared command() const;

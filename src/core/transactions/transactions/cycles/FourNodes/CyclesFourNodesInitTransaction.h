@@ -23,7 +23,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *logger);
+        Logger &logger);
 
     TransactionResult::SharedConst run();
 

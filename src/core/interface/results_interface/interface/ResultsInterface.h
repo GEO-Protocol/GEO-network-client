@@ -23,7 +23,7 @@ class ResultsInterface: public BaseFIFOInterface {
 
 public:
     explicit ResultsInterface(
-        Logger *logger);
+        Logger &logger);
 
     ~ResultsInterface();
 
@@ -39,7 +39,7 @@ public:
     static const constexpr unsigned int kPermissionsMask = 0755;
 
 private:
-    Logger *mLog;
+    Logger &mLog;
 };
 
 #endif //GEO_NETWORK_CLIENT_RESULTSINTERFACE_H

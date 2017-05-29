@@ -3,31 +3,18 @@
 
 #include "TrustLineTransaction.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
+#include "../../../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 
 #include "../../../../io/storage/StorageHandler.h"
 #include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
-
-#include "../../../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
-
-#include "../../../../network/messages/Message.hpp"
-#include "../../../../network/messages/trust_lines/CloseTrustLineMessage.h"
-#include "../../../../network/messages/trust_lines/RejectTrustLineMessage.h"
-
-#include "RejectTrustLineTransaction.h"
-
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 
-#include "../../../../common/exceptions/ConflictError.h"
+#include "../../../../network/messages/trust_lines/CloseTrustLineMessage.h"
 
-#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
 
-#include <memory>
-#include <utility>
-#include <cstdint>
+class CloseTrustLineTransaction:
+    public TrustLineTransaction {
 
-class CloseTrustLineTransaction: public TrustLineTransaction {
 public:
     typedef shared_ptr<CloseTrustLineTransaction> Shared;
 
@@ -37,57 +24,25 @@ public:
         CloseTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        Logger *logger);
-
-    CloseTrustLineTransaction(
-        BytesShared buffer,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Logger *logger);
-
-    CloseTrustLineCommand::Shared command() const;
-
-    pair<BytesShared, size_t> serializeToBytes() const;
+        Logger &logger)
+        noexcept;
 
     TransactionResult::SharedConst run();
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const
+        noexcept;
 
-private:
-    void deserializeFromBytes(
-        BytesShared buffer);
+    void updateHistory(
+        IOTransaction::Shared ioTransaction);
 
-    bool isTransactionToContractorUnique();
+    TransactionResult::SharedConst resultOK();
 
-    bool isOutgoingTrustLineDirectionExisting();
-
-    bool trustLineIsAvailableForDelete();
-
-    bool checkDebt();
-
-    void closeTrustLine();
-
-    void logClosingTrustLineOperation();
-
-    void sendMessageToRemoteNode();
-
-    TransactionResult::SharedConst waitingForResponseState();
-
-    TransactionResult::SharedConst resultOk(uint16_t code);
-
-    TransactionResult::SharedConst resultTrustLineAbsent();
-
-    TransactionResult::SharedConst resultConflictWithOtherOperation();
-
-    TransactionResult::SharedConst resultRemoteNodeIsInaccessible();
+    TransactionResult::SharedConst resultTrustLineIsAbsent();
 
     TransactionResult::SharedConst resultProtocolError();
 
 private:
-    const uint16_t kConnectionTimeout = 2000;
-    const uint16_t kMaxRequestsCount = 5;
-
     CloseTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;

@@ -54,7 +54,6 @@
 #include "../../resources/resources/BaseResource.h"
 
 #include "../transactions/base/BaseTransaction.h"
-#include "../transactions/base/UniqueTransaction.h"
 
 #include "../transactions/unique/trust_lines/OpenTrustLineTransaction.h"
 #include "../transactions/unique/trust_lines/AcceptTrustLineTransaction.h"
@@ -129,7 +128,7 @@ public:
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
-        Logger *logger);
+        Logger &logger);
 
     void processCommand(
         BaseUserCommand::Shared command);
@@ -315,7 +314,7 @@ private:
     ResultsInterface *mResultsInterface;
     PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;
-    Logger *mLog;
+    Logger &mLog;
 
     unique_ptr<TransactionsScheduler> mScheduler;
 };

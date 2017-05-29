@@ -28,7 +28,7 @@ void CyclesDelayedTasks::RunSignalSixNodes(const boost::system::error_code &erro
     mSixNodesCycleSignal();
 }
 
-CyclesDelayedTasks::CyclesDelayedTasks(as::io_service &ioService):mIOService(ioService){
+CyclesDelayedTasks::CyclesDelayedTasks(as::io_service &IOService):mIOService(IOService){
 //    todo add set Time started to 60*6
     srand(time(NULL));
     int TimeStarted = rand() % 60 * 60 * 6;

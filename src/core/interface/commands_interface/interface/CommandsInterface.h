@@ -63,7 +63,7 @@ class CommandsParser {
 
 public:
     CommandsParser(
-        Logger *log);
+        Logger &log);
 
     void appendReadData(
         as::streambuf *buffer,
@@ -92,7 +92,7 @@ public:
 
 private:
     string mBuffer;
-    Logger *mLog;
+    Logger &mLog;
 };
 
 
@@ -111,7 +111,7 @@ public:
     explicit CommandsInterface(
         as::io_service &ioService,
 //        TransactionsManager *transactionsManager,
-        Logger *logger);
+        Logger &logger);
 
     ~CommandsInterface();
 
@@ -138,7 +138,7 @@ protected:
 
     as::io_service &mIOService;
 //    TransactionsManager *mTransactionsManager;
-    Logger *mLog;
+    Logger &mLog;
 
     as::streambuf mCommandBuffer;
 

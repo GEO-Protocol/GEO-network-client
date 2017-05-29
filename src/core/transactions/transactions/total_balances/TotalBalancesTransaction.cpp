@@ -4,7 +4,7 @@ TotalBalancesTransaction::TotalBalancesTransaction(
     NodeUUID &nodeUUID,
     TotalBalancesCommand::Shared command,
     TrustLinesManager *manager,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::TotalBalancesTransactionType,
@@ -19,7 +19,7 @@ TotalBalancesTransaction::TotalBalancesTransaction(
     NodeUUID &nodeUUID,
     InitiateTotalBalancesMessage::Shared message,
     TrustLinesManager *manager,
-    Logger *logger):
+    Logger &logger):
 
     BaseTransaction(
         BaseTransaction::TransactionType::TotalBalancesTransactionType,

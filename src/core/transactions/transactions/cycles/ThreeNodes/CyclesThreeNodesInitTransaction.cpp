@@ -6,7 +6,7 @@ CyclesThreeNodesInitTransaction::CyclesThreeNodesInitTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_ThreeNodesInitTransaction,

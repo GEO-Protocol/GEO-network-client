@@ -7,7 +7,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *log) :
+    Logger &log) :
 
     BasePaymentTransaction(
         BaseTransaction::ReceiverPaymentTransaction,
@@ -29,7 +29,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *log) :
+    Logger &log) :
         BasePaymentTransaction(
             buffer,
             nodeUUID,

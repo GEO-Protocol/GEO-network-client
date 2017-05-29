@@ -4,7 +4,7 @@ MaxFlowCalculationCacheUpdateDelayedTask::MaxFlowCalculationCacheUpdateDelayedTa
     as::io_service &ioService,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheMnager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-    Logger *logger):
+    Logger &logger):
 
     mIOService(ioService),
     mMaxFlowCalculationCacheMnager(maxFlowCalculationCacheMnager),
@@ -64,23 +64,23 @@ void MaxFlowCalculationCacheUpdateDelayedTask::updateCache()
 
 LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::debug() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->debug(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.debug(logHeader());
 }
 
 LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->info(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.info(logHeader());
 }
 
 LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::error() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->error(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.error(logHeader());
 }
 
 const string MaxFlowCalculationCacheUpdateDelayedTask::logHeader() const

@@ -1,7 +1,7 @@
 #include "MaxFlowCalculationTrustLineManager.h"
 
 MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
-    Logger *logger):
+    Logger &logger):
     mLog(logger)
 {}
 
@@ -140,10 +140,11 @@ DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const
 
 LoggerStream MaxFlowCalculationTrustLineManager::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
+      // todo add tyr catch
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
 
-    return mLog->info(logHeader());
+    return mLog.info(logHeader());
 }
 
 const string MaxFlowCalculationTrustLineManager::logHeader() const

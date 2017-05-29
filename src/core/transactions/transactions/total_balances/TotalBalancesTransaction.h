@@ -17,13 +17,13 @@ public:
         NodeUUID &nodeUUID,
         TotalBalancesCommand::Shared command,
         TrustLinesManager *manager,
-        Logger *logger);
+        Logger &logger);
 
     TotalBalancesTransaction(
         NodeUUID &nodeUUID,
         InitiateTotalBalancesMessage::Shared message,
         TrustLinesManager *manager,
-        Logger *logger);
+        Logger &logger);
 
     TotalBalancesCommand::Shared command() const;
 

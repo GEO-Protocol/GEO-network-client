@@ -13,7 +13,7 @@ public:
             const NodeUUID &nodeUUID,
             VotesStatusRequestMessage::Shared message,
             StorageHandler *storageHandler,
-            Logger *logger
+            Logger &logger
     );
     TransactionResult::SharedConst run();
 

@@ -5,7 +5,7 @@ Crc32Rt2ResponseTransaction::Crc32Rt2ResponseTransaction(
     CRC32Rt2RequestMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    Logger *logger)
+    Logger &logger)
     noexcept:
     BaseTransaction(
         BaseTransaction::RoutingTables_CRC32Rt2Response,

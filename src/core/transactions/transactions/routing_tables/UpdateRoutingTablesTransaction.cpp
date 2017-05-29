@@ -5,7 +5,7 @@ UpdateRoutingTablesTransaction::UpdateRoutingTablesTransaction(
     UpdateRoutingTablesCommand::Shared command,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    Logger *logger)
+    Logger &logger)
 noexcept :
     BaseTransaction(
         BaseTransaction::RoutingTables_UpdateRoutingTable,

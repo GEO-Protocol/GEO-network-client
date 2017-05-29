@@ -5,7 +5,7 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     UpdateTrustLineMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::UpdateTrustLineTransactionType,
@@ -19,7 +19,7 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     BytesShared buffer,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     TrustLineTransaction(
         BaseTransaction::TransactionType::UpdateTrustLineTransactionType,

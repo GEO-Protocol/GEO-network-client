@@ -16,7 +16,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger *logger);
+        Logger &logger);
 
     const BaseTransaction::TransactionType transactionType() const;
 

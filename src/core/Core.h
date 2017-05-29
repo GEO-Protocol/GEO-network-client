@@ -52,6 +52,8 @@ private:
 
     int initSettings();
 
+    int initLogger(const json &conf);
+
     int initCommunicator(
         const json &conf);
 
@@ -131,11 +133,11 @@ private:
     void printRTs();
 
 protected:
-    Logger mLog;
 
     NodeUUID mNodeUUID;
     as::io_service mIOService;
 
+    unique_ptr<Logger> mLog;
     unique_ptr<Settings> mSettings;
     unique_ptr<Communicator> mCommunicator;
     unique_ptr<CommandsInterface> mCommandsInterface;

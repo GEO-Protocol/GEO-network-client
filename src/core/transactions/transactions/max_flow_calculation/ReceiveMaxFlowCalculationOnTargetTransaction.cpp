@@ -5,7 +5,7 @@ ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetT
     InitiateMaxFlowCalculationMessage::Shared message,
     TrustLinesManager *manager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::ReceiveMaxFlowCalculationOnTargetTransactionType,

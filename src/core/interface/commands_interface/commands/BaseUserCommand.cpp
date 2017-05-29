@@ -125,6 +125,11 @@ CommandResult::SharedConst BaseUserCommand::responseTrustlineIsAlreadyPresent() 
     return makeResult(409);
 }
 
+CommandResult::SharedConst BaseUserCommand::responseTrustlineRejected() const
+{
+    return makeResult(402);
+}
+
 CommandResult::SharedConst BaseUserCommand::responseInsufficientFunds() const
     noexcept
 {

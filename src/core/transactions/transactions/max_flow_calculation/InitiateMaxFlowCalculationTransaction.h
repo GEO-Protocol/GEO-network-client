@@ -24,7 +24,7 @@ public:
             TrustLinesManager *manager,
             MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
             MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-            Logger *logger);
+            Logger &logger);
 
     InitiateMaxFlowCalculationCommand::Shared command() const;
 

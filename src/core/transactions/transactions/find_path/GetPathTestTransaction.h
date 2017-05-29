@@ -19,7 +19,7 @@ public:
         NodeUUID &nodeUUID,
         FindPathCommand::Shared command,
         ResourcesManager *resourcesManager,
-        Logger *logger);
+        Logger &logger);
 
     FindPathCommand::Shared command() const;
 

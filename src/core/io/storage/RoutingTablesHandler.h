@@ -14,7 +14,7 @@ public:
         sqlite3 *dbConnection,
         const string &rt2TableName,
         const string &rt3TableName,
-        Logger *logger);
+        Logger &logger);
 
     vector<NodeUUID> subRoutesSecondLevel(const NodeUUID &contractorUUID);
 
@@ -74,7 +74,7 @@ private:
     sqlite3 *mDataBase = nullptr;
     RoutingTableHandler mRoutingTable2Level;
     RoutingTableHandler mRoutingTable3Level;
-    Logger *mLog;
+    Logger &mLog;
 };
 
 

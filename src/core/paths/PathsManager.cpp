@@ -4,7 +4,7 @@ PathsManager::PathsManager(
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLinesManager,
     StorageHandler *storageHandler,
-    Logger *logger):
+    Logger &logger):
 
     mNodeUUID(nodeUUID),
     mTrustLinesManager(trustLinesManager),
@@ -506,9 +506,9 @@ void PathsManager::clearPathsCollection()
 
 LoggerStream PathsManager::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->info(logHeader());
+//    if (nullptr == mLog)
+//        throw Exception("logger is not initialised");
+    return mLog.info(logHeader());
 }
 
 const string PathsManager::logHeader() const

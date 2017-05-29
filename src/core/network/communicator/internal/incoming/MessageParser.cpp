@@ -2,7 +2,7 @@
 
 
 MessagesParser::MessagesParser(
-    Logger &logger)
+    Logger *logger)
     noexcept:
 
     mLog(logger)
@@ -196,7 +196,7 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 #endif
 
         default: {
-            mLog.error("MessagesParser::processBytesSequence")
+            mLog->error("MessagesParser::processBytesSequence")
                 << "Unexpected message identifier occured (" << kMessageIdentifier << "). Message dropped.";
             return messageInvalidOrIncomplete();
         }

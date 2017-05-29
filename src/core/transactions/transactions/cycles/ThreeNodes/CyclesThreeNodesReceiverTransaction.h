@@ -18,7 +18,7 @@ public:
         const NodeUUID &nodeUUID,
         CyclesThreeNodesBalancesRequestMessage::Shared message,
         TrustLinesManager *manager,
-        Logger *logger);
+        Logger &logger);
 
     TransactionResult::SharedConst run();
 
