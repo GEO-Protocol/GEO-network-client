@@ -18,6 +18,22 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     mStorageHandler(storageHandler)
 {}
 
+TransactionResult::SharedConst OpenTrustLineTransaction::run()
+{
+    switch (mStep) {
+    case Stages::Initialization:
+        return initOperation();
+
+    case Stages::ResponseProcessing:
+        return processResponse();
+
+    default:
+        throw RuntimeError(
+            "OpenTrustLineTransaction::run: "
+            "unexpected step occured.");
+    }
+}
+
 TransactionResult::SharedConst OpenTrustLineTransaction::initOperation()
 {
     const auto kContractor = mCommand->contractorUUID();
@@ -32,13 +48,14 @@ TransactionResult::SharedConst OpenTrustLineTransaction::initOperation()
         mTrustLines->outgoingTrustAmount(kContractor) > 0) {
 
         info() << "Attempt to re-open trust line to the node " << kContractor << " prevented. "
-               << "There is an outgoing trust line already present.";
+               << "There is an outgoing trust line already present. "
+               << "Set trust line must be used in this case.";
         return resultTrustLineIsAlreadyPresent();
     }
 
     // Requesting remote node to open trust line.
-    // It is OK, if this message would be lost: in this case trust line would not be opened,
-    // and no trust lines desync will occure.
+    // It is OK, if this message would be lost: in this case trust line would not be opened on both sides.
+    // (this node will wait an approve from the remote node, and opent it's TL only on approve receiving)
     //
     // In case if message would be received by the contractor, it would accept the trust line,
     // but the response would be lost - then trasnaction desync would appear,
@@ -54,22 +71,6 @@ TransactionResult::SharedConst OpenTrustLineTransaction::initOperation()
     return resultWaitForMessageTypes(
         {Message::ResponseMessageType}, // ToDo: replace Message::ResponseMessageType by the proper message
         3000);
-}
-
-TransactionResult::SharedConst OpenTrustLineTransaction::run()
-{
-    switch (mStep) {
-    case Stages::Initial:
-        return initOperation();
-
-    case Stages::ResponseProcessing:
-        return processResponse();
-
-    default:
-        throw RuntimeError(
-            "OpenTrustLineTransaction::run: "
-            "unexpected step occured.");
-    }
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
@@ -124,7 +125,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
     } catch (ConflictError &) {
         ioTransaction->rollback();
         info() << "Attempt to open trust line to the node " << kContractor << " failed. "
-               << "It seems that o  ther transaction already opened the trust line during response receiveing.";
+               << "It seems that other transaction already opened the trust line during response receiveing.";
         return resultTrustLineIsAlreadyPresent();
 
     } catch (IOError &e) {
@@ -151,31 +152,32 @@ void OpenTrustLineTransaction::updateHistory(
     ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::resultOK()
+TransactionResult::SharedConst OpenTrustLineTransaction::resultOK() const
 {
     return transactionResultFromCommand(
         mCommand->responseCreated());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::resultTrustLineIsAlreadyPresent()
+TransactionResult::SharedConst OpenTrustLineTransaction::resultTrustLineIsAlreadyPresent() const
 {
     return transactionResultFromCommand(
         mCommand->responseTrustlineIsAlreadyPresent());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::resultRejected()
+TransactionResult::SharedConst OpenTrustLineTransaction::resultRejected() const
 {
     return transactionResultFromCommand(
         mCommand->responseTrustlineRejected());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::resultRemoteNodeIsInaccessible()
+TransactionResult::SharedConst OpenTrustLineTransaction::resultRemoteNodeIsInaccessible() const
 {
     return transactionResultFromCommand(
         mCommand->responseRemoteNodeIsInaccessible());
 }
 
-TransactionResult::SharedConst OpenTrustLineTransaction::resultProtocolError() {
+TransactionResult::SharedConst OpenTrustLineTransaction::resultProtocolError() const
+{
     return transactionResultFromCommand(
         mCommand->responseProtocolError());
 }

@@ -3,21 +3,18 @@
 
 #include "TrustLineTransaction.h"
 
+#include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../io/storage/StorageHandler.h"
 #include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
-
 #include "../../../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
+#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
 
 #include "../../../../network/messages/trust_lines/OpenTrustLineMessage.h"
 #include "../../../../network/messages/trust_lines/AcceptTrustLineMessage.h"
 #include "../../../../network/messages/response/Response.h"
 
-#include "../../../../trust_lines/manager/TrustLinesManager.h"
-
 #include "../../../../common/exceptions/ConflictError.h"
 #include "../../../../common/exceptions/RuntimeError.h"
-
-#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
 
 
 class OpenTrustLineTransaction:
@@ -25,12 +22,6 @@ class OpenTrustLineTransaction:
 
 public:
     typedef shared_ptr<OpenTrustLineTransaction> Shared;
-
-private:
-    enum Stages {
-        Initial,
-        ResponseProcessing
-    };
 
 public:
     OpenTrustLineTransaction(
@@ -44,26 +35,28 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
+    inline TransactionResult::SharedConst initOperation();
+    inline TransactionResult::SharedConst processResponse();
+
+protected:
+    TransactionResult::SharedConst resultOK() const;
+    TransactionResult::SharedConst resultTrustLineIsAlreadyPresent() const;
+    TransactionResult::SharedConst resultRejected() const;
+    TransactionResult::SharedConst resultRemoteNodeIsInaccessible() const;
+    TransactionResult::SharedConst resultProtocolError() const;
+
+protected:
     const string logHeader() const;
-
-    TransactionResult::SharedConst initOperation();
-
-    TransactionResult::SharedConst processResponse();
 
     void updateHistory(
         IOTransaction::Shared ioTransaction);
 
-    TransactionResult::SharedConst resultOK();
+protected:
+    enum Stages {
+        Initialization = 1, // todo: [v1.1] begin counter from 0 instead of 1.
+        ResponseProcessing
+    };
 
-    TransactionResult::SharedConst resultTrustLineIsAlreadyPresent();
-
-    TransactionResult::SharedConst resultRejected();
-
-    TransactionResult::SharedConst resultRemoteNodeIsInaccessible();
-
-    TransactionResult::SharedConst resultProtocolError();
-
-private:
     OpenTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;

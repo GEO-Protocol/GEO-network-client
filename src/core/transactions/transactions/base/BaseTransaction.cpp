@@ -219,24 +219,27 @@ const size_t BaseTransaction::kOffsetToInheritedBytes() {
 }
 
 TransactionResult::SharedConst BaseTransaction::transactionResultFromCommand(
-    CommandResult::SharedConst result) {
+    CommandResult::SharedConst result) const {
 
+    // todo: refactor me
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setCommandResult(result);
     return TransactionResult::SharedConst(transactionResult);
 }
 
 TransactionResult::SharedConst BaseTransaction::transactionResultFromMessage(
-    MessageResult::SharedConst messageResult) {
+    MessageResult::SharedConst messageResult) const {
 
+    // todo: refactor me
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setMessageResult(messageResult);
     return TransactionResult::SharedConst(transactionResult);
 }
 
 TransactionResult::SharedConst BaseTransaction::transactionResultFromState(
-    TransactionState::SharedConst state) {
+    TransactionState::SharedConst state) const {
 
+    // todo: refactor me
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setTransactionState(state);
     return TransactionResult::SharedConst(transactionResult);

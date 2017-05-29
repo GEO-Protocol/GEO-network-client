@@ -225,13 +225,13 @@ protected:
     static const size_t kOffsetToInheritedBytes();
 
     TransactionResult::SharedConst transactionResultFromCommand(
-        CommandResult::SharedConst result);
+        CommandResult::SharedConst result) const;
 
     TransactionResult::SharedConst transactionResultFromMessage(
-        MessageResult::SharedConst result);
+        MessageResult::SharedConst result) const;
 
     TransactionResult::SharedConst transactionResultFromState(
-        TransactionState::SharedConst state);
+        TransactionState::SharedConst state) const;
 
     [[deprecated]]
     TransactionResult::SharedConst finishTransaction();
