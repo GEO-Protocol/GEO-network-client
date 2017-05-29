@@ -3,6 +3,7 @@
 
 #include "../BaseUserCommand.h"
 #include "../../../../common/exceptions/ValueError.h"
+#include "../../../../common/time/TimeUtils.h"
 
 class HistoryTrustLinesCommand : public BaseUserCommand {
 
@@ -22,13 +23,28 @@ public:
 
     const size_t historyCount() const;
 
+    const DateTime timeFrom() const;
+
+    const DateTime timeTo() const;
+
+    const bool isTimeFromPresent() const;
+
+    const bool isTimeToPresent() const;
+
 protected:
     void parse(
             const string &command);
 
 private:
+    string kNullParameter = "null";
+
+private:
     size_t mHistoryFrom;
     size_t mHistoryCount;
+    DateTime mTimeFrom;
+    DateTime mTimeTo;
+    bool mIsTimeFromPresent;
+    bool mIsTimeToPresent;
 };
 
 

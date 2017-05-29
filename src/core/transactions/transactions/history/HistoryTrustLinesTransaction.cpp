@@ -24,7 +24,11 @@ TransactionResult::SharedConst HistoryTrustLinesTransaction::run()
     auto ioTransaction = mStorageHandler->beginTransaction();
     auto const trustLineRecords = ioTransaction->historyStorage()->allTrustLineRecords(
         mCommand->historyCount(),
-        mCommand->historyFrom());
+        mCommand->historyFrom(),
+        mCommand->timeFrom(),
+        mCommand->isTimeFromPresent(),
+        mCommand->timeTo(),
+        mCommand->isTimeToPresent());
     return resultOk(trustLineRecords);
 }
 

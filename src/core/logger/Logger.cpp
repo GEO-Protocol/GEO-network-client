@@ -180,13 +180,13 @@ void Logger::logRecord(
     const string &message,
     const addInfoType &addinfo)
 {
-//    #ifdef DEBUG
-        cout << recordPrefix(group)
-             << subsystem << "\t"
-             << formatMessage(message) << endl;
-        cout.flush();
-//        return;
-//    #endif
+#ifdef DEBUG
+    cout << recordPrefix(group)
+         << subsystem << "\t"
+         << formatMessage(message) << endl;
+    cout.flush();
+    return;
+#endif
     mRecordsQueue.push({
         get_unixtime(),
         group,
