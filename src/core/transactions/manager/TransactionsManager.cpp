@@ -673,6 +673,7 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
 void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
     MaxFlowCalculationTargetSndLevelMessage::Shared message) {
 
+    // todo: remote bad_alloc catch
     try {
         auto transaction = make_shared<MaxFlowCalculationTargetSndLevelTransaction>(
             mNodeUUID,

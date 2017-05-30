@@ -212,6 +212,7 @@ protected:
     [[deprecated("Use stages enum instead. See payment operations as example")]]
     void resetStepsCounter();
 
+    [[deprecated]]
     void setExpectationResponsesCounter(
         uint16_t count);
 
