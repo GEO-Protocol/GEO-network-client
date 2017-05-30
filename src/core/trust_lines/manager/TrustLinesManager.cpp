@@ -42,13 +42,12 @@ void TrustLinesManager::open(
     if (amount <= kZeroAmount)
         throw ValueError(
             "TrustLinesManager::open: "
-                "can't open trust line with zero amount");
+            "can't open trust line with zero amount");
 
     if (trustLineIsPresent(contractorUUID) and outgoingTrustAmount(contractorUUID) > 0) {
         throw ConflictError(
             "TrustLinesManager::open: "
             "can't open outgoing trust line. There is an already present one.");
-
     }
 
     if (not trustLineIsPresent(contractorUUID)) {
@@ -87,18 +86,19 @@ void TrustLinesManager::close(
     }
 
     auto trustLine = mTrustLines.find(contractorUUID)->second;
-    if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
-        throw NotFoundError(
+    if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()
+        and mAmountReservationsHandler->totalReservedOnTrustLine(contractorUUID)) {
+        throw ConflictError(
             "TrustLinesManager::close: "
             "can't close outgoing trust line: outgoing amount equals to zero. "
-            "It seems that trust line has been already closed. ");
+            "Trust line has been already closed. But there are some reservation on this trust line. ");
     }
 
 
     trustLine->setOutgoingTrustAmount(0);
     if (trustLine->incomingTrustAmount() == 0
         and trustLine->balance() == 0
-        and mAmountReservationsHandler->totalReservedOnTrustLine(contractorUUID)) {
+        and not mAmountReservationsHandler->totalReservedOnTrustLine(contractorUUID)) {
 
         // Trust line must not be removed even if it has zero balance, but has reserves on it.
         removeTrustLine(
@@ -125,13 +125,12 @@ void TrustLinesManager::accept(
     if (amount <= kZeroAmount)
         throw ValueError(
             "TrustLinesManager::open: "
-                "can't open trust line with zero amount");
+            "can't open trust line with zero amount");
 
     if (trustLineIsPresent(contractorUUID) and incomingTrustAmount(contractorUUID) > 0) {
         throw ConflictError(
             "TrustLinesManager::open: "
-                "can't open incoming trust line. There is an already present one.");
-
+            "can't open incoming trust line. There is an already present one.");
     }
 
     if (not trustLineIsPresent(contractorUUID)) {
@@ -167,21 +166,22 @@ void TrustLinesManager::reject(
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
             "TrustLinesManager::close: "
-                "trust line doesn't exist.");
+            "trust line doesn't exist.");
     }
 
     auto trustLine = mTrustLines.find(contractorUUID)->second;
-    if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()) {
-        throw NotFoundError(
-            "TrustLinesManager::close: "
-                "can't close incoming trust line: incoming amount equals to zero. "
-                "It seems that trust line has been already closed. ");
+    if (trustLine->incomingTrustAmount() == TrustLine::kZeroAmount()
+        and mAmountReservationsHandler->totalReservedOnTrustLine(contractorUUID)) {
+        throw ConflictError(
+            "TrustLinesManager::reject: "
+            "can't close incoming trust line: incoming amount equals to zero. "
+            "Trust line has been already closed. But there are some reservation on this trust line. ");
     }
 
     trustLine->setIncomingTrustAmount(0);
     if (trustLine->outgoingTrustAmount() == 0
         and trustLine->balance() == 0
-        and mAmountReservationsHandler->totalReservedOnTrustLine(contractorUUID))
+        and not mAmountReservationsHandler->totalReservedOnTrustLine(contractorUUID))
     {
         removeTrustLine(
             IOTransaction,
@@ -203,19 +203,18 @@ void TrustLinesManager::set(
     if (amount <= kZeroAmount)
         throw ValueError(
             "TrustLinesManager::set: "
-                "can't set trust line amount to zero");
+            "can't set trust line amount to zero");
 
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
             "TrustLinesManager::set: "
-                "trust line doesn't exist.");
+            "trust line doesn't exist.");
     }
 
     if (outgoingTrustAmount(contractorUUID) == 0) {
         throw NotFoundError(
             "TrustLinesManager::set: "
-                "can't update outgoing trust line. Trust line is closed.");
-
+            "can't update outgoing trust line. Trust line is closed.");
     }
 
     auto trustLine = mTrustLines[contractorUUID];
@@ -235,18 +234,18 @@ void TrustLinesManager::update(
     if (amount <= kZeroAmount)
         throw ValueError(
             "TrustLinesManager::update: "
-                "can't set trust line amount to zero");
+            "can't set trust line amount to zero");
 
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
             "TrustLinesManager::update: "
-                "trust line doesn't exist.");
+            "trust line doesn't exist.");
     }
 
     if (incomingTrustAmount(contractorUUID) == 0) {
         throw NotFoundError(
             "TrustLinesManager::update: "
-                "can't update outgoing trust line. Trust line is closed.");
+            "can't update outgoing trust line. Trust line is closed.");
     }
 
     auto trustLine = mTrustLines[contractorUUID];
