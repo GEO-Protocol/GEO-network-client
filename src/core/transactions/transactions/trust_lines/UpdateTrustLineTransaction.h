@@ -36,14 +36,6 @@ public:
         StorageHandler *storageHandler,
         Logger &logger);
 
-    UpdateTrustLineTransaction(
-        BytesShared buffer,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Logger &logger);
-
-    UpdateTrustLineMessage::Shared message() const;
-
     TransactionResult::SharedConst run();
 
 protected:

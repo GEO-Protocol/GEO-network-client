@@ -38,8 +38,6 @@ public:
         StorageHandler *storageHandler,
         Logger &logger);
 
-    AcceptTrustLineMessage::Shared message() const;
-
     TransactionResult::SharedConst run();
 
 protected:

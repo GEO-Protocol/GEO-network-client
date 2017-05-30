@@ -15,27 +15,6 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     mTrustLines(manager),
     mStorageHandler(storageHandler) {}
 
-UpdateTrustLineTransaction::UpdateTrustLineTransaction(
-    BytesShared buffer,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Logger &logger) :
-
-    TrustLineTransaction(
-        BaseTransaction::TransactionType::UpdateTrustLineTransactionType,
-        logger),
-    mTrustLines(manager),
-    mStorageHandler(storageHandler) {
-
-    deserializeFromBytes(
-        buffer);
-}
-
-UpdateTrustLineMessage::Shared UpdateTrustLineTransaction::message() const
-{
-    return mMessage;
-}
-
 TransactionResult::SharedConst UpdateTrustLineTransaction::run()
 {
     const auto kContractor = mMessage->senderUUID;
@@ -49,7 +28,6 @@ TransactionResult::SharedConst UpdateTrustLineTransaction::run()
     // and history record about the operation must be written to the history storage.
     // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
-    // -----------------------------------------------------------
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
@@ -66,13 +44,13 @@ TransactionResult::SharedConst UpdateTrustLineTransaction::run()
         ioTransaction->rollback();
         info() << "Attempt to open trust line to the node " << kContractor << " failed. "
                << "Cannot opent trustline with zero amount";
+        return resultDone();
 
     } catch (NotFoundError &e) {
         ioTransaction->rollback();
         info() << "Attempt to update trust line to the node " << kContractor << " failed. "
                << "There is no incoming trust line to this node is present. "
                << "Details are: " << e.what();
-
         return resultDone();
 
     } catch (IOError &e) {

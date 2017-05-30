@@ -15,11 +15,6 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     mTrustLines(manager),
     mStorageHandler(storageHandler) {}
 
-AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const
-{
-    return mMessage;
-}
-
 TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 {
     const auto kContractor = mMessage->senderUUID;
@@ -39,22 +34,25 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
             mMessage->amount());
 
         updateHistory(ioTransaction);
-
-
+        
         // Launching transaction for routing tables population
-        if (mTrustLines->trustLineReadOnly(kContractor)->direction() != TrustLineDirection::Both) {
-            const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
-                currentNodeUUID(),
-                currentNodeUUID(),
-                currentNodeUUID(),
-                mMessage->senderUUID,
-                TrustLineStatesHandlerTransaction::Created,
-                0,
-                mTrustLines,
-                mStorageHandler,
-                mLog);
+        try {
+            if (mTrustLines->trustLineReadOnly(kContractor)->direction() != TrustLineDirection::Both) {
+                const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                    currentNodeUUID(),
+                    currentNodeUUID(),
+                    currentNodeUUID(),
+                    mMessage->senderUUID,
+                    TrustLineStatesHandlerTransaction::Created,
+                    0,
+                    mTrustLines,
+                    mStorageHandler,
+                    mLog);
 
-            launchSubsidiaryTransaction(kTransaction);
+                launchSubsidiaryTransaction(kTransaction);
+            }
+        } catch (...) {
+            error() << "Can not start TrustLineStatesHandlerTransaction";
         }
 
         info() << "Trust line to the node " << kContractor << " was successfully opened.";
@@ -66,6 +64,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
         info() << "Attempt to open trust line to the node " << kContractor << " failed. "
                << "Cannot opent trustline with zero amount";
         sendResponseCodeToContractor(mMessage->kResultCodeRejected);
+        return transactionResultFromMessage(mMessage->resultConflict());
 
     } catch (ConflictError &) {
         ioTransaction->rollback();
@@ -88,8 +87,8 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 }
 
 void AcceptTrustLineTransaction::sendResponseCodeToContractor(
-    const uint16_t code) {
-
+    const uint16_t code)
+{
     sendMessage<Response>(
         mMessage->senderUUID,
         mNodeUUID,

@@ -101,21 +101,24 @@ TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
 
         updateHistory(ioTransaction);
 
+        try {
+            // Launching transaction for routing tables population
+            if (mTrustLines->trustLineReadOnly(kContractor)->direction() != TrustLineDirection::Both) {
+                const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                    currentNodeUUID(),
+                    currentNodeUUID(),
+                    currentNodeUUID(),
+                    mCommand->contractorUUID(),
+                    TrustLineStatesHandlerTransaction::Created,
+                    0,
+                    mTrustLines,
+                    mStorageHandler,
+                    mLog);
 
-        // Launching transaction for routing tables population
-        if (mTrustLines->trustLineReadOnly(kContractor)->direction() != TrustLineDirection::Both) {
-            const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
-                currentNodeUUID(),
-                currentNodeUUID(),
-                currentNodeUUID(),
-                mCommand->contractorUUID(),
-                TrustLineStatesHandlerTransaction::Created,
-                0,
-                mTrustLines,
-                mStorageHandler,
-                mLog);
-
-            launchSubsidiaryTransaction(kTransaction);
+                launchSubsidiaryTransaction(kTransaction);
+            }
+        } catch (...) {
+            error() << "Can not start TrustLineStatesHandlerTransaction";
         }
 
         info() << "Trust line to the node " << kContractor << " was successfully opened.";
@@ -125,6 +128,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
         ioTransaction->rollback();
         info() << "Attempt to open trust line to the node " << kContractor << " failed. "
                << "Cannot opent trustline with zero amount";
+        return resultProtocolError();
 
     } catch (ConflictError &) {
         ioTransaction->rollback();

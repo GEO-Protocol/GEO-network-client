@@ -59,13 +59,13 @@ TransactionResult::SharedConst SetTrustLineTransaction::run()
         ioTransaction->rollback();
         info() << "Attempt to open trust line to the node " << kContractor << " failed. "
                << "Cannot opent trustline with zero amount";
+        return resultDone();
 
     } catch (NotFoundError &e) {
         ioTransaction->rollback();
         info() << "Attempt to update trust line to the node " << kContractor << " failed. "
                << "There is no outgoing trust line to this node is present. "
                << "Details are: " << e.what();
-
         return resultTrustlineIsAbsent();
 
     } catch (IOError &e) {

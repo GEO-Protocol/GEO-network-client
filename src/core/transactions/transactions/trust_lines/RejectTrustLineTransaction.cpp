@@ -15,11 +15,6 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     mTrustLines(manager),
     mStorageHandler(storageHandler) {}
 
-RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const
-{
-    return mMessage;
-}
-
 TransactionResult::SharedConst RejectTrustLineTransaction::run()
 {
     const auto kContractor = mMessage->contractorUUID();
