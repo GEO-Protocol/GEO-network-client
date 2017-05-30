@@ -10,7 +10,6 @@ Core::~Core()
 int Core::run()
 {
 
-
     auto initCode = initSubsystems();
     writePIDFile();
     if (initCode != 0) {
@@ -31,7 +30,6 @@ int Core::run()
         mLog->logException("Core", e);
         return -1;
     }
-
 }
 
 int Core::initSubsystems() {
@@ -39,7 +37,6 @@ int Core::initSubsystems() {
     int initCode;
 
     initCode = initSettings();
-
 
     if (initCode != 0)
         return initCode;
@@ -52,7 +49,7 @@ int Core::initSubsystems() {
         conf = mSettings->loadParsedJSON();
 
     } catch (std::exception &e) {
-        mLog->logException("Settings", e);
+        cerr << utc_now() <<" : FATAL\tSETTINGS\t" <<  e.what() << "." << endl;
         return -1;
     }
 
@@ -60,8 +57,8 @@ int Core::initSubsystems() {
         mNodeUUID = mSettings->nodeUUID(&conf);
 
     } catch (RuntimeError &) {
-        // todo what to do if settings cannot initiaize
-//        mLog->logFatal("Core", "Can't read UUID of the node from the settings.");
+        // Logger was not initialized yet
+        cerr << utc_now() <<" : SUCCESS\tCORE\tCan't read UUID of the node from the settings" << endl;
         return -1;
     }
 
@@ -118,25 +115,6 @@ int Core::initSubsystems() {
 
     connectSignalsToSlots();
 
-    // TODO: Remove me
-    // This scheme is needd for payments tests
-    // Please, do no remove it untile payments would be done
-
-//    if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff00")) {
-//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(100));
-//
-//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff01")) {
-//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff00"), TrustLineAmount(100));
-//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(90));
-//
-//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff02")) {
-//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(90));
-//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff03"), TrustLineAmount(80));
-//
-//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff03")) {
-//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(80));
-//    }
-
     return 0;
 }
 
@@ -144,11 +122,13 @@ int Core::initSettings() {
 
     try {
         mSettings = make_unique<Settings>();
-        // mLog.logSuccess("Core", "Settings are successfully initialised");
+        // Logger was not initialized yet
+        cerr << utc_now() <<" : SUCCESS\tCORE\tSettings are successfully initialised." << endl;
         return 0;
 
     } catch (const std::exception &e) {
-        //  mLog.logException("Core", e);
+        // Logger was not initialized yet
+        cerr << utc_now() <<" : FATAL\tCORE\t" <<  e.what() << "." << endl;
         return -1;
     }
 }
@@ -165,9 +145,9 @@ int Core::initLogger(
             mSettings->influxDbPort(&conf)
         );
         return 0;
-    } catch (const std::exception &e) {
-        // todo add notify that loger canot be initialize
-    //        mLog.logException("Core", e);
+    } catch (...) {
+        // Logger can not be initialized
+        cerr << utc_now() <<" : FATAL\tCORE\tLogger cannot be initialized." << endl;
         return -1;
     }
 }
