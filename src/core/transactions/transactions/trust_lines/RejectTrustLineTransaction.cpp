@@ -76,10 +76,12 @@ const string RejectTrustLineTransaction::logHeader() const
 void RejectTrustLineTransaction::updateHistory(
     IOTransaction::Shared ioTransaction)
 {
+#ifndef TESTS
     auto record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::Rejecting,
         mMessage->contractorUUID());
 
     ioTransaction->historyStorage()->saveTrustLineRecord(record);
+#endif
 }

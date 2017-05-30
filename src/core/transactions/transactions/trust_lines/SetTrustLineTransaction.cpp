@@ -104,6 +104,7 @@ const string SetTrustLineTransaction::logHeader() const
 void SetTrustLineTransaction::updateHistory(
     IOTransaction::Shared ioTransaction)
 {
+#ifndef TESTS
     auto record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::Setting,
@@ -111,4 +112,5 @@ void SetTrustLineTransaction::updateHistory(
         mCommand->newAmount());
 
     ioTransaction->historyStorage()->saveTrustLineRecord(record);
+#endif
 }
