@@ -55,10 +55,16 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run()
     } catch (NotFoundError &e) {
         ioTransaction->rollback();
         info() << "Attempt to close trust line to the node " << kContractor << " failed. "
-               << "There is no outgoing trust line to this node is present. "
+               << "There is no outgoing trust line to this node is present."
                << "Details are: " << e.what();
 
         return resultTrustLineIsAbsent();
+
+    } catch (ConflictError &) {
+        ioTransaction->rollback();
+        info() << "Attempt to close trust line to the node " << kContractor << "failed. "
+               << "It seems that trust line is already closed, but there are some reservations on it.";
+        return resultPostponedByReservations();
 
     } catch (IOError &e) {
         ioTransaction->rollback();
@@ -89,6 +95,12 @@ TransactionResult::SharedConst CloseTrustLineTransaction::resultOK()
 {
     return transactionResultFromCommand(
         mCommand->responseOK());
+}
+
+TransactionResult::SharedConst CloseTrustLineTransaction::resultPostponedByReservations() const
+{
+    return transactionResultFromCommand(
+        mCommand->responsePostponedbyreservations());
 }
 
 TransactionResult::SharedConst CloseTrustLineTransaction::resultTrustLineIsAbsent()

@@ -28,12 +28,6 @@ public:
     MessageResult::SharedConst resultRejected()
         throw(bad_alloc);
 
-    MessageResult::SharedConst resultRejectDelayed()
-        throw(bad_alloc);
-
-    MessageResult::SharedConst resultTransactionConflict() const
-        throw(bad_alloc);
-
 public:
     static const uint16_t kResultCodeRejected = 200;
     static const uint16_t kResultCodeRejectDelayed = 202;

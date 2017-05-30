@@ -200,3 +200,4 @@ const string OpenTrustLineTransaction::logHeader() const
     s << "[OpenTrustLineTA: " << currentTransactionUUID() << "]";
     return s.str();
 }
+

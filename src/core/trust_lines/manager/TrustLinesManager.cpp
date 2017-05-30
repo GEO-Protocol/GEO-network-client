@@ -33,6 +33,7 @@ void TrustLinesManager::loadTrustLinesFromDisk ()
  * @throws ConflictError
  * @throws bad_alloc
  */
+// Open(Create) outging trust line
 void TrustLinesManager::open(
     IOTransaction::Shared IOTransaction,
     const NodeUUID &contractorUUID,
@@ -75,6 +76,7 @@ void TrustLinesManager::open(
  * @throws NotFoundError
  * @throws IOError
  */
+// Close outgoing trust line
 void TrustLinesManager::close(
     IOTransaction::Shared IOTransaction,
     const NodeUUID &contractorUUID)
@@ -116,6 +118,7 @@ void TrustLinesManager::close(
  * throw ConflictError - trust line is already exist
  * throw MemoryError - can not allocate memory for trust line instance
  */
+// Open(Create) incoming trust line
 void TrustLinesManager::accept(
     IOTransaction::Shared IOTransaction,
     const NodeUUID &contractorUUID,
@@ -159,6 +162,7 @@ void TrustLinesManager::accept(
  * throw ValueError - trust amount less or equals by zero
  * throw NotFoundError - trust line does not exist
  */
+// Close incoming trust line
 void TrustLinesManager::reject(
     IOTransaction::Shared IOTransaction,
     const NodeUUID &contractorUUID) {
@@ -194,6 +198,7 @@ void TrustLinesManager::reject(
     }
 }
 
+// Update outgoing trust line amount
 void TrustLinesManager::set(
     IOTransaction::Shared IOTransaction,
     const NodeUUID &contractorUUID,
@@ -225,6 +230,7 @@ void TrustLinesManager::set(
     return;
 }
 
+// Update incoming trust line amount
 void TrustLinesManager::update(
     IOTransaction::Shared IOTransaction,
     const NodeUUID &contractorUUID,
@@ -255,8 +261,6 @@ void TrustLinesManager::update(
         trustLine);
     return;
 }
-
-
 
 const bool TrustLinesManager::checkDirection(
     const NodeUUID &contractorUUID,

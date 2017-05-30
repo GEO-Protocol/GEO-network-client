@@ -38,6 +38,8 @@ protected:
 
     TransactionResult::SharedConst resultOK();
 
+    TransactionResult::SharedConst resultPostponedByReservations() const;
+
     TransactionResult::SharedConst resultTrustLineIsAbsent();
 
     TransactionResult::SharedConst resultProtocolError();

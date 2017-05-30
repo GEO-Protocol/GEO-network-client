@@ -47,6 +47,12 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run()
 
         return resultDone();
 
+    } catch (ConflictError &) {
+        ioTransaction->rollback();
+        info() << "Attempt to close trust line to the node " << kContractor << "failed. "
+               << "It seems that trust line is already closed, but there are some reservations on it.";
+        return resultDone();
+
     } catch (IOError &e) {
         ioTransaction->rollback();
         info() << "Attempt to close trust line to the node " << kContractor << " failed. "

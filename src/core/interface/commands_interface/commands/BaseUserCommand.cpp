@@ -101,6 +101,12 @@ CommandResult::SharedConst BaseUserCommand::responseCreated() const
     return makeResult(201);
 }
 
+CommandResult::SharedConst BaseUserCommand::responsePostponedbyreservations() const
+    noexcept
+{
+    return makeResult(203);
+}
+
 CommandResult::SharedConst BaseUserCommand::responseProtocolError() const
     noexcept
 {
