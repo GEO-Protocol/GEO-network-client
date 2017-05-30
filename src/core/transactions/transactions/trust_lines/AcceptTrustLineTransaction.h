@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_ACCEPTTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_ACCEPTTRUSTLINETRANSACTION_H
 
-#include "TrustLineTransaction.h"
+#include "../base/BaseTransaction.h"
 
 #include "../../../common/Types.h"
 #include "../../../common/memory/MemoryUtils.h"
@@ -25,7 +25,7 @@
 
 
 class AcceptTrustLineTransaction:
-    public TrustLineTransaction {
+    public BaseTransaction {
 
 public:
     typedef shared_ptr<AcceptTrustLineTransaction> Shared;

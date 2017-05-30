@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_SETTRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_SETTRUSTLINETRANSACTION_H
 
-#include "TrustLineTransaction.h"
+#include "../base/BaseTransaction.h"
 
 #include "../../../common/Types.h"
 #include "../../../common/time/TimeUtils.h"
@@ -27,7 +27,7 @@
 #include <cstdint>
 
 class SetTrustLineTransaction:
-    public TrustLineTransaction {
+    public BaseTransaction {
 
 public:
     typedef shared_ptr<SetTrustLineTransaction> Shared;
@@ -40,16 +40,9 @@ public:
         StorageHandler *storageHandler,
         Logger &logger);
 
-    SetTrustLineCommand::Shared command() const;
-
     TransactionResult::SharedConst run();
 
 protected:
-    const string logHeader() const
-        noexcept;
-
-private:
-
     TransactionResult::SharedConst resultOk();
 
     TransactionResult::SharedConst resultTrustlineIsAbsent();
@@ -57,6 +50,9 @@ private:
     TransactionResult::SharedConst resultProtocolError();
 
 protected:
+    const string logHeader() const
+    noexcept;
+
     void updateHistory(
         IOTransaction::Shared ioTransaction);
 

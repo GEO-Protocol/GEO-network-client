@@ -7,7 +7,7 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
     StorageHandler *storageHandler,
     Logger &logger) :
 
-    TrustLineTransaction(
+    BaseTransaction(
         BaseTransaction::TransactionType::RejectTrustLineTransactionType,
         nodeUUID,
         logger),
@@ -28,7 +28,6 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run()
     // and history record about the operation must be written to the history storage.
     // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
-    // -----------------------------------------------------------
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.

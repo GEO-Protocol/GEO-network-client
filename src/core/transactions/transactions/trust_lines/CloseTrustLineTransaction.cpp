@@ -9,7 +9,7 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
     Logger &logger)
     noexcept:
 
-    TrustLineTransaction(
+    BaseTransaction(
         BaseTransaction::CloseTrustLineTransactionType,
         nodeUUID,
         logger),

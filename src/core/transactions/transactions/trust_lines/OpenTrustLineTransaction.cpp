@@ -9,7 +9,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     Logger &logger)
     noexcept :
 
-    TrustLineTransaction(
+    BaseTransaction(
         BaseTransaction::TransactionType::OpenTrustLineTransactionType,
         nodeUUID,
         logger),
@@ -101,8 +101,9 @@ TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
 
         updateHistory(ioTransaction);
 
+        // Launching transaction for routing tables population
+        // if TrustLineStatesHandlerTransaction fails AcceptTrustLineTransaction will return result ok in any case
         try {
-            // Launching transaction for routing tables population
             if (mTrustLines->trustLineReadOnly(kContractor)->direction() != TrustLineDirection::Both) {
                 const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
                     currentNodeUUID(),
@@ -118,7 +119,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
                 launchSubsidiaryTransaction(kTransaction);
             }
         } catch (...) {
-            error() << "Can not start TrustLineStatesHandlerTransaction";
+            error() << "Can not update routing table for " << kContractor << ".";
         }
 
         info() << "Trust line to the node " << kContractor << " was successfully opened.";

@@ -1,7 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_CLOSETRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_CLOSETRUSTLINETRANSACTION_H
 
-#include "TrustLineTransaction.h"
+#include "../base/BaseTransaction.h"
 
 #include "../../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
 
@@ -13,7 +13,7 @@
 
 
 class CloseTrustLineTransaction:
-    public TrustLineTransaction {
+    public BaseTransaction {
 
 public:
     typedef shared_ptr<CloseTrustLineTransaction> Shared;

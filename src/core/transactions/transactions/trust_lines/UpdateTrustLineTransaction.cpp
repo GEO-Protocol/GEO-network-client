@@ -7,7 +7,7 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     StorageHandler *storageHandler,
     Logger &logger) :
 
-    TrustLineTransaction(
+    BaseTransaction(
         BaseTransaction::TransactionType::UpdateTrustLineTransactionType,
         nodeUUID,
         logger),

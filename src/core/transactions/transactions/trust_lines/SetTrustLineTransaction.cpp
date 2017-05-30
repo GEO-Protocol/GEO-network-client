@@ -7,18 +7,13 @@ SetTrustLineTransaction::SetTrustLineTransaction(
     StorageHandler *storageHandler,
     Logger &logger) :
 
-    TrustLineTransaction(
+    BaseTransaction(
         BaseTransaction::TransactionType::SetTrustLineTransactionType,
         nodeUUID,
         logger),
     mCommand(command),
     mTrustLines(manager),
     mStorageHandler(storageHandler) {}
-
-SetTrustLineCommand::Shared SetTrustLineTransaction::command() const
-{
-    return mCommand;
-}
 
 TransactionResult::SharedConst SetTrustLineTransaction::run()
 {
@@ -83,19 +78,19 @@ TransactionResult::SharedConst SetTrustLineTransaction::run()
 TransactionResult::SharedConst SetTrustLineTransaction::resultOk()
 {
     return transactionResultFromCommand(
-            mCommand->responseCreated());
+        mCommand->responseCreated());
 }
 
 TransactionResult::SharedConst SetTrustLineTransaction::resultTrustlineIsAbsent()
 {
     return transactionResultFromCommand(
-            mCommand->responseTrustlineIsAbsent());
+        mCommand->responseTrustlineIsAbsent());
 }
 
 TransactionResult::SharedConst SetTrustLineTransaction::resultProtocolError()
 {
     return transactionResultFromCommand(
-            mCommand->responseProtocolError());
+        mCommand->responseProtocolError());
 }
 
 const string SetTrustLineTransaction::logHeader() const
