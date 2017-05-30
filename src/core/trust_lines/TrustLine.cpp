@@ -371,6 +371,16 @@ void TrustLine::pay(
     const TrustLineAmount &amount)
 {
     const auto kNewBalance = mBalance - amount;
+    if (mBalance * kNewBalance > kZeroBalance()) {
+        if (mBalance > kZeroBalance() && mBalance > kNewBalance) {
+            mBalance = kNewBalance;
+            return;
+        }
+        if (mBalance < kZeroBalance() && mBalance < kNewBalance) {
+            mBalance = kNewBalance;
+            return;
+        }
+    }
     if (kNewBalance < kZeroBalance() && abs(kNewBalance) > mIncomingTrustAmount) {
         throw OverflowError(
             "TrustLine::useCredit: attempt of using more than incoming credit amount.");
@@ -393,6 +403,16 @@ void TrustLine::acceptPayment(
     const TrustLineAmount &amount)
 {
     const auto kNewBalance = mBalance + amount;
+    if (mBalance * kNewBalance > kZeroBalance()) {
+        if (mBalance > kZeroBalance() && mBalance > kNewBalance) {
+            mBalance = kNewBalance;
+            return;
+        }
+        if (mBalance < kZeroBalance() && mBalance < kNewBalance) {
+            mBalance = kNewBalance;
+            return;
+        }
+    }
     if (kNewBalance < kZeroBalance() && abs(kNewBalance) > mIncomingTrustAmount) {
         throw OverflowError(
             "TrustLine::useCredit: attempt of using more than incoming credit amount.");

@@ -147,6 +147,7 @@ TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
 void OpenTrustLineTransaction::updateHistory(
     IOTransaction::Shared ioTransaction)
 {
+#ifndef TESTS
     auto record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::Opening,
@@ -154,6 +155,7 @@ void OpenTrustLineTransaction::updateHistory(
         mCommand->amount());
 
     ioTransaction->historyStorage()->saveTrustLineRecord(record);
+#endif
 }
 
 TransactionResult::SharedConst OpenTrustLineTransaction::resultOK() const

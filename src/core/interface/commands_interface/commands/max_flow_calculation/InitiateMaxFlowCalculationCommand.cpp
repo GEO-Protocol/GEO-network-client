@@ -42,10 +42,10 @@ void InitiateMaxFlowCalculationCommand::parse(
         throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
                              "Can't parse command. Received command is to short.");
     }
-    size_t tabSeparator = command.find("\t");
+    size_t tokenSeparatorPos = command.find(kTokensSeparator);
     string contractorsCountStr = command.substr(
         0,
-        tabSeparator);
+        tokenSeparatorPos);
     if (contractorsCountStr.at(0) == '-') {
         throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
                              "Can't parse command. 'count contractors' token can't be negative.");
@@ -57,7 +57,7 @@ void InitiateMaxFlowCalculationCommand::parse(
                              "Can't parse command. Error occurred while parsing  'count contractors' token.");
     }
     mContractors.reserve(mContractorsCount);
-    size_t contractorStartPoint = tabSeparator + 1;
+    size_t contractorStartPoint = tokenSeparatorPos + 1;
     for (size_t idx = 0; idx < mContractorsCount; idx++) {
         try {
             string hexUUID = command.substr(

@@ -75,12 +75,14 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run()
 void CloseTrustLineTransaction::updateHistory(
     IOTransaction::Shared ioTransaction)
 {
+#ifndef TESTS
     auto record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::Closing,
         mCommand->contractorUUID());
 
     ioTransaction->historyStorage()->saveTrustLineRecord(record);
+#endif
 }
 
 TransactionResult::SharedConst CloseTrustLineTransaction::resultOK()

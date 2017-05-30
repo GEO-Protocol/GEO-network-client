@@ -26,10 +26,6 @@ public:
         const string &tableName,
         Logger &logger);
 
-    // TODO why it doesn't work
-    void saveRecord(
-        Record::Shared record);
-
     void saveTrustLineRecord(
         TrustLineRecord::Shared record);
 
@@ -38,13 +34,36 @@ public:
 
     vector<TrustLineRecord::Shared> allTrustLineRecords(
         size_t recordsCount,
-        size_t fromRecord);
+        size_t fromRecord,
+        DateTime timeFrom,
+        bool isTimeFromPresent,
+        DateTime timeTo,
+        bool isTimeToPresent);
 
     vector<PaymentRecord::Shared> allPaymentRecords(
         size_t recordsCount,
-        size_t fromRecord);
+        size_t fromRecord,
+        DateTime timeFrom,
+        bool isTimeFromPresent,
+        DateTime timeTo,
+        bool isTimeToPresent,
+        const TrustLineAmount& lowBoundaryAmount,
+        bool isLowBoundaryAmountPresent,
+        const TrustLineAmount& highBoundaryAmount,
+        bool isHighBoundaryAmountPresent);
 
 private:
+    vector<PaymentRecord::Shared> allPaymentRecords(
+        size_t recordsCount,
+        size_t fromRecord,
+        DateTime timeFrom,
+        bool isTimeFromPresent,
+        DateTime timeTo,
+        bool isTimeToPresent);
+
+    size_t countRecordsByType(
+        Record::RecordType recordType);
+
     pair<BytesShared, size_t> serializedTrustLineRecordBody(
         TrustLineRecord::Shared);
 
@@ -57,16 +76,14 @@ private:
     PaymentRecord::Shared deserializePaymentRecord(
         sqlite3_stmt *stmt);
 
-    vector<Record::Shared> allRecordsByType(
-        Record::RecordType recordType,
-        size_t recordsCount,
-        size_t fromRecord);
-
     LoggerStream info() const;
 
     LoggerStream error() const;
 
     const string logHeader() const;
+
+private:
+    const size_t kPortionRequestSize = 1000;
 
 private:
     sqlite3 *mDataBase = nullptr;
