@@ -3,18 +3,18 @@
 
 #include "TrustLineTransaction.h"
 
-#include "../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../io/storage/StorageHandler.h"
-#include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
-#include "../../../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
-#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
+#include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../io/storage/StorageHandler.h"
+#include "../../../io/storage/record/trust_line/TrustLineRecord.h"
+#include "../../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
+#include "../routing_tables/TrustLineStatesHandlerTransaction.h"
 
-#include "../../../../network/messages/trust_lines/OpenTrustLineMessage.h"
-#include "../../../../network/messages/trust_lines/AcceptTrustLineMessage.h"
-#include "../../../../network/messages/response/Response.h"
+#include "../../../network/messages/trust_lines/OpenTrustLineMessage.h"
+#include "../../../network/messages/trust_lines/AcceptTrustLineMessage.h"
+#include "../../../network/messages/response/Response.h"
 
-#include "../../../../common/exceptions/ConflictError.h"
-#include "../../../../common/exceptions/RuntimeError.h"
+#include "../../../common/exceptions/ConflictError.h"
+#include "../../../common/exceptions/RuntimeError.h"
 
 
 class OpenTrustLineTransaction:

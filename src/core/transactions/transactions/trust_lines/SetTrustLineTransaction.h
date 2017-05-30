@@ -3,24 +3,24 @@
 
 #include "TrustLineTransaction.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/time/TimeUtils.h"
-#include "../../../../common/memory/MemoryUtils.h"
+#include "../../../common/Types.h"
+#include "../../../common/time/TimeUtils.h"
+#include "../../../common/memory/MemoryUtils.h"
 
-#include "../../../../io/storage/StorageHandler.h"
-#include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
+#include "../../../io/storage/StorageHandler.h"
+#include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 
-#include "../../../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
+#include "../../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
 
-#include "../../../../network/messages/Message.hpp"
-#include "../../../../network/messages/trust_lines/SetTrustLineMessage.h"
-#include "../../../../network/messages/trust_lines/UpdateTrustLineMessage.h"
+#include "../../../network/messages/Message.hpp"
+#include "../../../network/messages/trust_lines/SetTrustLineMessage.h"
+#include "../../../network/messages/trust_lines/UpdateTrustLineMessage.h"
 
 #include "UpdateTrustLineTransaction.h"
 
-#include "../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../trust_lines/manager/TrustLinesManager.h"
 
-#include "../../../../common/exceptions/ConflictError.h"
+#include "../../../common/exceptions/ConflictError.h"
 
 #include <memory>
 #include <utility>

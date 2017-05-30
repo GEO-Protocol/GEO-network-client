@@ -1,11 +1,11 @@
 #ifndef GEO_NETWORK_CLIENT_TRUSTLINETRANSACTION_H
 #define GEO_NETWORK_CLIENT_TRUSTLINETRANSACTION_H
 
-#include "../../base/BaseTransaction.h"
+#include "../base/BaseTransaction.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/NodeUUID.h"
-#include "../../../../common/memory/MemoryUtils.h"
+#include "../../../common/Types.h"
+#include "../../../common/NodeUUID.h"
+#include "../../../common/memory/MemoryUtils.h"
 
 #include <utility>
 #include <stdint.h>

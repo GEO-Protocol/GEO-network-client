@@ -3,21 +3,21 @@
 
 #include "TrustLineTransaction.h"
 
-#include "../../../../common/Types.h"
-#include "../../../../common/memory/MemoryUtils.h"
+#include "../../../common/Types.h"
+#include "../../../common/memory/MemoryUtils.h"
 
-#include "../../../../io/storage/StorageHandler.h"
-#include "../../../../io/storage/record/trust_line/TrustLineRecord.h"
+#include "../../../io/storage/StorageHandler.h"
+#include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 
-#include "../../../../network/messages/Message.hpp"
-#include "../../../../network/messages/trust_lines/AcceptTrustLineMessage.h"
-#include "../../../../network/messages/response/Response.h"
+#include "../../../network/messages/Message.hpp"
+#include "../../../network/messages/trust_lines/AcceptTrustLineMessage.h"
+#include "../../../network/messages/response/Response.h"
 
-#include "../../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../trust_lines/manager/TrustLinesManager.h"
 
-#include "../../../../common/exceptions/ConflictError.h"
+#include "../../../common/exceptions/ConflictError.h"
 
-#include "../../../../transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
+#include "../routing_tables/TrustLineStatesHandlerTransaction.h"
 
 #include <memory>
 #include <utility>
