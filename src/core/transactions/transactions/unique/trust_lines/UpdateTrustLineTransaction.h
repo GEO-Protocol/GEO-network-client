@@ -46,6 +46,9 @@ public:
 protected:
     const string logHeader() const;
 
+    void updateHistory(
+        IOTransaction::Shared ioTransaction);
+
 private:
 
     bool isIncomingTrustLineDirectionExisting();

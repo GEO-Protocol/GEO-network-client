@@ -70,7 +70,6 @@ LoggerStream::LoggerStream(
     mType(other.mType)
 {}
 
-
 void Logger::logException(
     const string &subsystem,
     const exception &e)

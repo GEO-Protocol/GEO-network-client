@@ -12,12 +12,15 @@
 #include "../../common/exceptions/ConflictError.h"
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
+#include "../../common/NodeUUID.h"
+
 #include "../../logger/Logger.h"
 
 // TODO: remove storage handler include (IO transactions must be transferred as arguments)
 #include "../../io/storage/StorageHandler.h"
 #include "../../io/storage/IOTransaction.h"
 
+#include <boost/crc.hpp>
 #include <boost/signals2.hpp>
 #include <boost/functional/hash.hpp>
 
@@ -56,16 +59,24 @@ public:
         IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID);
 
-    // TODO: remove thhrow(...)
-    // TODO: add IO transaction as argument
     void accept(
+        IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
 
-    // TODO: remove thhrow(...)
-    // TODO: add IO transaction as argument
     void reject(
+        IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID);
+
+    void set(
+        IOTransaction::Shared IOTransaction,
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &amount);
+
+    void update(
+        IOTransaction::Shared IOTransaction,
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &amount);
 
     const bool checkDirection(
         const NodeUUID &contractorUUID,

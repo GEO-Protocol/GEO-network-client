@@ -15,149 +15,84 @@ SetTrustLineTransaction::SetTrustLineTransaction(
     mTrustLinesManager(manager),
     mStorageHandler(storageHandler) {}
 
-SetTrustLineTransaction::SetTrustLineTransaction(
-    BytesShared buffer,
-    TrustLinesManager *manager,
-    StorageHandler *storageHandler,
-    Logger &logger) :
-
-    TrustLineTransaction(
-        BaseTransaction::TransactionType::SetTrustLineTransactionType,
-        logger),
-    mTrustLinesManager(manager),
-    mStorageHandler(storageHandler) {
-
-    deserializeFromBytes(
-        buffer);
-}
-
-SetTrustLineCommand::Shared SetTrustLineTransaction::command() const {
-
+SetTrustLineCommand::Shared SetTrustLineTransaction::command() const
+{
     return mCommand;
-}
-
-pair<BytesShared, size_t> SetTrustLineTransaction::serializeToBytes() const{
-
-    auto parentBytesAndCount = TrustLineTransaction::serializeToBytes();
-    auto commandBytesAndCount = mCommand->serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second
-                        + commandBytesAndCount.second;
-
-    BytesShared dataBytesShared = tryMalloc(
-        bytesCount);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second);
-    //-----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + parentBytesAndCount.second,
-        commandBytesAndCount.first.get(),
-        commandBytesAndCount.second);
-    //-----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount);
-}
-
-void SetTrustLineTransaction::deserializeFromBytes(
-    BytesShared buffer) {
-
-    TrustLineTransaction::deserializeFromBytes(
-        buffer);
-
-    BytesShared commandBufferShared = tryMalloc(
-        SetTrustLineCommand::kRequestedBufferSize());
-    //-----------------------------------------------------
-    memcpy(
-        commandBufferShared.get(),
-        buffer.get() + TrustLineTransaction::kOffsetToDataBytes(),
-        SetTrustLineCommand::kRequestedBufferSize());
-    //-----------------------------------------------------
-    mCommand = make_shared<SetTrustLineCommand>(
-        commandBufferShared);
 }
 
 TransactionResult::SharedConst SetTrustLineTransaction::run() {
 
-    // Check if CoordinatorUUId is Valid
-    if (!isContractorUUIDValid(mCommand->contractorUUID()))
-        return responseProtocolError();
+    const auto kContractor = mCommand->contractorUUID();
 
-    // Check if TrustLine exist
-    if (!isOutgoingTrustLineDirectionExisting()) {
-        return responseTrustlineIsAbsent();
+    if (kContractor == mNodeUUID) {
+        info() << "Attempt to launch transaction against itself was prevented.";
+        return resultProtocolError();
     }
 
-    // Check if amount correct
-    if (!isAmountValid(mCommand->newAmount()))
-        return responseProtocolError();
-    // Notify Contractor that trustLine will be be closed
-    sendMessageToRemoteNode();
-
-    // check if  TrustLine is available for delete
-    setOutgoingTrustAmount();
-    logSetTrustLineOperation();
-    return responseOk();
-}
-
-bool SetTrustLineTransaction::isTransactionToContractorUnique() {
-
-    return true;
-}
-
-bool SetTrustLineTransaction::isOutgoingTrustLineDirectionExisting() {
-
-    return mTrustLinesManager->checkDirection(mCommand->contractorUUID(), TrustLineDirection::Outgoing) ||
-           mTrustLinesManager->checkDirection(mCommand->contractorUUID(), TrustLineDirection::Both);
-}
-
-void SetTrustLineTransaction::sendMessageToRemoteNode() {
-
-    sendMessage<SetTrustLineMessage>(
-        mCommand->contractorUUID(),
-        mNodeUUID,
-        mTransactionUUID,
-        mCommand->newAmount());
-}
-
-void SetTrustLineTransaction::setOutgoingTrustAmount() {
-
-    mTrustLinesManager->setOutgoingTrustAmount(
-        mCommand->contractorUUID(),
-        mCommand->newAmount());
-}
-
-void SetTrustLineTransaction::logSetTrustLineOperation() {
-
-    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
-        uuid(mTransactionUUID),
-        TrustLineRecord::TrustLineOperationType::Setting,
-        mCommand->contractorUUID(),
-        mCommand->newAmount());
-
+    // Trust line must be removed (updated) in the trust lines storage,
+    // and history record about the operation must be written to the history storage.
+    // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->historyStorage()->saveTrustLineRecord(record);
-    ioTransaction->trustLineHandler()->saveTrustLine(
-        mTrustLinesManager->trustLines().at(
-            mCommand->contractorUUID()));
+    try {
+        // note: io transaction would commit automatically on destructor call.
+        // there is no need to call commit manually.
+        mTrustLinesManager->set(
+            ioTransaction,
+            kContractor,
+            mCommand->newAmount());
+        updateHistory(ioTransaction);
+
+
+        // Notifiyng remote node about trust line state changed.
+        // This message is information only. It is OK if it would be lost, and remote node will never receive it
+        // (trust lines would be syncronized again in the future, for example, on payment operation).
+        sendMessage<SetTrustLineMessage>(
+            mCommand->contractorUUID(),
+            mNodeUUID,
+            mTransactionUUID,
+            mCommand->newAmount());
+
+        info() << "Trust line to the node " << kContractor << " updated successfully.";
+        return resultOk();
+
+    } catch (ValueError &){
+        ioTransaction->rollback();
+        info() << "Attempt to open trust line to the node " << kContractor << " failed. "
+               << "Cannot opent trustline with zero amount";
+
+    } catch (NotFoundError &e) {
+        ioTransaction->rollback();
+        info() << "Attempt to update trust line to the node " << kContractor << " failed. "
+               << "There is no outgoing trust line to this node is present. "
+               << "Details are: " << e.what();
+
+        return resultTrustlineIsAbsent();
+
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        info() << "Attempt to close trust line to the node " << kContractor << " failed. "
+               << "IO transaction can't be completed. "
+               << "Details are: " << e.what();
+
+        // Rethrowing the exception,
+        // because the TA can't finish propely and no result may be returned.
+        throw e;
+    }
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::responseOk() {
+TransactionResult::SharedConst SetTrustLineTransaction::resultOk() {
 
     return transactionResultFromCommand(
             mCommand->responseCreated());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::responseTrustlineIsAbsent() {
+TransactionResult::SharedConst SetTrustLineTransaction::resultTrustlineIsAbsent() {
 
     return transactionResultFromCommand(
             mCommand->responseTrustlineIsAbsent());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::responseProtocolError() {
+TransactionResult::SharedConst SetTrustLineTransaction::resultProtocolError() {
     return transactionResultFromCommand(
             mCommand->responseProtocolError());
 }
@@ -169,6 +104,14 @@ const string SetTrustLineTransaction::logHeader() const
     return s.str();
 }
 
-bool SetTrustLineTransaction::isAmountValid(const TrustLineAmount &amount){
-    return amount > TrustLine::kZeroAmount();
+void SetTrustLineTransaction::updateHistory(
+    IOTransaction::Shared ioTransaction)
+{
+    auto record = make_shared<TrustLineRecord>(
+        uuid(mTransactionUUID),
+        TrustLineRecord::Setting,
+        mCommand->contractorUUID(),
+        mCommand->newAmount());
+
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }

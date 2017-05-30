@@ -38,53 +38,53 @@ UpdateTrustLineMessage::Shared UpdateTrustLineTransaction::message() const {
 
 TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
 
-    // Check if CoordinatorUUId is Valid
-    if (!isContractorUUIDValid(mMessage->senderUUID))
-        // todo add production log
+    const auto kContractor = mMessage->senderUUID;
+
+    if (kContractor == mNodeUUID) {
+        info() << "Attempt to launch transaction against itself was prevented.";
         return resultDone();
+    }
 
-    if (!isIncomingTrustLineDirectionExisting())
-        // todo add production log
-        return resultDone();
-
-    if (!isAmountValid(mMessage->newAmount()))
-        // todo add production log
-        return resultDone();
-
-    // check if  Trustline is available for delete
-    updateIncomingTrustAmount();
-    logUpdatingTrustLineOperation();
-
-    updateIncomingTrustAmount();
-    return resultDone();
-}
-
-bool UpdateTrustLineTransaction::isIncomingTrustLineDirectionExisting() {
-
-    return mTrustLinesManager->checkDirection(mMessage->senderUUID, TrustLineDirection::Incoming) ||
-           mTrustLinesManager->checkDirection(mMessage->senderUUID, TrustLineDirection::Both);
-}
-
-void UpdateTrustLineTransaction::updateIncomingTrustAmount() {
-
-    mTrustLinesManager->setIncomingTrustAmount(
-        mMessage->senderUUID,
-        mMessage->newAmount());
-}
-
-void UpdateTrustLineTransaction::logUpdatingTrustLineOperation() {
-
-    TrustLineRecord::Shared record = make_shared<TrustLineRecord>(
-        uuid(mTransactionUUID),
-        TrustLineRecord::TrustLineOperationType::Updating,
-        mMessage->senderUUID,
-        mMessage->newAmount());
-
+    // Trust line must be removed (updated) in the trust lines storage,
+    // and history record about the operation must be written to the history storage.
+    // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->historyStorage()->saveTrustLineRecord(record);
-    ioTransaction->trustLineHandler()->saveTrustLine(
-        mTrustLinesManager->trustLines().at(
-            mMessage->senderUUID));
+    // -----------------------------------------------------------
+    try {
+        // note: io transaction would commit automatically on destructor call.
+        // there is no need to call commit manually.
+        mTrustLinesManager->update(
+            ioTransaction,
+            kContractor,
+            mMessage->newAmount());
+        updateHistory(ioTransaction);
+
+        info() << "Trust line to the node " << kContractor << " closed successfully.";
+        return resultDone();
+
+    } catch (ValueError &){
+        ioTransaction->rollback();
+        info() << "Attempt to open trust line to the node " << kContractor << " failed. "
+               << "Cannot opent trustline with zero amount";
+
+    } catch (NotFoundError &e) {
+        ioTransaction->rollback();
+        info() << "Attempt to update trust line to the node " << kContractor << " failed. "
+               << "There is no incoming trust line to this node is present. "
+               << "Details are: " << e.what();
+
+        return resultDone();
+
+    } catch (IOError &e) {
+        ioTransaction->rollback();
+        info() << "Attempt to update trust line to the node " << kContractor << " failed. "
+               << "IO transaction can't be completed. "
+               << "Details are: " << e.what();
+
+        // Rethrowing the exception,
+        // because the TA can't finish propely and no result may be returned.
+        throw e;
+    }
 }
 
 const string UpdateTrustLineTransaction::logHeader() const
@@ -94,6 +94,14 @@ const string UpdateTrustLineTransaction::logHeader() const
     return s.str();
 }
 
-bool UpdateTrustLineTransaction::isAmountValid(const TrustLineAmount &amount){
-    return amount > TrustLine::kZeroAmount();
+void UpdateTrustLineTransaction::updateHistory(
+    IOTransaction::Shared ioTransaction)
+{
+    auto record = make_shared<TrustLineRecord>(
+        uuid(mTransactionUUID),
+        TrustLineRecord::Updating,
+        mMessage->senderUUID,
+        mMessage->newAmount());
+
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
 }

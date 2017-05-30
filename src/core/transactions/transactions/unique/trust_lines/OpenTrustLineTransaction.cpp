@@ -121,6 +121,10 @@ TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
         info() << "Trust line to the node " << kContractor << " was successfully opened.";
         return resultOK();
 
+    } catch (ValueError &){
+        ioTransaction->rollback();
+        info() << "Attempt to open trust line to the node " << kContractor << " failed. "
+               << "Cannot opent trustline with zero amount";
 
     } catch (ConflictError &) {
         ioTransaction->rollback();

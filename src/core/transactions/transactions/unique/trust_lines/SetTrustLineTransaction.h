@@ -26,18 +26,11 @@
 #include <utility>
 #include <cstdint>
 
-class SetTrustLineTransaction: public TrustLineTransaction {
+class SetTrustLineTransaction:
+    public TrustLineTransaction {
+
 public:
     typedef shared_ptr<SetTrustLineTransaction> Shared;
-
-private:
-    enum Stages {
-        CheckContractorUUIDValidity = 1,
-        CheckAmountValidity,
-        CheckUnicity,
-        CheckOutgoingDirection,
-        CheckContext
-    };
 
 public:
     SetTrustLineTransaction(
@@ -47,15 +40,7 @@ public:
         StorageHandler *storageHandler,
         Logger &logger);
 
-    SetTrustLineTransaction(
-        BytesShared buffer,
-        TrustLinesManager *manager,
-        StorageHandler *storageHandler,
-        Logger &logger);
-
     SetTrustLineCommand::Shared command() const;
-
-    pair<BytesShared, size_t> serializeToBytes() const;
 
     TransactionResult::SharedConst run();
 
@@ -63,29 +48,16 @@ protected:
     const string logHeader() const;
 
 private:
-    void deserializeFromBytes(
-        BytesShared buffer);
 
-    bool isTransactionToContractorUnique();
+    TransactionResult::SharedConst resultOk();
 
-    bool isOutgoingTrustLineDirectionExisting();
+    TransactionResult::SharedConst resultTrustlineIsAbsent();
 
-    void sendMessageToRemoteNode();
-
-    TransactionResult::SharedConst waitingForResponseState();
-
-    void setOutgoingTrustAmount();
-
-    void logSetTrustLineOperation();
-
-    TransactionResult::SharedConst responseOk();
-
-    TransactionResult::SharedConst responseTrustlineIsAbsent();
-
-    TransactionResult::SharedConst responseProtocolError();
+    TransactionResult::SharedConst resultProtocolError();
 
 protected:
-    bool isAmountValid(const TrustLineAmount &amount);
+    void updateHistory(
+        IOTransaction::Shared ioTransaction);
 
 private:
     SetTrustLineCommand::Shared mCommand;
