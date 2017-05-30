@@ -12,7 +12,7 @@ SetTrustLineTransaction::SetTrustLineTransaction(
         nodeUUID,
         logger),
     mCommand(command),
-    mTrustLinesManager(manager),
+    mTrustLines(manager),
     mStorageHandler(storageHandler) {}
 
 SetTrustLineCommand::Shared SetTrustLineTransaction::command() const
@@ -36,7 +36,7 @@ TransactionResult::SharedConst SetTrustLineTransaction::run() {
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        mTrustLinesManager->set(
+        mTrustLines->set(
             ioTransaction,
             kContractor,
             mCommand->newAmount());
@@ -98,6 +98,7 @@ TransactionResult::SharedConst SetTrustLineTransaction::resultProtocolError() {
 }
 
 const string SetTrustLineTransaction::logHeader() const
+    noexcept
 {
     stringstream s;
     s << "[SetTrustLineTA: " << currentTransactionUUID() << "]";

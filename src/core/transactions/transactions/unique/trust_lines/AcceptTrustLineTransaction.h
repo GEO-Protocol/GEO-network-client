@@ -23,6 +23,7 @@
 #include <utility>
 #include <cstdint>
 
+
 class AcceptTrustLineTransaction:
     public TrustLineTransaction {
 
@@ -42,10 +43,10 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const
+        noexcept;
 
 protected:
-
     void updateHistory(
         IOTransaction::Shared ioTransaction);
 

@@ -10,6 +10,7 @@
 #include <utility>
 #include <stdint.h>
 
+
 class TrustLineTransaction:
     public BaseTransaction {
 
@@ -23,19 +24,8 @@ protected:
         const BaseTransaction::TransactionType type,
         Logger &logger);
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const;
-
-protected:
-    virtual void deserializeFromBytes(
-        BytesShared buffer);
-
-    const size_t kOffsetToDataBytes();
-
 protected:
     const uint16_t kResponsesCount = 1;
-    const uint16_t kResponsePosition = 0;
-
-    uint16_t mRequestCounter = 0;
 };
 
 

@@ -46,7 +46,8 @@ protected:
     TransactionResult::SharedConst resultProtocolError() const;
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const
+        noexcept;
 
     void updateHistory(
         IOTransaction::Shared ioTransaction);

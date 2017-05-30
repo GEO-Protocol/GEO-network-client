@@ -45,7 +45,8 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const
+        noexcept;
 
 private:
 
@@ -59,9 +60,9 @@ protected:
     void updateHistory(
         IOTransaction::Shared ioTransaction);
 
-private:
+protected:
     SetTrustLineCommand::Shared mCommand;
-    TrustLinesManager *mTrustLinesManager;
+    TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
 };
 

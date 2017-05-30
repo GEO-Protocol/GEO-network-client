@@ -21,7 +21,10 @@
 #include <utility>
 #include <cstdint>
 
-class UpdateTrustLineTransaction : public TrustLineTransaction {
+
+class UpdateTrustLineTransaction:
+    public TrustLineTransaction {
+
 public:
     typedef shared_ptr<UpdateTrustLineTransaction> Shared;
 
@@ -44,24 +47,15 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const
+        noexcept;
 
     void updateHistory(
         IOTransaction::Shared ioTransaction);
 
-private:
-
-    bool isIncomingTrustLineDirectionExisting();
-
-    bool isAmountValid(const TrustLineAmount &amount);
-
-    void updateIncomingTrustAmount();
-
-    void logUpdatingTrustLineOperation();
-
-private:
+protected:
     UpdateTrustLineMessage::Shared mMessage;
-    TrustLinesManager *mTrustLinesManager;
+    TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
 };
 

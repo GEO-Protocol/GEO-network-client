@@ -12,7 +12,7 @@ RejectTrustLineTransaction::RejectTrustLineTransaction(
         nodeUUID,
         logger),
     mMessage(message),
-    mTrustLinesManager(manager),
+    mTrustLines(manager),
     mStorageHandler(storageHandler) {}
 
 RejectTrustLineMessage::Shared RejectTrustLineTransaction::message() const
@@ -37,7 +37,7 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run()
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        mTrustLinesManager->reject(
+        mTrustLines->reject(
             ioTransaction,
             kContractor);
         updateHistory(ioTransaction);
@@ -66,6 +66,7 @@ TransactionResult::SharedConst RejectTrustLineTransaction::run()
 }
 
 const string RejectTrustLineTransaction::logHeader() const
+    noexcept
 {
     stringstream s;
     s << "[RejectTrustLineTA: " << currentTransactionUUID() << "]";

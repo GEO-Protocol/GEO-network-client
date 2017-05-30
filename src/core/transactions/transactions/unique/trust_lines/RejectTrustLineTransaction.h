@@ -23,7 +23,10 @@
 #include <utility>
 #include <cstdint>
 
-class RejectTrustLineTransaction : public TrustLineTransaction {
+
+class RejectTrustLineTransaction:
+    public TrustLineTransaction {
+
 public:
     typedef shared_ptr<RejectTrustLineTransaction> Shared;
 
@@ -40,7 +43,8 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
-    const string logHeader() const;
+    const string logHeader() const
+        noexcept;
 
 private:
     void updateHistory(
@@ -48,7 +52,7 @@ private:
 
 private:
     RejectTrustLineMessage::Shared mMessage;
-    TrustLinesManager *mTrustLinesManager;
+    TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
 };
 

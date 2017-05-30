@@ -97,6 +97,7 @@ void AcceptTrustLineTransaction::sendResponseCodeToContractor(
 }
 
 const string AcceptTrustLineTransaction::logHeader() const
+    noexcept
 {
     stringstream s;
     s << "[AcceptTrustLineTA: " << currentTransactionUUID() << "]";

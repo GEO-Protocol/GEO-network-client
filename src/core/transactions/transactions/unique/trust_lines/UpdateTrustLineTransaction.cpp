@@ -12,7 +12,7 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
         nodeUUID,
         logger),
     mMessage(message),
-    mTrustLinesManager(manager),
+    mTrustLines(manager),
     mStorageHandler(storageHandler) {}
 
 UpdateTrustLineTransaction::UpdateTrustLineTransaction(
@@ -24,7 +24,7 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     TrustLineTransaction(
         BaseTransaction::TransactionType::UpdateTrustLineTransactionType,
         logger),
-    mTrustLinesManager(manager),
+    mTrustLines(manager),
     mStorageHandler(storageHandler) {
 
     deserializeFromBytes(
@@ -53,7 +53,7 @@ TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        mTrustLinesManager->update(
+        mTrustLines->update(
             ioTransaction,
             kContractor,
             mMessage->newAmount());
@@ -88,6 +88,7 @@ TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
 }
 
 const string UpdateTrustLineTransaction::logHeader() const
+    noexcept
 {
     stringstream s;
     s << "[UpdateTrustLineTA: " << currentTransactionUUID() << "]";
