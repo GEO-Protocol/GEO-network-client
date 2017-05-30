@@ -31,13 +31,13 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
         buffer);
 }
 
-UpdateTrustLineMessage::Shared UpdateTrustLineTransaction::message() const {
-
+UpdateTrustLineMessage::Shared UpdateTrustLineTransaction::message() const
+{
     return mMessage;
 }
 
-TransactionResult::SharedConst UpdateTrustLineTransaction::run() {
-
+TransactionResult::SharedConst UpdateTrustLineTransaction::run()
+{
     const auto kContractor = mMessage->senderUUID;
 
     if (kContractor == mNodeUUID) {

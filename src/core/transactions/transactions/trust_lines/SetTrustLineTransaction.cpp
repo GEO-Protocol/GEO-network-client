@@ -20,8 +20,8 @@ SetTrustLineCommand::Shared SetTrustLineTransaction::command() const
     return mCommand;
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::run() {
-
+TransactionResult::SharedConst SetTrustLineTransaction::run()
+{
     const auto kContractor = mCommand->contractorUUID();
 
     if (kContractor == mNodeUUID) {
@@ -80,19 +80,20 @@ TransactionResult::SharedConst SetTrustLineTransaction::run() {
     }
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::resultOk() {
-
+TransactionResult::SharedConst SetTrustLineTransaction::resultOk()
+{
     return transactionResultFromCommand(
             mCommand->responseCreated());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::resultTrustlineIsAbsent() {
-
+TransactionResult::SharedConst SetTrustLineTransaction::resultTrustlineIsAbsent()
+{
     return transactionResultFromCommand(
             mCommand->responseTrustlineIsAbsent());
 }
 
-TransactionResult::SharedConst SetTrustLineTransaction::resultProtocolError() {
+TransactionResult::SharedConst SetTrustLineTransaction::resultProtocolError()
+{
     return transactionResultFromCommand(
             mCommand->responseProtocolError());
 }

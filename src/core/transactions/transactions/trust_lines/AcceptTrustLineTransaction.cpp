@@ -15,13 +15,13 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     mTrustLines(manager),
     mStorageHandler(storageHandler) {}
 
-AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const {
-
+AcceptTrustLineMessage::Shared AcceptTrustLineTransaction::message() const
+{
     return mMessage;
 }
 
-TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
-
+TransactionResult::SharedConst AcceptTrustLineTransaction::run()
+{
     const auto kContractor = mMessage->senderUUID;
 
     if (kContractor == mNodeUUID) {
@@ -65,6 +65,7 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run() {
         ioTransaction->rollback();
         info() << "Attempt to open trust line to the node " << kContractor << " failed. "
                << "Cannot opent trustline with zero amount";
+        sendResponseCodeToContractor(mMessage->kResultCodeRejected);
 
     } catch (ConflictError &) {
         ioTransaction->rollback();
