@@ -101,7 +101,7 @@ CommandResult::SharedConst BaseUserCommand::responseCreated() const
     return makeResult(201);
 }
 
-CommandResult::SharedConst BaseUserCommand::responsePostponedbyreservations() const
+CommandResult::SharedConst BaseUserCommand::responsePostponedByReservations() const
     noexcept
 {
     return makeResult(203);

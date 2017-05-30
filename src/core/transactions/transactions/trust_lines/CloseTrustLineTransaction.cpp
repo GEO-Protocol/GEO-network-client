@@ -100,7 +100,7 @@ TransactionResult::SharedConst CloseTrustLineTransaction::resultOK()
 TransactionResult::SharedConst CloseTrustLineTransaction::resultPostponedByReservations() const
 {
     return transactionResultFromCommand(
-        mCommand->responsePostponedbyreservations());
+        mCommand->responsePostponedByReservations());
 }
 
 TransactionResult::SharedConst CloseTrustLineTransaction::resultTrustLineIsAbsent()
