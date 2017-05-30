@@ -154,6 +154,23 @@ ConstSharedTrustLineAmount AmountReservationsHandler::totalReserved(
 }
 
 /*!
+ * Returns total amount, that was reserved on the trust line with the contractor == "trustLineContractor".
+ * In case if no amount was reserved - returns 0;
+ */
+ConstSharedTrustLineAmount AmountReservationsHandler::totalReservedOnTrustLine(
+    const NodeUUID &trustLineContractor) const
+{
+    SharedTrustLineAmount amount(new TrustLineAmount(0));
+
+    auto reservationsVector = reservations(trustLineContractor);
+    for (auto lock : reservationsVector){
+        (*amount) += (*lock).amount();
+    }
+
+    return amount;
+}
+
+/*!
  * Returns all reservations, that are assigned to the trust line with the contractor "trustLineContractor".
  * In case if no such "trustLineContractor" was found, or no reservations are available after filtering -
  * returns empty vector.
@@ -200,7 +217,7 @@ vector<AmountReservation::ConstShared> AmountReservationsHandler::reservations(
     }
 }
 
-const bool AmountReservationsHandler::isReservationPresent(const NodeUUID &trustLineContractor) const {
+bool AmountReservationsHandler::isReservationPresent(const NodeUUID &trustLineContractor) const {
     if (mReservations.find(trustLineContractor) == mReservations.end())
         return false;
     return true;

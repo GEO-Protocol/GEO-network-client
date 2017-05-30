@@ -1,6 +1,5 @@
-﻿#include <boost/crc.hpp>
-#include "TrustLinesManager.h"
-#include "../../common/NodeUUID.h"
+﻿#include "TrustLinesManager.h"
+
 
 TrustLinesManager::TrustLinesManager(
     StorageHandler *storageHandler,
@@ -85,13 +84,17 @@ void TrustLinesManager::close(
     if (trustLine->outgoingTrustAmount() == TrustLine::kZeroAmount()) {
         throw NotFoundError(
             "TrustLinesManager::close: "
-                "can't close outgoing trust line: outgoing amount equals to zero. "
-                "It seems that trust line has been already closed. ");
+            "can't close outgoing trust line: outgoing amount equals to zero. "
+            "It seems that trust line has been already closed. ");
     }
 
 
     trustLine->setOutgoingTrustAmount(0);
-    if (trustLine->incomingTrustAmount() == 0 and trustLine->balance() == 0) {
+    if (trustLine->incomingTrustAmount() == 0
+        and trustLine->balance() == 0
+        and mAmountReservationsHandler->totalReservedOnTrustLine(contractorUUID)) {
+
+        // Trust line must not be removed even if it has zero balance, but has reserves on it.
         removeTrustLine(
             IOTransaction,
             contractorUUID);

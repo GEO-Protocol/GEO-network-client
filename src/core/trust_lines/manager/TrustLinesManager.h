@@ -3,9 +3,8 @@
 
 #include "../TrustLine.h"
 
+#include "../../common/NodeUUID.h"
 #include "../../common/Types.h"
-#include "../../payments/amount_blocks/AmountReservationsHandler.h"
-
 #include "../../common/exceptions/IOError.h"
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/MemoryError.h"
@@ -13,16 +12,19 @@
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
 #include "../../logger/Logger.h"
+#include "../../payments/amount_blocks/AmountReservationsHandler.h"
 
 // TODO: remove storage handler include (IO transactions must be transferred as arguments)
 #include "../../io/storage/StorageHandler.h"
 #include "../../io/storage/IOTransaction.h"
 
+#include <boost/crc.hpp>
 #include <boost/signals2.hpp>
 #include <boost/functional/hash.hpp>
 
 #include <unordered_map>
 #include <vector>
+
 #ifdef MAC_OS
 #include <stdlib.h>
 #endif
@@ -38,6 +40,7 @@ namespace signals = boost::signals2;
 
 class TrustLinesManager {
 public:
+    // todo: rename signals so tehm would start with "Signal", i.e. SignalTrustLineCreated
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineCreatedSignal;
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineStateModifiedSignal;
 

@@ -4,10 +4,10 @@
 
 #include "AmountReservation.h"
 #include "../../common/NodeUUID.h"
-#include "../../transactions/transactions/base/TransactionUUID.h"
 #include "../../common/exceptions/MemoryError.h"
 #include "../../common/exceptions/ValueError.h"
 #include "../../common/exceptions/NotFoundError.h"
+#include "../../transactions/transactions/base/TransactionUUID.h"
 
 #include <map>
 
@@ -34,7 +34,10 @@ public:
         const AmountReservation::ReservationDirection direction,
         const TransactionUUID *transactionUUID = nullptr) const;
 
-    const bool isReservationPresent(
+    ConstSharedTrustLineAmount totalReservedOnTrustLine(
+        const NodeUUID &trustLineContractor) const;
+
+    bool isReservationPresent(
         const NodeUUID &trustLineContractor) const;
 
 protected:
