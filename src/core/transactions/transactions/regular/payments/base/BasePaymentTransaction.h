@@ -87,8 +87,9 @@ protected:
         IntermediateNode_CoordinatorRequestProcessing,
         IntermediateNode_NextNeighborResponseProcessing,
         IntermediateNode_ReservationProlongation,
-        IntermediateNodeCycle_WaitForOutgoingAmountReleasing,
-        IntermediateNodeCycle_WaitForIncomingAmountReleasing,
+
+        Cycles_WaitForOutgoingAmountReleasing,
+        Cycles_WaitForIncomingAmountReleasing,
 
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,

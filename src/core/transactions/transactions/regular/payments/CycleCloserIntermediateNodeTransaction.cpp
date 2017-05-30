@@ -66,10 +66,10 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
             case Stages::Common_Recovery:
                 return runVotesRecoveryParentStage();
 
-            case Stages::IntermediateNodeCycle_WaitForIncomingAmountReleasing:
+            case Stages::Cycles_WaitForIncomingAmountReleasing:
                 return runPreviousNeighborRequestProcessingStageAgain();
 
-            case Stages::IntermediateNodeCycle_WaitForOutgoingAmountReleasing:
+            case Stages::Cycles_WaitForOutgoingAmountReleasing:
                 return runCoordinatorRequestProcessingStageAgain();
 
             case Stages::Common_RollbackByOtherTransaction:
@@ -105,7 +105,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             if (mCyclesManager->resolveReservationConflict(
                 currentTransactionUUID(), reservation->transactionUUID())) {
                 mConflictedTransaction = reservation->transactionUUID();
-                mStep = IntermediateNodeCycle_WaitForIncomingAmountReleasing;
+                mStep = Cycles_WaitForIncomingAmountReleasing;
+                mReservationAmount = reservation->amount();
                 return resultAwaikAfterMilliseconds(
                     kWaitingForReleasingAmountMSec);
             }
@@ -194,7 +195,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
             if (mCyclesManager->resolveReservationConflict(
                 currentTransactionUUID(), reservation->transactionUUID())) {
                 mConflictedTransaction = reservation->transactionUUID();
-                mStep = IntermediateNodeCycle_WaitForOutgoingAmountReleasing;
+                mStep = Cycles_WaitForOutgoingAmountReleasing;
+                mReservationAmount = reservation->amount();
                 return resultAwaikAfterMilliseconds(
                     kWaitingForReleasingAmountMSec);
             }

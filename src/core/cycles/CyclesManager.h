@@ -33,7 +33,7 @@ public:
     CyclesManager(
         TransactionsScheduler *transactionsScheduler,
         as::io_service &ioService,
-        Logger *logger);
+        Logger &logger);
 
     void closeOneCycle();
 
@@ -90,7 +90,7 @@ private:
     vector<Path::ConstShared> mSixNodesCycles;
 
     CycleClosingState mCurrentCycleClosingState;
-    Logger *mLog;
+    Logger &mLog;
 
     unique_ptr<as::steady_timer> mSixNodesCycleTimer;
     unique_ptr<as::steady_timer> mFiveNodesCycleTimer;

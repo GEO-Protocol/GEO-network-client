@@ -15,7 +15,7 @@ public:
         TrustLinesManager *manager,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     const BaseTransaction::TransactionType transactionType() const;
 

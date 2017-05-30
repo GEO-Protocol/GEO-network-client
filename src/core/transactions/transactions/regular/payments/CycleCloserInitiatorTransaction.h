@@ -57,25 +57,22 @@ protected:
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
+    // run after waiting on releasing amount by rollbacking conflicted transaction
+    TransactionResult::SharedConst runAmountReservationStageAgain();
+    TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
 
 protected:
-    TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (
-        PathStats *pathStats);
+    TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount ();
 
-    TransactionResult::SharedConst askNeighborToReserveAmount(
-        const NodeUUID &neighbor,
-        PathStats *pathStats);
+    TransactionResult::SharedConst askNeighborToReserveAmount();
 
     TransactionResult::SharedConst processNeighborAmountReservationResponse();
 
-    TransactionResult::SharedConst askNeighborToApproveFurtherNodeReservation(
-        const NodeUUID &neighbor,
-        PathStats *pathStats);
+    TransactionResult::SharedConst askNeighborToApproveFurtherNodeReservation();
 
     TransactionResult::SharedConst processNeighborFurtherReservationResponse();
 
     TransactionResult::SharedConst askRemoteNodeToApproveReservation(
-        PathStats *pathStats,
         const NodeUUID &remoteNode,
         const byte remoteNodePosition,
         const NodeUUID &nextNodeAfterRemote);
@@ -102,10 +99,22 @@ protected:
 
     // minimum value of Coordinator outgoing amount to first intremediate node
     // and incoming amount from last intermediate node
+    // todo : don't use currently
     TrustLineAmount mInitialTransactionAmount;
+
+    // fields, wor continue process coordinator request after releasing conflicted reservation
+    // transaction on which reservation we pretend
+    TransactionUUID mConflictedTransaction;
+    NodeUUID mNextNode;
+    NodeUUID mPreviousNode;
+    TrustLineAmount mOutgoingAmount;
+    TrustLineAmount mIncomingAmount;
 
     // for resolving reservation conflicts
     CyclesManager *mCyclesManager;
+
+private:
+    const uint16_t kWaitingForReleasingAmountMSec = 50;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLECLOSERINITIATORTRANSACTION_H

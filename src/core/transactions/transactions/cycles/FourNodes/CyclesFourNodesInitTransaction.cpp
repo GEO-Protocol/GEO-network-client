@@ -7,7 +7,7 @@ CyclesFourNodesInitTransaction::CyclesFourNodesInitTransaction(
     TrustLinesManager *manager,
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::Cycles_FourNodesInitTransaction,

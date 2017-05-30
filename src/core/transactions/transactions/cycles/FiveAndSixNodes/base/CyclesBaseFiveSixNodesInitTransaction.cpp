@@ -6,7 +6,7 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
     TrustLinesManager *manager,
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    Logger *logger) :
+    Logger &logger) :
     BaseTransaction(
         type,
         nodeUUID,

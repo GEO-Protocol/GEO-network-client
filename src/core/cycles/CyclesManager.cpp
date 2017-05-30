@@ -3,7 +3,7 @@
 CyclesManager::CyclesManager(
     TransactionsScheduler *transactionsScheduler,
     as::io_service &ioService,
-    Logger *logger) :
+    Logger &logger) :
 
     mTransactionScheduler(transactionsScheduler),
     mIOService(ioService),
@@ -214,17 +214,12 @@ bool CyclesManager::isTransactionStillAlive(
 
 LoggerStream CyclesManager::info() const
 {
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->info(logHeader());
+    return mLog.info(logHeader());
 }
 
 LoggerStream CyclesManager::debug() const
 {
-    // TODO: remove me. Logger must be initialised in constructor by default
-    if (nullptr == mLog)
-        throw Exception("logger is not initialised");
-    return mLog->debug(logHeader());
+    return mLog.debug(logHeader());
 }
 
 const string CyclesManager::logHeader() const

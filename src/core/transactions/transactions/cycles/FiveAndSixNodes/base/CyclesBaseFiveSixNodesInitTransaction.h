@@ -19,7 +19,7 @@ public:
         TrustLinesManager *manager,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
-        Logger *logger);
+        Logger &logger);
 
     TransactionResult::SharedConst run();
 
