@@ -46,6 +46,8 @@ public:
         noexcept;
     CommandResult::SharedConst responseCreated() const
         noexcept;
+    CommandResult::SharedConst responsePostponedByReservations() const
+        noexcept;
     CommandResult::SharedConst responseProtocolError() const
         noexcept;
     CommandResult::SharedConst responseTrustlineIsAbsent() const

@@ -72,15 +72,3 @@ MessageResult::SharedConst RejectTrustLineMessage::resultRejected()
             kResultCodeRejected)
     );
 }
-
-// todo: refactor me
-MessageResult::SharedConst RejectTrustLineMessage::resultRejectDelayed()
-    throw (bad_alloc)
-{
-    return MessageResult::SharedConst(
-        new MessageResult(
-            senderUUID,
-            mTransactionUUID,
-            kResultCodeRejectDelayed)
-    );
-}

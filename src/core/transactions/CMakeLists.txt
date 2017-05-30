@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 
 #add_subdirectory(manager)
 #add_subdirectory(scheduler)
-add_subdirectory(transactions/unique/trust_lines)
+add_subdirectory(transactions/trust_lines)
 add_subdirectory(transactions/regular/payments)
 
 add_subdirectory(transactions/result)
