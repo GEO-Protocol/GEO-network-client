@@ -30,8 +30,8 @@ void MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheU
     if (errorCode) {
         error() << errorCode.message().c_str();
     }
-    updateCache();
-    Duration microsecondsDelay = minimalAwakeningTimestamp() - utc_now();
+    DateTime closestTimeEvent = updateCache();
+    Duration microsecondsDelay = closestTimeEvent - utc_now();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     auto duration = chrono::milliseconds(microsecondsDelay.total_milliseconds());
     debug() << "next launch: " << duration.count() << " ms" << endl;
@@ -43,6 +43,7 @@ void MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheU
         &MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheUpdate,
         this,
         as::placeholders::error));
+    mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
 }
 
 DateTime MaxFlowCalculationCacheUpdateDelayedTask::minimalAwakeningTimestamp()
@@ -56,13 +57,27 @@ DateTime MaxFlowCalculationCacheUpdateDelayedTask::minimalAwakeningTimestamp()
     }
 }
 
-void MaxFlowCalculationCacheUpdateDelayedTask::updateCache()
+DateTime MaxFlowCalculationCacheUpdateDelayedTask::updateCache()
 {
-    // if at least one trustline was deleted
-    if (mMaxFlowCalculationTrustLineManager->deleteLegacyTrustLines()) {
-        mMaxFlowCalculationCacheMnager->resetInititorCache();
-    }
     mMaxFlowCalculationCacheMnager->updateCaches();
+    DateTime closestCacheManagerTimeEvent = mMaxFlowCalculationCacheMnager->closestTimeEvent();
+    // if MaxFlowCalculation transaction not finished it is forbidden to delete trustlines
+    // and should increse trustlines caches time
+    DateTime closestTrustLineManagerTimeEvent;
+    if (mMaxFlowCalculationTrustLineManager->preventDeleting()) {
+        closestTrustLineManagerTimeEvent = utc_now() + kProlongationTrustLineUpdatingDuration();
+    } else {
+        // if at least one trustline was deleted
+        if (mMaxFlowCalculationTrustLineManager->deleteLegacyTrustLines()) {
+            mMaxFlowCalculationCacheMnager->resetInititorCache();
+        }
+        closestTrustLineManagerTimeEvent = mMaxFlowCalculationTrustLineManager->closestTimeEvent();
+    }
+    if (closestCacheManagerTimeEvent < closestTrustLineManagerTimeEvent) {
+        return closestCacheManagerTimeEvent;
+    } else {
+        return closestTrustLineManagerTimeEvent;
+    }
 }
 
 LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::debug() const

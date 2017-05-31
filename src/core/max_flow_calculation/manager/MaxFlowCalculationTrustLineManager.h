@@ -38,6 +38,8 @@ public:
     void setPreventDeleting(
         bool preventDeleting);
 
+    bool preventDeleting() const;
+
 private:
     // comparing two trustLines for sorting
     struct {
@@ -67,9 +69,6 @@ private:
     LoggerStream info() const;
 
     const string logHeader() const;
-
-private:
-    const uint16_t kProlongationTrustLineLivingTimeMSec = 2000;
 
 private:
     unordered_map<NodeUUID, trustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
