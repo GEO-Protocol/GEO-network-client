@@ -58,28 +58,25 @@ DateTime MaxFlowCalculationCacheUpdateDelayedTask::minimalAwakeningTimestamp()
 
 void MaxFlowCalculationCacheUpdateDelayedTask::updateCache()
 {
+    // if at least one trustline was deleted
+    if (mMaxFlowCalculationTrustLineManager->deleteLegacyTrustLines()) {
+        mMaxFlowCalculationCacheMnager->resetInititorCache();
+    }
     mMaxFlowCalculationCacheMnager->updateCaches();
-    mMaxFlowCalculationTrustLineManager->deleteLegacyTrustLines();
 }
 
 LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::debug() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.debug(logHeader());
 }
 
 LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::info() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.info(logHeader());
 }
 
 LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::error() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.error(logHeader());
 }
 

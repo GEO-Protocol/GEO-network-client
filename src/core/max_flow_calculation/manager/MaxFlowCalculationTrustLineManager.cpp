@@ -2,7 +2,8 @@
 
 MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
     Logger &logger):
-    mLog(logger)
+    mLog(logger),
+    mPreventDeleting(false)
 {}
 
 void MaxFlowCalculationTrustLineManager::addTrustLine(
@@ -60,8 +61,22 @@ void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts()
     }
 }
 
-void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
+bool MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
 {
+    // if MaxFlowCalculation transaction not finished it is forbidden to delete trustlines
+    // and should increse trustlines caches time
+    if (mPreventDeleting) {
+//        for (auto &timeAndTrustLineWithPtr : mtTrustLines) {
+//            if (utc_now() - timeAndTrustLineWithPtr.first > kResetTrustLinesDuration()) {
+//                timeAndTrustLineWithPtr.first += kProlongationTrustLineLivingTimeMSec
+//            } else {
+//                break;
+//            }
+//        }
+        return false;
+    }
+
+    bool isTrustLineWasDeleted = false;
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "deleteLegacyTrustLines\t" << "delete legacy trustLines set";
     info() << "deleteLegacyTrustLines\t" << "mapTrustLinesCount: " << trustLinesCounts();
@@ -94,6 +109,7 @@ void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
             }
             delete trustLineWithPtr;
             mtTrustLines.erase(timeAndTrustLineWithPtr.first);
+            isTrustLineWasDeleted = true;
         } else {
             break;
         }
@@ -101,6 +117,7 @@ void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "deleteLegacyTrustLines\t" << "map size after deleting: " << msTrustLines.size();
 #endif
+    return isTrustLineWasDeleted;
 }
 
 size_t MaxFlowCalculationTrustLineManager::trustLinesCounts() const
@@ -138,12 +155,14 @@ DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const
     return result;
 }
 
+void MaxFlowCalculationTrustLineManager::setPreventDeleting(
+    bool preventDeleting)
+{
+    mPreventDeleting = preventDeleting;
+}
+
 LoggerStream MaxFlowCalculationTrustLineManager::info() const
 {
-      // todo add tyr catch
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
-
     return mLog.info(logHeader());
 }
 
