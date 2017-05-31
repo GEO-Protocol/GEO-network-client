@@ -136,11 +136,13 @@ public:
         const NodeUUID &contractor) const;
 
     // available outgoing amount considering reservations for cycles
-    ConstSharedTrustLineAmount availableOutgoingCycleAmount(
+    // returns 2 values: 1) amount considering reservations, 2) amount don't considering reservations
+    pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableOutgoingCycleAmounts(
         const NodeUUID &contractor) const;
 
     // available incoming amount considering reservations for cycles
-    ConstSharedTrustLineAmount availableIncomingCycleAmount(
+    // returns 2 values: 1) amount considering reservations, 2) amount don't considering reservations
+    pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableIncomingCycleAmounts(
         const NodeUUID &contractor) const;
 
     ConstSharedTrustLineAmount totalOutgoingAmount()

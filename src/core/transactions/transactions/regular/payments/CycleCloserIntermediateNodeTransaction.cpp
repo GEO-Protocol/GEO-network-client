@@ -92,16 +92,35 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     debug() << "Init. intermediate payment operation from node (" << mPreviousNode << ")";
     debug() << "Requested amount reservation: " << mMessage->amount();
 
-
     mCycleLength = mMessage->cycleLength();
     // Note: (copy of shared pointer is required)
-    const auto kIncomingAmount = mTrustLines->availableIncomingCycleAmount(mPreviousNode);
-    mReservationAmount =
-        min(mMessage->amount(), *kIncomingAmount);
+    const auto kIncomingAmounts = mTrustLines->availableIncomingCycleAmounts(mPreviousNode);
+    const auto kIncomingAmountWithReservations = kIncomingAmounts.first;
+    const auto kIncomingAmountWithoutReservations = kIncomingAmounts.second;
+
+    if (*kIncomingAmountWithReservations == TrustLine::kZeroAmount()) {
+        if (*kIncomingAmountWithoutReservations == TrustLine::kZeroAmount()) {
+            sendMessage<IntermediateNodeCycleReservationResponseMessage>(
+                mPreviousNode,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                ResponseCycleMessage::Rejected);
+            debug() << "can't reserve requested amount, transaction closed";
+            return resultDone();
+        } else {
+            mReservationAmount = TrustLineAmount(0);
+        }
+    } else {
+        mReservationAmount =
+            min(mMessage->amount(), *kIncomingAmountWithReservations);
+    }
 
     if (0 == mReservationAmount) {
+        // try to use reservations from other transactions
         auto reservations = mTrustLines->reservationsFromContractor(mPreviousNode);
         for (auto reservation : reservations) {
+            debug() << "try use " << reservation->amount() << " from "
+                    << reservation->transactionUUID() << " transaction";
             if (mCyclesManager->resolveReservationConflict(
                 currentTransactionUUID(), reservation->transactionUUID())) {
                 mConflictedTransaction = reservation->transactionUUID();
@@ -118,6 +137,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::Rejected);
+        debug() << "can't reserve requested amount, transaction closed";
+        return resultDone();
     } else {
         mLastReservedAmount = mReservationAmount;
         sendMessage<IntermediateNodeCycleReservationResponseMessage>(
@@ -172,26 +193,46 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     if (! contextIsValid(Message::Payments_CoordinatorCycleReservationRequest))
         return reject("No coordinator request received. Rolled back.");
 
-
     debug() << "Coordinator further reservation request received.";
 
-
     // TODO: add check for previous nodes amount reservation
-
 
     const auto kMessage = popNextMessage<CoordinatorCycleReservationRequestMessage>();
     mNextNode = kMessage->nextNodeInPathUUID();
     mCoordinator = kMessage->senderUUID;
 
     // Note: copy of shared pointer is required
-    const auto kOutgoingAmount = mTrustLines->availableOutgoingCycleAmount(mNextNode);
-    mReservationAmount = min(
-        kMessage->amount(),
-        *kOutgoingAmount);
+    const auto kOutgoingAmounts = mTrustLines->availableOutgoingCycleAmounts(mNextNode);
+    const auto kOutgoingAmountWithReservations = kOutgoingAmounts.first;
+    const auto kOutgoingAmountWithoutReservations = kOutgoingAmounts.second;
+    if (*kOutgoingAmountWithReservations == TrustLine::kZeroAmount()) {
+        if (*kOutgoingAmountWithoutReservations == TrustLine::kZeroAmount()) {
+            sendMessage<CoordinatorCycleReservationResponseMessage>(
+                mCoordinator,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                ResponseCycleMessage::Rejected);
+
+            debug() << "No amount reservation is possible. Rolled back.";
+            rollBack();
+            return resultDone();
+        } else {
+            mReservationAmount = min(
+                kMessage->amount(),
+                *kOutgoingAmountWithReservations);
+        }
+    } else {
+        mReservationAmount = min(
+            kMessage->amount(),
+            *kOutgoingAmountWithReservations);
+    }
 
     if (0 == mReservationAmount) {
+        // try to use reservation from other transaction
         auto reservations = mTrustLines->reservationsToContractor(mNextNode);
         for (auto reservation : reservations) {
+            debug() << "try use " << reservation->amount() << " from "
+                    << reservation->transactionUUID() << " transaction";
             if (mCyclesManager->resolveReservationConflict(
                 currentTransactionUUID(), reservation->transactionUUID())) {
                 mConflictedTransaction = reservation->transactionUUID();

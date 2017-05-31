@@ -97,11 +97,6 @@ protected:
     // for path involved into the transaction.
     unique_ptr<PathStats> mPathStats;
 
-    // minimum value of Coordinator outgoing amount to first intremediate node
-    // and incoming amount from last intermediate node
-    // todo : don't use currently
-    TrustLineAmount mInitialTransactionAmount;
-
     // fields, wor continue process coordinator request after releasing conflicted reservation
     // transaction on which reservation we pretend
     TransactionUUID mConflictedTransaction;

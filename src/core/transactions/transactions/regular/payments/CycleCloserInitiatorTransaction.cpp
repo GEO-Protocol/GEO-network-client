@@ -17,8 +17,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log),
-    mCyclesManager(cyclesManager),
-    mInitialTransactionAmount(0)
+    mCyclesManager(cyclesManager)
 {
     mStep = Stages::Coordinator_Initialisation;
     mPathStats = make_unique<PathStats>(path);
@@ -97,8 +96,21 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
             "CycleCloserInitiatorTransaction::runAmountReservationStage: "
                 "invalid first level node occurred. ");
     }
-    mOutgoingAmount = *(mTrustLines->availableOutgoingCycleAmount(
-        mNextNode));
+    const auto kOutgoingAmounts = mTrustLines->availableOutgoingCycleAmounts(mNextNode);
+    const auto kOutgoingAmountWithReservations = kOutgoingAmounts.first;
+    const auto kOutgoingAmountWithoutReservations = kOutgoingAmounts.second;
+    if (*kOutgoingAmountWithReservations == TrustLine::kZeroAmount()) {
+        if (*kOutgoingAmountWithoutReservations == TrustLine::kZeroAmount()) {
+            debug() << "Can't close cycle, because coordinator outgoing amount equal zero, "
+                "and can't use reservations from other transactions";
+            return resultDone();
+        } else {
+            mOutgoingAmount = TrustLineAmount(0);
+        }
+    } else {
+        mOutgoingAmount = *kOutgoingAmountWithReservations;
+    }
+
     debug() << "outgoing Possibilities: " << mOutgoingAmount;
 
     mPreviousNode = mPathStats->path()->nodes[mPathStats->path()->length() - 2];
@@ -110,18 +122,19 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
             "CycleCloserInitiatorTransaction::runAmountReservationStage: "
                 "invalid first level node occurred. ");
     }
-    mIncomingAmount = *(mTrustLines->availableIncomingCycleAmount(
-        mPreviousNode));
+    const auto kIncomingAmounts = mTrustLines->availableIncomingCycleAmounts(mPreviousNode);
+    mIncomingAmount = *(kIncomingAmounts.first);
+
+    if (mIncomingAmount == TrustLine::kZeroAmount()) {
+        debug() << "Can't close cycle, because coordinator incoming amount equal zero";
+        return resultDone();
+    }
     debug() << "Incoming Possibilities: " << mIncomingAmount;
 
-    mInitialTransactionAmount = min(
-        mOutgoingAmount,
-        mIncomingAmount);
-    debug() << "mInitialTransactionAmount: " << mInitialTransactionAmount;
-//    if (mInitialTransactionAmount == 0) {
-//        debug() << "Can't close cycle, because coordinator incoming or outgoing amount equal zero";
-//        return resultDone();
-//    }
+    if (mIncomingAmount < mOutgoingAmount) {
+        mOutgoingAmount = mIncomingAmount;
+    }
+    debug() << "Initial Outgoig Amount: " << mOutgoingAmount;
     mStep = Stages::Coordinator_AmountReservation;
     return runAmountReservationStage();
 }
@@ -271,8 +284,11 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
         PathStats::NeighbourReservationRequestSent);
 
     if (0 == mOutgoingAmount) {
+        // try use reservations from other transations
         auto reservations = mTrustLines->reservationsToContractor(mNextNode);
         for (auto reservation : reservations) {
+            debug() << "try use " << reservation->amount() << " from "
+                    << reservation->transactionUUID() << " transaction";
             if (mCyclesManager->resolveReservationConflict(
                 currentTransactionUUID(), reservation->transactionUUID())) {
                 mConflictedTransaction = reservation->transactionUUID();
