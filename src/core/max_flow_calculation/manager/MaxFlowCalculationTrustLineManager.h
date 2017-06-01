@@ -27,13 +27,18 @@ public:
 
     void resetAllUsedAmounts();
 
-    void deleteLegacyTrustLines();
+    bool deleteLegacyTrustLines();
 
     size_t trustLinesCounts() const;
 
     void printTrustLines() const;
 
     DateTime closestTimeEvent() const;
+
+    void setPreventDeleting(
+        bool preventDeleting);
+
+    bool preventDeleting() const;
 
 private:
     // comparing two trustLines for sorting
@@ -69,6 +74,7 @@ private:
     unordered_map<NodeUUID, trustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
     map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
     Logger &mLog;
+    bool mPreventDeleting;
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H
