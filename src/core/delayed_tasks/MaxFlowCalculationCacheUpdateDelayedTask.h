@@ -33,7 +33,8 @@ public:
 private:
     DateTime minimalAwakeningTimestamp();
 
-    void updateCache();
+    // return time when task shoulb be started again
+    DateTime updateCache();
 
     LoggerStream info() const;
 
@@ -42,6 +43,18 @@ private:
     LoggerStream error() const;
 
     const string logHeader() const;
+
+private:
+    static const uint16_t kProlongationTrustLineUpdatingTimeSec = 2;
+
+private:
+    static Duration& kProlongationTrustLineUpdatingDuration() {
+        static auto duration = Duration(
+            0,
+            0,
+            kProlongationTrustLineUpdatingTimeSec);
+        return duration;
+    }
 
 private:
     as::io_service &mIOService;

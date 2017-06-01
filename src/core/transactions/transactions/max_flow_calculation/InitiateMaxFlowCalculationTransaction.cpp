@@ -56,6 +56,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
                 mMaxFlowCalculationCacheManager->setInitiatorCache();
             }
             sendMessagesToContractors();
+            mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
             mStep = Stages::CalculateMaxTransactionFlow;
             return make_shared<TransactionResult>(
                 TransactionState::awakeAfterMilliseconds(
@@ -71,6 +72,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
                         calculateMaxFlow(
                             contractorUUID)));
             }
+            mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
             mStep = Stages::SendRequestForCollectingTopology;
             return resultOk(maxFlows);
         }
