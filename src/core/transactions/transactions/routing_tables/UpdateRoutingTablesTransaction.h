@@ -2,11 +2,19 @@
 #define GEO_NETWORK_CLIENT_UPDATEROUTINGTABLES_H
 
 #include "../base/BaseTransaction.h"
+#include "../../../common/NodeUUID.h"
 #include "../../../interface/commands_interface/commands/routing_tables/UpdateRoutingTablesCommand.h"
 #include "../../../network/messages/routing_tables/CRC32Rt2ResponseMessage.h"
 #include "../../../network/messages/routing_tables/CRC32Rt2RequestMessage.h"
+#include "../../../network/messages/routing_tables/CRC32ThirdLevelResponseMessage.h"
+
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "NeighborsCollectingTransaction.h"
+
+#include <vector>
+
+
+using namespace std;
 
 class UpdateRoutingTablesTransaction:
     public BaseTransaction {
@@ -24,8 +32,11 @@ public:
     noexcept;
 
     enum Stages {
-        sendCRC32Rt2SRequestMessage = 1,
-        UpdateRT2
+        askNeighborsForTopologyChangingStage = 1,
+        checkFirstAndSecondLevelCRC32SumForNeighborStage,
+        checkFirstLevelCRC32SumForNeighborStage,
+        checkSecondLevelCRC32SumForNeighborStage,
+        UpdateRT2Stage
     };
 
     UpdateRoutingTablesCommand::Shared command() const;
@@ -33,13 +44,20 @@ public:
     TransactionResult::SharedConst run();
 
 protected:
-    TransactionResult::SharedConst checkCRC32rt2Sum();
+    TransactionResult::SharedConst askNeighborsForTopologyChanging();
+    TransactionResult::SharedConst checkFirstAndSecondCRC32rt2Sum();
+    TransactionResult::SharedConst checkFirstCRC32rt2Sum();
+    TransactionResult::SharedConst checkSecondCRC32rt2Sum();
     TransactionResult::SharedConst updateRoughtingTables();
+
+protected:
+    const string logHeader() const;
 
 private:
     UpdateRoutingTablesCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
+    vector<pair<NodeUUID, uint8_t>> mNodesToUpdate;
 
 };
 #endif //GEO_NETWORK_CLIENT_UPDATEROUTINGTABLES_H

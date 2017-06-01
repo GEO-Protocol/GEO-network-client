@@ -905,27 +905,96 @@ void TrustLinesManager::printRTs()
     }
 }
 
-uint32_t TrustLinesManager::crc32SumFirstLevel(const NodeUUID &contractorUUID) {
+uint32_t TrustLinesManager::crc32SumAllFirstLevelNeighbors(
+    const NodeUUID &firstLevelcontractorUUID)
+{
     boost::crc_32_type result;
-//    set<NodeUUID> firstLevelContractors;
-//    stringstream ss;
-//    for(const auto kNodeUUIDAndTrustline: mTrustLines)
-//        if(kNodeUUIDAndTrustline.first != contractorUUID)
-//            firstLevelContractors.insert(kNodeUUIDAndTrustline.first);
-//    for(const auto kNodeUUID: firstLevelContractors)
-//        ss << kNodeUUID;
-//    result.process_bytes(ss.str().data(), ss.str().length());
+    std::set<NodeUUID> firstLevelContractors;
+    stringstream ss;
+    for(const auto kNodeUUIDAndTrustline: mTrustLines)
+        if(kNodeUUIDAndTrustline.first != firstLevelcontractorUUID)
+            firstLevelContractors.insert(kNodeUUIDAndTrustline.first);
+
+    copy(firstLevelContractors.begin(), firstLevelContractors.end(), ostream_iterator<NodeUUID>(ss, ""));
+    result.process_bytes(ss.str().data(), ss.str().length());
+
     return result.checksum();
 }
 
-uint32_t TrustLinesManager::crc32SumSecondLevel(const NodeUUID &contractorUUID) {
+uint32_t TrustLinesManager::crc32SumSecondLevelForNeighbor(const NodeUUID &firstLevelcontractorUUID)
+{
     boost::crc_32_type result;
     auto ioTransaction = mStorageHandler->beginTransaction();
-    auto secondLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT2(contractorUUID);
+    auto secondLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT2(firstLevelcontractorUUID);
+
     stringstream ss;
-    for(const auto kNodeUUID: secondLevelContractors)
-        ss << kNodeUUID;
+    copy(secondLevelContractors.begin(), secondLevelContractors.end(), ostream_iterator<NodeUUID>(ss, ""));
+
+    result.process_bytes(ss.str().data(), ss.str().length());
+
+    return result.checksum();
+}
+
+uint32_t TrustLinesManager::crc32SumFirstAndSecondLevelForNeighbor(const NodeUUID &requestNodeUUID)
+{
+    boost::crc_32_type result;
+    stringstream firstLevelCRC32Sum;
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    // Get all firstlevel neighbors
+    auto firstLevelContractors = rt1();
+    // To prevent different CRC32 sum on equal vector of NodeUUID - sort it
+    sort(firstLevelContractors.begin(), firstLevelContractors.end());
+    cout << "crc32SumFirstAndSecondLevelForNeighbor" << endl;
+
+    for(const auto kNodeUUIDFirstLevel: firstLevelContractors){
+        if(kNodeUUIDFirstLevel == requestNodeUUID)
+            // Initiator Node will not calculate itself to calculate second level crc32
+            continue;
+        boost::crc_32_type stepCRC32;
+        stringstream secondLevelCRC32Sum;
+        auto stepSecondLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT2(kNodeUUIDFirstLevel);
+
+        copy(
+            stepSecondLevelContractors.begin(),
+            stepSecondLevelContractors.end(),
+            ostream_iterator<NodeUUID>(secondLevelCRC32Sum, ""));
+        cout << "secondLevelCRC32Sum: " << secondLevelCRC32Sum.str() << endl;
+        stepCRC32.process_bytes(secondLevelCRC32Sum.str().data(), secondLevelCRC32Sum.str().length());
+        firstLevelCRC32Sum << stepCRC32.checksum();
+    }
+    result.process_bytes(firstLevelCRC32Sum.str().data(), firstLevelCRC32Sum.str().length());
+    return result.checksum();
+}
+
+uint32_t TrustLinesManager::crc32SumSecondAndThirdLevelForNeighbor(const NodeUUID &firstLevelcontractorUUID)
+{
+    boost::crc_32_type result;
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto secondLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT2(firstLevelcontractorUUID);
+    stringstream secondLevelCRC32Sum;
+    for(const auto kNodeUUIDSecondLevel: secondLevelContractors){
+        boost::crc_32_type stepCRC32;
+        stringstream thirdLevelCRC32Sum;
+        auto stepThirdLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT3(kNodeUUIDSecondLevel);
+        copy(stepThirdLevelContractors.begin(), stepThirdLevelContractors.end(), ostream_iterator<NodeUUID>(thirdLevelCRC32Sum, ";"));
+        cout << "crc32SumSecondAndThirdLevelForNeighbor: " <<  thirdLevelCRC32Sum.str() << endl;
+        stepCRC32.process_bytes(thirdLevelCRC32Sum.str().data(), thirdLevelCRC32Sum.str().length());
+        secondLevelCRC32Sum << stepCRC32.checksum();
+    }
+    result.process_bytes(secondLevelCRC32Sum.str().data(), secondLevelCRC32Sum.str().length());
+    return result.checksum();
+}
+
+uint32_t TrustLinesManager::crc32SumThirdLevelForNeighbor(const NodeUUID &thirdLevelcontractorUUID)
+{
+    boost::crc_32_type result;
+
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    auto FourthLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT3(thirdLevelcontractorUUID);
+
+    stringstream ss;
+    copy(FourthLevelContractors.begin(), FourthLevelContractors.end(), ostream_iterator<NodeUUID>(ss, ""));
+
     result.process_bytes(ss.str().data(), ss.str().length());
     return result.checksum();
 }
-
