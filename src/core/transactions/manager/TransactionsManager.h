@@ -55,12 +55,12 @@
 
 #include "../transactions/base/BaseTransaction.h"
 
-#include "../transactions/unique/trust_lines/OpenTrustLineTransaction.h"
-#include "../transactions/unique/trust_lines/AcceptTrustLineTransaction.h"
-#include "../transactions/unique/trust_lines/CloseTrustLineTransaction.h"
-#include "../transactions/unique/trust_lines/RejectTrustLineTransaction.h"
-#include "../transactions/unique/trust_lines/SetTrustLineTransaction.h"
-#include "../transactions/unique/trust_lines/UpdateTrustLineTransaction.h"
+#include "../transactions/trust_lines/OpenTrustLineTransaction.h"
+#include "../transactions/trust_lines/AcceptTrustLineTransaction.h"
+#include "../transactions/trust_lines/CloseTrustLineTransaction.h"
+#include "../transactions/trust_lines/RejectTrustLineTransaction.h"
+#include "../transactions/trust_lines/SetTrustLineTransaction.h"
+#include "../transactions/trust_lines/UpdateTrustLineTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"

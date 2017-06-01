@@ -9,7 +9,7 @@ OpenTrustLineTransaction::OpenTrustLineTransaction(
     Logger &logger)
     noexcept :
 
-    TrustLineTransaction(
+    BaseTransaction(
         BaseTransaction::TransactionType::OpenTrustLineTransactionType,
         nodeUUID,
         logger),
@@ -101,26 +101,35 @@ TransactionResult::SharedConst OpenTrustLineTransaction::processResponse()
 
         updateHistory(ioTransaction);
 
-
         // Launching transaction for routing tables population
-        if (mTrustLines->trustLineReadOnly(kContractor)->direction() != TrustLineDirection::Both) {
-            const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
-                currentNodeUUID(),
-                currentNodeUUID(),
-                currentNodeUUID(),
-                mCommand->contractorUUID(),
-                TrustLineStatesHandlerTransaction::Created,
-                0,
-                mTrustLines,
-                mStorageHandler,
-                mLog);
+        // if TrustLineStatesHandlerTransaction fails AcceptTrustLineTransaction will return result ok in any case
+        try {
+            if (mTrustLines->trustLineReadOnly(kContractor)->direction() != TrustLineDirection::Both) {
+                const auto kTransaction = make_shared<TrustLineStatesHandlerTransaction>(
+                    currentNodeUUID(),
+                    currentNodeUUID(),
+                    currentNodeUUID(),
+                    mCommand->contractorUUID(),
+                    TrustLineStatesHandlerTransaction::Created,
+                    0,
+                    mTrustLines,
+                    mStorageHandler,
+                    mLog);
 
-            launchSubsidiaryTransaction(kTransaction);
+                launchSubsidiaryTransaction(kTransaction);
+            }
+        } catch (...) {
+            error() << "Can not update routing table for " << kContractor << ".";
         }
 
         info() << "Trust line to the node " << kContractor << " was successfully opened.";
         return resultOK();
 
+    } catch (ValueError &){
+        ioTransaction->rollback();
+        info() << "Attempt to open trust line to the node " << kContractor << " failed. "
+               << "Cannot opent trustline with zero amount";
+        return resultProtocolError();
 
     } catch (ConflictError &) {
         ioTransaction->rollback();
@@ -185,8 +194,10 @@ TransactionResult::SharedConst OpenTrustLineTransaction::resultProtocolError() c
 }
 
 const string OpenTrustLineTransaction::logHeader() const
+    noexcept
 {
     stringstream s;
     s << "[OpenTrustLineTA: " << currentTransactionUUID() << "]";
     return s.str();
 }
+

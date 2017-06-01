@@ -33,7 +33,7 @@ void MaxFlowCalculationCacheManager::updateCaches()
         if (utc_now() - timeAndNodeUUID.first > kResetSenderCacheDuration()) {
             NodeUUID* keyUUIDPtr = timeAndNodeUUID.second;
 #ifdef  DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "updateCaches\t" << *keyUUIDPtr;
+            info() << "updateCaches delete cache\t" << *keyUUIDPtr;
 #endif
             mCaches.erase(*keyUUIDPtr);
             msCache.erase(timeAndNodeUUID.first);
@@ -92,8 +92,6 @@ DateTime MaxFlowCalculationCacheManager::closestTimeEvent() const
 
 LoggerStream MaxFlowCalculationCacheManager::info() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.info(logHeader());
 }
 
