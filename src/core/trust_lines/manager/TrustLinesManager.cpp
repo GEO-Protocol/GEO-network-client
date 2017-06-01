@@ -911,13 +911,16 @@ uint32_t TrustLinesManager::crc32SumAllFirstLevelNeighbors(
     boost::crc_32_type result;
     std::set<NodeUUID> firstLevelContractors;
     stringstream ss;
+    cout << "crc32SumAllFirstLevelNeighbors" << endl;
     for(const auto kNodeUUIDAndTrustline: mTrustLines)
         if(kNodeUUIDAndTrustline.first != firstLevelcontractorUUID)
             firstLevelContractors.insert(kNodeUUIDAndTrustline.first);
 
-    copy(firstLevelContractors.begin(), firstLevelContractors.end(), ostream_iterator<NodeUUID>(ss, ""));
+    copy(firstLevelContractors.begin(), firstLevelContractors.end(), ostream_iterator<NodeUUID>(ss, ";"));
+    cout << "firstLevelContractors: " << ss.str() << endl;
     result.process_bytes(ss.str().data(), ss.str().length());
-
+    cout << "ResultCheckSum" << result.checksum() << endl;
+    cout << "--------------------------" << endl;
     return result.checksum();
 }
 
@@ -925,13 +928,15 @@ uint32_t TrustLinesManager::crc32SumSecondLevelForNeighbor(const NodeUUID &first
 {
     boost::crc_32_type result;
     auto ioTransaction = mStorageHandler->beginTransaction();
+    cout << "crc32SumSecondLevelForNeighbor:" << endl;
     auto secondLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT2(firstLevelcontractorUUID);
 
     stringstream ss;
-    copy(secondLevelContractors.begin(), secondLevelContractors.end(), ostream_iterator<NodeUUID>(ss, ""));
-
+    copy(secondLevelContractors.begin(), secondLevelContractors.end(), ostream_iterator<NodeUUID>(ss, ";"));
+    cout << "secondLevelContractors: " << ss.str() << endl;
     result.process_bytes(ss.str().data(), ss.str().length());
-
+    cout << "--------------------------" << endl;
+    cout << "ResultCheckSum" << result.checksum() << endl;
     return result.checksum();
 }
 
@@ -957,12 +962,16 @@ uint32_t TrustLinesManager::crc32SumFirstAndSecondLevelForNeighbor(const NodeUUI
         copy(
             stepSecondLevelContractors.begin(),
             stepSecondLevelContractors.end(),
-            ostream_iterator<NodeUUID>(secondLevelCRC32Sum, ""));
+            ostream_iterator<NodeUUID>(secondLevelCRC32Sum, ";"));
+        secondLevelCRC32Sum << kNodeUUIDFirstLevel;
         cout << "secondLevelCRC32Sum: " << secondLevelCRC32Sum.str() << endl;
         stepCRC32.process_bytes(secondLevelCRC32Sum.str().data(), secondLevelCRC32Sum.str().length());
         firstLevelCRC32Sum << stepCRC32.checksum();
     }
+    cout << "firstLevelCRC32Sum: "  << firstLevelCRC32Sum.str() << endl;
     result.process_bytes(firstLevelCRC32Sum.str().data(), firstLevelCRC32Sum.str().length());
+    cout << "ResultCheckSum" << result.checksum() << endl;
+    cout << "--------------------------" << endl;
     return result.checksum();
 }
 
@@ -977,11 +986,14 @@ uint32_t TrustLinesManager::crc32SumSecondAndThirdLevelForNeighbor(const NodeUUI
         stringstream thirdLevelCRC32Sum;
         auto stepThirdLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT3(kNodeUUIDSecondLevel);
         copy(stepThirdLevelContractors.begin(), stepThirdLevelContractors.end(), ostream_iterator<NodeUUID>(thirdLevelCRC32Sum, ";"));
+        thirdLevelCRC32Sum << kNodeUUIDSecondLevel;
         cout << "crc32SumSecondAndThirdLevelForNeighbor: " <<  thirdLevelCRC32Sum.str() << endl;
         stepCRC32.process_bytes(thirdLevelCRC32Sum.str().data(), thirdLevelCRC32Sum.str().length());
         secondLevelCRC32Sum << stepCRC32.checksum();
     }
     result.process_bytes(secondLevelCRC32Sum.str().data(), secondLevelCRC32Sum.str().length());
+    cout << "ResultCheckSum" << result.checksum() << endl;
+    cout << "--------------------------" << endl;
     return result.checksum();
 }
 
@@ -993,8 +1005,10 @@ uint32_t TrustLinesManager::crc32SumThirdLevelForNeighbor(const NodeUUID &thirdL
     auto FourthLevelContractors = ioTransaction->routingTablesHandler()->neighborsOfOnRT3(thirdLevelcontractorUUID);
 
     stringstream ss;
-    copy(FourthLevelContractors.begin(), FourthLevelContractors.end(), ostream_iterator<NodeUUID>(ss, ""));
+    copy(FourthLevelContractors.begin(), FourthLevelContractors.end(), ostream_iterator<NodeUUID>(ss, ";"));
 
     result.process_bytes(ss.str().data(), ss.str().length());
+    cout << "ResultCheckSum" << result.checksum() << endl;
+    cout << "--------------------------" << endl;
     return result.checksum();
 }

@@ -51,8 +51,11 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstAndSeco
         auto mResponseMessage = popNextMessage<CRC32Rt2ResponseMessage>();
         const auto kContractor = mResponseMessage->senderUUID;
         const auto kStepCRC32Sum = mTrustLinesManager->crc32SumSecondAndThirdLevelForNeighbor(kContractor);
+        cout << "From Initiator " << kStepCRC32Sum << endl;
+        cout << "From message" << mResponseMessage->crc32Rt2Sum() << endl;
         if(kStepCRC32Sum != mResponseMessage->crc32Rt2Sum())
             NodesForNextCheck.push_back(kContractor);
+        NodesForNextCheck.push_back(kContractor);
     }
     if (NodesForNextCheck.size() == 0){
         info() << "There are no changes in neighbors. Exit Transaction.";
@@ -86,6 +89,8 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt
         auto responseMessage = popNextMessage<CRC32Rt2ResponseMessage>();
         const auto kContractor = responseMessage->senderUUID;
         const auto kStepCRC32Sum = mTrustLinesManager->crc32SumSecondLevelForNeighbor(kContractor);
+        cout << "From Initiator " << kStepCRC32Sum << endl;
+        cout << "From message" << responseMessage->crc32Rt2Sum() << endl;
         if(kStepCRC32Sum != responseMessage->crc32Rt2Sum()){
             // it sims that first level node has new trustline.
             // save its id for update with others
@@ -135,7 +140,9 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkSecondCRC32r
     while(mContext.size() > 0) {
         auto responseMessage = popNextMessage<CRC32Rt2ResponseMessage>();
         const auto kContractor = responseMessage->senderUUID;
-        const auto kStepCRC32Sum = mTrustLinesManager->crc32SumSecondLevelForNeighbor(kContractor);
+        const auto kStepCRC32Sum = mTrustLinesManager->crc32SumThirdLevelForNeighbor(kContractor);
+        cout << "From Initiator " << kStepCRC32Sum << endl;
+        cout << "From message" << responseMessage->crc32Rt2Sum() << endl;
         if (kStepCRC32Sum != responseMessage->crc32Rt2Sum()) {
             // it sims that first level node has new trustline.
             // save its id for update with others
