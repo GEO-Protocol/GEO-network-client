@@ -165,16 +165,34 @@ bool CyclesManager::isChellengerTransactionWinReservation(
     BasePaymentTransaction::Shared chellengerTransaction,
     BasePaymentTransaction::Shared reservedTransaction)
 {
+    debug() << "isChellengerTransactionWinReservation chellenger: " << chellengerTransaction->currentTransactionUUID()
+            << " nodeUUID: " << chellengerTransaction->currentNodeUUID()
+            << " transaction type: " << chellengerTransaction->transactionType()
+            << " votesCheckingStage: " << chellengerTransaction->isCommonVotesCheckingstage()
+            << " cycle length: " << to_string(chellengerTransaction->cycleLength())
+            << " coordinator: " << chellengerTransaction->coordinatorUUID();
+    debug() << "isChellengerTransactionWinReservation reserved: " << reservedTransaction->currentTransactionUUID()
+            << " nodeUUID: " << chellengerTransaction->currentNodeUUID()
+            << " transaction type: " << reservedTransaction->transactionType()
+            << " votesCheckingStage: " << reservedTransaction->isCommonVotesCheckingstage()
+            << " cycle length: " << to_string(reservedTransaction->cycleLength())
+            << " coordinator: " << reservedTransaction->coordinatorUUID();
     if (reservedTransaction->transactionType() != BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction
         && reservedTransaction->transactionType() != BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction) {
+        debug() << "isChellengerTransactionWinReservation false: reserved is not cycle transaction";
         return false;
     }
     if (reservedTransaction->isCommonVotesCheckingstage()) {
+        debug() << "isChellengerTransactionWinReservation false: reserved on votesChecking stage";
         return false;
     }
     if (chellengerTransaction->cycleLength() != reservedTransaction->cycleLength()) {
+        debug() << "isChellengerTransactionWinReservation "
+                << (chellengerTransaction->cycleLength() > reservedTransaction->cycleLength()) << " on cycles lengths";
         return chellengerTransaction->cycleLength() > reservedTransaction->cycleLength();
     }
+    debug() << "isChellengerTransactionWinReservation "
+            << (chellengerTransaction->coordinatorUUID() > reservedTransaction->coordinatorUUID()) << " on coordinatorUUIDs";
     return chellengerTransaction->coordinatorUUID() > reservedTransaction->coordinatorUUID();
 }
 

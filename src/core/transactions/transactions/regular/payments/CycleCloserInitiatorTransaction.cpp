@@ -99,6 +99,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
     const auto kOutgoingAmounts = mTrustLines->availableOutgoingCycleAmounts(mNextNode);
     const auto kOutgoingAmountWithReservations = kOutgoingAmounts.first;
     const auto kOutgoingAmountWithoutReservations = kOutgoingAmounts.second;
+    debug() << "OutgoingAmountWithReservations: " << *kOutgoingAmountWithReservations
+            << " OutgoingAmountWithoutReservations: " << *kOutgoingAmountWithoutReservations;
+
     if (*kOutgoingAmountWithReservations == TrustLine::kZeroAmount()) {
         if (*kOutgoingAmountWithoutReservations == TrustLine::kZeroAmount()) {
             debug() << "Can't close cycle, because coordinator outgoing amount equal zero, "
@@ -122,6 +125,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
             "CycleCloserInitiatorTransaction::runAmountReservationStage: "
                 "invalid first level node occurred. ");
     }
+
     const auto kIncomingAmounts = mTrustLines->availableIncomingCycleAmounts(mPreviousNode);
     mIncomingAmount = *(kIncomingAmounts.first);
 
@@ -291,12 +295,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
                     << reservation->transactionUUID() << " transaction";
             if (mCyclesManager->resolveReservationConflict(
                 currentTransactionUUID(), reservation->transactionUUID())) {
+                debug() << "win reservation";
                 mConflictedTransaction = reservation->transactionUUID();
                 mStep = Cycles_WaitForOutgoingAmountReleasing;
                 mOutgoingAmount = reservation->amount();
                 return resultAwaikAfterMilliseconds(
                     kWaitingForReleasingAmountMSec);
             }
+            debug() << "don't win reservation";
         }
     }
 
@@ -309,6 +315,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
         kCurrentNode,
         kTransactionUUID,
         path->maxFlow(),
+        currentNodeUUID(),
         path->path()->length());
 
     return resultWaitForMessageTypes(
@@ -337,6 +344,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
         currentNodeUUID(),
         currentTransactionUUID(),
         path->maxFlow(),
+        currentNodeUUID(),
         path->path()->length());
 
     return resultWaitForMessageTypes(

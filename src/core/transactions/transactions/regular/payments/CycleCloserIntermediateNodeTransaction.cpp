@@ -89,6 +89,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
 {
     debug() << "runPreviousNeighborRequestProcessingStage";
     mPreviousNode = mMessage->senderUUID;
+    mCoordinator = mMessage->coordinatorUUID();
     debug() << "Init. intermediate payment operation from node (" << mPreviousNode << ")";
     debug() << "Requested amount reservation: " << mMessage->amount();
 
@@ -98,6 +99,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     const auto kIncomingAmountWithReservations = kIncomingAmounts.first;
     const auto kIncomingAmountWithoutReservations = kIncomingAmounts.second;
 
+    debug() << "IncomingAmountWithReservations: " << *kIncomingAmountWithReservations
+            << " IncomingAmountWithoutReservations: " << *kIncomingAmountWithoutReservations;
     if (*kIncomingAmountWithReservations == TrustLine::kZeroAmount()) {
         if (*kIncomingAmountWithoutReservations == TrustLine::kZeroAmount()) {
             sendMessage<IntermediateNodeCycleReservationResponseMessage>(
@@ -105,14 +108,15 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 ResponseCycleMessage::Rejected);
-            debug() << "can't reserve requested amount, transaction closed";
+            debug() << "can't reserve requested amount, event with reservations, transaction closed";
             return resultDone();
         } else {
             mReservationAmount = TrustLineAmount(0);
         }
     } else {
-        mReservationAmount =
-            min(mMessage->amount(), *kIncomingAmountWithReservations);
+        mReservationAmount = min(
+            mMessage->amount(),
+            *kIncomingAmountWithReservations);
     }
 
     if (0 == mReservationAmount) {
@@ -123,12 +127,16 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
                     << reservation->transactionUUID() << " transaction";
             if (mCyclesManager->resolveReservationConflict(
                 currentTransactionUUID(), reservation->transactionUUID())) {
+                debug() << "win reservation";
                 mConflictedTransaction = reservation->transactionUUID();
                 mStep = Cycles_WaitForIncomingAmountReleasing;
-                mReservationAmount = reservation->amount();
+                mReservationAmount = min(
+                    mMessage->amount(),
+                    reservation->amount());
                 return resultAwaikAfterMilliseconds(
                     kWaitingForReleasingAmountMSec);
             }
+            debug() << "don't win reservation";
         }
     }
     if (0 == mReservationAmount || ! reserveIncomingAmount(mPreviousNode, mReservationAmount, 0)) {
@@ -164,7 +172,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
         return resultAwaikAfterMilliseconds(
             kWaitingForReleasingAmountMSec);
     }
-
+    debug() << "try reserve " << mReservationAmount;
     if (! reserveIncomingAmount(mPreviousNode, mReservationAmount, 0)) {
         sendMessage<IntermediateNodeCycleReservationResponseMessage>(
             mPreviousNode,
@@ -199,12 +207,14 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
 
     const auto kMessage = popNextMessage<CoordinatorCycleReservationRequestMessage>();
     mNextNode = kMessage->nextNodeInPathUUID();
-    mCoordinator = kMessage->senderUUID;
 
     // Note: copy of shared pointer is required
     const auto kOutgoingAmounts = mTrustLines->availableOutgoingCycleAmounts(mNextNode);
     const auto kOutgoingAmountWithReservations = kOutgoingAmounts.first;
     const auto kOutgoingAmountWithoutReservations = kOutgoingAmounts.second;
+    debug() << "OutgoingAmountWithReservations: " << *kOutgoingAmountWithReservations
+            << " OutgoingAmountWithoutReservations: " << *kOutgoingAmountWithoutReservations;
+
     if (*kOutgoingAmountWithReservations == TrustLine::kZeroAmount()) {
         if (*kOutgoingAmountWithoutReservations == TrustLine::kZeroAmount()) {
             sendMessage<CoordinatorCycleReservationResponseMessage>(
@@ -213,13 +223,11 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
                 currentTransactionUUID(),
                 ResponseCycleMessage::Rejected);
 
-            debug() << "No amount reservation is possible. Rolled back.";
+            debug() << "No amount reservation is possible, event with using other reservations. Rolled back.";
             rollBack();
             return resultDone();
         } else {
-            mReservationAmount = min(
-                kMessage->amount(),
-                *kOutgoingAmountWithReservations);
+            mReservationAmount = TrustLineAmount(0);
         }
     } else {
         mReservationAmount = min(
@@ -235,12 +243,16 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
                     << reservation->transactionUUID() << " transaction";
             if (mCyclesManager->resolveReservationConflict(
                 currentTransactionUUID(), reservation->transactionUUID())) {
+                debug() << "win reservation";
                 mConflictedTransaction = reservation->transactionUUID();
                 mStep = Cycles_WaitForOutgoingAmountReleasing;
-                mReservationAmount = reservation->amount();
+                mReservationAmount = min(
+                    kMessage->amount(),
+                    reservation->amount());
                 return resultAwaikAfterMilliseconds(
                     kWaitingForReleasingAmountMSec);
             }
+            debug() << "don't win reservation";
         }
     }
     if (0 == mReservationAmount || ! reserveOutgoingAmount(mNextNode, mReservationAmount, 0)) {
@@ -261,6 +273,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
         currentNodeUUID(),
         currentTransactionUUID(),
         mReservationAmount,
+        mCoordinator,
         mCycleLength);
 
     clearContext();
@@ -279,6 +292,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
         return resultAwaikAfterMilliseconds(
             kWaitingForReleasingAmountMSec);
     }
+    debug() << "try reserve " << mReservationAmount;
     if (! reserveOutgoingAmount(mNextNode, mReservationAmount, 0)) {
         sendMessage<CoordinatorCycleReservationResponseMessage>(
             mCoordinator,
@@ -297,6 +311,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
         currentNodeUUID(),
         currentTransactionUUID(),
         mReservationAmount,
+        mCoordinator,
         mCycleLength);
 
     clearContext();
