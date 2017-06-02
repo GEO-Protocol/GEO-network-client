@@ -37,6 +37,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "start";
 #endif
+            debug() << "start first part";
             for (const auto &contractorUUID : mCommand->contractors()) {
                 if (contractorUUID == currentNodeUUID()) {
                     error() << "Attempt to initialise operation against itself was prevented. Canceled.";
@@ -58,20 +59,26 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
             sendMessagesToContractors();
             mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
             mStep = Stages::CalculateMaxTransactionFlow;
+            debug() << "end first part";
             return make_shared<TransactionResult>(
                 TransactionState::awakeAfterMilliseconds(
                     kWaitMilisecondsForCalculatingMaxFlow));
         }
         case Stages::CalculateMaxTransactionFlow: {
+            debug() << "start finding max flows";
+            sortedTrustLineMehodCnt = 0;
             vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
-            maxFlows.reserve(mCommand->contractors().size());
-            for (const auto &contractorUUID : mCommand->contractors()) {
-                maxFlows.push_back(
-                    make_pair(
-                        contractorUUID,
-                        calculateMaxFlow(
-                            contractorUUID)));
-            }
+//            maxFlows.reserve(mCommand->contractors().size());
+//            for (const auto &contractorUUID : mCommand->contractors()) {
+//                maxFlows.push_back(
+//                    make_pair(
+//                        contractorUUID,
+//                        calculateMaxFlow(
+//                            contractorUUID)));
+//                debug() << "one flow calculated";
+//                debug() << "sortedTrustLines cnt: " << sortedTrustLineMehodCnt;
+//                break;
+//            }
             mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
             mStep = Stages::SendRequestForCollectingTopology;
             return resultOk(maxFlows);
@@ -111,9 +118,11 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     info() << "calculateMaxFlow\tstart found flow to: " << contractorUUID;
     mMaxFlowCalculationTrustLineManager->printTrustLines();
 #endif
+    sortedTrustLineMehodCnt++;
+    auto sortedTrustLines =
+        mMaxFlowCalculationTrustLineManager->sortedTrustLines(mNodeUUID);
+
     while(true) {
-        auto sortedTrustLines =
-                mMaxFlowCalculationTrustLineManager->sortedTrustLines(mNodeUUID);
 
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
         info() << "sorted trustLines: " << sortedTrustLines.size();
@@ -122,6 +131,18 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
                    << *trLine->amount().get() << " " << *trLine->freeAmount();
         }
 #endif
+//        auto testTrustLineRtr = sortedTrustLines.begin() + 3;
+//        auto testTrustLine = *testTrustLineRtr;
+//        testTrustLine->addUsedAmount(10000);
+//        updateSortedTrustLines(
+//            sortedTrustLines,
+//            testTrustLine);
+//        info() << "sorted trustLines after updating: " << sortedTrustLines.size();
+//        for (auto const trLine : sortedTrustLines) {
+//            info() << trLine->sourceUUID() << " " << trLine->targetUUID() << " "
+//                   << *trLine->amount().get() << " " << *trLine->freeAmount();
+//        }
+//        return TrustLineAmount(0);
 
         if (sortedTrustLines.size() == 0) {
             mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
@@ -156,6 +177,9 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
                 auto trustLineAmountTmp = trustLineFreeAmountTmp.get();
                 info() << "calculateMaxFlow\t" << "new flow: " << *trustLineAmountTmp;
 #endif
+                updateSortedTrustLines(
+                    sortedTrustLines,
+                    trustLine);
                 break;
             }
         }
@@ -185,6 +209,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     if (level == kMaxFlowLength) {
         return 0;
     }
+    sortedTrustLineMehodCnt++;
     vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines =
             mMaxFlowCalculationTrustLineManager->sortedTrustLines(nodeUUID);
     if (sortedTrustLines.size() == 0) {
@@ -226,6 +251,35 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
         }
     }
     return 0;
+}
+
+void InitiateMaxFlowCalculationTransaction::updateSortedTrustLines(
+    vector<MaxFlowCalculationTrustLine::Shared> &sortedTrustLines,
+    MaxFlowCalculationTrustLine::Shared updatedTrustLine)
+{
+    DateTime start = utc_now();
+//    debug() << "updateSortedTrustLines " << updatedTrustLine->sourceUUID() << " " <<  updatedTrustLine->targetUUID()
+//        << " " << *updatedTrustLine->amount()  << " " << *updatedTrustLine->freeAmount();
+    auto itTrustLine = sortedTrustLines.begin();
+    while (itTrustLine != sortedTrustLines.end()) {
+        if (itTrustLine->get() == updatedTrustLine.get()) {
+            sortedTrustLines.erase(itTrustLine);
+            //debug() << "erase, new size: " << sortedTrustLines.size();
+            break;
+        }
+        itTrustLine++;
+    }
+    while (itTrustLine != sortedTrustLines.end()) {
+        if (*updatedTrustLine->freeAmount() > *itTrustLine->get()->freeAmount()) {
+            sortedTrustLines.insert(itTrustLine, updatedTrustLine);
+            //debug() << "insert, new size: " << sortedTrustLines.size();
+            return;
+        }
+        itTrustLine++;
+    }
+    sortedTrustLines.insert(itTrustLine, updatedTrustLine);
+    //debug() << "insert last, new size: " << sortedTrustLines.size();
+    debug() << "updateSortedTrustLines time: " << (utc_now() - start);
 }
 
 TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultOk(

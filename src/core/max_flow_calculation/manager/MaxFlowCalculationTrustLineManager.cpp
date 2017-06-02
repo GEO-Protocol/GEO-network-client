@@ -9,8 +9,16 @@ MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
 void MaxFlowCalculationTrustLineManager::addTrustLine(
     MaxFlowCalculationTrustLine::Shared trustLine)
 {
+    DateTime start = utc_now();
+    //info() << "add TustLine " << *trustLine->amount();
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+        if (*(trustLine->amount()) == TrustLine::kZeroAmount()) {
+            //info() << "new contractor with zero amount not added";
+            info() << "addTrustLine method time: " << (utc_now() - start);
+            return;
+        }
+        //info() << "add new contractor";
         auto newHashSet = new unordered_set<MaxFlowCalculationTrustLineWithPtr*>();
         auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(
             trustLine,
@@ -36,16 +44,27 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
                 auto dateTimeAndTrustLine = mtTrustLines.begin();
                 while (dateTimeAndTrustLine != mtTrustLines.end()) {
                     if (dateTimeAndTrustLine->second == *trLineWithPtr) {
-                        mtTrustLines.erase(
-                            dateTimeAndTrustLine);
-                        mtTrustLines.insert(
-                            make_pair(
-                                utc_now(),
-                                *trLineWithPtr));
+                        if (*(*trLineWithPtr)->maxFlowCalculationtrustLine()->amount() != TrustLine::kZeroAmount()) {
+                            mtTrustLines.erase(
+                                dateTimeAndTrustLine);
+                            mtTrustLines.insert(
+                                make_pair(
+                                    utc_now(),
+                                    *trLineWithPtr));
+                        } else {
+                            auto hashSetPtr = (*trLineWithPtr)->hashSetPtr();
+                            hashSetPtr->erase(*trLineWithPtr);
+                            if (hashSetPtr->size() == 0) {
+                                NodeUUID keyUUID = (*trLineWithPtr)->maxFlowCalculationtrustLine()->sourceUUID();
+                                msTrustLines.erase(keyUUID);
+                                delete hashSetPtr;
+                            }
+                            delete *trLineWithPtr;
+                            mtTrustLines.erase(dateTimeAndTrustLine);
+                        }
                         break;
                     }
                     dateTimeAndTrustLine++;
-
                 }
 
                 break;
@@ -53,6 +72,12 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
             trLineWithPtr++;
         }
         if (trLineWithPtr == hashSet->end()) {
+            //info() << "add new amount ";
+            if (*trustLine->amount() == TrustLine::kZeroAmount()) {
+                //info() << "zero amount not added";
+                info() << "addTrustLine method time: " << (utc_now() - start);
+                return;
+            }
             auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(
                 trustLine,
                 hashSet);
@@ -64,21 +89,26 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
                     newTrustLineWithPtr));
         }
     }
+    //info() << "trust line added";
+    info() << "addTrustLine method time: " << (utc_now() - start);
 }
 
 vector<MaxFlowCalculationTrustLine::Shared> MaxFlowCalculationTrustLineManager::sortedTrustLines(
     const NodeUUID &nodeUUID)
 {
+    DateTime start = utc_now();
     vector<MaxFlowCalculationTrustLine::Shared> result;
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(nodeUUID);
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
         return result;
     }
+    result.reserve((*nodeUUIDAndSetFlows->second).size());
     for (auto trustLineAndPtr : *nodeUUIDAndSetFlows->second) {
         result.push_back(
             trustLineAndPtr->maxFlowCalculationtrustLine());
     }
     std::sort(result.begin(), result.end(), customLess);
+    info() << "sortedTrustLines time: " << (utc_now() - start);
     return result;
 }
 

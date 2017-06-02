@@ -35,16 +35,16 @@ void OutgoingRemoteNode::sendMessage(
             return;
         }
 
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-        const Message::SerializedType kMessageType =
-            *(reinterpret_cast<Message::SerializedType*>(
-                bytesAndBytesCount.first.get()));
-
-        debug()
-            << "Message of type "
-            << static_cast<size_t>(kMessageType)
-            << " postponed for the sending";
-#endif
+//#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+//        const Message::SerializedType kMessageType =
+//            *(reinterpret_cast<Message::SerializedType*>(
+//                bytesAndBytesCount.first.get()));
+//
+//        debug()
+//            << "Message of type "
+//            << static_cast<size_t>(kMessageType)
+//            << " postponed for the sending";
+//#endif
 
         populateQueueWithNewPackets(
             bytesAndBytesCount.first.get(),
@@ -272,23 +272,23 @@ void OutgoingRemoteNode::beginPacketsSending()
                 return;
             }
 
-#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-            const PacketHeader::ChannelIndex channelIndex =
-                *(new(packetDataAndSize.first + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
-
-            const PacketHeader::PacketIndex packetIndex =
-                *(new(packetDataAndSize.first + PacketHeader::kPacketIndexOffset) PacketHeader::PacketIndex) + 1;
-
-            const PacketHeader::TotalPacketsCount totalPacketsCount =
-                *(new(packetDataAndSize.first + PacketHeader::kPacketsCountOffset) PacketHeader::TotalPacketsCount);
-
-            this->debug()
-                << setw(4) << bytesTransferred <<  "B TX [ => ] "
-                << endpoint.address() << ":" << endpoint.port() << "; "
-                << "Channel: " << setw(10) << static_cast<size_t>(channelIndex) << "; "
-                << "Packet: " << setw(3) << static_cast<size_t>(packetIndex)
-                << "/" << static_cast<size_t>(totalPacketsCount);
-#endif
+//#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+//            const PacketHeader::ChannelIndex channelIndex =
+//                *(new(packetDataAndSize.first + PacketHeader::kChannelIndexOffset) PacketHeader::ChannelIndex);
+//
+//            const PacketHeader::PacketIndex packetIndex =
+//                *(new(packetDataAndSize.first + PacketHeader::kPacketIndexOffset) PacketHeader::PacketIndex) + 1;
+//
+//            const PacketHeader::TotalPacketsCount totalPacketsCount =
+//                *(new(packetDataAndSize.first + PacketHeader::kPacketsCountOffset) PacketHeader::TotalPacketsCount);
+//
+//            this->debug()
+//                << setw(4) << bytesTransferred <<  "B TX [ => ] "
+//                << endpoint.address() << ":" << endpoint.port() << "; "
+//                << "Channel: " << setw(10) << static_cast<size_t>(channelIndex) << "; "
+//                << "Packet: " << setw(3) << static_cast<size_t>(packetIndex)
+//                << "/" << static_cast<size_t>(totalPacketsCount);
+//#endif
 
             // Removing packet from the memory
             free(packetDataAndSize.first);
