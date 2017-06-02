@@ -87,8 +87,8 @@ throw (NotFoundError)
             return make_pair(mPath->nodes[i+1], i+1);
 
     throw NotFoundError(
-        "CycleCloserInitiatorTransaction::PathStats::currentIntermediateNodeAndPos: "
-            "no unprocessed nodes are left.");
+        "PathStats::currentIntermediateNodeAndPos: "
+        "no unprocessed nodes are left.");
 }
 
 /**
