@@ -39,7 +39,7 @@
 #include "src/tests/trust_lines/TrustLineTests.cpp"
 #endif
 
-int main() {
+int main(int argc, char** argv) {
     // todo: include other tests here
 
 /*#ifdef TESTS__DB__UUID_COLUMN
@@ -88,5 +88,5 @@ int main() {
     tests.run();
 #endif
 
-    return Core().run();
+    return Core(argv[0]).run();
 }
