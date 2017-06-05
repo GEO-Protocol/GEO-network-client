@@ -9,16 +9,11 @@ MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
 void MaxFlowCalculationTrustLineManager::addTrustLine(
     MaxFlowCalculationTrustLine::Shared trustLine)
 {
-    DateTime start = utc_now();
-    //info() << "add TustLine " << *trustLine->amount();
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
         if (*(trustLine->amount()) == TrustLine::kZeroAmount()) {
-            //info() << "new contractor with zero amount not added";
-            info() << "addTrustLine method time: " << (utc_now() - start);
             return;
         }
-        //info() << "add new contractor";
         auto newHashSet = new unordered_set<MaxFlowCalculationTrustLineWithPtr*>();
         auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(
             trustLine,
@@ -72,10 +67,7 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
             trLineWithPtr++;
         }
         if (trLineWithPtr == hashSet->end()) {
-            //info() << "add new amount ";
             if (*trustLine->amount() == TrustLine::kZeroAmount()) {
-                //info() << "zero amount not added";
-                info() << "addTrustLine method time: " << (utc_now() - start);
                 return;
             }
             auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(
@@ -89,27 +81,17 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
                     newTrustLineWithPtr));
         }
     }
-    //info() << "trust line added";
-    info() << "addTrustLine method time: " << (utc_now() - start);
 }
 
-vector<MaxFlowCalculationTrustLine::Shared> MaxFlowCalculationTrustLineManager::sortedTrustLines(
+unordered_set<MaxFlowCalculationTrustLineWithPtr*> MaxFlowCalculationTrustLineManager::trustLinePtrsSet(
     const NodeUUID &nodeUUID)
 {
-    DateTime start = utc_now();
-    vector<MaxFlowCalculationTrustLine::Shared> result;
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(nodeUUID);
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+        TrustLineWithPtrHashSet result;
         return result;
     }
-    result.reserve((*nodeUUIDAndSetFlows->second).size());
-    for (auto trustLineAndPtr : *nodeUUIDAndSetFlows->second) {
-        result.push_back(
-            trustLineAndPtr->maxFlowCalculationtrustLine());
-    }
-    std::sort(result.begin(), result.end(), customLess);
-    info() << "sortedTrustLines time: " << (utc_now() - start);
-    return result;
+    return *nodeUUIDAndSetFlows->second;
 }
 
 void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts()

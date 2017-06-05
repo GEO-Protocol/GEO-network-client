@@ -72,28 +72,28 @@ void IncomingMessagesHandler::handleReceivedInfo(
 
         } else {
 
-//#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-//            if (mIncomingBuffer.size() > PacketHeader::kSize) {
-//                const PacketHeader::ChannelIndex kChannelIndex =
-//                    *(reinterpret_cast<PacketHeader::ChannelIndex*>(
-//                        mIncomingBuffer.data() + PacketHeader::kChannelIndexOffset));
-//
-//                const PacketHeader::PacketIndex kPacketIndex =
-//                    (*(reinterpret_cast<PacketHeader::PacketIndex*>(
-//                        mIncomingBuffer.data() + PacketHeader::kPacketIndexOffset))) + 1;
-//
-//                const PacketHeader::TotalPacketsCount kTotalPacketsCount =
-//                    *(reinterpret_cast<PacketHeader::TotalPacketsCount*>(
-//                        mIncomingBuffer.data() + PacketHeader::kPacketsCountOffset));
-//
-//                this->debug()
-//                    << setw(4) << bytesTransferred <<  "B RX [ <= ] "
-//                    << mRemoteEndpointBuffer.address() << ":" << mRemoteEndpointBuffer.port() << "; "
-//                    << "Channel: " << setw(9) << (kChannelIndex) << "; "
-//                    << "Packet: " << setw(3) << static_cast<size_t>(kPacketIndex)
-//                    << "/" << static_cast<size_t>(kTotalPacketsCount);
-//            }
-//#endif
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+            if (mIncomingBuffer.size() > PacketHeader::kSize) {
+                const PacketHeader::ChannelIndex kChannelIndex =
+                    *(reinterpret_cast<PacketHeader::ChannelIndex*>(
+                        mIncomingBuffer.data() + PacketHeader::kChannelIndexOffset));
+
+                const PacketHeader::PacketIndex kPacketIndex =
+                    (*(reinterpret_cast<PacketHeader::PacketIndex*>(
+                        mIncomingBuffer.data() + PacketHeader::kPacketIndexOffset))) + 1;
+
+                const PacketHeader::TotalPacketsCount kTotalPacketsCount =
+                    *(reinterpret_cast<PacketHeader::TotalPacketsCount*>(
+                        mIncomingBuffer.data() + PacketHeader::kPacketsCountOffset));
+
+                this->debug()
+                    << setw(4) << bytesTransferred <<  "B RX [ <= ] "
+                    << mRemoteEndpointBuffer.address() << ":" << mRemoteEndpointBuffer.port() << "; "
+                    << "Channel: " << setw(9) << (kChannelIndex) << "; "
+                    << "Packet: " << setw(3) << static_cast<size_t>(kPacketIndex)
+                    << "/" << static_cast<size_t>(kTotalPacketsCount);
+            }
+#endif
 
             remoteNodeHandler->processIncomingBytesSequence(
                 mIncomingBuffer.data(),

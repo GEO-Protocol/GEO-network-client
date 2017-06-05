@@ -6,14 +6,13 @@
 #include "../../common/time/TimeUtils.h"
 #include "../../logger/Logger.h"
 
-#include <unordered_map>
 #include <unordered_set>
-#include <boost/functional/hash.hpp>
+#include <boost/unordered_map.hpp>
 
 class MaxFlowCalculationTrustLineManager {
 
 public:
-    typedef unordered_set<MaxFlowCalculationTrustLineWithPtr*> trustLineWithPtrHashSet;
+    typedef unordered_set<MaxFlowCalculationTrustLineWithPtr*> TrustLineWithPtrHashSet;
 
 public:
     MaxFlowCalculationTrustLineManager(
@@ -22,7 +21,7 @@ public:
     void addTrustLine(
         MaxFlowCalculationTrustLine::Shared trustLine);
 
-    vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines(
+    TrustLineWithPtrHashSet trustLinePtrsSet(
         const NodeUUID &nodeUUID);
 
     void resetAllUsedAmounts();
@@ -39,18 +38,6 @@ public:
         bool preventDeleting);
 
     bool preventDeleting() const;
-
-private:
-    // comparing two trustLines for sorting
-    struct {
-        bool operator()(
-            MaxFlowCalculationTrustLine::Shared a,
-            MaxFlowCalculationTrustLine::Shared b) {
-            auto aTrustLineFreeAmountPtr = a.get()->freeAmount();
-            auto bTrustLineFreeAmountPtr = b.get()->freeAmount();
-            return *aTrustLineFreeAmountPtr.get() > *bTrustLineFreeAmountPtr.get();
-        }
-    } customLess;
 
 private:
     static const byte kResetTrustLinesHours = 0;
@@ -71,7 +58,7 @@ private:
     const string logHeader() const;
 
 private:
-    unordered_map<NodeUUID, trustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
+    boost::unordered_map<NodeUUID, TrustLineWithPtrHashSet*> msTrustLines;
     map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
     Logger &mLog;
     bool mPreventDeleting;

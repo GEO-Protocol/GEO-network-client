@@ -53,17 +53,13 @@ private:
         const TrustLineAmount& currentFlow,
         byte level);
 
-    void updateSortedTrustLines(
-        vector<MaxFlowCalculationTrustLine::Shared> &sortedTrustLines,
-        MaxFlowCalculationTrustLine::Shared updatedTrustLine);
-
     TransactionResult::SharedConst resultOk(
         vector<pair<NodeUUID, TrustLineAmount>> &maxFlows);
 
     TransactionResult::SharedConst resultProtocolError();
 
 private:
-    static const byte kMaxFlowLength=6;
+    static const byte kMaxFlowLength = 6;
     static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 5000;
 
 private:
@@ -72,8 +68,6 @@ private:
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     set<NodeUUID> forbiddenNodeUUIDs;
-
-    int sortedTrustLineMehodCnt;
 };
 
 
