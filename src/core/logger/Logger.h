@@ -68,14 +68,12 @@ class Logger {
     friend class LoggerStream;
 
 public:
-
     Logger(
         const NodeUUID &nodeUUID,
         as::io_service &mIOService,
         const string &interface,
         const string &dbname,
-        const uint16_t port
-    );
+        const uint16_t port);
 //
 //    Logger(const Logger &);
 
@@ -124,6 +122,15 @@ public:
         const string &subsystem,
         const string &message);
 
+protected:
+    struct LogRecordINFLUX {
+        time_t initTime;
+        const string group;
+        const string subsystem;
+        const string message;
+        addInfoType additionalInfo;
+    };
+
 private:
     const string formatMessage(
         const string &message) const;
@@ -136,14 +143,6 @@ private:
         const string &subsystem,
         const string &message,
         const addInfoType &addinfo);
-
-    struct LogRecordINFLUX {
-        time_t initTime;
-        const string group;
-        const string subsystem;
-        const string message;
-        addInfoType additionalInfo;
-    };
 
     void flushRecordsQueue(const boost::system::error_code &error);
 
@@ -169,8 +168,8 @@ private:
     std::ostream mRequestStream;
 
     unique_ptr<as::steady_timer> mFlushRecordsQueueTimer;
-    uint8_t mQuequeFlushDelaySeconds = 240;
+    uint8_t mQuequeFlushDelaySeconds = 5;
 
-
+    std::ofstream mOperationsLogFile;
 };
 #endif //GEO_NETWORK_CLIENT_LOGGER_H

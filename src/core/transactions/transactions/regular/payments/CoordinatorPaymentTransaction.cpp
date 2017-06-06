@@ -890,7 +890,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
         switchToNextPath();
         return runAmountReservationStage();
 
-    } catch (Exception &e) {
+    } catch (NotFoundError &e) {
         debug() << "No another paths are available. Canceling.";
         rollBack();
         return resultInsufficientFundsError();
@@ -914,19 +914,25 @@ void CoordinatorPaymentTransaction::switchToNextPath()
             "CoordinatorPaymentTransaction::switchToNextPath: "
             "no paths are available");
 
-    // to avoid not actual reservations in case of processing path,
-    // which contains node on first position, which also is present in path,
-    // processed just before, we need delay
-    mCurrentAmountReservingPathIdentifier = *mPathUUIDs.cbegin();
-    auto currentPath = currentAmountReservationPathStats();
-    auto currentFirstIntermediateNode = currentPath->path()->nodes[1];
-    auto posCurrentFirstIntermediateNodeInJustProcessedPath = justProcessedPath->path()->positionOfNode(currentFirstIntermediateNode);
-    if (posCurrentFirstIntermediateNodeInJustProcessedPath > 1
-        // if checked node was processed on previous path
-        && justProcessedPath->currentIntermediateNodeAndPos().second > posCurrentFirstIntermediateNodeInJustProcessedPath) {
-        debug() << "delay between process paths to avoid not actual reservations";
-        std::this_thread::sleep_for(std::chrono::milliseconds(maxNetworkDelay(1)));
-    }
+    try {
+        // to avoid not actual reservations in case of processing path,
+        // which contains node on first position, which also is present in path,
+        // processed just before, we need delay
+        mCurrentAmountReservingPathIdentifier = *mPathUUIDs.cbegin();
+        auto currentPath = currentAmountReservationPathStats();
+        auto currentFirstIntermediateNode = currentPath->path()->nodes[1];
+        auto posCurrentFirstIntermediateNodeInJustProcessedPath = justProcessedPath->path()->positionOfNode(
+            currentFirstIntermediateNode);
+        if (posCurrentFirstIntermediateNodeInJustProcessedPath > 1
+            // if checked node was processed on previous path
+            && justProcessedPath->currentIntermediateNodeAndPos().second >
+               posCurrentFirstIntermediateNodeInJustProcessedPath) {
+            debug() << "delay between process paths to avoid not actual reservations";
+            std::this_thread::sleep_for(std::chrono::milliseconds(maxNetworkDelay(1)));
+        }
+        // NotFoundError will be always in method justProcessedPath->currentIntermediateNodeAndPos()
+        // on this logic it doesn't matter and we ignore it
+    } catch (NotFoundError &e) {}
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultOK()

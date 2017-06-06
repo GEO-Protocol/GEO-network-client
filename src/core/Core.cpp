@@ -1,22 +1,25 @@
 ﻿#include "Core.h"
 
-Core::Core()
-{
-}
+Core::Core(
+    char* pArgv)
+    noexcept:
+
+    mCommandDescriptionPtr(pArgv)
+{}
 
 Core::~Core()
 {}
 
 int Core::run()
 {
-
-
     auto initCode = initSubsystems();
-    writePIDFile();
     if (initCode != 0) {
         mLog->logFatal("Core", "Can't be initialised. Process will now be stopped.");
         return initCode;
     }
+
+    writePIDFile();
+    updateProcessName();
 
     try {
         mCommunicator->joinUUID2Address(mNodeUUID);
@@ -31,7 +34,6 @@ int Core::run()
         mLog->logException("Core", e);
         return -1;
     }
-
 }
 
 int Core::initSubsystems() {
@@ -559,6 +561,13 @@ void Core::writePIDFile()
         auto errors = mLog->error("Core");
         errors << "Can't write/update pid file. Error message is: " << e.what();
     }
+}
+
+void Core::updateProcessName()
+{
+    const string kProcessName(string("GEO:") + mNodeUUID.stringUUID());
+    prctl(PR_SET_NAME, kProcessName.c_str());
+    strcpy(mCommandDescriptionPtr, kProcessName.c_str());
 }
 
 void Core::checkSomething() {
