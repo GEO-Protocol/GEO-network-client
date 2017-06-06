@@ -7,7 +7,8 @@
 #include "../../logger/Logger.h"
 
 #include <unordered_set>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
+#include <boost/functional/hash.hpp>
 
 class MaxFlowCalculationTrustLineManager {
 
@@ -58,7 +59,7 @@ private:
     const string logHeader() const;
 
 private:
-    boost::unordered_map<NodeUUID, TrustLineWithPtrHashSet*> msTrustLines;
+    unordered_map<NodeUUID, TrustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
     map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
     Logger &mLog;
     bool mPreventDeleting;

@@ -394,9 +394,8 @@ const bool BasePaymentTransaction::contextIsValid(
 
     if (mContext.size() > 1 || mContext.at(0)->typeID() != messageType) {
         if (showErrorMessage) {
-            error() << "Unexpected message received. "
-                "It seems that remote node doesn't follows the protocol. "
-                "Canceling.";
+            error() << "Unexpected message received. (ID " << mContext.at(0)->typeID()
+                    << ") It seems that remote node doesn't follows the protocol. Canceling.";
         }
 
         return false;
