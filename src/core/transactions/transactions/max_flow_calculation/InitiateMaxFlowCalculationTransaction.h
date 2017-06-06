@@ -60,7 +60,7 @@ private:
 
 private:
     static const byte kMaxFlowLength = 6;
-    static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 5000;
+    static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 3000;
 
 private:
     InitiateMaxFlowCalculationCommand::Shared mCommand;
