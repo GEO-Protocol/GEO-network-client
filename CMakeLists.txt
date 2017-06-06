@@ -53,7 +53,7 @@ IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
         # Transactions
         -DDEBUG_LOG_TRUST_LINES_PROCESSING
         -DDEBUG_LOG_ROUTING_TABLES_PROCESSING
-        #-DDEBUG_LOG_MAX_FLOW_CALCULATION
+        -DDEBUG_LOG_MAX_FLOW_CALCULATION
         -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
