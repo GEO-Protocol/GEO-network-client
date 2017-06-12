@@ -2,7 +2,8 @@
 
 MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
     Logger &logger):
-    mLog(logger)
+    mLog(logger),
+    mPreventDeleting(false)
 {}
 
 void MaxFlowCalculationTrustLineManager::addTrustLine(
@@ -11,24 +12,56 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
         auto newHashSet = new unordered_set<MaxFlowCalculationTrustLineWithPtr*>();
-        auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(trustLine, newHashSet);
-        newHashSet->insert(newTrustLineWithPtr);
-        msTrustLines.insert(make_pair(trustLine->sourceUUID(), newHashSet));
-        mtTrustLines.insert(make_pair(utc_now(), newTrustLineWithPtr));
+        auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(
+            trustLine,
+            newHashSet);
+        newHashSet->insert(
+            newTrustLineWithPtr);
+        msTrustLines.insert(
+            make_pair(
+                trustLine->sourceUUID(),
+                newHashSet));
+        mtTrustLines.insert(
+            make_pair(
+                utc_now(),
+                newTrustLineWithPtr));
     } else {
         auto hashSet = nodeUUIDAndSetFlows->second;
         auto trLineWithPtr = hashSet->begin();
         while (trLineWithPtr != hashSet->end()) {
             if ((*trLineWithPtr)->maxFlowCalculationtrustLine()->targetUUID() == trustLine->targetUUID()) {
                 (*trLineWithPtr)->maxFlowCalculationtrustLine()->setAmount(trustLine->amount());
+
+                // update time creation of trustline
+                auto dateTimeAndTrustLine = mtTrustLines.begin();
+                while (dateTimeAndTrustLine != mtTrustLines.end()) {
+                    if (dateTimeAndTrustLine->second == *trLineWithPtr) {
+                        mtTrustLines.erase(
+                            dateTimeAndTrustLine);
+                        mtTrustLines.insert(
+                            make_pair(
+                                utc_now(),
+                                *trLineWithPtr));
+                        break;
+                    }
+                    dateTimeAndTrustLine++;
+
+                }
+
                 break;
             }
             trLineWithPtr++;
         }
         if (trLineWithPtr == hashSet->end()) {
-            auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(trustLine, hashSet);
-            hashSet->insert(newTrustLineWithPtr);
-            mtTrustLines.insert(make_pair(utc_now(), newTrustLineWithPtr));
+            auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(
+                trustLine,
+                hashSet);
+            hashSet->insert(
+                newTrustLineWithPtr);
+            mtTrustLines.insert
+                (make_pair(
+                    utc_now(),
+                    newTrustLineWithPtr));
         }
     }
 }
@@ -42,7 +75,8 @@ vector<MaxFlowCalculationTrustLine::Shared> MaxFlowCalculationTrustLineManager::
         return result;
     }
     for (auto trustLineAndPtr : *nodeUUIDAndSetFlows->second) {
-        result.push_back(trustLineAndPtr->maxFlowCalculationtrustLine());
+        result.push_back(
+            trustLineAndPtr->maxFlowCalculationtrustLine());
     }
     std::sort(result.begin(), result.end(), customLess);
     return result;
@@ -60,8 +94,9 @@ void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts()
     }
 }
 
-void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
+bool MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
 {
+   bool isTrustLineWasDeleted = false;
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "deleteLegacyTrustLines\t" << "delete legacy trustLines set";
     info() << "deleteLegacyTrustLines\t" << "mapTrustLinesCount: " << trustLinesCounts();
@@ -94,6 +129,7 @@ void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
             }
             delete trustLineWithPtr;
             mtTrustLines.erase(timeAndTrustLineWithPtr.first);
+            isTrustLineWasDeleted = true;
         } else {
             break;
         }
@@ -101,6 +137,7 @@ void MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "deleteLegacyTrustLines\t" << "map size after deleting: " << msTrustLines.size();
 #endif
+    return isTrustLineWasDeleted;
 }
 
 size_t MaxFlowCalculationTrustLineManager::trustLinesCounts() const
@@ -138,12 +175,19 @@ DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const
     return result;
 }
 
+void MaxFlowCalculationTrustLineManager::setPreventDeleting(
+    bool preventDeleting)
+{
+    mPreventDeleting = preventDeleting;
+}
+
+bool MaxFlowCalculationTrustLineManager::preventDeleting() const
+{
+    return mPreventDeleting;
+}
+
 LoggerStream MaxFlowCalculationTrustLineManager::info() const
 {
-      // todo add tyr catch
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
-
     return mLog.info(logHeader());
 }
 

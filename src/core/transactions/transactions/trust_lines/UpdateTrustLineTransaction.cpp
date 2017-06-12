@@ -37,7 +37,8 @@ TransactionResult::SharedConst UpdateTrustLineTransaction::run()
             mMessage->newAmount());
         updateHistory(ioTransaction);
 
-        info() << "Trust line to the node " << kContractor << " closed successfully.";
+        info() << "Trust line to the node " << kContractor
+               << " successfully updated to " << mTrustLines->incomingTrustAmount(kContractor);
         return resultDone();
 
     } catch (ValueError &){

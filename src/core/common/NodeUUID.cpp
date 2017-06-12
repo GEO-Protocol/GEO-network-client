@@ -43,40 +43,29 @@ NodeUUID& NodeUUID::operator=(const boost::uuids::uuid &u){
     return *this;
 }
 
-/*!
- * Compares two uuids in endiannes-aware manner.
- * Returns
- *    LESS in case if a < b,
- *    GREATER in case if a > b,
- *    and EQUAL in case if a==b;
- */
-NodeUUID::ComparePredicates NodeUUID::compare(const NodeUUID &a, const NodeUUID &b) {
-
+bool operator== (const NodeUUID &a, const NodeUUID &b)
+{
 #ifdef BOOST_BIG_ENDIAN
-    for (size_t i=0; i<kBytesSize; ++i){
+    for (size_t i=0; i<15; ++i){
         if (a.data[i] < b.data[i])
-            return LESS;
+            return false;
 
         else if (a.data[i] > b.data[i])
-            return GREATER;
+            return false;
     }
-    return EQUAL;
+    return false;
 #endif
 
 #ifdef BOOST_LITTLE_ENDIAN
-    for (int i=kBytesSize-1; i>-1; --i){
+    for (int i=15; i>-1; --i){
         if (a.data[i] < b.data[i])
-            return LESS;
+            return false;
 
         else if (a.data[i] > b.data[i])
-            return GREATER;
+            return false;
     }
-    return EQUAL;
+    return true;
 #endif
-}
-
-bool operator== (const NodeUUID &u1, const NodeUUID &u2) {
-    return NodeUUID::compare(u1, u2) == NodeUUID::EQUAL;
 }
 
 const NodeUUID& NodeUUID::empty ()

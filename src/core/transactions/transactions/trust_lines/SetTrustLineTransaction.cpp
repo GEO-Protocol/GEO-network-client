@@ -47,7 +47,8 @@ TransactionResult::SharedConst SetTrustLineTransaction::run()
             mTransactionUUID,
             mCommand->newAmount());
 
-        info() << "Trust line to the node " << kContractor << " updated successfully.";
+        info() << "Trust line to the node " << kContractor
+               << " successfully updated to " << mTrustLines->outgoingTrustAmount(kContractor);
         return resultOk();
 
     } catch (ValueError &){

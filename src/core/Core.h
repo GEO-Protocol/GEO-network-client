@@ -31,6 +31,7 @@
 #include "network/messages/debug/DebugMessage.h"
 
 
+#include <sys/prctl.h>
 
 
 using namespace std;
@@ -41,7 +42,9 @@ namespace signals = boost::signals2;
 class Core {
 
 public:
-    Core();
+    Core(
+        char* pArgv)
+        noexcept;
 
     ~Core();
 
@@ -124,6 +127,8 @@ private:
 
     void writePIDFile();
 
+    void updateProcessName();
+
     void checkSomething();
 
     void test_FourNodesTransaction();
@@ -133,6 +138,9 @@ private:
     void printRTs();
 
 protected:
+    // This pointer is used to modify executable command description.
+    // By default, it would point to the standard argv[0] char sequence;
+    char* mCommandDescriptionPtr;
 
     NodeUUID mNodeUUID;
     as::io_service mIOService;
