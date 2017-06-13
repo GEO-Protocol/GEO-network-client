@@ -6,7 +6,6 @@
 #include "../../../interface/commands_interface/commands/routing_tables/UpdateRoutingTablesCommand.h"
 #include "../../../network/messages/routing_tables/CRC32Rt2ResponseMessage.h"
 #include "../../../network/messages/routing_tables/CRC32Rt2RequestMessage.h"
-#include "../../../network/messages/routing_tables/CRC32ThirdLevelResponseMessage.h"
 
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "NeighborsCollectingTransaction.h"
