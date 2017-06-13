@@ -28,7 +28,7 @@ int Core::run()
 
         mLog->logSuccess("Core", "Processing started.");
 
-        mTrustLinesManager->printRTs();
+//        mTrustLinesManager->printRTs();
 
         mIOService.run();
         return 0;
