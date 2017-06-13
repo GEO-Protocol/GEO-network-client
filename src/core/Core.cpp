@@ -27,6 +27,9 @@ int Core::run()
         mCommandsInterface->beginAcceptCommands();
 
         mLog->logSuccess("Core", "Processing started.");
+
+        mTrustLinesManager->printRTs();
+
         mIOService.run();
         return 0;
 
@@ -550,29 +553,6 @@ void Core::updateProcessName()
     const string kProcessName(string("GEO:") + mNodeUUID.stringUUID());
     prctl(PR_SET_NAME, kProcessName.c_str());
     strcpy(mCommandDescriptionPtr, kProcessName.c_str());
-}
-
-void Core::checkSomething() {
-    printRTs();
-}
-
-void Core::printRTs() {
-    cout << "Cyurrent UUID" << mNodeUUID << endl;
-    cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size() << endl;
-    for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
-        cout  << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
-        << itTrustLine.second->incomingTrustAmount() << " "
-        << itTrustLine.second->outgoingTrustAmount() << " "
-        << itTrustLine.second->balance() << endl;
-    }
-    cout  << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size() << endl;
-    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->rt2Records()) {
-        cout  << itRT2.first << " " << itRT2.second << endl;
-    }
-    cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size() << endl;
-    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
-        cout  << itRT3.first << " " << itRT3.second << endl;
-    }
 }
 
 void Core::test_ThreeNodesTransaction() {

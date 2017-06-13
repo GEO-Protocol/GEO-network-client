@@ -23,7 +23,6 @@ UpdateRoutingTablesCommand::Shared UpdateRoutingTablesTransaction::command() con
 }
 
 TransactionResult::SharedConst UpdateRoutingTablesTransaction::run() {
-    debug() << "UpdateRoutingTablesTransaction; Step " << mStep;
     switch (mStep) {
         case askNeighborsForTopologyChangingStage:
             return askNeighborsForTopologyChanging();
@@ -34,7 +33,7 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::run() {
         case checkSecondLevelCRC32SumForNeighborStage:
             return checkSecondCRC32rt2Sum();
         case UpdateRT2Stage:
-            return updateRoughtingTables();
+            return updateRougtingTables();
         default:
             throw ValueError("UpdateRoutingTablesTransaction::run: "
                                  "unexpected Trust line state");
@@ -48,14 +47,16 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstAndSeco
     }
     vector<NodeUUID> NodesForNextCheck;
     while(mContext.size() > 0){
-        auto mResponseMessage = popNextMessage<CRC32Rt2ResponseMessage>();
-        const auto kContractor = mResponseMessage->senderUUID;
+        auto responseMessage = popNextMessage<CRC32Rt2ResponseMessage>();
+        const auto kContractor = responseMessage->senderUUID;
         const auto kStepCRC32Sum = mTrustLinesManager->crc32SumSecondAndThirdLevelForNeighbor(kContractor);
-        cout << "From Initiator " << kStepCRC32Sum << endl;
-        cout << "From message" << mResponseMessage->crc32Rt2Sum() << endl;
-        if(kStepCRC32Sum != mResponseMessage->crc32Rt2Sum())
+        debug() << "ContractorUUID" << kContractor << endl;
+        debug() << "CRC32Sum calcululated on Initiator " << kStepCRC32Sum << endl;
+        debug() << "CRC32Sum from message" << responseMessage->crc32Rt2Sum() << endl;
+        if(kStepCRC32Sum != responseMessage->crc32Rt2Sum()){
+            debug() << kContractor << "CRC32SUMS not equal";
             NodesForNextCheck.push_back(kContractor);
-        NodesForNextCheck.push_back(kContractor);
+        }
     }
     if (NodesForNextCheck.size() == 0){
         info() << "There are no changes in neighbors. Exit Transaction.";
@@ -76,7 +77,7 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstAndSeco
     return make_shared<TransactionResult>(
         TransactionState::waitForMessageTypesAndAwakeAfterMilliseconds(
             {Message::MessageType::RoutingTables_CRC32Rt2ResponseMessage},
-            mkStandardConnectionTimeout));
+            mkWaitingForResponseTime));
 }
 
 TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt2Sum()
@@ -89,12 +90,13 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt
         auto responseMessage = popNextMessage<CRC32Rt2ResponseMessage>();
         const auto kContractor = responseMessage->senderUUID;
         const auto kStepCRC32Sum = mTrustLinesManager->crc32SumSecondLevelForNeighbor(kContractor);
-        cout << "From Initiator " << kStepCRC32Sum << endl;
-        cout << "From message" << responseMessage->crc32Rt2Sum() << endl;
+        debug() << "ContractorUUID" << kContractor << endl;
+        debug() << "CRC32Sum calcululated on Initiator " << kStepCRC32Sum << endl;
+        debug() << "CRC32Sum from message" << responseMessage->crc32Rt2Sum() << endl;
         if(kStepCRC32Sum != responseMessage->crc32Rt2Sum()){
             // it sims that first level node has new trustline.
             // save its id for update with others
-            mNodesToUpdate.push_back(make_pair(kContractor, 1));
+            mNodesToUpdate.push_back(make_pair(kContractor, 0));
         } else {
             ThirdLevelNodesForNextCheck.push_back(kContractor);
         }
@@ -114,6 +116,9 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt
     auto ioTransaction = mStorageHandler->beginTransaction();
     for(const auto kNodeUUID: ThirdLevelNodesForNextCheck){
         auto steprt2 = ioTransaction->routingTablesHandler()->neighborsOfOnRT2(kNodeUUID);
+        for(const auto kThirdLevelNodeUUID: steprt2){
+            mPathMap.insert(make_pair(kThirdLevelNodeUUID, kNodeUUID));
+        }
         NodeForCRC32request.insert(steprt2.begin(), steprt2.end());
     }
     for(const auto kNodeUUID: NodeForCRC32request){
@@ -126,37 +131,44 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt
     return make_shared<TransactionResult>(
         TransactionState::waitForMessageTypesAndAwakeAfterMilliseconds(
             {Message::MessageType::RoutingTables_CRC32Rt2ResponseMessage},
-            mkStandardConnectionTimeout));
+            mkWaitingForResponseTime));
 }
 
 TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkSecondCRC32rt2Sum()
 {
     if(mContext.size() == 0){
-        info() << "There are no third level neighbors with changes online. Exit transaction. ";
+        info() << "There are no third level neighbors with wich current node has desync. Exit transaction.";
         if (mNodesToUpdate.size() != 0 )
-            return updateRoughtingTables();
+            return updateRougtingTables();
         return resultDone();
     }
     while(mContext.size() > 0) {
         auto responseMessage = popNextMessage<CRC32Rt2ResponseMessage>();
         const auto kContractor = responseMessage->senderUUID;
-        const auto kStepCRC32Sum = mTrustLinesManager->crc32SumThirdLevelForNeighbor(kContractor);
-        cout << "From Initiator " << kStepCRC32Sum << endl;
-        cout << "From message" << responseMessage->crc32Rt2Sum() << endl;
+        const auto kFirstLevelPathNode = mPathMap[kContractor];
+        const auto kStepCRC32Sum = mTrustLinesManager->crc32SumThirdLevelForNeighbor(kContractor, kFirstLevelPathNode);
+        debug() << "ContractorUUID" << kContractor << endl;
+        debug() << "CRC32Sum calcululated on Initiator " << kStepCRC32Sum << endl;
+        debug() << "CRC32Sum from message" << responseMessage->crc32Rt2Sum() << endl;
         if (kStepCRC32Sum != responseMessage->crc32Rt2Sum()) {
             // it sims that first level node has new trustline.
             // save its id for update with others
-            mNodesToUpdate.push_back(make_pair(kContractor, 2));
+            mNodesToUpdate.push_back(make_pair(kContractor, 1));
         }
     }
+    stringstream ss;
+    for(auto it = mPathMap.begin(); it != mPathMap.end(); ++it) {
+        ss << it->second << ";";
+    }
     if (mNodesToUpdate.size() != 0 )
-        return updateRoughtingTables();
-    info() << "There are no third level neighbors with changes online. Exit transaction. ";
+        return updateRougtingTables();
+    info() << "It seems that current node has more records in rt3 for ["
+            << ss.str() << "] nodes than they have in rt2 than they have.";
     return resultDone();
 }
 
-TransactionResult::SharedConst UpdateRoutingTablesTransaction::updateRoughtingTables(){
-
+TransactionResult::SharedConst UpdateRoutingTablesTransaction::updateRougtingTables()
+{
     for(auto kNodeUUIDAndNodeLevel: mNodesToUpdate){
         auto transaction = make_shared<NeighborsCollectingTransaction>(
             mNodeUUID,
@@ -186,7 +198,7 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::askNeighborsForTo
     return make_shared<TransactionResult>(
         TransactionState::waitForMessageTypesAndAwakeAfterMilliseconds(
             {Message::MessageType::RoutingTables_CRC32Rt2ResponseMessage},
-            mkStandardConnectionTimeout));
+            mkWaitingForResponseTime));
 }
 
 const string UpdateRoutingTablesTransaction::logHeader() const

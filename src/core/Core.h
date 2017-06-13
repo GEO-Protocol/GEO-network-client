@@ -129,13 +129,9 @@ private:
 
     void updateProcessName();
 
-    void checkSomething();
-
     void test_FourNodesTransaction();
 
     void test_ThreeNodesTransaction();
-
-    void printRTs();
 
 protected:
     // This pointer is used to modify executable command description.

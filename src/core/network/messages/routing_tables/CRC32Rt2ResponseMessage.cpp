@@ -9,9 +9,6 @@ CRC32Rt2ResponseMessage::CRC32Rt2ResponseMessage(
         transactionUUID)
 {
     mCrc32Rt2Sum  = crc32rt2sum;
-    stringstream ss;
-    ss << mCrc32Rt2Sum;
-    cout << "CRC32Rt2ResponseMessage constructor " << ss.str() << endl;
 }
 
 const Message::MessageType CRC32Rt2ResponseMessage::typeID() const
@@ -28,14 +25,6 @@ CRC32Rt2ResponseMessage::CRC32Rt2ResponseMessage(
         buffer,
         TransactionMessage::kOffsetToInheritedBytes());
     deserializer.copyIntoDespiteConst(&mCrc32Rt2Sum);
-
-    // ----------------------
-    stringstream ss;
-    cout << "CRC32Rt2ResponseMessage deserealize; " << endl;
-    ss << "Transaction UUID: " << transactionUUID() << endl;
-    ss << "srcSum: " << mCrc32Rt2Sum << endl;
-    cout << ss.str() << endl;
-    // ----------------------
 };
 
 pair<BytesShared, size_t> CRC32Rt2ResponseMessage::serializeToBytes() const
@@ -45,13 +34,6 @@ throw(bad_alloc)
 
     serializer.enqueue(TransactionMessage::serializeToBytes());
     serializer.copy(mCrc32Rt2Sum);
-    // -----------------------
-    stringstream ss;
-    cout << "CRC32Rt2ResponseMessage serializeToBytes; " << endl;
-    ss << "Transaction UUID: " << transactionUUID() << endl;
-    ss << "srcSum: " << mCrc32Rt2Sum << endl;
-    cout << ss.str() << endl;
-    // ----------------------
     return serializer.collect();
 };
 

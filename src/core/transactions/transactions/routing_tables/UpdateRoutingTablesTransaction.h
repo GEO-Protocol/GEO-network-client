@@ -12,6 +12,7 @@
 #include "NeighborsCollectingTransaction.h"
 
 #include <vector>
+#include <map>
 
 
 using namespace std;
@@ -48,7 +49,7 @@ protected:
     TransactionResult::SharedConst checkFirstAndSecondCRC32rt2Sum();
     TransactionResult::SharedConst checkFirstCRC32rt2Sum();
     TransactionResult::SharedConst checkSecondCRC32rt2Sum();
-    TransactionResult::SharedConst updateRoughtingTables();
+    TransactionResult::SharedConst updateRougtingTables();
 
 protected:
     const string logHeader() const;
@@ -58,6 +59,7 @@ private:
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     vector<pair<NodeUUID, uint8_t>> mNodesToUpdate;
+    map<NodeUUID, NodeUUID> mPathMap;
 
 };
 #endif //GEO_NETWORK_CLIENT_UPDATEROUTINGTABLES_H
