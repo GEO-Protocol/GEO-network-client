@@ -18,8 +18,8 @@ Crc32Rt2ResponseTransaction::Crc32Rt2ResponseTransaction(
 
 }
 
-TransactionResult::SharedConst Crc32Rt2ResponseTransaction::run() {
-    debug() << " CRC32Rt2RequestMessage::" <<  mRequestMessage->CRC32Type() << endl;
+TransactionResult::SharedConst Crc32Rt2ResponseTransaction::run()
+{
     if(mRequestMessage->CRC32Type() == CRC32Rt2RequestMessage::FirstAndSecondLevel){
         auto CRC32Rt2Sum = mTrustLinesManager->crc32SumFirstAndSecondLevel(mRequestMessage->senderUUID);
         auto responseMessage = make_shared<CRC32Rt2ResponseMessage>(
