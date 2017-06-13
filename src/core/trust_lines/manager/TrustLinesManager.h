@@ -224,6 +224,10 @@ public:
     // TODO remove after testing
     void printRTs();
 
+    // TODO remove after testing
+    // this method is used for testing closing cycles
+    pair<TrustLineBalance, TrustLineBalance> debtAndCredit();
+
 protected:
     void loadTrustLinesFromDisk ()
         throw (IOError);

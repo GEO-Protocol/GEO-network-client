@@ -941,6 +941,20 @@ void TrustLinesManager::printRTs()
     }
 }
 
+pair<TrustLineBalance, TrustLineBalance> TrustLinesManager::debtAndCredit()
+{
+    TrustLineBalance debt = TrustLine::kZeroBalance();
+    TrustLineBalance credit = TrustLine::kZeroBalance();
+    for (auto const trLine : mTrustLines) {
+        if (trLine.second->balance() > TrustLine::kZeroBalance()) {
+            debt += trLine.second->balance();
+        } else {
+            credit += trLine.second->balance();
+        }
+    }
+    return make_pair(debt, credit);
+}
+
 uint32_t TrustLinesManager::crc32SumFirstLevel(const NodeUUID &contractorUUID) {
     boost::crc_32_type result;
 //    set<NodeUUID> firstLevelContractors;

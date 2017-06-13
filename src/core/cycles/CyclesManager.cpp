@@ -70,6 +70,7 @@ void CyclesManager::addCycle(
 
 void CyclesManager::closeOneCycle()
 {
+    clearClosedCycles();
     debug() << "closeOneCycle";
     debug() << "currentCycleClosingState: " << mCurrentCycleClosingState;
     debug() << "3 NC count: " << mThreeNodesCycles.size()
@@ -227,6 +228,110 @@ bool CyclesManager::isTransactionStillAlive(
         return true;
     } catch (NotFoundError &e) {
         return false;
+    }
+}
+
+void CyclesManager::addClosedTrustLine(
+    const NodeUUID &source,
+    const NodeUUID &destination)
+{
+    mClosedTrustLines.push_back(
+        make_pair(
+            source,
+            destination));
+}
+
+void CyclesManager::addOfflineNode(
+    const NodeUUID &nodeUUID)
+{
+    mOfflineNodes.push_back(
+        nodeUUID);
+}
+
+void CyclesManager::removeCyclesWithClosedTrustLine(
+    const NodeUUID &sourceClosed,
+    const NodeUUID &destinationClosed,
+    vector<Path::ConstShared> &cycles)
+{
+    auto itCycle = cycles.begin();
+    while (itCycle != cycles.end()) {
+        if ((*itCycle)->containsTrustLine(
+            sourceClosed,
+            destinationClosed)) {
+            cycles.erase(
+                itCycle);
+        } else {
+            itCycle++;
+        }
+    }
+}
+
+void CyclesManager::removeCyclesWithOfflineNode(
+    const NodeUUID &offlineNode,
+    vector<Path::ConstShared> &cycles)
+{
+    auto itCycle = cycles.begin();
+    while (itCycle != cycles.end()) {
+        if ((*itCycle)->positionOfNode(
+            offlineNode) >= 0) {
+            cycles.erase(
+                itCycle);
+        } else {
+            itCycle++;
+        }
+    }
+}
+
+void CyclesManager::clearClosedCycles()
+{
+    debug() << "clearClosedCycles closed trust lines cnt: " << mClosedTrustLines.size();
+    if (!mClosedTrustLines.empty()) {
+        auto source = mClosedTrustLines.begin()->first;
+        auto destination = mClosedTrustLines.begin()->second;
+        mClosedTrustLines.erase(mClosedTrustLines.begin());
+
+        removeCyclesWithClosedTrustLine(
+            source,
+            destination,
+            mThreeNodesCycles);
+
+        removeCyclesWithClosedTrustLine(
+            source,
+            destination,
+            mFourNodesCycles);
+
+        removeCyclesWithClosedTrustLine(
+            source,
+            destination,
+            mFiveNodesCycles);
+
+        removeCyclesWithClosedTrustLine(
+            source,
+            destination,
+            mSixNodesCycles);
+    }
+
+    debug() << "clearClosedCycles offline nodes cnt: " << mOfflineNodes.size();
+    if (!mOfflineNodes.empty()) {
+        auto offlineNode = *mOfflineNodes.begin();
+        mOfflineNodes.erase(
+            mOfflineNodes.begin());
+
+        removeCyclesWithOfflineNode(
+            offlineNode,
+            mThreeNodesCycles);
+
+        removeCyclesWithOfflineNode(
+            offlineNode,
+            mFourNodesCycles);
+
+        removeCyclesWithOfflineNode(
+            offlineNode,
+            mFiveNodesCycles);
+
+        removeCyclesWithOfflineNode(
+            offlineNode,
+            mSixNodesCycles);
     }
 }
 

@@ -47,6 +47,13 @@ public:
     bool isTransactionStillAlive(
         const TransactionUUID &transactionUUID);
 
+    void addClosedTrustLine(
+        const NodeUUID &source,
+        const NodeUUID &destination);
+
+    void addOfflineNode(
+        const NodeUUID &nodeUUID);
+
 private:
     void runSignalSixNodes(
         const boost::system::error_code &error);
@@ -62,6 +69,17 @@ private:
     bool isChellengerTransactionWinReservation(
         BasePaymentTransaction::Shared chellengerTransaction,
         BasePaymentTransaction::Shared reservedTransaction);
+
+    void clearClosedCycles();
+
+    void removeCyclesWithClosedTrustLine(
+        const NodeUUID &sourceClosed,
+        const NodeUUID &destinationClosed,
+        vector<Path::ConstShared> &cycles);
+
+    void removeCyclesWithOfflineNode(
+        const NodeUUID &offlineNode,
+        vector<Path::ConstShared> &cycles);
 
     LoggerStream info() const;
 
@@ -88,6 +106,9 @@ private:
     vector<Path::ConstShared> mFourNodesCycles;
     vector<Path::ConstShared> mFiveNodesCycles;
     vector<Path::ConstShared> mSixNodesCycles;
+
+    vector<pair<NodeUUID, NodeUUID>> mClosedTrustLines;
+    vector<NodeUUID> mOfflineNodes;
 
     CycleClosingState mCurrentCycleClosingState;
     Logger &mLog;
