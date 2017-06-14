@@ -65,7 +65,7 @@ int Core::initSubsystems() {
 
     } catch (RuntimeError &) {
         // Logger was not initialized yet
-        cerr << utc_now() <<" : SUCCESS\tCORE\tCan't read UUID of the node from the settings" << endl;
+        cerr << utc_now() <<" : FATAL\tCORE\tCan't read UUID of the node from the settings" << endl;
         return -1;
     }
 

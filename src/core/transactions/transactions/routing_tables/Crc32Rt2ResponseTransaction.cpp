@@ -25,20 +25,21 @@ TransactionResult::SharedConst Crc32Rt2ResponseTransaction::run()
         auto responseMessage = make_shared<CRC32Rt2ResponseMessage>(
             mNodeUUID,
             mRequestMessage->transactionUUID(),
-            CRC32Rt2Sum
-        );
+            CRC32Rt2Sum);
+
         sendMessage(
             mRequestMessage->senderUUID,
             responseMessage);
         return resultDone();
     }
+
     if(mRequestMessage->CRC32Type() == CRC32Rt2RequestMessage::FirstLevel){
         auto CRC32Rt2Sum = mTrustLinesManager->crc32SumAllFirstLevelNeighbors(mRequestMessage->senderUUID);
         auto responseMessage = make_shared<CRC32Rt2ResponseMessage>(
             mNodeUUID,
             mRequestMessage->transactionUUID(),
-            CRC32Rt2Sum
-        );
+            CRC32Rt2Sum);
+
         sendMessage(
             mRequestMessage->senderUUID,
             responseMessage);

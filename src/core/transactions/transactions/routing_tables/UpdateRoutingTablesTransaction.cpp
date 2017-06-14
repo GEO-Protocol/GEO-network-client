@@ -44,6 +44,7 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstAndSeco
 {
     if(mContext.size() == 0){
         info() << "There are no neighbors online. Exit transaction. ";
+        return resultDone();
     }
     vector<NodeUUID> NodesForNextCheck;
     while(mContext.size() > 0){
@@ -84,6 +85,7 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt
 {
     if(mContext.size() == 0){
         info() << "There are no neighbors online. Exit transaction. ";
+        return resultDone();
     }
     vector<NodeUUID> ThirdLevelNodesForNextCheck;
     while(mContext.size() > 0){
@@ -107,7 +109,7 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt
         currentTransactionUUID(),
         CRC32Rt2RequestMessage::CRC32SumType::FirstLevel);
 
-    if(ThirdLevelNodesForNextCheck.size() == 0 and mNodesToUpdate.size() == 0) {
+    if(ThirdLevelNodesForNextCheck.size() == 0 and mNodesToUpdate.size() == 0){
         info() << "Nodes with changes are offline. Exit Transaction. ";
         return resultDone();
     }
@@ -124,8 +126,7 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt
     for(const auto kNodeUUID: NodeForCRC32request){
         sendMessage(
             kNodeUUID,
-            message
-        );
+            message);
     }
     mStep = Stages::checkSecondLevelCRC32SumForNeighborStage;
     return make_shared<TransactionResult>(
