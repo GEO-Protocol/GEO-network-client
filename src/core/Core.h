@@ -123,8 +123,6 @@ private:
 
     void updateProcessName();
 
-    void printRTs();
-
 protected:
     // This pointer is used to modify executable command description.
     // By default, it would point to the standard argv[0] char sequence;

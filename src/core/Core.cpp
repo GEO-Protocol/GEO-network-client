@@ -12,7 +12,6 @@ Core::~Core()
 
 int Core::run()
 {
-
     auto initCode = initSubsystems();
     if (initCode != 0) {
         mLog->logFatal("Core", "Can't be initialised. Process will now be stopped.");
@@ -38,15 +37,13 @@ int Core::run()
         mLog->logException("Core", e);
         return -1;
     }
-
 }
 
-int Core::initSubsystems() {
-
+int Core::initSubsystems()
+{
     int initCode;
 
     initCode = initSettings();
-
 
     if (initCode != 0)
         return initCode;
@@ -128,8 +125,8 @@ int Core::initSubsystems() {
     return 0;
 }
 
-int Core::initSettings() {
-
+int Core::initSettings()
+{
     try {
         mSettings = make_unique<Settings>();
         // Logger was not initialized yet
@@ -152,8 +149,7 @@ int Core::initLogger(
             mIOService,
             mSettings->influxDbHost(&conf),
             mSettings->influxDbName(&conf),
-            mSettings->influxDbPort(&conf)
-        );
+            mSettings->influxDbPort(&conf));
         return 0;
     } catch (...) {
         // Logger can not be initialized
@@ -183,8 +179,8 @@ int Core::initCommunicator(
     }
 }
 
-int Core::initResultsInterface() {
-
+int Core::initResultsInterface()
+{
     try {
         mResultsInterface = make_unique<ResultsInterface>(
             *mLog.get());
@@ -197,8 +193,8 @@ int Core::initResultsInterface() {
     }
 }
 
-int Core::initTrustLinesManager() {
-
+int Core::initTrustLinesManager()
+{
     try {
         mTrustLinesManager = make_unique<TrustLinesManager>(
             mStorageHandler.get(),
@@ -212,8 +208,8 @@ int Core::initTrustLinesManager() {
     }
 }
 
-int Core::initMaxFlowCalculationTrustLineManager() {
-
+int Core::initMaxFlowCalculationTrustLineManager()
+{
     try{
         mMaxFlowCalculationTrustLimeManager = make_unique<MaxFlowCalculationTrustLineManager>(
             *mLog.get());
@@ -226,8 +222,8 @@ int Core::initMaxFlowCalculationTrustLineManager() {
     }
 }
 
-int Core::initMaxFlowCalculationCacheManager() {
-
+int Core::initMaxFlowCalculationCacheManager()
+{
     try {
         mMaxFlowCalculationCacheManager = make_unique<MaxFlowCalculationCacheManager>(
             *mLog.get());
@@ -240,8 +236,8 @@ int Core::initMaxFlowCalculationCacheManager() {
     }
 }
 
-int Core::initResourcesManager() {
-
+int Core::initResourcesManager()
+{
     try {
         mResourcesManager = make_unique<ResourcesManager>();
         mLog->logSuccess("Core", "Resources manager is successfully initialized");
@@ -252,8 +248,8 @@ int Core::initResourcesManager() {
     }
 }
 
-int Core::initTransactionsManager() {
-
+int Core::initTransactionsManager()
+{
     try {
         mTransactionsManager = make_unique<TransactionsManager>(
             mNodeUUID,
@@ -275,15 +271,16 @@ int Core::initTransactionsManager() {
     }
 }
 
-int Core::initDelayedTasks() {
+int Core::initDelayedTasks()
+{
     try{
         mMaxFlowCalculationCacheUpdateDelayedTask = make_unique<MaxFlowCalculationCacheUpdateDelayedTask>(
-                mIOService,
-                mMaxFlowCalculationCacheManager.get(),
-                mMaxFlowCalculationTrustLimeManager.get(),
-                *mLog.get());
+            mIOService,
+            mMaxFlowCalculationCacheManager.get(),
+            mMaxFlowCalculationTrustLimeManager.get(),
+            *mLog.get());
         mBackupDelayedTasks = make_unique<BackupDelayedTasks>(
-                mIOService);
+            mIOService);
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
         return 0;
     } catch (const std::exception &e) {
@@ -292,8 +289,8 @@ int Core::initDelayedTasks() {
     }
 }
 
-int Core::initCommandsInterface() {
-
+int Core::initCommandsInterface()
+{
     try {
         mCommandsInterface = make_unique<CommandsInterface>(
             mIOService,
@@ -316,8 +313,8 @@ void Core::connectCommandsInterfaceSignals ()
             _1));
 }
 
-int Core::initStorageHandler() {
-
+int Core::initStorageHandler()
+{
     try {
         mStorageHandler = make_unique<StorageHandler>(
             "io",
@@ -331,8 +328,8 @@ int Core::initStorageHandler() {
     }
 }
 
-int Core::initPathsManager() {
-
+int Core::initPathsManager()
+{
     try {
         mPathsManager = make_unique<PathsManager>(
             mNodeUUID,
@@ -347,8 +344,8 @@ int Core::initPathsManager() {
     }
 }
 
-void Core::connectCommunicatorSignals() {
-
+void Core::connectCommunicatorSignals()
+{
     //communicator's signal to transactions manager slot
     mCommunicator->signalMessageReceived.connect(
         boost::bind(
@@ -368,8 +365,8 @@ void Core::connectCommunicatorSignals() {
         )
     );
 }
-void Core::connectTrustLinesManagerSignals() {
-
+void Core::connectTrustLinesManagerSignals()
+{
     mTrustLinesManager->trustLineCreatedSignal.connect(
         boost::bind(
             &Core::onTrustLineCreatedSlot,
@@ -389,7 +386,8 @@ void Core::connectTrustLinesManagerSignals() {
     );
 }
 
-void Core::connectDelayedTasksSignals(){
+void Core::connectDelayedTasksSignals()
+{
     mBackupDelayedTasks->mBackupSignal.connect(
             boost::bind(
                     &Core::onDelayedTaskBackupSlot,
@@ -398,8 +396,8 @@ void Core::connectDelayedTasksSignals(){
     );
 }
 
-void Core::connectResourcesManagerSignals() {
-
+void Core::connectResourcesManagerSignals()
+{
     mResourcesManager->requestPathsResourcesSignal.connect(
         boost::bind(
             &Core::onPathsResourceRequestedSlot,
@@ -438,8 +436,8 @@ void Core::onCommandReceivedSlot (
 }
 
 void Core::onMessageReceivedSlot(
-    Message::Shared message) {
-
+    Message::Shared message)
+{
     try {
         mTransactionsManager->processMessage(message);
 
@@ -450,8 +448,8 @@ void Core::onMessageReceivedSlot(
 
 void Core::onMessageSendSlot(
     Message::Shared message,
-    const NodeUUID &contractorUUID) {
-
+    const NodeUUID &contractorUUID)
+{
     try{
         mCommunicator->sendMessage(
             message,
@@ -465,15 +463,13 @@ void Core::onMessageSendSlot(
 
 void Core::onTrustLineCreatedSlot(
     const NodeUUID &contractorUUID,
-    const TrustLineDirection direction) {
-
-}
+    const TrustLineDirection direction)
+{}
 
 void Core::onTrustLineStateModifiedSlot(
     const NodeUUID &contractorUUID,
-    const TrustLineDirection direction) {
-
-}
+    const TrustLineDirection direction)
+{}
 
 void Core::onDelayedTaskBackupSlot()
 {
@@ -491,7 +487,8 @@ void Core::onDelayedTaskBackupSlot()
 
 void Core::onPathsResourceRequestedSlot(
     const TransactionUUID &transactionUUID,
-    const NodeUUID &destinationNodeUUID) {
+    const NodeUUID &destinationNodeUUID)
+{
     try {
         mTransactionsManager->launchPathsResourcesCollectTransaction(
             transactionUUID,
@@ -504,8 +501,8 @@ void Core::onPathsResourceRequestedSlot(
 }
 
 void Core::onResourceCollectedSlot(
-    BaseResource::Shared resource) {
-
+    BaseResource::Shared resource)
+{
     try {
         mTransactionsManager->attachResourceToTransaction(
             resource);
@@ -513,7 +510,6 @@ void Core::onResourceCollectedSlot(
     } catch (exception &e) {
         mLog->logException("Core", e);
     }
-
 }
 
 void Core::writePIDFile()
