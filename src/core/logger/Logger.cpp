@@ -226,7 +226,7 @@ Logger::Logger(
             &Logger::flushRecordsQueue,
             this,
             as::placeholders::error));
-
+    // For more comfortable debug use trunc instead of app.(Clear log file after restart)
     mOperationsLogFile.open("operations.log", std::fstream::out | std::fstream::app);
 }
 
@@ -290,6 +290,7 @@ void Logger::flushRecordsQueue(
         as::placeholders::error
     ));
 }
+
 time_t Logger::get_unixtime(){
     Duration dur = pt::microsec_clock::universal_time() - pt::ptime(gt::date(1970,1,1));;
     return dur.total_microseconds();

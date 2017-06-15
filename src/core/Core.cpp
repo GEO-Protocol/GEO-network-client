@@ -27,6 +27,9 @@ int Core::run()
         mCommandsInterface->beginAcceptCommands();
 
         mLog->logSuccess("Core", "Processing started.");
+
+//        mTrustLinesManager->printRTs();
+
         mIOService.run();
         return 0;
 
@@ -42,7 +45,6 @@ int Core::initSubsystems() {
 
     initCode = initSettings();
 
-
     if (initCode != 0)
         return initCode;
 
@@ -54,7 +56,7 @@ int Core::initSubsystems() {
         conf = mSettings->loadParsedJSON();
 
     } catch (std::exception &e) {
-        mLog->logException("Settings", e);
+        cerr << utc_now() <<" : FATAL\tSETTINGS\t" <<  e.what() << "." << endl;
         return -1;
     }
 
@@ -62,8 +64,8 @@ int Core::initSubsystems() {
         mNodeUUID = mSettings->nodeUUID(&conf);
 
     } catch (RuntimeError &) {
-        // todo what to do if settings cannot initiaize
-//        mLog->logFatal("Core", "Can't read UUID of the node from the settings.");
+        // Logger was not initialized yet
+        cerr << utc_now() <<" : FATAL\tCORE\tCan't read UUID of the node from the settings" << endl;
         return -1;
     }
 
@@ -120,25 +122,6 @@ int Core::initSubsystems() {
 
     connectSignalsToSlots();
 
-    // TODO: Remove me
-    // This scheme is needd for payments tests
-    // Please, do no remove it untile payments would be done
-
-//    if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff00")) {
-//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(100));
-//
-//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff01")) {
-//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff00"), TrustLineAmount(100));
-//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(90));
-//
-//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff02")) {
-//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff01"), TrustLineAmount(90));
-//        mTrustLinesManager->accept(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff03"), TrustLineAmount(80));
-//
-//    } else if (mNodeUUID.stringUUID() == string("13e5cf8c-5834-4e52-b65b-f9281dd1ff03")) {
-//        mTrustLinesManager->open(NodeUUID("13e5cf8c-5834-4e52-b65b-f9281dd1ff02"), TrustLineAmount(80));
-//    }
-
     return 0;
 }
 
@@ -146,11 +129,13 @@ int Core::initSettings() {
 
     try {
         mSettings = make_unique<Settings>();
-        // mLog.logSuccess("Core", "Settings are successfully initialised");
+        // Logger was not initialized yet
+        cerr << utc_now() <<" : SUCCESS\tCORE\tSettings are successfully initialised." << endl;
         return 0;
 
     } catch (const std::exception &e) {
-        //  mLog.logException("Core", e);
+        // Logger was not initialized yet
+        cerr << utc_now() <<" : FATAL\tCORE\t" <<  e.what() << "." << endl;
         return -1;
     }
 }
@@ -167,9 +152,9 @@ int Core::initLogger(
             mSettings->influxDbPort(&conf)
         );
         return 0;
-    } catch (const std::exception &e) {
-        // todo add notify that loger canot be initialize
-    //        mLog.logException("Core", e);
+    } catch (...) {
+        // Logger can not be initialized
+        cerr << utc_now() <<" : FATAL\tCORE\tLogger cannot be initialized." << endl;
         return -1;
     }
 }
@@ -296,6 +281,8 @@ int Core::initDelayedTasks() {
                 mMaxFlowCalculationCacheManager.get(),
                 mMaxFlowCalculationTrustLimeManager.get(),
                 *mLog.get());
+        mBackupDelayedTasks = make_unique<BackupDelayedTasks>(
+                mIOService);
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
         return 0;
     } catch (const std::exception &e) {
@@ -408,12 +395,21 @@ void Core::connectDelayedTasksSignals(){
                     this
             )
     );
+
     mCyclesDelayedTasks->mFiveNodesCycleSignal.connect(
             boost::bind(
                     &Core::onDelayedTaskCycleFiveNodesSlot,
                     this
             )
     );
+
+    mBackupDelayedTasks->mBackupSignal.connect(
+            boost::bind(
+                    &Core::onDelayedTaskBackupSlot,
+                    this
+            )
+    );
+
     #ifdef TESTS
     mCyclesDelayedTasks->mThreeNodesCycleSignal.connect(
             boost::bind(
@@ -523,6 +519,20 @@ void Core::onDelayedTaskCycleThreeNodesSlot() {
     test_ThreeNodesTransaction();
 }
 
+void Core::onDelayedTaskBackupSlot()
+{
+    // Backup DB
+    mStorageHandler->backupStorageHandler();
+
+    // Backup operations.log
+    std::ifstream  src("operations.log", std::ios::binary);
+    std::ofstream  dst("operations.backup.log",   std::ios::binary);
+
+    dst << src.rdbuf();
+    src.close();
+    dst.close();
+}
+
 void Core::onPathsResourceRequestedSlot(
     const TransactionUUID &transactionUUID,
     const NodeUUID &destinationNodeUUID) {
@@ -568,29 +578,6 @@ void Core::updateProcessName()
     const string kProcessName(string("GEO:") + mNodeUUID.stringUUID());
     prctl(PR_SET_NAME, kProcessName.c_str());
     strcpy(mCommandDescriptionPtr, kProcessName.c_str());
-}
-
-void Core::checkSomething() {
-    printRTs();
-}
-
-void Core::printRTs() {
-    cout << "Cyurrent UUID" << mNodeUUID << endl;
-    cout  << "printRTs\tRT1 size: " << mTrustLinesManager->trustLines().size() << endl;
-    for (const auto itTrustLine : mTrustLinesManager->trustLines()) {
-        cout  << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
-        << itTrustLine.second->incomingTrustAmount() << " "
-        << itTrustLine.second->outgoingTrustAmount() << " "
-        << itTrustLine.second->balance() << endl;
-    }
-    cout  << "printRTs\tRT2 size: " << mStorageHandler->routingTablesHandler()->rt2Records().size() << endl;
-    for (auto const itRT2 : mStorageHandler->routingTablesHandler()->rt2Records()) {
-        cout  << itRT2.first << " " << itRT2.second << endl;
-    }
-    cout  << "printRTs\tRT3 size: " << mStorageHandler->routingTablesHandler()->rt3Records().size() << endl;
-    for (auto const itRT3 : mStorageHandler->routingTablesHandler()->rt3Records()) {
-        cout  << itRT3.first << " " << itRT3.second << endl;
-    }
 }
 
 void Core::test_ThreeNodesTransaction() {

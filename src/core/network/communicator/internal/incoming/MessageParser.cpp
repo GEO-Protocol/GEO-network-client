@@ -56,6 +56,12 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::RoutingTables_NeighborsResponse:
             return messageCollected<NeighborsResponseMessage>(buffer);
 
+        case Message::RoutingTables_CRC32Rt2ResponseMessage:
+            return messageCollected<CRC32Rt2ResponseMessage>(buffer);
+
+        case Message::RoutingTables_CRC32Rt2RequestMessage:
+            return messageCollected<CRC32Rt2RequestMessage>(buffer);
+
 
         /*
          * Payment operations messages

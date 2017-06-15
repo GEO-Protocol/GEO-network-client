@@ -258,6 +258,9 @@ private:
     void launchUpdateRoutingTablesTransaction(
         UpdateRoutingTablesCommand::Shared command);
 
+    void launchUpdateRoutingTablesResponseTransaction(
+        CRC32Rt2RequestMessage::Shared message);
+
     // closeCycle transaction TODO : should be removed after testing
     void launchTestCloseCycleTransaction(
         CycleCloserCommand::Shared command);
