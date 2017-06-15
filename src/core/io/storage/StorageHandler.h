@@ -32,6 +32,8 @@ public:
     // TODO: need discussion (cycles)
     RoutingTablesHandler* routingTablesHandler();
 
+    void backupStorageHandler();
+
 private:
     static void checkDirectory(
         const string &directory);
@@ -43,6 +45,8 @@ private:
     void beginTransactionQuery();
 
     LoggerStream info() const;
+
+    LoggerStream error() const;
 
     const string logHeader() const;
 

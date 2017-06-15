@@ -277,6 +277,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
         return reject("No participants votes message received. Transaction was closed. Rolling Back");
     }
     // transactions is still alive and we continue waiting for messages
+    clearContext();
     debug() << "Transactions is still alive. Continue waiting for messages";
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(

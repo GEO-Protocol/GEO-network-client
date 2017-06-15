@@ -47,7 +47,8 @@ TransactionResult::SharedConst SetTrustLineTransaction::run()
             mTransactionUUID,
             mCommand->newAmount());
 
-        info() << "Trust line to the node " << kContractor << " updated successfully.";
+        info() << "Trust line to the node " << kContractor
+               << " successfully updated to " << mTrustLines->outgoingTrustAmount(kContractor);
         return resultOk();
 
     } catch (ValueError &){
@@ -104,6 +105,7 @@ const string SetTrustLineTransaction::logHeader() const
 void SetTrustLineTransaction::updateHistory(
     IOTransaction::Shared ioTransaction)
 {
+#ifndef TESTS
     auto record = make_shared<TrustLineRecord>(
         uuid(mTransactionUUID),
         TrustLineRecord::Setting,
@@ -111,4 +113,5 @@ void SetTrustLineTransaction::updateHistory(
         mCommand->newAmount());
 
     ioTransaction->historyStorage()->saveTrustLineRecord(record);
+#endif
 }

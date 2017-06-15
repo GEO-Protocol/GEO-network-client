@@ -8,6 +8,7 @@ CRC32Rt2ResponseMessage::CRC32Rt2ResponseMessage(
         nodeUUID,
         transactionUUID)
 {
+    mCrc32Rt2Sum  = crc32rt2sum;
 }
 
 const Message::MessageType CRC32Rt2ResponseMessage::typeID() const
@@ -23,7 +24,6 @@ CRC32Rt2ResponseMessage::CRC32Rt2ResponseMessage(
     BytesDeserializer deserializer(
         buffer,
         TransactionMessage::kOffsetToInheritedBytes());
-
     deserializer.copyIntoDespiteConst(&mCrc32Rt2Sum);
 };
 

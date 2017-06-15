@@ -31,17 +31,31 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
     for (const auto &contractorUUID : mCommand->contractors()) {
         info() << "run\t\t" << contractorUUID;
     }
+
 #endif
     switch (mStep) {
         case Stages::SendRequestForCollectingTopology: {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "start";
 #endif
+            // Check if there is mNodeUUID in command parameters
             for (const auto &contractorUUID : mCommand->contractors()) {
                 if (contractorUUID == currentNodeUUID()) {
                     error() << "Attempt to initialise operation against itself was prevented. Canceled.";
                     return resultProtocolError();
                 }
+            }
+            // Check if Node does not have outgoing FlowAmount;
+            if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().size() == 0){
+                vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
+                maxFlows.reserve(mCommand->contractors().size());
+                for (const auto &contractorUUID : mCommand->contractors()) {
+                    maxFlows.push_back(
+                            make_pair(
+                                    contractorUUID,
+                                    TrustLineAmount(0)));
+                }
+                return resultOk(maxFlows);
             }
             if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
                 for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
@@ -111,33 +125,17 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     info() << "calculateMaxFlow\tstart found flow to: " << contractorUUID;
     mMaxFlowCalculationTrustLineManager->printTrustLines();
 #endif
+    auto trustLinePtrsSet =
+        mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    if (trustLinePtrsSet.size() == 0) {
+        mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+        return result;
+    }
+
     while(true) {
-        auto sortedTrustLines =
-                mMaxFlowCalculationTrustLineManager->sortedTrustLines(mNodeUUID);
-
-#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "sorted trustLines: " << sortedTrustLines.size();
-        for (auto const trLine : sortedTrustLines) {
-            info() << trLine->sourceUUID() << " " << trLine->targetUUID() << " "
-                   << *trLine->amount().get() << " " << *trLine->freeAmount();
-        }
-#endif
-
-        if (sortedTrustLines.size() == 0) {
-            mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-            return result;
-        }
-        MaxFlowCalculationTrustLine::Shared &trustLineMax = *sortedTrustLines.begin();
-        auto trustLineFreeAmountPtr = trustLineMax.get()->freeAmount();
-        if (*trustLineFreeAmountPtr == TrustLine::kZeroAmount()) {
-#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-            info() << "first trustline free amount is equal zero";
-#endif
-            mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-            return result;
-        }
         TrustLineAmount currentFlow = 0;
-        for (auto &trustLine : sortedTrustLines) {
+        for (auto &trustLinePtr : trustLinePtrsSet) {
+            auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
             auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
             auto trustLineAmountPtr = trustLineFreeAmountShared.get();
             forbiddenNodeUUIDs.clear();
@@ -185,12 +183,14 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     if (level == kMaxFlowLength) {
         return 0;
     }
-    vector<MaxFlowCalculationTrustLine::Shared> sortedTrustLines =
-            mMaxFlowCalculationTrustLineManager->sortedTrustLines(nodeUUID);
-    if (sortedTrustLines.size() == 0) {
+
+    auto trustLinePtrsSet =
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(nodeUUID);
+    if (trustLinePtrsSet.size() == 0) {
         return 0;
     }
-    for (auto &trustLine : sortedTrustLines) {
+    for (auto &trustLinePtr : trustLinePtrsSet) {
+        auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
         if (trustLine.get()->targetUUID() == mNodeUUID) {
             continue;
         }

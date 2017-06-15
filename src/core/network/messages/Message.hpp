@@ -75,6 +75,7 @@ public:
         RoutingTables_NotificationTrustLineRemoved,
         RoutingTables_CRC32Rt2RequestMessage,
         RoutingTables_CRC32Rt2ResponseMessage,
+        RoutingTables_CRC32Rt2ThirdLevelResponseMessage,
 
         /*
          * Paths

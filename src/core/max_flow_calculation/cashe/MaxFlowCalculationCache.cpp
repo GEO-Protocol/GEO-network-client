@@ -20,11 +20,15 @@ bool MaxFlowCalculationCache::containsIncomingFlow(
     auto nodeUUIDAndFlow = mIncomingFlows.find(nodeUUID);
     // if not present then insert
     if (nodeUUIDAndFlow == mIncomingFlows.end()) {
-        mIncomingFlows.insert(
-            make_pair(
-                nodeUUID,
-                flow));
-        return false;
+        if (*flow == TrustLine::kZeroAmount()) {
+            return true;
+        } else {
+            mIncomingFlows.insert(
+                make_pair(
+                    nodeUUID,
+                    flow));
+            return false;
+        }
     } else {
         auto sharedFlow = (*nodeUUIDAndFlow).second;
         // if flow present but now it is zero, then delete
@@ -53,11 +57,15 @@ bool MaxFlowCalculationCache::containsOutgoingFlow(
     auto nodeUUIDAndFlow = mOutgoingFlows.find(nodeUUID);
     // if not present then insert
     if (nodeUUIDAndFlow == mOutgoingFlows.end()) {
-        mOutgoingFlows.insert(
-            make_pair(
-                nodeUUID,
-                flow));
-        return false;
+        if (*flow == TrustLine::kZeroAmount()) {
+            return true;
+        } else {
+            mOutgoingFlows.insert(
+                make_pair(
+                    nodeUUID,
+                    flow));
+            return false;
+        }
     } else {
         auto sharedFlow = (*nodeUUIDAndFlow).second;
         // if flow present but now it is zero, then delete

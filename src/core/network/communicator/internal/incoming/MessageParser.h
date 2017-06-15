@@ -16,6 +16,10 @@
 #include "../../../messages/routing_tables/NotificationTrustLineRemovedMessage.h"
 #include "../../../messages/routing_tables/NeighborsRequestMessage.h"
 #include "../../../messages/routing_tables/NeighborsResponseMessage.h"
+#include "../../../messages/routing_tables/CRC32Rt2ResponseMessage.h"
+#include "../../../messages/routing_tables/CRC32Rt2RequestMessage.h"
+
+
 
 #include "../../../messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"

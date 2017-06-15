@@ -70,6 +70,7 @@ LoggerStream::LoggerStream(
     mType(other.mType)
 {}
 
+
 void Logger::logException(
     const string &subsystem,
     const exception &e)
@@ -179,20 +180,25 @@ void Logger::logRecord(
     const string &message,
     const addInfoType &addinfo)
 {
-#ifdef DEBUG
     cout << recordPrefix(group)
          << subsystem << "\t"
          << formatMessage(message) << endl;
     cout.flush();
-    return;
-#endif
-    mRecordsQueue.push({
-        get_unixtime(),
-        group,
-        subsystem,
-        message,
-        addinfo
-   });
+
+    // Log to file
+    mOperationsLogFile << recordPrefix(group)
+                       << subsystem << "\t"
+                       << formatMessage(message) << endl;
+    mOperationsLogFile.sync_with_stdio();
+
+//    // Log to InfluxDB
+//    mRecordsQueue.push({
+//        get_unixtime(),
+//        group,
+//        subsystem,
+//        formatMessage(message),
+//        addinfo
+//   });
 }
 
 Logger::Logger(
@@ -213,22 +219,20 @@ Logger::Logger(
     mRequestStream(&mRequest)
 {
     mEndpointIterator = mResolver.resolve(mQuery);
-    int FirstLaunchDelay = rand() % 30;
-
-    mFlushRecordsQueueTimer = make_unique<as::steady_timer>(
-        mIOService);
+    mFlushRecordsQueueTimer = make_unique<as::steady_timer>(mIOService);
     mFlushRecordsQueueTimer->expires_from_now(std::chrono::seconds(5));
-    mFlushRecordsQueueTimer->async_wait(boost::bind(
-        &Logger::flushRecordsQueue,
-        this,
-        as::placeholders::error
-    ));
+    mFlushRecordsQueueTimer->async_wait(
+        boost::bind(
+            &Logger::flushRecordsQueue,
+            this,
+            as::placeholders::error));
+    // For more comfortable debug use trunc instead of app.(Clear log file after restart)
+    mOperationsLogFile.open("operations.log", std::fstream::out | std::fstream::app);
 }
 
-void Logger::flushRecordsQueue(const boost::system::error_code &error) {
-
-    time_t epoch;
-    const string seriesName = "NodesLog";
+void Logger::flushRecordsQueue(
+    const boost::system::error_code &error)
+{
     stringstream url;
     url << "/write?db=";
     url << boost::lexical_cast<string>(mDbName);
@@ -238,27 +242,31 @@ void Logger::flushRecordsQueue(const boost::system::error_code &error) {
 
     stringstream body;
     auto mRecordsQueueLenght = mRecordsQueue.size();
-    for(auto i=1; i<=mRecordsQueueLenght; i++){
-        auto stepLogRecord = mRecordsQueue.front();
+    for(size_t i=0; i < mRecordsQueueLenght; ++i){
+        auto record = mRecordsQueue.front();
         mRecordsQueue.pop();
+
         body << "nodes_log,";
-        body << "nodeUUID=\"";
+
+        // Tags
+        body << "node_uuid=\"";
         body<< boost::lexical_cast<string>(mNodeUUID) << "\",";
 
         body << "group=\"";
-        body << stepLogRecord.group << "\" ";
+        body << record.group << "\" ";
 
+        // Values
         body << "subsystem=\"";
-        body << stepLogRecord.subsystem  << "\",";
+        body << record.subsystem  << "\",";
 
         body << "message=\"";
-        body << stepLogRecord.message << "\"";
-        for (auto keyAndValue: stepLogRecord.additionalInfo){
+        body << record.message << "\"";
+        for (auto keyAndValue: record.additionalInfo){
             body << ",";
             body << keyAndValue.first << "=\"";
             body << keyAndValue.second << "\"";
         }
-        body << " " << stepLogRecord.initTime;
+        body << " " << record.initTime;
 
         body << "\n";
     }
@@ -272,6 +280,8 @@ void Logger::flushRecordsQueue(const boost::system::error_code &error) {
     mRequestStream << body.str();
     as::connect(mSocket, mEndpointIterator);
     as::write(mSocket, mRequest);
+
+
     mFlushRecordsQueueTimer->cancel();
     mFlushRecordsQueueTimer->expires_from_now(std::chrono::seconds(mQuequeFlushDelaySeconds));
     mFlushRecordsQueueTimer->async_wait(boost::bind(
@@ -280,6 +290,7 @@ void Logger::flushRecordsQueue(const boost::system::error_code &error) {
         as::placeholders::error
     ));
 }
+
 time_t Logger::get_unixtime(){
     Duration dur = pt::microsec_clock::universal_time() - pt::ptime(gt::date(1970,1,1));;
     return dur.total_microseconds();

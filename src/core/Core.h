@@ -15,6 +15,7 @@
 #include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
+#include "delayed_tasks/Backup.h"
 #include "io/storage/StorageHandler.h"
 #include "paths/PathsManager.h"
 
@@ -30,6 +31,7 @@
 #include "network/messages/debug/DebugMessage.h"
 
 
+#include <sys/prctl.h>
 
 
 using namespace std;
@@ -40,7 +42,9 @@ namespace signals = boost::signals2;
 class Core {
 
 public:
-    Core();
+    Core(
+        char* pArgv)
+        noexcept;
 
     ~Core();
 
@@ -82,6 +86,8 @@ private:
 
     void connectTrustLinesManagerSignals();
 
+    void connectDelayedTasksSignals();
+
     void connectResourcesManagerSignals();
 
     void connectSignalsToSlots();
@@ -104,6 +110,8 @@ private:
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
+    void onDelayedTaskBackupSlot();
+
     void onPathsResourceRequestedSlot(
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationNodeUUID);
@@ -113,11 +121,14 @@ private:
 
     void writePIDFile();
 
-    void checkSomething();
+    void updateProcessName();
 
     void printRTs();
 
 protected:
+    // This pointer is used to modify executable command description.
+    // By default, it would point to the standard argv[0] char sequence;
+    char* mCommandDescriptionPtr;
 
     NodeUUID mNodeUUID;
     as::io_service mIOService;
@@ -130,6 +141,7 @@ protected:
     unique_ptr<TrustLinesManager> mTrustLinesManager;
     unique_ptr<ResourcesManager> mResourcesManager;
     unique_ptr<TransactionsManager> mTransactionsManager;
+    unique_ptr<BackupDelayedTasks> mBackupDelayedTasks;
     unique_ptr<MaxFlowCalculationTrustLineManager> mMaxFlowCalculationTrustLimeManager;
     unique_ptr<MaxFlowCalculationCacheManager> mMaxFlowCalculationCacheManager;
     unique_ptr<MaxFlowCalculationCacheUpdateDelayedTask> mMaxFlowCalculationCacheUpdateDelayedTask;
