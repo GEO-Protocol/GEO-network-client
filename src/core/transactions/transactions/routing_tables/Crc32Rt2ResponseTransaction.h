@@ -24,7 +24,10 @@ public:
 
     TransactionResult::SharedConst run();
 
-private:
+protected:
+    const string logHeader() const;
+
+protected:
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
     CRC32Rt2RequestMessage::Shared mRequestMessage;

@@ -31,18 +31,32 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
     for (const auto &contractorUUID : mCommand->contractors()) {
         info() << "run\t\t" << contractorUUID;
     }
+    // Check if there is mNodeUUID in command parameters
+    for (const auto &contractorUUID : mCommand->contractors()) {
+        if (contractorUUID == currentNodeUUID()) {
+            error() << "Attempt to initialise operation against itself was prevented. Canceled.";
+            return resultProtocolError();
+        }
+    }
+    // Check if Node does not have outgoing FlowAmount;
+    if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().size() == 0){
+        vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
+        maxFlows.reserve(mCommand->contractors().size());
+        for (const auto &contractorUUID : mCommand->contractors()) {
+            maxFlows.push_back(
+                make_pair(
+                    contractorUUID,
+                    TrustLineAmount(0)));
+        }
+        return resultOk(maxFlows);
+    }
+
 #endif
     switch (mStep) {
         case Stages::SendRequestForCollectingTopology: {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "start";
 #endif
-            for (const auto &contractorUUID : mCommand->contractors()) {
-                if (contractorUUID == currentNodeUUID()) {
-                    error() << "Attempt to initialise operation against itself was prevented. Canceled.";
-                    return resultProtocolError();
-                }
-            }
             if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
                 for (auto const &nodeUUIDAndTrustLine : mTrustLinesManager->outgoingFlows()) {
                     auto trustLineAmountShared = nodeUUIDAndTrustLine.second;

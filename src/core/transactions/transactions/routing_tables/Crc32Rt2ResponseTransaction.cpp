@@ -18,16 +18,40 @@ Crc32Rt2ResponseTransaction::Crc32Rt2ResponseTransaction(
 
 }
 
-TransactionResult::SharedConst Crc32Rt2ResponseTransaction::run() {
+TransactionResult::SharedConst Crc32Rt2ResponseTransaction::run()
+{
+    if(mRequestMessage->CRC32Type() == CRC32Rt2RequestMessage::FirstAndSecondLevel){
+        auto CRC32Rt2Sum = mTrustLinesManager->crc32SumFirstAndSecondLevel(mRequestMessage->senderUUID);
+        auto responseMessage = make_shared<CRC32Rt2ResponseMessage>(
+            mNodeUUID,
+            mRequestMessage->transactionUUID(),
+            CRC32Rt2Sum);
 
-    auto CRC32Rt2Sum = mTrustLinesManager->crc32SumFirstLevel(mRequestMessage->senderUUID);
-    auto responseMessage = make_shared<CRC32Rt2ResponseMessage>(
-        mNodeUUID,
-        currentTransactionUUID(),
-        CRC32Rt2Sum
-    );
-    sendMessage(
-        mRequestMessage->senderUUID,
-        responseMessage);
+        sendMessage(
+            mRequestMessage->senderUUID,
+            responseMessage);
+        return resultDone();
+    }
+
+    if(mRequestMessage->CRC32Type() == CRC32Rt2RequestMessage::FirstLevel){
+        auto CRC32Rt2Sum = mTrustLinesManager->crc32SumAllFirstLevelNeighbors(mRequestMessage->senderUUID);
+        auto responseMessage = make_shared<CRC32Rt2ResponseMessage>(
+            mNodeUUID,
+            mRequestMessage->transactionUUID(),
+            CRC32Rt2Sum);
+
+        sendMessage(
+            mRequestMessage->senderUUID,
+            responseMessage);
+        return resultDone();
+    }
     return resultDone();
+}
+
+
+const string Crc32Rt2ResponseTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[Crc32Rt2ResponseTransaction: " << currentTransactionUUID() << "]";
+    return s.str();
 }

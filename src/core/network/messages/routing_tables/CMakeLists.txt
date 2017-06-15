@@ -15,7 +15,8 @@ set(SOURCE_FILES
 
         CRC32Rt2RequestMessage.h
         CRC32Rt2ResponseMessage.h
-        CRC32Rt2ResponseMessage.cpp CRC32Rt2RequestMessage.cpp)
+        CRC32Rt2ResponseMessage.cpp
+        CRC32Rt2RequestMessage.cpp)
 
 add_library(messages__routing_tables ${SOURCE_FILES})
 target_link_libraries(messages__routing_tables

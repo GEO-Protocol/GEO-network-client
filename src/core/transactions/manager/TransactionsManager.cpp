@@ -1,4 +1,5 @@
 ﻿#include "TransactionsManager.h"
+#include "../transactions/routing_tables/Crc32Rt2ResponseTransaction.h"
 
 /*!
  *
@@ -199,6 +200,8 @@ void TransactionsManager::processCommand(
             static_pointer_cast<UpdateRoutingTablesCommand>(
                 command));
 
+
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -332,6 +335,11 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::MessageType::RoutingTables_NeighborsRequest) {
         launchGetFirstRoutingTableTransaction(
             static_pointer_cast<NeighborsRequestMessage>(message));
+
+    } else if (message->typeID() == Message::MessageType::RoutingTables_CRC32Rt2RequestMessage) {
+        launchUpdateRoutingTablesResponseTransaction(
+            static_pointer_cast<CRC32Rt2RequestMessage>(message));
+
 
     } else if (message->typeID() == Message::MessageType::RoutingTables_NeighborsResponse) {
         mScheduler->tryAttachMessageToTransaction(message);
@@ -1399,4 +1407,16 @@ void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transac
                     "Unexpected transaction type identifier.");
         }
     }
+}
+
+void TransactionsManager::launchUpdateRoutingTablesResponseTransaction(
+    CRC32Rt2RequestMessage::Shared message)
+{
+    prepareAndSchedule(
+        make_shared<Crc32Rt2ResponseTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mStorageHandler,
+            mLog));
 }
