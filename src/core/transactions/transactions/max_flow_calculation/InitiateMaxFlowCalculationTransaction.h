@@ -59,7 +59,7 @@ private:
     TransactionResult::SharedConst resultProtocolError();
 
 private:
-    static const byte kMaxFlowLength=6;
+    static const byte kMaxFlowLength = 6;
     static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 2000;
 
 private:
