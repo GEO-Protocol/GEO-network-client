@@ -17,7 +17,8 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log),
-    mCyclesManager(cyclesManager)
+    mCyclesManager(cyclesManager),
+    mInitialTransactionAmount(0)
 {
     mStep = Stages::Coordinator_Initialisation;
     mPathStats = make_unique<PathStats>(path);

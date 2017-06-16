@@ -36,6 +36,7 @@ protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
+    TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
     TransactionResult::SharedConst runClarificationOfTransaction();
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();

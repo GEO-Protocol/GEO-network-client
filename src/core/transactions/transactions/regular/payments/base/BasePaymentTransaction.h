@@ -112,7 +112,6 @@ protected:
     // Stages handlers
     virtual TransactionResult::SharedConst runVotesCheckingStage();
     virtual TransactionResult::SharedConst runVotesConsistencyCheckingStage();
-    virtual TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
     virtual TransactionResult::SharedConst runTTLTransactionResponce();
 
     virtual TransactionResult::SharedConst approve();
@@ -128,7 +127,8 @@ protected:
         const char *message=nullptr);
 
     TransactionResult::SharedConst runVotesRecoveryParentStage();
-    TransactionResult::SharedConst sendVotesRequestMessageAndWaitForResponse(const NodeUUID &contractorUUID);
+    TransactionResult::SharedConst sendVotesRequestMessageAndWaitForResponse(
+        const NodeUUID &contractorUUID);
     TransactionResult::SharedConst runPrepareListNodesToCheckNodes();
     TransactionResult::SharedConst runCheckCoordinatorVotesStage();
     TransactionResult::SharedConst runCheckIntermediateNodeVotesSage();

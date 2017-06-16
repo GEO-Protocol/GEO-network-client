@@ -150,6 +150,13 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     const auto kNeighbor = kMessage->senderUUID;
 
     if (! mTrustLines->isNeighbor(kNeighbor)) {
+        sendMessage<IntermediateNodeReservationResponseMessage>(
+            kNeighbor,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            kMessage->pathUUID(),
+            ResponseMessage::Rejected);
+        error() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
         // Message was sent from node, that is not listed in neighbors list.
         //
         // TODO: enhance this check

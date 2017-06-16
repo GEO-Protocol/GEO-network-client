@@ -45,8 +45,8 @@ private:
     }
 
     static const byte kResetInitiatorCacheHours = 0;
-    static const byte kResetInitiatorCacheMinutes = 0;
-    static const byte kResetInitiatorCacheSeconds = 10;
+    static const byte kResetInitiatorCacheMinutes = 1;
+    static const byte kResetInitiatorCacheSeconds = 0;
 
     static Duration& kResetInitiatorCacheDuration() {
         static auto duration = Duration(
