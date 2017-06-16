@@ -78,12 +78,21 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
     debug() << "Requested amount reservation: " << mMessage->amount();
 
-
     mCycleLength = mMessage->cycleLength();
+    TrustLineAmount kReservationAmount = TrustLine::kZeroAmount();
     // Note: (copy of shared pointer is required)
-    const auto kIncomingAmount = mTrustLines->availableIncomingCycleAmount(kNeighbor);
-    const auto kReservationAmount =
-        min(mMessage->amount(), *kIncomingAmount);
+    try {
+        const auto kIncomingAmount = mTrustLines->availableIncomingCycleAmount(kNeighbor);
+        kReservationAmount = min(mMessage->amount(), *kIncomingAmount);
+    } catch (NotFoundError &e) {
+        sendMessage<IntermediateNodeCycleReservationResponseMessage>(
+            kNeighbor,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::Rejected);
+        error() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
+        return resultDone();
+    }
 
     if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount, 0)) {
         sendMessage<IntermediateNodeCycleReservationResponseMessage>(
@@ -91,15 +100,16 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::Rejected);
-    } else {
-        mLastReservedAmount = kReservationAmount;
-        sendMessage<IntermediateNodeCycleReservationResponseMessage>(
-            kNeighbor,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            ResponseCycleMessage::Accepted,
-            kReservationAmount);
+        return resultDone();
     }
+
+    mLastReservedAmount = kReservationAmount;
+    sendMessage<IntermediateNodeCycleReservationResponseMessage>(
+        kNeighbor,
+        currentNodeUUID(),
+        currentTransactionUUID(),
+        ResponseCycleMessage::Accepted,
+        kReservationAmount);
 
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
@@ -113,7 +123,6 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     if (! contextIsValid(Message::Payments_CoordinatorCycleReservationRequest))
         return reject("No coordinator request received. Rolled back.");
 
-
     debug() << "Coordinator further reservation request received.";
 
 
@@ -125,11 +134,22 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     mCoordinator = kMessage->senderUUID;
     mCycleLength = kMessage->cycleLength();
 
-    // Note: copy of shared pointer is required
-    const auto kOutgoingAmount = mTrustLines->availableOutgoingCycleAmount(kNextNode);
-    TrustLineAmount reservationAmount = min(
-        kMessage->amount(),
-        *kOutgoingAmount);
+    TrustLineAmount reservationAmount = TrustLine::kZeroAmount();
+    try {
+        // Note: copy of shared pointer is required
+        const auto kOutgoingAmount = mTrustLines->availableOutgoingCycleAmount(kNextNode);
+        reservationAmount = min(kMessage->amount(), *kOutgoingAmount);
+    } catch (NotFoundError &e) {
+        sendMessage<CoordinatorCycleReservationResponseMessage>(
+            mCoordinator,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::Rejected);
+
+        error() << "Path is not valid: next node is not neighbor of current one. Rejected.";
+        rollBack();
+        return resultDone();
+    }
 
     if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount, 0)) {
         sendMessage<CoordinatorCycleReservationResponseMessage>(

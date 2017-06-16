@@ -277,6 +277,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
             if (! pathUUIDAndPathStats.second->isValid())
                 continue;
 
+        if (pathUUIDAndPathStats.second->path()->length() > 2)
+            if (! pathUUIDAndPathStats.second->isApproved())
+                continue;
 
         for (const auto &nodeUUID : pathUUIDAndPathStats.second->path()->nodes) {
             // By the protocol, coordinator node must be excluded from the message.

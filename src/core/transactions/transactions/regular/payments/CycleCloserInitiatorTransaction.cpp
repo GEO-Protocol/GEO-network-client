@@ -90,7 +90,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
 
     const auto kLastIntermediateNode = mPathStats->path()->nodes[mPathStats->path()->length() - 2];
     debug() << "last intermediate node: " << kLastIntermediateNode;
-    if (! mTrustLines->isNeighbor(kFirstIntermediateNode)){
+    if (! mTrustLines->isNeighbor(kLastIntermediateNode)){
         // Internal process error. Wrong path
         error() << "Invalid path occurred. Node (" << kLastIntermediateNode << ") is not listed in first level contractors list.";
         throw RuntimeError(

@@ -234,46 +234,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
 }
 
-TransactionResult::SharedConst BasePaymentTransaction::runFinalPathConfigurationProcessingStage ()
-{
-    debug() << "runFinalPathConfigurationProcessingStage";
-    if (! contextIsValid(Message::Payments_FinalPathConfiguration))
-        return reject("No final paths configuration was received from the coordinator. Rejected.");
-
-
-    const auto kMessage = popNextMessage<FinalPathConfigurationMessage>();
-
-    // TODO: check if message was really received from the coordinator;
-
-
-    debug() << "Final payment path configuration received";
-
-    // path was cancelled, drop all reservations belong it
-    if (kMessage->amount() == 0) {
-        rollBack(kMessage->pathUUID());
-    } else {
-
-        // Shortening all reservations that belongs to this node and path.
-        for (const auto &nodeAndReservations : mReservations) {
-            for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
-                if (pathUUIDAndReservation.first == kMessage->pathUUID()) {
-                    shortageReservation(
-                        nodeAndReservations.first,
-                        pathUUIDAndReservation.second,
-                        kMessage->amount(),
-                        pathUUIDAndReservation.first);
-                }
-            }
-        }
-    }
-
-    mStep = Stages::IntermediateNode_ReservationProlongation;
-    return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes,
-        Message::Payments_IntermediateNodeReservationRequest},
-        maxNetworkDelay(kMaxPathLength - 2));
-}
-
 /*
  * Handles votes list message receiving or it's absence in case,
  * if current node already voted for the operation.

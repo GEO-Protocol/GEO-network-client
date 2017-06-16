@@ -88,11 +88,31 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
     debug() << "Requested amount reservation: " << mMessage->amount();
 
-
-    // Note: (copy of shared pointer is required)
-    const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
-    const auto kReservationAmount =
-        min(mMessage->amount(), *kIncomingAmount);
+    TrustLineAmount kReservationAmount = TrustLine::kZeroAmount();
+    try {
+        const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
+        kReservationAmount =
+            min(mMessage->amount(), *kIncomingAmount);
+    } catch (NotFoundError &e) {
+        sendMessage<IntermediateNodeReservationResponseMessage>(
+            kNeighbor,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            mMessage->pathUUID(),
+            ResponseMessage::Rejected);
+        error() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
+        // if no reservations close transaction
+        if (mReservations.size() == 0) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        } else {
+            mStep = Stages::IntermediateNode_ReservationProlongation;
+            return resultWaitForMessageTypes(
+                    {Message::Payments_ParticipantsVotes,
+                     Message::Payments_IntermediateNodeReservationRequest},
+                    maxNetworkDelay(kMaxPathLength - 2));
+        }
+    }
 
     if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount, mMessage->pathUUID())) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -101,16 +121,27 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             currentTransactionUUID(),
             mMessage->pathUUID(),
             ResponseMessage::Rejected);
-    } else {
-        mLastReservedAmount = kReservationAmount;
-        sendMessage<IntermediateNodeReservationResponseMessage>(
-            kNeighbor,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            mMessage->pathUUID(),
-            ResponseMessage::Accepted,
-            kReservationAmount);
+        // if no reservations close transaction
+        if (mReservations.size() == 0) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        } else {
+            mStep = Stages::IntermediateNode_ReservationProlongation;
+            return resultWaitForMessageTypes(
+                {Message::Payments_ParticipantsVotes,
+                 Message::Payments_IntermediateNodeReservationRequest},
+                maxNetworkDelay(kMaxPathLength - 2));
+        }
     }
+
+    mLastReservedAmount = kReservationAmount;
+    sendMessage<IntermediateNodeReservationResponseMessage>(
+        kNeighbor,
+        currentNodeUUID(),
+        currentTransactionUUID(),
+        mMessage->pathUUID(),
+        ResponseMessage::Accepted,
+        kReservationAmount);
 
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
@@ -136,13 +167,35 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     mCoordinator = kMessage->senderUUID;
     mLastProcessedPath = kMessage->pathUUID();
 
+    TrustLineAmount reservationAmount = TrustLine::kZeroAmount();
     // Note: copy of shared pointer is required
-    const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
-    debug() << "requested reservation amount is " << kMessage->amount();
-    debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
-    TrustLineAmount reservationAmount = min(
-        kMessage->amount(),
-        *kOutgoingAmount);
+    try {
+        const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
+        debug() << "requested reservation amount is " << kMessage->amount();
+        debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
+        reservationAmount = min(
+            kMessage->amount(),
+            *kOutgoingAmount);
+    } catch (NotFoundError &e) {
+        sendMessage<CoordinatorReservationResponseMessage>(
+            mCoordinator,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            kMessage->pathUUID(),
+            ResponseMessage::Rejected);
+        debug() << "Path is not valid: next node is not neighbor of current one. Rolled back.";
+        rollBack(kMessage->pathUUID());
+        // if no reservations close transaction
+        if (mReservations.size() == 0) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        }
+        mStep = Stages::IntermediateNode_ReservationProlongation;
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes,
+             Message::Payments_IntermediateNodeReservationRequest},
+            maxNetworkDelay((kMaxPathLength - 2) * 4));
+    }
 
     if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount, kMessage->pathUUID())) {
         sendMessage<CoordinatorReservationResponseMessage>(
@@ -154,6 +207,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
         debug() << "No amount reservation is possible. Rolled back.";
         rollBack(kMessage->pathUUID());
+        // if no reservations close transaction
+        if (mReservations.size() == 0) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        }
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes,
@@ -182,6 +240,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
         debug() << "No valid amount reservation response received. Rolled back.";
         rollBack(mLastProcessedPath);
+        // if no reservations close transaction
+        if (mReservations.size() == 0) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        }
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes,
@@ -201,6 +264,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             ResponseMessage::Rejected);
         debug() << "Amount reservation rejected by the neighbor node.";
         rollBack(kMessage->pathUUID());
+        // if no reservations close transaction
+        if (mReservations.size() == 0) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        }
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes,
@@ -235,6 +303,51 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     return resultWaitForMessageTypes(
         {Message::Payments_FinalPathConfiguration},
         maxNetworkDelay((kMaxPathLength - 2) * 4));
+}
+
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathConfigurationProcessingStage()
+{
+    debug() << "runFinalPathConfigurationProcessingStage";
+    if (! contextIsValid(Message::Payments_FinalPathConfiguration))
+        return reject("No final paths configuration was received from the coordinator. Rejected.");
+
+
+    const auto kMessage = popNextMessage<FinalPathConfigurationMessage>();
+
+    // TODO: check if message was really received from the coordinator;
+
+
+    debug() << "Final payment path configuration received";
+
+    // path was cancelled, drop all reservations belong it
+    if (kMessage->amount() == 0) {
+        rollBack(kMessage->pathUUID());
+        // if no reservations close transaction
+        if (mReservations.size() == 0) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        }
+    } else {
+
+        // Shortening all reservations that belongs to this node and path.
+        for (const auto &nodeAndReservations : mReservations) {
+            for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
+                if (pathUUIDAndReservation.first == kMessage->pathUUID()) {
+                    shortageReservation(
+                            nodeAndReservations.first,
+                            pathUUIDAndReservation.second,
+                            kMessage->amount(),
+                            pathUUIDAndReservation.first);
+                }
+            }
+        }
+    }
+
+    mStep = Stages::IntermediateNode_ReservationProlongation;
+    return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes,
+             Message::Payments_IntermediateNodeReservationRequest},
+            maxNetworkDelay(kMaxPathLength - 2));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
