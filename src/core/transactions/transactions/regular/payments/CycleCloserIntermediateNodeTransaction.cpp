@@ -94,6 +94,17 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     debug() << "Requested amount reservation: " << mMessage->amount();
 
     mCycleLength = mMessage->cycleLength();
+
+    if (!mTrustLines->isNeighbor(mPreviousNode)) {
+        sendMessage<IntermediateNodeCycleReservationResponseMessage>(
+            mPreviousNode,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::Rejected);
+        error() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
+        return resultDone();
+    }
+
     // Note: (copy of shared pointer is required)
     const auto kIncomingAmounts = mTrustLines->availableIncomingCycleAmounts(mPreviousNode);
     const auto kIncomingAmountWithReservations = kIncomingAmounts.first;
@@ -139,6 +150,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             debug() << "don't win reservation";
         }
     }
+
     if (0 == mReservationAmount || ! reserveIncomingAmount(mPreviousNode, mReservationAmount, 0)) {
         sendMessage<IntermediateNodeCycleReservationResponseMessage>(
             mPreviousNode,
@@ -147,15 +159,15 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             ResponseCycleMessage::Rejected);
         debug() << "can't reserve requested amount, transaction closed";
         return resultDone();
-    } else {
-        mLastReservedAmount = mReservationAmount;
-        sendMessage<IntermediateNodeCycleReservationResponseMessage>(
-            mPreviousNode,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            ResponseCycleMessage::Accepted,
-            mReservationAmount);
     }
+
+    mLastReservedAmount = mReservationAmount;
+    sendMessage<IntermediateNodeCycleReservationResponseMessage>(
+        mPreviousNode,
+        currentNodeUUID(),
+        currentTransactionUUID(),
+        ResponseCycleMessage::Accepted,
+        mReservationAmount);
 
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
@@ -179,15 +191,17 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::Rejected);
-    } else {
-        mLastReservedAmount = mReservationAmount;
-        sendMessage<IntermediateNodeCycleReservationResponseMessage>(
-            mPreviousNode,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            ResponseCycleMessage::Accepted,
-            mReservationAmount);
+        debug() << "can't reserve requested amount, transaction closed";
+        return resultDone();
     }
+
+    mLastReservedAmount = mReservationAmount;
+    sendMessage<IntermediateNodeCycleReservationResponseMessage>(
+        mPreviousNode,
+        currentNodeUUID(),
+        currentTransactionUUID(),
+        ResponseCycleMessage::Accepted,
+        mReservationAmount);
 
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
@@ -207,6 +221,18 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
 
     const auto kMessage = popNextMessage<CoordinatorCycleReservationRequestMessage>();
     mNextNode = kMessage->nextNodeInPathUUID();
+
+    if (!mTrustLines->isNeighbor(mNextNode)) {
+        sendMessage<CoordinatorCycleReservationResponseMessage>(
+            mCoordinator,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::Rejected);
+
+        error() << "Path is not valid: next node is not neighbor of current one. Rejected.";
+        rollBack();
+        return resultDone();
+    }
 
     // Note: copy of shared pointer is required
     const auto kOutgoingAmounts = mTrustLines->availableOutgoingCycleAmounts(mNextNode);

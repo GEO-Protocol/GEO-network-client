@@ -334,10 +334,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
             for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
                 if (pathUUIDAndReservation.first == kMessage->pathUUID()) {
                     shortageReservation(
-                            nodeAndReservations.first,
-                            pathUUIDAndReservation.second,
-                            kMessage->amount(),
-                            pathUUIDAndReservation.first);
+                        nodeAndReservations.first,
+                        pathUUIDAndReservation.second,
+                        kMessage->amount(),
+                        pathUUIDAndReservation.first);
                 }
             }
         }
@@ -345,9 +345,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
 
     mStep = Stages::IntermediateNode_ReservationProlongation;
     return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes,
-             Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength - 2));
+        {Message::Payments_ParticipantsVotes,
+         Message::Payments_IntermediateNodeReservationRequest},
+        maxNetworkDelay(kMaxPathLength - 2));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
@@ -484,6 +484,5 @@ const string IntermediateNodePaymentTransaction::logHeader() const
 {
     stringstream s;
     s << "[IntermediateNodePaymentTA: " << currentTransactionUUID() << "] ";
-
     return s.str();
 }
