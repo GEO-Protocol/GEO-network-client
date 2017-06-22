@@ -5,8 +5,7 @@ set(SOURCE_FILES
         Cycles.cpp
         MaxFlowCalculationCacheUpdateDelayedTask.h
         MaxFlowCalculationCacheUpdateDelayedTask.cpp
-        Backup.h
-        Backup.cpp)
+        )
 
 add_library(delayed_tasks
         ${SOURCE_FILES})

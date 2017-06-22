@@ -75,7 +75,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
                         "CoordinatorPaymentTransaction::run(): "
                             "invalid transaction step.");
         }
-    } catch (...) {
+    } catch (Exception &e) {
+        error() << e.what();
         recover("Something happens wrong in method run(). Transaction will be recovered");
         return resultUnexpectedError();
     }

@@ -349,8 +349,12 @@ const bool BasePaymentTransaction::contextIsValid(
     Message::MessageType messageType,
     bool showErrorMessage) const
 {
-    if (mContext.empty())
+    if (mContext.empty()) {
+        if (showErrorMessage) {
+            error() << "contextIsValid::context is empty";
+        }
         return false;
+    }
 
     if (mContext.size() > 1 || mContext.at(0)->typeID() != messageType) {
         if (showErrorMessage) {
@@ -556,6 +560,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         return runVotesRecoveryParentStage();
     } else {
+        debug() << "Transaction doesn't sent/receive participants votes message and will be closed";
         return resultDone();
     }
 }
@@ -632,15 +637,17 @@ const bool BasePaymentTransaction::shortageReservation (
     const TrustLineAmount &kNewAmount,
     const PathUUID &pathUUID)
 {
-    if (kNewAmount > kReservation->amount())
+    debug() << "shortageReservation on path " << pathUUID;
+    if (kNewAmount > kReservation->amount()) {
         throw ValueError(
-            "BasePaymentTransaction::shortageReservation: "
-                "new amount can't be greater than already reserved one.");
+                "BasePaymentTransaction::shortageReservation: "
+                        "new amount can't be greater than already reserved one.");
+    }
 
     try {
-#ifdef DEBUG
+//#ifdef DEBUG
         const auto kPreviousAmount = kReservation->amount();
-#endif
+//#endif
 
         auto updatedReservation = mTrustLines->updateAmountReservation(
             kContractor,
@@ -648,7 +655,7 @@ const bool BasePaymentTransaction::shortageReservation (
             kNewAmount);
 
         for (auto it = mReservations[kContractor].begin(); it != mReservations[kContractor].end(); it++){
-            // TODO detaild check this condition
+            // TODO detailed check this condition
             if ((*it).second.get() == kReservation.get() && (*it).first == pathUUID) {
                 mReservations[kContractor].erase(it);
                 break;
@@ -659,14 +666,14 @@ const bool BasePaymentTransaction::shortageReservation (
                 pathUUID,
                 updatedReservation));
 
-#ifdef DEBUG
+//#ifdef DEBUG
         if (kReservation->direction() == AmountReservation::Incoming)
             debug() << "Reservation for (" << kContractor << ") [" << pathUUID << "] shortened "
                    << "from " << kPreviousAmount << " to " << kNewAmount << " [<=]";
         else
             debug() << "Reservation for (" << kContractor << ") [" << pathUUID << "] shortened "
                    << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
-#endif
+//#endif
 
         return true;
 
@@ -687,6 +694,7 @@ TransactionResult::SharedConst BasePaymentTransaction::exitWithResult(
 
 TransactionResult::SharedConst BasePaymentTransaction::runTTLTransactionResponce()
 {
+    debug() << "runTTLTransactionResponce";
     auto kMessage = popNextMessage<TTLPolongationMessage>();
     sendMessage<TTLPolongationMessage>(
         kMessage->senderUUID,

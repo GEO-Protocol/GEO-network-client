@@ -13,9 +13,9 @@ CyclesManager::CyclesManager(
 
     srand(time(NULL));
     int timeStarted = rand() % 60 * 60 * 6;
-#ifdef TESTS
-    timeStarted = 60;
-#endif
+//#ifdef TESTS
+    timeStarted = 20;
+//#endif
     mFiveNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
     mFiveNodesCycleTimer->expires_from_now(
@@ -27,9 +27,9 @@ CyclesManager::CyclesManager(
             this,
             as::placeholders::error));
     timeStarted = rand() % 60 * 60 * 6;
-#ifdef TESTS
-    timeStarted = 60;
-#endif
+//#ifdef TESTS
+    timeStarted = 20;
+//#endif
     mSixNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
     mSixNodesCycleTimer->expires_from_now(
@@ -109,7 +109,6 @@ vector<Path::ConstShared>* CyclesManager::cyclesVector(
 
 void CyclesManager::incrementCurrentCycleClosingState()
 {
-    debug() << "incrementCurrentCycleClosingState from " << mCurrentCycleClosingState;
     switch (mCurrentCycleClosingState) {
         case CycleClosingState::ThreeNodes:
             mCurrentCycleClosingState = CycleClosingState::FourNodes;
@@ -201,12 +200,14 @@ bool CyclesManager::resolveReservationConflict(
     const TransactionUUID &challengerTransactionUUID,
     const TransactionUUID &reservedTransactionUUID)
 {
+    debug() << "resolveReservationConflict";
     auto challengerTransaction = static_pointer_cast<BasePaymentTransaction>(
         mTransactionScheduler->transactionByUUID(
             challengerTransactionUUID));
     auto reservedTransaction = static_pointer_cast<BasePaymentTransaction>(
         mTransactionScheduler->transactionByUUID(
             reservedTransactionUUID));
+    debug() << "conflict between  " << challengerTransactionUUID << " and " << reservedTransactionUUID;
     if (isChellengerTransactionWinReservation(
         challengerTransaction,
         reservedTransaction)) {
@@ -222,11 +223,14 @@ bool CyclesManager::resolveReservationConflict(
 bool CyclesManager::isTransactionStillAlive(
     const TransactionUUID &transactionUUID)
 {
+    debug() << "isTransactionStillAlive: " << transactionUUID;
     try {
         mTransactionScheduler->transactionByUUID(
             transactionUUID);
+        debug() << "Still alive";
         return true;
     } catch (NotFoundError &e) {
+        debug() << "Not alive";
         return false;
     }
 }

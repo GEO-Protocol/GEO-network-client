@@ -80,7 +80,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
                     "IntermediateNodePaymentTransaction::run: "
                         "unexpected stage occurred.");
         }
-    } catch (...) {
+    } catch (Exception &e) {
+        error() << e.what();
         recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
@@ -162,6 +163,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     }
 
     mLastReservedAmount = mReservationAmount;
+    debug() << "send accepted message with reserve (" << mReservationAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
         currentNodeUUID(),
@@ -196,6 +198,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     }
 
     mLastReservedAmount = mReservationAmount;
+    debug() << "send accepted message with reserve (" << mReservationAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
         currentNodeUUID(),
@@ -221,6 +224,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
 
     const auto kMessage = popNextMessage<CoordinatorCycleReservationRequestMessage>();
     mNextNode = kMessage->nextNodeInPathUUID();
+
+    debug() << "Requested amount reservation: " << kMessage->amount();
 
     if (!mTrustLines->isNeighbor(mNextNode)) {
         sendMessage<CoordinatorCycleReservationResponseMessage>(
@@ -294,6 +299,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     }
 
     mLastReservedAmount = mReservationAmount;
+    debug() << "Send request reservation on " << mReservationAmount << " to " << mNextNode;
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
         currentNodeUUID(),
@@ -371,7 +377,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
     }
 
     debug() << "(" << kContractor << ") accepted amount reservation.";
-
+    mLastReservedAmount = kMessage->amountReserved();
     // shortage local reservation on current path
     for (const auto &nodeReservation : mReservations) {
         for (const auto &pathUUIDAndreservation : nodeReservation.second) {
@@ -383,6 +389,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
         }
     }
 
+    debug() << "send accepted message with reserve (" << mLastReservedAmount << ") to node " << mCoordinator;
     sendMessage<CoordinatorCycleReservationResponseMessage>(
         mCoordinator,
         currentNodeUUID(),

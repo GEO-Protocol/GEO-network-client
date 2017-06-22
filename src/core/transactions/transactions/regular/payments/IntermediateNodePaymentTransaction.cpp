@@ -70,7 +70,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
                     "IntermediateNodePaymentTransaction::run: "
                         "unexpected stage occurred.");
         }
-    } catch (...) {
+    } catch (Exception &e) {
+        error() << e.what();
         recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
@@ -278,6 +279,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
     debug() << "(" << kContractor << ") accepted amount reservation.";
 
+    mLastReservedAmount = kMessage->amountReserved();
     // shortage local reservation on current path
     for (const auto &nodeReservation : mReservations) {
         for (const auto &pathUUIDAndreservation : nodeReservation.second) {

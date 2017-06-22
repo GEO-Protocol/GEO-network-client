@@ -15,7 +15,6 @@
 #include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
-#include "delayed_tasks/Backup.h"
 #include "io/storage/StorageHandler.h"
 #include "paths/PathsManager.h"
 
@@ -110,8 +109,6 @@ private:
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
 
-    void onDelayedTaskBackupSlot();
-
     void onPathsResourceRequestedSlot(
         const TransactionUUID &transactionUUID,
         const NodeUUID &destinationNodeUUID);
@@ -139,7 +136,6 @@ protected:
     unique_ptr<TrustLinesManager> mTrustLinesManager;
     unique_ptr<ResourcesManager> mResourcesManager;
     unique_ptr<TransactionsManager> mTransactionsManager;
-    unique_ptr<BackupDelayedTasks> mBackupDelayedTasks;
     unique_ptr<MaxFlowCalculationTrustLineManager> mMaxFlowCalculationTrustLimeManager;
     unique_ptr<MaxFlowCalculationCacheManager> mMaxFlowCalculationCacheManager;
     unique_ptr<MaxFlowCalculationCacheUpdateDelayedTask> mMaxFlowCalculationCacheUpdateDelayedTask;

@@ -18,6 +18,11 @@ int Core::run()
         return initCode;
     }
 
+    auto totalBalances = *mTrustLinesManager->totalBalance();
+    auto debtAndCredit = mTrustLinesManager->debtAndCredit();
+    cout << "TrustLinesManager::printBalances " << mNodeUUID << " " << totalBalances << " "
+         << debtAndCredit.first << " " << debtAndCredit.second << endl;
+
     writePIDFile();
     updateProcessName();
 
@@ -279,8 +284,6 @@ int Core::initDelayedTasks()
             mMaxFlowCalculationCacheManager.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
             *mLog.get());
-        mBackupDelayedTasks = make_unique<BackupDelayedTasks>(
-            mIOService);
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
         return 0;
     } catch (const std::exception &e) {
@@ -387,14 +390,7 @@ void Core::connectTrustLinesManagerSignals()
 }
 
 void Core::connectDelayedTasksSignals()
-{
-    mBackupDelayedTasks->mBackupSignal.connect(
-            boost::bind(
-                    &Core::onDelayedTaskBackupSlot,
-                    this
-            )
-    );
-}
+{}
 
 void Core::connectResourcesManagerSignals()
 {
@@ -470,20 +466,6 @@ void Core::onTrustLineStateModifiedSlot(
     const NodeUUID &contractorUUID,
     const TrustLineDirection direction)
 {}
-
-void Core::onDelayedTaskBackupSlot()
-{
-    // Backup DB
-    mStorageHandler->backupStorageHandler();
-
-    // Backup operations.log
-    std::ifstream  src("operations.log", std::ios::binary);
-    std::ofstream  dst("operations.backup.log",   std::ios::binary);
-
-    dst << src.rdbuf();
-    src.close();
-    dst.close();
-}
 
 void Core::onPathsResourceRequestedSlot(
     const TransactionUUID &transactionUUID,

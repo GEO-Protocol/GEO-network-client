@@ -44,7 +44,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
     noexcept
 {
-    //try {
+    try {
         switch (mStep) {
             case Stages::Receiver_CoordinatorRequestApproving:
                 return runInitialisationStage();
@@ -67,9 +67,10 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
                     "ReceiverPaymentTransaction::run(): "
                         "invalid stage number occurred");
         }
-//    } catch (...) {
-//        recover("Something happens wrong in method run(). Transaction will be recovered");
-//    }
+    } catch (Exception &e) {
+        error() << e.what();
+        recover("Something happens wrong in method run(). Transaction will be recovered");
+    }
 }
 
 pair<BytesShared, size_t> ReceiverPaymentTransaction::serializeToBytes()

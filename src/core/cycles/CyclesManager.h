@@ -95,8 +95,8 @@ public:
     mutable BuildFiveNodesCyclesSignal buildFiveNodesCyclesSignal;
 
 private:
-    const uint32_t kSixNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
-    const uint32_t kFiveNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
+    const uint32_t kSixNodesSignalRepeatTimeSeconds = 30;//24 * 60 * 60;
+    const uint32_t kFiveNodesSignalRepeatTimeSeconds = 30;//24 * 60 * 60;
     const uint16_t kPostponningRollbackTransactionTimeMSec = 10;
 
 private:

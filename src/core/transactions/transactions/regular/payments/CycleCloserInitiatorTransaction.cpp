@@ -75,7 +75,8 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
                     "CycleCloserInitiatorTransaction::run(): "
                        "invalid transaction step.");
         }
-    } catch(...) {
+    } catch(Exception &e) {
+        error() << e.what();
         recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
@@ -319,6 +320,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
         return resultDone();
     }
 
+    debug() << "Send request reservation (" << path->maxFlow() << ") message to " << mNextNode;
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
         kCurrentNode,
@@ -343,11 +345,15 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
             kWaitingForReleasingAmountMSec);
     }
 
+    debug() << "Reservation was released, continue";
     if (!reserveOutgoingAmount(mNextNode, mOutgoingAmount, 0)) {
+        debug() << "Can't reserve. Close transaction";
         return resultDone();
     }
 
     auto path = mPathStats.get();
+    path->shortageMaxFlow(mOutgoingAmount);
+    debug() << "Send request reservation (" << path->maxFlow() << ") message to " << mNextNode;
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
         currentNodeUUID(),
@@ -356,6 +362,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
         currentNodeUUID(),
         path->path()->length());
 
+    mStep = Coordinator_AmountReservation;
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeCycleReservationResponse},
         maxNetworkDelay(1));
@@ -418,6 +425,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
     auto path = mPathStats.get();
     path->setNodeState(
         1, PathStats::NeighbourReservationApproved);
+    path->shortageMaxFlow(message->amountReserved());
     return runAmountReservationStage();
 }
 
@@ -648,7 +656,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
                 currentTransactionUUID(), reservation->transactionUUID())) {
                 mConflictedTransaction = reservation->transactionUUID();
                 mStep = Cycles_WaitForIncomingAmountReleasing;
-                mIncomingAmount = reservation->amount();
+                mIncomingAmount = min(
+                    reservation->amount(),
+                    kMessage->amount());
                 return resultAwaikAfterMilliseconds(
                     kWaitingForReleasingAmountMSec);
             }
@@ -664,6 +674,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         return reject("No incoming amount reservation is possible. Rolled back.");
     }
 
+    debug() << "send accepted message with reserve (" << mIncomingAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
         currentNodeUUID(),
@@ -698,6 +709,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         return reject("No incoming amount reservation is possible. Rolled back.");
     }
 
+    debug() << "send accepted message with reserve (" << mIncomingAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
         currentNodeUUID(),
