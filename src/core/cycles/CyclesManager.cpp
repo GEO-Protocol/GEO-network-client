@@ -7,7 +7,8 @@ CyclesManager::CyclesManager(
 
     mTransactionScheduler(transactionsScheduler),
     mIOService(ioService),
-    mLog(logger)
+    mLog(logger),
+    mIsCycleInProcess(false)
 {
     mCurrentCycleClosingState = CycleClosingState::ThreeNodes;
 
@@ -68,8 +69,15 @@ void CyclesManager::addCycle(
     }
 }
 
-void CyclesManager::closeOneCycle()
+void CyclesManager::closeOneCycle(
+    bool nextCycleShouldBeRunned)
 {
+    // nextCycleShouldBeRunned equals true when method closeOneCycle was called
+    // by TransactionManager after finishing transaction of closing cycle.
+    // When method closeOneCycle was called by transactions of building cycles it equals false
+    if (nextCycleShouldBeRunned) {
+        mIsCycleInProcess = false;
+    }
     clearClosedCycles();
     debug() << "closeOneCycle";
     debug() << "currentCycleClosingState: " << mCurrentCycleClosingState;
@@ -77,6 +85,10 @@ void CyclesManager::closeOneCycle()
             << " 4 NC count: " << mFourNodesCycles.size()
             << " 5 NC count: " << mFiveNodesCycles.size()
             << " 6 NC count: " << mSixNodesCycles.size();
+    if (mIsCycleInProcess) {
+        debug() << "Postpone closing this cycle, because another one in process";
+        return;
+    }
     CycleClosingState currentCycleClosingState = mCurrentCycleClosingState;
     do {
         auto cycles = cyclesVector(
@@ -86,10 +98,12 @@ void CyclesManager::closeOneCycle()
             cycles->erase(cycles->begin());
             debug() << "closeCycleSignal " << cycle->toString();
             closeCycleSignal(cycle);
+            mIsCycleInProcess = true;
             return;
         }
         incrementCurrentCycleClosingState();
     } while (currentCycleClosingState != mCurrentCycleClosingState);
+    mIsCycleInProcess = false;
 }
 
 vector<Path::ConstShared>* CyclesManager::cyclesVector(

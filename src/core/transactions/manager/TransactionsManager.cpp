@@ -1309,7 +1309,7 @@ void TransactionsManager::onCloseCycleTransaction(
 
 void TransactionsManager::onTryCloseNextCycleSlot()
 {
-    mCyclesManager->closeOneCycle();
+    mCyclesManager->closeOneCycle(true);
 }
 
 /**

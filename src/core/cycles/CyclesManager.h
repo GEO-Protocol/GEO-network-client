@@ -35,7 +35,8 @@ public:
         as::io_service &ioService,
         Logger &logger);
 
-    void closeOneCycle();
+    void closeOneCycle(
+        bool nextCycleShouldBeRunned = false);
 
     void addCycle(
         Path::ConstShared);
@@ -95,8 +96,8 @@ public:
     mutable BuildFiveNodesCyclesSignal buildFiveNodesCyclesSignal;
 
 private:
-    const uint32_t kSixNodesSignalRepeatTimeSeconds = 30;//24 * 60 * 60;
-    const uint32_t kFiveNodesSignalRepeatTimeSeconds = 30;//24 * 60 * 60;
+    const uint32_t kSixNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
+    const uint32_t kFiveNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
     const uint16_t kPostponningRollbackTransactionTimeMSec = 10;
 
 private:
@@ -115,6 +116,9 @@ private:
 
     unique_ptr<as::steady_timer> mSixNodesCycleTimer;
     unique_ptr<as::steady_timer> mFiveNodesCycleTimer;
+
+    // prevent launching closing cycle if another one in closing process
+    bool mIsCycleInProcess;
 };
 
 
