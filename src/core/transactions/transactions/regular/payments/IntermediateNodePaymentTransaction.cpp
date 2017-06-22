@@ -89,12 +89,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
     debug() << "Requested amount reservation: " << mMessage->amount();
 
-    TrustLineAmount kReservationAmount = TrustLine::kZeroAmount();
-    try {
-        const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
-        kReservationAmount =
-            min(mMessage->amount(), *kIncomingAmount);
-    } catch (NotFoundError &e) {
+    if (!mTrustLines->isNeighbor(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
@@ -109,11 +104,15 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         } else {
             mStep = Stages::IntermediateNode_ReservationProlongation;
             return resultWaitForMessageTypes(
-                    {Message::Payments_ParticipantsVotes,
-                     Message::Payments_IntermediateNodeReservationRequest},
-                    maxNetworkDelay(kMaxPathLength - 2));
+                {Message::Payments_ParticipantsVotes,
+                 Message::Payments_IntermediateNodeReservationRequest},
+                maxNetworkDelay(kMaxPathLength - 2));
         }
     }
+
+    const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
+    TrustLineAmount kReservationAmount =
+            min(mMessage->amount(), *kIncomingAmount);
 
     if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount, mMessage->pathUUID())) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -168,16 +167,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     mCoordinator = kMessage->senderUUID;
     mLastProcessedPath = kMessage->pathUUID();
 
-    TrustLineAmount reservationAmount = TrustLine::kZeroAmount();
-    // Note: copy of shared pointer is required
-    try {
-        const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
-        debug() << "requested reservation amount is " << kMessage->amount();
-        debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
-        reservationAmount = min(
-            kMessage->amount(),
-            *kOutgoingAmount);
-    } catch (NotFoundError &e) {
+    if (!mTrustLines->isNeighbor(kNextNode)) {
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
@@ -197,6 +187,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
              Message::Payments_IntermediateNodeReservationRequest},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
+
+    // Note: copy of shared pointer is required
+    const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
+    debug() << "requested reservation amount is " << kMessage->amount();
+    debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
+    TrustLineAmount reservationAmount = min(
+        kMessage->amount(),
+        *kOutgoingAmount);
 
     if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount, kMessage->pathUUID())) {
         sendMessage<CoordinatorReservationResponseMessage>(

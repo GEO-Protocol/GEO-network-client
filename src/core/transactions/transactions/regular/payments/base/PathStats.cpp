@@ -182,7 +182,7 @@ noexcept
             PathStats::NeighbourReservationApproved;
 }
 
-const bool PathStats::isApproved() const
+const bool PathStats::isLastIntermediateNodeApproved() const
 noexcept
 {
     return mIntermediateNodesStates[mIntermediateNodesStates.size()-1] ==

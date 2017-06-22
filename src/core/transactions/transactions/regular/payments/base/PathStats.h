@@ -69,7 +69,7 @@ public:
     const bool isLastIntermediateNodeProcessed () const
     noexcept;
 
-    const bool isApproved() const
+    const bool isLastIntermediateNodeApproved() const
     noexcept;
 
     const bool isValid () const

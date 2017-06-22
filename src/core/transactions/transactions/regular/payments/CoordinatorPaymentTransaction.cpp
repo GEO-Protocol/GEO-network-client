@@ -263,26 +263,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     uint16_t totalParticipantsCount = 0;
 #endif
 
-    for (const auto &pathUUIDAndPathStats : mPathsStats) {
-        // If paths wasn't processed - exclude it (all it's nodes).
-        // Unprocessed paths may occur, because paths are loaded into the transaction in batch,
-        // some of them may be used, and some may be left unprocessed.
-        if (pathUUIDAndPathStats.second->path()->length() > 2)
-            if (! pathUUIDAndPathStats.second->isLastIntermediateNodeProcessed())
+    for (PathUUID pathIdx = 0; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
+        auto const pathStats = mPathsStats[pathIdx].get();
+
+        if (pathStats->path()->length() > 2)
+            if (!pathStats->isLastIntermediateNodeApproved())
                 continue;
 
-        // If path was dropped - exclude it (all it's nodes).
-        // Paths may be dropped in case if some node doesn't approved reservation,
-        // or, in case if there is no free amount on it.
-        if (pathUUIDAndPathStats.second->path()->length() > 2)
-            if (! pathUUIDAndPathStats.second->isValid())
-                continue;
-
-        if (pathUUIDAndPathStats.second->path()->length() > 2)
-            if (! pathUUIDAndPathStats.second->isApproved())
-                continue;
-
-        for (const auto &nodeUUID : pathUUIDAndPathStats.second->path()->nodes) {
+        for (const auto &nodeUUID : pathStats->path()->nodes) {
             // By the protocol, coordinator node must be excluded from the message.
             // Only coordinator may emit ParticipantsApprovingMessage into the network.
             // It is supposed, that in case if it was emitted - than coordinator approved the transaction.
