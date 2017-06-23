@@ -17,7 +17,8 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log),
-    mMessage(message)
+    mMessage(message),
+    mTotalReservedAmount(0)
 {
     mStep = Stages::IntermediateNode_PreviousNeighborRequestProcessing;
 }
@@ -329,6 +330,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
         }
     } else {
 
+        mTotalReservedAmount += kMessage->amount();
         // Shortening all reservations that belongs to this node and path.
         for (const auto &nodeAndReservations : mReservations) {
             for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
@@ -425,9 +427,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
 {
+    BasePaymentTransaction::approve();
     runBuildFourNodesCyclesSignal();
     runBuildThreeNodesCyclesSignal();
-    BasePaymentTransaction::approve();
     return resultDone();
 }
 
@@ -473,6 +475,19 @@ void IntermediateNodePaymentTransaction::runBuildThreeNodesCyclesSignal()
     mBuildCycleThreeNodesSignal(
         contractorsUUID);
 }
+
+void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory()
+{
+    debug() << "savePaymentOperationIntoHistory";
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->savePaymentRecord(
+        make_shared<PaymentRecord>(
+            currentTransactionUUID(),
+            PaymentRecord::PaymentOperationType::IntermediatePaymentType,
+            mTotalReservedAmount,
+            *mTrustLines->totalBalance().get()));
+}
+
 
 void IntermediateNodePaymentTransaction::deserializeFromBytes(
     BytesShared buffer)

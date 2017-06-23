@@ -38,8 +38,9 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor()
 {
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     const TrustLineBalance kZeroBalance = 0;
+    auto ioTransactions = mStorageHandler->beginTransaction();
     const auto contractorNeighbors =
-        mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(
+        ioTransactions->routingTablesHandler()->neighborsOfOnRT2(
             mContractorUUID);
     set<NodeUUID> ownNeighbors, commonNeighbors;
     for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()){
@@ -54,13 +55,13 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor()
                 ownNeighbors.insert(kNodeUUIDAndTrustLine.first);
     }
     set_intersection(
-            ownNeighbors.begin(),
-            ownNeighbors.end(),
-            contractorNeighbors.begin(),
-            contractorNeighbors.end(),
-            std::inserter(
-                    commonNeighbors,
-                    commonNeighbors.begin()));
+        ownNeighbors.begin(),
+        ownNeighbors.end(),
+        contractorNeighbors.begin(),
+        contractorNeighbors.end(),
+        std::inserter(
+            commonNeighbors,
+            commonNeighbors.begin()));
 
     return commonNeighbors;
 }

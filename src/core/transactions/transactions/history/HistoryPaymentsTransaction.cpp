@@ -33,6 +33,17 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::run()
         mCommand->isLowBoundaryAmountPresent(),
         mCommand->highBoundaryAmount(),
         mCommand->isHighBoundaryAmountPresent());
+
+    // TODO remove after testing
+    debug() << "Additional payment records:";
+    for (auto const &paymentRecord : ioTransaction->historyStorage()->allPaymentAdditionalRecords()) {
+        debug() << paymentRecord->operationUUID() << " "
+                << paymentRecord->paymentOperationType() << " "
+                << paymentRecord->timestamp() << " "
+                << paymentRecord->amount() << " "
+                << paymentRecord->balanceAfterOperation();
+    }
+
     return resultOk(paymentRecords);
 }
 

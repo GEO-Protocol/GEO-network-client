@@ -29,11 +29,6 @@ public:
 
     IOTransaction::Shared beginTransaction();
 
-    // TODO: need discussion (cycles)
-    RoutingTablesHandler* routingTablesHandler();
-
-    void backupStorageHandler();
-
 private:
     static void checkDirectory(
         const string &directory);
@@ -56,7 +51,8 @@ private:
     const string kTrustLineTableName = "trust_lines";
     const string kPaymentOperationStateTableName = "payment_operation_state";
     const string kTransactionTableName = "transactions";
-    const string kHistoryTableName = "history";
+    const string kHistoryMainTableName = "history";
+    const string kHistoryAdditionalTableName = "history_additional";
 
 private:
     static sqlite3 *mDBConnection;

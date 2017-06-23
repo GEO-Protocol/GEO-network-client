@@ -71,6 +71,15 @@ public:
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
+public:
+    virtual const NodeUUID& coordinatorUUID() const;
+
+    virtual const uint8_t cycleLength() const;
+
+    bool isCommonVotesCheckingstage() const;
+
+    void setRollbackByOtherTransactionStage();
+
 protected:
     enum Stages {
         Coordinator_Initialisation = 1,
@@ -187,14 +196,7 @@ protected:
 
     size_t reservationsSizeInBytes() const;
 
-public:
-    virtual const NodeUUID& coordinatorUUID() const;
-
-    virtual const uint8_t cycleLength() const;
-
-    bool isCommonVotesCheckingstage() const;
-
-    void setRollbackByOtherTransactionStage();
+    virtual void savePaymentOperationIntoHistory() = 0;
 
 protected:
     // Specifies how long node must wait for the response from the remote node.
@@ -235,7 +237,6 @@ protected:
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;
     NodeUUID mCurrentNodeToCheckVotes;
-
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

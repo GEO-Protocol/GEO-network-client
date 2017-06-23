@@ -766,6 +766,20 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     }
 }
 
+void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory()
+{
+    debug() << "savePaymentOperationIntoHistory";
+    auto path = mPathStats.get();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->savePaymentRecord(
+        make_shared<PaymentRecord>(
+            currentTransactionUUID(),
+            PaymentRecord::PaymentOperationType::CycleCloserType,
+            path->maxFlow(),
+            *mTrustLines->totalBalance().get()));
+}
+
+
 const NodeUUID& CycleCloserInitiatorTransaction::coordinatorUUID() const
 {
     return currentNodeUUID();

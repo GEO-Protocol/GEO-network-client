@@ -436,6 +436,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         return resultDone();
     } else {
 
+        mLastReservedAmount = kMessage->amount();
         // Shortening all reservations that belongs to this node and path.
         for (const auto &nodeAndReservations : mReservations) {
             for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
@@ -463,6 +464,19 @@ const uint8_t CycleCloserIntermediateNodeTransaction::cycleLength() const
 {
     return mCycleLength;
 }
+
+void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory()
+{
+    debug() << "savePaymentOperationIntoHistory";
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->savePaymentRecord(
+        make_shared<PaymentRecord>(
+            currentTransactionUUID(),
+            PaymentRecord::PaymentOperationType::CyclerCloserIntermediateType,
+            mLastReservedAmount,
+            *mTrustLines->totalBalance().get()));
+}
+
 
 void CycleCloserIntermediateNodeTransaction::deserializeFromBytes(
     BytesShared buffer)

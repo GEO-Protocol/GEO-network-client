@@ -428,8 +428,8 @@ TransactionResult::SharedConst BasePaymentTransaction::cancel(
 TransactionResult::SharedConst BasePaymentTransaction::approve()
 {
     debug() << "Transaction approved. Committing.";
-
     commit();
+    savePaymentOperationIntoHistory();
     return resultDone();
 }
 

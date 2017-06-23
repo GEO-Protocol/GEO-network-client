@@ -295,9 +295,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
 {
-    runBuildThreeNodesCyclesSignal();
     BasePaymentTransaction::approve();
-    savePaymentOperationIntoHistory();
+    runBuildThreeNodesCyclesSignal();
     return resultDone();
 }
 

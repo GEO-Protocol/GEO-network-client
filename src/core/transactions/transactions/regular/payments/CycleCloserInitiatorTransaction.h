@@ -92,6 +92,8 @@ protected:
         PathStats* pathStats,
         const TrustLineAmount &finalPathAmount);
 
+    void savePaymentOperationIntoHistory();
+
 protected:
     // Contains special stats data, such as current msx flow,
     // for path involved into the transaction.

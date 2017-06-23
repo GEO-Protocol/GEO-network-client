@@ -136,9 +136,10 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
 
 set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCreditorNodes()
 {
-    const auto creditorsNeighbors = mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(
+    auto ioTransactio = mStorageHandler->beginTransaction();
+    const auto creditorsNeighbors = ioTransactio->routingTablesHandler()->neighborsOfOnRT2(
         mCreditorContractorUUID);
-    const auto debtorsNeighbors = mStorageHandler->routingTablesHandler()->neighborsOfOnRT2(
+    const auto debtorsNeighbors = ioTransactio->routingTablesHandler()->neighborsOfOnRT2(
         mDebtorContractorUUID);
     set<NodeUUID> commonNeighbors;
     set_intersection(

@@ -52,6 +52,8 @@ protected:
     void deserializeFromBytes(
         BytesShared buffer);
 
+    void savePaymentOperationIntoHistory();
+
     const string logHeader() const;
 
 protected:

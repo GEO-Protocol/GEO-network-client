@@ -1007,9 +1007,8 @@ const string CoordinatorPaymentTransaction::logHeader() const
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 {
-    runBuildThreeNodesCyclesSignal();
     BasePaymentTransaction::approve();
-    savePaymentOperationIntoHistory();
+    runBuildThreeNodesCyclesSignal();
     return resultOK();
 }
 
