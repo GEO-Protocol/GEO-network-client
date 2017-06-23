@@ -804,8 +804,8 @@ TransactionResult::SharedConst BasePaymentTransaction::sendVotesRequestMessageAn
 TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToCheckNodes()
 {
     debug() << "runPrepareListNodesToCheckNodes";
-    // Add all nodes that could be ased for Votes Status.
-    //Ignore self and CoodinatorNOde. Coordinator wil be asked first
+    // Add all nodes that could be asked for Votes Status.
+    // Ignore self and CoodinatorNode. Coordinator will be asked first
     const auto kCoordinatorUUID = mParticipantsVotesMessage->coordinatorUUID();
     for(const auto &kNodeUUIDAndVote: mParticipantsVotesMessage->votes()){
         if (kNodeUUIDAndVote.first != kCoordinatorUUID and kNodeUUIDAndVote.first != mNodeUUID)
@@ -835,7 +835,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
                 maxNetworkDelay(1));
         }
         if (mParticipantsVotesMessage->votes().size() > 0) {
-            if (kMessage->containsRejectVote()) {
+            if (!kMessage->achievedConsensus()) {
                 mParticipantsVotesMessage = kMessage;
                 return reject("");
             } else{
@@ -854,7 +854,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
 
 TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeVotesSage()
 {
-    debug() << "runCheckIntermediateNodeVotesSage";
+    debug() << "runCheckIntermediateNodeVotesStage";
     if (mContext.size() == 1) {
         const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
         const auto kSenderUUID = kMessage->senderUUID;
@@ -864,9 +864,9 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
                 maxNetworkDelay(1));
         }
         if (mParticipantsVotesMessage->votes().size() > 0) {
-            if (kMessage->containsRejectVote()) {
+            if (!kMessage->achievedConsensus()) {
                 mParticipantsVotesMessage = kMessage;
-                return reject("");
+                return reject("Not achived consensus. reject");
             } else {
                 commit();
                 return resultDone();

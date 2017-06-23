@@ -72,6 +72,9 @@ void CyclesManager::addCycle(
 void CyclesManager::closeOneCycle(
     bool nextCycleShouldBeRunned)
 {
+    // TODO : recovery in cycles can create desynchronization,
+    // that's why we temporarily turn off them
+    return;
     // nextCycleShouldBeRunned equals true when method closeOneCycle was called
     // by TransactionManager after finishing transaction of closing cycle.
     // When method closeOneCycle was called by transactions of building cycles it equals false

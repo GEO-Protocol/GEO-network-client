@@ -775,10 +775,8 @@ void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory()
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::CycleCloserType,
-            path->maxFlow(),
-            *mTrustLines->totalBalance().get()));
+            path->maxFlow()));
 }
-
 
 const NodeUUID& CycleCloserInitiatorTransaction::coordinatorUUID() const
 {

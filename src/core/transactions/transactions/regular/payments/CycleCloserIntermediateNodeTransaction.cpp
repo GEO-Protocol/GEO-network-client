@@ -473,8 +473,7 @@ void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory()
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::CyclerCloserIntermediateType,
-            mLastReservedAmount,
-            *mTrustLines->totalBalance().get()));
+            mLastReservedAmount));
 }
 
 

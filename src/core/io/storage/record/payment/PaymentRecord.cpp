@@ -37,23 +37,20 @@ PaymentRecord::PaymentRecord(
 PaymentRecord::PaymentRecord(
     const TransactionUUID &operationUUID,
     const PaymentRecord::PaymentOperationType operationType,
-    const TrustLineAmount &amount,
-    const TrustLineBalance &balanceAfterOperation):
+    const TrustLineAmount &amount):
 
     Record(
         Record::RecordType::PaymentRecordType,
         operationUUID),
     mPaymentOperationType(operationType),
     mContractorUUID(NodeUUID::empty()),
-    mAmount(amount),
-    mBalanceAfterOperation(balanceAfterOperation)
+    mAmount(amount)
 {}
 
 PaymentRecord::PaymentRecord(
     const TransactionUUID &operationUUID,
     const PaymentRecord::PaymentOperationType operationType,
     const TrustLineAmount &amount,
-    const TrustLineBalance &balanceAfterOperation,
     const GEOEpochTimestamp geoEpochTimestamp):
 
     Record(
@@ -62,8 +59,7 @@ PaymentRecord::PaymentRecord(
         geoEpochTimestamp),
     mPaymentOperationType(operationType),
     mContractorUUID(NodeUUID::empty()),
-    mAmount(amount),
-    mBalanceAfterOperation(balanceAfterOperation)
+    mAmount(amount)
 {}
 
 const bool PaymentRecord::isPaymentRecord() const

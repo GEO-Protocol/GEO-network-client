@@ -18,11 +18,6 @@ int Core::run()
         return initCode;
     }
 
-    auto totalBalances = *mTrustLinesManager->totalBalance();
-    auto debtAndCredit = mTrustLinesManager->debtAndCredit();
-    cout << "TrustLinesManager::printBalances " << mNodeUUID << " " << totalBalances << " "
-         << debtAndCredit.first << " " << debtAndCredit.second << endl;
-
     writePIDFile();
     updateProcessName();
 

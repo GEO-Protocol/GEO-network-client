@@ -143,7 +143,6 @@ protected:
     TransactionResult::SharedConst runCheckIntermediateNodeVotesSage();
     TransactionResult::SharedConst runRollbackByOtherTransactionStage();
 
-
 protected:
     const bool reserveOutgoingAmount(
         const NodeUUID &neighborNode,

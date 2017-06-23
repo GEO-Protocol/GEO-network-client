@@ -45,14 +45,12 @@ public:
     PaymentRecord(
         const TransactionUUID &operationUUID,
         const PaymentRecord::PaymentOperationType operationType,
-        const TrustLineAmount &amount,
-        const TrustLineBalance &balanceAfterOperation);
+        const TrustLineAmount &amount);
 
     PaymentRecord(
         const TransactionUUID &operationUUID,
         const PaymentRecord::PaymentOperationType operationType,
         const TrustLineAmount &amount,
-        const TrustLineBalance &balanceAfterOperation,
         const GEOEpochTimestamp geoEpochTimestamp);
 
     const PaymentOperationType paymentOperationType() const;

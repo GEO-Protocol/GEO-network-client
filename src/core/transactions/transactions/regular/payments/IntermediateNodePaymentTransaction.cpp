@@ -484,8 +484,7 @@ void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory()
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IntermediatePaymentType,
-            mTotalReservedAmount,
-            *mTrustLines->totalBalance().get()));
+            mTotalReservedAmount));
 }
 
 
