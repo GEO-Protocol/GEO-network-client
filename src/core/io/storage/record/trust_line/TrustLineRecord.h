@@ -48,15 +48,12 @@ public:
 
     const TrustLineOperationType trustLineOperationType() const;
 
-    const NodeUUID contractorUUID() const;
-
     const TrustLineAmount amount() const;
 
     const bool isTrustLineRecord() const;
 
 private:
     TrustLineOperationType mTrustLineOperationType;
-    NodeUUID mContractorUUID;
     TrustLineAmount mAmount;
 };
 

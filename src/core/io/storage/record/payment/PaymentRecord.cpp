@@ -9,9 +9,9 @@ PaymentRecord::PaymentRecord(
 
     Record(
         Record::RecordType::PaymentRecordType,
-        operationUUID),
+        operationUUID,
+        contractorUUID),
     mPaymentOperationType(operationType),
-    mContractorUUID(contractorUUID),
     mAmount(amount),
     mBalanceAfterOperation(balanceAfterOperation)
 {}
@@ -27,9 +27,9 @@ PaymentRecord::PaymentRecord(
     Record(
         Record::RecordType::PaymentRecordType,
         operationUUID,
+        contractorUUID,
         geoEpochTimestamp),
     mPaymentOperationType(operationType),
-    mContractorUUID(contractorUUID),
     mAmount(amount),
     mBalanceAfterOperation(balanceAfterOperation)
 {}
@@ -41,9 +41,9 @@ PaymentRecord::PaymentRecord(
 
     Record(
         Record::RecordType::PaymentRecordType,
-        operationUUID),
+        operationUUID,
+        NodeUUID::empty()),
     mPaymentOperationType(operationType),
-    mContractorUUID(NodeUUID::empty()),
     mAmount(amount)
 {}
 
@@ -56,9 +56,9 @@ PaymentRecord::PaymentRecord(
     Record(
         Record::RecordType::PaymentRecordType,
         operationUUID,
+        NodeUUID::empty(),
         geoEpochTimestamp),
     mPaymentOperationType(operationType),
-    mContractorUUID(NodeUUID::empty()),
     mAmount(amount)
 {}
 
@@ -70,11 +70,6 @@ const bool PaymentRecord::isPaymentRecord() const
 const PaymentRecord::PaymentOperationType PaymentRecord::paymentOperationType() const
 {
     return mPaymentOperationType;
-}
-
-const NodeUUID PaymentRecord::contractorUUID() const
-{
-    return mContractorUUID;
 }
 
 const TrustLineAmount PaymentRecord::amount() const

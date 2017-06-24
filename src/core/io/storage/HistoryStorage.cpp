@@ -553,6 +553,99 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords()
     return result;
 }
 
+vector<Record::Shared> HistoryStorage::recordsPortionWithContractor(
+    const NodeUUID &contractorUUID,
+    size_t recordsCount,
+    size_t fromRecord)
+{
+    vector<Record::Shared> result;
+    string query = "SELECT operation_uuid, operation_timestamp, record_body, record_body_bytes_count, record_type"
+                   " FROM " + mMainTableName + " ORDER BY operation_timestamp DESC LIMIT ? OFFSET ?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::recordsPortionWithContractor: "
+                              "Bad query; sqlite error: " + rc);
+    }
+    rc = sqlite3_bind_int(stmt, 1, (int)recordsCount);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::recordsPortionWithContractor: "
+                              "Bad binding of recordsCount; sqlite error: " + rc);
+    }
+    rc = sqlite3_bind_int(stmt, 2, (int)fromRecord);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::recordsPortionWithContractor: "
+                              "Bad binding of fromRecord; sqlite error: " + rc);
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+        int recordType = sqlite3_column_int(stmt, 4);
+        switch (recordType) {
+            case Record::TrustLineRecordType:
+                result.push_back(
+                    deserializeTrustLineRecord(
+                        stmt));
+                break;
+            case Record::PaymentRecordType:
+                result.push_back(
+                    deserializePaymentRecord(
+                        stmt));
+                break;
+            default:
+                throw ValueError("HistoryStorage::recordsPortionWithContractor: "
+                                     "invalid record type");
+        }
+    }
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+vector<Record::Shared> HistoryStorage::recordsWithContractor(
+    const NodeUUID &contractorUUID,
+    size_t recordsCount,
+    size_t fromRecord)
+{
+    vector<Record::Shared> result;
+
+    string query = "SELECT count(*) FROM " + mMainTableName;
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::recordsWithContractor: "
+                              "Bad query; sqlite error: " + rc);
+    }
+    sqlite3_step(stmt);
+    size_t allRecordsCount = (size_t)sqlite3_column_int(stmt, 0);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+
+    debug() << "all records count: " << allRecordsCount;
+    size_t currentOffset = 0;
+    size_t countRecordsUnderConditions = 0;
+    while (result.size() < recordsCount && currentOffset < allRecordsCount) {
+        auto records = recordsPortionWithContractor(
+            contractorUUID,
+            kPortionRequestSize,
+            currentOffset);
+        for (auto record : records) {
+            if (record->contractorUUID() == contractorUUID) {
+                countRecordsUnderConditions++;
+                if (countRecordsUnderConditions > fromRecord) {
+                    result.push_back(record);
+                }
+            }
+            if (result.size() >= recordsCount) {
+                break;
+            }
+        }
+        currentOffset += kPortionRequestSize;
+    }
+    return result;
+}
+
 pair<BytesShared, size_t> HistoryStorage::serializedTrustLineRecordBody(
     TrustLineRecord::Shared trustLineRecord)
 {
@@ -790,6 +883,11 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentAdditionalRecord(
 LoggerStream HistoryStorage::info() const
 {
     return mLog.info(logHeader());
+}
+
+LoggerStream HistoryStorage::debug() const
+{
+    return mLog.debug(logHeader());
 }
 
 LoggerStream HistoryStorage::error() const

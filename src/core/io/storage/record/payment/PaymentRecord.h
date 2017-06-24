@@ -55,8 +55,6 @@ public:
 
     const PaymentOperationType paymentOperationType() const;
 
-    const NodeUUID contractorUUID() const;
-
     const TrustLineAmount amount() const;
 
     const TrustLineBalance balanceAfterOperation() const;
@@ -65,7 +63,6 @@ public:
 
 private:
     PaymentOperationType mPaymentOperationType;
-    NodeUUID mContractorUUID;
     TrustLineAmount mAmount;
     TrustLineBalance mBalanceAfterOperation;
 };

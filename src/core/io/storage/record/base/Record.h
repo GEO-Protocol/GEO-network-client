@@ -26,16 +26,20 @@ public:
 
     const DateTime timestamp() const;
 
+    const NodeUUID contractorUUID() const;
+
 protected:
     Record();
 
     Record(
         const Record::RecordType recordType,
-        const TransactionUUID &operationUUID);
+        const TransactionUUID &operationUUID,
+        const NodeUUID &contractorUUID);
 
     Record(
         const Record::RecordType recordType,
         const TransactionUUID &operationUUID,
+        const NodeUUID &contractorUUID,
         const GEOEpochTimestamp geoEpochTimestamp);
 
 public:
@@ -45,6 +49,7 @@ private:
     RecordType mRecordType;
     TransactionUUID mOperationUUID;
     DateTime mTimestamp;
+    NodeUUID mContractorUUID;
 };
 
 #endif //GEO_NETWORK_CLIENT_RECORD_H

@@ -55,6 +55,11 @@ public:
 
     vector<PaymentRecord::Shared> allPaymentAdditionalRecords();
 
+    vector<Record::Shared> recordsWithContractor(
+        const NodeUUID &contractorUUID,
+        size_t recordsCount,
+        size_t fromRecord);
+
 private:
     void savePaymentMainRecord(
         PaymentRecord::Shared record);
@@ -72,6 +77,11 @@ private:
 
     size_t countRecordsByType(
         Record::RecordType recordType);
+
+    vector<Record::Shared> recordsPortionWithContractor(
+        const NodeUUID &contractorUUID,
+        size_t recordsCount,
+        size_t fromRecord);
 
     pair<BytesShared, size_t> serializedTrustLineRecordBody(
         TrustLineRecord::Shared);
@@ -92,6 +102,8 @@ private:
         sqlite3_stmt *stmt);
 
     LoggerStream info() const;
+
+    LoggerStream debug() const;
 
     LoggerStream error() const;
 

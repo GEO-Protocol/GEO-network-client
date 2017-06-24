@@ -187,6 +187,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<HistoryTrustLinesCommand>(
                 command));
 
+    } else if (command->identifier() == HistoryWithContractorCommand::identifier()){
+        launchHistoryWithContractorTransaction(
+            static_pointer_cast<HistoryWithContractorCommand>(
+                command));
+
     } else if (command->identifier() == CycleCloserCommand::identifier()){
         launchTestCloseCycleTransaction(
             static_pointer_cast<CycleCloserCommand>(
@@ -880,6 +885,28 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchHistoryTrustLinesTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchHistoryWithContractorTransaction(
+    HistoryWithContractorCommand::Shared command) {
+    try {
+        auto transaction = make_shared<HistoryWithContractorTransaction>(
+            mNodeUUID,
+            command,
+            mStorageHandler,
+            mLog);
+
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchHistoryWithContractorTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }

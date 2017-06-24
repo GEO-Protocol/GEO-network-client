@@ -32,6 +32,8 @@ set(SOURCE_FILES
         commands/history/HistoryPaymentsCommand.h
         commands/history/HistoryTrustLinesCommand.cpp
         commands/history/HistoryTrustLinesCommand.h
+        commands/history/HistoryWithContractorCommand.h
+        commands/history/HistoryWithContractorCommand.cpp
 
         commands/trust_lines_list/GetFirstLevelContractorsCommand.h
         commands/trust_lines_list/GetFirstLevelContractorsCommand.cpp

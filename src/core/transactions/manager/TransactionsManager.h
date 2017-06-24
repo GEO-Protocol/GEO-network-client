@@ -27,6 +27,7 @@
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/history/HistoryWithContractorCommand.h"
 #include "../../interface/commands_interface/commands/cycle_closer/CycleCloserCommand.h"
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
@@ -92,6 +93,7 @@
 
 #include "../transactions/history/HistoryPaymentsTransaction.h"
 #include "../transactions/history/HistoryTrustLinesTransaction.h"
+#include "../transactions/history/HistoryWithContractorTransaction.h"
 
 #include "../transactions/trustlines_list/GetFirstLevelContractorsTransaction.h"
 #include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
@@ -250,6 +252,9 @@ private:
 
     void launchHistoryTrustLinesTransaction(
         HistoryTrustLinesCommand::Shared command);
+
+    void launchHistoryWithContractorTransaction(
+        HistoryWithContractorCommand::Shared command);
 
     // Find path transactions
     void launchGetPathTestTransaction(
