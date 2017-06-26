@@ -14,9 +14,9 @@ CyclesManager::CyclesManager(
 
     srand(time(NULL));
     int timeStarted = rand() % 60 * 60 * 6;
-#ifdef TESTS
+//#ifdef TESTS
     timeStarted = 20;
-#endif
+//#endif
     mFiveNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
     mFiveNodesCycleTimer->expires_from_now(
@@ -28,9 +28,9 @@ CyclesManager::CyclesManager(
             this,
             as::placeholders::error));
     timeStarted = rand() % 60 * 60 * 6;
-#ifdef TESTS
+//#ifdef TESTS
     timeStarted = 20;
-#endif
+//#endif
     mSixNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
     mSixNodesCycleTimer->expires_from_now(
@@ -74,7 +74,7 @@ void CyclesManager::closeOneCycle(
 {
     // TODO : recovery in cycles can create desynchronization,
     // that's why we temporarily turn off them
-    return;
+    //return;
     // nextCycleShouldBeRunned equals true when method closeOneCycle was called
     // by TransactionManager after finishing transaction of closing cycle.
     // When method closeOneCycle was called by transactions of building cycles it equals false

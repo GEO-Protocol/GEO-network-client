@@ -192,7 +192,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     // TODO : insert propagate message here
     mParticipantsVotesMessage->approve(kCurrentNodeUUID);
     mTransactionIsVoted = true;
-
+    saveVotes();
     // TODO: flush
 
     debug() << "Voted +";
@@ -204,8 +204,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         const auto kNextParticipant = mParticipantsVotesMessage->nextParticipant(kCurrentNodeUUID);
         const auto kNewParticipantsVotesMessage  = make_shared<ParticipantsVotesMessage>(
             mNodeUUID,
-            mParticipantsVotesMessage
-        );
+            mParticipantsVotesMessage);
 
         // NotFoundError wasn't thrown.
         // Current node is not last in the votes list.
@@ -790,12 +789,13 @@ TransactionResult::SharedConst BasePaymentTransaction::sendVotesRequestMessageAn
     debug() << "sendVotesRequestMessageAndWaitForResponse";
     auto requestMessage = make_shared<VotesStatusRequestMessage>(
         mNodeUUID,
-        currentTransactionUUID()
-    );
+        currentTransactionUUID());
+
     sendMessage(
         contractorUUID,
-        requestMessage
-    );
+        requestMessage);
+
+    debug() << "Send VotesStatusRequestMessage to " << contractorUUID;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
         maxNetworkDelay(1));
@@ -824,38 +824,44 @@ TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToChec
 TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesStage()
 {
     debug() << "runCheckCoordinatorVotesStage";
-    if (mContext.size() == 1) {
+    if (contextIsValid(Message::Payments_ParticipantsVotes)) {
         const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
         const auto kCoordinatorUUID = kMessage->coordinatorUUID();
         const auto kSenderUUID = kMessage->senderUUID;
         // Check if answer is from Coordinator
         if (kSenderUUID != kCoordinatorUUID){
+            debug() << "Sender is not coordinator, ignore this message";
             return resultWaitForMessageTypes(
                 {Message::Payments_ParticipantsVotes},
                 maxNetworkDelay(1));
         }
-        if (mParticipantsVotesMessage->votes().size() > 0) {
-            if (!kMessage->achievedConsensus()) {
-                mParticipantsVotesMessage = kMessage;
-                return reject("");
-            } else{
-                commit();
+        if (kMessage->votes().size() > 0) {
+            mParticipantsVotesMessage = kMessage;
+            if (!kMessage->containsRejectVote()) {
+                return reject("ParticipantsVotesMessage contains reject. Rejecting");
+            } else if (kMessage->achievedConsensus()){
+                debug() << "Achieved consensus";
+                approve();
                 return resultDone();
             }
         }
     }
-    // Coordinator Node is offline
     mContext.clear();
+    if (mNodesToCheckVotes.size() > 0) {
+        debug() << "No nodes left to be asked. Sleep";
+        return resultAwaikAfterMilliseconds(5000);
+    }
     mVotesRecoveryStep = VotesRecoveryStages::Common_CheckIntermediateNodeVotesStage;
     mCurrentNodeToCheckVotes = mNodesToCheckVotes.back();
     mNodesToCheckVotes.pop_back();
-    return sendVotesRequestMessageAndWaitForResponse(mCurrentNodeToCheckVotes);
+    return sendVotesRequestMessageAndWaitForResponse(
+        mCurrentNodeToCheckVotes);
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeVotesSage()
 {
     debug() << "runCheckIntermediateNodeVotesStage";
-    if (mContext.size() == 1) {
+    if (contextIsValid(Message::Payments_ParticipantsVotes)) {
         const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
         const auto kSenderUUID = kMessage->senderUUID;
         if (kSenderUUID != mCurrentNodeToCheckVotes){
@@ -863,12 +869,13 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
                 {Message::Payments_ParticipantsVotes},
                 maxNetworkDelay(1));
         }
-        if (mParticipantsVotesMessage->votes().size() > 0) {
-            if (!kMessage->achievedConsensus()) {
-                mParticipantsVotesMessage = kMessage;
-                return reject("Not achived consensus. reject");
-            } else {
-                commit();
+        if (kMessage->votes().size() > 0) {
+            mParticipantsVotesMessage = kMessage;
+            if (kMessage->containsRejectVote()) {
+                return reject("ParticipantsVotesMessage contains reject. Rejecting");
+            } else if (kMessage->achievedConsensus()) {
+                debug() << "Achieved consensus";
+                approve();
                 return resultDone();
             }
         }
@@ -878,10 +885,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
         // Ask another node from payment transaction
         mCurrentNodeToCheckVotes = mNodesToCheckVotes.back();
         mNodesToCheckVotes.pop_back();
-        return sendVotesRequestMessageAndWaitForResponse(mCurrentNodeToCheckVotes);
+        return sendVotesRequestMessageAndWaitForResponse(
+            mCurrentNodeToCheckVotes);
     }
-    // No nodes left to be asked. reject
-    return reject("");
+    debug() << "No nodes left to be asked. Sleep";
+    return resultAwaikAfterMilliseconds(5000);
 }
 
 TransactionResult::SharedConst BasePaymentTransaction::runRollbackByOtherTransactionStage()

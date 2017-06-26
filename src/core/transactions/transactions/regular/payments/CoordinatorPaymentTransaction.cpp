@@ -70,6 +70,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
             case Stages::Common_VotesChecking:
                 return runVotesConsistencyCheckingStage();
 
+            case Stages::Common_Recovery:
+                return runVotesRecoveryParentStage();
+
                 default:
                     throw RuntimeError(
                         "CoordinatorPaymentTransaction::run(): "

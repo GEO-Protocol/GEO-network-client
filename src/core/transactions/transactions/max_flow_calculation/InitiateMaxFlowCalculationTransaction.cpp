@@ -68,9 +68,8 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
             sendMessagesToContractors();
             mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
             mStep = Stages::CalculateMaxTransactionFlow;
-            return make_shared<TransactionResult>(
-                TransactionState::awakeAfterMilliseconds(
-                    kWaitMilisecondsForCalculatingMaxFlow));
+            return resultAwaikAfterMilliseconds(
+                kWaitMilisecondsForCalculatingMaxFlow);
         }
         case Stages::CalculateMaxTransactionFlow: {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION

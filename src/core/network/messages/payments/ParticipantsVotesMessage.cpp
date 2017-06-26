@@ -249,6 +249,9 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
 void ParticipantsVotesMessage::reject(
     const NodeUUID &participant)
 {
+    if (participant == mCoordinatorUUID) {
+        return;
+    }
     if (mVotes.count(participant) != 1)
         throw NotFoundError(
                 "ParticipantsApprovingMessage::reject: "
@@ -268,7 +271,7 @@ void ParticipantsVotesMessage::approve(
 {
     if (mVotes.count(participant) != 1)
         throw NotFoundError(
-            "ParticipantsApprovingMessage::reject: "
+            "ParticipantsApprovingMessage::approve: "
             "received participant doesn't listed in votes list.");
 
     mVotes[participant] = Vote::Approved;
@@ -289,7 +292,7 @@ bool ParticipantsVotesMessage::containsRejectVote() const {
  */
 bool ParticipantsVotesMessage::achievedConsensus() const {
     for (const auto kNodeAndVote : mVotes) {
-        if (kNodeAndVote.second == Vote::Uncertain ||
+        if (kNodeAndVote.second == Vote::Uncertain or
             kNodeAndVote.second == Vote::Rejected)
             return false;
     }

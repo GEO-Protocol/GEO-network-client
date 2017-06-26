@@ -70,6 +70,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
             case Stages::Common_RollbackByOtherTransaction:
                 return runRollbackByOtherTransactionStage();
 
+            case Stages::Common_Recovery:
+                return runVotesRecoveryParentStage();
+
             default:
                 throw RuntimeError(
                     "CycleCloserInitiatorTransaction::run(): "
