@@ -209,6 +209,8 @@ protected:
 
     static const auto kMaxPathLength = 7;
 
+    static const uint32_t kWaitMillisecondsToTryRecoverAgain = 30000;
+
 public:
     mutable BuildCycleThreeNodesSignal mBuildCycleThreeNodesSignal;
 
