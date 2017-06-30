@@ -142,12 +142,7 @@ int Core::initLogger(
     const json &conf)
 {
     try {
-        mLog = make_unique<Logger>(
-            mNodeUUID,
-            mIOService,
-            mSettings->influxDbHost(&conf),
-            mSettings->influxDbName(&conf),
-            mSettings->influxDbPort(&conf));
+        mLog = make_unique<Logger>(mNodeUUID);
         return 0;
     } catch (...) {
         // Logger can not be initialized

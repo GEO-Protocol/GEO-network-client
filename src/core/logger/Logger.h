@@ -68,18 +68,7 @@ class Logger {
     friend class LoggerStream;
 
 public:
-    Logger(
-        const NodeUUID &nodeUUID,
-        as::io_service &mIOService,
-        const string &interface,
-        const string &dbname,
-        const uint16_t port);
-//
-//    Logger(const Logger &);
-
-//    Logger& operator= (
-//        const Logger &other)
-//    noexcept;
+    Logger(const NodeUUID &nodeUUID);
 
     void logException(
         const string &subsystem,
@@ -122,15 +111,6 @@ public:
         const string &subsystem,
         const string &message);
 
-protected:
-    struct LogRecordINFLUX {
-        time_t initTime;
-        const string group;
-        const string subsystem;
-        const string message;
-        addInfoType additionalInfo;
-    };
-
 private:
     const string formatMessage(
         const string &message) const;
@@ -144,31 +124,9 @@ private:
         const string &message,
         const addInfoType &addinfo);
 
-    void flushRecordsQueue(const boost::system::error_code &error);
-
-    time_t get_unixtime();
 
 private:
-    const string mInterface;
-    const uint16_t mPort;
-    const string mDbName;
-
     NodeUUID mNodeUUID;
-
-    queue <LogRecordINFLUX> mRecordsQueue;
-
-    as::io_service &mIOService;
-
-    tcp::socket mSocket;
-    tcp::resolver mResolver;
-    tcp::resolver::query mQuery;
-    tcp::resolver::iterator mEndpointIterator;
-
-    boost::asio::streambuf mRequest;
-    std::ostream mRequestStream;
-
-    unique_ptr<as::steady_timer> mFlushRecordsQueueTimer;
-    uint8_t mQuequeFlushDelaySeconds = 5;
 
     std::ofstream mOperationsLogFile;
 };
