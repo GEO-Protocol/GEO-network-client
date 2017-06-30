@@ -25,6 +25,8 @@ public:
 
     TransactionResult::SharedConst run();
 
+    TransactionResult::SharedConst resultTrustLineIsAbsent();
+
 private:
     GetTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
