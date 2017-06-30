@@ -12,6 +12,7 @@ CyclesManager::CyclesManager(
 {
     mCurrentCycleClosingState = CycleClosingState::ThreeNodes;
 
+    debug() << "cycles manager init";
     srand(time(NULL));
     int timeStarted = rand() % 60 * 60 * 6;
 //#ifdef TESTS

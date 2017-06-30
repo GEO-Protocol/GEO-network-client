@@ -195,6 +195,8 @@ protected:
 
     size_t reservationsSizeInBytes() const;
 
+    TransactionResult::SharedConst processNextNodeToCheckVotes();
+
     virtual void savePaymentOperationIntoHistory() = 0;
 
 protected:

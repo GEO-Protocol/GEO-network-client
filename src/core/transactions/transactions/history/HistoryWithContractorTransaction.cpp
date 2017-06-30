@@ -41,7 +41,9 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
         // Formatting operation date time to the Unix timestamp
         const auto kUnixTimestampMicrosec = (kRecord->timestamp() - kUnixEpoch).total_microseconds();
 
+        string formattedRecordType = "";
         if (kRecord->isPaymentRecord()) {
+            formattedRecordType = "payment";
             auto paymentRecord = static_pointer_cast<PaymentRecord>(kRecord);
             // Formatting operation type
             const auto kOperationType = paymentRecord->paymentOperationType();
@@ -58,13 +60,16 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
                                 "unexpected payment operation type occured.");
             }
 
-            stream << kSeparator << paymentRecord->recordType() << kSeparator;
+            stream << kSeparator << formattedRecordType << kSeparator;
             stream << paymentRecord->operationUUID() << kSeparator;
             stream << kUnixTimestampMicrosec << kSeparator;
+            stream << paymentRecord->contractorUUID() << kSeparator;
             stream << formattedOperationType << kSeparator;
             stream << paymentRecord->amount() << kSeparator;
             stream << paymentRecord->balanceAfterOperation();
+
         } else if (kRecord->isTrustLineRecord()) {
+            formattedRecordType = "trustline";
             auto trustLineRecord = static_pointer_cast<TrustLineRecord>(kRecord);
 
             // Formatting operation type
@@ -94,9 +99,10 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
                             "unexpected trust line operation type occured.");
             }
 
-            stream << kSeparator << trustLineRecord->recordType() << kSeparator;
+            stream << kSeparator << formattedRecordType << kSeparator;
             stream << trustLineRecord->operationUUID() << kSeparator;
             stream << kUnixTimestampMicrosec << kSeparator;
+            stream << trustLineRecord->contractorUUID() << kSeparator;
             stream << formattedOperationType << kSeparator;
             stream << trustLineRecord->amount();
         } else {
