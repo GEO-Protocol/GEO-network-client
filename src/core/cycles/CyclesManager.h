@@ -36,7 +36,7 @@ public:
         Logger &logger);
 
     void closeOneCycle(
-        bool nextCycleShouldBeRunned = true);
+        bool nextCycleShouldBeRunned = false);
 
     void addCycle(
         Path::ConstShared);

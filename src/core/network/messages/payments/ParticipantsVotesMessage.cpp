@@ -16,41 +16,33 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
     BytesShared buffer) :
     TransactionMessage(buffer)
 {
-    const auto kParticipantRecordSize =
+    auto bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    size_t kParticipantRecordSize =
         NodeUUID::kBytesSize
         + sizeof(SerializedVote);
-
-    // Offsets
-    const auto kCoordinatorUUIDOffset =
-        buffer.get()
-        + TransactionMessage::kOffsetToInheritedBytes();
-
-    const auto kRecordsCountOffset =
-        kCoordinatorUUIDOffset
-        + NodeUUID::kBytesSize;
-
-    const auto kFirstRecordOffset =
-        kRecordsCountOffset
-        + sizeof(RecordsCount);
-
 
     // Deserialization
     memcpy(
         mCoordinatorUUID.data,
-        kCoordinatorUUIDOffset,
+        buffer.get() + bytesBufferOffset,
         NodeUUID::kBytesSize);
+    bytesBufferOffset += NodeUUID::kBytesSize;
 
-    auto currentOffset = kFirstRecordOffset;
-    const RecordsCount kRecordsCount = *(kRecordsCountOffset);
+    RecordsCount kRecordsCount;
+    memcpy(
+        &kRecordsCount,
+        buffer.get() + bytesBufferOffset,
+        sizeof(RecordsCount));
+    bytesBufferOffset += sizeof(RecordsCount);
 
     for (RecordsCount i=0; i<kRecordsCount; ++i) {
-        NodeUUID participantUUID(currentOffset);
+        NodeUUID participantUUID(buffer.get() + bytesBufferOffset);
 
         const SerializedVote kVote =
-            *(currentOffset + NodeUUID::kBytesSize);
+            *(buffer.get() + bytesBufferOffset + NodeUUID::kBytesSize);
 
         mVotes[participantUUID] = Vote(kVote);
-        currentOffset += kParticipantRecordSize;
+        bytesBufferOffset += kParticipantRecordSize;
     }
 }
 
@@ -177,62 +169,50 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
 
     const auto kBufferSize =
         parentBytesAndCount.second
-        + kCoordinatorUUIDSize
+        + NodeUUID::kBytesSize
         + sizeof(RecordsCount)
         + kTotalParticipantsCount * kParticipantRecordSize;
 
     BytesShared buffer = tryMalloc(kBufferSize);
 
-    // Offsets
-    const auto kParentMessageOffset = buffer.get();
-    const auto kCoordinatorUUIDOffset =
-        kParentMessageOffset
-        + parentBytesAndCount.second;
-
-    const auto kParticipantsRecordsCountOffset =
-        kCoordinatorUUIDOffset
-        + kCoordinatorUUIDSize;
-
-    const auto kFirstParticipantRecordOffset =
-        kParticipantsRecordsCountOffset
-        + sizeof(RecordsCount);
-
+    size_t dataBytesOffset = 0;
     // Parent message content
     memcpy(
-        kParentMessageOffset,
+        buffer.get(),
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
+    dataBytesOffset += parentBytesAndCount.second;
 
     // Coordinator UUID
     memcpy(
-        kCoordinatorUUIDOffset,
+        buffer.get() + dataBytesOffset,
         mCoordinatorUUID.data,
         kCoordinatorUUIDSize);
+    dataBytesOffset += NodeUUID::kBytesSize;
 
     // Records count
     memcpy(
-        kParticipantsRecordsCountOffset,
+        buffer.get() + dataBytesOffset,
         &kTotalParticipantsCount,
         sizeof(RecordsCount));
+    dataBytesOffset += sizeof(RecordsCount);
 
     // Nodes UUIDs and votes
-    auto currentParticipantRecordOffset = kFirstParticipantRecordOffset;
     for (const auto NodeUUIDAndVote : mVotes) {
 
         const auto kParticipantUUID = NodeUUIDAndVote.first;
         memcpy(
-            currentParticipantRecordOffset,
-            &kParticipantUUID,
+            buffer.get() + dataBytesOffset,
+            kParticipantUUID.data,
             NodeUUID::kBytesSize);
+        dataBytesOffset += NodeUUID::kBytesSize;
 
-        const auto kVoteOffset = currentParticipantRecordOffset + NodeUUID::kBytesSize;
         const SerializedVote kVoteSerialized = NodeUUIDAndVote.second;
         memcpy(
-            kVoteOffset,
+            buffer.get() + dataBytesOffset,
             &kVoteSerialized,
             sizeof(kVoteSerialized));
-
-        currentParticipantRecordOffset+=kParticipantRecordSize;
+        dataBytesOffset += sizeof(kVoteSerialized);
     }
 
     return make_pair(

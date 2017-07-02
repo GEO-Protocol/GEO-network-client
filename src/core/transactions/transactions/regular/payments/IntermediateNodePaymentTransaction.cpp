@@ -77,11 +77,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
     }
 }
 
-pair<BytesShared, size_t> IntermediateNodePaymentTransaction::serializeToBytes()
-{
-    throw Exception("Not implemented");
-}
-
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNeighborRequestProcessingStage()
 {
@@ -485,13 +480,6 @@ void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory()
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IntermediatePaymentType,
             mTotalReservedAmount));
-}
-
-
-void IntermediateNodePaymentTransaction::deserializeFromBytes(
-    BytesShared buffer)
-{
-    throw Exception("Not implemented");
 }
 
 const string IntermediateNodePaymentTransaction::logHeader() const

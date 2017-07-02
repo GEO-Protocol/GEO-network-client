@@ -20,7 +20,6 @@
 #include "../commands/trust_lines_list/GetTrustLineCommand.h"
 
 #include "../commands/find_path/FindPathCommand.h"
-#include "../commands/cycle_closer/CycleCloserCommand.h"
 #include "../commands/routing_tables/UpdateRoutingTablesCommand.h"
 
 

@@ -30,8 +30,6 @@ public:
     TransactionResult::SharedConst run()
         noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes();
-
 protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
@@ -52,9 +50,6 @@ protected:
     void runBuildThreeNodesCyclesSignal();
 
     void savePaymentOperationIntoHistory();
-
-    void deserializeFromBytes(
-        BytesShared buffer);
 
     const string logHeader() const;
 

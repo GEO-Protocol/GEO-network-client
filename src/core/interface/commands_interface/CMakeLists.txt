@@ -47,9 +47,6 @@ set(SOURCE_FILES
         commands/find_path/FindPathCommand.h
         commands/find_path/FindPathCommand.cpp
 
-        commands/cycle_closer/CycleCloserCommand.h
-        commands/cycle_closer/CycleCloserCommand.cpp
-
         commands/routing_tables/UpdateRoutingTablesCommand.h
         commands/routing_tables/UpdateRoutingTablesCommand.cpp)
 

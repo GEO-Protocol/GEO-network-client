@@ -63,7 +63,6 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
             stream << kSeparator << formattedRecordType << kSeparator;
             stream << paymentRecord->operationUUID() << kSeparator;
             stream << kUnixTimestampMicrosec << kSeparator;
-            stream << paymentRecord->contractorUUID() << kSeparator;
             stream << formattedOperationType << kSeparator;
             stream << paymentRecord->amount() << kSeparator;
             stream << paymentRecord->balanceAfterOperation();
@@ -102,7 +101,6 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
             stream << kSeparator << formattedRecordType << kSeparator;
             stream << trustLineRecord->operationUUID() << kSeparator;
             stream << kUnixTimestampMicrosec << kSeparator;
-            stream << trustLineRecord->contractorUUID() << kSeparator;
             stream << formattedOperationType << kSeparator;
             stream << trustLineRecord->amount();
         } else {

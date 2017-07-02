@@ -41,12 +41,12 @@ BasePaymentTransaction::BasePaymentTransaction(
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
-        BytesShared buffer,
-        const NodeUUID &nodeUUID,
-        TrustLinesManager *trustLines,
-        StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log) :
+    BytesShared buffer,
+    const NodeUUID &nodeUUID,
+    TrustLinesManager *trustLines,
+    StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    Logger &log) :
 
     BaseTransaction(
         buffer,
@@ -61,24 +61,28 @@ BasePaymentTransaction::BasePaymentTransaction(
 
     // mParticipantsVotesMessage
     size_t participantsVotesMessageBytesCount;
-    memcpy(&participantsVotesMessageBytesCount,
-           buffer.get() + bytesBufferOffset,
-           sizeof(size_t)
-    );
+    memcpy(
+        &participantsVotesMessageBytesCount,
+        buffer.get() + bytesBufferOffset,
+        sizeof(size_t));
+    bytesBufferOffset += sizeof(size_t);
 
     BytesShared participantsVotesMessageBytes = tryMalloc(participantsVotesMessageBytesCount);
-    memcpy(&participantsVotesMessageBytes,
-           buffer.get() + bytesBufferOffset,
-           participantsVotesMessageBytesCount
-    );
+    memcpy(
+        participantsVotesMessageBytes.get(),
+        buffer.get() + bytesBufferOffset,
+        participantsVotesMessageBytesCount);
+    bytesBufferOffset += participantsVotesMessageBytesCount;
 
-    mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(participantsVotesMessageBytes);
+    mParticipantsVotesMessage = make_shared<ParticipantsVotesMessage>(
+        participantsVotesMessageBytes);
 
     // mReservations count
     uint64_t reservationsCount;
-    memcpy(&reservationsCount,
-           buffer.get() + bytesBufferOffset,
-           sizeof(uint64_t));
+    memcpy(
+        &reservationsCount,
+        buffer.get() + bytesBufferOffset,
+        sizeof(uint64_t));
     bytesBufferOffset += sizeof(uint64_t);
 
     // Map values
@@ -93,20 +97,22 @@ BasePaymentTransaction::BasePaymentTransaction(
 
         // Map values vector
         uint64_t stepReservationVectorSize;
-        memcpy(&stepReservationVectorSize,
-               buffer.get() + bytesBufferOffset,
-               sizeof(uint64_t));
+        memcpy(
+            &stepReservationVectorSize,
+            buffer.get() + bytesBufferOffset,
+            sizeof(uint64_t));
         bytesBufferOffset += sizeof(uint64_t);
 
         vector<pair<PathUUID, AmountReservation::ConstShared>> stepVector;
         for(auto j=1; j<=stepReservationVectorSize; j++){
 
             // PathUUID
-            uint64_t stepPathUUID;
-            memcpy(&stepPathUUID,
-                   buffer.get() + bytesBufferOffset,
-                   sizeof(uint64_t));
-            bytesBufferOffset += sizeof(uint64_t);
+            PathUUID stepPathUUID;
+            memcpy(
+                &stepPathUUID,
+                buffer.get() + bytesBufferOffset,
+                sizeof(PathUUID));
+            bytesBufferOffset += sizeof(PathUUID);
 
             // Amount
             TrustLineAmount stepAmount;
@@ -126,15 +132,40 @@ BasePaymentTransaction::BasePaymentTransaction(
 
             // Direction
             uint8_t stepDirection;
-            memcpy(&stepDirection,
-                   buffer.get() + bytesBufferOffset,
-                   sizeof(uint8_t));
+            memcpy(
+                &stepDirection,
+                buffer.get() + bytesBufferOffset,
+                sizeof(uint8_t));
             bytesBufferOffset += sizeof(uint8_t);
             auto stepEnumDirection = static_cast<AmountReservation::ReservationDirection>(stepDirection);
-            auto stepAmountReservation = make_shared<AmountReservation>(stepTransactionUUID, stepAmount, stepEnumDirection);
-            stepVector.push_back(make_pair(stepPathUUID, stepAmountReservation));
+
+            auto stepAmountReservation = make_shared<AmountReservation>(
+                stepTransactionUUID,
+                stepAmount,
+                stepEnumDirection);
+            stepVector.push_back(
+                make_pair(
+                    stepPathUUID,
+                    stepAmountReservation));
+
+            if (stepDirection == AmountReservation::ReservationDirection::Incoming) {
+                reserveIncomingAmount(
+                    stepNodeUUID,
+                    stepAmount,
+                    stepPathUUID);
+            }
+
+            if (stepDirection == AmountReservation::ReservationDirection::Outgoing) {
+                reserveOutgoingAmount(
+                    stepNodeUUID,
+                    stepAmount,
+                    stepPathUUID);
+            }
         }
-        mReservations.insert(make_pair(stepNodeUUID, stepVector));
+        mReservations.insert(
+            make_pair(
+                stepNodeUUID,
+                stepVector));
     }
 }
 
@@ -154,7 +185,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
     if (! contextIsValid(Message::Payments_ParticipantsVotes))
         return reject("No participants votes received. Canceling.");
-
 
     const auto kCurrentNodeUUID = currentNodeUUID();
     mParticipantsVotesMessage = popNextMessage<ParticipantsVotesMessage>();
@@ -196,12 +226,15 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     mTransactionIsVoted = true;
     // TODO: flush
     {
+        debug() << "Serializing transaction";
         auto ioTransaction = mStorageHandler->beginTransaction();
         auto bytesAndCount = serializeToBytes();
+        debug() << "Transaction serialized";
         ioTransaction->transactionHandler()->saveRecord(
             currentTransactionUUID(),
             bytesAndCount.first,
             bytesAndCount.second);
+        debug() << "Transaction saved";
     }
 
     debug() << "Voted +";
@@ -228,7 +261,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
             maxNetworkDelay(
-                mParticipantsVotesMessage->participantsCount()));
+                mParticipantsVotesMessage->participantsCount() + 1));
 
     } catch (NotFoundError &) {
         // There are no nodes left in the votes list.
@@ -334,7 +367,8 @@ const bool BasePaymentTransaction::reserveOutgoingAmount(
             amount);
 
 #ifdef DEBUG
-        debug() << "Reserved " << amount << " for (" << neighborNode << ") [" << pathUUID << "] [Outgoing amount reservation].";
+        // todo: uncomment me, when problem with recoverin transaction and reservation after restarting node will be fixed
+        //debug() << "Reserved " << amount << " for (" << neighborNode << ") [" << pathUUID << "] [Outgoing amount reservation].";
 #endif
 
         mReservations[neighborNode].push_back(
@@ -360,7 +394,8 @@ const bool BasePaymentTransaction::reserveIncomingAmount(
             amount);
 
 #ifdef DEBUG
-        debug() << "Reserved " << amount << " for (" << neighborNode << ") [" << pathUUID << "] [Incoming amount reservation].";
+        // todo: uncomment me, when problem with recoverin transaction and reservation after restarting node will be fixed
+        //debug() << "Reserved " << amount << " for (" << neighborNode << ") [" << pathUUID << "] [Incoming amount reservation].";
 #endif
 
         mReservations[neighborNode].push_back(
@@ -647,10 +682,11 @@ void BasePaymentTransaction::propagateVotesMessageToAllParticipants (
     for (;;) {
         try {
             participant = kMessage->nextParticipant(participant);
-            if (participant != kCurrentNodeUUID)
+            if (participant != kCurrentNodeUUID) {
                 sendMessage(
                     participant,
                     kMessage);
+            }
 
         } catch (NotFoundError &) {
             break;
@@ -874,7 +910,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     const auto kSenderUUID = kMessage->senderUUID;
 
     if (kCoordinatorUUID == NodeUUID::empty() || kMessage->votes().size() == 0) {
-        reject("Coordinator didn't sign this transaction");
+        debug() << "Coordinator don't know result of this transaction yet. Sleep.";
+        mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
+        return resultAwaikAfterMilliseconds(
+                kWaitMillisecondsToTryRecoverAgain);
     }
 
     // Check if answer is from Coordinator
@@ -894,8 +933,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     if (kMessage->achievedConsensus()){
         mParticipantsVotesMessage = kMessage;
         debug() << "Achieved consensus";
-        approve();
-        return resultDone();
+        return approve();
     }
 
     // TODO : need discuss this case. it can't be happen
@@ -939,8 +977,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
     if (kMessage->achievedConsensus()) {
         mParticipantsVotesMessage = kMessage;
         debug() << "Achieved consensus";
-        approve();
-        return resultDone();
+        return approve();
     }
 
     debug() << "Unknown status of transaction";
@@ -971,15 +1008,17 @@ TransactionResult::SharedConst BasePaymentTransaction::runRollbackByOtherTransac
     return resultDone();
 }
 
-pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const {
+pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
+{
     const auto parentBytesAndCount = BaseTransaction::serializeToBytes();
     // mParticipantsVotesMessage Part
     const auto kBufferAndSizeParticipantsVotesMessage = mParticipantsVotesMessage->serializeToBytes();
     // parent part
     size_t bytesCount = parentBytesAndCount.second
+                        + sizeof(size_t)
                         + kBufferAndSizeParticipantsVotesMessage.second
                         + reservationsSizeInBytes();
-//
+
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     // Parent part
@@ -987,22 +1026,20 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const {
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
 
     // mParticipantsVotesMessage Part
-    memcpy(dataBytesShared.get() + dataBytesOffset,
-           &kBufferAndSizeParticipantsVotesMessage.second,
-           sizeof(size_t));
-
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &kBufferAndSizeParticipantsVotesMessage.second,
+        sizeof(size_t));
     dataBytesOffset += sizeof(size_t);
 
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         kBufferAndSizeParticipantsVotesMessage.first.get(),
-        kBufferAndSizeParticipantsVotesMessage.second
-    );
+        kBufferAndSizeParticipantsVotesMessage.second);
     dataBytesOffset += kBufferAndSizeParticipantsVotesMessage.second;
 
     // Reservation Part
@@ -1010,24 +1047,23 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const {
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &kmReservationSize,
-        sizeof(uint64_t)
-    );
+        sizeof(uint64_t));
     dataBytesOffset += sizeof(uint64_t);
+
     for(auto it=mReservations.begin(); it!=mReservations.end(); it++){
         // Map key (NodeUUID)
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &it->first,
-            NodeUUID::kBytesSize
-        );
+            NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
+
         // Size of map value vector
         const auto kReservationsValueSize = it->second.size();
         memcpy(
             dataBytesShared.get() + dataBytesOffset,
             &kReservationsValueSize,
-            sizeof(uint64_t)
-        );
+            sizeof(uint64_t));
         dataBytesOffset += sizeof(uint64_t);
 
         for(const auto &kReservationValues: it->second){
@@ -1035,49 +1071,48 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const {
             memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 &kReservationValues.first,
-                sizeof(uint64_t)
-            );
+                sizeof(uint64_t));
             dataBytesOffset += sizeof(uint64_t);
+
             // AmountReservation - TrustLineAmount
-            vector<byte> buffer = trustLineAmountToBytes(kReservationValues.second->amount());
+            vector<byte> buffer = trustLineAmountToBytes(
+                kReservationValues.second->amount());
             memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 buffer.data(),
-                buffer.size()
-            );
-            //----------------------------------------------------
+                buffer.size());
             dataBytesOffset += buffer.size();
+
             // TransactionUUID
-            //----------------------------------------------------
             memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 mTransactionUUID.data,
-                TransactionUUID::kBytesSize
-            );
+                TransactionUUID::kBytesSize);
             dataBytesOffset += TransactionUUID::kBytesSize;
+
             // Direction
             const auto kDirection = kReservationValues.second->direction();
-            memcpy(dataBytesShared.get() + dataBytesOffset,
-            &kDirection,
-            sizeof(uint8_t));
+            memcpy(
+                dataBytesShared.get() + dataBytesOffset,
+                &kDirection,
+                sizeof(uint8_t));
             dataBytesOffset += sizeof(uint8_t);
         }
     }
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 size_t BasePaymentTransaction::reservationsSizeInBytes() const {
     size_t reservationSizeInBytes = 0;
     for (auto it=mReservations.begin(); it!=mReservations.end(); it++){
         reservationSizeInBytes += NodeUUID::kBytesSize + (
-                                                     sizeof(uint64_t) + // PathUUID
-                                                     kTrustLineAmountBytesCount +  // Reservetion Amount
-                                                     TransactionUUID::kBytesSize + // Reservation Transaction UUID
-                                                   sizeof(uint8_t)) * it->second.size() // Reservation Direction
-            + sizeof(uint64_t); // Vector Size
+                                sizeof(uint64_t) + // PathUUID
+                                kTrustLineAmountBytesCount +  // Reservetion Amount
+                                TransactionUUID::kBytesSize + // Reservation Transaction UUID
+                                sizeof(uint8_t)) * it->second.size() + // Reservation Direction
+                                sizeof(uint64_t); // Vector Size
 
     }
     reservationSizeInBytes += sizeof(uint64_t); // map Size

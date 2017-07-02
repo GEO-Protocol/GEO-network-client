@@ -73,16 +73,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
     }
 }
 
-pair<BytesShared, size_t> ReceiverPaymentTransaction::serializeToBytes()
-{
-    throw ValueError("Not implemented");
-}
-
-void ReceiverPaymentTransaction::deserializeFromBytes(BytesShared buffer)
-{
-    throw ValueError("Not implemented");
-}
-
 const string ReceiverPaymentTransaction::logHeader() const
 {
     stringstream s;

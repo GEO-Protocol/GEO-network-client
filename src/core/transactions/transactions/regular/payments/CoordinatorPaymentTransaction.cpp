@@ -1004,7 +1004,6 @@ const string CoordinatorPaymentTransaction::logHeader() const
 {
     stringstream s;
     s << "[CoordinatorPaymentTA: " << currentTransactionUUID() << "] ";
-
     return s.str();
 }
 

@@ -52,17 +52,18 @@ TransactionsManager::TransactionsManager(
         mScheduler->cycleCloserTransactionWasFinishedSignal);
 
     try {
-         loadTransactions();
+        loadTransactions();
 
     } catch (exception &e) {
         throw RuntimeError(e.what());
     }
 }
 
-void TransactionsManager::loadTransactions() {
-
+void TransactionsManager::loadTransactions()
+{
     const auto ioTransaction = mStorageHandler->beginTransaction();
     const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
+
     for(const auto kTABufferAndSize: serializedTAs) {
         BaseTransaction::SerializedTransactionType *transactionType = new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
         auto TransactionTypeId = *transactionType;
@@ -76,7 +77,11 @@ void TransactionsManager::loadTransactions() {
                     mMaxFlowCalculationCacheManager,
                     mResourcesManager,
                     mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                subscribeForBuidCyclesThreeNodesTransaction(
+                    transaction->mBuildCycleThreeNodesSignal);
+                prepareAndSchedule(transaction);
+                // TODO: discuss, why awakeAsFastAsPossible doesn't work
+                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
@@ -87,7 +92,13 @@ void TransactionsManager::loadTransactions() {
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                subscribeForBuidCyclesThreeNodesTransaction(
+                    transaction->mBuildCycleThreeNodesSignal);
+                subscribeForBuidCyclesFourNodesTransaction(
+                    transaction->mBuildCycleFourNodesSignal);
+                prepareAndSchedule(transaction);
+                // TODO: discuss, why awakeAsFastAsPossible doesn't work
+                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
@@ -98,7 +109,11 @@ void TransactionsManager::loadTransactions() {
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                subscribeForBuidCyclesThreeNodesTransaction(
+                    transaction->mBuildCycleThreeNodesSignal);
+                prepareAndSchedule(transaction);
+                // TODO: discuss, why awakeAsFastAsPossible doesn't work
+                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
@@ -110,7 +125,9 @@ void TransactionsManager::loadTransactions() {
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                prepareAndSchedule(transaction);
+                // TODO: discuss, why awakeAsFastAsPossible doesn't work
+                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction: {
@@ -122,7 +139,10 @@ void TransactionsManager::loadTransactions() {
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+
+                prepareAndSchedule(transaction);
+                // TODO: discuss, why awakeAsFastAsPossible doesn't work
+                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             default: {
@@ -190,11 +210,6 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == HistoryWithContractorCommand::identifier()){
         launchHistoryWithContractorTransaction(
             static_pointer_cast<HistoryWithContractorCommand>(
-                command));
-
-    } else if (command->identifier() == CycleCloserCommand::identifier()){
-        launchTestCloseCycleTransaction(
-            static_pointer_cast<CycleCloserCommand>(
                 command));
 
     } else if (command->identifier() == FindPathCommand::identifier()){
@@ -1019,29 +1034,6 @@ void TransactionsManager::launchPathsResourcesCollectTransaction(
     } catch (bad_alloc &) {
         throw MemoryError(
             "TransactionsManager::launchFindPathTransaction: "
-                "Can't allocate memory for transaction instance.");
-    }
-}
-
-// TODO : should be removed after testing
-void TransactionsManager::launchTestCloseCycleTransaction(
-    CycleCloserCommand::Shared command) {
-
-    try {
-        auto transaction = make_shared<CycleCloserInitiatorTransaction>(
-            mNodeUUID,
-            command->path(),
-            mTrustLines,
-            mCyclesManager.get(),
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchTestCloseCycleTransaction: "
                 "Can't allocate memory for transaction instance.");
     }
 }

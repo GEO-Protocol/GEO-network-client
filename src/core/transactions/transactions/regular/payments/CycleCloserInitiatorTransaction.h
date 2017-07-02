@@ -43,9 +43,6 @@ public:
     TransactionResult::SharedConst run()
         noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc);
-
     const NodeUUID& coordinatorUUID() const;
 
     const uint8_t cycleLength() const;
@@ -81,9 +78,6 @@ protected:
 
 protected:
     const string logHeader() const;
-
-    void deserializeFromBytes(
-        BytesShared buffer);
 
     void checkPath(
         const Path::ConstShared path);

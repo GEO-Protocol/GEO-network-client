@@ -32,8 +32,6 @@ public:
     TransactionResult::SharedConst run()
     noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes();
-
     const NodeUUID& coordinatorUUID() const;
 
     const uint8_t cycleLength() const;
@@ -49,9 +47,6 @@ protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
 
 protected:
-    void deserializeFromBytes(
-        BytesShared buffer);
-
     void savePaymentOperationIntoHistory();
 
     const string logHeader() const;

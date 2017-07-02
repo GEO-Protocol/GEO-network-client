@@ -476,18 +476,6 @@ void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory()
             mLastReservedAmount));
 }
 
-
-void CycleCloserIntermediateNodeTransaction::deserializeFromBytes(
-    BytesShared buffer)
-{
-    throw Exception("Not implemented");
-}
-
-pair<BytesShared, size_t> CycleCloserIntermediateNodeTransaction::serializeToBytes()
-{
-    throw Exception("Not implemented");
-}
-
 const string CycleCloserIntermediateNodeTransaction::logHeader() const
 {
     stringstream s;

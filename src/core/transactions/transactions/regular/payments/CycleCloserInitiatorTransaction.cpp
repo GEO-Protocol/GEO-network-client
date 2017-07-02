@@ -791,18 +791,6 @@ const uint8_t CycleCloserInitiatorTransaction::cycleLength() const
     return (uint8_t)mPathStats->path()->length();
 }
 
-pair<BytesShared, size_t> CycleCloserInitiatorTransaction::serializeToBytes() const
-    throw (bad_alloc)
-{
-    // todo: add implementation
-    return make_pair(make_shared<byte>(0), 0);
-}
-
-void CycleCloserInitiatorTransaction::deserializeFromBytes(BytesShared buffer)
-{
-    // todo: add implementation
-}
-
 const string CycleCloserInitiatorTransaction::logHeader() const
 {
     stringstream s;

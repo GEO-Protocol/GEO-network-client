@@ -28,7 +28,6 @@
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryWithContractorCommand.h"
-#include "../../interface/commands_interface/commands/cycle_closer/CycleCloserCommand.h"
 #include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
@@ -277,10 +276,6 @@ private:
 
     void launchUpdateRoutingTablesResponseTransaction(
         CRC32Rt2RequestMessage::Shared message);
-
-    // closeCycle transaction TODO : should be removed after testing
-    void launchTestCloseCycleTransaction(
-        CycleCloserCommand::Shared command);
 
     // routing tables exchange transactions
     void launchTrustLineStatesHandlerTransaction(
