@@ -17,7 +17,9 @@ IOTransaction::IOTransaction(
     mTransactionHandler(transactionHandler),
     mIsTransactionBegin(true),
     mLog(logger)
-{}
+{
+    beginTransactionQuery();
+}
 
 IOTransaction::~IOTransaction()
 {
@@ -139,4 +141,25 @@ const string IOTransaction::logHeader() const
     stringstream s;
     s << "[IOTransaction]";
     return s.str();
+}
+
+void IOTransaction::beginTransactionQuery() {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+    info() << "beginTransactionQuery";
+#endif
+    string query = "BEGIN TRANSACTION;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDBConnection, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("IOTransaction::prepareInserted: Bad query; sqlite error: " + rc);
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc != SQLITE_DONE) {
+        throw IOError("IOTransaction::prepareInserted: Run query; sqlite error: " + rc);
+    }
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+    info() << "transaction begin";
+#endif
 }

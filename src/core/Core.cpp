@@ -323,7 +323,8 @@ int Core::initStorageHandler() {
             "storageDB",
             *mLog.get());
         mLog->logSuccess("Core", "Storage handler is successfully initialised");
-        return 0;
+        auto status = mStorageHandler->applyMigrations();
+        return status;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
         return -1;

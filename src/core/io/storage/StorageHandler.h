@@ -7,6 +7,7 @@
 #include "TrustLineHandler.h"
 #include "PaymentOperationStateHandler.h"
 #include "TransactionsHandler.h"
+#include "MigrationHandler.h"
 #include "HistoryStorage.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
@@ -29,10 +30,7 @@ public:
 
     IOTransaction::Shared beginTransaction();
 
-    // TODO: need discussion (cycles)
-    RoutingTablesHandler* routingTablesHandler();
-
-    void backupStorageHandler();
+    int applyMigrations();
 
 private:
     static void checkDirectory(
@@ -41,8 +39,6 @@ private:
     static sqlite3* connection(
         const string &dataBaseName,
         const string &directory);
-
-    void beginTransactionQuery();
 
     LoggerStream info() const;
 
@@ -56,7 +52,9 @@ private:
     const string kTrustLineTableName = "trust_lines";
     const string kPaymentOperationStateTableName = "payment_operation_state";
     const string kTransactionTableName = "transactions";
-    const string kHistoryTableName = "history";
+    const string kHistoryMainTableName = "history";
+    const string kHistoryAdditionalTableName = "history_additional";
+    const string kMigrationTableName = "migrations";
 
 private:
     static sqlite3 *mDBConnection;

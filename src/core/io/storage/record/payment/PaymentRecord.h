@@ -19,7 +19,10 @@ public:
 public:
     enum PaymentOperationType {
         OutgoingPaymentType = 1,
-        IncomingPaymentType
+        IncomingPaymentType,
+        IntermediatePaymentType,
+        CycleCloserType,
+        CyclerCloserIntermediateType
     };
     typedef uint8_t SerializedPaymentOperationType;
 
@@ -39,9 +42,18 @@ public:
         const TrustLineBalance &balanceAfterOperation,
         const GEOEpochTimestamp geoEpochTimestamp);
 
-    const PaymentOperationType paymentOperationType() const;
+    PaymentRecord(
+        const TransactionUUID &operationUUID,
+        const PaymentRecord::PaymentOperationType operationType,
+        const TrustLineAmount &amount);
 
-    const NodeUUID contractorUUID() const;
+    PaymentRecord(
+        const TransactionUUID &operationUUID,
+        const PaymentRecord::PaymentOperationType operationType,
+        const TrustLineAmount &amount,
+        const GEOEpochTimestamp geoEpochTimestamp);
+
+    const PaymentOperationType paymentOperationType() const;
 
     const TrustLineAmount amount() const;
 
@@ -51,7 +63,6 @@ public:
 
 private:
     PaymentOperationType mPaymentOperationType;
-    NodeUUID mContractorUUID;
     TrustLineAmount mAmount;
     TrustLineBalance mBalanceAfterOperation;
 };

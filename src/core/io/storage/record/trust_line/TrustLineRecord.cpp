@@ -7,9 +7,9 @@ TrustLineRecord::TrustLineRecord(
 
     Record(
         Record::RecordType::TrustLineRecordType,
-        operationUUID),
+        operationUUID,
+        contractorUUID),
     mTrustLineOperationType(operationType),
-    mContractorUUID(contractorUUID),
     mAmount(0)
 {}
 
@@ -21,9 +21,9 @@ TrustLineRecord::TrustLineRecord(
 
     Record(
         Record::RecordType::TrustLineRecordType,
-        operationUUID),
+        operationUUID,
+        contractorUUID),
     mTrustLineOperationType(operationType),
-    mContractorUUID(contractorUUID),
     mAmount(amount)
 {}
 
@@ -37,9 +37,9 @@ TrustLineRecord::TrustLineRecord(
     Record(
         Record::RecordType::TrustLineRecordType,
         operationUUID,
+        contractorUUID,
         geoEpochTimestamp),
     mTrustLineOperationType(operationType),
-    mContractorUUID(contractorUUID),
     mAmount(amount)
 {}
 
@@ -51,11 +51,6 @@ const bool TrustLineRecord::isTrustLineRecord() const
 const TrustLineRecord::TrustLineOperationType TrustLineRecord::trustLineOperationType() const
 {
     return mTrustLineOperationType;
-}
-
-const NodeUUID TrustLineRecord::contractorUUID() const
-{
-    return mContractorUUID;
 }
 
 const TrustLineAmount TrustLineRecord::amount() const
