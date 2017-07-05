@@ -30,6 +30,10 @@ public:
 
     IOTransaction::Shared beginTransaction();
 
+    RoutingTablesHandler* routingTablesHandler();
+
+    void backupStorageHandler();
+
     int applyMigrations();
 
 private:
