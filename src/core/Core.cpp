@@ -69,7 +69,7 @@ int Core::initSubsystems() {
         return -1;
     }
 
-    initCode = initLogger(conf);
+    initCode = initLogger();
     if (initCode != 0)
         return initCode;
 
@@ -140,20 +140,13 @@ int Core::initSettings() {
     }
 }
 
-int Core::initLogger(
-    const json &conf)
+int Core::initLogger()
 {
     try {
-        mLog = make_unique<Logger>(
-            mNodeUUID,
-            mIOService,
-            mSettings->influxDbHost(&conf),
-            mSettings->influxDbName(&conf),
-            mSettings->influxDbPort(&conf)
-        );
+        mLog = make_unique<Logger>(mNodeUUID);
         return 0;
+
     } catch (...) {
-        // Logger can not be initialized
         cerr << utc_now() <<" : FATAL\tCORE\tLogger cannot be initialized." << endl;
         return -1;
     }
