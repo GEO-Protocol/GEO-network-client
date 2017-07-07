@@ -1,21 +1,25 @@
 #ifndef GEO_NETWORK_CLIENT_MIGRATIONAMOUNTANDBALANCESERIALIZATION_H
 #define GEO_NETWORK_CLIENT_MIGRATIONAMOUNTANDBALANCESERIALIZATION_H
 
-#include "../MigrationHandler.h"
-#include "../IOTransaction.h"
+#include "AbstractMigration.h"
+
 #include "../record/base/Record.h"
 #include "../../../../libs/sqlite3/sqlite3.h"
 
 #include <string>
 
-class AmountAndBalanceSerializationMigration {
+
+class AmountAndBalanceSerializationMigration:
+    public AbstractMigration {
 
 public:
     AmountAndBalanceSerializationMigration(
-            sqlite3 *dbConnection,
-            Logger &logger);
+        sqlite3 *dbConnection,
+        Logger &logger);
 
-    int apply(IOTransaction::Shared ioTransaction);
+
+
+    void apply(IOTransaction::Shared ioTransaction);
 
 protected:
     void migrateTrustLines(
@@ -58,7 +62,6 @@ protected:
             IOTransaction::Shared ioTransaction);
 
 protected:
-
     pair<BytesShared, size_t> serializedMainPaymentRecordBody(
             PaymentRecord::Shared paymentRecord);
 

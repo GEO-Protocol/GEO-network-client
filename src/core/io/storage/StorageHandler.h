@@ -7,7 +7,7 @@
 #include "TrustLineHandler.h"
 #include "PaymentOperationStateHandler.h"
 #include "TransactionsHandler.h"
-#include "MigrationHandler.h"
+#include "MigrationsHandler.h"
 #include "HistoryStorage.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"

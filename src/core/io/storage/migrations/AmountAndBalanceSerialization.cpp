@@ -1,107 +1,93 @@
-#include "migrationAmountAndBalanceSerialization.h"
+#include "AmountAndBalanceSerialization.h"
+
 
 AmountAndBalanceSerializationMigration::AmountAndBalanceSerializationMigration(
-        sqlite3 *dbConnection,
-        Logger &logger):
-        mDataBase(dbConnection),
-        mLog(logger)
+    sqlite3 *dbConnection,
+    Logger &logger):
+
+    mDataBase(dbConnection),
+    mLog(logger)
 {}
 
-int AmountAndBalanceSerializationMigration::apply(
-        IOTransaction::Shared ioTransaction)
+void AmountAndBalanceSerializationMigration::apply(
+    IOTransaction::Shared ioTransaction)
 {
-    try {
-        migrateTrustLines(ioTransaction);
-        migratePaymentsHistory(ioTransaction);
-        migrateTrustLinesHistory(ioTransaction);
-    }
-    catch(const std::exception &e){
-        mLog.logException("AmountAndBalanceSerializationMigration", e);
-        return -1;
-    }
-    return 0;
+    migrateTrustLines(ioTransaction);
+    migratePaymentsHistory(ioTransaction);
+    migrateTrustLinesHistory(ioTransaction);
 }
 
 void AmountAndBalanceSerializationMigration::migrateTrustLines(
-        IOTransaction::Shared ioTransaction)
+    IOTransaction::Shared ioTransaction)
 {
-
-    string queryCount = "SELECT count(*) FROM " + ioTransaction->trustLineHandler()->tableName();
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2( mDataBase, queryCount.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("AmountAndBalanceSerializationMigration::trustLines: "
-                              "Bad count query; sqlite error: " + rc);
-    }
-    sqlite3_step(stmt);
-    uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    vector<TrustLine::Shared> result;
-    result.reserve(rowCount);
-
     string query = "SELECT contractor, incoming_amount, outgoing_amount, balance FROM " +
-            ioTransaction->trustLineHandler()->tableName();
+        ioTransaction->trustLineHandler()->tableName();
 
-    rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("AmountAndBalanceSerializationMigration::trustLines: "
-                              "Bad query; sqlite error: " + rc);
+        throw IOError(
+            "AmountAndBalanceSerializationMigration::migrateTrustLines: "
+            "Can't select trust lines count; SQLite error code: " + to_string(rc));
     }
-    while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        NodeUUID contractor((uint8_t*)sqlite3_column_blob(stmt, 0));
 
-        byte* incomingAmountBytes = (byte*)sqlite3_column_blob(stmt, 1);
+    // For each trust line in the table, deserialize it with old method and serialize it back with new one.
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+        NodeUUID contractor(static_cast<const byte *>(sqlite3_column_blob(stmt, 0)));
+
+        auto incomingAmountBytes = static_cast<const byte*>(sqlite3_column_blob(stmt, 1));
         vector<byte> incomingAmountBufferBytes(
-                incomingAmountBytes,
-                incomingAmountBytes + kTrustLineAmountBytesCount);
+            incomingAmountBytes,
+            incomingAmountBytes + kTrustLineAmountBytesCount);
         TrustLineAmount incomingAmount = bytesToTrustLineAmountOld(incomingAmountBufferBytes);
 
-        byte* outgoingAmountBytes = (byte*)sqlite3_column_blob(stmt, 2);
+        auto outgoingAmountBytes = static_cast<const byte*>(sqlite3_column_blob(stmt, 2));
         vector<byte> outgoingAmountBufferBytes(
-                outgoingAmountBytes,
-                outgoingAmountBytes + kTrustLineAmountBytesCount);
+            outgoingAmountBytes,
+            outgoingAmountBytes + kTrustLineAmountBytesCount);
         TrustLineAmount outgoingAmount = bytesToTrustLineAmountOld(outgoingAmountBufferBytes);
 
-        byte* balanceBytes = (byte*)sqlite3_column_blob(stmt, 3);
+        auto balanceBytes = static_cast<const byte*>(sqlite3_column_blob(stmt, 3));
         vector<byte> balanceBufferBytes(
-                balanceBytes,
-                balanceBytes + kTrustLineBalanceSerializeBytesCount);
+            balanceBytes,
+            balanceBytes + kTrustLineBalanceSerializeBytesCount);
         TrustLineBalance balance = bytesToTrustLineBalanceOld(balanceBufferBytes);
+
         try {
-            result.push_back(
-                    make_shared<TrustLine>(
-                            contractor,
-                            incomingAmount,
-                            outgoingAmount,
-                            balance));
+            auto tl = make_shared<TrustLine>(
+                        contractor,
+                        incomingAmount,
+                        outgoingAmount,
+                        balance);
+
+            ioTransaction->trustLineHandler()->saveTrustLine(tl);
+
         } catch (...) {
-            throw Exception("AmountAndBalanceSerializationMigration::loadTrustLine. "
-                                    "Unable to create trust line instance from DB.");
+            throw RuntimeError(
+                "AmountAndBalanceSerializationMigration::migrateTrustLines: "
+                "Unable to migrate TL.");
         }
     }
+
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    // Repalace old methods with new serialization
-    for(auto trustline: result){
-        ioTransaction->trustLineHandler()->saveTrustLine(trustline);
-    }
 }
 
 void AmountAndBalanceSerializationMigration::migratePaymentsHistory(
         IOTransaction::Shared ioTransaction)
 {
     auto paymentsRecords = allMainPaymentRecords(ioTransaction);
-    for(auto paymentRecord:paymentsRecords){
+    for(auto paymentRecord: paymentsRecords){
         updateMainPaymentRecord(
                 paymentRecord,
                 ioTransaction);
     }
+
     auto additionalPaymentsRecords = allAdditionalPaymentRecords(ioTransaction);
-    for(auto paymentRecord:paymentsRecords){
+    for(auto paymentRecord: additionalPaymentsRecords){
         updateAdditionalPaymentRecord(
-                paymentRecord,
-                ioTransaction);
+            paymentRecord,
+            ioTransaction);
     }
 }
 
@@ -111,8 +97,8 @@ void AmountAndBalanceSerializationMigration::migrateTrustLinesHistory(
     auto trustLineRecords = allTrustLinesRecords(ioTransaction);
     for(auto trustLineRecord:trustLineRecords){
         updateTrustLineRecord(
-                trustLineRecord,
-                ioTransaction);
+            trustLineRecord,
+            ioTransaction);
     }
 }
 
@@ -134,15 +120,13 @@ TrustLineAmount AmountAndBalanceSerializationMigration::bytesToTrustLineAmountOl
         import_bits(
                 amount,
                 amountNotZeroBytes.begin(),
-                amountNotZeroBytes.end()
-        );
+                amountNotZeroBytes.end());
 
     } else {
         import_bits(
                 amount,
                 amountBytes.begin(),
-                amountBytes.end()
-        );
+                amountBytes.end());
     }
 
     return amount;
@@ -151,7 +135,6 @@ TrustLineAmount AmountAndBalanceSerializationMigration::bytesToTrustLineAmountOl
 TrustLineBalance AmountAndBalanceSerializationMigration::bytesToTrustLineBalanceOld(
         const vector<byte> balanceBytes)
 {
-
     TrustLineBalance balance;
 
     vector<byte> notZeroBytesVector;
@@ -170,17 +153,15 @@ TrustLineBalance AmountAndBalanceSerializationMigration::bytesToTrustLineBalance
 
     if (notZeroBytesVector.size() > 0) {
         import_bits(
-                balance,
-                notZeroBytesVector.begin(),
-                notZeroBytesVector.end()
-        );
+            balance,
+            notZeroBytesVector.begin(),
+            notZeroBytesVector.end());
 
     } else {
         import_bits(
-                balance,
-                balanceBytes.begin(),
-                balanceBytes.end()
-        );
+            balance,
+            balanceBytes.begin(),
+            balanceBytes.end());
     }
 
     if (sign == 1) {
@@ -191,58 +172,63 @@ TrustLineBalance AmountAndBalanceSerializationMigration::bytesToTrustLineBalance
 }
 
 vector<PaymentRecord::Shared> AmountAndBalanceSerializationMigration::allMainPaymentRecords(
-        IOTransaction::Shared ioTransaction)
+    IOTransaction::Shared ioTransaction)
 {
-    vector<PaymentRecord::Shared> result;
+    vector<PaymentRecord::Shared> records;
     string query = "SELECT operation_uuid, operation_timestamp, record_body, record_body_bytes_count FROM "
                    + ioTransaction->historyStorage()->mainTableName() + " WHERE record_type = ? ";
 
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("AmountAndBalanceSerializationMigration::allPaymentRecords: "
-                              "Bad query; sqlite error: " + rc);
-    }
-    int idxParam = 1;
-    rc = sqlite3_bind_int(stmt, idxParam++, Record::RecordType::PaymentRecordType);
-    if (rc != SQLITE_OK) {
-        throw IOError("AmountAndBalanceSerializationMigration::allPaymentRecords: "
-                              "Bad binding of RecordType; sqlite error: " + rc);
+        throw IOError(
+            "AmountAndBalanceSerializationMigration::allPaymentRecords: "
+            "Bad query; sqlite error: " + to_string(rc));
     }
 
-    while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        result.push_back(
-                deserializePaymentRecordOld(
-                        stmt));
+    int idxParam = 1;
+    rc = sqlite3_bind_int(stmt, idxParam, Record::RecordType::PaymentRecordType);
+    if (rc != SQLITE_OK) {
+        throw IOError(
+            "AmountAndBalanceSerializationMigration::allPaymentRecords: "
+            "Bad binding of RecordType; sqlite error: " + to_string(rc));
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        records.push_back(
+            deserializePaymentRecordOld(
+                stmt));
     }
 
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    return result;
+    return records;
 }
 
 vector<PaymentRecord::Shared> AmountAndBalanceSerializationMigration::allAdditionalPaymentRecords(
         IOTransaction::Shared ioTransaction)
 {
-    vector<PaymentRecord::Shared> result;
+    vector<PaymentRecord::Shared> records;
     string query = "SELECT operation_uuid, operation_timestamp, record_body, record_body_bytes_count FROM "
                    + ioTransaction->historyStorage()->additionalTableName() + ";";
+
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("AmountAndBalanceSerializationMigration::allPaymentAdditionalRecords: "
-                              "Bad query; sqlite error: " + rc);
+        throw IOError(
+            "AmountAndBalanceSerializationMigration::allPaymentAdditionalRecords: "
+            "Bad query; sqlite error: " + to_string(rc));
     }
 
-    while (sqlite3_step(stmt) == SQLITE_ROW ) {
-        result.push_back(
-                deserializePaymentAdditionalRecordOld(
-                        stmt));
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        records.push_back(
+            deserializePaymentAdditionalRecordOld(
+                stmt));
     }
 
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
-    return result;
+    return records;
 }
 
 vector<TrustLineRecord::Shared> AmountAndBalanceSerializationMigration::allTrustLinesRecords(
@@ -255,14 +241,15 @@ vector<TrustLineRecord::Shared> AmountAndBalanceSerializationMigration::allTrust
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("AmountAndBalanceSerializationMigration::allPaymentRecords: "
-                              "Bad query; sqlite error: " + rc);
+        throw IOError(
+            "AmountAndBalanceSerializationMigration::allPaymentRecords: "
+            "Bad query; sqlite error: " + to_string(rc));
     }
     int idxParam = 1;
     rc = sqlite3_bind_int(stmt, idxParam++, Record::RecordType::TrustLineRecordType);
     if (rc != SQLITE_OK) {
         throw IOError("AmountAndBalanceSerializationMigration::allTrustLinesRecords: "
-                              "Bad binding of RecordType; sqlite error: " + rc);
+                              "Bad binding of RecordType; sqlite error: " + to_string(rc));
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
@@ -279,40 +266,41 @@ vector<TrustLineRecord::Shared> AmountAndBalanceSerializationMigration::allTrust
 PaymentRecord::Shared AmountAndBalanceSerializationMigration::deserializePaymentAdditionalRecordOld(
         sqlite3_stmt *stmt)
 {
-    TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
-    GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
-    size_t recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
+    TransactionUUID operationUUID(static_cast<const byte*>(sqlite3_column_blob(stmt, 0)));
+    GEOEpochTimestamp timestamp = static_cast<GEOEpochTimestamp>(sqlite3_column_int64(stmt, 1));
+    size_t recordBodyBytesCount = static_cast<const size_t>(sqlite3_column_int(stmt, 3));
     BytesShared recordBody = tryMalloc(recordBodyBytesCount);
     memcpy(
-            recordBody.get(),
-            sqlite3_column_blob(stmt, 2),
-            recordBodyBytesCount);
+        recordBody.get(),
+        sqlite3_column_blob(stmt, 2),
+        recordBodyBytesCount);
 
     size_t dataBufferOffset = 0;
-    PaymentRecord::SerializedPaymentOperationType *operationType
-            = new (recordBody.get() + dataBufferOffset) PaymentRecord::SerializedPaymentOperationType;
+    PaymentRecord::SerializedPaymentOperationType *operationType =
+        new (recordBody.get() + dataBufferOffset) PaymentRecord::SerializedPaymentOperationType;
+
     dataBufferOffset += sizeof(
-            PaymentRecord::SerializedPaymentOperationType);
+        PaymentRecord::SerializedPaymentOperationType);
 
     vector<byte> amountBytes(
-            recordBody.get() + dataBufferOffset,
-            recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
+        recordBody.get() + dataBufferOffset,
+        recordBody.get() + dataBufferOffset + kTrustLineAmountBytesCount);
     TrustLineAmount amount = bytesToTrustLineAmountOld(
-            amountBytes);
+        amountBytes);
 
     return make_shared<PaymentRecord>(
-            operationUUID,
-            (PaymentRecord::PaymentOperationType) *operationType,
-            amount,
-            timestamp);
+        operationUUID,
+        static_cast<PaymentRecord::PaymentOperationType>(*operationType),
+        amount,
+        timestamp);
 }
 
 PaymentRecord::Shared AmountAndBalanceSerializationMigration::deserializePaymentRecordOld(
         sqlite3_stmt *stmt)
 {
-    TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
-    GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
-    size_t recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
+    TransactionUUID operationUUID(static_cast<const byte*>(sqlite3_column_blob(stmt, 0)));
+    GEOEpochTimestamp timestamp = static_cast<GEOEpochTimestamp>(sqlite3_column_int64(stmt, 1));
+    size_t recordBodyBytesCount = static_cast<const size_t>(sqlite3_column_int(stmt, 3));
     BytesShared recordBody = tryMalloc(recordBodyBytesCount);
     memcpy(
             recordBody.get(),
@@ -343,7 +331,7 @@ PaymentRecord::Shared AmountAndBalanceSerializationMigration::deserializePayment
 
     return make_shared<PaymentRecord>(
             operationUUID,
-            (PaymentRecord::PaymentOperationType) *operationType,
+            static_cast<PaymentRecord::PaymentOperationType>(*operationType),
             contractorUUID,
             amount,
             balanceAfterOperation,
@@ -353,9 +341,9 @@ PaymentRecord::Shared AmountAndBalanceSerializationMigration::deserializePayment
 TrustLineRecord::Shared AmountAndBalanceSerializationMigration::deserializeTrustLineRecordOld(
         sqlite3_stmt *stmt)
 {
-    TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
-    GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
-    size_t recordBodyBytesCount = (size_t)sqlite3_column_int(stmt, 3);
+    TransactionUUID operationUUID(static_cast<const byte*>(sqlite3_column_blob(stmt, 0)));
+    GEOEpochTimestamp timestamp = static_cast<GEOEpochTimestamp>(sqlite3_column_int64(stmt, 1));
+    size_t recordBodyBytesCount = static_cast<const size_t>(sqlite3_column_int(stmt, 3));
     BytesShared recordBody = tryMalloc(recordBodyBytesCount);
     memcpy(
             recordBody.get(),
@@ -383,7 +371,7 @@ TrustLineRecord::Shared AmountAndBalanceSerializationMigration::deserializeTrust
     }
     return make_shared<TrustLineRecord>(
             operationUUID,
-            (TrustLineRecord::TrustLineOperationType) *operationType,
+            static_cast<TrustLineRecord::TrustLineOperationType>(*operationType),
             contractorUUID,
             amount,
             timestamp);
@@ -400,23 +388,23 @@ void AmountAndBalanceSerializationMigration::updateTrustLineRecord(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("AmountAndBalanceSerializationMigration::update trustline payment: "
-                              "Bad query; sqlite error: " + rc);
+                              "Bad query; sqlite error: "+ to_string(rc));
     }
 
     auto serializedTrustlineRecordAndSize = serializedTrustLineRecordBody(
             trustLineRecord);
 
     rc = sqlite3_bind_blob(stmt, 1, serializedTrustlineRecordAndSize.first.get(),
-                           (int) serializedTrustlineRecordAndSize.second, SQLITE_STATIC);
+                           static_cast<int>(serializedTrustlineRecordAndSize.second), SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("AmountAndBalanceSerializationMigration::update trustline payment: "
-                              "Bad binding of RecordBody; sqlite error: " + rc);
+                              "Bad binding of RecordBody; sqlite error: "+ to_string(rc));
     }
 
     rc = sqlite3_bind_blob(stmt, 2, trustLineRecord->operationUUID().data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("AmountAndBalanceSerializationMigration::update trustline payment: "
-                              "Bad binding of OperationUUID; sqlite error: " + rc);
+                              "Bad binding of OperationUUID; sqlite error: "+ to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -428,7 +416,7 @@ void AmountAndBalanceSerializationMigration::updateTrustLineRecord(
 #endif
     } else {
         throw IOError("AmountAndBalanceSerializationMigration::insert main payment: "
-                              "Run query; sqlite error: " + rc);
+                              "Run query; sqlite error: "+ to_string(rc));
     }
 }
 
@@ -443,7 +431,7 @@ void AmountAndBalanceSerializationMigration::updateAdditionalPaymentRecord(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("AmountAndBalanceSerializationMigration::insert additional payment: "
-                              "Bad query; sqlite error: " + rc);
+                              "Bad query; sqlite error: "+ to_string(rc));
     }
 
     auto serializedPymentRecordAndSize = serializedAdditionalPaymentRecordBody(
@@ -453,13 +441,13 @@ void AmountAndBalanceSerializationMigration::updateAdditionalPaymentRecord(
                            (int) serializedPymentRecordAndSize.second, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("AmountAndBalanceSerializationMigration::insert additional payment: "
-                              "Bad binding of RecordBody; sqlite error: " + rc);
+                              "Bad binding of RecordBody; sqlite error: "+ to_string(rc));
     }
 
     rc = sqlite3_bind_blob(stmt, 2, paymentRecord->operationUUID().data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("AmountAndBalanceSerializationMigration::insert additional payment: "
-                              "Bad binding of OperationUUID; sqlite error: " + rc);
+                              "Bad binding of OperationUUID; sqlite error: "+ to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -471,7 +459,7 @@ void AmountAndBalanceSerializationMigration::updateAdditionalPaymentRecord(
 #endif
     } else {
         throw IOError("AmountAndBalanceSerializationMigration::insert main payment: "
-                              "Run query; sqlite error: " + rc);
+                              "Run query; sqlite error: "+ to_string(rc));
     }
 }
 
@@ -486,7 +474,7 @@ void AmountAndBalanceSerializationMigration::updateMainPaymentRecord(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("AmountAndBalanceSerializationMigration::insert main payment: "
-                              "Bad query; sqlite error: " + rc);
+                              "Bad query; sqlite error: "+ to_string(rc));
     }
 
     auto serializedPymentRecordAndSize = serializedMainPaymentRecordBody(
@@ -496,13 +484,13 @@ void AmountAndBalanceSerializationMigration::updateMainPaymentRecord(
                            (int) serializedPymentRecordAndSize.second, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("AmountAndBalanceSerializationMigration::insert main payment: "
-                              "Bad binding of RecordBody; sqlite error: " + rc);
+                              "Bad binding of RecordBody; sqlite error: "+ to_string(rc));
     }
 
     rc = sqlite3_bind_blob(stmt, 2, paymentRecord->operationUUID().data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("AmountAndBalanceSerializationMigration::insert main payment: "
-                              "Bad binding of OperationUUID; sqlite error: " + rc);
+                              "Bad binding of OperationUUID; sqlite error: "+ to_string(rc));
     }
 
     rc = sqlite3_step(stmt);
@@ -514,7 +502,7 @@ void AmountAndBalanceSerializationMigration::updateMainPaymentRecord(
 #endif
     } else {
         throw IOError("AmountAndBalanceSerializationMigration::insert main payment: "
-                              "Run query; sqlite error: " + rc);
+                              "Run query; sqlite error: "+ to_string(rc));
     }
 }
 
@@ -609,8 +597,8 @@ pair<BytesShared, size_t> AmountAndBalanceSerializationMigration::serializedTrus
             recordBodySize);
     size_t bytesBufferOffset = 0;
 
-    TrustLineRecord::SerializedTrustLineOperationType operationType
-            = (TrustLineRecord::SerializedTrustLineOperationType) trustLineRecord->trustLineOperationType();
+    TrustLineRecord::SerializedTrustLineOperationType operationType =
+            (TrustLineRecord::SerializedTrustLineOperationType) trustLineRecord->trustLineOperationType();
     memcpy(
             bytesBuffer.get() + bytesBufferOffset,
             &operationType,

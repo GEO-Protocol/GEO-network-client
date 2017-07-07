@@ -25,11 +25,15 @@ set(SOURCE_FILES
         IOTransaction.cpp
         IOTransaction.h
 
-        MigrationHandler.h
-        MigrationHandler.cpp
-
-        migrations/migrationAmountAndBalanceSerialization.h
-        migrations/migrationAmountAndBalanceSerialization.cpp migrations/MigrationUUID.h)
+        #
+        # Migrations
+        #
+        MigrationsHandler.h
+        MigrationsHandler.cpp
+        migrations/AbstractMigration.h
+        migrations/AbstractMigration.cpp
+        migrations/AmountAndBalanceSerialization.h
+        migrations/AmountAndBalanceSerialization.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

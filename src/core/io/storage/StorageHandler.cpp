@@ -89,13 +89,18 @@ const string StorageHandler::logHeader() const
 
 int StorageHandler::applyMigrations() {
     auto ioTransaction = beginTransaction();
-    auto migrationHandler = make_shared<MigrationHandler>(
+    auto migrationHandler = make_shared<MigrationsHandler>(
             mDBConnection,
             kMigrationTableName,
-            ioTransaction,
             mLog);
-    auto status = migrationHandler->applyMigrations(ioTransaction);
-    return status;
+
+    try {
+        migrationHandler->applyMigrations(ioTransaction);
+        return 0;
+
+    } catch(...) {
+        return -1;
+    }
 }
 
 void StorageHandler::backupStorageHandler()
