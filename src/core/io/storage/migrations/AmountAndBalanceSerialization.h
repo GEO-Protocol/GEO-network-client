@@ -17,66 +17,64 @@ public:
         sqlite3 *dbConnection,
         Logger &logger);
 
-
-
     void apply(IOTransaction::Shared ioTransaction);
 
 protected:
     void migrateTrustLines(
-            IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction);
 
     void migrateTrustLinesHistory(
-            IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction);
 
     void migratePaymentsHistory(
-            IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction);
 
     vector<PaymentRecord::Shared> allMainPaymentRecords(
-            IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction);
 
     vector<PaymentRecord::Shared> allAdditionalPaymentRecords(
-            IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction);
 
     vector<TrustLineRecord::Shared> allTrustLinesRecords(
-            IOTransaction::Shared ioTransaction);
+        IOTransaction::Shared ioTransaction);
 
     PaymentRecord::Shared deserializePaymentRecordOld(
-            sqlite3_stmt *stmt);
+        sqlite3_stmt *stmt);
 
     PaymentRecord::Shared deserializePaymentAdditionalRecordOld(
-            sqlite3_stmt *stmt);
+        sqlite3_stmt *stmt);
 
     TrustLineRecord::Shared deserializeTrustLineRecordOld(
-            sqlite3_stmt *stmt);
+        sqlite3_stmt *stmt);
 
     void updateMainPaymentRecord(
-            PaymentRecord::Shared paymentRecord,
-            IOTransaction::Shared ioTransaction);
+        PaymentRecord::Shared paymentRecord,
+        IOTransaction::Shared ioTransaction);
 
     void updateAdditionalPaymentRecord(
-            PaymentRecord::Shared paymentRecord,
-            IOTransaction::Shared ioTransaction);
+        PaymentRecord::Shared paymentRecord,
+        IOTransaction::Shared ioTransaction);
 
     void updateTrustLineRecord(
-            TrustLineRecord::Shared trustLineRecord,
-            IOTransaction::Shared ioTransaction);
+        TrustLineRecord::Shared trustLineRecord,
+        IOTransaction::Shared ioTransaction);
 
 protected:
     pair<BytesShared, size_t> serializedMainPaymentRecordBody(
-            PaymentRecord::Shared paymentRecord);
+        PaymentRecord::Shared paymentRecord);
 
     pair<BytesShared, size_t> serializedAdditionalPaymentRecordBody(
-            PaymentRecord::Shared paymentRecord);
+        PaymentRecord::Shared paymentRecord);
 
     pair<BytesShared, size_t> serializedTrustLineRecordBody(
-            TrustLineRecord::Shared trustLineRecord);
+        TrustLineRecord::Shared trustLineRecord);
 
     TrustLineBalance bytesToTrustLineBalanceOld(const vector<byte> balanceBytes);
 
     TrustLineAmount bytesToTrustLineAmountOld(const vector<byte> &amountBytes);
 
 protected:
-    sqlite3 *mDataBase = nullptr;
+    sqlite3 *mDataBase;
     Logger &mLog;
 };
 
