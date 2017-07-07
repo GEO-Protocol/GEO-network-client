@@ -6,7 +6,7 @@
 
 class AbstractMigration {
 public:
-    virtual ~AbstractMigration(){};
+    virtual ~AbstractMigration(){}
 
     virtual void apply(
         IOTransaction::Shared ioTransaction) = 0;
