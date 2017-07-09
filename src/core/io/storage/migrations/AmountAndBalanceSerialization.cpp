@@ -30,7 +30,7 @@ void AmountAndBalanceSerializationMigration::migrateTrustLines(
             "AmountAndBalanceSerializationMigration::migrateTrustLines: "
             "Can't select trust lines count; SQLite error code: " + to_string(rc));
     }
-
+    vector<TrustLine::Shared> result;
     // For each trust line in the table, deserialize it with old method and serialize it back with new one.
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID contractor(static_cast<const byte *>(sqlite3_column_blob(stmt, 0)));
@@ -59,18 +59,18 @@ void AmountAndBalanceSerializationMigration::migrateTrustLines(
                         incomingAmount,
                         outgoingAmount,
                         balance);
-
-            ioTransaction->trustLineHandler()->saveTrustLine(tl);
-
+            result.push_back(tl);
         } catch (...) {
             throw RuntimeError(
                 "AmountAndBalanceSerializationMigration::migrateTrustLines: "
                 "Unable to migrate TL.");
         }
     }
-
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
+    for(auto trustline: result){
+        ioTransaction->trustLineHandler()->saveTrustLine(trustline);
+    }
 }
 
 void AmountAndBalanceSerializationMigration::migratePaymentsHistory(
