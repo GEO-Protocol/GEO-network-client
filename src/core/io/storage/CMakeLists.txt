@@ -33,7 +33,10 @@ set(SOURCE_FILES
         migrations/AbstractMigration.h
         migrations/AbstractMigration.cpp
         migrations/AmountAndBalanceSerialization.h
-        migrations/AmountAndBalanceSerialization.cpp)
+        migrations/AmountAndBalanceSerialization.cpp
+
+        migrations/SolomonHistoryMigration.h
+        migrations/SolomonHistoryMigration.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

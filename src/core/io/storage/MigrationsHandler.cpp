@@ -1,13 +1,16 @@
 #include "MigrationsHandler.h"
+#include "migrations/SolomonHistoryMigration.h"
 
 MigrationsHandler::MigrationsHandler(
     sqlite3 *dbConnection,
     const string &tableName,
+    const NodeUUID &nodeUUID,
     Logger &logger):
 
     mLog(logger),
     mDataBase(dbConnection),
-    mTableName(tableName)
+    mTableName(tableName),
+    mNodeUUID(nodeUUID)
 {
     enshureMigrationsTable();
 }
@@ -108,12 +111,15 @@ vector<MigrationUUID> MigrationsHandler::allMigrationsUUIDS() {
 void MigrationsHandler::applyMigrations(
     IOTransaction::Shared ioTransaction)
 {
-    auto fullMigrationsUUIDsList = {
+    list<MigrationUUID> fullMigrationsUUIDsList = {
         MigrationUUID("0a889a5b-1a82-44c7-8b85-59db6f60a12d"),
 
         // ...
         // the rest migrations must be placed here.
     };
+//    if (mNodeUUID == NodeUUID("2136a78d-3cb0-488d-b1a6-e039c12689d0")){
+//        fullMigrationsUUIDsList.push_back(MigrationUUID("c9ff4864-6626-11e7-861a-d397d1112608"));
+//    }
 
 
     try {
@@ -160,14 +166,20 @@ void MigrationsHandler::applyMigration(
 
     try {
 
-        if (migrationUUID.stringUUID() == string("0a889a5b-1a82-44c7-8b85-59db6f60a12d")){
+        if (migrationUUID.stringUUID() == string("0a889a5b-1a82-44c7-8b85-59db6f60a12d")) {
             auto migration = make_shared<AmountAndBalanceSerializationMigration>(
                 mDataBase,
                 mLog);
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
+        } else if (migrationUUID.stringUUID() == string("2136a78d-3cb0-488d-b1a6-e039c12689d0")){
+            auto migration = make_shared<SolomonHistoryMigration>(
+                mDataBase,
+                mLog);
 
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
         // ...
         // Other migrations must be placed here
         //

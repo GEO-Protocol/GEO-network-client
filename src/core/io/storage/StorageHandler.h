@@ -34,7 +34,11 @@ public:
 
     void backupStorageHandler();
 
-    int applyMigrations();
+    int applyMigrations(const NodeUUID &nodeUUID);
+
+// todo remove this debug method
+public:
+    sqlite3 *getConnection();
 
 private:
     static void checkDirectory(

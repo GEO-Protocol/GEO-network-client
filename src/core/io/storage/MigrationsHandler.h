@@ -45,6 +45,7 @@ public:
     MigrationsHandler(
         sqlite3 *dbConnection,
         const string &tableName,
+        const NodeUUID &nodeUUID,
         Logger &logger);
 
     void applyMigrations(
@@ -78,6 +79,7 @@ protected:
     // Name of the migrations table in the DB.
     // This table is used for storing information about already applied migrations.
     string mTableName;
+    NodeUUID mNodeUUID;
 };
 
 #endif //GEO_NETWORK_CLIENT_MIGRATIONHANDLER_H

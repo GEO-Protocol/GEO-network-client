@@ -87,11 +87,12 @@ const string StorageHandler::logHeader() const
     return s.str();
 }
 
-int StorageHandler::applyMigrations() {
+int StorageHandler::applyMigrations(const NodeUUID &nodeUUID) {
     auto ioTransaction = beginTransaction();
     auto migrationHandler = make_shared<MigrationsHandler>(
             mDBConnection,
             kMigrationTableName,
+            nodeUUID,
             mLog);
 
     try {
@@ -99,6 +100,7 @@ int StorageHandler::applyMigrations() {
         return 0;
 
     } catch(...) {
+        ioTransaction->rollback();
         return -1;
     }
 }
@@ -140,4 +142,8 @@ void StorageHandler::backupStorageHandler()
     };
 
     info() << "Successfully create dump" << endl;
+}
+
+sqlite3 *StorageHandler::getConnection() {
+    return connection(mDataBaseName, mDirectory);
 }
