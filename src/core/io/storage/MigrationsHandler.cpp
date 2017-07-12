@@ -179,7 +179,7 @@ void MigrationsHandler::applyMigration(
                 mLog);
 
             migration->apply(ioTransaction);
-            saveMigration(migrationUUID);
+//            saveMigration(migrationUUID);
         // ...
         // Other migrations must be placed here
         //

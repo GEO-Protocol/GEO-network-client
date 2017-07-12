@@ -54,11 +54,11 @@ void SolomonHistoryMigration::applyTrustLineHistoryMigration(IOTransaction::Shar
         balanceAfterOperation,
         timestamp);
 
-    ioTransaction->historyStorage()-> savePaymentRecord(missedPaymentRecord);
+//    ioTransaction->historyStorage()-> savePaymentRecord(missedPaymentRecord);
     cout << timestamp << endl;
     auto paymentRecordsForUpdate = getPaymentRecordsForUpdate(ioTransaction, timestamp);
 
-    updatePaymentsRecords(ioTransaction,paymentRecordsForUpdate);
+    updatePaymentsRecords(ioTransaction, paymentRecordsForUpdate);
 }
 
 
@@ -71,7 +71,7 @@ vector<PaymentRecord::Shared> SolomonHistoryMigration::getPaymentRecordsForUpdat
                        " operation_timestamp,"
                        " record_body,"
                        " record_body_bytes_count from "
-                   + ioTransaction->historyStorage()->mainTableName() + " where operation_timestamp > ? and record_type = ?;";
+                   + ioTransaction->historyStorage()->mainTableName() + " where (operation_timestamp > ?) and (record_type = ?);";
 
     vector<PaymentRecord::Shared> recordsToUpdate;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -81,12 +81,12 @@ vector<PaymentRecord::Shared> SolomonHistoryMigration::getPaymentRecordsForUpdat
                 "Can't select PaymentRecord; SQLite error code: " + to_string(rc));
     }
     // todo ask about fit in int
+    cout << "TimeStamp : " << since_what_timestamp << endl;
     rc = sqlite3_bind_int(stmt, 1, since_what_timestamp);
     if (rc != SQLITE_OK) {
         throw IOError("SolomonHistoryMigration::insert or replace: "
                           "Bad binding of Contractor; sqlite error: " + rc);
     }
-    cout << Record::RecordType::PaymentRecordType << endl;
     rc = sqlite3_bind_int(stmt, 2, Record::RecordType::PaymentRecordType);
     if (rc != SQLITE_OK) {
         throw IOError("SolomonHistoryMigration::insert or replace: "
@@ -135,7 +135,7 @@ vector<PaymentRecord::Shared> SolomonHistoryMigration::getPaymentRecordsForUpdat
             balanceAfterOperation,
             timestamp));
     }
-
+    cout << recordsToUpdate.size() << endl;
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     return recordsToUpdate;
@@ -286,7 +286,10 @@ void SolomonHistoryMigration::updatePaymentsRecords(
     IOTransaction::Shared ioTransaction,
     vector<PaymentRecord::Shared> paymentsRecordsToUpdate)
 {
+    cout << "Payments records to update" << endl;
+    cout << paymentsRecordsToUpdate.size() << endl;
     for(auto record: paymentsRecordsToUpdate){
+        stringstream ss;
         sqlite3_stmt *stmt;
         string query = " UPDATE " + ioTransaction->historyStorage()->mainTableName() +
                        " SET record_body = ?" +
@@ -299,20 +302,22 @@ void SolomonHistoryMigration::updatePaymentsRecords(
                     "Can't update PaymentRecord; SQLite error code: " + to_string(rc));
         }
 
-        rc = sqlite3_bind_blob(stmt, 1, mOperationUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
-        if (rc != SQLITE_OK) {
-            throw IOError(
-                "SolomonHistoryMigration::updatePaymentsRecords "
-                    "Bad binding of Operation_uuid; sqlite error: " + rc);
-        }
-
         auto serializedPaymentRecordAndSize = serializedPaymentRecordBody(
             record);
-        rc = sqlite3_bind_blob(stmt, 2, serializedPaymentRecordAndSize.first.get(),
+        ss << record->operationUUID() << "||" << record->balanceAfterOperation();
+        cout << ss.str() <<endl;
+        rc = sqlite3_bind_blob(stmt, 1, serializedPaymentRecordAndSize.first.get(),
                                (int) serializedPaymentRecordAndSize.second, SQLITE_STATIC);
         if (rc != SQLITE_OK) {
             throw IOError("TrustLineHandler::updatePaymentsRecords: "
                               "Bad binding of record_body; sqlite error: " + rc);
+        }
+
+        rc = sqlite3_bind_blob(stmt, 2, record->operationUUID().data, NodeUUID::kBytesSize, SQLITE_STATIC);
+        if (rc != SQLITE_OK) {
+            throw IOError(
+                "SolomonHistoryMigration::updatePaymentsRecords "
+                    "Bad binding of Operation_uuid; sqlite error: " + rc);
         }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
