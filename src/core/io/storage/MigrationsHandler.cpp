@@ -117,9 +117,9 @@ void MigrationsHandler::applyMigrations(
         // ...
         // the rest migrations must be placed here.
     };
-//    if (mNodeUUID == NodeUUID("2136a78d-3cb0-488d-b1a6-e039c12689d0")){
-//        fullMigrationsUUIDsList.push_back(MigrationUUID("c9ff4864-6626-11e7-861a-d397d1112608"));
-//    }
+    if (mNodeUUID == NodeUUID("2136a78d-3cb0-488d-b1a6-e039c12689d0")){
+        fullMigrationsUUIDsList.push_back(MigrationUUID("c9ff4864-6626-11e7-861a-d397d1112608"));
+    }
 
 
     try {
@@ -173,7 +173,7 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
-        } else if (migrationUUID.stringUUID() == string("2136a78d-3cb0-488d-b1a6-e039c12689d0")){
+        } else if (migrationUUID.stringUUID() == string("c9ff4864-6626-11e7-861a-d397d1112608")){
             auto migration = make_shared<SolomonHistoryMigration>(
                 mDataBase,
                 mLog);
