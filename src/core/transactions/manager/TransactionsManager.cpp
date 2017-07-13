@@ -28,26 +28,42 @@ TransactionsManager::TransactionsManager(
     mPathsManager(pathsManager),
     mLog(logger),
 
-    mScheduler(new TransactionsScheduler(
-        mIOService,
-        mLog))
+    mScheduler(
+        new TransactionsScheduler(
+            mIOService,
+            mLog)),
+    mCyclesManager(
+        new CyclesManager(
+            mScheduler.get(),
+            mIOService,
+            mLog))
 {
-
-    subscribeForCommandResult(mScheduler->commandResultIsReadySignal);
-    subscribeForSerializeTransaction(mScheduler->serializeTransactionSignal);
+    subscribeForCommandResult(
+        mScheduler->commandResultIsReadySignal);
+    subscribeForSerializeTransaction(
+        mScheduler->serializeTransactionSignal);
+    subscribeForCloseCycleTransaction(
+        mCyclesManager->closeCycleSignal);
+    subscribeForBuidCyclesFiveNodesTransaction(
+        mCyclesManager->buildFiveNodesCyclesSignal);
+    subscribeForBuidCyclesSixNodesTransaction(
+        mCyclesManager->buildSixNodesCyclesSignal);
+    subscribeForTryCloseNextCycleSignal(
+        mScheduler->cycleCloserTransactionWasFinishedSignal);
 
     try {
-         loadTransactions();
+        loadTransactions();
 
     } catch (exception &e) {
         throw RuntimeError(e.what());
     }
 }
 
-void TransactionsManager::loadTransactions() {
-
+void TransactionsManager::loadTransactions()
+{
     const auto ioTransaction = mStorageHandler->beginTransaction();
     const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
+
     for(const auto kTABufferAndSize: serializedTAs) {
         BaseTransaction::SerializedTransactionType *transactionType = new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
         auto TransactionTypeId = *transactionType;
@@ -61,7 +77,11 @@ void TransactionsManager::loadTransactions() {
                     mMaxFlowCalculationCacheManager,
                     mResourcesManager,
                     mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                subscribeForBuidCyclesThreeNodesTransaction(
+                    transaction->mBuildCycleThreeNodesSignal);
+                prepareAndSchedule(transaction);
+                // TODO: discuss, why awakeAsFastAsPossible doesn't work
+                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
@@ -72,7 +92,13 @@ void TransactionsManager::loadTransactions() {
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                subscribeForBuidCyclesThreeNodesTransaction(
+                    transaction->mBuildCycleThreeNodesSignal);
+                subscribeForBuidCyclesFourNodesTransaction(
+                    transaction->mBuildCycleFourNodesSignal);
+                prepareAndSchedule(transaction);
+                // TODO: discuss, why awakeAsFastAsPossible doesn't work
+                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
@@ -83,7 +109,11 @@ void TransactionsManager::loadTransactions() {
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                subscribeForBuidCyclesThreeNodesTransaction(
+                    transaction->mBuildCycleThreeNodesSignal);
+                prepareAndSchedule(transaction);
+                // TODO: discuss, why awakeAsFastAsPossible doesn't work
+                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
@@ -91,10 +121,13 @@ void TransactionsManager::loadTransactions() {
                     kTABufferAndSize.first,
                     mNodeUUID,
                     mTrustLines,
+                    mCyclesManager.get(),
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                prepareAndSchedule(transaction);
+                // TODO: discuss, why awakeAsFastAsPossible doesn't work
+                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction: {
@@ -102,10 +135,14 @@ void TransactionsManager::loadTransactions() {
                     kTABufferAndSize.first,
                     mNodeUUID,
                     mTrustLines,
+                    mCyclesManager.get(),
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog);
-                mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+
+                prepareAndSchedule(transaction);
+                // TODO: discuss, why awakeAsFastAsPossible doesn't work
+                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             default: {
@@ -170,9 +207,9 @@ void TransactionsManager::processCommand(
             static_pointer_cast<HistoryTrustLinesCommand>(
                 command));
 
-    } else if (command->identifier() == CycleCloserCommand::identifier()){
-        launchTestCloseCycleTransaction(
-            static_pointer_cast<CycleCloserCommand>(
+    } else if (command->identifier() == HistoryWithContractorCommand::identifier()){
+        launchHistoryWithContractorTransaction(
+            static_pointer_cast<HistoryWithContractorCommand>(
                 command));
 
     } else if (command->identifier() == FindPathCommand::identifier()){
@@ -693,8 +730,8 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mMaxFlowCalculationCacheManager,
         mResourcesManager,
         mLog);
-    subscribeForSubsidiaryTransactions(
-        transaction->runSubsidiaryTransactionSignal);
+    subscribeForBuidCyclesThreeNodesTransaction(
+        transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction);
 }
 
@@ -708,8 +745,8 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
         mLog);
-    subscribeForSubsidiaryTransactions(
-        transaction->runSubsidiaryTransactionSignal);
+    subscribeForBuidCyclesThreeNodesTransaction(
+        transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction);
 }
 
@@ -723,8 +760,10 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
         mLog);
-    subscribeForSubsidiaryTransactions(
-        transaction->runSubsidiaryTransactionSignal);
+    subscribeForBuidCyclesThreeNodesTransaction(
+        transaction->mBuildCycleThreeNodesSignal);
+    subscribeForBuidCyclesFourNodesTransaction(
+        transaction->mBuildCycleFourNodesSignal);
     prepareAndSchedule(transaction);
 }
 
@@ -736,6 +775,7 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
             mNodeUUID,
             message,
             mTrustLines,
+            mCyclesManager.get(),
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
             mLog));
@@ -868,6 +908,28 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
  *
  * Throws MemoryError.
  */
+void TransactionsManager::launchHistoryWithContractorTransaction(
+    HistoryWithContractorCommand::Shared command) {
+    try {
+        auto transaction = make_shared<HistoryWithContractorTransaction>(
+            mNodeUUID,
+            command,
+            mStorageHandler,
+            mLog);
+
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::launchHistoryWithContractorTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
 void TransactionsManager::launchGetPathTestTransaction(
     FindPathCommand::Shared command) {
     try {
@@ -976,28 +1038,6 @@ void TransactionsManager::launchPathsResourcesCollectTransaction(
     }
 }
 
-// TODO : should be removed after testing
-void TransactionsManager::launchTestCloseCycleTransaction(
-    CycleCloserCommand::Shared command) {
-
-    try {
-        auto transaction = make_shared<CycleCloserInitiatorTransaction>(
-            mNodeUUID,
-            command->path(),
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchTestCloseCycleTransaction: "
-                "Can't allocate memory for transaction instance.");
-    }
-}
-
 void TransactionsManager::launchTrustLineStatesHandlerTransaction(
     NotificationTrustLineCreatedMessage::Shared message) {
     try {
@@ -1012,7 +1052,8 @@ void TransactionsManager::launchTrustLineStatesHandlerTransaction(
             mStorageHandler,
             mLog);
 
-        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
+        subscribeForSubsidiaryTransactions(
+            transaction->runSubsidiaryTransactionSignal);
         prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
@@ -1036,7 +1077,8 @@ void TransactionsManager::launchTrustLineStatesHandlerTransaction(
             mStorageHandler,
             mLog);
 
-        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
+        subscribeForSubsidiaryTransactions(
+            transaction->runSubsidiaryTransactionSignal);
         prepareAndSchedule(transaction);
 
     } catch (bad_alloc &) {
@@ -1123,6 +1165,63 @@ void TransactionsManager::subscribeForCommandResult(
     );
 }
 
+void TransactionsManager::subscribeForBuidCyclesThreeNodesTransaction(
+    BasePaymentTransaction::BuildCycleThreeNodesSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onBuidCycleThreeNodesTransaction,
+            this,
+            _1));
+}
+
+void TransactionsManager::subscribeForBuidCyclesFourNodesTransaction(
+    BasePaymentTransaction::BuildCycleFourNodesSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onBuidCycleFourNodesTransaction,
+            this,
+            _1));
+}
+
+void TransactionsManager::subscribeForBuidCyclesFiveNodesTransaction(
+    CyclesManager::BuildFiveNodesCyclesSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onBuidCycleFiveNodesTransaction,
+            this));
+}
+
+void TransactionsManager::subscribeForBuidCyclesSixNodesTransaction(
+    CyclesManager::BuildSixNodesCyclesSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onBuidCycleSixNodesTransaction,
+            this));
+}
+
+void TransactionsManager::subscribeForCloseCycleTransaction(
+    CyclesManager::CloseCycleSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onCloseCycleTransaction,
+            this,
+            _1));
+}
+
+void TransactionsManager::subscribeForTryCloseNextCycleSignal(
+    TransactionsScheduler::CycleCloserTransactionWasFinishedSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onTryCloseNextCycleSlot,
+            this));
+}
+
 void TransactionsManager::onTransactionOutgoingMessageReady(
     Message::Shared message,
     const NodeUUID &contractorUUID) {
@@ -1177,6 +1276,61 @@ void TransactionsManager::onSubsidiaryTransactionReady(
     );
 }
 
+void TransactionsManager::onBuidCycleThreeNodesTransaction(
+    vector<NodeUUID> &contractorsUUID)
+{
+    for (const auto &contractorUUID : contractorsUUID) {
+        launchThreeNodesCyclesInitTransaction(
+            contractorUUID);
+    }
+}
+
+void TransactionsManager::onBuidCycleFourNodesTransaction(
+    vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors)
+{
+    for (const auto &debtorAndCreditor : debtorsAndCreditors) {
+        launchFourNodesCyclesInitTransaction(
+            debtorAndCreditor.first,
+            debtorAndCreditor.second);
+    }
+}
+
+void TransactionsManager::onBuidCycleFiveNodesTransaction()
+{
+    launchFiveNodesCyclesInitTransaction();
+}
+
+void TransactionsManager::onBuidCycleSixNodesTransaction()
+{
+    launchSixNodesCyclesInitTransaction();
+}
+
+void TransactionsManager::onCloseCycleTransaction(
+    Path::ConstShared cycle)
+{
+    try {
+        auto transaction = make_shared<CycleCloserInitiatorTransaction>(
+            mNodeUUID,
+            cycle,
+            mTrustLines,
+            mCyclesManager.get(),
+            mStorageHandler,
+            mMaxFlowCalculationCacheManager,
+            mLog);
+        prepareAndSchedule(transaction);
+
+    } catch (bad_alloc &) {
+        throw MemoryError(
+            "TransactionsManager::onCloseCycleTransaction: "
+                "Can't allocate memory for transaction instance.");
+    }
+}
+
+void TransactionsManager::onTryCloseNextCycleSlot()
+{
+    mCyclesManager->closeOneCycle(true);
+}
+
 /**
  *
  * @throws bad_alloc;
@@ -1196,18 +1350,18 @@ void TransactionsManager::prepareAndSchedule(
 }
 //   ---------------------------------------Cycles part----------------------------------------------
 
-void TransactionsManager::launchThreeNodesCyclesInitTransaction(const NodeUUID &contractorUUID) {
+void TransactionsManager::launchThreeNodesCyclesInitTransaction(
+    const NodeUUID &contractorUUID)
+{
     try {
         auto transaction = make_shared<CyclesThreeNodesInitTransaction>(
             mNodeUUID,
             contractorUUID,
             mTrustLines,
+            mCyclesManager.get(),
             mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog
-        );
+            mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -1216,14 +1370,15 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(const NodeUUID &
     }
 }
 
-void TransactionsManager::launchThreeNodesCyclesResponseTransaction(CyclesThreeNodesBalancesRequestMessage::Shared message) {
+void TransactionsManager::launchThreeNodesCyclesResponseTransaction(
+    CyclesThreeNodesBalancesRequestMessage::Shared message)
+{
     try {
         auto transaction = make_shared<CyclesThreeNodesReceiverTransaction>(
             mNodeUUID,
             message,
             mTrustLines,
-            mLog
-        );
+            mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1233,18 +1388,16 @@ void TransactionsManager::launchThreeNodesCyclesResponseTransaction(CyclesThreeN
     }
 }
 
-void TransactionsManager::launchSixNodesCyclesInitTransaction() {
-
+void TransactionsManager::launchSixNodesCyclesInitTransaction()
+{
     try {
         auto transaction = make_shared<CyclesSixNodesInitTransaction>(
             mNodeUUID,
             mTrustLines,
+            mCyclesManager.get(),
             mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog
-        );
+            mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
         mScheduler->scheduleTransaction(transaction);
 
     } catch (bad_alloc &) {
@@ -1254,14 +1407,15 @@ void TransactionsManager::launchSixNodesCyclesInitTransaction() {
     }
 }
 
-void TransactionsManager::launchSixNodesCyclesResponseTransaction(CyclesSixNodesInBetweenMessage::Shared message) {
+void TransactionsManager::launchSixNodesCyclesResponseTransaction(
+    CyclesSixNodesInBetweenMessage::Shared message)
+{
     try {
         auto transaction = make_shared<CyclesSixNodesReceiverTransaction>(
             mNodeUUID,
             message,
             mTrustLines,
-            mLog
-        );
+            mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1271,17 +1425,16 @@ void TransactionsManager::launchSixNodesCyclesResponseTransaction(CyclesSixNodes
     }
 }
 
-void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
+void TransactionsManager::launchFiveNodesCyclesInitTransaction()
+{
     try {
         auto transaction = make_shared<CyclesFiveNodesInitTransaction>(
             mNodeUUID,
             mTrustLines,
+            mCyclesManager.get(),
             mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog
-        );
+            mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -1290,14 +1443,15 @@ void TransactionsManager::launchFiveNodesCyclesInitTransaction() {
     }
 }
 
-void TransactionsManager::launchFiveNodesCyclesResponseTransaction(CyclesFiveNodesInBetweenMessage::Shared message) {
+void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
+    CyclesFiveNodesInBetweenMessage::Shared message)
+{
     try {
         auto transaction = make_shared<CyclesFiveNodesReceiverTransaction>(
             mNodeUUID,
             message,
             mTrustLines,
-            mLog
-        );
+            mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1307,19 +1461,20 @@ void TransactionsManager::launchFiveNodesCyclesResponseTransaction(CyclesFiveNod
     }
 }
 
-void TransactionsManager::launchFourNodesCyclesInitTransaction(const NodeUUID &debtorUUID, const NodeUUID &creditorUUID) {
+void TransactionsManager::launchFourNodesCyclesInitTransaction(
+    const NodeUUID &debtorUUID,
+    const NodeUUID &creditorUUID)
+{
     try {
         auto transaction = make_shared<CyclesFourNodesInitTransaction>(
-                mNodeUUID,
-                debtorUUID,
-                creditorUUID,
-                mTrustLines,
-                mStorageHandler,
-                mMaxFlowCalculationCacheManager,
-                mLog
-        );
+            mNodeUUID,
+            debtorUUID,
+            creditorUUID,
+            mTrustLines,
+            mCyclesManager.get(),
+            mStorageHandler,
+            mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
         throw MemoryError(
@@ -1328,14 +1483,15 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(const NodeUUID &d
     }
 }
 
-void TransactionsManager::launchFourNodesCyclesResponseTransaction(CyclesFourNodesBalancesRequestMessage::Shared message) {
+void TransactionsManager::launchFourNodesCyclesResponseTransaction(
+    CyclesFourNodesBalancesRequestMessage::Shared message)
+{
     try {
         auto transaction = make_shared<CyclesFourNodesReceiverTransaction>(
-                mNodeUUID,
-                message,
-                mTrustLines,
-                mLog
-        );
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mLog);
         subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
         mScheduler->scheduleTransaction(transaction);
     } catch (bad_alloc &) {
@@ -1345,9 +1501,9 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(CyclesFourNod
     }
 }
 
-void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transaction) {
-
-
+void TransactionsManager::onSerializeTransaction(
+    BaseTransaction::Shared transaction)
+{
     const auto kTransactionTypeId = transaction->transactionType();
     const auto ioTransaction = mStorageHandler->beginTransaction();
     switch (kTransactionTypeId) {
@@ -1357,8 +1513,7 @@ void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transac
             ioTransaction->transactionHandler()->saveRecord(
                 kChildTransaction->currentTransactionUUID(),
                 transactionBytesAndCount.first,
-                transactionBytesAndCount.second
-            );
+                transactionBytesAndCount.second);
             break;
         }
         case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
@@ -1367,8 +1522,7 @@ void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transac
             ioTransaction->transactionHandler()->saveRecord(
                 kChildTransaction->currentTransactionUUID(),
                 transactionBytesAndCount.first,
-                transactionBytesAndCount.second
-            );
+                transactionBytesAndCount.second);
             break;
         }
         case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
@@ -1377,8 +1531,7 @@ void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transac
             ioTransaction->transactionHandler()->saveRecord(
                 kChildTransaction->currentTransactionUUID(),
                 transactionBytesAndCount.first,
-                transactionBytesAndCount.second
-            );
+                transactionBytesAndCount.second);
             break;
         }
         case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
@@ -1387,8 +1540,7 @@ void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transac
             ioTransaction->transactionHandler()->saveRecord(
                 kChildTransaction->currentTransactionUUID(),
                 transactionBytesAndCount.first,
-                transactionBytesAndCount.second
-            );
+                transactionBytesAndCount.second);
             break;
         }
         case BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction: {
@@ -1397,8 +1549,7 @@ void TransactionsManager::onSerializeTransaction(BaseTransaction::Shared transac
             ioTransaction->transactionHandler()->saveRecord(
                 kChildTransaction->currentTransactionUUID(),
                 transactionBytesAndCount.first,
-                transactionBytesAndCount.second
-            );
+                transactionBytesAndCount.second);
             break;
         }
         default: {

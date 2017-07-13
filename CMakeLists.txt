@@ -115,6 +115,7 @@ add_subdirectory(src/core/delayed_tasks)
 add_subdirectory(src/core/payments/amount_blocks)
 add_subdirectory(src/core/io/storage)
 add_subdirectory(src/core/resources)
+add_subdirectory(src/core/cycles)
 
 
 #
@@ -154,4 +155,5 @@ target_link_libraries(geo_network_client
         max_flow_calculation
         delayed_tasks
         transactions
-        resources_manager)
+        resources_manager
+        cycles)

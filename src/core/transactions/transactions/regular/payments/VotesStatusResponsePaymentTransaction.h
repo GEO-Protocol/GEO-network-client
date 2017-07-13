@@ -10,12 +10,15 @@ class VotesStatusResponsePaymentTransaction:
         public BaseTransaction{
 public:
     VotesStatusResponsePaymentTransaction(
-            const NodeUUID &nodeUUID,
-            VotesStatusRequestMessage::Shared message,
-            StorageHandler *storageHandler,
-            Logger &logger
-    );
+        const NodeUUID &nodeUUID,
+        VotesStatusRequestMessage::Shared message,
+        StorageHandler *storageHandler,
+        Logger &logger);
+
     TransactionResult::SharedConst run();
+
+protected:
+    const string logHeader() const;
 
 protected:
     VotesStatusRequestMessage::Shared mRequest;

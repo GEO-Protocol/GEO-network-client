@@ -185,8 +185,8 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
-        } else if (identifier == CycleCloserCommand::identifier()) {
-            command = new CycleCloserCommand(
+        } else if (identifier == HistoryWithContractorCommand::identifier()) {
+            command = new HistoryWithContractorCommand(
                 uuid,
                 buffer);
 

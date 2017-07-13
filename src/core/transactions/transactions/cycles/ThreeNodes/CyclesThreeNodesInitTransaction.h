@@ -3,13 +3,11 @@
 
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../../../io/storage/RoutingTablesHandler.h"
+#include "../../../../cycles/CyclesManager.h"
+#include "../../../../io/storage/StorageHandler.h"
 #include "../../../../paths/lib/Path.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
-
-#include "../../regular/payments/CycleCloserInitiatorTransaction.h"
 
 #include <set>
 
@@ -22,8 +20,8 @@ public:
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
         TrustLinesManager *manager,
+        CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -44,8 +42,8 @@ protected:
 protected:
     NodeUUID mContractorUUID;
     TrustLinesManager *mTrustLinesManager;
+    CyclesManager *mCyclesManager;
     StorageHandler *mStorageHandler;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_THREENODESINITTRANSACTION_H

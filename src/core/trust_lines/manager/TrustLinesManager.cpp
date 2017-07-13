@@ -454,38 +454,48 @@ ConstSharedTrustLineAmount TrustLinesManager::availableIncomingAmount(
         *kAvailableAmount - *kAlreadyReservedAmount);
 }
 
-ConstSharedTrustLineAmount TrustLinesManager::availableOutgoingCycleAmount(
+pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::availableOutgoingCycleAmounts(
     const NodeUUID &contractor) const
 {
     const auto kTL = trustLineReadOnly(contractor);
     const auto kBalance = kTL->balance();
     if (kBalance <= TrustLine::kZeroBalance()) {
-        return make_shared<const TrustLineAmount>(0);
+        return make_pair(
+            make_shared<const TrustLineAmount>(0),
+            make_shared<const TrustLineAmount>(0));
     }
 
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
         contractor, AmountReservation::Outgoing);
 
     if (*kAlreadyReservedAmount.get() == TrustLine::kZeroAmount()) {
-        return make_shared<const TrustLineAmount>(kBalance);
+        return make_pair(
+            make_shared<const TrustLineAmount>(kBalance),
+            make_shared<const TrustLineAmount>(kBalance));
     }
 
     auto kAbsoluteBalance = absoluteBalanceAmount(kBalance);
     if (*kAlreadyReservedAmount.get() > kAbsoluteBalance) {
-        return make_shared<const TrustLineAmount>(0);
+        return make_pair(
+            make_shared<const TrustLineAmount>(0),
+            make_shared<const TrustLineAmount>(kBalance));
     } else {
-        return make_shared<const TrustLineAmount>(
-            kAbsoluteBalance - *kAlreadyReservedAmount.get());
+        return make_pair(
+            make_shared<const TrustLineAmount>(
+                kAbsoluteBalance - *kAlreadyReservedAmount.get()),
+            make_shared<const TrustLineAmount>(kBalance));
     }
 }
 
-ConstSharedTrustLineAmount TrustLinesManager::availableIncomingCycleAmount(
-    const NodeUUID& contractor) const
+pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::availableIncomingCycleAmounts(
+    const NodeUUID &contractor) const
 {
     const auto kTL = trustLineReadOnly(contractor);
     const auto kBalance = kTL->balance();
     if (kBalance >= TrustLine::kZeroBalance()) {
-        return make_shared<const TrustLineAmount>(0);
+        return make_pair(
+            make_shared<const TrustLineAmount>(0),
+            make_shared<const TrustLineAmount>(0));
     }
 
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
@@ -493,14 +503,20 @@ ConstSharedTrustLineAmount TrustLinesManager::availableIncomingCycleAmount(
 
     auto kAbsoluteBalance = absoluteBalanceAmount(kBalance);
     if (*kAlreadyReservedAmount.get() == TrustLine::kZeroAmount()) {
-        return make_shared<const TrustLineAmount>(kAbsoluteBalance);
+        return make_pair(
+            make_shared<const TrustLineAmount>(kAbsoluteBalance),
+            make_shared<const TrustLineAmount>(kAbsoluteBalance));
     }
 
     if (*kAlreadyReservedAmount.get() >= kAbsoluteBalance) {
-        return make_shared<const TrustLineAmount>(0);
+        return make_pair(
+            make_shared<const TrustLineAmount>(0),
+            make_shared<const TrustLineAmount>(kAbsoluteBalance));
     }
-    return make_shared<const TrustLineAmount>(
-        kAbsoluteBalance - *kAlreadyReservedAmount.get());
+    return make_pair(
+        make_shared<const TrustLineAmount>(
+            kAbsoluteBalance - *kAlreadyReservedAmount.get()),
+        make_shared<const TrustLineAmount>(kAbsoluteBalance));
 }
 
 const bool TrustLinesManager::trustLineIsPresent (
@@ -868,6 +884,22 @@ ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount () const
     return totalAmount;
 }
 
+vector<AmountReservation::ConstShared> TrustLinesManager::reservationsToContractor(
+    const NodeUUID &contractorUUID) const
+{
+    return mAmountReservationsHandler->contractorReservations(
+        contractorUUID,
+        AmountReservation::ReservationDirection::Outgoing);
+}
+
+vector<AmountReservation::ConstShared> TrustLinesManager::reservationsFromContractor(
+    const NodeUUID &contractorUUID) const
+{
+    return mAmountReservationsHandler->contractorReservations(
+        contractorUUID,
+        AmountReservation::ReservationDirection::Incoming);
+}
+
 void TrustLinesManager::printRTs()
 {
     LoggerStream debug = mLogger.debug("TrustLinesManager::printRts");
@@ -897,12 +929,30 @@ void TrustLinesManager::printRTs()
     }
     debug << "print cycle incoming flows size: " << incomingFlows().size() << endl;
     for (auto const trLine : mTrustLines) {
-        debug << trLine.first << " " << *availableIncomingCycleAmount(trLine.first) << endl;
+//        const auto availableIncomingCycleAmounts = availableIncomingCycleAmounts(trLine.first);
+//        debug << trLine.first << " " << *(availableIncomingCycleAmounts.first)
+//              << " " << *(availableIncomingCycleAmounts.second) << endl;
     }
     debug << "print cycle outgoing flows size: " << outgoingFlows().size() << endl;
     for (auto const trLine : mTrustLines) {
-        debug << trLine.first << " " << *availableOutgoingCycleAmount(trLine.first) << endl;
+//        auto const availableOutgoingCycleAmounts = availableOutgoingCycleAmounts(trLine.first);
+//        debug << trLine.first << " " << *(availableOutgoingCycleAmounts.first)
+//              << " " << *(availableOutgoingCycleAmounts.second) << endl;
     }
+}
+
+pair<TrustLineBalance, TrustLineBalance> TrustLinesManager::debtAndCredit()
+{
+    TrustLineBalance debt = TrustLine::kZeroBalance();
+    TrustLineBalance credit = TrustLine::kZeroBalance();
+    for (auto const trLine : mTrustLines) {
+        if (trLine.second->balance() > TrustLine::kZeroBalance()) {
+            debt += trLine.second->balance();
+        } else {
+            credit += trLine.second->balance();
+        }
+    }
+    return make_pair(debt, credit);
 }
 
 uint32_t TrustLinesManager::crc32SumAllFirstLevelNeighbors(

@@ -108,6 +108,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Payments_TTLProlongation:
             return messageCollected<TTLPolongationMessage>(buffer);
 
+        case Message::Payments_VotesStatusRequest:
+            return messageCollected<VotesStatusRequestMessage>(buffer);
+
 
         /*
          * Cycles processing messages

@@ -222,3 +222,18 @@ bool AmountReservationsHandler::isReservationPresent(const NodeUUID &trustLineCo
         return false;
     return true;
 }
+
+const vector<AmountReservation::ConstShared> AmountReservationsHandler::contractorReservations(
+    const NodeUUID &trustLineContractor,
+    const AmountReservation::ReservationDirection direction) const
+{
+    vector<AmountReservation::ConstShared> result;
+    auto reservationsVector = reservations(
+        trustLineContractor,
+        nullptr);
+    for (auto lock : reservationsVector){
+        if (lock->direction() == direction)
+            result.push_back(lock);
+    }
+    return result;
+}

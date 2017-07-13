@@ -4,6 +4,8 @@
 #include "base/BasePaymentTransaction.h"
 #include "base/PathStats.h"
 #include "../../../../io/storage/StorageHandler.h"
+#include "../../../../cycles/CyclesManager.h"
+
 #include <boost/functional/hash.hpp>
 
 #include <unordered_map>
@@ -22,6 +24,7 @@ public:
         const NodeUUID &kCurrentNodeUUID,
         Path::ConstShared path,
         TrustLinesManager *trustLines,
+        CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &log)
@@ -31,6 +34,7 @@ public:
         BytesShared buffer,
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
+        CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &log)
@@ -39,8 +43,9 @@ public:
     TransactionResult::SharedConst run()
         noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc);
+    const NodeUUID& coordinatorUUID() const;
+
+    const uint8_t cycleLength() const;
 
 protected:
     // Stages handlers
@@ -49,29 +54,22 @@ protected:
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
+    // run after waiting on releasing amount by rollbacking conflicted transaction
+    TransactionResult::SharedConst runAmountReservationStageAgain();
+    TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
 
 protected:
-    TransactionResult::SharedConst reject(
-        const char *message = nullptr);
+    TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount ();
 
-protected:
-    TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (
-        PathStats *pathStats);
-
-    TransactionResult::SharedConst askNeighborToReserveAmount(
-        const NodeUUID &neighbor,
-        PathStats *pathStats);
+    TransactionResult::SharedConst askNeighborToReserveAmount();
 
     TransactionResult::SharedConst processNeighborAmountReservationResponse();
 
-    TransactionResult::SharedConst askNeighborToApproveFurtherNodeReservation(
-        const NodeUUID &neighbor,
-        PathStats *pathStats);
+    TransactionResult::SharedConst askNeighborToApproveFurtherNodeReservation();
 
     TransactionResult::SharedConst processNeighborFurtherReservationResponse();
 
     TransactionResult::SharedConst askRemoteNodeToApproveReservation(
-        PathStats *pathStats,
         const NodeUUID &remoteNode,
         const byte remoteNodePosition,
         const NodeUUID &nextNodeAfterRemote);
@@ -81,9 +79,6 @@ protected:
 protected:
     const string logHeader() const;
 
-    void deserializeFromBytes(
-        BytesShared buffer);
-
     void checkPath(
         const Path::ConstShared path);
 
@@ -91,18 +86,26 @@ protected:
         PathStats* pathStats,
         const TrustLineAmount &finalPathAmount);
 
+    void savePaymentOperationIntoHistory();
+
 protected:
     // Contains special stats data, such as current msx flow,
     // for path involved into the transaction.
     unique_ptr<PathStats> mPathStats;
 
-    // minimum value of Coordinator outgoing amount to first intremediate node
-    // and incoming amount from last intermediate node
-    TrustLineAmount mInitialTransactionAmount;
+    // fields, wor continue process coordinator request after releasing conflicted reservation
+    // transaction on which reservation we pretend
+    TransactionUUID mConflictedTransaction;
+    NodeUUID mNextNode;
+    NodeUUID mPreviousNode;
+    TrustLineAmount mOutgoingAmount;
+    TrustLineAmount mIncomingAmount;
 
-    // Contains nodes that has been requrested final paths configuration.
-    // for more details, see TODO
-    unordered_set<NodeUUID> mNodesRequestedFinalConfiguration;
+    // for resolving reservation conflicts
+    CyclesManager *mCyclesManager;
+
+private:
+    const uint16_t kWaitingForReleasingAmountMSec = 50;
 };
 
 #endif //GEO_NETWORK_CLIENT_CYCLECLOSERINITIATORTRANSACTION_H

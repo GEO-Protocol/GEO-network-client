@@ -23,7 +23,8 @@ class HistoryStorage {
 public:
     HistoryStorage(
         sqlite3 *dbConnection,
-        const string &tableName,
+        const string &mainTableName,
+        const string &additionalTableName,
         Logger &logger);
 
     void saveTrustLineRecord(
@@ -52,7 +53,20 @@ public:
         const TrustLineAmount& highBoundaryAmount,
         bool isHighBoundaryAmountPresent);
 
+    vector<PaymentRecord::Shared> allPaymentAdditionalRecords();
+
+    vector<Record::Shared> recordsWithContractor(
+        const NodeUUID &contractorUUID,
+        size_t recordsCount,
+        size_t fromRecord);
+
 private:
+    void savePaymentMainRecord(
+        PaymentRecord::Shared record);
+
+    void savePaymentAdditionalRecord(
+        PaymentRecord::Shared record);
+
     vector<PaymentRecord::Shared> allPaymentRecords(
         size_t recordsCount,
         size_t fromRecord,
@@ -64,10 +78,18 @@ private:
     size_t countRecordsByType(
         Record::RecordType recordType);
 
+    vector<Record::Shared> recordsPortionWithContractor(
+        const NodeUUID &contractorUUID,
+        size_t recordsCount,
+        size_t fromRecord);
+
     pair<BytesShared, size_t> serializedTrustLineRecordBody(
         TrustLineRecord::Shared);
 
     pair<BytesShared, size_t> serializedPaymentRecordBody(
+        PaymentRecord::Shared);
+
+    pair<BytesShared, size_t> serializedPaymentAdditionalRecordBody(
         PaymentRecord::Shared);
 
     TrustLineRecord::Shared deserializeTrustLineRecord(
@@ -76,7 +98,12 @@ private:
     PaymentRecord::Shared deserializePaymentRecord(
         sqlite3_stmt *stmt);
 
+    PaymentRecord::Shared deserializePaymentAdditionalRecord(
+        sqlite3_stmt *stmt);
+
     LoggerStream info() const;
+
+    LoggerStream debug() const;
 
     LoggerStream error() const;
 
@@ -87,7 +114,12 @@ private:
 
 private:
     sqlite3 *mDataBase = nullptr;
-    string mTableName;
+    // main table used for storing history, needed for frontend
+    // (trustlines, payments coordinator, payments receiver)
+    string mMainTableName;
+    // addidtional table used for storing history, needed for statistics
+    // (cycles and payment intermediate nodes)
+    string mAdditionalTableName;
     Logger &mLog;
 };
 

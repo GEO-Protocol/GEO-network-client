@@ -30,10 +30,18 @@
 
 #include "PathStats.h"
 
+namespace signals = boost::signals2;
 
 // TODO: Add restoring of the reservations after transaction deserialization.
 class BasePaymentTransaction:
     public BaseTransaction {
+
+public:
+    typedef shared_ptr<BasePaymentTransaction> Shared;
+
+public:
+    typedef signals::signal<void(vector<NodeUUID> &contractorUUID)> BuildCycleThreeNodesSignal;
+    typedef signals::signal<void(vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors)> BuildCycleFourNodesSignal;
 
 public:
     BasePaymentTransaction(
@@ -63,6 +71,15 @@ public:
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
+public:
+    virtual const NodeUUID& coordinatorUUID() const;
+
+    virtual const uint8_t cycleLength() const;
+
+    bool isCommonVotesCheckingstage() const;
+
+    void setRollbackByOtherTransactionStage();
+
 protected:
     enum Stages {
         Coordinator_Initialisation = 1,
@@ -80,10 +97,15 @@ protected:
         IntermediateNode_NextNeighborResponseProcessing,
         IntermediateNode_ReservationProlongation,
 
+        Cycles_WaitForOutgoingAmountReleasing,
+        Cycles_WaitForIncomingAmountReleasing,
+
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,
         Common_Recovery,
-        Common_ClarificationTransaction
+        Common_ClarificationTransaction,
+
+        Common_RollbackByOtherTransaction
     };
 
     enum VotesRecoveryStages {
@@ -119,7 +141,7 @@ protected:
     TransactionResult::SharedConst runPrepareListNodesToCheckNodes();
     TransactionResult::SharedConst runCheckCoordinatorVotesStage();
     TransactionResult::SharedConst runCheckIntermediateNodeVotesSage();
-
+    TransactionResult::SharedConst runRollbackByOtherTransactionStage();
 
 protected:
     const bool reserveOutgoingAmount(
@@ -173,6 +195,10 @@ protected:
 
     size_t reservationsSizeInBytes() const;
 
+    TransactionResult::SharedConst processNextNodeToCheckVotes();
+
+    virtual void savePaymentOperationIntoHistory() = 0;
+
 protected:
     // Specifies how long node must wait for the response from the remote node.
     // This timeout must take into account also that remote node may process other transaction,
@@ -184,6 +210,13 @@ protected:
     static const uint16_t kMaxResourceTransferLagMSec = 2000; //
 
     static const auto kMaxPathLength = 7;
+
+    static const uint32_t kWaitMillisecondsToTryRecoverAgain = 30000;
+
+public:
+    mutable BuildCycleThreeNodesSignal mBuildCycleThreeNodesSignal;
+
+    mutable BuildCycleFourNodesSignal mBuildCycleFourNodesSignal;
 
 protected:
     TrustLinesManager *mTrustLines;
@@ -207,7 +240,6 @@ protected:
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;
     NodeUUID mCurrentNodeToCheckVotes;
-
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

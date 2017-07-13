@@ -17,7 +17,8 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log),
-    mMessage(message)
+    mMessage(message),
+    mTotalReservedAmount(0)
 {
     mStep = Stages::IntermediateNode_PreviousNeighborRequestProcessing;
 }
@@ -70,14 +71,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
                     "IntermediateNodePaymentTransaction::run: "
                         "unexpected stage occurred.");
         }
-    } catch (...) {
+    } catch (Exception &e) {
+        error() << e.what();
         recover("Something happens wrong in method run(). Transaction will be recovered");
     }
-}
-
-pair<BytesShared, size_t> IntermediateNodePaymentTransaction::serializeToBytes()
-{
-    throw Exception("Not implemented");
 }
 
 
@@ -88,12 +85,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
     debug() << "Requested amount reservation: " << mMessage->amount();
 
-    TrustLineAmount kReservationAmount = TrustLine::kZeroAmount();
-    try {
-        const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
-        kReservationAmount =
-            min(mMessage->amount(), *kIncomingAmount);
-    } catch (NotFoundError &e) {
+    if (!mTrustLines->isNeighbor(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
@@ -108,11 +100,15 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         } else {
             mStep = Stages::IntermediateNode_ReservationProlongation;
             return resultWaitForMessageTypes(
-                    {Message::Payments_ParticipantsVotes,
-                     Message::Payments_IntermediateNodeReservationRequest},
-                    maxNetworkDelay(kMaxPathLength - 2));
+                {Message::Payments_ParticipantsVotes,
+                 Message::Payments_IntermediateNodeReservationRequest},
+                maxNetworkDelay(kMaxPathLength - 2));
         }
     }
+
+    const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
+    TrustLineAmount kReservationAmount =
+            min(mMessage->amount(), *kIncomingAmount);
 
     if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount, mMessage->pathUUID())) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -167,16 +163,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     mCoordinator = kMessage->senderUUID;
     mLastProcessedPath = kMessage->pathUUID();
 
-    TrustLineAmount reservationAmount = TrustLine::kZeroAmount();
-    // Note: copy of shared pointer is required
-    try {
-        const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
-        debug() << "requested reservation amount is " << kMessage->amount();
-        debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
-        reservationAmount = min(
-            kMessage->amount(),
-            *kOutgoingAmount);
-    } catch (NotFoundError &e) {
+    if (!mTrustLines->isNeighbor(kNextNode)) {
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
@@ -196,6 +183,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
              Message::Payments_IntermediateNodeReservationRequest},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
+
+    // Note: copy of shared pointer is required
+    const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
+    debug() << "requested reservation amount is " << kMessage->amount();
+    debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
+    TrustLineAmount reservationAmount = min(
+        kMessage->amount(),
+        *kOutgoingAmount);
 
     if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount, kMessage->pathUUID())) {
         sendMessage<CoordinatorReservationResponseMessage>(
@@ -278,6 +273,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
     debug() << "(" << kContractor << ") accepted amount reservation.";
 
+    mLastReservedAmount = kMessage->amountReserved();
     // shortage local reservation on current path
     for (const auto &nodeReservation : mReservations) {
         for (const auto &pathUUIDAndreservation : nodeReservation.second) {
@@ -329,15 +325,16 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
         }
     } else {
 
+        mTotalReservedAmount += kMessage->amount();
         // Shortening all reservations that belongs to this node and path.
         for (const auto &nodeAndReservations : mReservations) {
             for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
                 if (pathUUIDAndReservation.first == kMessage->pathUUID()) {
                     shortageReservation(
-                            nodeAndReservations.first,
-                            pathUUIDAndReservation.second,
-                            kMessage->amount(),
-                            pathUUIDAndReservation.first);
+                        nodeAndReservations.first,
+                        pathUUIDAndReservation.second,
+                        kMessage->amount(),
+                        pathUUIDAndReservation.first);
                 }
             }
         }
@@ -345,9 +342,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
 
     mStep = Stages::IntermediateNode_ReservationProlongation;
     return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes,
-             Message::Payments_IntermediateNodeReservationRequest},
-            maxNetworkDelay(kMaxPathLength - 2));
+        {Message::Payments_ParticipantsVotes,
+         Message::Payments_IntermediateNodeReservationRequest},
+        maxNetworkDelay(kMaxPathLength - 2));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
@@ -425,13 +422,13 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
 {
-    launchFourCyclesClosingTransactions();
-    launchThreeCyclesClosingTransactions();
     BasePaymentTransaction::approve();
+    runBuildFourNodesCyclesSignal();
+    runBuildThreeNodesCyclesSignal();
     return resultDone();
 }
 
-void IntermediateNodePaymentTransaction::launchFourCyclesClosingTransactions()
+void IntermediateNodePaymentTransaction::runBuildFourNodesCyclesSignal()
 {
     vector<pair<NodeUUID, NodeUUID>> debtorsAndCreditorsFourCycles;
     map<PathUUID, NodeUUID> pathsReservations;
@@ -458,43 +455,36 @@ void IntermediateNodePaymentTransaction::launchFourCyclesClosingTransactions()
             }
         }
     }
-    for (auto const &debtorAndCreditor : debtorsAndCreditorsFourCycles) {
-        const auto kTransaction = make_shared<CyclesFourNodesInitTransaction>(
-            currentNodeUUID(),
-            debtorAndCreditor.first,
-            debtorAndCreditor.second,
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-        launchSubsidiaryTransaction(kTransaction);
-    }
+    mBuildCycleFourNodesSignal(
+        debtorsAndCreditorsFourCycles);
 }
 
-void IntermediateNodePaymentTransaction::launchThreeCyclesClosingTransactions()
+void IntermediateNodePaymentTransaction::runBuildThreeNodesCyclesSignal()
 {
+    vector<NodeUUID> contractorsUUID;
+    contractorsUUID.reserve(mReservations.size());
     for (auto const nodeUUIDAndReservations : mReservations) {
-        const auto kTransaction = make_shared<CyclesThreeNodesInitTransaction>(
-            currentNodeUUID(),
-            nodeUUIDAndReservations.first,
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-        launchSubsidiaryTransaction(kTransaction);
+        contractorsUUID.push_back(
+            nodeUUIDAndReservations.first);
     }
+    mBuildCycleThreeNodesSignal(
+        contractorsUUID);
 }
 
-void IntermediateNodePaymentTransaction::deserializeFromBytes(
-    BytesShared buffer)
+void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory()
 {
-    throw Exception("Not implemented");
+    debug() << "savePaymentOperationIntoHistory";
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    ioTransaction->historyStorage()->savePaymentRecord(
+        make_shared<PaymentRecord>(
+            currentTransactionUUID(),
+            PaymentRecord::PaymentOperationType::IntermediatePaymentType,
+            mTotalReservedAmount));
 }
 
 const string IntermediateNodePaymentTransaction::logHeader() const
 {
     stringstream s;
     s << "[IntermediateNodePaymentTA: " << currentTransactionUUID() << "] ";
-
     return s.str();
 }

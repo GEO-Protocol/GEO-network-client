@@ -5,10 +5,12 @@ Record::Record()
 
 Record::Record(
     const Record::RecordType recordType,
-    const TransactionUUID &operationUUID):
+    const TransactionUUID &operationUUID,
+    const NodeUUID &contractorUUID):
 
     mOperationUUID(operationUUID),
-    mTimestamp(utc_now())
+    mTimestamp(utc_now()),
+    mContractorUUID(contractorUUID)
 {
     mRecordType = recordType;
 }
@@ -16,13 +18,15 @@ Record::Record(
 Record::Record(
     const Record::RecordType recordType,
     const TransactionUUID &operationUUID,
+    const NodeUUID &contractorUUID,
     const GEOEpochTimestamp geoEpochTimestamp) :
 
     mOperationUUID(operationUUID)
 {
-        mRecordType = recordType;
-        mTimestamp = dateTimeFromGEOEpochTimestamp(
-            geoEpochTimestamp);
+    mRecordType = recordType;
+    mContractorUUID = contractorUUID,
+    mTimestamp = dateTimeFromGEOEpochTimestamp(
+        geoEpochTimestamp);
 }
 
 const bool Record::isTrustLineRecord() const
@@ -48,4 +52,9 @@ const TransactionUUID Record::operationUUID() const
 const DateTime Record::timestamp() const
 {
     return mTimestamp;
+}
+
+const NodeUUID Record::contractorUUID() const
+{
+    return mContractorUUID;
 }

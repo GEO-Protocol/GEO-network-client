@@ -13,14 +13,16 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     mRequest(message)
 {}
 
-TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run() {
+TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
+{
+    debug() << "run";
     try {
         auto ioTransaction = mStorageHandler->beginTransaction();
         auto serializedVotesBufferAndSize = ioTransaction->paymentOperationStateHandler()->byTransaction(
             mRequest->transactionUUID());
         const auto kResponse = make_shared<ParticipantsVotesMessage>(
-                serializedVotesBufferAndSize.first
-        );
+            serializedVotesBufferAndSize.first);
+        debug() << "send response with not empty ParticipantsVotesMessage to " << mRequest->senderUUID;
         sendMessage(
             mRequest->senderUUID,
             kResponse);
@@ -32,11 +34,18 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run() {
         const auto kResponse = make_shared<ParticipantsVotesMessage>(
             mNodeUUID,
             mRequest->transactionUUID(),
-            kZeroUUID
-        );
+            kZeroUUID);
+        debug() << "send response with empty ParticipantsVotesMessage to " << mRequest->senderUUID;
         sendMessage(
             mRequest->senderUUID,
             kResponse);
     };
     return resultDone();
+}
+
+const string VotesStatusResponsePaymentTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[VotesStatusResponsePaymentTA: " << currentTransactionUUID() << "] ";
+    return s.str();
 }

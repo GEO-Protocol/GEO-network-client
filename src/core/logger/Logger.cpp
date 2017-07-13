@@ -191,107 +191,10 @@ void Logger::logRecord(
                        << formatMessage(message) << endl;
     mOperationsLogFile.sync_with_stdio();
 
-//    // Log to InfluxDB
-//    mRecordsQueue.push({
-//        get_unixtime(),
-//        group,
-//        subsystem,
-//        formatMessage(message),
-//        addinfo
-//   });
 }
 
-Logger::Logger(
-    const NodeUUID &nodeUUID,
-    as::io_service &IOService,
-    const string &interface,
-    const string &dbname,
-    const uint16_t port):
-
-    mNodeUUID(nodeUUID),
-    mIOService(IOService),
-    mResolver(mIOService),
-    mInterface(interface),
-    mDbName(dbname),
-    mPort(port),
-    mSocket(mIOService),
-    mQuery(mInterface, boost::lexical_cast<string>(mPort)),
-    mRequestStream(&mRequest)
+Logger::Logger(const NodeUUID &nodeUUID)
 {
-    mEndpointIterator = mResolver.resolve(mQuery);
-    mFlushRecordsQueueTimer = make_unique<as::steady_timer>(mIOService);
-    mFlushRecordsQueueTimer->expires_from_now(std::chrono::seconds(5));
-    mFlushRecordsQueueTimer->async_wait(
-        boost::bind(
-            &Logger::flushRecordsQueue,
-            this,
-            as::placeholders::error));
     // For more comfortable debug use trunc instead of app.(Clear log file after restart)
     mOperationsLogFile.open("operations.log", std::fstream::out | std::fstream::app);
-}
-
-void Logger::flushRecordsQueue(
-    const boost::system::error_code &error)
-{
-    stringstream url;
-    url << "/write?db=";
-    url << boost::lexical_cast<string>(mDbName);
-
-    stringstream host;
-    host << mInterface << ":" << mPort;
-
-    stringstream body;
-    auto mRecordsQueueLenght = mRecordsQueue.size();
-    for(size_t i=0; i < mRecordsQueueLenght; ++i){
-        auto record = mRecordsQueue.front();
-        mRecordsQueue.pop();
-
-        body << "nodes_log,";
-
-        // Tags
-        body << "node_uuid=\"";
-        body<< boost::lexical_cast<string>(mNodeUUID) << "\",";
-
-        body << "group=\"";
-        body << record.group << "\" ";
-
-        // Values
-        body << "subsystem=\"";
-        body << record.subsystem  << "\",";
-
-        body << "message=\"";
-        body << record.message << "\"";
-        for (auto keyAndValue: record.additionalInfo){
-            body << ",";
-            body << keyAndValue.first << "=\"";
-            body << keyAndValue.second << "\"";
-        }
-        body << " " << record.initTime;
-
-        body << "\n";
-    }
-    mRequest.consume(mRequest.size());
-    mRequestStream << "POST " << url.str() << " HTTP/1.0\r\n";
-    mRequestStream << "Host: " << host.str() << "\r\n";
-    mRequestStream << "Accept: */*\r\n";
-    mRequestStream << "Content-Length: " << body.str().length() << "\r\n";
-    mRequestStream << "content-type: application/x-www-form-urlencoded\r\n";
-    mRequestStream << "Connection: close\r\n\r\n";
-    mRequestStream << body.str();
-    as::connect(mSocket, mEndpointIterator);
-    as::write(mSocket, mRequest);
-
-
-    mFlushRecordsQueueTimer->cancel();
-    mFlushRecordsQueueTimer->expires_from_now(std::chrono::seconds(mQuequeFlushDelaySeconds));
-    mFlushRecordsQueueTimer->async_wait(boost::bind(
-        &Logger::flushRecordsQueue,
-        this,
-        as::placeholders::error
-    ));
-}
-
-time_t Logger::get_unixtime(){
-    Duration dur = pt::microsec_clock::universal_time() - pt::ptime(gt::date(1970,1,1));;
-    return dur.total_microseconds();
 }

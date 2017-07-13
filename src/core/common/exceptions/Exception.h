@@ -17,6 +17,9 @@ public:
     const std::string message() const;
 
     virtual const char* what() const throw(){
+        if (!mMessage.empty()) {
+            return mMessage.c_str();
+        }
         return msg_.c_str();
     }
 
