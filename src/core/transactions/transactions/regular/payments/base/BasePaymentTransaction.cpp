@@ -293,6 +293,9 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyCheckingStage()
 {
     debug() << "runVotesConsistencyCheckingStage";
+    if (currentNodeUUID().stringUUID() == "4397026a-1e4a-4542-a320-f1cc2f5b88b8") {
+        throw Exception("test exception");
+    }
     // this case can be only in Coordinator transaction.
     // Intermediate node or Receiver can send request if transaction is still alive.
     if (contextIsValid(Message::Payments_TTLProlongation, false)) {

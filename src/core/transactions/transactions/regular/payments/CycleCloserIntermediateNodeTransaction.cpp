@@ -226,6 +226,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     mNextNode = kMessage->nextNodeInPathUUID();
 
     debug() << "Requested amount reservation: " << kMessage->amount();
+    debug() << "Next node is " << kMessage->nextNodeInPathUUID();
 
     if (!mTrustLines->isNeighbor(mNextNode)) {
         sendMessage<CoordinatorCycleReservationResponseMessage>(
@@ -254,7 +255,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
                 currentTransactionUUID(),
                 ResponseCycleMessage::Rejected);
 
-            debug() << "No amount reservation is possible, event with using other reservations. Rolled back.";
+            debug() << "No amount reservation is possible, even with using other reservations. Rolled back.";
             rollBack();
             return resultDone();
         } else {

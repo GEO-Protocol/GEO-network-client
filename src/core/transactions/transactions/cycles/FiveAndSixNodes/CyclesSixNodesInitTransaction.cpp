@@ -8,6 +8,10 @@ const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactio
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndSendMessagesStage()
 {
     debug() << "runCollectDataAndSendMessagesStage";
+    if (currentNodeUUID().stringUUID() != "9e2e8dff-a102-449a-92aa-f6be725be291") {
+        debug() << "reject this launch";
+        return resultDone();
+    }
     const auto firstLevelNodes = mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalance();
     vector<NodeUUID> path;
     path.push_back(mNodeUUID);
@@ -74,9 +78,9 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
     TrustLineBalance debtorsStepFlow;
     TrustLineBalance commonStepMaxFlow;
     vector<NodeUUID> stepPath;
-    #ifdef TESTS
+#ifdef TESTS
     vector<vector<NodeUUID>> ResultCycles;
-    #endif
+#endif
     for(const auto &mess: mContext) {
         auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
         debtorsStepFlow = mTrustLinesManager->balance(message->Path()[1]);
@@ -113,13 +117,13 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                     stepCyclePath);
                 mCyclesManager->addCycle(
                     cyclePath);
-                #ifdef TESTS
+#ifdef TESTS
                 ResultCycles.push_back(stepCyclePath);
-                #endif
+#endif
             }
         }
     }
-    #ifdef TESTS
+#ifdef TESTS
     debug() << "CyclesFiveNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size());
     for (vector<NodeUUID> KCyclePath: ResultCycles){
         stringstream ss;
@@ -127,7 +131,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
         debug() << "CyclesFiveNodesInitTransaction::CyclePath " << ss.str();
     }
     debug() << "CyclesFiveNodesInitTransaction::End";
-    #endif
+#endif
     mContext.clear();
     mCyclesManager->closeOneCycle();
     return resultDone();
