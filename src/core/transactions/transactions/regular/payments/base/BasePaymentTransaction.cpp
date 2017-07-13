@@ -674,10 +674,11 @@ void BasePaymentTransaction::propagateVotesMessageToAllParticipants (
     const auto kCurrentNodeUUID = currentNodeUUID();
 
     auto participant = kMessage->firstParticipant();
-    if (participant != kCurrentNodeUUID)
+    if (participant != kCurrentNodeUUID) {
         sendMessage(
             participant,
             kMessage);
+    }
 
     for (;;) {
         try {

@@ -390,7 +390,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificat
         return runVotesCheckingStage();
     }
     if (!contextIsValid(Message::MessageType::Payments_TTLProlongation)) {
-        return reject("No participants votes message received. Transaction was closed. Rolling Back");
+        if (mTransactionIsVoted) {
+            return recover("No participants votes message with all votes received.");
+        } else {
+            return reject("No participants votes message received. Transaction was closed. Rolling Back");
+        }
     }
     // transactions is still alive and we continue waiting for messages
     clearContext();

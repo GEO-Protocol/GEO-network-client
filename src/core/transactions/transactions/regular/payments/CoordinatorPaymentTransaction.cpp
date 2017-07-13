@@ -151,10 +151,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
     if (mPathsStats.empty())
         return resultNoPathsError();
 
-    debug() << "Collected paths:";
-    for (const auto &identifierAndStats : mPathsStats)
-        debug() << "[" << identifierAndStats.first << "] {" << identifierAndStats.second->path()->toString() << "}";
-
+    debug() << "Collected paths count: " << mPathsStats.size();
 
     // Sending message to the receiver note to approve the payment receiving.
     sendMessage<ReceiverInitPaymentRequestMessage>(
@@ -925,6 +922,7 @@ void CoordinatorPaymentTransaction::switchToNextPath()
             debug() << "delay between process paths to avoid not actual reservations";
             std::this_thread::sleep_for(std::chrono::milliseconds(maxNetworkDelay(1)));
         }
+        debug() << "[" << mCurrentAmountReservingPathIdentifier << "] {" << currentPath->path()->toString() << "}";
         // NotFoundError will be always in method justProcessedPath->currentIntermediateNodeAndPos()
         // on this logic it doesn't matter and we ignore it
     } catch (NotFoundError &e) {}

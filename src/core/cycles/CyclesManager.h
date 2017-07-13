@@ -31,6 +31,7 @@ public:
 
 public:
     CyclesManager(
+        const NodeUUID &nodeUUID,
         TransactionsScheduler *transactionsScheduler,
         as::io_service &ioService,
         Logger &logger);
@@ -82,6 +83,8 @@ private:
         const NodeUUID &offlineNode,
         vector<Path::ConstShared> &cycles);
 
+    uint32_t randomInitializer() const;
+
     LoggerStream info() const;
 
     LoggerStream debug() const;
@@ -102,6 +105,7 @@ private:
 
 private:
     TransactionsScheduler *mTransactionScheduler;
+    NodeUUID mNodeUUID;
     as::io_service &mIOService;
     vector<Path::ConstShared> mThreeNodesCycles;
     vector<Path::ConstShared> mFourNodesCycles;
