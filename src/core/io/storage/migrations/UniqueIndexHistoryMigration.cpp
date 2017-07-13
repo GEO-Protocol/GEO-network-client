@@ -10,8 +10,12 @@ UniqueIndexHistoryMigration::UniqueIndexHistoryMigration(
 }
 
 void UniqueIndexHistoryMigration::apply(IOTransaction::Shared ioTransaction) {
-    migrateHistory(ioTransaction);
-    migrateHistoryAdditional(ioTransaction);
+    try {
+        migrateHistory(ioTransaction);
+        migrateHistoryAdditional(ioTransaction);
+    } catch(IOError& e){
+        throw(e);
+    }
 }
 
 void UniqueIndexHistoryMigration::migrateHistory(IOTransaction::Shared ioTransaction)
@@ -23,13 +27,13 @@ void UniqueIndexHistoryMigration::migrateHistory(IOTransaction::Shared ioTransac
     auto rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("UniqueIndexHistoryMigration::creating index for OperationUUID: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("UniqueIndexHistoryMigration::creating index for OperationUUID: "
-                          "Run query; sqlite error: " + rc);
+                          "Run query; sqlite error: " + to_string(rc));
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
@@ -44,13 +48,13 @@ void UniqueIndexHistoryMigration::migrateHistoryAdditional(IOTransaction::Shared
     auto rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("UniqueIndexHistoryMigration::creating index for OperationUUID: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("UniqueIndexHistoryMigration::creating index for OperationUUID: "
-                          "Run query; sqlite error: " + rc);
+                          "Run query; sqlite error: " + to_string(rc));
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);

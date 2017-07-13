@@ -83,7 +83,7 @@ vector<PaymentRecord::Shared> SolomonHistoryMigrationTwo::getPaymentRecordsForUp
     rc = sqlite3_bind_int(stmt, 1, Record::RecordType::PaymentRecordType);
     if (rc != SQLITE_OK) {
         throw IOError("SolomonHistoryMigrationTwo::insert or replace: "
-                          "Bad binding of Contractor; sqlite error: " + rc);
+                          "Bad binding of Contractor; sqlite error: " + to_string(rc));
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
@@ -154,7 +154,7 @@ TrustLine::Shared SolomonHistoryMigrationTwo::getOutwornTrustLine(
     rc = sqlite3_bind_blob(stmt, 1, mNeighborUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::insert or replace: "
-                          "Bad binding of Contractor; sqlite error: " + rc);
+                          "Bad binding of Contractor; sqlite error: " + to_string(rc));
     }
     TrustLine::Shared result;
     // For each trust line in the table, deserialize it with old method and serialize it back with new one.
@@ -220,7 +220,7 @@ PaymentRecord::Shared SolomonHistoryMigrationTwo::getPreviousPaymentRecord(
     rc = sqlite3_bind_blob(stmt, 1, mPreviousOperationUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("SolomonHistoryMigrationTwo::insert or replace: "
-                          "Bad binding of Contractor; sqlite error: " + rc);
+                          "Bad binding of Contractor; sqlite error: " + to_string(rc));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         result = deserializePaymentRecord(stmt);
@@ -305,14 +305,14 @@ void SolomonHistoryMigrationTwo::updatePaymentsRecords(
                                (int) serializedPaymentRecordAndSize.second, SQLITE_STATIC);
         if (rc != SQLITE_OK) {
             throw IOError("TrustLineHandler::updatePaymentsRecords: "
-                              "Bad binding of record_body; sqlite error: " + rc);
+                              "Bad binding of record_body; sqlite error: " + to_string(rc));
         }
 
         rc = sqlite3_bind_blob(stmt, 2, record->operationUUID().data, NodeUUID::kBytesSize, SQLITE_STATIC);
         if (rc != SQLITE_OK) {
             throw IOError(
                 "SolomonHistoryMigrationTwo::updatePaymentsRecords "
-                    "Bad binding of Operation_uuid; sqlite error: " + rc);
+                    "Bad binding of Operation_uuid; sqlite error: " + to_string(rc));
         }
         sqlite3_reset(stmt);
         sqlite3_finalize(stmt);
