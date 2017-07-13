@@ -5,7 +5,11 @@ Core::Core(
     noexcept:
 
     mCommandDescriptionPtr(pArgv)
-{}
+{
+#ifdef TESTS
+    testsNetworkIsEnabled = true;
+#endif
+}
 
 Core::~Core()
 {}
@@ -411,6 +415,25 @@ void Core::connectSignalsToSlots()
 void Core::onCommandReceivedSlot (
     BaseUserCommand::Shared command)
 {
+#ifdef TESTS
+    if (command->identifier() == ToggleNetworkCommand::identifier()) {
+        // In case if network toggle command was received -
+        // there is no reason to transfer it's processing to the transactions manager:
+        // this command only enables or disables network for the node,
+        // and this may be simply done by filtering several slots in the core.
+        auto toggleNetworkCommand = static_pointer_cast<ToggleNetworkCommand>(command);
+
+        testsNetworkIsEnabled = toggleNetworkCommand->isNetworkOn();
+
+        if (not testsNetworkIsEnabled) {
+            mLog->info("Core") << "Network switched OFF";
+
+        } else {
+            mLog->info("Core") << "Network switched ON";
+        }
+    }
+#endif
+
     try {
         mTransactionsManager->processCommand(command);
 
@@ -422,6 +445,13 @@ void Core::onCommandReceivedSlot (
 void Core::onMessageReceivedSlot(
     Message::Shared message)
 {
+#ifdef TESTS
+    if (not testsNetworkIsEnabled) {
+        // Ignore incomming message in case if network was disabled.
+        return;
+    }
+#endif
+
     try {
         mTransactionsManager->processMessage(message);
 
@@ -434,11 +464,17 @@ void Core::onMessageSendSlot(
     Message::Shared message,
     const NodeUUID &contractorUUID)
 {
-    try{
+#ifdef TESTS
+    if (not testsNetworkIsEnabled) {
+        // Ignore outgoing message in case if network was disabled.
+        return;
+    }
+#endif
+
+    try {
         mCommunicator->sendMessage(
             message,
-            contractorUUID
-        );
+            contractorUUID);
 
     } catch (exception &e) {
         mLog->logException("Core", e);
@@ -468,6 +504,7 @@ void Core::onPathsResourceRequestedSlot(
         mLog->logException("Core", e);
     }
 
+    // todo: remove this empty method
 }
 
 void Core::onResourceCollectedSlot(

@@ -101,10 +101,12 @@ private:
         Message::Shared message,
         const NodeUUID &contractorUUID);
 
+    [[deprecated]]
     void onTrustLineCreatedSlot(
         const NodeUUID &contractorUUID, 
         const TrustLineDirection direction);
 
+    [[deprecated]]
     void onTrustLineStateModifiedSlot(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
@@ -141,6 +143,13 @@ protected:
     unique_ptr<MaxFlowCalculationCacheUpdateDelayedTask> mMaxFlowCalculationCacheUpdateDelayedTask;
     unique_ptr<StorageHandler> mStorageHandler;
     unique_ptr<PathsManager> mPathsManager;
+
+#ifdef TESTS
+    protected:
+    // Tests usable things.
+
+    bool testsNetworkIsEnabled;
+#endif
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H
