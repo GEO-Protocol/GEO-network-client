@@ -1,5 +1,4 @@
 #include "MigrationsHandler.h"
-#include "migrations/SolomonHistoryMigration.h"
 
 MigrationsHandler::MigrationsHandler(
     sqlite3 *dbConnection,
@@ -113,7 +112,7 @@ void MigrationsHandler::applyMigrations(
 {
     list<MigrationUUID> fullMigrationsUUIDsList = {
         MigrationUUID("0a889a5b-1a82-44c7-8b85-59db6f60a12d"),
-
+        MigrationUUID("bc04656c-9dbb-4bd7-afd5-5603cf44b85e"),
         // ...
         // the rest migrations must be placed here.
     };
@@ -173,16 +172,26 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
+
         } else if (migrationUUID.stringUUID() == string("c9ff4864-6626-11e7-861a-d397d1112608")){
             auto migration = make_shared<SolomonHistoryMigration>(
                 mDataBase,
                 mLog);
 
             migration->apply(ioTransaction);
-//            saveMigration(migrationUUID);
+            saveMigration(migrationUUID);
         // ...
         // Other migrations must be placed here
-        //
+        } else if (migrationUUID.stringUUID() == string("bc04656c-9dbb-4bd7-afd5-5603cf44b85e")){
+            auto migration = make_shared<UniqueIndexHistoryMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+            // ...
+            // Other migrations must be placed here
+            //
 
         } else {
             throw ValueError(

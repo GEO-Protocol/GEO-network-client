@@ -54,7 +54,8 @@ void SolomonHistoryMigration::applyTrustLineHistoryMigration(IOTransaction::Shar
         balanceAfterOperation,
         timestamp);
 
-//    ioTransaction->historyStorage()-> savePaymentRecord(missedPaymentRecord);
+    ioTransaction->historyStorage()-> savePaymentRecord(missedPaymentRecord);
+
     cout << timestamp << endl;
     auto paymentRecordsForUpdate = getPaymentRecordsForUpdate(ioTransaction, timestamp);
 

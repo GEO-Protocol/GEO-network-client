@@ -3,6 +3,8 @@
 
 #include "IOTransaction.h"
 #include "migrations/AmountAndBalanceSerialization.h"
+#include "migrations/SolomonHistoryMigration.h"
+#include "migrations/UniqueIndexHistoryMigration.h"
 
 #include "../../common/NodeUUID.h"
 #include "../../common/exceptions/IOError.h"
