@@ -36,7 +36,7 @@ set(SOURCE_FILES
         migrations/AmountAndBalanceSerialization.cpp
 
         migrations/SolomonHistoryMigration.h
-        migrations/SolomonHistoryMigration.cpp)
+        migrations/SolomonHistoryMigration.cpp migrations/SolomonHistoryMigrationTwo.h migrations/SolomonHistoryMigrationTwo.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

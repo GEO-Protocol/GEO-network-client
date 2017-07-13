@@ -1,6 +1,6 @@
-#include "SolomonHistoryMigration.h"
+#include "SolomonHistoryMigrationTwo.h"
 
-SolomonHistoryMigration::SolomonHistoryMigration(
+SolomonHistoryMigrationTwo::SolomonHistoryMigrationTwo(
     sqlite3 *dbConnection,
     Logger &logger):
     mLog(logger),
@@ -9,15 +9,15 @@ SolomonHistoryMigration::SolomonHistoryMigration(
     mMigrateNodeUUID = NodeUUID("2136a78d-3cb0-488d-b1a6-e039c12689d0");
     mCoordinatorUUID = NodeUUID("ba684d43-a66e-4840-9b29-679dcd679f23");
     mNeighborUUID = NodeUUID("15ce1178-ba9d-4172-845d-48d005dae106");
-    mOperationTimeStampOnCoordinatorNode = 44791775256137;
+    mOperationTimeStampOnCoordinatorNode = 45482408646998;
 
-    mOperationUUID = TransactionUUID(string("a4bebc20-8c87-448c-9a92-c4f86e28d2e2"));
-    mPreviousOperationUUID = TransactionUUID(string("11809a84-8301-4c9f-84c1-bc7820968c47"));
+    mOperationUUID = TransactionUUID(string("73bb6386-2d1f-42c6-b6ad-d5d28953d083"));
+    mPreviousOperationUUID = TransactionUUID(string("722cd71f-9a6c-4cde-abbc-b69497e3bfd7"));
 
-    mOperationAmount = TrustLineAmount(2282);
+    mOperationAmount = TrustLineAmount(2267);
 }
 
-void SolomonHistoryMigration::apply(
+void SolomonHistoryMigrationTwo::apply(
     IOTransaction::Shared ioTransaction)
 {
 
@@ -25,7 +25,7 @@ void SolomonHistoryMigration::apply(
     applyTrustLineHistoryMigration(ioTransaction);
 }
 
-void SolomonHistoryMigration::applyTrustLineMigration(
+void SolomonHistoryMigrationTwo::applyTrustLineMigration(
     IOTransaction::Shared ioTransaction)
 {
     auto trustLine = getOutwornTrustLine(ioTransaction);
@@ -34,7 +34,7 @@ void SolomonHistoryMigration::applyTrustLineMigration(
     ioTransaction->trustLineHandler()->saveTrustLine(trustLine);
 }
 
-void SolomonHistoryMigration::applyTrustLineHistoryMigration(IOTransaction::Shared ioTransaction)
+void SolomonHistoryMigrationTwo::applyTrustLineHistoryMigration(IOTransaction::Shared ioTransaction)
 {
 
     auto previousPaymentRecord = getPreviousPaymentRecord(ioTransaction);
@@ -61,7 +61,7 @@ void SolomonHistoryMigration::applyTrustLineHistoryMigration(IOTransaction::Shar
 }
 
 
-vector<PaymentRecord::Shared> SolomonHistoryMigration::getPaymentRecordsForUpdate(
+vector<PaymentRecord::Shared> SolomonHistoryMigrationTwo::getPaymentRecordsForUpdate(
     IOTransaction::Shared ioTransaction,
     int64_t since_what_timestamp)
 {
@@ -76,13 +76,13 @@ vector<PaymentRecord::Shared> SolomonHistoryMigration::getPaymentRecordsForUpdat
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError(
-            "SolomonHistoryMigration::getPreviousPaymentRecord: "
+            "SolomonHistoryMigrationTwo::getPreviousPaymentRecord: "
                 "Can't select PaymentRecord; SQLite error code: " + to_string(rc));
     }
 
     rc = sqlite3_bind_int(stmt, 1, Record::RecordType::PaymentRecordType);
     if (rc != SQLITE_OK) {
-        throw IOError("SolomonHistoryMigration::insert or replace: "
+        throw IOError("SolomonHistoryMigrationTwo::insert or replace: "
                           "Bad binding of Contractor; sqlite error: " + rc);
     }
 
@@ -136,7 +136,7 @@ vector<PaymentRecord::Shared> SolomonHistoryMigration::getPaymentRecordsForUpdat
     return recordsToUpdate;
 }
 
-TrustLine::Shared SolomonHistoryMigration::getOutwornTrustLine(
+TrustLine::Shared SolomonHistoryMigrationTwo::getOutwornTrustLine(
     IOTransaction::Shared ioTransaction)
 {
     sqlite3_stmt *stmt;
@@ -147,7 +147,7 @@ TrustLine::Shared SolomonHistoryMigration::getOutwornTrustLine(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError(
-            "SolomonHistoryMigration::getOutwornTrustLine: "
+            "SolomonHistoryMigrationTwo::getOutwornTrustLine: "
                 "Can't select trust lines count; SQLite error code: " + to_string(rc));
     }
 
@@ -188,7 +188,7 @@ TrustLine::Shared SolomonHistoryMigration::getOutwornTrustLine(
 
         } catch (...) {
             throw RuntimeError(
-                "SolomonHistoryMigration::getOutwornTrustLine: "
+                "SolomonHistoryMigrationTwo::getOutwornTrustLine: "
                     "Unable to create TL.");
         }
     }
@@ -198,28 +198,28 @@ TrustLine::Shared SolomonHistoryMigration::getOutwornTrustLine(
 }
 
 
-PaymentRecord::Shared SolomonHistoryMigration::getPreviousPaymentRecord(
+PaymentRecord::Shared SolomonHistoryMigrationTwo::getPreviousPaymentRecord(
     IOTransaction::Shared ioTransaction)
 {
     sqlite3_stmt *stmt;
 
     string query = "SELECT operation_uuid,"
-        " operation_timestamp,"
-        " record_body,"
-        " record_body_bytes_count from "
+                       " operation_timestamp,"
+                       " record_body,"
+                       " record_body_bytes_count from "
                    + ioTransaction->historyStorage()->mainTableName() + " where operation_uuid = ?;";
 
     PaymentRecord::Shared result;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError(
-            "SolomonHistoryMigration::getPreviousPaymentRecord: "
+            "SolomonHistoryMigrationTwo::getPreviousPaymentRecord: "
                 "Can't select PaymentRecord; SQLite error code: " + to_string(rc));
     }
 
     rc = sqlite3_bind_blob(stmt, 1, mPreviousOperationUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
-        throw IOError("SolomonHistoryMigration::insert or replace: "
+        throw IOError("SolomonHistoryMigrationTwo::insert or replace: "
                           "Bad binding of Contractor; sqlite error: " + rc);
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
@@ -233,7 +233,7 @@ PaymentRecord::Shared SolomonHistoryMigration::getPreviousPaymentRecord(
 }
 
 
-PaymentRecord::Shared SolomonHistoryMigration::deserializePaymentRecord(
+PaymentRecord::Shared SolomonHistoryMigrationTwo::deserializePaymentRecord(
     sqlite3_stmt *stmt)
 {
     TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
@@ -277,7 +277,7 @@ PaymentRecord::Shared SolomonHistoryMigration::deserializePaymentRecord(
         timestamp);
 }
 
-void SolomonHistoryMigration::updatePaymentsRecords(
+void SolomonHistoryMigrationTwo::updatePaymentsRecords(
     IOTransaction::Shared ioTransaction,
     vector<PaymentRecord::Shared> paymentsRecordsToUpdate)
 {
@@ -288,12 +288,12 @@ void SolomonHistoryMigration::updatePaymentsRecords(
         sqlite3_stmt *stmt;
         string query = " UPDATE " + ioTransaction->historyStorage()->mainTableName() +
                        " SET record_body = ?" +
-                        " WHERE operation_uuid = ?;";
+                       " WHERE operation_uuid = ?;";
 
         int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
         if (rc != SQLITE_OK) {
             throw IOError(
-                "SolomonHistoryMigration::updatePaymentsRecords: "
+                "SolomonHistoryMigrationTwo::updatePaymentsRecords: "
                     "Can't update PaymentRecord; SQLite error code: " + to_string(rc));
         }
 
@@ -311,15 +311,15 @@ void SolomonHistoryMigration::updatePaymentsRecords(
         rc = sqlite3_bind_blob(stmt, 2, record->operationUUID().data, NodeUUID::kBytesSize, SQLITE_STATIC);
         if (rc != SQLITE_OK) {
             throw IOError(
-                "SolomonHistoryMigration::updatePaymentsRecords "
+                "SolomonHistoryMigrationTwo::updatePaymentsRecords "
                     "Bad binding of Operation_uuid; sqlite error: " + rc);
         }
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
     }
 }
 
-pair<BytesShared, size_t> SolomonHistoryMigration::serializedPaymentRecordBody(
+pair<BytesShared, size_t> SolomonHistoryMigrationTwo::serializedPaymentRecordBody(
     PaymentRecord::Shared paymentRecord)
 {
     size_t recordBodySize = sizeof(PaymentRecord::SerializedPaymentOperationType)
