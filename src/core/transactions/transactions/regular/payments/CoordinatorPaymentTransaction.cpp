@@ -404,7 +404,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
         mCurrentAmountReservingPathIdentifier,
         kReservationAmount);
 
-    debug() << "Reservation request for " << *kAvailableOutgoingAmount << " sent directly to the receiver node.";
+    debug() << "Reservation request for " << kReservationAmount << " sent directly to the receiver node.";
 
     mStep = Stages::Coordinator_ShortPathAmountReservationResponseProcessing;
     return resultWaitForMessageTypes(
@@ -1033,16 +1033,16 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::reject(
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountReservationResponseProcessingStage ()
 {
     debug() << "runDirectAmountReservationResponseProcessingStage";
+    auto pathStats = currentAmountReservationPathStats();
     if (not contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
         debug() << "No reservation response was received from the receiver node. "
                << "Amount reservation is impossible. Switching to another path.";
 
+        pathStats->setUnusable();
         mStep = Stages::Coordinator_AmountReservation;
         return tryProcessNextPath();
     }
 
-
-    auto pathStats = currentAmountReservationPathStats();
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
 
     if (not kMessage->state() == IntermediateNodeReservationResponseMessage::Accepted) {
