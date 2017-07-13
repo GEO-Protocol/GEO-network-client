@@ -30,13 +30,22 @@ set(SOURCE_FILES
         #
         MigrationsHandler.h
         MigrationsHandler.cpp
+
         migrations/AbstractMigration.h
         migrations/AbstractMigration.cpp
+
         migrations/AmountAndBalanceSerialization.h
         migrations/AmountAndBalanceSerialization.cpp
 
         migrations/SolomonHistoryMigration.h
-        migrations/SolomonHistoryMigration.cpp migrations/SolomonHistoryMigrationTwo.h migrations/SolomonHistoryMigrationTwo.cpp)
+        migrations/SolomonHistoryMigration.cpp
+
+        migrations/SolomonHistoryMigrationTwo.h
+        migrations/SolomonHistoryMigrationTwo.cpp
+        migrations/SolomonHistoryMigration.cpp
+
+        migrations/UniqueIndexHistoryMigration.h
+        migrations/UniqueIndexHistoryMigration.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 
