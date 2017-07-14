@@ -1,5 +1,4 @@
 #include "CyclesSixNodesInitTransaction.h"
-#include "../../../../paths/lib/Path.h"
 
 const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactionType() const
 {
@@ -25,15 +24,15 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
 CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
     const NodeUUID &nodeUUID,
     TrustLinesManager *manager,
+    CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::TransactionType::Cycles_SixNodesInitTransaction,
         nodeUUID,
         manager,
+        cyclesManager,
         storageHandler,
-        maxFlowCalculationCacheManager,
         logger)
 {}
 
@@ -42,6 +41,7 @@ CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
 #pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAndCreateCyclesStage()
 {
+    debug() << "runParseMessageAndCreateCyclesStage";
     if (mContext.size() == 0) {
         info() << "No responses messages are present. Can't create cycles paths;";
         return resultDone();
@@ -111,23 +111,11 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                     mNodeUUID,
                     mNodeUUID,
                     stepCyclePath);
-                const auto kTransaction = make_shared<CycleCloserInitiatorTransaction>(
-                    mNodeUUID,
-                    cyclePath,
-                    mTrustLinesManager,
-                    mStorageHandler,
-                    mMaxFlowCalculationCacheManager,
-                    mLog
-                );
-                launchSubsidiaryTransaction(kTransaction);
+                mCyclesManager->addCycle(
+                    cyclePath);
                 #ifdef TESTS
                 ResultCycles.push_back(stepCyclePath);
                 #endif
-                //    Todo run cycles
-//                Startsignal
-                // Потрібно ставити первірку на доречність перекриття цилів
-                // Ця транакція має верта нам дані про те через який трастлайн неможна зробити перрозрахунок
-//                stepCyclePath.clear();
             }
         }
     }
@@ -141,7 +129,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
     debug() << "CyclesFiveNodesInitTransaction::End";
     #endif
     mContext.clear();
-
+    mCyclesManager->closeOneCycle();
     return resultDone();
 }
 
@@ -149,6 +137,5 @@ const string CyclesSixNodesInitTransaction::logHeader() const
 {
     stringstream s;
     s << "[CyclesSixNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
-
     return s.str();
 }

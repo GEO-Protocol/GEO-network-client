@@ -106,6 +106,7 @@ public:
         // History
         HistoryPaymentsTransactionType,
         HistoryTrustLinesTransactionType,
+        HistoryWithContractorTransactionType,
 
         // FindPath
         GetPathTestTransactionType,

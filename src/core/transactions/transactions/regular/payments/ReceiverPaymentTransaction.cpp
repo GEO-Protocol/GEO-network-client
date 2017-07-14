@@ -44,7 +44,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
     noexcept
 {
-    //try {
+    try {
         switch (mStep) {
             case Stages::Receiver_CoordinatorRequestApproving:
                 return runInitialisationStage();
@@ -67,19 +67,10 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
                     "ReceiverPaymentTransaction::run(): "
                         "invalid stage number occurred");
         }
-//    } catch (...) {
-//        recover("Something happens wrong in method run(). Transaction will be recovered");
-//    }
-}
-
-pair<BytesShared, size_t> ReceiverPaymentTransaction::serializeToBytes()
-{
-    throw ValueError("Not implemented");
-}
-
-void ReceiverPaymentTransaction::deserializeFromBytes(BytesShared buffer)
-{
-    throw ValueError("Not implemented");
+    } catch (Exception &e) {
+        error() << e.what();
+        recover("Something happens wrong in method run(). Transaction will be recovered");
+    }
 }
 
 const string ReceiverPaymentTransaction::logHeader() const
@@ -281,7 +272,11 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
         return runVotesCheckingStage();
     }
     if (!contextIsValid(Message::MessageType::Payments_TTLProlongation)) {
-        return reject("No participants votes message received. Transaction was closed. Rolling Back");
+        if (mTransactionIsVoted) {
+            return recover("No participants votes message with all votes received.");
+        } else {
+            return reject("No participants votes message received. Transaction was closed. Rolling Back");
+        }
     }
     // transactions is still alive and we continue waiting for messages
     clearContext();
@@ -294,9 +289,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
 {
-    launchThreeCyclesClosingTransactions();
     BasePaymentTransaction::approve();
-    savePaymentOperationIntoHistory();
+    runBuildThreeNodesCyclesSignal();
     return resultDone();
 }
 
@@ -313,16 +307,14 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory()
             *mTrustLines->totalBalance().get()));
 }
 
-void ReceiverPaymentTransaction::launchThreeCyclesClosingTransactions()
+void ReceiverPaymentTransaction::runBuildThreeNodesCyclesSignal()
 {
+    vector<NodeUUID> contractorsUUID;
+    contractorsUUID.reserve(mReservations.size());
     for (auto const nodeUUIDAndReservations : mReservations) {
-        const auto kTransaction = make_shared<CyclesThreeNodesInitTransaction>(
-            currentNodeUUID(),
-            nodeUUIDAndReservations.first,
-            mTrustLines,
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-        launchSubsidiaryTransaction(kTransaction);
+        contractorsUUID.push_back(
+            nodeUUIDAndReservations.first);
     }
+    mBuildCycleThreeNodesSignal(
+        contractorsUUID);
 }

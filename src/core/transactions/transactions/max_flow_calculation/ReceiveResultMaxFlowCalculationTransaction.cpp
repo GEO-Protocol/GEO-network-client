@@ -52,11 +52,6 @@ TransactionResult::SharedConst ReceiveResultMaxFlowCalculationTransaction::run()
                 mMessage->senderUUID,
                 incomingFlow.second));
     }
-
-#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "run\t" << "afterInsert mapTrustLinesCount: " << mMaxFlowCalculationTrustLineManager->trustLinesCounts();
-    mMaxFlowCalculationTrustLineManager->printTrustLines();
-#endif
     return resultDone();
 }
 

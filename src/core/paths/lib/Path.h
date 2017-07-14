@@ -32,9 +32,15 @@ public:
 
     bool containsIntermediateNodes() const;
 
-    int positionOfNode(const NodeUUID &nodeUUID) const;
+    int positionOfNode(
+        const NodeUUID &nodeUUID) const;
+
+    bool containsTrustLine(
+        const NodeUUID &source,
+        const NodeUUID &destination) const;
 
     const size_t length() const;
+
     const string toString() const;
 
     friend bool operator== (

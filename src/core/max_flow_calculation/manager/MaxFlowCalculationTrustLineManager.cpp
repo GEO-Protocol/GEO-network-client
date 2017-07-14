@@ -108,19 +108,8 @@ void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts()
 
 bool MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
 {
-   bool isTrustLineWasDeleted = false;
-#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "deleteLegacyTrustLines\t" << "delete legacy trustLines set";
-    info() << "deleteLegacyTrustLines\t" << "mapTrustLinesCount: " << trustLinesCounts();
-
-    printTrustLines();
-
-    info() << "deleteLegacyTrustLines\t" << "deleteion";
-#endif
+    bool isTrustLineWasDeleted = false;
     for (auto &timeAndTrustLineWithPtr : mtTrustLines) {
-#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "deleteLegacyTrustLines\t" << "time created: " << timeAndTrustLineWithPtr.first;
-#endif
         if (utc_now() - timeAndTrustLineWithPtr.first > kResetTrustLinesDuration()) {
             auto trustLineWithPtr = timeAndTrustLineWithPtr.second;
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION

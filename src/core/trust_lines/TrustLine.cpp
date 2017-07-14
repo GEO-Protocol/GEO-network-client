@@ -126,7 +126,6 @@ ConstSharedTrustLineAmount TrustLine::availableOutgoingAmount() const
     if (mBalance < kZeroBalance() && absoluteBalanceAmount(mBalance) > mIncomingTrustAmount) {
         return make_shared<const TrustLineAmount>(0);
     }
-
     return make_shared<const TrustLineAmount>(
         mIncomingTrustAmount + mBalance);
 }
@@ -139,7 +138,6 @@ ConstSharedTrustLineAmount TrustLine::availableIncomingAmount() const
     if (mBalance > kZeroBalance() && absoluteBalanceAmount(mBalance) > mOutgoingTrustAmount) {
         return make_shared<const TrustLineAmount>(0);
     }
-
     return make_shared<const TrustLineAmount>(
         mOutgoingTrustAmount - mBalance);
 }

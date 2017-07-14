@@ -30,15 +30,7 @@ public:
 
     IOTransaction::Shared beginTransaction();
 
-    RoutingTablesHandler* routingTablesHandler();
-
-    void backupStorageHandler();
-
     int applyMigrations(const NodeUUID &nodeUUID);
-
-// todo remove this debug method
-public:
-    sqlite3 *getConnection();
 
 private:
     static void checkDirectory(

@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_CYCLECLOSERINTERMEDIATENODETRANSACTION_H
 
 #include "base/BasePaymentTransaction.h"
+#include "../../../../cycles/CyclesManager.h"
 
 class CycleCloserIntermediateNodeTransaction : public BasePaymentTransaction {
 
@@ -14,6 +15,7 @@ public:
         const NodeUUID &currentNodeUUID,
         IntermediateNodeCycleReservationRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
+        CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &log);
@@ -22,6 +24,7 @@ public:
         BytesShared buffer,
         const NodeUUID &nodeUUID,
         TrustLinesManager* trustLines,
+        CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &log);
@@ -29,7 +32,9 @@ public:
     TransactionResult::SharedConst run()
     noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes();
+    const NodeUUID& coordinatorUUID() const;
+
+    const uint8_t cycleLength() const;
 
 protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
@@ -37,10 +42,12 @@ protected:
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
     TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
+    // run after waiting on releasing amount by rollbacking conflicted transaction
+    TransactionResult::SharedConst runCoordinatorRequestProcessingStageAgain();
+    TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
 
 protected:
-    void deserializeFromBytes(
-        BytesShared buffer);
+    void savePaymentOperationIntoHistory();
 
     const string logHeader() const;
 
@@ -50,6 +57,19 @@ protected:
     TrustLineAmount mLastReservedAmount;
     NodeUUID mCoordinator;
     uint8_t mCycleLength;
+
+    // fields, wor continue process coordinator request after releasing conflicted reservation
+    // transaction on which reservation we pretend
+    TransactionUUID mConflictedTransaction;
+    NodeUUID mNextNode;
+    NodeUUID mPreviousNode;
+    TrustLineAmount mReservationAmount;
+
+    // for resolving reservation conflicts
+    CyclesManager *mCyclesManager;
+
+private:
+    const uint16_t kWaitingForReleasingAmountMSec = 50;
 };
 
 

@@ -18,26 +18,26 @@ PaymentOperationStateHandler::PaymentOperationStateHandler(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::creating table: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("PaymentOperationStateHandler::creating table: "
-                          "Run query; sqlite error: " + rc);
+                          "Run query; sqlite error: " + to_string(rc));
     }
     query = "CREATE UNIQUE INDEX IF NOT EXISTS " + mTableName
             + "_transaction_uuid_idx on " + mTableName + " (transaction_uuid);";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::creating index for TransactionUUID: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("PaymentOperationStateHandler::creating index for TransactionUUID: "
-                          "Run query; sqlite error: " + rc);
+                          "Run query; sqlite error: " + to_string(rc));
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
@@ -48,34 +48,34 @@ void PaymentOperationStateHandler::saveRecord(
     BytesShared state,
     size_t stateBytesCount)
 {
-    string query = "INSERT INTO " + mTableName +
+    string query = "INSERT OR REPLACE INTO " + mTableName +
         " (transaction_uuid, state, state_bytes_count, recording_time) VALUES(?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of TransactionUUID; sqlite error: " + rc);
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 2, state.get(), (int)stateBytesCount, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of State; sqlite error: " + rc);
+                          "Bad binding of State; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 3, (int)stateBytesCount);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of State bytes count; sqlite error: " + rc);
+                          "Bad binding of State bytes count; sqlite error: " + to_string(rc));
     }
     GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(utc_now());
     rc = sqlite3_bind_int64(stmt, 4, timestamp);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Bad binding of Timestamp; sqlite error: " + rc);
+                          "Bad binding of Timestamp; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -85,8 +85,9 @@ void PaymentOperationStateHandler::saveRecord(
         info() << "prepare inserting is completed successfully";
 #endif
     } else {
+        error() << "PaymentOperationStateHandler::insert: Run query; sqlite error: " << rc;
         throw IOError("PaymentOperationStateHandler::insert: "
-                          "Run query; sqlite error: " + rc);
+                          "Run query; sqlite error: " + to_string(rc));
     }
 }
 
@@ -98,12 +99,12 @@ void PaymentOperationStateHandler::deleteRecord(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::delete: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::delete: "
-                          "Bad binding of TransactionUUID; sqlite error: " + rc);
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -114,7 +115,7 @@ void PaymentOperationStateHandler::deleteRecord(
 #endif
     } else {
         throw IOError("PaymentOperationStateHandler::delete: "
-                          "Run query; sqlite error: " + rc);
+                          "Run query; sqlite error: " + to_string(rc));
     }
 }
 
@@ -126,12 +127,12 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::byTransaction(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::byTransaction: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("PaymentOperationStateHandler::byTransaction: "
-                          "Bad binding of TransactionUUID; sqlite error: " + rc);
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
@@ -154,15 +155,11 @@ pair<BytesShared, size_t> PaymentOperationStateHandler::byTransaction(
 
 LoggerStream PaymentOperationStateHandler::info() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.info(logHeader());
 }
 
 LoggerStream PaymentOperationStateHandler::error() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.error(logHeader());
 }
 

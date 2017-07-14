@@ -4,16 +4,16 @@ CyclesBaseFiveSixNodesInitTransaction::CyclesBaseFiveSixNodesInitTransaction(
     const TransactionType type,
     const NodeUUID &nodeUUID,
     TrustLinesManager *manager,
+    CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger) :
     BaseTransaction(
         type,
         nodeUUID,
         logger),
     mTrustLinesManager(manager),
-    mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mCyclesManager(cyclesManager),
+    mStorageHandler(storageHandler)
 {};
 
 TransactionResult::SharedConst CyclesBaseFiveSixNodesInitTransaction::run() {

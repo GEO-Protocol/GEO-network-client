@@ -506,14 +506,10 @@ void PathsManager::clearPathsCollection()
 
 LoggerStream PathsManager::info() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.info(logHeader());
 }
 
 const string PathsManager::logHeader() const
 {
-    stringstream s;
-    s << "[PathsManager]";
-    return s.str();
+    return "[PathsManager]";
 }

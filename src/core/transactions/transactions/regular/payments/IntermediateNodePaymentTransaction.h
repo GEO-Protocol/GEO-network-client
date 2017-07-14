@@ -1,11 +1,7 @@
 ﻿#ifndef INTERMEDIATENODEPAYMENTTRANSACTION_H
 #define INTERMEDIATENODEPAYMENTTRANSACTION_H
 
-
 #include "base/BasePaymentTransaction.h"
-#include "../../cycles/FourNodes/CyclesFourNodesInitTransaction.h"
-#include "../../cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
-
 
 class IntermediateNodePaymentTransaction:
     public BasePaymentTransaction {
@@ -34,8 +30,6 @@ public:
     TransactionResult::SharedConst run()
         noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes();
-
 protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
@@ -51,12 +45,11 @@ protected:
     TransactionResult::SharedConst approve();
 
 protected:
-    void launchFourCyclesClosingTransactions();
+    void runBuildFourNodesCyclesSignal();
 
-    void launchThreeCyclesClosingTransactions();
+    void runBuildThreeNodesCyclesSignal();
 
-    void deserializeFromBytes(
-        BytesShared buffer);
+    void savePaymentOperationIntoHistory();
 
     const string logHeader() const;
 
@@ -66,6 +59,9 @@ protected:
     TrustLineAmount mLastReservedAmount;
     NodeUUID mCoordinator;
     PathUUID mLastProcessedPath;
+
+    // used for history saving of total amount during transaction
+    TrustLineAmount mTotalReservedAmount;
 };
 
 

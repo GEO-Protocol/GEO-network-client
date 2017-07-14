@@ -15,10 +15,13 @@ public:
         const NodeUUID& senderUUID,
         const TransactionUUID& transactionUUID,
         const TrustLineAmount& amount,
+        const NodeUUID& coordinatorUUID,
         uint8_t cucleLength);
 
     IntermediateNodeCycleReservationRequestMessage(
         BytesShared buffer);
+
+    const NodeUUID& coordinatorUUID() const;
 
     uint8_t cycleLength() const;
 
@@ -30,6 +33,7 @@ protected:
 
 protected:
     uint8_t mCycleLength;
+    NodeUUID mCoordinatorUUID;
 };
 
 

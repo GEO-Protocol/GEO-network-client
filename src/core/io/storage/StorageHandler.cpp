@@ -52,11 +52,6 @@ sqlite3* StorageHandler::connection(
     return mDBConnection;
 }
 
-RoutingTablesHandler* StorageHandler::routingTablesHandler()
-{
-    return &mRoutingTablesHandler;
-}
-
 IOTransaction::Shared StorageHandler::beginTransaction()
 {
 
@@ -103,47 +98,4 @@ int StorageHandler::applyMigrations(const NodeUUID &nodeUUID) {
         ioTransaction->rollback();
         return -1;
     }
-}
-
-void StorageHandler::backupStorageHandler()
-{
-    string destinationDBName = "storageDBBackup";
-    string directory = "io";
-    sqlite3_backup *sql3Backup;
-    sqlite3 *destinationDB;
-    string dataBasePath = directory + "/" + destinationDBName;
-    int rc = sqlite3_open_v2(dataBasePath.c_str(), &destinationDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-
-    if (rc == SQLITE_OK) {
-    } else {
-        throw IOError("StorageHandler::connection "
-                              "Can't open database " + destinationDBName);
-    }
-
-    sql3Backup = sqlite3_backup_init(
-            destinationDB,
-            "main",
-            connection(mDataBaseName, mDirectory),
-            "main");
-
-    if (sql3Backup == NULL ){
-        error() << sqlite3_errmsg(destinationDB);
-        return;
-    }
-
-    if(sqlite3_backup_step(sql3Backup, -1) != SQLITE_DONE){
-        error() << sqlite3_errmsg(destinationDB);
-        return;
-    }
-
-    if(sqlite3_backup_finish(sql3Backup) != SQLITE_OK ){
-        error() << sqlite3_errmsg(destinationDB);
-        return;
-    };
-
-    info() << "Successfully create dump" << endl;
-}
-
-sqlite3 *StorageHandler::getConnection() {
-    return connection(mDataBaseName, mDirectory);
 }

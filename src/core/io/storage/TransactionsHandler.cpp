@@ -17,7 +17,7 @@ TransactionsHandler::TransactionsHandler(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::creating table: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
@@ -29,13 +29,13 @@ TransactionsHandler::TransactionsHandler(
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::creating index for TransactionUUID: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
     } else {
         throw IOError("TransactionsHandler::creating index for TransactionUUID: "
-                          "Run query; sqlite error: " + rc);
+                          "Run query; sqlite error: " + to_string(rc));
     }
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
@@ -52,22 +52,22 @@ void TransactionsHandler::saveRecord(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::insert or replace: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::insert or replace: "
-                          "Bad binding of TransactionUUID; sqlite error: " + rc);
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 2, transaction.get(), (int)transactionBytesCount, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::insert or replace: "
-                          "Bad binding of Transaction body; sqlite error: " + rc);
+                          "Bad binding of Transaction body; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_int(stmt, 3, (int)transactionBytesCount);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::insert or replace: "
-                          "Bad binding of Transaction bytes count; sqlite error: " + rc);
+                          "Bad binding of Transaction bytes count; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -78,7 +78,7 @@ void TransactionsHandler::saveRecord(
 #endif
     } else {
         throw IOError("TransactionsHandler::insert or replace: "
-                          "Run query; sqlite error: " + rc);
+                          "Run query; sqlite error: " + to_string(rc));
     }
 }
 
@@ -90,12 +90,12 @@ void TransactionsHandler::deleteRecord(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::delete: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::delete: "
-                          "Bad binding of TransactionUUID; sqlite error: " + rc);
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
@@ -106,7 +106,7 @@ void TransactionsHandler::deleteRecord(
 #endif
     } else {
         throw IOError("PaymentOperationStateHandler::delete: "
-                          "Run query; sqlite error: " + rc);
+                          "Run query; sqlite error: " + to_string(rc));
     }
 }
 
@@ -119,12 +119,12 @@ pair<BytesShared, size_t> TransactionsHandler::getTransaction(
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::getTransaction: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::getTransaction: "
-                          "Bad binding of TransactionUUID; sqlite error: " + rc);
+                          "Bad binding of TransactionUUID; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
@@ -152,7 +152,7 @@ vector<pair<BytesShared, size_t>> TransactionsHandler::allTransactions()
     int rc = sqlite3_prepare_v2( mDataBase, queryCount.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::allTransactions: "
-                          "Bad count query; sqlite error: " + rc);
+                          "Bad count query; sqlite error: " + to_string(rc));
     }
     sqlite3_step(stmt);
     uint32_t rowCount = (uint32_t)sqlite3_column_int(stmt, 0);
@@ -165,7 +165,7 @@ vector<pair<BytesShared, size_t>> TransactionsHandler::allTransactions()
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TransactionsHandler::allTransactions: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         size_t stateBytesCount = (size_t) sqlite3_column_int(stmt, 1);
@@ -187,15 +187,11 @@ vector<pair<BytesShared, size_t>> TransactionsHandler::allTransactions()
 
 LoggerStream TransactionsHandler::info() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.info(logHeader());
 }
 
 LoggerStream TransactionsHandler::error() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.error(logHeader());
 }
 

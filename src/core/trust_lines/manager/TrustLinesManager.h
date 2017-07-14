@@ -137,11 +137,13 @@ public:
         const NodeUUID &contractor) const;
 
     // available outgoing amount considering reservations for cycles
-    ConstSharedTrustLineAmount availableOutgoingCycleAmount(
+    // returns 2 values: 1) amount considering reservations, 2) amount don't considering reservations
+    pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableOutgoingCycleAmounts(
         const NodeUUID &contractor) const;
 
     // available incoming amount considering reservations for cycles
-    ConstSharedTrustLineAmount availableIncomingCycleAmount(
+    // returns 2 values: 1) amount considering reservations, 2) amount don't considering reservations
+    pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableIncomingCycleAmounts(
         const NodeUUID &contractor) const;
 
     ConstSharedTrustLineAmount totalOutgoingAmount()
@@ -149,6 +151,14 @@ public:
 
     ConstSharedTrustLineAmount totalIncomingAmount()
         const throw (bad_alloc);
+
+    // get all reservations (all transactions) to requested contractor
+    vector<AmountReservation::ConstShared> reservationsToContractor(
+        const NodeUUID &contractorUUID) const;
+
+    // get all reservations (all transactions) from requested contractor
+    vector<AmountReservation::ConstShared> reservationsFromContractor(
+        const NodeUUID &contractorUUID) const;
 
     const bool trustLineIsPresent (
         const NodeUUID &contractorUUID) const;
@@ -222,6 +232,10 @@ public:
 
     // TODO remove after testing
     void printRTs();
+
+    // TODO remove after testing
+    // this method is used for testing closing cycles
+    pair<TrustLineBalance, TrustLineBalance> debtAndCredit();
 
 protected:
     void loadTrustLinesFromDisk ()

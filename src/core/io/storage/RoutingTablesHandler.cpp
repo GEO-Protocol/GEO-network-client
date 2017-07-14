@@ -23,12 +23,12 @@ vector<NodeUUID> RoutingTablesHandler::subRoutesSecondLevel(
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesSecondLevel: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesSecondLevel: "
-                          "Bad Destination binding; sqlite error: " + rc);
+                          "Bad Destination binding; sqlite error: " + to_string(rc));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source((uint8_t*)sqlite3_column_blob(stmt, 0));
@@ -55,22 +55,22 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelContra
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad foundUUID binding; sqlite error: " + rc);
+                          "Bad foundUUID binding; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 2, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad contractorUUID binding; sqlite error: " + rc);
+                          "Bad contractorUUID binding; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 3, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad sourceUUID binding; sqlite error: " + rc);
+                          "Bad sourceUUID binding; sqlite error: " + to_string(rc));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source2Level((uint8_t*)sqlite3_column_blob(stmt, 0));
@@ -97,12 +97,12 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevel(
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, foundUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad foundUUID binding; sqlite error: " + rc);
+                          "Bad foundUUID binding; sqlite error: " + to_string(rc));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source2Level((uint8_t*)sqlite3_column_blob(stmt, 0));
@@ -133,32 +133,32 @@ vector<pair<NodeUUID, NodeUUID>> RoutingTablesHandler::subRoutesThirdLevelWithFo
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad query; sqlite error: " + rc);
+                          "Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 1, foundUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad foundUUID binding; sqlite error: " + rc);
+                          "Bad foundUUID binding; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 2, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad contractorUUID binding; sqlite error: " + rc);
+                          "Bad contractorUUID binding; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 3, foundUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad foundUUID binding; sqlite error: " + rc);
+                          "Bad foundUUID binding; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 4, sourceUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad sourceUUID binding; sqlite error: " + rc);
+                          "Bad sourceUUID binding; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_bind_blob(stmt, 5, contractorUUID.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("RoutingTableHandler::subRoutesThirdLevel: "
-                          "Bad sourceUUID binding; sqlite error: " + rc);
+                          "Bad sourceUUID binding; sqlite error: " + to_string(rc));
     }
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID source2Level((uint8_t*)sqlite3_column_blob(stmt, 0));
@@ -266,15 +266,11 @@ map<const NodeUUID, vector<NodeUUID>> RoutingTablesHandler::routeRecordsMapSourc
 
 LoggerStream RoutingTablesHandler::info() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.info(logHeader());
 }
 
 LoggerStream RoutingTablesHandler::error() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.error(logHeader());
 }
 

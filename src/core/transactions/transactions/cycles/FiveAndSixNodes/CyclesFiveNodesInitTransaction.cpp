@@ -30,15 +30,15 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
 CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
     const NodeUUID &nodeUUID,
     TrustLinesManager *manager,
+    CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger) :
     CyclesBaseFiveSixNodesInitTransaction(
         BaseTransaction::TransactionType::Cycles_FiveNodesInitTransaction,
         nodeUUID,
         manager,
+        cyclesManager,
         storageHandler,
-        maxFlowCalculationCacheManager,
         logger)
 {};
 
@@ -46,6 +46,7 @@ CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(
 #pragma clang diagnostic ignored "-Wconversion"
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAndCreateCyclesStage()
 {
+    debug() << "runParseMessageAndCreateCyclesStage";
     if (mContext.size() == 0) {
         info() << "No responses messages are present. Can't create cycles paths";
         return resultDone();
@@ -114,24 +115,12 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
                     mNodeUUID,
                     mNodeUUID,
                     stepCyclePath);
-                const auto kTransaction = make_shared<CycleCloserInitiatorTransaction>(
-                    mNodeUUID,
-                    cyclePath,
-                    mTrustLinesManager,
-                    mStorageHandler,
-                    mMaxFlowCalculationCacheManager,
-                    mLog
-                );
-                launchSubsidiaryTransaction(kTransaction);
-//                auto sCycle = make_shared<vector<NodeUUID>>(stepCyclePath);
-//                closeCycleSignal(sCycle);
+                mCyclesManager->addCycle(
+                    cyclePath);
 
                 #ifdef TESTS
                     ResultCycles.push_back(stepCyclePath);
                 #endif
-                // Todo run cycles
-                // Потрібно ставити первірку на доречність перекриття цилів
-                // Ця транакція має верта нам дані про те через який трастлайн неможна зробити перерозрахунок
             }
         }
     }
@@ -145,6 +134,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
     debug() << "CyclesFiveNodesInitTransaction::End";
     #endif
     mContext.clear();
+    mCyclesManager->closeOneCycle();
     return resultDone();
 }
 #pragma clang diagnostic pop

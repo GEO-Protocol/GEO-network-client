@@ -70,14 +70,27 @@ bool Path::containsIntermediateNodes() const
     return nodes.size() > 2;
 }
 
-int Path::positionOfNode(const NodeUUID &nodeUUID) const
+int Path::positionOfNode(
+    const NodeUUID &nodeUUID) const
 {
-    for (int nodeIdx = 0; nodeIdx < nodes.size(); nodeIdx++) {
+    for (size_t nodeIdx = 0; nodeIdx < nodes.size(); nodeIdx++) {
         if (nodes.at(nodeIdx) == nodeUUID) {
-            return nodeIdx;
+            return (int)nodeIdx;
         }
     }
     return -1;
+}
+
+bool Path::containsTrustLine(
+    const NodeUUID &source,
+    const NodeUUID &destination) const
+{
+    for (size_t nodeIdx = 0; nodeIdx < nodes.size() - 1; nodeIdx++) {
+        if (nodes.at(nodeIdx) == source && nodes.at(nodeIdx + 1) == destination) {
+            return true;
+        }
+    }
+    return false;
 }
 
 const string Path::toString() const

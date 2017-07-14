@@ -282,8 +282,6 @@ void SolomonHistoryMigration::updatePaymentsRecords(
     IOTransaction::Shared ioTransaction,
     vector<PaymentRecord::Shared> paymentsRecordsToUpdate)
 {
-    cout << "Payments records to update" << endl;
-    cout << paymentsRecordsToUpdate.size() << endl;
     for(auto record: paymentsRecordsToUpdate){
         stringstream ss;
         sqlite3_stmt *stmt;
@@ -300,8 +298,6 @@ void SolomonHistoryMigration::updatePaymentsRecords(
 
         auto serializedPaymentRecordAndSize = serializedPaymentRecordBody(
             record);
-        ss << record->operationUUID() << "||" << record->balanceAfterOperation();
-        cout << ss.str() <<endl;
         rc = sqlite3_bind_blob(stmt, 1, serializedPaymentRecordAndSize.first.get(),
                                (int) serializedPaymentRecordAndSize.second, SQLITE_STATIC);
         if (rc != SQLITE_OK) {
