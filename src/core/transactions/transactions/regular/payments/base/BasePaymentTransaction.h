@@ -240,6 +240,10 @@ protected:
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;
     NodeUUID mCurrentNodeToCheckVotes;
+
+    // this field indicates that transaction should be rejected on voting stage
+    // it used for Receiver
+    bool mTransactionShouldBeRejected;
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

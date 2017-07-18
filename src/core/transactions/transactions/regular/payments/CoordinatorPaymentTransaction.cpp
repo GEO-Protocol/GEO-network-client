@@ -118,7 +118,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     return transactionResultFromState(
         TransactionState::waitForResourcesTypes(
             {BaseResource::ResourceType::Paths},
-            maxNetworkDelay(2)));
+            maxNetworkDelay(4)));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourceProcessingStage()
@@ -1039,6 +1039,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
                << "Amount reservation is impossible. Switching to another path.";
 
         pathStats->setUnusable();
+        dropReservationsOnPath(
+            pathStats,
+            mCurrentAmountReservingPathIdentifier);
         mStep = Stages::Coordinator_AmountReservation;
         return tryProcessNextPath();
     }

@@ -209,13 +209,18 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             kMessage->pathUUID(),
             ResponseMessage::Rejected);
 
-        return reject(
-            "Reserved amount is greater than requested. "
-            "It indicates protocol or realisation error. "
-            "Rolled back.");
+        error() << "Reserved amount is greater than requested. It indicates protocol or realisation error.";
+        // We should waiting for possible new messages and close transaction on timeout
+        return resultWaitForMessageTypes(
+            {Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongation},
+            maxNetworkDelay((kMaxPathLength - 1) * 4));
     }
 
     debug() << "Reserved locally: " << kMessage->amount();
+
+    // todo: remove after testing
+    if (kNeighbor.stringUUID() != "9e2e8dff-a102-449a-92aa-f6be725be291")
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
         currentNodeUUID(),
@@ -233,7 +238,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes},
+            {Message::Payments_ParticipantsVotes,
+            Message::Payments_IntermediateNodeReservationRequest},
             maxNetworkDelay(kMaxPathLength - 1));
 
     } else {
@@ -247,6 +253,28 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()
 {
+    debug() << "runVotesCheckingStageWithCoordinatorClarification";
+    if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
+        // This case can happens when on previous stages Receiver reserved some amount
+        // and Coordinator didn't receive approve message. Coordinator try reserve it again.
+        // We should reject this transaction on voting stage
+        error() << "Receiver already reserved all requested amount. "
+                      "It indicates protocol error.";
+        mTransactionShouldBeRejected = true;
+        const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
+
+        sendMessage<IntermediateNodeReservationResponseMessage>(
+            kMessage->senderUUID,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            kMessage->pathUUID(),
+            ResponseMessage::Rejected);
+
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes,
+             Message::Payments_IntermediateNodeReservationRequest},
+            maxNetworkDelay(kMaxPathLength - 1));
+    }
     if (contextIsValid(Message::Payments_ParticipantsVotes, false)) {
         return runVotesCheckingStage();
     }

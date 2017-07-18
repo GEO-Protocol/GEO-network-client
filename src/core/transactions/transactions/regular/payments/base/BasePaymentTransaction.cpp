@@ -16,7 +16,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr)
+    mParticipantsVotesMessage(nullptr),
+    mTransactionShouldBeRejected(false)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -37,7 +38,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr)
+    mParticipantsVotesMessage(nullptr),
+    mTransactionShouldBeRejected(false)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -211,6 +213,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
             {Message::Payments_ParticipantsVotes},
             maxNetworkDelay(
                 mParticipantsVotesMessage->participantsCount())); // ToDo: kMessage->participantsCount() must not be used (it is invalid)
+    }
+
+    if (mTransactionShouldBeRejected) {
+        // this case can happens only with Receiver,
+        // when coordinator wants to reserve greater then command amount
+        reject("Receiver rejected transaction because discrepancy reservations with Coordinator. Rolling back.");
     }
 
 
@@ -779,7 +787,7 @@ void BasePaymentTransaction::dropReservationsOnPath(
     PathUUID pathUUID)
 {
     debug() << "dropReservationsOnPath";
-    pathStats->shortageMaxFlow(0);
+    pathStats->setUnusable();
 
     auto firstIntermediateNode = pathStats->path()->nodes[1];
     // TODO add checking if not find
@@ -801,6 +809,10 @@ void BasePaymentTransaction::dropReservationsOnPath(
         mReservations.erase(firstIntermediateNode);
     }
 
+    // send message with droping reservation instruction to all intermediate nodes because this path is unusable
+    if (pathStats->path()->length() == 2) {
+        return;
+    }
     const auto lastProcessedNodeAndPos = pathStats->currentIntermediateNodeAndPos();
     const auto lastProcessedNode = lastProcessedNodeAndPos.first;
     debug() << "current node " << lastProcessedNode;
