@@ -102,7 +102,7 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
     }
     throw NotFoundError(
         "TransactionsScheduler::handleMessage: "
-            "invalid/unexpected message/response received [" + to_string(message->typeID()) + "]");
+            "invalid/unexpected message/response received");
 
 }
 

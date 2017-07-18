@@ -250,6 +250,28 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
     const auto kContractor = kMessage->senderUUID;
 
+    if (kMessage->state() == IntermediateNodeReservationResponseMessage::Closed) {
+        // Receiver reject reservation and Coordinator should close transaction
+        sendMessage<CoordinatorReservationResponseMessage>(
+            mCoordinator,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            kMessage->pathUUID(),
+            ResponseMessage::Closed);
+        debug() << "Amount reservation closed by the Reciever node.";
+        rollBack(kMessage->pathUUID());
+        // if no reservations close transaction
+        if (mReservations.size() == 0) {
+            debug() << "There are no reservations. Transaction closed.";
+            return resultDone();
+        }
+        mStep = Stages::IntermediateNode_ReservationProlongation;
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes,
+             Message::Payments_IntermediateNodeReservationRequest},
+            maxNetworkDelay((kMaxPathLength - 2) * 4));
+    }
+
     if (kMessage->state() == IntermediateNodeReservationResponseMessage::Rejected){
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,

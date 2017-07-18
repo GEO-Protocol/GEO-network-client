@@ -16,8 +16,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr),
-    mTransactionShouldBeRejected(false)
+    mParticipantsVotesMessage(nullptr)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -38,8 +37,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr),
-    mTransactionShouldBeRejected(false)
+    mParticipantsVotesMessage(nullptr)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -214,13 +212,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
             maxNetworkDelay(
                 mParticipantsVotesMessage->participantsCount())); // ToDo: kMessage->participantsCount() must not be used (it is invalid)
     }
-
-    if (mTransactionShouldBeRejected) {
-        // this case can happens only with Receiver,
-        // when coordinator wants to reserve greater then command amount
-        reject("Receiver rejected transaction because discrepancy reservations with Coordinator. Rolling back.");
-    }
-
 
     if (mParticipantsVotesMessage->containsRejectVote()) {
         // Some node rejected the transaction.
