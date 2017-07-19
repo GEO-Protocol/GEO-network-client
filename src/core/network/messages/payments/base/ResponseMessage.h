@@ -12,6 +12,8 @@ public:
     enum OperationState {
         Accepted = 1,
         Rejected = 2,
+        // used for immediately closing transaction
+        Closed = 3
     };
 
 public:

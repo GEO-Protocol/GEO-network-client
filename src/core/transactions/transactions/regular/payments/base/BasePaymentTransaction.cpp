@@ -213,7 +213,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
                 mParticipantsVotesMessage->participantsCount())); // ToDo: kMessage->participantsCount() must not be used (it is invalid)
     }
 
-
     if (mParticipantsVotesMessage->containsRejectVote()) {
         // Some node rejected the transaction.
         // This node must simply roll back it's part of transaction and exit.
@@ -677,10 +676,11 @@ void BasePaymentTransaction::propagateVotesMessageToAllParticipants (
     const auto kCurrentNodeUUID = currentNodeUUID();
 
     auto participant = kMessage->firstParticipant();
-    if (participant != kCurrentNodeUUID)
+    if (participant != kCurrentNodeUUID) {
         sendMessage(
             participant,
             kMessage);
+    }
 
     for (;;) {
         try {
@@ -781,7 +781,7 @@ void BasePaymentTransaction::dropReservationsOnPath(
     PathUUID pathUUID)
 {
     debug() << "dropReservationsOnPath";
-    pathStats->shortageMaxFlow(0);
+    pathStats->setUnusable();
 
     auto firstIntermediateNode = pathStats->path()->nodes[1];
     // TODO add checking if not find
@@ -803,6 +803,10 @@ void BasePaymentTransaction::dropReservationsOnPath(
         mReservations.erase(firstIntermediateNode);
     }
 
+    // send message with droping reservation instruction to all intermediate nodes because this path is unusable
+    if (pathStats->path()->length() == 2) {
+        return;
+    }
     const auto lastProcessedNodeAndPos = pathStats->currentIntermediateNodeAndPos();
     const auto lastProcessedNode = lastProcessedNodeAndPos.first;
     debug() << "current node " << lastProcessedNode;

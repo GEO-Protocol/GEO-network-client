@@ -34,6 +34,7 @@ TransactionsManager::TransactionsManager(
             mLog)),
     mCyclesManager(
         new CyclesManager(
+            mNodeUUID,
             mScheduler.get(),
             mIOService,
             mLog))

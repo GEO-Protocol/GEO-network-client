@@ -1,10 +1,12 @@
 #include "CyclesManager.h"
 
 CyclesManager::CyclesManager(
+    const NodeUUID &nodeUUID,
     TransactionsScheduler *transactionsScheduler,
     as::io_service &ioService,
     Logger &logger) :
 
+    mNodeUUID(nodeUUID),
     mTransactionScheduler(transactionsScheduler),
     mIOService(ioService),
     mLog(logger),
@@ -12,11 +14,11 @@ CyclesManager::CyclesManager(
 {
     mCurrentCycleClosingState = CycleClosingState::ThreeNodes;
 
-    srand(time(NULL));
-    int timeStarted = rand() % 60 * 60 * 6;
-//#ifdef TESTS
-    timeStarted = 60;
-//#endif
+    srand(randomInitializer());
+    int timeStarted = rand() % (60 * 60 * 6);
+#ifdef TESTS
+    timeStarted = 20;
+#endif
     mFiveNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
     mFiveNodesCycleTimer->expires_from_now(
@@ -27,10 +29,10 @@ CyclesManager::CyclesManager(
             &CyclesManager::runSignalFiveNodes,
             this,
             as::placeholders::error));
-    timeStarted = rand() % 60 * 60 * 6;
-//#ifdef TESTS
-    timeStarted = 60;
-//#endif
+    timeStarted = rand() % (60 * 60 * 6);
+#ifdef TESTS
+    timeStarted = 20;
+#endif
     mSixNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
     mSixNodesCycleTimer->expires_from_now(
@@ -351,6 +353,16 @@ void CyclesManager::clearClosedCycles()
             offlineNode,
             mSixNodesCycles);
     }
+}
+
+uint32_t CyclesManager::randomInitializer() const
+{
+    uint32_t result = 0;
+    for (int i=0; i < NodeUUID::kBytesSize; i++) {
+        result = result << 2;
+        result |= (mNodeUUID.data[i] & 0x3);
+    }
+    return result;
 }
 
 LoggerStream CyclesManager::info() const

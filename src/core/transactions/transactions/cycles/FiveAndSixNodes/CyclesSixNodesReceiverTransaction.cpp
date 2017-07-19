@@ -39,7 +39,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
                 mInBetweenNodeTopologyMessage
             );
     }
-    if (kCurrentDepth==2){
+    else if (kCurrentDepth==2){
         path.push_back(mNodeUUID);
         sendMessage<CyclesSixNodesBoundaryMessage>(
             path.front(),
@@ -48,7 +48,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
         );
     }
     else {
-        error() << "Wrong path size";
+        error() << "Wrong path size " << to_string(kCurrentDepth);
     }
     return resultDone();
 }
