@@ -40,7 +40,10 @@ public:
     void rollback();
 
 private:
+
     void commit();
+
+    void beginTransactionQuery();
 
     LoggerStream info() const;
 

@@ -60,6 +60,9 @@ public:
         size_t recordsCount,
         size_t fromRecord);
 
+    const string mainTableName() const;
+    const string additionalTableName() const;
+
 private:
     void savePaymentMainRecord(
         PaymentRecord::Shared record);

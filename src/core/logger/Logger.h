@@ -5,50 +5,49 @@
 #include "../common/time/TimeUtils.h"
 #include "../common/NodeUUID.h"
 
-
-#include <boost/asio.hpp>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <boost/asio/steady_timer.hpp>
-#include <boost/bind.hpp>
-#include <queue>
+
 
 using namespace std;
-namespace as = boost::asio;
-using as::ip::tcp;
 
-typedef vector<pair<string,string>> addInfoType;
 
 class Logger;
+
+/**
+ * Logger stream is used as interface for the logger.
+ * It collects information
+ */
 class LoggerStream:
     public stringstream {
 
 public:
     enum StreamType {
         Standard = 0,
+
+        // Used into the transactions.
+        // Helps distinquish transactions log from other logs flows.
         Transaction,
-        Dummy
+
+        //...
+        // Other logs types must be located here
+
+        // Dummy logger is used in configurations,
+        // where no log records should be issued,
+        // but the logger structure is required by some type of signature(s).
+        Dummy,
     };
 
 public:
-    // Dummy logger
-    explicit LoggerStream();
-
     explicit LoggerStream(
         Logger *logger,
         const string &group,
         const string &subsystem,
         const StreamType type = Standard);
 
-    explicit LoggerStream(
-        Logger *logger,
-        const string &group,
-        const string &subsystem,
-        addInfoType &addinfo,
-        const StreamType type = Standard);
-
-    LoggerStream(const LoggerStream &other);
+    LoggerStream(
+        const LoggerStream &other);
 
     ~LoggerStream();
 
@@ -56,11 +55,9 @@ public:
 
 private:
     Logger *mLogger;
-    const addInfoType mAddInfo;
     const string mGroup;
     const string mSubsystem;
     const StreamType mType;
-    const string mLogfile = "operations.log";
 };
 
 
@@ -68,7 +65,8 @@ class Logger {
     friend class LoggerStream;
 
 public:
-    Logger(const NodeUUID &nodeUUID);
+    Logger(
+        const NodeUUID &nodeUUID);
 
     void logException(
         const string &subsystem,
@@ -83,35 +81,27 @@ public:
     LoggerStream debug(
         const string &subsystem);
 
-    LoggerStream info(
-        const string &subsystem,
-        addInfoType &&addinfo);
-
-    LoggerStream error(
-        const string &subsystem,
-        addInfoType &&addinfo);
-
-    LoggerStream debug(
-        const string &subsystem,
-        addInfoType &&addinfo);
-
+    [[deprecated("Please, use info()")]]
     void logInfo(
         const string &subsystem,
         const string &message);
 
+    [[deprecated("Please, use info()")]]
     void logSuccess(
         const string &subsystem,
         const string &message);
 
+    [[deprecated("Please, use error()")]]
     void logError(
         const string &subsystem,
         const string &message);
 
+    [[deprecated("Please, use error()")]]
     void logFatal(
         const string &subsystem,
         const string &message);
 
-private:
+protected:
     const string formatMessage(
         const string &message) const;
 
@@ -121,13 +111,10 @@ private:
     void logRecord(
         const string &group,
         const string &subsystem,
-        const string &message,
-        const addInfoType &addinfo);
-
+        const string &message);
 
 private:
     NodeUUID mNodeUUID;
-
     std::ofstream mOperationsLogFile;
 };
 #endif //GEO_NETWORK_CLIENT_LOGGER_H
