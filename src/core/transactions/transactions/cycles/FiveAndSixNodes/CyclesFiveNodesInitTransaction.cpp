@@ -7,7 +7,6 @@ const BaseTransaction::TransactionType CyclesFiveNodesInitTransaction::transacti
 
 TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAndSendMessagesStage()
 {
-    return resultDone();
     debug() << "runCollectDataAndSendMessagesStage";
     vector<NodeUUID> firstLevelNodesNegativeBalance = mTrustLinesManager->firstLevelNeighborsWithNegativeBalance();
     vector<NodeUUID> firstLevelNodesPositiveBalance = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
@@ -80,9 +79,9 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
     }
     vector<NodeUUID> stepPathDebtors;
     //    Create Cycles comparing BoundaryMessages data with debtors map
-    #ifdef TESTS
+#ifdef TESTS
         vector<vector<NodeUUID>> ResultCycles;
-    #endif
+#endif
     TrustLineBalance debtorsStepFlow;
     TrustLineBalance commonStepMaxFlow;
     for(const auto &mess: mContext) {
@@ -119,13 +118,13 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
                 mCyclesManager->addCycle(
                     cyclePath);
 
-                #ifdef TESTS
+#ifdef TESTS
                     ResultCycles.push_back(stepCyclePath);
-                #endif
+#endif
             }
         }
     }
-    #ifdef TESTS
+#ifdef TESTS
     debug() << "CyclesSixNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size());
     for (vector<NodeUUID> KCyclePath: ResultCycles){
         stringstream ss;
@@ -133,7 +132,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runParseMessageAn
         debug() << "CyclesFiveNodesInitTransaction::CyclePath " << ss.str();
     }
     debug() << "CyclesFiveNodesInitTransaction::End";
-    #endif
+#endif
     mContext.clear();
     mCyclesManager->closeOneCycle();
     return resultDone();

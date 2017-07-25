@@ -7,7 +7,8 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger &log) :
+    Logger &log,
+    TestingController *testingController) :
 
     BasePaymentTransaction(
         BaseTransaction::IntermediateNodePaymentTransaction,
@@ -16,7 +17,8 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
-        log),
+        log,
+        testingController),
     mMessage(message),
     mTotalReservedAmount(0)
 {
@@ -29,14 +31,17 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger &log) :
-        BasePaymentTransaction(
-            buffer,
-            nodeUUID,
-            trustLines,
-            storageHandler,
-            maxFlowCalculationCacheManager,
-            log)
+    Logger &log,
+    TestingController *testingController) :
+
+    BasePaymentTransaction(
+        buffer,
+        nodeUUID,
+        trustLines,
+        storageHandler,
+        maxFlowCalculationCacheManager,
+        log,
+        testingController)
 {}
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
@@ -84,6 +89,12 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     const auto kNeighbor = mMessage->senderUUID;
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
     debug() << "Requested amount reservation: " << mMessage->amount();
+
+#ifdef TESTS
+    mTestingController->testForbidSendMessageToIntNodeOnReservationStage();
+    mTestingController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mTestingController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+#endif
 
     if (!mTrustLines->isNeighbor(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -139,6 +150,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         ResponseMessage::Accepted,
         kReservationAmount);
 
+#ifdef TESTS
+    mTestingController->turnOnNetwork();
+#endif
+
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationRequest},
@@ -151,12 +166,13 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     if (! contextIsValid(Message::Payments_CoordinatorReservationRequest))
         return reject("No coordinator request received. Rolled back.");
 
-
     debug() << "Coordinator further reservation request received.";
 
-
+#ifdef TESTS
+    mTestingController->testThrowExceptionOnCoordinatorRequestProcessingStage();
+    mTestingController->testTerminateProcessOnCoordinatorRequestProcessingStage();
+#endif
     // TODO: add check for previous nodes amount reservation
-
 
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
     const auto kNextNode = kMessage->nextNodeInPathUUID();
@@ -232,6 +248,13 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
 {
     debug() << "runNextNeighborResponseProcessingStage";
+
+#ifdef TESTS
+    mTestingController->testForbidSendMessageToCoordinatorOnReservationStage();
+    mTestingController->testThrowExceptionOnNextNeighborResponseProcessingStage();
+    mTestingController->testTerminateProcessOnNextNeighborResponseProcessingStage();
+#endif
+
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
         debug() << "No valid amount reservation response received. Rolled back.";
         rollBack(mLastProcessedPath);
@@ -316,6 +339,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         kMessage->pathUUID(),
         ResponseMessage::Accepted,
         mLastReservedAmount);
+
+#ifdef TESTS
+    mTestingController->turnOnNetwork();
+#endif
 
     mStep = Stages::Common_FinalPathConfigurationChecking;
     return resultWaitForMessageTypes(

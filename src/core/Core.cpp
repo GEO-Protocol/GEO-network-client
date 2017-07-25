@@ -5,11 +5,7 @@ Core::Core(
     noexcept:
 
     mCommandDescriptionPtr(pArgv)
-{
-#ifdef TESTS
-    testsNetworkIsEnabled = true;
-#endif
-}
+{}
 
 Core::~Core()
 {}
@@ -123,6 +119,13 @@ int Core::initSubsystems()
         return initCode;
 
     connectSignalsToSlots();
+
+#ifdef TESTS
+    initCode = initTestingController();
+    if (initCode != 0) {
+        return initCode;
+    }
+#endif
 
     return 0;
 }
@@ -258,7 +261,8 @@ int Core::initTransactionsManager()
             mResultsInterface.get(),
             mStorageHandler.get(),
             mPathsManager.get(),
-            *mLog.get());
+            *mLog.get(),
+            mTestingController.get());
         mLog->logSuccess("Core", "Transactions handler is successfully initialised");
         return 0;
 
@@ -338,6 +342,22 @@ int Core::initPathsManager()
         return -1;
     }
 }
+
+#ifdef TESTS
+int Core::initTestingController()
+{
+    try {
+        mTestingController = make_unique<TestingController>(
+            *mLog.get());
+        mLog->logSuccess("Core", "Testing controller is successfully initialized");
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+
+}
+#endif
 
 void Core::connectCommunicatorSignals()
 {
@@ -422,15 +442,9 @@ void Core::onCommandReceivedSlot (
         // this command only enables or disables network for the node,
         // and this may be simply done by filtering several slots in the core.
         auto toggleNetworkCommand = static_pointer_cast<ToggleNetworkCommand>(command);
-
-        testsNetworkIsEnabled = toggleNetworkCommand->isNetworkOn();
-
-        if (not testsNetworkIsEnabled) {
-            mLog->info("Core") << "Network switched OFF";
-
-        } else {
-            mLog->info("Core") << "Network switched ON";
-        }
+        mTestingController->setFlags(toggleNetworkCommand->flags());
+        mLog->logInfo("Core", "ToggleNetworkCommand processed");
+        return;
     }
 #endif
 
@@ -446,7 +460,7 @@ void Core::onMessageReceivedSlot(
     Message::Shared message)
 {
 #ifdef TESTS
-    if (not testsNetworkIsEnabled) {
+    if (not mTestingController->isNetworkOn()) {
         // Ignore incomming message in case if network was disabled.
         return;
     }
@@ -465,7 +479,7 @@ void Core::onMessageSendSlot(
     const NodeUUID &contractorUUID)
 {
 #ifdef TESTS
-    if (not testsNetworkIsEnabled) {
+    if (not mTestingController->isNetworkOn()) {
         // Ignore outgoing message in case if network was disabled.
         return;
     }

@@ -16,7 +16,7 @@ ToggleNetworkCommand::ToggleNetworkCommand(
             "Received command buffer is too short.");
     }
 
-    mIsNetworkOn = (commandBuffer[0] == '1');
+    mFlags = std::stoul(commandBuffer);
 }
 
 const string& ToggleNetworkCommand::identifier()
@@ -25,9 +25,9 @@ const string& ToggleNetworkCommand::identifier()
     return identifier;
 }
 
-bool ToggleNetworkCommand::isNetworkOn() const
+size_t ToggleNetworkCommand::flags() const
 {
-    return mIsNetworkOn;
+    return mFlags;
 }
 
 #endif

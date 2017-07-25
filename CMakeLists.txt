@@ -88,7 +88,7 @@ IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
         # Transactions
         -DDEBUG_LOG_TRUST_LINES_PROCESSING
         -DDEBUG_LOG_ROUTING_TABLES_PROCESSING
-        -DDEBUG_LOG_MAX_FLOW_CALCULATION
+        #-DDEBUG_LOG_MAX_FLOW_CALCULATION
         -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
@@ -160,7 +160,7 @@ set(SOURCE_FILES
         src/core/Core.h
 
         # libs
-        src/libs/json/json.h)
+        src/libs/json/json.h src/core/testing/TestingController.cpp src/core/testing/TestingController.h)
 
 add_executable(geo_network_client ${SOURCE_FILES})
 

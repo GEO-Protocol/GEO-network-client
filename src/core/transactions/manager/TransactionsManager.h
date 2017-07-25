@@ -107,6 +107,8 @@
 #include "../transactions/routing_tables/GetFirstRoutingTableTransaction.h"
 #include "../transactions/routing_tables/UpdateRoutingTablesTransaction.h"
 
+#include "../../testing/TestingController.h"
+
 #include <boost/signals2.hpp>
 
 #include <string>
@@ -130,7 +132,8 @@ public:
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
-        Logger &logger);
+        Logger &logger,
+        TestingController *testingController);
 
     void processCommand(
         BaseUserCommand::Shared command);
@@ -363,6 +366,8 @@ private:
     PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;
     Logger &mLog;
+
+    TestingController *mTestingController;
 
     unique_ptr<TransactionsScheduler> mScheduler;
     unique_ptr<CyclesManager> mCyclesManager;

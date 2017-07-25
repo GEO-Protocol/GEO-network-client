@@ -7,7 +7,8 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger &log) :
+    Logger &log,
+    TestingController *testingController) :
 
     BasePaymentTransaction(
         BaseTransaction::ReceiverPaymentTransaction,
@@ -16,7 +17,8 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
-        log),
+        log,
+        testingController),
     mMessage(message),
     mTotalReserved(0),
     mTransactionShouldBeRejected(false)
@@ -30,14 +32,17 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger &log) :
-        BasePaymentTransaction(
-            buffer,
-            nodeUUID,
-            trustLines,
-            storageHandler,
-            maxFlowCalculationCacheManager,
-            log)
+    Logger &log,
+    TestingController *testingController) :
+
+    BasePaymentTransaction(
+        buffer,
+        nodeUUID,
+        trustLines,
+        storageHandler,
+        maxFlowCalculationCacheManager,
+        log,
+        testingController)
 {
     deserializeFromBytes(buffer);
 }
@@ -46,6 +51,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
     noexcept
 {
     try {
+        debug() << "mStep: " << mStep;
         switch (mStep) {
             case Stages::Receiver_CoordinatorRequestApproving:
                 return runInitialisationStage();

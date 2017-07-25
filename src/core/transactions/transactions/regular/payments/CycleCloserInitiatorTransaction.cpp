@@ -7,8 +7,9 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger &log)
-    noexcept :
+    Logger &log,
+    TestingController *testingController)
+noexcept :
 
     BasePaymentTransaction(
         BaseTransaction::Payments_CycleCloserInitiatorTransaction,
@@ -16,7 +17,8 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
-        log),
+        log,
+        testingController),
     mCyclesManager(cyclesManager)
 {
     mStep = Stages::Coordinator_Initialisation;
@@ -30,8 +32,9 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger &log)
-    throw (bad_alloc) :
+    Logger &log,
+    TestingController *testingController)
+throw (bad_alloc) :
 
     BasePaymentTransaction(
         buffer,
@@ -39,7 +42,8 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
-        log),
+        log,
+        testingController),
     mCyclesManager(cyclesManager)
 {}
 

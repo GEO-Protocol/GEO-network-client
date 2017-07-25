@@ -8,10 +8,6 @@ const BaseTransaction::TransactionType CyclesSixNodesInitTransaction::transactio
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndSendMessagesStage()
 {
     debug() << "runCollectDataAndSendMessagesStage";
-    if (currentNodeUUID().stringUUID() != "9e2e8dff-a102-449a-92aa-f6be725be291") {
-        debug() << "reject this launch";
-        return resultDone();
-    }
     const auto firstLevelNodes = mTrustLinesManager->firstLevelNeighborsWithNoneZeroBalance();
     vector<NodeUUID> path;
     path.push_back(mNodeUUID);

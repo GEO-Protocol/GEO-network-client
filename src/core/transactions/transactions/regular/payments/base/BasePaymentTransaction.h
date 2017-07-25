@@ -30,6 +30,8 @@
 
 #include "PathStats.h"
 
+#include "../../../../../testing/TestingController.h"
+
 namespace signals = boost::signals2;
 
 // TODO: Add restoring of the reservations after transaction deserialization.
@@ -50,7 +52,8 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        TestingController *testingController);
 
     BasePaymentTransaction(
         const TransactionType type,
@@ -59,7 +62,8 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        TestingController *testingController);
 
     BasePaymentTransaction(
         BytesShared buffer,
@@ -67,7 +71,8 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        TestingController *testingController);
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
@@ -240,6 +245,9 @@ protected:
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;
     NodeUUID mCurrentNodeToCheckVotes;
+
+protected:
+    TestingController *mTestingController;
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

@@ -6,7 +6,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger &log) :
+    Logger &log,
+    TestingController *testingController) :
 
     BaseTransaction(
         type,
@@ -15,6 +16,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mTestingController(testingController),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -26,7 +28,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger &log) :
+    Logger &log,
+    TestingController *testingController) :
 
     BaseTransaction(
         type,
@@ -36,6 +39,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mTestingController(testingController),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -46,7 +50,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger &log) :
+    Logger &log,
+    TestingController *testingController) :
 
     BaseTransaction(
         buffer,
@@ -54,11 +59,13 @@ BasePaymentTransaction::BasePaymentTransaction(
         log),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mTestingController(testingController)
 {
+    cout << "Constructor mStep: " << mStep << endl;
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
     mStep = Stages::Common_Recovery;
-
+    cout << "Constructor mStep: " << mStep << endl;
     // mParticipantsVotesMessage
     size_t participantsVotesMessageBytesCount;
     memcpy(
@@ -167,6 +174,7 @@ BasePaymentTransaction::BasePaymentTransaction(
                 stepNodeUUID,
                 stepVector));
     }
+    cout << "constructor mStep: " << mStep << endl;
 }
 
 /*
@@ -238,6 +246,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
     debug() << "Voted +";
 
+#ifdef TESTS
+    mTestingController->testForbidSendMessageOnVoteStage();
+    mTestingController->testThrowExceptionOnVoteStage();
+    mTestingController->testTerminateProcessOnVoteStage();
+#endif
+
     try {
         // Try to get next participant from the message.
         // In case if this node is the last node in votes list -
@@ -255,6 +269,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
             kNewParticipantsVotesMessage);
 
         debug() << "Votes list message transferred to the (" << kNextParticipant << ")";
+
+#ifdef TESTS
+        mTestingController->turnOnNetwork();
+#endif
 
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
@@ -276,6 +294,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         sendMessage(
             kNewParticipantsVotesMessage->coordinatorUUID(),
             kNewParticipantsVotesMessage);
+
+#ifdef TESTS
+        mTestingController->turnOnNetwork();
+#endif
+
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
             maxNetworkDelay(3));
@@ -292,9 +315,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyCheckingStage()
 {
     debug() << "runVotesConsistencyCheckingStage";
-    if (currentNodeUUID().stringUUID() == "4397026a-1e4a-4542-a320-f1cc2f5b88b8") {
-        throw Exception("test exception");
-    }
     // this case can be only in Coordinator transaction.
     // Intermediate node or Receiver can send request if transaction is still alive.
     if (contextIsValid(Message::Payments_TTLProlongation, false)) {
@@ -337,14 +357,29 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     if (mParticipantsVotesMessage->achievedConsensus()){
         // In case if votes message received again -
 
+#ifdef TESTS
+        mTestingController->testForbidSendMessageOnVoteConsistencyStage();
+        mTestingController->testThrowExceptionOnVoteConsistencyStage();
+        mTestingController->testTerminateProcessOnVoteConsistencyStage();
+#endif
+
         if (currentNodeUUID() == mParticipantsVotesMessage->coordinatorUUID()) {
+
             debug() << "Coordinator received achieved consensus message.";
             mParticipantsVotesMessage->addParticipant(currentNodeUUID());
             mParticipantsVotesMessage->approve(currentNodeUUID());
             propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
+
+#ifdef TESTS
+            mTestingController->turnOnNetwork();
+#endif
+
             return approve();
         }
         debug() << "Votes list received. Consensus achieved.";
+#ifdef TESTS
+        mTestingController->turnOnNetwork();
+#endif
         return approve();
 
     } else {

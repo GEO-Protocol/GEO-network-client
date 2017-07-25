@@ -7,8 +7,9 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
-    Logger &log)
-    noexcept :
+    Logger &log,
+    TestingController *testingController)
+noexcept :
 
     BasePaymentTransaction(
         BaseTransaction::CoordinatorPaymentTransaction,
@@ -16,7 +17,8 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
-        log),
+        log,
+        testingController),
     mCommand(kCommand),
     mResourcesManager(resourcesManager),
     mReservationsStage(0),
@@ -32,16 +34,18 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
+    Logger &log,
+    TestingController *testingController)
+throw (bad_alloc) :
 
-    Logger &log)
-    throw (bad_alloc) :
     BasePaymentTransaction(
         buffer,
         nodeUUID,
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
-        log),
+        log,
+        testingController),
     mResourcesManager(resourcesManager)
 {}
 
@@ -91,7 +95,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     debug() << "Operation initialised to the node (" << mCommand->contractorUUID() << ")";
     debug() << "Command UUID: " << mCommand->UUID();
     debug() << "Operation amount: " << mCommand->amount();
-
 
     if (mCommand->contractorUUID() == currentNodeUUID()) {
         debug() << "Attempt to initialise operation against itself was prevented. Canceled.";

@@ -27,7 +27,8 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log)
+        Logger &log,
+        TestingController *testingController)
         noexcept;
 
     CycleCloserInitiatorTransaction(
@@ -37,7 +38,8 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log)
+        Logger &log,
+        TestingController *testingController)
         throw (bad_alloc);
 
     TransactionResult::SharedConst run()

@@ -28,6 +28,7 @@
 
 
 #include "network/messages/debug/DebugMessage.h"
+#include "testing/TestingController.h"
 
 
 #include <sys/prctl.h>
@@ -78,6 +79,10 @@ private:
     int initStorageHandler();
 
     int initPathsManager();
+
+#ifdef TESTS
+    int initTestingController();
+#endif
 
     void connectCommunicatorSignals();
 
@@ -145,10 +150,7 @@ protected:
     unique_ptr<PathsManager> mPathsManager;
 
 #ifdef TESTS
-    protected:
-    // Tests usable things.
-
-    bool testsNetworkIsEnabled;
+    unique_ptr<TestingController> mTestingController;
 #endif
 };
 

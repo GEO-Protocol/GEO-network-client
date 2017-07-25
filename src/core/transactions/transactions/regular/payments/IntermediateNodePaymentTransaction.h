@@ -17,7 +17,8 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        TestingController *testingController);
 
     IntermediateNodePaymentTransaction(
         BytesShared buffer,
@@ -25,7 +26,8 @@ public:
         TrustLinesManager* trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        TestingController *testingController);
 
     TransactionResult::SharedConst run()
         noexcept;

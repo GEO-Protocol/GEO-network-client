@@ -18,7 +18,8 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        TestingController *testingController);
 
     CycleCloserIntermediateNodeTransaction(
         BytesShared buffer,
@@ -27,7 +28,8 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        TestingController *testingController);
 
     TransactionResult::SharedConst run()
     noexcept;
