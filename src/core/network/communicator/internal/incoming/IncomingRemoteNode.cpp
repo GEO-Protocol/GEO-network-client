@@ -212,7 +212,7 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
     if (totalPacketsCount == 0
         || packetIndex > totalPacketsCount) {
 
-        // Invalid bytes flow occured.
+        // Invalid bytes flow occurred.
         dropEntireIncomingFlow();
 
         // ToDo: ban the node.

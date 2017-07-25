@@ -103,7 +103,7 @@ void TransactionsManager::loadTransactions()
                 break;
             }
             case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
-                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
+                auto transaction = make_shared<ReceiverPaymentTransaction>(
                     kTABufferAndSize.first,
                     mNodeUUID,
                     mTrustLines,
