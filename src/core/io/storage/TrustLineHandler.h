@@ -27,6 +27,8 @@ public:
 
     void deleteTrustLine(const NodeUUID &contractorUUID);
 
+    const string &tableName() const;
+
 private:
     bool containsContractor(const NodeUUID &contractorUUID);
 

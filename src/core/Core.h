@@ -54,7 +54,7 @@ private:
 
     int initSettings();
 
-    int initLogger(const json &conf);
+    int initLogger();
 
     int initCommunicator(
         const json &conf);

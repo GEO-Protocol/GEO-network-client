@@ -93,20 +93,8 @@ void TrustLine::setOutgoingTrustAmount(
  * This method rewrites previous balance.
  */
 void TrustLine::setBalance(
-    const TrustLineBalance &balance) {
-
-    if (balance > kZeroBalance()){
-        if (balance > mIncomingTrustAmount) {
-            throw ValueError("TrustLine::TrustLine: "
-                                     "Balance can't be greater than incoming trust amount.");
-        }
-
-    } else {
-        if (-balance > mOutgoingTrustAmount) {
-            throw ValueError("TrustLine::TrustLine: "
-                                     "Balance can't be less than outgoing trust amount.");
-        }
-    }
+    const TrustLineBalance &balance)
+{
     mBalance = balance;
 }
 
