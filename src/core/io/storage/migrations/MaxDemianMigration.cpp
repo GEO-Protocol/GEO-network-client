@@ -6,25 +6,34 @@ MaxDemianMigration::MaxDemianMigration(
     mDataBase(dbConnection),
     mLog(logger)
 {
-    mMigrateNodeUUID = NodeUUID("9e2e8dff-a102-449a-92aa-f6be725be291");
-    mNeighborUUIDCreditor = NodeUUID("1a3da803-f7bd-46a1-95d5-ccf8ba24d2bd");
-    mNeighborUUIDDebtor = NodeUUID("547f80d2-1f34-46c4-8dde-528441cabece");
+    mNeighborUUIDFirst = NodeUUID("1a3da803-f7bd-46a1-95d5-ccf8ba24d2bd");
+    mNeighborUUIDSecond = NodeUUID("547f80d2-1f34-46c4-8dde-528441cabece");
+    mNeighborUUIDThird = NodeUUID("0bc6a4fa-154a-4cbd-9409-79d0a1c3e2f1");
 
-    mOperationAmount = TrustLineAmount(499);
+    mOperationAmountFirstAndSecond = TrustLineAmount(499);
+    mOperationAmountThird = TrustLineAmount(36456);
 }
 
 void MaxDemianMigration::apply(IOTransaction::Shared ioTransaction) {
-    auto trustLine_debor = getOutwornTrustLine(ioTransaction, mNeighborUUIDDebtor);
-    auto trustLine_creditor = getOutwornTrustLine(ioTransaction, mNeighborUUIDCreditor);
 
-    if (trustLine_debor and trustLine_creditor) {
-        auto new_balance = trustLine_debor->balance() + mOperationAmount;
-        trustLine_debor->setBalance(new_balance);
-        ioTransaction->trustLineHandler()->saveTrustLine(trustLine_debor);
+    auto trustLine_first = getOutwornTrustLine(ioTransaction, mNeighborUUIDFirst);
+    auto trustLine_second = getOutwornTrustLine(ioTransaction, mNeighborUUIDSecond);
+    auto trustLine_third = getOutwornTrustLine(ioTransaction, mNeighborUUIDThird);
 
-        new_balance = trustLine_creditor->balance() - mOperationAmount;
-        trustLine_creditor->setBalance(new_balance);
-        ioTransaction->trustLineHandler()->saveTrustLine(trustLine_creditor);
+    if (trustLine_second and trustLine_first and trustLine_third) {
+        auto new_balance = trustLine_second->balance() + mOperationAmountFirstAndSecond;
+        trustLine_second->setBalance(new_balance);
+        ioTransaction->trustLineHandler()->saveTrustLine(trustLine_second);
+
+        new_balance = trustLine_first->balance() - mOperationAmountFirstAndSecond;
+        trustLine_first->setBalance(new_balance);
+        ioTransaction->trustLineHandler()->saveTrustLine(trustLine_first);
+
+
+        new_balance = trustLine_third->balance() - mOperationAmountThird;
+        trustLine_third->setBalance(new_balance);
+        ioTransaction->trustLineHandler()->saveTrustLine(trustLine_third);
+
     } else {
         throw RuntimeError("Can not find TrustLines to migrate");
     }

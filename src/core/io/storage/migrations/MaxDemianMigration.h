@@ -24,13 +24,15 @@ protected:
     sqlite3 *mDataBase;
     Logger &mLog;
     // Amount on which was rollbacked operation
-    TrustLineAmount mOperationAmount;
-    // Neighbor with which was reservation and rollBack
-    NodeUUID mMigrateNodeUUID;
-    // CoordinatorUUID;
-    NodeUUID mNeighborUUIDDebtor;
-    // Neighbor UUID
-    NodeUUID mNeighborUUIDCreditor;
+    TrustLineAmount mOperationAmountFirstAndSecond;
+    // Nodes which wit was rollbacked operation
+    NodeUUID mNeighborUUIDFirst;
+    NodeUUID mNeighborUUIDSecond;
+
+    // Amount on which was rollbacked operation
+    TrustLineAmount mOperationAmountThird;
+    // Nodes which wit was orollbacked operation
+    NodeUUID mNeighborUUIDThird;
 };
 
 
