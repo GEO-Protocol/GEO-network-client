@@ -125,6 +125,8 @@ protected:
 
     TransactionResult::SharedConst processRemoteNodeResponse();
 
+    TransactionResult::SharedConst sendFinalAmountsConfigurationToAllParticipants();
+
     TrustLineAmount totalReservedByAllPaths() const;
 
     void savePaymentOperationIntoHistory();

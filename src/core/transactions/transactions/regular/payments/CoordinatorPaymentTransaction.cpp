@@ -241,6 +241,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
  * @brief CoordinatorPaymentTransaction::propagateVotesList
  * Collects all nodes from all paths into one votes list,
  * and propagates it to the next node in the votes list.
+ * @param shouldSetUpDelay flag which tell us if need check on delay before sending,
+ * has true value only on processRemoteNodeResponse stage
  */
 TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVoutingResult(
     bool shouldSetUpDelay)
@@ -882,6 +884,66 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
         rollBack();
         return resultInsufficientFundsError();
     }
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsConfigurationToAllParticipants()
+{
+    debug() << "sendFinalAmountsConfigurationToAllParticipants";
+
+    map<NodeUUID, vector<pair<PathUUID, ConstSharedTrustLineAmount>>> nodesFinalAmountsConfiguration;
+    for (PathUUID pathIdx = 0; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
+        auto const pathStats = mPathsStats[pathIdx].get();
+
+        if (pathStats->path()->length() > 2)
+            if (!pathStats->isLastIntermediateNodeApproved())
+                continue;
+
+        auto pathReservation = TrustLine::kZeroAmount();
+        auto firstNodeReservations = mReservations[pathStats->path()->nodes.at(1)];
+        for (const auto pathUUIDAndReservation : firstNodeReservations) {
+            if (pathUUIDAndReservation.first == pathIdx) {
+                pathReservation = pathUUIDAndReservation.second->amount();
+                break;
+            }
+        }
+
+        // TODO : check if pathReservation was found
+
+        for (const auto &nodeUUID : pathStats->path()->nodes) {
+            if (nodeUUID == currentNodeUUID())
+                continue;
+            auto pathUUIDAndAmount = make_pair(
+                pathIdx,
+                make_shared<const TrustLineAmount>(
+                    pathReservation));
+
+            if (nodesFinalAmountsConfiguration.find(nodeUUID) == nodesFinalAmountsConfiguration.end()) {
+                vector<pair<PathUUID, ConstSharedTrustLineAmount>> newVector;
+                newVector.push_back(
+                    pathUUIDAndAmount);
+                nodesFinalAmountsConfiguration.insert(
+                    make_pair(
+                        nodeUUID,
+                        newVector));
+            } else {
+                nodesFinalAmountsConfiguration[nodeUUID].push_back(
+                    pathUUIDAndAmount);
+            }
+        }
+    }
+
+    for (auto const nodeAndFinalAmountsConfig : nodesFinalAmountsConfiguration) {
+        sendMessage<FinalAmountsConfigurationMessage>(
+            nodeAndFinalAmountsConfig.first,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            nodeAndFinalAmountsConfig.second);
+    }
+
+    return resultWaitForMessageTypes(
+        {Message::Payments_CoordinatorReservationResponse,
+         Message::Payments_TTLProlongation},
+        maxNetworkDelay(2));
 }
 
 PathStats* CoordinatorPaymentTransaction::currentAmountReservationPathStats()

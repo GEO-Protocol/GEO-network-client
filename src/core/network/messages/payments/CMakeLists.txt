@@ -55,7 +55,14 @@ set(SOURCE_FILES
     FinalPathCycleConfigurationMessage.cpp
 
     TTLPolongationMessage.h
-    TTLPolongationMessage.cpp)
+    TTLPolongationMessage.cpp
+
+    FinalAmountsConfigurationMessage.h
+    FinalAmountsConfigurationMessage.cpp
+
+    FinalAmountsConfigurationResponseMessage.h
+    FinalAmountsConfigurationResponseMessage.cpp
+    )
 
 add_library(messages__payments ${SOURCE_FILES})
 target_link_libraries(messages__payments

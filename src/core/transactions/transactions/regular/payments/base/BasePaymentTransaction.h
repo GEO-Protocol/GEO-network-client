@@ -27,6 +27,7 @@
 #include "../../../../../network/messages/payments/FinalPathConfigurationMessage.h"
 #include "../../../../../network/messages/payments/FinalPathCycleConfigurationMessage.h"
 #include "../../../../../network/messages/payments/TTLPolongationMessage.h"
+#include "../../../../../network/messages/payments/FinalAmountsConfigurationMessage.h"
 
 #include "PathStats.h"
 
@@ -88,6 +89,7 @@ protected:
         Coordinator_AmountReservation,
         Coordinator_ShortPathAmountReservationResponseProcessing,
         Coordinator_PreviousNeighborRequestProcessing,
+        Coordinator_FinalPathConfigurationConfirmation,
 
         Receiver_CoordinatorRequestApproving,
         Receiver_AmountReservationsProcessing,
