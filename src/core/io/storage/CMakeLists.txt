@@ -45,7 +45,10 @@ set(SOURCE_FILES
         migrations/SolomonHistoryMigration.cpp
 
         migrations/UniqueIndexHistoryMigration.h
-        migrations/UniqueIndexHistoryMigration.cpp)
+        migrations/UniqueIndexHistoryMigration.cpp
+
+        migrations/MaxDemianMigration.h
+        migrations/MaxDemianMigration.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

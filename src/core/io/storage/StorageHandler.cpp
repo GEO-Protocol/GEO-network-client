@@ -94,7 +94,8 @@ int StorageHandler::applyMigrations(const NodeUUID &nodeUUID) {
         migrationHandler->applyMigrations(ioTransaction);
         return 0;
 
-    } catch(...) {
+    } catch(const Exception &e) {
+        mLog.error("") << e.what();
         ioTransaction->rollback();
         return -1;
     }
