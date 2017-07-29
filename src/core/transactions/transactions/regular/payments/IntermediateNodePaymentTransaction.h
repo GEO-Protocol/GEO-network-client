@@ -37,6 +37,7 @@ protected:
     TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
     TransactionResult::SharedConst runClarificationOfTransaction();
+    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
 
 protected:
@@ -45,6 +46,11 @@ protected:
     TransactionResult::SharedConst approve();
 
 protected:
+    void updateReservation(
+        const NodeUUID &contractorUUID,
+        pair<PathUUID, AmountReservation::ConstShared> &reservation,
+        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts);
+
     void runBuildFourNodesCyclesSignal();
 
     void runBuildThreeNodesCyclesSignal();

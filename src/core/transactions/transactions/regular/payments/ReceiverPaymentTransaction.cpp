@@ -162,7 +162,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             maxNetworkDelay((kMaxPathLength - 1) * 4));
     }
 
-    debug() << "Amount reservation for " << kMessage->amount() << " request received from " << kNeighbor;
+    debug() << "Amount reservation for " << kMessage->amount() << " request received from "
+            << kNeighbor << " [" << kMessage->pathUUID() << "]";
     // Note: copy of shared pointer is required.
     const auto kAvailableAmount = mTrustLines->availableIncomingAmount(kNeighbor);
     if (*kAvailableAmount == TrustLine::kZeroAmount()) {

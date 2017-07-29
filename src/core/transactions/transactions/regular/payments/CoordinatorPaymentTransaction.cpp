@@ -67,6 +67,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
             case Stages::Coordinator_ShortPathAmountReservationResponseProcessing:
                 return runDirectAmountReservationResponseProcessingStage();
 
+            case Stages::Coordinator_FinalAmountsConfigurationConfirmation:
+                return runFinalAmountsConfigurationConfirmation();
+
             case Stages::Common_VotesChecking:
                 return runVotesConsistencyCheckingStage();
 
@@ -176,10 +179,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverRespons
             "Receiver reservation response wasn't received. Canceling.");
 
     const auto kMessage = popNextMessage<ReceiverInitPaymentResponseMessage>();
-    if (kMessage->state() != ReceiverInitPaymentResponseMessage::Accepted)
+    if (kMessage->state() != ReceiverInitPaymentResponseMessage::Accepted) {
         return exitWithResult(
-            resultDone(),
+            resultInsufficientFundsError(),
             "Receiver rejected payment operation. Canceling.");
+    }
 
     debug() << "Receiver accepted operation. Begin reserving amounts.";
     mStep = Stages::Coordinator_AmountReservation;
@@ -244,8 +248,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
  * @param shouldSetUpDelay flag which tell us if need check on delay before sending,
  * has true value only on processRemoteNodeResponse stage
  */
-TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVoutingResult(
-    bool shouldSetUpDelay)
+TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVoutingResult()
 {
     debug() << "propagateVotesListAndWaitForVoutingResult";
     const auto kCurrentNodeUUID = currentNodeUUID();
@@ -299,18 +302,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
         debug() << kNodeUUIDAndVote.first;
     }
 #endif
-
-    if (shouldSetUpDelay) {
-        auto lastProcessedPath = currentAmountReservationPathStats();
-        if (lastProcessedPath->path()->positionOfNode(
-            mParticipantsVotesMessage->firstParticipant()) > 0) {
-            debug() << "delay before sending ParticipantsVotesMessage";
-            // this delay is set up to shure that FinalPathConfigurationMessage
-            // will be delivered before ParticipantsVotesMessage
-            // in case when first participant is present in last processed path
-            std::this_thread::sleep_for(std::chrono::milliseconds(maxNetworkDelay(1)));
-        }
-    }
 
     // Begin message propagation
     sendMessage(
@@ -623,7 +614,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
     path->shortageMaxFlow(message->amountReserved());
 
     // shortage reservation
-    // TODO maby add if change path->maxFlow()
+    // TODO maybe add if change path->maxFlow()
     auto nodeReservations = mReservations[message->senderUUID];
     for (const auto pathUUIDAndreservation : nodeReservations) {
         if (pathUUIDAndreservation.first == mCurrentAmountReservingPathIdentifier) {
@@ -683,7 +674,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     debug() << "Path max flow is now " << path->maxFlow();
 
     // shortage reservation
-    // TODO maby add if change path->maxFlow()
+    // TODO maybe add if change path->maxFlow()
     auto nodeReservations = mReservations[message->senderUUID];
     for (const auto pathUUIDAndreservation : nodeReservations) {
         if (pathUUIDAndreservation.first == mCurrentAmountReservingPathIdentifier) {
@@ -715,14 +706,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
                 "It indicates that some of the nodes doesn't follows the protocol, "
                 "or that an error is present in protocol itself.";
             rollBack();
-            return resultDone();
+            return resultNoConsensusError();
         }
 
         if (kTotalAmount == mCommand->amount()){
             debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
-            debug() << "Begin processing participants votes.";
 
-            return propagateVotesListAndWaitForVoutingResult(false);
+            return sendFinalAmountsConfigurationToAllParticipants();
         }
         return tryProcessNextPath();
     }
@@ -821,7 +811,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             PathStats::ReservationApproved);
 
         // shortage reservation
-        // TODO maby add if change path->maxFlow()
+        // TODO maybe add if change path->maxFlow()
         auto firstIntermediateNode = path->path()->nodes[1];
         auto nodeReservations = mReservations[firstIntermediateNode];
         for (auto const pathUUIDAndReservation : nodeReservations) {
@@ -856,14 +846,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                            "It indicates that some of the nodes doesn't follows the protocol, "
                            "or that an error is present in protocol itself.";
                 rollBack();
-                return resultDone();
+                return resultNoConsensusError();
             }
 
             if (kTotalAmount == mCommand->amount()){
                 debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
-                debug() << "Begin processing participants votes.";
 
-                return propagateVotesListAndWaitForVoutingResult(true);
+                return sendFinalAmountsConfigurationToAllParticipants();
             }
             return tryProcessNextPath();
         }
@@ -891,13 +880,44 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     debug() << "sendFinalAmountsConfigurationToAllParticipants";
 
     map<NodeUUID, vector<pair<PathUUID, ConstSharedTrustLineAmount>>> nodesFinalAmountsConfiguration;
-    for (PathUUID pathIdx = 0; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
+    mFinalAmountNodesConfirmation.clear();
+
+    // check if reservation to contractor present
+    auto contractorNodeReservations = mReservations[mCommand->contractorUUID()];
+    if (contractorNodeReservations.size() > 1) {
+        return reject("Coordinator has more than one reservation to contractor");
+    }
+//    temporarily commented, because receiver don't need final amounts configuration
+//    if (contractorNodeReservations.size() == 1) {
+//        // if direct reservation is present, we add it to map
+//        const auto contractorReservation = contractorNodeReservations[0];
+//        auto pathUUIDAndAmount = make_pair(
+//            contractorReservation.first,
+//            make_shared<const TrustLineAmount>(
+//                contractorReservation.second->amount()));
+//        vector<pair<PathUUID, ConstSharedTrustLineAmount>> newVector;
+//        newVector.push_back(
+//            pathUUIDAndAmount);
+//        debug() << "Add final configuration on path " << contractorReservation.first;
+//        nodesFinalAmountsConfiguration.insert(
+//            make_pair(
+//                mCommand->contractorUUID(),
+//                newVector));
+//
+//        mFinalAmountNodesConfirmation.insert(
+//            make_pair(
+//                mCommand->contractorUUID(),
+//                false));
+//    }
+
+    for (PathUUID pathIdx = 1; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
         auto const pathStats = mPathsStats[pathIdx].get();
 
         if (pathStats->path()->length() > 2)
             if (!pathStats->isLastIntermediateNodeApproved())
                 continue;
 
+        debug() << "Add final configuration on path " << pathIdx;
         auto pathReservation = TrustLine::kZeroAmount();
         auto firstNodeReservations = mReservations[pathStats->path()->nodes.at(1)];
         for (const auto pathUUIDAndReservation : firstNodeReservations) {
@@ -910,7 +930,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
         // TODO : check if pathReservation was found
 
         for (const auto &nodeUUID : pathStats->path()->nodes) {
-            if (nodeUUID == currentNodeUUID())
+            // todo : discuss if receiver need on final amounts
+            if (nodeUUID == currentNodeUUID() || nodeUUID == mCommand->contractorUUID())
                 continue;
             auto pathUUIDAndAmount = make_pair(
                 pathIdx,
@@ -925,6 +946,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
                     make_pair(
                         nodeUUID,
                         newVector));
+
+                mFinalAmountNodesConfirmation.insert(
+                    make_pair(
+                        nodeUUID,
+                        false));
             } else {
                 nodesFinalAmountsConfiguration[nodeUUID].push_back(
                     pathUUIDAndAmount);
@@ -933,6 +959,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     }
 
     for (auto const nodeAndFinalAmountsConfig : nodesFinalAmountsConfiguration) {
+        debug() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first;
         sendMessage<FinalAmountsConfigurationMessage>(
             nodeAndFinalAmountsConfig.first,
             currentNodeUUID(),
@@ -940,10 +967,50 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
             nodeAndFinalAmountsConfig.second);
     }
 
+    debug() << "Total count of all participants without coordinator is " << nodesFinalAmountsConfiguration.size();
+
+    mStep = Coordinator_FinalAmountsConfigurationConfirmation;
     return resultWaitForMessageTypes(
-        {Message::Payments_CoordinatorReservationResponse,
+        {Message::Payments_FinalAmountsConfigurationResponse,
          Message::Payments_TTLProlongation},
         maxNetworkDelay(2));
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsConfigurationConfirmation()
+{
+    debug() << "runFinalAmountsConfigurationConfirmation";
+    if (contextIsValid(Message::MessageType::Payments_TTLProlongation, false)) {
+        return runTTLTransactionResponce();
+    }
+    if (contextIsValid(Message::MessageType::Payments_FinalAmountsConfigurationResponse, false)) {
+        auto kMessage = popNextMessage<FinalAmountsConfigurationResponseMessage>();
+        if (mFinalAmountNodesConfirmation.find(kMessage->senderUUID) == mFinalAmountNodesConfirmation.end()) {
+            // todo : need actual action on this case
+            error() << "Sender is not participant of this transaction";
+            return resultWaitForMessageTypes(
+                {Message::Payments_FinalAmountsConfigurationResponse,
+                 Message::Payments_TTLProlongation},
+                maxNetworkDelay(2));
+        }
+        if (kMessage->state() == FinalAmountsConfigurationResponseMessage::Rejected) {
+            debug() << "Node " << kMessage->senderUUID << " rejected final amounts";
+            return reject("Haven't reach consensus on reservation. Transaction rejected.");
+        }
+        debug() << "Node " << kMessage->senderUUID << " confirmed final amounts";
+        mFinalAmountNodesConfirmation[kMessage->senderUUID] = true;
+        for (const auto nodeUUIDAndConfirmation : mFinalAmountNodesConfirmation) {
+            if (!nodeUUIDAndConfirmation.second) {
+                debug() << "Some nodes are still not confirmed final amounts. Waiting.";
+                return resultWaitForMessageTypes(
+                    {Message::Payments_FinalAmountsConfigurationResponse,
+                     Message::Payments_TTLProlongation},
+                    maxNetworkDelay(1));
+            }
+        }
+        debug() << "All nodes confirmed final configuration. Begin processing participants votes.";
+        return propagateVotesListAndWaitForVoutingResult();
+    }
+    return reject("Some nodes didn't confirm final amount configuration. Transaction rejected.");
 }
 
 PathStats* CoordinatorPaymentTransaction::currentAmountReservationPathStats()
@@ -1119,7 +1186,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
     pathStats->shortageMaxFlow(kMessage->amountReserved());
 
     // shortage reservation
-    // TODO maby add if change path->maxFlow()
+    // TODO maybe add if change path->maxFlow()
     auto nodeReservations = mReservations[kMessage->senderUUID];
     for (const auto pathUUIDAndreservation : nodeReservations) {
         if (pathUUIDAndreservation.first == mCurrentAmountReservingPathIdentifier) {
@@ -1141,14 +1208,16 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
                 << "It indicates that some of the nodes doesn't follows the protocol, "
                 << "or that an error is present in protocol itself.";
         rollBack();
-        return resultDone();
+        return resultNoConsensusError();
     }
 
     if (kTotalAmount == mCommand->amount()){
         debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
         debug() << "Begin processing participants votes.";
 
-        return propagateVotesListAndWaitForVoutingResult(false);
+        // in case of reservation of all transaction amount on direct TL,
+        // we skip sendFinalAmountsConfigurationToAllParticipants stage
+        return propagateVotesListAndWaitForVoutingResult();
     }
     mStep = Stages::Coordinator_AmountReservation;
     return tryProcessNextPath();

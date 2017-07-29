@@ -64,8 +64,8 @@ protected:
     TransactionResult::SharedConst runReceiverResponseProcessingStage ();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
-    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult(
-        bool shouldSetUpDelay);
+    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
+    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
 
 protected:
     // Coordinator must return command result on transaction finishing.
@@ -168,6 +168,10 @@ protected:
      * In case if several direct paths occurs - than it seems that paths collection is broken.
      */
     bool mDirectPathIsAllreadyProcessed;
+
+    // Contains flags if nodes confirmed final amounts configuration,
+    // before voting stage
+    unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNodesConfirmation;
 
     ResourcesManager *mResourcesManager;
 };

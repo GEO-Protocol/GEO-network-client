@@ -105,6 +105,12 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Payments_FinalPathCycleConfiguration:
             return messageCollected<FinalPathCycleConfigurationMessage>(buffer);
 
+        case Message::Payments_FinalAmountsConfiguration:
+            return messageCollected<FinalAmountsConfigurationMessage>(buffer);
+
+        case Message::Payments_FinalAmountsConfigurationResponse:
+            return messageCollected<FinalAmountsConfigurationResponseMessage>(buffer);
+
         case Message::Payments_TTLProlongation:
             return messageCollected<TTLPolongationMessage>(buffer);
 

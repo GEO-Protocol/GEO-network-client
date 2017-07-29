@@ -28,6 +28,7 @@
 #include "../../../../../network/messages/payments/FinalPathCycleConfigurationMessage.h"
 #include "../../../../../network/messages/payments/TTLPolongationMessage.h"
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationMessage.h"
+#include "../../../../../network/messages/payments/FinalAmountsConfigurationResponseMessage.h"
 
 #include "PathStats.h"
 
@@ -89,7 +90,7 @@ protected:
         Coordinator_AmountReservation,
         Coordinator_ShortPathAmountReservationResponseProcessing,
         Coordinator_PreviousNeighborRequestProcessing,
-        Coordinator_FinalPathConfigurationConfirmation,
+        Coordinator_FinalAmountsConfigurationConfirmation,
 
         Receiver_CoordinatorRequestApproving,
         Receiver_AmountReservationsProcessing,
@@ -188,6 +189,9 @@ protected:
 
     void dropReservationsOnPath(
         PathStats *pathStats,
+        PathUUID pathUUID);
+
+    void dropNodeReservationsOnPath(
         PathUUID pathUUID);
 
     void sendFinalPathConfiguration(

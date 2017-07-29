@@ -829,6 +829,32 @@ void BasePaymentTransaction::dropReservationsOnPath(
     }
 }
 
+void BasePaymentTransaction::dropNodeReservationsOnPath(
+    PathUUID pathUUID)
+{
+    debug() << "dropNodeReservationsOnPath";
+
+    for (auto nodeReservations : mReservations) {
+        //auto nodeReservations = mReservations.find(firstIntermediateNode);
+        auto itPathUUIDAndReservation = nodeReservations.second.begin();
+        while (itPathUUIDAndReservation != nodeReservations.second.end()) {
+            if (itPathUUIDAndReservation->first == pathUUID) {
+                debug() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
+                        << " for (" << nodeReservations.first << ") [" << pathUUID << "]";
+                mTrustLines->dropAmountReservation(
+                        nodeReservations.first,
+                        itPathUUIDAndReservation->second);
+                itPathUUIDAndReservation = nodeReservations.second.erase(itPathUUIDAndReservation);
+            } else {
+                itPathUUIDAndReservation++;
+            }
+        }
+        if (nodeReservations.second.size() == 0) {
+            mReservations.erase(nodeReservations.first);
+        }
+    }
+}
+
 void BasePaymentTransaction::sendFinalPathConfiguration(
     PathStats* pathStats,
     PathUUID pathUUID,
