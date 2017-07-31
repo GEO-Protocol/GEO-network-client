@@ -272,3 +272,7 @@ LoggerStream BaseTransaction::debug() const
 {
     return mLog.debug(logHeader());
 }
+
+void BaseTransaction::recreateTransactionUUID() {
+    mTransactionUUID = TransactionUUID();
+}

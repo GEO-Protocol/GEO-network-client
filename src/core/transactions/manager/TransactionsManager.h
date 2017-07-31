@@ -350,7 +350,9 @@ private:
 protected:
     void prepareAndSchedule(
         BaseTransaction::Shared transaction,
-        bool subsidiaryTransactionSubscribe=false);
+        bool regenerateUUID=false,
+        bool subsidiaryTransactionSubscribe=false,
+        bool outgoingMessagesSubscribe=false);
 
 private:
     NodeUUID &mNodeUUID;
