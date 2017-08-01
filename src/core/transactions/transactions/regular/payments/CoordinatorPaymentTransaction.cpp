@@ -396,7 +396,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
         make_pair(
             mCurrentAmountReservingPathIdentifier,
             make_shared<const TrustLineAmount>(kReservationAmount)));
-    // todo : add other reservations for receiver
+
+    if (mNodesFinalAmountsConfiguration.find(kContractor) != mNodesFinalAmountsConfiguration.end()) {
+        // add existing contractor reservations
+        const auto kContractorReservations = mNodesFinalAmountsConfiguration[kContractor];
+        reservations.insert(
+            reservations.end(),
+            kContractorReservations.begin(),
+            kContractorReservations.end());
+    }
+
+    debug() << "Send reservations size: " << reservations.size();
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kContractor,
         kCoordinator,
@@ -540,8 +550,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         make_pair(
             mCurrentAmountReservingPathIdentifier,
             make_shared<const TrustLineAmount>(kReservationAmount)));
-    // todo : add other reservations for neighbor
 
+    if (mNodesFinalAmountsConfiguration.find(neighbor) != mNodesFinalAmountsConfiguration.end()) {
+        // add existing neighbor reservations
+        const auto kNeighborReservations = mNodesFinalAmountsConfiguration[neighbor];
+        reservations.insert(
+            reservations.end(),
+            kNeighborReservations.begin(),
+            kNeighborReservations.end());
+    }
+
+    debug() << "Send reservations size: " << reservations.size();
     sendMessage<IntermediateNodeReservationRequestMessage>(
         neighbor,
         kCurrentNode,
@@ -573,7 +592,18 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
         make_pair(
             mCurrentAmountReservingPathIdentifier,
             make_shared<const TrustLineAmount>(path->maxFlow())));
-    // todo : add other reservations for next neighbor of node
+
+    if (mNodesFinalAmountsConfiguration.find(kNextAfterNeighborNode) != mNodesFinalAmountsConfiguration.end()) {
+        // add existing next after neighbor node reservations
+        const auto kNeighborReservations = mNodesFinalAmountsConfiguration[kNextAfterNeighborNode];
+
+        reservations.insert(
+            reservations.end(),
+            kNeighborReservations.begin(),
+            kNeighborReservations.end());
+    }
+
+    debug() << "Send reservations size: " << reservations.size();
     sendMessage<CoordinatorReservationRequestMessage>(
         neighbor,
         kCoordinator,
@@ -758,7 +788,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
         make_pair(
             mCurrentAmountReservingPathIdentifier,
             make_shared<const TrustLineAmount>(path->maxFlow())));
-    // todo : add other reservations for next neighbor of node
+
+    if (mNodesFinalAmountsConfiguration.find(nextNodeAfterRemote) != mNodesFinalAmountsConfiguration.end()) {
+        // add existing next after remote node reservations
+        const auto kNeighborReservations = mNodesFinalAmountsConfiguration[nextNodeAfterRemote];
+        reservations.insert(
+            reservations.end(),
+            kNeighborReservations.begin(),
+            kNeighborReservations.end());
+    }
+
+    debug() << "Send reservations size: " << reservations.size();
     sendMessage<CoordinatorReservationRequestMessage>(
         remoteNode,
         kCoordinator,

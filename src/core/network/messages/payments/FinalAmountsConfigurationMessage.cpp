@@ -42,7 +42,7 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     }
 }
 
-vector<pair<Message::PathUUID, ConstSharedTrustLineAmount>> FinalAmountsConfigurationMessage::finalAmountsConfiguration() const
+const vector<pair<Message::PathUUID, ConstSharedTrustLineAmount>>& FinalAmountsConfigurationMessage::finalAmountsConfiguration() const
 {
     return mFinalAmountsConfiguration;
 }

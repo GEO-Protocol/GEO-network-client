@@ -144,6 +144,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         // todo : add actual reaction
     }
     const auto kReservation = kMessage->finalAmountsConfiguration()[0];
+    debug() << "Receive reservations size: " << kMessage->finalAmountsConfiguration().size();
 
     if (! mTrustLines->isNeighbor(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(

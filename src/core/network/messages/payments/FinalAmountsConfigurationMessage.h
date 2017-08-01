@@ -21,7 +21,7 @@ public:
 
     const MessageType typeID() const;
 
-    vector<pair<PathUUID, ConstSharedTrustLineAmount>> finalAmountsConfiguration() const;
+    const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmountsConfiguration() const;
 
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes() const
