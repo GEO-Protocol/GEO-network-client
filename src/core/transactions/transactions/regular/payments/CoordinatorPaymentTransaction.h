@@ -135,6 +135,8 @@ protected:
 
     void savePaymentOperationIntoHistory();
 
+    bool checkReservationsDirections() const;
+
     void runBuildThreeNodesCyclesSignal();
 
 protected:

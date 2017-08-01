@@ -612,6 +612,42 @@ void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory()
             mTotalReservedAmount));
 }
 
+bool IntermediateNodePaymentTransaction::checkReservationsDirections() const
+{
+    debug() << "checkReservationsDirections";
+    for (const auto nodeUUIDAndReservations : mReservations) {
+        for (const auto pathUUIDAndReservation : nodeUUIDAndReservations.second) {
+            const auto checkedPath = pathUUIDAndReservation.first;
+            const auto checkedAmount = pathUUIDAndReservation.second->amount();
+            int countIncomingReservations = 0;
+            int countOutgoingReservations = 0;
+
+            for (const auto nodeUUIDAndReservationsInternal : mReservations) {
+                for (const auto pathUUIDAndReservationInternal : nodeUUIDAndReservationsInternal.second) {
+                    if (pathUUIDAndReservationInternal.first == checkedPath) {
+                        if (pathUUIDAndReservationInternal.second->amount() != checkedAmount) {
+                            error() << "Amounts are different on path " << checkedPath;
+                            return false;
+                        }
+                        if (pathUUIDAndReservationInternal.second->direction() == AmountReservation::Outgoing) {
+                            countOutgoingReservations++;
+                        }
+                        if (pathUUIDAndReservationInternal.second->direction() == AmountReservation::Incoming) {
+                            countIncomingReservations++;
+                        }
+                    }
+                }
+            }
+
+            if (countIncomingReservations != 1 || countOutgoingReservations != 1) {
+                error() << "Count incoming and outgoing reservations are invalid on path " << checkedPath;
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 const string IntermediateNodePaymentTransaction::logHeader() const
 {
     stringstream s;

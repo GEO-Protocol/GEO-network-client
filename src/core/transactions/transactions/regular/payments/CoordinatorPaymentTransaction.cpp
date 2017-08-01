@@ -265,10 +265,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
         kTransactionUUID,
         kCurrentNodeUUID);
 
-#ifdef DEBUG
-    uint16_t totalParticipantsCount = 0;
-#endif
-
     for (PathUUID pathIdx = 0; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
         auto const pathStats = mPathsStats[pathIdx].get();
 
@@ -287,16 +283,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
                 continue;
 
             mParticipantsVotesMessage->addParticipant(nodeUUID);
-
-#ifdef DEBUG
-            totalParticipantsCount++;
-#endif
         }
     }
 
 
 #ifdef DEBUG
-    debug() << "Total participants included: " << totalParticipantsCount;
+    debug() << "Total participants included: " << mParticipantsVotesMessage->participantsCount();
     debug() << "Participants order is the next:";
     for (const auto kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
         debug() << kNodeUUIDAndVote.first;
@@ -1303,6 +1295,20 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory()
             mCommand->contractorUUID(),
             mCommand->amount(),
             *mTrustLines->totalBalance().get()));
+}
+
+bool CoordinatorPaymentTransaction::checkReservationsDirections() const
+{
+    debug() << "checkReservationsDirections";
+    for (const auto nodeAndReservations : mReservations) {
+        for (const auto pathUUIDAndReservation : nodeAndReservations.second) {
+            if (pathUUIDAndReservation.second->direction() != AmountReservation::Outgoing) {
+                return false;
+            }
+        }
+    }
+    debug() << "All reservations directions are correct";
+    return true;
 }
 
 void CoordinatorPaymentTransaction::runBuildThreeNodesCyclesSignal()

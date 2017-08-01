@@ -219,6 +219,8 @@ protected:
 
     virtual void savePaymentOperationIntoHistory() = 0;
 
+    virtual bool checkReservationsDirections() const = 0;
+
 protected:
     // Specifies how long node must wait for the response from the remote node.
     // This timeout must take into account also that remote node may process other transaction,

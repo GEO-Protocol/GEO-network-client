@@ -88,6 +88,8 @@ protected:
 
     void savePaymentOperationIntoHistory();
 
+    bool checkReservationsDirections() const;
+
 protected:
     // Contains special stats data, such as current msx flow,
     // for path involved into the transaction.

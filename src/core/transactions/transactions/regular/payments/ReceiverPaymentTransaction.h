@@ -44,6 +44,8 @@ protected:
 protected:
     void savePaymentOperationIntoHistory();
 
+    bool checkReservationsDirections() const;
+
     void runBuildThreeNodesCyclesSignal();
 
     const string logHeader() const;

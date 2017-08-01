@@ -781,6 +781,12 @@ void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory()
             path->maxFlow()));
 }
 
+bool CycleCloserInitiatorTransaction::checkReservationsDirections() const
+{
+    // todo : implement me
+    return true;
+}
+
 const NodeUUID& CycleCloserInitiatorTransaction::coordinatorUUID() const
 {
     return currentNodeUUID();

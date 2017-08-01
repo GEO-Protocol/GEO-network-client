@@ -52,6 +52,8 @@ protected:
 
     void savePaymentOperationIntoHistory();
 
+    bool checkReservationsDirections() const;
+
     const string logHeader() const;
 
 protected:

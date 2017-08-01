@@ -194,10 +194,13 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     if (! contextIsValid(Message::Payments_ParticipantsVotes))
         return reject("No participants votes received. Canceling.");
 
+    if (!checkReservationsDirections()) {
+        return reject("Reservations on node are invalid");
+    }
+
     const auto kCurrentNodeUUID = currentNodeUUID();
     mParticipantsVotesMessage = popNextMessage<ParticipantsVotesMessage>();
     debug() << "Votes message received";
-
 
     try {
         // Check if current node is listed in the votes list.
@@ -225,7 +228,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         // Some node rejected the transaction.
         // This node must simply roll back it's part of transaction and exit.
         // No further message propagation is needed.
-        reject("Some participant node has been rejected the transaction. Rolling back.");
+        return reject("Some participant node has been rejected the transaction. Rolling back.");
     }
 
     // TODO : insert propagate message here
@@ -344,6 +347,9 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
 
         if (currentNodeUUID() == mParticipantsVotesMessage->coordinatorUUID()) {
             debug() << "Coordinator received achieved consensus message.";
+            if (!checkReservationsDirections()) {
+                return reject("Reservations on node are invalid");
+            }
             mParticipantsVotesMessage->addParticipant(currentNodeUUID());
             mParticipantsVotesMessage->approve(currentNodeUUID());
             propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);

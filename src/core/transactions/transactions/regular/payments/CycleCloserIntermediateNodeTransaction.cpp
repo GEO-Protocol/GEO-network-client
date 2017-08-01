@@ -476,6 +476,12 @@ void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory()
             mLastReservedAmount));
 }
 
+bool CycleCloserIntermediateNodeTransaction::checkReservationsDirections() const
+{
+    // todo : implement me
+    return true;
+}
+
 const string CycleCloserIntermediateNodeTransaction::logHeader() const
 {
     stringstream s;

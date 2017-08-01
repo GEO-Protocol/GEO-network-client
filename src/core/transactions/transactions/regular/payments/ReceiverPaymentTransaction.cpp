@@ -378,6 +378,20 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory()
             *mTrustLines->totalBalance().get()));
 }
 
+bool ReceiverPaymentTransaction::checkReservationsDirections() const
+{
+    debug() << "checkReservationsDirections";
+    for (const auto nodeAndReservations : mReservations) {
+        for (const auto pathUUIDAndReservation : nodeAndReservations.second) {
+            if (pathUUIDAndReservation.second->direction() != AmountReservation::Incoming) {
+                return false;
+            }
+        }
+    }
+    debug() << "All reservations directions are correct";
+    return true;
+}
+
 void ReceiverPaymentTransaction::runBuildThreeNodesCyclesSignal()
 {
     vector<NodeUUID> contractorsUUID;
