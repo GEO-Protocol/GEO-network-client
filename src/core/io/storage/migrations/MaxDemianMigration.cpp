@@ -44,7 +44,7 @@ std::shared_ptr <TrustLine> MaxDemianMigration::getOutwornTrustLine(
     NodeUUID &nodeUUID) {
     sqlite3_stmt *stmt;
     string query = "SELECT contractor, incoming_amount, outgoing_amount, balance FROM " +
-                   ioTransaction->trustLineHandler()->tableName() + " where contractor = ?";
+                   ioTransaction->trustLineHandler()->tableName() + " WHERE contractor = ?";
 
 
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -60,10 +60,8 @@ std::shared_ptr <TrustLine> MaxDemianMigration::getOutwornTrustLine(
             "TrustLineHandler::insert or replace: "
                 "Bad binding of Contractor; sqlite error: " + to_string(rc));
     }
-    TrustLine::Shared result;
 
-    // For each trust line in the table, deserialize it with old method and serialize it back with new one.
-    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+    if (sqlite3_step(stmt) == SQLITE_ROW ) {
         NodeUUID contractor(static_cast<const byte *>(sqlite3_column_blob(stmt, 0)));
 
         auto incomingAmountBytes = static_cast<const byte*>(sqlite3_column_blob(stmt, 1));
@@ -85,6 +83,10 @@ std::shared_ptr <TrustLine> MaxDemianMigration::getOutwornTrustLine(
         TrustLineBalance balance = bytesToTrustLineBalance(balanceBufferBytes);
 
         try {
+
+            sqlite3_reset(stmt);
+            sqlite3_finalize(stmt);
+
             return make_shared<TrustLine>(
                 contractor,
                 incomingAmount,
@@ -96,8 +98,13 @@ std::shared_ptr <TrustLine> MaxDemianMigration::getOutwornTrustLine(
                 "MaxDemianMigration::getOutwornTrustLine: "
                     "Unable to create TL.");
         }
+    } else {
+
+        sqlite3_reset(stmt);
+        sqlite3_finalize(stmt);
+
+        throw NotFoundError(
+            "MaxDemianMigration::getOutwornTrustLine: "
+                "Unable to find TL.");
     }
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
-    return result;
 }
