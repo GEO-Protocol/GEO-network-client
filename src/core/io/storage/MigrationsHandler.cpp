@@ -177,8 +177,7 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
-        // ...
-        // Other migrations must be placed here
+
         } else if (migrationUUID.stringUUID() == string("bc04656c-9dbb-4bd7-afd5-5603cf44b85e")){
             auto migration = make_shared<UniqueIndexHistoryMigration>(
                 mDataBase,
@@ -186,10 +185,7 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
-            // ...
-            // Other migrations must be placed here
-            //
-        //
+
         } else if (migrationUUID.stringUUID() == string("de88c613-c3c0-4cce-95f5-a90d9e1c6566")){
             auto migration = make_shared<SolomonHistoryMigrationTwo>(
                 mDataBase,
@@ -197,9 +193,7 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
-            // ...
-            // Other migrations must be placed here
-            //
+
         } else if (migrationUUID.stringUUID() == string("727813ca-c9e0-44be-bd17-258831ad60f1")){
             auto migration = make_shared<MaxDemianMigration>(
                 mDataBase,
