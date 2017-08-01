@@ -1228,6 +1228,74 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
     return tryProcessNextPath();
 }
 
+TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistencyCheckingStage()
+{
+    debug() << "runVotesConsistencyCheckingStage";
+    // Intermediate node or Receiver can send request if transaction is still alive.
+    if (contextIsValid(Message::Payments_TTLProlongation, false)) {
+        return runTTLTransactionResponce();
+    }
+
+    if (! contextIsValid(Message::Payments_ParticipantsVotes)) {
+        return reject("Coordinator didn't receive message with votes");
+    }
+
+    const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
+    debug () << "Participants votes message received.";
+
+    mParticipantsVotesMessage = kMessage;
+    if (mParticipantsVotesMessage->containsRejectVote()) {
+        return reject("Some participant node has been rejected the transaction. Rolling back.");
+    }
+
+    if (mParticipantsVotesMessage->achievedConsensus()){
+        debug() << "Coordinator received achieved consensus message.";
+        if (!checkReservationsDirections()) {
+            return reject("Reservations on node are invalid");
+        }
+        mParticipantsVotesMessage->addParticipant(currentNodeUUID());
+        mParticipantsVotesMessage->approve(currentNodeUUID());
+        propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
+        return approve();
+
+    } else {
+        // todo : need discuss what should do in this case
+        // Otherwise - message contains some uncertain votes.
+        // In this case - message may be ignored.
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes},
+            maxNetworkDelay(
+                mParticipantsVotesMessage->participantsCount()));
+    }
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionResponce()
+{
+    debug() << "runTTLTransactionResponce";
+    auto kMessage = popNextMessage<TTLPolongationMessage>();
+    if (mParticipantsVotesMessage == nullptr) {
+        // reservation stage
+        if (mNodesFinalAmountsConfiguration.find(kMessage->senderUUID) != mNodesFinalAmountsConfiguration.end()) {
+            // coordinator has configuration for requested node
+            sendMessage<TTLPolongationMessage>(
+                kMessage->senderUUID,
+                currentNodeUUID(),
+                currentTransactionUUID());
+            debug() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
+        }
+        // todo : discuss sending of rejecting response, in this case IntemediateNodeTransaction will rollback
+    } else {
+        // voting stage
+        sendMessage<TTLPolongationMessage>(
+            kMessage->senderUUID,
+            currentNodeUUID(),
+            currentTransactionUUID());
+        debug() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
+        // todo : discuss sending of rejecting response if node is absent in mParticipantsVotesMessage
+    }
+    return resultContinuePreviousState();
+}
+
 bool CoordinatorPaymentTransaction::isPathValid(
     Path::Shared path) const
 {

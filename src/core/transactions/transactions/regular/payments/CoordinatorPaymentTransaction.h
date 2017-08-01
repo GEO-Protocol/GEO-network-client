@@ -64,7 +64,8 @@ protected:
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
-    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
+    TransactionResult::SharedConst runVotesConsistencyCheckingStage();
+    TransactionResult::SharedConst runTTLTransactionResponce();
 
 protected:
     // Coordinator must return command result on transaction finishing.
@@ -86,6 +87,8 @@ protected:
     TransactionResult::SharedConst resultUnexpectedError();
 
 protected:
+    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
+
     void addPathForFurtherProcessing(
         Path::ConstShared path);
 

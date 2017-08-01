@@ -126,7 +126,6 @@ protected:
     // Stages handlers
     virtual TransactionResult::SharedConst runVotesCheckingStage();
     virtual TransactionResult::SharedConst runVotesConsistencyCheckingStage();
-    virtual TransactionResult::SharedConst runTTLTransactionResponce();
 
     virtual TransactionResult::SharedConst approve();
     virtual TransactionResult::SharedConst recover(

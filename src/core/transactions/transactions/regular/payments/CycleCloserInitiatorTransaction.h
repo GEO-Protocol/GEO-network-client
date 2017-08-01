@@ -57,6 +57,7 @@ protected:
     // run after waiting on releasing amount by rollbacking conflicted transaction
     TransactionResult::SharedConst runAmountReservationStageAgain();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
+    TransactionResult::SharedConst runVotesConsistencyCheckingStage();
 
 protected:
     TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount ();

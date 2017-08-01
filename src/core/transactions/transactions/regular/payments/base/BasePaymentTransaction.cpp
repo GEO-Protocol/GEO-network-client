@@ -303,19 +303,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyCheckingStage()
 {
     debug() << "runVotesConsistencyCheckingStage";
-    // this case can be only in Coordinator transaction.
-    // Intermediate node or Receiver can send request if transaction is still alive.
-    if (contextIsValid(Message::Payments_TTLProlongation, false)) {
-        return runTTLTransactionResponce();
-    }
+
     if (! contextIsValid(Message::Payments_ParticipantsVotes)) {
         // In case if no votes are present - transaction can't be simply cancelled.
         // It must go through recovery stage to avoid inconsistency.
-        if (currentNodeUUID() == mParticipantsVotesMessage->coordinatorUUID()) {
-            return reject("Coordinator didn't receive message with votes");
-        } else {
-            return recover("No participants votes received.");
-        }
+        return recover("No participants votes received.");
     }
 
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
@@ -344,17 +336,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
 
     if (mParticipantsVotesMessage->achievedConsensus()){
         // In case if votes message received again -
-
-        if (currentNodeUUID() == mParticipantsVotesMessage->coordinatorUUID()) {
-            debug() << "Coordinator received achieved consensus message.";
-            if (!checkReservationsDirections()) {
-                return reject("Reservations on node are invalid");
-            }
-            mParticipantsVotesMessage->addParticipant(currentNodeUUID());
-            mParticipantsVotesMessage->approve(currentNodeUUID());
-            propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
-            return approve();
-        }
         debug() << "Votes list received. Consensus achieved.";
         return approve();
 
@@ -773,18 +754,6 @@ TransactionResult::SharedConst BasePaymentTransaction::exitWithResult(
         info() << message;
 
     return result;
-}
-
-TransactionResult::SharedConst BasePaymentTransaction::runTTLTransactionResponce()
-{
-    debug() << "runTTLTransactionResponce";
-    auto kMessage = popNextMessage<TTLPolongationMessage>();
-    sendMessage<TTLPolongationMessage>(
-        kMessage->senderUUID,
-        currentNodeUUID(),
-        currentTransactionUUID());
-    debug() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
-    return resultContinuePreviousState();
 }
 
 void BasePaymentTransaction::dropReservationsOnPath(

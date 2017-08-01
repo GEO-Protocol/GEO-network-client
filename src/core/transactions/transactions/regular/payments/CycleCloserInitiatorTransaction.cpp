@@ -727,6 +727,42 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         kTimeout);
 }
 
+TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsistencyCheckingStage()
+{
+    debug() << "runVotesConsistencyCheckingStage";
+    if (! contextIsValid(Message::Payments_ParticipantsVotes)) {
+        return reject("Coordinator didn't receive message with votes");
+    }
+
+    const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
+    debug () << "Participants votes message received.";
+
+    mParticipantsVotesMessage = kMessage;
+    if (mParticipantsVotesMessage->containsRejectVote()) {
+        return reject("Some participant node has been rejected the transaction. Rolling back.");
+    }
+
+    if (mParticipantsVotesMessage->achievedConsensus()){
+        debug() << "Coordinator received achieved consensus message.";
+        if (!checkReservationsDirections()) {
+            return reject("Reservations on node are invalid");
+        }
+        mParticipantsVotesMessage->addParticipant(currentNodeUUID());
+        mParticipantsVotesMessage->approve(currentNodeUUID());
+        propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
+        return approve();
+
+    } else {
+        // todo : need discuss what should do in this case
+        // Otherwise - message contains some uncertain votes.
+        // In this case - message may be ignored.
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes},
+            maxNetworkDelay(
+                mParticipantsVotesMessage->participantsCount()));
+    }
+}
+
 void CycleCloserInitiatorTransaction::checkPath(
     const Path::ConstShared path)
 {

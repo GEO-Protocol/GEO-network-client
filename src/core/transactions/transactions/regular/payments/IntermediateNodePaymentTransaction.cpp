@@ -486,6 +486,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runClarificat
         mStep = Stages::Common_VotesChecking;
         return runVotesCheckingStage();
     }
+    // this method is used also in voting stage, that's why we check if transaction is voted
     if (!contextIsValid(Message::MessageType::Payments_TTLProlongation)) {
         if (mTransactionIsVoted) {
             return recover("No participants votes message with all votes received.");
