@@ -83,14 +83,20 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     debug() << "runPreviousNeighborRequestProcessingStage";
     const auto kNeighbor = mMessage->senderUUID;
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
-    debug() << "Requested amount reservation: " << mMessage->amount();
+    if (mMessage->finalAmountsConfiguration().size() == 0) {
+        error() << "Not received reservation";
+        // todo : add actual reaction
+    }
+    const auto kReservation = mMessage->finalAmountsConfiguration()[0];
+
+    debug() << "Requested amount reservation: " << *kReservation.second.get();
 
     if (!mTrustLines->isNeighbor(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
-            mMessage->pathUUID(),
+            kReservation.first,
             ResponseMessage::Rejected);
         error() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
         // if no reservations close transaction
@@ -108,15 +114,15 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
 
     const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
     TrustLineAmount kReservationAmount =
-            min(mMessage->amount(), *kIncomingAmount);
+            min(*kReservation.second.get(), *kIncomingAmount);
 
-    if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount, mMessage->pathUUID())) {
+    if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount, kReservation.first)) {
         debug() << "No amount reservation is possible.";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
-            mMessage->pathUUID(),
+            kReservation.first,
             ResponseMessage::Rejected);
         // if no reservations close transaction
         if (mReservations.size() == 0) {
@@ -131,13 +137,13 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         }
     }
 
-    debug() << "reserve locally " << kReservationAmount << " to node " << kNeighbor << " on path " << mMessage->pathUUID();
+    debug() << "reserve locally " << kReservationAmount << " to node " << kNeighbor << " on path " << kReservation.first;
     mLastReservedAmount = kReservationAmount;
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
         currentNodeUUID(),
         currentTransactionUUID(),
-        mMessage->pathUUID(),
+        kReservation.first,
         ResponseMessage::Accepted,
         kReservationAmount);
 
@@ -162,18 +168,23 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
     const auto kNextNode = kMessage->nextNodeInPathUUID();
+    if (kMessage->finalAmountsConfiguration().size() == 0) {
+        error() << "Not received reservation";
+        // todo : add actual reaction
+    }
+    const auto kReservation = kMessage->finalAmountsConfiguration()[0];
     mCoordinator = kMessage->senderUUID;
-    mLastProcessedPath = kMessage->pathUUID();
+    mLastProcessedPath = kReservation.first;
 
     if (!mTrustLines->isNeighbor(kNextNode)) {
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
             currentTransactionUUID(),
-            kMessage->pathUUID(),
+            kReservation.first,
             ResponseMessage::Rejected);
         debug() << "Path is not valid: next node is not neighbor of current one. Rolled back.";
-        rollBack(kMessage->pathUUID());
+        rollBack(kReservation.first);
         // if no reservations close transaction
         if (mReservations.size() == 0) {
             debug() << "There are no reservations. Transaction closed.";
@@ -188,22 +199,22 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
     // Note: copy of shared pointer is required
     const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
-    debug() << "requested reservation amount is " << kMessage->amount();
+    debug() << "requested reservation amount is " << *kReservation.second.get();
     debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
     TrustLineAmount reservationAmount = min(
-        kMessage->amount(),
+        *kReservation.second.get(),
         *kOutgoingAmount);
 
-    if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount, kMessage->pathUUID())) {
+    if (0 == reservationAmount || ! reserveOutgoingAmount(kNextNode, reservationAmount, kReservation.first)) {
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
             currentTransactionUUID(),
-            kMessage->pathUUID(),
+            kReservation.first,
             ResponseMessage::Rejected);
 
         debug() << "No amount reservation is possible. Rolled back.";
-        rollBack(kMessage->pathUUID());
+        rollBack(kReservation.first);
         // if no reservations close transaction
         if (mReservations.size() == 0) {
             debug() << "There are no reservations. Transaction closed.";
@@ -216,14 +227,21 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
-    debug() << "Reserve locally " << reservationAmount << " to node " << kNextNode << " on path " << kMessage->pathUUID();
+    debug() << "Reserve locally " << reservationAmount << " to node " << kNextNode << " on path " << kReservation.first;
     mLastReservedAmount = reservationAmount;
+
+    vector<pair<PathUUID, ConstSharedTrustLineAmount>> reservations;
+    reservations.push_back(
+        make_pair(
+            kReservation.first,
+            make_shared<const TrustLineAmount>(reservationAmount)));
+    // todo : add other reservations for next node
+
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kNextNode,
         currentNodeUUID(),
         currentTransactionUUID(),
-        kMessage->pathUUID(),
-        reservationAmount);
+        reservations);
 
     clearContext();
     mStep = Stages::IntermediateNode_NextNeighborResponseProcessing;
@@ -322,7 +340,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
     mStep = Stages::Common_FinalPathConfigurationChecking;
     return resultWaitForMessageTypes(
-        {Message::Payments_FinalPathConfiguration},
+        {Message::Payments_FinalPathConfiguration,
+         Message::Payments_IntermediateNodeReservationRequest,
+         Message::Payments_FinalAmountsConfiguration},
         maxNetworkDelay((kMaxPathLength - 2) * 4));
 }
 
@@ -330,6 +350,16 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
 {
     // receive final amount on current path
     debug() << "runFinalPathConfigurationProcessingStage";
+    // if FinalPathConfigurationMessage wasn't deleivered, then according to algorithm
+    // we can receive IntermediateNodeReservationRequest or FinalAmountsConfiguration
+    // and we should process it properly
+    if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
+        return runPreviousNeighborRequestProcessingStage();
+    }
+    if (contextIsValid(Message::Payments_FinalAmountsConfiguration, false)) {
+        return runFinalAmountsConfigurationConfirmation();
+    }
+
     if (! contextIsValid(Message::Payments_FinalPathConfiguration))
         return reject("No final paths configuration was received from the coordinator. Rejected.");
 
@@ -439,14 +469,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
     debug() << "runFinalAmountsConfigurationConfirmation";
 
     auto kMessage = popNextMessage<FinalAmountsConfigurationMessage>();
-    const auto reservationsCopy = mReservations;
-    for (const auto &nodeAndReservations : reservationsCopy) {
-        for (auto pathUUIDAndReservation : nodeAndReservations.second) {
-            updateReservation(
-                nodeAndReservations.first,
-                pathUUIDAndReservation,
-                kMessage->finalAmountsConfiguration());
-        }
+    if (!updateReservations(
+        vector<pair<PathUUID, ConstSharedTrustLineAmount>> (kMessage->finalAmountsConfiguration()))) {
+        sendMessage<FinalAmountsConfigurationResponseMessage>(
+            kMessage->senderUUID,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            FinalAmountsConfigurationResponseMessage::Rejected);
+        return reject("There are some final amounts, reservations for which are absent. Rejected");
     }
 
     debug() << "All reservations was updated";
@@ -462,7 +492,26 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
         maxNetworkDelay(3));
 }
 
-void IntermediateNodePaymentTransaction::updateReservation(
+bool IntermediateNodePaymentTransaction::updateReservations(
+    const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts)
+{
+    unordered_set<PathUUID> updatedPaths;
+    const auto reservationsCopy = mReservations;
+    for (const auto &nodeAndReservations : reservationsCopy) {
+        for (auto pathUUIDAndReservation : nodeAndReservations.second) {
+            const auto updatedPathUUID = updateReservation(
+                nodeAndReservations.first,
+                pathUUIDAndReservation,
+                finalAmounts);
+            if (updatedPathUUID != 0) {
+                updatedPaths.insert(updatedPathUUID);
+            }
+        }
+    }
+    return updatedPaths.size() == finalAmounts.size();
+}
+
+BasePaymentTransaction::PathUUID IntermediateNodePaymentTransaction::updateReservation(
     const NodeUUID &contractorUUID,
     pair<PathUUID, AmountReservation::ConstShared> &reservation,
     const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts)
@@ -475,11 +524,12 @@ void IntermediateNodePaymentTransaction::updateReservation(
                 reservation.second,
                 *pathUUIDAndAmount.second.get(),
                 pathUUIDAndAmount.first);
-            return;
+            return pathUUIDAndAmount.first;
         }
     }
     dropNodeReservationsOnPath(
         reservation.first);
+    return 0;
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()

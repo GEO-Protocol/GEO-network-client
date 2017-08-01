@@ -25,7 +25,10 @@ public:
 
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes() const
-    throw (bad_alloc);
+        throw (bad_alloc);
+
+    const size_t kOffsetToInheritedBytes() const
+        noexcept;
 
 private:
     typedef uint32_t RecordNumber;

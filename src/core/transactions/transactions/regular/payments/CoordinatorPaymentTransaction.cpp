@@ -391,12 +391,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
 
     // Reserving on the contractor side
     pathStats->shortageMaxFlow(kReservationAmount);
+    vector<pair<PathUUID, ConstSharedTrustLineAmount>> reservations;
+    reservations.push_back(
+        make_pair(
+            mCurrentAmountReservingPathIdentifier,
+            make_shared<const TrustLineAmount>(kReservationAmount)));
+    // todo : add other reservations for receiver
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kContractor,
         kCoordinator,
         kTransactionUUID,
-        mCurrentAmountReservingPathIdentifier,
-        kReservationAmount);
+        reservations);
 
     debug() << "Reservation request for " << kReservationAmount << " sent directly to the receiver node.";
 
@@ -514,24 +519,34 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         return tryProcessNextPath();
     }
 
+    if (not reserveOutgoingAmount(
+        neighbor,
+        kReservationAmount,
+        mCurrentAmountReservingPathIdentifier)) {
+        error() << "Can't reserve amount locally. "
+                << "Switching to another path.";
+        path->setUnusable();
+        return tryProcessNextPath();
+    }
+
     // Try reserve amount locally.
     path->shortageMaxFlow(kReservationAmount);
     path->setNodeState(
         1,
         PathStats::NeighbourReservationRequestSent);
 
-    reserveOutgoingAmount(
-        neighbor,
-        kReservationAmount,
-        mCurrentAmountReservingPathIdentifier);
-
+    vector<pair<PathUUID, ConstSharedTrustLineAmount>> reservations;
+    reservations.push_back(
+        make_pair(
+            mCurrentAmountReservingPathIdentifier,
+            make_shared<const TrustLineAmount>(kReservationAmount)));
+    // todo : add other reservations for neighbor
 
     sendMessage<IntermediateNodeReservationRequestMessage>(
         neighbor,
         kCurrentNode,
         kTransactionUUID,
-        mCurrentAmountReservingPathIdentifier,
-        path->maxFlow());
+        reservations);
 
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationResponse,
@@ -553,13 +568,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     // no check of "neighbor" node is needed here.
     // It was done on previous step.
 
-
+    vector<pair<PathUUID, ConstSharedTrustLineAmount>> reservations;
+    reservations.push_back(
+        make_pair(
+            mCurrentAmountReservingPathIdentifier,
+            make_shared<const TrustLineAmount>(path->maxFlow())));
+    // todo : add other reservations for next neighbor of node
     sendMessage<CoordinatorReservationRequestMessage>(
         neighbor,
         kCoordinator,
         kTransactionUUID,
-        mCurrentAmountReservingPathIdentifier,
-        path->maxFlow(),
+        reservations,
         kNextAfterNeighborNode);
 
     debug() << "Further amount reservation request sent to the node (" << neighbor << ") [" << path->maxFlow() << "]";
@@ -689,12 +708,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
 
     if (path->isLastIntermediateNodeProcessed()) {
 
-        // send final path amount to all intermediate nodes on path
-        sendFinalPathConfiguration(
-            currentAmountReservationPathStats(),
-            mCurrentAmountReservingPathIdentifier,
-            path->maxFlow());
-
         const auto kTotalAmount = totalReservedByAllPaths();
 
         debug() << "Current path reservation finished";
@@ -708,6 +721,16 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             rollBack();
             return resultNoConsensusError();
         }
+
+        // send final path amount to all intermediate nodes on path
+        sendFinalPathConfiguration(
+            currentAmountReservationPathStats(),
+            mCurrentAmountReservingPathIdentifier,
+            path->maxFlow());
+
+        addFinalConfigurationOnPath(
+            mCurrentAmountReservingPathIdentifier,
+            path);
 
         if (kTotalAmount == mCommand->amount()){
             debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
@@ -730,12 +753,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     const auto kCoordinator = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
+    vector<pair<PathUUID, ConstSharedTrustLineAmount>> reservations;
+    reservations.push_back(
+        make_pair(
+            mCurrentAmountReservingPathIdentifier,
+            make_shared<const TrustLineAmount>(path->maxFlow())));
+    // todo : add other reservations for next neighbor of node
     sendMessage<CoordinatorReservationRequestMessage>(
         remoteNode,
         kCoordinator,
         kTransactionUUID,
-        mCurrentAmountReservingPathIdentifier,
-        path->maxFlow(),
+        reservations,
         nextNodeAfterRemote);
 
     path->setNodeState(
@@ -829,12 +857,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
         if (path->isLastIntermediateNodeProcessed()) {
 
-            // send final path amount to all intermediate nodes on path
-            sendFinalPathConfiguration(
-                currentAmountReservationPathStats(),
-                mCurrentAmountReservingPathIdentifier,
-                path->maxFlow());
-
             const auto kTotalAmount = totalReservedByAllPaths();
 
             debug() << "Current path reservation finished";
@@ -848,6 +870,16 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                 rollBack();
                 return resultNoConsensusError();
             }
+
+            // send final path amount to all intermediate nodes on path
+            sendFinalPathConfiguration(
+                currentAmountReservationPathStats(),
+                mCurrentAmountReservingPathIdentifier,
+                path->maxFlow());
+
+            addFinalConfigurationOnPath(
+                mCurrentAmountReservingPathIdentifier,
+                path);
 
             if (kTotalAmount == mCommand->amount()){
                 debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
@@ -879,7 +911,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
 {
     debug() << "sendFinalAmountsConfigurationToAllParticipants";
 
-    map<NodeUUID, vector<pair<PathUUID, ConstSharedTrustLineAmount>>> nodesFinalAmountsConfiguration;
     mFinalAmountNodesConfirmation.clear();
 
     // check if reservation to contractor present
@@ -887,87 +918,25 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     if (contractorNodeReservations.size() > 1) {
         return reject("Coordinator has more than one reservation to contractor");
     }
-//    temporarily commented, because receiver don't need final amounts configuration
-//    if (contractorNodeReservations.size() == 1) {
-//        // if direct reservation is present, we add it to map
-//        const auto contractorReservation = contractorNodeReservations[0];
-//        auto pathUUIDAndAmount = make_pair(
-//            contractorReservation.first,
-//            make_shared<const TrustLineAmount>(
-//                contractorReservation.second->amount()));
-//        vector<pair<PathUUID, ConstSharedTrustLineAmount>> newVector;
-//        newVector.push_back(
-//            pathUUIDAndAmount);
-//        debug() << "Add final configuration on path " << contractorReservation.first;
-//        nodesFinalAmountsConfiguration.insert(
-//            make_pair(
-//                mCommand->contractorUUID(),
-//                newVector));
-//
-//        mFinalAmountNodesConfirmation.insert(
-//            make_pair(
-//                mCommand->contractorUUID(),
-//                false));
-//    }
 
-    for (PathUUID pathIdx = 1; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
-        auto const pathStats = mPathsStats[pathIdx].get();
-
-        if (pathStats->path()->length() > 2)
-            if (!pathStats->isLastIntermediateNodeApproved())
-                continue;
-
-        debug() << "Add final configuration on path " << pathIdx;
-        auto pathReservation = TrustLine::kZeroAmount();
-        auto firstNodeReservations = mReservations[pathStats->path()->nodes.at(1)];
-        for (const auto pathUUIDAndReservation : firstNodeReservations) {
-            if (pathUUIDAndReservation.first == pathIdx) {
-                pathReservation = pathUUIDAndReservation.second->amount();
-                break;
-            }
+    for (auto const nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
+        // todo : discuss if receiver need on final amounts
+        if (nodeAndFinalAmountsConfig.first == mCommand->contractorUUID()) {
+            continue;
         }
-
-        // TODO : check if pathReservation was found
-
-        for (const auto &nodeUUID : pathStats->path()->nodes) {
-            // todo : discuss if receiver need on final amounts
-            if (nodeUUID == currentNodeUUID() || nodeUUID == mCommand->contractorUUID())
-                continue;
-            auto pathUUIDAndAmount = make_pair(
-                pathIdx,
-                make_shared<const TrustLineAmount>(
-                    pathReservation));
-
-            if (nodesFinalAmountsConfiguration.find(nodeUUID) == nodesFinalAmountsConfiguration.end()) {
-                vector<pair<PathUUID, ConstSharedTrustLineAmount>> newVector;
-                newVector.push_back(
-                    pathUUIDAndAmount);
-                nodesFinalAmountsConfiguration.insert(
-                    make_pair(
-                        nodeUUID,
-                        newVector));
-
-                mFinalAmountNodesConfirmation.insert(
-                    make_pair(
-                        nodeUUID,
-                        false));
-            } else {
-                nodesFinalAmountsConfiguration[nodeUUID].push_back(
-                    pathUUIDAndAmount);
-            }
-        }
-    }
-
-    for (auto const nodeAndFinalAmountsConfig : nodesFinalAmountsConfiguration) {
         debug() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first;
         sendMessage<FinalAmountsConfigurationMessage>(
             nodeAndFinalAmountsConfig.first,
             currentNodeUUID(),
             currentTransactionUUID(),
             nodeAndFinalAmountsConfig.second);
+        mFinalAmountNodesConfirmation.insert(
+            make_pair(
+                nodeAndFinalAmountsConfig.first,
+                false));
     }
 
-    debug() << "Total count of all participants without coordinator is " << nodesFinalAmountsConfiguration.size();
+    debug() << "Total count of all participants without coordinator is " << mNodesFinalAmountsConfiguration.size();
 
     mStep = Coordinator_FinalAmountsConfigurationConfirmation;
     return resultWaitForMessageTypes(
@@ -1211,6 +1180,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         return resultNoConsensusError();
     }
 
+    addFinalConfigurationOnPath(
+        mCurrentAmountReservingPathIdentifier,
+        pathStats);
+
     if (kTotalAmount == mCommand->amount()){
         debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
         debug() << "Begin processing participants votes.";
@@ -1238,6 +1211,45 @@ bool CoordinatorPaymentTransaction::isPathValid(
         itGlobal++;
     }
     return true;
+}
+
+void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
+    PathUUID pathUUID,
+    PathStats* pathStats)
+{
+    debug() << "Add final configuration on path " << pathUUID;
+    auto pathUUIDAndAmount = make_pair(
+        pathUUID,
+        make_shared<const TrustLineAmount>(
+            pathStats->maxFlow()));
+
+    // add final path configuration for receiver
+    if (mNodesFinalAmountsConfiguration.find(mCommand->contractorUUID()) == mNodesFinalAmountsConfiguration.end()) {
+        vector<pair<PathUUID, ConstSharedTrustLineAmount>> newVector;
+        newVector.push_back(pathUUIDAndAmount);
+        mNodesFinalAmountsConfiguration.insert(
+            make_pair(
+                mCommand->contractorUUID(),
+                newVector));
+    } else {
+        mNodesFinalAmountsConfiguration[mCommand->contractorUUID()].push_back(
+            pathUUIDAndAmount);
+    }
+
+    // add final path configuration for all intermediate nodes
+    for (const auto node : pathStats->path()->intermediateUUIDs()) {
+        if (mNodesFinalAmountsConfiguration.find(node) == mNodesFinalAmountsConfiguration.end()) {
+            vector<pair<PathUUID, ConstSharedTrustLineAmount>> newVector;
+            newVector.push_back(pathUUIDAndAmount);
+            mNodesFinalAmountsConfiguration.insert(
+                make_pair(
+                    node,
+                    newVector));
+        } else {
+            mNodesFinalAmountsConfiguration[node].push_back(
+                pathUUIDAndAmount);
+        }
+    }
 }
 
 void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory()

@@ -127,6 +127,11 @@ protected:
 
     TransactionResult::SharedConst sendFinalAmountsConfigurationToAllParticipants();
 
+    // add final path configuration to mNodesFinalAmountsConfiguration for all path nodes
+    void addFinalConfigurationOnPath(
+        PathUUID pathUUID,
+        PathStats* pathStats);
+
     TrustLineAmount totalReservedByAllPaths() const;
 
     void savePaymentOperationIntoHistory();
@@ -168,6 +173,9 @@ protected:
      * In case if several direct paths occurs - than it seems that paths collection is broken.
      */
     bool mDirectPathIsAllreadyProcessed;
+
+    // Contains all nodes final amount configuration on all transaction paths
+    map<NodeUUID, vector<pair<PathUUID, ConstSharedTrustLineAmount>>> mNodesFinalAmountsConfiguration;
 
     // Contains flags if nodes confirmed final amounts configuration,
     // before voting stage

@@ -88,6 +88,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
     // If not - there is no reason to process the operation at all.
     // (reject operation)
     const auto kTotalAvailableIncomingAmount = *(mTrustLines->totalIncomingAmount());
+    debug() << "Total incoming amount: " << kTotalAvailableIncomingAmount;
     if (kTotalAvailableIncomingAmount < mMessage->amount()) {
         sendMessage<ReceiverInitPaymentResponseMessage>(
             kCoordinator,
@@ -138,13 +139,18 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
     const auto kNeighbor = kMessage->senderUUID;
+    if (kMessage->finalAmountsConfiguration().size() == 0) {
+        error() << "Not received reservation";
+        // todo : add actual reaction
+    }
+    const auto kReservation = kMessage->finalAmountsConfiguration()[0];
 
     if (! mTrustLines->isNeighbor(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
-            kMessage->pathUUID(),
+            kReservation.first,
             ResponseMessage::Rejected);
         error() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
         // Message was sent from node, that is not listed in neighbors list.
@@ -162,8 +168,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             maxNetworkDelay((kMaxPathLength - 1) * 4));
     }
 
-    debug() << "Amount reservation for " << kMessage->amount() << " request received from "
-            << kNeighbor << " [" << kMessage->pathUUID() << "]";
+    debug() << "Amount reservation for " << *kReservation.second.get() << " request received from "
+            << kNeighbor << " [" << kReservation.first << "]";
     // Note: copy of shared pointer is required.
     const auto kAvailableAmount = mTrustLines->availableIncomingAmount(kNeighbor);
     if (*kAvailableAmount == TrustLine::kZeroAmount()) {
@@ -172,7 +178,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
-            kMessage->pathUUID(),
+            kReservation.first,
             ResponseMessage::Rejected);
 
         // Begin accepting other reservation messages
@@ -184,9 +190,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
     debug() << "Available amount " << *kAvailableAmount;
     const auto kReservationAmount = min(
-        kMessage->amount(),
+        *kReservation.second.get(),
         *kAvailableAmount);
-    if (! reserveIncomingAmount(kNeighbor, kReservationAmount, kMessage->pathUUID())) {
+    if (! reserveIncomingAmount(kNeighbor, kReservationAmount, kReservation.first)) {
         // Receiver must not confirm reservation in case if requested amount is less than available.
         // Intermediate nodes may decrease requested reservation amount, but receiver must not do this.
         // It must stay synchronised with previous node.
@@ -207,7 +213,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
-            kMessage->pathUUID(),
+            kReservation.first,
             ResponseMessage::Rejected);
 
         // Begin accepting other reservation messages
@@ -224,7 +230,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
-            kMessage->pathUUID(),
+            kReservation.first,
             ResponseMessage::Closed);
 
         mTransactionShouldBeRejected = true;
@@ -241,7 +247,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         kNeighbor,
         currentNodeUUID(),
         currentTransactionUUID(),
-        kMessage->pathUUID(),
+        kReservation.first,
         ResponseMessage::Accepted,
         kReservationAmount);
 
@@ -278,12 +284,17 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStage
                       "It indicates protocol error.";
         mTransactionShouldBeRejected = true;
         const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
+        if (kMessage->finalAmountsConfiguration().size() == 0) {
+            error() << "Not received reservation";
+            // todo : add actual reaction
+        }
+        const auto kReservation = kMessage->finalAmountsConfiguration()[0];
 
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kMessage->senderUUID,
             currentNodeUUID(),
             currentTransactionUUID(),
-            kMessage->pathUUID(),
+            kReservation.first,
             ResponseMessage::Closed);
 
         return resultWaitForMessageTypes(

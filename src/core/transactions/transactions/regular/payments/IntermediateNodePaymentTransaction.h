@@ -2,6 +2,7 @@
 #define INTERMEDIATENODEPAYMENTTRANSACTION_H
 
 #include "base/BasePaymentTransaction.h"
+#include <unordered_set>
 
 class IntermediateNodePaymentTransaction:
     public BasePaymentTransaction {
@@ -46,7 +47,14 @@ protected:
     TransactionResult::SharedConst approve();
 
 protected:
-    void updateReservation(
+    // Updates all reservations according to finalAmounts
+    // if some reservations will be found, pathUUIDs of which are absent in finalAmounts, returns false,
+    // otherwise returns true
+    bool updateReservations(
+        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts);
+
+    // Returns reservation pathID, which was updated, if reservation was dropped, returns 0
+    PathUUID updateReservation(
         const NodeUUID &contractorUUID,
         pair<PathUUID, AmountReservation::ConstShared> &reservation,
         const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts);
