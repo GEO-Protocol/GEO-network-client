@@ -121,6 +121,9 @@ public:
 
     const NodeUUID &currentNodeUUID () const;
 
+    const int &currentStep() const;
+
+
     void pushContext(
         Message::Shared message);
 
@@ -130,6 +133,7 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
     virtual TransactionResult::SharedConst run() = 0;
+
 
 protected:
     // TODO: make logger REQUIRED

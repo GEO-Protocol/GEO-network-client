@@ -140,7 +140,7 @@ void TransactionsScheduler::launchTransaction(
         // Even if transaction will raise an exception -
         // it must not be thrown up,
         // to not to break transactions processing flow.
-
+        mLog.debug("launchTransaction") << transaction->cu
         auto result = transaction->run();
         if (result.get() == nullptr) {
             throw ValueError(

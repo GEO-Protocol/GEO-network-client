@@ -272,3 +272,7 @@ LoggerStream BaseTransaction::debug() const
 {
     return mLog.debug(logHeader());
 }
+
+const int &BaseTransaction::currentStep() const {
+    return mStep;
+}
