@@ -707,7 +707,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mLog);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
-    prepareAndSchedule(transaction);
+    prepareAndSchedule(transaction, true, false, true);
 }
 
 void TransactionsManager::launchReceiverPaymentTransaction(
@@ -722,7 +722,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         mLog);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
-    prepareAndSchedule(transaction);
+    prepareAndSchedule(transaction, false, false, true);
 }
 
 void TransactionsManager::launchIntermediateNodePaymentTransaction(
@@ -739,7 +739,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     subscribeForBuidCyclesFourNodesTransaction(
         transaction->mBuildCycleFourNodesSignal);
-    prepareAndSchedule(transaction);
+    prepareAndSchedule(transaction, false, false, true);
 }
 
 void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
