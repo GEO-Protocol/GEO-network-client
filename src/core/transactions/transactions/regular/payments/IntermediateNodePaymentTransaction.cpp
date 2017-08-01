@@ -112,6 +112,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         }
     }
 
+    // update local reservations during amounts from coordinator
     if (!updateReservations(vector<pair<PathUUID, ConstSharedTrustLineAmount>>(
         mMessage->finalAmountsConfiguration().begin() + 1,
         mMessage->finalAmountsConfiguration().end()))) {
@@ -217,6 +218,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
+    // update local reservations during amounts from coordinator
     if (!updateReservations(mMessage->finalAmountsConfiguration())) {
         error() << "Coordinator send path configuration, which is absent on current node";
         // todo : implement correct action
@@ -529,46 +531,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
         maxNetworkDelay(3));
-}
-
-bool IntermediateNodePaymentTransaction::updateReservations(
-    const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts)
-{
-    unordered_set<PathUUID> updatedPaths;
-    const auto reservationsCopy = mReservations;
-    for (const auto &nodeAndReservations : reservationsCopy) {
-        for (auto pathUUIDAndReservation : nodeAndReservations.second) {
-            const auto updatedPathUUID = updateReservation(
-                nodeAndReservations.first,
-                pathUUIDAndReservation,
-                finalAmounts);
-            if (updatedPathUUID != 0) {
-                updatedPaths.insert(updatedPathUUID);
-            }
-        }
-    }
-    return updatedPaths.size() == finalAmounts.size();
-}
-
-BasePaymentTransaction::PathUUID IntermediateNodePaymentTransaction::updateReservation(
-    const NodeUUID &contractorUUID,
-    pair<PathUUID, AmountReservation::ConstShared> &reservation,
-    const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts)
-{
-    for (auto pathUUIDAndAmount : finalAmounts) {
-        if (pathUUIDAndAmount.first == reservation.first) {
-            // todo : maybe add if reservations are different
-            shortageReservation(
-                contractorUUID,
-                reservation.second,
-                *pathUUIDAndAmount.second.get(),
-                pathUUIDAndAmount.first);
-            return pathUUIDAndAmount.first;
-        }
-    }
-    dropNodeReservationsOnPath(
-        reservation.first);
-    return 0;
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()

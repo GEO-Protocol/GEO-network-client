@@ -32,6 +32,8 @@
 
 #include "PathStats.h"
 
+#include <unordered_set>
+
 namespace signals = boost::signals2;
 
 // TODO: Add restoring of the reservations after transaction deserialization.
@@ -198,6 +200,18 @@ protected:
         PathStats* pathStats,
         PathUUID pathUUID,
         const TrustLineAmount &finalPathAmount);
+
+    // Updates all reservations according to finalAmounts
+    // if some reservations will be found, pathUUIDs of which are absent in finalAmounts, returns false,
+    // otherwise returns true
+    bool updateReservations(
+        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts);
+
+    // Returns reservation pathID, which was updated, if reservation was dropped, returns 0
+    PathUUID updateReservation(
+        const NodeUUID &contractorUUID,
+        pair<PathUUID, AmountReservation::ConstShared> &reservation,
+        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts);
 
     size_t reservationsSizeInBytes() const;
 

@@ -171,6 +171,15 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
     debug() << "Amount reservation for " << *kReservation.second.get() << " request received from "
             << kNeighbor << " [" << kReservation.first << "]";
+
+    // update local reservations during amounts from coordinator
+    if (!updateReservations(vector<pair<PathUUID, ConstSharedTrustLineAmount>>(
+        kMessage->finalAmountsConfiguration().begin() + 1,
+        kMessage->finalAmountsConfiguration().end()))) {
+        error() << "Coordinator send path configuration, which is absent on current node";
+        // todo : implement correct action
+    }
+
     // Note: copy of shared pointer is required.
     const auto kAvailableAmount = mTrustLines->availableIncomingAmount(kNeighbor);
     if (*kAvailableAmount == TrustLine::kZeroAmount()) {

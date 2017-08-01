@@ -872,6 +872,46 @@ void BasePaymentTransaction::sendFinalPathConfiguration(
     }
 }
 
+bool BasePaymentTransaction::updateReservations(
+    const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts)
+{
+    unordered_set<PathUUID> updatedPaths;
+    const auto reservationsCopy = mReservations;
+    for (const auto &nodeAndReservations : reservationsCopy) {
+        for (auto pathUUIDAndReservation : nodeAndReservations.second) {
+            const auto updatedPathUUID = updateReservation(
+                nodeAndReservations.first,
+                pathUUIDAndReservation,
+                finalAmounts);
+            if (updatedPathUUID != 0) {
+                updatedPaths.insert(updatedPathUUID);
+            }
+        }
+    }
+    return updatedPaths.size() == finalAmounts.size();
+}
+
+BasePaymentTransaction::PathUUID BasePaymentTransaction::updateReservation(
+    const NodeUUID &contractorUUID,
+    pair<PathUUID, AmountReservation::ConstShared> &reservation,
+    const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts)
+{
+    for (auto pathUUIDAndAmount : finalAmounts) {
+        if (pathUUIDAndAmount.first == reservation.first) {
+            // todo : maybe add if reservations are different
+            shortageReservation(
+                contractorUUID,
+                reservation.second,
+                *pathUUIDAndAmount.second.get(),
+                pathUUIDAndAmount.first);
+            return pathUUIDAndAmount.first;
+        }
+    }
+    dropNodeReservationsOnPath(
+        reservation.first);
+    return 0;
+}
+
 
 TransactionResult::SharedConst BasePaymentTransaction::runVotesRecoveryParentStage()
 {
