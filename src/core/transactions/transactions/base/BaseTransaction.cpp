@@ -7,7 +7,9 @@ BaseTransaction::BaseTransaction(
 
     mType(type),
     mLog(log)
-{}
+{
+    mStep = 1;
+}
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
@@ -17,7 +19,9 @@ BaseTransaction::BaseTransaction(
     mType(type),
     mLog(log),
     mTransactionUUID(transactionUUID)
-{}
+{
+    mStep = 1;
+}
 
 BaseTransaction::BaseTransaction(
     BytesShared buffer,
@@ -37,7 +41,9 @@ BaseTransaction::BaseTransaction(
     mType(type),
     mLog(log),
     mNodeUUID(nodeUUID)
-{}
+{
+    mStep = 1;
+}
 
 BaseTransaction::BaseTransaction(
     const TransactionType type,
@@ -49,7 +55,9 @@ BaseTransaction::BaseTransaction(
     mLog(log),
     mTransactionUUID(transactionUUID),
     mNodeUUID(nodeUUID)
-{}
+{
+    mStep = 1;
+}
 
 void BaseTransaction::addMessage(
     Message::Shared message,
@@ -273,6 +281,6 @@ LoggerStream BaseTransaction::debug() const
     return mLog.debug(logHeader());
 }
 
-const int &BaseTransaction::currentStep() const {
+const int BaseTransaction::currentStep() const {
     return mStep;
 }

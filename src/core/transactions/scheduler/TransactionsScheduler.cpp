@@ -140,7 +140,11 @@ void TransactionsScheduler::launchTransaction(
         // Even if transaction will raise an exception -
         // it must not be thrown up,
         // to not to break transactions processing flow.
-        mLog.debug("launchTransaction") << transaction->cu
+        mLog.debug("launchTransaction") << " TransactionUUID "
+                                        << transaction->currentTransactionUUID().stringUUID()
+                                        << " TransactionStep "
+                                        << transaction->currentStep();
+//        cout << transaction->currentStep() << endl;
         auto result = transaction->run();
         if (result.get() == nullptr) {
             throw ValueError(
@@ -249,7 +253,10 @@ void TransactionsScheduler::forgetTransaction(
 //            storage::uuids::uuid(transaction->currentTransactionUUID())
 //        );
 //    } catch (IndexError &) {}
-
+    mLog.debug("forgetTransaction") << " TransactionUUID "
+                                    << transaction->currentTransactionUUID().stringUUID()
+                                    << " TransactionStep "
+                                    << transaction->currentStep();
     if (transaction->transactionType() == BaseTransaction::Payments_CycleCloserInitiatorTransaction) {
         cycleCloserTransactionWasFinishedSignal();
     }

@@ -121,7 +121,7 @@ public:
 
     const NodeUUID &currentNodeUUID () const;
 
-    const int &currentStep() const;
+    const int currentStep() const;
 
 
     void pushContext(
