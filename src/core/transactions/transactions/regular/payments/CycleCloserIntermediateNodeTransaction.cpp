@@ -432,22 +432,29 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
 
     // path was cancelled, drop all reservations belong it
     if (kMessage->amount() == 0) {
+        debug() << "Final payment equals 0, transaction cancelled.";
         rollBack();
         return resultDone();
-    } else {
+    }
 
-        mLastReservedAmount = kMessage->amount();
-        // Shortening all reservations that belongs to this node and path.
-        for (const auto &nodeAndReservations : mReservations) {
-            for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
-                shortageReservation(
-                    nodeAndReservations.first,
-                    pathUUIDAndReservation.second,
-                    kMessage->amount(),
-                    pathUUIDAndReservation.first);
-            }
+    mLastReservedAmount = kMessage->amount();
+    // Shortening all reservations that belongs to this node and path.
+    for (const auto &nodeAndReservations : mReservations) {
+        for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
+            shortageReservation(
+                nodeAndReservations.first,
+                pathUUIDAndReservation.second,
+                kMessage->amount(),
+                pathUUIDAndReservation.first);
         }
     }
+
+    debug() << "Final payment path was updated";
+    sendMessage<FinalAmountsConfigurationResponseMessage>(
+        kMessage->senderUUID,
+        currentNodeUUID(),
+        currentTransactionUUID(),
+        FinalAmountsConfigurationResponseMessage::Accepted);
 
     mStep = Stages::IntermediateNode_ReservationProlongation;
     return resultWaitForMessageTypes(
@@ -478,7 +485,32 @@ void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory()
 
 bool CycleCloserIntermediateNodeTransaction::checkReservationsDirections() const
 {
-    // todo : implement me
+    debug() << "checkReservationsDirections";
+    if (mReservations.size() != 2) {
+        error() << "Wrong nodes reservations size: " << mReservations.size();
+        return false;
+    }
+
+    auto firstNodeReservation = mReservations.begin()->second;
+    auto secondNodeReservation = mReservations.end() ->second;
+    if (firstNodeReservation.size() != 1 || secondNodeReservation.size() != 1) {
+        error() << "Wrong reservations size";
+        return false;
+    }
+    const auto firstReservation = firstNodeReservation.at(0);
+    const auto secondReservation = secondNodeReservation.at(0);
+    if (firstReservation.first != secondReservation.first) {
+        error() << "Reservations on different ways";
+        return false;
+    }
+    if (firstReservation.second->amount() != secondReservation.second->amount()) {
+        error() << "Different reservations amount";
+        return false;
+    }
+    if (firstReservation.second->direction() == secondReservation.second->direction()) {
+        error() << "Wrong directions";
+        return false;
+    }
     return true;
 }
 
