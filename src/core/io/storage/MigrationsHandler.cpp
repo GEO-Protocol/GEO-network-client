@@ -119,6 +119,7 @@ void MigrationsHandler::applyMigrations(
     }
     if (mNodeUUID == NodeUUID("9e2e8dff-a102-449a-92aa-f6be725be291")){
         fullMigrationsUUIDsList.push_back(MigrationUUID("727813ca-c9e0-44be-bd17-258831ad60f1"));
+        fullMigrationsUUIDsList.push_back(MigrationUUID("27bb4b82-5b16-493d-af1d-621caee390c4"));
     }
 
     try {
@@ -196,6 +197,14 @@ void MigrationsHandler::applyMigration(
 
         } else if (migrationUUID.stringUUID() == string("727813ca-c9e0-44be-bd17-258831ad60f1")){
             auto migration = make_shared<MaxDemianMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+
+        } else if (migrationUUID.stringUUID() == string("27bb4b82-5b16-493d-af1d-621caee390c4")){
+            auto migration = make_shared<MaxDemianSecondMigration>(
                 mDataBase,
                 mLog);
 

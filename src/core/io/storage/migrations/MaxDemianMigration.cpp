@@ -21,6 +21,7 @@ void MaxDemianMigration::apply(IOTransaction::Shared ioTransaction) {
     auto trustLine_third = getOutwornTrustLine(ioTransaction, mNeighborUUIDThird);
 
     if (trustLine_second and trustLine_first and trustLine_third) {
+
         auto new_balance = trustLine_second->balance() + mOperationAmountFirstAndSecond;
         trustLine_second->setBalance(new_balance);
         ioTransaction->trustLineHandler()->saveTrustLine(trustLine_second);
@@ -28,7 +29,6 @@ void MaxDemianMigration::apply(IOTransaction::Shared ioTransaction) {
         new_balance = trustLine_first->balance() - mOperationAmountFirstAndSecond;
         trustLine_first->setBalance(new_balance);
         ioTransaction->trustLineHandler()->saveTrustLine(trustLine_first);
-
 
         new_balance = trustLine_third->balance() - mOperationAmountThird;
         trustLine_third->setBalance(new_balance);

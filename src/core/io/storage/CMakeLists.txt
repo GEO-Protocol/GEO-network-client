@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
+add_subdirectory(migrations)
+
 set(SOURCE_FILES
         StorageHandler.h
         StorageHandler.cpp
@@ -25,32 +27,11 @@ set(SOURCE_FILES
         IOTransaction.cpp
         IOTransaction.h
 
-        #
-        # Migrations
-        #
         MigrationsHandler.h
-        MigrationsHandler.cpp
-
-        migrations/AbstractMigration.h
-        migrations/AbstractMigration.cpp
-
-        migrations/AmountAndBalanceSerialization.h
-        migrations/AmountAndBalanceSerialization.cpp
-
-        migrations/SolomonHistoryMigration.h
-        migrations/SolomonHistoryMigration.cpp
-
-        migrations/SolomonHistoryMigrationTwo.h
-        migrations/SolomonHistoryMigrationTwo.cpp
-        migrations/SolomonHistoryMigration.cpp
-
-        migrations/UniqueIndexHistoryMigration.h
-        migrations/UniqueIndexHistoryMigration.cpp
-
-        migrations/MaxDemianMigration.h
-        migrations/MaxDemianMigration.cpp)
+        MigrationsHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 
 target_link_libraries(io__storage
+        migrations
         libsqlite3)
