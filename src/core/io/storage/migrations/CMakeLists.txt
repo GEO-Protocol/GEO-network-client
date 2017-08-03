@@ -21,7 +21,10 @@ set(SOURCE_FILES
         MaxDemianMigration.cpp
         
         MaxDemianSecondMigration.h 
-        MaxDemianSecondMigration.cpp)
+        MaxDemianSecondMigration.cpp
+
+        MaxDemianThirdMigration.h
+        MaxDemianThirdMigration.cpp)
 
 add_library(migrations ${SOURCE_FILES})
 

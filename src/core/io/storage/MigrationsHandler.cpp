@@ -120,6 +120,7 @@ void MigrationsHandler::applyMigrations(
     if (mNodeUUID == NodeUUID("9e2e8dff-a102-449a-92aa-f6be725be291")){
         fullMigrationsUUIDsList.push_back(MigrationUUID("727813ca-c9e0-44be-bd17-258831ad60f1"));
         fullMigrationsUUIDsList.push_back(MigrationUUID("27bb4b82-5b16-493d-af1d-621caee390c4"));
+        fullMigrationsUUIDsList.push_back(MigrationUUID("fe9cb4c2-0dc2-40ae-9b4b-d50bc85343f4"));
     }
 
     try {
@@ -210,9 +211,17 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
-            // ...
-            // Other migrations must be placed here
-            //
+
+        } else if (migrationUUID.stringUUID() == string("fe9cb4c2-0dc2-40ae-9b4b-d50bc85343f4")){
+            auto migration = make_shared<MaxDemianThirdMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+//            // ...
+//            // Other migrations must be placed here
+//            //
         } else {
             throw ValueError(
                 "MigrationsHandler::applyMigration: "
