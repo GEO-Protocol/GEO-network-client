@@ -24,7 +24,7 @@ set(SOURCE_FILES
         MaxDemianSecondMigration.cpp
 
         MaxDemianThirdMigration.h
-        MaxDemianThirdMigration.cpp)
+        MaxDemianThirdMigration.cpp DeleteSerializedTransactionsMigration.h DeleteSerializedTransactionsMigration.cpp)
 
 add_library(migrations ${SOURCE_FILES})
 

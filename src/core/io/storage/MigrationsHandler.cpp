@@ -117,6 +117,15 @@ void MigrationsHandler::applyMigrations(
         fullMigrationsUUIDsList.push_back(MigrationUUID("c9ff4864-6626-11e7-861a-d397d1112608"));
         fullMigrationsUUIDsList.push_back(MigrationUUID("de88c613-c3c0-4cce-95f5-a90d9e1c6566"));
     }
+
+    // Delete serialized transaction
+    if (mNodeUUID == NodeUUID("9e2e8dff-a102-449a-92aa-f6be725be291") or
+        mNodeUUID == NodeUUID("89cf5fc8-6e8e-4e63-a8ba-231b8e170908") or
+        mNodeUUID == NodeUUID("bd8911fc-d947-4e4d-9dcf-755c8c4b16c8")) {
+
+        fullMigrationsUUIDsList.push_back(MigrationUUID("d65438b6-f5c3-473c-8018-7dbf874c5bc4"));
+    }
+
     if (mNodeUUID == NodeUUID("9e2e8dff-a102-449a-92aa-f6be725be291")){
         fullMigrationsUUIDsList.push_back(MigrationUUID("727813ca-c9e0-44be-bd17-258831ad60f1"));
         fullMigrationsUUIDsList.push_back(MigrationUUID("27bb4b82-5b16-493d-af1d-621caee390c4"));
@@ -214,6 +223,14 @@ void MigrationsHandler::applyMigration(
 
         } else if (migrationUUID.stringUUID() == string("fe9cb4c2-0dc2-40ae-9b4b-d50bc85343f4")){
             auto migration = make_shared<MaxDemianThirdMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+
+        } else if (migrationUUID.stringUUID() == string("d65438b6-f5c3-473c-8018-7dbf874c5bc4")){
+            auto migration = make_shared<DeleteSerializedTransactionsMigration>(
                 mDataBase,
                 mLog);
 

@@ -9,6 +9,8 @@
 #include "migrations/MaxDemianMigration.h"
 #include "migrations/MaxDemianSecondMigration.h"
 #include "migrations/MaxDemianThirdMigration.h"
+#include "migrations/DeleteSerializedTransactionsMigration.h"
+
 
 #include "../../common/NodeUUID.h"
 #include "../../common/exceptions/IOError.h"

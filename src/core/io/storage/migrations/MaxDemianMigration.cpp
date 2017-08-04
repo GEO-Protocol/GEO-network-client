@@ -39,7 +39,6 @@ std::shared_ptr <TrustLine> MaxDemianMigration::getOutwornTrustLine(
     string query = "SELECT contractor, incoming_amount, outgoing_amount, balance FROM " +
                    ioTransaction->trustLineHandler()->tableName() + " WHERE contractor = ?";
 
-
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError(
