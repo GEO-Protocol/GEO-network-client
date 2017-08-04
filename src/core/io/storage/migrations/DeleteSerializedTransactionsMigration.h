@@ -18,8 +18,6 @@ public:
 protected:
     sqlite3 *mDataBase;
     Logger &mLog;
-
-    TransactionUUID mTransactionUUID;
 };
 
 #endif //GEO_NETWORK_CLIENT_DELETESERIALIZEDTRANSACTIONSMIGRATION_H

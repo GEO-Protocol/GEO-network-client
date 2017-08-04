@@ -76,7 +76,7 @@ inline vector<byte> trustLineBalanceToBytes(
     resultBytesBuffer.insert(
         resultBytesBuffer.begin(),
         boost::endian::native_to_big(
-            byte(balance > 0)));
+            byte(balance < 0)));
 
     return resultBytesBuffer;
 }
@@ -126,7 +126,7 @@ inline TrustLineBalance bytesToTrustLineBalance(
     // so it must be only checked for > 0, and not != 0.
     if (balance > 0) {
         byte sign = boost::endian::big_to_native(balanceBytes[0]);
-        if (sign == 0) {
+        if (sign != 0) {
             balance = balance * -1;
         }
     }

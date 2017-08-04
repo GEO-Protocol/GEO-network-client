@@ -4,12 +4,23 @@ MigrationsHandler::MigrationsHandler(
     sqlite3 *dbConnection,
     const string &tableName,
     const NodeUUID &nodeUUID,
+    RoutingTablesHandler *routingTablesHandler,
+    TrustLineHandler *trustLineHandler,
+    HistoryStorage *historyStorage,
+    PaymentOperationStateHandler *paymentOperationStorage,
+    TransactionsHandler *transactionHandler,
     Logger &logger):
 
     mLog(logger),
     mDataBase(dbConnection),
     mTableName(tableName),
-    mNodeUUID(nodeUUID)
+    mNodeUUID(nodeUUID),
+    mRoutingTablesHandler(routingTablesHandler),
+    mTransactionHandler(transactionHandler),
+    mTrustLineHandler(trustLineHandler),
+    mPaymentOperationStateHandler(paymentOperationStorage),
+    mHistoryStorage(historyStorage)
+
 {
     enshureMigrationsTable();
 }
@@ -104,26 +115,19 @@ vector<MigrationUUID> MigrationsHandler::allMigrationsUUIDS() {
  * @throws RuntimeError in case of internal migration error.
  * The exception message would describe the error more detailed.
  */
-void MigrationsHandler::applyMigrations(
-    IOTransaction::Shared ioTransaction)
+void MigrationsHandler::applyMigrations()
 {
     list<MigrationUUID> fullMigrationsUUIDsList = {
         MigrationUUID("0a889a5b-1a82-44c7-8b85-59db6f60a12d"),
         MigrationUUID("bc04656c-9dbb-4bd7-afd5-5603cf44b85e"),
-        // ...
+        MigrationUUID("149daff7-ff15-49d6-a121-e2eb37a37ef7"),
+        MigrationUUID("d65438b6-f5c3-473c-8018-7dbf874c5bc4"),
+        // ...q
         // the rest migrations must be placed here.
     };
     if (mNodeUUID == NodeUUID("2136a78d-3cb0-488d-b1a6-e039c12689d0")){
         fullMigrationsUUIDsList.push_back(MigrationUUID("c9ff4864-6626-11e7-861a-d397d1112608"));
         fullMigrationsUUIDsList.push_back(MigrationUUID("de88c613-c3c0-4cce-95f5-a90d9e1c6566"));
-    }
-
-    // Delete serialized transaction
-    if (mNodeUUID == NodeUUID("9e2e8dff-a102-449a-92aa-f6be725be291") or
-        mNodeUUID == NodeUUID("89cf5fc8-6e8e-4e63-a8ba-231b8e170908") or
-        mNodeUUID == NodeUUID("bd8911fc-d947-4e4d-9dcf-755c8c4b16c8")) {
-
-        fullMigrationsUUIDsList.push_back(MigrationUUID("d65438b6-f5c3-473c-8018-7dbf874c5bc4"));
     }
 
     if (mNodeUUID == NodeUUID("9e2e8dff-a102-449a-92aa-f6be725be291")){
@@ -141,12 +145,25 @@ void MigrationsHandler::applyMigrations(
                 continue;
             }
 
+            auto ioTransaction = make_shared<IOTransaction>(
+                mDataBase,
+                mRoutingTablesHandler,
+                mTrustLineHandler,
+                mHistoryStorage,
+                mPaymentOperationStateHandler,
+                mTransactionHandler,
+                mLog);
+
             try {
+
                 applyMigration(kMigrationUUID, ioTransaction);
                 info() << "Migration " << kMigrationUUID << " successfully applied.";
 
             } catch (Exception &e) {
+
                 error() << "Migration " << kMigrationUUID << " can't be applied. Details: " << e.what();
+                ioTransaction->rollback();
+
                 throw RuntimeError(e.what());
             }
         }
@@ -231,6 +248,14 @@ void MigrationsHandler::applyMigration(
 
         } else if (migrationUUID.stringUUID() == string("d65438b6-f5c3-473c-8018-7dbf874c5bc4")){
             auto migration = make_shared<DeleteSerializedTransactionsMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+
+        } else if (migrationUUID.stringUUID() == string("149daff7-ff15-49d6-a121-e2eb37a37ef7")){
+            auto migration = make_shared<PositiveSignMigration>(
                 mDataBase,
                 mLog);
 
