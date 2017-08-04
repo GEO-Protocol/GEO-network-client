@@ -6,6 +6,7 @@
 #include "migrations/SolomonHistoryMigration.h"
 #include "migrations/SolomonHistoryMigrationTwo.h"
 #include "migrations/UniqueIndexHistoryMigration.h"
+#include "migrations/MaxDemianMigration.h"
 
 #include "../../common/NodeUUID.h"
 #include "../../common/exceptions/IOError.h"

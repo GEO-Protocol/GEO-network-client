@@ -43,7 +43,6 @@ void MigrationsHandler::enshureMigrationsTable()
             "Can't create migrations table: sqlite error code: " + to_string(rc) + ".");
     }
 
-
     /*
      * Creating unique index for preventing duplicating of migrations UUIDs.
      */
@@ -60,8 +59,6 @@ void MigrationsHandler::enshureMigrationsTable()
             "MigrationsHandler::enshureMigrationsTable: "
             "Can't create index for migrations table: sqlite error code: " + to_string(rc) + ".");
     }
-
-
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
 }
@@ -120,7 +117,9 @@ void MigrationsHandler::applyMigrations(
         fullMigrationsUUIDsList.push_back(MigrationUUID("c9ff4864-6626-11e7-861a-d397d1112608"));
         fullMigrationsUUIDsList.push_back(MigrationUUID("de88c613-c3c0-4cce-95f5-a90d9e1c6566"));
     }
-
+    if (mNodeUUID == NodeUUID("9e2e8dff-a102-449a-92aa-f6be725be291")){
+        fullMigrationsUUIDsList.push_back(MigrationUUID("727813ca-c9e0-44be-bd17-258831ad60f1"));
+    }
 
     try {
         auto migrationsUUIDS = allMigrationsUUIDS();
@@ -129,7 +128,6 @@ void MigrationsHandler::applyMigrations(
             if (std::find(migrationsUUIDS.begin(), migrationsUUIDS.end(), kMigrationUUID) != migrationsUUIDS.end()) {
                 info() << "Migration " << kMigrationUUID << " is already applied. Skipped.";
                 continue;
-
             }
 
             try {
@@ -137,16 +135,15 @@ void MigrationsHandler::applyMigrations(
                 info() << "Migration " << kMigrationUUID << " successfully applied.";
 
             } catch (Exception &e) {
-                error() << "Migration " << kMigrationUUID << " can't be applied. Details: " << e.message();
-                throw RuntimeError(e.message());
+                error() << "Migration " << kMigrationUUID << " can't be applied. Details: " << e.what();
+                throw RuntimeError(e.what());
             }
         }
 
     } catch (const Exception &e) {
         // allMigrationsUUIDS() might throw IOError.
-
         mLog.logException("MigrationsHandler", e);
-        throw RuntimeError(e.message());
+        throw RuntimeError(e.what());
     }
 }
 
@@ -165,7 +162,6 @@ void MigrationsHandler::applyMigration(
 {
 
     try {
-
         if (migrationUUID.stringUUID() == string("0a889a5b-1a82-44c7-8b85-59db6f60a12d")) {
             auto migration = make_shared<AmountAndBalanceSerializationMigration>(
                 mDataBase,
@@ -181,8 +177,7 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
-        // ...
-        // Other migrations must be placed here
+
         } else if (migrationUUID.stringUUID() == string("bc04656c-9dbb-4bd7-afd5-5603cf44b85e")){
             auto migration = make_shared<UniqueIndexHistoryMigration>(
                 mDataBase,
@@ -190,12 +185,17 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
-            // ...
-            // Other migrations must be placed here
-            //
-        //
+
         } else if (migrationUUID.stringUUID() == string("de88c613-c3c0-4cce-95f5-a90d9e1c6566")){
             auto migration = make_shared<SolomonHistoryMigrationTwo>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+
+        } else if (migrationUUID.stringUUID() == string("727813ca-c9e0-44be-bd17-258831ad60f1")){
+            auto migration = make_shared<MaxDemianMigration>(
                 mDataBase,
                 mLog);
 
@@ -204,17 +204,17 @@ void MigrationsHandler::applyMigration(
             // ...
             // Other migrations must be placed here
             //
-
         } else {
             throw ValueError(
                 "MigrationsHandler::applyMigration: "
                 "can't recognize received migration UUID.");
         }
-
-    } catch (std::exception &e) {
-        throw RuntimeError(
-            "MigrationsHandler::applyMigration: "
-            "Migration can't be applied. Details are: " + string(e.what()));
+    } catch (const Exception &e) {
+        // todo add e.what for info exception
+        throw RuntimeError(e.what());
+//        throw RuntimeError(
+//            "MigrationsHandler::applyMigration: "
+//            "Migration can't be applied. Details are: ");
     }
 }
 
