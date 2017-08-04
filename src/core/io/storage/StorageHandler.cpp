@@ -83,20 +83,23 @@ const string StorageHandler::logHeader() const
 }
 
 int StorageHandler::applyMigrations(const NodeUUID &nodeUUID) {
-    auto ioTransaction = beginTransaction();
     auto migrationHandler = make_shared<MigrationsHandler>(
             mDBConnection,
             kMigrationTableName,
             nodeUUID,
+            &mRoutingTablesHandler,
+            &mTrustLineHandler,
+            &mHistoryStorage,
+            &mPaymentOperationStateHandler,
+            &mTransactionHandler,
             mLog);
 
     try {
-        migrationHandler->applyMigrations(ioTransaction);
+        migrationHandler->applyMigrations();
         return 0;
 
     } catch(const Exception &e) {
         mLog.error("") << e.what();
-        ioTransaction->rollback();
         return -1;
     }
 }

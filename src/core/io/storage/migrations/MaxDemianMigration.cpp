@@ -8,31 +8,24 @@ MaxDemianMigration::MaxDemianMigration(
 {
     mNeighborUUIDFirst = NodeUUID("1a3da803-f7bd-46a1-95d5-ccf8ba24d2bd");
     mNeighborUUIDSecond = NodeUUID("547f80d2-1f34-46c4-8dde-528441cabece");
-    mNeighborUUIDThird = NodeUUID("0bc6a4fa-154a-4cbd-9409-79d0a1c3e2f1");
 
-    mOperationAmountFirstAndSecond = TrustLineAmount(499);
-    mOperationAmountThird = TrustLineAmount(36456);
+    mOperationAmount = TrustLineAmount(499);
 }
 
 void MaxDemianMigration::apply(IOTransaction::Shared ioTransaction) {
 
     auto trustLine_first = getOutwornTrustLine(ioTransaction, mNeighborUUIDFirst);
     auto trustLine_second = getOutwornTrustLine(ioTransaction, mNeighborUUIDSecond);
-    auto trustLine_third = getOutwornTrustLine(ioTransaction, mNeighborUUIDThird);
 
-    if (trustLine_second and trustLine_first and trustLine_third) {
-        auto new_balance = trustLine_second->balance() + mOperationAmountFirstAndSecond;
+    if (trustLine_second and trustLine_first) {
+
+        auto new_balance = trustLine_second->balance() + mOperationAmount;
         trustLine_second->setBalance(new_balance);
         ioTransaction->trustLineHandler()->saveTrustLine(trustLine_second);
 
-        new_balance = trustLine_first->balance() - mOperationAmountFirstAndSecond;
+        new_balance = trustLine_first->balance() - mOperationAmount;
         trustLine_first->setBalance(new_balance);
         ioTransaction->trustLineHandler()->saveTrustLine(trustLine_first);
-
-
-        new_balance = trustLine_third->balance() - mOperationAmountThird;
-        trustLine_third->setBalance(new_balance);
-        ioTransaction->trustLineHandler()->saveTrustLine(trustLine_third);
 
     } else {
         throw RuntimeError("Can not find TrustLines to migrate");
@@ -45,7 +38,6 @@ std::shared_ptr <TrustLine> MaxDemianMigration::getOutwornTrustLine(
     sqlite3_stmt *stmt;
     string query = "SELECT contractor, incoming_amount, outgoing_amount, balance FROM " +
                    ioTransaction->trustLineHandler()->tableName() + " WHERE contractor = ?";
-
 
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
