@@ -42,6 +42,8 @@ protected:
     TransactionResult::SharedConst approve();
 
 protected:
+    const TrustLineAmount totalReservedAmount() const;
+
     void savePaymentOperationIntoHistory();
 
     bool checkReservationsDirections() const;
@@ -52,7 +54,6 @@ protected:
 
 protected:
     const ReceiverInitPaymentRequestMessage::ConstShared mMessage;
-    TrustLineAmount mTotalReserved;
 
     // this field indicates that transaction should be rejected on voting stage
     // it used only for Receiver

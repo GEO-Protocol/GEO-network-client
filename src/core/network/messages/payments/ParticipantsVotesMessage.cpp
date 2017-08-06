@@ -290,3 +290,9 @@ const boost::container::flat_map<NodeUUID, ParticipantsVotesMessage::Vote>& Part
     return mVotes;
 }
 
+bool ParticipantsVotesMessage::containsParticipant(
+    const NodeUUID &node) const
+{
+    return mVotes.find(node) != mVotes.end();
+}
+

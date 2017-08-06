@@ -26,7 +26,8 @@
 #include "../../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../../../network/messages/payments/FinalPathConfigurationMessage.h"
 #include "../../../../../network/messages/payments/FinalPathCycleConfigurationMessage.h"
-#include "../../../../../network/messages/payments/TTLPolongationMessage.h"
+#include "../../../../../network/messages/payments/TTLProlongationRequestMessage.h"
+#include "../../../../../network/messages/payments/TTLProlongationResponseMessage.h"
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationResponseMessage.h"
 
@@ -215,6 +216,8 @@ protected:
     size_t reservationsSizeInBytes() const;
 
     TransactionResult::SharedConst processNextNodeToCheckVotes();
+
+
 
     virtual void savePaymentOperationIntoHistory() = 0;
 

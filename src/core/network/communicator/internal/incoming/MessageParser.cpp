@@ -111,8 +111,11 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Payments_FinalAmountsConfigurationResponse:
             return messageCollected<FinalAmountsConfigurationResponseMessage>(buffer);
 
-        case Message::Payments_TTLProlongation:
-            return messageCollected<TTLPolongationMessage>(buffer);
+        case Message::Payments_TTLProlongationRequest:
+            return messageCollected<TTLProlongationRequestMessage>(buffer);
+
+        case Message::Payments_TTLProlongationResponse:
+            return messageCollected<TTLProlongationResponseMessage>(buffer);
 
         case Message::Payments_VotesStatusRequest:
             return messageCollected<VotesStatusRequestMessage>(buffer);

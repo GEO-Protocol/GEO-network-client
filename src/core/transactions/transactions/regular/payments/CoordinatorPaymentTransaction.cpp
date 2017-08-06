@@ -205,7 +205,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
 
     case 1: {
         // nodes can clarify if transaction is still alive
-        if (contextIsValid(Message::MessageType::Payments_TTLProlongation, false)) {
+        if (contextIsValid(Message::MessageType::Payments_TTLProlongationRequest, false)) {
             return runTTLTransactionResponce();
         }
         const auto kPathStats = currentAmountReservationPathStats();
@@ -305,7 +305,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes,
-        Message::Payments_TTLProlongation},
+        Message::Payments_TTLProlongationRequest},
         maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1));
 }
 
@@ -561,7 +561,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
 
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationResponse,
-        Message::Payments_TTLProlongation},
+        Message::Payments_TTLProlongationRequest},
         maxNetworkDelay(2));
 }
 
@@ -610,10 +610,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
         PathStats::ReservationRequestSent);
 
 
-    // delay is equal 3 becouse in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
+    // delay is equal 4 because in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationResponse,
-        Message::Payments_TTLProlongation},
+        Message::Payments_TTLProlongationRequest},
         maxNetworkDelay(4));
 }
 
@@ -628,10 +628,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
             mCurrentAmountReservingPathIdentifier);
 
         // sending message to receiver that transaction continues
-        sendMessage<TTLPolongationMessage>(
+        sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
             currentNodeUUID(),
-            currentTransactionUUID());
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Continue);
         return tryProcessNextPath();
     }
 
@@ -639,8 +640,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
     auto message = popNextMessage<IntermediateNodeReservationResponseMessage>();
     // todo: check message sender
 
-    if (message->state() != IntermediateNodeReservationResponseMessage::Accepted) {
+    if (message->state() == IntermediateNodeReservationResponseMessage::Closed) {
         error() << "Neighbor node doesn't approved reservation request";
+        return reject("Desynchronization in reservation with Receiver occured. Transaction closed.");
+    }
+
+    if (message->state() == IntermediateNodeReservationResponseMessage::Rejected) {
+        debug() << "Neighbor node doesn't approved reservation request";
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
@@ -678,10 +684,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
         // sending message to receiver that transaction continues
-        sendMessage<TTLPolongationMessage>(
+        sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
             currentNodeUUID(),
-            currentTransactionUUID());
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Continue);
         debug() << "Switching to another path.";
         return tryProcessNextPath();
     }
@@ -692,16 +699,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         return reject("Desynchronization in reservation with Receiver occured. Transaction closed.");
     }
 
-    if (message->state() == CoordinatorReservationResponseMessage::Rejected) {
+    if (message->amountReserved() == 0 || message->state() == CoordinatorReservationResponseMessage::Rejected) {
         debug() << "Neighbor node doesn't accepted coordinator request.";
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
         // sending message to receiver that transaction continues
-        sendMessage<TTLPolongationMessage>(
+        sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
             currentNodeUUID(),
-            currentTransactionUUID());
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Continue);
         return tryProcessNextPath();
     }
 
@@ -808,7 +816,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     // delay is equal 3 becouse in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationResponse,
-        Message::Payments_TTLProlongation},
+        Message::Payments_TTLProlongationRequest},
         maxNetworkDelay(4));
 }
 
@@ -820,10 +828,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
         // sending message to receiver that transaction continues
-        sendMessage<TTLPolongationMessage>(
+        sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
             currentNodeUUID(),
-            currentTransactionUUID());
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Continue);
         debug() << "Switching to another path.";
         return tryProcessNextPath();
     }
@@ -844,16 +853,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         return reject("Desynchronization in reservation with Receiver occured. Transaction closed.");
     }
 
-    if (0 == message->amountReserved()) {
+    if (0 == message->amountReserved() || message->state() == CoordinatorReservationResponseMessage::Rejected) {
         debug() << "Remote node rejected reservation. Switching to another path.";
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
         // sending message to receiver that transaction continues
-        sendMessage<TTLPolongationMessage>(
+        sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
             currentNodeUUID(),
-            currentTransactionUUID());
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Continue);
 
         path->setUnusable();
         path->setNodeState(
@@ -973,14 +983,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     mStep = Coordinator_FinalAmountsConfigurationConfirmation;
     return resultWaitForMessageTypes(
         {Message::Payments_FinalAmountsConfigurationResponse,
-         Message::Payments_TTLProlongation},
+         Message::Payments_TTLProlongationRequest},
         maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsConfigurationConfirmation()
 {
     debug() << "runFinalAmountsConfigurationConfirmation";
-    if (contextIsValid(Message::MessageType::Payments_TTLProlongation, false)) {
+    if (contextIsValid(Message::MessageType::Payments_TTLProlongationRequest, false)) {
         return runTTLTransactionResponce();
     }
     if (contextIsValid(Message::MessageType::Payments_FinalAmountsConfigurationResponse, false)) {
@@ -990,7 +1000,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
             error() << "Sender is not participant of this transaction";
             return resultWaitForMessageTypes(
                 {Message::Payments_FinalAmountsConfigurationResponse,
-                 Message::Payments_TTLProlongation},
+                 Message::Payments_TTLProlongationRequest},
                 maxNetworkDelay(2));
         }
         if (kMessage->state() == FinalAmountsConfigurationResponseMessage::Rejected) {
@@ -1004,7 +1014,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
                 debug() << "Some nodes are still not confirmed final amounts. Waiting.";
                 return resultWaitForMessageTypes(
                     {Message::Payments_FinalAmountsConfigurationResponse,
-                     Message::Payments_TTLProlongation},
+                     Message::Payments_TTLProlongationRequest},
                     maxNetworkDelay(1));
             }
         }
@@ -1232,7 +1242,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
 {
     debug() << "runVotesConsistencyCheckingStage";
     // Intermediate node or Receiver can send request if transaction is still alive.
-    if (contextIsValid(Message::Payments_TTLProlongation, false)) {
+    if (contextIsValid(Message::Payments_TTLProlongationRequest, false)) {
         return runTTLTransactionResponce();
     }
 
@@ -1258,40 +1268,57 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
         propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
         return approve();
 
-    } else {
-        // todo : need discuss what should do in this case
-        // Otherwise - message contains some uncertain votes.
-        // In this case - message may be ignored.
-        return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(
-                mParticipantsVotesMessage->participantsCount()));
     }
+
+    return reject("Coordinator received message with some uncertain votes. Rolling back");
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionResponce()
 {
     debug() << "runTTLTransactionResponce";
-    auto kMessage = popNextMessage<TTLPolongationMessage>();
+    auto kMessage = popNextMessage<TTLProlongationRequestMessage>();
     if (mParticipantsVotesMessage == nullptr) {
         // reservation stage
-        if (mNodesFinalAmountsConfiguration.find(kMessage->senderUUID) != mNodesFinalAmountsConfiguration.end()) {
-            // coordinator has configuration for requested node
-            sendMessage<TTLPolongationMessage>(
+        if (kMessage->senderUUID == mCommand->contractorUUID()) {
+            sendMessage<TTLProlongationResponseMessage>(
                 kMessage->senderUUID,
                 currentNodeUUID(),
-                currentTransactionUUID());
+                currentTransactionUUID(),
+                TTLProlongationResponseMessage::Continue);
+            debug() << "Send clarifying message that transactions is alive to contractor " << kMessage->senderUUID;
+        }
+        if (mNodesFinalAmountsConfiguration.find(kMessage->senderUUID) != mNodesFinalAmountsConfiguration.end()) {
+            // coordinator has configuration for requested node
+            sendMessage<TTLProlongationResponseMessage>(
+                kMessage->senderUUID,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                TTLProlongationResponseMessage::Continue);
             debug() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
         }
-        // todo : discuss sending of rejecting response, in this case IntemediateNodeTransaction will rollback
-    } else {
-        // voting stage
-        sendMessage<TTLPolongationMessage>(
+        sendMessage<TTLProlongationResponseMessage>(
             kMessage->senderUUID,
             currentNodeUUID(),
-            currentTransactionUUID());
-        debug() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
-        // todo : discuss sending of rejecting response if node is absent in mParticipantsVotesMessage
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Finish);
+        debug() << "Send transaction finishing message to node " << kMessage->senderUUID;
+    } else {
+        // voting stage
+        if (mParticipantsVotesMessage->containsParticipant(kMessage->senderUUID)) {
+            sendMessage<TTLProlongationResponseMessage>(
+                kMessage->senderUUID,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                TTLProlongationResponseMessage::Continue);
+            debug() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
+        } else {
+            sendMessage<TTLProlongationResponseMessage>(
+                kMessage->senderUUID,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                TTLProlongationResponseMessage::Finish);
+            debug() << "Send transaction finishing message to node " << kMessage->senderUUID;
+        }
     }
     return resultContinuePreviousState();
 }

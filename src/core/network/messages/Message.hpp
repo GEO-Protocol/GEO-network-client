@@ -55,7 +55,8 @@ public:
         Payments_VotesStatusRequest,
         Payments_FinalPathConfiguration,
         Payments_FinalPathCycleConfiguration,
-        Payments_TTLProlongation,
+        Payments_TTLProlongationRequest,
+        Payments_TTLProlongationResponse,
 
         /*
          * Cycles

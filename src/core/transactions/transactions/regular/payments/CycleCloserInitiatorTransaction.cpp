@@ -480,16 +480,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
             0);
     }
 
-    // todo : this case can't happens in cycles, it means cycle with 2 nodes
-    if (path->isLastIntermediateNodeProcessed()) {
-
-        const auto kTotalAmount = mPathStats.get()->maxFlow();
-        debug() << "Current path reservation finished";
-        debug() << "Total collected amount by cycle: " << kTotalAmount;
-
-        return propagateVotesListAndWaitForVoutingResult();
-    }
-
     return runAmountReservationStage();
 }
 
@@ -796,20 +786,18 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
         propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
         return approve();
 
-    } else {
-        // todo : need discuss what should do in this case
-        // Otherwise - message contains some uncertain votes.
-        // In this case - message may be ignored.
-        return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes},
-            maxNetworkDelay(
-                mParticipantsVotesMessage->participantsCount()));
     }
+
+    return reject("Coordinator received message with some uncertain votes. Rolling back");
 }
 
 void CycleCloserInitiatorTransaction::checkPath(
     const Path::ConstShared path)
 {
+    if (path->length() < 3 || path->length() > 7) {
+        throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
+                             "invalid paths length");
+    }
     if (path->sourceUUID() != path->destinationUUID()) {
         throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
                              "path isn't cycle");

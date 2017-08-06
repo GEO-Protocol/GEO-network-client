@@ -858,7 +858,7 @@ bool BasePaymentTransaction::updateReservations(
                 nodeAndReservations.first,
                 pathUUIDAndReservation,
                 finalAmounts);
-            if (updatedPathUUID != 0) {
+            if (updatedPathUUID != UINT64_MAX) {
                 updatedPaths.insert(updatedPathUUID);
             }
         }
@@ -884,7 +884,7 @@ BasePaymentTransaction::PathUUID BasePaymentTransaction::updateReservation(
     }
     dropNodeReservationsOnPath(
         reservation.first);
-    return 0;
+    return UINT64_MAX;
 }
 
 
