@@ -38,9 +38,9 @@ void TransactionsScheduler::run() {
 
 void TransactionsScheduler::scheduleTransaction(
     BaseTransaction::Shared transaction) {
-
     for ( auto it = mTransactions->begin(); it != mTransactions->end(); it++ ){
         if (transaction->currentTransactionUUID() == it->first->currentTransactionUUID())
+            mLog.error("scheduleTransaction:") << "Duplicate TransactionUUID. Already exists TransactionType : " <<  it->first->transactionType();
             throw ConflictError("Duplicate Transaction UUID");
     }
     (*mTransactions)[transaction] = TransactionState::awakeAsFastAsPossible();
