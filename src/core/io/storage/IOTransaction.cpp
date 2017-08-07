@@ -73,7 +73,6 @@ TransactionsHandler* IOTransaction::transactionHandler()
 
 void IOTransaction::commit()
 {
-    cout << "Commit" << endl;
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "commit";
 #endif
