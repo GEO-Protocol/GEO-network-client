@@ -38,10 +38,12 @@ void TransactionsScheduler::run() {
 
 void TransactionsScheduler::scheduleTransaction(
     BaseTransaction::Shared transaction) {
-
     for ( auto it = mTransactions->begin(); it != mTransactions->end(); it++ ){
-        if (transaction->currentTransactionUUID() == it->first->currentTransactionUUID())
+        if (transaction->currentTransactionUUID() == it->first->currentTransactionUUID()) {
+            mLog.error("scheduleTransaction:") << "Duplicate TransactionUUID. Already exists TransactionType: "
+                                               << it->first->transactionType();
             throw ConflictError("Duplicate Transaction UUID");
+        }
     }
     (*mTransactions)[transaction] = TransactionState::awakeAsFastAsPossible();
 
@@ -144,7 +146,12 @@ void TransactionsScheduler::launchTransaction(
         // Even if transaction will raise an exception -
         // it must not be thrown up,
         // to not to break transactions processing flow.
-
+        mLog.debug("launchTransaction") << " Transaction UUID: "
+                                        << transaction->currentTransactionUUID().stringUUID()
+                                        << " Transaction Type: "
+                                        << transaction->transactionType()
+                                        << " Transaction Step: "
+                                        << transaction->currentStep();
         auto result = transaction->run();
         if (result.get() == nullptr) {
             throw ValueError(
@@ -253,7 +260,12 @@ void TransactionsScheduler::forgetTransaction(
 //            storage::uuids::uuid(transaction->currentTransactionUUID())
 //        );
 //    } catch (IndexError &) {}
-
+    mLog.debug("forgetTransaction") << "Transaction UUID: "
+                                    << transaction->currentTransactionUUID().stringUUID()
+                                    << " Transaction Type: "
+                                    << transaction->transactionType()
+                                    << " Transaction Step: "
+                                    << transaction->currentStep();
     if (transaction->transactionType() == BaseTransaction::Payments_CycleCloserInitiatorTransaction) {
         cycleCloserTransactionWasFinishedSignal();
     }
