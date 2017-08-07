@@ -80,8 +80,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
         }
     } catch (Exception &e) {
         error() << e.what();
-        recover("Something happens wrong in method run(). Transaction will be recovered");
-        return resultUnexpectedError();
+        return reject("Something happens wrong in method run(). Transaction will be rejected");
     }
 }
 
