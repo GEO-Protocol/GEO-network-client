@@ -81,6 +81,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
                         "CoordinatorPaymentTransaction::run(): "
                             "invalid transaction step.");
         }
+    } catch (CallChainBreakException &e) {
+        error() << e.what();
+        return tryProcessNextPath();
     } catch (Exception &e) {
         error() << e.what();
         recover("Something happens wrong in method run(). Transaction will be recovered");
@@ -511,15 +514,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
 
     const auto kReservationAmount = min(*kAvailableOutgoingAmount, kRemainingAmountForProcessing);
 
-    if (kReservationAmount == 0) {
+    //if (kReservationAmount == 0) {
         debug() << "AvailableOutgoingAmount " << *kAvailableOutgoingAmount;
         debug() << "RemainingAmountForProcessing " << kRemainingAmountForProcessing;
         debug() << "No payment amount is available for (" << neighbor << "). "
                   "Switching to another path.";
 
         path->setUnusable();
+        debug() << "before throw";
+        throw new CallChainBreakException("Break call chain for prevent call loop");
         return tryProcessNextPath();
-    }
+    //}
 
     if (not reserveOutgoingAmount(
         neighbor,

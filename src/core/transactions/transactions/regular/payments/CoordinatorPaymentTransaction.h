@@ -10,6 +10,8 @@
 #include "../../../../resources/manager/ResourcesManager.h"
 #include "../../../../io/storage/record/payment/PaymentRecord.h"
 
+#include "../../../../common/exceptions/CallChainBreakException.h"
+
 #include <boost/functional/hash.hpp>
 
 #include <unordered_map>
