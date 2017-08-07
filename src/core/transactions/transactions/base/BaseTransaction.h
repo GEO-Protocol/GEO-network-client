@@ -121,6 +121,8 @@ public:
 
     const NodeUUID &currentNodeUUID () const;
 
+    void recreateTransactionUUID();
+
     void pushContext(
         Message::Shared message);
 

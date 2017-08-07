@@ -4,12 +4,23 @@ MigrationsHandler::MigrationsHandler(
     sqlite3 *dbConnection,
     const string &tableName,
     const NodeUUID &nodeUUID,
+    RoutingTablesHandler *routingTablesHandler,
+    TrustLineHandler *trustLineHandler,
+    HistoryStorage *historyStorage,
+    PaymentOperationStateHandler *paymentOperationStorage,
+    TransactionsHandler *transactionHandler,
     Logger &logger):
 
     mLog(logger),
     mDataBase(dbConnection),
     mTableName(tableName),
-    mNodeUUID(nodeUUID)
+    mNodeUUID(nodeUUID),
+    mRoutingTablesHandler(routingTablesHandler),
+    mTransactionHandler(transactionHandler),
+    mTrustLineHandler(trustLineHandler),
+    mPaymentOperationStateHandler(paymentOperationStorage),
+    mHistoryStorage(historyStorage)
+
 {
     enshureMigrationsTable();
 }
@@ -43,7 +54,6 @@ void MigrationsHandler::enshureMigrationsTable()
             "Can't create migrations table: sqlite error code: " + to_string(rc) + ".");
     }
 
-
     /*
      * Creating unique index for preventing duplicating of migrations UUIDs.
      */
@@ -60,8 +70,6 @@ void MigrationsHandler::enshureMigrationsTable()
             "MigrationsHandler::enshureMigrationsTable: "
             "Can't create index for migrations table: sqlite error code: " + to_string(rc) + ".");
     }
-
-
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
 }
@@ -107,13 +115,14 @@ vector<MigrationUUID> MigrationsHandler::allMigrationsUUIDS() {
  * @throws RuntimeError in case of internal migration error.
  * The exception message would describe the error more detailed.
  */
-void MigrationsHandler::applyMigrations(
-    IOTransaction::Shared ioTransaction)
+void MigrationsHandler::applyMigrations()
 {
     list<MigrationUUID> fullMigrationsUUIDsList = {
         MigrationUUID("0a889a5b-1a82-44c7-8b85-59db6f60a12d"),
         MigrationUUID("bc04656c-9dbb-4bd7-afd5-5603cf44b85e"),
-        // ...
+        MigrationUUID("149daff7-ff15-49d6-a121-e2eb37a37ef7"),
+        MigrationUUID("d65438b6-f5c3-473c-8018-7dbf874c5bc4"),
+        // ...q
         // the rest migrations must be placed here.
     };
     if (mNodeUUID == NodeUUID("2136a78d-3cb0-488d-b1a6-e039c12689d0")){
@@ -121,6 +130,11 @@ void MigrationsHandler::applyMigrations(
         fullMigrationsUUIDsList.push_back(MigrationUUID("de88c613-c3c0-4cce-95f5-a90d9e1c6566"));
     }
 
+    if (mNodeUUID == NodeUUID("9e2e8dff-a102-449a-92aa-f6be725be291")){
+        fullMigrationsUUIDsList.push_back(MigrationUUID("727813ca-c9e0-44be-bd17-258831ad60f1"));
+        fullMigrationsUUIDsList.push_back(MigrationUUID("27bb4b82-5b16-493d-af1d-621caee390c4"));
+        fullMigrationsUUIDsList.push_back(MigrationUUID("fe9cb4c2-0dc2-40ae-9b4b-d50bc85343f4"));
+    }
 
     try {
         auto migrationsUUIDS = allMigrationsUUIDS();
@@ -129,24 +143,35 @@ void MigrationsHandler::applyMigrations(
             if (std::find(migrationsUUIDS.begin(), migrationsUUIDS.end(), kMigrationUUID) != migrationsUUIDS.end()) {
                 info() << "Migration " << kMigrationUUID << " is already applied. Skipped.";
                 continue;
-
             }
 
+            auto ioTransaction = make_shared<IOTransaction>(
+                mDataBase,
+                mRoutingTablesHandler,
+                mTrustLineHandler,
+                mHistoryStorage,
+                mPaymentOperationStateHandler,
+                mTransactionHandler,
+                mLog);
+
             try {
+
                 applyMigration(kMigrationUUID, ioTransaction);
                 info() << "Migration " << kMigrationUUID << " successfully applied.";
 
             } catch (Exception &e) {
-                error() << "Migration " << kMigrationUUID << " can't be applied. Details: " << e.message();
-                throw RuntimeError(e.message());
+
+                error() << "Migration " << kMigrationUUID << " can't be applied. Details: " << e.what();
+                ioTransaction->rollback();
+
+                throw RuntimeError(e.what());
             }
         }
 
     } catch (const Exception &e) {
         // allMigrationsUUIDS() might throw IOError.
-
         mLog.logException("MigrationsHandler", e);
-        throw RuntimeError(e.message());
+        throw RuntimeError(e.what());
     }
 }
 
@@ -165,7 +190,6 @@ void MigrationsHandler::applyMigration(
 {
 
     try {
-
         if (migrationUUID.stringUUID() == string("0a889a5b-1a82-44c7-8b85-59db6f60a12d")) {
             auto migration = make_shared<AmountAndBalanceSerializationMigration>(
                 mDataBase,
@@ -181,8 +205,7 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
-        // ...
-        // Other migrations must be placed here
+
         } else if (migrationUUID.stringUUID() == string("bc04656c-9dbb-4bd7-afd5-5603cf44b85e")){
             auto migration = make_shared<UniqueIndexHistoryMigration>(
                 mDataBase,
@@ -190,10 +213,7 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
-            // ...
-            // Other migrations must be placed here
-            //
-        //
+
         } else if (migrationUUID.stringUUID() == string("de88c613-c3c0-4cce-95f5-a90d9e1c6566")){
             auto migration = make_shared<SolomonHistoryMigrationTwo>(
                 mDataBase,
@@ -201,20 +221,60 @@ void MigrationsHandler::applyMigration(
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
-            // ...
-            // Other migrations must be placed here
-            //
 
+        } else if (migrationUUID.stringUUID() == string("727813ca-c9e0-44be-bd17-258831ad60f1")){
+            auto migration = make_shared<MaxDemianMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+
+        } else if (migrationUUID.stringUUID() == string("27bb4b82-5b16-493d-af1d-621caee390c4")){
+            auto migration = make_shared<MaxDemianSecondMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+
+        } else if (migrationUUID.stringUUID() == string("fe9cb4c2-0dc2-40ae-9b4b-d50bc85343f4")){
+            auto migration = make_shared<MaxDemianThirdMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+
+        } else if (migrationUUID.stringUUID() == string("d65438b6-f5c3-473c-8018-7dbf874c5bc4")){
+            auto migration = make_shared<DeleteSerializedTransactionsMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+
+        } else if (migrationUUID.stringUUID() == string("149daff7-ff15-49d6-a121-e2eb37a37ef7")){
+            auto migration = make_shared<PositiveSignMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+//            // ...
+//            // Other migrations must be placed here
+//            //
         } else {
             throw ValueError(
                 "MigrationsHandler::applyMigration: "
                 "can't recognize received migration UUID.");
         }
-
-    } catch (std::exception &e) {
-        throw RuntimeError(
-            "MigrationsHandler::applyMigration: "
-            "Migration can't be applied. Details are: " + string(e.what()));
+    } catch (const Exception &e) {
+        // todo add e.what for info exception
+        throw RuntimeError(e.what());
+//        throw RuntimeError(
+//            "MigrationsHandler::applyMigration: "
+//            "Migration can't be applied. Details are: ");
     }
 }
 

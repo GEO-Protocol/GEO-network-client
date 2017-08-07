@@ -6,6 +6,12 @@
 #include "migrations/SolomonHistoryMigration.h"
 #include "migrations/SolomonHistoryMigrationTwo.h"
 #include "migrations/UniqueIndexHistoryMigration.h"
+#include "migrations/MaxDemianMigration.h"
+#include "migrations/MaxDemianSecondMigration.h"
+#include "migrations/MaxDemianThirdMigration.h"
+#include "migrations/DeleteSerializedTransactionsMigration.h"
+#include "migrations/PositiveSignMigration.h"
+
 
 #include "../../common/NodeUUID.h"
 #include "../../common/exceptions/IOError.h"
@@ -49,10 +55,14 @@ public:
         sqlite3 *dbConnection,
         const string &tableName,
         const NodeUUID &nodeUUID,
+        RoutingTablesHandler *routingTablesHandler,
+        TrustLineHandler *trustLineHandler,
+        HistoryStorage *historyStorage,
+        PaymentOperationStateHandler *paymentOperationStorage,
+        TransactionsHandler *transactionHandler,
         Logger &logger);
 
-    void applyMigrations(
-        IOTransaction::Shared ioTransaction);
+    void applyMigrations();
 
 protected:
     void enshureMigrationsTable();
@@ -78,6 +88,12 @@ protected:
 protected:
     Logger &mLog;
     sqlite3 *mDataBase;
+
+    RoutingTablesHandler *mRoutingTablesHandler;
+    TrustLineHandler *mTrustLineHandler;
+    HistoryStorage *mHistoryStorage;
+    PaymentOperationStateHandler *mPaymentOperationStateHandler;
+    TransactionsHandler *mTransactionHandler;
 
     // Name of the migrations table in the DB.
     // This table is used for storing information about already applied migrations.
