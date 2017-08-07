@@ -168,5 +168,5 @@ void Logger::logRecord(
 
     // Logging to the file
     mOperationsLogFile << recordStream.str();
-    mOperationsLogFile.sync_with_stdio();
+    mOperationsLogFile.flush();
 }

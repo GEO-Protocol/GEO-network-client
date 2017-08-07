@@ -677,7 +677,6 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
 void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
     MaxFlowCalculationTargetSndLevelMessage::Shared message) {
 
-    // todo: remote bad_alloc catch
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationTargetSndLevelTransaction>(
@@ -1351,7 +1350,6 @@ void TransactionsManager::prepareAndSchedule(
     bool subsidiaryTransactionSubscribe,
     bool outgoingMessagesSubscribe)
 {
-
     if (outgoingMessagesSubscribe)
         subscribeForOutgoingMessages(
             transaction->outgoingMessageIsReadySignal);
@@ -1370,10 +1368,16 @@ void TransactionsManager::prepareAndSchedule(
             throw bad_alloc();
 
         } catch(ConflictError &e) {
-            if (regenerateUUID){
+            mLog.error("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
+                                              << " New TransactionType:" << transaction->transactionType()
+                                              << " Recreate.";
+            if (regenerateUUID) {
                 transaction->recreateTransactionUUID();
             } else {
-                throw ConflictError(e.message());
+                mLog.error("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
+                                                  << " New TransactionType:" << transaction->transactionType()
+                                                  << "Exit.";
+                return;
             }
         }
     }
