@@ -121,6 +121,9 @@ public:
 
     const NodeUUID &currentNodeUUID () const;
 
+    const int currentStep() const;
+
+
     void recreateTransactionUUID();
 
     void pushContext(
