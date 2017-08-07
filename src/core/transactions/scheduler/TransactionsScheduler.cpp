@@ -140,11 +140,10 @@ void TransactionsScheduler::launchTransaction(
         // Even if transaction will raise an exception -
         // it must not be thrown up,
         // to not to break transactions processing flow.
-        mLog.debug("launchTransaction") << " TransactionUUID "
+        mLog.debug("launchTransaction") << " TransactionUUID: "
                                         << transaction->currentTransactionUUID().stringUUID()
-                                        << " TransactionStep "
+                                        << " TransactionStep: "
                                         << transaction->currentStep();
-//        cout << transaction->currentStep() << endl;
         auto result = transaction->run();
         if (result.get() == nullptr) {
             throw ValueError(
