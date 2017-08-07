@@ -414,7 +414,14 @@ const bool BasePaymentTransaction::contextIsValid(
         return false;
     }
 
-    if (mContext.size() > 1 || mContext.at(0)->typeID() != messageType) {
+    if (mContext.size() > 1) {
+        if (showErrorMessage) {
+            error() << "contextIsValid::context has " << mContext.size() << " messages";
+        }
+        return false;
+    }
+
+    if (mContext.at(0)->typeID() != messageType) {
         if (showErrorMessage) {
             error() << "Unexpected message received. (ID " << mContext.at(0)->typeID()
                     << ") It seems that remote node doesn't follows the protocol. Canceling.";
@@ -807,18 +814,27 @@ void BasePaymentTransaction::dropReservationsOnPath(
 void BasePaymentTransaction::dropNodeReservationsOnPath(
     PathUUID pathUUID)
 {
-    debug() << "dropNodeReservationsOnPath";
+    debug() << "dropNodeReservationsOnPath: " << pathUUID;
 
     for (auto nodeReservations : mReservations) {
         //auto nodeReservations = mReservations.find(firstIntermediateNode);
         auto itPathUUIDAndReservation = nodeReservations.second.begin();
         while (itPathUUIDAndReservation != nodeReservations.second.end()) {
             if (itPathUUIDAndReservation->first == pathUUID) {
-                debug() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
-                        << " for (" << nodeReservations.first << ") [" << pathUUID << "]";
                 mTrustLines->dropAmountReservation(
-                        nodeReservations.first,
-                        itPathUUIDAndReservation->second);
+                    nodeReservations.first,
+                    itPathUUIDAndReservation->second);
+
+                if (itPathUUIDAndReservation->second->direction() == AmountReservation::Outgoing)
+                    debug() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
+                            << " for (" << nodeReservations.first << ") [" << itPathUUIDAndReservation->first
+                            << "]";
+
+                else if (itPathUUIDAndReservation->second->direction() == AmountReservation::Incoming)
+                    debug() << "Dropping reservation: [ <= ] " << itPathUUIDAndReservation->second->amount()
+                            << " for (" << nodeReservations.first << ") [" << itPathUUIDAndReservation->first
+                            << "]";
+
                 itPathUUIDAndReservation = nodeReservations.second.erase(itPathUUIDAndReservation);
             } else {
                 itPathUUIDAndReservation++;

@@ -513,17 +513,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
 
     const auto kReservationAmount = min(*kAvailableOutgoingAmount, kRemainingAmountForProcessing);
 
-    //if (kReservationAmount == 0) {
+    if (kReservationAmount == 0) {
         debug() << "AvailableOutgoingAmount " << *kAvailableOutgoingAmount;
         debug() << "RemainingAmountForProcessing " << kRemainingAmountForProcessing;
         debug() << "No payment amount is available for (" << neighbor << "). "
                   "Switching to another path.";
 
         path->setUnusable();
-        debug() << "before throw";
-        throw new CallChainBreakException("Break call chain for prevent call loop");
+        //debug() << "before throw";
+        //throw new CallChainBreakException("Break call chain for prevent call loop");
         return tryProcessNextPath();
-    //}
+    }
 
     if (not reserveOutgoingAmount(
         neighbor,
