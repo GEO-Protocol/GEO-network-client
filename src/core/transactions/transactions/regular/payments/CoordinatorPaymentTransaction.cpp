@@ -80,8 +80,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
         }
     } catch (Exception &e) {
         error() << e.what();
-        recover("Something happens wrong in method run(). Transaction will be recovered");
-        return resultUnexpectedError();
+        return reject("Something happens wrong in method run(). Transaction will be rejected");
     }
 }
 
@@ -966,12 +965,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultUnexpectedEr
         mCommand->responseUnexpectedError());
 }
 
-pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() const
-    throw (bad_alloc)
-{
-    return BasePaymentTransaction::serializeToBytes();
-}
-
 void CoordinatorPaymentTransaction::deserializeFromBytes(BytesShared buffer)
 {
     BasePaymentTransaction::deserializeFromBytes(buffer);
@@ -1005,16 +998,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     BasePaymentTransaction::approve();
     runBuildThreeNodesCyclesSignal();
     return resultOK();
-}
-
-TransactionResult::SharedConst CoordinatorPaymentTransaction::recover(
-    const char *message)
-{
-    BasePaymentTransaction::recover(
-        message);
-
-    // TODO: implement me correct.
-    return resultProtocolError();
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::reject(
