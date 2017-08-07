@@ -177,7 +177,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverRespons
     const auto kMessage = popNextMessage<ReceiverInitPaymentResponseMessage>();
     if (kMessage->state() != ReceiverInitPaymentResponseMessage::Accepted)
         return exitWithResult(
-            resultDone(),
+            resultInsufficientFundsError(),
             "Receiver rejected payment operation. Canceling.");
 
     debug() << "Receiver accepted operation. Begin reserving amounts.";
@@ -712,7 +712,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
                 "It indicates that some of the nodes doesn't follows the protocol, "
                 "or that an error is present in protocol itself.";
             rollBack();
-            return resultDone();
+            return resultNoConsensusError();
         }
 
         if (kTotalAmount == mCommand->amount()){
@@ -853,7 +853,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                            "It indicates that some of the nodes doesn't follows the protocol, "
                            "or that an error is present in protocol itself.";
                 rollBack();
-                return resultDone();
+                return resultNoConsensusError();
             }
 
             if (kTotalAmount == mCommand->amount()){
@@ -1062,7 +1062,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
                 << "It indicates that some of the nodes doesn't follows the protocol, "
                 << "or that an error is present in protocol itself.";
         rollBack();
-        return resultDone();
+        return resultNoConsensusError();
     }
 
     if (kTotalAmount == mCommand->amount()){
