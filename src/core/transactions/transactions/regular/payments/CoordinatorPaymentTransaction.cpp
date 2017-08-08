@@ -49,44 +49,48 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
 TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
     noexcept
 {
-    debug() << "run: stage: " << mStep;
-    try {
-        switch (mStep) {
-            case Stages::Coordinator_Initialisation:
-                return runPaymentInitialisationStage();
+    while (true) {
+        debug() << "run: stage: " << mStep;
+        try {
+            switch (mStep) {
+                case Stages::Coordinator_Initialisation:
+                    return runPaymentInitialisationStage();
 
-            case Stages::Coordinator_ReceiverResourceProcessing:
-                return runReceiverResourceProcessingStage();
+                case Stages::Coordinator_ReceiverResourceProcessing:
+                    return runReceiverResourceProcessingStage();
 
-            case Stages::Coordinator_ReceiverResponseProcessing:
-                return runReceiverResponseProcessingStage();
+                case Stages::Coordinator_ReceiverResponseProcessing:
+                    return runReceiverResponseProcessingStage();
 
-            case Stages::Coordinator_AmountReservation:
-                return runAmountReservationStage();
+                case Stages::Coordinator_AmountReservation:
+                    return runAmountReservationStage();
 
-            case Stages::Coordinator_ShortPathAmountReservationResponseProcessing:
-                return runDirectAmountReservationResponseProcessingStage();
+                case Stages::Coordinator_ShortPathAmountReservationResponseProcessing:
+                    return runDirectAmountReservationResponseProcessingStage();
 
-            case Stages::Coordinator_FinalAmountsConfigurationConfirmation:
-                return runFinalAmountsConfigurationConfirmation();
+                case Stages::Coordinator_FinalAmountsConfigurationConfirmation:
+                    return runFinalAmountsConfigurationConfirmation();
 
-            case Stages::Common_VotesChecking:
-                return runVotesConsistencyCheckingStage();
+                case Stages::Common_VotesChecking:
+                    return runVotesConsistencyCheckingStage();
 
-            case Stages::Common_Recovery:
-                return runVotesRecoveryParentStage();
+                case Stages::Common_Recovery:
+                    return runVotesRecoveryParentStage();
 
                 default:
                     throw RuntimeError(
-                        "CoordinatorPaymentTransaction::run(): "
-                            "invalid transaction step.");
+                            "CoordinatorPaymentTransaction::run(): "
+                                    "invalid transaction step.");
+            }
+        } catch (CallChainBreakException &e) {
+            error() << e.what();
+            // on this case we break call functions chain and prevent stack overflow
+            mReservationsStage = 2;
+            continue;
+        } catch (Exception &e) {
+            error() << e.what();
+            return reject("Something happens wrong in method run(). Transaction will be rejected");
         }
-    } catch (CallChainBreakException &e) {
-        error() << e.what();
-        return tryProcessNextPath();
-    } catch (Exception &e) {
-        error() << e.what();
-        return reject("Something happens wrong in method run(). Transaction will be rejected");
     }
 }
 
@@ -233,13 +237,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
 
         throw RuntimeError(
             "CoordinatorPaymentTransaction::processAmountReservationStage: "
-                "unexpected behaviour occured.");
+                "unexpected behaviour occurred.");
         }
+
+    case 2:
+        mReservationsStage = 1;
+        return tryProcessNextPath();
 
     default:
         throw ValueError(
             "CoordinatorPaymentTransaction::processAmountReservationStage: "
-            "unexpected reservations stage occured.");
+            "unexpected reservations stage occurred.");
     }
 }
 
@@ -369,7 +377,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     }
 
     // Note: try reserve remaining part of command amount
-    const auto kRemainingAmountForProcessing = mCommand->amount() - totalReservedByAllPaths();
+    const auto kRemainingAmountForProcessing = mCommand->amount() - totalReservedAmount();
     // Reserving amount locally.
     const auto kReservationAmount = min(kRemainingAmountForProcessing, *kAvailableOutgoingAmount);
     if (not reserveOutgoingAmount(
@@ -509,7 +517,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     // Note: copy of shared pointer is required
     const auto kAvailableOutgoingAmount =  mTrustLines->availableOutgoingAmount(neighbor);
     // Note: try reserve remaining part of command amount
-    const auto kRemainingAmountForProcessing = mCommand->amount() - totalReservedByAllPaths();
+    const auto kRemainingAmountForProcessing = mCommand->amount() - totalReservedAmount();
 
     const auto kReservationAmount = min(*kAvailableOutgoingAmount, kRemainingAmountForProcessing);
 
@@ -520,9 +528,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
                   "Switching to another path.";
 
         path->setUnusable();
-        //debug() << "before throw";
-        //throw new CallChainBreakException("Break call chain for prevent call loop");
-        return tryProcessNextPath();
+        throw CallChainBreakException("Break call chain for preventing call loop");
     }
 
     if (not reserveOutgoingAmount(
@@ -532,7 +538,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         error() << "Can't reserve amount locally. "
                 << "Switching to another path.";
         path->setUnusable();
-        return tryProcessNextPath();
+        throw CallChainBreakException("Break call chain for preventing call loop");
     }
 
     // Try reserve amount locally.
@@ -742,7 +748,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
 
     if (path->isLastIntermediateNodeProcessed()) {
 
-        const auto kTotalAmount = totalReservedByAllPaths();
+        const auto kTotalAmount = totalReservedAmount();
 
         debug() << "Current path reservation finished";
         debug() << "Total collected amount by all paths: " << kTotalAmount;
@@ -903,7 +909,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
         if (path->isLastIntermediateNodeProcessed()) {
 
-            const auto kTotalAmount = totalReservedByAllPaths();
+            const auto kTotalAmount = totalReservedAmount();
 
             debug() << "Current path reservation finished";
             debug() << "Total collected amount by all paths: " << kTotalAmount;
@@ -1197,7 +1203,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         }
     }
 
-    const auto kTotalAmount = totalReservedByAllPaths();
+    const auto kTotalAmount = totalReservedAmount();
     debug() << "Current path reservation finished";
     debug() << "Total collected amount by all paths: " << kTotalAmount;
 
@@ -1275,7 +1281,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
                 TTLProlongationResponseMessage::Continue);
             debug() << "Send clarifying message that transactions is alive to contractor " << kMessage->senderUUID;
         }
-        if (mNodesFinalAmountsConfiguration.find(kMessage->senderUUID) != mNodesFinalAmountsConfiguration.end()) {
+        else if (mNodesFinalAmountsConfiguration.find(kMessage->senderUUID) != mNodesFinalAmountsConfiguration.end()) {
             // coordinator has configuration for requested node
             sendMessage<TTLProlongationResponseMessage>(
                 kMessage->senderUUID,
@@ -1283,13 +1289,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionR
                 currentTransactionUUID(),
                 TTLProlongationResponseMessage::Continue);
             debug() << "Send clarifying message that transactions is alive to node " << kMessage->senderUUID;
+        } else {
+            sendMessage<TTLProlongationResponseMessage>(
+                kMessage->senderUUID,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                TTLProlongationResponseMessage::Finish);
+            debug() << "Send transaction finishing message to node " << kMessage->senderUUID;
         }
-        sendMessage<TTLProlongationResponseMessage>(
-            kMessage->senderUUID,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            TTLProlongationResponseMessage::Finish);
-        debug() << "Send transaction finishing message to node " << kMessage->senderUUID;
     } else {
         // voting stage
         if (mParticipantsVotesMessage->containsParticipant(kMessage->senderUUID)) {

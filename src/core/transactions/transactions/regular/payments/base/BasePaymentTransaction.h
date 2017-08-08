@@ -217,7 +217,7 @@ protected:
 
     TransactionResult::SharedConst processNextNodeToCheckVotes();
 
-
+    const TrustLineAmount totalReservedAmount() const;
 
     virtual void savePaymentOperationIntoHistory() = 0;
 

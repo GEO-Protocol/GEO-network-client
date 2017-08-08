@@ -42,8 +42,6 @@ protected:
     TransactionResult::SharedConst approve();
 
 protected:
-    const TrustLineAmount totalReservedAmount() const;
-
     void savePaymentOperationIntoHistory();
 
     bool checkReservationsDirections() const;

@@ -86,7 +86,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     if (mMessage->finalAmountsConfiguration().size() == 0) {
         error() << "Not received reservation";
         sendMessage<IntermediateNodeReservationResponseMessage>(
-            mCoordinator,
+            kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
             0,                  // 0, because we don't know pathUUID
@@ -126,13 +126,18 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         }
     }
 
+
     // update local reservations during amounts from coordinator
     if (!updateReservations(vector<pair<PathUUID, ConstSharedTrustLineAmount>>(
         mMessage->finalAmountsConfiguration().begin() + 1,
         mMessage->finalAmountsConfiguration().end()))) {
-        error() << "Coordinator send path configuration, which is absent on current node";
+        error() << "Previous node send path configuration, which is absent on current node";
+        // next loop is only logger info
+        for (const auto reservation : mMessage->finalAmountsConfiguration()) {
+            debug() << "path: " << reservation.first << " amount: " << *reservation.second.get();
+        }
         sendMessage<IntermediateNodeReservationResponseMessage>(
-            mCoordinator,
+            kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
             kReservation.first,

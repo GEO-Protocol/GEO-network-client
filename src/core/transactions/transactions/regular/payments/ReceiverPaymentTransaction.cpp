@@ -186,6 +186,10 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         kMessage->finalAmountsConfiguration().begin() + 1,
         kMessage->finalAmountsConfiguration().end()))) {
         error() << "Coordinator send path configuration, which is absent on current node";
+        // next loop is only logger info
+        for (const auto reservation : kMessage->finalAmountsConfiguration()) {
+            debug() << "path: " << reservation.first << " amount: " << *reservation.second.get();
+        }
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
@@ -378,17 +382,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
         {Message::Payments_ParticipantsVotes,
          Message::Payments_IntermediateNodeReservationResponse},
         maxNetworkDelay(kMaxPathLength));
-}
-
-const TrustLineAmount ReceiverPaymentTransaction::totalReservedAmount() const
-{
-    TrustLineAmount totalAmount = 0;
-    for (const auto nodeUUIDAndReservations : mReservations) {
-        for (const auto pathUUIDAndReservation : nodeUUIDAndReservations.second) {
-            totalAmount += pathUUIDAndReservation.second->amount();
-        }
-    }
-    return totalAmount;
 }
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::approve()

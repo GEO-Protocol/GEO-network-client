@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_SETTRUSTLINECOMMAND_H
 
 #include "../BaseUserCommand.h"
-#include "../../CommandUUID.h"
 #include "../../../results_interface/result/CommandResult.h"
 
 #include "../../../../common/Types.h"

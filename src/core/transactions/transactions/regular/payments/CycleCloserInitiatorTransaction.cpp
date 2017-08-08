@@ -508,11 +508,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
         debug() << "Further amount reservation request sent to the last node (" << remoteNode << ") ["
                << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
         mStep = Coordinator_PreviousNeighborRequestProcessing;
-        const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodePosition;
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeCycleReservationRequest,
             Message::Payments_CoordinatorCycleReservationResponse},
-            kTimeout);
+            maxNetworkDelay(2));
     }
     debug() << "Further amount reservation request sent to the node (" << remoteNode << ") ["
            << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
@@ -520,10 +519,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
     // Response from te remote node will go throught other nodes in the path.
     // So them would be able to shortage it's reservations (if needed).
     // Total wait timeout must take note of this.
-    const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodePosition;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorCycleReservationResponse},
-        kTimeout);
+        maxNetworkDelay(4));
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNodeResponse()
@@ -688,10 +686,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         mIncomingAmount);
 
     mStep = Coordinator_AmountReservation;
-    const auto kTimeout = kMaxMessageTransferLagMSec;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorCycleReservationResponse},
-        kTimeout);
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeighborRequestProcessingStageAgain()
@@ -723,10 +720,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         mIncomingAmount);
 
     mStep = Coordinator_AmountReservation;
-    const auto kTimeout = kMaxMessageTransferLagMSec;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorCycleReservationResponse},
-        kTimeout);
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsConfigurationConfirmationProcessingStage()

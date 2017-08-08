@@ -131,6 +131,7 @@ protected:
         PathUUID pathUUID,
         PathStats* pathStats);
 
+    [[deprecated("Use BasePaymentTransaction::totalReservedAmount() instead")]]
     TrustLineAmount totalReservedByAllPaths() const;
 
     void savePaymentOperationIntoHistory();
