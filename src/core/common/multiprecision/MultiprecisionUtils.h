@@ -3,134 +3,10 @@
 
 #include "../Types.h"
 
+#include <boost/endian/arithmetic.hpp>
 #include <vector>
 
 using namespace std;
-
-inline vector<byte> trustLineAmountToBytes(
-    const TrustLineAmount &amount) {
-
-    vector<byte> buffer;
-
-    export_bits(
-      amount,
-      back_inserter(buffer),
-      8
-    );
-
-    size_t unusedBufferPlace = kTrustLineAmountBytesCount - buffer.size();
-    for (size_t i = 0; i < unusedBufferPlace; ++i) {
-        buffer.push_back(0);
-    }
-
-    return buffer;
-}
-
-inline TrustLineAmount bytesToTrustLineAmount(
-    const vector<byte> &amountBytes) {
-
-    TrustLineAmount amount;
-
-    vector<byte> amountNotZeroBytes;
-    amountNotZeroBytes.reserve(kTrustLineAmountBytesCount);
-
-    for (const auto &item : amountBytes) {
-        if (item != 0) {
-            amountNotZeroBytes.push_back(item);
-        }
-    }
-
-    if (amountNotZeroBytes.size() > 0) {
-        import_bits(
-            amount,
-            amountNotZeroBytes.begin(),
-            amountNotZeroBytes.end()
-        );
-
-    } else {
-        import_bits(
-            amount,
-            amountBytes.begin(),
-            amountBytes.end()
-        );
-    }
-
-    return amount;
-}
-
-inline vector<byte> trustLineBalanceToBytes(
-    TrustLineBalance balance) {
-
-    vector<byte> buffer;
-
-    bool isSignNegative = false;
-    if (balance.sign() == -1) {
-        balance = balance * -1;
-        isSignNegative = true;
-    }
-
-    export_bits(
-        balance,
-        back_inserter(buffer),
-        8
-    );
-
-    size_t unusedBufferPlace = kTrustLineBalanceBytesCount - buffer.size();
-    for (size_t i = 0; i < unusedBufferPlace; ++i) {
-        buffer.push_back(0);
-    }
-
-    if (isSignNegative) {
-        buffer.push_back(1);
-        balance = balance * -1;
-
-    } else {
-        buffer.push_back(0);
-    }
-
-    return buffer;
-}
-
-inline TrustLineBalance bytesToTrustLineBalance(
-    const vector<byte> balanceBytes) {
-
-    TrustLineBalance balance;
-
-    vector<byte> notZeroBytesVector;
-    notZeroBytesVector.reserve(kTrustLineBalanceBytesCount);
-
-    byte sign = balanceBytes.at(balanceBytes.size() - 1);
-
-    for (size_t byteIndex = 0; byteIndex < balanceBytes.size(); ++ byteIndex) {
-        if (byteIndex != balanceBytes.size() - 1) {
-            byte byteValue = balanceBytes.at(byteIndex);
-            if (byteValue != 0) {
-                notZeroBytesVector.push_back(byteValue);
-            }
-        }
-    }
-
-    if (notZeroBytesVector.size() > 0) {
-        import_bits(
-            balance,
-            notZeroBytesVector.begin(),
-            notZeroBytesVector.end()
-        );
-
-    } else {
-        import_bits(
-            balance,
-            balanceBytes.begin(),
-            balanceBytes.end()
-        );
-    }
-
-    if (sign == 1) {
-        balance = balance * -1;
-    }
-
-    return balance;
-}
 
 inline TrustLineAmount absoluteBalanceAmount(
     const TrustLineBalance &balance)
@@ -141,5 +17,122 @@ inline TrustLineAmount absoluteBalanceAmount(
         return TrustLineAmount(-1 * balance);
     }
 }
+
+inline vector<byte> trustLineAmountToBytes(
+    const TrustLineAmount &amount) {
+
+    vector<byte> rawExportedBytesBuffer, resultBytesBuffer;
+
+    // Exporting bytes of the "amount".
+    rawExportedBytesBuffer.reserve(kTrustLineAmountBytesCount);
+    export_bits(amount, back_inserter(rawExportedBytesBuffer), 8);
+
+    // Prepending received bytes by zeroes until 32 bytes would be used.
+    resultBytesBuffer.reserve(kTrustLineAmountBytesCount);
+
+    size_t unusedBytesCount = kTrustLineAmountBytesCount - rawExportedBytesBuffer.size();
+    for (size_t i = 0; i < unusedBytesCount; ++i) {
+        resultBytesBuffer.push_back(0);
+    }
+
+    size_t usedBytesCount = rawExportedBytesBuffer.size();
+    for (size_t i = 0; i < usedBytesCount; ++i) {
+        resultBytesBuffer.push_back(
+            // Casting each byte to big endian makes the deserializer independent
+            // from current machine architecture, and, as result - platfrom portable.
+            boost::endian::native_to_big(
+                rawExportedBytesBuffer[i]));
+    }
+
+    return resultBytesBuffer;
+}
+
+inline vector<byte> trustLineBalanceToBytes(
+    const TrustLineBalance &balance) {
+
+    vector<byte> rawExportedBytesBuffer, resultBytesBuffer;
+    // Exporting bytes of the "balance".
+    rawExportedBytesBuffer.reserve(kTrustLineAmountBytesCount);
+    export_bits(balance, back_inserter(rawExportedBytesBuffer), 8);
+
+    // Prepending received bytes by zeroes until 32 bytes would be used.
+    resultBytesBuffer.reserve(kTrustLineAmountBytesCount + 1);
+
+    size_t unusedBytesCount = kTrustLineAmountBytesCount - rawExportedBytesBuffer.size();
+    for (size_t i = 0; i < unusedBytesCount; ++i) {
+        resultBytesBuffer.push_back(0);
+    }
+
+    size_t usedBytesCount = rawExportedBytesBuffer.size();
+    for (size_t i = 0; i < usedBytesCount; ++i) {
+        resultBytesBuffer.push_back(
+            // Casting each byte to big endian makes the deserializer independent
+            // from current machine architecture, and, as result - platfrom portable.
+            boost::endian::native_to_big(
+                rawExportedBytesBuffer[i]));
+    }
+
+    // Process sign
+    resultBytesBuffer.insert(
+        resultBytesBuffer.begin(),
+        boost::endian::native_to_big(
+            byte(balance < 0)));
+
+    return resultBytesBuffer;
+}
+
+inline TrustLineAmount bytesToTrustLineAmount(
+    const vector<byte> &amountBytes) {
+
+    vector<byte> internalBytesBuffer;
+    internalBytesBuffer.reserve(kTrustLineAmountBytesCount);
+
+    for (size_t i=0; i<kTrustLineAmountBytesCount; ++i) {
+        internalBytesBuffer.push_back(
+            boost::endian::big_to_native(
+                amountBytes[i]));
+    }
+
+    TrustLineAmount amount;
+    import_bits(
+        amount,
+        internalBytesBuffer.begin(),
+        internalBytesBuffer.end());
+
+    return amount;
+}
+
+inline TrustLineBalance bytesToTrustLineBalance(
+    const vector<byte> &balanceBytes) {
+
+    vector<byte> internalBytesBuffer;
+    internalBytesBuffer.reserve(kTrustLineAmountBytesCount);
+
+    // Note: sign byte must be skipped, so the cycle is starting from 1.
+    for (size_t i=1; i<kTrustLineAmountBytesCount+1; ++i) {
+        internalBytesBuffer.push_back(
+            boost::endian::big_to_native(
+                balanceBytes[i]));
+    }
+
+    TrustLineBalance balance;
+    import_bits(
+        balance,
+        internalBytesBuffer.begin(),
+        internalBytesBuffer.end());
+
+    // Sign must be processed only in case if balance != 0.
+    // By default, after deserialization, balance is always positive,
+    // so it must be only checked for > 0, and not != 0.
+    if (balance > 0) {
+        byte sign = boost::endian::big_to_native(balanceBytes[0]);
+        if (sign != 0) {
+            balance = balance * -1;
+        }
+    }
+
+    return balance;
+}
+
 
 #endif //GEO_NETWORK_CLIENT_MULTIPRECISIONUTILS_H

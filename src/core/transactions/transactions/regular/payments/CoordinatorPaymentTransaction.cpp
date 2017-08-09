@@ -84,8 +84,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
         }
     } catch (Exception &e) {
         error() << e.what();
-        recover("Something happens wrong in method run(). Transaction will be recovered");
-        return resultUnexpectedError();
+        return reject("Something happens wrong in method run(). Transaction will be rejected");
     }
 }
 
@@ -181,7 +180,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverRespons
     const auto kMessage = popNextMessage<ReceiverInitPaymentResponseMessage>();
     if (kMessage->state() != ReceiverInitPaymentResponseMessage::Accepted)
         return exitWithResult(
-            resultDone(),
+            resultInsufficientFundsError(),
             "Receiver rejected payment operation. Canceling.");
 
     debug() << "Receiver accepted operation. Begin reserving amounts.";
@@ -716,7 +715,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
                 "It indicates that some of the nodes doesn't follows the protocol, "
                 "or that an error is present in protocol itself.";
             rollBack();
-            return resultDone();
+            return resultNoConsensusError();
         }
 
         if (kTotalAmount == mCommand->amount()){
@@ -857,7 +856,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                            "It indicates that some of the nodes doesn't follows the protocol, "
                            "or that an error is present in protocol itself.";
                 rollBack();
-                return resultDone();
+                return resultNoConsensusError();
             }
 
             if (kTotalAmount == mCommand->amount()){
@@ -969,12 +968,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultUnexpectedEr
         mCommand->responseUnexpectedError());
 }
 
-pair<BytesShared, size_t> CoordinatorPaymentTransaction::serializeToBytes() const
-    throw (bad_alloc)
-{
-    return BasePaymentTransaction::serializeToBytes();
-}
-
 void CoordinatorPaymentTransaction::deserializeFromBytes(BytesShared buffer)
 {
     BasePaymentTransaction::deserializeFromBytes(buffer);
@@ -1008,16 +1001,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     BasePaymentTransaction::approve();
     runBuildThreeNodesCyclesSignal();
     return resultOK();
-}
-
-TransactionResult::SharedConst CoordinatorPaymentTransaction::recover(
-    const char *message)
-{
-    BasePaymentTransaction::recover(
-        message);
-
-    // TODO: implement me correct.
-    return resultProtocolError();
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::reject(
@@ -1082,7 +1065,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
                 << "It indicates that some of the nodes doesn't follows the protocol, "
                 << "or that an error is present in protocol itself.";
         rollBack();
-        return resultDone();
+        return resultNoConsensusError();
     }
 
     if (kTotalAmount == mCommand->amount()){

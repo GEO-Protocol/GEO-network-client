@@ -156,17 +156,25 @@ BasePaymentTransaction::BasePaymentTransaction(
                     stepAmountReservation));
 
             if (stepDirection == AmountReservation::ReservationDirection::Incoming) {
-                reserveIncomingAmount(
+                if (!reserveIncomingAmount(
                     stepNodeUUID,
                     stepAmount,
-                    stepPathUUID);
+                    stepPathUUID)) {
+                    // can't create reserve, but this reserve was serialized before node dropping
+                    // we must stop this node and find out the reason
+                    exit(1);
+                }
             }
 
             if (stepDirection == AmountReservation::ReservationDirection::Outgoing) {
-                reserveOutgoingAmount(
+                if (!reserveOutgoingAmount(
                     stepNodeUUID,
                     stepAmount,
-                    stepPathUUID);
+                    stepPathUUID)) {
+                    // can't create reserve, but this reserve was serialized before node dropping
+                    // we must stop this node and find out the reason
+                    exit(1);
+                }
             }
         }
         mReservations.insert(

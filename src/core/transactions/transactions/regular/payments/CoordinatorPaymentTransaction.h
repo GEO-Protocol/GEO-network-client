@@ -55,9 +55,6 @@ public:
     TransactionResult::SharedConst run()
         noexcept;
 
-    pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc);
-
 protected:
     // Stages handlers
     // TODO: Add throws specififcations
@@ -73,8 +70,6 @@ protected:
     // Coordinator must return command result on transaction finishing.
     // Therefore this methods are overriden.
     TransactionResult::SharedConst approve();
-    TransactionResult::SharedConst recover(
-        const char *message = nullptr);
     TransactionResult::SharedConst reject(
         const char *message = nullptr);
 

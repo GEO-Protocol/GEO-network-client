@@ -108,7 +108,7 @@ void TransactionsManager::loadTransactions()
                 break;
             }
             case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
-                auto transaction = make_shared<IntermediateNodePaymentTransaction>(
+                auto transaction = make_shared<ReceiverPaymentTransaction>(
                     kTABufferAndSize.first,
                     mNodeUUID,
                     mTrustLines,
@@ -403,22 +403,18 @@ void TransactionsManager::launchOpenTrustLineTransaction(
     OpenTrustLineCommand::Shared command) {
 
     try {
-        auto transaction = make_shared<OpenTrustLineTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mStorageHandler,
-            mLog);
-
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
-
-        mScheduler->scheduleTransaction(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchOpenTrustLineTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<OpenTrustLineTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            true,
+            true,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
@@ -431,21 +427,19 @@ void TransactionsManager::launchSetTrustLineTransaction(
     SetTrustLineCommand::Shared command) {
 
     try {
-        auto transaction = make_shared<SetTrustLineTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mStorageHandler,
-            mLog);
-
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchSetTrustLineTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<SetTrustLineTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            true
+        );
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
@@ -457,21 +451,18 @@ void TransactionsManager::launchCloseTrustLineTransaction(
     CloseTrustLineCommand::Shared command) {
 
     try {
-        auto transaction = make_shared<CloseTrustLineTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mStorageHandler,
-            mLog);
-
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
-        mScheduler->scheduleTransaction(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchCloseTrustLineTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<CloseTrustLineTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            true,
+            true,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -483,22 +474,18 @@ void TransactionsManager::launchAcceptTrustLineTransaction(
     AcceptTrustLineMessage::Shared message) {
 
     try {
-        auto transaction = make_shared<AcceptTrustLineTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mStorageHandler,
-            mLog);
-
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
-
-        mScheduler->scheduleTransaction(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchAcceptTrustLineTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<AcceptTrustLineTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            false,
+            true,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -506,21 +493,18 @@ void TransactionsManager::launchUpdateTrustLineTransaction(
     UpdateTrustLineMessage::Shared message) {
 
     try {
-        auto transaction = make_shared<UpdateTrustLineTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mStorageHandler,
-            mLog);
-
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-
-        mScheduler->scheduleTransaction(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchUpdateTrustLineTransaction: "
-                "can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<UpdateTrustLineTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -532,21 +516,18 @@ void TransactionsManager::launchRejectTrustLineTransaction(
     RejectTrustLineMessage::Shared message) {
 
     try {
-        auto transaction = make_shared<RejectTrustLineTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mStorageHandler,
-            mLog);
-
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        subscribeForSubsidiaryTransactions(transaction->runSubsidiaryTransactionSignal);
-        mScheduler->scheduleTransaction(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchRejectTrustLineTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<RejectTrustLineTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            false,
+            true,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -568,20 +549,19 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
     InitiateMaxFlowCalculationCommand::Shared command) {
 
     try {
-        auto transaction = make_shared<InitiateMaxFlowCalculationTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mMaxFlowCalculationTrustLineManager,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchCloseTrustLineTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<InitiateMaxFlowCalculationTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mMaxFlowCalculationTrustLineManager,
+                mMaxFlowCalculationCacheManager,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -593,19 +573,18 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
         InitiateMaxFlowCalculationMessage::Shared message) {
 
     try {
-        auto transaction = make_shared<ReceiveMaxFlowCalculationOnTargetTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchReceiverPaymentTransaction: "
-                "can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<ReceiveMaxFlowCalculationOnTargetTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mMaxFlowCalculationCacheManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -617,19 +596,18 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
     ResultMaxFlowCalculationMessage::Shared message) {
 
     try {
-        auto transaction = make_shared<ReceiveResultMaxFlowCalculationTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mMaxFlowCalculationTrustLineManager,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction: "
-                "can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<ReceiveResultMaxFlowCalculationTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mMaxFlowCalculationTrustLineManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -641,18 +619,17 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
     MaxFlowCalculationSourceFstLevelMessage::Shared message) {
 
     try {
-        auto transaction = make_shared<MaxFlowCalculationSourceFstLevelTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction: "
-                "can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<MaxFlowCalculationSourceFstLevelTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -664,18 +641,17 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
     MaxFlowCalculationTargetFstLevelMessage::Shared message) {
 
     try {
-        auto transaction = make_shared<MaxFlowCalculationTargetFstLevelTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction: "
-                "can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<MaxFlowCalculationTargetFstLevelTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -687,19 +663,18 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
     MaxFlowCalculationSourceSndLevelMessage::Shared message) {
 
     try {
-        auto transaction = make_shared<MaxFlowCalculationSourceSndLevelTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction: "
-                "can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<MaxFlowCalculationSourceSndLevelTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mMaxFlowCalculationCacheManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -710,21 +685,19 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
 void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
     MaxFlowCalculationTargetSndLevelMessage::Shared message) {
 
-    // todo: remote bad_alloc catch
     try {
-        auto transaction = make_shared<MaxFlowCalculationTargetSndLevelTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mMaxFlowCalculationCacheManager,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction: "
-                "can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<MaxFlowCalculationTargetSndLevelTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mMaxFlowCalculationCacheManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -742,7 +715,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mTestingController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
-    prepareAndSchedule(transaction);
+    prepareAndSchedule(transaction, true, false, true);
 }
 
 void TransactionsManager::launchReceiverPaymentTransaction(
@@ -758,7 +731,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         mTestingController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
-    prepareAndSchedule(transaction);
+    prepareAndSchedule(transaction, false, false, true);
 }
 
 void TransactionsManager::launchIntermediateNodePaymentTransaction(
@@ -776,33 +749,49 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     subscribeForBuidCyclesFourNodesTransaction(
         transaction->mBuildCycleFourNodesSignal);
-    prepareAndSchedule(transaction);
+    prepareAndSchedule(transaction, false, false, true);
 }
 
 void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
     IntermediateNodeCycleReservationRequestMessage::Shared message)
 {
-    prepareAndSchedule(
-        make_shared<CycleCloserIntermediateNodeTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mCyclesManager.get(),
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog,
-            mTestingController));
+    try{
+        prepareAndSchedule(
+            make_shared<CycleCloserIntermediateNodeTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mCyclesManager.get(),
+                mStorageHandler,
+                mMaxFlowCalculationCacheManager,
+                mLog,
+                mTestingController),
+            false,
+            false,
+            true
+        );
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+
 }
 
 void TransactionsManager::launchVoutesResponsePaymentsTransaction(
     VotesStatusRequestMessage::Shared message)
 {
-    prepareAndSchedule(
-        make_shared<VotesStatusResponsePaymentTransaction>(
-            mNodeUUID,
-            message,
-            mStorageHandler,
-            mLog));
+    try {
+        prepareAndSchedule(
+            make_shared<VotesStatusResponsePaymentTransaction>(
+                mNodeUUID,
+                message,
+                mStorageHandler,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
 }
 
 /*!
@@ -813,18 +802,18 @@ void TransactionsManager::launchTotalBalancesTransaction(
         TotalBalancesCommand::Shared command) {
 
     try {
-        auto transaction = make_shared<TotalBalancesTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchTotalBalancesTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<TotalBalancesTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mLog),
+            true,
+            false,
+            true
+        );
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -836,18 +825,17 @@ void TransactionsManager::launchTotalBalancesTransaction(
         InitiateTotalBalancesMessage::Shared message) {
 
     try {
-        auto transaction = make_shared<TotalBalancesTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchTotalBalancesTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<TotalBalancesTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -859,17 +847,16 @@ void TransactionsManager::launchTotalBalancesRemoteNodeTransaction(
     TotalBalancesRemouteNodeCommand::Shared command) {
 
     try {
-        auto transaction = make_shared<TotalBalancesFromRemoutNodeTransaction>(
-            mNodeUUID,
-            command,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchTotalBalancesRemoteNodeTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<TotalBalancesFromRemoutNodeTransaction>(
+                mNodeUUID,
+                command,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -880,18 +867,17 @@ void TransactionsManager::launchTotalBalancesRemoteNodeTransaction(
 void TransactionsManager::launchHistoryPaymentsTransaction(
     HistoryPaymentsCommand::Shared command) {
     try {
-        auto transaction = make_shared<HistoryPaymentsTransaction>(
-            mNodeUUID,
-            command,
-            mStorageHandler,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchHistoryPaymentsTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<HistoryPaymentsTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -902,18 +888,17 @@ void TransactionsManager::launchHistoryPaymentsTransaction(
 void TransactionsManager::launchHistoryTrustLinesTransaction(
     HistoryTrustLinesCommand::Shared command) {
     try {
-        auto transaction = make_shared<HistoryTrustLinesTransaction>(
-            mNodeUUID,
-            command,
-            mStorageHandler,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchHistoryTrustLinesTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<HistoryTrustLinesTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -924,18 +909,17 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
 void TransactionsManager::launchHistoryWithContractorTransaction(
     HistoryWithContractorCommand::Shared command) {
     try {
-        auto transaction = make_shared<HistoryWithContractorTransaction>(
-            mNodeUUID,
-            command,
-            mStorageHandler,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchHistoryWithContractorTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<HistoryWithContractorTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -946,64 +930,94 @@ void TransactionsManager::launchHistoryWithContractorTransaction(
 void TransactionsManager::launchGetPathTestTransaction(
     FindPathCommand::Shared command) {
     try {
-        auto transaction = make_shared<GetPathTestTransaction>(
-            mNodeUUID,
-            command,
-            mResourcesManager,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchGetPathTestTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<GetPathTestTransaction>(
+                mNodeUUID,
+                command,
+                mResourcesManager,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
 void TransactionsManager::launchGetFirstLevelContractorsTransaction(
     GetFirstLevelContractorsCommand::Shared command)
 {
-    prepareAndSchedule(
-        make_shared<GetFirstLevelContractorsTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mLog));
+    try {
+        prepareAndSchedule(
+            make_shared<GetFirstLevelContractorsTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ValueError &e){
+        throw ValueError(e.message());
+    }
 }
+
 
 void TransactionsManager::launchGetTrustlinesTransaction(
     GetTrustLinesCommand::Shared command)
 {
-    prepareAndSchedule(
-        make_shared<GetFirstLevelContractorsBalancesTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mLog));
+    try {
+        prepareAndSchedule(
+            make_shared<GetFirstLevelContractorsBalancesTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+
 }
 
 void TransactionsManager::launchGetTrustlineTransaction(
     GetTrustLineCommand::Shared command)
 {
-    prepareAndSchedule(
-        make_shared<GetFirstLevelContractorBalanceTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mLog));
+    try {
+        prepareAndSchedule(
+            make_shared<GetFirstLevelContractorBalanceTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+
 }
 
 void TransactionsManager::launchUpdateRoutingTablesTransaction(
     UpdateRoutingTablesCommand::Shared command) {
-    prepareAndSchedule(
-        make_shared<UpdateRoutingTablesTransaction>(
-            mNodeUUID,
-            command,
-            mTrustLines,
-            mStorageHandler,
-            mLog),
-    true);
+    try{
+        prepareAndSchedule(
+            make_shared<UpdateRoutingTablesTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            true,
+            true,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+
 }
 
 /*!
@@ -1013,19 +1027,19 @@ void TransactionsManager::launchUpdateRoutingTablesTransaction(
 void TransactionsManager::launchGetRoutingTablesTransaction(
     RequestRoutingTablesMessage::Shared message) {
     try {
-        auto transaction = make_shared<GetRoutingTablesTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mStorageHandler,
-            mLog);
+        prepareAndSchedule(
+            make_shared<GetRoutingTablesTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            false,
+            false,
+            true);
 
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchGetRoutingTablesTransaction: "
-                "Can't allocate memory for transaction instance.");
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -1034,70 +1048,65 @@ void TransactionsManager::launchPathsResourcesCollectTransaction(
     const NodeUUID &destinationNodeUUID) {
 
     try {
-        auto transaction = make_shared<FindPathTransaction>(
-            mNodeUUID,
-            destinationNodeUUID,
-            requestedTransactionUUID,
-            mPathsManager,
-            mResourcesManager,
-            mLog);
-
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchFindPathTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<FindPathTransaction>(
+                mNodeUUID,
+                destinationNodeUUID,
+                requestedTransactionUUID,
+                mPathsManager,
+                mResourcesManager,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
 void TransactionsManager::launchTrustLineStatesHandlerTransaction(
     NotificationTrustLineCreatedMessage::Shared message) {
     try {
-        auto transaction = make_shared<TrustLineStatesHandlerTransaction>(
-            mNodeUUID,
-            message->senderUUID,
-            message->nodeA,
-            message->nodeB,
-            TrustLineStatesHandlerTransaction::TrustLineState::Created,
-            message->hop,
-            mTrustLines,
-            mStorageHandler,
-            mLog);
+        prepareAndSchedule(
+            make_shared<TrustLineStatesHandlerTransaction>(
+                mNodeUUID,
+                message->senderUUID,
+                message->nodeA,
+                message->nodeB,
+                TrustLineStatesHandlerTransaction::TrustLineState::Created,
+                message->hop,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            false,
+            true,
+            true);
 
-        subscribeForSubsidiaryTransactions(
-            transaction->runSubsidiaryTransactionSignal);
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchTrustLineStatesHandlerTransaction: "
-                "Can't allocate memory for transaction instance.");
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
 void TransactionsManager::launchTrustLineStatesHandlerTransaction(
     NotificationTrustLineRemovedMessage::Shared message) {
     try {
-        auto transaction = make_shared<TrustLineStatesHandlerTransaction>(
-            mNodeUUID,
-            message->senderUUID,
-            message->nodeA,
-            message->nodeB,
-            TrustLineStatesHandlerTransaction::TrustLineState::Removed,
-            message->hop,
-            mTrustLines,
-            mStorageHandler,
-            mLog);
+        prepareAndSchedule(
+            make_shared<TrustLineStatesHandlerTransaction>(
+                mNodeUUID,
+                message->senderUUID,
+                message->nodeA,
+                message->nodeB,
+                TrustLineStatesHandlerTransaction::TrustLineState::Removed,
+                message->hop,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            false,
+            true,
+            true);
 
-        subscribeForSubsidiaryTransactions(
-            transaction->runSubsidiaryTransactionSignal);
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchTrustLineStatesHandlerTransaction: "
-                "Can't allocate memory for transaction instance.");
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
@@ -1105,18 +1114,17 @@ void TransactionsManager::launchGetFirstRoutingTableTransaction(
     NeighborsRequestMessage::Shared message)
 {
     try {
-        auto transaction = make_shared<GetFirstRoutingTableTransaction>(
+        prepareAndSchedule(make_shared<GetFirstRoutingTableTransaction>(
             mNodeUUID,
             message,
             mTrustLines,
-            mLog);
+            mLog),
+        false,
+        false,
+        true);
 
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchGetFirstRoutingTableTransaction: "
-                "Can't allocate memory for transaction instance.");
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
@@ -1322,21 +1330,21 @@ void TransactionsManager::onCloseCycleTransaction(
     Path::ConstShared cycle)
 {
     try {
-        auto transaction = make_shared<CycleCloserInitiatorTransaction>(
-            mNodeUUID,
-            cycle,
-            mTrustLines,
-            mCyclesManager.get(),
-            mStorageHandler,
-            mMaxFlowCalculationCacheManager,
-            mLog,
-            mTestingController);
-        prepareAndSchedule(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::onCloseCycleTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<CycleCloserInitiatorTransaction>(
+                mNodeUUID,
+                cycle,
+                mTrustLines,
+                mCyclesManager.get(),
+                mStorageHandler,
+                mMaxFlowCalculationCacheManager,
+                mLog,
+                mTestingController),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
     }
 }
 
@@ -1351,73 +1359,99 @@ void TransactionsManager::onTryCloseNextCycleSlot()
  */
 void TransactionsManager::prepareAndSchedule(
     BaseTransaction::Shared transaction,
-    bool subsidiaryTransactionSubscribe)
+    bool regenerateUUID,
+    bool subsidiaryTransactionSubscribe,
+    bool outgoingMessagesSubscribe)
 {
-    subscribeForOutgoingMessages(
-        transaction->outgoingMessageIsReadySignal);
+    if (outgoingMessagesSubscribe)
+        subscribeForOutgoingMessages(
+            transaction->outgoingMessageIsReadySignal);
     if (subsidiaryTransactionSubscribe)
         subscribeForSubsidiaryTransactions(
             transaction->runSubsidiaryTransactionSignal);
 
-    mScheduler->scheduleTransaction(
-        transaction);
+    while (true) {
+        try {
+
+            mScheduler->scheduleTransaction(
+                transaction);
+            return;
+
+        } catch(bad_alloc &) {
+            throw bad_alloc();
+
+        } catch(ConflictError &e) {
+            mLog.error("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
+                                              << " New TransactionType:" << transaction->transactionType()
+                                              << " Recreate.";
+            if (regenerateUUID) {
+                transaction->recreateTransactionUUID();
+            } else {
+                mLog.error("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
+                                                  << " New TransactionType:" << transaction->transactionType()
+                                                  << "Exit.";
+                return;
+            }
+        }
+    }
 }
+
 //   ---------------------------------------Cycles part----------------------------------------------
 
 void TransactionsManager::launchThreeNodesCyclesInitTransaction(
     const NodeUUID &contractorUUID)
 {
     try {
-        auto transaction = make_shared<CyclesThreeNodesInitTransaction>(
-            mNodeUUID,
-            contractorUUID,
-            mTrustLines,
-            mCyclesManager.get(),
-            mStorageHandler,
-            mLog);
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchThreeNodesCyclesInitTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<CyclesThreeNodesInitTransaction>(
+                mNodeUUID,
+                contractorUUID,
+                mTrustLines,
+                mCyclesManager.get(),
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
+
 }
 
 void TransactionsManager::launchThreeNodesCyclesResponseTransaction(
     CyclesThreeNodesBalancesRequestMessage::Shared message)
 {
     try {
-        auto transaction = make_shared<CyclesThreeNodesReceiverTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mLog);
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchThreeNodesCyclesResponseTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<CyclesThreeNodesReceiverTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
 void TransactionsManager::launchSixNodesCyclesInitTransaction()
 {
     try {
-        auto transaction = make_shared<CyclesSixNodesInitTransaction>(
-            mNodeUUID,
-            mTrustLines,
-            mCyclesManager.get(),
-            mStorageHandler,
-            mLog);
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchSixNodesCyclesInitTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<CyclesSixNodesInitTransaction>(
+                mNodeUUID,
+                mTrustLines,
+                mCyclesManager.get(),
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
@@ -1425,35 +1459,36 @@ void TransactionsManager::launchSixNodesCyclesResponseTransaction(
     CyclesSixNodesInBetweenMessage::Shared message)
 {
     try {
-        auto transaction = make_shared<CyclesSixNodesReceiverTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mLog);
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchSixNodesCyclesResponseTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<CyclesSixNodesReceiverTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mLog),
+            false,
+            false,
+            true
+        );
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
 void TransactionsManager::launchFiveNodesCyclesInitTransaction()
 {
     try {
-        auto transaction = make_shared<CyclesFiveNodesInitTransaction>(
-            mNodeUUID,
-            mTrustLines,
-            mCyclesManager.get(),
-            mStorageHandler,
-            mLog);
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchFiveNodesCyclesInitTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<CyclesFiveNodesInitTransaction>(
+                mNodeUUID,
+                mTrustLines,
+                mCyclesManager.get(),
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
@@ -1461,17 +1496,18 @@ void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
     CyclesFiveNodesInBetweenMessage::Shared message)
 {
     try {
-        auto transaction = make_shared<CyclesFiveNodesReceiverTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mLog);
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-            "TransactionsManager::launchFiveNodesCyclesResponseTransaction: "
-                "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<CyclesFiveNodesReceiverTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mLog),
+            false,
+            false,
+            true
+        );
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
@@ -1480,20 +1516,20 @@ void TransactionsManager::launchFourNodesCyclesInitTransaction(
     const NodeUUID &creditorUUID)
 {
     try {
-        auto transaction = make_shared<CyclesFourNodesInitTransaction>(
-            mNodeUUID,
-            debtorUUID,
-            creditorUUID,
-            mTrustLines,
-            mCyclesManager.get(),
-            mStorageHandler,
-            mLog);
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-                "TransactionsManager::launchFourNodesCyclesInitTransaction: "
-                        "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<CyclesFourNodesInitTransaction>(
+                mNodeUUID,
+                debtorUUID,
+                creditorUUID,
+                mTrustLines,
+                mCyclesManager.get(),
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
@@ -1501,17 +1537,17 @@ void TransactionsManager::launchFourNodesCyclesResponseTransaction(
     CyclesFourNodesBalancesRequestMessage::Shared message)
 {
     try {
-        auto transaction = make_shared<CyclesFourNodesReceiverTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mLog);
-        subscribeForOutgoingMessages(transaction->outgoingMessageIsReadySignal);
-        mScheduler->scheduleTransaction(transaction);
-    } catch (bad_alloc &) {
-        throw MemoryError(
-                "TransactionsManager::launchFourNodesCyclesResponseTransaction: "
-                        "Can't allocate memory for transaction instance.");
+        prepareAndSchedule(
+            make_shared<CyclesFourNodesReceiverTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }
 
@@ -1577,11 +1613,19 @@ void TransactionsManager::onSerializeTransaction(
 void TransactionsManager::launchUpdateRoutingTablesResponseTransaction(
     CRC32Rt2RequestMessage::Shared message)
 {
-    prepareAndSchedule(
-        make_shared<Crc32Rt2ResponseTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mStorageHandler,
-            mLog));
+    try {
+        prepareAndSchedule(
+            make_shared<Crc32Rt2ResponseTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            false,
+            false,
+            true
+        );
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
 }

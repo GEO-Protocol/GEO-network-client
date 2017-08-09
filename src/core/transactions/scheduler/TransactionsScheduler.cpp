@@ -38,7 +38,13 @@ void TransactionsScheduler::run() {
 
 void TransactionsScheduler::scheduleTransaction(
     BaseTransaction::Shared transaction) {
-
+    for ( auto it = mTransactions->begin(); it != mTransactions->end(); it++ ){
+        if (transaction->currentTransactionUUID() == it->first->currentTransactionUUID()) {
+            mLog.error("scheduleTransaction:") << "Duplicate TransactionUUID. Already exists TransactionType: "
+                                               << it->first->transactionType();
+            throw ConflictError("Duplicate Transaction UUID");
+        }
+    }
     (*mTransactions)[transaction] = TransactionState::awakeAsFastAsPossible();
 
     adjustAwakeningToNextTransaction();
@@ -137,10 +143,21 @@ void TransactionsScheduler::launchTransaction(
     BaseTransaction::Shared transaction) {
 
     try {
+        const auto kTAType = transaction->transactionType();
+        if (kTAType >= BaseTransaction::CoordinatorPaymentTransaction
+            && kTAType <= BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
+
+            mLog.info("[Transactions scheduler]")
+                << "Payment or cycle closing TA launched:"
+                << " UUID: " << transaction->currentTransactionUUID()
+                << " Type: " << transaction->transactionType()
+                << " Step: " << transaction->currentStep();
+        }
+
+
         // Even if transaction will raise an exception -
         // it must not be thrown up,
         // to not to break transactions processing flow.
-
         auto result = transaction->run();
         if (result.get() == nullptr) {
             throw ValueError(
@@ -150,16 +167,16 @@ void TransactionsScheduler::launchTransaction(
 
         handleTransactionResult(
             transaction,
-            result
-        );
+            result);
 
     } catch (exception &e) {
-        auto errors = mLog.error("TransactionScheduler");
-        errors << "Transaction error occurred. "
-               << "TypeID: " << transaction->transactionType() << "; "
-               << "UUID: " << transaction->currentTransactionUUID() << "; "
-               << "Error message: \"" << e.what() << "\". "
-               << "Transaction dropped.";
+        mLog.error("[Transactions scheduler]")
+            << "TA error occurred:"
+            << " UUID: " << transaction->currentTransactionUUID()
+            << " Type: " << transaction->transactionType()
+            << " Step: " << transaction->currentStep()
+            << " Error message: " << e.what()
+            << " Transaction dropped";
 
         forgetTransaction(transaction);
     }
@@ -249,6 +266,17 @@ void TransactionsScheduler::forgetTransaction(
 //            storage::uuids::uuid(transaction->currentTransactionUUID())
 //        );
 //    } catch (IndexError &) {}
+
+    const auto kTAType = transaction->transactionType();
+    if (kTAType >= BaseTransaction::CoordinatorPaymentTransaction
+        && kTAType <= BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
+
+        mLog.info("[Transactions scheduler]")
+                << "Payment or cycle closing TA has been forgotten:"
+                << " UUID: " << transaction->currentTransactionUUID()
+                << " Type: " << transaction->transactionType()
+                << " Step: " << transaction->currentStep();
+    }
 
     if (transaction->transactionType() == BaseTransaction::Payments_CycleCloserInitiatorTransaction) {
         cycleCloserTransactionWasFinishedSignal();

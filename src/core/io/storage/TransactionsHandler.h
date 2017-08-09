@@ -33,6 +33,8 @@ public:
 
     vector<pair<BytesShared, size_t>> allTransactions();
 
+    const string tableName() const;
+
 private:
     LoggerStream info() const;
 

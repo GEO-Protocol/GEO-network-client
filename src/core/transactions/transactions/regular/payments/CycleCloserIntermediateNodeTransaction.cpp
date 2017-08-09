@@ -87,7 +87,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
         }
     } catch (Exception &e) {
         error() << e.what();
-        recover("Something happens wrong in method run(). Transaction will be recovered");
+        return recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
 
