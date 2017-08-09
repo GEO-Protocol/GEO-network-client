@@ -539,6 +539,9 @@ void BasePaymentTransaction::commit ()
         }
     }
 
+    // delete transaction references on dropped reservations
+    mReservations.clear();
+
     // reset initiator cashe, becouse after changing balanses
     // we need updated information on max flow calculation transaction
     mMaxFlowCalculationCacheManager->resetInititorCache();
@@ -568,18 +571,24 @@ void BasePaymentTransaction::saveVotes()
 void BasePaymentTransaction::rollBack ()
 {
     debug() << "rollback";
-    for (const auto &kNodeUUIDAndReservations : mReservations)
+    // drop reservations in AmountReservationHandler
+    for (const auto &kNodeUUIDAndReservations : mReservations) {
         for (const auto &kPathUUIDAndReservation : kNodeUUIDAndReservations.second) {
             mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
 
             if (kPathUUIDAndReservation.second->direction() == AmountReservation::Outgoing)
                 debug() << "Dropping reservation: [ => ] " << kPathUUIDAndReservation.second->amount()
-                       << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
+                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
 
             else if (kPathUUIDAndReservation.second->direction() == AmountReservation::Incoming)
                 debug() << "Dropping reservation: [ <= ] " << kPathUUIDAndReservation.second->amount()
-                       << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
+                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first << "]";
         }
+    }
+
+    // delete transaction references on dropped reservations
+    mReservations.clear();
+
     {
         const auto ioTransaction = mStorageHandler->beginTransaction();
         ioTransaction->transactionHandler()->deleteRecord(currentTransactionUUID());
