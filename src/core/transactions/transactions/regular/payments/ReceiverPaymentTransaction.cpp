@@ -43,9 +43,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         maxFlowCalculationCacheManager,
         log,
         testingController)
-{
-    deserializeFromBytes(buffer);
-}
+{}
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
     noexcept
