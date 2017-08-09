@@ -153,7 +153,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     }
 
     const auto kReservation = kMessage->finalAmountsConfiguration()[0];
-    debug() << "Receive reservations size: " << kMessage->finalAmountsConfiguration().size();
+    debug() << "Amount reservation for " << *kReservation.second.get() << " request received from "
+            << kNeighbor << " [" << kReservation.first << "]";
+    debug() << "Received reservations size: " << kMessage->finalAmountsConfiguration().size();
 
     if (! mTrustLines->isNeighbor(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -177,9 +179,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 1) * 4));
     }
-
-    debug() << "Amount reservation for " << *kReservation.second.get() << " request received from "
-            << kNeighbor << " [" << kReservation.first << "]";
 
     // update local reservations during amounts from coordinator
     if (!updateReservations(vector<pair<PathUUID, ConstSharedTrustLineAmount>>(

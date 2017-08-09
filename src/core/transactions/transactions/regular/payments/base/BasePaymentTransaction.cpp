@@ -416,7 +416,12 @@ const bool BasePaymentTransaction::contextIsValid(
 
     if (mContext.size() > 1) {
         if (showErrorMessage) {
-            error() << "contextIsValid::context has " << mContext.size() << " messages";
+            stringstream stream;
+            stream << "contextIsValid::context has " << mContext.size() << " messages: ";
+            for (auto const message : mContext) {
+                stream << message->typeID() << " ";
+            }
+            error() << stream.str();
         }
         return false;
     }

@@ -103,7 +103,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     }
 
     const auto kReservation = mMessage->finalAmountsConfiguration()[0];
-    debug() << "Requested amount reservation: " << *kReservation.second.get();
+    debug() << "Requested amount reservation: " << *kReservation.second.get() << " on path " << kReservation.first;
+    debug() << "Received reservations size: " << mMessage->finalAmountsConfiguration().size();
 
     if (!mTrustLines->isNeighbor(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -249,6 +250,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     mCoordinator = kMessage->senderUUID;
     mLastProcessedPath = kReservation.first;
 
+    debug() << "requested reservation amount is " << *kReservation.second.get() << " on path " << kReservation.first;
+    debug() << "Next node is " << kNextNode;
+    debug() << "Received reservations size: " << kMessage->finalAmountsConfiguration().size();
     if (!mTrustLines->isNeighbor(kNextNode)) {
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
@@ -272,7 +276,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
     // Note: copy of shared pointer is required
     const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
-    debug() << "requested reservation amount is " << *kReservation.second.get();
     debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
     TrustLineAmount reservationAmount = min(
         *kReservation.second.get(),
@@ -318,8 +321,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
             kMessage->finalAmountsConfiguration().begin() + 1,
             kMessage->finalAmountsConfiguration().end());
     }
+    debug() << "Prepared for sending reservations size: " << reservations.size();
 
-    debug() << "send reservations size: " << reservations.size();
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kNextNode,
         currentNodeUUID(),
@@ -443,6 +446,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
     // we can receive IntermediateNodeReservationRequest or FinalAmountsConfiguration
     // and we should process it properly
     if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
+        mMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
         return runPreviousNeighborRequestProcessingStage();
     }
     if (contextIsValid(Message::Payments_FinalAmountsConfiguration, false)) {

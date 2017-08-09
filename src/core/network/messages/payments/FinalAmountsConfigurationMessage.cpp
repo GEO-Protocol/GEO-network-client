@@ -102,15 +102,3 @@ const Message::MessageType FinalAmountsConfigurationMessage::typeID() const
 {
     return Message::Payments_FinalAmountsConfiguration;
 }
-
-const size_t FinalAmountsConfigurationMessage::kOffsetToInheritedBytes() const
-    noexcept
-{
-    static const size_t offset =
-            TransactionMessage::kOffsetToInheritedBytes()
-            + sizeof(RecordCount)
-            + mFinalAmountsConfiguration.size() *
-              (sizeof(PathUUID) + kTrustLineAmountBytesCount);
-
-    return offset;
-}

@@ -561,8 +561,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
             kNeighborReservations.begin(),
             kNeighborReservations.end());
     }
+    debug() << "Prepared for sending reservations size: " << reservations.size();
 
-    debug() << "Send reservations size: " << reservations.size();
     sendMessage<IntermediateNodeReservationRequestMessage>(
         neighbor,
         kCurrentNode,
@@ -604,8 +604,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
             kNeighborReservations.begin(),
             kNeighborReservations.end());
     }
+    debug() << "Prepared for sending reservations size: " << reservations.size();
 
-    debug() << "Send reservations size: " << reservations.size();
     sendMessage<CoordinatorReservationRequestMessage>(
         neighbor,
         kCoordinator,
@@ -613,7 +613,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
         reservations,
         kNextAfterNeighborNode);
 
-    debug() << "Further amount reservation request sent to the node (" << neighbor << ") [" << path->maxFlow() << "]";
+    debug() << "Further amount reservation request sent to the node (" << neighbor << ") ["
+            << path->maxFlow() << "]" << ", next node - (" << kNextAfterNeighborNode << ")";
 
     path->setNodeState(
         kNeighborPathPosition,
@@ -808,7 +809,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
             kNeighborReservations.end());
     }
 
-    debug() << "Send reservations size: " << reservations.size();
+    debug() << "Prepared for sending reservations size: " << reservations.size();
     sendMessage<CoordinatorReservationRequestMessage>(
         remoteNode,
         kCoordinator,
@@ -823,7 +824,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     debug() << "Further amount reservation request sent to the node (" << remoteNode << ") ["
            << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
 
-    // delay is equal 3 becouse in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
+    // delay is equal 4 because in IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage delay is 2
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationResponse,
         Message::Payments_TTLProlongationRequest},

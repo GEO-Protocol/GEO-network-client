@@ -19,13 +19,15 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
 
     FinalAmountsConfigurationMessage(buffer)
 {
-    auto parentMessageOffset = FinalAmountsConfigurationMessage::kOffsetToInheritedBytes();
-    auto nextNodeUUIDOffset = buffer.get() + parentMessageOffset;
+    size_t parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes()
+                                 + sizeof(FinalAmountsConfigurationMessage::RecordCount)
+                                 + finalAmountsConfiguration().size() *
+                                   (sizeof(PathUUID) + kTrustLineAmountBytesCount);
 
     memcpy(
         mNextPathNode.data,
-        nextNodeUUIDOffset,
-        mNextPathNode.kBytesSize);
+        buffer.get() + parentMessageOffset,
+        NodeUUID::kBytesSize);
 }
 
 
@@ -48,22 +50,18 @@ pair<BytesShared, size_t> CoordinatorReservationRequestMessage::serializeToBytes
     auto parentBytesAndCount = FinalAmountsConfigurationMessage::serializeToBytes();
     size_t totalBytesCount =
         + parentBytesAndCount.second
-        + mNextPathNode.kBytesSize;
+        + NodeUUID::kBytesSize;
 
     BytesShared buffer = tryMalloc(totalBytesCount);
-    auto initialOffset = buffer.get();
     memcpy(
-        initialOffset,
+        buffer.get(),
         parentBytesAndCount.first.get(),
         parentBytesAndCount.second);
 
-    auto nextPathNodeOffset =
-        initialOffset + parentBytesAndCount.second;
-
     memcpy(
-        nextPathNodeOffset,
+        buffer.get() + parentBytesAndCount.second,
         mNextPathNode.data,
-        mNextPathNode.kBytesSize);
+        NodeUUID::kBytesSize);
 
     return make_pair(
         buffer,
