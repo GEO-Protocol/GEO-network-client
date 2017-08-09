@@ -5,8 +5,12 @@ TestingController::TestingController(
     mLog(log)
 {
     mIsNetworkOn = true;
+    mIsCloseCycles = true;
+
     mForbidSendMessageToCoordinatorOnReservationStage = false;
-    mForbidSendMessageToIntNodeOnReservationStage = false;
+    mForbidSendRequestToIntNodeOnReservationStage = false;
+    mForbidSendResponseToIntNodeOnReservationStage = false;
+    mForbidSendMessageOnFinalAmountClarificationStage = false;
     mForbidSendMessageOnVoteStage = false;
     mForbidSendMessageOnVoteConsistencyStage = false;
 
@@ -27,10 +31,13 @@ void TestingController::setFlags(size_t flags)
 {
     debug() << "setFlags: " << flags;
     mIsNetworkOn = (flags & 0x1) == 0;
-    mForbidSendMessageToCoordinatorOnReservationStage = (flags & 0x2) > 0;
-    mForbidSendMessageToIntNodeOnReservationStage = (flags & 0x4) > 0;
-    mForbidSendMessageOnVoteStage = (flags & 0x8) > 0;
-    mForbidSendMessageOnVoteConsistencyStage = (flags & 0x10) > 0;
+    mIsCloseCycles = (flags & 0x2) == 0;
+    mForbidSendMessageToCoordinatorOnReservationStage = (flags & 0x4) > 0;
+    mForbidSendRequestToIntNodeOnReservationStage = (flags & 0x8) > 0;
+    mForbidSendResponseToIntNodeOnReservationStage = (flags & 0x10) > 0;
+    mForbidSendMessageOnFinalAmountClarificationStage = (flags & 0x20) > 0;
+    mForbidSendMessageOnVoteStage = (flags & 0x40) > 0;
+    mForbidSendMessageOnVoteConsistencyStage = (flags & 0x80) > 0;
 
     mThrowExceptionOnPreviousNeighborRequestProcessingStage = (flags & 0x800) > 0;
     mThrowExceptionOnCoordinatorRequestProcessingStage = (flags & 0x1000) > 0;
@@ -43,12 +50,18 @@ void TestingController::setFlags(size_t flags)
     mTerminateProcessOnNextNeighborResponseProcessingStage = (flags & 0x800000) > 0;
     mTerminateProcessOnVoteStage = (flags & 0x1000000) > 0;
     mTerminateProcessOnVoteConsistencyStage = (flags & 0x2000000) > 0;
-    debug() << "nerwork on " << mIsNetworkOn;
+    debug() << "network on " << mIsNetworkOn;
+    debug() << "close cycles " << mIsCloseCycles;
 }
 
-const bool TestingController::isNetworkOn() const
+bool TestingController::isNetworkOn() const
 {
     return mIsNetworkOn;
+}
+
+bool TestingController::isCloseCycles() const
+{
+    return mIsCloseCycles;
 }
 
 void TestingController::turnOffNetwork()
@@ -71,10 +84,26 @@ void TestingController::testForbidSendMessageToCoordinatorOnReservationStage()
     }
 }
 
-void TestingController::testForbidSendMessageToIntNodeOnReservationStage()
+void TestingController::testForbidSendRequestToIntNodeOnReservationStage()
 {
-    if (mForbidSendMessageToIntNodeOnReservationStage) {
-        debug() << "ForbidSendMessageToIntNodeOnReservationStage";
+    if (mForbidSendRequestToIntNodeOnReservationStage) {
+        debug() << "ForbidSendRequestToIntNodeOnReservationStage";
+        turnOffNetwork();
+    }
+}
+
+void TestingController::testForbidSendResponseToIntNodeOnReservationStage()
+{
+    if (mForbidSendResponseToIntNodeOnReservationStage) {
+        debug() << "ForbidSendResponseToIntNodeOnReservationStage";
+        turnOffNetwork();
+    }
+}
+
+void TestingController::testForbidSendMessageOnFinalAmountClarificationStage()
+{
+    if (mForbidSendMessageOnFinalAmountClarificationStage) {
+        debug() << "ForbidSendMessageOnFinalAmountClarificationStage";
         turnOffNetwork();
     }
 }
@@ -146,7 +175,7 @@ void TestingController::testTerminateProcessOnCoordinatorRequestProcessingStage(
 
 void TestingController::testTerminateProcessOnNextNeighborResponseProcessingStage()
 {
-    if (mTerminateProcessOnPreviousNeighborRequestProcessingStage) {
+    if (mTerminateProcessOnNextNeighborResponseProcessingStage) {
         exit(100);
     }
 }

@@ -91,7 +91,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     debug() << "Requested amount reservation: " << mMessage->amount();
 
 #ifdef TESTS
-    mTestingController->testForbidSendMessageToIntNodeOnReservationStage();
+    mTestingController->testForbidSendResponseToIntNodeOnReservationStage();
     mTestingController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
     mTestingController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
 #endif
@@ -141,6 +141,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         }
     }
 
+#ifdef TESTS
+    mTestingController->turnOnNetwork();
+    mTestingController->testForbidSendRequestToIntNodeOnReservationStage();
+#endif
+
     mLastReservedAmount = kReservationAmount;
     sendMessage<IntermediateNodeReservationResponseMessage>(
         kNeighbor,
@@ -169,6 +174,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     debug() << "Coordinator further reservation request received.";
 
 #ifdef TESTS
+    mTestingController->testForbidSendMessageToCoordinatorOnReservationStage();
     mTestingController->testThrowExceptionOnCoordinatorRequestProcessingStage();
     mTestingController->testTerminateProcessOnCoordinatorRequestProcessingStage();
 #endif
@@ -230,6 +236,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
+#ifdef TESTS
+    mTestingController->turnOnNetwork();
+    mTestingController->testForbidSendRequestToIntNodeOnReservationStage();
+#endif
+
     mLastReservedAmount = reservationAmount;
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kNextNode,
@@ -237,6 +248,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         currentTransactionUUID(),
         kMessage->pathUUID(),
         reservationAmount);
+
+#ifdef TESTS
+    mTestingController->turnOnNetwork();
+#endif
 
     clearContext();
     mStep = Stages::IntermediateNode_NextNeighborResponseProcessing;
@@ -250,7 +265,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     debug() << "runNextNeighborResponseProcessingStage";
 
 #ifdef TESTS
-    mTestingController->testForbidSendMessageToCoordinatorOnReservationStage();
+    mTestingController->testForbidSendResponseToIntNodeOnReservationStage();
     mTestingController->testThrowExceptionOnNextNeighborResponseProcessingStage();
     mTestingController->testTerminateProcessOnNextNeighborResponseProcessingStage();
 #endif

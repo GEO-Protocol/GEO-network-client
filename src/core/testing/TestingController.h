@@ -12,7 +12,9 @@ public:
 public:
     void setFlags(size_t flags);
 
-    const bool isNetworkOn() const;
+    bool isNetworkOn() const;
+
+    bool isCloseCycles() const;
 
     void turnOffNetwork();
 
@@ -20,7 +22,11 @@ public:
 
     void testForbidSendMessageToCoordinatorOnReservationStage();
 
-    void testForbidSendMessageToIntNodeOnReservationStage();
+    void testForbidSendRequestToIntNodeOnReservationStage();
+
+    void testForbidSendResponseToIntNodeOnReservationStage();
+
+    void testForbidSendMessageOnFinalAmountClarificationStage();
 
     void testForbidSendMessageOnVoteStage();
 
@@ -57,9 +63,12 @@ protected:
 
 private:
     bool mIsNetworkOn;
+    bool mIsCloseCycles;
 
     bool mForbidSendMessageToCoordinatorOnReservationStage;
-    bool mForbidSendMessageToIntNodeOnReservationStage;
+    bool mForbidSendRequestToIntNodeOnReservationStage;
+    bool mForbidSendResponseToIntNodeOnReservationStage;
+    bool mForbidSendMessageOnFinalAmountClarificationStage;
     bool mForbidSendMessageOnVoteStage;
     bool mForbidSendMessageOnVoteConsistencyStage;
 

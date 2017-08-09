@@ -4,12 +4,14 @@ CyclesManager::CyclesManager(
     const NodeUUID &nodeUUID,
     TransactionsScheduler *transactionsScheduler,
     as::io_service &ioService,
-    Logger &logger) :
+    Logger &logger,
+    TestingController *testingController) :
 
     mNodeUUID(nodeUUID),
     mTransactionScheduler(transactionsScheduler),
     mIOService(ioService),
     mLog(logger),
+    mTestingController(testingController),
     mIsCycleInProcess(false)
 {
     mCurrentCycleClosingState = CycleClosingState::ThreeNodes;
@@ -68,6 +70,10 @@ void CyclesManager::addCycle(
 void CyclesManager::closeOneCycle(
     bool nextCycleShouldBeRunned)
 {
+    if (!mTestingController->isCloseCycles()) {
+        debug() << "Closing cycles is forbidden";
+        return;
+    }
     // nextCycleShouldBeRunned equals true when method closeOneCycle was called
     // by TransactionManager after finishing transaction of closing cycle.
     // When method closeOneCycle was called by transactions of building cycles it equals false

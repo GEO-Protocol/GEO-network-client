@@ -39,7 +39,8 @@ TransactionsManager::TransactionsManager(
             mNodeUUID,
             mScheduler.get(),
             mIOService,
-            mLog))
+            mLog,
+            testingController))
 {
     subscribeForCommandResult(
         mScheduler->commandResultIsReadySignal);

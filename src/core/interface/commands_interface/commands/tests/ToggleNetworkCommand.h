@@ -33,11 +33,14 @@ protected:
 
 protected:
 //    bits order:
-//    0 - Network inа general   0x1  // 1
-//    1 - Forbid Send Message To Coordinator On Reservation Stage   0x2  // 2
-//    2 - Forbid Send Message To Intermediate Node On Reservation Stage   0x4  // 4
-//    3 - Forbid Send Message On Vote Stage   0x8  // 8
-//    4 - Forbid Send Message On Vote Consistency Stage   0x10  // 16
+//    0 - Network in general   0x1  // 1
+//    1 - Possibility closing cycles 0x2 // 2
+//    2 - Forbid Send Message To Coordinator On Reservation Stage   0x4  // 4
+//    3 - Forbid Send Request To Intermediate Node On Reservation Stage   0x8  // 8
+//    4 - Forbid Send Response To Intermediate Node On Reservation Stage   0x10  // 16
+//    4 - Forbid Send Message On Final Amount Clarification Stage   0x20  // 32
+//    5 - Forbid Send Message On Vote Stage   0x40  // 64
+//    6 - Forbid Send Message On Vote Consistency Stage   0x80  // 128
 
 //    11 - throw exception on previous neighbor request processing stage  0x800  // 2048
 //    12 - throw exception on Coordinator Request Processing Stage  0x1000  // 4096
