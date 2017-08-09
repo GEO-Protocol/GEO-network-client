@@ -48,7 +48,9 @@ TransactionResult::SharedConst NeighborsCollectingTransaction::run ()
 TransactionResult::SharedConst NeighborsCollectingTransaction::processNeighborsRequestSending ()
     noexcept
 {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     info() << "processNeighborsRequestSending";
+#endif
     // ToDo: ensure request was delivered to the remote node. Retry in case of error.
 
     // Nothing critical would happen in case if request would be lost in the network.
@@ -68,7 +70,9 @@ TransactionResult::SharedConst NeighborsCollectingTransaction::processNeighborsR
         mDestinationNodeUUID,
         currentNodeUUID(),
         currentTransactionUUID());
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     info() << "send request message to " << mDestinationNodeUUID;
+#endif
 
     mStep = Stages::NeighborsInfoProcessing;
 
@@ -80,15 +84,21 @@ TransactionResult::SharedConst NeighborsCollectingTransaction::processNeighborsR
 TransactionResult::SharedConst NeighborsCollectingTransaction::processReceivedNeighborsInfo ()
     noexcept
 {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     info() << "processReceivedNeighborsInfo";
+#endif
     if (mContext.empty()) {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         debug() << "No neighbors info message was received. Can't proceed.";
+#endif
         return resultDone();
     }
 
     for (size_t i=0; i<mContext.size(); ++i) {
         const auto kMessage = popNextMessage<NeighborsResponseMessage>();
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         info() << "received neighbors count: " << kMessage->neighbors().size();
+#endif
         processNeighbors(
             kMessage->neighbors());
     }
@@ -99,8 +109,10 @@ void NeighborsCollectingTransaction::processNeighbors (
     const vector<NodeUUID> &neighbors)
     noexcept
 {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     info() << "processNeighbors on hop: " << to_string(mHopDistance);
     info() << "SecondLevelNeighborsMustAlsoBeScanned: " << mSecondLevelNeighborsMustAlsoBeScanned;
+#endif
     if (mHopDistance == 0) {
         if (mSecondLevelNeighborsMustAlsoBeScanned) {
             // Note: all records are written to the database before child transactions would be spawned.
@@ -141,8 +153,9 @@ void NeighborsCollectingTransaction::populateSecondLevelRoutingTable (
             ioTransaction->routingTablesHandler()->setRecordToRT2(
                 source,
                 kNeighbor);
-
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
             debug() << "Record (" << source << " - " << kNeighbor << ") has been written to the RT2.";
+#endif
 
         } catch (IOError &) {
             error() << "Record (" << source << " - " << kNeighbor << ") can't be written to the RT2.";
@@ -167,8 +180,9 @@ void NeighborsCollectingTransaction::populateThirdLevelRoutingTable (
             ioTransaction->routingTablesHandler()->setRecordToRT3(
                 source,
                 kNeighbor);
-
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
             debug() << "Record (" << source << " - " << kNeighbor << ") has been written to the RT3.";
+#endif
 
         } catch (IOError &) {
             error() << "Record (" << source << " - " << kNeighbor << ") can't be written to the RT3.";
@@ -180,7 +194,9 @@ void NeighborsCollectingTransaction::spawnChildNeighborsScanningTransactions (
     const vector<NodeUUID> &neighbors)
     noexcept
 {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     info() << "spawnChildNeighborsScanningTransactions";
+#endif
     for (const auto kNeighbor : neighbors){
         const auto kTransaction = make_shared<NeighborsCollectingTransaction>(
             currentNodeUUID(),
@@ -194,7 +210,9 @@ void NeighborsCollectingTransaction::spawnChildNeighborsScanningTransactions (
         kTransaction->mSecondLevelNeighborsMustAlsoBeScanned = false;
 
         launchSubsidiaryTransaction(kTransaction);
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         debug() << "Child neighbors scanning transaction spawned with (" << kNeighbor << ") as destination.";
+#endif
     }
 }
 
