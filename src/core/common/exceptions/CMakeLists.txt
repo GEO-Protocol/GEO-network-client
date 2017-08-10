@@ -12,6 +12,7 @@ set(SOURCE_FILES
         OverflowError.h
         PreconditionFailedError.h
         RuntimeError.h
-        ValueError.h)
+        ValueError.h
+        CallChainBreakException.h)
 
 add_library(exceptions ${SOURCE_FILES})

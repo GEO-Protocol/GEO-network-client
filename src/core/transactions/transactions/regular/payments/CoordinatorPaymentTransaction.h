@@ -10,10 +10,11 @@
 #include "../../../../resources/manager/ResourcesManager.h"
 #include "../../../../io/storage/record/payment/PaymentRecord.h"
 
+#include "../../../../common/exceptions/CallChainBreakException.h"
+
 #include <boost/functional/hash.hpp>
 
 #include <unordered_map>
-#include <unordered_set>
 #include <chrono>
 #include <thread>
 
@@ -63,8 +64,9 @@ protected:
     TransactionResult::SharedConst runReceiverResponseProcessingStage ();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
-    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult(
-        bool shouldSetUpDelay);
+    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
+    TransactionResult::SharedConst runVotesConsistencyCheckingStage();
+    TransactionResult::SharedConst runTTLTransactionResponce();
 
 protected:
     // Coordinator must return command result on transaction finishing.
@@ -84,6 +86,8 @@ protected:
     TransactionResult::SharedConst resultUnexpectedError();
 
 protected:
+    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
+
     void addPathForFurtherProcessing(
         Path::ConstShared path);
 
@@ -122,9 +126,19 @@ protected:
 
     TransactionResult::SharedConst processRemoteNodeResponse();
 
+    TransactionResult::SharedConst sendFinalAmountsConfigurationToAllParticipants();
+
+    // add final path configuration to mNodesFinalAmountsConfiguration for all path nodes
+    void addFinalConfigurationOnPath(
+        PathUUID pathUUID,
+        PathStats* pathStats);
+
+    [[deprecated("Use BasePaymentTransaction::totalReservedAmount() instead")]]
     TrustLineAmount totalReservedByAllPaths() const;
 
     void savePaymentOperationIntoHistory();
+
+    bool checkReservationsDirections() const;
 
     void runBuildThreeNodesCyclesSignal();
 
@@ -163,6 +177,13 @@ protected:
      * In case if several direct paths occurs - than it seems that paths collection is broken.
      */
     bool mDirectPathIsAllreadyProcessed;
+
+    // Contains all nodes final amount configuration on all transaction paths
+    map<NodeUUID, vector<pair<PathUUID, ConstSharedTrustLineAmount>>> mNodesFinalAmountsConfiguration;
+
+    // Contains flags if nodes confirmed final amounts configuration,
+    // before voting stage
+    unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNodesConfirmation;
 
     ResourcesManager *mResourcesManager;
 };

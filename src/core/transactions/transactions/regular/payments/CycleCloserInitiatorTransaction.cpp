@@ -62,6 +62,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
             case Stages::Coordinator_PreviousNeighborRequestProcessing:
                 return runPreviousNeighborRequestProcessingStage();
 
+            case Stages::Coordinator_FinalAmountsConfigurationConfirmation:
+                return runFinalAmountsConfigurationConfirmationProcessingStage();
+
             case Stages::Common_VotesChecking:
                 return runVotesConsistencyCheckingStage();
 
@@ -481,15 +484,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
             0);
     }
 
-    if (path->isLastIntermediateNodeProcessed()) {
-
-        const auto kTotalAmount = mPathStats.get()->maxFlow();
-        debug() << "Current path reservation finished";
-        debug() << "Total collected amount by cycle: " << kTotalAmount;
-
-        return propagateVotesListAndWaitForVoutingResult();
-    }
-
     return runAmountReservationStage();
 }
 
@@ -518,11 +512,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
         debug() << "Further amount reservation request sent to the last node (" << remoteNode << ") ["
                << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
         mStep = Coordinator_PreviousNeighborRequestProcessing;
-        const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodePosition;
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeCycleReservationRequest,
             Message::Payments_CoordinatorCycleReservationResponse},
-            kTimeout);
+            maxNetworkDelay(2));
     }
     debug() << "Further amount reservation request sent to the node (" << remoteNode << ") ["
            << path->maxFlow() << ", next node - (" << nextNodeAfterRemote << ")]";
@@ -530,10 +523,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
     // Response from te remote node will go throught other nodes in the path.
     // So them would be able to shortage it's reservations (if needed).
     // Total wait timeout must take note of this.
-    const auto kTimeout = kMaxMessageTransferLagMSec * remoteNodePosition;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorCycleReservationResponse},
-        kTimeout);
+        maxNetworkDelay(4));
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNodeResponse()
@@ -601,19 +593,27 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
 
         if (path->isLastIntermediateNodeProcessed()) {
 
+            const auto kTotalAmount = mPathStats.get()->maxFlow();
+            debug() << "Current path reservation finished";
+            debug() << "Total collected amount by cycle: " << kTotalAmount;
+            debug() << "Total count of all participants without coordinator is " << path->path()->intermediateUUIDs().size();
+
             // send final path amount to all intermediate nodes on path
             sendFinalPathConfiguration(
                 mPathStats.get(),
                 path->maxFlow());
-            const auto kTotalAmount = mPathStats.get()->maxFlow();
 
-            debug() << "Current path reservation finished";
-            debug() << "Total collected amount by cycle: " << kTotalAmount;
+            for (const auto node : path->path()->intermediateUUIDs()) {
+                mFinalAmountNodesConfirmation.insert(
+                    make_pair(
+                        node,
+                        false));
+            }
 
-            // this delay is set up to shure that FinalPathConfigurationMessage
-            // will be delivered before ParticipantsVotesMessage
-            std::this_thread::sleep_for(std::chrono::milliseconds(maxNetworkDelay(1)));
-            return propagateVotesListAndWaitForVoutingResult();
+            mStep = Coordinator_FinalAmountsConfigurationConfirmation;
+            return resultWaitForMessageTypes(
+                {Message::Payments_FinalAmountsConfigurationResponse},
+                maxNetworkDelay(3));
         }
 
         debug() << "Go to the next node in path";
@@ -690,10 +690,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         mIncomingAmount);
 
     mStep = Coordinator_AmountReservation;
-    const auto kTimeout = kMaxMessageTransferLagMSec;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorCycleReservationResponse},
-        kTimeout);
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeighborRequestProcessingStageAgain()
@@ -725,15 +724,80 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         mIncomingAmount);
 
     mStep = Coordinator_AmountReservation;
-    const auto kTimeout = kMaxMessageTransferLagMSec;
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorCycleReservationResponse},
-        kTimeout);
+        maxNetworkDelay(2));
+}
+
+TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsConfigurationConfirmationProcessingStage()
+{
+    debug() << "runFinalAmountsConfigurationConfirmationProcessingStage";
+    if (contextIsValid(Message::MessageType::Payments_FinalAmountsConfigurationResponse, false)) {
+        auto kMessage = popNextMessage<FinalAmountsConfigurationResponseMessage>();
+        if (mFinalAmountNodesConfirmation.find(kMessage->senderUUID) == mFinalAmountNodesConfirmation.end()) {
+            // todo : need actual action on this case
+            error() << "Sender is not participant of this transaction";
+            return resultWaitForMessageTypes(
+                {Message::Payments_FinalAmountsConfigurationResponse},
+                maxNetworkDelay(2));
+        }
+        if (kMessage->state() == FinalAmountsConfigurationResponseMessage::Rejected) {
+            debug() << "Node " << kMessage->senderUUID << " rejected final amounts";
+            return reject("Haven't reach consensus on reservation. Transaction rejected.");
+        }
+        debug() << "Node " << kMessage->senderUUID << " confirmed final amounts";
+        mFinalAmountNodesConfirmation[kMessage->senderUUID] = true;
+        for (const auto nodeUUIDAndConfirmation : mFinalAmountNodesConfirmation) {
+            if (!nodeUUIDAndConfirmation.second) {
+                debug() << "Some nodes are still not confirmed final amounts. Waiting.";
+                return resultWaitForMessageTypes(
+                    {Message::Payments_FinalAmountsConfigurationResponse},
+                    maxNetworkDelay(1));
+            }
+        }
+        debug() << "All nodes confirmed final configuration. Begin processing participants votes.";
+        return propagateVotesListAndWaitForVoutingResult();
+    }
+    return reject("Some nodes didn't confirm final amount configuration. Transaction rejected.");
+}
+
+TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsistencyCheckingStage()
+{
+    debug() << "runVotesConsistencyCheckingStage";
+    if (! contextIsValid(Message::Payments_ParticipantsVotes)) {
+        return reject("Coordinator didn't receive message with votes");
+    }
+
+    const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
+    debug () << "Participants votes message received.";
+
+    mParticipantsVotesMessage = kMessage;
+    if (mParticipantsVotesMessage->containsRejectVote()) {
+        return reject("Some participant node has been rejected the transaction. Rolling back.");
+    }
+
+    if (mParticipantsVotesMessage->achievedConsensus()){
+        debug() << "Coordinator received achieved consensus message.";
+        if (!checkReservationsDirections()) {
+            return reject("Reservations on node are invalid");
+        }
+        mParticipantsVotesMessage->addParticipant(currentNodeUUID());
+        mParticipantsVotesMessage->approve(currentNodeUUID());
+        propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
+        return approve();
+
+    }
+
+    return reject("Coordinator received message with some uncertain votes. Rolling back");
 }
 
 void CycleCloserInitiatorTransaction::checkPath(
     const Path::ConstShared path)
 {
+    if (path->length() < 3 || path->length() > 7) {
+        throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
+                             "invalid paths length");
+    }
     if (path->sourceUUID() != path->destinationUUID()) {
         throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
                              "path isn't cycle");
@@ -783,6 +847,37 @@ void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory()
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::CycleCloserType,
             path->maxFlow()));
+}
+
+bool CycleCloserInitiatorTransaction::checkReservationsDirections() const
+{
+    debug() << "checkReservationsDirections";
+    if (mReservations.size() != 2) {
+        error() << "Wrong nodes reservations size: " << mReservations.size();
+        return false;
+    }
+
+    auto firstNodeReservation = mReservations.begin()->second;
+    auto secondNodeReservation = mReservations.end() ->second;
+    if (firstNodeReservation.size() != 1 || secondNodeReservation.size() != 1) {
+        error() << "Wrong reservations size";
+        return false;
+    }
+    const auto firstReservation = firstNodeReservation.at(0);
+    const auto secondReservation = secondNodeReservation.at(0);
+    if (firstReservation.first != secondReservation.first) {
+        error() << "Reservations on different ways";
+        return false;
+    }
+    if (firstReservation.second->amount() != secondReservation.second->amount()) {
+        error() << "Different reservations amount";
+        return false;
+    }
+    if (firstReservation.second->direction() == secondReservation.second->direction()) {
+        error() << "Wrong directions";
+        return false;
+    }
+    return true;
 }
 
 const NodeUUID& CycleCloserInitiatorTransaction::coordinatorUUID() const

@@ -70,7 +70,9 @@ TrustLineStatesHandlerTransaction::TrustLineStatesHandlerTransaction (
 TransactionResult::SharedConst TrustLineStatesHandlerTransaction::run ()
     noexcept
 {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     debug() << "run on " << to_string(mCurrentHopDistance) << " level from " << mNeighborSenderUUID << " node";
+#endif
     switch (mTrustLineState) {
         case Created:
             return processTrustLineCreation();
@@ -89,7 +91,9 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::run ()
 TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLineRemoving()
     noexcept
 {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     debug() << "processTrustLineRemoving";
+#endif
     if (mCurrentHopDistance < kRoutingTablesMaxLevel) {
         // Neighbor nodes must be notified about the newly added trust line.
 
@@ -169,7 +173,9 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
 TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLineCreation ()
     noexcept
 {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     debug() << "processTrustLineCreation";
+#endif
     if (mCurrentHopDistance < kRoutingTablesMaxLevel) {
         // Neighbor nodes must be notified about the newly added trust line.
 
@@ -194,7 +200,9 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
 
     auto ioTransaction = mStorageHandler->beginTransaction();
     if (mCurrentHopDistance == 0) {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         info() << "0 hop distance level";
+#endif
         // Transaction is executed on the node A or node B of the scheme.
         //
         // In this case neighbors of the node B must be collected,
@@ -215,7 +223,9 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
     }
 
     if (mCurrentHopDistance == 1) {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         info() << "1 hop distance level";
+#endif
         // Transaction is executed on the one of A1 nodes, or one of B1 nodes.
         //
         // In this case neighbors of the node B must be collected,
@@ -238,7 +248,9 @@ TransactionResult::SharedConst TrustLineStatesHandlerTransaction::processTrustLi
     }
 
     if (mCurrentHopDistance == 2) {
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         info() << "2 hop distance level";
+#endif
         // Transaction is executed on the one of A2 nodes, or one of B2 nodes.
         //
         // No additional neighbors requests are needed.
@@ -276,7 +288,9 @@ void TrustLineStatesHandlerTransaction::sendMessageAndPreventRecursion (
     sendMessage(
         addressee,
         message);
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     debug() << "send notification message to " << addressee;
+#endif
 
     // ToDo: check if remote node received the notification.
 }
@@ -332,7 +346,9 @@ throw (IOError)
     ioTransaction->routingTablesHandler()->setRecordToRT2(
         source,
         destination);
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     debug() << "Record (" << source << " - " << destination << ") has been written to the RT2.";
+#endif
 }
 
 /**
@@ -347,7 +363,9 @@ void TrustLineStatesHandlerTransaction::writeRecordToThirdLevel (
     ioTransaction->routingTablesHandler()->setRecordToRT3(
         source,
         destination);
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     debug() << "Record (" << source << " - " << destination << ") has been written to the RT3.";
+#endif
 }
 
 const string TrustLineStatesHandlerTransaction::logHeader() const

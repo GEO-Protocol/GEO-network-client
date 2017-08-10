@@ -55,10 +55,11 @@ protected:
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
-    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
     // run after waiting on releasing amount by rollbacking conflicted transaction
     TransactionResult::SharedConst runAmountReservationStageAgain();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
+    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmationProcessingStage();
+    TransactionResult::SharedConst runVotesConsistencyCheckingStage();
 
 protected:
     TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount ();
@@ -78,6 +79,8 @@ protected:
 
     TransactionResult::SharedConst processRemoteNodeResponse();
 
+    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
+
 protected:
     const string logHeader() const;
 
@@ -89,6 +92,8 @@ protected:
         const TrustLineAmount &finalPathAmount);
 
     void savePaymentOperationIntoHistory();
+
+    bool checkReservationsDirections() const;
 
 protected:
     // Contains special stats data, such as current msx flow,
@@ -102,6 +107,10 @@ protected:
     NodeUUID mPreviousNode;
     TrustLineAmount mOutgoingAmount;
     TrustLineAmount mIncomingAmount;
+
+    // Contains flags if nodes confirmed final amounts configuration,
+    // before voting stage
+    unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNodesConfirmation;
 
     // for resolving reservation conflicts
     CyclesManager *mCyclesManager;

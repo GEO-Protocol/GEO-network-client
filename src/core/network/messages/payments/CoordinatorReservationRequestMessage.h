@@ -2,11 +2,11 @@
 #define COORDINATORRESERVATIONREQUESTMESSAGE_H
 
 
-#include "base/RequestMessage.h"
+#include "FinalAmountsConfigurationMessage.h"
 
 
 class CoordinatorReservationRequestMessage:
-    public RequestMessage {
+    public FinalAmountsConfigurationMessage {
 
 public:
     typedef shared_ptr<CoordinatorReservationRequestMessage> Shared;
@@ -16,8 +16,7 @@ public:
     CoordinatorReservationRequestMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID& transactionUUID,
-        const PathUUID &pathUUID,
-        const TrustLineAmount& amount,
+        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
         const NodeUUID& nextNodeInThePath);
 
     CoordinatorReservationRequestMessage(

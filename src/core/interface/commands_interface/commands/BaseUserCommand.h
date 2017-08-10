@@ -5,7 +5,6 @@
 #include "../../../common/time/TimeUtils.h"
 #include "../../../common/memory/MemoryUtils.h"
 
-#include "../CommandUUID.h"
 #include "../../results_interface/result/CommandResult.h"
 
 #include <boost/uuid/uuid.hpp>

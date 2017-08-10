@@ -39,6 +39,7 @@ protected:
     TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
     TransactionResult::SharedConst runClarificationOfTransaction();
+    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
 
 protected:
@@ -52,6 +53,8 @@ protected:
     void runBuildThreeNodesCyclesSignal();
 
     void savePaymentOperationIntoHistory();
+
+    bool checkReservationsDirections() const;
 
     const string logHeader() const;
 

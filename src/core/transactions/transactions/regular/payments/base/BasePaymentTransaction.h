@@ -26,11 +26,16 @@
 #include "../../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../../../network/messages/payments/FinalPathConfigurationMessage.h"
 #include "../../../../../network/messages/payments/FinalPathCycleConfigurationMessage.h"
-#include "../../../../../network/messages/payments/TTLPolongationMessage.h"
+#include "../../../../../network/messages/payments/TTLProlongationRequestMessage.h"
+#include "../../../../../network/messages/payments/TTLProlongationResponseMessage.h"
+#include "../../../../../network/messages/payments/FinalAmountsConfigurationMessage.h"
+#include "../../../../../network/messages/payments/FinalAmountsConfigurationResponseMessage.h"
 
 #include "PathStats.h"
 
 #include "../../../../../testing/TestingController.h"
+
+#include <unordered_set>
 
 namespace signals = boost::signals2;
 
@@ -93,6 +98,7 @@ protected:
         Coordinator_AmountReservation,
         Coordinator_ShortPathAmountReservationResponseProcessing,
         Coordinator_PreviousNeighborRequestProcessing,
+        Coordinator_FinalAmountsConfigurationConfirmation,
 
         Receiver_CoordinatorRequestApproving,
         Receiver_AmountReservationsProcessing,
@@ -126,7 +132,6 @@ protected:
     // Stages handlers
     virtual TransactionResult::SharedConst runVotesCheckingStage();
     virtual TransactionResult::SharedConst runVotesConsistencyCheckingStage();
-    virtual TransactionResult::SharedConst runTTLTransactionResponce();
 
     virtual TransactionResult::SharedConst approve();
     virtual TransactionResult::SharedConst recover(
@@ -193,16 +198,35 @@ protected:
         PathStats *pathStats,
         PathUUID pathUUID);
 
+    void dropNodeReservationsOnPath(
+        PathUUID pathUUID);
+
     void sendFinalPathConfiguration(
         PathStats* pathStats,
         PathUUID pathUUID,
         const TrustLineAmount &finalPathAmount);
 
+    // Updates all reservations according to finalAmounts
+    // if some reservations will be found, pathUUIDs of which are absent in finalAmounts, returns false,
+    // otherwise returns true
+    bool updateReservations(
+        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts);
+
+    // Returns reservation pathID, which was updated, if reservation was dropped, returns 0
+    PathUUID updateReservation(
+        const NodeUUID &contractorUUID,
+        pair<PathUUID, AmountReservation::ConstShared> &reservation,
+        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts);
+
     size_t reservationsSizeInBytes() const;
 
     TransactionResult::SharedConst processNextNodeToCheckVotes();
 
+    const TrustLineAmount totalReservedAmount() const;
+
     virtual void savePaymentOperationIntoHistory() = 0;
+
+    virtual bool checkReservationsDirections() const = 0;
 
 protected:
     // Specifies how long node must wait for the response from the remote node.

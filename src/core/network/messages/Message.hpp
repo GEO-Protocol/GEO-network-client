@@ -19,7 +19,7 @@ public:
 
 public:
     // TODO: move it into separate *.h file.
-    typedef uint16_t PathUUID;
+    typedef uint64_t PathUUID;
 
 public:
     enum MessageType {
@@ -48,11 +48,15 @@ public:
         Payments_IntermediateNodeCycleReservationRequest,
         Payments_IntermediateNodeCycleReservationResponse,
 
+        Payments_FinalAmountsConfiguration,
+        Payments_FinalAmountsConfigurationResponse,
+
         Payments_ParticipantsVotes,
         Payments_VotesStatusRequest,
         Payments_FinalPathConfiguration,
         Payments_FinalPathCycleConfiguration,
-        Payments_TTLProlongation,
+        Payments_TTLProlongationRequest,
+        Payments_TTLProlongationResponse,
 
         /*
          * Cycles

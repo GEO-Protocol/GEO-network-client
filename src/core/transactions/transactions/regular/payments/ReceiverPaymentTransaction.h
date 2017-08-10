@@ -46,13 +46,14 @@ protected:
 protected:
     void savePaymentOperationIntoHistory();
 
+    bool checkReservationsDirections() const;
+
     void runBuildThreeNodesCyclesSignal();
 
     const string logHeader() const;
 
 protected:
     const ReceiverInitPaymentRequestMessage::ConstShared mMessage;
-    TrustLineAmount mTotalReserved;
 
     // this field indicates that transaction should be rejected on voting stage
     // it used only for Receiver
