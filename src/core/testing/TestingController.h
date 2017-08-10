@@ -12,7 +12,7 @@ public:
 public:
     void setFlags(size_t flags);
 
-    bool isNetworkOn() const;
+    bool isNetworkOn();
 
     bool isCloseCycles() const;
 
@@ -20,17 +20,26 @@ public:
 
     void turnOnNetwork();
 
-    void testForbidSendMessageToCoordinatorOnReservationStage();
+    void testForbidSendMessageToReceiverOnReservationStage(
+        uint32_t countForbiddenMessages = 1);
 
-    void testForbidSendRequestToIntNodeOnReservationStage();
+    void testForbidSendMessageToCoordinatorOnReservationStage(
+        uint32_t countForbiddenMessages = 1);
 
-    void testForbidSendResponseToIntNodeOnReservationStage();
+    void testForbidSendRequestToIntNodeOnReservationStage(
+        uint32_t countForbiddenMessages = 1);
 
-    void testForbidSendMessageOnFinalAmountClarificationStage();
+    void testForbidSendResponseToIntNodeOnReservationStage(
+        uint32_t countForbiddenMessages = 1);
 
-    void testForbidSendMessageOnVoteStage();
+    void testForbidSendMessageOnFinalAmountClarificationStage(
+        uint32_t countForbiddenMessages = 1);
 
-    void testForbidSendMessageOnVoteConsistencyStage();
+    void testForbidSendMessageOnVoteStage(
+        uint32_t countForbiddenMessages = 1);
+
+    void testForbidSendMessageOnVoteConsistencyStage(
+        uint32_t countForbiddenMessages = 1);
 
     void testThrowExceptionOnPreviousNeighborRequestProcessingStage();
 
@@ -63,8 +72,11 @@ protected:
 
 private:
     bool mIsNetworkOn;
+    uint32_t mCountForbiddenMessages;
+
     bool mIsCloseCycles;
 
+    bool mForbidSendMessageToReceiverOnReservationStage;
     bool mForbidSendMessageToCoordinatorOnReservationStage;
     bool mForbidSendRequestToIntNodeOnReservationStage;
     bool mForbidSendResponseToIntNodeOnReservationStage;

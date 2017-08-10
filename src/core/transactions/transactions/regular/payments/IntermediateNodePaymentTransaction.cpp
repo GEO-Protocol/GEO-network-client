@@ -88,6 +88,13 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     debug() << "runPreviousNeighborRequestProcessingStage";
     const auto kNeighbor = mMessage->senderUUID;
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
+
+#ifdef TESTS
+    mTestingController->testForbidSendResponseToIntNodeOnReservationStage();
+    mTestingController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mTestingController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+#endif
+
     if (mMessage->finalAmountsConfiguration().size() == 0) {
         error() << "Not received reservation";
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -111,12 +118,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     debug() << "Requested amount reservation: " << *kReservation.second.get() << " on path " << kReservation.first;
     debug() << "Received reservations size: " << mMessage->finalAmountsConfiguration().size();
 
-#ifdef TESTS
-    mTestingController->testForbidSendResponseToIntNodeOnReservationStage();
-    mTestingController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
-    mTestingController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
-#endif
-
     if (!mTrustLines->isNeighbor(kNeighbor)) {
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
@@ -137,7 +138,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
                 maxNetworkDelay(kMaxPathLength - 2));
         }
     }
-
 
     // update local reservations during amounts from coordinator
     if (!updateReservations(vector<pair<PathUUID, ConstSharedTrustLineAmount>>(
@@ -191,11 +191,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         }
     }
 
-#ifdef TESTS
-    mTestingController->turnOnNetwork();
-    mTestingController->testForbidSendRequestToIntNodeOnReservationStage();
-#endif
-
     debug() << "reserve locally " << kReservationAmount << " to node " << kNeighbor << " on path " << kReservation.first;
     mLastReservedAmount = kReservationAmount;
     mLastProcessedPath = kReservation.first;
@@ -206,10 +201,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         kReservation.first,
         ResponseMessage::Accepted,
         kReservationAmount);
-
-#ifdef TESTS
-    mTestingController->turnOnNetwork();
-#endif
 
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
@@ -326,7 +317,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     }
 
 #ifdef TESTS
-    mTestingController->turnOnNetwork();
     mTestingController->testForbidSendRequestToIntNodeOnReservationStage();
 #endif
 
@@ -356,11 +346,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         currentTransactionUUID(),
         reservations);
 
-#ifdef TESTS
-    mTestingController->turnOnNetwork();
-#endif
-
-    clearContext();
     mStep = Stages::IntermediateNode_NextNeighborResponseProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationResponse},
@@ -467,10 +452,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         kMessage->pathUUID(),
         ResponseMessage::Accepted,
         mLastReservedAmount);
-
-#ifdef TESTS
-    mTestingController->turnOnNetwork();
-#endif
 
     mStep = Stages::Common_FinalPathConfigurationChecking;
     return resultWaitForMessageTypes(
@@ -608,6 +589,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
 {
     // receive final configuration on all paths
     debug() << "runFinalAmountsConfigurationConfirmation";
+
+#ifdef TESTS
+    mTestingController->testForbidSendMessageOnFinalAmountClarificationStage();
+#endif
 
     auto kMessage = popNextMessage<FinalAmountsConfigurationMessage>();
     if (!updateReservations(

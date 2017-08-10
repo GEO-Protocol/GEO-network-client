@@ -279,10 +279,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
         debug() << "Votes list message transferred to the (" << kNextParticipant << ")";
 
-#ifdef TESTS
-        mTestingController->turnOnNetwork();
-#endif
-
         mStep = Stages::Common_VotesChecking;
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
@@ -304,15 +300,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
             kNewParticipantsVotesMessage->coordinatorUUID(),
             kNewParticipantsVotesMessage);
 
-#ifdef TESTS
-        mTestingController->turnOnNetwork();
-#endif
-
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
             maxNetworkDelay(3));
     }
-
 }
 
 /*

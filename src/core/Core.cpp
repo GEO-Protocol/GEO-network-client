@@ -461,7 +461,7 @@ void Core::onMessageReceivedSlot(
 {
 #ifdef TESTS
     if (not mTestingController->isNetworkOn()) {
-        // Ignore incomming message in case if network was disabled.
+        // Ignore incoming message in case if network was disabled.
         return;
     }
 #endif

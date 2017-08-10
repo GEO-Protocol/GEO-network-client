@@ -7,6 +7,7 @@ TestingController::TestingController(
     mIsNetworkOn = true;
     mIsCloseCycles = true;
 
+    mForbidSendMessageToReceiverOnReservationStage = false;
     mForbidSendMessageToCoordinatorOnReservationStage = false;
     mForbidSendRequestToIntNodeOnReservationStage = false;
     mForbidSendResponseToIntNodeOnReservationStage = false;
@@ -25,6 +26,8 @@ TestingController::TestingController(
     mTerminateProcessOnNextNeighborResponseProcessingStage = false;
     mTerminateProcessOnVoteStage = false;
     mTerminateProcessOnVoteConsistencyStage = false;
+
+    mCountForbiddenMessages = 0;
 }
 
 void TestingController::setFlags(size_t flags)
@@ -32,12 +35,14 @@ void TestingController::setFlags(size_t flags)
     debug() << "setFlags: " << flags;
     mIsNetworkOn = (flags & 0x1) == 0;
     mIsCloseCycles = (flags & 0x2) == 0;
-    mForbidSendMessageToCoordinatorOnReservationStage = (flags & 0x4) > 0;
-    mForbidSendRequestToIntNodeOnReservationStage = (flags & 0x8) > 0;
-    mForbidSendResponseToIntNodeOnReservationStage = (flags & 0x10) > 0;
-    mForbidSendMessageOnFinalAmountClarificationStage = (flags & 0x20) > 0;
-    mForbidSendMessageOnVoteStage = (flags & 0x40) > 0;
-    mForbidSendMessageOnVoteConsistencyStage = (flags & 0x80) > 0;
+
+    mForbidSendMessageToReceiverOnReservationStage = (flags & 0x4) > 0;
+    mForbidSendMessageToCoordinatorOnReservationStage = (flags & 0x8) > 0;
+    mForbidSendRequestToIntNodeOnReservationStage = (flags & 0x10) > 0;
+    mForbidSendResponseToIntNodeOnReservationStage = (flags & 0x20) > 0;
+    mForbidSendMessageOnFinalAmountClarificationStage = (flags & 0x40) > 0;
+    mForbidSendMessageOnVoteStage = (flags & 0x80) > 0;
+    mForbidSendMessageOnVoteConsistencyStage = (flags & 0x100) > 0;
 
     mThrowExceptionOnPreviousNeighborRequestProcessingStage = (flags & 0x800) > 0;
     mThrowExceptionOnCoordinatorRequestProcessingStage = (flags & 0x1000) > 0;
@@ -54,9 +59,18 @@ void TestingController::setFlags(size_t flags)
     debug() << "close cycles " << mIsCloseCycles;
 }
 
-bool TestingController::isNetworkOn() const
+bool TestingController::isNetworkOn()
 {
-    return mIsNetworkOn;
+    if (mCountForbiddenMessages > 0) {
+        mCountForbiddenMessages--;
+        if (mCountForbiddenMessages == 0) {
+            mIsNetworkOn = true;
+            debug() << "Network switched ON";
+        }
+        return false;
+    }
+    return true;
+
 }
 
 bool TestingController::isCloseCycles() const
@@ -66,61 +80,78 @@ bool TestingController::isCloseCycles() const
 
 void TestingController::turnOffNetwork()
 {
+    mCountForbiddenMessages = UINT32_MAX;
     mIsNetworkOn = false;
     debug() << "Network switched OFF";
 }
 
 void TestingController::turnOnNetwork()
 {
+    mCountForbiddenMessages = 0;
     mIsNetworkOn = true;
     debug() << "Network switched ON";
 }
 
-void TestingController::testForbidSendMessageToCoordinatorOnReservationStage()
+void TestingController::testForbidSendMessageToReceiverOnReservationStage(
+    uint32_t countForbiddenMessages)
+{
+    if (mForbidSendMessageToReceiverOnReservationStage) {
+        debug() << "ForbidSendMessageToReceiverOnReservationStage";
+        mCountForbiddenMessages = countForbiddenMessages;
+    }
+}
+
+void TestingController::testForbidSendMessageToCoordinatorOnReservationStage(
+    uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageToCoordinatorOnReservationStage) {
         debug() << "ForbidSendMessageToCoordinatorOnReservationStage";
-        turnOffNetwork();
+        mCountForbiddenMessages = countForbiddenMessages;
     }
 }
 
-void TestingController::testForbidSendRequestToIntNodeOnReservationStage()
+void TestingController::testForbidSendRequestToIntNodeOnReservationStage(
+    uint32_t countForbiddenMessages)
 {
     if (mForbidSendRequestToIntNodeOnReservationStage) {
         debug() << "ForbidSendRequestToIntNodeOnReservationStage";
-        turnOffNetwork();
+        mCountForbiddenMessages = countForbiddenMessages;
     }
 }
 
-void TestingController::testForbidSendResponseToIntNodeOnReservationStage()
+void TestingController::testForbidSendResponseToIntNodeOnReservationStage(
+    uint32_t countForbiddenMessages)
 {
     if (mForbidSendResponseToIntNodeOnReservationStage) {
         debug() << "ForbidSendResponseToIntNodeOnReservationStage";
-        turnOffNetwork();
+        mCountForbiddenMessages = countForbiddenMessages;
     }
 }
 
-void TestingController::testForbidSendMessageOnFinalAmountClarificationStage()
+void TestingController::testForbidSendMessageOnFinalAmountClarificationStage(
+    uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageOnFinalAmountClarificationStage) {
         debug() << "ForbidSendMessageOnFinalAmountClarificationStage";
-        turnOffNetwork();
+        mCountForbiddenMessages = countForbiddenMessages;
     }
 }
 
-void TestingController::testForbidSendMessageOnVoteStage()
+void TestingController::testForbidSendMessageOnVoteStage(
+    uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageOnVoteStage) {
         debug() << "ForbidSendMessageOnVoteStage";
-        turnOffNetwork();
+        mCountForbiddenMessages = countForbiddenMessages;
     }
 }
 
-void TestingController::testForbidSendMessageOnVoteConsistencyStage()
+void TestingController::testForbidSendMessageOnVoteConsistencyStage(
+    uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageOnVoteConsistencyStage) {
         debug() << "ForbidSendMessageOnVoteConsistencyStage";
-        turnOffNetwork();
+        mCountForbiddenMessages = countForbiddenMessages;
     }
 }
 

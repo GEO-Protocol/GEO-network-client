@@ -142,6 +142,12 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest))
         return reject("No amount reservation request was received. Rolled back.");
 
+#ifdef TESTS
+    mTestingController->testForbidSendResponseToIntNodeOnReservationStage();
+    mTestingController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mTestingController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+#endif
+
     const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
     const auto kNeighbor = kMessage->senderUUID;
     if (kMessage->finalAmountsConfiguration().size() == 0) {
@@ -179,7 +185,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         // Ignore received message.
         // Begin waiting for another one.
         //
-        // TODO: enhancement: send aproximate paths count to receiver, so it will be able to wait correct timeout.
+        // TODO: enhancement: send approximate paths count to receiver, so it will be able to wait correct timeout.
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeReservationRequest,
             Message::Payments_TTLProlongationResponse},

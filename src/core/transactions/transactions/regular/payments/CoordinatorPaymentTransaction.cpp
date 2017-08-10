@@ -411,6 +411,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
             kContractorReservations.end());
     }
 
+#ifdef TESTS
+    mTestingController->testForbidSendMessageToReceiverOnReservationStage();
+#endif
+
     debug() << "Send reservations size: " << reservations.size();
     sendMessage<IntermediateNodeReservationRequestMessage>(
         kContractor,
@@ -975,6 +979,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
         return reject("Coordinator has more than one reservation to contractor");
     }
 
+#ifdef TESTS
+    mTestingController->testForbidSendMessageOnFinalAmountClarificationStage();
+#endif
+
     for (auto const nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
         // todo : discuss if receiver need on final amounts
         if (nodeAndFinalAmountsConfig.first == mCommand->contractorUUID()) {
@@ -1244,6 +1252,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
         return runTTLTransactionResponce();
     }
 
+#ifdef TESTS
+    mTestingController->testForbidSendMessageOnVoteConsistencyStage();
+    mTestingController->testThrowExceptionOnVoteConsistencyStage();
+    mTestingController->testTerminateProcessOnVoteConsistencyStage();
+#endif
+
     if (! contextIsValid(Message::Payments_ParticipantsVotes)) {
         return reject("Coordinator didn't receive message with votes");
     }
@@ -1265,7 +1279,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
         mParticipantsVotesMessage->approve(currentNodeUUID());
         propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
         return approve();
-
     }
 
     return reject("Coordinator received message with some uncertain votes. Rolling back");
