@@ -15,6 +15,7 @@
 #include "../../../network/messages/Message.hpp"
 #include "../../../network/messages/trust_lines/SetTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/UpdateTrustLineMessage.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 #include "UpdateTrustLineTransaction.h"
 
@@ -38,6 +39,7 @@ public:
         SetTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -60,6 +62,7 @@ protected:
     SetTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 

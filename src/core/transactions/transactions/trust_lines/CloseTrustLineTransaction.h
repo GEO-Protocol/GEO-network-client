@@ -8,6 +8,7 @@
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 #include "../../../network/messages/trust_lines/CloseTrustLineMessage.h"
 
@@ -24,6 +25,7 @@ public:
         CloseTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger)
         noexcept;
 
@@ -48,6 +50,7 @@ private:
     CloseTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 

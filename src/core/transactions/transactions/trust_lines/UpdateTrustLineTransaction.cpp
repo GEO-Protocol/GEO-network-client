@@ -5,6 +5,7 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
     UpdateTrustLineMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -13,7 +14,9 @@ UpdateTrustLineTransaction::UpdateTrustLineTransaction(
         logger),
     mMessage(message),
     mTrustLines(manager),
-    mStorageHandler(storageHandler) {}
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+{}
 
 TransactionResult::SharedConst UpdateTrustLineTransaction::run()
 {
@@ -36,6 +39,9 @@ TransactionResult::SharedConst UpdateTrustLineTransaction::run()
             kContractor,
             mMessage->newAmount());
         updateHistory(ioTransaction);
+
+        // reset initiator cache for calculating actual max flow
+        mMaxFlowCalculationCacheManager->resetInititorCache();
 
         info() << "Trust line to the node " << kContractor
                << " successfully updated to " << mTrustLines->incomingTrustAmount(kContractor);

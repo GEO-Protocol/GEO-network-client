@@ -6,6 +6,7 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
     CloseTrustLineCommand::Shared command,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger)
     noexcept:
 
@@ -15,7 +16,8 @@ CloseTrustLineTransaction::CloseTrustLineTransaction(
         logger),
     mCommand(command),
     mTrustLinesManager(manager),
-    mStorageHandler(storageHandler)
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 TransactionResult::SharedConst CloseTrustLineTransaction::run()
@@ -39,6 +41,8 @@ TransactionResult::SharedConst CloseTrustLineTransaction::run()
             kContractor);
         updateHistory(ioTransaction);
 
+        // reset initiator cache for calculating actual max flow
+        mMaxFlowCalculationCacheManager->resetInititorCache();
 
         // Notifiyng remote node about trust line state changed.
         // This message is information only. It is OK if it would be lost, and remote node will never receive it
