@@ -308,12 +308,21 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     }
 #endif
 
+#ifdef TESTS
+    mTestingController->testForbidSendMessageOnVoteStage();
+#endif
+
     // Begin message propagation
     sendMessage(
         mParticipantsVotesMessage->firstParticipant(),
         mParticipantsVotesMessage);
 
     debug() << "Votes message constructed and sent to the (" << mParticipantsVotesMessage->firstParticipant() << ")";
+
+#ifdef TESTS
+    mTestingController->testThrowExceptionOnVoteStage();
+    mTestingController->testTerminateProcessOnVoteStage();
+#endif
 
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
@@ -1185,6 +1194,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         mStep = Stages::Coordinator_AmountReservation;
         return tryProcessNextPath();
     }
+
+#ifdef TESTS
+    mTestingController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mTestingController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+#endif
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
 
