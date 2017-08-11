@@ -5,6 +5,7 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
     AcceptTrustLineMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -13,7 +14,9 @@ AcceptTrustLineTransaction::AcceptTrustLineTransaction(
         logger),
     mMessage(message),
     mTrustLines(manager),
-    mStorageHandler(storageHandler) {}
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+{}
 
 TransactionResult::SharedConst AcceptTrustLineTransaction::run()
 {
@@ -34,6 +37,9 @@ TransactionResult::SharedConst AcceptTrustLineTransaction::run()
             mMessage->amount());
 
         updateHistory(ioTransaction);
+
+        // reset initiator cache for calculating actual max flow
+        mMaxFlowCalculationCacheManager->resetInititorCache();
 
         // Launching transaction for routing tables population
         // if TrustLineStatesHandlerTransaction fails AcceptTrustLineTransaction will return result ok in any case

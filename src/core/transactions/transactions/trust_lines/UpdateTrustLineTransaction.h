@@ -14,6 +14,7 @@
 #include "../../../network/messages/response/Response.h"
 
 #include "../../../trust_lines/manager/TrustLinesManager.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 #include "../../../common/exceptions/ConflictError.h"
 
@@ -34,6 +35,7 @@ public:
         UpdateTrustLineMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -49,6 +51,7 @@ protected:
     UpdateTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 

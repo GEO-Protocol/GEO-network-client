@@ -5,6 +5,7 @@ SetTrustLineTransaction::SetTrustLineTransaction(
     SetTrustLineCommand::Shared command,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -13,7 +14,9 @@ SetTrustLineTransaction::SetTrustLineTransaction(
         logger),
     mCommand(command),
     mTrustLines(manager),
-    mStorageHandler(storageHandler) {}
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+{}
 
 TransactionResult::SharedConst SetTrustLineTransaction::run()
 {
@@ -37,6 +40,8 @@ TransactionResult::SharedConst SetTrustLineTransaction::run()
             mCommand->newAmount());
         updateHistory(ioTransaction);
 
+        // reset initiator cache for calculating actual max flow
+        mMaxFlowCalculationCacheManager->resetInititorCache();
 
         // Notifiyng remote node about trust line state changed.
         // This message is information only. It is OK if it would be lost, and remote node will never receive it

@@ -13,6 +13,8 @@
 #include "../../../network/messages/trust_lines/AcceptTrustLineMessage.h"
 #include "../../../network/messages/response/Response.h"
 
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+
 #include "../../../common/exceptions/ConflictError.h"
 #include "../../../common/exceptions/RuntimeError.h"
 
@@ -29,6 +31,7 @@ public:
         OpenTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger)
         noexcept;
 
@@ -61,6 +64,7 @@ protected:
     OpenTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 #endif //GEO_NETWORK_CLIENT_OPENTRUSTLINETRANSACTION_H
