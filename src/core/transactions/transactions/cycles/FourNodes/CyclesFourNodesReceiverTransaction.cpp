@@ -44,6 +44,5 @@ const string CyclesFourNodesReceiverTransaction::logHeader() const
 {
     stringstream s;
     s << "[CyclesFourNodesReceiverTransactionTA: " << currentTransactionUUID() << "] ";
-
     return s.str();
 }

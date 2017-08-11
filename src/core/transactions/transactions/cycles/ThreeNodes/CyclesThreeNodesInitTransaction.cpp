@@ -87,9 +87,9 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     if (mContext.size() != 1){
         return resultDone();
     }
-    #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     vector<vector<NodeUUID>> ResultCycles;
-    #endif
+#endif
     auto message = static_pointer_cast<CyclesThreeNodesBalancesResponseMessage>(*mContext.begin());
     const auto neighborsAndBalances = message->NeighborsAndBalances();
     for(const auto &nodeUUIDAndBalance : neighborsAndBalances ){
@@ -105,12 +105,12 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
                 << " -> " << nodeUUIDAndBalance << " -> " << mNodeUUID;
         mCyclesManager->addCycle(
             cyclePath);
-        #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
             ResultCycles.push_back(cycle);
-        #endif
+#endif
     }
 
-    #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     cout << "CyclesThreeNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size()) << endl;
     for (vector<NodeUUID> KCyclePath: ResultCycles){
         stringstream ss;
@@ -118,7 +118,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
         cout << "CyclesThreeNodesInitTransaction::CyclePath " << ss.str() << endl;
     }
     cout << "CyclesThreeNodesInitTransaction::End" << endl;
-    #endif
+#endif
     mCyclesManager->closeOneCycle();
     return resultDone();
 }
@@ -127,6 +127,5 @@ const string CyclesThreeNodesInitTransaction::logHeader() const
 {
     stringstream s;
     s << "[CyclesThreeNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
-
     return s.str();
 }

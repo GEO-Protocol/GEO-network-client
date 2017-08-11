@@ -34,6 +34,9 @@ void TestingController::setFlags(size_t flags)
 {
     debug() << "setFlags: " << flags;
     mIsNetworkOn = (flags & 0x1) == 0;
+    if (!mIsNetworkOn) {
+        mCountForbiddenMessages = UINT32_MAX;
+    }
     mIsCloseCycles = (flags & 0x2) == 0;
 
     mForbidSendMessageToReceiverOnReservationStage = (flags & 0x4) > 0;

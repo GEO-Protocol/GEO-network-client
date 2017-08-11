@@ -57,6 +57,7 @@ IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
         -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
+        #-DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     )
 
 ENDIF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
@@ -92,6 +93,7 @@ IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
         -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
+        #-DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     )
 
     set(CMAKE_BUILD_TYPE "Release")

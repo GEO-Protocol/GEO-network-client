@@ -106,6 +106,13 @@ int Core::initSubsystems()
         return initCode;
     }
 
+#ifdef TESTS
+    initCode = initTestingController();
+    if (initCode != 0) {
+        return initCode;
+    }
+#endif
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
@@ -119,14 +126,6 @@ int Core::initSubsystems()
         return initCode;
 
     connectSignalsToSlots();
-
-#ifdef TESTS
-    initCode = initTestingController();
-    if (initCode != 0) {
-        return initCode;
-    }
-#endif
-
     return 0;
 }
 
@@ -462,6 +461,7 @@ void Core::onMessageReceivedSlot(
 #ifdef TESTS
     if (not mTestingController->isNetworkOn()) {
         // Ignore incoming message in case if network was disabled.
+        mLog->debug("Core: Ignore process incoming message");
         return;
     }
 #endif
@@ -481,6 +481,7 @@ void Core::onMessageSendSlot(
 #ifdef TESTS
     if (not mTestingController->isNetworkOn()) {
         // Ignore outgoing message in case if network was disabled.
+        mLog->debug("Core: Ignore send message");
         return;
     }
 #endif
