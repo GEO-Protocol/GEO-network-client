@@ -322,6 +322,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
         return recover("No participants votes received.");
     }
 
+#ifdef TESTS
+    mTestingController->testForbidSendMessageOnVoteConsistencyStage();
+    mTestingController->testThrowExceptionOnVoteConsistencyStage();
+    mTestingController->testTerminateProcessOnVoteConsistencyStage();
+#endif
+
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
     debug () << "Participants votes message received.";
 
@@ -653,6 +659,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
     if(mTransactionIsVoted and (mParticipantsVotesMessage != nullptr)){
         mStep = Stages::Common_Recovery;
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
+        clearContext();
         return runVotesRecoveryParentStage();
     } else {
         debug() << "Transaction doesn't sent/receive participants votes message and will be closed";
@@ -939,7 +946,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesRecoveryParentSta
         case VotesRecoveryStages ::Common_CheckCoordinatorVotesStage:
             return runCheckCoordinatorVotesStage();
         case VotesRecoveryStages ::Common_CheckIntermediateNodeVotesStage:
-            return runCheckIntermediateNodeVotesSage();
+            return runCheckIntermediateNodeVotesStage();
 
         default:
             throw RuntimeError(
@@ -995,6 +1002,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
             return processNextNodeToCheckVotes();
         }
         debug() << "receive message with invalid type, ignore it";
+        clearContext();
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
             maxNetworkDelay(2));
@@ -1036,7 +1044,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     return processNextNodeToCheckVotes();
 }
 
-TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeVotesSage()
+TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeVotesStage()
 {
     debug() << "runCheckIntermediateNodeVotesStage";
     if (!contextIsValid(Message::Payments_ParticipantsVotes, false)) {
@@ -1045,6 +1053,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
             return processNextNodeToCheckVotes();
         }
         debug() << "receive message with invalid type, ignore it";
+        clearContext();
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
             maxNetworkDelay(2));

@@ -150,7 +150,7 @@ protected:
         const NodeUUID &contractorUUID);
     TransactionResult::SharedConst runPrepareListNodesToCheckNodes();
     TransactionResult::SharedConst runCheckCoordinatorVotesStage();
-    TransactionResult::SharedConst runCheckIntermediateNodeVotesSage();
+    TransactionResult::SharedConst runCheckIntermediateNodeVotesStage();
     TransactionResult::SharedConst runRollbackByOtherTransactionStage();
 
 protected:
