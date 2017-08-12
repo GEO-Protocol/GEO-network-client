@@ -579,6 +579,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     }
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
+#ifdef TESTS
+    mTestingController->testForbidSendMessageToReceiverOnReservationStage();
+#endif
+
     sendMessage<IntermediateNodeReservationRequestMessage>(
         neighbor,
         kCurrentNode,
@@ -621,6 +625,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
             kNeighborReservations.end());
     }
     debug() << "Prepared for sending reservations size: " << reservations.size();
+
+#ifdef TESTS
+    mTestingController->testForbidSendMessageToCoordinatorOnReservationStage();
+#endif
 
     sendMessage<CoordinatorReservationRequestMessage>(
         neighbor,
@@ -826,6 +834,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     }
 
     debug() << "Prepared for sending reservations size: " << reservations.size();
+
+#ifdef TESTS
+    mTestingController->testForbidSendRequestToIntNodeOnReservationStage();
+#endif
+
     sendMessage<CoordinatorReservationRequestMessage>(
         remoteNode,
         kCoordinator,

@@ -357,7 +357,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     debug() << "runNextNeighborResponseProcessingStage";
 
 #ifdef TESTS
-    mTestingController->testForbidSendResponseToIntNodeOnReservationStage();
+    mTestingController->testForbidSendMessageToCoordinatorOnReservationStage();
     mTestingController->testThrowExceptionOnNextNeighborResponseProcessingStage();
     mTestingController->testTerminateProcessOnNextNeighborResponseProcessingStage();
 #endif
