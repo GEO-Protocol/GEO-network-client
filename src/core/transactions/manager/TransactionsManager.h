@@ -106,6 +106,7 @@
 #include "../transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
 #include "../transactions/routing_tables/GetFirstRoutingTableTransaction.h"
 #include "../transactions/routing_tables/UpdateRoutingTablesTransaction.h"
+#include "../transactions/routing_tables/Crc32Rt2ResponseTransaction.h"
 
 #include "../../testing/TestingController.h"
 

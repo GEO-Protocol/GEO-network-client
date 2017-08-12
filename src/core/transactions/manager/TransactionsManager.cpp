@@ -1,5 +1,4 @@
 ﻿#include "TransactionsManager.h"
-#include "../transactions/routing_tables/Crc32Rt2ResponseTransaction.h"
 
 /*!
  *

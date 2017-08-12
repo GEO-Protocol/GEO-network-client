@@ -158,8 +158,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
         return resultNoPathsError();
     }
 
-
-
     // If there is no one path to the receiver - transaction can't proceed.
     if (mPathsStats.empty())
         return resultNoPathsError();
