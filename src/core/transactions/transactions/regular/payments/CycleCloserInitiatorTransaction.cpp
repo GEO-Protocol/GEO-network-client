@@ -781,7 +781,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
         mParticipantsVotesMessage->approve(currentNodeUUID());
         propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
         return approve();
-
     }
 
     return reject("Coordinator received message with some uncertain votes. Rolling back");
@@ -833,6 +832,13 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     }
 }
 
+TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()
+{
+    mCommitedAmount = totalReservedAmount(
+        AmountReservation::Outgoing);
+    return BasePaymentTransaction::approve();
+}
+
 void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory()
 {
     debug() << "savePaymentOperationIntoHistory";
@@ -842,7 +848,8 @@ void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory()
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::CycleCloserType,
-            path->maxFlow()));
+            mCommitedAmount));
+    debug() << "Operation saved";
 }
 
 bool CycleCloserInitiatorTransaction::checkReservationsDirections() const

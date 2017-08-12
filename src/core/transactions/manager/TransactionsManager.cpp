@@ -80,7 +80,11 @@ void TransactionsManager::loadTransactions()
                     mLog);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
-                prepareAndSchedule(transaction);
+                prepareAndSchedule(
+                    transaction,
+                    true,
+                    false,
+                    true);
                 // TODO: discuss, why awakeAsFastAsPossible doesn't work
                 //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
@@ -97,7 +101,11 @@ void TransactionsManager::loadTransactions()
                     transaction->mBuildCycleThreeNodesSignal);
                 subscribeForBuidCyclesFourNodesTransaction(
                     transaction->mBuildCycleFourNodesSignal);
-                prepareAndSchedule(transaction);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 // TODO: discuss, why awakeAsFastAsPossible doesn't work
                 //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
@@ -112,7 +120,11 @@ void TransactionsManager::loadTransactions()
                     mLog);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
-                prepareAndSchedule(transaction);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 // TODO: discuss, why awakeAsFastAsPossible doesn't work
                 //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
@@ -126,7 +138,11 @@ void TransactionsManager::loadTransactions()
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog);
-                prepareAndSchedule(transaction);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 // TODO: discuss, why awakeAsFastAsPossible doesn't work
                 //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
@@ -140,8 +156,11 @@ void TransactionsManager::loadTransactions()
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog);
-
-                prepareAndSchedule(transaction);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 // TODO: discuss, why awakeAsFastAsPossible doesn't work
                 //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;

@@ -62,9 +62,6 @@ protected:
     TrustLineAmount mLastReservedAmount;
     NodeUUID mCoordinator;
     PathUUID mLastProcessedPath;
-
-    // used for history saving of total amount during transaction
-    TrustLineAmount mTotalReservedAmount;
 };
 
 

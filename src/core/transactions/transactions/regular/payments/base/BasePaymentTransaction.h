@@ -217,7 +217,8 @@ protected:
 
     TransactionResult::SharedConst processNextNodeToCheckVotes();
 
-    const TrustLineAmount totalReservedAmount() const;
+    const TrustLineAmount totalReservedAmount(
+        AmountReservation::ReservationDirection reservationDirection) const;
 
     virtual void savePaymentOperationIntoHistory() = 0;
 
@@ -264,6 +265,9 @@ protected:
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;
     NodeUUID mCurrentNodeToCheckVotes;
+
+    // this amount used for saving in payment history
+    TrustLineAmount mCommitedAmount;
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

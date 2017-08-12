@@ -377,7 +377,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     }
 
     // Note: try reserve remaining part of command amount
-    const auto kRemainingAmountForProcessing = mCommand->amount() - totalReservedAmount();
+    const auto kRemainingAmountForProcessing =
+            mCommand->amount() - totalReservedAmount(AmountReservation::Outgoing);
     // Reserving amount locally.
     const auto kReservationAmount = min(kRemainingAmountForProcessing, *kAvailableOutgoingAmount);
     if (not reserveOutgoingAmount(
@@ -517,7 +518,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     // Note: copy of shared pointer is required
     const auto kAvailableOutgoingAmount =  mTrustLines->availableOutgoingAmount(neighbor);
     // Note: try reserve remaining part of command amount
-    const auto kRemainingAmountForProcessing = mCommand->amount() - totalReservedAmount();
+    const auto kRemainingAmountForProcessing =
+            mCommand->amount() - totalReservedAmount(AmountReservation::Outgoing);
 
     const auto kReservationAmount = min(*kAvailableOutgoingAmount, kRemainingAmountForProcessing);
 
@@ -749,7 +751,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
 
     if (path->isLastIntermediateNodeProcessed()) {
 
-        const auto kTotalAmount = totalReservedAmount();
+        const auto kTotalAmount = totalReservedAmount(
+            AmountReservation::Outgoing);
 
         debug() << "Current path reservation finished";
         debug() << "Total collected amount by all paths: " << kTotalAmount;
@@ -910,7 +913,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
         if (path->isLastIntermediateNodeProcessed()) {
 
-            const auto kTotalAmount = totalReservedAmount();
+            const auto kTotalAmount = totalReservedAmount(
+                AmountReservation::Outgoing);
 
             debug() << "Current path reservation finished";
             debug() << "Total collected amount by all paths: " << kTotalAmount;
@@ -1147,7 +1151,11 @@ const string CoordinatorPaymentTransaction::logHeader() const
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 {
+    mCommitedAmount = totalReservedAmount(
+        AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
+    propagateVotesMessageToAllParticipants(
+        mParticipantsVotesMessage);
     runBuildThreeNodesCyclesSignal();
     return resultOK();
 }
@@ -1204,7 +1212,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         }
     }
 
-    const auto kTotalAmount = totalReservedAmount();
+    const auto kTotalAmount = totalReservedAmount(
+        AmountReservation::Outgoing);
     debug() << "Current path reservation finished";
     debug() << "Total collected amount by all paths: " << kTotalAmount;
 
@@ -1260,9 +1269,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
         }
         mParticipantsVotesMessage->addParticipant(currentNodeUUID());
         mParticipantsVotesMessage->approve(currentNodeUUID());
-        propagateVotesMessageToAllParticipants(mParticipantsVotesMessage);
         return approve();
-
     }
 
     return reject("Coordinator received message with some uncertain votes. Rolling back");
@@ -1384,8 +1391,9 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory()
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::OutgoingPaymentType,
             mCommand->contractorUUID(),
-            mCommand->amount(),
+            mCommitedAmount,
             *mTrustLines->totalBalance().get()));
+    debug() << "Operation saved";
 }
 
 bool CoordinatorPaymentTransaction::checkReservationsDirections() const

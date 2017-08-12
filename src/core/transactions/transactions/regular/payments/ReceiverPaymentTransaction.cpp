@@ -259,7 +259,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     }
 
     const auto kTotalTransactionAmount = mMessage->amount();
-    const auto kTotalReserved = totalReservedAmount();
+    const auto kTotalReserved = totalReservedAmount(
+        AmountReservation::Incoming);
     if (kTotalReserved > kTotalTransactionAmount){
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
@@ -385,6 +386,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
 {
+    mCommitedAmount = totalReservedAmount(
+        AmountReservation::Incoming);
     BasePaymentTransaction::approve();
     runBuildThreeNodesCyclesSignal();
     return resultDone();
@@ -398,9 +401,10 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory()
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IncomingPaymentType,
-            mMessage->senderUUID,
-            mMessage->amount(),
+            mParticipantsVotesMessage->coordinatorUUID(),
+            mCommitedAmount,
             *mTrustLines->totalBalance().get()));
+    debug() << "Operation saved";
 }
 
 bool ReceiverPaymentTransaction::checkReservationsDirections() const
