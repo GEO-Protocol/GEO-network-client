@@ -478,6 +478,13 @@ const uint8_t CycleCloserIntermediateNodeTransaction::cycleLength() const
     return mCycleLength;
 }
 
+TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::approve()
+{
+    mCommitedAmount = totalReservedAmount(
+        AmountReservation::Outgoing);
+    return BasePaymentTransaction::approve();
+}
+
 void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory()
 {
     debug() << "savePaymentOperationIntoHistory";
@@ -486,7 +493,8 @@ void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory()
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::CyclerCloserIntermediateType,
-            mLastReservedAmount));
+            mCommitedAmount));
+    debug() << "Operation saved";
 }
 
 bool CycleCloserIntermediateNodeTransaction::checkReservationsDirections() const

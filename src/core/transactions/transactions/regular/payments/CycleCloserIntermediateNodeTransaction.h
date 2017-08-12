@@ -49,6 +49,9 @@ protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
 
 protected:
+    TransactionResult::SharedConst approve();
+
+protected:
     void savePaymentOperationIntoHistory();
 
     bool checkReservationsDirections() const;

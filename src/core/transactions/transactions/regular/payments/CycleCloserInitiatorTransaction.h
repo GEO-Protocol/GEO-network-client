@@ -82,6 +82,9 @@ protected:
     TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
 
 protected:
+    TransactionResult::SharedConst approve();
+
+protected:
     const string logHeader() const;
 
     void checkPath(

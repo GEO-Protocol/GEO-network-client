@@ -1112,12 +1112,15 @@ TransactionResult::SharedConst BasePaymentTransaction::runRollbackByOtherTransac
     return resultDone();
 }
 
-const TrustLineAmount BasePaymentTransaction::totalReservedAmount() const
+const TrustLineAmount BasePaymentTransaction::totalReservedAmount(
+    AmountReservation::ReservationDirection reservationDirection) const
 {
     TrustLineAmount totalAmount = 0;
     for (const auto nodeUUIDAndReservations : mReservations) {
         for (const auto pathUUIDAndReservation : nodeUUIDAndReservations.second) {
-            totalAmount += pathUUIDAndReservation.second->amount();
+            if (pathUUIDAndReservation.second->direction() == reservationDirection) {
+                totalAmount += pathUUIDAndReservation.second->amount();
+            }
         }
     }
     return totalAmount;
