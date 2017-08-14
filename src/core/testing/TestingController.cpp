@@ -11,6 +11,7 @@ TestingController::TestingController(
     mForbidSendMessageToCoordinatorOnReservationStage = false;
     mForbidSendRequestToIntNodeOnReservationStage = false;
     mForbidSendResponseToIntNodeOnReservationStage = false;
+    mForbidSendMessageWithFinalPathConfiguration = false;
     mForbidSendMessageOnFinalAmountClarificationStage = false;
     mForbidSendMessageOnVoteStage = false;
     mForbidSendMessageOnVoteConsistencyStage = false;
@@ -43,9 +44,10 @@ void TestingController::setFlags(size_t flags)
     mForbidSendMessageToCoordinatorOnReservationStage = (flags & 0x8) > 0;
     mForbidSendRequestToIntNodeOnReservationStage = (flags & 0x10) > 0;
     mForbidSendResponseToIntNodeOnReservationStage = (flags & 0x20) > 0;
-    mForbidSendMessageOnFinalAmountClarificationStage = (flags & 0x40) > 0;
-    mForbidSendMessageOnVoteStage = (flags & 0x80) > 0;
-    mForbidSendMessageOnVoteConsistencyStage = (flags & 0x100) > 0;
+    mForbidSendMessageWithFinalPathConfiguration = (flags & 0x40) > 0;
+    mForbidSendMessageOnFinalAmountClarificationStage = (flags & 0x80) > 0;
+    mForbidSendMessageOnVoteStage = (flags & 0x100) > 0;
+    mForbidSendMessageOnVoteConsistencyStage = (flags & 0x200) > 0;
 
     mThrowExceptionOnPreviousNeighborRequestProcessingStage = (flags & 0x800) > 0;
     mThrowExceptionOnCoordinatorRequestProcessingStage = (flags & 0x1000) > 0;
@@ -127,6 +129,15 @@ void TestingController::testForbidSendResponseToIntNodeOnReservationStage(
 {
     if (mForbidSendResponseToIntNodeOnReservationStage) {
         debug() << "ForbidSendResponseToIntNodeOnReservationStage";
+        mCountForbiddenMessages = countForbiddenMessages;
+    }
+}
+
+void TestingController::testForbidSendMessageWithFinalPathConfiguration(
+    uint32_t countForbiddenMessages)
+{
+    if (mForbidSendMessageWithFinalPathConfiguration) {
+        debug() << "ForbidSendMessageWithFinalPathConfiguration";
         mCountForbiddenMessages = countForbiddenMessages;
     }
 }

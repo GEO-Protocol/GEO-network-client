@@ -788,6 +788,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             return resultNoConsensusError();
         }
 
+#ifdef TESTS
+        mTestingController->testForbidSendMessageWithFinalPathConfiguration();
+#endif
+
         // send final path amount to all intermediate nodes on path
         sendFinalPathConfiguration(
             currentAmountReservationPathStats(),
@@ -954,6 +958,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
                 rollBack();
                 return resultNoConsensusError();
             }
+
+#ifdef TESTS
+            mTestingController->testForbidSendMessageWithFinalPathConfiguration();
+#endif
 
             // send final path amount to all intermediate nodes on path
             sendFinalPathConfiguration(

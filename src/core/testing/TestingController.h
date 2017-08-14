@@ -32,6 +32,9 @@ public:
     void testForbidSendResponseToIntNodeOnReservationStage(
         uint32_t countForbiddenMessages = 1);
 
+    void testForbidSendMessageWithFinalPathConfiguration(
+        uint32_t countForbiddenMessages = 1);
+
     void testForbidSendMessageOnFinalAmountClarificationStage(
         uint32_t countForbiddenMessages = 1);
 
@@ -80,6 +83,7 @@ private:
     bool mForbidSendMessageToCoordinatorOnReservationStage;
     bool mForbidSendRequestToIntNodeOnReservationStage;
     bool mForbidSendResponseToIntNodeOnReservationStage;
+    bool mForbidSendMessageWithFinalPathConfiguration;
     bool mForbidSendMessageOnFinalAmountClarificationStage;
     bool mForbidSendMessageOnVoteStage;
     bool mForbidSendMessageOnVoteConsistencyStage;

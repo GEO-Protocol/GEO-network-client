@@ -40,9 +40,10 @@ protected:
 //    3 - Forbid Send Message To Coordinator On Reservation Stage   0x8  // 8
 //    4 - Forbid Send Request To Intermediate Node On Reservation Stage   0x10  // 16
 //    5 - Forbid Send Response To Intermediate Node On Reservation Stage   0x20  // 32
-//    6 - Forbid Send Message On Final Amount Clarification Stage   0x40  // 64
-//    7 - Forbid Send Message On Vote Stage   0x80  // 128
-//    8 - Forbid Send Message On Vote Consistency Stage   0x100  // 256
+//    6 - Forbid Send Response With Final Path Configuration   0x20  // 64
+//    7 - Forbid Send Message On Final Amount Clarification Stage   0x40  // 128
+//    8 - Forbid Send Message On Vote Stage   0x80  // 256
+//    9 - Forbid Send Message On Vote Consistency Stage   0x100  // 512
 
 //    11 - throw exception on previous neighbor request processing stage  0x800  // 2048
 //    12 - throw exception on Coordinator Request Processing Stage  0x1000  // 4096
