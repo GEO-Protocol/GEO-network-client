@@ -6,10 +6,13 @@ set(SOURCE_FILES
         GetRoutingTablesTransaction.h
         GetRoutingTablesTransaction.cpp
         GetPathTestTransaction.h
-        GetPathTestTransaction.cpp )
+        GetPathTestTransaction.cpp
+        FindPathByMaxFlowTransaction.h
+        FindPathByMaxFlowTransaction.cpp)
 
 add_library(transactions__find_path ${SOURCE_FILES})
 
 target_link_libraries(transactions__find_path
+        transactions__base
         resources_manager
         io__storage)

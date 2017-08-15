@@ -1077,6 +1077,30 @@ void TransactionsManager::launchPathsResourcesCollectTransaction(
     }
 }
 
+void TransactionsManager::launchFindPathByMaxFlowTransaction(
+    const TransactionUUID &requestedTransactionUUID,
+    const NodeUUID &destinationNodeUUID)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<FindPathByMaxFlowTransaction>(
+                mNodeUUID,
+                destinationNodeUUID,
+                requestedTransactionUUID,
+                mPathsManager,
+                mResourcesManager,
+                mTrustLines,
+                mMaxFlowCalculationTrustLineManager,
+                mMaxFlowCalculationCacheManager,
+                mLog),
+            true,
+            true,
+            false);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
 void TransactionsManager::launchTrustLineStatesHandlerTransaction(
     NotificationTrustLineCreatedMessage::Shared message) {
     try {

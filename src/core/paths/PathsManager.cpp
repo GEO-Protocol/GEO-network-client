@@ -4,11 +4,13 @@ PathsManager::PathsManager(
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLinesManager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     Logger &logger):
 
     mNodeUUID(nodeUUID),
     mTrustLinesManager(trustLinesManager),
     mStorageHandler(storageHandler),
+    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
     mLog(logger),
     mPathCollection(nullptr)
 {}
@@ -492,6 +494,120 @@ void PathsManager::findPathsTest(
     /*while (mPathCollection->hasNextPath()) {
         info() << mPathCollection->nextPath()->toString();
     }*/
+}
+
+TrustLineAmount PathsManager::buildPaths(
+    const NodeUUID &contractorUUID)
+{
+    info() << "Build paths to " << contractorUUID;
+    mContractorUUID = contractorUUID;
+    TrustLineAmount result = 0;
+    mPathCollection = make_shared<PathsCollection>(
+        mNodeUUID,
+        mContractorUUID);
+
+    auto trustLinePtrsSet =
+        mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    if (trustLinePtrsSet.size() == 0) {
+        mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+        return result;
+    }
+
+    for (mCurrentPathLength = 1; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
+        result += buildPathsOnOneLevel();
+    }
+
+    mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+    return result;
+}
+
+TrustLineAmount PathsManager::buildPathsOnOneLevel()
+{
+    TrustLineAmount result = 0;
+    auto trustLinePtrsSet =
+        mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    while(true) {
+        TrustLineAmount currentFlow = 0;
+        for (auto &trustLinePtr : trustLinePtrsSet) {
+            auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
+            auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
+            auto trustLineAmountPtr = trustLineFreeAmountShared.get();
+            passedNodeUUIDs.clear();
+            TrustLineAmount flow = calculateOneNode(
+                trustLine.get()->targetUUID(),
+                *trustLineAmountPtr,
+                1);
+            if (flow > TrustLine::kZeroAmount()) {
+                currentFlow += flow;
+                trustLine->addUsedAmount(flow);
+                break;
+            }
+        }
+        result += currentFlow;
+        if (currentFlow == 0) {
+            break;
+        }
+    }
+    return result;
+}
+
+TrustLineAmount PathsManager::calculateOneNode(
+    const NodeUUID& nodeUUID,
+    const TrustLineAmount& currentFlow,
+    byte level)
+{
+    if (nodeUUID == mContractorUUID) {
+        if (currentFlow > TrustLine::kZeroAmount()) {
+            Path path(
+                mNodeUUID,
+                mContractorUUID,
+                passedNodeUUIDs);
+            mPathCollection->add(path);
+            info() << "build path: " << path.toString() << " with amount " << currentFlow;
+        }
+        return currentFlow;
+    }
+    if (level == mCurrentPathLength) {
+        return 0;
+    }
+
+    auto trustLinePtrsSet =
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(nodeUUID);
+    if (trustLinePtrsSet.size() == 0) {
+        return 0;
+    }
+    for (auto &trustLinePtr : trustLinePtrsSet) {
+        auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
+        if (trustLine.get()->targetUUID() == mNodeUUID) {
+            continue;
+        }
+        if (find(
+                passedNodeUUIDs.begin(),
+                passedNodeUUIDs.end(),
+                trustLine.get()->targetUUID()) != passedNodeUUIDs.end()) {
+            continue;
+        }
+        TrustLineAmount nextFlow = currentFlow;
+        auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
+        auto trustLineFreeAmountPtr = trustLineFreeAmountShared.get();
+        if (*trustLineFreeAmountPtr < currentFlow) {
+            nextFlow = *trustLineFreeAmountPtr;
+        }
+        if (nextFlow == TrustLine::kZeroAmount()) {
+            continue;
+        }
+        passedNodeUUIDs.push_back(nodeUUID);
+        TrustLineAmount calcFlow = calculateOneNode(
+            trustLine.get()->targetUUID(),
+            nextFlow,
+            level + (byte)1);
+        passedNodeUUIDs.pop_back();
+        if (calcFlow > TrustLine::kZeroAmount()) {
+            trustLine->addUsedAmount(calcFlow);
+            return calcFlow;
+        }
+    }
+    return 0;
 }
 
 PathsCollection::Shared PathsManager::pathCollection() const

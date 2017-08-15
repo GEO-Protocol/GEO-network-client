@@ -47,9 +47,9 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
                 maxFlows.reserve(mCommand->contractors().size());
                 for (const auto &contractorUUID : mCommand->contractors()) {
                     maxFlows.push_back(
-                            make_pair(
-                                    contractorUUID,
-                                    TrustLineAmount(0)));
+                        make_pair(
+                            contractorUUID,
+                            TrustLineAmount(0)));
                 }
                 return resultOk(maxFlows);
             }

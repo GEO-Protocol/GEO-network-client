@@ -19,12 +19,12 @@ public:
 
 public:
     InitiateMaxFlowCalculationTransaction(
-            NodeUUID &nodeUUID,
-            InitiateMaxFlowCalculationCommand::Shared command,
-            TrustLinesManager *manager,
-            MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-            MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-            Logger &logger);
+        NodeUUID &nodeUUID,
+        InitiateMaxFlowCalculationCommand::Shared command,
+        TrustLinesManager *manager,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        Logger &logger);
 
     InitiateMaxFlowCalculationCommand::Shared command() const;
 

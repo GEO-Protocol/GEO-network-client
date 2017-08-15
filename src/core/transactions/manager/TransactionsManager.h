@@ -102,6 +102,7 @@
 #include "../transactions/find_path/GetPathTestTransaction.h"
 #include "../transactions/find_path/FindPathTransaction.h"
 #include "../transactions/find_path/GetRoutingTablesTransaction.h"
+#include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
 #include "../transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
 #include "../transactions/routing_tables/GetFirstRoutingTableTransaction.h"
@@ -171,6 +172,10 @@ public:
         BaseResource::Shared resource);
 
     void launchPathsResourcesCollectTransaction(
+        const TransactionUUID &requestedTransactionUUID,
+        const NodeUUID &destinationNodeUUID);
+
+    void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
         const NodeUUID &destinationNodeUUID);
 
