@@ -106,12 +106,10 @@ int Core::initSubsystems()
         return initCode;
     }
 
-#ifdef TESTS
-    initCode = initTestingController();
+    initCode = initSubsystemsController();
     if (initCode != 0) {
         return initCode;
     }
-#endif
 
     initCode = initTransactionsManager();
     if (initCode != 0)
@@ -260,7 +258,7 @@ int Core::initTransactionsManager()
             mStorageHandler.get(),
             mPathsManager.get(),
             *mLog.get(),
-            mTestingController.get());
+            mSubsystemsController.get());
         mLog->logSuccess("Core", "Transactions handler is successfully initialised");
         return 0;
 
@@ -342,13 +340,12 @@ int Core::initPathsManager()
     }
 }
 
-#ifdef TESTS
-int Core::initTestingController()
+int Core::initSubsystemsController()
 {
     try {
-        mTestingController = make_unique<TestingController>(
+        mSubsystemsController = make_unique<SubsystemsController>(
             *mLog.get());
-        mLog->logSuccess("Core", "Testing controller is successfully initialized");
+        mLog->logSuccess("Core", "Subsystems controller is successfully initialized");
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -356,7 +353,6 @@ int Core::initTestingController()
     }
 
 }
-#endif
 
 void Core::connectCommunicatorSignals()
 {
@@ -435,14 +431,14 @@ void Core::onCommandReceivedSlot (
     BaseUserCommand::Shared command)
 {
 #ifdef TESTS
-    if (command->identifier() == ToggleNetworkCommand::identifier()) {
+    if (command->identifier() == SubsystemsInfluenceCommand::identifier()) {
         // In case if network toggle command was received -
         // there is no reason to transfer it's processing to the transactions manager:
         // this command only enables or disables network for the node,
         // and this may be simply done by filtering several slots in the core.
-        auto toggleNetworkCommand = static_pointer_cast<ToggleNetworkCommand>(command);
-        mTestingController->setFlags(toggleNetworkCommand->flags());
-        mLog->logInfo("Core", "ToggleNetworkCommand processed");
+        auto toggleNetworkCommand = static_pointer_cast<SubsystemsInfluenceCommand>(command);
+        mSubsystemsController->setFlags(toggleNetworkCommand->flags());
+        mLog->logInfo("Core", "SubsystemsInfluenceCommand processed");
         return;
     }
 #endif
@@ -459,7 +455,7 @@ void Core::onMessageReceivedSlot(
     Message::Shared message)
 {
 #ifdef TESTS
-    if (not mTestingController->isNetworkOn()) {
+    if (not mSubsystemsController->isNetworkOn()) {
         // Ignore incoming message in case if network was disabled.
         mLog->debug("Core: Ignore process incoming message");
         return;
@@ -479,7 +475,7 @@ void Core::onMessageSendSlot(
     const NodeUUID &contractorUUID)
 {
 #ifdef TESTS
-    if (not mTestingController->isNetworkOn()) {
+    if (not mSubsystemsController->isNetworkOn()) {
         // Ignore outgoing message in case if network was disabled.
         mLog->debug("Core: Ignore send message");
         return;

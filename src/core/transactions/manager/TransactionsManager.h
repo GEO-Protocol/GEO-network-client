@@ -108,7 +108,7 @@
 #include "../transactions/routing_tables/UpdateRoutingTablesTransaction.h"
 #include "../transactions/routing_tables/Crc32Rt2ResponseTransaction.h"
 
-#include "../../testing/TestingController.h"
+#include "../../subsystems_controller/SubsystemsController.h"
 
 #include <boost/signals2.hpp>
 
@@ -134,7 +134,7 @@ public:
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
         Logger &logger,
-        TestingController *testingController);
+        SubsystemsController *testingController);
 
     void processCommand(
         BaseUserCommand::Shared command);
@@ -370,7 +370,7 @@ private:
     StorageHandler *mStorageHandler;
     Logger &mLog;
 
-    TestingController *mTestingController;
+    SubsystemsController *mTestingController;
 
     unique_ptr<TransactionsScheduler> mScheduler;
     unique_ptr<CyclesManager> mCyclesManager;

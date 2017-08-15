@@ -1,33 +1,29 @@
-#include "ToggleNetworkCommand.h"
+#include "SubsystemsInfluenceCommand.h"
 
-#ifdef TESTS
-
-ToggleNetworkCommand::ToggleNetworkCommand(
+SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
     const CommandUUID &uuid,
     const string &commandBuffer) :
 
-    BaseTestCommand(
+    BaseUserCommand(
         uuid,
         identifier())
 {
     if (commandBuffer.size() == 0) {
         throw ValueError(
-            "ToggleNetworkCommand: can't parse command."
+            "SubsystemsInfluenceCommand: can't parse command."
             "Received command buffer is too short.");
     }
 
     mFlags = std::stoul(commandBuffer);
 }
 
-const string& ToggleNetworkCommand::identifier()
+const string& SubsystemsInfluenceCommand::identifier()
 {
     static const string identifier = "SET:tests/network/toggle";
     return identifier;
 }
 
-size_t ToggleNetworkCommand::flags() const
+size_t SubsystemsInfluenceCommand::flags() const
 {
     return mFlags;
 }
-
-#endif

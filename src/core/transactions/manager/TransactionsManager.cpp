@@ -15,7 +15,7 @@ TransactionsManager::TransactionsManager(
     StorageHandler *storageHandler,
     PathsManager *pathsManager,
     Logger &logger,
-    TestingController *testingController) :
+    SubsystemsController *testingController) :
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),

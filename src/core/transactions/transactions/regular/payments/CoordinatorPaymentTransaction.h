@@ -39,7 +39,7 @@ public:
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
         Logger &log,
-        TestingController *testingController)
+        SubsystemsController *subsystemsController)
         noexcept;
 
     CoordinatorPaymentTransaction(
@@ -50,7 +50,7 @@ public:
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
         Logger &log,
-        TestingController *testingController)
+        SubsystemsController *subsystemsController)
         throw (bad_alloc);
 
     TransactionResult::SharedConst run()

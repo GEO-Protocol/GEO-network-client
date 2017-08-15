@@ -1,12 +1,12 @@
-#ifndef GEO_NETWORK_CLIENT_TESTINGCONTROLLER_H
-#define GEO_NETWORK_CLIENT_TESTINGCONTROLLER_H
+#ifndef GEO_NETWORK_CLIENT_SUBSYSTEMSCONTROLLER_H
+#define GEO_NETWORK_CLIENT_SUBSYSTEMSCONTROLLER_H
 
 
 #include "../logger/Logger.h"
 
-class TestingController {
+class SubsystemsController {
 public:
-    TestingController(
+    SubsystemsController(
         Logger &log);
 
 public:
@@ -104,4 +104,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_TESTINGCONTROLLER_H
+#endif //GEO_NETWORK_CLIENT_SUBSYSTEMSCONTROLLER_H

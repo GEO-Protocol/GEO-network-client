@@ -8,7 +8,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
     Logger &log,
-    TestingController *testingController)
+    SubsystemsController *subsystemsController)
 noexcept :
 
     BasePaymentTransaction(
@@ -18,7 +18,7 @@ noexcept :
         storageHandler,
         maxFlowCalculationCacheManager,
         log,
-        testingController),
+        subsystemsController),
     mCommand(kCommand),
     mResourcesManager(resourcesManager),
     mReservationsStage(0),
@@ -35,7 +35,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
     Logger &log,
-    TestingController *testingController)
+    SubsystemsController *subsystemsController)
 throw (bad_alloc) :
 
     BasePaymentTransaction(
@@ -45,7 +45,7 @@ throw (bad_alloc) :
         storageHandler,
         maxFlowCalculationCacheManager,
         log,
-        testingController),
+        subsystemsController),
     mResourcesManager(resourcesManager)
 {}
 
@@ -307,7 +307,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 #endif
 
 #ifdef TESTS
-    mTestingController->testForbidSendMessageOnVoteStage();
+    mSubsystemsController->testForbidSendMessageOnVoteStage();
 #endif
 
     // Begin message propagation
@@ -318,8 +318,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     debug() << "Votes message constructed and sent to the (" << mParticipantsVotesMessage->firstParticipant() << ")";
 
 #ifdef TESTS
-    mTestingController->testThrowExceptionOnVoteStage();
-    mTestingController->testTerminateProcessOnVoteStage();
+    mSubsystemsController->testThrowExceptionOnVoteStage();
+    mSubsystemsController->testTerminateProcessOnVoteStage();
 #endif
 
     mStep = Stages::Common_VotesChecking;
@@ -422,7 +422,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     }
 
 #ifdef TESTS
-    mTestingController->testForbidSendMessageToReceiverOnReservationStage();
+    mSubsystemsController->testForbidSendMessageToReceiverOnReservationStage();
 #endif
 
     debug() << "Send reservations size: " << reservations.size();
@@ -582,7 +582,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
 #ifdef TESTS
-    mTestingController->testForbidSendMessageToReceiverOnReservationStage();
+    mSubsystemsController->testForbidSendMessageToReceiverOnReservationStage();
 #endif
 
     sendMessage<IntermediateNodeReservationRequestMessage>(
@@ -629,7 +629,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
 #ifdef TESTS
-    mTestingController->testForbidSendMessageToCoordinatorOnReservationStage();
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage();
 #endif
 
     sendMessage<CoordinatorReservationRequestMessage>(
@@ -791,7 +791,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         }
 
 #ifdef TESTS
-        mTestingController->testForbidSendMessageWithFinalPathConfiguration();
+        mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration();
 #endif
 
         // send final path amount to all intermediate nodes on path
@@ -843,7 +843,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
 #ifdef TESTS
-    mTestingController->testForbidSendRequestToIntNodeOnReservationStage();
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage();
 #endif
 
     sendMessage<CoordinatorReservationRequestMessage>(
@@ -962,7 +962,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             }
 
 #ifdef TESTS
-            mTestingController->testForbidSendMessageWithFinalPathConfiguration();
+            mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration();
 #endif
 
             // send final path amount to all intermediate nodes on path
@@ -1016,7 +1016,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     }
 
 #ifdef TESTS
-    mTestingController->testForbidSendMessageOnFinalAmountClarificationStage();
+    mSubsystemsController->testForbidSendMessageOnFinalAmountClarificationStage();
 #endif
 
     for (auto const nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
@@ -1227,8 +1227,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
     }
 
 #ifdef TESTS
-    mTestingController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
-    mTestingController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+    mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
 #endif
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
@@ -1299,9 +1299,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
     }
 
 #ifdef TESTS
-    mTestingController->testForbidSendMessageOnVoteConsistencyStage();
-    mTestingController->testThrowExceptionOnVoteConsistencyStage();
-    mTestingController->testTerminateProcessOnVoteConsistencyStage();
+    mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage();
+    mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
+    mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif
 
     if (! contextIsValid(Message::Payments_ParticipantsVotes)) {

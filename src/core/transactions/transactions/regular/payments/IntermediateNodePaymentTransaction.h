@@ -18,7 +18,7 @@ public:
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &log,
-        TestingController *testingController);
+        SubsystemsController *subsystemsController);
 
     IntermediateNodePaymentTransaction(
         BytesShared buffer,
@@ -27,7 +27,7 @@ public:
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &log,
-        TestingController *testingController);
+        SubsystemsController *subsystemsController);
 
     TransactionResult::SharedConst run()
         noexcept;

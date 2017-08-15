@@ -138,7 +138,7 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
     BaseUserCommand *command = nullptr;
     try {
-        // TODO: (minor, refactoring) rewrite all identifiers processing in the ToggleNetworkCommand manner.
+        // TODO: (minor, refactoring) rewrite all identifiers processing in the SubsystemsInfluenceCommand manner.
         if (identifier == OpenTrustLineCommand::identifier()) {
             command = new OpenTrustLineCommand(
                 uuid,
@@ -214,17 +214,10 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
-#ifdef TESTS
-
-        /*
-         * Commands, that are used for tests purposes only.
-         */
-
-        } else if (identifier == ToggleNetworkCommand::identifier()) {
-            return newCommand<ToggleNetworkCommand>(
+        } else if (identifier == SubsystemsInfluenceCommand::identifier()) {
+            return newCommand<SubsystemsInfluenceCommand>(
                 uuid,
                 buffer);
-#endif
 
         } else {
             throw RuntimeError(

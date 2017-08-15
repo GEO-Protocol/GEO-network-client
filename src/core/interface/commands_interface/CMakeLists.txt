@@ -50,13 +50,8 @@ set(SOURCE_FILES
         commands/routing_tables/UpdateRoutingTablesCommand.h
         commands/routing_tables/UpdateRoutingTablesCommand.cpp
 
-        #
-        # Test commands
-        # (only for test purposes)
-        #
-        commands/tests/BaseTestCommand.h
-        commands/tests/ToggleNetworkCommand.h
-        commands/tests/ToggleNetworkCommand.cpp)
+        commands/subsystems_controller/SubsystemsInfluenceCommand.h
+        commands/subsystems_controller/SubsystemsInfluenceCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

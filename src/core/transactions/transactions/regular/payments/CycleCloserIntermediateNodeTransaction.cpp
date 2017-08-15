@@ -8,7 +8,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &log,
-    TestingController *testingController) :
+    SubsystemsController *subsystemsController) :
 
     BasePaymentTransaction(
         BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction,
@@ -18,7 +18,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log,
-        testingController),
+        subsystemsController),
     mMessage(message),
     mCyclesManager(cyclesManager)
 {
@@ -33,7 +33,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &log,
-    TestingController *testingController) :
+    SubsystemsController *subsystemsController) :
 
     BasePaymentTransaction(
         buffer,
@@ -42,7 +42,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log,
-        testingController),
+        subsystemsController),
     mCyclesManager(cyclesManager)
 {}
 

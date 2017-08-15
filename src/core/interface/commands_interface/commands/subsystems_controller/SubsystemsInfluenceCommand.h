@@ -1,24 +1,18 @@
-#ifndef TOGGLENETWORKCOMMAND_H
-#define TOGGLENETWORKCOMMAND_H
+#ifndef SUBSYSTEMSINFLUENCECOMMAND_H
+#define SUBSYSTEMSINFLUENCECOMMAND_H
 
-#include "BaseTestCommand.h"
+#include "../BaseUserCommand.h"
 
 #include "../../../../common/exceptions/ValueError.h"
 
-
-#ifdef TESTS
-
-/**
- * This command is used for enabling and disabling network
- */
-class ToggleNetworkCommand:
-    public BaseTestCommand {
+class SubsystemsInfluenceCommand:
+    public BaseUserCommand {
 
 public:
-    typedef shared_ptr<ToggleNetworkCommand> Shared;
+    typedef shared_ptr<SubsystemsInfluenceCommand> Shared;
 
 public:
-    ToggleNetworkCommand(
+    SubsystemsInfluenceCommand(
         const CommandUUID &uuid,
         const string &commandBuffer);
 
@@ -60,6 +54,4 @@ protected:
     size_t mFlags;
 };
 
-#endif
-
-#endif // TOGGLENETWORKCOMMAND_H
+#endif // SUBSYSTEMSINFLUENCECOMMAND_H

@@ -5,7 +5,7 @@
 #include "../transactions/transactions/regular/payments/base/BasePaymentTransaction.h"
 #include "../paths/lib/Path.h"
 #include "../logger/Logger.h"
-#include "../testing/TestingController.h"
+#include "../subsystems_controller/SubsystemsController.h"
 
 #include <boost/signals2.hpp>
 #include <boost/asio.hpp>
@@ -36,7 +36,7 @@ public:
         TransactionsScheduler *transactionsScheduler,
         as::io_service &ioService,
         Logger &logger,
-        TestingController *testingController);
+        SubsystemsController *subsystemsController);
 
     void closeOneCycle(
         bool nextCycleShouldBeRunned = false);
@@ -126,7 +126,7 @@ private:
     // prevent launching closing cycle if another one in closing process
     bool mIsCycleInProcess;
 
-    TestingController *mTestingController;
+    SubsystemsController *mSubsystemsController;
 };
 
 

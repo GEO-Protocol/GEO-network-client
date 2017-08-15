@@ -8,7 +8,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &log,
-    TestingController *testingController) :
+    SubsystemsController *subsystemsController) :
 
     BasePaymentTransaction(
         BaseTransaction::ReceiverPaymentTransaction,
@@ -18,7 +18,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log,
-        testingController),
+        subsystemsController),
     mMessage(message),
     mTransactionShouldBeRejected(false)
 {
@@ -32,7 +32,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &log,
-    TestingController *testingController) :
+    SubsystemsController *subsystemsController) :
 
     BasePaymentTransaction(
         buffer,
@@ -41,7 +41,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log,
-        testingController)
+        subsystemsController)
 {}
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::run()
@@ -143,9 +143,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         return reject("No amount reservation request was received. Rolled back.");
 
 #ifdef TESTS
-    mTestingController->testForbidSendResponseToIntNodeOnReservationStage();
-    mTestingController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
-    mTestingController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage();
+    mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
 #endif
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();

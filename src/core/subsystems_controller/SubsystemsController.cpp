@@ -1,6 +1,6 @@
-#include "TestingController.h"
+#include "SubsystemsController.h"
 
-TestingController::TestingController(
+SubsystemsController::SubsystemsController(
     Logger &log):
     mLog(log)
 {
@@ -31,7 +31,7 @@ TestingController::TestingController(
     mCountForbiddenMessages = 0;
 }
 
-void TestingController::setFlags(size_t flags)
+void SubsystemsController::setFlags(size_t flags)
 {
     debug() << "setFlags: " << flags;
     mIsNetworkOn = (flags & 0x1) == 0;
@@ -64,7 +64,7 @@ void TestingController::setFlags(size_t flags)
     debug() << "close cycles " << mIsCloseCycles;
 }
 
-bool TestingController::isNetworkOn()
+bool SubsystemsController::isNetworkOn()
 {
     if (mCountForbiddenMessages > 0) {
         mCountForbiddenMessages--;
@@ -78,26 +78,26 @@ bool TestingController::isNetworkOn()
 
 }
 
-bool TestingController::isCloseCycles() const
+bool SubsystemsController::isCloseCycles() const
 {
     return mIsCloseCycles;
 }
 
-void TestingController::turnOffNetwork()
+void SubsystemsController::turnOffNetwork()
 {
     mCountForbiddenMessages = UINT32_MAX;
     mIsNetworkOn = false;
     debug() << "Network switched OFF";
 }
 
-void TestingController::turnOnNetwork()
+void SubsystemsController::turnOnNetwork()
 {
     mCountForbiddenMessages = 0;
     mIsNetworkOn = true;
     debug() << "Network switched ON";
 }
 
-void TestingController::testForbidSendMessageToReceiverOnReservationStage(
+void SubsystemsController::testForbidSendMessageToReceiverOnReservationStage(
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageToReceiverOnReservationStage) {
@@ -106,7 +106,7 @@ void TestingController::testForbidSendMessageToReceiverOnReservationStage(
     }
 }
 
-void TestingController::testForbidSendMessageToCoordinatorOnReservationStage(
+void SubsystemsController::testForbidSendMessageToCoordinatorOnReservationStage(
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageToCoordinatorOnReservationStage) {
@@ -115,7 +115,7 @@ void TestingController::testForbidSendMessageToCoordinatorOnReservationStage(
     }
 }
 
-void TestingController::testForbidSendRequestToIntNodeOnReservationStage(
+void SubsystemsController::testForbidSendRequestToIntNodeOnReservationStage(
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendRequestToIntNodeOnReservationStage) {
@@ -124,7 +124,7 @@ void TestingController::testForbidSendRequestToIntNodeOnReservationStage(
     }
 }
 
-void TestingController::testForbidSendResponseToIntNodeOnReservationStage(
+void SubsystemsController::testForbidSendResponseToIntNodeOnReservationStage(
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendResponseToIntNodeOnReservationStage) {
@@ -133,7 +133,7 @@ void TestingController::testForbidSendResponseToIntNodeOnReservationStage(
     }
 }
 
-void TestingController::testForbidSendMessageWithFinalPathConfiguration(
+void SubsystemsController::testForbidSendMessageWithFinalPathConfiguration(
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageWithFinalPathConfiguration) {
@@ -142,7 +142,7 @@ void TestingController::testForbidSendMessageWithFinalPathConfiguration(
     }
 }
 
-void TestingController::testForbidSendMessageOnFinalAmountClarificationStage(
+void SubsystemsController::testForbidSendMessageOnFinalAmountClarificationStage(
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageOnFinalAmountClarificationStage) {
@@ -151,7 +151,7 @@ void TestingController::testForbidSendMessageOnFinalAmountClarificationStage(
     }
 }
 
-void TestingController::testForbidSendMessageOnVoteStage(
+void SubsystemsController::testForbidSendMessageOnVoteStage(
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageOnVoteStage) {
@@ -160,7 +160,7 @@ void TestingController::testForbidSendMessageOnVoteStage(
     }
 }
 
-void TestingController::testForbidSendMessageOnVoteConsistencyStage(
+void SubsystemsController::testForbidSendMessageOnVoteConsistencyStage(
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageOnVoteConsistencyStage) {
@@ -169,94 +169,94 @@ void TestingController::testForbidSendMessageOnVoteConsistencyStage(
     }
 }
 
-void TestingController::testThrowExceptionOnPreviousNeighborRequestProcessingStage()
+void SubsystemsController::testThrowExceptionOnPreviousNeighborRequestProcessingStage()
 {
     if (mThrowExceptionOnPreviousNeighborRequestProcessingStage) {
         throw Exception("Test exception on previous neighbor request processing stage");
     }
 }
 
-void TestingController::testThrowExceptionOnCoordinatorRequestProcessingStage()
+void SubsystemsController::testThrowExceptionOnCoordinatorRequestProcessingStage()
 {
     if (mThrowExceptionOnCoordinatorRequestProcessingStage) {
         throw Exception("Test exception on coordinator request processing stage");
     }
 }
 
-void TestingController::testThrowExceptionOnNextNeighborResponseProcessingStage()
+void SubsystemsController::testThrowExceptionOnNextNeighborResponseProcessingStage()
 {
     if (mThrowExceptionOnNextNeighborResponseProcessingStage) {
         throw Exception("Test exception on next neighbor response processing stage");
     }
 }
 
-void TestingController::testThrowExceptionOnVoteStage()
+void SubsystemsController::testThrowExceptionOnVoteStage()
 {
     if (mThrowExceptionOnVoteStage) {
         throw Exception("Test exception on vote stage");
     }
 }
 
-void TestingController::testThrowExceptionOnVoteConsistencyStage()
+void SubsystemsController::testThrowExceptionOnVoteConsistencyStage()
 {
     if (mThrowExceptionOnVoteConsistencyStage) {
         throw Exception("Test exception on vote consistency stage");
     }
 }
 
-void TestingController::testTerminateProcessOnPreviousNeighborRequestProcessingStage()
+void SubsystemsController::testTerminateProcessOnPreviousNeighborRequestProcessingStage()
 {
     if (mTerminateProcessOnPreviousNeighborRequestProcessingStage) {
         exit(100);
     }
 }
 
-void TestingController::testTerminateProcessOnCoordinatorRequestProcessingStage()
+void SubsystemsController::testTerminateProcessOnCoordinatorRequestProcessingStage()
 {
     if (mTerminateProcessOnCoordinatorRequestProcessingStage) {
         exit(100);
     }
 }
 
-void TestingController::testTerminateProcessOnNextNeighborResponseProcessingStage()
+void SubsystemsController::testTerminateProcessOnNextNeighborResponseProcessingStage()
 {
     if (mTerminateProcessOnNextNeighborResponseProcessingStage) {
         exit(100);
     }
 }
 
-void TestingController::testTerminateProcessOnVoteStage()
+void SubsystemsController::testTerminateProcessOnVoteStage()
 {
     if (mTerminateProcessOnVoteStage) {
         exit(100);
     }
 }
 
-void TestingController::testTerminateProcessOnVoteConsistencyStage()
+void SubsystemsController::testTerminateProcessOnVoteConsistencyStage()
 {
     if (mTerminateProcessOnVoteConsistencyStage) {
         exit(100);
     }
 }
 
-LoggerStream TestingController::info() const
+LoggerStream SubsystemsController::info() const
 {
     return mLog.info(logHeader());
 }
 
-LoggerStream TestingController::debug() const
+LoggerStream SubsystemsController::debug() const
 {
     return mLog.debug(logHeader());
 }
 
-LoggerStream TestingController::error() const
+LoggerStream SubsystemsController::error() const
 {
     return mLog.error(logHeader());
 }
 
-const string TestingController::logHeader() const
+const string SubsystemsController::logHeader() const
 {
     stringstream s;
-    s << "[TestingController]";
+    s << "[SubsystemsController]";
     return s.str();
 }

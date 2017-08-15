@@ -7,7 +7,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &log,
-    TestingController *testingController) :
+    SubsystemsController *subsystemsController) :
 
     BaseTransaction(
         type,
@@ -16,7 +16,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mTestingController(testingController),
+    mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -29,7 +29,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &log,
-    TestingController *testingController) :
+    SubsystemsController *subsystemsController) :
 
     BaseTransaction(
         type,
@@ -39,7 +39,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mTestingController(testingController),
+    mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr)
 {}
@@ -51,7 +51,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &log,
-    TestingController *testingController) :
+    SubsystemsController *subsystemsController) :
 
     BaseTransaction(
         buffer,
@@ -60,7 +60,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mTestingController(testingController)
+    mSubsystemsController(subsystemsController)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
     mStep = Stages::Common_Recovery;
@@ -256,9 +256,9 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     debug() << "Voted +";
 
 #ifdef TESTS
-    mTestingController->testForbidSendMessageOnVoteStage();
-    mTestingController->testThrowExceptionOnVoteStage();
-    mTestingController->testTerminateProcessOnVoteStage();
+    mSubsystemsController->testForbidSendMessageOnVoteStage();
+    mSubsystemsController->testThrowExceptionOnVoteStage();
+    mSubsystemsController->testTerminateProcessOnVoteStage();
 #endif
 
     try {
@@ -323,9 +323,9 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     }
 
 #ifdef TESTS
-    mTestingController->testForbidSendMessageOnVoteConsistencyStage();
-    mTestingController->testThrowExceptionOnVoteConsistencyStage();
-    mTestingController->testTerminateProcessOnVoteConsistencyStage();
+    mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage();
+    mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
+    mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif
 
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();

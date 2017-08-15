@@ -33,7 +33,7 @@
 
 #include "PathStats.h"
 
-#include "../../../../../testing/TestingController.h"
+#include "../../../../../subsystems_controller/SubsystemsController.h"
 
 #include <unordered_set>
 
@@ -58,7 +58,7 @@ public:
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &log,
-        TestingController *testingController);
+        SubsystemsController *subsystemsController);
 
     BasePaymentTransaction(
         const TransactionType type,
@@ -68,7 +68,7 @@ public:
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &log,
-        TestingController *testingController);
+        SubsystemsController *subsystemsController);
 
     BasePaymentTransaction(
         BytesShared buffer,
@@ -77,7 +77,7 @@ public:
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &log,
-        TestingController *testingController);
+        SubsystemsController *subsystemsController);
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
@@ -275,7 +275,7 @@ protected:
     TrustLineAmount mCommitedAmount;
 
 protected:
-    TestingController *mTestingController;
+    SubsystemsController *mSubsystemsController;
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

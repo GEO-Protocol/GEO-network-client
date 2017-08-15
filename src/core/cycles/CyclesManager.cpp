@@ -5,13 +5,13 @@ CyclesManager::CyclesManager(
     TransactionsScheduler *transactionsScheduler,
     as::io_service &ioService,
     Logger &logger,
-    TestingController *testingController) :
+    SubsystemsController *subsystemsController) :
 
     mNodeUUID(nodeUUID),
     mTransactionScheduler(transactionsScheduler),
     mIOService(ioService),
     mLog(logger),
-    mTestingController(testingController),
+    mSubsystemsController(subsystemsController),
     mIsCycleInProcess(false)
 {
     mCurrentCycleClosingState = CycleClosingState::ThreeNodes;
@@ -44,6 +44,10 @@ CyclesManager::CyclesManager(
 void CyclesManager::addCycle(
     Path::ConstShared cycle)
 {
+    if (!mSubsystemsController->isCloseCycles()) {
+        debug() << "Adding cycles is forbidden";
+        return;
+    }
     switch (cycle->length()) {
         case 4:
             debug() << "add three nodes cycle";
@@ -70,7 +74,7 @@ void CyclesManager::addCycle(
 void CyclesManager::closeOneCycle(
     bool nextCycleShouldBeRunned)
 {
-    if (!mTestingController->isCloseCycles()) {
+    if (!mSubsystemsController->isCloseCycles()) {
         debug() << "Closing cycles is forbidden";
         return;
     }

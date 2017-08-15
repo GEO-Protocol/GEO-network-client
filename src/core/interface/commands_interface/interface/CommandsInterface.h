@@ -22,13 +22,7 @@
 #include "../commands/find_path/FindPathCommand.h"
 #include "../commands/routing_tables/UpdateRoutingTablesCommand.h"
 
-#ifdef TESTS
-/*
- * Includes that are used in tests only.
- */
-#include "../commands/tests/ToggleNetworkCommand.h"
-
-#endif
+#include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"

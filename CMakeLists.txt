@@ -148,6 +148,7 @@ add_subdirectory(src/core/payments/amount_blocks)
 add_subdirectory(src/core/io/storage)
 add_subdirectory(src/core/resources)
 add_subdirectory(src/core/cycles)
+add_subdirectory(src/core/subsystems_controller)
 
 
 #
@@ -162,7 +163,7 @@ set(SOURCE_FILES
         src/core/Core.h
 
         # libs
-        src/libs/json/json.h src/core/testing/TestingController.cpp src/core/testing/TestingController.h)
+        src/libs/json/json.h)
 
 add_executable(geo_network_client ${SOURCE_FILES})
 
@@ -188,4 +189,5 @@ target_link_libraries(geo_network_client
         delayed_tasks
         transactions
         resources_manager
-        cycles)
+        cycles
+        subsystems_controller)

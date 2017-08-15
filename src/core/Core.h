@@ -28,7 +28,7 @@
 
 
 #include "network/messages/debug/DebugMessage.h"
-#include "testing/TestingController.h"
+#include "subsystems_controller/SubsystemsController.h"
 
 
 #include <sys/prctl.h>
@@ -80,9 +80,7 @@ private:
 
     int initPathsManager();
 
-#ifdef TESTS
-    int initTestingController();
-#endif
+    int initSubsystemsController();
 
     void connectCommunicatorSignals();
 
@@ -148,10 +146,7 @@ protected:
     unique_ptr<MaxFlowCalculationCacheUpdateDelayedTask> mMaxFlowCalculationCacheUpdateDelayedTask;
     unique_ptr<StorageHandler> mStorageHandler;
     unique_ptr<PathsManager> mPathsManager;
-
-#ifdef TESTS
-    unique_ptr<TestingController> mTestingController;
-#endif
+    unique_ptr<SubsystemsController> mSubsystemsController;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H
