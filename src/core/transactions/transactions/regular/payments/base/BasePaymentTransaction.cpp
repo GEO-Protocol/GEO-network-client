@@ -565,7 +565,7 @@ void BasePaymentTransaction::commit ()
     mMaxFlowCalculationCacheManager->resetInititorCache();
     debug() << "Transaction committed.";
     saveVotes();
-    debug() << "Voutes saved.";
+    debug() << "Votes saved.";
     // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
     {
         auto ioTransaction = mStorageHandler->beginTransaction();
@@ -575,6 +575,7 @@ void BasePaymentTransaction::commit ()
 
 void BasePaymentTransaction::saveVotes()
 {
+    debug() << "saveVotes";
     const auto ioTransaction = mStorageHandler->beginTransaction();
     const auto kNewParticipantsVotesMessage  = make_shared<ParticipantsVotesMessage>(
         mNodeUUID,

@@ -338,6 +338,8 @@ void CoordinatorPaymentTransaction::initAmountsReservationOnNextPath()
             "no paths are available.");
 
     mCurrentAmountReservingPathIdentifier = *mPathUUIDs.cbegin();
+    debug() << "[" << mCurrentAmountReservingPathIdentifier << "] {"
+            << currentAmountReservationPathStats()->path()->toString() << "}";
 }
 
 /*
@@ -1006,9 +1008,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     mFinalAmountNodesConfirmation.clear();
 
     // check if reservation to contractor present
-    auto contractorNodeReservations = mReservations[mCommand->contractorUUID()];
-    if (contractorNodeReservations.size() > 1) {
-        return reject("Coordinator has more than one reservation to contractor");
+    const auto contractorNodeReservations = mReservations.find(mCommand->contractorUUID());
+    if (contractorNodeReservations != mReservations.end()) {
+        if (contractorNodeReservations->second.size() > 1) {
+            return reject("Coordinator has more than one reservation to contractor");
+        }
     }
 
 #ifdef TESTS
