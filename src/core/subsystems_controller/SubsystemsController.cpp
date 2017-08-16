@@ -13,7 +13,8 @@ SubsystemsController::SubsystemsController(
     mForbidSendResponseToIntNodeOnReservationStage = false;
     mForbidSendMessageWithFinalPathConfiguration = false;
     mForbidSendMessageOnFinalAmountClarificationStage = false;
-    mForbidSendMessageOnVoteStage = false;
+    mForbidSendMessageToNextNodeOnVoteStage = false;
+    mForbidSendMessageToCoordinatorOnVoteStage = false;
     mForbidSendMessageOnVoteConsistencyStage = false;
 
     mThrowExceptionOnPreviousNeighborRequestProcessingStage = false;
@@ -29,6 +30,7 @@ SubsystemsController::SubsystemsController(
     mTerminateProcessOnVoteConsistencyStage = false;
 
     mCountForbiddenMessages = 0;
+    mForbiddenNodeUUID = NodeUUID::empty();
 }
 
 void SubsystemsController::setFlags(size_t flags)
@@ -46,8 +48,9 @@ void SubsystemsController::setFlags(size_t flags)
     mForbidSendResponseToIntNodeOnReservationStage = (flags & 0x20) > 0;
     mForbidSendMessageWithFinalPathConfiguration = (flags & 0x40) > 0;
     mForbidSendMessageOnFinalAmountClarificationStage = (flags & 0x80) > 0;
-    mForbidSendMessageOnVoteStage = (flags & 0x100) > 0;
-    mForbidSendMessageOnVoteConsistencyStage = (flags & 0x200) > 0;
+    mForbidSendMessageToNextNodeOnVoteStage = (flags & 0x100) > 0;
+    mForbidSendMessageToCoordinatorOnVoteStage = (flags & 0x200) > 0;
+    mForbidSendMessageOnVoteConsistencyStage = (flags & 0x400) > 0;
 
     mThrowExceptionOnPreviousNeighborRequestProcessingStage = (flags & 0x800) > 0;
     mThrowExceptionOnCoordinatorRequestProcessingStage = (flags & 0x1000) > 0;
@@ -62,6 +65,13 @@ void SubsystemsController::setFlags(size_t flags)
     mTerminateProcessOnVoteConsistencyStage = (flags & 0x2000000) > 0;
     debug() << "network on " << mIsNetworkOn;
     debug() << "close cycles " << mIsCloseCycles;
+}
+
+void SubsystemsController::setForbiddenNodeUUID(
+    const NodeUUID &nodeUUID)
+{
+    mForbiddenNodeUUID = nodeUUID;
+    debug() << "setForbiddenNodeUUID " << mForbiddenNodeUUID;
 }
 
 bool SubsystemsController::isNetworkOn()
@@ -116,20 +126,32 @@ void SubsystemsController::testForbidSendMessageToCoordinatorOnReservationStage(
 }
 
 void SubsystemsController::testForbidSendRequestToIntNodeOnReservationStage(
+    const NodeUUID &receiverMessageNode,
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendRequestToIntNodeOnReservationStage) {
-        debug() << "ForbidSendRequestToIntNodeOnReservationStage";
-        mCountForbiddenMessages = countForbiddenMessages;
+        if (mForbiddenNodeUUID == NodeUUID::empty()) {
+            debug() << "ForbidSendRequestToIntNodeOnReservationStage";
+            mCountForbiddenMessages = countForbiddenMessages;
+        } else if (mForbiddenNodeUUID == receiverMessageNode) {
+            debug() << "ForbidSendRequestToIntNodeOnReservationStage to " << receiverMessageNode;
+            mCountForbiddenMessages = countForbiddenMessages;
+        }
     }
 }
 
 void SubsystemsController::testForbidSendResponseToIntNodeOnReservationStage(
+    const NodeUUID &receiverMessageNode,
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendResponseToIntNodeOnReservationStage) {
-        debug() << "ForbidSendResponseToIntNodeOnReservationStage";
-        mCountForbiddenMessages = countForbiddenMessages;
+        if (mForbiddenNodeUUID == NodeUUID::empty()) {
+            debug() << "ForbidSendResponseToIntNodeOnReservationStage";
+            mCountForbiddenMessages = countForbiddenMessages;
+        } else if (mForbiddenNodeUUID == receiverMessageNode) {
+            debug() << "ForbidSendResponseToIntNodeOnReservationStage to " << receiverMessageNode;
+            mCountForbiddenMessages = countForbiddenMessages;
+        }
     }
 }
 
@@ -151,11 +173,20 @@ void SubsystemsController::testForbidSendMessageOnFinalAmountClarificationStage(
     }
 }
 
-void SubsystemsController::testForbidSendMessageOnVoteStage(
+void SubsystemsController::testForbidSendMessageToNextNodeOnVoteStage(
+        uint32_t countForbiddenMessages)
+{
+    if (mForbidSendMessageToNextNodeOnVoteStage) {
+        debug() << "ForbidSendMessageToNextNodeOnVoteStage";
+        mCountForbiddenMessages = countForbiddenMessages;
+    }
+}
+
+void SubsystemsController::testForbidSendMessageToCoordinatorOnVoteStage(
     uint32_t countForbiddenMessages)
 {
-    if (mForbidSendMessageOnVoteStage) {
-        debug() << "ForbidSendMessageOnVoteStage";
+    if (mForbidSendMessageToCoordinatorOnVoteStage) {
+        debug() << "ForbidSendMessageToCoordinatorOnVoteStage";
         mCountForbiddenMessages = countForbiddenMessages;
     }
 }

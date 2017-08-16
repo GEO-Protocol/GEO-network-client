@@ -89,7 +89,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage();
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(kNeighbor);
     mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
 #endif
@@ -316,7 +316,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     }
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage();
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(kNextNode);
 #endif
 
     debug() << "Reserve locally " << reservationAmount << " to node " << kNextNode << " on path " << kReservation.first;

@@ -12,6 +12,9 @@ public:
 public:
     void setFlags(size_t flags);
 
+    void setForbiddenNodeUUID(
+        const NodeUUID &nodeUUID);
+
     bool isNetworkOn();
 
     bool isCloseCycles() const;
@@ -27,9 +30,11 @@ public:
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendRequestToIntNodeOnReservationStage(
+        const NodeUUID &receiverMessageNode,
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendResponseToIntNodeOnReservationStage(
+        const NodeUUID &receiverMessageNode,
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendMessageWithFinalPathConfiguration(
@@ -38,7 +43,10 @@ public:
     void testForbidSendMessageOnFinalAmountClarificationStage(
         uint32_t countForbiddenMessages = 1);
 
-    void testForbidSendMessageOnVoteStage(
+    void testForbidSendMessageToNextNodeOnVoteStage(
+        uint32_t countForbiddenMessages = 1);
+
+    void testForbidSendMessageToCoordinatorOnVoteStage(
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendMessageOnVoteConsistencyStage(
@@ -85,7 +93,8 @@ private:
     bool mForbidSendResponseToIntNodeOnReservationStage;
     bool mForbidSendMessageWithFinalPathConfiguration;
     bool mForbidSendMessageOnFinalAmountClarificationStage;
-    bool mForbidSendMessageOnVoteStage;
+    bool mForbidSendMessageToNextNodeOnVoteStage;
+    bool mForbidSendMessageToCoordinatorOnVoteStage;
     bool mForbidSendMessageOnVoteConsistencyStage;
 
     bool mThrowExceptionOnPreviousNeighborRequestProcessingStage;
@@ -99,6 +108,8 @@ private:
     bool mTerminateProcessOnNextNeighborResponseProcessingStage;
     bool mTerminateProcessOnVoteStage;
     bool mTerminateProcessOnVoteConsistencyStage;
+
+    NodeUUID mForbiddenNodeUUID;
 
     Logger &mLog;
 };

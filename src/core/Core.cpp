@@ -436,8 +436,11 @@ void Core::onCommandReceivedSlot (
         // there is no reason to transfer it's processing to the transactions manager:
         // this command only enables or disables network for the node,
         // and this may be simply done by filtering several slots in the core.
-        auto toggleNetworkCommand = static_pointer_cast<SubsystemsInfluenceCommand>(command);
-        mSubsystemsController->setFlags(toggleNetworkCommand->flags());
+        auto subsystemsInfluenceCommand = static_pointer_cast<SubsystemsInfluenceCommand>(command);
+        mSubsystemsController->setFlags(
+            subsystemsInfluenceCommand->flags());
+        mSubsystemsController->setForbiddenNodeUUID(
+            subsystemsInfluenceCommand->forbiddenNodeUUID());
         mLog->logInfo("Core", "SubsystemsInfluenceCommand processed");
         return;
     }

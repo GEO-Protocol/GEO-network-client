@@ -142,13 +142,17 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest))
         return reject("No amount reservation request was received. Rolled back.");
 
+    const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
+
 #ifdef TESTS
-    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage();
+    if (kMessage->senderUUID == mMessage->senderUUID) {
+        mSubsystemsController->testForbidSendMessageToCoordinatorOnVoteStage();
+    }
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(kMessage->senderUUID);
     mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
 #endif
 
-    const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
     const auto kNeighbor = kMessage->senderUUID;
     if (kMessage->finalAmountsConfiguration().size() == 0) {
         error() << "Reservation vector is empty";

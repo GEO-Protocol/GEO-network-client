@@ -20,6 +20,8 @@ public:
 
     size_t flags() const;
 
+    const NodeUUID &forbiddenNodeUUID() const;
+
 protected:
     [[deprecated]]
     virtual void parse(
@@ -34,10 +36,11 @@ protected:
 //    3 - Forbid Send Message To Coordinator On Reservation Stage   0x8  // 8
 //    4 - Forbid Send Request To Intermediate Node On Reservation Stage   0x10  // 16
 //    5 - Forbid Send Response To Intermediate Node On Reservation Stage   0x20  // 32
-//    6 - Forbid Send Response With Final Path Configuration   0x20  // 64
-//    7 - Forbid Send Message On Final Amount Clarification Stage   0x40  // 128
-//    8 - Forbid Send Message On Vote Stage   0x80  // 256
-//    9 - Forbid Send Message On Vote Consistency Stage   0x100  // 512
+//    6 - Forbid Send Message With Final Path Configuration   0x40  // 64
+//    7 - Forbid Send Message On Final Amount Clarification Stage   0x80  // 128
+//    8 - Forbid Send Message On Vote Stage To Next Node   0x100  // 256
+//    9 - Forbid Send Message On Vote Stage To Coordinator   0x200  // 512
+//    10 - Forbid Send Message On Vote Consistency Stage   0x400  // 1024
 
 //    11 - throw exception on previous neighbor request processing stage  0x800  // 2048
 //    12 - throw exception on Coordinator Request Processing Stage  0x1000  // 4096
@@ -52,6 +55,9 @@ protected:
 //    25 - throw exception on vote consistency stage  0x2000000  // 33554432
 
     size_t mFlags;
+    // this parameter used for forbid send messages only for this node,
+    // if parameter is 0, forbid send messages to all nodes
+    NodeUUID mForbiddenNodeUUID;
 };
 
 #endif // SUBSYSTEMSINFLUENCECOMMAND_H

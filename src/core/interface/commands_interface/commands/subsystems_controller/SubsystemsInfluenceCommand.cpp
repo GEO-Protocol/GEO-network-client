@@ -14,7 +14,21 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
             "Received command buffer is too short.");
     }
 
-    mFlags = std::stoul(commandBuffer);
+    auto tokenSeparatorPos = commandBuffer.find(
+        kTokensSeparator);
+    if (tokenSeparatorPos != std::string::npos) {
+        auto flagsStr = commandBuffer.substr(
+            0,
+            tokenSeparatorPos);
+        mFlags = std::stoul(flagsStr);
+        string hexUUID = commandBuffer.substr(
+            tokenSeparatorPos + 1,
+            NodeUUID::kHexSize);
+        mForbiddenNodeUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
+    } else {
+        mFlags = std::stoul(commandBuffer);
+        mForbiddenNodeUUID = NodeUUID::empty();
+    }
 }
 
 const string& SubsystemsInfluenceCommand::identifier()
@@ -26,4 +40,9 @@ const string& SubsystemsInfluenceCommand::identifier()
 size_t SubsystemsInfluenceCommand::flags() const
 {
     return mFlags;
+}
+
+const NodeUUID& SubsystemsInfluenceCommand::forbiddenNodeUUID() const
+{
+    return mForbiddenNodeUUID;
 }

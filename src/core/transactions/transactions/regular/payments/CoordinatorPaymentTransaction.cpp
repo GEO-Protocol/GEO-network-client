@@ -307,7 +307,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
 #endif
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageOnVoteStage();
+    mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
 #endif
 
     // Begin message propagation
@@ -791,7 +791,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         }
 
 #ifdef TESTS
-        mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration();
+        mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
+            path->path()->intermediateUUIDs().size());
 #endif
 
         // send final path amount to all intermediate nodes on path
@@ -843,7 +844,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage();
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(remoteNode);
 #endif
 
     sendMessage<CoordinatorReservationRequestMessage>(
@@ -962,7 +963,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             }
 
 #ifdef TESTS
-            mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration();
+            mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
+                path->path()->intermediateUUIDs().size());
 #endif
 
             // send final path amount to all intermediate nodes on path
@@ -1299,7 +1301,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
     }
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage();
+    mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
+        mParticipantsVotesMessage->participantsCount());
     mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
     mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
 #endif

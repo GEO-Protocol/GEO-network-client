@@ -256,7 +256,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     debug() << "Voted +";
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageOnVoteStage();
+    mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
     mSubsystemsController->testThrowExceptionOnVoteStage();
     mSubsystemsController->testTerminateProcessOnVoteStage();
 #endif
@@ -291,6 +291,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         // Now it must be transferred to coordinator
         // and then propagate to all nodes in the votes list
         // as successfully signed transaction.
+
+#ifdef TESTS
+        mSubsystemsController->testForbidSendMessageToCoordinatorOnVoteStage();
+#endif
 
         const auto kNewParticipantsVotesMessage  = make_shared<ParticipantsVotesMessage>(
             mNodeUUID,
