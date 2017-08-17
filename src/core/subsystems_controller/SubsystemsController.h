@@ -27,6 +27,7 @@ public:
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendMessageToCoordinatorOnReservationStage(
+        const NodeUUID &previousNodeUUID,
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendRequestToIntNodeOnReservationStage(

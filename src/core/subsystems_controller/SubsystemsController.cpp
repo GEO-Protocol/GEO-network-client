@@ -117,11 +117,17 @@ void SubsystemsController::testForbidSendMessageToReceiverOnReservationStage(
 }
 
 void SubsystemsController::testForbidSendMessageToCoordinatorOnReservationStage(
+    const NodeUUID &previousNodeUUID,
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageToCoordinatorOnReservationStage) {
-        debug() << "ForbidSendMessageToCoordinatorOnReservationStage";
-        mCountForbiddenMessages = countForbiddenMessages;
+        if (mForbiddenNodeUUID == NodeUUID::empty()) {
+            debug() << "ForbidSendMessageToCoordinatorOnReservationStage";
+            mCountForbiddenMessages = countForbiddenMessages;
+        } else if (mForbiddenNodeUUID == previousNodeUUID) {
+            debug() << "ForbidSendMessageToCoordinatorOnReservationStage previous node " << previousNodeUUID;
+            mCountForbiddenMessages = countForbiddenMessages;
+        }
     }
 }
 

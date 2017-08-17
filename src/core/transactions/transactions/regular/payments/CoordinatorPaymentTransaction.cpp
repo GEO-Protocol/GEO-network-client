@@ -629,7 +629,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage();
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(NodeUUID::empty());
 #endif
 
     sendMessage<CoordinatorReservationRequestMessage>(

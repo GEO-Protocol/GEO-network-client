@@ -33,7 +33,7 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
 
 const string& SubsystemsInfluenceCommand::identifier()
 {
-    static const string identifier = "SET:tests/network/toggle";
+    static const string identifier = "SET:subsystems_controller/flags";
     return identifier;
 }
 

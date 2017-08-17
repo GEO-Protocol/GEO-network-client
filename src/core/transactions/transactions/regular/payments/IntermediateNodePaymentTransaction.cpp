@@ -229,7 +229,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     debug() << "Coordinator further reservation request received.";
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage();
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(NodeUUID::empty());
     mSubsystemsController->testThrowExceptionOnCoordinatorRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnCoordinatorRequestProcessingStage();
 #endif
@@ -354,13 +354,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
 {
     debug() << "runNextNeighborResponseProcessingStage";
-
-#ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage();
-    mSubsystemsController->testThrowExceptionOnNextNeighborResponseProcessingStage();
-    mSubsystemsController->testTerminateProcessOnNextNeighborResponseProcessingStage();
-#endif
-
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
         debug() << "No valid amount reservation response received. Rolled back.";
         sendMessage<CoordinatorReservationResponseMessage>(
@@ -384,6 +377,12 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
     const auto kContractor = kMessage->senderUUID;
+
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(kContractor);
+    mSubsystemsController->testThrowExceptionOnNextNeighborResponseProcessingStage();
+    mSubsystemsController->testTerminateProcessOnNextNeighborResponseProcessingStage();
+#endif
 
     if (kMessage->state() == IntermediateNodeReservationResponseMessage::Closed) {
         // Receiver reject reservation and Coordinator should close transaction
