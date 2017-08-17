@@ -43,6 +43,11 @@ public:
     TrustLineAmount buildPaths(
         const NodeUUID &contractorUUID);
 
+    void addUsedAmount(
+        const NodeUUID &sourceUUID,
+        const NodeUUID &targetUUID,
+        const TrustLineAmount &amount);
+
     PathsCollection::Shared pathCollection() const;
 
     void clearPathsCollection();

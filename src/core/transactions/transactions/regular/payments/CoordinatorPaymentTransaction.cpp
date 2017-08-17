@@ -7,6 +7,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
+    PathsManager *pathsManager,
     Logger &log)
     noexcept :
 
@@ -19,6 +20,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         log),
     mCommand(kCommand),
     mResourcesManager(resourcesManager),
+    mPathsManager(pathsManager),
     mReservationsStage(0),
     mDirectPathIsAllreadyProcessed(false)
 {
@@ -32,7 +34,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     ResourcesManager *resourcesManager,
-
+    PathsManager *pathsManager,
     Logger &log)
     throw (bad_alloc) :
     BasePaymentTransaction(
@@ -42,7 +44,8 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
         storageHandler,
         maxFlowCalculationCacheManager,
         log),
-    mResourcesManager(resourcesManager)
+    mResourcesManager(resourcesManager),
+    mPathsManager(pathsManager)
 {}
 
 
@@ -646,6 +649,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
+
+        // remote node is inaccessible, we add it to offline nodes
+        const auto kPathStats = currentAmountReservationPathStats();
+        const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
+        const auto R_UUID = R_UUIDAndPos.first;
+        mOfflineNodes.push_back(R_UUID);
+        debug() << R_UUID << " was added to offline nodes";
+
         return tryProcessNextPath();
     }
 
@@ -702,6 +713,14 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             currentNodeUUID(),
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
+
+        // remote node is inaccessible, we add it to offline nodes
+        const auto kPathStats = currentAmountReservationPathStats();
+        const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
+        const auto R_UUID = R_UUIDAndPos.first;
+        mOfflineNodes.push_back(R_UUID);
+        debug() << R_UUID << " was added to offline nodes";
+
         debug() << "Switching to another path.";
         return tryProcessNextPath();
     }
@@ -710,6 +729,31 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
 
     if (message->state() == CoordinatorReservationResponseMessage::Closed) {
         return reject("Desynchronization in reservation with Receiver occured. Transaction closed.");
+    }
+
+    if (message->state() == CoordinatorReservationResponseMessage::NextNodeInaccessible) {
+        debug() << "Next node after neighbor is inaccessible. Rejecting request.";
+        dropReservationsOnPath(
+            currentAmountReservationPathStats(),
+            mCurrentAmountReservingPathIdentifier);
+        // sending message to receiver that transaction continues
+        sendMessage<TTLProlongationResponseMessage>(
+            mCommand->contractorUUID(),
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Continue);
+
+        // next after remote node is inaccessible, we add it to offline nodes
+        const auto kPathStats = currentAmountReservationPathStats();
+        const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
+        const auto R_PathPosition = R_UUIDAndPos.second;
+        const auto S_UUID = kPathStats->path()->nodes[R_PathPosition + 1];
+        if (S_UUID != mCommand->contractorUUID()) {
+            mOfflineNodes.push_back(S_UUID);
+            debug() << S_UUID << " was added to offline nodes";
+        }
+
+        return tryProcessNextPath();
     }
 
     if (message->amountReserved() == 0 || message->state() == CoordinatorReservationResponseMessage::Rejected) {
@@ -848,12 +892,49 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
         debug() << "Switching to another path.";
+
+        // remote node is inaccessible, we add it to offline nodes
+        const auto kPathStats = currentAmountReservationPathStats();
+        const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
+        const auto R_UUID = R_UUIDAndPos.first;
+        mOfflineNodes.push_back(R_UUID);
+        debug() << R_UUID << " was added to offline nodes";
+
         return tryProcessNextPath();
     }
 
 
     const auto message = popNextMessage<CoordinatorReservationResponseMessage>();
     auto path = currentAmountReservationPathStats();
+
+    if (message->state() == CoordinatorReservationResponseMessage::Closed) {
+        return reject("Desynchronization in reservation with Receiver occured. Transaction closed.");
+    }
+
+    if (message->state() == CoordinatorReservationResponseMessage::NextNodeInaccessible) {
+        debug() << "Next node after neighbor is inaccessible. Rejecting request.";
+        dropReservationsOnPath(
+            currentAmountReservationPathStats(),
+            mCurrentAmountReservingPathIdentifier);
+        // sending message to receiver that transaction continues
+        sendMessage<TTLProlongationResponseMessage>(
+            mCommand->contractorUUID(),
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Continue);
+
+        // next after remote node is inaccessible, we add it to offline nodes
+        const auto kPathStats = currentAmountReservationPathStats();
+        const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
+        const auto R_PathPosition = R_UUIDAndPos.second;
+        const auto S_UUID = kPathStats->path()->nodes[R_PathPosition + 1];
+        if (S_UUID != mCommand->contractorUUID()) {
+            mOfflineNodes.push_back(S_UUID);
+            debug() << S_UUID << " was added to offline nodes";
+        }
+
+        return tryProcessNextPath();
+    }
 
     /*
      * Nodes scheme:
@@ -862,10 +943,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
     const auto R_UUIDAndPos = path->currentIntermediateNodeAndPos();
     const auto R_PathPosition = R_UUIDAndPos.second;
-
-    if (message->state() == CoordinatorReservationResponseMessage::Closed) {
-        return reject("Desynchronization in reservation with Receiver occured. Transaction closed.");
-    }
 
     if (0 == message->amountReserved() || message->state() == CoordinatorReservationResponseMessage::Rejected) {
         debug() << "Remote node rejected reservation. Switching to another path.";
@@ -959,6 +1036,16 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
 
     } catch (NotFoundError &e) {
         debug() << "No another paths are available. Canceling.";
+
+        auto countPathsBeforeBuilding = mPathsStats.size();
+        buildPathsAgain();
+
+        if (mPathsStats.size() > countPathsBeforeBuilding) {
+            debug() << "new paths was built " << to_string(mPathsStats.size() - countPathsBeforeBuilding);
+            initAmountsReservationOnNextPath();
+            return runAmountReservationStage();
+        }
+
         rollBack();
         return resultInsufficientFundsError();
     }
@@ -971,10 +1058,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     mFinalAmountNodesConfirmation.clear();
 
     // check if reservation to contractor present
-    auto contractorNodeReservations = mReservations[mCommand->contractorUUID()];
-    if (contractorNodeReservations.size() > 1) {
-        return reject("Coordinator has more than one reservation to contractor");
+    const auto contractorNodeReservations = mReservations.find(mCommand->contractorUUID());
+    if (contractorNodeReservations != mReservations.end()) {
+        if (contractorNodeReservations->second.size() > 1) {
+            return reject("Coordinator has more than one reservation to contractor");
+        }
     }
+
 
     for (auto const nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
         // todo : discuss if receiver need on final amounts
@@ -1380,6 +1470,36 @@ void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
                 pathUUIDAndAmount);
         }
     }
+}
+
+void CoordinatorPaymentTransaction::buildPathsAgain()
+{
+    debug() << "buildPathsAgain";
+    auto startTime = utc_now();
+    for (PathUUID pathIdx = 0; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
+        auto const pathStats = mPathsStats[pathIdx].get();
+
+        if (pathStats->path()->length() > 2)
+            if (!pathStats->isLastIntermediateNodeApproved())
+                continue;
+
+        for (uint32_t idx = 0; idx < pathStats->path()->nodes.size() - 1; idx++) {
+            mPathsManager->addUsedAmount(
+                pathStats->path()->nodes.at(idx),
+                pathStats->path()->nodes.at(idx + 1),
+                pathStats->maxFlow());
+        }
+    }
+    mPathsManager->buildPaths(mCommand->contractorUUID());
+    mPathsManager->pathCollection()->resetCurrentPath();
+    while (mPathsManager->pathCollection()->hasNextPath()) {
+        auto path = mPathsManager->pathCollection()->nextPath();
+        if (isPathValid(path)) {
+            addPathForFurtherProcessing(path);
+        }
+    }
+    // todo remove after testing
+    debug() << "buildPathsAgain method time: " << utc_now() - startTime;
 }
 
 void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory()

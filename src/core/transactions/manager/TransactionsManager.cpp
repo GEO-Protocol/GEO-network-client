@@ -77,6 +77,7 @@ void TransactionsManager::loadTransactions()
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mResourcesManager,
+                    mPathsManager,
                     mLog);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
@@ -728,6 +729,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
         mResourcesManager,
+        mPathsManager,
         mLog);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);

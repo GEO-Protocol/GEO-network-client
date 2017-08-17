@@ -106,6 +106,23 @@ void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts()
     }
 }
 
+void MaxFlowCalculationTrustLineManager::addUsedAmount(
+    const NodeUUID &sourceUUID,
+    const NodeUUID &targetUUID,
+    const TrustLineAmount &amount)
+{
+    auto const &nodeUUIDAndSetFlows = msTrustLines.find(sourceUUID);
+    if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+        return;
+    }
+    for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
+        if (trustLinePtr->maxFlowCalculationtrustLine()->targetUUID() == targetUUID) {
+            trustLinePtr->maxFlowCalculationtrustLine()->addUsedAmount(amount);
+            return;
+        }
+    }
+}
+
 bool MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
 {
     bool isTrustLineWasDeleted = false;

@@ -431,7 +431,7 @@ void PathsManager::findPaths(
         contractorRT2);
 #ifdef GETTING_PATHS_DEBUG_LOG
     Duration methodTime = utc_now() - startTime;
-    info() << "PathsManager::findPath\tmethod time: " << methodTime;
+    info() << "building time: " << methodTime;
     info() << "total paths count: " << mPathCollection->count();
     while (mPathCollection->hasNextPath()) {
         //info() << mPathCollection->nextPath()->toString();
@@ -500,6 +500,7 @@ TrustLineAmount PathsManager::buildPaths(
     const NodeUUID &contractorUUID)
 {
     info() << "Build paths to " << contractorUUID;
+    auto startTime = utc_now();
     mContractorUUID = contractorUUID;
     TrustLineAmount result = 0;
     mPathCollection = make_shared<PathsCollection>(
@@ -518,6 +519,8 @@ TrustLineAmount PathsManager::buildPaths(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+    // todo remove after testing
+    info() << "building time: " << utc_now() - startTime;
     return result;
 }
 
@@ -608,6 +611,18 @@ TrustLineAmount PathsManager::calculateOneNode(
         }
     }
     return 0;
+}
+
+void PathsManager::addUsedAmount(
+    const NodeUUID &sourceUUID,
+    const NodeUUID &targetUUID,
+    const TrustLineAmount &amount)
+{
+    info() << "Add used amount from " << sourceUUID << " to " << targetUUID << " " << amount;
+    mMaxFlowCalculationTrustLineManager->addUsedAmount(
+        sourceUUID,
+        targetUUID,
+        amount);
 }
 
 PathsCollection::Shared PathsManager::pathCollection() const

@@ -345,7 +345,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             currentNodeUUID(),
             currentTransactionUUID(),
             mLastProcessedPath,
-            ResponseMessage::Rejected);
+            ResponseMessage::NextNodeInaccessible);
         rollBack(mLastProcessedPath);
         // if no reservations close transaction
         if (mReservations.size() == 0) {

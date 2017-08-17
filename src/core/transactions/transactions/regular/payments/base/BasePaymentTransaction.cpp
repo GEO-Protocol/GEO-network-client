@@ -810,7 +810,6 @@ void BasePaymentTransaction::dropReservationsOnPath(
     }
     const auto lastProcessedNodeAndPos = pathStats->currentIntermediateNodeAndPos();
     const auto lastProcessedNode = lastProcessedNodeAndPos.first;
-    debug() << "current node " << lastProcessedNode;
     for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
         if (intermediateNode == lastProcessedNode) {
             break;
