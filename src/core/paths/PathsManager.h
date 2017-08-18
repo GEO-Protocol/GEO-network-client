@@ -40,13 +40,18 @@ public:
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3);
 
     ////// path by max flow
-    TrustLineAmount buildPaths(
+    void buildPaths(
         const NodeUUID &contractorUUID);
 
     void addUsedAmount(
         const NodeUUID &sourceUUID,
         const NodeUUID &targetUUID,
         const TrustLineAmount &amount);
+
+    // this method used for rebuild paths in case of insufficient founds
+    void reBuildPaths(
+        const NodeUUID &contractorUUID,
+        const set<NodeUUID> &inaccessibleNodes);
 
     PathsCollection::Shared pathCollection() const;
 
@@ -97,9 +102,16 @@ private:
     //test end
 
     ////// path by max flow
-    TrustLineAmount buildPathsOnOneLevel();
+    void buildPathsOnOneLevel();
 
     TrustLineAmount calculateOneNode(
+        const NodeUUID& nodeUUID,
+        const TrustLineAmount& currentFlow,
+        byte level);
+
+    TrustLineAmount reBuildPathsOnOneLevel();
+
+    TrustLineAmount calculateOneNodeForRebuildingPaths(
         const NodeUUID& nodeUUID,
         const TrustLineAmount& currentFlow,
         byte level);
@@ -120,8 +132,9 @@ private:
     NodeUUID mNodeUUID;
     NodeUUID mContractorUUID;
 
-    vector<NodeUUID> passedNodeUUIDs;
+    vector<NodeUUID> mPassedNodeUUIDs;
     byte mCurrentPathLength;
+    set<NodeUUID> mInaccessibleNodes;
 };
 
 

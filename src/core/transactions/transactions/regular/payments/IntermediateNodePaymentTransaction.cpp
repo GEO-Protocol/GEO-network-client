@@ -212,8 +212,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         return runReservationProlongationStage();
     }
 
-    if (! contextIsValid(Message::Payments_CoordinatorReservationRequest))
-        return reject("No coordinator request received. Rolled back.");
+    if (!contextIsValid(Message::Payments_CoordinatorReservationRequest, false)) {
+        debug() << "No coordinator request received.";
+        return runReservationProlongationStage();
+    }
 
 
     debug() << "Coordinator further reservation request received.";

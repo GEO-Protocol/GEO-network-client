@@ -191,6 +191,6 @@ protected:
 
     ResourcesManager *mResourcesManager;
     PathsManager *mPathsManager;
-    vector<NodeUUID> mOfflineNodes;
+    set<NodeUUID> mInaccessibleNodes;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

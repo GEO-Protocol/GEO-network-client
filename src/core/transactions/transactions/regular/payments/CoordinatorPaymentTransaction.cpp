@@ -654,7 +654,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         const auto kPathStats = currentAmountReservationPathStats();
         const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
         const auto R_UUID = R_UUIDAndPos.first;
-        mOfflineNodes.push_back(R_UUID);
+        mInaccessibleNodes.insert(R_UUID);
         debug() << R_UUID << " was added to offline nodes";
 
         return tryProcessNextPath();
@@ -718,7 +718,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         const auto kPathStats = currentAmountReservationPathStats();
         const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
         const auto R_UUID = R_UUIDAndPos.first;
-        mOfflineNodes.push_back(R_UUID);
+        mInaccessibleNodes.insert(R_UUID);
         debug() << R_UUID << " was added to offline nodes";
 
         debug() << "Switching to another path.";
@@ -749,7 +749,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         const auto R_PathPosition = R_UUIDAndPos.second;
         const auto S_UUID = kPathStats->path()->nodes[R_PathPosition + 1];
         if (S_UUID != mCommand->contractorUUID()) {
-            mOfflineNodes.push_back(S_UUID);
+            mInaccessibleNodes.insert(S_UUID);
             debug() << S_UUID << " was added to offline nodes";
         }
 
@@ -897,7 +897,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         const auto kPathStats = currentAmountReservationPathStats();
         const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
         const auto R_UUID = R_UUIDAndPos.first;
-        mOfflineNodes.push_back(R_UUID);
+        mInaccessibleNodes.insert(R_UUID);
         debug() << R_UUID << " was added to offline nodes";
 
         return tryProcessNextPath();
@@ -929,7 +929,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         const auto R_PathPosition = R_UUIDAndPos.second;
         const auto S_UUID = kPathStats->path()->nodes[R_PathPosition + 1];
         if (S_UUID != mCommand->contractorUUID()) {
-            mOfflineNodes.push_back(S_UUID);
+            mInaccessibleNodes.insert(S_UUID);
             debug() << S_UUID << " was added to offline nodes";
         }
 
@@ -1037,13 +1037,16 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
     } catch (NotFoundError &e) {
         debug() << "No another paths are available. Canceling.";
 
-        auto countPathsBeforeBuilding = mPathsStats.size();
-        buildPathsAgain();
+        if (mInaccessibleNodes.size() != 0) {
+            auto countPathsBeforeBuilding = mPathsStats.size();
+            buildPathsAgain();
 
-        if (mPathsStats.size() > countPathsBeforeBuilding) {
-            debug() << "new paths was built " << to_string(mPathsStats.size() - countPathsBeforeBuilding);
-            initAmountsReservationOnNextPath();
-            return runAmountReservationStage();
+            if (mPathsStats.size() > countPathsBeforeBuilding) {
+                debug() << "new paths was built " << to_string(mPathsStats.size() - countPathsBeforeBuilding);
+                initAmountsReservationOnNextPath();
+                return runAmountReservationStage();
+            }
+            debug() << "new paths was not built";
         }
 
         rollBack();
@@ -1490,7 +1493,9 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
                 pathStats->maxFlow());
         }
     }
-    mPathsManager->buildPaths(mCommand->contractorUUID());
+    mPathsManager->reBuildPaths(
+        mCommand->contractorUUID(),
+        mInaccessibleNodes);
     mPathsManager->pathCollection()->resetCurrentPath();
     while (mPathsManager->pathCollection()->hasNextPath()) {
         auto path = mPathsManager->pathCollection()->nextPath();
