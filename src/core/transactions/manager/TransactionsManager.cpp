@@ -80,6 +80,7 @@ void TransactionsManager::loadTransactions()
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mResourcesManager,
+                    mPathsManager,
                     mLog,
                     mTestingController);
                 subscribeForBuidCyclesThreeNodesTransaction(
@@ -736,6 +737,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
         mResourcesManager,
+        mPathsManager,
         mLog,
         mTestingController);
     subscribeForBuidCyclesThreeNodesTransaction(
@@ -1084,6 +1086,30 @@ void TransactionsManager::launchPathsResourcesCollectTransaction(
             true,
             false,
             true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchFindPathByMaxFlowTransaction(
+    const TransactionUUID &requestedTransactionUUID,
+    const NodeUUID &destinationNodeUUID)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<FindPathByMaxFlowTransaction>(
+                mNodeUUID,
+                destinationNodeUUID,
+                requestedTransactionUUID,
+                mPathsManager,
+                mResourcesManager,
+                mTrustLines,
+                mMaxFlowCalculationTrustLineManager,
+                mMaxFlowCalculationCacheManager,
+                mLog),
+            true,
+            true,
+            false);
     } catch (ConflictError &e){
         throw ConflictError(e.message());
     }

@@ -8,6 +8,8 @@
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 
 #include "../../../../resources/manager/ResourcesManager.h"
+#include "../../../../paths/PathsManager.h"
+
 #include "../../../../io/storage/record/payment/PaymentRecord.h"
 
 #include "../../../../common/exceptions/CallChainBreakException.h"
@@ -19,7 +21,7 @@
 #include <thread>
 
 /**
- * TODO: Implement intermedaite reservations shortage for the big transactions.
+ * TODO: Implement intermediate reservations shortage for the big transactions.
  * It is makes sense to implement additional reservations shortage process,
  * that would free parts of reserved capabilities in parallel with amounts reservation stages.
  */
@@ -38,6 +40,7 @@ public:
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
+        PathsManager *pathsManager,
         Logger &log,
         SubsystemsController *subsystemsController)
         noexcept;
@@ -49,6 +52,7 @@ public:
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         ResourcesManager *resourcesManager,
+        PathsManager *pathsManager,
         Logger &log,
         SubsystemsController *subsystemsController)
         throw (bad_alloc);
@@ -151,6 +155,8 @@ protected:
     bool isPathValid(
         Path::Shared path) const;
 
+    void buildPathsAgain();
+
 protected:
     CreditUsageCommand::Shared mCommand;
 
@@ -160,8 +166,8 @@ protected:
 
     // Used in amount reservations stage.
     // Contains identifier of the path,
-    // that was processed last, and potenially,
-    // is waiting for request appriving.
+    // that was processed last, and potentially,
+    // is waiting for request approving.
     PathUUID mCurrentAmountReservingPathIdentifier;
 
     vector<PathUUID> mPathUUIDs;
@@ -170,7 +176,7 @@ protected:
     byte mReservationsStage;
 
     /*
-     * If true - then it means that direct path betweeen coordinator and receiver has been already processed.
+     * If true - then it means that direct path between coordinator and receiver has been already processed.
      * Otherwise is set to the false (by default).
      *
      * Only one direct path may occure due to one payment operation.
@@ -186,5 +192,7 @@ protected:
     unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNodesConfirmation;
 
     ResourcesManager *mResourcesManager;
+    PathsManager *mPathsManager;
+    set<NodeUUID> mInaccessibleNodes;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

@@ -13,7 +13,8 @@ public:
         Accepted = 1,
         Rejected = 2,
         // used for immediately closing transaction
-        Closed = 3
+        Closed = 3,
+        NextNodeInaccessible = 4
     };
 
 public:
