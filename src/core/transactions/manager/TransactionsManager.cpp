@@ -15,7 +15,7 @@ TransactionsManager::TransactionsManager(
     StorageHandler *storageHandler,
     PathsManager *pathsManager,
     Logger &logger,
-    SubsystemsController *testingController) :
+    SubsystemsController *subsystemsController) :
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
@@ -27,7 +27,7 @@ TransactionsManager::TransactionsManager(
     mStorageHandler(storageHandler),
     mPathsManager(pathsManager),
     mLog(logger),
-    mTestingController(testingController),
+    mSubsystemsController(subsystemsController),
 
     mScheduler(
         new TransactionsScheduler(
@@ -39,7 +39,7 @@ TransactionsManager::TransactionsManager(
             mScheduler.get(),
             mIOService,
             mLog,
-            mTestingController))
+            mSubsystemsController))
 {
     subscribeForCommandResult(
         mScheduler->commandResultIsReadySignal);
@@ -82,7 +82,7 @@ void TransactionsManager::loadTransactions()
                     mResourcesManager,
                     mPathsManager,
                     mLog,
-                    mTestingController);
+                    mSubsystemsController);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
                 prepareAndSchedule(
@@ -102,7 +102,7 @@ void TransactionsManager::loadTransactions()
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog,
-                    mTestingController);
+                    mSubsystemsController);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
                 subscribeForBuidCyclesFourNodesTransaction(
@@ -124,7 +124,7 @@ void TransactionsManager::loadTransactions()
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog,
-                    mTestingController);
+                    mSubsystemsController);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
                 prepareAndSchedule(
@@ -145,7 +145,7 @@ void TransactionsManager::loadTransactions()
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog,
-                    mTestingController);
+                    mSubsystemsController);
                 prepareAndSchedule(
                     transaction,
                     false,
@@ -164,7 +164,7 @@ void TransactionsManager::loadTransactions()
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mLog,
-                    mTestingController);
+                    mSubsystemsController);
                 prepareAndSchedule(
                     transaction,
                     false,
@@ -739,7 +739,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mResourcesManager,
         mPathsManager,
         mLog,
-        mTestingController);
+        mSubsystemsController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, true, false, true);
@@ -755,7 +755,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
         mLog,
-        mTestingController);
+        mSubsystemsController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, false, false, true);
@@ -771,7 +771,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
         mLog,
-        mTestingController);
+        mSubsystemsController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     subscribeForBuidCyclesFourNodesTransaction(
@@ -792,7 +792,7 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
                 mStorageHandler,
                 mMaxFlowCalculationCacheManager,
                 mLog,
-                mTestingController),
+                mSubsystemsController),
             false,
             false,
             true
@@ -1390,7 +1390,7 @@ void TransactionsManager::onCloseCycleTransaction(
                 mStorageHandler,
                 mMaxFlowCalculationCacheManager,
                 mLog,
-                mTestingController),
+                mSubsystemsController),
             true,
             false,
             true);

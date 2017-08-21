@@ -135,7 +135,7 @@ public:
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
         Logger &logger,
-        SubsystemsController *testingController);
+        SubsystemsController *subsystemsController);
 
     void processCommand(
         BaseUserCommand::Shared command);
@@ -375,7 +375,7 @@ private:
     StorageHandler *mStorageHandler;
     Logger &mLog;
 
-    SubsystemsController *mTestingController;
+    SubsystemsController *mSubsystemsController;
 
     unique_ptr<TransactionsScheduler> mScheduler;
     unique_ptr<CyclesManager> mCyclesManager;
