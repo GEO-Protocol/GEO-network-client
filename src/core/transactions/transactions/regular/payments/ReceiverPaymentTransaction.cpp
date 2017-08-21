@@ -144,15 +144,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
 
-#ifdef TESTS
-    if (kMessage->senderUUID == mMessage->senderUUID) {
-        mSubsystemsController->testForbidSendMessageToCoordinatorOnVoteStage();
-    }
-    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(kMessage->senderUUID);
-    mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
-    mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
-#endif
-
     const auto kNeighbor = kMessage->senderUUID;
     if (kMessage->finalAmountsConfiguration().size() == 0) {
         error() << "Reservation vector is empty";
@@ -243,6 +234,20 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     const auto kReservationAmount = min(
         *kReservation.second.get(),
         *kAvailableAmount);
+
+#ifdef TESTS
+    if (kMessage->senderUUID == mMessage->senderUUID) {
+        mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+            NodeUUID::empty(),
+            kReservationAmount);
+    }
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        kMessage->senderUUID,
+        kReservationAmount);
+    mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+#endif
+
     if (! reserveIncomingAmount(kNeighbor, kReservationAmount, kReservation.first)) {
         // Receiver must not confirm reservation in case if requested amount is less than available.
         // Intermediate nodes may decrease requested reservation amount, but receiver must not do this.

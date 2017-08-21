@@ -22,6 +22,8 @@ public:
 
     const NodeUUID &forbiddenNodeUUID() const;
 
+    const TrustLineAmount &forbiddenAmount() const;
+
 protected:
     [[deprecated]]
     virtual void parse(
@@ -58,6 +60,9 @@ protected:
     // this parameter used for forbid send messages only for this node,
     // if parameter is 0, forbid send messages to all nodes
     NodeUUID mForbiddenNodeUUID;
+    // this parameter used for forbid send message with this reservation amount
+    // works in pair with mForbiddenNodeUUID
+    TrustLineAmount mForbiddenAmount;
 };
 
 #endif // SUBSYSTEMSINFLUENCECOMMAND_H

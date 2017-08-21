@@ -441,6 +441,8 @@ void Core::onCommandReceivedSlot (
             subsystemsInfluenceCommand->flags());
         mSubsystemsController->setForbiddenNodeUUID(
             subsystemsInfluenceCommand->forbiddenNodeUUID());
+        mSubsystemsController->setForbiddenAmount(
+            subsystemsInfluenceCommand->forbiddenAmount());
         mLog->logInfo("Core", "SubsystemsInfluenceCommand processed");
         return;
     }

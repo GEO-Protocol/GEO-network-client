@@ -629,7 +629,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(NodeUUID::empty());
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        neighbor,
+        path->maxFlow());
 #endif
 
     sendMessage<CoordinatorReservationRequestMessage>(
@@ -844,7 +846,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     debug() << "Prepared for sending reservations size: " << reservations.size();
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(remoteNode);
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        remoteNode,
+        path->maxFlow());
 #endif
 
     sendMessage<CoordinatorReservationRequestMessage>(

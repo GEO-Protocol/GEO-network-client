@@ -88,12 +88,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     const auto kNeighbor = mMessage->senderUUID;
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
 
-#ifdef TESTS
-    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(kNeighbor);
-    mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
-    mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
-#endif
-
     if (mMessage->finalAmountsConfiguration().size() == 0) {
         error() << "Not received reservation";
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -169,6 +163,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     TrustLineAmount kReservationAmount =
             min(*kReservation.second.get(), *kIncomingAmount);
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        kNeighbor,
+        kReservationAmount);
+    mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+#endif
+
     if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount, kReservation.first)) {
         debug() << "No amount reservation is possible.";
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -229,7 +231,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     debug() << "Coordinator further reservation request received.";
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(NodeUUID::empty());
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        NodeUUID::empty(),
+        0);
     mSubsystemsController->testThrowExceptionOnCoordinatorRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnCoordinatorRequestProcessingStage();
 #endif
@@ -316,7 +320,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     }
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(kNextNode);
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        kNextNode,
+        reservationAmount);
 #endif
 
     debug() << "Reserve locally " << reservationAmount << " to node " << kNextNode << " on path " << kReservation.first;
@@ -379,7 +385,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     const auto kContractor = kMessage->senderUUID;
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(kContractor);
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        kContractor,
+        kMessage->amountReserved());
     mSubsystemsController->testThrowExceptionOnNextNeighborResponseProcessingStage();
     mSubsystemsController->testTerminateProcessOnNextNeighborResponseProcessingStage();
 #endif

@@ -237,12 +237,21 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
     }
 #endif
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
+#endif
+
     // Begin message propagation
     sendMessage(
         mParticipantsVotesMessage->firstParticipant(),
         mParticipantsVotesMessage);
 
     debug() << "Votes message constructed and sent to the (" << mParticipantsVotesMessage->firstParticipant() << ")";
+
+#ifdef TESTS
+    mSubsystemsController->testThrowExceptionOnVoteStage();
+    mSubsystemsController->testTerminateProcessOnVoteStage();
+#endif
 
     mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
@@ -330,6 +339,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
         return resultDone();
     }
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageToReceiverOnReservationStage();
+#endif
+
     debug() << "Send request reservation (" << path->maxFlow() << ") message to " << mNextNode;
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
         mNextNode,
@@ -361,6 +374,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
         return resultDone();
     }
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageToReceiverOnReservationStage();
+#endif
+
     auto path = mPathStats.get();
     path->shortageMaxFlow(mOutgoingAmount);
     debug() << "Send request reservation (" << path->maxFlow() << ") message to " << mNextNode;
@@ -390,6 +407,12 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
     // Note:
     // no check of "neighbor" node is needed here.
     // It was done on previous step.
+
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        mNextNode,
+        path->maxFlow());
+#endif
 
     sendMessage<CoordinatorCycleReservationRequestMessage>(
         mNextNode,
@@ -497,6 +520,12 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
     const auto kTransactionUUID = currentTransactionUUID();
     auto path = mPathStats.get();
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        remoteNode,
+        path->maxFlow());
+#endif
+
     sendMessage<CoordinatorCycleReservationRequestMessage>(
         remoteNode,
         kCoordinator,
@@ -598,6 +627,11 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
             debug() << "Total collected amount by cycle: " << kTotalAmount;
             debug() << "Total count of all participants without coordinator is " << path->path()->intermediateUUIDs().size();
 
+#ifdef TESTS
+            mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
+                path->path()->intermediateUUIDs().size());
+#endif
+
             // send final path amount to all intermediate nodes on path
             sendFinalPathConfiguration(
                 mPathStats.get(),
@@ -681,6 +715,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
         return reject("No incoming amount reservation is possible. Rolled back.");
     }
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        kMessage->senderUUID,
+        mIncomingAmount);
+    mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+#endif
+
     debug() << "send accepted message with reserve (" << mIncomingAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
         mPreviousNode,
@@ -714,6 +756,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
             ResponseCycleMessage::Rejected);
         return reject("No incoming amount reservation is possible. Rolled back.");
     }
+
+#ifdef TESTS
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        mPreviousNode,
+        mIncomingAmount);
+    mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+#endif
 
     debug() << "send accepted message with reserve (" << mIncomingAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
@@ -767,6 +817,13 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
     if (! contextIsValid(Message::Payments_ParticipantsVotes)) {
         return reject("Coordinator didn't receive message with votes");
     }
+
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageOnVoteConsistencyStage(
+        mParticipantsVotesMessage->participantsCount());
+    mSubsystemsController->testThrowExceptionOnVoteConsistencyStage();
+    mSubsystemsController->testTerminateProcessOnVoteConsistencyStage();
+#endif
 
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
     debug () << "Participants votes message received.";

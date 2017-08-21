@@ -21,13 +21,23 @@ SubsystemsInfluenceCommand::SubsystemsInfluenceCommand(
             0,
             tokenSeparatorPos);
         mFlags = std::stoul(flagsStr);
-        string hexUUID = commandBuffer.substr(
+
+        auto hexUUID = commandBuffer.substr(
             tokenSeparatorPos + 1,
             NodeUUID::kHexSize);
         mForbiddenNodeUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
+
+        tokenSeparatorPos = commandBuffer.find(
+            kTokensSeparator,
+            tokenSeparatorPos + 1);
+        auto forbiddenAmountStr = commandBuffer.substr(
+            tokenSeparatorPos + 1,
+            commandBuffer.size() - tokenSeparatorPos - 2);
+        mForbiddenAmount = TrustLineAmount(forbiddenAmountStr);
     } else {
         mFlags = std::stoul(commandBuffer);
         mForbiddenNodeUUID = NodeUUID::empty();
+        mForbiddenAmount = 0;
     }
 }
 
@@ -45,4 +55,9 @@ size_t SubsystemsInfluenceCommand::flags() const
 const NodeUUID& SubsystemsInfluenceCommand::forbiddenNodeUUID() const
 {
     return mForbiddenNodeUUID;
+}
+
+const TrustLineAmount& SubsystemsInfluenceCommand::forbiddenAmount() const
+{
+    return mForbiddenAmount;
 }

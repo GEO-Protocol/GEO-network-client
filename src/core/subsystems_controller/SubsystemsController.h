@@ -1,7 +1,8 @@
 #ifndef GEO_NETWORK_CLIENT_SUBSYSTEMSCONTROLLER_H
 #define GEO_NETWORK_CLIENT_SUBSYSTEMSCONTROLLER_H
 
-
+#include "../common/Types.h"
+#include "../common/NodeUUID.h"
 #include "../logger/Logger.h"
 
 class SubsystemsController {
@@ -14,6 +15,9 @@ public:
 
     void setForbiddenNodeUUID(
         const NodeUUID &nodeUUID);
+
+    void setForbiddenAmount(
+        const TrustLineAmount &forbiddenAmount);
 
     bool isNetworkOn();
 
@@ -28,14 +32,17 @@ public:
 
     void testForbidSendMessageToCoordinatorOnReservationStage(
         const NodeUUID &previousNodeUUID,
+        const TrustLineAmount &forbiddenAmount,
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendRequestToIntNodeOnReservationStage(
         const NodeUUID &receiverMessageNode,
+        const TrustLineAmount &forbiddenAmount,
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendResponseToIntNodeOnReservationStage(
         const NodeUUID &receiverMessageNode,
+        const TrustLineAmount &forbiddenAmount,
         uint32_t countForbiddenMessages = 1);
 
     void testForbidSendMessageWithFinalPathConfiguration(
@@ -111,6 +118,7 @@ private:
     bool mTerminateProcessOnVoteConsistencyStage;
 
     NodeUUID mForbiddenNodeUUID;
+    TrustLineAmount mForbiddenAmount;
 
     Logger &mLog;
 };

@@ -167,6 +167,14 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
         return resultDone();
     }
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        mPreviousNode,
+        mReservationAmount);
+    mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+#endif
+
     mLastReservedAmount = mReservationAmount;
     debug() << "send accepted message with reserve (" << mReservationAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
@@ -202,6 +210,14 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
         return resultDone();
     }
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
+        mPreviousNode,
+        mReservationAmount);
+    mSubsystemsController->testThrowExceptionOnPreviousNeighborRequestProcessingStage();
+    mSubsystemsController->testTerminateProcessOnPreviousNeighborRequestProcessingStage();
+#endif
+
     mLastReservedAmount = mReservationAmount;
     debug() << "send accepted message with reserve (" << mReservationAmount << ") to node " << mPreviousNode;
     sendMessage<IntermediateNodeCycleReservationResponseMessage>(
@@ -226,6 +242,14 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     debug() << "Coordinator further reservation request received.";
 
     // TODO: add check for previous nodes amount reservation
+
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        NodeUUID::empty(),
+        0);
+    mSubsystemsController->testThrowExceptionOnCoordinatorRequestProcessingStage();
+    mSubsystemsController->testTerminateProcessOnCoordinatorRequestProcessingStage();
+#endif
 
     const auto kMessage = popNextMessage<CoordinatorCycleReservationRequestMessage>();
     mNextNode = kMessage->nextNodeInPathUUID();
@@ -304,6 +328,12 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
         return resultDone();
     }
 
+#ifdef TESTS
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        mNextNode,
+        mReservationAmount);
+#endif
+
     mLastReservedAmount = mReservationAmount;
     debug() << "Send request reservation on " << mReservationAmount << " to " << mNextNode;
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
@@ -342,6 +372,12 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
         rollBack();
         return resultDone();
     }
+
+#ifdef TESTS
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        mNextNode,
+        mReservationAmount);
+#endif
 
     mLastReservedAmount = mReservationAmount;
     sendMessage<IntermediateNodeCycleReservationRequestMessage>(
@@ -394,6 +430,14 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
                 pathUUIDAndreservation.first);
         }
     }
+
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
+        mCoordinator,
+        mLastReservedAmount);
+    mSubsystemsController->testThrowExceptionOnNextNeighborResponseProcessingStage();
+    mSubsystemsController->testTerminateProcessOnNextNeighborResponseProcessingStage();
+#endif
 
     debug() << "send accepted message with reserve (" << mLastReservedAmount << ") to node " << mCoordinator;
     sendMessage<CoordinatorCycleReservationResponseMessage>(
@@ -454,6 +498,10 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
                 pathUUIDAndReservation.first);
         }
     }
+
+#ifdef TESTS
+    mSubsystemsController->testForbidSendMessageOnFinalAmountClarificationStage();
+#endif
 
     debug() << "Final payment path was updated";
     sendMessage<FinalAmountsConfigurationResponseMessage>(

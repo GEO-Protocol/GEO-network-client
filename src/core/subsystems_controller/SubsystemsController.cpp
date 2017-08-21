@@ -74,6 +74,13 @@ void SubsystemsController::setForbiddenNodeUUID(
     debug() << "setForbiddenNodeUUID " << mForbiddenNodeUUID;
 }
 
+void SubsystemsController::setForbiddenAmount(
+    const TrustLineAmount &forbiddenAmount)
+{
+    mForbiddenAmount = forbiddenAmount;
+    debug() << "setForbiddenAmount " << mForbiddenAmount;
+}
+
 bool SubsystemsController::isNetworkOn()
 {
     if (mCountForbiddenMessages > 0) {
@@ -118,6 +125,7 @@ void SubsystemsController::testForbidSendMessageToReceiverOnReservationStage(
 
 void SubsystemsController::testForbidSendMessageToCoordinatorOnReservationStage(
     const NodeUUID &previousNodeUUID,
+    const TrustLineAmount &forbiddenAmount,
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageToCoordinatorOnReservationStage) {
@@ -125,14 +133,20 @@ void SubsystemsController::testForbidSendMessageToCoordinatorOnReservationStage(
             debug() << "ForbidSendMessageToCoordinatorOnReservationStage";
             mCountForbiddenMessages = countForbiddenMessages;
         } else if (mForbiddenNodeUUID == previousNodeUUID) {
-            debug() << "ForbidSendMessageToCoordinatorOnReservationStage previous node " << previousNodeUUID;
-            mCountForbiddenMessages = countForbiddenMessages;
+            if (mForbiddenAmount == 0) {
+                debug() << "ForbidSendMessageToCoordinatorOnReservationStage previous node " << previousNodeUUID;
+                mCountForbiddenMessages = countForbiddenMessages;
+            } else if (mForbiddenAmount == forbiddenAmount) {
+                debug() << "ForbidSendMessageToCoordinatorOnReservationStage previous node " << previousNodeUUID;
+                mCountForbiddenMessages = countForbiddenMessages;
+            }
         }
     }
 }
 
 void SubsystemsController::testForbidSendRequestToIntNodeOnReservationStage(
     const NodeUUID &receiverMessageNode,
+    const TrustLineAmount &forbiddenAmount,
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendRequestToIntNodeOnReservationStage) {
@@ -140,14 +154,20 @@ void SubsystemsController::testForbidSendRequestToIntNodeOnReservationStage(
             debug() << "ForbidSendRequestToIntNodeOnReservationStage";
             mCountForbiddenMessages = countForbiddenMessages;
         } else if (mForbiddenNodeUUID == receiverMessageNode) {
-            debug() << "ForbidSendRequestToIntNodeOnReservationStage to " << receiverMessageNode;
-            mCountForbiddenMessages = countForbiddenMessages;
+            if (mForbiddenAmount == 0) {
+                debug() << "ForbidSendRequestToIntNodeOnReservationStage to " << receiverMessageNode;
+                mCountForbiddenMessages = countForbiddenMessages;
+            } else if (mForbiddenAmount == forbiddenAmount) {
+                debug() << "ForbidSendRequestToIntNodeOnReservationStage to " << receiverMessageNode;
+                mCountForbiddenMessages = countForbiddenMessages;
+            }
         }
     }
 }
 
 void SubsystemsController::testForbidSendResponseToIntNodeOnReservationStage(
     const NodeUUID &receiverMessageNode,
+    const TrustLineAmount &forbiddenAmount,
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendResponseToIntNodeOnReservationStage) {
@@ -155,8 +175,13 @@ void SubsystemsController::testForbidSendResponseToIntNodeOnReservationStage(
             debug() << "ForbidSendResponseToIntNodeOnReservationStage";
             mCountForbiddenMessages = countForbiddenMessages;
         } else if (mForbiddenNodeUUID == receiverMessageNode) {
-            debug() << "ForbidSendResponseToIntNodeOnReservationStage to " << receiverMessageNode;
-            mCountForbiddenMessages = countForbiddenMessages;
+            if (mForbiddenAmount == 0) {
+                debug() << "ForbidSendResponseToIntNodeOnReservationStage to " << receiverMessageNode;
+                mCountForbiddenMessages = countForbiddenMessages;
+            } else if (mForbiddenAmount == forbiddenAmount) {
+                debug() << "ForbidSendResponseToIntNodeOnReservationStage to " << receiverMessageNode;
+                mCountForbiddenMessages = countForbiddenMessages;
+            }
         }
     }
 }
