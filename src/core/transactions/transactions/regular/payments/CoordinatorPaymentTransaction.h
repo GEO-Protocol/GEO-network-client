@@ -158,6 +158,9 @@ protected:
     void buildPathsAgain();
 
 protected:
+    static const uint8_t kMaxReceiverInaccessible = 5;
+
+protected:
     CreditUsageCommand::Shared mCommand;
 
     // Contains special stats data, such as current msx flow,
@@ -194,5 +197,7 @@ protected:
     ResourcesManager *mResourcesManager;
     PathsManager *mPathsManager;
     set<NodeUUID> mInaccessibleNodes;
+
+    uint8_t mCountReceiverInaccessible;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H

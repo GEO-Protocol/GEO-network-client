@@ -24,7 +24,8 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mResourcesManager(resourcesManager),
     mPathsManager(pathsManager),
     mReservationsStage(0),
-    mDirectPathIsAllreadyProcessed(false)
+    mDirectPathIsAllreadyProcessed(false),
+    mCountReceiverInaccessible(0)
 {
     mStep = Stages::Coordinator_Initialisation;
 }
@@ -763,22 +764,30 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
-        // sending message to receiver that transaction continues
-        sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorUUID(),
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            TTLProlongationResponseMessage::Continue);
 
         // next after remote node is inaccessible, we add it to offline nodes
         const auto kPathStats = currentAmountReservationPathStats();
         const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
         const auto R_PathPosition = R_UUIDAndPos.second;
         const auto S_UUID = kPathStats->path()->nodes[R_PathPosition + 1];
-        if (S_UUID != mCommand->contractorUUID()) {
+        if (S_UUID == mCommand->contractorUUID()) {
+            mCountReceiverInaccessible++;
+            if (mCountReceiverInaccessible >= kMaxReceiverInaccessible) {
+                reject("Contractor is offline. Rollback.");
+                return resultNoResponseError();
+            }
+        }
+        else {
             mInaccessibleNodes.insert(S_UUID);
             debug() << S_UUID << " was added to offline nodes";
         }
+
+        // sending message to receiver that transaction continues
+        sendMessage<TTLProlongationResponseMessage>(
+            mCommand->contractorUUID(),
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Continue);
 
         return tryProcessNextPath();
     }
@@ -955,22 +964,30 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
-        // sending message to receiver that transaction continues
-        sendMessage<TTLProlongationResponseMessage>(
-            mCommand->contractorUUID(),
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            TTLProlongationResponseMessage::Continue);
 
         // next after remote node is inaccessible, we add it to offline nodes
         const auto kPathStats = currentAmountReservationPathStats();
         const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
         const auto R_PathPosition = R_UUIDAndPos.second;
         const auto S_UUID = kPathStats->path()->nodes[R_PathPosition + 1];
-        if (S_UUID != mCommand->contractorUUID()) {
+        if (S_UUID == mCommand->contractorUUID()) {
+            mCountReceiverInaccessible++;
+            if (mCountReceiverInaccessible >= kMaxReceiverInaccessible) {
+                reject("Contractor is offline. Rollback.");
+                return resultNoResponseError();
+            }
+        }
+        else {
             mInaccessibleNodes.insert(S_UUID);
             debug() << S_UUID << " was added to offline nodes";
         }
+
+        // sending message to receiver that transaction continues
+        sendMessage<TTLProlongationResponseMessage>(
+            mCommand->contractorUUID(),
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Continue);
 
         return tryProcessNextPath();
     }

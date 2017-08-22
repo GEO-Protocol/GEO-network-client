@@ -334,30 +334,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStage
 {
     debug() << "runVotesCheckingStageWithCoordinatorClarification";
     if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
-        // This case can happens when on previous stages Receiver reserved some amount
-        // and Coordinator didn't receive approve message. Coordinator try reserve it again.
-        // We should reject this transaction on voting stage
-        error() << "Receiver already reserved all requested amount. "
-                      "It indicates protocol error.";
-        mTransactionShouldBeRejected = true;
-        const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
-        if (kMessage->finalAmountsConfiguration().size() == 0) {
-            error() << "Not received reservation";
-            // todo : add actual reaction
-        }
-        const auto kReservation = kMessage->finalAmountsConfiguration()[0];
-
-        sendMessage<IntermediateNodeReservationResponseMessage>(
-            kMessage->senderUUID,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            kReservation.first,
-            ResponseMessage::Closed);
-
-        return resultWaitForMessageTypes(
-            {Message::Payments_ParticipantsVotes,
-             Message::Payments_IntermediateNodeReservationResponse},
-            maxNetworkDelay(kMaxPathLength - 1));
+        return runAmountReservationStage();
     }
     if (contextIsValid(Message::Payments_ParticipantsVotes, false)) {
         if (mTransactionShouldBeRejected) {

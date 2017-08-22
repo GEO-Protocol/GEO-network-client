@@ -233,9 +233,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     debug() << "Coordinator further reservation request received.";
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
-        NodeUUID::empty(),
-        0);
     mSubsystemsController->testThrowExceptionOnCoordinatorRequestProcessingStage();
     mSubsystemsController->testTerminateProcessOnCoordinatorRequestProcessingStage();
 #endif
