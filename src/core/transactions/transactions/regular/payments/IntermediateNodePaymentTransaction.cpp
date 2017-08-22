@@ -453,6 +453,12 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         }
     }
 
+#ifdef TESTS
+    // coordinator wait for this message maxNetworkDelay(4)
+    // we try get max delay with normal working algorithm on this stage
+    mSubsystemsController->testSleepOnNextNeighborResponseProcessingStage(maxNetworkDelay(3));
+#endif
+
     sendMessage<CoordinatorReservationResponseMessage>(
         mCoordinator,
         currentNodeUUID(),
@@ -611,6 +617,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
         return reject("There are some final amounts, reservations for which are absent. Rejected");
     }
 
+#ifdef TESTS
+    // coordinator wait for this message maxNetworkDelay(2)
+    mSubsystemsController->testSleepOnFinalAmountClarificationStage(maxNetworkDelay(3));
+#endif
+
     debug() << "All reservations was updated";
     sendMessage<FinalAmountsConfigurationResponseMessage>(
         kMessage->senderUUID,
@@ -621,7 +632,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
     mStep = Common_VotesChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes},
-        maxNetworkDelay(3));
+        maxNetworkDelay(5)); // todo : need discuss this parameter (5)
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()

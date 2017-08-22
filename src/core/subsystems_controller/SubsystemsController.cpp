@@ -29,6 +29,13 @@ SubsystemsController::SubsystemsController(
     mTerminateProcessOnVoteStage = false;
     mTerminateProcessOnVoteConsistencyStage = false;
 
+    mSleepOnPreviousNeighborRequestProcessingStage = false;
+    mSleepOnCoordinatorRequestProcessingStage = false;
+    mSleepOnNextNeighborResponseProcessingStage = false;
+    mSleepOnFinalAmountClarificationStage = false;
+    mSleepOnVoteStage = false;
+    mSleepOnVoteConsistencyStage = false;
+
     mCountForbiddenMessages = 0;
     mForbiddenNodeUUID = NodeUUID::empty();
 }
@@ -63,6 +70,14 @@ void SubsystemsController::setFlags(size_t flags)
     mTerminateProcessOnNextNeighborResponseProcessingStage = (flags & 0x800000) > 0;
     mTerminateProcessOnVoteStage = (flags & 0x1000000) > 0;
     mTerminateProcessOnVoteConsistencyStage = (flags & 0x2000000) > 0;
+
+    mSleepOnPreviousNeighborRequestProcessingStage = (flags & 0x80000000) > 0;
+    mSleepOnCoordinatorRequestProcessingStage = (flags & 0x100000000) > 0;
+    mSleepOnNextNeighborResponseProcessingStage = (flags & 0x200000000) > 0;
+    mSleepOnFinalAmountClarificationStage = (flags & 0x400000000) > 0;
+    mSleepOnVoteStage = (flags & 0x800000000) > 0;
+    mSleepOnVoteConsistencyStage = (flags & 0x1000000000) > 0;
+
     debug() << "network on " << mIsNetworkOn;
     debug() << "close cycles " << mIsCloseCycles;
 }
@@ -269,6 +284,7 @@ void SubsystemsController::testThrowExceptionOnVoteConsistencyStage()
 void SubsystemsController::testTerminateProcessOnPreviousNeighborRequestProcessingStage()
 {
     if (mTerminateProcessOnPreviousNeighborRequestProcessingStage) {
+        debug() << "testTerminateProcessOnPreviousNeighborRequestProcessingStage";
         exit(100);
     }
 }
@@ -276,6 +292,7 @@ void SubsystemsController::testTerminateProcessOnPreviousNeighborRequestProcessi
 void SubsystemsController::testTerminateProcessOnCoordinatorRequestProcessingStage()
 {
     if (mTerminateProcessOnCoordinatorRequestProcessingStage) {
+        debug() << "testTerminateProcessOnCoordinatorRequestProcessingStage";
         exit(100);
     }
 }
@@ -283,6 +300,7 @@ void SubsystemsController::testTerminateProcessOnCoordinatorRequestProcessingSta
 void SubsystemsController::testTerminateProcessOnNextNeighborResponseProcessingStage()
 {
     if (mTerminateProcessOnNextNeighborResponseProcessingStage) {
+        debug() << "testTerminateProcessOnNextNeighborResponseProcessingStage";
         exit(100);
     }
 }
@@ -290,6 +308,7 @@ void SubsystemsController::testTerminateProcessOnNextNeighborResponseProcessingS
 void SubsystemsController::testTerminateProcessOnVoteStage()
 {
     if (mTerminateProcessOnVoteStage) {
+        debug() << "testTerminateProcessOnVoteStage";
         exit(100);
     }
 }
@@ -297,7 +316,62 @@ void SubsystemsController::testTerminateProcessOnVoteStage()
 void SubsystemsController::testTerminateProcessOnVoteConsistencyStage()
 {
     if (mTerminateProcessOnVoteConsistencyStage) {
+        debug() << "testTerminateProcessOnVoteConsistencyStage";
         exit(100);
+    }
+}
+
+void SubsystemsController::testSleepOnPreviousNeighborRequestProcessingStage(
+    uint32_t millisecondsDelay)
+{
+    if (mSleepOnPreviousNeighborRequestProcessingStage) {
+        debug() << "testSleepOnPreviousNeighborRequestProcessingStage";
+        std::this_thread::sleep_for(std::chrono::milliseconds(millisecondsDelay));
+    }
+}
+
+void SubsystemsController::testSleepOnCoordinatorRequestProcessingStage(
+    uint32_t millisecondsDelay)
+{
+    if (mSleepOnCoordinatorRequestProcessingStage) {
+        debug() << "testSleepOnCoordinatorRequestProcessingStage";
+        std::this_thread::sleep_for(std::chrono::milliseconds(millisecondsDelay));
+    }
+}
+
+void SubsystemsController::testSleepOnNextNeighborResponseProcessingStage(
+    uint32_t millisecondsDelay)
+{
+    if (mSleepOnNextNeighborResponseProcessingStage) {
+        debug() << "testSleepOnNextNeighborResponseProcessingStage";
+        std::this_thread::sleep_for(std::chrono::milliseconds(millisecondsDelay));
+    }
+}
+
+void SubsystemsController::testSleepOnFinalAmountClarificationStage(
+    uint32_t millisecondsDelay)
+{
+    if (mSleepOnFinalAmountClarificationStage) {
+        debug() << "testSleepOnFinalAmountClarificationStage";
+        std::this_thread::sleep_for(std::chrono::milliseconds(millisecondsDelay));
+    }
+}
+
+void SubsystemsController::testSleepOnOnVoteStage(
+    uint32_t millisecondsDelay)
+{
+    if (mSleepOnVoteStage) {
+        debug() << "testSleepOnOnVoteStage";
+        std::this_thread::sleep_for(std::chrono::milliseconds(millisecondsDelay));
+    }
+}
+
+void SubsystemsController::testSleepOnVoteConsistencyStage(
+    uint32_t millisecondsDelay)
+{
+    if (mSleepOnVoteConsistencyStage) {
+        debug() << "testSleepOnVoteConsistencyStage";
+        std::this_thread::sleep_for(std::chrono::milliseconds(millisecondsDelay));
     }
 }
 

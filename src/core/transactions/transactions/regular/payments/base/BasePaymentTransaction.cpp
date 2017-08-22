@@ -270,6 +270,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
             mNodeUUID,
             mParticipantsVotesMessage);
 
+#ifdef TESTS
+        // node wait for vote message after final amounts confirmation maxNetworkDelay(5)
+        mSubsystemsController->testSleepOnOnVoteStage(maxNetworkDelay(6));
+#endif
+
         // NotFoundError wasn't thrown.
         // Current node is not last in the votes list.
         // Message must be transferred to the next node in the list.
@@ -294,6 +299,11 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
 
 #ifdef TESTS
         mSubsystemsController->testForbidSendMessageToCoordinatorOnVoteStage();
+        // coordinator wait for message with all votes
+        // maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1)
+        mSubsystemsController->testSleepOnVoteConsistencyStage(
+            maxNetworkDelay(
+                mParticipantsVotesMessage->participantsCount() + 2));
 #endif
 
         const auto kNewParticipantsVotesMessage  = make_shared<ParticipantsVotesMessage>(

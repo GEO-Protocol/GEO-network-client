@@ -1294,6 +1294,15 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     mCommitedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
+
+#ifdef TESTS
+    // all nodes wait for this message
+    // maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1)
+    mSubsystemsController->testSleepOnVoteConsistencyStage(
+        maxNetworkDelay(
+            mParticipantsVotesMessage->participantsCount() + 2));
+#endif
+
     propagateVotesMessageToAllParticipants(
         mParticipantsVotesMessage);
     runBuildThreeNodesCyclesSignal();

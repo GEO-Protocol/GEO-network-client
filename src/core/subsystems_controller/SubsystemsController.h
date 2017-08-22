@@ -5,6 +5,9 @@
 #include "../common/NodeUUID.h"
 #include "../logger/Logger.h"
 
+#include <chrono>
+#include <thread>
+
 class SubsystemsController {
 public:
     SubsystemsController(
@@ -80,6 +83,24 @@ public:
 
     void testTerminateProcessOnVoteConsistencyStage();
 
+    void testSleepOnPreviousNeighborRequestProcessingStage(
+        uint32_t millisecondsDelay);
+
+    void testSleepOnCoordinatorRequestProcessingStage(
+        uint32_t millisecondsDelay);
+
+    void testSleepOnNextNeighborResponseProcessingStage(
+        uint32_t millisecondsDelay);
+
+    void testSleepOnFinalAmountClarificationStage(
+        uint32_t millisecondsDelay);
+
+    void testSleepOnOnVoteStage(
+        uint32_t millisecondsDelay);
+
+    void testSleepOnVoteConsistencyStage(
+        uint32_t millisecondsDelay);
+
 protected:
     LoggerStream info() const;
 
@@ -116,6 +137,13 @@ private:
     bool mTerminateProcessOnNextNeighborResponseProcessingStage;
     bool mTerminateProcessOnVoteStage;
     bool mTerminateProcessOnVoteConsistencyStage;
+
+    bool mSleepOnPreviousNeighborRequestProcessingStage;
+    bool mSleepOnCoordinatorRequestProcessingStage;
+    bool mSleepOnNextNeighborResponseProcessingStage;
+    bool mSleepOnFinalAmountClarificationStage;
+    bool mSleepOnVoteStage;
+    bool mSleepOnVoteConsistencyStage;
 
     NodeUUID mForbiddenNodeUUID;
     TrustLineAmount mForbiddenAmount;

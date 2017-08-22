@@ -56,6 +56,13 @@ protected:
 //    24 - throw exception on vote stage  0x1000000  // 16777216
 //    25 - throw exception on vote consistency stage  0x2000000  // 33554432
 
+//    31 - sleep on Previous Neighbor Request Processing Stage  0x80000000  //  2147483648
+//    32 - sleep on Coordinator Request Processing Stage  0x100000000  //  4294967296
+//    33 - sleep on Next Neighbor Response Processing Stage  0x200000000  //  8589934592
+//    34 - sleep on Final Amount Clarification  0x400000000  // 17179869184
+//    35 - sleep on Vote Stage  0x800000000  //  34359738368
+//    36 - sleep on Vote Consistency Stage  0x1000000000  //  68719476736
+
     size_t mFlags;
     // this parameter used for forbid send messages only for this node,
     // if parameter is 0, forbid send messages to all nodes
