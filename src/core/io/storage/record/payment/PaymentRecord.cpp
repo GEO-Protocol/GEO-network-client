@@ -13,7 +13,8 @@ PaymentRecord::PaymentRecord(
         contractorUUID),
     mPaymentOperationType(operationType),
     mAmount(amount),
-    mBalanceAfterOperation(balanceAfterOperation)
+    mBalanceAfterOperation(balanceAfterOperation),
+    mCommandUUID(CommandUUID::empty())
 {}
 
 PaymentRecord::PaymentRecord(
@@ -31,7 +32,8 @@ PaymentRecord::PaymentRecord(
         geoEpochTimestamp),
     mPaymentOperationType(operationType),
     mAmount(amount),
-    mBalanceAfterOperation(balanceAfterOperation)
+    mBalanceAfterOperation(balanceAfterOperation),
+    mCommandUUID(CommandUUID::empty())
 {}
 
 PaymentRecord::PaymentRecord(
@@ -44,7 +46,9 @@ PaymentRecord::PaymentRecord(
         operationUUID,
         NodeUUID::empty()),
     mPaymentOperationType(operationType),
-    mAmount(amount)
+    mAmount(amount),
+    mBalanceAfterOperation(0),
+    mCommandUUID(CommandUUID::empty())
 {}
 
 PaymentRecord::PaymentRecord(
@@ -59,7 +63,47 @@ PaymentRecord::PaymentRecord(
         NodeUUID::empty(),
         geoEpochTimestamp),
     mPaymentOperationType(operationType),
-    mAmount(amount)
+    mAmount(amount),
+    mBalanceAfterOperation(0),
+    mCommandUUID(CommandUUID::empty())
+{}
+
+PaymentRecord::PaymentRecord(
+    const TransactionUUID &operationUUID,
+    const PaymentRecord::PaymentOperationType operationType,
+    const NodeUUID &contractorUUID,
+    const TrustLineAmount &amount,
+    const TrustLineBalance &balanceAfterOperation,
+    const CommandUUID &commandUUID):
+
+    Record(
+        Record::RecordType::PaymentRecordType,
+        operationUUID,
+        contractorUUID),
+    mPaymentOperationType(operationType),
+    mAmount(amount),
+    mBalanceAfterOperation(balanceAfterOperation),
+    mCommandUUID(commandUUID)
+{}
+
+PaymentRecord::PaymentRecord(
+    const TransactionUUID &operationUUID,
+    const PaymentRecord::PaymentOperationType operationType,
+    const NodeUUID &contractorUUID,
+    const TrustLineAmount &amount,
+    const TrustLineBalance &balanceAfterOperation,
+    const CommandUUID &commandUUID,
+    const GEOEpochTimestamp geoEpochTimestamp):
+
+    Record(
+        Record::RecordType::PaymentRecordType,
+        operationUUID,
+        contractorUUID,
+        geoEpochTimestamp),
+    mPaymentOperationType(operationType),
+    mAmount(amount),
+    mBalanceAfterOperation(balanceAfterOperation),
+    mCommandUUID(commandUUID)
 {}
 
 const bool PaymentRecord::isPaymentRecord() const
@@ -72,12 +116,17 @@ const PaymentRecord::PaymentOperationType PaymentRecord::paymentOperationType() 
     return mPaymentOperationType;
 }
 
-const TrustLineAmount PaymentRecord::amount() const
+const TrustLineAmount& PaymentRecord::amount() const
 {
     return mAmount;
 }
 
-const TrustLineBalance PaymentRecord::balanceAfterOperation() const
+const TrustLineBalance& PaymentRecord::balanceAfterOperation() const
 {
     return mBalanceAfterOperation;
+}
+
+const CommandUUID& PaymentRecord::commandUUID() const
+{
+    return mCommandUUID;
 }

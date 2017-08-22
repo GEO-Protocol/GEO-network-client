@@ -124,7 +124,9 @@ void HistoryPaymentsCommand::parse(
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = command.size() - 1;
+    nextTokenSeparatorPos = command.find(
+        kTokensSeparator,
+        tokenSeparatorPos + 1);
     string highBoundaryAmountStr = command.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
@@ -138,6 +140,23 @@ void HistoryPaymentsCommand::parse(
         } catch (...) {
             throw ValueError("HistoryPaymentsCommand::parse: "
                                  "Can't parse command. Error occurred while parsing 'mHighBoundaryAmount' token.");
+        }
+    }
+
+    tokenSeparatorPos = nextTokenSeparatorPos;
+    nextTokenSeparatorPos = command.size() - 1;
+    string paymentRecordCommandUUIDStr = command.substr(
+        tokenSeparatorPos + 1,
+        CommandUUID::kHexSize);
+    if (paymentRecordCommandUUIDStr == kNullParameter) {
+        mIsPaymentRecordCommandUUIDPresent = false;
+    } else {
+        mIsPaymentRecordCommandUUIDPresent = true;
+        try {
+            mPaymentRecordCommandUUID = boost::lexical_cast<uuids::uuid>(paymentRecordCommandUUIDStr);
+        } catch (...) {
+            throw ValueError("HistoryPaymentsCommand::parse: "
+                                 "Can't parse command. Error occurred while parsing 'mPaymentRecordCommandUUID' token.");
         }
     }
 }
@@ -190,6 +209,16 @@ const bool HistoryPaymentsCommand::isLowBoundaryAmountPresent() const
 const bool HistoryPaymentsCommand::isHighBoundaryAmountPresent() const
 {
     return mIsHighBoundaryAmountPresent;
+}
+
+const CommandUUID& HistoryPaymentsCommand::paymentRecordCommandUUID() const
+{
+    return mPaymentRecordCommandUUID;
+}
+
+const bool HistoryPaymentsCommand::isPaymentRecordCommandUUIDPresent() const
+{
+    return mIsPaymentRecordCommandUUIDPresent;
 }
 
 CommandResult::SharedConst HistoryPaymentsCommand::resultOk(string &historyPaymentsStr) const

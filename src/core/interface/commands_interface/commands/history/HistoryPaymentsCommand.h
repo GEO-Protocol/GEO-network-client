@@ -39,6 +39,10 @@ public:
 
     const bool isHighBoundaryAmountPresent() const;
 
+    const CommandUUID &paymentRecordCommandUUID() const;
+
+    const bool isPaymentRecordCommandUUIDPresent() const;
+
 protected:
     void parse(
         const string &command);
@@ -57,6 +61,8 @@ private:
     TrustLineAmount mHighBoundaryAmount;
     bool mIsLowBoundartAmountPresent;
     bool mIsHighBoundaryAmountPresent;
+    CommandUUID mPaymentRecordCommandUUID;
+    bool mIsPaymentRecordCommandUUIDPresent;
 };
 
 

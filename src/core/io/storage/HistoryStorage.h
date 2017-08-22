@@ -53,6 +53,9 @@ public:
         const TrustLineAmount& highBoundaryAmount,
         bool isHighBoundaryAmountPresent);
 
+    vector<PaymentRecord::Shared> paymentRecordsByCommandUUID(
+        const CommandUUID &commandUUID);
+
     vector<PaymentRecord::Shared> allPaymentAdditionalRecords();
 
     vector<Record::Shared> recordsWithContractor(

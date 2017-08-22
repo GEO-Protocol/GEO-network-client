@@ -203,7 +203,7 @@ void HistoryStorage::savePaymentRecord(
 }
 
 void HistoryStorage::savePaymentMainRecord(
-        PaymentRecord::Shared record)
+    PaymentRecord::Shared record)
 {
     string query = "INSERT INTO " + mMainTableName
                    + "(operation_uuid, operation_timestamp, record_type, record_body, record_body_bytes_count) "
@@ -258,7 +258,7 @@ void HistoryStorage::savePaymentMainRecord(
 }
 
 void HistoryStorage::savePaymentAdditionalRecord(
-        PaymentRecord::Shared record)
+    PaymentRecord::Shared record)
 {
     string query = "INSERT INTO " + mAdditionalTableName
                    + "(operation_uuid, operation_timestamp, record_type, record_body, record_body_bytes_count) "
@@ -646,6 +646,39 @@ vector<Record::Shared> HistoryStorage::recordsWithContractor(
     return result;
 }
 
+vector<PaymentRecord::Shared> HistoryStorage::paymentRecordsByCommandUUID(
+    const CommandUUID &commandUUID)
+{
+    vector<PaymentRecord::Shared> result;
+    string query = "SELECT operation_uuid, operation_timestamp, record_body, record_body_bytes_count FROM "
+                   + mMainTableName + " WHERE record_type = ? ";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::paymentRecordsByCommandUUID: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, 1, Record::RecordType::PaymentRecordType);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::paymentRecordsByCommandUUID: "
+                          "Bad binding of RecordType; sqlite error: " + to_string(rc));
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW ) {
+        auto paymentRecord = deserializePaymentRecord(stmt);
+        if (paymentRecord->commandUUID() == commandUUID) {
+            sqlite3_reset(stmt);
+            sqlite3_finalize(stmt);
+            result.push_back(paymentRecord);
+            return result;
+        }
+    }
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 pair<BytesShared, size_t> HistoryStorage::serializedTrustLineRecordBody(
     TrustLineRecord::Shared trustLineRecord)
 {
@@ -696,6 +729,9 @@ pair<BytesShared, size_t> HistoryStorage::serializedPaymentRecordBody(
            + NodeUUID::kBytesSize
            + kTrustLineAmountBytesCount
            + kTrustLineBalanceSerializeBytesCount;
+    if (paymentRecord->paymentOperationType() == PaymentRecord::OutgoingPaymentType) {
+        recordBodySize += CommandUUID::kBytesSize;
+    }
 
     BytesShared bytesBuffer = tryCalloc(
         recordBodySize);
@@ -730,6 +766,14 @@ pair<BytesShared, size_t> HistoryStorage::serializedPaymentRecordBody(
         bytesBuffer.get() + bytesBufferOffset,
         trustBalanceBytes.data(),
         kTrustLineBalanceSerializeBytesCount);
+    bytesBufferOffset += kTrustLineBalanceSerializeBytesCount;
+
+    if (paymentRecord->paymentOperationType() == PaymentRecord::OutgoingPaymentType) {
+        memcpy(
+            bytesBuffer.get() + bytesBufferOffset,
+            paymentRecord->commandUUID().data,
+            CommandUUID::kBytesSize);
+    }
 
     return make_pair(
         bytesBuffer,
@@ -839,6 +883,19 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
         recordBody.get() + dataBufferOffset + kTrustLineBalanceSerializeBytesCount);
     TrustLineBalance balanceAfterOperation = bytesToTrustLineBalance(
         balanceBytes);
+    dataBufferOffset += kTrustLineBalanceSerializeBytesCount;
+
+    if (*operationType == PaymentRecord::OutgoingPaymentType) {
+        CommandUUID commandUUID(recordBody.get() + dataBufferOffset);
+        return make_shared<PaymentRecord>(
+            operationUUID,
+            (PaymentRecord::PaymentOperationType) *operationType,
+            contractorUUID,
+            amount,
+            balanceAfterOperation,
+            commandUUID,
+            timestamp);
+    }
 
     return make_shared<PaymentRecord>(
         operationUUID,
@@ -850,7 +907,7 @@ PaymentRecord::Shared HistoryStorage::deserializePaymentRecord(
 }
 
 PaymentRecord::Shared HistoryStorage::deserializePaymentAdditionalRecord(
-        sqlite3_stmt *stmt)
+    sqlite3_stmt *stmt)
 {
     TransactionUUID operationUUID((uint8_t *)sqlite3_column_blob(stmt, 0));
     GEOEpochTimestamp timestamp = (GEOEpochTimestamp)sqlite3_column_int64(stmt, 1);
@@ -902,10 +959,12 @@ const string HistoryStorage::logHeader() const
     return s.str();
 }
 
-const string HistoryStorage::mainTableName() const {
+const string HistoryStorage::mainTableName() const
+{
     return mMainTableName;
 }
 
-const string HistoryStorage::additionalTableName() const {
+const string HistoryStorage::additionalTableName() const
+{
     return mAdditionalTableName;
 }
