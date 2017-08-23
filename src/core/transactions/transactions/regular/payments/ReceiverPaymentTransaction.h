@@ -35,8 +35,9 @@ public:
 protected:
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage();
-    TransactionResult::SharedConst runClarificationOfTransactionDuringVoting();
+    TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
+    TransactionResult::SharedConst runClarificationOfTransactionDuringVoting();
 
 protected:
     // Receiver must must save payment operation into history.

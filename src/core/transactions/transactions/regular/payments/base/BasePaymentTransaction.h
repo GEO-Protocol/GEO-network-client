@@ -114,7 +114,8 @@ protected:
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,
         Common_Recovery,
-        Common_ClarificationTransaction,
+        Common_ClarificationTransactionBeforeVoting,
+        Common_ClarificationTransactionDuringVoting,
 
         Common_RollbackByOtherTransaction
     };

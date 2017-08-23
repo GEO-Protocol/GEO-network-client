@@ -38,8 +38,9 @@ protected:
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
     TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
     TransactionResult::SharedConst runReservationProlongationStage();
-    TransactionResult::SharedConst runClarificationOfTransaction();
+    TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
+    TransactionResult::SharedConst runClarificationOfTransactionDuringVoting();
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
 
 protected:
