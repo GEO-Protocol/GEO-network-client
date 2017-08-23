@@ -489,6 +489,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveNextInte
         debug() << "No unprocessed paths are left.";
         debug() << "Requested amount can't be collected. Canceling.";
         rollBack();
+        informAllNodesAboutTransactionFinish();
         return resultInsufficientFundsError();
     }
 }
@@ -776,6 +777,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             mCountReceiverInaccessible++;
             if (mCountReceiverInaccessible >= kMaxReceiverInaccessible) {
                 reject("Contractor is offline. Rollback.");
+                informAllNodesAboutTransactionFinish();
                 return resultNoResponseError();
             }
         }
@@ -841,11 +843,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
 
         if (kTotalAmount > mCommand->amount()){
             error() << "Total requested amount: " << mCommand->amount();
-            error() << "Total collected amount is greater than requested amount. "
-                "It indicates that some of the nodes doesn't follows the protocol, "
-                "or that an error is present in protocol itself.";
-            rollBack();
-            return resultNoConsensusError();
+            return reject("Total collected amount is greater than requested amount. "
+                              "It indicates that some of the nodes doesn't follows the protocol, "
+                              "or that an error is present in protocol itself.");
         }
 
 #ifdef TESTS
@@ -976,6 +976,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             mCountReceiverInaccessible++;
             if (mCountReceiverInaccessible >= kMaxReceiverInaccessible) {
                 reject("Contractor is offline. Rollback.");
+                informAllNodesAboutTransactionFinish();
                 return resultNoResponseError();
             }
         }
@@ -1056,11 +1057,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
             if (kTotalAmount > mCommand->amount()){
                 error() << "Total requested amount: " << mCommand->amount();
-                error() << "Total collected amount is greater than requested amount. "
-                           "It indicates that some of the nodes doesn't follows the protocol, "
-                           "or that an error is present in protocol itself.";
-                rollBack();
-                return resultNoConsensusError();
+                return reject("Total collected amount is greater than requested amount. "
+                                  "It indicates that some of the nodes doesn't follows the protocol, "
+                                  "or that an error is present in protocol itself.");
             }
 
 #ifdef TESTS
@@ -1113,6 +1112,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
         }
 
         rollBack();
+        informAllNodesAboutTransactionFinish();
         return resultInsufficientFundsError();
     }
 }
@@ -1280,11 +1280,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultUnexpectedEr
         mCommand->responseUnexpectedError());
 }
 
-void CoordinatorPaymentTransaction::deserializeFromBytes(BytesShared buffer)
-{
-    BasePaymentTransaction::deserializeFromBytes(buffer);
-}
-
 TrustLineAmount CoordinatorPaymentTransaction::totalReservedByAllPaths() const
 {
     TrustLineAmount totalAmount = 0;
@@ -1332,7 +1327,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::reject(
     const char *message)
 {
     BasePaymentTransaction::reject(message);
-
+    if (mParticipantsVotesMessage == nullptr) {
+        informAllNodesAboutTransactionFinish();
+    }
     return resultNoConsensusError();
 }
 
@@ -1392,11 +1389,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
 
     if (kTotalAmount > mCommand->amount()){
         error() << "Total requested amount: " << mCommand->amount();
-        error() << "Total collected amount is greater than requested amount. "
-                << "It indicates that some of the nodes doesn't follows the protocol, "
-                << "or that an error is present in protocol itself.";
-        rollBack();
-        return resultNoConsensusError();
+        return reject("Total collected amount is greater than requested amount. "
+                          "It indicates that some of the nodes doesn't follows the protocol, "
+                          "or that an error is present in protocol itself.");
     }
 
     addFinalConfigurationOnPath(
@@ -1559,6 +1554,19 @@ void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
             mNodesFinalAmountsConfiguration[node].push_back(
                 pathUUIDAndAmount);
         }
+    }
+}
+
+void CoordinatorPaymentTransaction::informAllNodesAboutTransactionFinish()
+{
+    debug() << "informAllNodesAboutTransactionFinish";
+    for (auto const nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
+        sendMessage<TTLProlongationResponseMessage>(
+            nodeAndFinalAmountsConfig.first,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            TTLProlongationResponseMessage::Finish);
+        debug() << "Send transaction finishing message to node " << nodeAndFinalAmountsConfig.first;
     }
 }
 

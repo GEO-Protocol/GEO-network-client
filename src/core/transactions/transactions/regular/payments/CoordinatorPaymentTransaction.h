@@ -140,6 +140,8 @@ protected:
     [[deprecated("Use BasePaymentTransaction::totalReservedAmount() instead")]]
     TrustLineAmount totalReservedByAllPaths() const;
 
+    void informAllNodesAboutTransactionFinish();
+
     void savePaymentOperationIntoHistory();
 
     bool checkReservationsDirections() const;
@@ -149,15 +151,13 @@ protected:
 protected:
     const string logHeader() const;
 
-    void deserializeFromBytes(
-        BytesShared buffer);
-
     bool isPathValid(
         Path::Shared path) const;
 
     void buildPathsAgain();
 
 protected:
+    // todo disscuss this parameter
     static const uint8_t kMaxReceiverInaccessible = 5;
 
 protected:

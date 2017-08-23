@@ -133,11 +133,15 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         // current path was rejected and need reset delay time
         // TODO check if message sender is coordinator
         debug() << "Receive TTL prolongation message";
-        clearContext();
-        return resultWaitForMessageTypes(
-            {Message::Payments_IntermediateNodeReservationRequest,
-             Message::Payments_TTLProlongationResponse},
-            maxNetworkDelay((kMaxPathLength - 1) * 4));
+        const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
+        if (kMessage->state() == TTLProlongationResponseMessage::Continue) {
+            debug() << "Transactions is still alive. Continue waiting for messages";
+            return resultWaitForMessageTypes(
+                {Message::Payments_IntermediateNodeReservationRequest,
+                 Message::Payments_TTLProlongationResponse},
+                maxNetworkDelay((kMaxPathLength - 1) * 4));
+        }
+        return reject("Coordinator send TTL message with transaction finish state. Rolling Back");
     }
     if (! contextIsValid(Message::Payments_IntermediateNodeReservationRequest))
         return reject("No amount reservation request was received. Rolled back.");
@@ -373,13 +377,17 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
         }
     }
 
-    // transactions is still alive and we continue waiting for messages
-    debug() << "Transactions is still alive. Continue waiting for messages";
-    mStep = Stages::Common_VotesChecking;
-    return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes,
-         Message::Payments_IntermediateNodeReservationResponse},
-        maxNetworkDelay(kMaxPathLength));
+    const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
+    if (kMessage->state() == TTLProlongationResponseMessage::Continue) {
+        // transactions is still alive and we continue waiting for messages
+        debug() << "Transactions is still alive. Continue waiting for messages";
+        mStep = Stages::Common_VotesChecking;
+        return resultWaitForMessageTypes(
+            {Message::Payments_ParticipantsVotes,
+             Message::Payments_IntermediateNodeReservationResponse},
+            maxNetworkDelay(kMaxPathLength));
+    }
+    return reject("Coordinator send TTL message with transaction finish state. Rolling Back");
 }
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::approve()

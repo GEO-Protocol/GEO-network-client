@@ -236,7 +236,11 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
 TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordinatorRequestProcessingStage()
 {
     debug() << "runCoordinatorRequestProcessingStage";
-    if (! contextIsValid(Message::Payments_CoordinatorCycleReservationRequest))
+    if (contextIsValid(Message::Payments_FinalPathConfiguration, false)) {
+        return runFinalPathConfigurationProcessingStage();
+    }
+
+    if (!contextIsValid(Message::Payments_CoordinatorCycleReservationRequest))
         return reject("No coordinator request received. Rolled back.");
 
     debug() << "Coordinator further reservation request received.";
@@ -472,11 +476,9 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     if (! contextIsValid(Message::Payments_FinalPathCycleConfiguration))
         return reject("No final paths configuration was received from the coordinator. Rejected.");
 
-
     const auto kMessage = popNextMessage<FinalPathCycleConfigurationMessage>();
 
     // TODO: check if message was really received from the coordinator;
-
 
     debug() << "Final payment path configuration received";
 

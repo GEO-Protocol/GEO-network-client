@@ -207,23 +207,15 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorReservationRequest,
          Message::Payments_IntermediateNodeReservationRequest,
-         Message::Payments_FinalAmountsConfiguration},
+         Message::Payments_FinalAmountsConfiguration,
+         Message::Payments_TTLProlongationResponse,
+         Message::Payments_FinalPathConfiguration},
         maxNetworkDelay(3));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinatorRequestProcessingStage()
 {
     debug() << "runCoordinatorRequestProcessingStage";
-
-    // If IntermediateNodeReservationResponseMessage wasn't deliver on previous stage,
-    // we can receive IntermediateNodeReservationRequestMessage or FinalAmountsConfigurationMessage
-    // and we should process them properly
-    if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
-        return runReservationProlongationStage();
-    }
-    if (contextIsValid(Message::Payments_FinalAmountsConfiguration, false)) {
-        return runReservationProlongationStage();
-    }
 
     if (!contextIsValid(Message::Payments_CoordinatorReservationRequest, false)) {
         debug() << "No coordinator request received.";
@@ -476,20 +468,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
 {
     // receive final amount on current path
     debug() << "runFinalPathConfigurationProcessingStage";
-    // if FinalPathConfigurationMessage wasn't deleivered, then according to algorithm
-    // we can receive IntermediateNodeReservationRequest or FinalAmountsConfiguration
-    // and we should process it properly
-    if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
-        mMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
-        return runPreviousNeighborRequestProcessingStage();
-    }
-    if (contextIsValid(Message::Payments_FinalAmountsConfiguration, false)) {
-        return runFinalAmountsConfigurationConfirmation();
-    }
 
-    if (! contextIsValid(Message::Payments_FinalPathConfiguration))
-        return reject("No final paths configuration was received from the coordinator. Rejected.");
-
+    if (!contextIsValid(Message::Payments_FinalPathConfiguration, false)) {
+        debug() << "No final paths configuration was received from the coordinator.";
+        return runReservationProlongationStage();
+    }
 
     const auto kMessage = popNextMessage<FinalPathConfigurationMessage>();
 
@@ -524,7 +507,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
     mStep = Stages::IntermediateNode_ReservationProlongation;
     return resultWaitForMessageTypes(
         {Message::Payments_FinalAmountsConfiguration,
-         Message::Payments_IntermediateNodeReservationRequest},
+         Message::Payments_IntermediateNodeReservationRequest,
+         Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(kMaxPathLength - 2));
 }
 
@@ -537,6 +521,15 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
         mMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
         return runPreviousNeighborRequestProcessingStage();
     }
+
+    if (contextIsValid(Message::Payments_TTLProlongationResponse, false)) {
+        runClarificationOfTransaction();
+    }
+
+    if (contextIsValid(Message::Payments_FinalPathConfiguration, false)) {
+        runFinalPathConfigurationProcessingStage();
+    }
+
     // Node is clarifying of coordinator if transaction is still alive
     if (!contextIsValid(Message::Payments_FinalAmountsConfiguration)) {
         debug() << "Send TTLTransaction message to coordinator " << mCoordinator;
@@ -628,7 +621,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
 
     mStep = Common_VotesChecking;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes},
+        {Message::Payments_ParticipantsVotes,
+         Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(5)); // todo : need discuss this parameter (5)
 }
 
@@ -637,6 +631,16 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
     if (contextIsValid(Message::Payments_ParticipantsVotes, false)) {
         return runVotesCheckingStage();
     }
+
+    if (contextIsValid(Message::Payments_TTLProlongationResponse, false)) {
+        debug() << "Receive TTL Message";
+        const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
+        if (kMessage->state() == TTLProlongationResponseMessage::Finish) {
+            return reject("Coordinator send response with transaction finish state. Rolling Back");
+        }
+        return reject("Invalid TTL transaction state. Rolling back");
+    }
+
     debug() << "Send TTLTransaction message to coordinator " << mCoordinator;
     sendMessage<TTLProlongationRequestMessage>(
         mCoordinator,

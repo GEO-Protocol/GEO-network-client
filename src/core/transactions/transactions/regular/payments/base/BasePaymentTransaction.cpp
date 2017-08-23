@@ -838,16 +838,13 @@ void BasePaymentTransaction::dropReservationsOnPath(
         mReservations.erase(firstIntermediateNode);
     }
 
-    // send message with droping reservation instruction to all intermediate nodes because this path is unusable
+    // send message with dropping reservation instruction to all intermediate nodes because this path is unusable
     if (pathStats->path()->length() == 2) {
         return;
     }
     const auto lastProcessedNodeAndPos = pathStats->currentIntermediateNodeAndPos();
     const auto lastProcessedNode = lastProcessedNodeAndPos.first;
     for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
-        if (intermediateNode == lastProcessedNode) {
-            break;
-        }
         debug() << "send message with drop reservation info for node " << intermediateNode;
         sendMessage<FinalPathConfigurationMessage>(
             intermediateNode,
@@ -855,6 +852,9 @@ void BasePaymentTransaction::dropReservationsOnPath(
             currentTransactionUUID(),
             pathUUID,
             0);
+        if (intermediateNode == lastProcessedNode) {
+            break;
+        }
     }
 }
 
