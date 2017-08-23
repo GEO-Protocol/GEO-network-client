@@ -556,7 +556,7 @@ bool CycleCloserIntermediateNodeTransaction::checkReservationsDirections() const
     }
 
     auto firstNodeReservation = mReservations.begin()->second;
-    auto secondNodeReservation = mReservations.end() ->second;
+    auto secondNodeReservation = mReservations.rbegin()->second;
     if (firstNodeReservation.size() != 1 || secondNodeReservation.size() != 1) {
         error() << "Wrong reservations size";
         return false;

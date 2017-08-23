@@ -35,7 +35,7 @@ public:
 protected:
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage();
-    TransactionResult::SharedConst runClarificationOfTransaction();
+    TransactionResult::SharedConst runClarificationOfTransactionDuringVoting();
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
 
 protected:
