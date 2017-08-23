@@ -708,6 +708,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         return tryProcessNextPath();
     }
 
+    if (message->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
+        return reject("Unexpected message state. Protocol error. Transaction closed.");
+    }
 
     debug() << "(" << message->senderUUID << ") approved reservation request.";
     auto path = currentAmountReservationPathStats();
@@ -737,7 +740,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)) {
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
-            mCurrentAmountReservingPathIdentifier);
+            mCurrentAmountReservingPathIdentifier,
+            true);
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
@@ -777,7 +781,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             mCountReceiverInaccessible++;
             if (mCountReceiverInaccessible >= kMaxReceiverInaccessible) {
                 reject("Contractor is offline. Rollback.");
-                informAllNodesAboutTransactionFinish();
                 return resultNoResponseError();
             }
         }
@@ -808,6 +811,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
             currentTransactionUUID(),
             TTLProlongationResponseMessage::Continue);
         return tryProcessNextPath();
+    }
+
+    if (message->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
+        return reject("Unexpected message state. Protocol error. Transaction closed.");
     }
 
     auto path = currentAmountReservationPathStats();
@@ -842,7 +849,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         debug() << "Total collected amount by all paths: " << kTotalAmount;
 
         if (kTotalAmount > mCommand->amount()){
-            error() << "Total requested amount: " << mCommand->amount();
+            debug() << "Total requested amount: " << mCommand->amount();
             return reject("Total collected amount is greater than requested amount. "
                               "It indicates that some of the nodes doesn't follows the protocol, "
                               "or that an error is present in protocol itself.");
@@ -934,7 +941,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
     if (! contextIsValid(Message::Payments_CoordinatorReservationResponse)){
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
-            mCurrentAmountReservingPathIdentifier);
+            mCurrentAmountReservingPathIdentifier,
+            true);
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
@@ -976,7 +984,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             mCountReceiverInaccessible++;
             if (mCountReceiverInaccessible >= kMaxReceiverInaccessible) {
                 reject("Contractor is offline. Rollback.");
-                informAllNodesAboutTransactionFinish();
                 return resultNoResponseError();
             }
         }
@@ -1022,71 +1029,75 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
         return tryProcessNextPath();
 
-    } else {
-        const auto reservedAmount = message->amountReserved();
+    }
 
-        path->shortageMaxFlow(reservedAmount);
-        path->setNodeState(
-            R_PathPosition,
-            PathStats::ReservationApproved);
+    if (message->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
+        return reject("Unexpected message state. Protocol error. Transaction closed.");
+    }
 
-        // shortage reservation
-        // TODO maybe add if change path->maxFlow()
-        auto firstIntermediateNode = path->path()->nodes[1];
-        auto nodeReservations = mReservations[firstIntermediateNode];
-        for (auto const pathUUIDAndReservation : nodeReservations) {
-            if (pathUUIDAndReservation.first == mCurrentAmountReservingPathIdentifier) {
-                shortageReservation(
-                    firstIntermediateNode,
-                    pathUUIDAndReservation.second,
-                    path->maxFlow(),
-                    mCurrentAmountReservingPathIdentifier);
-            }
+    const auto reservedAmount = message->amountReserved();
+
+    path->shortageMaxFlow(reservedAmount);
+    path->setNodeState(
+        R_PathPosition,
+        PathStats::ReservationApproved);
+
+    // shortage reservation
+    // TODO maybe add if change path->maxFlow()
+    auto firstIntermediateNode = path->path()->nodes[1];
+    auto nodeReservations = mReservations[firstIntermediateNode];
+    for (auto const pathUUIDAndReservation : nodeReservations) {
+        if (pathUUIDAndReservation.first == mCurrentAmountReservingPathIdentifier) {
+            shortageReservation(
+                firstIntermediateNode,
+                pathUUIDAndReservation.second,
+                path->maxFlow(),
+                mCurrentAmountReservingPathIdentifier);
         }
+    }
 
-        debug() << "(" << message->senderUUID << ") reserved " << reservedAmount;
-        debug() << "Path max flow is now " << path->maxFlow();
+    debug() << "(" << message->senderUUID << ") reserved " << reservedAmount;
+    debug() << "Path max flow is now " << path->maxFlow();
 
-        if (path->isLastIntermediateNodeProcessed()) {
+    if (path->isLastIntermediateNodeProcessed()) {
 
-            const auto kTotalAmount = totalReservedAmount(
-                AmountReservation::Outgoing);
+        const auto kTotalAmount = totalReservedAmount(
+            AmountReservation::Outgoing);
 
-            debug() << "Current path reservation finished";
-            debug() << "Total collected amount by all paths: " << kTotalAmount;
+        debug() << "Current path reservation finished";
+        debug() << "Total collected amount by all paths: " << kTotalAmount;
 
-            if (kTotalAmount > mCommand->amount()){
-                error() << "Total requested amount: " << mCommand->amount();
-                return reject("Total collected amount is greater than requested amount. "
-                                  "It indicates that some of the nodes doesn't follows the protocol, "
-                                  "or that an error is present in protocol itself.");
-            }
+        if (kTotalAmount > mCommand->amount()){
+            debug() << "Total requested amount: " << mCommand->amount();
+            return reject("Total collected amount is greater than requested amount. "
+                              "It indicates that some of the nodes doesn't follows the protocol, "
+                              "or that an error is present in protocol itself.");
+        }
 
 #ifdef TESTS
-            mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
-                path->path()->intermediateUUIDs().size());
+        mSubsystemsController->testForbidSendMessageWithFinalPathConfiguration(
+            path->path()->intermediateUUIDs().size());
 #endif
 
-            // send final path amount to all intermediate nodes on path
-            sendFinalPathConfiguration(
-                currentAmountReservationPathStats(),
-                mCurrentAmountReservingPathIdentifier,
-                path->maxFlow());
+        // send final path amount to all intermediate nodes on path
+        sendFinalPathConfiguration(
+            currentAmountReservationPathStats(),
+            mCurrentAmountReservingPathIdentifier,
+            path->maxFlow());
 
-            addFinalConfigurationOnPath(
-                mCurrentAmountReservingPathIdentifier,
-                path);
+        addFinalConfigurationOnPath(
+            mCurrentAmountReservingPathIdentifier,
+            path);
 
-            if (kTotalAmount == mCommand->amount()){
-                debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
+        if (kTotalAmount == mCommand->amount()){
+            debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
 
-                return sendFinalAmountsConfigurationToAllParticipants();
-            }
-            return tryProcessNextPath();
+            return sendFinalAmountsConfigurationToAllParticipants();
         }
-
-        return tryReserveNextIntermediateNodeAmount(path);
+        return tryProcessNextPath();
     }
+
+    return tryReserveNextIntermediateNodeAmount(path);
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath()
@@ -1097,22 +1108,21 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
         return runAmountReservationStage();
 
     } catch (NotFoundError &e) {
-        debug() << "No another paths are available. Canceling.";
+        debug() << "No another paths are available. Try build new paths.";
 
         if (mInaccessibleNodes.size() != 0) {
             auto countPathsBeforeBuilding = mPathsStats.size();
             buildPathsAgain();
 
             if (mPathsStats.size() > countPathsBeforeBuilding) {
-                debug() << "new paths was built " << to_string(mPathsStats.size() - countPathsBeforeBuilding);
+                debug() << "New paths was built " << to_string(mPathsStats.size() - countPathsBeforeBuilding);
                 initAmountsReservationOnNextPath();
                 return runAmountReservationStage();
             }
-            debug() << "new paths was not built";
+            debug() << "New paths was not built";
         }
 
-        rollBack();
-        informAllNodesAboutTransactionFinish();
+        reject("No another paths are available. Canceling.");
         return resultInsufficientFundsError();
     }
 }
@@ -1559,7 +1569,8 @@ void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
 
 void CoordinatorPaymentTransaction::dropReservationsOnPath(
     PathStats *pathStats,
-    PathUUID pathUUID)
+    PathUUID pathUUID,
+    bool sendToLastProcessedNode)
 {
     debug() << "dropReservationsOnPath";
     pathStats->setUnusable();
@@ -1591,6 +1602,9 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
     const auto lastProcessedNodeAndPos = pathStats->currentIntermediateNodeAndPos();
     const auto lastProcessedNode = lastProcessedNodeAndPos.first;
     for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
+        if (!sendToLastProcessedNode && intermediateNode == lastProcessedNode) {
+            break;
+        }
         debug() << "send message with drop reservation info for node " << intermediateNode;
         sendMessage<FinalPathConfigurationMessage>(
             intermediateNode,
@@ -1598,7 +1612,7 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
             currentTransactionUUID(),
             pathUUID,
             0);
-        if (intermediateNode == lastProcessedNode) {
+        if (sendToLastProcessedNode && intermediateNode == lastProcessedNode) {
             break;
         }
     }

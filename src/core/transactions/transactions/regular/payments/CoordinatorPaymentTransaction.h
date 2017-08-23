@@ -137,9 +137,12 @@ protected:
         PathUUID pathUUID,
         PathStats* pathStats);
 
+    // sendToLastProcessedNode indicates if message with 0 amount
+    // will be send to current node on path
     void dropReservationsOnPath(
         PathStats *pathStats,
-        PathUUID pathUUID);
+        PathUUID pathUUID,
+        bool sendToLastProcessedNode = false);
 
     [[deprecated("Use BasePaymentTransaction::totalReservedAmount() instead")]]
     TrustLineAmount totalReservedByAllPaths() const;

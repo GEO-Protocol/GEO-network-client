@@ -106,7 +106,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_IntermediateNodeReservationRequest},
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
@@ -130,7 +131,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             mStep = Stages::IntermediateNode_ReservationProlongation;
             return resultWaitForMessageTypes(
                 {Message::Payments_FinalAmountsConfiguration,
-                 Message::Payments_IntermediateNodeReservationRequest},
+                 Message::Payments_IntermediateNodeReservationRequest,
+                 Message::Payments_TTLProlongationResponse},
                 maxNetworkDelay(kMaxPathLength - 2));
         }
     }
@@ -157,7 +159,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_IntermediateNodeReservationRequest},
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
     debug() << "All reservations was updated";
@@ -190,7 +193,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             mStep = Stages::IntermediateNode_ReservationProlongation;
             return resultWaitForMessageTypes(
                 {Message::Payments_FinalAmountsConfiguration,
-                 Message::Payments_IntermediateNodeReservationRequest},
+                 Message::Payments_IntermediateNodeReservationRequest,
+                 Message::Payments_TTLProlongationResponse},
                 maxNetworkDelay(kMaxPathLength - 2));
         }
     }
@@ -211,8 +215,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         {Message::Payments_CoordinatorReservationRequest,
          Message::Payments_IntermediateNodeReservationRequest,
          Message::Payments_FinalAmountsConfiguration,
-         Message::Payments_TTLProlongationResponse,
-         Message::Payments_FinalPathConfiguration},
+         Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(3));
 }
 
@@ -252,7 +255,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_IntermediateNodeReservationRequest},
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
@@ -280,7 +284,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_IntermediateNodeReservationRequest},
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
@@ -309,7 +314,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_IntermediateNodeReservationRequest},
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
@@ -347,15 +353,19 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
     mStep = Stages::IntermediateNode_NextNeighborResponseProcessing;
     return resultWaitForMessageTypes(
-        {Message::Payments_IntermediateNodeReservationResponse},
+        {Message::Payments_IntermediateNodeReservationResponse,
+         Message::Payments_IntermediateNodeReservationRequest,
+         Message::Payments_FinalPathConfiguration,
+         Message::Payments_FinalAmountsConfiguration,
+         Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighborResponseProcessingStage()
 {
     debug() << "runNextNeighborResponseProcessingStage";
-    if (! contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
-        debug() << "No valid amount reservation response received. Rolled back.";
+    if (mContext.empty()) {
+        debug() << "No amount reservation response received. Rolled back.";
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
@@ -371,8 +381,13 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_IntermediateNodeReservationRequest},
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
+    }
+
+    if (!contextIsValid(Message::Payments_IntermediateNodeReservationResponse)) {
+        return runReservationProlongationStage();
     }
 
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
@@ -404,7 +419,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_IntermediateNodeReservationRequest},
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
@@ -425,7 +441,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         mStep = Stages::IntermediateNode_ReservationProlongation;
         return resultWaitForMessageTypes(
             {Message::Payments_FinalAmountsConfiguration,
-             Message::Payments_IntermediateNodeReservationRequest},
+             Message::Payments_IntermediateNodeReservationRequest,
+             Message::Payments_TTLProlongationResponse},
             maxNetworkDelay((kMaxPathLength - 2) * 4));
     }
 
@@ -463,7 +480,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     return resultWaitForMessageTypes(
         {Message::Payments_FinalPathConfiguration,
          Message::Payments_IntermediateNodeReservationRequest,
-         Message::Payments_FinalAmountsConfiguration},
+         Message::Payments_FinalAmountsConfiguration,
+         Message::Payments_TTLProlongationResponse},
         maxNetworkDelay((kMaxPathLength - 2) * 4));
 }
 
@@ -492,17 +510,17 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
-    } else {
-        // Shortening all reservations that belongs to this node and path.
-        for (const auto &nodeAndReservations : mReservations) {
-            for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
-                if (pathUUIDAndReservation.first == kMessage->pathUUID()) {
-                    shortageReservation(
-                        nodeAndReservations.first,
-                        pathUUIDAndReservation.second,
-                        kMessage->amount(),
-                        pathUUIDAndReservation.first);
-                }
+    }
+
+    // Shortening all reservations that belongs to this node and path.
+    for (const auto &nodeAndReservations : mReservations) {
+        for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
+            if (pathUUIDAndReservation.first == kMessage->pathUUID()) {
+                shortageReservation(
+                    nodeAndReservations.first,
+                    pathUUIDAndReservation.second,
+                    kMessage->amount(),
+                    pathUUIDAndReservation.first);
             }
         }
     }
@@ -512,7 +530,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
         {Message::Payments_FinalAmountsConfiguration,
          Message::Payments_IntermediateNodeReservationRequest,
          Message::Payments_TTLProlongationResponse},
-        maxNetworkDelay(kMaxPathLength - 2));
+        maxNetworkDelay((kMaxPathLength - 2) * 4));
 }
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservationProlongationStage()
