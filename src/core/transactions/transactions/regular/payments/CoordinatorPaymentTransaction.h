@@ -90,7 +90,7 @@ protected:
     TransactionResult::SharedConst resultUnexpectedError();
 
 protected:
-    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
+    TransactionResult::SharedConst propagateVotesListAndWaitForVotingResult();
 
     void addPathForFurtherProcessing(
         Path::ConstShared path);
@@ -137,6 +137,10 @@ protected:
         PathUUID pathUUID,
         PathStats* pathStats);
 
+    void dropReservationsOnPath(
+        PathStats *pathStats,
+        PathUUID pathUUID);
+
     [[deprecated("Use BasePaymentTransaction::totalReservedAmount() instead")]]
     TrustLineAmount totalReservedByAllPaths() const;
 
@@ -157,7 +161,7 @@ protected:
     void buildPathsAgain();
 
 protected:
-    // todo disscuss this parameter
+    // todo discuss this parameter
     static const uint8_t kMaxReceiverInaccessible = 5;
 
 protected:

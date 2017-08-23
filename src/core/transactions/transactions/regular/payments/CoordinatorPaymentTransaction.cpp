@@ -264,9 +264,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
  * @param shouldSetUpDelay flag which tell us if need check on delay before sending,
  * has true value only on processRemoteNodeResponse stage
  */
-TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVoutingResult()
+TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesListAndWaitForVotingResult()
 {
-    debug() << "propagateVotesListAndWaitForVoutingResult";
+    debug() << "propagateVotesListAndWaitForVotingResult";
     const auto kCurrentNodeUUID = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
@@ -1193,7 +1193,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
             }
         }
         debug() << "All nodes confirmed final configuration. Begin processing participants votes.";
-        return propagateVotesListAndWaitForVoutingResult();
+        return propagateVotesListAndWaitForVotingResult();
     }
     return reject("Some nodes didn't confirm final amount configuration. Transaction rejected.");
 }
@@ -1404,7 +1404,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
 
         // in case of reservation of all transaction amount on direct TL,
         // we skip sendFinalAmountsConfigurationToAllParticipants stage
-        return propagateVotesListAndWaitForVoutingResult();
+        return propagateVotesListAndWaitForVotingResult();
     }
     mStep = Stages::Coordinator_AmountReservation;
     return tryProcessNextPath();
@@ -1553,6 +1553,53 @@ void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
         } else {
             mNodesFinalAmountsConfiguration[node].push_back(
                 pathUUIDAndAmount);
+        }
+    }
+}
+
+void CoordinatorPaymentTransaction::dropReservationsOnPath(
+    PathStats *pathStats,
+    PathUUID pathUUID)
+{
+    debug() << "dropReservationsOnPath";
+    pathStats->setUnusable();
+
+    auto firstIntermediateNode = pathStats->path()->nodes[1];
+    // TODO add checking if not find
+    auto nodeReservations = mReservations.find(firstIntermediateNode);
+    auto itPathUUIDAndReservation = nodeReservations->second.begin();
+    while (itPathUUIDAndReservation != nodeReservations->second.end()) {
+        if (itPathUUIDAndReservation->first == pathUUID) {
+            debug() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
+                    << " for (" << firstIntermediateNode << ") [" << pathUUID << "]";
+            mTrustLines->dropAmountReservation(
+                firstIntermediateNode,
+                itPathUUIDAndReservation->second);
+            itPathUUIDAndReservation = nodeReservations->second.erase(itPathUUIDAndReservation);
+        } else {
+            itPathUUIDAndReservation++;
+        }
+    }
+    if (nodeReservations->second.size() == 0) {
+        mReservations.erase(firstIntermediateNode);
+    }
+
+    // send message with dropping reservation instruction to all intermediate nodes because this path is unusable
+    if (pathStats->path()->length() == 2) {
+        return;
+    }
+    const auto lastProcessedNodeAndPos = pathStats->currentIntermediateNodeAndPos();
+    const auto lastProcessedNode = lastProcessedNodeAndPos.first;
+    for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
+        debug() << "send message with drop reservation info for node " << intermediateNode;
+        sendMessage<FinalPathConfigurationMessage>(
+            intermediateNode,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            pathUUID,
+            0);
+        if (intermediateNode == lastProcessedNode) {
+            break;
         }
     }
 }

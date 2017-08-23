@@ -811,53 +811,6 @@ TransactionResult::SharedConst BasePaymentTransaction::exitWithResult(
     return result;
 }
 
-void BasePaymentTransaction::dropReservationsOnPath(
-    PathStats *pathStats,
-    PathUUID pathUUID)
-{
-    debug() << "dropReservationsOnPath";
-    pathStats->setUnusable();
-
-    auto firstIntermediateNode = pathStats->path()->nodes[1];
-    // TODO add checking if not find
-    auto nodeReservations = mReservations.find(firstIntermediateNode);
-    auto itPathUUIDAndReservation = nodeReservations->second.begin();
-    while (itPathUUIDAndReservation != nodeReservations->second.end()) {
-        if (itPathUUIDAndReservation->first == pathUUID) {
-            debug() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
-                   << " for (" << firstIntermediateNode << ") [" << pathUUID << "]";
-            mTrustLines->dropAmountReservation(
-                firstIntermediateNode,
-                itPathUUIDAndReservation->second);
-            itPathUUIDAndReservation = nodeReservations->second.erase(itPathUUIDAndReservation);
-        } else {
-            itPathUUIDAndReservation++;
-        }
-    }
-    if (nodeReservations->second.size() == 0) {
-        mReservations.erase(firstIntermediateNode);
-    }
-
-    // send message with dropping reservation instruction to all intermediate nodes because this path is unusable
-    if (pathStats->path()->length() == 2) {
-        return;
-    }
-    const auto lastProcessedNodeAndPos = pathStats->currentIntermediateNodeAndPos();
-    const auto lastProcessedNode = lastProcessedNodeAndPos.first;
-    for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
-        debug() << "send message with drop reservation info for node " << intermediateNode;
-        sendMessage<FinalPathConfigurationMessage>(
-            intermediateNode,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            pathUUID,
-            0);
-        if (intermediateNode == lastProcessedNode) {
-            break;
-        }
-    }
-}
-
 void BasePaymentTransaction::dropNodeReservationsOnPath(
     PathUUID pathUUID)
 {

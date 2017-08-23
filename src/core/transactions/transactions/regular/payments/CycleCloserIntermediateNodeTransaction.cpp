@@ -62,11 +62,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
             case Stages::Common_FinalPathConfigurationChecking:
                 return runFinalPathConfigurationProcessingStage();
 
-            case Stages::IntermediateNode_ReservationProlongation:
-                return runReservationProlongationStage();
-
             case Stages::Common_VotesChecking:
-                return runVotesCheckingStage();
+                return runVotesCheckingStageWithPossibleTTL();
 
             case Stages::Common_Recovery:
                 return runVotesRecoveryParentStage();
@@ -162,7 +159,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             mPreviousNode,
             currentNodeUUID(),
             currentTransactionUUID(),
-            ResponseCycleMessage::Rejected);
+            ResponseCycleMessage::RejectedBecauseReservations);
         debug() << "can't reserve requested amount, transaction closed";
         return resultDone();
     }
@@ -186,7 +183,8 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
 
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
-        {Message::Payments_CoordinatorCycleReservationRequest},
+        {Message::Payments_CoordinatorCycleReservationRequest,
+         Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(3));
 }
 
@@ -205,7 +203,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             mPreviousNode,
             currentNodeUUID(),
             currentTransactionUUID(),
-            ResponseCycleMessage::Rejected);
+            ResponseCycleMessage::RejectedBecauseReservations);
         debug() << "can't reserve requested amount, transaction closed";
         return resultDone();
     }
@@ -229,15 +227,19 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
 
     mStep = Stages::IntermediateNode_CoordinatorRequestProcessing;
     return resultWaitForMessageTypes(
-        {Message::Payments_CoordinatorCycleReservationRequest},
+        {Message::Payments_CoordinatorCycleReservationRequest,
+         Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(3));
 }
 
 TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordinatorRequestProcessingStage()
 {
     debug() << "runCoordinatorRequestProcessingStage";
-    if (contextIsValid(Message::Payments_FinalPathConfiguration, false)) {
-        return runFinalPathConfigurationProcessingStage();
+    if (contextIsValid(Message::Payments_TTLProlongationResponse, false)) {
+        debug() << "Receive TTL Finish message. Rolled back.";
+        clearContext();
+        rollBack();
+        return resultDone();
     }
 
     if (!contextIsValid(Message::Payments_CoordinatorCycleReservationRequest))
@@ -325,7 +327,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
             mCoordinator,
             currentNodeUUID(),
             currentTransactionUUID(),
-            ResponseCycleMessage::Rejected);
+            ResponseCycleMessage::RejectedBecauseReservations);
 
         debug() << "No amount reservation is possible. Rolled back.";
         rollBack();
@@ -370,7 +372,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
             mCoordinator,
             currentNodeUUID(),
             currentTransactionUUID(),
-            ResponseCycleMessage::Rejected);
+            ResponseCycleMessage::RejectedBecauseReservations);
 
         debug() << "No amount reservation is possible. Rolled back.";
         rollBack();
@@ -405,20 +407,39 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
     if (! contextIsValid(Message::Payments_IntermediateNodeCycleReservationResponse)) {
         debug() << "No valid amount reservation response received. Rolled back.";
         rollBack();
+        sendMessage<CoordinatorCycleReservationResponseMessage>(
+            mCoordinator,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::NextNodeInaccessible);
         return resultDone();
     }
 
     const auto kMessage = popNextMessage<IntermediateNodeCycleReservationResponseMessage>();
     const auto kContractor = kMessage->senderUUID;
 
-    if (kMessage->state() == IntermediateNodeCycleReservationResponseMessage::Rejected){
+    if (kMessage->state() == IntermediateNodeCycleReservationResponseMessage::Rejected ||
+            kMessage->state() == IntermediateNodeCycleReservationResponseMessage::RejectedBecauseReservations){
         sendMessage<CoordinatorCycleReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
             currentTransactionUUID(),
-            ResponseCycleMessage::Rejected);
+            kMessage->state());
         debug() << "Amount reservation rejected by the neighbor node.";
         rollBack();
+        return resultDone();
+    }
+
+    if (kMessage->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
+        error() << "Unexpected message state. Protocol error.";
+        rollBack();
+        // state RejectedBecauseReservations is needed for prevent
+        // add offline nodes and closed trustlines on coordinator
+        sendMessage<CoordinatorCycleReservationResponseMessage>(
+            mCoordinator,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            ResponseCycleMessage::RejectedBecauseReservations);
         return resultDone();
     }
 
@@ -453,26 +474,21 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
 
     mStep = Stages::Common_FinalPathConfigurationChecking;
     return resultWaitForMessageTypes(
-        {Message::Payments_FinalPathCycleConfiguration},
+        {Message::Payments_FinalPathCycleConfiguration,
+         Message::Payments_TTLProlongationResponse},
         maxNetworkDelay((kMaxPathLength - 2) * 4));
-}
-
-TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runReservationProlongationStage()
-{
-    debug() << "runReservationProlongationStage";
-    // In case if participants votes message is already received -
-    // there is no need to prolong reservation, transaction may be proceeded.
-    // Node is clarifying of coordinator if transaction is still alive
-    if (!contextIsValid(Message::Payments_ParticipantsVotes)) {
-        return reject("No participants votes message received. Transaction was closed. Rolling Back");
-    }
-    mStep = Stages::Common_VotesChecking;
-    return runVotesCheckingStage();
 }
 
 TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalPathConfigurationProcessingStage()
 {
     debug() << "runFinalPathConfigurationProcessingStage";
+    if (contextIsValid(Message::Payments_TTLProlongationResponse, false)) {
+        debug() << "Receive TTL Finish message. Rolled back.";
+        clearContext();
+        rollBack();
+        return resultDone();
+    }
+
     if (! contextIsValid(Message::Payments_FinalPathCycleConfiguration))
         return reject("No final paths configuration was received from the coordinator. Rejected.");
 
@@ -512,10 +528,35 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         currentTransactionUUID(),
         FinalAmountsConfigurationResponseMessage::Accepted);
 
-    mStep = Stages::IntermediateNode_ReservationProlongation;
+    mStep = Stages::Common_VotesChecking;
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes},
+        {Message::Payments_ParticipantsVotes,
+         Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(kMaxPathLength - 2));
+}
+
+TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runVotesCheckingStageWithPossibleTTL()
+{
+    debug() << "runVotesCheckingStageWithPossibleTTL";
+    if (contextIsValid(Message::Payments_TTLProlongationResponse, false)) {
+        if (mTransactionIsVoted) {
+            return recover("Unexpected message receive after voting. Protocol error.");
+        }
+        debug() << "Receive TTL Finish message. Rolled back.";
+        clearContext();
+        rollBack();
+        return resultDone();
+    }
+
+    if (!contextIsValid(Message::Payments_ParticipantsVotes)) {
+        if (mTransactionIsVoted) {
+            return recover("No participants votes message with all votes received.");
+        } else {
+            return reject("No participants votes message received. Transaction was closed. Rolling Back");
+        }
+    }
+
+    return runVotesCheckingStage();
 }
 
 const NodeUUID& CycleCloserIntermediateNodeTransaction::coordinatorUUID() const

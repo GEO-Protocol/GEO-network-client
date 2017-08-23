@@ -195,10 +195,6 @@ protected:
     void propagateVotesMessageToAllParticipants (
         const ParticipantsVotesMessage::Shared kMessage) const;
 
-    void dropReservationsOnPath(
-        PathStats *pathStats,
-        PathUUID pathUUID);
-
     void dropNodeReservationsOnPath(
         PathUUID pathUUID);
 
