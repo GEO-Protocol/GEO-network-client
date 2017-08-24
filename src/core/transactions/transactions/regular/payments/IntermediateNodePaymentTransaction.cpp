@@ -447,20 +447,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     }
 
     debug() << "(" << kContractor << ") accepted amount reservation.";
-
     mLastReservedAmount = kMessage->amountReserved();
-    // shortage local reservation on current path
-    for (const auto &nodeReservation : mReservations) {
-        for (const auto &pathUUIDAndreservation : nodeReservation.second) {
-            if (pathUUIDAndreservation.first == kMessage->pathUUID()) {
-                shortageReservation(
-                    nodeReservation.first,
-                    pathUUIDAndreservation.second,
-                    mLastReservedAmount,
-                    pathUUIDAndreservation.first);
-            }
-        }
-    }
+
+    shortageReservationsOnPath(
+        kMessage->pathUUID(),
+        kMessage->amountReserved());
 
 #ifdef TESTS
     // coordinator wait for this message maxNetworkDelay(4)
@@ -512,18 +503,9 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
         }
     }
 
-    // Shortening all reservations that belongs to this node and path.
-    for (const auto &nodeAndReservations : mReservations) {
-        for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
-            if (pathUUIDAndReservation.first == kMessage->pathUUID()) {
-                shortageReservation(
-                    nodeAndReservations.first,
-                    pathUUIDAndReservation.second,
-                    kMessage->amount(),
-                    pathUUIDAndReservation.first);
-            }
-        }
-    }
+    shortageReservationsOnPath(
+        kMessage->pathUUID(),
+        kMessage->amount());
 
     mStep = Stages::IntermediateNode_ReservationProlongation;
     return resultWaitForMessageTypes(
@@ -701,6 +683,24 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
         maxNetworkDelay(2));
 }
 
+void IntermediateNodePaymentTransaction::shortageReservationsOnPath(
+    const PathUUID pathUUID,
+    const TrustLineAmount &amount)
+{
+    // Shortening all reservations that belongs to given path.
+    for (const auto &nodeAndReservations : mReservations) {
+        for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
+            if (pathUUIDAndReservation.first == pathUUID) {
+                shortageReservation(
+                    nodeAndReservations.first,
+                    pathUUIDAndReservation.second,
+                    amount,
+                    pathUUIDAndReservation.first);
+            }
+        }
+    }
+}
+
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
 {
     mCommitedAmount = totalReservedAmount(
@@ -754,10 +754,10 @@ void IntermediateNodePaymentTransaction::runBuildThreeNodesCyclesSignal()
         contractorsUUID);
 }
 
-void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory()
+void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory(
+    IOTransaction::Shared ioTransaction)
 {
     debug() << "savePaymentOperationIntoHistory";
-    auto ioTransaction = mStorageHandler->beginTransaction();
     ioTransaction->historyStorage()->savePaymentRecord(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),

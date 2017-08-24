@@ -974,11 +974,11 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()
     return resultDone();
 }
 
-void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory()
+void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory(
+    IOTransaction::Shared ioTransaction)
 {
     debug() << "savePaymentOperationIntoHistory";
     auto path = mPathStats.get();
-    auto ioTransaction = mStorageHandler->beginTransaction();
     ioTransaction->historyStorage()->savePaymentRecord(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),

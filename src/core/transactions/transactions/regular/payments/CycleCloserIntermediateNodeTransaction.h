@@ -52,7 +52,8 @@ protected:
     TransactionResult::SharedConst approve();
 
 protected:
-    void savePaymentOperationIntoHistory();
+    void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction);
 
     bool checkReservationsDirections() const;
 

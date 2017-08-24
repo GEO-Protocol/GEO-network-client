@@ -171,9 +171,11 @@ protected:
         const TrustLineAmount &kNewAmount,
         const PathUUID &pathUUID);
 
-    void saveVotes();
+    void saveVotes(
+        IOTransaction::Shared ioTransaction);
 
-    void commit();
+    void commit(
+        IOTransaction::Shared ioTransaction);
 
     void rollBack();
 
@@ -222,7 +224,8 @@ protected:
     const TrustLineAmount totalReservedAmount(
         AmountReservation::ReservationDirection reservationDirection) const;
 
-    virtual void savePaymentOperationIntoHistory() = 0;
+    virtual void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction) = 0;
 
     virtual bool checkReservationsDirections() const = 0;
 

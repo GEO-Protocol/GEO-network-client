@@ -70,11 +70,11 @@ protected:
     TransactionResult::SharedConst runDirectAmountReservationResponseProcessingStage ();
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
     TransactionResult::SharedConst runVotesConsistencyCheckingStage();
-    TransactionResult::SharedConst runTTLTransactionResponce();
+    TransactionResult::SharedConst runTTLTransactionResponse();
 
 protected:
     // Coordinator must return command result on transaction finishing.
-    // Therefore this methods are overriden.
+    // Therefore this methods are overridden.
     TransactionResult::SharedConst approve();
     TransactionResult::SharedConst reject(
         const char *message = nullptr);
@@ -137,8 +137,15 @@ protected:
         PathUUID pathUUID,
         PathStats* pathStats);
 
+    void shortageReservationsOnPath(
+        const NodeUUID& neighborUUID,
+        const PathUUID pathUUID,
+        const TrustLineAmount &amount);
+
+    // This method drops reservations on given path
+    // and inform intermediate nodes about cancelling reservations on this path.
     // sendToLastProcessedNode indicates if message with 0 amount
-    // will be send to current node on path
+    // will be send to current node on path.
     void dropReservationsOnPath(
         PathStats *pathStats,
         PathUUID pathUUID,
@@ -149,7 +156,8 @@ protected:
 
     void informAllNodesAboutTransactionFinish();
 
-    void savePaymentOperationIntoHistory();
+    void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction);
 
     bool checkReservationsDirections() const;
 

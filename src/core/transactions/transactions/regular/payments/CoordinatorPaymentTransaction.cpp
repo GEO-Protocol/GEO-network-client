@@ -218,7 +218,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runAmountReservati
     case 1: {
         // nodes can clarify if transaction is still alive
         if (contextIsValid(Message::MessageType::Payments_TTLProlongationRequest, false)) {
-            return runTTLTransactionResponce();
+            return runTTLTransactionResponse();
         }
         const auto kPathStats = currentAmountReservationPathStats();
         if (kPathStats->path()->length() == 2) {
@@ -708,7 +708,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         return tryProcessNextPath();
     }
 
-    if (message->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
+    if (message->state() != IntermediateNodeReservationResponseMessage::Accepted) {
         return reject("Unexpected message state. Protocol error. Transaction closed.");
     }
 
@@ -718,18 +718,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         1, PathStats::NeighbourReservationApproved);
     path->shortageMaxFlow(message->amountReserved());
 
-    // shortage reservation
     // TODO maybe add if change path->maxFlow()
-    auto nodeReservations = mReservations[message->senderUUID];
-    for (const auto pathUUIDAndreservation : nodeReservations) {
-        if (pathUUIDAndreservation.first == mCurrentAmountReservingPathIdentifier) {
-            shortageReservation(
-                message->senderUUID,
-                pathUUIDAndreservation.second,
-                path->maxFlow(),
-                mCurrentAmountReservingPathIdentifier);
-        }
-    }
+    shortageReservationsOnPath(
+        message->senderUUID,
+        mCurrentAmountReservingPathIdentifier,
+        path->maxFlow());
 
     return runAmountReservationStage();
 }
@@ -813,7 +806,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         return tryProcessNextPath();
     }
 
-    if (message->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
+    if (message->state() != CoordinatorReservationResponseMessage::Accepted) {
         return reject("Unexpected message state. Protocol error. Transaction closed.");
     }
 
@@ -826,19 +819,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     path->shortageMaxFlow(message->amountReserved());
     debug() << "Path max flow is now " << path->maxFlow();
 
-    // shortage reservation
     // TODO maybe add if change path->maxFlow()
-    auto nodeReservations = mReservations[message->senderUUID];
-    for (const auto pathUUIDAndreservation : nodeReservations) {
-        if (pathUUIDAndreservation.first == mCurrentAmountReservingPathIdentifier) {
-            shortageReservation(
-                message->senderUUID,
-                pathUUIDAndreservation.second,
-                path->maxFlow(),
-                mCurrentAmountReservingPathIdentifier);
-        }
-    }
-
+    shortageReservationsOnPath(
+        message->senderUUID,
+        mCurrentAmountReservingPathIdentifier,
+        path->maxFlow());
 
     if (path->isLastIntermediateNodeProcessed()) {
 
@@ -862,7 +847,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
 
         // send final path amount to all intermediate nodes on path
         sendFinalPathConfiguration(
-            currentAmountReservationPathStats(),
+            path,
             mCurrentAmountReservingPathIdentifier,
             path->maxFlow());
 
@@ -1031,7 +1016,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
     }
 
-    if (message->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
+    if (message->state() != CoordinatorReservationResponseMessage::Accepted) {
         return reject("Unexpected message state. Protocol error. Transaction closed.");
     }
 
@@ -1042,19 +1027,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         R_PathPosition,
         PathStats::ReservationApproved);
 
-    // shortage reservation
     // TODO maybe add if change path->maxFlow()
     auto firstIntermediateNode = path->path()->nodes[1];
-    auto nodeReservations = mReservations[firstIntermediateNode];
-    for (auto const pathUUIDAndReservation : nodeReservations) {
-        if (pathUUIDAndReservation.first == mCurrentAmountReservingPathIdentifier) {
-            shortageReservation(
-                firstIntermediateNode,
-                pathUUIDAndReservation.second,
-                path->maxFlow(),
-                mCurrentAmountReservingPathIdentifier);
-        }
-    }
+    shortageReservationsOnPath(
+        firstIntermediateNode,
+        mCurrentAmountReservingPathIdentifier,
+        path->maxFlow());
 
     debug() << "(" << message->senderUUID << ") reserved " << reservedAmount;
     debug() << "Path max flow is now " << path->maxFlow();
@@ -1081,7 +1059,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
 
         // send final path amount to all intermediate nodes on path
         sendFinalPathConfiguration(
-            currentAmountReservationPathStats(),
+            path,
             mCurrentAmountReservingPathIdentifier,
             path->maxFlow());
 
@@ -1175,7 +1153,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
 {
     debug() << "runFinalAmountsConfigurationConfirmation";
     if (contextIsValid(Message::MessageType::Payments_TTLProlongationRequest, false)) {
-        return runTTLTransactionResponce();
+        return runTTLTransactionResponse();
     }
     if (contextIsValid(Message::MessageType::Payments_FinalAmountsConfigurationResponse, false)) {
         auto kMessage = popNextMessage<FinalAmountsConfigurationResponseMessage>();
@@ -1379,18 +1357,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
 
     pathStats->shortageMaxFlow(kMessage->amountReserved());
 
-    // shortage reservation
     // TODO maybe add if change path->maxFlow()
-    auto nodeReservations = mReservations[kMessage->senderUUID];
-    for (const auto pathUUIDAndreservation : nodeReservations) {
-        if (pathUUIDAndreservation.first == mCurrentAmountReservingPathIdentifier) {
-            shortageReservation(
-                kMessage->senderUUID,
-                pathUUIDAndreservation.second,
-                pathStats->maxFlow(),
-                mCurrentAmountReservingPathIdentifier);
-        }
-    }
+    shortageReservationsOnPath(
+        kMessage->senderUUID,
+        mCurrentAmountReservingPathIdentifier,
+        pathStats->maxFlow());
 
     const auto kTotalAmount = totalReservedAmount(
         AmountReservation::Outgoing);
@@ -1425,7 +1396,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
     debug() << "runVotesConsistencyCheckingStage";
     // Intermediate node or Receiver can send request if transaction is still alive.
     if (contextIsValid(Message::Payments_TTLProlongationRequest, false)) {
-        return runTTLTransactionResponce();
+        return runTTLTransactionResponse();
     }
 
 #ifdef TESTS
@@ -1460,9 +1431,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
     return reject("Coordinator received message with some uncertain votes. Rolling back");
 }
 
-TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionResponce()
+TransactionResult::SharedConst CoordinatorPaymentTransaction::runTTLTransactionResponse()
 {
-    debug() << "runTTLTransactionResponce";
+    debug() << "runTTLTransactionResponse";
     auto kMessage = popNextMessage<TTLProlongationRequestMessage>();
     if (mParticipantsVotesMessage == nullptr) {
         // reservation stage
@@ -1567,6 +1538,26 @@ void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
     }
 }
 
+void CoordinatorPaymentTransaction::shortageReservationsOnPath(
+    const NodeUUID &neighborUUID,
+    const PathUUID pathUUID,
+    const TrustLineAmount &amount)
+{
+    debug() << "shortageReservationsOnPath";
+    auto nodeReservations = mReservations[neighborUUID];
+    for (const auto pathUUIDAndReservation : nodeReservations) {
+        if (pathUUIDAndReservation.first == pathUUID) {
+            shortageReservation(
+                neighborUUID,
+                pathUUIDAndReservation.second,
+                amount,
+                pathUUID);
+            // coordinator has only one reservation on each path
+            break;
+        }
+    }
+}
+
 void CoordinatorPaymentTransaction::dropReservationsOnPath(
     PathStats *pathStats,
     PathUUID pathUUID,
@@ -1587,6 +1578,8 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
                 firstIntermediateNode,
                 itPathUUIDAndReservation->second);
             itPathUUIDAndReservation = nodeReservations->second.erase(itPathUUIDAndReservation);
+            // coordinator has only one reservation on each path
+            break;
         } else {
             itPathUUIDAndReservation++;
         }
@@ -1663,10 +1656,10 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
     debug() << "buildPathsAgain method time: " << utc_now() - startTime;
 }
 
-void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory()
+void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
+    IOTransaction::Shared ioTransaction)
 {
     debug() << "savePaymentOperationIntoHistory";
-    auto ioTransaction = mStorageHandler->beginTransaction();
     ioTransaction->historyStorage()->savePaymentRecord(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),

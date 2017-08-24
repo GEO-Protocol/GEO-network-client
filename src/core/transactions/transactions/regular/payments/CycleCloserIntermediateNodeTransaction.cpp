@@ -576,10 +576,10 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::approve()
     return BasePaymentTransaction::approve();
 }
 
-void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory()
+void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory(
+    IOTransaction::Shared ioTransaction)
 {
     debug() << "savePaymentOperationIntoHistory";
-    auto ioTransaction = mStorageHandler->beginTransaction();
     ioTransaction->historyStorage()->savePaymentRecord(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),

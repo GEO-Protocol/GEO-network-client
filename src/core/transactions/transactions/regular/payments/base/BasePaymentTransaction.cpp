@@ -493,7 +493,8 @@ TransactionResult::SharedConst BasePaymentTransaction::reject(
         } else {
             mParticipantsVotesMessage->reject(currentNodeUUID());
         }
-        saveVotes();
+        auto ioTransaction = mStorageHandler->beginTransaction();
+        saveVotes(ioTransaction);
         const auto kNewParticipantsVotesMessage  = make_shared<ParticipantsVotesMessage>(
             mNodeUUID,
             mParticipantsVotesMessage);
@@ -534,63 +535,56 @@ TransactionResult::SharedConst BasePaymentTransaction::cancel(
 TransactionResult::SharedConst BasePaymentTransaction::approve()
 {
     debug() << "Transaction approved. Committing.";
-    commit();
-    savePaymentOperationIntoHistory();
+    auto ioTransaction = mStorageHandler->beginTransaction();
+    commit(ioTransaction);
+    savePaymentOperationIntoHistory(ioTransaction);
     return resultDone();
 }
 
-void BasePaymentTransaction::commit ()
+void BasePaymentTransaction::commit(
+    IOTransaction::Shared ioTransaction)
 {
     debug() << "Transaction committing...";
 
-//    // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
-//    {
-//        const auto ioTransaction = mStorageHandler->beginTransaction();
-//    }
+    for (const auto &kNodeUUIDAndReservations : mReservations) {
+        for (const auto &kPathUUIDAndReservation : kNodeUUIDAndReservations.second) {
+            mTrustLines->useReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
 
-    {
-        // TODO : discuss using of ioTransaction and saveVotes()
-        auto ioTransaction = mStorageHandler->beginTransaction();
-        for (const auto &kNodeUUIDAndReservations : mReservations) {
-            for (const auto &kPathUUIDAndReservation : kNodeUUIDAndReservations.second) {
-                mTrustLines->useReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
+            if (kPathUUIDAndReservation.second->direction() == AmountReservation::Outgoing)
+                debug() << "Committed reservation: [ => ] " << kPathUUIDAndReservation.second->amount()
+                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first
+                        << "]";
 
-                if (kPathUUIDAndReservation.second->direction() == AmountReservation::Outgoing)
-                    debug() << "Committed reservation: [ => ] " << kPathUUIDAndReservation.second->amount()
-                            << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first
-                            << "]";
-
-                else if (kPathUUIDAndReservation.second->direction() == AmountReservation::Incoming)
-                    debug() << "Committed reservation: [ <= ] " << kPathUUIDAndReservation.second->amount()
-                            << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first
-                            << "]";
-                mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
-            }
-            ioTransaction->trustLineHandler()->saveTrustLine(
-                mTrustLines->trustLines().at(kNodeUUIDAndReservations.first));
+            else if (kPathUUIDAndReservation.second->direction() == AmountReservation::Incoming)
+                debug() << "Committed reservation: [ <= ] " << kPathUUIDAndReservation.second->amount()
+                        << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathUUIDAndReservation.first
+                        << "]";
+            mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
         }
+        ioTransaction->trustLineHandler()->saveTrustLine(
+            mTrustLines->trustLines().at(
+                kNodeUUIDAndReservations.first));
     }
 
     // delete transaction references on dropped reservations
     mReservations.clear();
 
-    // reset initiator cashe, becouse after changing balanses
+    // reset initiator cache, because after changing balances
     // we need updated information on max flow calculation transaction
     mMaxFlowCalculationCacheManager->resetInititorCache();
     debug() << "Transaction committed.";
-    saveVotes();
+    saveVotes(ioTransaction);
     debug() << "Votes saved.";
-    // TODO: Ensure atomicity in case if some reservations would be used, and transaction crash.
-    {
-        auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->transactionHandler()->deleteRecord(currentTransactionUUID());
-    }
+
+    // delete this transaction from storage
+    ioTransaction->transactionHandler()->deleteRecord(
+        currentTransactionUUID());
 }
 
-void BasePaymentTransaction::saveVotes()
+void BasePaymentTransaction::saveVotes(
+    IOTransaction::Shared ioTransaction)
 {
     debug() << "saveVotes";
-    const auto ioTransaction = mStorageHandler->beginTransaction();
     const auto kNewParticipantsVotesMessage  = make_shared<ParticipantsVotesMessage>(
         mNodeUUID,
         mParticipantsVotesMessage);

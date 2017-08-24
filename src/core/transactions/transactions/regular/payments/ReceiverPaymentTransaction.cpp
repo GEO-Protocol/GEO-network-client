@@ -468,10 +468,10 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
     return resultDone();
 }
 
-void ReceiverPaymentTransaction::savePaymentOperationIntoHistory()
+void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
+    IOTransaction::Shared ioTransaction)
 {
     debug() << "savePaymentOperationIntoHistory";
-    auto ioTransaction = mStorageHandler->beginTransaction();
     ioTransaction->historyStorage()->savePaymentRecord(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),

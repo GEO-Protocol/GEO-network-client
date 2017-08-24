@@ -96,7 +96,8 @@ protected:
     void informIntermediateNodesAboutTransactionFinish(
         const uint8_t lastInformedNodePosition);
 
-    void savePaymentOperationIntoHistory();
+    void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction);
 
     bool checkReservationsDirections() const;
 

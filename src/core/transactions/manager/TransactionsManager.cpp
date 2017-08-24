@@ -90,8 +90,6 @@ void TransactionsManager::loadTransactions()
                     true,
                     false,
                     true);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
@@ -112,8 +110,6 @@ void TransactionsManager::loadTransactions()
                     false,
                     false,
                     true);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
@@ -132,8 +128,6 @@ void TransactionsManager::loadTransactions()
                     false,
                     false,
                     true);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
@@ -151,8 +145,6 @@ void TransactionsManager::loadTransactions()
                     false,
                     false,
                     true);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             case BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction: {
@@ -170,8 +162,6 @@ void TransactionsManager::loadTransactions()
                     false,
                     false,
                     true);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
                 break;
             }
             default: {

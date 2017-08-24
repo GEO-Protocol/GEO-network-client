@@ -41,11 +41,12 @@ protected:
 
 protected:
     // Receiver must must save payment operation into history.
-    // Therefore this methods are overriden.
+    // Therefore this methods are overridden.
     TransactionResult::SharedConst approve();
 
 protected:
-    void savePaymentOperationIntoHistory();
+    void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction);
 
     bool checkReservationsDirections() const;
 
