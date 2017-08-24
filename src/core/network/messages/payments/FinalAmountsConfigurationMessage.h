@@ -14,14 +14,14 @@ public:
     FinalAmountsConfigurationMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmountsConfig);
+        const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig);
 
     FinalAmountsConfigurationMessage(
         BytesShared buffer);
 
     const MessageType typeID() const;
 
-    const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmountsConfiguration() const;
+    const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfiguration() const;
 
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes() const
@@ -32,7 +32,7 @@ protected:
     typedef RecordNumber RecordCount;
 
 private:
-    vector<pair<PathUUID, ConstSharedTrustLineAmount>> mFinalAmountsConfiguration;
+    vector<pair<PathID, ConstSharedTrustLineAmount>> mFinalAmountsConfiguration;
 };
 
 

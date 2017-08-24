@@ -47,12 +47,10 @@ private:
     TrustLineAmount calculateMaxFlow(
         const NodeUUID &contractorUUID);
 
-    void calculateMaxFlowOnOneLevel(
-        const NodeUUID& contractorUUID);
+    void calculateMaxFlowOnOneLevel();
 
     TrustLineAmount calculateOneNode(
         const NodeUUID& nodeUUID,
-        const NodeUUID& contractorUUID,
         const TrustLineAmount& currentFlow,
         byte level);
 
@@ -73,6 +71,7 @@ private:
     vector<NodeUUID> mForbiddenNodeUUIDs;
     byte mCurrentPathLength;
     TrustLineAmount mCurrentMaxFlow;
+    NodeUUID mCurrentContractor;
 };
 
 

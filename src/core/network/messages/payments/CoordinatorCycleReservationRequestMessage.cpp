@@ -27,7 +27,7 @@ CoordinatorCycleReservationRequestMessage::CoordinatorCycleReservationRequestMes
         mNextPathNode.kBytesSize);
 }
 
-const NodeUUID& CoordinatorCycleReservationRequestMessage::nextNodeInPathUUID() const
+const NodeUUID& CoordinatorCycleReservationRequestMessage::nextNodeInPath() const
 {
     return mNextPathNode;
 }

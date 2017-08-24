@@ -21,7 +21,7 @@ public:
     ResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        const PathUUID &pathUUID,
+        const PathID &pathID,
         const OperationState state);
 
     ResponseMessage(
@@ -29,7 +29,7 @@ public:
 
     const OperationState state() const;
 
-    const PathUUID pathUUID() const;
+    const PathID pathID() const;
 
 protected:
     typedef byte SerializedOperationState;
@@ -41,7 +41,7 @@ protected:
 
 private:
     OperationState mState;
-    PathUUID mPathUUID;
+    PathID mPathID;
 };
 
 #endif // RESPONSEMESSAGE_H

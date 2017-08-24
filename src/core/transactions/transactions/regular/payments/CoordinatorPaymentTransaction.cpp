@@ -24,7 +24,7 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mResourcesManager(resourcesManager),
     mPathsManager(pathsManager),
     mReservationsStage(0),
-    mDirectPathIsAllreadyProcessed(false),
+    mDirectPathIsAlreadyProcessed(false),
     mCountReceiverInaccessible(0)
 {
     mStep = Stages::Coordinator_Initialisation;
@@ -281,7 +281,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
         kTransactionUUID,
         kCurrentNodeUUID);
 
-    for (PathUUID pathIdx = 0; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
+    for (PathID pathIdx = 0; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
         auto const pathStats = mPathsStats[pathIdx].get();
 
         if (pathStats->path()->length() > 2)
@@ -342,7 +342,7 @@ void CoordinatorPaymentTransaction::initAmountsReservationOnNextPath()
             "CoordinatorPaymentTransaction::tryBlockAmounts: "
             "no paths are available.");
 
-    mCurrentAmountReservingPathIdentifier = *mPathUUIDs.cbegin();
+    mCurrentAmountReservingPathIdentifier = *mPathIDs.cbegin();
     debug() << "[" << mCurrentAmountReservingPathIdentifier << "] {"
             << currentAmountReservationPathStats()->path()->toString() << "}";
 }
@@ -351,7 +351,7 @@ void CoordinatorPaymentTransaction::initAmountsReservationOnNextPath()
  * Tries to reserve amount on path that consists only of sender and receiver nodes.
  */
 TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDirectlyOnReceiver (
-    const PathUUID pathUUID,
+    const PathID pathID,
     PathStats *pathStats)
 {
     debug() << "tryReserveAmountDirectlyOnReceiver";
@@ -359,7 +359,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     assert(pathStats->path()->length() == 2);
 #endif
 
-    if (mDirectPathIsAllreadyProcessed) {
+    if (mDirectPathIsAlreadyProcessed) {
         error() << "Direct path reservation attempt occurred, but previously it was already processed. "
                 << "It seems that paths collection contains direct path several times. "
                 << "This one and all other similar path would be rejected. "
@@ -368,7 +368,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
         pathStats->setUnusable();
         return tryProcessNextPath();
     }
-    mDirectPathIsAllreadyProcessed = true;
+    mDirectPathIsAlreadyProcessed = true;
 
 
     debug() << "Direct path occurred (coordinator -> receiver). "
@@ -401,7 +401,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
     if (not reserveOutgoingAmount(
         kContractor,
         kReservationAmount,
-        pathUUID)){
+        pathID)){
         error() << "Can't reserve amount locally. "
                 << "Switching to another path.";
 
@@ -411,7 +411,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
 
     // Reserving on the contractor side
     pathStats->shortageMaxFlow(kReservationAmount);
-    vector<pair<PathUUID, ConstSharedTrustLineAmount>> reservations;
+    vector<pair<PathID, ConstSharedTrustLineAmount>> reservations;
     reservations.push_back(
         make_pair(
             mCurrentAmountReservingPathIdentifier,
@@ -504,13 +504,13 @@ void CoordinatorPaymentTransaction::addPathForFurtherProcessing(
                 "duplicated path occured in the transaction.");
     }
 
-    PathUUID currentPathUUID = 0;
+    PathID currentPathID = 0;
     for (;;) {
         // Cycle is needed to prevent possible hashes collision.
-        PathUUID identifier = currentPathUUID++;// boost::uuids::random_generator()();
+        PathID identifier = currentPathID++;// boost::uuids::random_generator()();
         if (mPathsStats.count(identifier) == 0){
             mPathsStats[identifier] = make_unique<PathStats>(path);
-            mPathUUIDs.push_back(identifier);
+            mPathIDs.push_back(identifier);
             return;
         }
     }
@@ -571,7 +571,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         1,
         PathStats::NeighbourReservationRequestSent);
 
-    vector<pair<PathUUID, ConstSharedTrustLineAmount>> reservations;
+    vector<pair<PathID, ConstSharedTrustLineAmount>> reservations;
     reservations.push_back(
         make_pair(
             mCurrentAmountReservingPathIdentifier,
@@ -619,7 +619,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToAppro
     // no check of "neighbor" node is needed here.
     // It was done on previous step.
 
-    vector<pair<PathUUID, ConstSharedTrustLineAmount>> reservations;
+    vector<pair<PathID, ConstSharedTrustLineAmount>> reservations;
     reservations.push_back(
         make_pair(
             mCurrentAmountReservingPathIdentifier,
@@ -876,7 +876,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askRemoteNodeToApp
     const auto kCoordinator = currentNodeUUID();
     const auto kTransactionUUID = currentTransactionUUID();
 
-    vector<pair<PathUUID, ConstSharedTrustLineAmount>> reservations;
+    vector<pair<PathID, ConstSharedTrustLineAmount>> reservations;
     reservations.push_back(
         make_pair(
             mCurrentAmountReservingPathIdentifier,
@@ -1194,11 +1194,11 @@ PathStats* CoordinatorPaymentTransaction::currentAmountReservationPathStats()
 void CoordinatorPaymentTransaction::switchToNextPath()
 {
     auto justProcessedPath = currentAmountReservationPathStats();
-    if (! mPathUUIDs.empty()) {
-        mPathUUIDs.erase(mPathUUIDs.cbegin());
+    if (! mPathIDs.empty()) {
+        mPathIDs.erase(mPathIDs.cbegin());
     }
 
-    if (mPathUUIDs.size() == 0)
+    if (mPathIDs.size() == 0)
         throw NotFoundError(
             "CoordinatorPaymentTransaction::switchToNextPath: "
             "no paths are available");
@@ -1207,7 +1207,7 @@ void CoordinatorPaymentTransaction::switchToNextPath()
         // to avoid not actual reservations in case of processing path,
         // which contains node on first position, which also is present in path,
         // processed just before, we need delay
-        mCurrentAmountReservingPathIdentifier = *mPathUUIDs.cbegin();
+        mCurrentAmountReservingPathIdentifier = *mPathIDs.cbegin();
         auto currentPath = currentAmountReservationPathStats();
         auto currentFirstIntermediateNode = currentPath->path()->nodes[1];
         auto posCurrentFirstIntermediateNodeInJustProcessedPath = justProcessedPath->path()->positionOfNode(
@@ -1293,7 +1293,7 @@ const string CoordinatorPaymentTransaction::logHeader() const
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 {
-    mCommitedAmount = totalReservedAmount(
+    mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
 
@@ -1500,58 +1500,58 @@ bool CoordinatorPaymentTransaction::isPathValid(
 }
 
 void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
-    PathUUID pathUUID,
+    PathID pathID,
     PathStats* pathStats)
 {
-    debug() << "Add final configuration on path " << pathUUID;
-    auto pathUUIDAndAmount = make_pair(
-        pathUUID,
+    debug() << "Add final configuration on path " << pathID;
+    auto pathIDAndAmount = make_pair(
+        pathID,
         make_shared<const TrustLineAmount>(
             pathStats->maxFlow()));
 
     // add final path configuration for receiver
     if (mNodesFinalAmountsConfiguration.find(mCommand->contractorUUID()) == mNodesFinalAmountsConfiguration.end()) {
-        vector<pair<PathUUID, ConstSharedTrustLineAmount>> newVector;
-        newVector.push_back(pathUUIDAndAmount);
+        vector<pair<PathID, ConstSharedTrustLineAmount>> newVector;
+        newVector.push_back(pathIDAndAmount);
         mNodesFinalAmountsConfiguration.insert(
             make_pair(
                 mCommand->contractorUUID(),
                 newVector));
     } else {
         mNodesFinalAmountsConfiguration[mCommand->contractorUUID()].push_back(
-            pathUUIDAndAmount);
+            pathIDAndAmount);
     }
 
     // add final path configuration for all intermediate nodes
     for (const auto node : pathStats->path()->intermediateUUIDs()) {
         if (mNodesFinalAmountsConfiguration.find(node) == mNodesFinalAmountsConfiguration.end()) {
-            vector<pair<PathUUID, ConstSharedTrustLineAmount>> newVector;
-            newVector.push_back(pathUUIDAndAmount);
+            vector<pair<PathID, ConstSharedTrustLineAmount>> newVector;
+            newVector.push_back(pathIDAndAmount);
             mNodesFinalAmountsConfiguration.insert(
                 make_pair(
                     node,
                     newVector));
         } else {
             mNodesFinalAmountsConfiguration[node].push_back(
-                pathUUIDAndAmount);
+                pathIDAndAmount);
         }
     }
 }
 
 void CoordinatorPaymentTransaction::shortageReservationsOnPath(
     const NodeUUID &neighborUUID,
-    const PathUUID pathUUID,
+    const PathID pathID,
     const TrustLineAmount &amount)
 {
     debug() << "shortageReservationsOnPath";
     auto nodeReservations = mReservations[neighborUUID];
-    for (const auto pathUUIDAndReservation : nodeReservations) {
-        if (pathUUIDAndReservation.first == pathUUID) {
+    for (const auto pathIDAndReservation : nodeReservations) {
+        if (pathIDAndReservation.first == pathID) {
             shortageReservation(
                 neighborUUID,
-                pathUUIDAndReservation.second,
+                pathIDAndReservation.second,
                 amount,
-                pathUUID);
+                pathID);
             // coordinator has only one reservation on each path
             break;
         }
@@ -1560,7 +1560,7 @@ void CoordinatorPaymentTransaction::shortageReservationsOnPath(
 
 void CoordinatorPaymentTransaction::dropReservationsOnPath(
     PathStats *pathStats,
-    PathUUID pathUUID,
+    PathID pathID,
     bool sendToLastProcessedNode)
 {
     debug() << "dropReservationsOnPath";
@@ -1569,19 +1569,19 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
     auto firstIntermediateNode = pathStats->path()->nodes[1];
     // TODO add checking if not find
     auto nodeReservations = mReservations.find(firstIntermediateNode);
-    auto itPathUUIDAndReservation = nodeReservations->second.begin();
-    while (itPathUUIDAndReservation != nodeReservations->second.end()) {
-        if (itPathUUIDAndReservation->first == pathUUID) {
-            debug() << "Dropping reservation: [ => ] " << itPathUUIDAndReservation->second->amount()
-                    << " for (" << firstIntermediateNode << ") [" << pathUUID << "]";
+    auto itPathIDAndReservation = nodeReservations->second.begin();
+    while (itPathIDAndReservation != nodeReservations->second.end()) {
+        if (itPathIDAndReservation->first == pathID) {
+            debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()
+                    << " for (" << firstIntermediateNode << ") [" << pathID << "]";
             mTrustLines->dropAmountReservation(
                 firstIntermediateNode,
-                itPathUUIDAndReservation->second);
-            itPathUUIDAndReservation = nodeReservations->second.erase(itPathUUIDAndReservation);
+                itPathIDAndReservation->second);
+            itPathIDAndReservation = nodeReservations->second.erase(itPathIDAndReservation);
             // coordinator has only one reservation on each path
             break;
         } else {
-            itPathUUIDAndReservation++;
+            itPathIDAndReservation++;
         }
     }
     if (nodeReservations->second.size() == 0) {
@@ -1603,7 +1603,7 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
             intermediateNode,
             currentNodeUUID(),
             currentTransactionUUID(),
-            pathUUID,
+            pathID,
             0);
         if (sendToLastProcessedNode && intermediateNode == lastProcessedNode) {
             break;
@@ -1628,7 +1628,7 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
 {
     debug() << "buildPathsAgain";
     auto startTime = utc_now();
-    for (PathUUID pathIdx = 0; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
+    for (PathID pathIdx = 0; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
         auto const pathStats = mPathsStats[pathIdx].get();
 
         if (pathStats->path()->length() > 2)
@@ -1665,7 +1665,7 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::OutgoingPaymentType,
             mCommand->contractorUUID(),
-            mCommitedAmount,
+            mCommittedAmount,
             *mTrustLines->totalBalance().get()));
     debug() << "Operation saved";
 }
@@ -1674,8 +1674,8 @@ bool CoordinatorPaymentTransaction::checkReservationsDirections() const
 {
     debug() << "checkReservationsDirections";
     for (const auto nodeAndReservations : mReservations) {
-        for (const auto pathUUIDAndReservation : nodeAndReservations.second) {
-            if (pathUUIDAndReservation.second->direction() != AmountReservation::Outgoing) {
+        for (const auto pathIDAndReservation : nodeAndReservations.second) {
+            if (pathIDAndReservation.second->direction() != AmountReservation::Outgoing) {
                 return false;
             }
         }

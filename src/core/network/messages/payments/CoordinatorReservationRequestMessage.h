@@ -16,13 +16,13 @@ public:
     CoordinatorReservationRequestMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID& transactionUUID,
-        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
+        const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
         const NodeUUID& nextNodeInThePath);
 
     CoordinatorReservationRequestMessage(
         BytesShared buffer);
 
-    const NodeUUID& nextNodeInPathUUID() const;
+    const NodeUUID& nextNodeInPath() const;
 
     const Message::MessageType typeID() const;
 

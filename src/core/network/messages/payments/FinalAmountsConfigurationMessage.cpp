@@ -3,7 +3,7 @@
 FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmountsConfig) :
+    const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig) :
 
     TransactionMessage(
         senderUUID,
@@ -25,8 +25,8 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
     //-----------------------------------------------------
     mFinalAmountsConfiguration.reserve(*finalAmountsConfigurationCount);
     for (RecordNumber idx = 0; idx < *finalAmountsConfigurationCount; idx++) {
-        PathUUID *pathUUID = new (bytesBufferOffset) PathUUID;
-        bytesBufferOffset += sizeof(PathUUID);
+        PathID *pathID = new (bytesBufferOffset) PathID;
+        bytesBufferOffset += sizeof(PathID);
         //---------------------------------------------------
         vector<byte> bufferTrustLineAmount(
             bytesBufferOffset,
@@ -36,13 +36,13 @@ FinalAmountsConfigurationMessage::FinalAmountsConfigurationMessage(
         TrustLineAmount trustLineAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
         mFinalAmountsConfiguration.push_back(
             make_pair(
-                *pathUUID,
+                *pathID,
                 make_shared<const TrustLineAmount>(
                     trustLineAmount)));
     }
 }
 
-const vector<pair<Message::PathUUID, ConstSharedTrustLineAmount>>& FinalAmountsConfigurationMessage::finalAmountsConfiguration() const
+const vector<pair<Message::PathID, ConstSharedTrustLineAmount>>& FinalAmountsConfigurationMessage::finalAmountsConfiguration() const
 {
     return mFinalAmountsConfiguration;
 }
@@ -59,7 +59,7 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
             + parentBytesAndCount.second
             + sizeof(RecordCount)
             + mFinalAmountsConfiguration.size() *
-              (sizeof(PathUUID) + kTrustLineAmountBytesCount);
+              (sizeof(PathID) + kTrustLineAmountBytesCount);
 
     BytesShared buffer = tryMalloc(bytesCount);
 
@@ -82,8 +82,8 @@ pair<BytesShared, size_t> FinalAmountsConfigurationMessage::serializeToBytes() c
         memcpy(
             bytesBufferOffset,
             &it.first,
-            sizeof(PathUUID));
-        bytesBufferOffset += sizeof(PathUUID);
+            sizeof(PathID));
+        bytesBufferOffset += sizeof(PathID);
 
         vector<byte> serializedAmount = trustLineAmountToBytes(*it.second.get());
         memcpy(

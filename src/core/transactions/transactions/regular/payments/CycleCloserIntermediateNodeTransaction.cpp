@@ -258,10 +258,10 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
 #endif
 
     const auto kMessage = popNextMessage<CoordinatorCycleReservationRequestMessage>();
-    mNextNode = kMessage->nextNodeInPathUUID();
+    mNextNode = kMessage->nextNodeInPath();
 
     debug() << "Requested amount reservation: " << kMessage->amount();
-    debug() << "Next node is " << kMessage->nextNodeInPathUUID();
+    debug() << "Next node is " << kMessage->nextNodeInPath();
 
     if (!mTrustLines->isNeighbor(mNextNode)) {
         sendMessage<CoordinatorCycleReservationResponseMessage>(
@@ -447,12 +447,12 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
     mLastReservedAmount = kMessage->amountReserved();
     // shortage local reservation on current path
     for (const auto &nodeReservation : mReservations) {
-        for (const auto &pathUUIDAndreservation : nodeReservation.second) {
+        for (const auto &pathIDAndReservation : nodeReservation.second) {
             shortageReservation(
                 nodeReservation.first,
-                pathUUIDAndreservation.second,
+                pathIDAndReservation.second,
                 mLastReservedAmount,
-                pathUUIDAndreservation.first);
+                pathIDAndReservation.first);
         }
     }
 
@@ -508,12 +508,12 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     mLastReservedAmount = kMessage->amount();
     // Shortening all reservations that belongs to this node and path.
     for (const auto &nodeAndReservations : mReservations) {
-        for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
+        for (const auto &pathIDAndReservation : nodeAndReservations.second) {
             shortageReservation(
                 nodeAndReservations.first,
-                pathUUIDAndReservation.second,
+                pathIDAndReservation.second,
                 kMessage->amount(),
-                pathUUIDAndReservation.first);
+                pathIDAndReservation.first);
         }
     }
 
@@ -571,7 +571,7 @@ const uint8_t CycleCloserIntermediateNodeTransaction::cycleLength() const
 
 TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::approve()
 {
-    mCommitedAmount = totalReservedAmount(
+    mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     return BasePaymentTransaction::approve();
 }
@@ -584,7 +584,7 @@ void CycleCloserIntermediateNodeTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::CyclerCloserIntermediateType,
-            mCommitedAmount));
+            mCommittedAmount));
     debug() << "Operation saved";
 }
 

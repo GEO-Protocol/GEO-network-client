@@ -125,6 +125,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     info() << "calculateMaxFlow\tstart found flow to: " << contractorUUID;
 #endif
 
+    mCurrentContractor = contractorUUID;
     auto trustLinePtrsSet =
             mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
     if (trustLinePtrsSet.size() == 0) {
@@ -134,7 +135,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
 
     mCurrentMaxFlow = TrustLine::kZeroAmount();
     for (mCurrentPathLength = 1; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
-        calculateMaxFlowOnOneLevel(contractorUUID);
+        calculateMaxFlowOnOneLevel();
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
@@ -144,8 +145,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
 
 // this method used the same logic as PathsManager::reBuildPathsOnOneLevel
 // and PathsManager::buildPathsOnOneLevel
-void InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel(
-    const NodeUUID& contractorUUID)
+void InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel()
 {
     auto trustLinePtrsSet =
             mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
@@ -153,12 +153,11 @@ void InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel(
         TrustLineAmount currentFlow = 0;
         for (auto &trustLinePtr : trustLinePtrsSet) {
             auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
-            auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
+            auto trustLineFreeAmountShared = trustLine->freeAmount();
             auto trustLineAmountPtr = trustLineFreeAmountShared.get();
             mForbiddenNodeUUIDs.clear();
             TrustLineAmount flow = calculateOneNode(
                 trustLine->targetUUID(),
-                contractorUUID,
                 *trustLineAmountPtr,
                 1);
             if (flow > TrustLine::kZeroAmount()) {
@@ -178,11 +177,10 @@ void InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel(
 // if you change this method, you should change others
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     const NodeUUID& nodeUUID,
-    const NodeUUID& contractorUUID,
     const TrustLineAmount& currentFlow,
     byte level)
 {
-    if (nodeUUID == contractorUUID) {
+    if (nodeUUID == mCurrentContractor) {
         if (currentFlow > TrustLine::kZeroAmount()) {
             mCurrentMaxFlow += currentFlow;
             info() << "add flow " << currentFlow;
@@ -220,10 +218,9 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
         }
         mForbiddenNodeUUIDs.push_back(nodeUUID);
         TrustLineAmount calcFlow = calculateOneNode(
-                trustLine->targetUUID(),
-            contractorUUID,
-                nextFlow,
-                level + (byte)1);
+            trustLine->targetUUID(),
+            nextFlow,
+            level + (byte)1);
         mForbiddenNodeUUIDs.pop_back();
         if (calcFlow > TrustLine::kZeroAmount()) {
             trustLine->addUsedAmount(calcFlow);

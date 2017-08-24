@@ -97,7 +97,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
-            0,                  // 0, because we don't know pathUUID
+            0,                  // 0, because we don't know pathID
             ResponseMessage::Closed);
         if (mReservations.size() == 0) {
             debug() << "There are no reservations. Transaction closed.";
@@ -138,7 +138,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     }
 
     // update local reservations during amounts from coordinator
-    if (!updateReservations(vector<pair<PathUUID, ConstSharedTrustLineAmount>>(
+    if (!updateReservations(vector<pair<PathID, ConstSharedTrustLineAmount>>(
         mMessage->finalAmountsConfiguration().begin() + 1,
         mMessage->finalAmountsConfiguration().end()))) {
         error() << "Previous node send path configuration, which is absent on current node";
@@ -237,7 +237,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     // TODO: add check for previous nodes amount reservation
 
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
-    const auto kNextNode = kMessage->nextNodeInPathUUID();
+    const auto kNextNode = kMessage->nextNodeInPath();
     if (kMessage->finalAmountsConfiguration().size() == 0) {
         error() << "Not received reservation";
         sendMessage<CoordinatorReservationResponseMessage>(
@@ -330,7 +330,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
 
     // build reservation configuration for next node;
     // CoordinatorReservationRequestMessage contains configuration for next node
-    vector<pair<PathUUID, ConstSharedTrustLineAmount>> reservations;
+    vector<pair<PathID, ConstSharedTrustLineAmount>> reservations;
     reservations.push_back(
         make_pair(
             kReservation.first,
@@ -410,7 +410,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             mLastProcessedPath,
             ResponseMessage::Closed);
         debug() << "Amount reservation rejected with further transaction closing by the Receiver node.";
-        rollBack(kMessage->pathUUID());
+        rollBack(kMessage->pathID());
         // if no reservations close transaction
         if (mReservations.size() == 0) {
             debug() << "There are no reservations. Transaction closed.";
@@ -429,10 +429,10 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             mCoordinator,
             currentNodeUUID(),
             currentTransactionUUID(),
-            kMessage->pathUUID(),
+            kMessage->pathID(),
             ResponseMessage::Rejected);
         debug() << "Amount reservation rejected by the neighbor node.";
-        rollBack(kMessage->pathUUID());
+        rollBack(kMessage->pathID());
         // if no reservations close transaction
         if (mReservations.size() == 0) {
             debug() << "There are no reservations. Transaction closed.";
@@ -450,7 +450,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
     mLastReservedAmount = kMessage->amountReserved();
 
     shortageReservationsOnPath(
-        kMessage->pathUUID(),
+            kMessage->pathID(),
         kMessage->amountReserved());
 
 #ifdef TESTS
@@ -463,7 +463,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         mCoordinator,
         currentNodeUUID(),
         currentTransactionUUID(),
-        kMessage->pathUUID(),
+        kMessage->pathID(),
         ResponseMessage::Accepted,
         mLastReservedAmount);
 
@@ -495,7 +495,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
 
     // path was cancelled, drop all reservations belong it
     if (kMessage->amount() == 0) {
-        rollBack(kMessage->pathUUID());
+        rollBack(kMessage->pathID());
         // if no reservations close transaction
         if (mReservations.size() == 0) {
             debug() << "There are no reservations. Transaction closed.";
@@ -504,7 +504,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
     }
 
     shortageReservationsOnPath(
-        kMessage->pathUUID(),
+            kMessage->pathID(),
         kMessage->amount());
 
     mStep = Stages::IntermediateNode_ReservationProlongation;
@@ -684,18 +684,18 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheck
 }
 
 void IntermediateNodePaymentTransaction::shortageReservationsOnPath(
-    const PathUUID pathUUID,
+    const PathID pathID,
     const TrustLineAmount &amount)
 {
     // Shortening all reservations that belongs to given path.
     for (const auto &nodeAndReservations : mReservations) {
-        for (const auto &pathUUIDAndReservation : nodeAndReservations.second) {
-            if (pathUUIDAndReservation.first == pathUUID) {
+        for (const auto &pathIDAndReservation : nodeAndReservations.second) {
+            if (pathIDAndReservation.first == pathID) {
                 shortageReservation(
                     nodeAndReservations.first,
-                    pathUUIDAndReservation.second,
+                    pathIDAndReservation.second,
                     amount,
-                    pathUUIDAndReservation.first);
+                    pathIDAndReservation.first);
             }
         }
     }
@@ -703,7 +703,7 @@ void IntermediateNodePaymentTransaction::shortageReservationsOnPath(
 
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
 {
-    mCommitedAmount = totalReservedAmount(
+    mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
     runBuildFourNodesCyclesSignal();
@@ -714,22 +714,22 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
 void IntermediateNodePaymentTransaction::runBuildFourNodesCyclesSignal()
 {
     vector<pair<NodeUUID, NodeUUID>> debtorsAndCreditorsFourCycles;
-    map<PathUUID, NodeUUID> pathsReservations;
+    map<PathID, NodeUUID> pathsReservations;
     for (const auto &itNodeUUIDAndReservations : mReservations) {
-        for (const auto &itPathUUIDAndReservation : itNodeUUIDAndReservations.second) {
-            auto pathReservation = pathsReservations.find(itPathUUIDAndReservation.first);
+        for (const auto &itPathIDAndReservation : itNodeUUIDAndReservations.second) {
+            auto pathReservation = pathsReservations.find(itPathIDAndReservation.first);
             if (pathReservation == pathsReservations.end()) {
                 pathsReservations.insert(
                     make_pair(
-                        itPathUUIDAndReservation.first,
+                        itPathIDAndReservation.first,
                         itNodeUUIDAndReservations.first));
             } else {
-                if (itPathUUIDAndReservation.second->direction() == AmountReservation::Outgoing) {
+                if (itPathIDAndReservation.second->direction() == AmountReservation::Outgoing) {
                     debtorsAndCreditorsFourCycles.push_back(
                         make_pair(
                             pathReservation->second,
                             itNodeUUIDAndReservations.first));
-                } else if (itPathUUIDAndReservation.second->direction() == AmountReservation::Incoming) {
+                } else if (itPathIDAndReservation.second->direction() == AmountReservation::Incoming) {
                     debtorsAndCreditorsFourCycles.push_back(
                         make_pair(
                             itNodeUUIDAndReservations.first,
@@ -762,7 +762,7 @@ void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IntermediatePaymentType,
-            mCommitedAmount));
+            mCommittedAmount));
     debug() << "Operation saved";
 }
 
@@ -770,23 +770,23 @@ bool IntermediateNodePaymentTransaction::checkReservationsDirections() const
 {
     debug() << "checkReservationsDirections";
     for (const auto nodeUUIDAndReservations : mReservations) {
-        for (const auto pathUUIDAndReservation : nodeUUIDAndReservations.second) {
-            const auto checkedPath = pathUUIDAndReservation.first;
-            const auto checkedAmount = pathUUIDAndReservation.second->amount();
+        for (const auto pathIDAndReservation : nodeUUIDAndReservations.second) {
+            const auto checkedPath = pathIDAndReservation.first;
+            const auto checkedAmount = pathIDAndReservation.second->amount();
             int countIncomingReservations = 0;
             int countOutgoingReservations = 0;
 
             for (const auto nodeUUIDAndReservationsInternal : mReservations) {
-                for (const auto pathUUIDAndReservationInternal : nodeUUIDAndReservationsInternal.second) {
-                    if (pathUUIDAndReservationInternal.first == checkedPath) {
-                        if (pathUUIDAndReservationInternal.second->amount() != checkedAmount) {
+                for (const auto pathIDAndReservationInternal : nodeUUIDAndReservationsInternal.second) {
+                    if (pathIDAndReservationInternal.first == checkedPath) {
+                        if (pathIDAndReservationInternal.second->amount() != checkedAmount) {
                             error() << "Amounts are different on path " << checkedPath;
                             return false;
                         }
-                        if (pathUUIDAndReservationInternal.second->direction() == AmountReservation::Outgoing) {
+                        if (pathIDAndReservationInternal.second->direction() == AmountReservation::Outgoing) {
                             countOutgoingReservations++;
                         }
-                        if (pathUUIDAndReservationInternal.second->direction() == AmountReservation::Incoming) {
+                        if (pathIDAndReservationInternal.second->direction() == AmountReservation::Incoming) {
                             countIncomingReservations++;
                         }
                     }

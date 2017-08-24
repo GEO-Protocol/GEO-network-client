@@ -50,7 +50,7 @@ protected:
 
 protected:
     void shortageReservationsOnPath(
-        const PathUUID pathUUID,
+        const PathID pathID,
         const TrustLineAmount &amount);
 
     void runBuildFourNodesCyclesSignal();
@@ -69,7 +69,7 @@ protected:
 
     TrustLineAmount mLastReservedAmount;
     NodeUUID mCoordinator;
-    PathUUID mLastProcessedPath;
+    PathID mLastProcessedPath;
 };
 
 

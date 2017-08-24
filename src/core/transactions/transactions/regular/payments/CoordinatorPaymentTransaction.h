@@ -104,7 +104,7 @@ protected:
     TransactionResult::SharedConst tryProcessNextPath();
 
     TransactionResult::SharedConst tryReserveAmountDirectlyOnReceiver (
-        const PathUUID pathUUID,
+        const PathID pathID,
         PathStats *pathStats);
 
     TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount (
@@ -134,12 +134,12 @@ protected:
 
     // add final path configuration to mNodesFinalAmountsConfiguration for all path nodes
     void addFinalConfigurationOnPath(
-        PathUUID pathUUID,
+        PathID pathID,
         PathStats* pathStats);
 
     void shortageReservationsOnPath(
         const NodeUUID& neighborUUID,
-        const PathUUID pathUUID,
+        const PathID pathID,
         const TrustLineAmount &amount);
 
     // This method drops reservations on given path
@@ -148,7 +148,7 @@ protected:
     // will be send to current node on path.
     void dropReservationsOnPath(
         PathStats *pathStats,
-        PathUUID pathUUID,
+        PathID pathID,
         bool sendToLastProcessedNode = false);
 
     [[deprecated("Use BasePaymentTransaction::totalReservedAmount() instead")]]
@@ -180,15 +180,15 @@ protected:
 
     // Contains special stats data, such as current msx flow,
     // for all paths involved into the transaction.
-    unordered_map<PathUUID, unique_ptr<PathStats>> mPathsStats;
+    unordered_map<PathID, unique_ptr<PathStats>> mPathsStats;
 
     // Used in amount reservations stage.
     // Contains identifier of the path,
     // that was processed last, and potentially,
     // is waiting for request approving.
-    PathUUID mCurrentAmountReservingPathIdentifier;
+    PathID mCurrentAmountReservingPathIdentifier;
 
-    vector<PathUUID> mPathUUIDs;
+    vector<PathID> mPathIDs;
 
     // Reservation stage contains it's own internal steps counter.
     byte mReservationsStage;
@@ -200,10 +200,10 @@ protected:
      * Only one direct path may occure due to one payment operation.
      * In case if several direct paths occurs - than it seems that paths collection is broken.
      */
-    bool mDirectPathIsAllreadyProcessed;
+    bool mDirectPathIsAlreadyProcessed;
 
     // Contains all nodes final amount configuration on all transaction paths
-    map<NodeUUID, vector<pair<PathUUID, ConstSharedTrustLineAmount>>> mNodesFinalAmountsConfiguration;
+    map<NodeUUID, vector<pair<PathID, ConstSharedTrustLineAmount>>> mNodesFinalAmountsConfiguration;
 
     // Contains flags if nodes confirmed final amounts configuration,
     // before voting stage

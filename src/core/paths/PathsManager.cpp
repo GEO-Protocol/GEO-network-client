@@ -533,7 +533,7 @@ void PathsManager::buildPathsOnOneLevel()
         TrustLineAmount currentFlow = 0;
         for (auto &trustLinePtr : trustLinePtrsSet) {
             auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
-            auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
+            auto trustLineFreeAmountShared = trustLine->freeAmount();
             auto trustLineAmountPtr = trustLineFreeAmountShared.get();
             mPassedNodeUUIDs.clear();
             TrustLineAmount flow = calculateOneNode(
@@ -658,7 +658,7 @@ TrustLineAmount PathsManager::reBuildPathsOnOneLevel()
         TrustLineAmount currentFlow = 0;
         for (auto &trustLinePtr : trustLinePtrsSet) {
             auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
-            auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
+            auto trustLineFreeAmountShared = trustLine->freeAmount();
             auto trustLineAmountPtr = trustLineFreeAmountShared.get();
             mPassedNodeUUIDs.clear();
             if (mInaccessibleNodes.find(trustLine->targetUUID()) != mInaccessibleNodes.end()) {

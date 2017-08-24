@@ -20,7 +20,7 @@ public:
     CoordinatorCycleReservationRequestMessage(
         BytesShared buffer);
 
-    const NodeUUID& nextNodeInPathUUID() const;
+    const NodeUUID& nextNodeInPath() const;
 
     const Message::MessageType typeID() const;
 

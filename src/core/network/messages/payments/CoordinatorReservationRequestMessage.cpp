@@ -4,7 +4,7 @@
 CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
-    const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
+    const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
     const NodeUUID& nextNodeInThePath) :
 
     FinalAmountsConfigurationMessage(
@@ -22,7 +22,7 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
     size_t parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes()
                                  + sizeof(FinalAmountsConfigurationMessage::RecordCount)
                                  + finalAmountsConfiguration().size() *
-                                   (sizeof(PathUUID) + kTrustLineAmountBytesCount);
+                                   (sizeof(PathID) + kTrustLineAmountBytesCount);
 
     memcpy(
         mNextPathNode.data,
@@ -31,7 +31,7 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
 }
 
 
-const NodeUUID& CoordinatorReservationRequestMessage::nextNodeInPathUUID() const
+const NodeUUID& CoordinatorReservationRequestMessage::nextNodeInPath() const
 {
     return mNextPathNode;
 }

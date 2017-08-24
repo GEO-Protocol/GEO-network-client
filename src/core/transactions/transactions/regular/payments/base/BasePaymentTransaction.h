@@ -128,7 +128,9 @@ protected:
 
 protected:
     // TODO: move it into separate *.h file.
-    typedef uint64_t PathUUID;
+    // it used in pair of Message::PathID
+    // so if you change this one, you should change another too
+    typedef uint16_t PathID;
 
     // Stages handlers
     virtual TransactionResult::SharedConst runVotesCheckingStage();
@@ -158,18 +160,18 @@ protected:
     const bool reserveOutgoingAmount(
         const NodeUUID &neighborNode,
         const TrustLineAmount& amount,
-        const PathUUID &pathUUID);
+        const PathID &pathID);
 
     const bool reserveIncomingAmount(
         const NodeUUID &neighborNode,
         const TrustLineAmount& amount,
-        const PathUUID &pathUUID);
+        const PathID &pathID);
 
     const bool shortageReservation(
         const NodeUUID kContractor,
         const AmountReservation::ConstShared kReservation,
         const TrustLineAmount &kNewAmount,
-        const PathUUID &pathUUID);
+        const PathID &pathID);
 
     void saveVotes(
         IOTransaction::Shared ioTransaction);
@@ -180,7 +182,7 @@ protected:
     void rollBack();
 
     void rollBack(
-        const PathUUID &pathUUID);
+        const PathID &pathID);
 
     uint32_t maxNetworkDelay (
         const uint16_t totalHopsCount) const;
@@ -198,24 +200,24 @@ protected:
         const ParticipantsVotesMessage::Shared kMessage) const;
 
     void dropNodeReservationsOnPath(
-        PathUUID pathUUID);
+        PathID pathID);
 
     void sendFinalPathConfiguration(
         PathStats* pathStats,
-        PathUUID pathUUID,
+        PathID pathID,
         const TrustLineAmount &finalPathAmount);
 
     // Updates all reservations according to finalAmounts
-    // if some reservations will be found, pathUUIDs of which are absent in finalAmounts, returns false,
+    // if some reservations will be found, pathIDs of which are absent in finalAmounts, returns false,
     // otherwise returns true
     bool updateReservations(
-        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts);
+        const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts);
 
     // Returns reservation pathID, which was updated, if reservation was dropped, returns 0
-    PathUUID updateReservation(
+    PathID updateReservation(
         const NodeUUID &contractorUUID,
-        pair<PathUUID, AmountReservation::ConstShared> &reservation,
-        const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmounts);
+        pair<PathID, AmountReservation::ConstShared> &reservation,
+        const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts);
 
     size_t reservationsSizeInBytes() const;
 
@@ -265,14 +267,14 @@ protected:
     // so the votes message must be saved for further processing.
     ParticipantsVotesMessage::Shared mParticipantsVotesMessage;
 
-    map<NodeUUID, vector<pair<PathUUID, AmountReservation::ConstShared>>> mReservations;
+    map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mReservations;
 
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;
     NodeUUID mCurrentNodeToCheckVotes;
 
     // this amount used for saving in payment history
-    TrustLineAmount mCommitedAmount;
+    TrustLineAmount mCommittedAmount;
 
 protected:
     SubsystemsController *mSubsystemsController;

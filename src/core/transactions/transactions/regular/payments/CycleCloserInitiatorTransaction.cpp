@@ -966,7 +966,7 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()
 {
-    mCommitedAmount = totalReservedAmount(
+    mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
     propagateVotesMessageToAllParticipants(
@@ -983,7 +983,7 @@ void CycleCloserInitiatorTransaction::savePaymentOperationIntoHistory(
         make_shared<PaymentRecord>(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::CycleCloserType,
-            mCommitedAmount));
+            mCommittedAmount));
     debug() << "Operation saved";
 }
 

@@ -19,7 +19,9 @@ public:
 
 public:
     // TODO: move it into separate *.h file.
-    typedef uint64_t PathUUID;
+    // it used in pair of BasePaymentTransaction::PathID
+    // so if you change this one, you should change another too
+    typedef uint16_t PathID;
 
 public:
     enum MessageType {

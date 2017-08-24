@@ -102,7 +102,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
             kCoordinator,
             currentNodeUUID(),
             currentTransactionUUID(),
-            mMessage->pathUUID(),
+            mMessage->pathID(),
             ReceiverInitPaymentResponseMessage::Rejected);
 
         return exitWithResult(
@@ -114,7 +114,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
         kCoordinator,
         currentNodeUUID(),
         currentTransactionUUID(),
-        mMessage->pathUUID(),
+        mMessage->pathID(),
         ReceiverInitPaymentResponseMessage::Accepted);
 
     // Begin waiting for amount reservation requests.
@@ -170,7 +170,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             kNeighbor,
             currentNodeUUID(),
             currentTransactionUUID(),
-            0,                  // 0, because we don't know pathUUID
+            0,                  // 0, because we don't know pathID
             ResponseMessage::Closed);
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeReservationRequest,
@@ -207,7 +207,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     }
 
     // update local reservations during amounts from coordinator
-    if (!updateReservations(vector<pair<PathUUID, ConstSharedTrustLineAmount>>(
+    if (!updateReservations(vector<pair<PathID, ConstSharedTrustLineAmount>>(
         kMessage->finalAmountsConfiguration().begin() + 1,
         kMessage->finalAmountsConfiguration().end()))) {
         error() << "Coordinator send path configuration, which is absent on current node";
@@ -461,7 +461,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTra
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
 {
-    mCommitedAmount = totalReservedAmount(
+    mCommittedAmount = totalReservedAmount(
         AmountReservation::Incoming);
     BasePaymentTransaction::approve();
     runBuildThreeNodesCyclesSignal();
@@ -477,7 +477,7 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
             currentTransactionUUID(),
             PaymentRecord::PaymentOperationType::IncomingPaymentType,
             mParticipantsVotesMessage->coordinatorUUID(),
-            mCommitedAmount,
+            mCommittedAmount,
             *mTrustLines->totalBalance().get()));
     debug() << "Operation saved";
 }
@@ -486,8 +486,8 @@ bool ReceiverPaymentTransaction::checkReservationsDirections() const
 {
     debug() << "checkReservationsDirections";
     for (const auto nodeAndReservations : mReservations) {
-        for (const auto pathUUIDAndReservation : nodeAndReservations.second) {
-            if (pathUUIDAndReservation.second->direction() != AmountReservation::Incoming) {
+        for (const auto pathIDAndReservation : nodeAndReservations.second) {
+            if (pathIDAndReservation.second->direction() != AmountReservation::Incoming) {
                 return false;
             }
         }
