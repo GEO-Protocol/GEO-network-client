@@ -526,11 +526,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runReservatio
     }
 
     if (contextIsValid(Message::Payments_TTLProlongationResponse, false)) {
-        runClarificationOfTransactionBeforeVoting();
+        return runClarificationOfTransactionBeforeVoting();
     }
 
     if (contextIsValid(Message::Payments_FinalPathConfiguration, false)) {
-        runFinalPathConfigurationProcessingStage();
+        return runFinalPathConfigurationProcessingStage();
     }
 
     // Node is clarifying of coordinator if transaction is still alive

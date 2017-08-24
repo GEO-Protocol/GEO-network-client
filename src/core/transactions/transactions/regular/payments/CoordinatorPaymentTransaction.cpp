@@ -281,30 +281,19 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
         kTransactionUUID,
         kCurrentNodeUUID);
 
-    for (PathID pathIdx = 0; pathIdx <= mCurrentAmountReservingPathIdentifier; pathIdx++) {
-        auto const pathStats = mPathsStats[pathIdx].get();
-
-        if (pathStats->path()->length() > 2)
-            if (!pathStats->isLastIntermediateNodeApproved())
-                continue;
-
-        for (const auto &nodeUUID : pathStats->path()->nodes) {
-            // By the protocol, coordinator node must be excluded from the message.
-            // Only coordinator may emit ParticipantsApprovingMessage into the network.
-            // It is supposed, that in case if it was emitted - than coordinator approved the transaction.
-            //
-            // TODO: [mvp] [cryptography] despite this, coordinator must sign the message,
-            // so the other nodes would be possible to know that this message was emitted by the coordinator.
-            if (nodeUUID == kCurrentNodeUUID)
-                continue;
-
-            mParticipantsVotesMessage->addParticipant(nodeUUID);
-        }
+    // Only coordinator may emit ParticipantsApprovingMessage into the network.
+    // It is supposed, that in case if it was emitted - than coordinator approved the transaction.
+    //
+    // TODO: [mvp] [cryptography] despite this, coordinator must sign the message,
+    // so the other nodes would be possible to know that this message was emitted by the coordinator.
+    // mNodesFinalAmountsConfiguration contains all nodes, which have actual reservations
+    for (auto const nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
+        mParticipantsVotesMessage->addParticipant(
+            nodeAndFinalAmountsConfig.first);
     }
 
-
-#ifdef DEBUG
     debug() << "Total participants included: " << mParticipantsVotesMessage->participantsCount();
+#ifdef DEBUG
     debug() << "Participants order is the next:";
     for (const auto kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
         debug() << kNodeUUIDAndVote.first;

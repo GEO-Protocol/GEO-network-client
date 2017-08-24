@@ -7,7 +7,7 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
     const NodeUUID& nextNodeInThePath) :
 
-    FinalAmountsConfigurationMessage(
+    RequestMessageWithReservations(
         senderUUID,
         transactionUUID,
         finalAmountsConfig),
@@ -17,10 +17,10 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
 CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
     BytesShared buffer) :
 
-    FinalAmountsConfigurationMessage(buffer)
+    RequestMessageWithReservations(buffer)
 {
     size_t parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes()
-                                 + sizeof(FinalAmountsConfigurationMessage::RecordCount)
+                                 + sizeof(RequestMessageWithReservations::RecordCount)
                                  + finalAmountsConfiguration().size() *
                                    (sizeof(PathID) + kTrustLineAmountBytesCount);
 
@@ -47,7 +47,7 @@ const Message::MessageType CoordinatorReservationRequestMessage::typeID() const
 pair<BytesShared, size_t> CoordinatorReservationRequestMessage::serializeToBytes() const
     throw(bad_alloc)
 {    
-    auto parentBytesAndCount = FinalAmountsConfigurationMessage::serializeToBytes();
+    auto parentBytesAndCount = RequestMessageWithReservations::serializeToBytes();
     size_t totalBytesCount =
         + parentBytesAndCount.second
         + NodeUUID::kBytesSize;

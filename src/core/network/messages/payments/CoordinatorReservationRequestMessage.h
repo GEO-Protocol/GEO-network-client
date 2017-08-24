@@ -1,12 +1,10 @@
 ﻿#ifndef COORDINATORRESERVATIONREQUESTMESSAGE_H
 #define COORDINATORRESERVATIONREQUESTMESSAGE_H
 
-
-#include "FinalAmountsConfigurationMessage.h"
-
+#include "base/RequestMessageWithReservations.h"
 
 class CoordinatorReservationRequestMessage:
-    public FinalAmountsConfigurationMessage {
+    public RequestMessageWithReservations {
 
 public:
     typedef shared_ptr<CoordinatorReservationRequestMessage> Shared;
