@@ -535,7 +535,7 @@ void BasePaymentTransaction::commit ()
                             << "]";
                 mTrustLines->dropAmountReservation(kNodeUUIDAndReservations.first, kPathUUIDAndReservation.second);
             }
-            ioTransaction->trustLineHandler()->saveTrustLine(
+            ioTransaction->trustLinesHandler()->saveTrustLine(
                 mTrustLines->trustLines().at(kNodeUUIDAndReservations.first));
         }
     }

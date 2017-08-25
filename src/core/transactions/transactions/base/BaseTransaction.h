@@ -52,12 +52,8 @@ public:
     virtual ~BaseTransaction() = default;
 
     enum TransactionType {
-        OpenTrustLineTransactionType = 1,
-        AcceptTrustLineTransactionType,
-        SetTrustLineTransactionType,
-        UpdateTrustLineTransactionType,
-        CloseTrustLineTransactionType,
-        RejectTrustLineTransactionType,
+        SetOutgoingTrustLineTransaction = 1,
+        SetIncomingTrustLineTransaction,
 
         // Routing tables
         RoutingTables_TrustLineStatesHandler,

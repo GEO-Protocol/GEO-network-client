@@ -140,18 +140,8 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
     BaseUserCommand *command = nullptr;
     try {
-        if (identifier == OpenTrustLineCommand::identifier()) {
-            command = new OpenTrustLineCommand(
-                uuid,
-                buffer);
-
-        } else if (identifier == CloseTrustLineCommand::identifier()) {
-            command = new CloseTrustLineCommand(
-                uuid,
-                buffer);
-
-        } else if (identifier == SetTrustLineCommand::identifier()) {
-            command = new SetTrustLineCommand(
+        if (identifier == SetOutgoingTrustLineCommand::identifier()) {
+            command = new SetOutgoingTrustLineCommand(
                 uuid,
                 buffer);
 
@@ -340,8 +330,8 @@ CommandsInterface::~CommandsInterface() {
     close(mFIFODescriptor);
 }
 
-void CommandsInterface::beginAcceptCommands() {
-
+void CommandsInterface::beginAcceptCommands()
+{
     asyncReceiveNextCommand();
 }
 

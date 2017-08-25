@@ -1,36 +1,51 @@
-﻿#include "UpdateTrustLineMessage.h"
+﻿#include "SetIncomingTrustLineMessage.h"
 
 
-UpdateTrustLineMessage::UpdateTrustLineMessage(
+SetIncomingTrustLineMessage::SetIncomingTrustLineMessage(
+    const NodeUUID &sender,
+    const TransactionUUID &transactionUUID,
+    const TrustLineAmount &amount)
+    noexcept :
+
+    TransactionMessage(
+        sender,
+        transactionUUID),
+    mAmount(amount)
+{}
+
+SetIncomingTrustLineMessage::SetIncomingTrustLineMessage(
     BytesShared buffer)
     noexcept :
 
     TransactionMessage(buffer)
 {
+    // todo: use desrializer
+
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     vector<byte> amountBytes(
         buffer.get() + bytesBufferOffset,
         buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-    mNewTrustLineAmount = bytesToTrustLineAmount(amountBytes);
+    mAmount = bytesToTrustLineAmount(amountBytes);
 }
 
-const Message::MessageType UpdateTrustLineMessage::typeID() const
+
+const Message::MessageType SetIncomingTrustLineMessage::typeID() const
     noexcept
 {
-    return Message::MessageType::TrustLines_Update;
+    return Message::TrustLines_SetIncoming;
 }
 
-const TrustLineAmount &UpdateTrustLineMessage::newAmount() const
+const TrustLineAmount &SetIncomingTrustLineMessage::amount() const
     noexcept
 {
-    return mNewTrustLineAmount;
+    return mAmount;
 }
 
-// todo: rewrite me with bytes serializer
-pair<BytesShared, size_t> UpdateTrustLineMessage::serializeToBytes() const
-    throw (bad_alloc)
+pair<BytesShared, size_t> SetIncomingTrustLineMessage::serializeToBytes() const
 {
+    // todo: use serializer
+
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
@@ -46,7 +61,7 @@ pair<BytesShared, size_t> UpdateTrustLineMessage::serializeToBytes() const
     );
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
-    vector<byte> buffer = trustLineAmountToBytes(mNewTrustLineAmount);
+    vector<byte> buffer = trustLineAmountToBytes(mAmount);
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         buffer.data(),

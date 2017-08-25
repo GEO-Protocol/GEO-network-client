@@ -1,5 +1,5 @@
 ﻿#include "TransactionsManager.h"
-#include "../transactions/routing_tables/Crc32Rt2ResponseTransaction.h"
+
 
 /*!
  *
@@ -53,14 +53,16 @@ TransactionsManager::TransactionsManager(
         mScheduler->cycleCloserTransactionWasFinishedSignal);
 
     try {
-        loadTransactions();
+        loadTransactionsFromStorage();
 
     } catch (exception &e) {
         throw RuntimeError(e.what());
     }
+
+    // todo: send current trust line amount to te contractors
 }
 
-void TransactionsManager::loadTransactions()
+void TransactionsManager::loadTransactionsFromStorage()
 {
     const auto ioTransaction = mStorageHandler->beginTransaction();
     const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
@@ -156,26 +158,16 @@ void TransactionsManager::loadTransactions()
     }
 }
 
-/*!
- *
- * Throws ValueError in case if command is unexpected.
- */
 void TransactionsManager::processCommand(
-    BaseUserCommand::Shared command) {
+    BaseUserCommand::Shared command)
+{
+    // ToDo: sort calls in the call probabilty order.
+    // For example, max flows calculations would be called much ofetn, then credit usage transactions.
+    // So, why we are checking trust lines commands first, and max flow is only in the middle of the check sequence?
 
-    if (command->identifier() == OpenTrustLineCommand::identifier()) {
-        launchOpenTrustLineTransaction(
-            static_pointer_cast<OpenTrustLineCommand>(
-                command));
-
-    } else if (command->identifier() == CloseTrustLineCommand::identifier()) {
-        launchCloseTrustLineTransaction(
-            static_pointer_cast<CloseTrustLineCommand>(
-                command));
-
-    } else if (command->identifier() == SetTrustLineCommand::identifier()) {
-        launchSetTrustLineTransaction(
-            static_pointer_cast<SetTrustLineCommand>(
+    if (command->identifier() == SetOutgoingTrustLineCommand::identifier()) {
+        launchSetOutgoingTrustLineTransaction(
+            static_pointer_cast<SetOutgoingTrustLineCommand>(
                 command));
 
     } else if (command->identifier() == CreditUsageCommand::identifier()) {
@@ -238,8 +230,6 @@ void TransactionsManager::processCommand(
             static_pointer_cast<UpdateRoutingTablesCommand>(
                 command));
 
-
-
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -250,19 +240,13 @@ void TransactionsManager::processCommand(
 void TransactionsManager::processMessage(
     Message::Shared message)
 {
-    if (message->typeID() == Message::TrustLines_Accept) {
-        launchAcceptTrustLineTransaction(
-            static_pointer_cast<AcceptTrustLineMessage>(message));
+    // ToDo: sort calls in the call probabilty order.
+    // For example, max flows calculations would be called much ofetn, then credit usage transactions.
 
-    } else if (message->typeID() == Message::TrustLines_Reject) {
-        launchRejectTrustLineTransaction(
-            static_pointer_cast<RejectTrustLineMessage>(message));
-
-    } else if (message->typeID() == Message::TrustLines_Update) {
-        launchUpdateTrustLineTransaction(
-            static_pointer_cast<UpdateTrustLineMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::MaxFlow_InitiateCalculation) {
+    /*
+     * Max flow
+     */
+    if (message->typeID() == Message::MessageType::MaxFlow_InitiateCalculation) {
         launchReceiveMaxFlowCalculationOnTargetTransaction(
             static_pointer_cast<InitiateMaxFlowCalculationMessage>(message));
 
@@ -331,6 +315,7 @@ void TransactionsManager::processMessage(
             launchIntermediateNodePaymentTransaction(
                     static_pointer_cast<IntermediateNodeReservationRequestMessage>(message));
         }
+
     } else if (message->typeID() == Message::Payments_IntermediateNodeCycleReservationRequest) {
         // It is possible, that transaction was already initialised
         // by the ReceiverInitPaymentRequest.
@@ -345,23 +330,39 @@ void TransactionsManager::processMessage(
         }
     } else if(message->typeID() == Message::MessageType::Payments_VotesStatusRequest){
         launchVoutesResponsePaymentsTransaction(
-                static_pointer_cast<VotesStatusRequestMessage>(message));
+            static_pointer_cast<VotesStatusRequestMessage>(message));
+
+    /*
+     * Cycles
+     */
     } else if (message->typeID() == Message::MessageType::Cycles_SixNodesMiddleware) {
         launchSixNodesCyclesResponseTransaction(
-                static_pointer_cast<CyclesSixNodesInBetweenMessage>(message));
+            static_pointer_cast<CyclesSixNodesInBetweenMessage>(message));
+
     } else if (message->typeID() == Message::MessageType::Cycles_FiveNodesMiddleware) {
         launchFiveNodesCyclesResponseTransaction(
             static_pointer_cast<CyclesFiveNodesInBetweenMessage>(message));
-    }else if(message->typeID() == Message::MessageType::Cycles_ThreeNodesBalancesRequest){
+
+    } else if (message->typeID() == Message::MessageType::Cycles_ThreeNodesBalancesRequest){
         launchThreeNodesCyclesResponseTransaction(
-                static_pointer_cast<CyclesThreeNodesBalancesRequestMessage>(message));
-    }else if(message->typeID() == Message::MessageType::Cycles_FourNodesBalancesRequest){
+            static_pointer_cast<CyclesThreeNodesBalancesRequestMessage>(message));
+
+    } else if (message->typeID() == Message::MessageType::Cycles_FourNodesBalancesRequest){
         launchFourNodesCyclesResponseTransaction(
-                static_pointer_cast<CyclesFourNodesBalancesRequestMessage>(message));
+            static_pointer_cast<CyclesFourNodesBalancesRequestMessage>(message));
 
     /*
-    * Routing tables exchange
-    */
+     * Trust lines
+     */
+
+    } else if (message->typeID() == Message::TrustLines_SetIncoming) {
+        launchSetIncomingTrustLineTransaction(
+            static_pointer_cast<SetIncomingTrustLineMessage>(message));
+
+
+    /*
+     * Routing tables exchange
+     */
     } else if (message->typeID() == Message::MessageType::RoutingTables_NotificationTrustLineCreated) {
         launchTrustLineStatesHandlerTransaction(
             static_pointer_cast<NotificationTrustLineCreatedMessage>(message));
@@ -387,150 +388,34 @@ void TransactionsManager::processMessage(
     }
 }
 
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchOpenTrustLineTransaction(
-    OpenTrustLineCommand::Shared command) {
-
-    try {
-        prepareAndSchedule(
-            make_shared<OpenTrustLineTransaction>(
-                mNodeUUID,
-                command,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            true,
-            true,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchSetTrustLineTransaction(
-    SetTrustLineCommand::Shared command) {
-
-    try {
-        prepareAndSchedule(
-            make_shared<SetTrustLineTransaction>(
-                mNodeUUID,
-                command,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            true
-        );
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchCloseTrustLineTransaction(
-    CloseTrustLineCommand::Shared command) {
-
-    try {
-        prepareAndSchedule(
-            make_shared<CloseTrustLineTransaction>(
-                mNodeUUID,
-                command,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            true,
-            true,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchAcceptTrustLineTransaction(
-    AcceptTrustLineMessage::Shared message) {
-
-    try {
-        prepareAndSchedule(
-            make_shared<AcceptTrustLineTransaction>(
-                mNodeUUID,
-                message,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            false,
-            true,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchUpdateTrustLineTransaction(
-    UpdateTrustLineMessage::Shared message) {
-
-    try {
-        prepareAndSchedule(
-            make_shared<UpdateTrustLineTransaction>(
-                mNodeUUID,
-                message,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            false,
-            false,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchRejectTrustLineTransaction(
-    RejectTrustLineMessage::Shared message) {
-
-    try {
-        prepareAndSchedule(
-            make_shared<RejectTrustLineTransaction>(
-                mNodeUUID,
-                message,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            false,
-            true,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchProcessTrustLineModificationTransactions(
-    const NodeUUID &contractorUUID)
+void TransactionsManager::launchSetOutgoingTrustLineTransaction(
+    SetOutgoingTrustLineCommand::Shared command)
 {
-//    prepareAndSchedule(
-//        make_shared<>(
-//            mNodeUUID,
-//            mTrustLines,
-//            mLog));
+    prepareAndSchedule(
+        make_shared<SetOutgoingTrustLineTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mStorageHandler,
+            mLog),
+        true,
+        false,
+        true);
+}
+
+void TransactionsManager::launchSetIncomingTrustLineTransaction(
+    SetIncomingTrustLineMessage::Shared message)
+{
+    prepareAndSchedule(
+        make_shared<SetIncomingTrustLineTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mStorageHandler,
+            mLog),
+        true,
+        false,
+        true);
 }
 
 /*!
@@ -1382,8 +1267,6 @@ void TransactionsManager::prepareAndSchedule(
         }
     }
 }
-
-//   ---------------------------------------Cycles part----------------------------------------------
 
 void TransactionsManager::launchThreeNodesCyclesInitTransaction(
     const NodeUUID &contractorUUID)

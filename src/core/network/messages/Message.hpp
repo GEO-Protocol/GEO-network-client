@@ -1,9 +1,7 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_MESSAGE_H
 #define GEO_NETWORK_CLIENT_MESSAGE_H
 
-#include "../../common/Types.h"
 #include "../../common/memory/MemoryUtils.h"
-
 #include "../communicator/internal/common/Packet.hpp"
 
 #include <limits>
@@ -24,14 +22,14 @@ public:
 public:
     enum MessageType {
         /*
+         * System messages types
+         */
+        System_Confirmation = 0,
+
+        /*
          * Trust lines
          */
-        TrustLines_Open = 1,
-        TrustLines_Accept,
-        TrustLines_Set,
-        TrustLines_Close,
-        TrustLines_Reject,
-        TrustLines_Update,
+        TrustLines_SetIncoming,
 
         /*
          * Payments messages

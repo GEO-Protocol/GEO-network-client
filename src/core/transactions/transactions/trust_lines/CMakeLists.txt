@@ -1,26 +1,15 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
+    SetOutgoingTrustLineTransaction.h
+    SetOutgoingTrustLineTransaction.cpp
 
-        OpenTrustLineTransaction.cpp
-        OpenTrustLineTransaction.h
-        AcceptTrustLineTransaction.cpp
-        AcceptTrustLineTransaction.h
-        CloseTrustLineTransaction.cpp
-        CloseTrustLineTransaction.h
-        RejectTrustLineTransaction.cpp
-        RejectTrustLineTransaction.h
-        SetTrustLineTransaction.cpp
-        SetTrustLineTransaction.h
-        UpdateTrustLineTransaction.cpp
-        UpdateTrustLineTransaction.h)
+    SetIncomingTrustLineTransaction.h
+    SetIncomingTrustLineTransaction.cpp)
 
 add_library(transactions__trustlines ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines
-        transactions__base
-
-        common
-        #        time
-        exceptions
-
-        network__messages)
+    transactions__base
+    common
+    exceptions
+    network__messages)

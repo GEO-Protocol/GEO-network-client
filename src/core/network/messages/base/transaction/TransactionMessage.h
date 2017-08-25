@@ -23,8 +23,7 @@ public:
         BytesShared buffer)
         noexcept;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc);
+    virtual pair<BytesShared, size_t> serializeToBytes() const;
 
     const TransactionUUID &transactionUUID() const
         noexcept;

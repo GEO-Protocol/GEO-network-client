@@ -10,12 +10,8 @@ set(SOURCE_FILES
         commands/BaseUserCommand.cpp
         commands/BaseUserCommand.h
 
-        commands/trust_lines/OpenTrustLineCommand.cpp
-        commands/trust_lines/OpenTrustLineCommand.h
-        commands/trust_lines/CloseTrustLineCommand.cpp
-        commands/trust_lines/CloseTrustLineCommand.h
-        commands/trust_lines/SetTrustLineCommand.cpp
-        commands/trust_lines/SetTrustLineCommand.h
+        commands/trust_lines/SetOutgoingTrustLineCommand.cpp
+        commands/trust_lines/SetOutgoingTrustLineCommand.h
 
         commands/payments/CreditUsageCommand.cpp
         commands/payments/CreditUsageCommand.h

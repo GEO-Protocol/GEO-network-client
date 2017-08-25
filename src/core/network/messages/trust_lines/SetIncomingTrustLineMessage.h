@@ -5,24 +5,33 @@
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
 
-class SetTrustLineMessage:
+class SetIncomingTrustLineMessage:
     public TransactionMessage {
 
 public:
-    SetTrustLineMessage(
+    typedef shared_ptr<SetIncomingTrustLineMessage> Shared;
+
+public:
+    SetIncomingTrustLineMessage(
         const NodeUUID &sender,
         const TransactionUUID &transactionUUID,
-        const TrustLineAmount &newAmount)
+        const TrustLineAmount &amount)
+        noexcept;
+
+    SetIncomingTrustLineMessage(
+        BytesShared buffer)
         noexcept;
 
     const MessageType typeID() const
         noexcept;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        throw (bad_alloc);
+    const TrustLineAmount& amount() const
+        noexcept;
 
-private:
-    const TrustLineAmount mNewTrustLineAmount;
+    virtual pair<BytesShared, size_t> serializeToBytes() const;
+
+protected:
+    TrustLineAmount mAmount;
 };
 
 
