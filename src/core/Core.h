@@ -120,6 +120,27 @@ private:
 
     void updateProcessName();
 
+    /**
+     * Sends notification about current outgoing trust line amount to each contractor.
+     * This is needed to prevent trust lines borders desyncronization, that might occure in 2 cases:
+     *
+     * 1. Outgoing trust line amount was changed outside of the engine.
+     * 2. Outgoing trust line amount was changed on this node, but the remote node does't received the message.
+     *    (this case is valid for the nodes, that was present in the network before the moment,
+     *     when forced messages delivering mechanism was added into the engine).
+     */
+    void notifyContractorsAboutCurrentTrustLinesAmounts();
+
+protected:
+    static string logHeader()
+        noexcept;
+
+    LoggerStream error() const
+        noexcept;
+
+    LoggerStream info() const
+        noexcept;
+
 protected:
     // This pointer is used to modify executable command description.
     // By default, it would point to the standard argv[0] char sequence;

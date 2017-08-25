@@ -55,6 +55,7 @@ private:
     const string kHistoryMainTableName = "history";
     const string kHistoryAdditionalTableName = "history_additional";
     const string kMigrationTableName = "migrations";
+//    const string kOutgoingNetworkMessagesQueue = "network_outgoing_messages";
 
 private:
     static sqlite3 *mDBConnection;

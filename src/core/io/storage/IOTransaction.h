@@ -19,7 +19,7 @@ public:
     IOTransaction(
         sqlite3 *dbConnection,
         RoutingTablesHandler *routingTablesHandler,
-        TrustLineHandler *trustLineHandler,
+        TrustLineHandler *trustLinesHandler,
         HistoryStorage *historyStorage,
         PaymentOperationStateHandler *paymentOperationStorage,
         TransactionsHandler *transactionHandler,
@@ -29,7 +29,7 @@ public:
 
     RoutingTablesHandler* routingTablesHandler();
 
-    TrustLineHandler *trustLineHandler();
+    TrustLineHandler *trustLinesHandler();
 
     HistoryStorage *historyStorage();
 

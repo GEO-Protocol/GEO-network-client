@@ -35,7 +35,7 @@ RoutingTablesHandler* IOTransaction::routingTablesHandler()
     return mRoutingTablesHandler;
 }
 
-TrustLineHandler* IOTransaction::trustLineHandler()
+TrustLineHandler* IOTransaction::trustLinesHandler()
 {
     if (!mIsTransactionBegin) {
         throw IOError("IOTransaction::trustLineHandler: "

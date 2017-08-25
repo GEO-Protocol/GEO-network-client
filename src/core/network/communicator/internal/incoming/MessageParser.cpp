@@ -23,22 +23,17 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         switch(kMessageIdentifier) {
 
         /*
-         * Trust lines operations
+         * System messages
          */
-        case Message::TrustLines_Open:
-            // ToDo: Replace it with proper request message
-            // (OpenTrustLineRequestMessage)
-            return messageCollected<AcceptTrustLineMessage>(buffer);
+        case Message::System_Confirmation:
+            return messageCollected<ConfirmationMessage>(buffer);
 
-        case Message::TrustLines_Close:
-            // ToDo: Replace it with proper request message
-            // (CloseTrustLineRequestMessage)
-            return messageCollected<RejectTrustLineMessage>(buffer);
 
-        case Message::TrustLines_Set:
-            // ToDo: Replace it with proper request message
-            // (SetTrustLineRequestMessage)
-            return messageCollected<UpdateTrustLineMessage>(buffer);
+        /*
+         * Trust lines messages
+         */
+        case Message::TrustLines_SetIncoming:
+            return messageCollected<SetIncomingTrustLineMessage>(buffer);
 
 
         /*
@@ -186,14 +181,6 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 
         case Message::Paths_ResultRoutingTableThirdLevel:
             return messageCollected<ResultRoutingTable3LevelMessage>(buffer);
-
-
-        /*
-         * Response message
-         * ToDo: remove it after trust lines messages refactoring
-         */
-        case Message::ResponseMessageType:
-            return messageCollected<Response>(buffer);
 
 
 #ifdef DEBUG

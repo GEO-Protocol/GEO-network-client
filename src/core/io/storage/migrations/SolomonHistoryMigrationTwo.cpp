@@ -31,7 +31,7 @@ void SolomonHistoryMigrationTwo::applyTrustLineMigration(
     auto trustLine = getOutwornTrustLine(ioTransaction);
     auto new_balance = trustLine->balance() + mOperationAmount;
     trustLine->setBalance(new_balance);
-    ioTransaction->trustLineHandler()->saveTrustLine(trustLine);
+    ioTransaction->trustLinesHandler()->saveTrustLine(trustLine);
 }
 
 void SolomonHistoryMigrationTwo::applyTrustLineHistoryMigration(IOTransaction::Shared ioTransaction)
@@ -141,7 +141,7 @@ TrustLine::Shared SolomonHistoryMigrationTwo::getOutwornTrustLine(
 {
     sqlite3_stmt *stmt;
     string query = "SELECT contractor, incoming_amount, outgoing_amount, balance FROM " +
-                   ioTransaction->trustLineHandler()->tableName() + " where contractor = ?";
+                   ioTransaction->trustLinesHandler()->tableName() + " where contractor = ?";
 
 
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);

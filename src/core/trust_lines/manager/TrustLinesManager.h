@@ -11,8 +11,9 @@
 #include "../../common/exceptions/ConflictError.h"
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
-
 #include "../../logger/Logger.h"
+
+// todo: rename "amount_blocks" to "reservations"
 #include "../../payments/amount_blocks/AmountReservationsHandler.h"
 
 // TODO: remove storage handler include (IO transactions must be transferred as arguments)
@@ -48,38 +49,77 @@ public:
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineStateModifiedSignal;
 
 public:
+    enum TrustLineOperationResult {
+        Opened,
+        Updated,
+        Closed,
+        NoChanges,
+    };
+
+public:
     TrustLinesManager(
         StorageHandler *storageHandler,
         Logger &logger)
         throw (bad_alloc, IOError);
 
-    void open(
+    /**
+     * Creates / Updates / Closes trust line TO the contractor.
+     *
+     * Creates new trust line in case if no trust line to the contractor is present.
+     * Updates trust line with new amount if it's already present.
+     * In case if ne wamount is equal to previously set amount - "NoChanges" result would bereturned.
+     * Closes the trust line if it's present and received amount = 0.
+     *
+     * @returns final state of the operation.
+     *
+     * @throws ValueError in case if amount is 0 and no trust line to this contractor is present.
+     * @throws might throw exceptions of the closeOutgoing() method.
+     */
+    TrustLineOperationResult setOutgoing(
         IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID,
         const TrustLineAmount &amount);
 
-    void close(
+    /**
+     * Creates / Updates / Closes trust line FROM the contractor.
+     *
+     * Creates new trust line in case if no trust line from the contractor is present.
+     * Updates trust line with new amount if it's already present.
+     * In case if ne wamount is equal to previously set amount - "NoChanges" result would bereturned.
+     * Closes the trust line if it's present and received amount = 0.
+     *
+     * @returns final state of the operation.
+     *
+     * @throws ValueError in case if amount is 0 and no trust line to this contractor is present.
+     * @throws might throw exceptions of the closeIncoming() method.
+     */
+    TrustLineOperationResult setIncoming(
+        IOTransaction::Shared IOTransaction,
+        const NodeUUID &contractorUUID,
+        const TrustLineAmount &amount);
+
+    /**
+     * Closes outgoing trust line TO the contractor.
+     *
+     * @throws NotFoundError in case if no trust line to this contractor is present.
+     * @throws ConflictError in case if there are some reservations on the trust line,
+     *         and it can't be removed at this moment.
+     */
+    void closeOutgoing(
         IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID);
 
-    void accept(
-        IOTransaction::Shared IOTransaction,
-        const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount);
-
-    void reject(
+    /**
+     * Closes incoming trust line FROM the contractor.
+     *
+     * @throws NotFoundError in case if no trust line to this contractor is present.
+     * @throws ConflictError in case if there are some reservations on the trust line,
+     *         and it can't be removed at this moment.
+     */
+    void closeIncoming(
         IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID);
 
-    void set(
-        IOTransaction::Shared IOTransaction,
-        const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount);
-
-    void update(
-        IOTransaction::Shared IOTransaction,
-        const NodeUUID &contractorUUID,
-        const TrustLineAmount &amount);
 
     const bool checkDirection(
         const NodeUUID &contractorUUID,
@@ -88,10 +128,12 @@ public:
     const BalanceRange balanceRange(
         const NodeUUID &contractorUUID) const;
 
+    [[deprecated("Use setIncoming instead")]]
     void setIncomingTrustAmount(
         const NodeUUID &contractor,
         const TrustLineAmount &amount);
 
+    [[deprecated("Use setOutgoing instead")]]
     void setOutgoingTrustAmount(
         const NodeUUID &contractor,
         const TrustLineAmount &amount);
@@ -238,8 +280,20 @@ public:
     pair<TrustLineBalance, TrustLineBalance> debtAndCredit();
 
 protected:
-    void loadTrustLinesFromDisk ()
-        throw (IOError);
+    /**
+     * Reads trust lines info from the internal storage and initalises internal trust lines map.
+     * Ignores obsolete trust lines (outgoing 0, incomint 0, and balance 0).
+     *
+     * @throws IOError in case of storage read error.
+     */
+    void loadTrustLinesFromDisk();
+
+protected: // log shortcuts
+    static const string logHeader()
+        noexcept;
+
+    LoggerStream info() const
+        noexcept;
 
 private:
     static const size_t kTrustAmountPartSize = 32;
