@@ -870,7 +870,7 @@ bool BasePaymentTransaction::updateReservations(
                 nodeAndReservations.first,
                 pathIDAndReservation,
                 finalAmounts);
-            if (updatedPathID != UINT64_MAX) {
+            if (updatedPathID != UINT16_MAX) {
                 updatedPaths.insert(updatedPathID);
             }
         }
@@ -896,7 +896,8 @@ BasePaymentTransaction::PathID BasePaymentTransaction::updateReservation(
     }
     dropNodeReservationsOnPath(
         reservation.first);
-    return UINT64_MAX;
+    // max value of PathID (uint16_t)
+    return UINT16_MAX;
 }
 
 

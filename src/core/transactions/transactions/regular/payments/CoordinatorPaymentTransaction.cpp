@@ -1083,6 +1083,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
 
             if (mPathsStats.size() > countPathsBeforeBuilding) {
                 debug() << "New paths was built " << to_string(mPathsStats.size() - countPathsBeforeBuilding);
+                // in case if amount on direct paths changed, we can process it again
+                mDirectPathIsAlreadyProcessed = false;
                 initAmountsReservationOnNextPath();
                 return runAmountReservationStage();
             }
@@ -1318,6 +1320,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         debug() << "No reservation response was received from the receiver node. "
                << "Amount reservation is impossible. Switching to another path.";
 
+        mCountReceiverInaccessible++;
+        if (mCountReceiverInaccessible >= kMaxReceiverInaccessible) {
+            reject("Contractor is offline. Rollback.");
+            return resultNoResponseError();
+        }
         dropReservationsOnPath(
             pathStats,
             mCurrentAmountReservingPathIdentifier);
