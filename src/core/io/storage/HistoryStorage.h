@@ -67,7 +67,10 @@ public:
     const string additionalTableName() const;
 
 private:
-    void savePaymentMainRecord(
+    void savePaymentMainOutgoingRecord(
+        PaymentRecord::Shared record);
+
+    void savePaymentMainIncomingRecord(
         PaymentRecord::Shared record);
 
     void savePaymentAdditionalRecord(
