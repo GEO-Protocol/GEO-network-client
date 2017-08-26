@@ -737,11 +737,13 @@ void BasePaymentTransaction::propagateVotesMessageToAllParticipants (
         }
     }
 
-    // Sending votes list to the coordinator,
-    // so it will be able to commit the transaction.
-    sendMessage(
-        kMessage->coordinatorUUID(),
-        kMessage);
+    if (kCurrentNodeUUID != kMessage->coordinatorUUID()) {
+        // Sending votes list to the coordinator,
+        // so it will be able to commit the transaction.
+        sendMessage(
+            kMessage->coordinatorUUID(),
+            kMessage);
+    }
 }
 
 const bool BasePaymentTransaction::shortageReservation (

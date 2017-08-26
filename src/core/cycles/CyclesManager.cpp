@@ -28,6 +28,7 @@ CyclesManager::CyclesManager(
             &CyclesManager::runSignalFiveNodes,
             this,
             as::placeholders::error));
+
     timeStarted = rand() % (60 * 60 * 6);
     mSixNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
@@ -37,6 +38,17 @@ CyclesManager::CyclesManager(
     mSixNodesCycleTimer->async_wait(
         boost::bind(
             &CyclesManager::runSignalSixNodes,
+            this,
+            as::placeholders::error));
+
+    mUpdatingTimer = make_unique<as::steady_timer>(
+        mIOService);
+    mUpdatingTimer->expires_from_now(
+        std::chrono::seconds(
+            kUpdatingTimerPeriodSeconds));
+    mUpdatingTimer->async_wait(
+        boost::bind(
+            &CyclesManager::updateOfflineNodesAndClosedTLLists,
             this,
             as::placeholders::error));
 }
@@ -146,10 +158,10 @@ void CyclesManager::incrementCurrentCycleClosingState()
 }
 
 void CyclesManager::runSignalFiveNodes(
-    const boost::system::error_code &error)
+    const boost::system::error_code &err)
 {
-    if (error) {
-        cout << error.message() << endl;
+    if (err) {
+        error() << err.message();
     }
     mFiveNodesCycleTimer->cancel();
     mFiveNodesCycleTimer->expires_from_now(
@@ -164,10 +176,10 @@ void CyclesManager::runSignalFiveNodes(
 }
 
 void CyclesManager::runSignalSixNodes(
-    const boost::system::error_code &error)
+    const boost::system::error_code &err)
 {
-    if (error) {
-        cout << error.message() << endl;
+    if (err) {
+        error() << err.message();
     }
     mSixNodesCycleTimer->cancel();
     mSixNodesCycleTimer->expires_from_now(
@@ -181,39 +193,39 @@ void CyclesManager::runSignalSixNodes(
     buildSixNodesCyclesSignal();
 }
 
-bool CyclesManager::isChellengerTransactionWinReservation(
-    BasePaymentTransaction::Shared chellengerTransaction,
+bool CyclesManager::isChallengerTransactionWinReservation(
+    BasePaymentTransaction::Shared challengerTransaction,
     BasePaymentTransaction::Shared reservedTransaction)
 {
-    debug() << "isChellengerTransactionWinReservation chellenger: " << chellengerTransaction->currentTransactionUUID()
-            << " nodeUUID: " << chellengerTransaction->currentNodeUUID()
-            << " transaction type: " << chellengerTransaction->transactionType()
-            << " votesCheckingStage: " << chellengerTransaction->isCommonVotesCheckingstage()
-            << " cycle length: " << to_string(chellengerTransaction->cycleLength())
-            << " coordinator: " << chellengerTransaction->coordinatorUUID();
-    debug() << "isChellengerTransactionWinReservation reserved: " << reservedTransaction->currentTransactionUUID()
-            << " nodeUUID: " << chellengerTransaction->currentNodeUUID()
+    debug() << "isChallengerTransactionWinReservation challenger: " << challengerTransaction->currentTransactionUUID()
+            << " nodeUUID: " << challengerTransaction->currentNodeUUID()
+            << " transaction type: " << challengerTransaction->transactionType()
+            << " votesCheckingStage: " << challengerTransaction->isCommonVotesCheckingstage()
+            << " cycle length: " << to_string(challengerTransaction->cycleLength())
+            << " coordinator: " << challengerTransaction->coordinatorUUID();
+    debug() << "isChallengerTransactionWinReservation reserved: " << reservedTransaction->currentTransactionUUID()
+            << " nodeUUID: " << challengerTransaction->currentNodeUUID()
             << " transaction type: " << reservedTransaction->transactionType()
             << " votesCheckingStage: " << reservedTransaction->isCommonVotesCheckingstage()
             << " cycle length: " << to_string(reservedTransaction->cycleLength())
             << " coordinator: " << reservedTransaction->coordinatorUUID();
     if (reservedTransaction->transactionType() != BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction
         && reservedTransaction->transactionType() != BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction) {
-        debug() << "isChellengerTransactionWinReservation false: reserved is not cycle transaction";
+        debug() << "isChallengerTransactionWinReservation false: reserved is not cycle transaction";
         return false;
     }
     if (reservedTransaction->isCommonVotesCheckingstage()) {
-        debug() << "isChellengerTransactionWinReservation false: reserved on votesChecking stage";
+        debug() << "isChallengerTransactionWinReservation false: reserved on votesChecking stage";
         return false;
     }
-    if (chellengerTransaction->cycleLength() != reservedTransaction->cycleLength()) {
-        debug() << "isChellengerTransactionWinReservation "
-                << (chellengerTransaction->cycleLength() > reservedTransaction->cycleLength()) << " on cycles lengths";
-        return chellengerTransaction->cycleLength() > reservedTransaction->cycleLength();
+    if (challengerTransaction->cycleLength() != reservedTransaction->cycleLength()) {
+        debug() << "isChallengerTransactionWinReservation "
+                << (challengerTransaction->cycleLength() > reservedTransaction->cycleLength()) << " on cycles lengths";
+        return challengerTransaction->cycleLength() > reservedTransaction->cycleLength();
     }
-    debug() << "isChellengerTransactionWinReservation "
-            << (chellengerTransaction->coordinatorUUID() > reservedTransaction->coordinatorUUID()) << " on coordinatorUUIDs";
-    return chellengerTransaction->coordinatorUUID() > reservedTransaction->coordinatorUUID();
+    debug() << "isChallengerTransactionWinReservation "
+            << (challengerTransaction->coordinatorUUID() > reservedTransaction->coordinatorUUID()) << " on coordinatorUUIDs";
+    return challengerTransaction->coordinatorUUID() > reservedTransaction->coordinatorUUID();
 }
 
 bool CyclesManager::resolveReservationConflict(
@@ -228,13 +240,13 @@ bool CyclesManager::resolveReservationConflict(
         mTransactionScheduler->transactionByUUID(
             reservedTransactionUUID));
     debug() << "conflict between  " << challengerTransactionUUID << " and " << reservedTransactionUUID;
-    if (isChellengerTransactionWinReservation(
-        challengerTransaction,
-        reservedTransaction)) {
+    if (isChallengerTransactionWinReservation(
+            challengerTransaction,
+            reservedTransaction)) {
         reservedTransaction->setRollbackByOtherTransactionStage();
         mTransactionScheduler->postponeTransaction(
             reservedTransaction,
-            kPostponningRollbackTransactionTimeMSec);
+            kPostponingRollbackTransactionTimeMSec);
         return true;
     }
     return false;
@@ -259,17 +271,20 @@ void CyclesManager::addClosedTrustLine(
     const NodeUUID &source,
     const NodeUUID &destination)
 {
-    mClosedTrustLines.push_back(
-        make_pair(
-            source,
-            destination));
+    mClosedTrustLines.insert(
+        make_pair(utc_now(),
+            make_pair(
+                source,
+                destination)));
 }
 
 void CyclesManager::addOfflineNode(
     const NodeUUID &nodeUUID)
 {
-    mOfflineNodes.push_back(
-        nodeUUID);
+    mOfflineNodes.insert(
+        make_pair(
+            utc_now(),
+            nodeUUID));
 }
 
 void CyclesManager::removeCyclesWithClosedTrustLine(
@@ -310,8 +325,8 @@ void CyclesManager::clearClosedCycles()
 {
     debug() << "clearClosedCycles closed trust lines cnt: " << mClosedTrustLines.size();
     if (!mClosedTrustLines.empty()) {
-        auto source = mClosedTrustLines.begin()->first;
-        auto destination = mClosedTrustLines.begin()->second;
+        auto source = mClosedTrustLines.begin()->second.first;
+        auto destination = mClosedTrustLines.begin()->second.second;
         mClosedTrustLines.erase(mClosedTrustLines.begin());
 
         removeCyclesWithClosedTrustLine(
@@ -337,7 +352,7 @@ void CyclesManager::clearClosedCycles()
 
     debug() << "clearClosedCycles offline nodes cnt: " << mOfflineNodes.size();
     if (!mOfflineNodes.empty()) {
-        auto offlineNode = *mOfflineNodes.begin();
+        auto offlineNode = mOfflineNodes.begin()->second;
         mOfflineNodes.erase(
             mOfflineNodes.begin());
 
@@ -359,6 +374,41 @@ void CyclesManager::clearClosedCycles()
     }
 }
 
+void CyclesManager::updateOfflineNodesAndClosedTLLists(
+    const boost::system::error_code &err)
+{
+    if (err) {
+        error() << err.message();
+    }
+    mUpdatingTimer->cancel();
+    mUpdatingTimer->expires_from_now(
+        std::chrono::seconds(
+            kUpdatingTimerPeriodSeconds));
+    mUpdatingTimer->async_wait(
+        boost::bind(
+            &CyclesManager::updateOfflineNodesAndClosedTLLists,
+            this,
+            as::placeholders::error));
+
+    // delete legacy offline nodes
+    for (auto timeAndNode : mOfflineNodes) {
+        if (utc_now() - timeAndNode.first > kOfflineNodesAndClosedTLLiveDuration()) {
+            mOfflineNodes.erase(timeAndNode.first);
+        } else {
+            break;
+        }
+    }
+
+    // delete legacy closed TL
+    for (auto timeAndTrustLine : mClosedTrustLines) {
+        if (utc_now() - timeAndTrustLine.first > kOfflineNodesAndClosedTLLiveDuration()) {
+            mClosedTrustLines.erase(timeAndTrustLine.first);
+        } else {
+            break;
+        }
+    }
+}
+
 uint32_t CyclesManager::randomInitializer() const
 {
     uint32_t result = 0;
@@ -377,6 +427,11 @@ LoggerStream CyclesManager::info() const
 LoggerStream CyclesManager::debug() const
 {
     return mLog.debug(logHeader());
+}
+
+LoggerStream CyclesManager::error() const
+{
+    return mLog.error(logHeader());
 }
 
 const string CyclesManager::logHeader() const
