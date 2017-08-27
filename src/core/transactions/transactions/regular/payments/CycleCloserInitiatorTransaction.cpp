@@ -341,7 +341,9 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
     }
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendMessageToReceiverOnReservationStage();
+    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+        mNextNode,
+        path->maxFlow());
 #endif
 
     debug() << "Send request reservation (" << path->maxFlow() << ") message to " << mNextNode;
@@ -559,7 +561,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askRemoteNodeToA
     auto path = mPathStats.get();
 
 #ifdef TESTS
-    mSubsystemsController->testForbidSendRequestToIntNodeOnReservationStage(
+    mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
         remoteNode,
         path->maxFlow());
 #endif
