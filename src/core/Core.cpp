@@ -331,7 +331,6 @@ int Core::initPathsManager()
         mPathsManager = make_unique<PathsManager>(
             mNodeUUID,
             mTrustLinesManager.get(),
-            mStorageHandler.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
             *mLog.get());
         mLog->logSuccess("Core", "Paths Manager is successfully initialised");
@@ -514,10 +513,6 @@ void Core::onPathsResourceRequestedSlot(
     const NodeUUID &destinationNodeUUID)
 {
     try {
-        // todo : choose one method (paths by routing tables or paths by max flow)
-//        mTransactionsManager->launchPathsResourcesCollectTransaction(
-//            transactionUUID,
-//            destinationNodeUUID);
         mTransactionsManager->launchFindPathByMaxFlowTransaction(
             transactionUUID,
             destinationNodeUUID);

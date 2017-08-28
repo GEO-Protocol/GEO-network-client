@@ -71,25 +71,6 @@ public:
         Cycles_SixNodesMiddleware,
 
         /*
-         * Routing tables messages
-         */
-        RoutingTables_NeighborsRequest,
-        RoutingTables_NeighborsResponse,
-        RoutingTables_NotificationTrustLineCreated,
-        RoutingTables_NotificationTrustLineRemoved,
-        RoutingTables_CRC32Rt2RequestMessage,
-        RoutingTables_CRC32Rt2ResponseMessage,
-        RoutingTables_CRC32Rt2ThirdLevelResponseMessage,
-
-        /*
-         * Paths
-         */
-        Paths_RequestRoutingTables,
-        Paths_ResultRoutingTableFirstLevel,
-        Paths_ResultRoutingTableSecondLevel,
-        Paths_ResultRoutingTableThirdLevel,
-
-        /*
          * Max flow
          */
         MaxFlow_InitiateCalculation,

@@ -4,11 +4,11 @@
 
 #include "base/BasePaymentTransaction.h"
 #include "base/PathStats.h"
-#include "../../find_path/FindPathTransaction.h"
 #include "../../../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 
 #include "../../../../resources/manager/ResourcesManager.h"
 #include "../../../../paths/PathsManager.h"
+#include "../../../../resources/resources/PathsResource.h"
 
 #include "../../../../io/storage/record/payment/PaymentRecord.h"
 

@@ -224,11 +224,6 @@ void TransactionsManager::processCommand(
             static_pointer_cast<HistoryWithContractorCommand>(
                 command));
 
-    } else if (command->identifier() == FindPathCommand::identifier()){
-        launchGetPathTestTransaction(
-            static_pointer_cast<FindPathCommand>(
-                command));
-
     } else if (command->identifier() == GetFirstLevelContractorsCommand::identifier()){
         launchGetFirstLevelContractorsTransaction(
                 static_pointer_cast<GetFirstLevelContractorsCommand>(
@@ -242,11 +237,6 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == GetTrustLineCommand::identifier()){
         launchGetTrustlineTransaction(
             static_pointer_cast<GetTrustLineCommand>(
-                command));
-
-    } else if (command->identifier() == UpdateRoutingTablesCommand::identifier()){
-        launchUpdateRoutingTablesTransaction(
-            static_pointer_cast<UpdateRoutingTablesCommand>(
                 command));
 
     } else {
@@ -295,25 +285,6 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::MessageType::TotalBalance_Request) {
         launchTotalBalancesTransaction(
                 static_pointer_cast<InitiateTotalBalancesMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::TotalBalance_Response) {
-        mScheduler->tryAttachMessageToTransaction(message);
-
-    /*
-    * Paths
-    */
-    } else if (message->typeID() == Message::MessageType::Paths_RequestRoutingTables) {
-        launchGetRoutingTablesTransaction(
-            static_pointer_cast<RequestRoutingTablesMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::Paths_ResultRoutingTableFirstLevel) {
-        mScheduler->tryAttachMessageToTransaction(message);
-
-    } else if (message->typeID() == Message::MessageType::Paths_ResultRoutingTableSecondLevel) {
-        mScheduler->tryAttachMessageToTransaction(message);
-
-    } else if (message->typeID() == Message::MessageType::Paths_ResultRoutingTableThirdLevel) {
-        mScheduler->tryAttachMessageToTransaction(message);
 
     /*
      * Payments
@@ -377,30 +348,6 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::TrustLines_SetIncoming) {
         launchSetIncomingTrustLineTransaction(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
-
-
-    /*
-     * Routing tables exchange
-     */
-    } else if (message->typeID() == Message::MessageType::RoutingTables_NotificationTrustLineCreated) {
-        launchTrustLineStatesHandlerTransaction(
-            static_pointer_cast<NotificationTrustLineCreatedMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::RoutingTables_NotificationTrustLineRemoved) {
-        launchTrustLineStatesHandlerTransaction(
-            static_pointer_cast<NotificationTrustLineRemovedMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::RoutingTables_NeighborsRequest) {
-        launchGetFirstRoutingTableTransaction(
-            static_pointer_cast<NeighborsRequestMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::RoutingTables_CRC32Rt2RequestMessage) {
-        launchUpdateRoutingTablesResponseTransaction(
-            static_pointer_cast<CRC32Rt2RequestMessage>(message));
-
-
-    } else if (message->typeID() == Message::MessageType::RoutingTables_NeighborsResponse) {
-        mScheduler->tryAttachMessageToTransaction(message);
 
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
@@ -822,27 +769,6 @@ void TransactionsManager::launchHistoryWithContractorTransaction(
     }
 }
 
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchGetPathTestTransaction(
-    FindPathCommand::Shared command) {
-    try {
-        prepareAndSchedule(
-            make_shared<GetPathTestTransaction>(
-                mNodeUUID,
-                command,
-                mResourcesManager,
-                mLog),
-            true,
-            false,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
 void TransactionsManager::launchGetFirstLevelContractorsTransaction(
     GetFirstLevelContractorsCommand::Shared command)
 {
@@ -900,69 +826,6 @@ void TransactionsManager::launchGetTrustlineTransaction(
 
 }
 
-void TransactionsManager::launchUpdateRoutingTablesTransaction(
-    UpdateRoutingTablesCommand::Shared command) {
-    try{
-        prepareAndSchedule(
-            make_shared<UpdateRoutingTablesTransaction>(
-                mNodeUUID,
-                command,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            true,
-            true,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchGetRoutingTablesTransaction(
-    RequestRoutingTablesMessage::Shared message) {
-    try {
-        prepareAndSchedule(
-            make_shared<GetRoutingTablesTransaction>(
-                mNodeUUID,
-                message,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            false,
-            false,
-            true);
-
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchPathsResourcesCollectTransaction(
-    const TransactionUUID &requestedTransactionUUID,
-    const NodeUUID &destinationNodeUUID) {
-
-    try {
-        prepareAndSchedule(
-            make_shared<FindPathTransaction>(
-                mNodeUUID,
-                destinationNodeUUID,
-                requestedTransactionUUID,
-                mPathsManager,
-                mResourcesManager,
-                mLog),
-            true,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
 void TransactionsManager::launchFindPathByMaxFlowTransaction(
     const TransactionUUID &requestedTransactionUUID,
     const NodeUUID &destinationNodeUUID)
@@ -982,70 +845,6 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
             true,
             true,
             false);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchTrustLineStatesHandlerTransaction(
-    NotificationTrustLineCreatedMessage::Shared message) {
-    try {
-        prepareAndSchedule(
-            make_shared<TrustLineStatesHandlerTransaction>(
-                mNodeUUID,
-                message->senderUUID,
-                message->nodeA,
-                message->nodeB,
-                TrustLineStatesHandlerTransaction::TrustLineState::Created,
-                message->hop,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            false,
-            true,
-            true);
-
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchTrustLineStatesHandlerTransaction(
-    NotificationTrustLineRemovedMessage::Shared message) {
-    try {
-        prepareAndSchedule(
-            make_shared<TrustLineStatesHandlerTransaction>(
-                mNodeUUID,
-                message->senderUUID,
-                message->nodeA,
-                message->nodeB,
-                TrustLineStatesHandlerTransaction::TrustLineState::Removed,
-                message->hop,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            false,
-            true,
-            true);
-
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchGetFirstRoutingTableTransaction(
-    NeighborsRequestMessage::Shared message)
-{
-    try {
-        prepareAndSchedule(make_shared<GetFirstRoutingTableTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mLog),
-        false,
-        false,
-        true);
-
     } catch (ConflictError &e){
         throw ConflictError(e.message());
     }
@@ -1528,25 +1327,5 @@ void TransactionsManager::onSerializeTransaction(
                 "TrustLinesManager::onSerializeTransaction. "
                     "Unexpected transaction type identifier.");
         }
-    }
-}
-
-void TransactionsManager::launchUpdateRoutingTablesResponseTransaction(
-    CRC32Rt2RequestMessage::Shared message)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<Crc32Rt2ResponseTransaction>(
-                mNodeUUID,
-                message,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            false,
-            false,
-            true
-        );
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
     }
 }

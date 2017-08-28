@@ -16,8 +16,6 @@
 #include "../commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../commands/trust_lines_list/GetTrustLineCommand.h"
-#include "../commands/find_path/FindPathCommand.h"
-#include "../commands/routing_tables/UpdateRoutingTablesCommand.h"
 #include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
 
 #include "../../../common/exceptions/IOError.h"

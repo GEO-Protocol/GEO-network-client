@@ -178,11 +178,6 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
-        } else if (identifier == FindPathCommand::identifier()) {
-            command = new FindPathCommand(
-                uuid,
-                buffer);
-
         } else if (identifier == GetFirstLevelContractorsCommand::identifier()) {
             command = new GetFirstLevelContractorsCommand(
                 uuid,
@@ -195,11 +190,6 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
         } else if (identifier == GetTrustLineCommand::identifier()) {
             command = new GetTrustLineCommand(
-                uuid,
-                buffer);
-
-        } else if (identifier == UpdateRoutingTablesCommand::identifier()) {
-            command = new UpdateRoutingTablesCommand(
                 uuid,
                 buffer);
 

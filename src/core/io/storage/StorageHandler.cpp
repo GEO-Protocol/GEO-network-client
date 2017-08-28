@@ -9,7 +9,6 @@ StorageHandler::StorageHandler(
 
     mDirectory(directory),
     mDataBaseName(dataBaseName),
-    mRoutingTablesHandler(connection(dataBaseName, directory), kRT2TableName, kRT3TableName, logger),
     mTrustLineHandler(connection(dataBaseName, directory), kTrustLineTableName, logger),
     mPaymentOperationStateHandler(connection(dataBaseName, directory), kPaymentOperationStateTableName, logger),
     mTransactionHandler(connection(dataBaseName, directory), kTransactionTableName, logger),
@@ -56,7 +55,6 @@ IOTransaction::Shared StorageHandler::beginTransaction()
 {
     return make_shared<IOTransaction>(
         mDBConnection,
-        &mRoutingTablesHandler,
         &mTrustLineHandler,
         &mHistoryStorage,
         &mPaymentOperationStateHandler,
@@ -86,7 +84,6 @@ int StorageHandler::applyMigrations(const NodeUUID &nodeUUID) {
         mDBConnection,
         kMigrationTableName,
         nodeUUID,
-        &mRoutingTablesHandler,
         &mTrustLineHandler,
         &mHistoryStorage,
         &mPaymentOperationStateHandler,

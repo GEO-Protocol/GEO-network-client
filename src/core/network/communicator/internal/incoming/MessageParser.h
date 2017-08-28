@@ -7,13 +7,6 @@
 
 #include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
 
-#include "../../../messages/routing_tables/NotificationTrustLineCreatedMessage.h"
-#include "../../../messages/routing_tables/NotificationTrustLineRemovedMessage.h"
-#include "../../../messages/routing_tables/NeighborsRequestMessage.h"
-#include "../../../messages/routing_tables/NeighborsResponseMessage.h"
-#include "../../../messages/routing_tables/CRC32Rt2ResponseMessage.h"
-#include "../../../messages/routing_tables/CRC32Rt2RequestMessage.h"
-
 #include "../../../messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationTargetFstLevelMessage.h"
@@ -42,11 +35,6 @@
 
 #include "../../../messages/total_balances/InitiateTotalBalancesMessage.h"
 #include "../../../messages/total_balances/TotalBalancesResultMessage.h"
-
-#include "../../../messages/find_path/RequestRoutingTablesMessage.h"
-#include "../../../messages/find_path/ResultRoutingTable1LevelMessage.h"
-#include "../../../messages/find_path/ResultRoutingTable2LevelMessage.h"
-#include "../../../messages/find_path/ResultRoutingTable3LevelMessage.h"
 
 #include "../../../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../../../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
