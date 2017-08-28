@@ -213,8 +213,8 @@ protected: // Transactions
     void launchCycleCloserIntermediateNodeTransaction(
         IntermediateNodeCycleReservationRequestMessage::Shared message);
 
-    void launchVoutesResponsePaymentsTransaction(
-            VotesStatusRequestMessage::Shared message);
+    void launchVotesResponsePaymentsTransaction(
+        VotesStatusRequestMessage::Shared message);
 
     /*
      * Total balances transaction

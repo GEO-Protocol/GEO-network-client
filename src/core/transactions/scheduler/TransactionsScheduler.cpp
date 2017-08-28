@@ -417,19 +417,30 @@ void TransactionsScheduler::addTransactionAndState(BaseTransaction::Shared trans
     mTransactions->insert(make_pair(transaction, state));
 }
 
-const BaseTransaction::Shared TransactionsScheduler::transactionByUUID(
+const BaseTransaction::Shared TransactionsScheduler::cycleClosingTransactionByUUID(
     const TransactionUUID &transactionUUID) const
 {
     for (const auto &transactionAndState : *mTransactions.get()) {
         if (transactionAndState.first->currentTransactionUUID() == transactionUUID) {
             if (transactionAndState.first->transactionType() != BaseTransaction::Payments_CycleCloserInitiatorTransaction &&
                 transactionAndState.first->transactionType() != BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
-                throw ValueError("TransactionsScheduler::transactionByUUID: "
+                throw ValueError("TransactionsScheduler::cycleClosingTransactionByUUID: "
                                      "requested transaction doesn't belong to CycleClosing transactions");
             }
             return transactionAndState.first;
         }
     }
-    throw NotFoundError("TransactionsScheduler::transactionByUUID: "
+    throw NotFoundError("TransactionsScheduler::cycleClosingTransactionByUUID: "
                          "there is no transaction with requested UUID");
+}
+
+bool TransactionsScheduler::isTransactionInProcess(
+    const TransactionUUID &transactionUUID) const
+{
+    for (const auto &transactionAndState : *mTransactions.get()) {
+        if (transactionAndState.first->currentTransactionUUID() == transactionUUID) {
+            return true;
+        }
+    }
+    return false;
 }

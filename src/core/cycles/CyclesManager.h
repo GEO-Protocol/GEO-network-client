@@ -76,8 +76,8 @@ private:
     void incrementCurrentCycleClosingState();
 
     bool isChallengerTransactionWinReservation(
-            BasePaymentTransaction::Shared challengerTransaction,
-            BasePaymentTransaction::Shared reservedTransaction);
+        BasePaymentTransaction::Shared challengerTransaction,
+        BasePaymentTransaction::Shared reservedTransaction);
 
     void clearClosedCycles();
 

@@ -44,7 +44,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         switch (kOperationResult) {
         case TrustLinesManager::TrustLineOperationResult::Opened: {
             populateHistory(ioTransaction, TrustLineRecord::Opening);
-            mMaxFlowCalculationCacheManager->resetInititorCache();
+            mMaxFlowCalculationCacheManager->resetInitiatorCache();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully initialised with " << mMessage->amount();
             break;
@@ -52,7 +52,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Updated: {
             populateHistory(ioTransaction, TrustLineRecord::Updating);
-            mMaxFlowCalculationCacheManager->resetInititorCache();
+            mMaxFlowCalculationCacheManager->resetInitiatorCache();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully set to " << mMessage->amount();
             break;
@@ -60,7 +60,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Closed: {
             populateHistory(ioTransaction, TrustLineRecord::Closing);
-            mMaxFlowCalculationCacheManager->resetInititorCache();
+            mMaxFlowCalculationCacheManager->resetInitiatorCache();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully closed.";
             break;

@@ -4,18 +4,33 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     const NodeUUID &nodeUUID,
     VotesStatusRequestMessage::Shared message,
     StorageHandler *storageHandler,
+    bool isRequestedTransactionCurrentlyRunned,
     Logger &logger):
     BaseTransaction(
         BaseTransaction::TransactionType::VoutesStatusResponsePaymentTransaction,
         nodeUUID,
         logger),
     mStorageHandler(storageHandler),
-    mRequest(message)
+    mRequest(message),
+    mIsRequestedTransactionCurrentlyRunned(isRequestedTransactionCurrentlyRunned)
 {}
 
 TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
 {
     debug() << "run";
+    if (mIsRequestedTransactionCurrentlyRunned) {
+        // if requested transaction didn't finish yet,
+        // we send empty message, which means that requester should wait and ask again
+        const auto kResponse = make_shared<ParticipantsVotesMessage>(
+            mNodeUUID,
+            mRequest->transactionUUID(),
+            NodeUUID::empty());
+        debug() << "send response with empty ParticipantsVotesMessage to " << mRequest->senderUUID;
+        sendMessage(
+            mRequest->senderUUID,
+            kResponse);
+        return resultDone();
+    }
     try {
         auto ioTransaction = mStorageHandler->beginTransaction();
         auto serializedVotesBufferAndSize = ioTransaction->paymentOperationStateHandler()->byTransaction(
@@ -29,17 +44,19 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
 
     } catch(NotFoundError &) {
         // If node was offline and it does not have serialize VotesMessage.
-        // So set CoordinatorUUID as empty
-        const auto kZeroUUID = NodeUUID::empty();
+        // it means that coordinator didn't accept this transaction (maybe crash)
+        // in this case we send reject message
         const auto kResponse = make_shared<ParticipantsVotesMessage>(
             mNodeUUID,
             mRequest->transactionUUID(),
-            kZeroUUID);
-        debug() << "send response with empty ParticipantsVotesMessage to " << mRequest->senderUUID;
+            mNodeUUID);
+        kResponse->addParticipant(currentNodeUUID());
+        kResponse->reject(currentNodeUUID());
+        debug() << "send reject response to " << mRequest->senderUUID;
         sendMessage(
             mRequest->senderUUID,
             kResponse);
-    };
+    }
     return resultDone();
 }
 

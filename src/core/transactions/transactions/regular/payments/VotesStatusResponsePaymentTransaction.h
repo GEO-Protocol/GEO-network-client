@@ -13,6 +13,7 @@ public:
         const NodeUUID &nodeUUID,
         VotesStatusRequestMessage::Shared message,
         StorageHandler *storageHandler,
+        bool isRequestedTransactionCurrentlyRunned,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -23,5 +24,6 @@ protected:
 protected:
     VotesStatusRequestMessage::Shared mRequest;
     StorageHandler *mStorageHandler;
+    bool mIsRequestedTransactionCurrentlyRunned;
 };
 #endif //GEO_NETWORK_CLIENT_VOUTESSTATUSRESPONSEPAYMENTTRANSACTION_H

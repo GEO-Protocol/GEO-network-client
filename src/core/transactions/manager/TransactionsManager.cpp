@@ -277,14 +277,14 @@ void TransactionsManager::processMessage(
 
     } else if (message->typeID() == Message::MessageType::MaxFlow_CalculationTargetSecondLevel) {
         launchMaxFlowCalculationTargetSndLevelTransaction(
-                static_pointer_cast<MaxFlowCalculationTargetSndLevelMessage>(message));
+            static_pointer_cast<MaxFlowCalculationTargetSndLevelMessage>(message));
 
     /*
     * Total balances
     */
     } else if (message->typeID() == Message::MessageType::TotalBalance_Request) {
         launchTotalBalancesTransaction(
-                static_pointer_cast<InitiateTotalBalancesMessage>(message));
+            static_pointer_cast<InitiateTotalBalancesMessage>(message));
 
     /*
      * Payments
@@ -319,8 +319,8 @@ void TransactionsManager::processMessage(
                 static_pointer_cast<IntermediateNodeCycleReservationRequestMessage>(message));
         }
     } else if(message->typeID() == Message::MessageType::Payments_VotesStatusRequest){
-        launchVoutesResponsePaymentsTransaction(
-            static_pointer_cast<VotesStatusRequestMessage>(message));
+        launchVotesResponsePaymentsTransaction(
+                static_pointer_cast<VotesStatusRequestMessage>(message));
 
     /*
      * Cycles
@@ -622,15 +622,18 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
 
 }
 
-void TransactionsManager::launchVoutesResponsePaymentsTransaction(
-    VotesStatusRequestMessage::Shared message)
+void TransactionsManager::launchVotesResponsePaymentsTransaction(
+        VotesStatusRequestMessage::Shared message)
 {
+    mScheduler->cycleClosingTransactionByUUID(message->transactionUUID());
     try {
         prepareAndSchedule(
             make_shared<VotesStatusResponsePaymentTransaction>(
                 mNodeUUID,
                 message,
                 mStorageHandler,
+                mScheduler->isTransactionInProcess(
+                    message->transactionUUID()),
                 mLog),
             false,
             false,

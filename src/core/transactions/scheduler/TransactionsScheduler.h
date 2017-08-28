@@ -76,7 +76,10 @@ public:
 
     void addTransactionAndState(BaseTransaction::Shared transaction, TransactionState::SharedConst state);
 
-    const BaseTransaction::Shared transactionByUUID(
+    const BaseTransaction::Shared cycleClosingTransactionByUUID(
+        const TransactionUUID &transactionUUID) const;
+
+    bool isTransactionInProcess(
         const TransactionUUID &transactionUUID) const;
 
 private:

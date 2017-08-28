@@ -56,7 +56,7 @@ void MaxFlowCalculationCacheManager::setInitiatorCache()
     mInitiatorCache.second = utc_now();
 }
 
-void MaxFlowCalculationCacheManager::resetInititorCache()
+void MaxFlowCalculationCacheManager::resetInitiatorCache()
 {
     mInitiatorCache.first = false;
 }

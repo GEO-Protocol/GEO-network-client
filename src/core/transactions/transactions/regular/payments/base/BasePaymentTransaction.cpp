@@ -571,7 +571,7 @@ void BasePaymentTransaction::commit(
 
     // reset initiator cache, because after changing balances
     // we need updated information on max flow calculation transaction
-    mMaxFlowCalculationCacheManager->resetInititorCache();
+    mMaxFlowCalculationCacheManager->resetInitiatorCache();
     debug() << "Transaction committed.";
     saveVotes(ioTransaction);
     debug() << "Votes saved.";

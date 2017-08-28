@@ -234,10 +234,10 @@ bool CyclesManager::resolveReservationConflict(
 {
     debug() << "resolveReservationConflict";
     auto challengerTransaction = static_pointer_cast<BasePaymentTransaction>(
-        mTransactionScheduler->transactionByUUID(
+        mTransactionScheduler->cycleClosingTransactionByUUID(
             challengerTransactionUUID));
     auto reservedTransaction = static_pointer_cast<BasePaymentTransaction>(
-        mTransactionScheduler->transactionByUUID(
+        mTransactionScheduler->cycleClosingTransactionByUUID(
             reservedTransactionUUID));
     debug() << "conflict between  " << challengerTransactionUUID << " and " << reservedTransactionUUID;
     if (isChallengerTransactionWinReservation(
@@ -257,8 +257,8 @@ bool CyclesManager::isTransactionStillAlive(
 {
     debug() << "isTransactionStillAlive: " << transactionUUID;
     try {
-        mTransactionScheduler->transactionByUUID(
-            transactionUUID);
+        mTransactionScheduler->cycleClosingTransactionByUUID(
+                transactionUUID);
         debug() << "Still alive";
         return true;
     } catch (NotFoundError &e) {
