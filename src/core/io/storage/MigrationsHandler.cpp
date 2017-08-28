@@ -120,6 +120,7 @@ void MigrationsHandler::applyMigrations()
         MigrationUUID("bc04656c-9dbb-4bd7-afd5-5603cf44b85e"),
         MigrationUUID("149daff7-ff15-49d6-a121-e2eb37a37ef7"),
         MigrationUUID("d65438b6-f5c3-473c-8018-7dbf874c5bc4"),
+        MigrationUUID("4160e78e-f7bf-4499-a63d-18e312590ddf")
         // ...q
         // the rest migrations must be placed here.
     };
@@ -255,6 +256,13 @@ void MigrationsHandler::applyMigration(
             auto migration = make_shared<PositiveSignMigration>(
                 mDataBase,
                 mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+        } else if (migrationUUID.stringUUID() == string("4160e78e-f7bf-4499-a63d-18e312590ddf")){
+            auto migration = make_shared<CommandUUIDMigration>(
+                    mDataBase,
+                    mLog);
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);

@@ -21,13 +21,6 @@ public:
     void apply(IOTransaction::Shared ioTransaction);
 
 protected:
-    void migrateHistory(
-            IOTransaction::Shared ioTransaction);
-
-    void migrateHistoryAdditional(
-            IOTransaction::Shared ioTransaction);
-
-protected:
     sqlite3 *mDataBase;
     Logger &mLog;
 };

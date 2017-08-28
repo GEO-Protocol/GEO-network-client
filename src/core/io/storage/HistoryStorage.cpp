@@ -68,20 +68,23 @@ HistoryStorage::HistoryStorage(
         throw IOError("HistoryStorage::main creating index for record_type: "
                           "Run query; sqlite error: " + to_string(rc));
     }
-    query = "CREATE INDEX IF NOT EXISTS " + mMainTableName
-            + "_command_uuid_idx on " + mMainTableName + "(command_uuid);";
+    query = "SELECT command_uuid FROM " + mMainTableName + " LIMIT 1";
     rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        throw IOError("HistoryStorage::main creating index for command_uuid: "
-                          "Bad query; sqlite error: " + to_string(rc));
+    if (rc == SQLITE_OK) {
+        query = "CREATE INDEX IF NOT EXISTS " + mMainTableName
+                + "_command_uuid_idx on " + mMainTableName + "(command_uuid);";
+        rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+        if (rc != SQLITE_OK) {
+            throw IOError("HistoryStorage::main creating index for command_uuid: "
+                                  "Bad query; sqlite error: " + to_string(rc));
+        }
+        rc = sqlite3_step(stmt);
+        if (rc == SQLITE_DONE) {
+        } else {
+            throw IOError("HistoryStorage::main creating index for command_uuid: "
+                                  "Run query; sqlite error: " + to_string(rc));
+        }
     }
-    rc = sqlite3_step(stmt);
-    if (rc == SQLITE_DONE) {
-    } else {
-        throw IOError("HistoryStorage::main creating index for command_uuid: "
-                          "Run query; sqlite error: " + to_string(rc));
-    }
-
     // creating payments additional table
     query = "CREATE TABLE IF NOT EXISTS " + mAdditionalTableName +
                    "(operation_uuid BLOB NOT NULL, "
