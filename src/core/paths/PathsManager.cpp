@@ -158,7 +158,6 @@ void PathsManager::reBuildPaths(
     auto startTime = utc_now();
     mContractorUUID = contractorUUID;
     mInaccessibleNodes = inaccessibleNodes;
-    TrustLineAmount result = 0;
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
         mContractorUUID);
@@ -172,7 +171,7 @@ void PathsManager::reBuildPaths(
 
     // starts from 2, because direct path can't be rebuild
     for (mCurrentPathLength = 2; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
-        result += reBuildPathsOnOneLevel();
+        reBuildPathsOnOneLevel();
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
@@ -292,6 +291,15 @@ void PathsManager::addUsedAmount(
         sourceUUID,
         targetUUID,
         amount);
+}
+
+void PathsManager::makeTrustLineFullyUsed(
+    const NodeUUID &sourceUUID,
+    const NodeUUID &targetUUID)
+{
+    mMaxFlowCalculationTrustLineManager->makeFullyUsed(
+        sourceUUID,
+        targetUUID);
 }
 
 PathsCollection::Shared PathsManager::pathCollection() const

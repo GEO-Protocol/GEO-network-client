@@ -212,6 +212,9 @@ protected:
     ResourcesManager *mResourcesManager;
     PathsManager *mPathsManager;
     set<NodeUUID> mInaccessibleNodes;
+    size_t mPreviousInaccessibleNodesCount;
+    vector<pair<NodeUUID, NodeUUID>> mRejectedTrustLines;
+    size_t mPreviousRejectedTrustLinesCount;
 
     uint8_t mCountReceiverInaccessible;
 };

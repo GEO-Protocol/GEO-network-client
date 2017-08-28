@@ -183,7 +183,6 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     if (nodeUUID == mCurrentContractor) {
         if (currentFlow > TrustLine::kZeroAmount()) {
             mCurrentMaxFlow += currentFlow;
-            info() << "add flow " << currentFlow;
         }
         return currentFlow;
     }

@@ -45,6 +45,10 @@ public:
         const NodeUUID &targetUUID,
         const TrustLineAmount &amount);
 
+    void makeFullyUsed(
+        const NodeUUID &sourceUUID,
+        const NodeUUID &targetUUID);
+
 private:
     static const byte kResetTrustLinesHours = 0;
     static const byte kResetTrustLinesMinutes = 12;

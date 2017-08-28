@@ -25,7 +25,9 @@ CoordinatorPaymentTransaction::CoordinatorPaymentTransaction(
     mPathsManager(pathsManager),
     mReservationsStage(0),
     mDirectPathIsAlreadyProcessed(false),
-    mCountReceiverInaccessible(0)
+    mCountReceiverInaccessible(0),
+    mPreviousInaccessibleNodesCount(0),
+    mPreviousRejectedTrustLinesCount(0)
 {
     mStep = Stages::Coordinator_Initialisation;
 }
@@ -540,6 +542,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         debug() << "No payment amount is available for (" << neighbor << "). "
                   "Switching to another path.";
 
+        mRejectedTrustLines.push_back(
+            make_pair(
+                mNodeUUID,
+                neighbor));
+
         path->setUnusable();
         throw CallChainBreakException("Break call chain for preventing call loop");
     }
@@ -694,6 +701,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
+        mRejectedTrustLines.push_back(
+            make_pair(
+                mNodeUUID,
+                message->senderUUID));
         return tryProcessNextPath();
     }
 
@@ -786,6 +797,15 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
+        // processed trustLine was rejected, we add it to Rejected TrustLines
+        const auto kPathStats = currentAmountReservationPathStats();
+        const auto R_UUIDAndPos = kPathStats->currentIntermediateNodeAndPos();
+        const auto R_PathPosition = R_UUIDAndPos.second;
+        const auto S_UUID = kPathStats->path()->nodes[R_PathPosition + 1];
+        mRejectedTrustLines.push_back(
+            make_pair(
+                R_UUIDAndPos.first,
+                S_UUID));
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
@@ -989,6 +1009,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
+        // processed trustLine was rejected, we add it to Rejected TrustLines
+        const auto kPathStats = currentAmountReservationPathStats();
+        const auto S_UUID = kPathStats->path()->nodes[R_PathPosition + 1];
+        mRejectedTrustLines.push_back(
+            make_pair(
+                R_UUIDAndPos.first,
+                S_UUID));
         // sending message to receiver that transaction continues
         sendMessage<TTLProlongationResponseMessage>(
             mCommand->contractorUUID(),
@@ -1002,7 +1029,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
             PathStats::ReservationRejected);
 
         return tryProcessNextPath();
-
     }
 
     if (message->state() != CoordinatorReservationResponseMessage::Accepted) {
@@ -1077,12 +1103,15 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryProcessNextPath
     } catch (NotFoundError &e) {
         debug() << "No another paths are available. Try build new paths.";
 
-        if (mInaccessibleNodes.size() != 0) {
+        if (mInaccessibleNodes.size() != mPreviousInaccessibleNodesCount ||
+                mRejectedTrustLines.size() != mPreviousRejectedTrustLinesCount) {
             auto countPathsBeforeBuilding = mPathsStats.size();
             buildPathsAgain();
 
             if (mPathsStats.size() > countPathsBeforeBuilding) {
                 debug() << "New paths was built " << to_string(mPathsStats.size() - countPathsBeforeBuilding);
+                mPreviousInaccessibleNodesCount = mInaccessibleNodes.size();
+                mPreviousRejectedTrustLinesCount = mRejectedTrustLines.size();
                 // in case if amount on direct paths changed, we can process it again
                 mDirectPathIsAlreadyProcessed = false;
                 initAmountsReservationOnNextPath();
@@ -1346,6 +1375,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         dropReservationsOnPath(
             pathStats,
             mCurrentAmountReservingPathIdentifier);
+
+        mRejectedTrustLines.push_back(
+            make_pair(
+                mNodeUUID,
+                kMessage->senderUUID));
 
         mStep = Stages::Coordinator_AmountReservation;
         return tryProcessNextPath();
@@ -1637,6 +1671,11 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
                 pathStats->path()->nodes.at(idx + 1),
                 pathStats->maxFlow());
         }
+    }
+    for (const auto rejectedTrustLine : mRejectedTrustLines) {
+        mPathsManager->makeTrustLineFullyUsed(
+            rejectedTrustLine.first,
+            rejectedTrustLine.second);
     }
     mPathsManager->reBuildPaths(
         mCommand->contractorUUID(),
