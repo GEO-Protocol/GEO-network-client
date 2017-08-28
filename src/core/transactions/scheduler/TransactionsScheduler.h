@@ -115,7 +115,7 @@ private:
 public:
     mutable CommandResultSignal commandResultIsReadySignal;
     mutable SerializeTransactionSignal serializeTransactionSignal;
-    // this signal used for notofication of CyclesMAnager that CycleCloser transaction was finished
+    // this signal used for notification of CyclesManager that CycleCloser transaction was finished
     // and it can try launch new CycleCloser transaction
     mutable CycleCloserTransactionWasFinishedSignal cycleCloserTransactionWasFinishedSignal;
 

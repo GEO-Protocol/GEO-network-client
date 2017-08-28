@@ -19,7 +19,7 @@ public:
     CoordinatorReservationResponseMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        const PathUUID &pathUUID,
+        const PathID &pathID,
         const OperationState state,
         const TrustLineAmount &reservedAmount=0);
 

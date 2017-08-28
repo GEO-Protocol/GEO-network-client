@@ -15,7 +15,8 @@ TransactionsManager::TransactionsManager(
     ResultsInterface *resultsInterface,
     StorageHandler *storageHandler,
     PathsManager *pathsManager,
-    Logger &logger) :
+    Logger &logger,
+    SubsystemsController *subsystemsController) :
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
@@ -27,6 +28,7 @@ TransactionsManager::TransactionsManager(
     mStorageHandler(storageHandler),
     mPathsManager(pathsManager),
     mLog(logger),
+    mSubsystemsController(subsystemsController),
 
     mScheduler(
         new TransactionsScheduler(
@@ -37,7 +39,8 @@ TransactionsManager::TransactionsManager(
             mNodeUUID,
             mScheduler.get(),
             mIOService,
-            mLog))
+            mLog,
+            mSubsystemsController))
 {
     subscribeForCommandResult(
         mScheduler->commandResultIsReadySignal);
@@ -68,7 +71,8 @@ void TransactionsManager::loadTransactionsFromStorage()
     const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
 
     for(const auto kTABufferAndSize: serializedTAs) {
-        BaseTransaction::SerializedTransactionType *transactionType = new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
+        BaseTransaction::SerializedTransactionType *transactionType =
+                new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
         auto TransactionTypeId = *transactionType;
         switch (TransactionTypeId) {
             case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
@@ -79,12 +83,16 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mResourcesManager,
-                    mLog);
+                    mPathsManager,
+                    mLog,
+                    mSubsystemsController);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
-                prepareAndSchedule(transaction);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                prepareAndSchedule(
+                    transaction,
+                    true,
+                    false,
+                    true);
                 break;
             }
             case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
@@ -94,14 +102,17 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mTrustLines,
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
-                    mLog);
+                    mLog,
+                    mSubsystemsController);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
                 subscribeForBuidCyclesFourNodesTransaction(
                     transaction->mBuildCycleFourNodesSignal);
-                prepareAndSchedule(transaction);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 break;
             }
             case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
@@ -111,12 +122,15 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mTrustLines,
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
-                    mLog);
+                    mLog,
+                    mSubsystemsController);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
-                prepareAndSchedule(transaction);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 break;
             }
             case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
@@ -127,10 +141,13 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mCyclesManager.get(),
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
-                    mLog);
-                prepareAndSchedule(transaction);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                    mLog,
+                    mSubsystemsController);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 break;
             }
             case BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction: {
@@ -141,11 +158,13 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mCyclesManager.get(),
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
-                    mLog);
-
-                prepareAndSchedule(transaction);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                    mLog,
+                    mSubsystemsController);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 break;
             }
             default: {
@@ -588,7 +607,9 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
         mResourcesManager,
-        mLog);
+        mPathsManager,
+        mLog,
+        mSubsystemsController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, true, false, true);
@@ -603,7 +624,8 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         mTrustLines,
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
-        mLog);
+        mLog,
+        mSubsystemsController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, false, false, true);
@@ -618,7 +640,8 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         mTrustLines,
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
-        mLog);
+        mLog,
+        mSubsystemsController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     subscribeForBuidCyclesFourNodesTransaction(
@@ -638,7 +661,8 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
                 mCyclesManager.get(),
                 mStorageHandler,
                 mMaxFlowCalculationCacheManager,
-                mLog),
+                mLog,
+                mSubsystemsController),
             false,
             false,
             true
@@ -937,6 +961,30 @@ void TransactionsManager::launchPathsResourcesCollectTransaction(
     }
 }
 
+void TransactionsManager::launchFindPathByMaxFlowTransaction(
+    const TransactionUUID &requestedTransactionUUID,
+    const NodeUUID &destinationNodeUUID)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<FindPathByMaxFlowTransaction>(
+                mNodeUUID,
+                destinationNodeUUID,
+                requestedTransactionUUID,
+                mPathsManager,
+                mResourcesManager,
+                mTrustLines,
+                mMaxFlowCalculationTrustLineManager,
+                mMaxFlowCalculationCacheManager,
+                mLog),
+            true,
+            true,
+            false);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
 void TransactionsManager::launchTrustLineStatesHandlerTransaction(
     NotificationTrustLineCreatedMessage::Shared message) {
     try {
@@ -1211,7 +1259,8 @@ void TransactionsManager::onCloseCycleTransaction(
                 mCyclesManager.get(),
                 mStorageHandler,
                 mMaxFlowCalculationCacheManager,
-                mLog),
+                mLog,
+                mSubsystemsController),
             true,
             false,
             true);

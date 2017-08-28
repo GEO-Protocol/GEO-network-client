@@ -34,10 +34,15 @@ OutgoingRemoteNode *OutgoingNodesHandler::handler(
     return mNodes[remoteNodeUUID].get();
 }
 
+/**
+ * @brief OutgoingNodesHandler::kHandlersTTL
+ * @returns timeout that must be wait, before remote node handler would be considered as obsolete.
+ */
 chrono::seconds OutgoingNodesHandler::kHandlersTTL()
     noexcept
 {
-    static const chrono::seconds kTTL(5);
+    // By default, handler must be dropped, if not new messages has been arrived for 15m.
+    static const chrono::seconds kTTL(15 * 60);
     return kTTL;
 }
 

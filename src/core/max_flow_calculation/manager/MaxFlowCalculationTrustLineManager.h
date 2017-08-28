@@ -40,6 +40,11 @@ public:
 
     bool preventDeleting() const;
 
+    void addUsedAmount(
+        const NodeUUID &sourceUUID,
+        const NodeUUID &targetUUID,
+        const TrustLineAmount &amount);
+
 private:
     static const byte kResetTrustLinesHours = 0;
     static const byte kResetTrustLinesMinutes = 20;

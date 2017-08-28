@@ -122,16 +122,14 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
 }
 
 /*!
- * @commandUUID - uuid of the received command (parsed on previous step).
- * @commandIdentifier - identifier of the received command (parsed on the previous step).
+ * Checks identifier and tries to build relevant command object.
+ * @returns <true, command object> in case of success, otherwise returns <false, nullptr>.
  *
- * Accepts "commandsIdentifier" and tries to deserialise the rest of the command.
- * In case when "commandsIdentifier" is unexpected - raises ValueError exception.
+ * @param uuid - uuid of the received command (parsed on previous step).
+ * @param identifier - identifier of the received command (parsed on the previous step).
+ * @param buffer - content of the command without it's identifier.
  *
- * First value of returned pair indicates if command was parsed succesfully,
- * and, if so, - the second one will contains shared pointer
- * to the command instance itself.
- * Otherwise - the second value of the pair will contain nullptr.
+ * @throws ValueError in case if @param identifier would be unexpected.
  */
 pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
     const CommandUUID &uuid,
@@ -202,6 +200,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
         } else if (identifier == UpdateRoutingTablesCommand::identifier()) {
             command = new UpdateRoutingTablesCommand(
+                uuid,
+                buffer);
+
+        } else if (identifier == SubsystemsInfluenceCommand::identifier()) {
+            return newCommand<SubsystemsInfluenceCommand>(
                 uuid,
                 buffer);
 

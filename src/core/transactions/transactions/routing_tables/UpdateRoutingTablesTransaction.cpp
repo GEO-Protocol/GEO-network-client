@@ -43,7 +43,9 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::run() {
 TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstAndSecondCRC32rt2Sum()
 {
     if(mContext.size() == 0){
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         info() << "There are no neighbors online. Exit transaction. ";
+#endif
         return resultDone();
     }
     vector<NodeUUID> NodesForNextCheck;
@@ -51,16 +53,22 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstAndSeco
         auto responseMessage = popNextMessage<CRC32Rt2ResponseMessage>();
         const auto kContractor = responseMessage->senderUUID;
         const auto kStepCRC32Sum = mTrustLinesManager->crc32SumSecondAndThirdLevelForNeighbor(kContractor);
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         debug() << "ContractorUUID" << kContractor << endl;
         debug() << "CRC32Sum calcululated on Initiator " << kStepCRC32Sum << endl;
         debug() << "CRC32Sum from message" << responseMessage->crc32Rt2Sum() << endl;
+#endif
         if(kStepCRC32Sum != responseMessage->crc32Rt2Sum()){
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
             debug() << kContractor << "CRC32SUMS not equal";
+#endif
             NodesForNextCheck.push_back(kContractor);
         }
     }
     if (NodesForNextCheck.size() == 0){
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         info() << "There are no changes in neighbors. Exit Transaction.";
+#endif
         return resultDone();
     }
 
@@ -84,7 +92,9 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstAndSeco
 TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt2Sum()
 {
     if(mContext.size() == 0){
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         info() << "There are no neighbors online. Exit transaction. ";
+#endif
         return resultDone();
     }
     vector<NodeUUID> ThirdLevelNodesForNextCheck;
@@ -92,9 +102,11 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt
         auto responseMessage = popNextMessage<CRC32Rt2ResponseMessage>();
         const auto kContractor = responseMessage->senderUUID;
         const auto kStepCRC32Sum = mTrustLinesManager->crc32SumSecondLevelForNeighbor(kContractor);
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         debug() << "ContractorUUID" << kContractor << endl;
         debug() << "CRC32Sum calcululated on Initiator " << kStepCRC32Sum << endl;
         debug() << "CRC32Sum from message" << responseMessage->crc32Rt2Sum() << endl;
+#endif
         if(kStepCRC32Sum != responseMessage->crc32Rt2Sum()){
             // it sims that first level node has new trustline.
             // save its id for update with others
@@ -110,7 +122,9 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt
         CRC32Rt2RequestMessage::CRC32SumType::FirstLevel);
 
     if(ThirdLevelNodesForNextCheck.size() == 0 and mNodesToUpdate.size() == 0){
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         info() << "Nodes with changes are offline. Exit Transaction. ";
+#endif
         return resultDone();
     }
 
@@ -138,7 +152,9 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkFirstCRC32rt
 TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkSecondCRC32rt2Sum()
 {
     if(mContext.size() == 0){
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         info() << "There are no third level neighbors with wich current node has desync. Exit transaction.";
+#endif
         if (mNodesToUpdate.size() != 0 )
             return updateRougtingTables();
         return resultDone();
@@ -148,23 +164,27 @@ TransactionResult::SharedConst UpdateRoutingTablesTransaction::checkSecondCRC32r
         const auto kContractor = responseMessage->senderUUID;
         const auto kFirstLevelPathNode = mPathMap[kContractor];
         const auto kStepCRC32Sum = mTrustLinesManager->crc32SumThirdLevelForNeighbor(kContractor, kFirstLevelPathNode);
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
         debug() << "ContractorUUID" << kContractor << endl;
         debug() << "CRC32Sum calcululated on Initiator " << kStepCRC32Sum << endl;
         debug() << "CRC32Sum from message" << responseMessage->crc32Rt2Sum() << endl;
+#endif
         if (kStepCRC32Sum != responseMessage->crc32Rt2Sum()) {
             // it sims that first level node has new trustline.
             // save its id for update with others
             mNodesToUpdate.push_back(make_pair(kContractor, 1));
         }
     }
+    if (mNodesToUpdate.size() != 0 )
+        return updateRougtingTables();
+#ifdef DDEBUG_LOG_ROUTING_TABLES_PROCESSING
     stringstream ss;
     for(auto it = mPathMap.begin(); it != mPathMap.end(); ++it) {
         ss << it->second << ";";
     }
-    if (mNodesToUpdate.size() != 0 )
-        return updateRougtingTables();
     info() << "It seems that current node has more records in rt3 for ["
             << ss.str() << "] nodes than they have in rt2 than they have.";
+#endif
     return resultDone();
 }
 

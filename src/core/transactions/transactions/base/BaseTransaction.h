@@ -81,6 +81,7 @@ public:
         Payments_CycleCloserIntermediateNodeTransaction,
 
         // Max flow calculation
+        CollectTopologyTransactionType,
         InitiateMaxFlowCalculationTransactionType,
         ReceiveMaxFlowCalculationOnTargetTransactionType,
         MaxFlowCalculationSourceFstLevelTransactionType,
@@ -107,6 +108,7 @@ public:
         // FindPath
         GetPathTestTransactionType,
         FindPathTransactionType,
+        FindPathByMaxFlowTransactionType,
         GetRoutingTablesTransactionType
     };
 

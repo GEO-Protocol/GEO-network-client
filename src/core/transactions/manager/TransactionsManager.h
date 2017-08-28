@@ -13,6 +13,7 @@
 #include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
 #include "../../cycles/CyclesManager.h"
+#include "../../subsystems_controller/SubsystemsController.h"
 
 /*
  * Interface commands
@@ -99,6 +100,7 @@
 #include "../transactions/find_path/GetPathTestTransaction.h"
 #include "../transactions/find_path/FindPathTransaction.h"
 #include "../transactions/find_path/GetRoutingTablesTransaction.h"
+#include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
 #include "../transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
 #include "../transactions/routing_tables/GetFirstRoutingTableTransaction.h"
@@ -128,7 +130,8 @@ public:
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
-        Logger &logger);
+        Logger &logger,
+        SubsystemsController *subsystemsController);
 
     void processCommand(
         BaseUserCommand::Shared command);
@@ -169,6 +172,10 @@ public:
         BaseResource::Shared resource);
 
     void launchPathsResourcesCollectTransaction(
+        const TransactionUUID &requestedTransactionUUID,
+        const NodeUUID &destinationNodeUUID);
+
+    void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
         const NodeUUID &destinationNodeUUID);
 
@@ -373,6 +380,8 @@ private:
     PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;
     Logger &mLog;
+
+    SubsystemsController *mSubsystemsController;
 
     unique_ptr<TransactionsScheduler> mScheduler;
     unique_ptr<CyclesManager> mCyclesManager;

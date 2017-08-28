@@ -113,7 +113,7 @@ const NodeUUID& ParticipantsVotesMessage::firstParticipant() const
 
 /**
  * Returns vote of the "participant"
- * (if it's present i nthe votes list);
+ * (if it's present in the votes list);
  *
  * @throws NotFoundError in case if no vote is present for "participant";
  */
@@ -288,5 +288,11 @@ size_t ParticipantsVotesMessage::participantsCount () const
 const boost::container::flat_map<NodeUUID, ParticipantsVotesMessage::Vote>& ParticipantsVotesMessage::votes() const
 {
     return mVotes;
+}
+
+bool ParticipantsVotesMessage::containsParticipant(
+    const NodeUUID &node) const
+{
+    return mVotes.find(node) != mVotes.end();
 }
 

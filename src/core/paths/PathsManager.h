@@ -5,6 +5,7 @@
 #include "../io/storage/StorageHandler.h"
 #include "lib/Path.h"
 #include "lib/PathsCollection.h"
+#include "../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../logger/Logger.h"
 
 #include <vector>
@@ -19,6 +20,7 @@ public:
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
         StorageHandler* storageHandler,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         Logger &logger);
 
     void findPaths(
@@ -36,6 +38,20 @@ public:
         vector<NodeUUID> &contractorRT1,
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT2,
         unordered_map<NodeUUID, vector<NodeUUID>, boost::hash<boost::uuids::uuid>> &contractorRT3);
+
+    ////// path by max flow
+    void buildPaths(
+        const NodeUUID &contractorUUID);
+
+    void addUsedAmount(
+        const NodeUUID &sourceUUID,
+        const NodeUUID &targetUUID,
+        const TrustLineAmount &amount);
+
+    // this method used for rebuild paths in case of insufficient founds
+    void reBuildPaths(
+        const NodeUUID &contractorUUID,
+        const set<NodeUUID> &inaccessibleNodes);
 
     PathsCollection::Shared pathCollection() const;
 
@@ -85,17 +101,40 @@ private:
     bool isPathValid(const Path &path);
     //test end
 
+    ////// path by max flow
+    void buildPathsOnOneLevel();
+
+    TrustLineAmount calculateOneNode(
+        const NodeUUID& nodeUUID,
+        const TrustLineAmount& currentFlow,
+        byte level);
+
+    TrustLineAmount reBuildPathsOnOneLevel();
+
+    TrustLineAmount calculateOneNodeForRebuildingPaths(
+        const NodeUUID& nodeUUID,
+        const TrustLineAmount& currentFlow,
+        byte level);
+
     LoggerStream info() const;
 
     const string logHeader() const;
 
 private:
+    static const byte kMaxPathLength = 6;
+
+private:
     TrustLinesManager *mTrustLinesManager;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     Logger &mLog;
     PathsCollection::Shared mPathCollection;
     NodeUUID mNodeUUID;
     NodeUUID mContractorUUID;
+
+    vector<NodeUUID> mPassedNodeUUIDs;
+    byte mCurrentPathLength;
+    set<NodeUUID> mInaccessibleNodes;
 };
 
 

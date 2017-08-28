@@ -19,12 +19,12 @@ public:
 
 public:
     InitiateMaxFlowCalculationTransaction(
-            NodeUUID &nodeUUID,
-            InitiateMaxFlowCalculationCommand::Shared command,
-            TrustLinesManager *manager,
-            MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-            MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-            Logger &logger);
+        NodeUUID &nodeUUID,
+        InitiateMaxFlowCalculationCommand::Shared command,
+        TrustLinesManager *manager,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        Logger &logger);
 
     InitiateMaxFlowCalculationCommand::Shared command() const;
 
@@ -47,9 +47,10 @@ private:
     TrustLineAmount calculateMaxFlow(
         const NodeUUID &contractorUUID);
 
+    void calculateMaxFlowOnOneLevel();
+
     TrustLineAmount calculateOneNode(
         const NodeUUID& nodeUUID,
-        const NodeUUID& contractorUUID,
         const TrustLineAmount& currentFlow,
         byte level);
 
@@ -59,7 +60,7 @@ private:
     TransactionResult::SharedConst resultProtocolError();
 
 private:
-    static const byte kMaxFlowLength = 6;
+    static const byte kMaxPathLength = 6;
     static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 2000;
 
 private:
@@ -67,7 +68,10 @@ private:
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    set<NodeUUID> forbiddenNodeUUIDs;
+    vector<NodeUUID> mForbiddenNodeUUIDs;
+    byte mCurrentPathLength;
+    TrustLineAmount mCurrentMaxFlow;
+    NodeUUID mCurrentContractor;
 };
 
 

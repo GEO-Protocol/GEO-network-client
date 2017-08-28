@@ -4,13 +4,13 @@
 ResponseMessage::ResponseMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
-    const PathUUID &pathUUID,
+    const PathID &pathID,
     const OperationState state) :
 
     TransactionMessage(
         senderUUID,
         transactionUUID),
-    mPathUUID(pathUUID),
+    mPathID(pathID),
     mState(state)
 {}
 
@@ -21,9 +21,9 @@ ResponseMessage::ResponseMessage(
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
-    PathUUID *pathUUID = new (buffer.get() + bytesBufferOffset) PathUUID;
-    mPathUUID = *pathUUID;
-    bytesBufferOffset += sizeof(PathUUID);
+    PathID *pathID = new (buffer.get() + bytesBufferOffset) PathID;
+    mPathID = *pathID;
+    bytesBufferOffset += sizeof(PathID);
     //----------------------------------------------------
     SerializedOperationState *state = new (buffer.get() + bytesBufferOffset) SerializedOperationState;
     mState = (OperationState) (*state);
@@ -34,16 +34,16 @@ const ResponseMessage::OperationState ResponseMessage::state() const
     return mState;
 }
 
-const Message::PathUUID ResponseMessage::pathUUID() const
+const Message::PathID ResponseMessage::pathID() const
 {
-    return mPathUUID;
+    return mPathID;
 }
 
 const size_t ResponseMessage::kOffsetToInheritedBytes() const
     noexcept
 {
     return TransactionMessage::kOffsetToInheritedBytes()
-           + sizeof(PathUUID)
+           + sizeof(PathID)
            + sizeof(SerializedOperationState);
 }
 
@@ -58,7 +58,7 @@ pair<BytesShared, size_t> ResponseMessage::serializeToBytes() const
 
     size_t bytesCount =
         parentBytesAndCount.second
-        + sizeof(PathUUID)
+        + sizeof(PathID)
         + sizeof(SerializedOperationState);
 
     BytesShared dataBytesShared = tryMalloc(bytesCount);
@@ -72,9 +72,9 @@ pair<BytesShared, size_t> ResponseMessage::serializeToBytes() const
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        &mPathUUID,
-        sizeof(PathUUID));
-    dataBytesOffset += sizeof(PathUUID);
+        &mPathID,
+        sizeof(PathID));
+    dataBytesOffset += sizeof(PathID);
     //----------------------------------------------------
     SerializedOperationState state(mState);
     memcpy(

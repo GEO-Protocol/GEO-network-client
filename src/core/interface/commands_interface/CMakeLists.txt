@@ -44,7 +44,10 @@ set(SOURCE_FILES
         commands/find_path/FindPathCommand.cpp
 
         commands/routing_tables/UpdateRoutingTablesCommand.h
-        commands/routing_tables/UpdateRoutingTablesCommand.cpp)
+        commands/routing_tables/UpdateRoutingTablesCommand.cpp
+
+        commands/subsystems_controller/SubsystemsInfluenceCommand.h
+        commands/subsystems_controller/SubsystemsInfluenceCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

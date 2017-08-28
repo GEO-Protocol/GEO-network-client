@@ -1,5 +1,4 @@
 #include "CyclesSixNodesReceiverTransaction.h"
-#include "../../../../network/messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
 
 CyclesSixNodesReceiverTransaction::CyclesSixNodesReceiverTransaction(
     const NodeUUID &nodeUUID,
@@ -57,6 +56,5 @@ const string CyclesSixNodesReceiverTransaction::logHeader() const
 {
     stringstream s;
     s << "[CyclesSixNodesReceiverTransactionTA: " << currentTransactionUUID() << "] ";
-
     return s.str();
 }
