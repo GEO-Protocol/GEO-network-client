@@ -14,12 +14,13 @@ int Core::run()
 {
     auto initCode = initSubsystems();
     if (initCode != 0) {
-        mLog->logFatal("Core", "Can't be initialised. Process will now be stopped.");
+        error() << "Core can't be initialised. Process will now be stopped.";
         return initCode;
     }
 
     writePIDFile();
     updateProcessName();
+    notifyContractorsAboutCurrentTrustLinesAmounts();
 
     try {
         mCommunicator->joinUUID2Address(mNodeUUID);
@@ -330,7 +331,6 @@ int Core::initPathsManager()
         mPathsManager = make_unique<PathsManager>(
             mNodeUUID,
             mTrustLinesManager.get(),
-            mStorageHandler.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
             *mLog.get());
         mLog->logSuccess("Core", "Paths Manager is successfully initialised");
@@ -513,10 +513,6 @@ void Core::onPathsResourceRequestedSlot(
     const NodeUUID &destinationNodeUUID)
 {
     try {
-        // todo : choose one method (paths by routing tables or paths by max flow)
-//        mTransactionsManager->launchPathsResourcesCollectTransaction(
-//            transactionUUID,
-//            destinationNodeUUID);
         mTransactionsManager->launchFindPathByMaxFlowTransaction(
             transactionUUID,
             destinationNodeUUID);
@@ -558,4 +554,49 @@ void Core::updateProcessName()
     const string kProcessName(string("GEO:") + mNodeUUID.stringUUID());
     prctl(PR_SET_NAME, kProcessName.c_str());
     strcpy(mCommandDescriptionPtr, kProcessName.c_str());
+}
+
+void Core::notifyContractorsAboutCurrentTrustLinesAmounts()
+{
+    const auto kTransactionUUID = TransactionUUID();
+
+    for (const auto kContractorUUIDAndTrustLine : mTrustLinesManager->trustLines()) {
+        const auto kTrustLine =  kContractorUUIDAndTrustLine.second;
+        const auto kContractor = kTrustLine->contractorNodeUUID();
+        const auto kOutgoingTrustAmount = kTrustLine->outgoingTrustAmount();
+
+        const auto kNotificationMessage =
+            make_shared<SetIncomingTrustLineMessage>(
+                mNodeUUID,
+                kTransactionUUID,
+                kOutgoingTrustAmount);
+
+        mCommunicator->sendMessage(
+            kNotificationMessage,
+            kContractor);
+
+#ifdef DEBUG
+        info() << "Remote node " << kContractor
+               << " was notified about current outgoing trust line state to it ("
+               << kOutgoingTrustAmount << ").";
+#endif
+    }
+}
+
+string Core::logHeader()
+    noexcept
+{
+    return "[CORE]";
+}
+
+LoggerStream Core::error() const
+    noexcept
+{
+    return mLog->error(logHeader());
+}
+
+LoggerStream Core::info() const
+    noexcept
+{
+    return mLog->info(logHeader());
 }

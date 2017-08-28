@@ -12,7 +12,6 @@ add_subdirectory(transactions/max_flow_calculation)
 add_subdirectory(transactions/total_balances)
 add_subdirectory(transactions/history)
 add_subdirectory(transactions/find_path)
-add_subdirectory(transactions/routing_tables)
 add_subdirectory(transactions/trustlines_list)
 
 set(SOURCE_FILES
@@ -35,7 +34,6 @@ target_link_libraries(transactions
         transactions__history
         transactions__trustlines_list
         transactions__find_path
-        transactions__routing_tables
 
         common
         exceptions)

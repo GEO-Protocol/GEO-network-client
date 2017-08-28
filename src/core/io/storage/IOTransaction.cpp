@@ -2,7 +2,6 @@
 
 IOTransaction::IOTransaction(
     sqlite3 *dbConnection,
-    RoutingTablesHandler *routingTablesHandler,
     TrustLineHandler *trustLineHandler,
     HistoryStorage *historyStorage,
     PaymentOperationStateHandler *paymentOperationStorage,
@@ -10,7 +9,6 @@ IOTransaction::IOTransaction(
     Logger &logger) :
 
     mDBConnection(dbConnection),
-    mRoutingTablesHandler(routingTablesHandler),
     mTrustLineHandler(trustLineHandler),
     mHistoryStorage(historyStorage),
     mPaymentOperationStateHandler(paymentOperationStorage),
@@ -26,16 +24,7 @@ IOTransaction::~IOTransaction()
     commit();
 }
 
-RoutingTablesHandler* IOTransaction::routingTablesHandler()
-{
-    if (!mIsTransactionBegin) {
-        throw IOError("IOTransaction::routingTablesHandler: "
-                          "transaction was rollback, it can't be use now");
-    }
-    return mRoutingTablesHandler;
-}
-
-TrustLineHandler* IOTransaction::trustLineHandler()
+TrustLineHandler* IOTransaction::trustLinesHandler()
 {
     if (!mIsTransactionBegin) {
         throw IOError("IOTransaction::trustLineHandler: "
@@ -124,15 +113,11 @@ void IOTransaction::rollback()
 
 LoggerStream IOTransaction::info() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.info(logHeader());
 }
 
 LoggerStream IOTransaction::error() const
 {
-//    if (nullptr == mLog)
-//        throw Exception("logger is not initialised");
     return mLog.error(logHeader());
 }
 

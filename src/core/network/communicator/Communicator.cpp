@@ -37,11 +37,25 @@ Communicator::Communicator(
             IOService,
             *mSocket,
             *mUUID2AddressService,
+            logger)),
+
+    mConfirmationRequiredMessagesHandler(
+        make_unique<ConfirmationRequiredMessagesHandler>(
+            IOService,
             logger))
 {
     // Direct signals chaining.
     mIncomingMessagesHandler->signalMessageParsed.connect(
-        signalMessageReceived);
+        boost::bind(
+            &Communicator::onMessageReceived,
+            this,
+            _1));
+
+    mConfirmationRequiredMessagesHandler->signalOutgoingMessageReady.connect(
+        boost::bind(
+            &Communicator::onConfirmationRequiredMessageReadyToResend,
+            this,
+            _1));
 }
 
 /**
@@ -93,7 +107,40 @@ void Communicator::sendMessage (
     const NodeUUID &contractorUUID)
     noexcept
 {
+    // Filter outgoing messages for confirmation-required messages.
+    mConfirmationRequiredMessagesHandler->tryEnqueueMessage(
+        contractorUUID,
+        message);
+
     mOutgoingMessagesHandler->sendMessage(
         message,
         contractorUUID);
+}
+
+void Communicator::onMessageReceived(
+    Message::Shared message)
+{
+    // In case if received message is of type "confirmation message" -
+    // then it must not be transferred for further processing.
+    // Instead of that, it must be transfereed for processing into
+    // confirmation required messages handler.
+    if (message->typeID() == Message::System_Confirmation) {
+        const auto kConfirmaionMessage =
+            static_pointer_cast<ConfirmationMessage>(message);
+
+        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
+            kConfirmaionMessage->senderUUID,
+            kConfirmaionMessage);
+        return;
+    }
+
+    signalMessageReceived(message);
+}
+
+void Communicator::onConfirmationRequiredMessageReadyToResend(
+    pair<NodeUUID, TransactionMessage::Shared> adreseeAndMessage)
+{
+    mOutgoingMessagesHandler->sendMessage(
+        static_pointer_cast<Message>(adreseeAndMessage.second),
+        adreseeAndMessage.first);
 }

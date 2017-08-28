@@ -138,19 +138,8 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
     BaseUserCommand *command = nullptr;
     try {
-        // TODO: (minor, refactoring) rewrite all identifiers processing in the SubsystemsInfluenceCommand manner.
-        if (identifier == OpenTrustLineCommand::identifier()) {
-            command = new OpenTrustLineCommand(
-                uuid,
-                buffer);
-
-        } else if (identifier == CloseTrustLineCommand::identifier()) {
-            command = new CloseTrustLineCommand(
-                uuid,
-                buffer);
-
-        } else if (identifier == SetTrustLineCommand::identifier()) {
-            command = new SetTrustLineCommand(
+        if (identifier == SetOutgoingTrustLineCommand::identifier()) {
+            command = new SetOutgoingTrustLineCommand(
                 uuid,
                 buffer);
 
@@ -189,11 +178,6 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
-        } else if (identifier == FindPathCommand::identifier()) {
-            command = new FindPathCommand(
-                uuid,
-                buffer);
-
         } else if (identifier == GetFirstLevelContractorsCommand::identifier()) {
             command = new GetFirstLevelContractorsCommand(
                 uuid,
@@ -206,11 +190,6 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
         } else if (identifier == GetTrustLineCommand::identifier()) {
             command = new GetTrustLineCommand(
-                uuid,
-                buffer);
-
-        } else if (identifier == UpdateRoutingTablesCommand::identifier()) {
-            command = new UpdateRoutingTablesCommand(
                 uuid,
                 buffer);
 
@@ -344,8 +323,8 @@ CommandsInterface::~CommandsInterface() {
     close(mFIFODescriptor);
 }
 
-void CommandsInterface::beginAcceptCommands() {
-
+void CommandsInterface::beginAcceptCommands()
+{
     asyncReceiveNextCommand();
 }
 

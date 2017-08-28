@@ -52,19 +52,8 @@ public:
     virtual ~BaseTransaction() = default;
 
     enum TransactionType {
-        OpenTrustLineTransactionType = 1,
-        AcceptTrustLineTransactionType,
-        SetTrustLineTransactionType,
-        UpdateTrustLineTransactionType,
-        CloseTrustLineTransactionType,
-        RejectTrustLineTransactionType,
-
-        // Routing tables
-        RoutingTables_TrustLineStatesHandler,
-        RoutingTables_NeighborsCollecting,
-        RoutingTables_GetFirstRoutingTable,
-        RoutingTables_UpdateRoutingTable,
-        RoutingTables_CRC32Rt2Response,
+        SetOutgoingTrustLineTransaction = 1,
+        SetIncomingTrustLineTransaction,
 
         // Cycles
         Cycles_ThreeNodesInitTransaction,
@@ -110,10 +99,7 @@ public:
         HistoryWithContractorTransactionType,
 
         // FindPath
-        GetPathTestTransactionType,
-        FindPathTransactionType,
         FindPathByMaxFlowTransactionType,
-        GetRoutingTablesTransactionType
     };
 
 public:

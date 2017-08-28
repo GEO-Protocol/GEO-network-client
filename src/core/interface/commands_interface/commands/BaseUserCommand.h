@@ -9,9 +9,6 @@
 
 #include <boost/uuid/uuid.hpp>
 
-#include <string>
-#include <memory>
-#include <utility>
 
 namespace uuids = boost::uuids;
 

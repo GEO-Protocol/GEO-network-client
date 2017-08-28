@@ -27,8 +27,7 @@ public:
         BytesShared buffer)
         noexcept;
 
-    virtual pair<BytesShared, size_t> serializeToBytes() const
-        noexcept(false);
+    virtual pair<BytesShared, size_t> serializeToBytes() const;
 
 protected:
     virtual const size_t kOffsetToInheritedBytes() const

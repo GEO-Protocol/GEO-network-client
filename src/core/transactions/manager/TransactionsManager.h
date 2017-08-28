@@ -1,67 +1,54 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 #define GEO_NETWORK_CLIENT_TRANSACTIONSMANAGER_H
 
-#include "../../common/Types.h"
+#include "../scheduler/TransactionsScheduler.h"
+
 #include "../../common/NodeUUID.h"
 #include "../../common/memory/MemoryUtils.h"
-
+#include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../io/storage/StorageHandler.h"
 #include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
-
-#include "../scheduler/TransactionsScheduler.h"
 #include "../../cycles/CyclesManager.h"
+#include "../../subsystems_controller/SubsystemsController.h"
 
-#include "../../interface/commands_interface/commands/BaseUserCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.h"
-#include "../../interface/commands_interface/commands/trust_lines/SetTrustLineCommand.h"
+/*
+ * Interface commands
+ */
+#include "../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
+
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
-#include "../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryWithContractorCommand.h"
-#include "../../interface/commands_interface/commands/find_path/FindPathCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
 
-#include "../../interface/commands_interface/commands/routing_tables/UpdateRoutingTablesCommand.h"
-
+/*
+ * Network messages
+ */
 #include "../../network/messages/Message.hpp"
-#include "../../network/messages/trust_lines/AcceptTrustLineMessage.h"
-#include "../../network/messages/trust_lines/RejectTrustLineMessage.h"
-#include "../../network/messages/trust_lines/UpdateTrustLineMessage.h"
-
-#include "../../network/messages/routing_tables/NotificationTrustLineCreatedMessage.h"
-#include "../../network/messages/routing_tables/NotificationTrustLineRemovedMessage.h"
-#include "../../network/messages/routing_tables/NeighborsRequestMessage.h"
-#include "../../network/messages/routing_tables/NeighborsResponseMessage.h"
 #include "../../network/messages/response/Response.h"
-
-#include "../../resources/manager/ResourcesManager.h"
-
 #include "../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
+#include "../../network/messages/payments/VotesStatusRequestMessage.hpp"
 
+#include "../../resources/manager/ResourcesManager.h"
 #include "../../resources/resources/BaseResource.h"
 
-#include "../transactions/base/BaseTransaction.h"
-
-#include "../transactions/trust_lines/OpenTrustLineTransaction.h"
-#include "../transactions/trust_lines/AcceptTrustLineTransaction.h"
-#include "../transactions/trust_lines/CloseTrustLineTransaction.h"
-#include "../transactions/trust_lines/RejectTrustLineTransaction.h"
-#include "../transactions/trust_lines/SetTrustLineTransaction.h"
-#include "../transactions/trust_lines/UpdateTrustLineTransaction.h"
+/*
+ * Transactions
+ */
+#include "../transactions/trust_lines/SetOutgoingTrustLineTransaction.h"
+#include "../transactions/trust_lines/SetIncomingTrustLineTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -78,6 +65,7 @@
 #include "../transactions/regular/payments/VotesStatusResponsePaymentTransaction.h"
 #include "../transactions/regular/payments/CycleCloserInitiatorTransaction.h"
 #include "../transactions/regular/payments/CycleCloserIntermediateNodeTransaction.h"
+
 
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
@@ -98,18 +86,7 @@
 #include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
 #include "../transactions/trustlines_list/GetFirstLevelContractorBalanceTransaction.h"
 
-
-#include "../transactions/find_path/GetPathTestTransaction.h"
-#include "../transactions/find_path/FindPathTransaction.h"
-#include "../transactions/find_path/GetRoutingTablesTransaction.h"
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
-
-#include "../transactions/routing_tables/TrustLineStatesHandlerTransaction.h"
-#include "../transactions/routing_tables/GetFirstRoutingTableTransaction.h"
-#include "../transactions/routing_tables/UpdateRoutingTablesTransaction.h"
-#include "../transactions/routing_tables/Crc32Rt2ResponseTransaction.h"
-
-#include "../../subsystems_controller/SubsystemsController.h"
 
 #include <boost/signals2.hpp>
 
@@ -143,10 +120,6 @@ public:
     void processMessage(
         Message::Shared message);
 
-    // Routing tables transactions handlers
-    void launchProcessTrustLineModificationTransactions(
-        const NodeUUID &contractorUUID);
-
     //  Cycles Transactions
     void launchFourNodesCyclesInitTransaction(
         const NodeUUID &debtorUUID,
@@ -175,43 +148,40 @@ public:
     void attachResourceToTransaction(
         BaseResource::Shared resource);
 
-    void launchPathsResourcesCollectTransaction(
-        const TransactionUUID &requestedTransactionUUID,
-        const NodeUUID &destinationNodeUUID);
-
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
         const NodeUUID &destinationNodeUUID);
 
-private:
-    // Transactions from storage
-    void loadTransactions();
+protected:
+    void loadTransactionsFromStorage();
 
-    // Trust line transactions
-    void launchOpenTrustLineTransaction(
-        OpenTrustLineCommand::Shared command);
+protected: // Transactions
+    /*
+     * Trust lines transactions
+     */
 
-    void launchSetTrustLineTransaction(
-        SetTrustLineCommand::Shared command);
+    /**
+     * Starts transaction that would processes locally received command
+     * and try to set outgoing trust line to the remote node.
+     */
+    void launchSetOutgoingTrustLineTransaction(
+        SetOutgoingTrustLineCommand::Shared command);
 
-    void launchCloseTrustLineTransaction(
-        CloseTrustLineCommand::Shared command);
+    /**
+     * Starts transaction that would orocesses received message
+     * and attempts to set incoming trust line from the remote node.
+     */
+    void launchSetIncomingTrustLineTransaction(
+        SetIncomingTrustLineMessage::Shared message);
 
-    void launchAcceptTrustLineTransaction(
-        AcceptTrustLineMessage::Shared message);
-
-    void launchUpdateTrustLineTransaction(
-        UpdateTrustLineMessage::Shared message);
-
-    void launchRejectTrustLineTransaction(
-        RejectTrustLineMessage::Shared message);
-
-    // Max flow transactions
+    /*
+     * Max flow transactions
+     */
     void launchInitiateMaxFlowCalculatingTransaction(
         InitiateMaxFlowCalculationCommand::Shared command);
 
     void launchReceiveMaxFlowCalculationOnTargetTransaction(
-            InitiateMaxFlowCalculationMessage::Shared message);
+        InitiateMaxFlowCalculationMessage::Shared message);
 
     void launchReceiveResultMaxFlowCalculationTransaction(
         ResultMaxFlowCalculationMessage::Shared message);
@@ -228,7 +198,9 @@ private:
     void launchMaxFlowCalculationTargetSndLevelTransaction(
         MaxFlowCalculationTargetSndLevelMessage::Shared message);
 
-    // Payment transactions
+    /*
+     * Payment transactions
+     */
     void launchCoordinatorPaymentTransaction(
         CreditUsageCommand::Shared command);
 
@@ -244,7 +216,9 @@ private:
     void launchVoutesResponsePaymentsTransaction(
             VotesStatusRequestMessage::Shared message);
 
-    // Total balances transaction
+    /*
+     * Total balances transaction
+     */
     void launchTotalBalancesTransaction(
             TotalBalancesCommand::Shared command);
 
@@ -254,7 +228,9 @@ private:
     void launchTotalBalancesRemoteNodeTransaction(
         TotalBalancesRemouteNodeCommand::Shared command);
 
-    // History transactions
+    /*
+     * History transactions
+     */
     void launchHistoryPaymentsTransaction(
         HistoryPaymentsCommand::Shared command);
 
@@ -264,10 +240,9 @@ private:
     void launchHistoryWithContractorTransaction(
         HistoryWithContractorCommand::Shared command);
 
-    // Find path transactions
-    void launchGetPathTestTransaction(
-        FindPathCommand::Shared command);
-
+    /*
+     * Find path transactions
+     */
     void launchGetFirstLevelContractorsTransaction(
         GetFirstLevelContractorsCommand::Shared command);
 
@@ -277,25 +252,7 @@ private:
     void launchGetTrustlineTransaction(
         GetTrustLineCommand::Shared command);
 
-    void launchGetRoutingTablesTransaction(
-        RequestRoutingTablesMessage::Shared message);
-
-    void launchUpdateRoutingTablesTransaction(
-        UpdateRoutingTablesCommand::Shared command);
-
-    void launchUpdateRoutingTablesResponseTransaction(
-        CRC32Rt2RequestMessage::Shared message);
-
-    // routing tables exchange transactions
-    void launchTrustLineStatesHandlerTransaction(
-        NotificationTrustLineCreatedMessage::Shared message);
-
-    void launchTrustLineStatesHandlerTransaction(
-        NotificationTrustLineRemovedMessage::Shared message);
-
-    void launchGetFirstRoutingTableTransaction(
-        NeighborsRequestMessage::Shared message);
-
+protected:
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(
         BaseTransaction::LaunchSubsidiaryTransactionSignal &signal);

@@ -10,12 +10,8 @@ set(SOURCE_FILES
         commands/BaseUserCommand.cpp
         commands/BaseUserCommand.h
 
-        commands/trust_lines/OpenTrustLineCommand.cpp
-        commands/trust_lines/OpenTrustLineCommand.h
-        commands/trust_lines/CloseTrustLineCommand.cpp
-        commands/trust_lines/CloseTrustLineCommand.h
-        commands/trust_lines/SetTrustLineCommand.cpp
-        commands/trust_lines/SetTrustLineCommand.h
+        commands/trust_lines/SetOutgoingTrustLineCommand.cpp
+        commands/trust_lines/SetOutgoingTrustLineCommand.h
 
         commands/payments/CreditUsageCommand.cpp
         commands/payments/CreditUsageCommand.h
@@ -43,12 +39,6 @@ set(SOURCE_FILES
 
         commands/trust_lines_list/GetTrustLineCommand.h
         commands/trust_lines_list/GetTrustLineCommand.cpp
-
-        commands/find_path/FindPathCommand.h
-        commands/find_path/FindPathCommand.cpp
-
-        commands/routing_tables/UpdateRoutingTablesCommand.h
-        commands/routing_tables/UpdateRoutingTablesCommand.cpp
 
         commands/subsystems_controller/SubsystemsInfluenceCommand.h
         commands/subsystems_controller/SubsystemsInfluenceCommand.cpp)

@@ -43,7 +43,6 @@ const TransactionUUID &TransactionMessage::transactionUUID() const
  * ToDo: rewrite me with bytes deserializer
  */
 pair<BytesShared, size_t> TransactionMessage::serializeToBytes() const
-    throw (bad_alloc)
 {
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
 

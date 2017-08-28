@@ -136,20 +136,21 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
 
 set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCreditorNodes()
 {
-    auto ioTransactio = mStorageHandler->beginTransaction();
-    const auto creditorsNeighbors = ioTransactio->routingTablesHandler()->neighborsOfOnRT2(
-        mCreditorContractorUUID);
-    const auto debtorsNeighbors = ioTransactio->routingTablesHandler()->neighborsOfOnRT2(
-        mDebtorContractorUUID);
+    // todo : need used topology from maxFlowCalculationTrustLineManager
+//    auto ioTransactio = mStorageHandler->beginTransaction();
+//    const auto creditorsNeighbors = ioTransactio->routingTablesHandler()->neighborsOfOnRT2(
+//        mCreditorContractorUUID);
+//    const auto debtorsNeighbors = ioTransactio->routingTablesHandler()->neighborsOfOnRT2(
+//        mDebtorContractorUUID);
     set<NodeUUID> commonNeighbors;
-    set_intersection(
-        creditorsNeighbors.begin(),
-        creditorsNeighbors.end(),
-        debtorsNeighbors.begin(),
-        debtorsNeighbors.end(),
-        std::inserter(
-            commonNeighbors,
-            commonNeighbors.begin()));
+//    set_intersection(
+//        creditorsNeighbors.begin(),
+//        creditorsNeighbors.end(),
+//        debtorsNeighbors.begin(),
+//        debtorsNeighbors.end(),
+//        std::inserter(
+//            commonNeighbors,
+//            commonNeighbors.begin()));
 
     return commonNeighbors;
 }

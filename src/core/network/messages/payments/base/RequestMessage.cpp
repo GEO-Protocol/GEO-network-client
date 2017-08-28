@@ -4,13 +4,13 @@
 RequestMessage::RequestMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    const PathUUID &pathUUID,
+    const PathID &pathID,
     const TrustLineAmount &amount) :
 
     TransactionMessage(
         senderUUID,
         transactionUUID),
-    mPathUUID(pathUUID),
+    mPathID(pathID),
     mAmount(amount)
 {}
 
@@ -21,9 +21,9 @@ RequestMessage::RequestMessage(
 {
     auto parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes();
     auto bytesBufferOffset = buffer.get() + parentMessageOffset;
-    PathUUID *pathUUID = new (bytesBufferOffset) PathUUID;
-    mPathUUID = *pathUUID;
-    bytesBufferOffset += sizeof(PathUUID);
+    PathID *pathID = new (bytesBufferOffset) PathID;
+    mPathID = *pathID;
+    bytesBufferOffset += sizeof(PathID);
     auto amountEndOffset = bytesBufferOffset + kTrustLineBalanceBytesCount; // TODO: deserialize only non-zero
     vector<byte> amountBytes(
         bytesBufferOffset,
@@ -37,9 +37,9 @@ const TrustLineAmount &RequestMessage::amount() const
     return mAmount;
 }
 
-const Message::PathUUID &RequestMessage::pathUUID() const
+const Message::PathID &RequestMessage::pathID() const
 {
-    return mPathUUID;
+    return mPathID;
 }
 
 /*!
@@ -54,7 +54,7 @@ pair<BytesShared, size_t> RequestMessage::serializeToBytes() const
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount =
         + parentBytesAndCount.second
-        + sizeof(PathUUID)
+        + sizeof(PathID)
         + kTrustLineAmountBytesCount;
 
     BytesShared buffer = tryMalloc(bytesCount);
@@ -68,9 +68,9 @@ pair<BytesShared, size_t> RequestMessage::serializeToBytes() const
 
     memcpy(
         bytesBufferOffset,
-        &mPathUUID,
-        sizeof(PathUUID));
-    bytesBufferOffset += sizeof(PathUUID);
+        &mPathID,
+        sizeof(PathID));
+    bytesBufferOffset += sizeof(PathID);
 
     memcpy(
         bytesBufferOffset,
@@ -87,7 +87,7 @@ const size_t RequestMessage::kOffsetToInheritedBytes() const
 {
     static const size_t offset =
         TransactionMessage::kOffsetToInheritedBytes()
-        + sizeof(PathUUID)
+        + sizeof(PathID)
         + kTrustLineAmountBytesCount;
 
     return offset;

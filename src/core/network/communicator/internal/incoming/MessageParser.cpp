@@ -23,44 +23,17 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         switch(kMessageIdentifier) {
 
         /*
-         * Trust lines operations
+         * System messages
          */
-        case Message::TrustLines_Open:
-            // ToDo: Replace it with proper request message
-            // (OpenTrustLineRequestMessage)
-            return messageCollected<AcceptTrustLineMessage>(buffer);
-
-        case Message::TrustLines_Close:
-            // ToDo: Replace it with proper request message
-            // (CloseTrustLineRequestMessage)
-            return messageCollected<RejectTrustLineMessage>(buffer);
-
-        case Message::TrustLines_Set:
-            // ToDo: Replace it with proper request message
-            // (SetTrustLineRequestMessage)
-            return messageCollected<UpdateTrustLineMessage>(buffer);
+        case Message::System_Confirmation:
+            return messageCollected<ConfirmationMessage>(buffer);
 
 
         /*
-         * ToDo: Add routing tables messages
+         * Trust lines messages
          */
-        case Message::RoutingTables_NotificationTrustLineCreated:
-            return messageCollected<NotificationTrustLineCreatedMessage>(buffer);
-
-        case Message::RoutingTables_NotificationTrustLineRemoved:
-            return messageCollected<NotificationTrustLineRemovedMessage>(buffer);
-
-        case Message::RoutingTables_NeighborsRequest:
-            return messageCollected<NeighborsRequestMessage>(buffer);
-
-        case Message::RoutingTables_NeighborsResponse:
-            return messageCollected<NeighborsResponseMessage>(buffer);
-
-        case Message::RoutingTables_CRC32Rt2ResponseMessage:
-            return messageCollected<CRC32Rt2ResponseMessage>(buffer);
-
-        case Message::RoutingTables_CRC32Rt2RequestMessage:
-            return messageCollected<CRC32Rt2RequestMessage>(buffer);
+        case Message::TrustLines_SetIncoming:
+            return messageCollected<SetIncomingTrustLineMessage>(buffer);
 
 
         /*
@@ -179,30 +152,6 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 
         case Message::TotalBalance_Response:
             return messageCollected<TotalBalancesResultMessage>(buffer);
-
-
-        /*
-         * Find Path Messages
-         */
-        case Message::Paths_RequestRoutingTables:
-            return messageCollected<RequestRoutingTablesMessage>(buffer);
-
-        case Message::Paths_ResultRoutingTableFirstLevel:
-            return messageCollected<ResultRoutingTable1LevelMessage>(buffer);
-
-        case Message::Paths_ResultRoutingTableSecondLevel:
-            return messageCollected<ResultRoutingTable2LevelMessage>(buffer);
-
-        case Message::Paths_ResultRoutingTableThirdLevel:
-            return messageCollected<ResultRoutingTable3LevelMessage>(buffer);
-
-
-        /*
-         * Response message
-         * ToDo: remove it after trust lines messages refactoring
-         */
-        case Message::ResponseMessageType:
-            return messageCollected<Response>(buffer);
 
 
 #ifdef DEBUG

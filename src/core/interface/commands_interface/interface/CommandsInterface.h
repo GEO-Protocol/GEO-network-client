@@ -5,9 +5,7 @@
 
 #include "../../../logger/Logger.h"
 
-#include "../commands/trust_lines/OpenTrustLineCommand.h"
-#include "../commands/trust_lines/CloseTrustLineCommand.h"
-#include "../commands/trust_lines/SetTrustLineCommand.h"
+#include "../commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../commands/payments/CreditUsageCommand.h"
 #include "../commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../commands/total_balances/TotalBalancesCommand.h"
@@ -18,10 +16,6 @@
 #include "../commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../commands/trust_lines_list/GetTrustLineCommand.h"
-
-#include "../commands/find_path/FindPathCommand.h"
-#include "../commands/routing_tables/UpdateRoutingTablesCommand.h"
-
 #include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
@@ -126,7 +120,6 @@ public:
 public:
     explicit CommandsInterface(
         as::io_service &ioService,
-//        TransactionsManager *transactionsManager,
         Logger &logger);
 
     ~CommandsInterface();
@@ -153,7 +146,6 @@ protected:
     static const constexpr size_t kCommandBufferSize = 1024;
 
     as::io_service &mIOService;
-//    TransactionsManager *mTransactionsManager;
     Logger &mLog;
 
     as::streambuf mCommandBuffer;

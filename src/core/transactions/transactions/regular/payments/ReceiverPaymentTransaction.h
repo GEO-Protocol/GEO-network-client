@@ -35,16 +35,18 @@ public:
 protected:
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage();
-    TransactionResult::SharedConst runClarificationOfTransaction();
+    TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
+    TransactionResult::SharedConst runClarificationOfTransactionDuringVoting();
 
 protected:
     // Receiver must must save payment operation into history.
-    // Therefore this methods are overriden.
+    // Therefore this methods are overridden.
     TransactionResult::SharedConst approve();
 
 protected:
-    void savePaymentOperationIntoHistory();
+    void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction);
 
     bool checkReservationsDirections() const;
 

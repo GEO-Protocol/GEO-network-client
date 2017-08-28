@@ -13,6 +13,9 @@ set(SOURCE_FILES
     base/ResponseCycleMessage.h
     base/ResponseCycleMessage.cpp
 
+    base/RequestMessageWithReservations.h
+    base/RequestMessageWithReservations.cpp
+
     ReceiverInitPaymentRequestMessage.h
     ReceiverInitPaymentRequestMessage.cpp
 
@@ -54,8 +57,8 @@ set(SOURCE_FILES
     FinalPathCycleConfigurationMessage.h
     FinalPathCycleConfigurationMessage.cpp
 
-        TTLProlongationRequestMessage.h
-        TTLProlongationRequestMessage.cpp
+    TTLProlongationRequestMessage.h
+    TTLProlongationRequestMessage.cpp
 
     FinalAmountsConfigurationMessage.h
     FinalAmountsConfigurationMessage.cpp

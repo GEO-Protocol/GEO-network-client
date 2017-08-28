@@ -9,7 +9,6 @@ StorageHandler::StorageHandler(
 
     mDirectory(directory),
     mDataBaseName(dataBaseName),
-    mRoutingTablesHandler(connection(dataBaseName, directory), kRT2TableName, kRT3TableName, logger),
     mTrustLineHandler(connection(dataBaseName, directory), kTrustLineTableName, logger),
     mPaymentOperationStateHandler(connection(dataBaseName, directory), kPaymentOperationStateTableName, logger),
     mTransactionHandler(connection(dataBaseName, directory), kTransactionTableName, logger),
@@ -54,10 +53,8 @@ sqlite3* StorageHandler::connection(
 
 IOTransaction::Shared StorageHandler::beginTransaction()
 {
-
     return make_shared<IOTransaction>(
         mDBConnection,
-        &mRoutingTablesHandler,
         &mTrustLineHandler,
         &mHistoryStorage,
         &mPaymentOperationStateHandler,
@@ -84,15 +81,14 @@ const string StorageHandler::logHeader() const
 
 int StorageHandler::applyMigrations(const NodeUUID &nodeUUID) {
     auto migrationHandler = make_shared<MigrationsHandler>(
-            mDBConnection,
-            kMigrationTableName,
-            nodeUUID,
-            &mRoutingTablesHandler,
-            &mTrustLineHandler,
-            &mHistoryStorage,
-            &mPaymentOperationStateHandler,
-            &mTransactionHandler,
-            mLog);
+        mDBConnection,
+        kMigrationTableName,
+        nodeUUID,
+        &mTrustLineHandler,
+        &mHistoryStorage,
+        &mPaymentOperationStateHandler,
+        &mTransactionHandler,
+        mLog);
 
     try {
         migrationHandler->applyMigrations();

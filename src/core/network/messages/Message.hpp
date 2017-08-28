@@ -1,9 +1,7 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_MESSAGE_H
 #define GEO_NETWORK_CLIENT_MESSAGE_H
 
-#include "../../common/Types.h"
 #include "../../common/memory/MemoryUtils.h"
-
 #include "../communicator/internal/common/Packet.hpp"
 
 #include <limits>
@@ -19,19 +17,21 @@ public:
 
 public:
     // TODO: move it into separate *.h file.
-    typedef uint64_t PathUUID;
+    // it used in pair of BasePaymentTransaction::PathID
+    // so if you change this one, you should change another too
+    typedef uint16_t PathID;
 
 public:
     enum MessageType {
         /*
+         * System messages types
+         */
+        System_Confirmation = 0,
+
+        /*
          * Trust lines
          */
-        TrustLines_Open = 1,
-        TrustLines_Accept,
-        TrustLines_Set,
-        TrustLines_Close,
-        TrustLines_Reject,
-        TrustLines_Update,
+        TrustLines_SetIncoming,
 
         /*
          * Payments messages
@@ -69,25 +69,6 @@ public:
         Cycles_FiveNodesMiddleware,
         Cycles_SixNodesBoundary,
         Cycles_SixNodesMiddleware,
-
-        /*
-         * Routing tables messages
-         */
-        RoutingTables_NeighborsRequest,
-        RoutingTables_NeighborsResponse,
-        RoutingTables_NotificationTrustLineCreated,
-        RoutingTables_NotificationTrustLineRemoved,
-        RoutingTables_CRC32Rt2RequestMessage,
-        RoutingTables_CRC32Rt2ResponseMessage,
-        RoutingTables_CRC32Rt2ThirdLevelResponseMessage,
-
-        /*
-         * Paths
-         */
-        Paths_RequestRoutingTables,
-        Paths_ResultRoutingTableFirstLevel,
-        Paths_ResultRoutingTableSecondLevel,
-        Paths_ResultRoutingTableThirdLevel,
 
         /*
          * Max flow

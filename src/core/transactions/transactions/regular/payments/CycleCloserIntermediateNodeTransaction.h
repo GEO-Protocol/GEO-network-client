@@ -42,17 +42,18 @@ protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
-    TransactionResult::SharedConst runReservationProlongationStage();
     TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
     // run after waiting on releasing amount by rollbacking conflicted transaction
     TransactionResult::SharedConst runCoordinatorRequestProcessingStageAgain();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
+    TransactionResult::SharedConst runVotesCheckingStageWithPossibleTTL();
 
 protected:
     TransactionResult::SharedConst approve();
 
 protected:
-    void savePaymentOperationIntoHistory();
+    void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction);
 
     bool checkReservationsDirections() const;
 

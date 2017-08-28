@@ -79,7 +79,7 @@ protected:
 
     TransactionResult::SharedConst processRemoteNodeResponse();
 
-    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
+    TransactionResult::SharedConst propagateVotesListAndWaitForVotingResult();
 
 protected:
     TransactionResult::SharedConst approve();
@@ -91,10 +91,13 @@ protected:
         const Path::ConstShared path);
 
     void sendFinalPathConfiguration(
-        PathStats* pathStats,
         const TrustLineAmount &finalPathAmount);
 
-    void savePaymentOperationIntoHistory();
+    void informIntermediateNodesAboutTransactionFinish(
+        const uint8_t lastInformedNodePosition);
+
+    void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction);
 
     bool checkReservationsDirections() const;
 

@@ -4,10 +4,10 @@
 CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
     const NodeUUID& senderUUID,
     const TransactionUUID& transactionUUID,
-    const vector<pair<PathUUID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
+    const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
     const NodeUUID& nextNodeInThePath) :
 
-    FinalAmountsConfigurationMessage(
+    RequestMessageWithReservations(
         senderUUID,
         transactionUUID,
         finalAmountsConfig),
@@ -17,12 +17,12 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
 CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
     BytesShared buffer) :
 
-    FinalAmountsConfigurationMessage(buffer)
+    RequestMessageWithReservations(buffer)
 {
     size_t parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes()
-                                 + sizeof(FinalAmountsConfigurationMessage::RecordCount)
+                                 + sizeof(RequestMessageWithReservations::RecordCount)
                                  + finalAmountsConfiguration().size() *
-                                   (sizeof(PathUUID) + kTrustLineAmountBytesCount);
+                                   (sizeof(PathID) + kTrustLineAmountBytesCount);
 
     memcpy(
         mNextPathNode.data,
@@ -31,7 +31,7 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
 }
 
 
-const NodeUUID& CoordinatorReservationRequestMessage::nextNodeInPathUUID() const
+const NodeUUID& CoordinatorReservationRequestMessage::nextNodeInPath() const
 {
     return mNextPathNode;
 }
@@ -47,7 +47,7 @@ const Message::MessageType CoordinatorReservationRequestMessage::typeID() const
 pair<BytesShared, size_t> CoordinatorReservationRequestMessage::serializeToBytes() const
     throw(bad_alloc)
 {    
-    auto parentBytesAndCount = FinalAmountsConfigurationMessage::serializeToBytes();
+    auto parentBytesAndCount = RequestMessageWithReservations::serializeToBytes();
     size_t totalBytesCount =
         + parentBytesAndCount.second
         + NodeUUID::kBytesSize;

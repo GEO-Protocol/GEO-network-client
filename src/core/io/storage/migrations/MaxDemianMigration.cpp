@@ -21,11 +21,11 @@ void MaxDemianMigration::apply(IOTransaction::Shared ioTransaction) {
 
         auto new_balance = trustLine_second->balance() + mOperationAmount;
         trustLine_second->setBalance(new_balance);
-        ioTransaction->trustLineHandler()->saveTrustLine(trustLine_second);
+        ioTransaction->trustLinesHandler()->saveTrustLine(trustLine_second);
 
         new_balance = trustLine_first->balance() - mOperationAmount;
         trustLine_first->setBalance(new_balance);
-        ioTransaction->trustLineHandler()->saveTrustLine(trustLine_first);
+        ioTransaction->trustLinesHandler()->saveTrustLine(trustLine_first);
 
     } else {
         throw RuntimeError("Can not find TrustLines to migrate");
@@ -37,7 +37,7 @@ std::shared_ptr <TrustLine> MaxDemianMigration::getOutwornTrustLine(
     NodeUUID &nodeUUID) {
     sqlite3_stmt *stmt;
     string query = "SELECT contractor, incoming_amount, outgoing_amount, balance FROM " +
-                   ioTransaction->trustLineHandler()->tableName() + " WHERE contractor = ?";
+                   ioTransaction->trustLinesHandler()->tableName() + " WHERE contractor = ?";
 
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {

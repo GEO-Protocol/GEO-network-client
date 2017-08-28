@@ -18,6 +18,7 @@
 #include "../../common/multiprecision/MultiprecisionUtils.h"
 #include "../../logger/Logger.h"
 
+#include <list>
 #include <vector>
 #include <memory>
 #include <algorithm>
@@ -55,7 +56,6 @@ public:
         sqlite3 *dbConnection,
         const string &tableName,
         const NodeUUID &nodeUUID,
-        RoutingTablesHandler *routingTablesHandler,
         TrustLineHandler *trustLineHandler,
         HistoryStorage *historyStorage,
         PaymentOperationStateHandler *paymentOperationStorage,
@@ -89,7 +89,6 @@ protected:
     Logger &mLog;
     sqlite3 *mDataBase;
 
-    RoutingTablesHandler *mRoutingTablesHandler;
     TrustLineHandler *mTrustLineHandler;
     HistoryStorage *mHistoryStorage;
     PaymentOperationStateHandler *mPaymentOperationStateHandler;
