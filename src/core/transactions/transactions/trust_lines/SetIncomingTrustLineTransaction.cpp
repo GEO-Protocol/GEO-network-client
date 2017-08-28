@@ -6,6 +6,7 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     SetIncomingTrustLineMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger)
     noexcept:
 
@@ -15,7 +16,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
         logger),
     mMessage(message),
     mTrustLines(manager),
-    mStorageHandler(storageHandler)
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
@@ -42,6 +44,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         switch (kOperationResult) {
         case TrustLinesManager::TrustLineOperationResult::Opened: {
             populateHistory(ioTransaction, TrustLineRecord::Opening);
+            mMaxFlowCalculationCacheManager->resetInititorCache();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully initialised with " << mMessage->amount();
             break;
@@ -49,6 +52,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Updated: {
             populateHistory(ioTransaction, TrustLineRecord::Updating);
+            mMaxFlowCalculationCacheManager->resetInititorCache();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully set to " << mMessage->amount();
             break;
@@ -56,6 +60,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Closed: {
             populateHistory(ioTransaction, TrustLineRecord::Closing);
+            mMaxFlowCalculationCacheManager->resetInititorCache();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully closed.";
             break;

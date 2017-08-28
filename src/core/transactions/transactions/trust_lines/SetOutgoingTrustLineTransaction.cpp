@@ -6,6 +6,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     SetOutgoingTrustLineCommand::Shared command,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger)
     noexcept :
 
@@ -15,7 +16,8 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
         logger),
     mCommand(command),
     mTrustLines(manager),
-    mStorageHandler(storageHandler)
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
@@ -42,6 +44,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         switch (kOperationResult) {
         case TrustLinesManager::TrustLineOperationResult::Opened: {
             populateHistory(ioTransaction, TrustLineRecord::Opening);
+            mMaxFlowCalculationCacheManager->resetInititorCache();
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully initialised with " << mCommand->amount();
             break;
@@ -49,6 +52,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Updated: {
             populateHistory(ioTransaction, TrustLineRecord::Updating);
+            mMaxFlowCalculationCacheManager->resetInititorCache();
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully set to " << mCommand->amount();
             break;
@@ -56,6 +60,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Closed: {
             populateHistory(ioTransaction, TrustLineRecord::Closing);
+            mMaxFlowCalculationCacheManager->resetInititorCache();
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully closed.";
             break;
@@ -63,7 +68,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::NoChanges: {
             // Trust line was set to the same value as previously.
-            // By the furst look, new history record is redundant here,
+            // By the first look, new history record is redundant here,
             // but this transaction might be launched only by the user,
             // so, in case if new amount is the same - then user knows it,
             // and new history record must be written too.
@@ -74,7 +79,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         }
         }
 
-        // Notifiyng remote node about trust line state changed.
+        // Notifying remote node about trust line state changed.
         // Network communicator knows, that this message must be forced to be delivered,
         // so the TA itself might finish without any response from the remote node.
         sendMessage<SetIncomingTrustLineMessage>(
