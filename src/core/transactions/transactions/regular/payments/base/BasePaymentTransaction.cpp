@@ -980,7 +980,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
         debug() << "Coordinator don't know result of this transaction yet. Sleep.";
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         return resultAwaikAfterMilliseconds(
-                kWaitMillisecondsToTryRecoverAgain);
+            kWaitMillisecondsToTryRecoverAgain);
     }
 
     // Check if answer is from Coordinator

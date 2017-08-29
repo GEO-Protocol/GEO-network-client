@@ -431,7 +431,6 @@ void Core::connectSignalsToSlots()
 void Core::onCommandReceivedSlot (
     BaseUserCommand::Shared command)
 {
-#ifdef TESTS
     if (command->identifier() == SubsystemsInfluenceCommand::identifier()) {
         // In case if network toggle command was received -
         // there is no reason to transfer it's processing to the transactions manager:
@@ -440,14 +439,15 @@ void Core::onCommandReceivedSlot (
         auto subsystemsInfluenceCommand = static_pointer_cast<SubsystemsInfluenceCommand>(command);
         mSubsystemsController->setFlags(
             subsystemsInfluenceCommand->flags());
+#ifdef TESTS
         mSubsystemsController->setForbiddenNodeUUID(
             subsystemsInfluenceCommand->forbiddenNodeUUID());
         mSubsystemsController->setForbiddenAmount(
             subsystemsInfluenceCommand->forbiddenAmount());
+#endif
         mLog->logInfo("Core", "SubsystemsInfluenceCommand processed");
         return;
     }
-#endif
 
     try {
         mTransactionsManager->processCommand(command);

@@ -229,9 +229,6 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
 void ParticipantsVotesMessage::reject(
     const NodeUUID &participant)
 {
-    if (participant == mCoordinatorUUID) {
-        return;
-    }
     if (mVotes.count(participant) != 1)
         throw NotFoundError(
                 "ParticipantsApprovingMessage::reject: "

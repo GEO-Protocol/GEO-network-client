@@ -320,7 +320,7 @@ void TransactionsManager::processMessage(
         }
     } else if(message->typeID() == Message::MessageType::Payments_VotesStatusRequest){
         launchVotesResponsePaymentsTransaction(
-                static_pointer_cast<VotesStatusRequestMessage>(message));
+            static_pointer_cast<VotesStatusRequestMessage>(message));
 
     /*
      * Cycles
@@ -623,9 +623,8 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
 }
 
 void TransactionsManager::launchVotesResponsePaymentsTransaction(
-        VotesStatusRequestMessage::Shared message)
+    VotesStatusRequestMessage::Shared message)
 {
-    mScheduler->cycleClosingTransactionByUUID(message->transactionUUID());
     try {
         prepareAndSchedule(
             make_shared<VotesStatusResponsePaymentTransaction>(

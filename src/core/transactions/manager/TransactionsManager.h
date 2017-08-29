@@ -220,7 +220,7 @@ protected: // Transactions
      * Total balances transaction
      */
     void launchTotalBalancesTransaction(
-            TotalBalancesCommand::Shared command);
+        TotalBalancesCommand::Shared command);
 
     void launchTotalBalancesTransaction(
         InitiateTotalBalancesMessage::Shared message);

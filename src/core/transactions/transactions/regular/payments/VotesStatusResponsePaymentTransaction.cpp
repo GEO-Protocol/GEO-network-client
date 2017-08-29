@@ -52,6 +52,7 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
             mNodeUUID);
         kResponse->addParticipant(currentNodeUUID());
         kResponse->reject(currentNodeUUID());
+        kResponse->addParticipant(mRequest->senderUUID);
         debug() << "send reject response to " << mRequest->senderUUID;
         sendMessage(
             mRequest->senderUUID,
