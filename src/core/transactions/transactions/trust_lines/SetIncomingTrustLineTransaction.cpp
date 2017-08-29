@@ -41,7 +41,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
         switch (kOperationResult) {
         case TrustLinesManager::TrustLineOperationResult::Opened: {
-            populateHistory(ioTransaction, TrustLineRecord::Opening);
+            populateHistory(ioTransaction, TrustLineRecord::Accepting);
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully initialised with " << mMessage->amount();
             break;
@@ -55,7 +55,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         }
 
         case TrustLinesManager::TrustLineOperationResult::Closed: {
-            populateHistory(ioTransaction, TrustLineRecord::Closing);
+            populateHistory(ioTransaction, TrustLineRecord::Rejecting);
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully closed.";
             break;
@@ -120,7 +120,7 @@ void SetIncomingTrustLineTransaction::populateHistory(
 {
 #ifndef TESTS
     auto record = make_shared<TrustLineRecord>(
-        uuid(mTransactionUUID),
+        mTransactionUUID,
         operationType,
         mMessage->senderUUID,
         mMessage->amount());

@@ -48,7 +48,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         }
 
         case TrustLinesManager::TrustLineOperationResult::Updated: {
-            populateHistory(ioTransaction, TrustLineRecord::Updating);
+            populateHistory(ioTransaction, TrustLineRecord::Setting);
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully set to " << mCommand->amount();
             break;
@@ -135,7 +135,7 @@ void SetOutgoingTrustLineTransaction::populateHistory(
 {
 #ifndef TESTS
     auto record = make_shared<TrustLineRecord>(
-        uuid(mTransactionUUID),
+        mTransactionUUID,
         operationType,
         mCommand->contractorUUID(),
         mCommand->amount());
