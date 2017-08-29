@@ -7,6 +7,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    SubsystemsController *subsystemsController,
     Logger &logger)
     noexcept :
 
@@ -17,11 +18,16 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     mCommand(command),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mSubsystemsController(subsystemsController)
 {}
 
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 {
+    if (!mSubsystemsController->isRunTrustLineTransactions()) {
+        debug() << "It is forbidden run trust line transactions";
+        return resultForbiddenRun();
+    }
     const auto kContractor = mCommand->contractorUUID();
 
     if (kContractor == mNodeUUID) {
@@ -118,6 +124,12 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::resultOK()
 {
     return transactionResultFromCommand(
         mCommand->responseOK());
+}
+
+TransactionResult::SharedConst SetOutgoingTrustLineTransaction::resultForbiddenRun()
+{
+    return transactionResultFromCommand(
+        mCommand->responseForbiddenRunTransaction());
 }
 
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::resultProtocolError()

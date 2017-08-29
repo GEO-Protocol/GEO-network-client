@@ -364,6 +364,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mTrustLines,
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
+            mSubsystemsController,
             mLog),
         true,
         false,

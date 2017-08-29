@@ -24,7 +24,11 @@ public:
 
     bool isNetworkOn();
 
-    bool isCloseCycles() const;
+    bool isRunCycleClosingTransactions() const;
+
+    bool isRunPaymentTransactions() const;
+
+    bool isRunTrustLineTransactions() const;
 
     void turnOffNetwork();
 
@@ -114,7 +118,9 @@ private:
     bool mIsNetworkOn;
     uint32_t mCountForbiddenMessages;
 
-    bool mIsCloseCycles;
+    bool mIsRunCycleClosingTransactions;
+    bool mIsRunPaymentTransactions;
+    bool mIsRunTrustLineTransactions;
 
     bool mForbidSendMessageToReceiverOnReservationStage;
     bool mForbidSendMessageToCoordinatorOnReservationStage;

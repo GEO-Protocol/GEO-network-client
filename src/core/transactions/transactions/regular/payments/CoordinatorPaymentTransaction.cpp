@@ -108,6 +108,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitialisationStage ()
 {
+    if (!mSubsystemsController->isRunPaymentTransactions()) {
+        debug() << "It is forbidden run payment transactions";
+        return resultForbiddenRun();
+    }
     debug() << "Operation initialised to the node (" << mCommand->contractorUUID() << ")";
     debug() << "Command UUID: " << mCommand->UUID();
     debug() << "Operation amount: " << mCommand->amount();
@@ -1250,6 +1254,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultOK()
     string transactionUUID = mTransactionUUID.stringUUID();
     return transactionResultFromCommand(
         mCommand->responseOK(transactionUUID));
+}
+
+TransactionResult::SharedConst CoordinatorPaymentTransaction::resultForbiddenRun()
+{
+    string transactionUUID = mTransactionUUID.stringUUID();
+    return transactionResultFromCommand(
+        mCommand->responseForbiddenRunTransaction());
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::resultNoPathsError()

@@ -65,6 +65,9 @@ public:
         noexcept;
     CommandResult::SharedConst responseUnexpectedError() const
         noexcept;
+    // this response used during disabling start payment and trust line transactions
+    CommandResult::SharedConst responseForbiddenRunTransaction() const
+        noexcept;
 
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes();

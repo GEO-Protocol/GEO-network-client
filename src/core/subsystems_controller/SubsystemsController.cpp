@@ -5,7 +5,9 @@ SubsystemsController::SubsystemsController(
     mLog(log)
 {
     mIsNetworkOn = true;
-    mIsCloseCycles = true;
+    mIsRunCycleClosingTransactions = true;
+    mIsRunPaymentTransactions = true;
+    mIsRunTrustLineTransactions = true;
 
     mForbidSendMessageToReceiverOnReservationStage = false;
     mForbidSendMessageToCoordinatorOnReservationStage = false;
@@ -47,7 +49,7 @@ void SubsystemsController::setFlags(size_t flags)
     if (!mIsNetworkOn) {
         mCountForbiddenMessages = UINT32_MAX;
     }
-    mIsCloseCycles = (flags & 0x2) == 0;
+    mIsRunCycleClosingTransactions = (flags & 0x2) == 0;
 
     mForbidSendMessageToReceiverOnReservationStage = (flags & 0x4) > 0;
     mForbidSendMessageToCoordinatorOnReservationStage = (flags & 0x8) > 0;
@@ -78,8 +80,13 @@ void SubsystemsController::setFlags(size_t flags)
     mSleepOnVoteStage = (flags & 0x800000000) > 0;
     mSleepOnVoteConsistencyStage = (flags & 0x1000000000) > 0;
 
+    mIsRunPaymentTransactions = (flags & 0x20000000000) == 0;
+    mIsRunTrustLineTransactions = (flags & 0x40000000000) == 0;
+
     debug() << "network on " << mIsNetworkOn;
-    debug() << "close cycles " << mIsCloseCycles;
+    debug() << "payment transactions " << mIsRunPaymentTransactions;
+    debug() << "trust line transactions " << mIsRunTrustLineTransactions;
+    debug() << "close cycles " << mIsRunCycleClosingTransactions;
 }
 
 void SubsystemsController::setForbiddenNodeUUID(
@@ -107,12 +114,21 @@ bool SubsystemsController::isNetworkOn()
         return false;
     }
     return true;
-
 }
 
-bool SubsystemsController::isCloseCycles() const
+bool SubsystemsController::isRunPaymentTransactions() const
 {
-    return mIsCloseCycles;
+    return mIsRunPaymentTransactions;
+}
+
+bool SubsystemsController::isRunTrustLineTransactions() const
+{
+    return mIsRunTrustLineTransactions;
+}
+
+bool SubsystemsController::isRunCycleClosingTransactions() const
+{
+    return mIsRunCycleClosingTransactions;
 }
 
 void SubsystemsController::turnOffNetwork()
