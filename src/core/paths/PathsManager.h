@@ -26,6 +26,10 @@ public:
         const NodeUUID &targetUUID,
         const TrustLineAmount &amount);
 
+    void makeTrustLineFullyUsed(
+        const NodeUUID &sourceUUID,
+        const NodeUUID &targetUUID);
+
     // this method used for rebuild paths in case of insufficient founds
     void reBuildPaths(
         const NodeUUID &contractorUUID,
