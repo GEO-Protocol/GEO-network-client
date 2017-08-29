@@ -17,7 +17,8 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        SubsystemsController *subsystemsController);
 
     ReceiverPaymentTransaction(
         BytesShared buffer,
@@ -25,7 +26,8 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        SubsystemsController *subsystemsController);
 
     TransactionResult::SharedConst run()
         noexcept;
@@ -33,16 +35,20 @@ public:
 protected:
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage();
-    TransactionResult::SharedConst runClarificationOfTransaction();
+    TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
+    TransactionResult::SharedConst runClarificationOfTransactionDuringVoting();
 
 protected:
     // Receiver must must save payment operation into history.
-    // Therefore this methods are overriden.
+    // Therefore this methods are overridden.
     TransactionResult::SharedConst approve();
 
 protected:
-    void savePaymentOperationIntoHistory();
+    void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction);
+
+    bool checkReservationsDirections() const;
 
     void runBuildThreeNodesCyclesSignal();
 
@@ -50,7 +56,6 @@ protected:
 
 protected:
     const ReceiverInitPaymentRequestMessage::ConstShared mMessage;
-    TrustLineAmount mTotalReserved;
 
     // this field indicates that transaction should be rejected on voting stage
     // it used only for Receiver

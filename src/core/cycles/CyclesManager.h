@@ -5,12 +5,15 @@
 #include "../transactions/transactions/regular/payments/base/BasePaymentTransaction.h"
 #include "../paths/lib/Path.h"
 #include "../logger/Logger.h"
+#include "../common/time/TimeUtils.h"
+#include "../subsystems_controller/SubsystemsController.h"
 
 #include <boost/signals2.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
 
 #include <vector>
+#include <map>
 
 namespace as = boost::asio;
 namespace signals = boost::signals2;
@@ -34,7 +37,8 @@ public:
         const NodeUUID &nodeUUID,
         TransactionsScheduler *transactionsScheduler,
         as::io_service &ioService,
-        Logger &logger);
+        Logger &logger,
+        SubsystemsController *subsystemsController);
 
     void closeOneCycle(
         bool nextCycleShouldBeRunned = false);
@@ -58,18 +62,21 @@ public:
 
 private:
     void runSignalSixNodes(
-        const boost::system::error_code &error);
+        const boost::system::error_code &err);
 
     void runSignalFiveNodes(
-        const boost::system::error_code &error);
+        const boost::system::error_code &err);
+
+    void updateOfflineNodesAndClosedTLLists(
+        const boost::system::error_code &err);
 
     vector<Path::ConstShared>* cyclesVector(
         CycleClosingState currentCycleClosingState);
 
     void incrementCurrentCycleClosingState();
 
-    bool isChellengerTransactionWinReservation(
-        BasePaymentTransaction::Shared chellengerTransaction,
+    bool isChallengerTransactionWinReservation(
+        BasePaymentTransaction::Shared challengerTransaction,
         BasePaymentTransaction::Shared reservedTransaction);
 
     void clearClosedCycles();
@@ -89,6 +96,8 @@ private:
 
     LoggerStream debug() const;
 
+    LoggerStream error() const;
+
     const string logHeader() const;
 
 public:
@@ -101,7 +110,20 @@ public:
 private:
     const uint32_t kSixNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
     const uint32_t kFiveNodesSignalRepeatTimeSeconds = 24 * 60 * 60;
-    const uint16_t kPostponningRollbackTransactionTimeMSec = 10;
+    const uint16_t kPostponingRollbackTransactionTimeMSec = 10;
+    const uint32_t kUpdatingTimerPeriodSeconds = 10 * 60;
+
+    static const byte kOfflineNodesAndClosedTLLiveHours = 0;
+    static const byte kOfflineNodesAndClosedTLLiveMinutes = 30;
+    static const byte kOfflineNodesAndClosedTLLiveSeconds = 0;
+
+    static Duration& kOfflineNodesAndClosedTLLiveDuration() {
+        static auto duration = Duration(
+            kOfflineNodesAndClosedTLLiveHours,
+            kOfflineNodesAndClosedTLLiveMinutes,
+            kOfflineNodesAndClosedTLLiveSeconds);
+        return duration;
+    }
 
 private:
     TransactionsScheduler *mTransactionScheduler;
@@ -112,17 +134,20 @@ private:
     vector<Path::ConstShared> mFiveNodesCycles;
     vector<Path::ConstShared> mSixNodesCycles;
 
-    vector<pair<NodeUUID, NodeUUID>> mClosedTrustLines;
-    vector<NodeUUID> mOfflineNodes;
+    map<DateTime, pair<NodeUUID, NodeUUID>> mClosedTrustLines;
+    map<DateTime, NodeUUID> mOfflineNodes;
 
     CycleClosingState mCurrentCycleClosingState;
     Logger &mLog;
 
     unique_ptr<as::steady_timer> mSixNodesCycleTimer;
     unique_ptr<as::steady_timer> mFiveNodesCycleTimer;
+    unique_ptr<as::steady_timer> mUpdatingTimer;
 
     // prevent launching closing cycle if another one in closing process
     bool mIsCycleInProcess;
+
+    SubsystemsController *mSubsystemsController;
 };
 
 

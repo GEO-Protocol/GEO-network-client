@@ -76,7 +76,10 @@ public:
 
     void addTransactionAndState(BaseTransaction::Shared transaction, TransactionState::SharedConst state);
 
-    const BaseTransaction::Shared transactionByUUID(
+    const BaseTransaction::Shared cycleClosingTransactionByUUID(
+        const TransactionUUID &transactionUUID) const;
+
+    bool isTransactionInProcess(
         const TransactionUUID &transactionUUID) const;
 
 private:
@@ -115,7 +118,7 @@ private:
 public:
     mutable CommandResultSignal commandResultIsReadySignal;
     mutable SerializeTransactionSignal serializeTransactionSignal;
-    // this signal used for notofication of CyclesMAnager that CycleCloser transaction was finished
+    // this signal used for notification of CyclesManager that CycleCloser transaction was finished
     // and it can try launch new CycleCloser transaction
     mutable CycleCloserTransactionWasFinishedSignal cycleCloserTransactionWasFinishedSignal;
 

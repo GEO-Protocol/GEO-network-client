@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_IOTRANSACTION_H
 
 #include "../../common/Types.h"
-#include "RoutingTablesHandler.h"
 #include "TrustLineHandler.h"
 #include "HistoryStorage.h"
 #include "PaymentOperationStateHandler.h"
@@ -18,7 +17,6 @@ public:
 public:
     IOTransaction(
         sqlite3 *dbConnection,
-        RoutingTablesHandler *routingTablesHandler,
         TrustLineHandler *trustLinesHandler,
         HistoryStorage *historyStorage,
         PaymentOperationStateHandler *paymentOperationStorage,
@@ -26,8 +24,6 @@ public:
         Logger &logger);
 
     ~IOTransaction();
-
-    RoutingTablesHandler* routingTablesHandler();
 
     TrustLineHandler *trustLinesHandler();
 
@@ -53,7 +49,6 @@ private:
 
 private:
     sqlite3 *mDBConnection;
-    RoutingTablesHandler *mRoutingTablesHandler;
     TrustLineHandler *mTrustLineHandler;
     HistoryStorage *mHistoryStorage;
     PaymentOperationStateHandler *mPaymentOperationStateHandler;

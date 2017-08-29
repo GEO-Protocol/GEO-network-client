@@ -6,6 +6,7 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     SetIncomingTrustLineMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger)
     noexcept:
 
@@ -15,7 +16,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
         logger),
     mMessage(message),
     mTrustLines(manager),
-    mStorageHandler(storageHandler)
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
@@ -49,6 +51,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Updated: {
             populateHistory(ioTransaction, TrustLineRecord::Updating);
+            mMaxFlowCalculationCacheManager->resetInitiatorCache();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully set to " << mMessage->amount();
             break;

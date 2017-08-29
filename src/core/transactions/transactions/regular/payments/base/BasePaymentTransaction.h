@@ -26,9 +26,16 @@
 #include "../../../../../network/messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../../../network/messages/payments/FinalPathConfigurationMessage.h"
 #include "../../../../../network/messages/payments/FinalPathCycleConfigurationMessage.h"
-#include "../../../../../network/messages/payments/TTLPolongationMessage.h"
+#include "../../../../../network/messages/payments/TTLProlongationRequestMessage.h"
+#include "../../../../../network/messages/payments/TTLProlongationResponseMessage.h"
+#include "../../../../../network/messages/payments/FinalAmountsConfigurationMessage.h"
+#include "../../../../../network/messages/payments/FinalAmountsConfigurationResponseMessage.h"
 
 #include "PathStats.h"
+
+#include "../../../../../subsystems_controller/SubsystemsController.h"
+
+#include <unordered_set>
 
 namespace signals = boost::signals2;
 
@@ -50,7 +57,8 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        SubsystemsController *subsystemsController);
 
     BasePaymentTransaction(
         const TransactionType type,
@@ -59,7 +67,8 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        SubsystemsController *subsystemsController);
 
     BasePaymentTransaction(
         BytesShared buffer,
@@ -67,7 +76,8 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        SubsystemsController *subsystemsController);
 
     virtual pair<BytesShared, size_t> serializeToBytes() const;
 
@@ -88,6 +98,7 @@ protected:
         Coordinator_AmountReservation,
         Coordinator_ShortPathAmountReservationResponseProcessing,
         Coordinator_PreviousNeighborRequestProcessing,
+        Coordinator_FinalAmountsConfigurationConfirmation,
 
         Receiver_CoordinatorRequestApproving,
         Receiver_AmountReservationsProcessing,
@@ -103,7 +114,8 @@ protected:
         Common_VotesChecking,
         Common_FinalPathConfigurationChecking,
         Common_Recovery,
-        Common_ClarificationTransaction,
+        Common_ClarificationTransactionBeforeVoting,
+        Common_ClarificationTransactionDuringVoting,
 
         Common_RollbackByOtherTransaction
     };
@@ -116,12 +128,13 @@ protected:
 
 protected:
     // TODO: move it into separate *.h file.
-    typedef uint64_t PathUUID;
+    // it used in pair of Message::PathID
+    // so if you change this one, you should change another too
+    typedef uint16_t PathID;
 
     // Stages handlers
     virtual TransactionResult::SharedConst runVotesCheckingStage();
     virtual TransactionResult::SharedConst runVotesConsistencyCheckingStage();
-    virtual TransactionResult::SharedConst runTTLTransactionResponce();
 
     virtual TransactionResult::SharedConst approve();
     virtual TransactionResult::SharedConst recover(
@@ -140,34 +153,36 @@ protected:
         const NodeUUID &contractorUUID);
     TransactionResult::SharedConst runPrepareListNodesToCheckNodes();
     TransactionResult::SharedConst runCheckCoordinatorVotesStage();
-    TransactionResult::SharedConst runCheckIntermediateNodeVotesSage();
+    TransactionResult::SharedConst runCheckIntermediateNodeVotesStage();
     TransactionResult::SharedConst runRollbackByOtherTransactionStage();
 
 protected:
     const bool reserveOutgoingAmount(
         const NodeUUID &neighborNode,
         const TrustLineAmount& amount,
-        const PathUUID &pathUUID);
+        const PathID &pathID);
 
     const bool reserveIncomingAmount(
         const NodeUUID &neighborNode,
         const TrustLineAmount& amount,
-        const PathUUID &pathUUID);
+        const PathID &pathID);
 
     const bool shortageReservation(
         const NodeUUID kContractor,
         const AmountReservation::ConstShared kReservation,
         const TrustLineAmount &kNewAmount,
-        const PathUUID &pathUUID);
+        const PathID &pathID);
 
-    void saveVotes();
+    void saveVotes(
+        IOTransaction::Shared ioTransaction);
 
-    void commit();
+    void commit(
+        IOTransaction::Shared ioTransaction);
 
     void rollBack();
 
     void rollBack(
-        const PathUUID &pathUUID);
+        const PathID &pathID);
 
     uint32_t maxNetworkDelay (
         const uint16_t totalHopsCount) const;
@@ -184,20 +199,37 @@ protected:
     void propagateVotesMessageToAllParticipants (
         const ParticipantsVotesMessage::Shared kMessage) const;
 
-    void dropReservationsOnPath(
-        PathStats *pathStats,
-        PathUUID pathUUID);
+    void dropNodeReservationsOnPath(
+        PathID pathID);
 
     void sendFinalPathConfiguration(
         PathStats* pathStats,
-        PathUUID pathUUID,
+        PathID pathID,
         const TrustLineAmount &finalPathAmount);
+
+    // Updates all reservations according to finalAmounts
+    // if some reservations will be found, pathIDs of which are absent in finalAmounts, returns false,
+    // otherwise returns true
+    bool updateReservations(
+        const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts);
+
+    // Returns reservation pathID, which was updated, if reservation was dropped, returns 0
+    PathID updateReservation(
+        const NodeUUID &contractorUUID,
+        pair<PathID, AmountReservation::ConstShared> &reservation,
+        const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts);
 
     size_t reservationsSizeInBytes() const;
 
     TransactionResult::SharedConst processNextNodeToCheckVotes();
 
-    virtual void savePaymentOperationIntoHistory() = 0;
+    const TrustLineAmount totalReservedAmount(
+        AmountReservation::ReservationDirection reservationDirection) const;
+
+    virtual void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction) = 0;
+
+    virtual bool checkReservationsDirections() const = 0;
 
 protected:
     // Specifies how long node must wait for the response from the remote node.
@@ -235,11 +267,17 @@ protected:
     // so the votes message must be saved for further processing.
     ParticipantsVotesMessage::Shared mParticipantsVotesMessage;
 
-    map<NodeUUID, vector<pair<PathUUID, AmountReservation::ConstShared>>> mReservations;
+    map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mReservations;
 
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;
     NodeUUID mCurrentNodeToCheckVotes;
+
+    // this amount used for saving in payment history
+    TrustLineAmount mCommittedAmount;
+
+protected:
+    SubsystemsController *mSubsystemsController;
 };
 
 #endif // BASEPAYMENTTRANSACTION_H

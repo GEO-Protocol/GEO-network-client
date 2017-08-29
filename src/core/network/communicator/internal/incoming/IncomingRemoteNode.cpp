@@ -179,14 +179,19 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
         *(reinterpret_cast<PacketHeader::ChannelIndex*>(
             mBuffer.data() + PacketHeader::kChannelIndexOffset));
 
-    const PacketHeader::PacketIndex packetIndex =
+    const PacketHeader::PacketIndex kPacketIndex =
         *(reinterpret_cast<PacketHeader::PacketIndex*>(
             mBuffer.data() + PacketHeader::kPacketIndexOffset));
 
-    const PacketHeader::TotalPacketsCount totalPacketsCount =
+    const PacketHeader::TotalPacketsCount kTotalPacketsCount =
         *(reinterpret_cast<PacketHeader::TotalPacketsCount*>(
             mBuffer.data() + PacketHeader::kPacketsCountOffset));
 
+    debug()
+        << "Packet received. Remote endpoint - " << mEndpoint
+        << "; Channel index - " << int(kChannelIndex)
+        << "; Packet index - " << int(kPacketIndex)
+        << "; Total packets count in message - " << int(kTotalPacketsCount);
 
     if (kHeaderAndBodyBytesCount < Packet::kMinSize
         || kHeaderAndBodyBytesCount > Packet::kMaxSize) {
@@ -209,8 +214,8 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
         return false;
     }
 
-    if (totalPacketsCount == 0
-        || packetIndex > totalPacketsCount) {
+    if (kTotalPacketsCount == 0
+        || kPacketIndex > kTotalPacketsCount) {
 
         // Invalid bytes flow occurred.
         dropEntireIncomingFlow();
@@ -220,14 +225,15 @@ bool IncomingRemoteNode::tryCollectNextPacket ()
     }
 
     if (mBuffer.size() < kHeaderAndBodyBytesCount) {
-        // There is no sufficient data to start collecting packet.
+        // There is no sufficient data was received yet.
+        // Can't start collecting packet.
         return false;
     }
 
     auto channel = findChannel(kChannelIndex);
-    channel->reservePacketsSlots(totalPacketsCount);
+    channel->reservePacketsSlots(kTotalPacketsCount);
     channel->addPacket(
-        packetIndex,
+        kPacketIndex,
         mBuffer.data() + PacketHeader::kSize,
         kHeaderAndBodyBytesCount - PacketHeader::kSize);
 

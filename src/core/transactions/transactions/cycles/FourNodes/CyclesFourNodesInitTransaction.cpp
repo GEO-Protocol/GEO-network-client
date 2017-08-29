@@ -92,9 +92,9 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
                   "Cannot create cycles.";
         return resultDone();
     }
-    #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
         vector<vector<NodeUUID>> ResultCycles;
-    #endif
+#endif
     bool isBuildCycles = false;
     for (auto &kNodeUUIDFirstMessage: firstMessage->NeighborsUUID()){
         for (auto &kNodeUUIDSecondMessage: secondMessage->NeighborsUUID()){
@@ -113,16 +113,16 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
                 mCyclesManager->addCycle(
                     cyclePath);
                 isBuildCycles = true;
-                #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
                     ResultCycles.push_back(stepPath);
-                #endif
+#endif
             }
         }
     }
     if (isBuildCycles) {
         mCyclesManager->closeOneCycle();
     }
-    #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
         cout << "CyclesThreeNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size()) << endl;
         for (vector<NodeUUID> KCyclePath: ResultCycles){
             stringstream ss;
@@ -130,26 +130,27 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
             cout << "CyclesThreeNodesInitTransaction::CyclePath " << ss.str() << endl;
         }
         cout << "CyclesThreeNodesInitTransaction::End" << endl;
-    #endif
+#endif
     return resultDone();
 }
 
 set<NodeUUID> CyclesFourNodesInitTransaction::commonNeighborsForDebtorAndCreditorNodes()
 {
-    auto ioTransactio = mStorageHandler->beginTransaction();
-    const auto creditorsNeighbors = ioTransactio->routingTablesHandler()->neighborsOfOnRT2(
-        mCreditorContractorUUID);
-    const auto debtorsNeighbors = ioTransactio->routingTablesHandler()->neighborsOfOnRT2(
-        mDebtorContractorUUID);
+    // todo : need used topology from maxFlowCalculationTrustLineManager
+//    auto ioTransactio = mStorageHandler->beginTransaction();
+//    const auto creditorsNeighbors = ioTransactio->routingTablesHandler()->neighborsOfOnRT2(
+//        mCreditorContractorUUID);
+//    const auto debtorsNeighbors = ioTransactio->routingTablesHandler()->neighborsOfOnRT2(
+//        mDebtorContractorUUID);
     set<NodeUUID> commonNeighbors;
-    set_intersection(
-        creditorsNeighbors.begin(),
-        creditorsNeighbors.end(),
-        debtorsNeighbors.begin(),
-        debtorsNeighbors.end(),
-        std::inserter(
-            commonNeighbors,
-            commonNeighbors.begin()));
+//    set_intersection(
+//        creditorsNeighbors.begin(),
+//        creditorsNeighbors.end(),
+//        debtorsNeighbors.begin(),
+//        debtorsNeighbors.end(),
+//        std::inserter(
+//            commonNeighbors,
+//            commonNeighbors.begin()));
 
     return commonNeighbors;
 }
@@ -158,6 +159,5 @@ const string CyclesFourNodesInitTransaction::logHeader() const
 {
     stringstream s;
     s << "[CyclesFourNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
-
     return s.str();
 }

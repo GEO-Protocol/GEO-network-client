@@ -5,6 +5,7 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../../../io/storage/StorageHandler.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h" // todo: rename "record" to "records"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 
@@ -33,6 +34,7 @@ public:
         SetOutgoingTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger)
         noexcept;
 
@@ -56,6 +58,7 @@ protected:
     SetOutgoingTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 

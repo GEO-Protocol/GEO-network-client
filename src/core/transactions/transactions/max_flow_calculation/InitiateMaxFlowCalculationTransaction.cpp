@@ -47,9 +47,9 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
                 maxFlows.reserve(mCommand->contractors().size());
                 for (const auto &contractorUUID : mCommand->contractors()) {
                     maxFlows.push_back(
-                            make_pair(
-                                    contractorUUID,
-                                    TrustLineAmount(0)));
+                        make_pair(
+                            contractorUUID,
+                            TrustLineAmount(0)));
                 }
                 return resultOk(maxFlows);
             }
@@ -115,30 +115,49 @@ void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel()
     }
 }
 
+// this method used the same logic as PathsManager::reBuildPaths
+// and PathsManager::buildPaths
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     const NodeUUID &contractorUUID)
 {
-    TrustLineAmount result = 0;
+    auto startTime = utc_now();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "calculateMaxFlow\tstart found flow to: " << contractorUUID;
 #endif
+
+    mCurrentContractor = contractorUUID;
     auto trustLinePtrsSet =
-        mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
     if (trustLinePtrsSet.size() == 0) {
         mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-        return result;
+        return TrustLine::kZeroAmount();
     }
 
+    mCurrentMaxFlow = TrustLine::kZeroAmount();
+    for (mCurrentPathLength = 1; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
+        calculateMaxFlowOnOneLevel();
+    }
+
+    mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+    debug() << "max flow calculation time is " << utc_now() - startTime;
+    return mCurrentMaxFlow;
+}
+
+// this method used the same logic as PathsManager::reBuildPathsOnOneLevel
+// and PathsManager::buildPathsOnOneLevel
+void InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel()
+{
+    auto trustLinePtrsSet =
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
     while(true) {
         TrustLineAmount currentFlow = 0;
         for (auto &trustLinePtr : trustLinePtrsSet) {
             auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
-            auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
+            auto trustLineFreeAmountShared = trustLine->freeAmount();
             auto trustLineAmountPtr = trustLineFreeAmountShared.get();
-            forbiddenNodeUUIDs.clear();
+            mForbiddenNodeUUIDs.clear();
             TrustLineAmount flow = calculateOneNode(
-                trustLine.get()->targetUUID(),
-                contractorUUID,
+                trustLine->targetUUID(),
                 *trustLineAmountPtr,
                 1);
             if (flow > TrustLine::kZeroAmount()) {
@@ -147,25 +166,27 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
                 break;
             }
         }
-        result += currentFlow;
         if (currentFlow == 0) {
             break;
         }
     }
-    mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-    return result;
 }
 
+// it used the same logic as PathsManager::calculateOneNodeForRebuildingPaths
+// and PathsManager::calculateOneNode
+// if you change this method, you should change others
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     const NodeUUID& nodeUUID,
-    const NodeUUID& contractorUUID,
     const TrustLineAmount& currentFlow,
     byte level)
 {
-    if (nodeUUID == contractorUUID) {
+    if (nodeUUID == mCurrentContractor) {
+        if (currentFlow > TrustLine::kZeroAmount()) {
+            mCurrentMaxFlow += currentFlow;
+        }
         return currentFlow;
     }
-    if (level == kMaxFlowLength) {
+    if (level == mCurrentPathLength) {
         return 0;
     }
 
@@ -176,10 +197,13 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     }
     for (auto &trustLinePtr : trustLinePtrsSet) {
         auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
-        if (trustLine.get()->targetUUID() == mNodeUUID) {
+        if (trustLine->targetUUID() == mNodeUUID) {
             continue;
         }
-        if (forbiddenNodeUUIDs.find(trustLine.get()->targetUUID()) != forbiddenNodeUUIDs.end()) {
+        if (find(
+                mForbiddenNodeUUIDs.begin(),
+                mForbiddenNodeUUIDs.end(),
+                trustLine->targetUUID()) != mForbiddenNodeUUIDs.end()) {
             continue;
         }
         TrustLineAmount nextFlow = currentFlow;
@@ -191,13 +215,12 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
         if (nextFlow == TrustLine::kZeroAmount()) {
             continue;
         }
-        forbiddenNodeUUIDs.insert(nodeUUID);
+        mForbiddenNodeUUIDs.push_back(nodeUUID);
         TrustLineAmount calcFlow = calculateOneNode(
-            trustLine.get()->targetUUID(),
-            contractorUUID,
+            trustLine->targetUUID(),
             nextFlow,
             level + (byte)1);
-        forbiddenNodeUUIDs.erase(nodeUUID);
+        mForbiddenNodeUUIDs.pop_back();
         if (calcFlow > TrustLine::kZeroAmount()) {
             trustLine->addUsedAmount(calcFlow);
             return calcFlow;

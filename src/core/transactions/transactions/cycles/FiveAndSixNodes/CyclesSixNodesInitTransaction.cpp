@@ -74,9 +74,9 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
     TrustLineBalance debtorsStepFlow;
     TrustLineBalance commonStepMaxFlow;
     vector<NodeUUID> stepPath;
-    #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     vector<vector<NodeUUID>> ResultCycles;
-    #endif
+#endif
     for(const auto &mess: mContext) {
         auto message = static_pointer_cast<CyclesSixNodesBoundaryMessage>(mess);
         debtorsStepFlow = mTrustLinesManager->balance(message->Path()[1]);
@@ -113,13 +113,13 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
                     stepCyclePath);
                 mCyclesManager->addCycle(
                     cyclePath);
-                #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
                 ResultCycles.push_back(stepCyclePath);
-                #endif
+#endif
             }
         }
     }
-    #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     debug() << "CyclesFiveNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size());
     for (vector<NodeUUID> KCyclePath: ResultCycles){
         stringstream ss;
@@ -127,7 +127,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAnd
         debug() << "CyclesFiveNodesInitTransaction::CyclePath " << ss.str();
     }
     debug() << "CyclesFiveNodesInitTransaction::End";
-    #endif
+#endif
     mContext.clear();
     mCyclesManager->closeOneCycle();
     return resultDone();

@@ -34,14 +34,15 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run()
     }
 }
 
+// todo : need used topology from MaxFlowCalculationTrustLineManager
 set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor()
 {
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);
     const TrustLineBalance kZeroBalance = 0;
     auto ioTransactions = mStorageHandler->beginTransaction();
-    const auto contractorNeighbors =
-        ioTransactions->routingTablesHandler()->neighborsOfOnRT2(
-            mContractorUUID);
+//    const auto contractorNeighbors =
+//        ioTransactions->routingTablesHandler()->neighborsOfOnRT2(
+//            mContractorUUID);
     set<NodeUUID> ownNeighbors, commonNeighbors;
     for (const auto &kNodeUUIDAndTrustLine: mTrustLinesManager->trustLines()){
 
@@ -54,14 +55,14 @@ set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor()
             if (kTL->balance() < kZeroBalance)
                 ownNeighbors.insert(kNodeUUIDAndTrustLine.first);
     }
-    set_intersection(
-        ownNeighbors.begin(),
-        ownNeighbors.end(),
-        contractorNeighbors.begin(),
-        contractorNeighbors.end(),
-        std::inserter(
-            commonNeighbors,
-            commonNeighbors.begin()));
+//    set_intersection(
+//        ownNeighbors.begin(),
+//        ownNeighbors.end(),
+//        contractorNeighbors.begin(),
+//        contractorNeighbors.end(),
+//        std::inserter(
+//            commonNeighbors,
+//            commonNeighbors.begin()));
 
     return commonNeighbors;
 }
@@ -87,9 +88,9 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     if (mContext.size() != 1){
         return resultDone();
     }
-    #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     vector<vector<NodeUUID>> ResultCycles;
-    #endif
+#endif
     auto message = static_pointer_cast<CyclesThreeNodesBalancesResponseMessage>(*mContext.begin());
     const auto neighborsAndBalances = message->NeighborsAndBalances();
     for(const auto &nodeUUIDAndBalance : neighborsAndBalances ){
@@ -105,12 +106,12 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
                 << " -> " << nodeUUIDAndBalance << " -> " << mNodeUUID;
         mCyclesManager->addCycle(
             cyclePath);
-        #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
             ResultCycles.push_back(cycle);
-        #endif
+#endif
     }
 
-    #ifdef TESTS
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     cout << "CyclesThreeNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size()) << endl;
     for (vector<NodeUUID> KCyclePath: ResultCycles){
         stringstream ss;
@@ -118,7 +119,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
         cout << "CyclesThreeNodesInitTransaction::CyclePath " << ss.str() << endl;
     }
     cout << "CyclesThreeNodesInitTransaction::End" << endl;
-    #endif
+#endif
     mCyclesManager->closeOneCycle();
     return resultDone();
 }
@@ -127,6 +128,5 @@ const string CyclesThreeNodesInitTransaction::logHeader() const
 {
     stringstream s;
     s << "[CyclesThreeNodesInitTransactionTA: " << currentTransactionUUID() << "] ";
-
     return s.str();
 }

@@ -15,7 +15,8 @@ TransactionsManager::TransactionsManager(
     ResultsInterface *resultsInterface,
     StorageHandler *storageHandler,
     PathsManager *pathsManager,
-    Logger &logger) :
+    Logger &logger,
+    SubsystemsController *subsystemsController) :
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
@@ -27,6 +28,7 @@ TransactionsManager::TransactionsManager(
     mStorageHandler(storageHandler),
     mPathsManager(pathsManager),
     mLog(logger),
+    mSubsystemsController(subsystemsController),
 
     mScheduler(
         new TransactionsScheduler(
@@ -37,7 +39,8 @@ TransactionsManager::TransactionsManager(
             mNodeUUID,
             mScheduler.get(),
             mIOService,
-            mLog))
+            mLog,
+            mSubsystemsController))
 {
     subscribeForCommandResult(
         mScheduler->commandResultIsReadySignal);
@@ -68,7 +71,8 @@ void TransactionsManager::loadTransactionsFromStorage()
     const auto serializedTAs = ioTransaction->transactionHandler()->allTransactions();
 
     for(const auto kTABufferAndSize: serializedTAs) {
-        BaseTransaction::SerializedTransactionType *transactionType = new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
+        BaseTransaction::SerializedTransactionType *transactionType =
+                new (kTABufferAndSize.first.get()) BaseTransaction::SerializedTransactionType;
         auto TransactionTypeId = *transactionType;
         switch (TransactionTypeId) {
             case BaseTransaction::TransactionType::CoordinatorPaymentTransaction: {
@@ -79,12 +83,16 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
                     mResourcesManager,
-                    mLog);
+                    mPathsManager,
+                    mLog,
+                    mSubsystemsController);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
-                prepareAndSchedule(transaction);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                prepareAndSchedule(
+                    transaction,
+                    true,
+                    false,
+                    true);
                 break;
             }
             case BaseTransaction::TransactionType::IntermediateNodePaymentTransaction: {
@@ -94,14 +102,17 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mTrustLines,
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
-                    mLog);
+                    mLog,
+                    mSubsystemsController);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
                 subscribeForBuidCyclesFourNodesTransaction(
                     transaction->mBuildCycleFourNodesSignal);
-                prepareAndSchedule(transaction);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 break;
             }
             case BaseTransaction::TransactionType::ReceiverPaymentTransaction: {
@@ -111,12 +122,15 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mTrustLines,
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
-                    mLog);
+                    mLog,
+                    mSubsystemsController);
                 subscribeForBuidCyclesThreeNodesTransaction(
                     transaction->mBuildCycleThreeNodesSignal);
-                prepareAndSchedule(transaction);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 break;
             }
             case BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction: {
@@ -127,10 +141,13 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mCyclesManager.get(),
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
-                    mLog);
-                prepareAndSchedule(transaction);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                    mLog,
+                    mSubsystemsController);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 break;
             }
             case BaseTransaction::TransactionType::Payments_CycleCloserIntermediateNodeTransaction: {
@@ -141,11 +158,13 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mCyclesManager.get(),
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
-                    mLog);
-
-                prepareAndSchedule(transaction);
-                // TODO: discuss, why awakeAsFastAsPossible doesn't work
-                //mScheduler->addTransactionAndState(transaction, TransactionState::awakeAsFastAsPossible());
+                    mLog,
+                    mSubsystemsController);
+                prepareAndSchedule(
+                    transaction,
+                    false,
+                    false,
+                    true);
                 break;
             }
             default: {
@@ -205,11 +224,6 @@ void TransactionsManager::processCommand(
             static_pointer_cast<HistoryWithContractorCommand>(
                 command));
 
-    } else if (command->identifier() == FindPathCommand::identifier()){
-        launchGetPathTestTransaction(
-            static_pointer_cast<FindPathCommand>(
-                command));
-
     } else if (command->identifier() == GetFirstLevelContractorsCommand::identifier()){
         launchGetFirstLevelContractorsTransaction(
                 static_pointer_cast<GetFirstLevelContractorsCommand>(
@@ -223,11 +237,6 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == GetTrustLineCommand::identifier()){
         launchGetTrustlineTransaction(
             static_pointer_cast<GetTrustLineCommand>(
-                command));
-
-    } else if (command->identifier() == UpdateRoutingTablesCommand::identifier()){
-        launchUpdateRoutingTablesTransaction(
-            static_pointer_cast<UpdateRoutingTablesCommand>(
                 command));
 
     } else {
@@ -268,33 +277,14 @@ void TransactionsManager::processMessage(
 
     } else if (message->typeID() == Message::MessageType::MaxFlow_CalculationTargetSecondLevel) {
         launchMaxFlowCalculationTargetSndLevelTransaction(
-                static_pointer_cast<MaxFlowCalculationTargetSndLevelMessage>(message));
+            static_pointer_cast<MaxFlowCalculationTargetSndLevelMessage>(message));
 
     /*
     * Total balances
     */
     } else if (message->typeID() == Message::MessageType::TotalBalance_Request) {
         launchTotalBalancesTransaction(
-                static_pointer_cast<InitiateTotalBalancesMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::TotalBalance_Response) {
-        mScheduler->tryAttachMessageToTransaction(message);
-
-    /*
-    * Paths
-    */
-    } else if (message->typeID() == Message::MessageType::Paths_RequestRoutingTables) {
-        launchGetRoutingTablesTransaction(
-            static_pointer_cast<RequestRoutingTablesMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::Paths_ResultRoutingTableFirstLevel) {
-        mScheduler->tryAttachMessageToTransaction(message);
-
-    } else if (message->typeID() == Message::MessageType::Paths_ResultRoutingTableSecondLevel) {
-        mScheduler->tryAttachMessageToTransaction(message);
-
-    } else if (message->typeID() == Message::MessageType::Paths_ResultRoutingTableThirdLevel) {
-        mScheduler->tryAttachMessageToTransaction(message);
+            static_pointer_cast<InitiateTotalBalancesMessage>(message));
 
     /*
      * Payments
@@ -329,7 +319,7 @@ void TransactionsManager::processMessage(
                 static_pointer_cast<IntermediateNodeCycleReservationRequestMessage>(message));
         }
     } else if(message->typeID() == Message::MessageType::Payments_VotesStatusRequest){
-        launchVoutesResponsePaymentsTransaction(
+        launchVotesResponsePaymentsTransaction(
             static_pointer_cast<VotesStatusRequestMessage>(message));
 
     /*
@@ -359,30 +349,6 @@ void TransactionsManager::processMessage(
         launchSetIncomingTrustLineTransaction(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
 
-
-    /*
-     * Routing tables exchange
-     */
-    } else if (message->typeID() == Message::MessageType::RoutingTables_NotificationTrustLineCreated) {
-        launchTrustLineStatesHandlerTransaction(
-            static_pointer_cast<NotificationTrustLineCreatedMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::RoutingTables_NotificationTrustLineRemoved) {
-        launchTrustLineStatesHandlerTransaction(
-            static_pointer_cast<NotificationTrustLineRemovedMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::RoutingTables_NeighborsRequest) {
-        launchGetFirstRoutingTableTransaction(
-            static_pointer_cast<NeighborsRequestMessage>(message));
-
-    } else if (message->typeID() == Message::MessageType::RoutingTables_CRC32Rt2RequestMessage) {
-        launchUpdateRoutingTablesResponseTransaction(
-            static_pointer_cast<CRC32Rt2RequestMessage>(message));
-
-
-    } else if (message->typeID() == Message::MessageType::RoutingTables_NeighborsResponse) {
-        mScheduler->tryAttachMessageToTransaction(message);
-
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
@@ -397,6 +363,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             command,
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
             mLog),
         true,
         false,
@@ -412,6 +379,7 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             message,
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
             mLog),
         true,
         false,
@@ -588,7 +556,9 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
         mResourcesManager,
-        mLog);
+        mPathsManager,
+        mLog,
+        mSubsystemsController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, true, false, true);
@@ -603,7 +573,8 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         mTrustLines,
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
-        mLog);
+        mLog,
+        mSubsystemsController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, false, false, true);
@@ -618,7 +589,8 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         mTrustLines,
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
-        mLog);
+        mLog,
+        mSubsystemsController);
     subscribeForBuidCyclesThreeNodesTransaction(
         transaction->mBuildCycleThreeNodesSignal);
     subscribeForBuidCyclesFourNodesTransaction(
@@ -638,7 +610,8 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
                 mCyclesManager.get(),
                 mStorageHandler,
                 mMaxFlowCalculationCacheManager,
-                mLog),
+                mLog,
+                mSubsystemsController),
             false,
             false,
             true
@@ -649,7 +622,7 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
 
 }
 
-void TransactionsManager::launchVoutesResponsePaymentsTransaction(
+void TransactionsManager::launchVotesResponsePaymentsTransaction(
     VotesStatusRequestMessage::Shared message)
 {
     try {
@@ -658,6 +631,8 @@ void TransactionsManager::launchVoutesResponsePaymentsTransaction(
                 mNodeUUID,
                 message,
                 mStorageHandler,
+                mScheduler->isTransactionInProcess(
+                    message->transactionUUID()),
                 mLog),
             false,
             false,
@@ -796,27 +771,6 @@ void TransactionsManager::launchHistoryWithContractorTransaction(
     }
 }
 
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchGetPathTestTransaction(
-    FindPathCommand::Shared command) {
-    try {
-        prepareAndSchedule(
-            make_shared<GetPathTestTransaction>(
-                mNodeUUID,
-                command,
-                mResourcesManager,
-                mLog),
-            true,
-            false,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
 void TransactionsManager::launchGetFirstLevelContractorsTransaction(
     GetFirstLevelContractorsCommand::Shared command)
 {
@@ -874,128 +828,25 @@ void TransactionsManager::launchGetTrustlineTransaction(
 
 }
 
-void TransactionsManager::launchUpdateRoutingTablesTransaction(
-    UpdateRoutingTablesCommand::Shared command) {
-    try{
-        prepareAndSchedule(
-            make_shared<UpdateRoutingTablesTransaction>(
-                mNodeUUID,
-                command,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            true,
-            true,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchGetRoutingTablesTransaction(
-    RequestRoutingTablesMessage::Shared message) {
-    try {
-        prepareAndSchedule(
-            make_shared<GetRoutingTablesTransaction>(
-                mNodeUUID,
-                message,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            false,
-            false,
-            true);
-
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchPathsResourcesCollectTransaction(
+void TransactionsManager::launchFindPathByMaxFlowTransaction(
     const TransactionUUID &requestedTransactionUUID,
-    const NodeUUID &destinationNodeUUID) {
-
+    const NodeUUID &destinationNodeUUID)
+{
     try {
         prepareAndSchedule(
-            make_shared<FindPathTransaction>(
+            make_shared<FindPathByMaxFlowTransaction>(
                 mNodeUUID,
                 destinationNodeUUID,
                 requestedTransactionUUID,
                 mPathsManager,
                 mResourcesManager,
-                mLog),
-            true,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchTrustLineStatesHandlerTransaction(
-    NotificationTrustLineCreatedMessage::Shared message) {
-    try {
-        prepareAndSchedule(
-            make_shared<TrustLineStatesHandlerTransaction>(
-                mNodeUUID,
-                message->senderUUID,
-                message->nodeA,
-                message->nodeB,
-                TrustLineStatesHandlerTransaction::TrustLineState::Created,
-                message->hop,
                 mTrustLines,
-                mStorageHandler,
+                mMaxFlowCalculationTrustLineManager,
+                mMaxFlowCalculationCacheManager,
                 mLog),
-            false,
             true,
-            true);
-
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchTrustLineStatesHandlerTransaction(
-    NotificationTrustLineRemovedMessage::Shared message) {
-    try {
-        prepareAndSchedule(
-            make_shared<TrustLineStatesHandlerTransaction>(
-                mNodeUUID,
-                message->senderUUID,
-                message->nodeA,
-                message->nodeB,
-                TrustLineStatesHandlerTransaction::TrustLineState::Removed,
-                message->hop,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            false,
             true,
-            true);
-
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchGetFirstRoutingTableTransaction(
-    NeighborsRequestMessage::Shared message)
-{
-    try {
-        prepareAndSchedule(make_shared<GetFirstRoutingTableTransaction>(
-            mNodeUUID,
-            message,
-            mTrustLines,
-            mLog),
-        false,
-        false,
-        true);
-
+            false);
     } catch (ConflictError &e){
         throw ConflictError(e.message());
     }
@@ -1211,7 +1062,8 @@ void TransactionsManager::onCloseCycleTransaction(
                 mCyclesManager.get(),
                 mStorageHandler,
                 mMaxFlowCalculationCacheManager,
-                mLog),
+                mLog,
+                mSubsystemsController),
             true,
             false,
             true);
@@ -1477,25 +1329,5 @@ void TransactionsManager::onSerializeTransaction(
                 "TrustLinesManager::onSerializeTransaction. "
                     "Unexpected transaction type identifier.");
         }
-    }
-}
-
-void TransactionsManager::launchUpdateRoutingTablesResponseTransaction(
-    CRC32Rt2RequestMessage::Shared message)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<Crc32Rt2ResponseTransaction>(
-                mNodeUUID,
-                message,
-                mTrustLines,
-                mStorageHandler,
-                mLog),
-            false,
-            false,
-            true
-        );
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
     }
 }

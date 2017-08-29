@@ -28,6 +28,7 @@
 
 
 #include "network/messages/debug/DebugMessage.h"
+#include "subsystems_controller/SubsystemsController.h"
 
 
 #include <sys/prctl.h>
@@ -79,6 +80,8 @@ private:
 
     int initPathsManager();
 
+    int initSubsystemsController();
+
     void connectCommunicatorSignals();
 
     void connectCommandsInterfaceSignals();
@@ -101,10 +104,12 @@ private:
         Message::Shared message,
         const NodeUUID &contractorUUID);
 
+    [[deprecated]]
     void onTrustLineCreatedSlot(
         const NodeUUID &contractorUUID, 
         const TrustLineDirection direction);
 
+    [[deprecated]]
     void onTrustLineStateModifiedSlot(
         const NodeUUID &contractorUUID,
         const TrustLineDirection direction);
@@ -162,6 +167,7 @@ protected:
     unique_ptr<MaxFlowCalculationCacheUpdateDelayedTask> mMaxFlowCalculationCacheUpdateDelayedTask;
     unique_ptr<StorageHandler> mStorageHandler;
     unique_ptr<PathsManager> mPathsManager;
+    unique_ptr<SubsystemsController> mSubsystemsController;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

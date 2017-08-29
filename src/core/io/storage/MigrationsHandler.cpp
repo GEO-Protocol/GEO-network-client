@@ -4,7 +4,6 @@ MigrationsHandler::MigrationsHandler(
     sqlite3 *dbConnection,
     const string &tableName,
     const NodeUUID &nodeUUID,
-    RoutingTablesHandler *routingTablesHandler,
     TrustLineHandler *trustLineHandler,
     HistoryStorage *historyStorage,
     PaymentOperationStateHandler *paymentOperationStorage,
@@ -15,7 +14,6 @@ MigrationsHandler::MigrationsHandler(
     mDataBase(dbConnection),
     mTableName(tableName),
     mNodeUUID(nodeUUID),
-    mRoutingTablesHandler(routingTablesHandler),
     mTransactionHandler(transactionHandler),
     mTrustLineHandler(trustLineHandler),
     mPaymentOperationStateHandler(paymentOperationStorage),
@@ -147,7 +145,6 @@ void MigrationsHandler::applyMigrations()
 
             auto ioTransaction = make_shared<IOTransaction>(
                 mDataBase,
-                mRoutingTablesHandler,
                 mTrustLineHandler,
                 mHistoryStorage,
                 mPaymentOperationStateHandler,

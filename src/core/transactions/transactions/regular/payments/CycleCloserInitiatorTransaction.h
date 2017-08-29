@@ -27,7 +27,8 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log)
+        Logger &log,
+        SubsystemsController *subsystemsController)
         noexcept;
 
     CycleCloserInitiatorTransaction(
@@ -37,7 +38,8 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log)
+        Logger &log,
+        SubsystemsController *subsystemsController)
         throw (bad_alloc);
 
     TransactionResult::SharedConst run()
@@ -53,10 +55,11 @@ protected:
     TransactionResult::SharedConst runInitialisationStage();
     TransactionResult::SharedConst runAmountReservationStage ();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
-    TransactionResult::SharedConst propagateVotesListAndWaitForVoutingResult();
     // run after waiting on releasing amount by rollbacking conflicted transaction
     TransactionResult::SharedConst runAmountReservationStageAgain();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
+    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmationProcessingStage();
+    TransactionResult::SharedConst runVotesConsistencyCheckingStage();
 
 protected:
     TransactionResult::SharedConst tryReserveNextIntermediateNodeAmount ();
@@ -76,6 +79,11 @@ protected:
 
     TransactionResult::SharedConst processRemoteNodeResponse();
 
+    TransactionResult::SharedConst propagateVotesListAndWaitForVotingResult();
+
+protected:
+    TransactionResult::SharedConst approve();
+
 protected:
     const string logHeader() const;
 
@@ -83,10 +91,15 @@ protected:
         const Path::ConstShared path);
 
     void sendFinalPathConfiguration(
-        PathStats* pathStats,
         const TrustLineAmount &finalPathAmount);
 
-    void savePaymentOperationIntoHistory();
+    void informIntermediateNodesAboutTransactionFinish(
+        const uint8_t lastInformedNodePosition);
+
+    void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction);
+
+    bool checkReservationsDirections() const;
 
 protected:
     // Contains special stats data, such as current msx flow,
@@ -100,6 +113,10 @@ protected:
     NodeUUID mPreviousNode;
     TrustLineAmount mOutgoingAmount;
     TrustLineAmount mIncomingAmount;
+
+    // Contains flags if nodes confirmed final amounts configuration,
+    // before voting stage
+    unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNodesConfirmation;
 
     // for resolving reservation conflicts
     CyclesManager *mCyclesManager;

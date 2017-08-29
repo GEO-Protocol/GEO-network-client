@@ -13,6 +13,9 @@ set(SOURCE_FILES
     base/ResponseCycleMessage.h
     base/ResponseCycleMessage.cpp
 
+    base/RequestMessageWithReservations.h
+    base/RequestMessageWithReservations.cpp
+
     ReceiverInitPaymentRequestMessage.h
     ReceiverInitPaymentRequestMessage.cpp
 
@@ -54,8 +57,17 @@ set(SOURCE_FILES
     FinalPathCycleConfigurationMessage.h
     FinalPathCycleConfigurationMessage.cpp
 
-    TTLPolongationMessage.h
-    TTLPolongationMessage.cpp)
+    TTLProlongationRequestMessage.h
+    TTLProlongationRequestMessage.cpp
+
+    FinalAmountsConfigurationMessage.h
+    FinalAmountsConfigurationMessage.cpp
+
+    FinalAmountsConfigurationResponseMessage.h
+    FinalAmountsConfigurationResponseMessage.cpp
+
+    TTLProlongationResponseMessage.h
+    TTLProlongationResponseMessage.cpp)
 
 add_library(messages__payments ${SOURCE_FILES})
 target_link_libraries(messages__payments

@@ -73,6 +73,9 @@ public:
 
     const boost::container::flat_map<NodeUUID, ParticipantsVotesMessage::Vote>& votes() const;
 
+    bool containsParticipant(
+        const NodeUUID &node) const;
+
 protected:
     typedef uint32_t RecordsCount;
     typedef byte SerializedVote;

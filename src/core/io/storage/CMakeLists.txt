@@ -5,10 +5,6 @@ add_subdirectory(migrations)
 set(SOURCE_FILES
         StorageHandler.h
         StorageHandler.cpp
-        RoutingTableHandler.h
-        RoutingTableHandler.cpp
-        RoutingTablesHandler.h
-        RoutingTablesHandler.cpp
         TrustLineHandler.h
         TrustLineHandler.cpp
         PaymentOperationStateHandler.h

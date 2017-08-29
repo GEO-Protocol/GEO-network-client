@@ -24,7 +24,7 @@ ENDIF (${PLATFORM} MATCHES "LINUX")
 
 #
 # Debug options
-# (available options are: DEBUG | RELEASE)
+# (available options are: DEBUG | RELEASE | TESTS)
 #
 set(BUILD_CONFIGURATION "RELEASE")
 
@@ -57,8 +57,7 @@ IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
         -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
         -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
-
-
+        #-DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     )
 
 ENDIF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
@@ -67,6 +66,39 @@ IF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
     set(CMAKE_BUILD_TYPE "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Os -s -fdata-sections -fmerge-all-constants")
 ENDIF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
+
+IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
+    add_definitions(
+        -DTESTS
+        -DINTERNAL_ARGUMENTS_VALIDATION
+    )
+
+    #
+    # Logs configuration
+    #
+    add_definitions(
+        # Subsystems
+        -DDEBUG_LOG_NETWORK_COMMUNICATOR
+#       -DDEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
+        -DDEBUG_LOG_STORAGE_HANDLER # ToDo: change me in relevant transaction code
+
+        # Transactions control
+        -DDEBUG_LOG_TRANSACTIONS_MANAGER
+        -DDEBUG_LOG_SCHEDULER # ToDo: change me in relevant transaction code
+
+        # Transactions
+        -DDEBUG_LOG_TRUST_LINES_PROCESSING
+        -DDEBUG_LOG_ROUTING_TABLES_PROCESSING
+        #-DDEBUG_LOG_MAX_FLOW_CALCULATION
+        -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
+        #-DDEBUG_LOG_CYCLES_BUILDING_POCESSING
+    )
+
+    set(CMAKE_BUILD_TYPE "Release")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+ENDIF (${BUILD_CONFIGURATION} MATCHES "TESTS")
 
 #
 # Engine type options
@@ -116,6 +148,7 @@ add_subdirectory(src/core/payments/amount_blocks)
 add_subdirectory(src/core/io/storage)
 add_subdirectory(src/core/resources)
 add_subdirectory(src/core/cycles)
+add_subdirectory(src/core/subsystems_controller)
 
 
 #
@@ -156,4 +189,5 @@ target_link_libraries(geo_network_client
         delayed_tasks
         transactions
         resources_manager
-        cycles)
+        cycles
+        subsystems_controller)

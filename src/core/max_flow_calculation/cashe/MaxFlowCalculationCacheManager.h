@@ -29,11 +29,11 @@ public:
 
     DateTime closestTimeEvent() const;
 
-    void resetInititorCache();
+    void resetInitiatorCache();
 
 private:
     static const byte kResetSenderCacheHours = 0;
-    static const byte kResetSenderCacheMinutes = 18;
+    static const byte kResetSenderCacheMinutes = 10;
     static const byte kResetSenderCacheSeconds = 0;
 
     static Duration& kResetSenderCacheDuration() {
@@ -45,8 +45,8 @@ private:
     }
 
     static const byte kResetInitiatorCacheHours = 0;
-    static const byte kResetInitiatorCacheMinutes = 1;
-    static const byte kResetInitiatorCacheSeconds = 0;
+    static const byte kResetInitiatorCacheMinutes = 0;
+    static const byte kResetInitiatorCacheSeconds = 30;
 
     static Duration& kResetInitiatorCacheDuration() {
         static auto duration = Duration(

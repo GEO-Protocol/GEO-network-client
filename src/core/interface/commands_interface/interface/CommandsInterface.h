@@ -16,8 +16,7 @@
 #include "../commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../commands/trust_lines_list/GetTrustLineCommand.h"
-#include "../commands/find_path/FindPathCommand.h"
-#include "../commands/routing_tables/UpdateRoutingTablesCommand.h"
+#include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"
@@ -85,6 +84,21 @@ public:
     static const size_t kAverageCommandIdentifierLength = 15;
     static const char kCommandsSeparator = '\n';
     static const char kTokensSeparator = '\t';
+
+protected:
+
+    template <typename CommandType, typename... Args>
+    inline pair<bool, BaseUserCommand::Shared> newCommand(
+        const CommandUUID &uuid,
+        const string &buffer) const
+    {
+        return make_pair(
+            true,
+            static_pointer_cast<BaseUserCommand>(
+                make_shared<CommandType>(
+                    uuid,
+                    buffer)));
+    }
 
 private:
     string mBuffer;
