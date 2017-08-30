@@ -29,7 +29,7 @@ public:
 
     DateTime closestTimeEvent() const;
 
-    void resetInititorCache();
+    void resetInitiatorCache();
 
 private:
     static const byte kResetSenderCacheHours = 0;

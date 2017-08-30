@@ -69,7 +69,7 @@ DateTime MaxFlowCalculationCacheUpdateDelayedTask::updateCache()
     } else {
         // if at least one trustline was deleted
         if (mMaxFlowCalculationTrustLineManager->deleteLegacyTrustLines()) {
-            mMaxFlowCalculationCacheMnager->resetInititorCache();
+            mMaxFlowCalculationCacheMnager->resetInitiatorCache();
         }
         closestTrustLineManagerTimeEvent = mMaxFlowCalculationTrustLineManager->closestTimeEvent();
     }
