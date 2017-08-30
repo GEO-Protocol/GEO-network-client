@@ -56,7 +56,7 @@ CyclesManager::CyclesManager(
 void CyclesManager::addCycle(
     Path::ConstShared cycle)
 {
-    if (!mSubsystemsController->isCloseCycles()) {
+    if (!mSubsystemsController->isRunCycleClosingTransactions()) {
         debug() << "Adding cycles is forbidden";
         return;
     }
@@ -86,7 +86,7 @@ void CyclesManager::addCycle(
 void CyclesManager::closeOneCycle(
     bool nextCycleShouldBeRunned)
 {
-    if (!mSubsystemsController->isCloseCycles()) {
+    if (!mSubsystemsController->isRunCycleClosingTransactions()) {
         debug() << "Closing cycles is forbidden";
         return;
     }

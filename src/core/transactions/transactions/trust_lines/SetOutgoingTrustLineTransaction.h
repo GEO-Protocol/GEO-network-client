@@ -9,6 +9,7 @@
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h" // todo: rename "record" to "records"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "../../../subsystems_controller/SubsystemsController.h"
 
 
 /**
@@ -36,6 +37,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        SubsystemsController *subsystemsController,
         Logger &logger)
         noexcept;
 
@@ -43,6 +45,8 @@ public:
 
 protected:
     TransactionResult::SharedConst resultOK();
+
+    TransactionResult::SharedConst resultForbiddenRun();
 
     TransactionResult::SharedConst resultProtocolError();
 
@@ -60,6 +64,7 @@ protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    SubsystemsController *mSubsystemsController;
 };
 
 

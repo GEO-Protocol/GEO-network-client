@@ -166,6 +166,12 @@ CommandResult::SharedConst BaseUserCommand::responseUnexpectedError() const
     return makeResult(501);
 }
 
+CommandResult::SharedConst BaseUserCommand::responseForbiddenRunTransaction() const
+    noexcept
+{
+    return makeResult(603);
+}
+
 
 
 

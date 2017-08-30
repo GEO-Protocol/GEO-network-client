@@ -82,6 +82,7 @@ protected:
 protected:
     // Results handlers
     TransactionResult::SharedConst resultOK();
+    TransactionResult::SharedConst resultForbiddenRun();
     TransactionResult::SharedConst resultNoPathsError();
     TransactionResult::SharedConst resultProtocolError();
     TransactionResult::SharedConst resultNoResponseError();
