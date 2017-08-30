@@ -34,7 +34,6 @@ public:
         const NodeUUID &nodeUUID,
         SetOutgoingTrustLineCommand::Shared command,
         TrustLinesManager *manager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger)
