@@ -280,6 +280,7 @@ int Core::initDelayedTasks()
         mTrustLineNotificationTimer = make_unique<as::steady_timer>(
                 mIOService);
 
+        // todo: remove after update
         int timeStarted = 10 * 60;
 
         mTrustLineNotificationTimer->expires_from_now(
