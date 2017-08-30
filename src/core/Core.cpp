@@ -20,7 +20,6 @@ int Core::run()
 
     writePIDFile();
     updateProcessName();
-    notifyContractorsAboutCurrentTrustLinesAmounts();
 
     try {
         mCommunicator->joinUUID2Address(mNodeUUID);
@@ -277,7 +276,23 @@ int Core::initDelayedTasks()
             mMaxFlowCalculationCacheManager.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
             *mLog.get());
+
+        mTrustLineNotificationTimer = make_unique<as::steady_timer>(
+                mIOService);
+
+        int timeStarted = 10 * 60;
+
+        mTrustLineNotificationTimer->expires_from_now(
+                chrono::seconds(
+                        timeStarted));
+
+        mTrustLineNotificationTimer->async_wait(
+                boost::bind(
+                        &Core::notifyContractorsAboutCurrentTrustLinesAmounts,
+                        this));
+
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
+
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -600,3 +615,5 @@ LoggerStream Core::info() const
 {
     return mLog->info(logHeader());
 }
+
+
