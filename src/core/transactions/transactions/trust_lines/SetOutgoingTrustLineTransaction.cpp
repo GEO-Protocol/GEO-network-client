@@ -5,6 +5,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     const NodeUUID &nodeUUID,
     SetOutgoingTrustLineCommand::Shared command,
     TrustLinesManager *manager,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     StorageHandler *storageHandler,
     Logger &logger)
     noexcept :
@@ -15,7 +16,8 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
         logger),
     mCommand(command),
     mTrustLines(manager),
-    mStorageHandler(storageHandler)
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
 {}
 
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
@@ -42,6 +44,8 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         switch (kOperationResult) {
         case TrustLinesManager::TrustLineOperationResult::Opened: {
             populateHistory(ioTransaction, TrustLineRecord::Opening);
+            mMaxFlowCalculationCacheManager->resetInitiatorCache();
+
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully initialised with " << mCommand->amount();
             break;
@@ -49,6 +53,8 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Updated: {
             populateHistory(ioTransaction, TrustLineRecord::Setting);
+            mMaxFlowCalculationCacheManager->resetInitiatorCache();
+
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully set to " << mCommand->amount();
             break;
@@ -56,6 +62,8 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Closed: {
             populateHistory(ioTransaction, TrustLineRecord::Closing);
+            mMaxFlowCalculationCacheManager->resetInitiatorCache();
+
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully closed.";
             break;

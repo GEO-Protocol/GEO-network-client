@@ -396,6 +396,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mNodeUUID,
             command,
             mTrustLines,
+            mMaxFlowCalculationCacheManager,
             mStorageHandler,
             mLog),
         true,
