@@ -8,6 +8,7 @@
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h" // todo: rename "record" to "records"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 
 /**
@@ -33,6 +34,7 @@ public:
         const NodeUUID &nodeUUID,
         SetOutgoingTrustLineCommand::Shared command,
         TrustLinesManager *manager,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger)
