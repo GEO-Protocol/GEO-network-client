@@ -61,7 +61,7 @@ throw (ValueError)
 
     else
         throw ValueError(
-            "CycleCloserInitiatorTransaction::PathStats::setMaxFlow: "
+            "PathStats::setMaxFlow: "
                 "attempt to increase max flow occurred.");
 }
 
@@ -115,7 +115,7 @@ throw (NotFoundError)
     }
 
     throw NotFoundError(
-        "CycleCloserInitiatorTransaction::PathStats::nextNodeRequestMustBeSent: "
+        "PathStats::nextNodeRequestMustBeSent: "
             "no unprocessed nodes are left.");
 }
 

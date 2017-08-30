@@ -37,28 +37,6 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 
 
         /*
-         * ToDo: Add routing tables messages
-         */
-        case Message::RoutingTables_NotificationTrustLineCreated:
-            return messageCollected<NotificationTrustLineCreatedMessage>(buffer);
-
-        case Message::RoutingTables_NotificationTrustLineRemoved:
-            return messageCollected<NotificationTrustLineRemovedMessage>(buffer);
-
-        case Message::RoutingTables_NeighborsRequest:
-            return messageCollected<NeighborsRequestMessage>(buffer);
-
-        case Message::RoutingTables_NeighborsResponse:
-            return messageCollected<NeighborsResponseMessage>(buffer);
-
-        case Message::RoutingTables_CRC32Rt2ResponseMessage:
-            return messageCollected<CRC32Rt2ResponseMessage>(buffer);
-
-        case Message::RoutingTables_CRC32Rt2RequestMessage:
-            return messageCollected<CRC32Rt2RequestMessage>(buffer);
-
-
-        /*
          * Payment operations messages
          */
         case Message::Payments_CoordinatorReservationRequest:
@@ -100,8 +78,17 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::Payments_FinalPathCycleConfiguration:
             return messageCollected<FinalPathCycleConfigurationMessage>(buffer);
 
-        case Message::Payments_TTLProlongation:
-            return messageCollected<TTLPolongationMessage>(buffer);
+        case Message::Payments_FinalAmountsConfiguration:
+            return messageCollected<FinalAmountsConfigurationMessage>(buffer);
+
+        case Message::Payments_FinalAmountsConfigurationResponse:
+            return messageCollected<FinalAmountsConfigurationResponseMessage>(buffer);
+
+        case Message::Payments_TTLProlongationRequest:
+            return messageCollected<TTLProlongationRequestMessage>(buffer);
+
+        case Message::Payments_TTLProlongationResponse:
+            return messageCollected<TTLProlongationResponseMessage>(buffer);
 
         case Message::Payments_VotesStatusRequest:
             return messageCollected<VotesStatusRequestMessage>(buffer);
@@ -165,22 +152,6 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 
         case Message::TotalBalance_Response:
             return messageCollected<TotalBalancesResultMessage>(buffer);
-
-
-        /*
-         * Find Path Messages
-         */
-        case Message::Paths_RequestRoutingTables:
-            return messageCollected<RequestRoutingTablesMessage>(buffer);
-
-        case Message::Paths_ResultRoutingTableFirstLevel:
-            return messageCollected<ResultRoutingTable1LevelMessage>(buffer);
-
-        case Message::Paths_ResultRoutingTableSecondLevel:
-            return messageCollected<ResultRoutingTable2LevelMessage>(buffer);
-
-        case Message::Paths_ResultRoutingTableThirdLevel:
-            return messageCollected<ResultRoutingTable3LevelMessage>(buffer);
 
 
 #ifdef DEBUG

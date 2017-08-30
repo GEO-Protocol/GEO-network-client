@@ -40,11 +40,8 @@ set(SOURCE_FILES
         commands/trust_lines_list/GetTrustLineCommand.h
         commands/trust_lines_list/GetTrustLineCommand.cpp
 
-        commands/find_path/FindPathCommand.h
-        commands/find_path/FindPathCommand.cpp
-
-        commands/routing_tables/UpdateRoutingTablesCommand.h
-        commands/routing_tables/UpdateRoutingTablesCommand.cpp)
+        commands/subsystems_controller/SubsystemsInfluenceCommand.h
+        commands/subsystems_controller/SubsystemsInfluenceCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

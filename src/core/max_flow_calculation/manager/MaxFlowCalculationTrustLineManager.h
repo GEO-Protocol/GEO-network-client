@@ -40,9 +40,18 @@ public:
 
     bool preventDeleting() const;
 
+    void addUsedAmount(
+        const NodeUUID &sourceUUID,
+        const NodeUUID &targetUUID,
+        const TrustLineAmount &amount);
+
+    void makeFullyUsed(
+        const NodeUUID &sourceUUID,
+        const NodeUUID &targetUUID);
+
 private:
     static const byte kResetTrustLinesHours = 0;
-    static const byte kResetTrustLinesMinutes = 20;
+    static const byte kResetTrustLinesMinutes = 12;
     static const byte kResetTrustLinesSeconds = 0;
 
     static Duration& kResetTrustLinesDuration() {

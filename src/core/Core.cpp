@@ -107,6 +107,11 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initSubsystemsController();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initTransactionsManager();
     if (initCode != 0)
         return initCode;
@@ -120,7 +125,6 @@ int Core::initSubsystems()
         return initCode;
 
     connectSignalsToSlots();
-
     return 0;
 }
 
@@ -254,7 +258,8 @@ int Core::initTransactionsManager()
             mResultsInterface.get(),
             mStorageHandler.get(),
             mPathsManager.get(),
-            *mLog.get());
+            *mLog.get(),
+            mSubsystemsController.get());
         mLog->logSuccess("Core", "Transactions handler is successfully initialised");
         return 0;
 
@@ -326,7 +331,7 @@ int Core::initPathsManager()
         mPathsManager = make_unique<PathsManager>(
             mNodeUUID,
             mTrustLinesManager.get(),
-            mStorageHandler.get(),
+            mMaxFlowCalculationTrustLimeManager.get(),
             *mLog.get());
         mLog->logSuccess("Core", "Paths Manager is successfully initialised");
         return 0;
@@ -334,6 +339,20 @@ int Core::initPathsManager()
         mLog->logException("Core", e);
         return -1;
     }
+}
+
+int Core::initSubsystemsController()
+{
+    try {
+        mSubsystemsController = make_unique<SubsystemsController>(
+            *mLog.get());
+        mLog->logSuccess("Core", "Subsystems controller is successfully initialized");
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+
 }
 
 void Core::connectCommunicatorSignals()
@@ -412,6 +431,24 @@ void Core::connectSignalsToSlots()
 void Core::onCommandReceivedSlot (
     BaseUserCommand::Shared command)
 {
+    if (command->identifier() == SubsystemsInfluenceCommand::identifier()) {
+        // In case if network toggle command was received -
+        // there is no reason to transfer it's processing to the transactions manager:
+        // this command only enables or disables network for the node,
+        // and this may be simply done by filtering several slots in the core.
+        auto subsystemsInfluenceCommand = static_pointer_cast<SubsystemsInfluenceCommand>(command);
+        mSubsystemsController->setFlags(
+            subsystemsInfluenceCommand->flags());
+#ifdef TESTS
+        mSubsystemsController->setForbiddenNodeUUID(
+            subsystemsInfluenceCommand->forbiddenNodeUUID());
+        mSubsystemsController->setForbiddenAmount(
+            subsystemsInfluenceCommand->forbiddenAmount());
+#endif
+        mLog->logInfo("Core", "SubsystemsInfluenceCommand processed");
+        return;
+    }
+
     try {
         mTransactionsManager->processCommand(command);
 
@@ -423,6 +460,14 @@ void Core::onCommandReceivedSlot (
 void Core::onMessageReceivedSlot(
     Message::Shared message)
 {
+#ifdef TESTS
+    if (not mSubsystemsController->isNetworkOn()) {
+        // Ignore incoming message in case if network was disabled.
+        mLog->debug("Core: Ignore process incoming message");
+        return;
+    }
+#endif
+
     try {
         mTransactionsManager->processMessage(message);
 
@@ -435,11 +480,18 @@ void Core::onMessageSendSlot(
     Message::Shared message,
     const NodeUUID &contractorUUID)
 {
-    try{
+#ifdef TESTS
+    if (not mSubsystemsController->isNetworkOn()) {
+        // Ignore outgoing message in case if network was disabled.
+        mLog->debug("Core: Ignore send message");
+        return;
+    }
+#endif
+
+    try {
         mCommunicator->sendMessage(
             message,
-            contractorUUID
-        );
+            contractorUUID);
 
     } catch (exception &e) {
         mLog->logException("Core", e);
@@ -461,7 +513,7 @@ void Core::onPathsResourceRequestedSlot(
     const NodeUUID &destinationNodeUUID)
 {
     try {
-        mTransactionsManager->launchPathsResourcesCollectTransaction(
+        mTransactionsManager->launchFindPathByMaxFlowTransaction(
             transactionUUID,
             destinationNodeUUID);
 
@@ -469,6 +521,7 @@ void Core::onPathsResourceRequestedSlot(
         mLog->logException("Core", e);
     }
 
+    // todo: remove this empty method
 }
 
 void Core::onResourceCollectedSlot(

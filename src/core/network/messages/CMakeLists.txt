@@ -4,8 +4,6 @@ cmake_minimum_required(VERSION 3.6)
 add_subdirectory(base)
 
 add_subdirectory(trust_lines)
-add_subdirectory(routing_tables)
-add_subdirectory(find_path)
 add_subdirectory(payments)
 add_subdirectory(cycles)
 add_subdirectory(max_flow_calculation)
@@ -32,8 +30,6 @@ target_link_libraries(network__messages
         messages__base__max_flow_calculation
 
         messages__trust_lines
-        messages__routing_tables
-        messages__find_path
         messages__payments
         messages__cycles
         messages__max_flow_calculation

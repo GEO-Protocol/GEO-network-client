@@ -14,7 +14,7 @@ public:
     RequestMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        const PathUUID &pathUUID,
+        const PathID &pathID,
         const TrustLineAmount &amount);
 
     RequestMessage(
@@ -22,7 +22,7 @@ public:
 
     const TrustLineAmount& amount() const;
 
-    const PathUUID& pathUUID() const;
+    const PathID& pathID() const;
 
 protected:
     virtual pair<BytesShared, size_t> serializeToBytes() const
@@ -33,7 +33,7 @@ protected:
 
 protected:
     TrustLineAmount mAmount;
-    PathUUID mPathUUID;
+    PathID mPathID;
 };
 
 #endif // REQUESTMESSAGE_H

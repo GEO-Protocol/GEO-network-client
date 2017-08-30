@@ -18,7 +18,8 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        SubsystemsController *subsystemsController);
 
     CycleCloserIntermediateNodeTransaction(
         BytesShared buffer,
@@ -27,7 +28,8 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &log);
+        Logger &log,
+        SubsystemsController *subsystemsController);
 
     TransactionResult::SharedConst run()
     noexcept;
@@ -40,14 +42,20 @@ protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();
     TransactionResult::SharedConst runNextNeighborResponseProcessingStage();
-    TransactionResult::SharedConst runReservationProlongationStage();
     TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
     // run after waiting on releasing amount by rollbacking conflicted transaction
     TransactionResult::SharedConst runCoordinatorRequestProcessingStageAgain();
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStageAgain();
+    TransactionResult::SharedConst runVotesCheckingStageWithPossibleTTL();
 
 protected:
-    void savePaymentOperationIntoHistory();
+    TransactionResult::SharedConst approve();
+
+protected:
+    void savePaymentOperationIntoHistory(
+        IOTransaction::Shared ioTransaction);
+
+    bool checkReservationsDirections() const;
 
     const string logHeader() const;
 

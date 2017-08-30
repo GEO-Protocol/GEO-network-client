@@ -113,7 +113,7 @@ const NodeUUID& ParticipantsVotesMessage::firstParticipant() const
 
 /**
  * Returns vote of the "participant"
- * (if it's present i nthe votes list);
+ * (if it's present in the votes list);
  *
  * @throws NotFoundError in case if no vote is present for "participant";
  */
@@ -229,9 +229,6 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
 void ParticipantsVotesMessage::reject(
     const NodeUUID &participant)
 {
-    if (participant == mCoordinatorUUID) {
-        return;
-    }
     if (mVotes.count(participant) != 1)
         throw NotFoundError(
                 "ParticipantsApprovingMessage::reject: "
@@ -288,5 +285,11 @@ size_t ParticipantsVotesMessage::participantsCount () const
 const boost::container::flat_map<NodeUUID, ParticipantsVotesMessage::Vote>& ParticipantsVotesMessage::votes() const
 {
     return mVotes;
+}
+
+bool ParticipantsVotesMessage::containsParticipant(
+    const NodeUUID &node) const
+{
+    return mVotes.find(node) != mVotes.end();
 }
 

@@ -17,7 +17,9 @@ public:
 
 public:
     // TODO: move it into separate *.h file.
-    typedef uint16_t PathUUID;
+    // it used in pair of BasePaymentTransaction::PathID
+    // so if you change this one, you should change another too
+    typedef uint16_t PathID;
 
 public:
     enum MessageType {
@@ -46,11 +48,15 @@ public:
         Payments_IntermediateNodeCycleReservationRequest,
         Payments_IntermediateNodeCycleReservationResponse,
 
+        Payments_FinalAmountsConfiguration,
+        Payments_FinalAmountsConfigurationResponse,
+
         Payments_ParticipantsVotes,
         Payments_VotesStatusRequest,
         Payments_FinalPathConfiguration,
         Payments_FinalPathCycleConfiguration,
-        Payments_TTLProlongation,
+        Payments_TTLProlongationRequest,
+        Payments_TTLProlongationResponse,
 
         /*
          * Cycles
@@ -63,25 +69,6 @@ public:
         Cycles_FiveNodesMiddleware,
         Cycles_SixNodesBoundary,
         Cycles_SixNodesMiddleware,
-
-        /*
-         * Routing tables messages
-         */
-        RoutingTables_NeighborsRequest,
-        RoutingTables_NeighborsResponse,
-        RoutingTables_NotificationTrustLineCreated,
-        RoutingTables_NotificationTrustLineRemoved,
-        RoutingTables_CRC32Rt2RequestMessage,
-        RoutingTables_CRC32Rt2ResponseMessage,
-        RoutingTables_CRC32Rt2ThirdLevelResponseMessage,
-
-        /*
-         * Paths
-         */
-        Paths_RequestRoutingTables,
-        Paths_ResultRoutingTableFirstLevel,
-        Paths_ResultRoutingTableSecondLevel,
-        Paths_ResultRoutingTableThirdLevel,
 
         /*
          * Max flow

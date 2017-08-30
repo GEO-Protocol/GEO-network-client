@@ -84,7 +84,7 @@ protected:
     bool mIsValid;
 
     // Contains states of each node in the path.
-    // See reservaions stage for the details.
+    // See reservations stage for the details.
     vector<NodeState> mIntermediateNodesStates;
 
 };

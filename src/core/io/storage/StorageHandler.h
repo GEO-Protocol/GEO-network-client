@@ -2,8 +2,6 @@
 #define GEO_NETWORK_CLIENT_STORAGEHANDLER_H
 
 #include "../../logger/Logger.h"
-#include "RoutingTablesHandler.h"
-#include "RoutingTableHandler.h"
 #include "TrustLineHandler.h"
 #include "PaymentOperationStateHandler.h"
 #include "TransactionsHandler.h"
@@ -47,8 +45,6 @@ private:
     const string logHeader() const;
 
 private:
-    const string kRT2TableName = "RT2";
-    const string kRT3TableName = "RT3";
     const string kTrustLineTableName = "trust_lines";
     const string kPaymentOperationStateTableName = "payment_operation_state";
     const string kTransactionTableName = "transactions";
@@ -62,7 +58,6 @@ private:
 
 private:
     Logger &mLog;
-    RoutingTablesHandler mRoutingTablesHandler;
     TrustLineHandler mTrustLineHandler;
     PaymentOperationStateHandler mPaymentOperationStateHandler;
     TransactionsHandler mTransactionHandler;

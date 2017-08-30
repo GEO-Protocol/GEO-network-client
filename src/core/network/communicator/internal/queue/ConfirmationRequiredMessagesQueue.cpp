@@ -47,8 +47,6 @@ const map<TransactionUUID, TransactionMessage::Shared> &ConfirmationRequiredMess
         mNextTimeoutSeconds *= 2;
     }
 
-    cout << "\n\n" << mNextTimeoutSeconds << endl;
-    cout << "\n" << boost::posix_time::seconds(mNextTimeoutSeconds) << endl;
     mNextSendingAttemptDateTime = utc_now() + boost::posix_time::seconds(mNextTimeoutSeconds);
 
     return mMessages;

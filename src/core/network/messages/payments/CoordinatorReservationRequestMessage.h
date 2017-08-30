@@ -1,12 +1,10 @@
 ﻿#ifndef COORDINATORRESERVATIONREQUESTMESSAGE_H
 #define COORDINATORRESERVATIONREQUESTMESSAGE_H
 
-
-#include "base/RequestMessage.h"
-
+#include "base/RequestMessageWithReservations.h"
 
 class CoordinatorReservationRequestMessage:
-    public RequestMessage {
+    public RequestMessageWithReservations {
 
 public:
     typedef shared_ptr<CoordinatorReservationRequestMessage> Shared;
@@ -16,14 +14,13 @@ public:
     CoordinatorReservationRequestMessage(
         const NodeUUID& senderUUID,
         const TransactionUUID& transactionUUID,
-        const PathUUID &pathUUID,
-        const TrustLineAmount& amount,
+        const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmountsConfig,
         const NodeUUID& nextNodeInThePath);
 
     CoordinatorReservationRequestMessage(
         BytesShared buffer);
 
-    const NodeUUID& nextNodeInPathUUID() const;
+    const NodeUUID& nextNodeInPath() const;
 
     const Message::MessageType typeID() const;
 

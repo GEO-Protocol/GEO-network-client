@@ -9,6 +9,8 @@ public:
     enum OperationState {
         Accepted = 1,
         Rejected = 2,
+        RejectedBecauseReservations = 3,
+        NextNodeInaccessible = 4
     };
 
 public:

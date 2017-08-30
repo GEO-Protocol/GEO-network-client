@@ -14,7 +14,9 @@ set(SOURCE_FILES
         MaxFlowCalculationTargetSndLevelTransaction.h
         MaxFlowCalculationTargetSndLevelTransaction.cpp
         ReceiveResultMaxFlowCalculationTransaction.h
-        ReceiveResultMaxFlowCalculationTransaction.cpp)
+        ReceiveResultMaxFlowCalculationTransaction.cpp
+        CollectTopologyTransaction.h
+        CollectTopologyTransaction.cpp)
 
 add_library(transactions__max_flow_calculation ${SOURCE_FILES})
 
