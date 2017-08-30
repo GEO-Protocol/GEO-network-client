@@ -128,16 +128,6 @@ public:
     const BalanceRange balanceRange(
         const NodeUUID &contractorUUID) const;
 
-    [[deprecated("Use setIncoming instead")]]
-    void setIncomingTrustAmount(
-        const NodeUUID &contractor,
-        const TrustLineAmount &amount);
-
-    [[deprecated("Use setOutgoing instead")]]
-    void setOutgoingTrustAmount(
-        const NodeUUID &contractor,
-        const TrustLineAmount &amount);
-
     const TrustLineAmount &incomingTrustAmount(
         const NodeUUID &contractorUUID);
 
@@ -215,16 +205,8 @@ public:
         IOTransaction::Shared IOTransaction,
         TrustLine::Shared trustLine);
 
-    [[deprecated]]
-    void saveToDisk(
-        TrustLine::Shared trustLine);
-
     void removeTrustLine(
         IOTransaction::Shared IOTransaction,
-        const NodeUUID &contractorUUID);
-
-    [[deprecated]]
-    void removeTrustLine(
         const NodeUUID &contractorUUID);
 
     vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;

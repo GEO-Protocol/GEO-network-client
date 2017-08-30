@@ -278,19 +278,19 @@ int Core::initDelayedTasks()
             *mLog.get());
 
         mTrustLineNotificationTimer = make_unique<as::steady_timer>(
-                mIOService);
+            mIOService);
 
         // todo: remove after update
         int timeStarted = 10 * 60;
 
         mTrustLineNotificationTimer->expires_from_now(
-                chrono::seconds(
-                        timeStarted));
+            chrono::seconds(
+                timeStarted));
 
         mTrustLineNotificationTimer->async_wait(
-                boost::bind(
-                        &Core::notifyContractorsAboutCurrentTrustLinesAmounts,
-                        this));
+            boost::bind(
+                &Core::notifyContractorsAboutCurrentTrustLinesAmounts,
+                this));
 
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
 

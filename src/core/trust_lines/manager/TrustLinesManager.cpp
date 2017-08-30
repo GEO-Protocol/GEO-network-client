@@ -234,38 +234,6 @@ const BalanceRange TrustLinesManager::balanceRange(
     return mTrustLines.at(contractorUUID)->balanceRange();
 }
 
-void TrustLinesManager::setIncomingTrustAmount(
-    const NodeUUID &contractor,
-    const TrustLineAmount &amount) {
-
-    auto iterator = mTrustLines.find(contractor);
-    if (iterator == mTrustLines.end()){
-        throw NotFoundError(
-            "TrustLinesManager::setIncomingTrustAmount: "
-                "No trust line found.");
-    }
-
-    auto trustLine = iterator->second;
-    trustLine->setIncomingTrustAmount(amount);
-    saveToDisk(trustLine);
-
-}
-
-void TrustLinesManager::setOutgoingTrustAmount(
-    const NodeUUID &contractor,
-    const TrustLineAmount &amount) {
-
-    auto iterator = mTrustLines.find(contractor);
-    if (iterator == mTrustLines.end()){
-        throw NotFoundError("TrustLinesManager::setOutogingTrustAmount: "
-                                "no trust line found.");
-    }
-
-    auto trustLine = iterator->second;
-    trustLine->setOutgoingTrustAmount(amount);
-    saveToDisk(trustLine);
-}
-
 const TrustLineAmount &TrustLinesManager::incomingTrustAmount(
     const NodeUUID &contractorUUID) {
 
@@ -518,38 +486,6 @@ void TrustLinesManager::saveToDisk(
     }
 }
 
-void TrustLinesManager::saveToDisk(TrustLine::Shared trustLine)
-{
-    bool alreadyExisted = false;
-    if (trustLineIsPresent(trustLine->contractorNodeUUID())) {
-        alreadyExisted = true;
-    }
-
-    auto ioTransaction = mStorageHandler->beginTransaction();
-    ioTransaction->trustLinesHandler()->saveTrustLine(trustLine);
-    try {
-        mTrustLines.insert(
-            make_pair(
-                trustLine->contractorNodeUUID(),
-                trustLine));
-
-        } catch (std::bad_alloc&) {
-            throw MemoryError("TrustLinesManager::saveToDisk: "
-                                  "Can not reallocate STL container memory for new trust line instance.");
-        }
-
-    if (alreadyExisted) {
-        trustLineStateModifiedSignal(
-            trustLine->contractorNodeUUID(),
-            trustLine->direction());
-
-    } else {
-        trustLineCreatedSignal(
-            trustLine->contractorNodeUUID(),
-            trustLine->direction());
-    }
-}
-
 /**
  * @throws IOError
  * @throws NotFoundError
@@ -566,30 +502,6 @@ void TrustLinesManager::removeTrustLine(
 
     IOTransaction->trustLinesHandler()->deleteTrustLine(contractorUUID);
     mTrustLines.erase(contractorUUID);
-}
-
-/**
- * throw IOError - unable to remove data from storage
- * throw NotFoundError - operation with not existing trust line
- */
-void TrustLinesManager::removeTrustLine(
-    const NodeUUID &contractorUUID) {
-
-    if (trustLineIsPresent(contractorUUID)) {
-        auto ioTransaction = mStorageHandler->beginTransaction();
-        ioTransaction->trustLinesHandler()->deleteTrustLine(
-            contractorUUID);
-        mTrustLines.erase(contractorUUID);
-
-        trustLineStateModifiedSignal(
-            contractorUUID,
-            TrustLineDirection::Nowhere);
-
-    } else {
-        throw NotFoundError(
-            "TrustLinesManager::removeTrustLine. "
-                "Trust line to such contractor does not exist.");
-    }
 }
 
 const TrustLine::Shared TrustLinesManager::trustLine(
