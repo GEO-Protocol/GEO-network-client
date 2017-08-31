@@ -133,7 +133,6 @@ public:
 //    const BalanceRange balanceRange(
 //        const NodeUUID &contractorUUID) const;
 
-
     /**
      * @returns outgoing trust amount withoud considering present reservations.
      *
@@ -158,6 +157,7 @@ public:
     const TrustLineBalance &balance(
         const NodeUUID &contractorUUID) const;
 
+    
     AmountReservation::ConstShared reserveOutgoingAmount(
         const NodeUUID &contractor,
         const TransactionUUID &transactionUUID,

@@ -79,7 +79,7 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
             return TrustLineOperationResult::Opened;
         }
 
-    } else if (amount == 0 and incomingTrustAmount(contractorUUID) == 0) {
+    } else if (amount == 0 and incomingTrustAmountDespiteResevations(contractorUUID) == 0) {
         // In case if trust line is already present,
         // but incoming trust amount is 0, and received "amount" is 0 -
         // then it is interpreted as the command to close the outgoing trust line.
@@ -126,7 +126,7 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
             return TrustLineOperationResult::Opened;
         }
 
-    } else if (amount == 0 and outgoingTrustAmount(contractorUUID) == 0) {
+    } else if (amount == 0 and outgoingTrustAmountDespiteReservations(contractorUUID) == 0) {
         // In case if trust line is already present,
         // but outgoing trust amount is 0, and received "amount" is 0 -
         // then it is interpreted as the command to close the incoming trust line.
@@ -167,12 +167,11 @@ void TrustLinesManager::closeOutgoing(
     // Note: totalReservedOnTrustLine() returns pointer, and it's comparison with 0 is always false.
     if (trustLine->incomingTrustAmount() == 0
             and trustLine->balance() == 0
-            and *mAmountReservationsHandler->totalReservedOnTrustLine(contractorUUID) == 0) {
+            and not reservationIsPresent(contractorUUID) == 0) {
 
         removeTrustLine(
             IOTransaction,
             contractorUUID);
-        return;
 
     } else {
         // Trust line was modified, and wasn't removed.
@@ -201,12 +200,11 @@ void TrustLinesManager::closeIncoming(
     // Note: totalReservedOnTrustLine() returns pointer, and it's comparison with 0 is always false.
     if (trustLine->outgoingTrustAmount() == 0
             and trustLine->balance() == 0
-            and *mAmountReservationsHandler->totalReservedOnTrustLine(contractorUUID) == 0) {
+            and not reservationIsPresent(contractorUUID) == 0) {
 
         removeTrustLine(
             IOTransaction,
             contractorUUID);
-        return;
 
     } else {
         // Trust line was modified, and wasn't removed.
@@ -217,37 +215,55 @@ void TrustLinesManager::closeIncoming(
     }
 }
 
-const bool TrustLinesManager::checkDirection(
-    const NodeUUID &contractorUUID,
-    const TrustLineDirection direction) const {
+//const bool TrustLinesManager::checkDirection(
+//    const NodeUUID &contractorUUID,
+//    const TrustLineDirection direction) const {
 
-    if (trustLineIsPresent(contractorUUID)) {
-        return mTrustLines.at(contractorUUID)->direction() == direction;
+//    if (trustLineIsPresent(contractorUUID)) {
+//        return mTrustLines.at(contractorUUID)->direction() == direction;
+//    }
+
+//    return false;
+//}
+
+//const BalanceRange TrustLinesManager::balanceRange(
+//    const NodeUUID &contractorUUID) const {
+
+//    return mTrustLines.at(contractorUUID)->balanceRange();
+//}
+
+const TrustLineAmount &TrustLinesManager::incomingTrustAmountDespiteResevations(
+    const NodeUUID &contractorUUID) const
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            "TrustLinesManager::incomingTrustAmountDespiteResevations: "
+            "There is no trust line from this contractor.");
     }
-
-    return false;
-}
-
-const BalanceRange TrustLinesManager::balanceRange(
-    const NodeUUID &contractorUUID) const {
-
-    return mTrustLines.at(contractorUUID)->balanceRange();
-}
-
-const TrustLineAmount &TrustLinesManager::incomingTrustAmount(
-    const NodeUUID &contractorUUID) {
 
     return mTrustLines.at(contractorUUID)->incomingTrustAmount();
 }
 
-const TrustLineAmount &TrustLinesManager::outgoingTrustAmount(
-    const NodeUUID &contractorUUID) {
+const TrustLineAmount &TrustLinesManager::outgoingTrustAmountDespiteReservations(
+    const NodeUUID &contractorUUID) const
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            "TrustLinesManager::outgoingTrustAmountDespiteResevations: "
+            "There is no trust line to this contractor.");
+    }
 
     return mTrustLines.at(contractorUUID)->outgoingTrustAmount();
 }
 
 const TrustLineBalance &TrustLinesManager::balance(
-    const NodeUUID &contractorUUID) {
+    const NodeUUID &contractorUUID) const
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            "TrustLinesManager::outgoingTrustAmountDespiteResevations: "
+            "There is no trust line to this contractor.");
+    }
 
     return mTrustLines.at(contractorUUID)->balance();
 }
