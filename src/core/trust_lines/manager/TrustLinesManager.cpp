@@ -3,14 +3,13 @@
 
 TrustLinesManager::TrustLinesManager(
     StorageHandler *storageHandler,
-    Logger &logger)
-    throw (bad_alloc, IOError) :
+    Logger &logger):
 
     mStorageHandler(storageHandler),
-    mLogger(logger)
+    mLogger(logger),
+    mAmountReservationsHandler(
+        make_unique<AmountReservationsHandler>())
 {
-    mAmountReservationsHandler = make_unique<AmountReservationsHandler>();
-
     loadTrustLinesFromDisk();
 }
 
@@ -268,25 +267,12 @@ const TrustLineBalance &TrustLinesManager::balance(
     return mTrustLines.at(contractorUUID)->balance();
 }
 
-/*!
- * Reserves payment amount FROM this node TO the contractor.
- *
- * @param contractor - uuid of the contractor to which the trust line should be reserved.
- * @param transactionUUID - uuid of the transaction, which reserves the amount.
- * @param amount
- *
- *
- * @throws NotFoundError in case if no trust line against contractor UUID is present.
- * @throws ValueError in case, if trust line hasn't enought free amount;
- * @throws ValueError in case, if outgoing trust amount == 0;
- * @throws MemoryError;
- */
 AmountReservation::ConstShared TrustLinesManager::reserveOutgoingAmount(
     const NodeUUID &contractor,
     const TransactionUUID &transactionUUID,
     const TrustLineAmount &amount)
 {
-    const auto kAvailableAmount = availableOutgoingAmount(contractor);
+    const auto kAvailableAmount = outgoingTrustAmountConsideringReservations(contractor);
     if (*kAvailableAmount >= amount) {
         return mAmountReservationsHandler->reserve(
             contractor,
@@ -299,25 +285,12 @@ AmountReservation::ConstShared TrustLinesManager::reserveOutgoingAmount(
         "there is no enough amount on the trust line.");
 }
 
-/*!
- * Reserves payment amount TO this node FROM the contractor.
- *
- * @param contractor - uuid of the contractor to which the trust line should be reserved.
- * @param transactionUUID - uuid of the transaction, which reserves the amount.
- * @param amount
- *
- *
- * @throws NotFoundError in case if no trust line against contractor UUID is present.
- * @throws ValueError in case, if trust line hasn't enought free amount;
- * @throws ValueError in case, if outgoing trust amount == 0;
- * @throws MemoryError;
- */
 AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmount(
     const NodeUUID& contractor,
     const TransactionUUID& transactionUUID,
     const TrustLineAmount& amount)
 {
-    const auto kAvailableAmount = availableIncomingAmount(contractor);
+    const auto kAvailableAmount = incomingTrustAmountConsideringReservations(contractor);
     if (*kAvailableAmount >= amount) {
         return mAmountReservationsHandler->reserve(
             contractor,
@@ -340,7 +313,7 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
 #endif
 
     // Note: copy of shared ptr is required
-    const auto kAvailableAmount = *(availableOutgoingAmount(contractor));
+    const auto kAvailableAmount = *(outgoingTrustAmountConsideringReservations(contractor));
 
     // Previous reservation would be removed (updated),
     // so it's amount must be added to the the available amount on the trust line.
@@ -350,47 +323,56 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
             reservation,
             newAmount);
 
-    throw ValueError("TrustLinesManager::reserveOutgoingAmount: trust line has not enough amount.");
+    throw ValueError(
+        "TrustLinesManager::reserveOutgoingAmount: "
+        "Trust line has not enought free amount.");
 }
 
 void TrustLinesManager::dropAmountReservation(
     const NodeUUID &contractor,
-    const AmountReservation::ConstShared reservation) {
-
+    const AmountReservation::ConstShared reservation,
+    IOTransaction::Shared ioTransaction)
+{
     mAmountReservationsHandler->free(
         contractor,
         reservation);
+
+    // In case if reservations was dropped on already closed trust line -
+    // and there is no debt any more - trust line might be dropped at all.
+    if (outgoingTrustAmountConsideringReservations(contractor) == 0
+            and incomingTrustAmountConsideringReservations(contractor) == 0
+            and balance(contractor) == 0) {
+
+        removeTrustLine(ioTransaction, contractor);
+    }
 }
 
-ConstSharedTrustLineAmount TrustLinesManager::availableOutgoingAmount(
+ConstSharedTrustLineAmount TrustLinesManager::outgoingTrustAmountConsideringReservations(
     const NodeUUID& contractor) const
 {
-    const auto kTL = trustLineReadOnly(contractor);
-    const auto kAvailableAmount = kTL->availableOutgoingAmount();
-
+    const auto kAvailableAmount = outgoingTrustAmountDespiteReservations(contractor);
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
         contractor, AmountReservation::Outgoing);
 
-    if (*kAlreadyReservedAmount >= *kAvailableAmount) {
+    if (*kAlreadyReservedAmount >= kAvailableAmount) {
         return make_shared<const TrustLineAmount>(0);
     }
     return make_shared<const TrustLineAmount>(
-        *kAvailableAmount - *kAlreadyReservedAmount);
+        kAvailableAmount - *kAlreadyReservedAmount);
 }
 
-ConstSharedTrustLineAmount TrustLinesManager::availableIncomingAmount(
+ConstSharedTrustLineAmount TrustLinesManager::incomingTrustAmountConsideringReservations(
     const NodeUUID& contractor) const
 {
-    const auto kTL = trustLineReadOnly(contractor);
-    const auto kAvailableAmount = kTL->availableIncomingAmount();
+    const auto kAvailableAmount = incomingTrustAmountDespiteResevations(contractor);
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
         contractor, AmountReservation::Incoming);
 
-    if (*kAlreadyReservedAmount >= *kAvailableAmount) {
+    if (*kAlreadyReservedAmount >= kAvailableAmount) {
         return make_shared<const TrustLineAmount>(0);
     }
     return make_shared<const TrustLineAmount>(
-        *kAvailableAmount - *kAlreadyReservedAmount);
+        kAvailableAmount - *kAlreadyReservedAmount);
 }
 
 pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::availableOutgoingCycleAmounts(
@@ -535,7 +517,7 @@ const TrustLine::Shared TrustLinesManager::trustLine(
 vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const {
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountShared = availableOutgoingAmount(nodeUUIDAndTrustLine.first);
+        auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(nodeUUIDAndTrustLine.first);
@@ -547,7 +529,7 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const 
 vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const {
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountShared = availableIncomingAmount(nodeUUIDAndTrustLine.first);
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
 
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
@@ -560,7 +542,7 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const 
 vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlows() const {
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountShared = availableIncomingAmount(nodeUUIDAndTrustLine.first);
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
             result.push_back(
                 make_pair(
@@ -574,7 +556,7 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFl
 vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlows() const {
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountShared = availableOutgoingAmount(nodeUUIDAndTrustLine.first);
+        auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
             result.push_back(
                 make_pair(
@@ -724,43 +706,47 @@ void TrustLinesManager::useReservation(
     const NodeUUID &contractor,
     const AmountReservation::ConstShared reservation)
 {
-    if (mTrustLines.count(contractor) != 1)
+    if (not trustLineIsPresent(contractor)) {
         throw NotFoundError(
-            "TrustLinesManager::useReservation: no trust line to the contractor.");
+            "TrustLinesManager::useReservation: "
+            "No trust line with the contractor is present.");
+    }
 
-    if (reservation->direction() == AmountReservation::Outgoing)
+    switch (reservation->direction()) {
+    case AmountReservation::Outgoing: {
         mTrustLines[contractor]->pay(reservation->amount());
-    else if (reservation->direction() == AmountReservation::Incoming)
+        return;
+    }
+
+    case AmountReservation::Incoming: {
         mTrustLines[contractor]->acceptPayment(reservation->amount());
-    else
+        return;
+    }
+
+    default: {
         throw ValueError(
-            "TrustLinesManager::useReservation: invalid trust line direction occurred.");
+            "TrustLinesManager::useReservation: "
+            "Unexpected trust line direction occurred.");
+    }
+    }
 }
 
-/**
- * @returns total summary of all outgoing possibilities of the node.
- */
 ConstSharedTrustLineAmount TrustLinesManager::totalOutgoingAmount () const
-    throw (bad_alloc)
 {
     auto totalAmount = make_shared<TrustLineAmount>(0);
     for (const auto kTrustLine : mTrustLines) {
-        const auto kTLAmount = availableOutgoingAmount(kTrustLine.first);
+        const auto kTLAmount = outgoingTrustAmountConsideringReservations(kTrustLine.first);
         *totalAmount += *(kTLAmount);
     }
 
     return totalAmount;
 }
 
-/**
- * @returns total summary of all incoming possibilities of the node.
- */
 ConstSharedTrustLineAmount TrustLinesManager::totalIncomingAmount () const
-    throw (bad_alloc)
 {
     auto totalAmount = make_shared<TrustLineAmount>(0);
     for (const auto kTrustLine : mTrustLines) {
-        const auto kTLAmount = availableIncomingAmount(kTrustLine.first);
+        const auto kTLAmount = incomingTrustAmountConsideringReservations(kTrustLine.first);
         *totalAmount += *(kTLAmount);
     }
 

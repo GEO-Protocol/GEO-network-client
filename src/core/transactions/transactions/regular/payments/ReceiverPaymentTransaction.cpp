@@ -232,7 +232,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     debug() << "All reservations was updated";
 
     // Note: copy of shared pointer is required.
-    const auto kAvailableAmount = mTrustLines->availableIncomingAmount(kNeighbor);
+    const auto kAvailableAmount = mTrustLines->incomingTrustAmountConsideringReservations(kNeighbor);
     if (*kAvailableAmount == TrustLine::kZeroAmount()) {
         debug() << "Available amount equals zero. Reservation reject.";
         sendMessage<IntermediateNodeReservationResponseMessage>(

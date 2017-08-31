@@ -379,7 +379,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
 
     // Check if local reservation is possible.
     // If not - there is no reason to send any reservations requests.
-    const auto kAvailableOutgoingAmount = mTrustLines->availableOutgoingAmount(kContractor);
+    const auto kAvailableOutgoingAmount = mTrustLines->outgoingTrustAmountConsideringReservations(kContractor);
     if (*kAvailableOutgoingAmount == TrustLineAmount(0)) {
         debug() << "There is no direct outgoing amount available for the receiver node. "
                << "Switching to another path.";
@@ -533,7 +533,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
     }
 
     // Note: copy of shared pointer is required
-    const auto kAvailableOutgoingAmount =  mTrustLines->availableOutgoingAmount(neighbor);
+    const auto kAvailableOutgoingAmount =  mTrustLines->outgoingTrustAmountConsideringReservations(neighbor);
     // Note: try reserve remaining part of command amount
     const auto kRemainingAmountForProcessing =
             mCommand->amount() - totalReservedAmount(AmountReservation::Outgoing);
@@ -1605,6 +1605,8 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
     bool sendToLastProcessedNode)
 {
     debug() << "dropReservationsOnPath";
+    const auto ioTransaction = mStorageHandler->beginTransaction();
+
     pathStats->setUnusable();
 
     auto firstIntermediateNode = pathStats->path()->nodes[1];
@@ -1617,7 +1619,9 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
                     << " for (" << firstIntermediateNode << ") [" << pathID << "]";
             mTrustLines->dropAmountReservation(
                 firstIntermediateNode,
-                itPathIDAndReservation->second);
+                itPathIDAndReservation->second,
+                ioTransaction);
+
             itPathIDAndReservation = nodeReservations->second.erase(itPathIDAndReservation);
             // coordinator has only one reservation on each path
             break;

@@ -59,8 +59,7 @@ public:
 public:
     TrustLinesManager(
         StorageHandler *storageHandler,
-        Logger &logger)
-        throw (bad_alloc, IOError);
+        Logger &logger);
 
     /**
      * Creates / Updates / Closes trust line TO the contractor.
@@ -133,9 +132,8 @@ public:
 //    const BalanceRange balanceRange(
 //        const NodeUUID &contractorUUID) const;
 
-
     /**
-     * @returns outgoing trust amount withoud considering present reservations.
+     * @returns outgoing trust amount without considering present reservations.
      *
      * @throws NotFoundError in case if no trust line from this contractor is present.
      */
@@ -143,7 +141,7 @@ public:
         const NodeUUID &contractorUUID) const;
 
     /**
-     * @returns incoming trust amount withoud considering present reservations.
+     * @returns incoming trust amount without considering present reservations.
      *
      * @throws NotFoundError in case if no trust line from this contractor is present.
      */
@@ -158,52 +156,109 @@ public:
     const TrustLineBalance &balance(
         const NodeUUID &contractorUUID) const;
 
+    /**
+     * Reserves payment amount TO the contractor.
+     *
+     * @param contractor - uuid of the contractor, trust amount to which should be reserved.
+     * @param transactionUUID - uuid of the transaction, which reserves the amount.
+     * @param amount
+     *
+     * @throws NotFoundError in case if no trust line is present.
+     * @throws ValueError in case, if trust line hasn't enought free amount;
+     * @throws ValueError in case, if outgoing trust amount == 0;
+     */
     AmountReservation::ConstShared reserveOutgoingAmount(
         const NodeUUID &contractor,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);
 
+    /**
+     * Reserves payment amount FROM the contractor.
+     *
+     * @param contractor - uuid of the contractor, trust amount from which should be reserved.
+     * @param transactionUUID - uuid of the transaction, which reserves the amount.
+     * @param amount
+     *
+     * @throws NotFoundError in case if no trust line is present.
+     * @throws ValueError in case, if trust line hasn't enought free amount;
+     * @throws ValueError in case, if incoming trust amount == 0;
+     */
     AmountReservation::ConstShared reserveIncomingAmount(
         const NodeUUID &contractor,
         const TransactionUUID &transactionUUID,
         const TrustLineAmount &amount);
 
+    /**
+     * Updates present reservation with new amount.
+     *
+     * @throws ValueError in case if trust line has not enought free amount.
+     * @throws NotFoundError in case if previous resevations was not found.
+     */
     AmountReservation::ConstShared updateAmountReservation(
         const NodeUUID &contractor,
         const AmountReservation::ConstShared reservation,
         const TrustLineAmount &newAmount);
 
+    /**
+     * Removes present reservation.
+     *
+     * @throws NotFoundError in case if previous resevations was not found.
+     * @throws IOError in case if attempt to remove trust line (if needed) wasn't successfull.
+     */
     void dropAmountReservation(
         const NodeUUID &contractor,
-        const AmountReservation::ConstShared reservation);
+        const AmountReservation::ConstShared reservation,
+        IOTransaction::Shared ioTransaction);
 
+    /**
+     * Converts reservation on the trust line to the real used amount.
+     *
+     * @throws OverflowError in case of attempt to use more, than available amount on the trust line.
+     * @throws NotFoundError in case if no trust line with contractor is present.
+     */
     void useReservation(
         const NodeUUID &contractor,
         const AmountReservation::ConstShared reservation);
 
-    // available outgoing amount considering reservations
-    ConstSharedTrustLineAmount availableOutgoingAmount(
+    /**
+     * @returns outgoing trust amount with total reserved amount EXCLUDED.
+     *
+     * @throws NotFoundError in case if no trust line to this contractor is present.
+     */
+    ConstSharedTrustLineAmount outgoingTrustAmountConsideringReservations(
         const NodeUUID &contractor) const;
 
-    // available incoming amount considering reservations
-    ConstSharedTrustLineAmount availableIncomingAmount(
+    /**
+     * @returns incoming trust amount with total reserved amount EXCLUDED.
+     *
+     * @throws NotFoundError in case if no trust line from this contractor is present.
+     */
+    ConstSharedTrustLineAmount incomingTrustAmountConsideringReservations(
         const NodeUUID &contractor) const;
 
+    //ToDo: comment this method
     // available outgoing amount considering reservations for cycles
     // returns 2 values: 1) amount considering reservations, 2) amount don't considering reservations
     pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableOutgoingCycleAmounts(
         const NodeUUID &contractor) const;
 
+    //ToDo: comment this method
     // available incoming amount considering reservations for cycles
     // returns 2 values: 1) amount considering reservations, 2) amount don't considering reservations
     pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> availableIncomingCycleAmounts(
         const NodeUUID &contractor) const;
 
+    /**
+     * @returns total summary of all outgoing possibilities of the node.
+     */
     ConstSharedTrustLineAmount totalOutgoingAmount()
-        const throw (bad_alloc);
+        const;
 
+    /**
+     * @returns total summary of all incoming possibilities of the node.
+     */
     ConstSharedTrustLineAmount totalIncomingAmount()
-        const throw (bad_alloc);
+        const;
 
     // get all reservations (all transactions) to requested contractor
     vector<AmountReservation::ConstShared> reservationsToContractor(

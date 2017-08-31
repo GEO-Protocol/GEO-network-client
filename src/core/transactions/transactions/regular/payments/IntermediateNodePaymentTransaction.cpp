@@ -165,7 +165,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     }
     debug() << "All reservations was updated";
 
-    const auto kIncomingAmount = mTrustLines->availableIncomingAmount(kNeighbor);
+    const auto kIncomingAmount = mTrustLines->incomingTrustAmountConsideringReservations(kNeighbor);
     TrustLineAmount kReservationAmount =
             min(*kReservation.second.get(), *kIncomingAmount);
 
@@ -290,7 +290,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     }
 
     // Note: copy of shared pointer is required
-    const auto kOutgoingAmount = mTrustLines->availableOutgoingAmount(kNextNode);
+    const auto kOutgoingAmount = mTrustLines->outgoingTrustAmountConsideringReservations(kNextNode);
     debug() << "available outgoing amount to " << kNextNode << " is " << *kOutgoingAmount.get();
     TrustLineAmount reservationAmount = min(
         *kReservation.second.get(),
