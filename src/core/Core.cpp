@@ -277,21 +277,6 @@ int Core::initDelayedTasks()
             mMaxFlowCalculationTrustLimeManager.get(),
             *mLog.get());
 
-        mTrustLineNotificationTimer = make_unique<as::steady_timer>(
-            mIOService);
-
-        // todo: remove after update
-        int timeStarted = 60*2;
-
-        mTrustLineNotificationTimer->expires_from_now(
-            chrono::seconds(
-                timeStarted));
-
-        mTrustLineNotificationTimer->async_wait(
-            boost::bind(
-                &Core::notifyContractorsAboutCurrentTrustLinesAmounts,
-                this));
-
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
 
         return 0;

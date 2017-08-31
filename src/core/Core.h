@@ -169,7 +169,6 @@ protected:
     unique_ptr<PathsManager> mPathsManager;
     unique_ptr<SubsystemsController> mSubsystemsController;
 
-    unique_ptr<as::steady_timer> mTrustLineNotificationTimer;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H
