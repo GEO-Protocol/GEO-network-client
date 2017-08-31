@@ -350,29 +350,31 @@ void TrustLinesManager::dropAmountReservation(
 ConstSharedTrustLineAmount TrustLinesManager::outgoingTrustAmountConsideringReservations(
     const NodeUUID& contractor) const
 {
-    const auto kAvailableAmount = outgoingTrustAmountDespiteReservations(contractor);
+    const auto kTL = trustLineReadOnly(contractor);
+    const auto kAvailableAmount = kTL->availableOutgoingAmount();
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
         contractor, AmountReservation::Outgoing);
 
-    if (*kAlreadyReservedAmount >= kAvailableAmount) {
+    if (*kAlreadyReservedAmount >= *kAvailableAmount) {
         return make_shared<const TrustLineAmount>(0);
     }
     return make_shared<const TrustLineAmount>(
-        kAvailableAmount - *kAlreadyReservedAmount);
+        *kAvailableAmount - *kAlreadyReservedAmount);
 }
 
 ConstSharedTrustLineAmount TrustLinesManager::incomingTrustAmountConsideringReservations(
     const NodeUUID& contractor) const
 {
-    const auto kAvailableAmount = incomingTrustAmountDespiteResevations(contractor);
+    const auto kTL = trustLineReadOnly(contractor);
+    const auto kAvailableAmount = kTL->availableIncomingAmount();
     const auto kAlreadyReservedAmount = mAmountReservationsHandler->totalReserved(
         contractor, AmountReservation::Incoming);
 
-    if (*kAlreadyReservedAmount >= kAvailableAmount) {
+    if (*kAlreadyReservedAmount >= *kAvailableAmount) {
         return make_shared<const TrustLineAmount>(0);
     }
     return make_shared<const TrustLineAmount>(
-        kAvailableAmount - *kAlreadyReservedAmount);
+        *kAvailableAmount - *kAlreadyReservedAmount);
 }
 
 pair<ConstSharedTrustLineAmount, ConstSharedTrustLineAmount> TrustLinesManager::availableOutgoingCycleAmounts(
