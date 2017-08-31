@@ -281,7 +281,7 @@ int Core::initDelayedTasks()
             mIOService);
 
         // todo: remove after update
-        int timeStarted = 10 * 60;
+        int timeStarted = 60*2;
 
         mTrustLineNotificationTimer->expires_from_now(
             chrono::seconds(
