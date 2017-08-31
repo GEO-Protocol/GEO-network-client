@@ -1605,7 +1605,7 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
     bool sendToLastProcessedNode)
 {
     debug() << "dropReservationsOnPath";
-    const auto ioTransaction = mStorageHandler->beginTransaction();
+//    const auto ioTransaction = mStorageHandler->beginTransaction();
 
     pathStats->setUnusable();
 
@@ -1619,8 +1619,9 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
                     << " for (" << firstIntermediateNode << ") [" << pathID << "]";
             mTrustLines->dropAmountReservation(
                 firstIntermediateNode,
-                itPathIDAndReservation->second,
-                ioTransaction);
+                itPathIDAndReservation->second//,
+//                ioTransaction
+            );
 
             itPathIDAndReservation = nodeReservations->second.erase(itPathIDAndReservation);
             // coordinator has only one reservation on each path

@@ -207,8 +207,9 @@ public:
      */
     void dropAmountReservation(
         const NodeUUID &contractor,
-        const AmountReservation::ConstShared reservation,
-        IOTransaction::Shared ioTransaction);
+        const AmountReservation::ConstShared reservation//,
+//        IOTransaction::Shared ioTransaction
+    );
 
     /**
      * Converts reservation on the trust line to the real used amount.

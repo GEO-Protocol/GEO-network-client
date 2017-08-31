@@ -330,8 +330,9 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
 
 void TrustLinesManager::dropAmountReservation(
     const NodeUUID &contractor,
-    const AmountReservation::ConstShared reservation,
-    IOTransaction::Shared ioTransaction)
+    const AmountReservation::ConstShared reservation//,
+//    IOTransaction::Shared ioTransaction
+)
 {
     mAmountReservationsHandler->free(
         contractor,
@@ -339,12 +340,12 @@ void TrustLinesManager::dropAmountReservation(
 
     // In case if reservations was dropped on already closed trust line -
     // and there is no debt any more - trust line might be dropped at all.
-    if (outgoingTrustAmountConsideringReservations(contractor) == 0
-            and incomingTrustAmountConsideringReservations(contractor) == 0
-            and balance(contractor) == 0) {
-
-        removeTrustLine(ioTransaction, contractor);
-    }
+//    if (outgoingTrustAmountConsideringReservations(contractor) == 0
+//            and incomingTrustAmountConsideringReservations(contractor) == 0
+//            and balance(contractor) == 0) {
+//
+//        removeTrustLine(ioTransaction, contractor);
+//    }
 }
 
 ConstSharedTrustLineAmount TrustLinesManager::outgoingTrustAmountConsideringReservations(
