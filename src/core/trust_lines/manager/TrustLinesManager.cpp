@@ -166,7 +166,7 @@ void TrustLinesManager::closeOutgoing(
     // Note: totalReservedOnTrustLine() returns pointer, and it's comparison with 0 is always false.
     if (trustLine->incomingTrustAmount() == 0
             and trustLine->balance() == 0
-            and not reservationIsPresent(contractorUUID) == 0) {
+            and not reservationIsPresent(contractorUUID)) {
 
         removeTrustLine(
             IOTransaction,
@@ -199,7 +199,7 @@ void TrustLinesManager::closeIncoming(
     // Note: totalReservedOnTrustLine() returns pointer, and it's comparison with 0 is always false.
     if (trustLine->outgoingTrustAmount() == 0
             and trustLine->balance() == 0
-            and not reservationIsPresent(contractorUUID) == 0) {
+            and not reservationIsPresent(contractorUUID)) {
 
         removeTrustLine(
             IOTransaction,
