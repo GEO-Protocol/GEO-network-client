@@ -135,6 +135,7 @@ CommandResult::SharedConst HistoryTrustLinesCommand::resultOk(string &historyTru
 {
     return CommandResult::SharedConst(
         new CommandResult(
+            identifier(),
             UUID(),
             200,
             historyTrustLinesStr));

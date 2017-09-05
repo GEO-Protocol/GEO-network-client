@@ -175,5 +175,5 @@ CommandResult::SharedConst CreditUsageCommand::responseNoConsensus () const
 CommandResult::SharedConst CreditUsageCommand::responseOK(
     string &transactionUUID) const
 {
-    return make_shared<const CommandResult>(UUID(), 201, transactionUUID);
+    return make_shared<const CommandResult>(identifier(), UUID(), 201, transactionUUID);
 }

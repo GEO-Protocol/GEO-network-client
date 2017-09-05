@@ -98,6 +98,7 @@ CommandResult::SharedConst HistoryWithContractorCommand::resultOk(
 {
     return CommandResult::SharedConst(
         new CommandResult(
+            identifier(),
             UUID(),
             200,
             historyPaymentsStr));

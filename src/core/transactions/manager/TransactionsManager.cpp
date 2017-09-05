@@ -988,6 +988,7 @@ void TransactionsManager::onCommandResultReady(
     try {
         auto message = result->serialize();
 
+        mLog.info("Result for command " + result->identifier());
         mLog.logSuccess(
             "Transactions manager::onCommandResultReady",
             message
