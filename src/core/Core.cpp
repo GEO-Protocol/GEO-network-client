@@ -590,6 +590,12 @@ string Core::logHeader()
     return "[CORE]";
 }
 
+LoggerStream Core::error() const
+    noexcept
+{
+    return mLog->error(logHeader());
+}
+
 LoggerStream Core::warning() const
     noexcept
 {
