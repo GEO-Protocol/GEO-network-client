@@ -22,6 +22,16 @@ HistoryPaymentsCommand::Shared HistoryPaymentsTransaction::command() const
 TransactionResult::SharedConst HistoryPaymentsTransaction::run()
 {
     auto ioTransaction = mStorageHandler->beginTransaction();
+
+    if (mCommand->isPaymentRecordCommandUUIDPresent()) {
+        auto const paymentRecords = ioTransaction->historyStorage()->paymentRecordsByCommandUUID(
+            mCommand->paymentRecordCommandUUID());
+        if (paymentRecords.size() > 1) {
+            error() << "Count transactions with given commnadUUID is more than one";
+        }
+        return resultOk(paymentRecords);
+    }
+
     auto const paymentRecords = ioTransaction->historyStorage()->allPaymentRecords(
         mCommand->historyCount(),
         mCommand->historyFrom(),

@@ -1713,7 +1713,8 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
             PaymentRecord::PaymentOperationType::OutgoingPaymentType,
             mCommand->contractorUUID(),
             mCommittedAmount,
-            *mTrustLines->totalBalance().get()));
+            *mTrustLines->totalBalance().get(),
+            mCommand->UUID()));
     debug() << "Operation saved";
 }
 
