@@ -330,22 +330,11 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
 
 void TrustLinesManager::dropAmountReservation(
     const NodeUUID &contractor,
-    const AmountReservation::ConstShared reservation//,
-//    IOTransaction::Shared ioTransaction
-)
+    const AmountReservation::ConstShared reservation)
 {
     mAmountReservationsHandler->free(
         contractor,
         reservation);
-
-    // In case if reservations was dropped on already closed trust line -
-    // and there is no debt any more - trust line might be dropped at all.
-//    if (outgoingTrustAmountConsideringReservations(contractor) == 0
-//            and incomingTrustAmountConsideringReservations(contractor) == 0
-//            and balance(contractor) == 0) {
-//
-//        removeTrustLine(ioTransaction, contractor);
-//    }
 }
 
 ConstSharedTrustLineAmount TrustLinesManager::outgoingTrustAmountConsideringReservations(
@@ -503,6 +492,28 @@ void TrustLinesManager::removeTrustLine(
 
     IOTransaction->trustLinesHandler()->deleteTrustLine(contractorUUID);
     mTrustLines.erase(contractorUUID);
+}
+
+/**
+ * @throws IOError
+ * @throws NotFoundError
+ */
+void TrustLinesManager::removeTrustLineIfClosedAndEmpty(
+    const NodeUUID &contractorUUID,
+    IOTransaction::Shared ioTransaction)
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            "TrustLinesManager::removeTrustLineIfClosedAndEmpty: "
+                    "There is no trust line to the contractor.");
+    }
+
+    if (outgoingTrustAmountConsideringReservations(contractorUUID) == 0
+        and incomingTrustAmountConsideringReservations(contractorUUID) == 0
+        and balance(contractorUUID) == 0) {
+
+        removeTrustLine(ioTransaction, contractorUUID);
+    }
 }
 
 const TrustLine::Shared TrustLinesManager::trustLine(

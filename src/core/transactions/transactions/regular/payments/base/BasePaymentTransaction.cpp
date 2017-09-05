@@ -561,10 +561,12 @@ void BasePaymentTransaction::commit(
                         << "]";
 
             mTrustLines->dropAmountReservation(
-                        kNodeUUIDAndReservations.first,
-                        kPathIDAndReservation.second//,
-//                        ioTransaction
-            );
+                kNodeUUIDAndReservations.first,
+                kPathIDAndReservation.second);
+
+            mTrustLines->removeTrustLineIfClosedAndEmpty(
+                kNodeUUIDAndReservations.first,
+                ioTransaction);
         }
         ioTransaction->trustLinesHandler()->saveTrustLine(
             mTrustLines->trustLines().at(
@@ -611,9 +613,7 @@ void BasePaymentTransaction::rollBack ()
         for (const auto &kPathIDAndReservation : kNodeUUIDAndReservations.second) {
             mTrustLines->dropAmountReservation(
                 kNodeUUIDAndReservations.first,
-                kPathIDAndReservation.second//,
-//                ioTransaction
-            );
+                kPathIDAndReservation.second);
 
             if (kPathIDAndReservation.second->direction() == AmountReservation::Outgoing)
                 debug() << "Dropping reservation: [ => ] " << kPathIDAndReservation.second->amount()
@@ -635,7 +635,6 @@ void BasePaymentTransaction::rollBack (
     const PathID &pathID)
 {
     debug() << "rollback on path";
-//    const auto ioTransaction = mStorageHandler->beginTransaction();
 
     auto itNodeUUIDAndReservations = mReservations.begin();
     while(itNodeUUIDAndReservations != mReservations.end()) {
@@ -645,9 +644,7 @@ void BasePaymentTransaction::rollBack (
 
                 mTrustLines->dropAmountReservation(
                     itNodeUUIDAndReservations->first,
-                    itPathIDAndReservation->second//,
-//                    ioTransaction
-                );
+                    itPathIDAndReservation->second);
 
                 if (itPathIDAndReservation->second->direction() == AmountReservation::Outgoing)
                     debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()
@@ -826,19 +823,14 @@ void BasePaymentTransaction::dropNodeReservationsOnPath(
 {
     debug() << "dropNodeReservationsOnPath: " << pathID;
 
-//    const auto ioTransaction = mStorageHandler->beginTransaction();
-
     for (auto nodeReservations : mReservations) {
-        //auto nodeReservations = mReservations.find(firstIntermediateNode);
         auto itPathIDAndReservation = nodeReservations.second.begin();
         while (itPathIDAndReservation != nodeReservations.second.end()) {
             if (itPathIDAndReservation->first == pathID) {
 
                 mTrustLines->dropAmountReservation(
                     nodeReservations.first,
-                    itPathIDAndReservation->second//,
-//                    ioTransaction
-                );
+                    itPathIDAndReservation->second);
 
                 if (itPathIDAndReservation->second->direction() == AmountReservation::Outgoing)
                     debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()

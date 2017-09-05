@@ -207,9 +207,7 @@ public:
      */
     void dropAmountReservation(
         const NodeUUID &contractor,
-        const AmountReservation::ConstShared reservation//,
-//        IOTransaction::Shared ioTransaction
-    );
+        const AmountReservation::ConstShared reservation);
 
     /**
      * Converts reservation on the trust line to the real used amount.
@@ -281,6 +279,10 @@ public:
     void removeTrustLine(
         IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID);
+
+    void removeTrustLineIfClosedAndEmpty(
+        const NodeUUID &contractorUUID,
+        IOTransaction::Shared ioTransaction);
 
     vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
 
