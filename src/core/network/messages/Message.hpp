@@ -31,60 +31,60 @@ public:
         /*
          * Trust lines
          */
-        TrustLines_SetIncoming,
+        TrustLines_SetIncoming = 100,
 
         /*
          * Payments messages
          */
-        Payments_ReceiverInitPaymentRequest,
-        Payments_ReceiverInitPaymentResponse,
-        Payments_CoordinatorReservationRequest,
-        Payments_CoordinatorReservationResponse,
-        Payments_IntermediateNodeReservationRequest,
-        Payments_IntermediateNodeReservationResponse,
+        Payments_ReceiverInitPaymentRequest = 201,
+        Payments_ReceiverInitPaymentResponse = 202,
+        Payments_CoordinatorReservationRequest = 203,
+        Payments_CoordinatorReservationResponse = 204,
+        Payments_IntermediateNodeReservationRequest = 205,
+        Payments_IntermediateNodeReservationResponse = 206,
 
-        Payments_CoordinatorCycleReservationRequest,
-        Payments_CoordinatorCycleReservationResponse,
-        Payments_IntermediateNodeCycleReservationRequest,
-        Payments_IntermediateNodeCycleReservationResponse,
+        Payments_CoordinatorCycleReservationRequest = 207,
+        Payments_CoordinatorCycleReservationResponse = 208,
+        Payments_IntermediateNodeCycleReservationRequest = 209,
+        Payments_IntermediateNodeCycleReservationResponse = 210,
 
-        Payments_FinalAmountsConfiguration,
-        Payments_FinalAmountsConfigurationResponse,
+        Payments_FinalAmountsConfiguration = 211,
+        Payments_FinalAmountsConfigurationResponse = 212,
 
-        Payments_ParticipantsVotes,
-        Payments_VotesStatusRequest,
-        Payments_FinalPathConfiguration,
-        Payments_FinalPathCycleConfiguration,
-        Payments_TTLProlongationRequest,
-        Payments_TTLProlongationResponse,
+        Payments_ParticipantsVotes = 213,
+        Payments_VotesStatusRequest = 214,
+        Payments_FinalPathConfiguration = 215,
+        Payments_FinalPathCycleConfiguration = 216,
+        Payments_TTLProlongationRequest = 217,
+        Payments_TTLProlongationResponse = 218,
 
         /*
          * Cycles
          */
-        Cycles_ThreeNodesBalancesRequest,
-        Cycles_ThreeNodesBalancesResponse,
-        Cycles_FourNodesBalancesRequest,
-        Cycles_FourNodesBalancesResponse,
-        Cycles_FiveNodesBoundary,
-        Cycles_FiveNodesMiddleware,
-        Cycles_SixNodesBoundary,
-        Cycles_SixNodesMiddleware,
+        Cycles_ThreeNodesBalancesRequest = 300,
+        Cycles_ThreeNodesBalancesResponse = 301,
+        Cycles_FourNodesBalancesRequest = 302,
+        Cycles_FourNodesBalancesResponse = 303,
+        Cycles_FiveNodesBoundary = 304,
+        Cycles_FiveNodesMiddleware = 305,
+        Cycles_SixNodesBoundary = 306,
+        Cycles_SixNodesMiddleware = 307,
 
         /*
          * Max flow
          */
-        MaxFlow_InitiateCalculation,
-        MaxFlow_CalculationSourceFirstLevel,
-        MaxFlow_CalculationTargetFirstLevel,
-        MaxFlow_CalculationSourceSecondLevel,
-        MaxFlow_CalculationTargetSecondLevel,
-        MaxFlow_ResultMaxFlowCalculation,
+        MaxFlow_InitiateCalculation = 400,
+        MaxFlow_CalculationSourceFirstLevel = 401,
+        MaxFlow_CalculationTargetFirstLevel = 402,
+        MaxFlow_CalculationSourceSecondLevel = 403,
+        MaxFlow_CalculationTargetSecondLevel = 404,
+        MaxFlow_ResultMaxFlowCalculation = 405,
 
         /*
          * Total balance
          */
-        TotalBalance_Request,
-        TotalBalance_Response,
+        TotalBalance_Request  = 500,
+        TotalBalance_Response = 501,
 
         // ToDo: remove this
         ResponseMessageType = 1000,
@@ -92,7 +92,8 @@ public:
         /*
          * DEBUG
          */
-        Debug,
+        // Obvious, that we have to set this code
+        Debug = 6666,
     };
 
 public:

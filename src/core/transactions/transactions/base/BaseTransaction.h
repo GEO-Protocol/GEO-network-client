@@ -52,54 +52,54 @@ public:
     virtual ~BaseTransaction() = default;
 
     enum TransactionType {
-        SetOutgoingTrustLineTransaction = 1,
-        SetIncomingTrustLineTransaction,
+        SetOutgoingTrustLineTransaction = 100,
+        SetIncomingTrustLineTransaction = 101,
 
         // Cycles
-        Cycles_ThreeNodesInitTransaction,
-        Cycles_ThreeNodesReceiverTransaction,
-        Cycles_FourNodesInitTransaction,
-        Cycles_FourNodesReceiverTransaction,
-        Cycles_FiveNodesInitTransaction,
-        Cycles_FiveNodesReceiverTransaction,
-        Cycles_SixNodesInitTransaction,
-        Cycles_SixNodesReceiverTransaction,
+        Cycles_ThreeNodesInitTransaction = 200,
+        Cycles_ThreeNodesReceiverTransaction = 201,
+        Cycles_FourNodesInitTransaction = 202,
+        Cycles_FourNodesReceiverTransaction = 203,
+        Cycles_FiveNodesInitTransaction = 204,
+        Cycles_FiveNodesReceiverTransaction = 205,
+        Cycles_SixNodesInitTransaction = 206,
+        Cycles_SixNodesReceiverTransaction = 207,
 
         // Payments
-        CoordinatorPaymentTransaction,
-        ReceiverPaymentTransaction,
-        IntermediateNodePaymentTransaction,
-        VoutesStatusResponsePaymentTransaction,
-        Payments_CycleCloserInitiatorTransaction,
-        Payments_CycleCloserIntermediateNodeTransaction,
+        CoordinatorPaymentTransaction = 301,
+        ReceiverPaymentTransaction = 302,
+        IntermediateNodePaymentTransaction = 303,
+        VoutesStatusResponsePaymentTransaction = 304,
+        Payments_CycleCloserInitiatorTransaction = 305,
+        Payments_CycleCloserIntermediateNodeTransaction = 306,
 
         // Max flow calculation
-        CollectTopologyTransactionType,
-        InitiateMaxFlowCalculationTransactionType,
-        ReceiveMaxFlowCalculationOnTargetTransactionType,
-        MaxFlowCalculationSourceFstLevelTransactionType,
-        MaxFlowCalculationTargetFstLevelTransactionType,
-        MaxFlowCalculationSourceSndLevelTransactionType,
-        MaxFlowCalculationTargetSndLevelTransactionType,
-        ReceiveResultMaxFlowCalculationTransactionType,
-        MaxFlowCalculationCacheUpdateTransactionType,
+        CollectTopologyTransactionType = 401,
+        InitiateMaxFlowCalculationTransactionType = 402,
+        ReceiveMaxFlowCalculationOnTargetTransactionType = 403,
+        MaxFlowCalculationSourceFstLevelTransactionType = 404,
+        MaxFlowCalculationTargetFstLevelTransactionType = 405,
+        MaxFlowCalculationSourceSndLevelTransactionType = 406,
+        MaxFlowCalculationTargetSndLevelTransactionType = 407,
+        ReceiveResultMaxFlowCalculationTransactionType = 408,
+        MaxFlowCalculationCacheUpdateTransactionType = 409,
 
         // Contractors
-        ContractorsList,
-        TrustlinesList,
-        TrustLineOne,
+        ContractorsList = 500,
+        TrustlinesList = 501,
+        TrustLineOne = 502,
 
         // TotalBalances
-        TotalBalancesTransactionType,
-        InitiateTotalBalancesFromRemoutNodeTransactionType,
+        TotalBalancesTransactionType = 600,
+        InitiateTotalBalancesFromRemoutNodeTransactionType = 601,
 
         // History
-        HistoryPaymentsTransactionType,
-        HistoryTrustLinesTransactionType,
-        HistoryWithContractorTransactionType,
+        HistoryPaymentsTransactionType = 700,
+        HistoryTrustLinesTransactionType = 701,
+        HistoryWithContractorTransactionType = 702,
 
         // FindPath
-        FindPathByMaxFlowTransactionType,
+        FindPathByMaxFlowTransactionType = 800,
     };
 
 public:
