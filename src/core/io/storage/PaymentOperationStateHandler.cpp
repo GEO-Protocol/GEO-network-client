@@ -85,7 +85,7 @@ void PaymentOperationStateHandler::saveRecord(
         info() << "prepare inserting is completed successfully";
 #endif
     } else {
-        error() << "PaymentOperationStateHandler::insert: Run query; sqlite error: " << rc;
+        warning() << "PaymentOperationStateHandler::insert: Run query; sqlite error: " << rc;
         throw IOError("PaymentOperationStateHandler::insert: "
                           "Run query; sqlite error: " + to_string(rc));
     }
@@ -158,9 +158,9 @@ LoggerStream PaymentOperationStateHandler::info() const
     return mLog.info(logHeader());
 }
 
-LoggerStream PaymentOperationStateHandler::error() const
+LoggerStream PaymentOperationStateHandler::warning() const
 {
-    return mLog.error(logHeader());
+    return mLog.warning(logHeader());
 }
 
 const string PaymentOperationStateHandler::logHeader() const

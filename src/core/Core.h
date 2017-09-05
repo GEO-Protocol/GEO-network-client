@@ -140,8 +140,11 @@ protected:
     static string logHeader()
         noexcept;
 
-    LoggerStream error() const
+    LoggerStream warning() const
         noexcept;
+
+    LoggerStream error() const
+    noexcept;
 
     LoggerStream info() const
         noexcept;

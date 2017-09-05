@@ -22,9 +22,9 @@ public:
         return mLog.info(logHeader());
     }
 
-    LoggerStream error() const
+    LoggerStream warning() const
         noexcept {
-        return mLog.error(logHeader());
+        return mLog.warning(logHeader());
     }
 
     LoggerStream debug() const

@@ -1107,13 +1107,13 @@ void TransactionsManager::prepareAndSchedule(
             throw bad_alloc();
 
         } catch(ConflictError &e) {
-            mLog.error("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
+            mLog.warning("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
                                               << " New TransactionType:" << transaction->transactionType()
                                               << " Recreate.";
             if (regenerateUUID) {
                 transaction->recreateTransactionUUID();
             } else {
-                mLog.error("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
+                mLog.warning("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
                                                   << " New TransactionType:" << transaction->transactionType()
                                                   << "Exit.";
                 return;

@@ -319,7 +319,7 @@ LoggerStream MigrationsHandler::debug() const
 
 LoggerStream MigrationsHandler::error() const
 {
-    return mLog.error(logHeader());
+    return mLog.warning(logHeader());
 }
 
 

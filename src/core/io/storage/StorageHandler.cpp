@@ -67,9 +67,9 @@ LoggerStream StorageHandler::info() const
     return mLog.info(logHeader());
 }
 
-LoggerStream StorageHandler::error() const
+LoggerStream StorageHandler::warning() const
 {
-    return mLog.error(logHeader());
+    return mLog.warning(logHeader());
 }
 
 const string StorageHandler::logHeader() const

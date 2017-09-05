@@ -116,9 +116,9 @@ LoggerStream IOTransaction::info() const
     return mLog.info(logHeader());
 }
 
-LoggerStream IOTransaction::error() const
+LoggerStream IOTransaction::warning() const
 {
-    return mLog.error(logHeader());
+    return mLog.warning(logHeader());
 }
 
 const string IOTransaction::logHeader() const

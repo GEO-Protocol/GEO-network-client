@@ -23,7 +23,7 @@ TransactionResult::SharedConst CollectTopologyTransaction::run()
     debug() << "Collect topology to " << mContractors.front();
     for (const auto &contractorUUID : mContractors) {
         if (contractorUUID == currentNodeUUID()) {
-            error() << "Attempt to initialise operation against itself was prevented. Canceled.";
+            warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
             return resultDone();
         }
     }

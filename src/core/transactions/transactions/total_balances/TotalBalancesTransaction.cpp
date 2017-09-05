@@ -72,7 +72,7 @@ TransactionResult::SharedConst TotalBalancesTransaction::run()
             totalTrustUsedBySelf);
         return resultDone();
     }
-    error() << "something wrong: command and message are nulls";
+    warning() << "something wrong: command and message are nulls";
     return resultDone();
 }
 

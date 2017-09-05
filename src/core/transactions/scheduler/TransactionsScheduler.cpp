@@ -40,7 +40,7 @@ void TransactionsScheduler::scheduleTransaction(
     BaseTransaction::Shared transaction) {
     for ( auto it = mTransactions->begin(); it != mTransactions->end(); it++ ){
         if (transaction->currentTransactionUUID() == it->first->currentTransactionUUID()) {
-            mLog.error("scheduleTransaction:") << "Duplicate TransactionUUID. Already exists TransactionType: "
+            mLog.warning("scheduleTransaction:") << "Duplicate TransactionUUID. Already exists TransactionType: "
                                                << it->first->transactionType();
             throw ConflictError("Duplicate Transaction UUID");
         }
@@ -170,7 +170,7 @@ void TransactionsScheduler::launchTransaction(
             result);
 
     } catch (exception &e) {
-        mLog.error("[Transactions scheduler]")
+        mLog.warning("[Transactions scheduler]")
             << "TA error occurred:"
             << " UUID: " << transaction->currentTransactionUUID()
             << " Type: " << transaction->transactionType()
@@ -366,7 +366,7 @@ void TransactionsScheduler::handleAwakening(
 
     if (error && error != as::error::operation_aborted) {
 
-        auto errors = mLog.error("TransactionsScheduler::handleAwakening");
+        auto errors = mLog.warning("TransactionsScheduler::handleAwakening");
         if (errorsCount < 10) {
             errors << "Error occurred on planned awakening. Details: " << error.message().c_str()
                    << ". Next awakening would be scheduled for" << errorsCount << " seconds from now.";

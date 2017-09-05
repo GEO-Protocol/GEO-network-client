@@ -890,9 +890,9 @@ LoggerStream HistoryStorage::debug() const
     return mLog.debug(logHeader());
 }
 
-LoggerStream HistoryStorage::error() const
+LoggerStream HistoryStorage::warning() const
 {
-    return mLog.error(logHeader());
+    return mLog.warning(logHeader());
 }
 
 const string HistoryStorage::logHeader() const

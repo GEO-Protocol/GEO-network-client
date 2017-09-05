@@ -86,7 +86,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::run()
                        "invalid transaction step.");
         }
     } catch(Exception &e) {
-        error() << e.what();
+        warning() << e.what();
         return recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
@@ -102,7 +102,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
     debug() << "first intermediate node: " << mNextNode;
     if (! mTrustLines->isNeighbor(mNextNode)){
         // Internal process error. Wrong path
-        error() << "Invalid path occurred. Node (" << mNextNode << ") is not listed in first level contractors list.";
+        warning() << "Invalid path occurred. Node (" << mNextNode << ") is not listed in first level contractors list.";
         throw RuntimeError(
             "CycleCloserInitiatorTransaction::runAmountReservationStage: "
                 "invalid first level node occurred. ");
@@ -134,7 +134,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
     debug() << "last intermediate node: " << mPreviousNode;
     if (! mTrustLines->isNeighbor(mPreviousNode)){
         // Internal process error. Wrong path
-        error() << "Invalid path occurred. Node (" << mPreviousNode << ") is not listed in first level contractors list.";
+        warning() << "Invalid path occurred. Node (" << mPreviousNode << ") is not listed in first level contractors list.";
         throw RuntimeError(
             "CycleCloserInitiatorTransaction::runAmountReservationStage: "
                 "invalid first level node occurred. ");
@@ -413,7 +413,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
 
     if (message->state() == IntermediateNodeCycleReservationResponseMessage::Rejected ||
             message->state() == IntermediateNodeCycleReservationResponseMessage::RejectedBecauseReservations) {
-        error() << "Neighbor node doesn't approved reservation request";
+        warning() << "Neighbor node doesn't approved reservation request";
         rollBack();
         if (message->state() == IntermediateNodeCycleReservationResponseMessage::Rejected) {
             mCyclesManager->addClosedTrustLine(
@@ -424,7 +424,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborA
     }
 
     if (message->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
-        error() << "Unexpected message state. Protocol error.";
+        warning() << "Unexpected message state. Protocol error.";
         rollBack();
         return resultDone();
     }
@@ -498,7 +498,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
     auto message = popNextMessage<CoordinatorCycleReservationResponseMessage>();
 
     if (message->state() == IntermediateNodeCycleReservationResponseMessage::NextNodeInaccessible) {
-        error() << "Next node after neighbor is inaccessible.";
+        warning() << "Next node after neighbor is inaccessible.";
         rollBack();
         mCyclesManager->addOfflineNode(
             path->path()->nodes.at(
@@ -519,7 +519,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
     }
 
     if (message->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
-        error() << "Unexpected message state. Protocol error.";
+        warning() << "Unexpected message state. Protocol error.";
         rollBack();
         return resultDone();
     }
@@ -602,7 +602,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
     debug() << "processRemoteNodeResponse";
     auto path = mPathStats.get();
     if (!contextIsValid(Message::Payments_CoordinatorCycleReservationResponse)){
-        error() << "Remote node doesn't sent coordinator response. Can't pay.";
+        warning() << "Remote node doesn't sent coordinator response. Can't pay.";
         informIntermediateNodesAboutTransactionFinish(
             path->currentIntermediateNodeAndPos().second);
         mCyclesManager->addOfflineNode(
@@ -620,7 +620,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
     const auto R_PathPosition = R_UUIDAndPos.second;
 
     if (message->state() == CoordinatorCycleReservationResponseMessage::NextNodeInaccessible) {
-        error() << "Next node after neighbor is inaccessible.";
+        warning() << "Next node after neighbor is inaccessible.";
         rollBack();
         informIntermediateNodesAboutTransactionFinish(
             path->currentIntermediateNodeAndPos().second - 1);
@@ -652,7 +652,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
     }
 
     if (message->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
-        error() << "Unexpected message state. Protocol error.";
+        warning() << "Unexpected message state. Protocol error.";
         rollBack();
         return resultDone();
     }
@@ -846,7 +846,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsC
         auto kMessage = popNextMessage<FinalAmountsConfigurationResponseMessage>();
         if (mFinalAmountNodesConfirmation.find(kMessage->senderUUID) == mFinalAmountNodesConfirmation.end()) {
             // todo : need actual action on this case
-            error() << "Sender is not participant of this transaction";
+            warning() << "Sender is not participant of this transaction";
             return resultWaitForMessageTypes(
                 {Message::Payments_FinalAmountsConfigurationResponse},
                 maxNetworkDelay(2));
@@ -993,28 +993,28 @@ bool CycleCloserInitiatorTransaction::checkReservationsDirections() const
 {
     debug() << "checkReservationsDirections";
     if (mReservations.size() != 2) {
-        error() << "Wrong nodes reservations size: " << mReservations.size();
+        warning() << "Wrong nodes reservations size: " << mReservations.size();
         return false;
     }
 
     auto firstNodeReservation = mReservations.begin()->second;
     auto secondNodeReservation = mReservations.rbegin()->second;
     if (firstNodeReservation.size() != 1 || secondNodeReservation.size() != 1) {
-        error() << "Wrong reservations size";
+        warning() << "Wrong reservations size";
         return false;
     }
     const auto firstReservation = firstNodeReservation.at(0);
     const auto secondReservation = secondNodeReservation.at(0);
     if (firstReservation.first != secondReservation.first) {
-        error() << "Reservations on different ways";
+        warning() << "Reservations on different ways";
         return false;
     }
     if (firstReservation.second->amount() != secondReservation.second->amount()) {
-        error() << "Different reservations amount";
+        warning() << "Different reservations amount";
         return false;
     }
     if (firstReservation.second->direction() == secondReservation.second->direction()) {
-        error() << "Wrong directions";
+        warning() << "Wrong directions";
         return false;
     }
     return true;

@@ -98,6 +98,13 @@ LoggerStream Logger::debug(
     return LoggerStream(this, "DEBUG", subsystem);
 }
 
+LoggerStream Logger::error(
+        const string &subsystem)
+noexcept
+{
+    return LoggerStream(this, "ERROR", subsystem, LoggerStream::LOG_PRODUCTION);
+}
+
 void Logger::logInfo(
     const string &subsystem,
     const string &message)

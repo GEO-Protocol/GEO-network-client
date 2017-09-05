@@ -233,7 +233,7 @@ protected:
 
     virtual const string logHeader() const;
     LoggerStream info() const;
-    LoggerStream error() const;
+    LoggerStream warning() const;
     LoggerStream debug() const;
 
 public:

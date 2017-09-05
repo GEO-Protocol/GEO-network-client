@@ -161,7 +161,7 @@ void CyclesManager::runSignalFiveNodes(
     const boost::system::error_code &err)
 {
     if (err) {
-        error() << err.message();
+        warning() << err.message();
     }
     mFiveNodesCycleTimer->cancel();
     mFiveNodesCycleTimer->expires_from_now(
@@ -179,7 +179,7 @@ void CyclesManager::runSignalSixNodes(
     const boost::system::error_code &err)
 {
     if (err) {
-        error() << err.message();
+        warning() << err.message();
     }
     mSixNodesCycleTimer->cancel();
     mSixNodesCycleTimer->expires_from_now(
@@ -378,7 +378,7 @@ void CyclesManager::updateOfflineNodesAndClosedTLLists(
     const boost::system::error_code &err)
 {
     if (err) {
-        error() << err.message();
+        warning() << err.message();
     }
     mUpdatingTimer->cancel();
     mUpdatingTimer->expires_from_now(
@@ -429,9 +429,9 @@ LoggerStream CyclesManager::debug() const
     return mLog.debug(logHeader());
 }
 
-LoggerStream CyclesManager::error() const
+LoggerStream CyclesManager::warning() const
 {
-    return mLog.error(logHeader());
+    return mLog.warning(logHeader());
 }
 
 const string CyclesManager::logHeader() const

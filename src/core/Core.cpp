@@ -54,7 +54,7 @@ int Core::initSubsystems()
         conf = mSettings->loadParsedJSON();
 
     } catch (std::exception &e) {
-        cerr << utc_now() <<" : FATAL\tSETTINGS\t" <<  e.what() << "." << endl;
+        cerr << utc_now() <<" : ERROR\tSETTINGS\t" <<  e.what() << "." << endl;
         return -1;
     }
 
@@ -63,7 +63,7 @@ int Core::initSubsystems()
 
     } catch (RuntimeError &) {
         // Logger was not initialized yet
-        cerr << utc_now() <<" : FATAL\tCORE\tCan't read UUID of the node from the settings" << endl;
+        cerr << utc_now() <<" : ERROR\tCORE\tCan't read UUID of the node from the settings" << endl;
         return -1;
     }
 
@@ -590,10 +590,10 @@ string Core::logHeader()
     return "[CORE]";
 }
 
-LoggerStream Core::error() const
+LoggerStream Core::warning() const
     noexcept
 {
-    return mLog->error(logHeader());
+    return mLog->warning(logHeader());
 }
 
 LoggerStream Core::info() const

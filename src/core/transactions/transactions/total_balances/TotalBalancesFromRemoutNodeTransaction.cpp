@@ -22,7 +22,7 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::run()
     switch (mStep) {
         case Stages::SendRequestForRemouteNode:
             if (mCommand->contractorUUID() == currentNodeUUID()) {
-                error() << "Attempt to initialise operation against itself was prevented. Canceled.";
+                warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
                 return resultProtocolError();
             }
             sendMessageToRemoteNode();
@@ -52,7 +52,7 @@ TransactionResult::SharedConst TotalBalancesFromRemoutNodeTransaction::getRemout
                 response->totalOutgoingTrust(),
                 response->totalTrustUsedBySelf());
         }
-        error() << "getRemouteNodeTotalBalances: unexpected message type";
+        warning() << "getRemouteNodeTotalBalances: unexpected message type";
         return resultProtocolError();
     } else {
         throw ConflictError("TotalBalancesFromRemoutNodeTransaction::checkTransactionContext: "

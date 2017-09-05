@@ -37,7 +37,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
             // Check if there is mNodeUUID in command parameters
             for (const auto &contractorUUID : mCommand->contractors()) {
                 if (contractorUUID == currentNodeUUID()) {
-                    error() << "Attempt to initialise operation against itself was prevented. Canceled.";
+                    warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
                     return resultProtocolError();
                 }
             }

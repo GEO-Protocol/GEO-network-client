@@ -441,7 +441,7 @@ const bool BasePaymentTransaction::contextIsValid(
 {
     if (mContext.empty()) {
         if (showErrorMessage) {
-            error() << "contextIsValid::context is empty";
+            warning() << "contextIsValid::context is empty";
         }
         return false;
     }
@@ -453,14 +453,14 @@ const bool BasePaymentTransaction::contextIsValid(
             for (auto const message : mContext) {
                 stream << message->typeID() << " ";
             }
-            error() << stream.str();
+            warning() << stream.str();
         }
         return false;
     }
 
     if (mContext.at(0)->typeID() != messageType) {
         if (showErrorMessage) {
-            error() << "Unexpected message received. (ID " << mContext.at(0)->typeID()
+            warning() << "Unexpected message received. (ID " << mContext.at(0)->typeID()
                     << ") It seems that remote node doesn't follows the protocol. Canceling.";
         }
 
@@ -1023,7 +1023,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     }
 
     // TODO : need discuss this case. it can't be happen
-    error() << "Unexpected behaviour. Apply logic when coordinator didn't sent response";
+    warning() << "Unexpected behaviour. Apply logic when coordinator didn't sent response";
     return processNextNodeToCheckVotes();
 }
 
