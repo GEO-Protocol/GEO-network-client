@@ -280,9 +280,8 @@ public:
         IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID);
 
-    void removeTrustLineIfClosedAndEmpty(
-        const NodeUUID &contractorUUID,
-        IOTransaction::Shared ioTransaction);
+    bool isTrustLineEmpty(
+        const NodeUUID &contractorUUID);
 
     vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
 

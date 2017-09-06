@@ -563,14 +563,14 @@ void BasePaymentTransaction::commit(
             mTrustLines->dropAmountReservation(
                 kNodeUUIDAndReservations.first,
                 kPathIDAndReservation.second);
-
-            mTrustLines->removeTrustLineIfClosedAndEmpty(
-                kNodeUUIDAndReservations.first,
-                ioTransaction);
         }
-        ioTransaction->trustLinesHandler()->saveTrustLine(
+        if (mTrustLines->isTrustLineEmpty(kNodeUUIDAndReservations.first)) {
+            mTrustLines->removeTrustLine(
+                ioTransaction,
+                kNodeUUIDAndReservations.first);
+        } else ioTransaction->trustLinesHandler()->saveTrustLine(
             mTrustLines->trustLines().at(
-                kNodeUUIDAndReservations.first));
+            kNodeUUIDAndReservations.first));
     }
 
     // delete transaction references on dropped reservations

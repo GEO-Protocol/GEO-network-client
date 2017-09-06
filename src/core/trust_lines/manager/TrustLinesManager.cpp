@@ -498,22 +498,20 @@ void TrustLinesManager::removeTrustLine(
  * @throws IOError
  * @throws NotFoundError
  */
-void TrustLinesManager::removeTrustLineIfClosedAndEmpty(
-    const NodeUUID &contractorUUID,
-    IOTransaction::Shared ioTransaction)
+bool TrustLinesManager::isTrustLineEmpty(
+    const NodeUUID &contractorUUID)
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            "TrustLinesManager::removeTrustLineIfClosedAndEmpty: "
+            "TrustLinesManager::isTrustLineEmpty: "
                     "There is no trust line to the contractor.");
     }
 
-    if (outgoingTrustAmountConsideringReservations(contractorUUID) == 0
-        and incomingTrustAmountConsideringReservations(contractorUUID) == 0
-        and balance(contractorUUID) == 0) {
-
-        removeTrustLine(ioTransaction, contractorUUID);
-    }
+    auto outgoingAmountShared = outgoingTrustAmountConsideringReservations(contractorUUID);
+    auto incomingAmountShared = incomingTrustAmountConsideringReservations(contractorUUID);
+    return (*outgoingAmountShared.get() == 0
+        and *incomingAmountShared.get() == 0
+        and balance(contractorUUID) == 0);
 }
 
 const TrustLine::Shared TrustLinesManager::trustLine(

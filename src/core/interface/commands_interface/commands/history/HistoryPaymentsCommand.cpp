@@ -147,7 +147,7 @@ void HistoryPaymentsCommand::parse(
     nextTokenSeparatorPos = command.size() - 1;
     string paymentRecordCommandUUIDStr = command.substr(
         tokenSeparatorPos + 1,
-        CommandUUID::kHexSize);
+        nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (paymentRecordCommandUUIDStr == kNullParameter) {
         mIsPaymentRecordCommandUUIDPresent = false;
     } else {
