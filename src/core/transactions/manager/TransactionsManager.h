@@ -266,16 +266,16 @@ protected:
     void subscribeForSerializeTransaction(
         TransactionsScheduler::SerializeTransactionSignal &signal);
 
-    void subscribeForBuidCyclesThreeNodesTransaction(
+    void subscribeForBuildCyclesThreeNodesTransaction(
         BasePaymentTransaction::BuildCycleThreeNodesSignal &signal);
 
-    void subscribeForBuidCyclesFourNodesTransaction(
+    void subscribeForBuildCyclesFourNodesTransaction(
         BasePaymentTransaction::BuildCycleFourNodesSignal &signal);
 
-    void subscribeForBuidCyclesFiveNodesTransaction(
+    void subscribeForBuildCyclesFiveNodesTransaction(
         CyclesManager::BuildFiveNodesCyclesSignal &signal);
 
-    void subscribeForBuidCyclesSixNodesTransaction(
+    void subscribeForBuildCyclesSixNodesTransaction(
         CyclesManager::BuildSixNodesCyclesSignal &signal);
 
     void subscribeForCloseCycleTransaction(
@@ -301,7 +301,7 @@ protected:
     void onBuidCycleThreeNodesTransaction(
         vector<NodeUUID> &contractorsUUID);
 
-    void onBuidCycleFourNodesTransaction(
+    void onBuildCycleFourNodesTransaction(
         vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors);
 
     void onBuidCycleFiveNodesTransaction();

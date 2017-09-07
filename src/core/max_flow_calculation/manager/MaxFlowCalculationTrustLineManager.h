@@ -6,6 +6,7 @@
 #include "../../common/time/TimeUtils.h"
 #include "../../logger/Logger.h"
 
+#include <set>
 #include <unordered_set>
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
@@ -48,6 +49,9 @@ public:
     void makeFullyUsed(
         const NodeUUID &sourceUUID,
         const NodeUUID &targetUUID);
+
+    set<NodeUUID> neighborsOf(
+        const NodeUUID &sourceUUID);
 
 private:
     static const byte kResetTrustLinesHours = 0;

@@ -48,9 +48,9 @@ TransactionsManager::TransactionsManager(
         mScheduler->serializeTransactionSignal);
     subscribeForCloseCycleTransaction(
         mCyclesManager->closeCycleSignal);
-    subscribeForBuidCyclesFiveNodesTransaction(
+    subscribeForBuildCyclesFiveNodesTransaction(
         mCyclesManager->buildFiveNodesCyclesSignal);
-    subscribeForBuidCyclesSixNodesTransaction(
+    subscribeForBuildCyclesSixNodesTransaction(
         mCyclesManager->buildSixNodesCyclesSignal);
     subscribeForTryCloseNextCycleSignal(
         mScheduler->cycleCloserTransactionWasFinishedSignal);
@@ -86,8 +86,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mPathsManager,
                     mLog,
                     mSubsystemsController);
-                subscribeForBuidCyclesThreeNodesTransaction(
-                    transaction->mBuildCycleThreeNodesSignal);
+                subscribeForBuildCyclesThreeNodesTransaction(
+                        transaction->mBuildCycleThreeNodesSignal);
                 prepareAndSchedule(
                     transaction,
                     true,
@@ -104,9 +104,9 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mMaxFlowCalculationCacheManager,
                     mLog,
                     mSubsystemsController);
-                subscribeForBuidCyclesThreeNodesTransaction(
-                    transaction->mBuildCycleThreeNodesSignal);
-                subscribeForBuidCyclesFourNodesTransaction(
+                subscribeForBuildCyclesThreeNodesTransaction(
+                        transaction->mBuildCycleThreeNodesSignal);
+                subscribeForBuildCyclesFourNodesTransaction(
                     transaction->mBuildCycleFourNodesSignal);
                 prepareAndSchedule(
                     transaction,
@@ -124,8 +124,8 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mMaxFlowCalculationCacheManager,
                     mLog,
                     mSubsystemsController);
-                subscribeForBuidCyclesThreeNodesTransaction(
-                    transaction->mBuildCycleThreeNodesSignal);
+                subscribeForBuildCyclesThreeNodesTransaction(
+                        transaction->mBuildCycleThreeNodesSignal);
                 prepareAndSchedule(
                     transaction,
                     false,
@@ -416,7 +416,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
-        InitiateMaxFlowCalculationMessage::Shared message) {
+    InitiateMaxFlowCalculationMessage::Shared message) {
 
     try {
         prepareAndSchedule(
@@ -560,8 +560,8 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mPathsManager,
         mLog,
         mSubsystemsController);
-    subscribeForBuidCyclesThreeNodesTransaction(
-        transaction->mBuildCycleThreeNodesSignal);
+    subscribeForBuildCyclesThreeNodesTransaction(
+            transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, true, false, true);
 }
 
@@ -576,8 +576,8 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         mMaxFlowCalculationCacheManager,
         mLog,
         mSubsystemsController);
-    subscribeForBuidCyclesThreeNodesTransaction(
-        transaction->mBuildCycleThreeNodesSignal);
+    subscribeForBuildCyclesThreeNodesTransaction(
+            transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, false, false, true);
 }
 
@@ -592,9 +592,9 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         mMaxFlowCalculationCacheManager,
         mLog,
         mSubsystemsController);
-    subscribeForBuidCyclesThreeNodesTransaction(
-        transaction->mBuildCycleThreeNodesSignal);
-    subscribeForBuidCyclesFourNodesTransaction(
+    subscribeForBuildCyclesThreeNodesTransaction(
+            transaction->mBuildCycleThreeNodesSignal);
+    subscribeForBuildCyclesFourNodesTransaction(
         transaction->mBuildCycleFourNodesSignal);
     prepareAndSchedule(transaction, false, false, true);
 }
@@ -648,7 +648,7 @@ void TransactionsManager::launchVotesResponsePaymentsTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchTotalBalancesTransaction(
-        TotalBalancesCommand::Shared command) {
+    TotalBalancesCommand::Shared command) {
 
     try {
         prepareAndSchedule(
@@ -671,7 +671,7 @@ void TransactionsManager::launchTotalBalancesTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchTotalBalancesTransaction(
-        InitiateTotalBalancesMessage::Shared message) {
+    InitiateTotalBalancesMessage::Shared message) {
 
     try {
         prepareAndSchedule(
@@ -911,7 +911,7 @@ void TransactionsManager::subscribeForCommandResult(
     );
 }
 
-void TransactionsManager::subscribeForBuidCyclesThreeNodesTransaction(
+void TransactionsManager::subscribeForBuildCyclesThreeNodesTransaction(
     BasePaymentTransaction::BuildCycleThreeNodesSignal &signal)
 {
     signal.connect(
@@ -921,17 +921,17 @@ void TransactionsManager::subscribeForBuidCyclesThreeNodesTransaction(
             _1));
 }
 
-void TransactionsManager::subscribeForBuidCyclesFourNodesTransaction(
+void TransactionsManager::subscribeForBuildCyclesFourNodesTransaction(
     BasePaymentTransaction::BuildCycleFourNodesSignal &signal)
 {
     signal.connect(
         boost::bind(
-            &TransactionsManager::onBuidCycleFourNodesTransaction,
+            &TransactionsManager::onBuildCycleFourNodesTransaction,
             this,
             _1));
 }
 
-void TransactionsManager::subscribeForBuidCyclesFiveNodesTransaction(
+void TransactionsManager::subscribeForBuildCyclesFiveNodesTransaction(
     CyclesManager::BuildFiveNodesCyclesSignal &signal)
 {
     signal.connect(
@@ -940,7 +940,7 @@ void TransactionsManager::subscribeForBuidCyclesFiveNodesTransaction(
             this));
 }
 
-void TransactionsManager::subscribeForBuidCyclesSixNodesTransaction(
+void TransactionsManager::subscribeForBuildCyclesSixNodesTransaction(
     CyclesManager::BuildSixNodesCyclesSignal &signal)
 {
     signal.connect(
@@ -1032,7 +1032,7 @@ void TransactionsManager::onBuidCycleThreeNodesTransaction(
     }
 }
 
-void TransactionsManager::onBuidCycleFourNodesTransaction(
+void TransactionsManager::onBuildCycleFourNodesTransaction(
     vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors)
 {
     for (const auto &debtorAndCreditor : debtorsAndCreditors) {

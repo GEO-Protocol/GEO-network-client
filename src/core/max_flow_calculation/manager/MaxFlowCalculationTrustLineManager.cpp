@@ -210,6 +210,21 @@ DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const
     return result;
 }
 
+set<NodeUUID> MaxFlowCalculationTrustLineManager::neighborsOf(
+    const NodeUUID &sourceUUID)
+{
+    set<NodeUUID> result;
+    info() << "neighborsOf map size" << msTrustLines.size();
+    auto const &nodeUUIDAndSetTrustLines = msTrustLines.find(sourceUUID);
+    if (nodeUUIDAndSetTrustLines == msTrustLines.end()) {
+        return result;
+    }
+    for (auto &trustLinePtr : *nodeUUIDAndSetTrustLines->second) {
+        result.insert(trustLinePtr->maxFlowCalculationtrustLine()->targetUUID());
+    }
+    return result;
+}
+
 void MaxFlowCalculationTrustLineManager::setPreventDeleting(
     bool preventDeleting)
 {
