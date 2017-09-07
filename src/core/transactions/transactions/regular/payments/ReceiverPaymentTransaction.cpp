@@ -496,6 +496,11 @@ bool ReceiverPaymentTransaction::checkReservationsDirections() const
     return true;
 }
 
+const NodeUUID& ReceiverPaymentTransaction::coordinatorUUID() const
+{
+    return mMessage->senderUUID;
+}
+
 void ReceiverPaymentTransaction::runBuildThreeNodesCyclesSignal()
 {
     vector<NodeUUID> contractorsUUID;

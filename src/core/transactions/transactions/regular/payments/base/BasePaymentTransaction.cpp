@@ -1222,7 +1222,7 @@ const uint8_t BasePaymentTransaction::cycleLength() const
     return 0;
 }
 
-bool BasePaymentTransaction::isCommonVotesCheckingstage() const
+bool BasePaymentTransaction::isCommonVotesCheckingStage() const
 {
     return mStep == Common_VotesChecking;
 }

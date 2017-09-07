@@ -9,6 +9,7 @@
 
 
 #include "../transactions/base/BaseTransaction.h"
+#include "../transactions/regular/payments/base/BasePaymentTransaction.h"
 #include "../transactions/result/TransactionResult.h"
 
 #include "../../resources/resources/BaseResource.h"

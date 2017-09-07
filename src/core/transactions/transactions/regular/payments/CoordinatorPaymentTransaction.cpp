@@ -1732,6 +1732,11 @@ bool CoordinatorPaymentTransaction::checkReservationsDirections() const
     return true;
 }
 
+const NodeUUID& CoordinatorPaymentTransaction::coordinatorUUID() const
+{
+    return currentNodeUUID();
+}
+
 void CoordinatorPaymentTransaction::runBuildThreeNodesCyclesSignal()
 {
     vector<NodeUUID> contractorsUUID;

@@ -200,13 +200,13 @@ bool CyclesManager::isChallengerTransactionWinReservation(
     debug() << "isChallengerTransactionWinReservation challenger: " << challengerTransaction->currentTransactionUUID()
             << " nodeUUID: " << challengerTransaction->currentNodeUUID()
             << " transaction type: " << challengerTransaction->transactionType()
-            << " votesCheckingStage: " << challengerTransaction->isCommonVotesCheckingstage()
+            << " votesCheckingStage: " << challengerTransaction->isCommonVotesCheckingStage()
             << " cycle length: " << to_string(challengerTransaction->cycleLength())
             << " coordinator: " << challengerTransaction->coordinatorUUID();
     debug() << "isChallengerTransactionWinReservation reserved: " << reservedTransaction->currentTransactionUUID()
             << " nodeUUID: " << challengerTransaction->currentNodeUUID()
             << " transaction type: " << reservedTransaction->transactionType()
-            << " votesCheckingStage: " << reservedTransaction->isCommonVotesCheckingstage()
+            << " votesCheckingStage: " << reservedTransaction->isCommonVotesCheckingStage()
             << " cycle length: " << to_string(reservedTransaction->cycleLength())
             << " coordinator: " << reservedTransaction->coordinatorUUID();
     if (reservedTransaction->transactionType() != BaseTransaction::TransactionType::Payments_CycleCloserInitiatorTransaction
@@ -214,7 +214,7 @@ bool CyclesManager::isChallengerTransactionWinReservation(
         debug() << "isChallengerTransactionWinReservation false: reserved is not cycle transaction";
         return false;
     }
-    if (reservedTransaction->isCommonVotesCheckingstage()) {
+    if (reservedTransaction->isCommonVotesCheckingStage()) {
         debug() << "isChallengerTransactionWinReservation false: reserved on votesChecking stage";
         return false;
     }

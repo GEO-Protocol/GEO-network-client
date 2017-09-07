@@ -86,7 +86,7 @@ public:
 
     virtual const uint8_t cycleLength() const;
 
-    bool isCommonVotesCheckingstage() const;
+    bool isCommonVotesCheckingStage() const;
 
     void setRollbackByOtherTransactionStage();
 

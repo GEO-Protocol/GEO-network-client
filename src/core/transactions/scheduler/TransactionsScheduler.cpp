@@ -99,6 +99,18 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
                 continue;
             }
 
+            // filtering TTL response messages for payment TAs
+            // this messages can send only transaction coordinator
+            // in future if such cases will be more this code should make separate method
+            if (message->typeID() == Message::Payments_TTLProlongationResponse) {
+                auto paymentTransaction = static_pointer_cast<BasePaymentTransaction>(
+                    transactionAndState.first);
+                auto senderMessage = static_pointer_cast<SenderMessage>(message);
+                if (paymentTransaction->coordinatorUUID() != senderMessage->senderUUID) {
+                    continue;
+                }
+            }
+
             transactionAndState.first->pushContext(message);
             if (transactionAndState.second->mustBeAwakenedOnMessage()) {
                 launchTransaction(transactionAndState.first);

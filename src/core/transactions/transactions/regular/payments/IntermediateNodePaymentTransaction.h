@@ -32,6 +32,8 @@ public:
     TransactionResult::SharedConst run()
         noexcept;
 
+    const NodeUUID& coordinatorUUID() const;
+
 protected:
     TransactionResult::SharedConst runPreviousNeighborRequestProcessingStage();
     TransactionResult::SharedConst runCoordinatorRequestProcessingStage();

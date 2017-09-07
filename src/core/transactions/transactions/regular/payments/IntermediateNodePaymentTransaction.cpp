@@ -22,6 +22,7 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     mMessage(message)
 {
     mStep = Stages::IntermediateNode_PreviousNeighborRequestProcessing;
+    mCoordinator = NodeUUID::empty();
 }
 
 IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
@@ -237,6 +238,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     // TODO: add check for previous nodes amount reservation
 
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
+    mCoordinator = kMessage->senderUUID;
     const auto kNextNode = kMessage->nextNodeInPath();
     if (kMessage->finalAmountsConfiguration().size() == 0) {
         warning() << "Not received reservation";
@@ -261,7 +263,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     }
 
     const auto kReservation = kMessage->finalAmountsConfiguration()[0];
-    mCoordinator = kMessage->senderUUID;
     mLastProcessedPath = kReservation.first;
 
     debug() << "requested reservation amount is " << *kReservation.second.get() << " on path " << kReservation.first;
@@ -709,6 +710,11 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
     runBuildFourNodesCyclesSignal();
     runBuildThreeNodesCyclesSignal();
     return resultDone();
+}
+
+const NodeUUID& IntermediateNodePaymentTransaction::coordinatorUUID() const
+{
+    return mCoordinator;
 }
 
 void IntermediateNodePaymentTransaction::runBuildFourNodesCyclesSignal()

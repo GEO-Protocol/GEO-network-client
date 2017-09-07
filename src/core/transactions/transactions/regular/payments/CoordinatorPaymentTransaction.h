@@ -60,6 +60,8 @@ public:
     TransactionResult::SharedConst run()
         noexcept;
 
+    const NodeUUID& coordinatorUUID() const;
+
 protected:
     // Stages handlers
     // TODO: Add throws specififcations
