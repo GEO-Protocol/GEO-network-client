@@ -706,8 +706,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
     mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
-    runBuildFourNodesCyclesSignal();
-    runBuildThreeNodesCyclesSignal();
+    BasePaymentTransaction::runThreeNodesCyclesTransactions();
     return resultDone();
 }
 

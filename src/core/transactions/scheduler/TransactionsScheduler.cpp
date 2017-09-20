@@ -93,6 +93,12 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
             transactionAndState.first->pushContext(message);
             return;
         }
+        if (transactionAndState.first->transactionType() == BaseTransaction::TransactionType::RoutingTableInitTransactionType and
+            message->typeID() == Message::MessageType::RoutingTableResponse) {
+            transactionAndState.first->pushContext(message);
+            return;
+        }
+
 
         for (auto const &messageType : transactionAndState.second->acceptedMessagesTypes()) {
             if (message->typeID() != messageType) {

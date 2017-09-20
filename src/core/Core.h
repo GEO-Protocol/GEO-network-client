@@ -82,6 +82,8 @@ private:
 
     int initSubsystemsController();
 
+    int initRoughtingTable();
+
     void connectCommunicatorSignals();
 
     void connectCommandsInterfaceSignals();
@@ -94,6 +96,8 @@ private:
 
     void connectSignalsToSlots();
 
+    void connectRoutingTableSignals();
+
     void onCommandReceivedSlot(
         BaseUserCommand::Shared command);
 
@@ -103,6 +107,8 @@ private:
     void onMessageSendSlot(
         Message::Shared message,
         const NodeUUID &contractorUUID);
+
+    void onUpdateRoutingTableSlot();
 
     [[deprecated]]
     void onTrustLineCreatedSlot(
@@ -171,7 +177,7 @@ protected:
     unique_ptr<StorageHandler> mStorageHandler;
     unique_ptr<PathsManager> mPathsManager;
     unique_ptr<SubsystemsController> mSubsystemsController;
-
+    unique_ptr<RoutingTableManager> mRoutingTable;
 };
 
 #endif //GEO_NETWORK_CLIENT_CORE_H

@@ -153,6 +153,13 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::TotalBalance_Response:
             return messageCollected<TotalBalancesResultMessage>(buffer);
 
+        /*
+         * RoutingTables
+         */
+        case Message::RoutingTableRequest:
+            return messageCollected<RoutingTableRequestMessage>(buffer);
+        case Message::RoutingTableResponse:
+            return messageCollected<RoutingTableResponseMessage>(buffer);
 
 #ifdef DEBUG
         /*

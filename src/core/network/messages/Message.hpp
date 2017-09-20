@@ -86,6 +86,11 @@ public:
         TotalBalance_Request  = 500,
         TotalBalance_Response = 501,
 
+        /*
+         * Routing table
+         */
+        RoutingTableRequest = 600,
+        RoutingTableResponse = 601,
         // ToDo: remove this
         ResponseMessageType = 1000,
 

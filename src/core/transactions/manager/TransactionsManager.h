@@ -40,6 +40,7 @@
 #include "../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 #include "../../network/messages/payments/VotesStatusRequestMessage.hpp"
+#include "../../network/messages/routing_table/RoutingTableRequestMessage.h"
 
 #include "../../resources/manager/ResourcesManager.h"
 #include "../../resources/resources/BaseResource.h"
@@ -86,6 +87,9 @@
 #include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
 #include "../transactions/trustlines_list/GetFirstLevelContractorBalanceTransaction.h"
 
+#include "../transactions/routing_table/RoutingTableInitTransaction.h"
+#include "../transactions/routing_table/RoutingTableResponseTransaction.h"
+
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
 #include <boost/signals2.hpp>
@@ -111,6 +115,7 @@ public:
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
+        RoutingTableManager *routingTable,
         Logger &logger,
         SubsystemsController *subsystemsController);
 
@@ -252,6 +257,14 @@ protected: // Transactions
     void launchGetTrustlineTransaction(
         GetTrustLineCommand::Shared command);
 
+    /*
+     * RoutingTable
+     */
+    void launchRoutingTableResponseTransaction(
+        RoutingTableRequestMessage::Shared message);
+public:
+    void launchRoutingTableRequestTransaction();
+
 protected:
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(
@@ -330,6 +343,7 @@ private:
     ResultsInterface *mResultsInterface;
     PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;
+    RoutingTableManager *mRoutingTable;
     Logger &mLog;
 
     SubsystemsController *mSubsystemsController;
