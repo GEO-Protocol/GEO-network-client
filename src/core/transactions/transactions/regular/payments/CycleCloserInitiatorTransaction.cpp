@@ -97,8 +97,14 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
     // Firstly check if paths is valid cycle
     checkPath(
         mPathStats->path());
+    auto new_path = mPathStats->path();
+    debug() << "SourceUUID: " << new_path->sourceUUID();
+    debug() << "DestinaionUUID: " << new_path->destinationUUID();
+    for(auto node:new_path->intermediateUUIDs())
+        debug() << "intermediateNode: " << node;
     debug() << "cycle is valid";
     mNextNode = mPathStats->path()->nodes[1];
+    debug() << "mNextNode: " << mNextNode;
     debug() << "first intermediate node: " << mNextNode;
     if (! mTrustLines->isNeighbor(mNextNode)){
         // Internal process error. Wrong path
@@ -107,6 +113,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
             "CycleCloserInitiatorTransaction::runAmountReservationStage: "
                 "invalid first level node occurred. ");
     }
+
     const auto kOutgoingAmounts = mTrustLines->availableOutgoingCycleAmounts(mNextNode);
     const auto kOutgoingAmountWithReservations = kOutgoingAmounts.first;
     const auto kOutgoingAmountWithoutReservations = kOutgoingAmounts.second;

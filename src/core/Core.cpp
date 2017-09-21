@@ -459,6 +459,7 @@ void Core::connectSignalsToSlots()
     connectTrustLinesManagerSignals();
     connectDelayedTasksSignals();
     connectResourcesManagerSignals();
+    connectRoutingTableSignals();
 }
 
 void Core::onUpdateRoutingTableSlot()

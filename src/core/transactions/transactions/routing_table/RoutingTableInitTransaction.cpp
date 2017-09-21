@@ -49,6 +49,7 @@ TransactionResult::SharedConst RoutingTableInitTransaction::runCollectDataStage(
             currentNodeUUID()
         );
     }
+    mStep = Stages::UpdateRoutingTableStage;
     return resultAwaikAfterMilliseconds(mkWaitingForResponseTime);
 }
 
@@ -60,7 +61,7 @@ const string RoutingTableInitTransaction::logHeader() const {
 
 TransactionResult::SharedConst RoutingTableInitTransaction::runUpdateRoutingTableStage()
 {
-    if (mContext.size() != 0){
+    if (mContext.size() == 0){
         info() << "No responses from neighbors. RoutingTable will not be updated." << endl;
         return resultDone();
     }

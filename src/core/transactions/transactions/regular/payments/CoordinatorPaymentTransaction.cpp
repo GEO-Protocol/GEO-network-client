@@ -1327,7 +1327,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
-    BasePaymentTransaction::runThreeNodesCyclesTransactions();
+//    BasePaymentTransaction::runThreeNodesCyclesTransactions();
 
 #ifdef TESTS
     // all nodes wait for this message

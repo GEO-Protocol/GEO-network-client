@@ -91,6 +91,7 @@ public:
          */
         RoutingTableRequest = 600,
         RoutingTableResponse = 601,
+
         // ToDo: remove this
         ResponseMessageType = 1000,
 

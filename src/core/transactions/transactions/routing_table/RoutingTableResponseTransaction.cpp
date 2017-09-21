@@ -30,6 +30,8 @@ TransactionResult::SharedConst RoutingTableResponseTransaction::run()
     auto neighbors = mTrustLinesManager->rt1();
     set<NodeUUID> result;
     for(auto node:neighbors){
+        if(node == mRequestMessage->senderUUID)
+            continue;
         result.insert(node);
     }
     sendMessage<RoutingTableResponseMessage>(
