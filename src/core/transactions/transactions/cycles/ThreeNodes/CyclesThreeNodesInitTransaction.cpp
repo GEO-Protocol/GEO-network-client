@@ -102,6 +102,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
         vector<NodeUUID> cycle = {
             mContractorUUID,
             nodeUUIDAndBalance};
+        reverse(cycle.begin(), cycle.end());
         // Path object is common object. For cycle - destination and sourse node is the same
         const auto cyclePath = make_shared<Path>(
             mNodeUUID,

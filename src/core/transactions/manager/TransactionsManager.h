@@ -127,7 +127,6 @@ public:
 
     //  Cycles Transactions
     void launchFourNodesCyclesInitTransaction(
-        const NodeUUID &debtorUUID,
         const NodeUUID &creditorUUID);
 
     void launchFourNodesCyclesResponseTransaction(
@@ -315,7 +314,7 @@ protected:
         vector<NodeUUID> &contractorsUUID);
 
     void onBuidCycleFourNodesTransaction(
-        vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors);
+        vector<NodeUUID> &creditors);
 
     void onBuidCycleFiveNodesTransaction();
 

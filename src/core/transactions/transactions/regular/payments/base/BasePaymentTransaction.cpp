@@ -1245,3 +1245,8 @@ void BasePaymentTransaction::setRollbackByOtherTransactionStage()
 void BasePaymentTransaction::runThreeNodesCyclesTransactions() {
     mBuildCycleThreeNodesSignal(mCreditorsForCycles);
 }
+
+void BasePaymentTransaction::runFourNodesCyclesTransactions() {
+    mBuildCycleFourNodesSignal(mCreditorsForCycles);
+}
+

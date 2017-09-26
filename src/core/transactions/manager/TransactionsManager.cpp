@@ -1041,12 +1041,11 @@ void TransactionsManager::onBuidCycleThreeNodesTransaction(
 }
 
 void TransactionsManager::onBuidCycleFourNodesTransaction(
-    vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors)
+    vector<NodeUUID> &creditors)
 {
-    for (const auto &debtorAndCreditor : debtorsAndCreditors) {
+    for (const auto &kCreditor : creditors) {
         launchFourNodesCyclesInitTransaction(
-            debtorAndCreditor.first,
-            debtorAndCreditor.second);
+            kCreditor);
     }
 }
 
@@ -1245,16 +1244,15 @@ void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
 }
 
 void TransactionsManager::launchFourNodesCyclesInitTransaction(
-    const NodeUUID &debtorUUID,
     const NodeUUID &creditorUUID)
 {
     try {
         prepareAndSchedule(
             make_shared<CyclesFourNodesInitTransaction>(
                 mNodeUUID,
-                debtorUUID,
                 creditorUUID,
                 mTrustLines,
+                mRoutingTable,
                 mCyclesManager.get(),
                 mStorageHandler,
                 mLog),

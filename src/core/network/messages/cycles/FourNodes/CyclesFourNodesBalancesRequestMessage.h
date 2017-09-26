@@ -17,7 +17,9 @@ public:
     CyclesFourNodesBalancesRequestMessage(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-            set<NodeUUID> &neighbors);
+        const NodeUUID &creditorNeighbor,
+        const NodeUUID &debtorNeighbor
+    );
 
     CyclesFourNodesBalancesRequestMessage(
             BytesShared buffer);
@@ -27,10 +29,13 @@ public:
 
     const MessageType typeID() const;
 
-    set<NodeUUID> Neighbors();
+    const NodeUUID debtor() const;
+
+    const NodeUUID creditor() const;
 
 protected:
-    set<NodeUUID> mNeighbors;
+    NodeUUID mDebtorUUID;
+    NodeUUID mCreditorUUID;
 };
 
 #endif //GEO_NETWORK_CLIENT_FOURNODESBALANCESREQUESTMESSAGE_H
