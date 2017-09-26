@@ -53,6 +53,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
                 }
                 return resultOk(maxFlows);
             }
+            sendMessagesToContractors();
             if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
                 for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
                     auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
@@ -65,11 +66,10 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
                 sendMessagesOnFirstLevel();
                 mMaxFlowCalculationCacheManager->setInitiatorCache();
             }
-            sendMessagesToContractors();
             mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
             mStep = Stages::CalculateMaxTransactionFlow;
             return resultAwaikAfterMilliseconds(
-                kWaitMilisecondsForCalculatingMaxFlow);
+                kWaitMillisecondsForCalculatingMaxFlow);
         }
         case Stages::CalculateMaxTransactionFlow: {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION

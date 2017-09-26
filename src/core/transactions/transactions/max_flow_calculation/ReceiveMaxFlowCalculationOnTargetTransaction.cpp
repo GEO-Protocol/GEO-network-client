@@ -32,7 +32,6 @@ TransactionResult::SharedConst ReceiveMaxFlowCalculationOnTargetTransaction::run
     sendResultToInitiator();
     sendMessagesOnFirstLevel();
     return resultDone();
-
 }
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()

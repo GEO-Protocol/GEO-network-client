@@ -61,7 +61,7 @@ private:
 
 private:
     static const byte kMaxPathLength = 6;
-    static const uint32_t kWaitMilisecondsForCalculatingMaxFlow = 2000;
+    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 2000;
 
 private:
     InitiateMaxFlowCalculationCommand::Shared mCommand;
