@@ -683,6 +683,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
         return runVotesRecoveryParentStage();
     } else {
         debug() << "Transaction doesn't sent/receive participants votes message and will be closed";
+        rollBack();
         return resultDone();
     }
 }
@@ -823,32 +824,35 @@ void BasePaymentTransaction::dropNodeReservationsOnPath(
 {
     debug() << "dropNodeReservationsOnPath: " << pathID;
 
-    for (auto nodeReservations : mReservations) {
-        auto itPathIDAndReservation = nodeReservations.second.begin();
-        while (itPathIDAndReservation != nodeReservations.second.end()) {
+    auto itNodeReservations = mReservations.begin();
+    while (itNodeReservations != mReservations.end()) {
+        auto itPathIDAndReservation = itNodeReservations->second.begin();
+        while (itPathIDAndReservation != itNodeReservations->second.end()) {
             if (itPathIDAndReservation->first == pathID) {
 
                 mTrustLines->dropAmountReservation(
-                    nodeReservations.first,
+                        itNodeReservations->first,
                     itPathIDAndReservation->second);
 
                 if (itPathIDAndReservation->second->direction() == AmountReservation::Outgoing)
                     debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()
-                            << " for (" << nodeReservations.first << ") [" << itPathIDAndReservation->first
+                            << " for (" << itNodeReservations->first << ") [" << itPathIDAndReservation->first
                             << "]";
 
                 else if (itPathIDAndReservation->second->direction() == AmountReservation::Incoming)
                     debug() << "Dropping reservation: [ <= ] " << itPathIDAndReservation->second->amount()
-                            << " for (" << nodeReservations.first << ") [" << itPathIDAndReservation->first
+                            << " for (" << itNodeReservations->first << ") [" << itPathIDAndReservation->first
                             << "]";
 
-                itPathIDAndReservation = nodeReservations.second.erase(itPathIDAndReservation);
+                itPathIDAndReservation = itNodeReservations->second.erase(itPathIDAndReservation);
             } else {
                 itPathIDAndReservation++;
             }
         }
-        if (nodeReservations.second.size() == 0) {
-            mReservations.erase(nodeReservations.first);
+        if (itNodeReservations->second.size() == 0) {
+            itNodeReservations = mReservations.erase(itNodeReservations);
+        } else {
+            itNodeReservations++;
         }
     }
 }
