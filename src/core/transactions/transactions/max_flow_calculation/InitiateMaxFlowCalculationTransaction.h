@@ -9,6 +9,7 @@
 #include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "CollectTopologyTransaction.h"
 
 #include <set>
 

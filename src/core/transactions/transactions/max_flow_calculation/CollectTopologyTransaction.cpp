@@ -2,7 +2,7 @@
 
 CollectTopologyTransaction::CollectTopologyTransaction(
     const NodeUUID &nodeUUID,
-    vector<NodeUUID> &contractors,
+    const vector<NodeUUID> &contractors,
     TrustLinesManager *manager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
@@ -20,17 +20,12 @@ CollectTopologyTransaction::CollectTopologyTransaction(
 
 TransactionResult::SharedConst CollectTopologyTransaction::run()
 {
-    debug() << "Collect topology to " << mContractors.front();
-    for (const auto &contractorUUID : mContractors) {
-        if (contractorUUID == currentNodeUUID()) {
-            warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
-            return resultDone();
-        }
-    }
+    debug() << "Collect topology to " << mContractors.size() << " contractors";
     // Check if Node does not have outgoing FlowAmount;
     if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().size() == 0){
         return resultDone();
     }
+    sendMessagesToContractors();
     if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
         for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
             auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
@@ -43,7 +38,6 @@ TransactionResult::SharedConst CollectTopologyTransaction::run()
         sendMessagesOnFirstLevel();
         mMaxFlowCalculationCacheManager->setInitiatorCache();
     }
-    sendMessagesToContractors();
     return resultDone();
 }
 

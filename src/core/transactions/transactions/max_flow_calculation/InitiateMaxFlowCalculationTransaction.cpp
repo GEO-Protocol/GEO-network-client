@@ -53,20 +53,16 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
                 }
                 return resultOk(maxFlows);
             }
-            sendMessagesToContractors();
-            if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
-                for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
-                    auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
-                    mMaxFlowCalculationTrustLineManager->addTrustLine(
-                        make_shared<MaxFlowCalculationTrustLine>(
-                            mNodeUUID,
-                            nodeUUIDAndOutgoingFlow.first,
-                            trustLineAmountShared));
-                }
-                sendMessagesOnFirstLevel();
-                mMaxFlowCalculationCacheManager->setInitiatorCache();
-            }
+
+            const auto kTransaction = make_shared<CollectTopologyTransaction>(
+                mNodeUUID,
+                mCommand->contractors(),
+                mTrustLinesManager,
+                mMaxFlowCalculationTrustLineManager,
+                mMaxFlowCalculationCacheManager,
+                mLog);
             mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
+            launchSubsidiaryTransaction(kTransaction);
             mStep = Stages::CalculateMaxTransactionFlow;
             return resultAwaikAfterMilliseconds(
                 kWaitMillisecondsForCalculatingMaxFlow);

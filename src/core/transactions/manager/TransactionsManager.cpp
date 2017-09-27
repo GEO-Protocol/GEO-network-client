@@ -404,7 +404,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
                 mMaxFlowCalculationCacheManager,
                 mLog),
             true,
-            false,
+            true,
             true);
     } catch (ConflictError &e) {
         throw ConflictError(e.message());
