@@ -35,8 +35,6 @@ protected:
     MaxFlowCalculationMessage(
         BytesShared buffer);
 
-    virtual const MessageType typeID() const = 0;
-
     virtual void deserializeFromBytes(
         BytesShared buffer);
 

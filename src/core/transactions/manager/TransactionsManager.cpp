@@ -16,7 +16,8 @@ TransactionsManager::TransactionsManager(
     StorageHandler *storageHandler,
     PathsManager *pathsManager,
     Logger &logger,
-    SubsystemsController *subsystemsController) :
+    SubsystemsController *subsystemsController,
+    bool iAmGateway) :
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
@@ -29,6 +30,7 @@ TransactionsManager::TransactionsManager(
     mPathsManager(pathsManager),
     mLog(logger),
     mSubsystemsController(subsystemsController),
+    mIAmGateway(iAmGateway),
 
     mScheduler(
         new TransactionsScheduler(
@@ -470,7 +472,9 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
                 mNodeUUID,
                 message,
                 mTrustLines,
-                mLog),
+                mMaxFlowCalculationCacheManager,
+                mLog,
+                mIAmGateway),
             false,
             false,
             true);
@@ -492,7 +496,9 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
                 mNodeUUID,
                 message,
                 mTrustLines,
-                mLog),
+                mMaxFlowCalculationCacheManager,
+                mLog,
+                mIAmGateway),
             false,
             false,
             true);

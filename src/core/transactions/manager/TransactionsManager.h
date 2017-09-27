@@ -112,7 +112,8 @@ public:
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
         Logger &logger,
-        SubsystemsController *subsystemsController);
+        SubsystemsController *subsystemsController,
+        bool iAmGateway);
 
     void processCommand(
         BaseUserCommand::Shared command);
@@ -322,6 +323,7 @@ protected:
 
 private:
     NodeUUID &mNodeUUID;
+    bool mIAmGateway;
     as::io_service &mIOService;
     TrustLinesManager *mTrustLines;
     ResourcesManager *mResourcesManager;

@@ -24,7 +24,19 @@ set(SOURCE_FILES
         MaxDemianSecondMigration.cpp
 
         MaxDemianThirdMigration.h
-        MaxDemianThirdMigration.cpp DeleteSerializedTransactionsMigration.h DeleteSerializedTransactionsMigration.cpp PositiveSignMigration.h PositiveSignMigration.cpp CommandUUIDMigration.h CommandUUIDMigration.cpp)
+        MaxDemianThirdMigration.cpp
+
+        DeleteSerializedTransactionsMigration.h
+        DeleteSerializedTransactionsMigration.cpp
+
+        PositiveSignMigration.h
+        PositiveSignMigration.cpp
+
+        CommandUUIDMigration.h
+        CommandUUIDMigration.cpp
+
+        TrustLineContractorIsGatewayMigration.cpp
+        TrustLineContractorIsGatewayMigration.h)
 
 add_library(migrations ${SOURCE_FILES})
 

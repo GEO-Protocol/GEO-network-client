@@ -67,6 +67,9 @@ int Core::initSubsystems()
         return -1;
     }
 
+    // todo : implement me correct
+    mIAmGateway = false;
+
     initCode = initLogger();
     if (initCode != 0)
         return initCode;
@@ -258,7 +261,8 @@ int Core::initTransactionsManager()
             mStorageHandler.get(),
             mPathsManager.get(),
             *mLog.get(),
-            mSubsystemsController.get());
+            mSubsystemsController.get(),
+            mIAmGateway);
         mLog->logSuccess("Core", "Transactions handler is successfully initialised");
         return 0;
 

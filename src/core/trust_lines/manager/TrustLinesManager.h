@@ -285,7 +285,11 @@ public:
 
     vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
 
+    vector<NodeUUID> firstLevelGatewayNeighborsWithOutgoingFlow() const;
+
     vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
+
+    vector<NodeUUID> firstLevelGatewayNeighborsWithIncomingFlow() const;
 
     vector<NodeUUID> firstLevelNeighborsWithPositiveBalance() const;
 

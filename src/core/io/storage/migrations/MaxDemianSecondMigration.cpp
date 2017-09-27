@@ -114,7 +114,8 @@ std::shared_ptr <TrustLine> MaxDemianSecondMigration::getOutwornTrustLine(
                 contractor,
                 incomingAmount,
                 outgoingAmount,
-                balance);
+                balance,
+                false);
 
         } catch (...) {
             throw RuntimeError(

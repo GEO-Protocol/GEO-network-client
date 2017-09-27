@@ -70,8 +70,9 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
         } else {
             // In case if trust line to this contractor is absent,
             // and "amount" is greater than 0 - new outgoing trust line should be created.
+            // todo : contractor is not gateway by default
             auto trustLine = make_shared<TrustLine>(
-                contractorUUID, 0, amount, 0);
+                contractorUUID, 0, amount, 0, false);
 
             mTrustLines[contractorUUID] = trustLine;
             saveToDisk(IOTransaction, trustLine);
@@ -117,8 +118,9 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
         } else {
             // In case if TL to this contractor is absent,
             // and "amount" is greater than 0 - new incoming trust line should be created.
+            // todo : contractor is not gateway by default
             auto trustLine = make_shared<TrustLine>(
-                contractorUUID, amount, 0, 0);
+                contractorUUID, amount, 0, 0, false);
 
             mTrustLines[contractorUUID] = trustLine;
             saveToDisk(IOTransaction, trustLine);
@@ -538,6 +540,20 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const 
     return result;
 }
 
+vector<NodeUUID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow() const {
+    vector<NodeUUID> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+        if (nodeUUIDAndTrustLine.second->isContractorGateway()) {
+            auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
+            auto trustLineAmountPtr = trustLineAmountShared.get();
+            if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
+                result.push_back(nodeUUIDAndTrustLine.first);
+            }
+        }
+    }
+    return result;
+}
+
 vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const {
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
@@ -546,6 +562,21 @@ vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const 
 
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(nodeUUIDAndTrustLine.first);
+        }
+    }
+    return result;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFlow() const {
+    vector<NodeUUID> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+        if (nodeUUIDAndTrustLine.second->isContractorGateway()) {
+            auto trustLineAmountShared = incomingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
+            auto trustLineAmountPtr = trustLineAmountShared.get();
+
+            if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
+                result.push_back(nodeUUIDAndTrustLine.first);
+            }
         }
     }
     return result;
