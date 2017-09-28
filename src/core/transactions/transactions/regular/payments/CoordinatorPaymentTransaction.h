@@ -164,8 +164,6 @@ protected:
 
     bool checkReservationsDirections() const;
 
-    void runBuildThreeNodesCyclesSignal();
-
 protected:
     const string logHeader() const;
 

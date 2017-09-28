@@ -707,57 +707,14 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::approve()
     mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
-    runBuildFourNodesCyclesSignal();
-    runBuildThreeNodesCyclesSignal();
+    BasePaymentTransaction::runThreeNodesCyclesTransactions();
+    BasePaymentTransaction::runFourNodesCyclesTransactions();
     return resultDone();
 }
 
 const NodeUUID& IntermediateNodePaymentTransaction::coordinatorUUID() const
 {
     return mCoordinator;
-}
-
-void IntermediateNodePaymentTransaction::runBuildFourNodesCyclesSignal()
-{
-    vector<pair<NodeUUID, NodeUUID>> debtorsAndCreditorsFourCycles;
-    map<PathID, NodeUUID> pathsReservations;
-    for (const auto &itNodeUUIDAndReservations : mReservations) {
-        for (const auto &itPathIDAndReservation : itNodeUUIDAndReservations.second) {
-            auto pathReservation = pathsReservations.find(itPathIDAndReservation.first);
-            if (pathReservation == pathsReservations.end()) {
-                pathsReservations.insert(
-                    make_pair(
-                        itPathIDAndReservation.first,
-                        itNodeUUIDAndReservations.first));
-            } else {
-                if (itPathIDAndReservation.second->direction() == AmountReservation::Outgoing) {
-                    debtorsAndCreditorsFourCycles.push_back(
-                        make_pair(
-                            pathReservation->second,
-                            itNodeUUIDAndReservations.first));
-                } else if (itPathIDAndReservation.second->direction() == AmountReservation::Incoming) {
-                    debtorsAndCreditorsFourCycles.push_back(
-                        make_pair(
-                            itNodeUUIDAndReservations.first,
-                            pathReservation->second));
-                }
-            }
-        }
-    }
-    mBuildCycleFourNodesSignal(
-        debtorsAndCreditorsFourCycles);
-}
-
-void IntermediateNodePaymentTransaction::runBuildThreeNodesCyclesSignal()
-{
-    vector<NodeUUID> contractorsUUID;
-    contractorsUUID.reserve(mReservations.size());
-    for (auto const nodeUUIDAndReservations : mReservations) {
-        contractorsUUID.push_back(
-            nodeUUIDAndReservations.first);
-    }
-    mBuildCycleThreeNodesSignal(
-        contractorsUUID);
 }
 
 void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory(

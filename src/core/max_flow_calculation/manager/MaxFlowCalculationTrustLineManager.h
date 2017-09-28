@@ -3,6 +3,7 @@
 
 #include "../../common/NodeUUID.h"
 #include "MaxFlowCalculationTrustLineWithPtr.h"
+#include "../../cycles/RoutingTableManager.h"
 #include "../../common/time/TimeUtils.h"
 #include "../../logger/Logger.h"
 
@@ -18,6 +19,7 @@ public:
 
 public:
     MaxFlowCalculationTrustLineManager(
+        RoutingTableManager *roughtingTable,
         Logger &logger);
 
     void addTrustLine(
@@ -68,12 +70,14 @@ private:
 
 private:
     LoggerStream info() const;
+    LoggerStream debug() const;
 
     const string logHeader() const;
 
 private:
     unordered_map<NodeUUID, TrustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
     map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
+    RoutingTableManager *mRoughtingTable;
     Logger &mLog;
     bool mPreventDeleting;
 };

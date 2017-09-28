@@ -1,14 +1,20 @@
 #include "MaxFlowCalculationTrustLineManager.h"
 
 MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
+    RoutingTableManager *roughtingTable,
     Logger &logger):
     mLog(logger),
-    mPreventDeleting(false)
+    mPreventDeleting(false),
+    mRoughtingTable(roughtingTable)
 {}
 
 void MaxFlowCalculationTrustLineManager::addTrustLine(
     MaxFlowCalculationTrustLine::Shared trustLine)
 {
+    // Part with roughting table
+    mRoughtingTable->updateMapAddOneNeighbor(trustLine->sourceUUID(), trustLine->targetUUID());
+    debug() << "sourceUUID: " << trustLine->sourceUUID() << " targetUUID: " << trustLine->targetUUID();
+
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
         if (*(trustLine->amount()) == TrustLine::kZeroAmount()) {
@@ -20,6 +26,7 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
             newHashSet);
         newHashSet->insert(
             newTrustLineWithPtr);
+
         msTrustLines.insert(
             make_pair(
                 trustLine->sourceUUID(),
@@ -239,6 +246,11 @@ bool MaxFlowCalculationTrustLineManager::preventDeleting() const
 LoggerStream MaxFlowCalculationTrustLineManager::info() const
 {
     return mLog.info(logHeader());
+}
+
+LoggerStream MaxFlowCalculationTrustLineManager::debug() const
+{
+    return mLog.debug(logHeader());
 }
 
 const string MaxFlowCalculationTrustLineManager::logHeader() const

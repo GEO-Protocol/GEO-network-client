@@ -55,10 +55,6 @@ protected:
         const PathID pathID,
         const TrustLineAmount &amount);
 
-    void runBuildFourNodesCyclesSignal();
-
-    void runBuildThreeNodesCyclesSignal();
-
     void savePaymentOperationIntoHistory(
         IOTransaction::Shared ioTransaction);
 

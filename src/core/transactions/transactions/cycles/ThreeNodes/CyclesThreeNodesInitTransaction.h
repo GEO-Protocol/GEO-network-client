@@ -4,6 +4,7 @@
 #include "../../base/BaseTransaction.h"
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../cycles/CyclesManager.h"
+#include "../../../../cycles/RoutingTableManager.h"
 #include "../../../../io/storage/StorageHandler.h"
 #include "../../../../paths/lib/Path.h"
 #include "../../../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
@@ -20,6 +21,7 @@ public:
         const NodeUUID &nodeUUID,
         const NodeUUID &contractorUUID,
         TrustLinesManager *manager,
+        RoutingTableManager *roughtingTable,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         Logger &logger);
@@ -44,6 +46,7 @@ protected:
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
     StorageHandler *mStorageHandler;
+    RoutingTableManager *mRoughtingTable;
 };
 
 #endif //GEO_NETWORK_CLIENT_THREENODESINITTRANSACTION_H

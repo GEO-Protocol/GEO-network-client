@@ -3,10 +3,12 @@
 CyclesFourNodesBalancesRequestMessage::CyclesFourNodesBalancesRequestMessage(
     const NodeUUID &senderUUID,
     const TransactionUUID &transactionUUID,
-    set<NodeUUID> &neighbors):
+    const NodeUUID &creditorNeighbor,
+    const NodeUUID &debtorNeighbor):
 
     TransactionMessage(senderUUID, transactionUUID),
-    mNeighbors(neighbors)
+    mCreditorUUID(creditorNeighbor),
+    mDebtorUUID(debtorNeighbor)
 {}
 
 CyclesFourNodesBalancesRequestMessage::CyclesFourNodesBalancesRequestMessage(
@@ -15,35 +17,29 @@ CyclesFourNodesBalancesRequestMessage::CyclesFourNodesBalancesRequestMessage(
     TransactionMessage(buffer)
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
-    // path
-    uint16_t neighborsCount;
+    // DebtorUUID
     memcpy(
-        &neighborsCount,
+        mDebtorUUID.data,
         buffer.get() + bytesBufferOffset,
-        sizeof(neighborsCount)
+        NodeUUID::kBytesSize
     );
-    bytesBufferOffset += sizeof(neighborsCount);
-
-    for (uint16_t i = 1; i <= neighborsCount; ++i) {
-        NodeUUID stepNode;
-        memcpy(
-            stepNode.data,
-            buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize
-        );
-        bytesBufferOffset += NodeUUID::kBytesSize;
-        mNeighbors.insert(stepNode);
-    }
+    bytesBufferOffset += NodeUUID::kBytesSize;
+    // CreditorUUID
+    memcpy(
+        mCreditorUUID.data,
+        buffer.get() + bytesBufferOffset,
+        NodeUUID::kBytesSize
+    );
 }
 
 pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToBytes() const
     throw(bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
-    const uint16_t neighborsCount = mNeighbors.size();
+
     size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(neighborsCount)
-                        + neighborsCount * NodeUUID::kBytesSize;
+                        + NodeUUID::kBytesSize
+                        + NodeUUID::kBytesSize;
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -54,22 +50,22 @@ pair<BytesShared, size_t> CyclesFourNodesBalancesRequestMessage::serializeToByte
         parentBytesAndCount.second
     );
     dataBytesOffset += parentBytesAndCount.second;
-//    For mNeighbors
+
+    // For mDebtor
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
-        &neighborsCount,
-        sizeof(neighborsCount)
+        &mDebtorUUID,
+        NodeUUID::kBytesSize
     );
-    dataBytesOffset += sizeof(neighborsCount);
+    dataBytesOffset += NodeUUID::kBytesSize;
 
-    for(auto const& kNodeUUID: mNeighbors) {
-        memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &kNodeUUID,
-            NodeUUID::kBytesSize
-        );
-        dataBytesOffset += NodeUUID::kBytesSize;
-    }
+    // For mCreditor
+    memcpy(
+        dataBytesShared.get() + dataBytesOffset,
+        &mCreditorUUID,
+        NodeUUID::kBytesSize
+    );
+
     return make_pair(
         dataBytesShared,
         bytesCount
@@ -80,6 +76,10 @@ const Message::MessageType CyclesFourNodesBalancesRequestMessage::typeID() const
     return Message::MessageType::Cycles_FourNodesBalancesRequest;
 }
 
-set<NodeUUID> CyclesFourNodesBalancesRequestMessage::Neighbors() {
-    return mNeighbors;
+const NodeUUID CyclesFourNodesBalancesRequestMessage::debtor() const{
+    return mDebtorUUID;
+}
+
+const NodeUUID CyclesFourNodesBalancesRequestMessage::creditor() const{
+    return mCreditorUUID;
 }

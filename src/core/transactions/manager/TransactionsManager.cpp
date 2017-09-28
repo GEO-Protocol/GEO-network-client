@@ -15,6 +15,7 @@ TransactionsManager::TransactionsManager(
     ResultsInterface *resultsInterface,
     StorageHandler *storageHandler,
     PathsManager *pathsManager,
+    RoutingTableManager *routingTable,
     Logger &logger,
     SubsystemsController *subsystemsController) :
 
@@ -29,6 +30,7 @@ TransactionsManager::TransactionsManager(
     mPathsManager(pathsManager),
     mLog(logger),
     mSubsystemsController(subsystemsController),
+    mRoutingTable(routingTable),
 
     mScheduler(
         new TransactionsScheduler(
@@ -87,7 +89,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
-                        transaction->mBuildCycleThreeNodesSignal);
+                    transaction->mBuildCycleThreeNodesSignal);
                 prepareAndSchedule(
                     transaction,
                     true,
@@ -105,7 +107,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
-                        transaction->mBuildCycleThreeNodesSignal);
+                    transaction->mBuildCycleThreeNodesSignal);
                 subscribeForBuildCyclesFourNodesTransaction(
                     transaction->mBuildCycleFourNodesSignal);
                 prepareAndSchedule(
@@ -125,7 +127,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
-                        transaction->mBuildCycleThreeNodesSignal);
+                    transaction->mBuildCycleThreeNodesSignal);
                 prepareAndSchedule(
                     transaction,
                     false,
@@ -349,6 +351,12 @@ void TransactionsManager::processMessage(
         launchSetIncomingTrustLineTransaction(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
 
+    /*
+     * RoutingTable
+    */
+    } else if (message->typeID() == Message::RoutingTableRequest) {
+        launchRoutingTableResponseTransaction(
+            static_pointer_cast<RoutingTableRequestMessage>(message));
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
@@ -561,7 +569,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mLog,
         mSubsystemsController);
     subscribeForBuildCyclesThreeNodesTransaction(
-            transaction->mBuildCycleThreeNodesSignal);
+        transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, true, false, true);
 }
 
@@ -577,7 +585,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         mLog,
         mSubsystemsController);
     subscribeForBuildCyclesThreeNodesTransaction(
-            transaction->mBuildCycleThreeNodesSignal);
+        transaction->mBuildCycleThreeNodesSignal);
     prepareAndSchedule(transaction, false, false, true);
 }
 
@@ -593,7 +601,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         mLog,
         mSubsystemsController);
     subscribeForBuildCyclesThreeNodesTransaction(
-            transaction->mBuildCycleThreeNodesSignal);
+        transaction->mBuildCycleThreeNodesSignal);
     subscribeForBuildCyclesFourNodesTransaction(
         transaction->mBuildCycleFourNodesSignal);
     prepareAndSchedule(transaction, false, false, true);
@@ -1033,12 +1041,11 @@ void TransactionsManager::onBuidCycleThreeNodesTransaction(
 }
 
 void TransactionsManager::onBuildCycleFourNodesTransaction(
-    vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors)
+    vector<NodeUUID> &creditors)
 {
-    for (const auto &debtorAndCreditor : debtorsAndCreditors) {
+    for (const auto &kCreditor : creditors) {
         launchFourNodesCyclesInitTransaction(
-            debtorAndCreditor.first,
-            debtorAndCreditor.second);
+            kCreditor);
     }
 }
 
@@ -1131,6 +1138,7 @@ void TransactionsManager::launchThreeNodesCyclesInitTransaction(
                 mNodeUUID,
                 contractorUUID,
                 mTrustLines,
+                mRoutingTable,
                 mCyclesManager.get(),
                 mStorageHandler,
                 mLog),
@@ -1236,16 +1244,15 @@ void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
 }
 
 void TransactionsManager::launchFourNodesCyclesInitTransaction(
-    const NodeUUID &debtorUUID,
     const NodeUUID &creditorUUID)
 {
     try {
         prepareAndSchedule(
             make_shared<CyclesFourNodesInitTransaction>(
                 mNodeUUID,
-                debtorUUID,
                 creditorUUID,
                 mTrustLines,
+                mRoutingTable,
                 mCyclesManager.get(),
                 mStorageHandler,
                 mLog),
@@ -1331,5 +1338,40 @@ void TransactionsManager::onSerializeTransaction(
                 "TrustLinesManager::onSerializeTransaction. "
                     "Unexpected transaction type identifier.");
         }
+    }
+}
+
+void TransactionsManager::launchRoutingTableResponseTransaction(
+    RoutingTableRequestMessage::Shared message)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<RoutingTableResponseTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchRoutingTableRequestTransaction()
+{
+    try {
+        prepareAndSchedule(
+            make_shared<RoutingTableInitTransaction>(
+                mNodeUUID,
+                mTrustLines,
+                mRoutingTable,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
     }
 }

@@ -47,8 +47,8 @@ public:
     typedef shared_ptr<BasePaymentTransaction> Shared;
 
 public:
-    typedef signals::signal<void(vector<NodeUUID> &contractorUUID)> BuildCycleThreeNodesSignal;
-    typedef signals::signal<void(vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors)> BuildCycleFourNodesSignal;
+    typedef signals::signal<void(vector<NodeUUID> &creditorUUID)> BuildCycleThreeNodesSignal;
+    typedef signals::signal<void(vector<NodeUUID> &creditorUUID)> BuildCycleFourNodesSignal;
 
 public:
     BasePaymentTransaction(
@@ -144,6 +144,7 @@ protected:
     virtual TransactionResult::SharedConst cancel(
         const char *message = nullptr);
 
+
     TransactionResult::SharedConst exitWithResult(
         const TransactionResult::SharedConst result,
         const char *message=nullptr);
@@ -207,6 +208,10 @@ protected:
         PathID pathID,
         const TrustLineAmount &finalPathAmount);
 
+    void runThreeNodesCyclesTransactions();
+
+    void runFourNodesCyclesTransactions();
+
     // Updates all reservations according to finalAmounts
     // if some reservations will be found, pathIDs of which are absent in finalAmounts, returns false,
     // otherwise returns true
@@ -268,6 +273,9 @@ protected:
     ParticipantsVotesMessage::Shared mParticipantsVotesMessage;
 
     map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mReservations;
+
+    // Nodes which with will be trying to close cycle
+    vector<NodeUUID> mCreditorsForCycles;
 
     // Votes recovery
     vector<NodeUUID> mNodesToCheckVotes;
