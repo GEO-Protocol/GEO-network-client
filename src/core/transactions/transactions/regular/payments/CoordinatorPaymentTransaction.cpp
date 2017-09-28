@@ -1328,7 +1328,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
     BasePaymentTransaction::runThreeNodesCyclesTransactions();
-
+    BasePaymentTransaction::runFourNodesCyclesTransactions();
 #ifdef TESTS
     // all nodes wait for this message
     // maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1)

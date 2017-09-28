@@ -116,7 +116,6 @@ void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel()
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     const NodeUUID &contractorUUID)
 {
-    auto startTime = utc_now();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "calculateMaxFlow\tstart found flow to: " << contractorUUID;
 #endif
@@ -135,7 +134,6 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-    debug() << "max flow calculation time is " << utc_now() - startTime;
     return mCurrentMaxFlow;
 }
 
