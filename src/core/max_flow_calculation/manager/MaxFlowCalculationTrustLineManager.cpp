@@ -13,7 +13,6 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
 {
     // Part with roughting table
     mRoughtingTable->updateMapAddOneNeighbor(trustLine->sourceUUID(), trustLine->targetUUID());
-    debug() << "sourceUUID: " << trustLine->sourceUUID() << " targetUUID: " << trustLine->targetUUID();
 
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
