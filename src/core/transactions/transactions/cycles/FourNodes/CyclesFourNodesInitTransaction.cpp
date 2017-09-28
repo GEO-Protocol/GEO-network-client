@@ -46,6 +46,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
         if(commonNodes.size() == 0 )
             continue;
         for(const auto kCommonNode: commonNodes){
+            mWaitingResponses[kCommonNode] = kDebtorNode;
             sendMessage<CyclesFourNodesBalancesRequestMessage>(
                 kCommonNode,
                 mNodeUUID,
@@ -75,9 +76,9 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
         const auto kMessage = static_pointer_cast<CyclesFourNodesBalancesResponseMessage>(message);
         auto sender = kMessage->senderUUID;
         vector<NodeUUID> stepPath = {
-            mCreditorContractorUUID,
+            mWaitingResponses[sender],
             sender,
-            mWaitingResponses[sender]
+            mCreditorContractorUUID
         };
 
         const auto cyclePath = make_shared<Path>(
@@ -87,6 +88,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAn
         mCyclesManager->addCycle(
             cyclePath);
     }
+    mCyclesManager->closeOneCycle();
     return resultDone();
 }
 
