@@ -216,6 +216,26 @@ void TrustLinesManager::closeIncoming(
     }
 }
 
+void TrustLinesManager::setContractorAsGateway(
+    IOTransaction::Shared IOTransaction,
+    const NodeUUID &contractorUUID,
+    bool contractorIsGateway)
+{
+    if (not trustLineIsPresent(contractorUUID)) {
+        throw NotFoundError(
+            "TrustLinesManager::setContractorAsGateway: "
+                    "Can't set contractor as gateway. No trust line to this contractor is present.");
+    }
+
+    auto trustLine = mTrustLines[contractorUUID];
+    if (contractorIsGateway) {
+        trustLine->setContractorAsGateway();
+        saveToDisk(
+            IOTransaction,
+            trustLine);
+    }
+}
+
 //const bool TrustLinesManager::checkDirection(
 //    const NodeUUID &contractorUUID,
 //    const TrustLineDirection direction) const {

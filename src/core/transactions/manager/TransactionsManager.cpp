@@ -346,10 +346,16 @@ void TransactionsManager::processMessage(
     /*
      * Trust lines
      */
-
     } else if (message->typeID() == Message::TrustLines_SetIncoming) {
         launchSetIncomingTrustLineTransaction(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
+
+    /*
+     * Gateway notification
+     */
+    } else if (message->typeID() == Message::GatewayNotification) {
+        launchGatewayNotificationReceiverTransaction(
+            static_pointer_cast<GatewayNotificationMessage>(message));
 
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
@@ -854,6 +860,41 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
             true,
             true,
             false);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchGatewayNotificationSenderTransaction()
+{
+    try {
+        prepareAndSchedule(
+            make_shared<GatewayNotificationSenderTransaction>(
+                mNodeUUID,
+                mTrustLines,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchGatewayNotificationReceiverTransaction(
+    GatewayNotificationMessage::Shared message)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<GatewayNotificationReceiverTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            false,
+            false,
+            true);
     } catch (ConflictError &e){
         throw ConflictError(e.message());
     }

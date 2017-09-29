@@ -154,6 +154,12 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
             return messageCollected<TotalBalancesResultMessage>(buffer);
 
 
+        /*
+         * Gateway notification Messages
+         */
+        case Message::GatewayNotification:
+            return messageCollected<GatewayNotificationMessage>(buffer);
+
 #ifdef DEBUG
         /*
          * Debug messages

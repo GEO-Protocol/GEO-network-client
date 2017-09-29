@@ -45,6 +45,8 @@
 #include "../../../messages/cycles/SixAndFiveNodes/CyclesFiveNodesBoundaryMessage.hpp"
 #include "../../../messages/cycles/SixAndFiveNodes/CyclesSixNodesBoundaryMessage.hpp"
 
+#include "../../../messages/gateway_notification/GatewayNotificationMessage.h"
+
 #ifdef DEBUG
 #include "../../../messages/debug/DebugMessage.h"
 #endif

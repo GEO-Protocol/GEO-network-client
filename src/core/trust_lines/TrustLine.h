@@ -87,6 +87,8 @@ public:
 
     bool isContractorGateway() const;
 
+    void setContractorAsGateway();
+
     const BalanceRange balanceRange() const;
 
     vector<byte> serialize();

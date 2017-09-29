@@ -100,6 +100,10 @@ public:
 
         // FindPath
         FindPathByMaxFlowTransactionType = 800,
+
+        // Gateway notification
+        GatewayNotificationSenderType = 900,
+        GatewayNotificationReceiverType = 901
     };
 
 public:

@@ -181,6 +181,11 @@ bool TrustLine::isContractorGateway() const
     return mIsContractorGateway;
 }
 
+void TrustLine::setContractorAsGateway()
+{
+    mIsContractorGateway = true;
+}
+
 const BalanceRange TrustLine::balanceRange() const{
 
     if (mBalance > kZeroBalance()) {

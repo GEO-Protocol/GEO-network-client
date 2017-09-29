@@ -119,6 +119,16 @@ public:
         IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID);
 
+    /**
+     * Set contractor as Gateway if contractorIsGateway equals true.
+     *
+     * @throws NotFoundError in case if no trust line to this contractor is present.
+     */
+    void setContractorAsGateway(
+        IOTransaction::Shared IOTransaction,
+        const NodeUUID &contractorUUID,
+        bool contractorIsGateway);
+
 //    ToDo: it seems, that this method doesn't used.
 //    (method and method body is commented out)
 //

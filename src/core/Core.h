@@ -15,6 +15,7 @@
 #include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
+#include "delayed_tasks/NotifyThatIAmIsGatewayDelayedTask.h"
 #include "io/storage/StorageHandler.h"
 #include "paths/PathsManager.h"
 
@@ -121,6 +122,8 @@ private:
     void onResourceCollectedSlot(
         BaseResource::Shared resource);
 
+    void onGatewayNotificationSlot();
+
     void writePIDFile();
 
     void updateProcessName();
@@ -169,6 +172,7 @@ protected:
     unique_ptr<MaxFlowCalculationTrustLineManager> mMaxFlowCalculationTrustLimeManager;
     unique_ptr<MaxFlowCalculationCacheManager> mMaxFlowCalculationCacheManager;
     unique_ptr<MaxFlowCalculationCacheUpdateDelayedTask> mMaxFlowCalculationCacheUpdateDelayedTask;
+    unique_ptr<NotifyThatIAmIsGatewayDelayedTask> mNotifyThatIAmIsGatewayDelayedTask;
     unique_ptr<StorageHandler> mStorageHandler;
     unique_ptr<PathsManager> mPathsManager;
     unique_ptr<SubsystemsController> mSubsystemsController;

@@ -13,6 +13,7 @@ add_subdirectory(transactions/total_balances)
 add_subdirectory(transactions/history)
 add_subdirectory(transactions/find_path)
 add_subdirectory(transactions/trustlines_list)
+add_subdirectory(transactions/gateway_notification)
 
 set(SOURCE_FILES
         manager/TransactionsManager.h
@@ -34,6 +35,7 @@ target_link_libraries(transactions
         transactions__history
         transactions__trustlines_list
         transactions__find_path
+        transactions__gateway_notification
 
         common
         exceptions)

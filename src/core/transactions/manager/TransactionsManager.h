@@ -88,6 +88,9 @@
 
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
+#include "../transactions/gateway_notification/GatewayNotificationSenderTransaction.h"
+#include "../transactions/gateway_notification/GatewayNotificationReceiverTransaction.h"
+
 #include <boost/signals2.hpp>
 
 #include <string>
@@ -152,6 +155,8 @@ public:
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
         const NodeUUID &destinationNodeUUID);
+
+    void launchGatewayNotificationSenderTransaction();
 
 protected:
     void loadTransactionsFromStorage();
@@ -252,6 +257,12 @@ protected: // Transactions
 
     void launchGetTrustlineTransaction(
         GetTrustLineCommand::Shared command);
+
+    /*
+     * Gateway notification transactions
+     */
+    void launchGatewayNotificationReceiverTransaction(
+        GatewayNotificationMessage::Shared message);
 
 protected:
     // Signals connection to manager's slots

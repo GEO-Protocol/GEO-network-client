@@ -281,6 +281,12 @@ int Core::initDelayedTasks()
             mMaxFlowCalculationTrustLimeManager.get(),
             *mLog.get());
 
+        if (mIAmGateway) {
+            mNotifyThatIAmIsGatewayDelayedTask = make_unique<NotifyThatIAmIsGatewayDelayedTask>(
+                mIOService,
+                *mLog.get());
+        }
+
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
 
         return 0;
@@ -403,7 +409,14 @@ void Core::connectTrustLinesManagerSignals()
 }
 
 void Core::connectDelayedTasksSignals()
-{}
+{
+    if (mIAmGateway) {
+        mNotifyThatIAmIsGatewayDelayedTask->mIAmGatewaySignal.connect(
+            boost::bind(
+                &Core::onGatewayNotificationSlot,
+                this));
+    }
+}
 
 void Core::connectResourcesManagerSignals()
 {
@@ -539,6 +552,11 @@ void Core::onResourceCollectedSlot(
     } catch (exception &e) {
         mLog->logException("Core", e);
     }
+}
+
+void Core::onGatewayNotificationSlot()
+{
+    mTransactionsManager->launchGatewayNotificationSenderTransaction();
 }
 
 void Core::writePIDFile()
