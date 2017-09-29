@@ -4,6 +4,7 @@
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
 #include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
+#include "../../../messages/gateway_notification/GatewayNotificationMessage.h"
 
 #include <map>
 
@@ -68,6 +69,9 @@ protected: // messages handlers
      */
     void updateTrustLineNotificationInTheQueue(
         SetIncomingTrustLineMessage::Shared message);
+
+    void updateGatewayNotificationInTheQueue(
+        GatewayNotificationMessage::Shared message);
 
 protected:
     // Stores messages queue by the transaction UUID.

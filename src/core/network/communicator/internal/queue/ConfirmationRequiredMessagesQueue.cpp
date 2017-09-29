@@ -17,6 +17,11 @@ void ConfirmationRequiredMessagesQueue::enqueue(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
         break;
     }
+    case Message::GatewayNotification: {
+        updateGatewayNotificationInTheQueue(
+            static_pointer_cast<GatewayNotificationMessage>(message));
+        break;
+    }
     }
 }
 
@@ -80,5 +85,11 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(
         }
     }
 
+    mMessages[message->transactionUUID()] = message;
+}
+
+void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(
+    GatewayNotificationMessage::Shared message)
+{
     mMessages[message->transactionUUID()] = message;
 }

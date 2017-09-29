@@ -16,7 +16,8 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
     const Message::Shared message)
 {
     if (message->typeID() == Message::TrustLines_SetIncoming
-        /* and <other message type here> */) {
+        or message->typeID() == Message::GatewayNotification
+        /* or <other message type here> */) {
 
         // Appropriate message occured and must be enqueued.
         // In case if no queue is present for this contractor - new one must be created.
