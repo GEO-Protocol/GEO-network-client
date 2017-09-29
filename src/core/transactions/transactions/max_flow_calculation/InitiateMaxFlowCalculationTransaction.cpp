@@ -53,20 +53,16 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
                 }
                 return resultOk(maxFlows);
             }
-            sendMessagesToContractors();
-            if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
-                for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
-                    auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
-                    mMaxFlowCalculationTrustLineManager->addTrustLine(
-                        make_shared<MaxFlowCalculationTrustLine>(
-                            mNodeUUID,
-                            nodeUUIDAndOutgoingFlow.first,
-                            trustLineAmountShared));
-                }
-                sendMessagesOnFirstLevel();
-                mMaxFlowCalculationCacheManager->setInitiatorCache();
-            }
+
+            const auto kTransaction = make_shared<CollectTopologyTransaction>(
+                mNodeUUID,
+                mCommand->contractors(),
+                mTrustLinesManager,
+                mMaxFlowCalculationTrustLineManager,
+                mMaxFlowCalculationCacheManager,
+                mLog);
             mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
+            launchSubsidiaryTransaction(kTransaction);
             mStep = Stages::CalculateMaxTransactionFlow;
             return resultAwaikAfterMilliseconds(
                 kWaitMillisecondsForCalculatingMaxFlow);
@@ -120,7 +116,6 @@ void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel()
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     const NodeUUID &contractorUUID)
 {
-    auto startTime = utc_now();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "calculateMaxFlow\tstart found flow to: " << contractorUUID;
 #endif
@@ -139,7 +134,6 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-    debug() << "max flow calculation time is " << utc_now() - startTime;
     return mCurrentMaxFlow;
 }
 

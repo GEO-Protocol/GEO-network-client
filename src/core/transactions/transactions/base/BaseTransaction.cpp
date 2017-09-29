@@ -271,6 +271,12 @@ LoggerStream BaseTransaction::info() const
     return mLog.info(logHeader());
 }
 
+LoggerStream BaseTransaction::error() const
+{
+
+    return mLog.error(logHeader());
+}
+
 LoggerStream BaseTransaction::warning() const
 {
     return mLog.warning(logHeader());

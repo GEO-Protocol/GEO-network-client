@@ -101,9 +101,13 @@ public:
         // FindPath
         FindPathByMaxFlowTransactionType = 800,
 
+        //RoutingTable
+        RoutingTableInitTransactionType = 900,
+        RoutingTableResponceTransactionType = 901,
+
         // Gateway notification
-        GatewayNotificationSenderType = 900,
-        GatewayNotificationReceiverType = 901
+        GatewayNotificationSenderType = 1000,
+        GatewayNotificationReceiverType = 1001
     };
 
 public:
@@ -238,6 +242,7 @@ protected:
     virtual const string logHeader() const;
     LoggerStream info() const;
     LoggerStream warning() const;
+    LoggerStream error() const;
     LoggerStream debug() const;
 
 public:

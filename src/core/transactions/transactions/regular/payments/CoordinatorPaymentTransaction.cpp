@@ -1327,7 +1327,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     mCommittedAmount = totalReservedAmount(
         AmountReservation::Outgoing);
     BasePaymentTransaction::approve();
-
+    BasePaymentTransaction::runThreeNodesCyclesTransactions();
+    BasePaymentTransaction::runFourNodesCyclesTransactions();
 #ifdef TESTS
     // all nodes wait for this message
     // maxNetworkDelay(mParticipantsVotesMessage->participantsCount() + 1)
@@ -1338,7 +1339,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
 
     propagateVotesMessageToAllParticipants(
         mParticipantsVotesMessage);
-    runBuildThreeNodesCyclesSignal();
     return resultOK();
 }
 
@@ -1735,16 +1735,4 @@ bool CoordinatorPaymentTransaction::checkReservationsDirections() const
 const NodeUUID& CoordinatorPaymentTransaction::coordinatorUUID() const
 {
     return currentNodeUUID();
-}
-
-void CoordinatorPaymentTransaction::runBuildThreeNodesCyclesSignal()
-{
-    vector<NodeUUID> contractorsUUID;
-    contractorsUUID.reserve(mReservations.size());
-    for (auto const nodeUUIDAndReservations : mReservations) {
-        contractorsUUID.push_back(
-            nodeUUIDAndReservations.first);
-    }
-    mBuildCycleThreeNodesSignal(
-        contractorsUUID);
 }

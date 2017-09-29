@@ -74,6 +74,10 @@ int Core::initSubsystems()
     if (initCode != 0)
         return initCode;
 
+    initCode = initRoughtingTable();
+    if (initCode != 0)
+        return initCode;
+
     initCode = initCommunicator(conf);
     if (initCode != 0)
         return initCode;
@@ -192,6 +196,20 @@ int Core::initResultsInterface()
     }
 }
 
+int Core::initRoughtingTable()
+{
+    try {
+        mRoutingTable = make_unique<RoutingTableManager>(
+            mIOService,
+            *mLog.get());
+        mLog->logSuccess("Core", "mRoutingTable is successfully initialised");
+        return 0;
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
 int Core::initTrustLinesManager()
 {
     try {
@@ -211,6 +229,7 @@ int Core::initMaxFlowCalculationTrustLineManager()
 {
     try{
         mMaxFlowCalculationTrustLimeManager = make_unique<MaxFlowCalculationTrustLineManager>(
+            mRoutingTable.get(),
             *mLog.get());
         mLog->logSuccess("Core", "Max flow calculation Trust lines manager is successfully initialised");
         return 0;
@@ -260,6 +279,7 @@ int Core::initTransactionsManager()
             mResultsInterface.get(),
             mStorageHandler.get(),
             mPathsManager.get(),
+            mRoutingTable.get(),
             *mLog.get(),
             mSubsystemsController.get(),
             mIAmGateway);
@@ -288,6 +308,9 @@ int Core::initDelayedTasks()
         }
 
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
+
+
+
 
         return 0;
     } catch (const std::exception &e) {
@@ -418,6 +441,15 @@ void Core::connectDelayedTasksSignals()
     }
 }
 
+void Core::connectRoutingTableSignals()
+{
+    mRoutingTable->updateRoutingTableSignal.connect(
+        boost::bind(
+            &Core::onUpdateRoutingTableSlot,
+            this
+        )
+    );
+}
 void Core::connectResourcesManagerSignals()
 {
     mResourcesManager->requestPathsResourcesSignal.connect(
@@ -444,6 +476,16 @@ void Core::connectSignalsToSlots()
     connectTrustLinesManagerSignals();
     connectDelayedTasksSignals();
     connectResourcesManagerSignals();
+    connectRoutingTableSignals();
+}
+
+void Core::onUpdateRoutingTableSlot()
+{
+    try {
+        mTransactionsManager->launchRoutingTableRequestTransaction();
+    } catch (exception &e) {
+        mLog->logException("Core", e);
+    }
 }
 
 void Core::onCommandReceivedSlot (
@@ -629,5 +671,6 @@ LoggerStream Core::info() const
 {
     return mLog->info(logHeader());
 }
+
 
 

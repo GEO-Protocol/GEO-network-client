@@ -17,7 +17,7 @@ public:
 public:
     CollectTopologyTransaction(
         const NodeUUID &nodeUUID,
-        vector<NodeUUID> &contractors,
+        const vector<NodeUUID> &contractors,
         TrustLinesManager *manager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,

@@ -5,6 +5,7 @@
 #include "../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../cycles/CyclesManager.h"
 #include "../../../../io/storage/StorageHandler.h"
+#include "../../../../cycles/RoutingTableManager.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.h"
 #include "../../../../paths/lib/Path.h"
@@ -17,9 +18,9 @@ class CyclesFourNodesInitTransaction :
 public:
     CyclesFourNodesInitTransaction(
         const NodeUUID &nodeUUID,
-        const NodeUUID &debtorContractorUUID,
         const NodeUUID &creditorContractorUUID,
         TrustLinesManager *manager,
+        RoutingTableManager *roughtingTable,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         Logger &logger);
@@ -37,14 +38,18 @@ protected:
 
 protected:
     const string logHeader() const;
-    set<NodeUUID> commonNeighborsForDebtorAndCreditorNodes();
+    vector<NodeUUID> calculateCommonNodes(
+        const NodeUUID &firstNode,
+        const NodeUUID &secondNode);
 
 protected:
-    NodeUUID mDebtorContractorUUID;
     NodeUUID mCreditorContractorUUID;
     TrustLinesManager *mTrustLinesManager;
     CyclesManager *mCyclesManager;
     StorageHandler *mStorageHandler;
+    RoutingTableManager *mRoughtingTable;
+
+    map<NodeUUID, NodeUUID> mWaitingResponses;
 };
 
 #endif //GEO_NETWORK_CLIENT_GETFOURNODESNEIGHBORBALANCESTRANSACTION_H

@@ -1,4 +1,5 @@
 ﻿#include "BasePaymentTransaction.h"
+#include "../../../cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
@@ -550,11 +551,12 @@ void BasePaymentTransaction::commit(
         for (const auto &kPathIDAndReservation : kNodeUUIDAndReservations.second) {
             mTrustLines->useReservation(kNodeUUIDAndReservations.first, kPathIDAndReservation.second);
 
-            if (kPathIDAndReservation.second->direction() == AmountReservation::Outgoing)
+            if (kPathIDAndReservation.second->direction() == AmountReservation::Outgoing) {
                 debug() << "Committed reservation: [ => ] " << kPathIDAndReservation.second->amount()
                         << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathIDAndReservation.first
                         << "]";
-
+                mCreditorsForCycles.push_back(kNodeUUIDAndReservations.first);
+            }
             else if (kPathIDAndReservation.second->direction() == AmountReservation::Incoming)
                 debug() << "Committed reservation: [ <= ] " << kPathIDAndReservation.second->amount()
                         << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathIDAndReservation.first
@@ -1235,3 +1237,12 @@ void BasePaymentTransaction::setRollbackByOtherTransactionStage()
 {
     mStep = Common_RollbackByOtherTransaction;
 }
+
+void BasePaymentTransaction::runThreeNodesCyclesTransactions() {
+    mBuildCycleThreeNodesSignal(mCreditorsForCycles);
+}
+
+void BasePaymentTransaction::runFourNodesCyclesTransactions() {
+    mBuildCycleFourNodesSignal(mCreditorsForCycles);
+}
+

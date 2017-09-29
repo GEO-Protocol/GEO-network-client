@@ -87,9 +87,15 @@ public:
         TotalBalance_Response = 501,
 
         /*
+         * Routing table
+         */
+        RoutingTableRequest = 600,
+        RoutingTableResponse = 601,
+
+        /*
          * Total balance
          */
-        GatewayNotification = 600,
+        GatewayNotification = 700,
 
         // ToDo: remove this
         ResponseMessageType = 1000,

@@ -107,6 +107,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
             "CycleCloserInitiatorTransaction::runAmountReservationStage: "
                 "invalid first level node occurred. ");
     }
+
     const auto kOutgoingAmounts = mTrustLines->availableOutgoingCycleAmounts(mNextNode);
     const auto kOutgoingAmountWithReservations = kOutgoingAmounts.first;
     const auto kOutgoingAmountWithoutReservations = kOutgoingAmounts.second;

@@ -40,6 +40,7 @@
 #include "../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"
 #include "../../network/messages/payments/VotesStatusRequestMessage.hpp"
+#include "../../network/messages/routing_table/RoutingTableRequestMessage.h"
 
 #include "../../resources/manager/ResourcesManager.h"
 #include "../../resources/resources/BaseResource.h"
@@ -86,6 +87,9 @@
 #include "../transactions/trustlines_list/GetFirstLevelContractorsBalancesTransaction.h"
 #include "../transactions/trustlines_list/GetFirstLevelContractorBalanceTransaction.h"
 
+#include "../transactions/routing_table/RoutingTableInitTransaction.h"
+#include "../transactions/routing_table/RoutingTableResponseTransaction.h"
+
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
 #include "../transactions/gateway_notification/GatewayNotificationSenderTransaction.h"
@@ -114,6 +118,7 @@ public:
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
+        RoutingTableManager *routingTable,
         Logger &logger,
         SubsystemsController *subsystemsController,
         bool iAmGateway);
@@ -126,7 +131,6 @@ public:
 
     //  Cycles Transactions
     void launchFourNodesCyclesInitTransaction(
-        const NodeUUID &debtorUUID,
         const NodeUUID &creditorUUID);
 
     void launchFourNodesCyclesResponseTransaction(
@@ -259,6 +263,15 @@ protected: // Transactions
         GetTrustLineCommand::Shared command);
 
     /*
+     * RoutingTable
+     */
+    void launchRoutingTableResponseTransaction(
+        RoutingTableRequestMessage::Shared message);
+public:
+    void launchRoutingTableRequestTransaction();
+
+protected:
+    /*
      * Gateway notification transactions
      */
     void launchGatewayNotificationReceiverTransaction(
@@ -314,7 +327,7 @@ protected:
         vector<NodeUUID> &contractorsUUID);
 
     void onBuildCycleFourNodesTransaction(
-        vector<pair<NodeUUID, NodeUUID>> &debtorsAndCreditors);
+        vector<NodeUUID> &creditors);
 
     void onBuidCycleFiveNodesTransaction();
 
@@ -343,6 +356,7 @@ private:
     ResultsInterface *mResultsInterface;
     PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;
+    RoutingTableManager *mRoutingTable;
     Logger &mLog;
 
     SubsystemsController *mSubsystemsController;

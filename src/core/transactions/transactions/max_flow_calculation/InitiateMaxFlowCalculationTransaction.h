@@ -9,6 +9,7 @@
 #include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "CollectTopologyTransaction.h"
 
 #include <set>
 
@@ -61,7 +62,7 @@ private:
 
 private:
     static const byte kMaxPathLength = 6;
-    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 2000;
+    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 4000;
 
 private:
     InitiateMaxFlowCalculationCommand::Shared mCommand;
