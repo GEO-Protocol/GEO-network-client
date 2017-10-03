@@ -57,7 +57,7 @@ void IncomingMessagesHandler::handleReceivedInfo(
 
 
     if (error) {
-        mLog.error("IncomingMessagesHandler::handleReceivedInfo")
+        mLog.warning("IncomingMessagesHandler::handleReceivedInfo")
             << "ASIO error: "
             << error.message();
 
@@ -167,7 +167,7 @@ LoggerStream IncomingMessagesHandler::info() const
 LoggerStream IncomingMessagesHandler::errors() const
     noexcept
 {
-    return mLog.error("IncomingMessagesHandler");
+    return mLog.warning("IncomingMessagesHandler");
 }
 
 LoggerStream IncomingMessagesHandler::debug() const

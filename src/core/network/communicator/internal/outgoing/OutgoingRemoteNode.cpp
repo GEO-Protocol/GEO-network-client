@@ -312,10 +312,10 @@ PacketHeader::ChannelIndex OutgoingRemoteNode::nextChannelIndex()
 
 LoggerStream OutgoingRemoteNode::errors() const
 {
-    return mLog.error(
-        string("Communicator / OutgoingRemoteNode [")
-        + mRemoteNodeUUID.stringUUID()
-        + string("]"));
+    return mLog.warning(
+            string("Communicator / OutgoingRemoteNode [")
+            + mRemoteNodeUUID.stringUUID()
+            + string("]"));
 }
 
 LoggerStream OutgoingRemoteNode::debug() const

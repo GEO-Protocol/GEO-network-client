@@ -79,7 +79,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::run()
                         "unexpected stage occurred.");
         }
     } catch (Exception &e) {
-        error() << e.what();
+        warning() << e.what();
         return recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
@@ -92,7 +92,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
 
     if (mMessage->finalAmountsConfiguration().size() == 0) {
-        error() << "Not received reservation";
+        warning() << "Not received reservation";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
@@ -122,7 +122,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             currentTransactionUUID(),
             kReservation.first,
             ResponseMessage::Rejected);
-        error() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
+        warning() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
         // if no reservations close transaction
         if (mReservations.size() == 0) {
             debug() << "There are no reservations. Transaction closed.";
@@ -141,7 +141,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     if (!updateReservations(vector<pair<PathID, ConstSharedTrustLineAmount>>(
         mMessage->finalAmountsConfiguration().begin() + 1,
         mMessage->finalAmountsConfiguration().end()))) {
-        error() << "Previous node send path configuration, which is absent on current node";
+        warning() << "Previous node send path configuration, which is absent on current node";
         // next loop is only logger info
         for (const auto reservation : mMessage->finalAmountsConfiguration()) {
             debug() << "path: " << reservation.first << " amount: " << *reservation.second.get();
@@ -239,7 +239,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
     const auto kNextNode = kMessage->nextNodeInPath();
     if (kMessage->finalAmountsConfiguration().size() == 0) {
-        error() << "Not received reservation";
+        warning() << "Not received reservation";
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
@@ -780,7 +780,7 @@ bool IntermediateNodePaymentTransaction::checkReservationsDirections() const
                 for (const auto pathIDAndReservationInternal : nodeUUIDAndReservationsInternal.second) {
                     if (pathIDAndReservationInternal.first == checkedPath) {
                         if (pathIDAndReservationInternal.second->amount() != checkedAmount) {
-                            error() << "Amounts are different on path " << checkedPath;
+                            warning() << "Amounts are different on path " << checkedPath;
                             return false;
                         }
                         if (pathIDAndReservationInternal.second->direction() == AmountReservation::Outgoing) {
@@ -794,7 +794,7 @@ bool IntermediateNodePaymentTransaction::checkReservationsDirections() const
             }
 
             if (countIncomingReservations != 1 || countOutgoingReservations != 1) {
-                error() << "Count incoming and outgoing reservations are invalid on path " << checkedPath;
+                warning() << "Count incoming and outgoing reservations are invalid on path " << checkedPath;
                 return false;
             }
         }

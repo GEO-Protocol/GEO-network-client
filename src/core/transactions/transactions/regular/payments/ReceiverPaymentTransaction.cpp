@@ -75,7 +75,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
                         "invalid stage number occurred");
         }
     } catch (Exception &e) {
-        error() << e.what();
+        warning() << e.what();
         return recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
@@ -165,7 +165,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
 
     const auto kNeighbor = kMessage->senderUUID;
     if (kMessage->finalAmountsConfiguration().size() == 0) {
-        error() << "Reservation vector is empty";
+        warning() << "Reservation vector is empty";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
@@ -190,7 +190,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             currentTransactionUUID(),
             kReservation.first,
             ResponseMessage::Rejected);
-        error() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
+        warning() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
         // Message was sent from node, that is not listed in neighbors list.
         //
         // TODO: enhance this check
@@ -210,7 +210,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     if (!updateReservations(vector<pair<PathID, ConstSharedTrustLineAmount>>(
         kMessage->finalAmountsConfiguration().begin() + 1,
         kMessage->finalAmountsConfiguration().end()))) {
-        error() << "Coordinator send path configuration, which is absent on current node";
+        warning() << "Coordinator send path configuration, which is absent on current node";
         // next loop is only logger info
         for (const auto reservation : kMessage->finalAmountsConfiguration()) {
             debug() << "path: " << reservation.first << " amount: " << *reservation.second.get();
@@ -310,7 +310,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
             ResponseMessage::Closed);
 
         mTransactionShouldBeRejected = true;
-        error() << "Reserved amount is greater than requested. It indicates protocol or realisation error.";
+        warning() << "Reserved amount is greater than requested. It indicates protocol or realisation error.";
         // We should waiting for possible new messages and close transaction on timeout
         return resultWaitForMessageTypes(
             {Message::Payments_IntermediateNodeReservationRequest,

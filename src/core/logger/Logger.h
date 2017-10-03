@@ -81,6 +81,9 @@ public:
     LoggerStream debug(
         const string &subsystem);
 
+    LoggerStream warning(
+        const string &subsystem);
+
     [[deprecated("Please, use info()")]]
     void logInfo(
         const string &subsystem,

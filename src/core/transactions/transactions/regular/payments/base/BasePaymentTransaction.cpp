@@ -441,7 +441,7 @@ const bool BasePaymentTransaction::contextIsValid(
 {
     if (mContext.empty()) {
         if (showErrorMessage) {
-            error() << "contextIsValid::context is empty";
+            warning() << "contextIsValid::context is empty";
         }
         return false;
     }
@@ -453,14 +453,14 @@ const bool BasePaymentTransaction::contextIsValid(
             for (auto const message : mContext) {
                 stream << message->typeID() << " ";
             }
-            error() << stream.str();
+            warning() << stream.str();
         }
         return false;
     }
 
     if (mContext.at(0)->typeID() != messageType) {
         if (showErrorMessage) {
-            error() << "Unexpected message received. (ID " << mContext.at(0)->typeID()
+            warning() << "Unexpected message received. (ID " << mContext.at(0)->typeID()
                     << ") It seems that remote node doesn't follows the protocol. Canceling.";
         }
 
@@ -562,8 +562,9 @@ void BasePaymentTransaction::commit(
 
             mTrustLines->dropAmountReservation(
                         kNodeUUIDAndReservations.first,
-                        kPathIDAndReservation.second,
-                        ioTransaction);
+                        kPathIDAndReservation.second//,
+//                        ioTransaction
+            );
         }
         ioTransaction->trustLinesHandler()->saveTrustLine(
             mTrustLines->trustLines().at(
@@ -610,8 +611,9 @@ void BasePaymentTransaction::rollBack ()
         for (const auto &kPathIDAndReservation : kNodeUUIDAndReservations.second) {
             mTrustLines->dropAmountReservation(
                 kNodeUUIDAndReservations.first,
-                kPathIDAndReservation.second,
-                ioTransaction);
+                kPathIDAndReservation.second//,
+//                ioTransaction
+            );
 
             if (kPathIDAndReservation.second->direction() == AmountReservation::Outgoing)
                 debug() << "Dropping reservation: [ => ] " << kPathIDAndReservation.second->amount()
@@ -633,7 +635,7 @@ void BasePaymentTransaction::rollBack (
     const PathID &pathID)
 {
     debug() << "rollback on path";
-    const auto ioTransaction = mStorageHandler->beginTransaction();
+//    const auto ioTransaction = mStorageHandler->beginTransaction();
 
     auto itNodeUUIDAndReservations = mReservations.begin();
     while(itNodeUUIDAndReservations != mReservations.end()) {
@@ -643,8 +645,9 @@ void BasePaymentTransaction::rollBack (
 
                 mTrustLines->dropAmountReservation(
                     itNodeUUIDAndReservations->first,
-                    itPathIDAndReservation->second,
-                    ioTransaction);
+                    itPathIDAndReservation->second//,
+//                    ioTransaction
+                );
 
                 if (itPathIDAndReservation->second->direction() == AmountReservation::Outgoing)
                     debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()
@@ -823,7 +826,7 @@ void BasePaymentTransaction::dropNodeReservationsOnPath(
 {
     debug() << "dropNodeReservationsOnPath: " << pathID;
 
-    const auto ioTransaction = mStorageHandler->beginTransaction();
+//    const auto ioTransaction = mStorageHandler->beginTransaction();
 
     for (auto nodeReservations : mReservations) {
         //auto nodeReservations = mReservations.find(firstIntermediateNode);
@@ -833,8 +836,9 @@ void BasePaymentTransaction::dropNodeReservationsOnPath(
 
                 mTrustLines->dropAmountReservation(
                     nodeReservations.first,
-                    itPathIDAndReservation->second,
-                    ioTransaction);
+                    itPathIDAndReservation->second//,
+//                    ioTransaction
+                );
 
                 if (itPathIDAndReservation->second->direction() == AmountReservation::Outgoing)
                     debug() << "Dropping reservation: [ => ] " << itPathIDAndReservation->second->amount()
@@ -1019,7 +1023,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     }
 
     // TODO : need discuss this case. it can't be happen
-    error() << "Unexpected behaviour. Apply logic when coordinator didn't sent response";
+    warning() << "Unexpected behaviour. Apply logic when coordinator didn't sent response";
     return processNextNodeToCheckVotes();
 }
 

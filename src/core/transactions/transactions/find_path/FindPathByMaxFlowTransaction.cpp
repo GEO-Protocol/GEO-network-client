@@ -30,7 +30,7 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::run()
     switch (mStep) {
         case Stages::SendRequestForGettingRoutingTables:
             if (mContractorUUID == currentNodeUUID()) {
-                error() << "Attempt to initialise operation against itself was prevented. Canceled.";
+                warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
                 return resultDone();
             }
             mStep = Stages::BuildAllPaths;
@@ -49,7 +49,7 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::run()
                 mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
                 launchSubsidiaryTransaction(kTransaction);
             } catch (...) {
-                error() << "Can not launch Collecting Topology transaction for " << mContractorUUID << ".";
+                warning() << "Can not launch Collecting Topology transaction for " << mContractorUUID << ".";
             }
 
             return resultAwaikAfterMilliseconds(

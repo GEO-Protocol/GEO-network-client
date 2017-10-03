@@ -83,7 +83,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::run()
                         "unexpected stage occurred.");
         }
     } catch (Exception &e) {
-        error() << e.what();
+        warning() << e.what();
         return recover("Something happens wrong in method run(). Transaction will be recovered");
     }
 }
@@ -104,7 +104,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::Rejected);
-        error() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
+        warning() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
         return resultDone();
     }
 
@@ -270,7 +270,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
             currentTransactionUUID(),
             ResponseCycleMessage::Rejected);
 
-        error() << "Path is not valid: next node is not neighbor of current one. Rejected.";
+        warning() << "Path is not valid: next node is not neighbor of current one. Rejected.";
         rollBack();
         return resultDone();
     }
@@ -431,7 +431,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
     }
 
     if (kMessage->state() != IntermediateNodeCycleReservationResponseMessage::Accepted) {
-        error() << "Unexpected message state. Protocol error.";
+        warning() << "Unexpected message state. Protocol error.";
         rollBack();
         // state RejectedBecauseReservations is needed for prevent
         // add offline nodes and closed trustlines on coordinator
@@ -592,28 +592,28 @@ bool CycleCloserIntermediateNodeTransaction::checkReservationsDirections() const
 {
     debug() << "checkReservationsDirections";
     if (mReservations.size() != 2) {
-        error() << "Wrong nodes reservations size: " << mReservations.size();
+        warning() << "Wrong nodes reservations size: " << mReservations.size();
         return false;
     }
 
     auto firstNodeReservation = mReservations.begin()->second;
     auto secondNodeReservation = mReservations.rbegin()->second;
     if (firstNodeReservation.size() != 1 || secondNodeReservation.size() != 1) {
-        error() << "Wrong reservations size";
+        warning() << "Wrong reservations size";
         return false;
     }
     const auto firstReservation = firstNodeReservation.at(0);
     const auto secondReservation = secondNodeReservation.at(0);
     if (firstReservation.first != secondReservation.first) {
-        error() << "Reservations on different ways";
+        warning() << "Reservations on different ways";
         return false;
     }
     if (firstReservation.second->amount() != secondReservation.second->amount()) {
-        error() << "Different reservations amount";
+        warning() << "Different reservations amount";
         return false;
     }
     if (firstReservation.second->direction() == secondReservation.second->direction()) {
-        error() << "Wrong directions";
+        warning() << "Wrong directions";
         return false;
     }
     return true;

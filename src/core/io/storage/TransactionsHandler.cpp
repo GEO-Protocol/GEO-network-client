@@ -190,9 +190,9 @@ LoggerStream TransactionsHandler::info() const
     return mLog.info(logHeader());
 }
 
-LoggerStream TransactionsHandler::error() const
+LoggerStream TransactionsHandler::warning() const
 {
-    return mLog.error(logHeader());
+    return mLog.warning(logHeader());
 }
 
 const string TransactionsHandler::logHeader() const

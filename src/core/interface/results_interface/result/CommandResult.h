@@ -25,10 +25,12 @@ public:
 
 public:
     CommandResult(
+        const string &commandIdentifier,
         const CommandUUID &commandUUID,
         const uint16_t resultCode);
 
     CommandResult(
+        const string &commandIdentifier,
         const CommandUUID &commandUUID,
         const uint16_t resultCode,
         string &resultInformation);
@@ -41,11 +43,14 @@ public:
 
     const string serialize() const;
 
+    const string identifier() const;
+
 private:
     CommandUUID mCommandUUID;
     uint16_t mResultCode;
     DateTime mTimestampCompleted;
     string mResultInformation;
+    string mCommandIdentifier;
 };
 
 

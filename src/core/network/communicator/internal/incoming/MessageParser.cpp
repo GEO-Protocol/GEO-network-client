@@ -163,7 +163,7 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 #endif
 
         default: {
-            mLog->error("MessagesParser::processBytesSequence")
+            mLog->warning("MessagesParser::processBytesSequence")
                 << "Unexpected message identifier occured (" << kMessageIdentifier << "). Message dropped.";
             return messageInvalidOrIncomplete();
         }

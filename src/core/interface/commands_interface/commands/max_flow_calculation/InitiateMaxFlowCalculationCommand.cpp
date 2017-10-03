@@ -83,6 +83,7 @@ CommandResult::SharedConst InitiateMaxFlowCalculationCommand::responseOk(
 {
     return CommandResult::SharedConst(
         new CommandResult(
+            identifier(),
             UUID(),
             200,
             maxFlowAmount));

@@ -988,6 +988,7 @@ void TransactionsManager::onCommandResultReady(
     try {
         auto message = result->serialize();
 
+        mLog.info("Result for command " + result->identifier());
         mLog.logSuccess(
             "Transactions manager::onCommandResultReady",
             message
@@ -1106,13 +1107,13 @@ void TransactionsManager::prepareAndSchedule(
             throw bad_alloc();
 
         } catch(ConflictError &e) {
-            mLog.error("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
+            mLog.warning("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
                                               << " New TransactionType:" << transaction->transactionType()
                                               << " Recreate.";
             if (regenerateUUID) {
                 transaction->recreateTransactionUUID();
             } else {
-                mLog.error("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
+                mLog.warning("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
                                                   << " New TransactionType:" << transaction->transactionType()
                                                   << "Exit.";
                 return;

@@ -200,9 +200,9 @@ LoggerStream TrustLineHandler::info() const
     return mLog.info(logHeader());
 }
 
-LoggerStream TrustLineHandler::error() const
+LoggerStream TrustLineHandler::warning() const
 {
-    return mLog.error(logHeader());
+    return mLog.warning(logHeader());
 }
 
 const string TrustLineHandler::logHeader() const

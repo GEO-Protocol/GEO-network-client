@@ -196,6 +196,7 @@ CommandResult::SharedConst HistoryPaymentsCommand::resultOk(string &historyPayme
 {
     return CommandResult::SharedConst(
         new CommandResult(
+            identifier(),
             UUID(),
             200,
             historyPaymentsStr));

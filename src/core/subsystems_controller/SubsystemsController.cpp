@@ -401,9 +401,9 @@ LoggerStream SubsystemsController::debug() const
     return mLog.debug(logHeader());
 }
 
-LoggerStream SubsystemsController::error() const
+LoggerStream SubsystemsController::warning() const
 {
-    return mLog.error(logHeader());
+    return mLog.warning(logHeader());
 }
 
 const string SubsystemsController::logHeader() const

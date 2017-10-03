@@ -54,7 +54,7 @@ int Core::initSubsystems()
         conf = mSettings->loadParsedJSON();
 
     } catch (std::exception &e) {
-        cerr << utc_now() <<" : FATAL\tSETTINGS\t" <<  e.what() << "." << endl;
+        cerr << utc_now() <<" : ERROR\tSETTINGS\t" <<  e.what() << "." << endl;
         return -1;
     }
 
@@ -63,7 +63,7 @@ int Core::initSubsystems()
 
     } catch (RuntimeError &) {
         // Logger was not initialized yet
-        cerr << utc_now() <<" : FATAL\tCORE\tCan't read UUID of the node from the settings" << endl;
+        cerr << utc_now() <<" : ERROR\tCORE\tCan't read UUID of the node from the settings" << endl;
         return -1;
     }
 
@@ -276,21 +276,6 @@ int Core::initDelayedTasks()
             mMaxFlowCalculationCacheManager.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
             *mLog.get());
-
-        mTrustLineNotificationTimer = make_unique<as::steady_timer>(
-            mIOService);
-
-        // todo: remove after update
-        int timeStarted = 10 * 60;
-
-        mTrustLineNotificationTimer->expires_from_now(
-            chrono::seconds(
-                timeStarted));
-
-        mTrustLineNotificationTimer->async_wait(
-            boost::bind(
-                &Core::notifyContractorsAboutCurrentTrustLinesAmounts,
-                this));
 
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
 
@@ -609,6 +594,12 @@ LoggerStream Core::error() const
     noexcept
 {
     return mLog->error(logHeader());
+}
+
+LoggerStream Core::warning() const
+    noexcept
+{
+    return mLog->warning(logHeader());
 }
 
 LoggerStream Core::info() const

@@ -94,12 +94,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
                                     "invalid transaction step.");
             }
         } catch (CallChainBreakException &e) {
-            error() << e.what();
+            warning() << e.what();
             // on this case we break call functions chain and prevent stack overflow
             mReservationsStage = 2;
             continue;
         } catch (Exception &e) {
-            error() << e.what();
+            warning() << e.what();
             return reject("Something happens wrong in method run(). Transaction will be rejected");
         }
     }
@@ -165,7 +165,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
                                 "unexpected resource type");
         }
     } else {
-        error() << "resources are empty";
+        warning() << "resources are empty";
         return resultNoPathsError();
     }
 
@@ -355,7 +355,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
 #endif
 
     if (mDirectPathIsAlreadyProcessed) {
-        error() << "Direct path reservation attempt occurred, but previously it was already processed. "
+        warning() << "Direct path reservation attempt occurred, but previously it was already processed. "
                 << "It seems that paths collection contains direct path several times. "
                 << "This one and all other similar path would be rejected. "
                 << "Switching to the other path.";
@@ -397,7 +397,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveAmountDi
         kContractor,
         kReservationAmount,
         pathID)){
-        error() << "Can't reserve amount locally. "
+        warning() << "Can't reserve amount locally. "
                 << "Switching to another path.";
 
         pathStats->setUnusable();
@@ -524,8 +524,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         // No next path must be selected.
         // Transaction execution must be cancelled.
 
-        error() << "Invalid path occurred. Node (" << neighbor << ") is not listed in first level contractors list.";
-        error() << "This may signal about protocol/data manipulations.";
+        warning() << "Invalid path occurred. Node (" << neighbor << ") is not listed in first level contractors list.";
+        warning() << "This may signal about protocol/data manipulations.";
 
         throw RuntimeError(
             "CoordinatorPaymentTransaction::tryReserveNextIntermediateNodeAmount: "
@@ -559,7 +559,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         neighbor,
         kReservationAmount,
         mCurrentAmountReservingPathIdentifier)) {
-        error() << "Can't reserve amount locally. "
+        warning() << "Can't reserve amount locally. "
                 << "Switching to another path.";
         path->setUnusable();
         throw CallChainBreakException("Break call chain for preventing call loop");
@@ -696,7 +696,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
     // todo: check message sender
 
     if (message->state() == IntermediateNodeReservationResponseMessage::Closed) {
-        error() << "Neighbor node doesn't approved reservation request";
+        warning() << "Neighbor node doesn't approved reservation request";
         return reject("Desynchronization in reservation with Receiver occured. Transaction closed.");
     }
 
@@ -1183,7 +1183,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsCon
         auto kMessage = popNextMessage<FinalAmountsConfigurationResponseMessage>();
         if (mFinalAmountNodesConfirmation.find(kMessage->senderUUID) == mFinalAmountNodesConfirmation.end()) {
             // todo : need actual action on this case
-            error() << "Sender is not participant of this transaction";
+            warning() << "Sender is not participant of this transaction";
             return resultWaitForMessageTypes(
                 {Message::Payments_FinalAmountsConfigurationResponse,
                  Message::Payments_TTLProlongationRequest},
@@ -1410,7 +1410,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
     debug() << "Total collected amount by all paths: " << kTotalAmount;
 
     if (kTotalAmount > mCommand->amount()){
-        error() << "Total requested amount: " << mCommand->amount();
+        warning() << "Total requested amount: " << mCommand->amount();
         return reject("Total collected amount is greater than requested amount. "
                           "It indicates that some of the nodes doesn't follows the protocol, "
                           "or that an error is present in protocol itself.");
@@ -1605,7 +1605,7 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
     bool sendToLastProcessedNode)
 {
     debug() << "dropReservationsOnPath";
-    const auto ioTransaction = mStorageHandler->beginTransaction();
+//    const auto ioTransaction = mStorageHandler->beginTransaction();
 
     pathStats->setUnusable();
 
@@ -1619,8 +1619,9 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
                     << " for (" << firstIntermediateNode << ") [" << pathID << "]";
             mTrustLines->dropAmountReservation(
                 firstIntermediateNode,
-                itPathIDAndReservation->second,
-                ioTransaction);
+                itPathIDAndReservation->second//,
+//                ioTransaction
+            );
 
             itPathIDAndReservation = nodeReservations->second.erase(itPathIDAndReservation);
             // coordinator has only one reservation on each path

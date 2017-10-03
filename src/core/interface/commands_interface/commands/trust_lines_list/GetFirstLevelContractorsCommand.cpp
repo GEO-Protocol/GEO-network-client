@@ -14,7 +14,7 @@ const string &GetFirstLevelContractorsCommand::identifier() {
 }
 
 CommandResult::SharedConst GetFirstLevelContractorsCommand::resultOk(string& neighbors) const {
-    return make_shared<const CommandResult>(UUID(),200, neighbors);
+    return make_shared<const CommandResult>(identifier(), UUID(),200, neighbors);
 }
 
 void GetFirstLevelContractorsCommand::parse(const string& command)

@@ -1,24 +1,28 @@
 #include "CommandResult.h"
 
 CommandResult::CommandResult(
+        const string &commandIdentifier,
         const CommandUUID &commandUUID,
         const uint16_t resultCode) :
 
         mCommandUUID(commandUUID),
-        mTimestampCompleted(utc_now()) {
-
+        mTimestampCompleted(utc_now()),
+        mCommandIdentifier(commandIdentifier)
+{
     mResultCode = resultCode;
 }
 
 CommandResult::CommandResult(
+        const string &commandIdentifier,
         const CommandUUID &commandUUID,
         const uint16_t resultCode,
         string &resultInformation) :
 
         mCommandUUID(commandUUID),
         mTimestampCompleted(utc_now()),
-        mResultInformation(resultInformation) {
-
+        mResultInformation(resultInformation),
+        mCommandIdentifier(commandIdentifier)
+{
     mResultCode = resultCode;
 }
 
@@ -47,4 +51,8 @@ const string CommandResult::serialize() const {
     }
     return mCommandUUID.stringUUID() + "\t" +
            boost::lexical_cast<string>(mResultCode) + "\n";
+}
+
+const string CommandResult::identifier() const {
+    return mCommandIdentifier;
 }

@@ -47,7 +47,7 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
         );
     }
     else {
-        error() << "Wrong path size " << to_string(kCurrentDepth);
+        warning() << "Wrong path size " << to_string(kCurrentDepth);
     }
     return resultDone();
 }

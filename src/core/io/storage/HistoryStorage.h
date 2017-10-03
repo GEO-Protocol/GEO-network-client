@@ -108,7 +108,7 @@ private:
 
     LoggerStream debug() const;
 
-    LoggerStream error() const;
+    LoggerStream warning() const;
 
     const string logHeader() const;
 

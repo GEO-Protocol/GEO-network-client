@@ -86,16 +86,22 @@ LoggerStream Logger::info(
     return LoggerStream(this, "INFO", subsystem);
 }
 
-LoggerStream Logger::error(
-    const string &subsystem)
+LoggerStream Logger::warning(
+        const string &subsystem)
 {
-    return LoggerStream(this, "ERROR", subsystem);
+    return LoggerStream(this, "WARNING", subsystem);
 }
 
 LoggerStream Logger::debug(
     const string &subsystem)
 {
     return LoggerStream(this, "DEBUG", subsystem);
+}
+
+LoggerStream Logger::error(
+        const string &subsystem)
+{
+    return LoggerStream(this, "ERROR", subsystem);
 }
 
 void Logger::logInfo(

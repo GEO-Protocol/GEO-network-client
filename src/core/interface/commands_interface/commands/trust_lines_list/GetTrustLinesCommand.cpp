@@ -18,7 +18,7 @@ const string &GetTrustLinesCommand::identifier()
 CommandResult::SharedConst GetTrustLinesCommand::resultOk(
     string &neighbors) const
 {
-    return make_shared<const CommandResult>(UUID(),200, neighbors);
+    return make_shared<const CommandResult>(identifier(), UUID(), 200, neighbors);
 }
 
 void GetTrustLinesCommand::parse(const string &command)

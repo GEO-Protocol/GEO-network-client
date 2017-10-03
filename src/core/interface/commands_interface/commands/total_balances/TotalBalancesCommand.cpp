@@ -26,6 +26,7 @@ CommandResult::SharedConst TotalBalancesCommand::resultOk(
 {
     return CommandResult::SharedConst(
         new CommandResult(
+            identifier(),
             UUID(),
             200,
             totalBalancesStr));

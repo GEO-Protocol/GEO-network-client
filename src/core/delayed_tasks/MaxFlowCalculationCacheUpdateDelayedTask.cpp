@@ -28,7 +28,7 @@ void MaxFlowCalculationCacheUpdateDelayedTask::runSignalMaxFlowCalculationCacheU
     const boost::system::error_code &errorCode)
 {
     if (errorCode) {
-        error() << errorCode.message().c_str();
+        warning() << errorCode.message().c_str();
     }
     DateTime closestTimeEvent = updateCache();
     Duration microsecondsDelay = closestTimeEvent - utc_now();
@@ -90,9 +90,9 @@ LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::info() const
     return mLog.info(logHeader());
 }
 
-LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::error() const
+LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::warning() const
 {
-    return mLog.error(logHeader());
+    return mLog.warning(logHeader());
 }
 
 const string MaxFlowCalculationCacheUpdateDelayedTask::logHeader() const
