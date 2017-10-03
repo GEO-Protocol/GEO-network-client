@@ -49,12 +49,14 @@ protected:
 //    13 - throw exception on Next Neighbor Response Processing Stage  0x2000  // 8192
 //    14 - throw exception on vote stage  0x4000  // 16384
 //    15 - throw exception on vote consistency stage  0x8000  // 32768
+//    16 - throw exception on coordinator after approve before send message  0x10000 // 65536
 
-//    21 - throw exception on previous neighbor request processing stage  0x200000  // 2097152
-//    22 - throw exception on Coordinator Request Processing Stage  0x400000  // 4194304
-//    23 - throw exception on Next Neighbor Response Processing Stage  0x800000  // 8388608
-//    24 - throw exception on vote stage  0x1000000  // 16777216
-//    25 - throw exception on vote consistency stage  0x2000000  // 33554432
+//    21 - terminate process on previous neighbor request processing stage  0x200000  // 2097152
+//    22 - terminate process on Coordinator Request Processing Stage  0x400000  // 4194304
+//    23 - terminate process on Next Neighbor Response Processing Stage  0x800000  // 8388608
+//    24 - terminate process on vote stage  0x1000000  // 16777216
+//    25 - terminate process on vote consistency stage  0x2000000  // 33554432
+//    26 - terminate process on coordinator after approve before send message  0x4000000 // 67108864
 
 //    31 - sleep on Previous Neighbor Request Processing Stage  0x80000000  //  2147483648
 //    32 - sleep on Coordinator Request Processing Stage  0x100000000  //  4294967296

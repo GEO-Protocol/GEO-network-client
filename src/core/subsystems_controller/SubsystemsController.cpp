@@ -24,12 +24,14 @@ SubsystemsController::SubsystemsController(
     mThrowExceptionOnNextNeighborResponseProcessingStage = false;
     mThrowExceptionOnVoteStage = false;
     mThrowExceptionOnVoteConsistencyStage = false;
+    mThrowExceptionOnCoordinatorAfterApproveBeforeSendMessage = false;
 
     mTerminateProcessOnPreviousNeighborRequestProcessingStage = false;
     mTerminateProcessOnCoordinatorRequestProcessingStage = false;
     mTerminateProcessOnNextNeighborResponseProcessingStage = false;
     mTerminateProcessOnVoteStage = false;
     mTerminateProcessOnVoteConsistencyStage = false;
+    mTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage = false;
 
     mSleepOnPreviousNeighborRequestProcessingStage = false;
     mSleepOnCoordinatorRequestProcessingStage = false;
@@ -66,12 +68,14 @@ void SubsystemsController::setFlags(size_t flags)
     mThrowExceptionOnNextNeighborResponseProcessingStage = (flags & 0x2000) > 0;
     mThrowExceptionOnVoteStage = (flags & 0x4000) > 0;
     mThrowExceptionOnVoteConsistencyStage = (flags & 0x8000) > 0;
+    mThrowExceptionOnCoordinatorAfterApproveBeforeSendMessage = (flags & 0x10000) > 0;
 
     mTerminateProcessOnPreviousNeighborRequestProcessingStage = (flags & 0x200000) > 0;
     mTerminateProcessOnCoordinatorRequestProcessingStage = (flags & 0x400000) > 0;
     mTerminateProcessOnNextNeighborResponseProcessingStage = (flags & 0x800000) > 0;
     mTerminateProcessOnVoteStage = (flags & 0x1000000) > 0;
     mTerminateProcessOnVoteConsistencyStage = (flags & 0x2000000) > 0;
+    mTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage = (flags & 0x4000000) > 0;
 
     mSleepOnPreviousNeighborRequestProcessingStage = (flags & 0x80000000) > 0;
     mSleepOnCoordinatorRequestProcessingStage = (flags & 0x100000000) > 0;
@@ -297,6 +301,13 @@ void SubsystemsController::testThrowExceptionOnVoteConsistencyStage()
     }
 }
 
+void SubsystemsController::testThrowExceptionOnCoordinatorAfterApproveBeforeSendMessage()
+{
+    if (mThrowExceptionOnCoordinatorAfterApproveBeforeSendMessage) {
+        throw Exception("Test exception on coordinator after approve before send message");
+    }
+}
+
 void SubsystemsController::testTerminateProcessOnPreviousNeighborRequestProcessingStage()
 {
     if (mTerminateProcessOnPreviousNeighborRequestProcessingStage) {
@@ -333,6 +344,14 @@ void SubsystemsController::testTerminateProcessOnVoteConsistencyStage()
 {
     if (mTerminateProcessOnVoteConsistencyStage) {
         debug() << "testTerminateProcessOnVoteConsistencyStage";
+        exit(100);
+    }
+}
+
+void SubsystemsController::testTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage()
+{
+    if (mTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage) {
+        debug() << "testTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage";
         exit(100);
     }
 }
