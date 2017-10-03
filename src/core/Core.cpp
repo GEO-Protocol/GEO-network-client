@@ -67,8 +67,13 @@ int Core::initSubsystems()
         return -1;
     }
 
-    // todo : implement me correct
-    mIAmGateway = false;
+    try {
+        mIAmGateway = mSettings->iAmGateway(&conf);
+    } catch (RuntimeError &) {
+        // Logger was not initialized yet
+        cerr << utc_now() <<" : ERROR\tCORE\tCan't read if node is gateway from the settings" << endl;
+        return -1;
+    }
 
     initCode = initLogger();
     if (initCode != 0)
