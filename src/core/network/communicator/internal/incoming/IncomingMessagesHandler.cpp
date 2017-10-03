@@ -16,6 +16,21 @@ IncomingMessagesHandler::IncomingMessagesHandler(
         mLog),
     mCleaningTimer(ioService)
 {
+#ifdef ENGINE_TYPE_DC
+    // Builds Data centers may have signifficantly larger read socket buffer.
+    // Large read socket buffer is needed to handle potentially huge amount of messages,
+    // that might arrive form the network during max flow calculation.
+    const uint32_t kMaxReadSocketSize = 1024*1024*30; // 30MB of data.
+#elif
+
+    // Other platforms might be unable to handle extra large buffers,
+    // so the default on is used.
+    const uint32_t kMaxReadSocketSize = 1024*1024; // 1MB of data
+#endif
+
+    boost::asio::socket_base::receive_buffer_size option(kMaxReadSocketSize);
+    mSocket.set_option(option);
+
     rescheduleCleaning();
 }
 
@@ -102,10 +117,12 @@ void IncomingMessagesHandler::handleReceivedInfo(
             // Sending all collected messages (if exists) for further processing.
             for (;;) {
                 auto message = remoteNodeHandler->popNextMessage();
-                if (message != nullptr)
+                if (message != nullptr) {
                     signalMessageParsed(message);
-                else
+                }
+                else {
                     break;
+                }
             }
         }
 

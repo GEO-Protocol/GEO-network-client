@@ -1335,6 +1335,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::approve()
     mSubsystemsController->testSleepOnVoteConsistencyStage(
         maxNetworkDelay(
             mParticipantsVotesMessage->participantsCount() + 2));
+    mSubsystemsController->testThrowExceptionOnCoordinatorAfterApproveBeforeSendMessage();
+    mSubsystemsController->testTerminateProcessOnCoordinatorAfterApproveBeforeSendMessage();
 #endif
 
     propagateVotesMessageToAllParticipants(
