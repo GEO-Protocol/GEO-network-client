@@ -47,7 +47,7 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
     sendMessage<ConfirmationMessage>(
         mMessage->senderUUID,
         currentNodeUUID(),
-        currentTransactionUUID());
+        mMessage->transactionUUID());
     return resultDone();
 }
 

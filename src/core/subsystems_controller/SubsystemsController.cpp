@@ -50,6 +50,8 @@ void SubsystemsController::setFlags(size_t flags)
     mIsNetworkOn = (flags & 0x1) == 0;
     if (!mIsNetworkOn) {
         mCountForbiddenMessages = UINT32_MAX;
+    } else {
+        mCountForbiddenMessages = 0;
     }
     mIsRunCycleClosingTransactions = (flags & 0x2) == 0;
 
