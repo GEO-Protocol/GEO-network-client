@@ -1,4 +1,4 @@
-#include "TrustLinesManagerTest.h"
+#include "TrustLinesManagerTests.h"
 
 TrustLinesManagerTest::TrustLinesManagerTest() {
     mTrustLinesManager = new TrustLinesManager();
@@ -34,11 +34,11 @@ void TrustLinesManagerTest::showAllTrustLines() {
     deletePointer();
     TrustLinesManager *trustLinesManager = new TrustLinesManager();
     for(auto const &it : trustLinesManager->mTrustLines){
-        TrustLine *tl = trustLinesManager->getTrustLineByContractorUUID(it.first);
-        cout << "Contractor " << tl->getContractorNodeUUID().stringUUID() << endl;
-        cout << "Outgoing trust amount " << tl->getOutgoingTrustAmount() << endl;
-        cout << "Incoming trust amount " << tl->getIncomingTrustAmount() << endl;
-        cout << "Balance " << tl->getBalance() << endl;
+        TrustLine::Shared tl = trustLinesManager->getTrustLineByContractorUUID(it.first);
+        cout << "Contractor " << tl.get()->getContractorNodeUUID().stringUUID() << endl;
+        cout << "Outgoing trust amount " << tl.get()->getOutgoingTrustAmount() << endl;
+        cout << "Incoming trust amount " << tl.get()->getIncomingTrustAmount() << endl;
+        cout << "Balance " << tl.get()->getBalance() << endl;
         cout << "-------------------------------------------------------" <<endl;
     }
     delete trustLinesManager;

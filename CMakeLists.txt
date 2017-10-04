@@ -1,22 +1,193 @@
-cmake_minimum_required(VERSION 3.6)
+﻿cmake_minimum_required(VERSION 3.6)
 project(geo_network_client)
 
-# NOTE: Do not forget to change it in release version
-add_definitions(-DDEBUG -DTESTS)
-
+find_package(Boost COMPONENTS system filesystem thread date_time REQUIRED)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-set(Boost_USE_STATIC_LIBS ON)
+
+
+#
+# Platform build options
+# (supported platforms are: LINUX | MAC_OS)
+#
+set(PLATFORM "LINUX")
+
+IF (${PLATFORM} MATCHES "MAC_OS")
+    add_definitions(-DMAC_OS)
+ENDIF (${PLATFORM} MATCHES "MAC_OS")
+
+IF (${PLATFORM} MATCHES "LINUX")
+    add_definitions(-DLINUX)
+ENDIF (${PLATFORM} MATCHES "LINUX")
+
+#
+# Debug options
+# (available options are: DEBUG | RELEASE | TESTS)
+#
+set(BUILD_CONFIGURATION "RELEASE")
+
+IF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
+    set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fsanitize=address")
+
+    add_definitions(
+        -DDEBUG
+        -DINTERNAL_ARGUMENTS_VALIDATION
+    )
+
+    #
+    # Debug logs configuration
+    #
+    add_definitions(
+        # Subsystems
+        -DDEBUG_LOG_NETWORK_COMMUNICATOR
+#        -DDEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
+        -DDEBUG_LOG_STORAGE_HANDLER # ToDo: change me in relevant transaction code
+
+        # Transactions control
+        -DDEBUG_LOG_TRANSACTIONS_MANAGER
+        -DDEBUG_LOG_SCHEDULER # ToDo: change me in relevant transaction code
+
+        # Transactions
+        -DDEBUG_LOG_TRUST_LINES_PROCESSING
+        -DDEBUG_LOG_ROUTING_TABLES_PROCESSING
+        -DDEBUG_LOG_MAX_FLOW_CALCULATION
+        -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
+        #-DDEBUG_LOG_CYCLES_BUILDING_POCESSING
+    )
+
+ENDIF (${BUILD_CONFIGURATION} MATCHES "DEBUG")
+
+IF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
+    set(CMAKE_BUILD_TYPE "Release")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Os -s -fdata-sections -fmerge-all-constants")
+ENDIF (${BUILD_CONFIGURATION} MATCHES "RELEASE")
+
+IF (${BUILD_CONFIGURATION} MATCHES "TESTS")
+    add_definitions(
+        -DTESTS
+        -DINTERNAL_ARGUMENTS_VALIDATION
+    )
+
+    #
+    # Logs configuration
+    #
+    add_definitions(
+        # Subsystems
+        -DDEBUG_LOG_NETWORK_COMMUNICATOR
+#       -DDEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
+        -DDEBUG_LOG_STORAGE_HANDLER # ToDo: change me in relevant transaction code
+
+        # Transactions control
+        -DDEBUG_LOG_TRANSACTIONS_MANAGER
+        -DDEBUG_LOG_SCHEDULER # ToDo: change me in relevant transaction code
+
+        # Transactions
+        -DDEBUG_LOG_TRUST_LINES_PROCESSING
+        -DDEBUG_LOG_ROUTING_TABLES_PROCESSING
+        #-DDEBUG_LOG_MAX_FLOW_CALCULATION
+        -DDEBUG_LOG_PATHS_COLLECTING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_PAYMENTS_PROCESSING # ToDo: change me in relevant transaction code
+        -DDEBUG_LOG_CYCLES_PROCESSING # ToDo: change me in relevant transaction code
+        #-DDEBUG_LOG_CYCLES_BUILDING_POCESSING
+    )
+
+    set(CMAKE_BUILD_TYPE "Release")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+ENDIF (${BUILD_CONFIGURATION} MATCHES "TESTS")
+
+#
+# Engine type options
+# (available options are:
+#   DC - indicates that this build sould be used in datacenter,
+#   DECENTRALIZED - indicates that this build would be used as a standalone node in a public network)
+#
+set(ENGINE_TYPE "DC")
+
+IF (${ENGINE_TYPE} MATCHES "DC")
+    add_definitions(-DENGINE_TYPE_DC)
+ENDIF (${ENGINE_TYPE} MATCHES "DC")
+
+IF (${ENGINE_TYPE} MATCHES "DECENTRALIZED")
+    add_definitions(-DENGINE_TYPE_DECENTRALIZED)
+ENDIF (${ENGINE_TYPE} MATCHES "DECENTRALIZED")
+
+
+#
+# Logs configuration
+#
+add_definitions(-DTRANSACTIONS_LOG)
+
+
+#
+# Boost configuration
+#
+set(Boost_USE_SHARED_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 
-set(SOURCE_FILES main.cpp src/core/network/Communicator.cpp src/core/network/Communicator.h src/core/network/internal/OutgoingMessagesHandler.cpp src/core/network/internal/OutgoingMessagesHandler.h src/core/common/NodeUUID.cpp src/core/common/NodeUUID.h src/core/network/messages/Message.cpp src/core/network/messages/Message.h src/core/network/internal/OutgoingMessagesQueue.cpp src/core/network/internal/OutgoingMessagesQueue.h src/core/Core.cpp src/core/Core.h src/core/common/exceptions/Exception.cpp src/core/common/exceptions/Exception.h src/core/network/messages/TestMessage.h src/core/common/exceptions/IOError.h src/core/common/exceptions/ValueError.h src/core/common/exceptions/MemoryError.h src/core/common/exceptions/PreconditionFaultError.h src/tests/network/FileBackedMessagesQueueTests.cpp src/core/network/internal/IncomingMessagesHandler.cpp src/core/network/internal/IncomingMessagesHandler.h src/core/common/exceptions/ConflictError.h src/core/network/messages/ProcessingReportMessage.h src/core/settings/Settings.cpp src/core/settings/Settings.h src/libs/json.h src/core/interface/commands/CommandsInterface.cpp src/core/interface/commands/CommandsInterface.h src/core/interface/BaseFIFOInterface.h src/core/interface/commands/commands/BaseUserCommand.cpp src/core/interface/commands/commands/BaseUserCommand.h src/core/logger/Logger.h src/core/trust_lines/TrustLine.h src/core/trust_lines/TrustLine.cpp src/core/trust_lines/TrustLinesManager.h src/core/trust_lines/TrustLinesManager.cpp src/tests/interface/CommandsParserTests.cpp src/tests/trust_lines/TrustLinesManagerTest.h src/tests/trust_lines/TrustLinesManagerTest.cpp src/core/interface/results/ResultsInterface.h src/core/interface/results/ResultsInterface.cpp src/core/network/UUID2Address.h src/core/network/UUID2Address.cpp src/core/transactions/TransactionsManager.h src/core/transactions/TransactionsManager.cpp src/core/interface/commands/commands/OpenTrustLineCommand.h src/core/interface/commands/commands/OpenTrustLineCommand.cpp src/core/interface/commands/commands/CloseTrustLineCommand.h src/core/interface/commands/commands/CloseTrustLineCommand.cpp src/core/interface/commands/commands/UpdateTrustLineCommand.h src/core/interface/commands/commands/UpdateTrustLineCommand.cpp src/core/interface/commands/commands/UseCreditCommand.h src/core/interface/commands/commands/UseCreditCommand.cpp src/core/db/UUIDMapBlockStorage.h src/core/db/UUIDMapBlockStorage.cpp src/core/common/exceptions/IndexError.h src/core/db/Block.h src/core/db/Block.cpp src/tests/db/UUIDMapBlockStorageTest.h src/tests/db/UUIDMapBlockStorageTest.cpp src/core/io/trust_lines/TrustLinesStorage.h src/core/io/trust_lines/TrustLinesStorage.cpp src/core/interface/commands/commands/MaximalTransactionAmountCommand.h src/core/interface/commands/commands/MaximalTransactionAmountCommand.cpp src/core/common/exceptions/CommandParsingError.h src/core/interface/commands/commands/TotalBalanceCommand.h src/core/interface/commands/commands/TotalBalanceCommand.cpp src/core/interface/commands/commands/ContractorsListCommand.h src/core/interface/commands/commands/ContractorsListCommand.cpp src/core/interface/commands/CommandUUID.h src/core/common/exceptions/RuntimeError.h)
+
+#
+# Source files
+#
+add_subdirectory(src/core/common/)
+add_subdirectory(src/core/common/exceptions)
+add_subdirectory(src/core/logger)
+add_subdirectory(src/core/interface)
+add_subdirectory(src/core/network)
+add_subdirectory(src/core/settings)
+add_subdirectory(src/core/paths)
+add_subdirectory(src/core/transactions)
+add_subdirectory(src/core/trust_lines)
+add_subdirectory(src/core/max_flow_calculation)
+add_subdirectory(src/core/delayed_tasks)
+add_subdirectory(src/core/payments/amount_blocks)
+add_subdirectory(src/core/io/storage)
+add_subdirectory(src/core/resources)
+add_subdirectory(src/core/cycles)
+add_subdirectory(src/core/subsystems_controller)
+
+
+#
+# Libs
+#
+add_subdirectory(src/libs/sqlite3)
+
+set(SOURCE_FILES
+        main.cpp
+
+        src/core/Core.cpp
+        src/core/Core.h
+
+        # libs
+        src/libs/json/json.h)
+
 add_executable(geo_network_client ${SOURCE_FILES})
 
-find_package(Boost COMPONENTS system filesystem thread REQUIRED)
 target_link_libraries(geo_network_client
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
         ${Boost_THREAD_LIBRARY}
-        Boost::thread)
+        Boost::thread
+        libsqlite3
+
+        logger
+        settings
+
+        network__communicator
+        network__messages
+
+        interface__commands
+        interface__results
+
+        paths
+        trust_lines
+        max_flow_calculation
+        delayed_tasks
+        transactions
+        resources_manager
+        cycles
+        subsystems_controller)

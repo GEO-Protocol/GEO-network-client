@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <assert.h>
-#include "../../core/db/UUIDMapBlockStorage.h"
+#include "../../core/db/uuid_map_block_storage/UUIDMapBlockStorage.h"
 
 namespace db {
     namespace uuid_map_block_storage {
@@ -15,11 +15,11 @@ namespace db {
         class UUIDMapBlockStorageTest{
         public:
 
-            NodeUUID u1;
-            NodeUUID u2;
-            NodeUUID u3;
-            NodeUUID u4;
-            NodeUUID u5;
+            uuids::uuid u1;
+            uuids::uuid u2;
+            uuids::uuid u3;
+            uuids::uuid u4;
+            uuids::uuid u5;
 
             const size_t itemSize = 16;
 

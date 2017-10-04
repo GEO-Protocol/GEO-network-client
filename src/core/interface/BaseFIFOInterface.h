@@ -1,6 +1,7 @@
 #ifndef GEO_NETWORK_CLIENT_BASEINTERFACE_H
 #define GEO_NETWORK_CLIENT_BASEINTERFACE_H
 
+
 #include "../common/exceptions/IOError.h"
 
 #include <boost/asio.hpp>
@@ -23,10 +24,13 @@ public:
     static const constexpr char *kFIFODir = "fifo/";
 
 protected:
-    virtual const char* name() const = 0;
+    BaseFIFOInterface():
+        mFIFODescriptor(0){};
+
+    virtual const char* FIFOName() const = 0;
 
     const string FIFOFilePath() const {
-        return string(kFIFODir) + string(name());
+        return string(kFIFODir) + string(FIFOName());
     }
 
     const bool isFIFOExists() const {

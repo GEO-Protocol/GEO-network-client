@@ -1,62 +1,123 @@
-#ifndef GEO_NETWORK_CLIENT_LOGGER_H
+﻿#ifndef GEO_NETWORK_CLIENT_LOGGER_H
 #define GEO_NETWORK_CLIENT_LOGGER_H
 
 #include "../common/exceptions/Exception.h"
+#include "../common/time/TimeUtils.h"
+#include "../common/NodeUUID.h"
 
 #include <iostream>
+#include <sstream>
 #include <string>
 
 
 using namespace std;
 
-class Logger {
+
+class Logger;
+
+/**
+ * Logger stream is used as interface for the logger.
+ * It collects information
+ */
+class LoggerStream:
+    public stringstream {
+
 public:
-    void logException(const char *subsystem, const exception &e) {
-        auto m = string(e.what());
-        logRecord("EXCEPT", subsystem, m);
-    }
+    enum StreamType {
+        Standard = 0,
 
-    void logInfo(const char *subsystem, const string &message){
-        logRecord("INFO", subsystem, message);
-    }
+        // Used into the transactions.
+        // Helps distinquish transactions log from other logs flows.
+        Transaction,
 
-    void logSuccess(const char *subsystem, const string &message){
-        logRecord("SUCCESS", subsystem, message);
-    }
+        //...
+        // Other logs types must be located here
 
-    void logError(const char *subsystem, const string &message){
-        logRecord("ERROR", subsystem, message);
-    }
+        // Dummy logger is used in configurations,
+        // where no log records should be issued,
+        // but the logger structure is required by some type of signature(s).
+        Dummy,
+    };
 
-    void logFatal(const char *subsystem, const string &message){
-        logRecord("FATAL", subsystem, message);
-    }
+public:
+    explicit LoggerStream(
+        Logger *logger,
+        const string &group,
+        const string &subsystem,
+        const StreamType type = Standard);
+
+    LoggerStream(
+        const LoggerStream &other);
+
+    ~LoggerStream();
+
+    static LoggerStream dummy();
 
 private:
-    const string formatMessage(const string &message) const {
-        if (message.size() == 0) {
-            return message;
-        }
-
-        auto m = message;
-        if (m.at(m.size()-1) != '.') {
-            m += ".";
-        }
-
-        return m;
-    }
-
-    const string recordPrefix(const char *group) {
-        // todo: add Timestamp
-        return string(group) + string("\t\t");
-    }
-
-    void logRecord(const char *group, const char *subsystem, const string &message) {
-        cout << recordPrefix(group)
-             << subsystem << "\t\t\t"
-             << formatMessage(message) << endl;
-        cout.flush();
-    }
+    Logger *mLogger;
+    const string mGroup;
+    const string mSubsystem;
+    const StreamType mType;
 };
 
+
+class Logger {
+    friend class LoggerStream;
+
+public:
+    Logger(
+        const NodeUUID &nodeUUID);
+
+    void logException(
+        const string &subsystem,
+        const exception &e);
+
+    LoggerStream info(
+        const string &subsystem);
+
+    LoggerStream error(
+        const string &subsystem);
+
+    LoggerStream debug(
+        const string &subsystem);
+
+    LoggerStream warning(
+        const string &subsystem);
+
+    [[deprecated("Please, use info()")]]
+    void logInfo(
+        const string &subsystem,
+        const string &message);
+
+    [[deprecated("Please, use info()")]]
+    void logSuccess(
+        const string &subsystem,
+        const string &message);
+
+    [[deprecated("Please, use error()")]]
+    void logError(
+        const string &subsystem,
+        const string &message);
+
+    [[deprecated("Please, use error()")]]
+    void logFatal(
+        const string &subsystem,
+        const string &message);
+
+protected:
+    const string formatMessage(
+        const string &message) const;
+
+    const string recordPrefix(
+        const string &group);
+
+    void logRecord(
+        const string &group,
+        const string &subsystem,
+        const string &message);
+
+private:
+    NodeUUID mNodeUUID;
+    std::ofstream mOperationsLogFile;
+};
 #endif //GEO_NETWORK_CLIENT_LOGGER_H

@@ -30,7 +30,7 @@ public:
     }
 
     virtual const MessageTypeID typeID() const {
-        return TestLongMesage;
+        return TestLongMessage;
     }
 };
 

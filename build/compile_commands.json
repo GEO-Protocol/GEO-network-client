@@ -1,0 +1,913 @@
+[
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o CMakeFiles/geo_network_client.dir/main.cpp.o -c /media/work/projects/geo/engine/main.cpp",
+  "file": "/media/work/projects/geo/engine/main.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o CMakeFiles/geo_network_client.dir/src/core/Core.cpp.o -c /media/work/projects/geo/engine/src/core/Core.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/Core.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/common/CMakeFiles/common.dir/NodeUUID.cpp.o -c /media/work/projects/geo/engine/src/core/common/NodeUUID.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/common/NodeUUID.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/common/CMakeFiles/common.dir/serialization/BytesDeserializer.cpp.o -c /media/work/projects/geo/engine/src/core/common/serialization/BytesDeserializer.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/common/serialization/BytesDeserializer.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/common/CMakeFiles/common.dir/serialization/BytesSerializer.cpp.o -c /media/work/projects/geo/engine/src/core/common/serialization/BytesSerializer.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/common/serialization/BytesSerializer.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/common/exceptions/CMakeFiles/exceptions.dir/Exception.cpp.o -c /media/work/projects/geo/engine/src/core/common/exceptions/Exception.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/common/exceptions/Exception.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/logger/CMakeFiles/logger.dir/Logger.cpp.o -c /media/work/projects/geo/engine/src/core/logger/Logger.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/logger/Logger.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/interface/CommandsInterface.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/interface/CommandsInterface.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/interface/CommandsInterface.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/BaseUserCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/BaseUserCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/BaseUserCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/trust_lines/OpenTrustLineCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/trust_lines/OpenTrustLineCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/trust_lines/CloseTrustLineCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/trust_lines/CloseTrustLineCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/trust_lines/SetTrustLineCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/trust_lines/SetTrustLineCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/trust_lines/SetTrustLineCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/payments/CreditUsageCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/payments/CreditUsageCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/payments/CreditUsageCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/total_balances/TotalBalancesCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/total_balances/TotalBalancesCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/total_balances/TotalBalancesCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/total_balances/TotalBalancesRemouteNodeCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/history/HistoryPaymentsCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/history/HistoryPaymentsCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/history/HistoryPaymentsCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/history/HistoryTrustLinesCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/history/HistoryTrustLinesCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/history/HistoryTrustLinesCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/contractors_list/GetFirstLevelContractorsCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/contractors_list/GetFirstLevelContractorsCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/find_path/FindPathCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/find_path/FindPathCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/find_path/FindPathCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/commands_interface/CMakeFiles/interface__commands.dir/commands/cycle_closer/CycleCloserCommand.cpp.o -c /media/work/projects/geo/engine/src/core/interface/commands_interface/commands/cycle_closer/CycleCloserCommand.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/commands_interface/commands/cycle_closer/CycleCloserCommand.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/results_interface/CMakeFiles/interface__results.dir/interface/ResultsInterface.cpp.o -c /media/work/projects/geo/engine/src/core/interface/results_interface/interface/ResultsInterface.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/results_interface/interface/ResultsInterface.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/core/interface   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/interface/results_interface/CMakeFiles/interface__results.dir/result/CommandResult.cpp.o -c /media/work/projects/geo/engine/src/core/interface/results_interface/result/CommandResult.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/interface/results_interface/result/CommandResult.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/CMakeFiles/network.dir/communicator/Communicator.cpp.o -c /media/work/projects/geo/engine/src/core/network/communicator/Communicator.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/communicator/Communicator.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/CMakeFiles/network.dir/service/UUID2Address.cpp.o -c /media/work/projects/geo/engine/src/core/network/service/UUID2Address.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/service/UUID2Address.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/CMakeFiles/network.dir/internal/IncomingMessagesHandler.cpp.o -c /media/work/projects/geo/engine/src/core/network/internal/IncomingMessagesHandler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/internal/IncomingMessagesHandler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/CMakeFiles/network.dir/internal/packet/MessageParser.cpp.o -c /media/work/projects/geo/engine/src/core/network/internal/packet/MessageParser.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/internal/packet/MessageParser.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/CMakeFiles/network.dir/internal/IncomingBuffersHandler.cpp.o -c /media/work/projects/geo/engine/src/core/network/internal/IncomingBuffersHandler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/internal/IncomingBuffersHandler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/CMakeFiles/network.dir/internal/incoming/IncomingRemoteNode.cpp.o -c /media/work/projects/geo/engine/src/core/network/internal/incoming/IncomingRemoteNode.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/internal/incoming/IncomingRemoteNode.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/CMakeFiles/network.dir/internal/incoming/IncomingNodesHandler.cpp.o -c /media/work/projects/geo/engine/src/core/network/internal/incoming/IncomingNodesHandler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/internal/incoming/IncomingNodesHandler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/CMakeFiles/network.dir/internal/incoming/IncomingChannel.cpp.o -c /media/work/projects/geo/engine/src/core/network/internal/incoming/IncomingChannel.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/internal/incoming/IncomingChannel.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/CMakeFiles/network__messages.dir/SenderMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/SenderMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/SenderMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/base/max_flow_calculation/CMakeFiles/messages__base__max_flow_calculation.dir/MaxFlowCalculationMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/base/max_flow_calculation/MaxFlowCalculationMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/base/max_flow_calculation/MaxFlowCalculationMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/base/transaction/CMakeFiles/messages__base__transaction.dir/TransactionMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/base/transaction/TransactionMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/base/transaction/TransactionMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/trust_lines/CMakeFiles/messages__trust_lines.dir/base/BaseTrustLineMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/trust_lines/base/BaseTrustLineMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/trust_lines/base/BaseTrustLineMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/trust_lines/CMakeFiles/messages__trust_lines.dir/AcceptTrustLineMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/trust_lines/AcceptTrustLineMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/trust_lines/AcceptTrustLineMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/trust_lines/CMakeFiles/messages__trust_lines.dir/CloseTrustLineMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/trust_lines/CloseTrustLineMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/trust_lines/CloseTrustLineMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/trust_lines/CMakeFiles/messages__trust_lines.dir/OpenTrustLineMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/trust_lines/OpenTrustLineMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/trust_lines/OpenTrustLineMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/trust_lines/CMakeFiles/messages__trust_lines.dir/RejectTrustLineMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/trust_lines/RejectTrustLineMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/trust_lines/RejectTrustLineMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/trust_lines/CMakeFiles/messages__trust_lines.dir/SetTrustLineMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/trust_lines/SetTrustLineMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/trust_lines/SetTrustLineMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/trust_lines/CMakeFiles/messages__trust_lines.dir/UpdateTrustLineMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/trust_lines/UpdateTrustLineMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/trust_lines/UpdateTrustLineMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/routing_tables/CMakeFiles/messages__routing_tables.dir/NotificationTrustLineRemovedMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/routing_tables/NotificationTrustLineRemovedMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/routing_tables/NotificationTrustLineRemovedMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/routing_tables/CMakeFiles/messages__routing_tables.dir/NeighborsRequestMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/routing_tables/NeighborsRequestMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/routing_tables/NeighborsRequestMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/routing_tables/CMakeFiles/messages__routing_tables.dir/NeighborsResponseMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/routing_tables/NeighborsResponseMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/routing_tables/NeighborsResponseMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/routing_tables/CMakeFiles/messages__routing_tables.dir/NotificationTrustLineCreatedMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/routing_tables/NotificationTrustLineCreatedMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/routing_tables/NotificationTrustLineCreatedMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/find_path/CMakeFiles/messages__find_path.dir/RequestRoutingTablesMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/find_path/RequestRoutingTablesMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/find_path/RequestRoutingTablesMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/find_path/CMakeFiles/messages__find_path.dir/ResultRoutingTable1LevelMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/find_path/ResultRoutingTable1LevelMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/find_path/ResultRoutingTable1LevelMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/find_path/CMakeFiles/messages__find_path.dir/ResultRoutingTable2LevelMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/find_path/ResultRoutingTable2LevelMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/find_path/ResultRoutingTable2LevelMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/find_path/CMakeFiles/messages__find_path.dir/ResultRoutingTable3LevelMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/find_path/ResultRoutingTable3LevelMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/find_path/ResultRoutingTable3LevelMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/base/RequestMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/base/RequestMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/base/RequestMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/base/ResponseMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/base/ResponseMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/base/ResponseMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/ReceiverInitPaymentRequestMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/ReceiverInitPaymentRequestMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/ReceiverInitPaymentRequestMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/ReceiverInitPaymentResponseMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/ReceiverInitPaymentResponseMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/ReceiverInitPaymentResponseMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/CoordinatorReservationRequestMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/CoordinatorReservationRequestMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/CoordinatorReservationRequestMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/CoordinatorReservationResponseMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/CoordinatorReservationResponseMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/CoordinatorReservationResponseMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/IntermediateNodeReservationRequestMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/IntermediateNodeReservationRequestMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/IntermediateNodeReservationRequestMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/IntermediateNodeReservationResponseMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/IntermediateNodeReservationResponseMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/IntermediateNodeReservationResponseMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/ParticipantsVotesMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/ParticipantsVotesMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/ParticipantsVotesMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/ParticipantsConfigurationMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/ParticipantsConfigurationMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/ParticipantsConfigurationMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/payments/CMakeFiles/messages__payments.dir/ParticipantsConfigurationRequestMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/payments/ParticipantsConfigurationRequestMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/payments/ParticipantsConfigurationRequestMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/cycles/CMakeFiles/messages__cycles.dir/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/cycles/CMakeFiles/messages__cycles.dir/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/cycles/CMakeFiles/messages__cycles.dir/FourNodes/CyclesFourNodesBalancesRequestMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/cycles/CMakeFiles/messages__cycles.dir/FourNodes/CyclesFourNodesBalancesResponseMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/cycles/FourNodes/CyclesFourNodesBalancesResponseMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/cycles/CMakeFiles/messages__cycles.dir/SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesInBetweenMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/cycles/SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesInBetweenMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/cycles/SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesInBetweenMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/cycles/CMakeFiles/messages__cycles.dir/SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesBoundaryMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/cycles/SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesBoundaryMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/cycles/SixAndFiveNodes/base/CyclesBaseFiveOrSixNodesBoundaryMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/max_flow_calculation/CMakeFiles/messages__max_flow_calculation.dir/InitiateMaxFlowCalculationMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/max_flow_calculation/CMakeFiles/messages__max_flow_calculation.dir/MaxFlowCalculationSourceFstLevelMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/max_flow_calculation/CMakeFiles/messages__max_flow_calculation.dir/MaxFlowCalculationSourceSndLevelMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/MaxFlowCalculationSourceSndLevelMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/MaxFlowCalculationSourceSndLevelMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/max_flow_calculation/CMakeFiles/messages__max_flow_calculation.dir/MaxFlowCalculationTargetFstLevelMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/MaxFlowCalculationTargetFstLevelMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/MaxFlowCalculationTargetFstLevelMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/max_flow_calculation/CMakeFiles/messages__max_flow_calculation.dir/MaxFlowCalculationTargetSndLevelMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/max_flow_calculation/CMakeFiles/messages__max_flow_calculation.dir/ResultMaxFlowCalculationMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/total_balances/CMakeFiles/messages__total_balances.dir/InitiateTotalBalancesMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/total_balances/InitiateTotalBalancesMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/total_balances/InitiateTotalBalancesMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/total_balances/CMakeFiles/messages__total_balances.dir/TotalBalancesResultMessage.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/total_balances/TotalBalancesResultMessage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/total_balances/TotalBalancesResultMessage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/response/CMakeFiles/messages__response.dir/Response.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/response/Response.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/response/Response.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/network/messages/result/CMakeFiles/messages__result.dir/MessageResult.cpp.o -c /media/work/projects/geo/engine/src/core/network/messages/result/MessageResult.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/network/messages/result/MessageResult.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/settings/CMakeFiles/settings.dir/Settings.cpp.o -c /media/work/projects/geo/engine/src/core/settings/Settings.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/settings/Settings.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/paths/CMakeFiles/paths.dir/PathsManager.cpp.o -c /media/work/projects/geo/engine/src/core/paths/PathsManager.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/paths/PathsManager.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/paths/lib/CMakeFiles/slib_paths.dir/Path.cpp.o -c /media/work/projects/geo/engine/src/core/paths/lib/Path.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/paths/lib/Path.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/paths/lib/CMakeFiles/slib_paths.dir/PathsCollection.cpp.o -c /media/work/projects/geo/engine/src/core/paths/lib/PathsCollection.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/paths/lib/PathsCollection.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/CMakeFiles/transactions.dir/manager/TransactionsManager.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/manager/TransactionsManager.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/manager/TransactionsManager.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/CMakeFiles/transactions.dir/scheduler/TransactionsScheduler.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/scheduler/TransactionsScheduler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/scheduler/TransactionsScheduler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/CMakeFiles/transactions.dir/transactions/contractors_list/GetFirstLevelContractorsTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/contractors_list/GetFirstLevelContractorsTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/contractors_list/GetFirstLevelContractorsTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/unique/trust_lines/CMakeFiles/transactions__trustlines.dir/TrustLineTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/TrustLineTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/TrustLineTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/unique/trust_lines/CMakeFiles/transactions__trustlines.dir/OpenTrustLineTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/OpenTrustLineTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/OpenTrustLineTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/unique/trust_lines/CMakeFiles/transactions__trustlines.dir/AcceptTrustLineTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/AcceptTrustLineTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/AcceptTrustLineTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/unique/trust_lines/CMakeFiles/transactions__trustlines.dir/CloseTrustLineTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/CloseTrustLineTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/CloseTrustLineTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/unique/trust_lines/CMakeFiles/transactions__trustlines.dir/RejectTrustLineTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/RejectTrustLineTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/RejectTrustLineTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/unique/trust_lines/CMakeFiles/transactions__trustlines.dir/SetTrustLineTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/SetTrustLineTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/SetTrustLineTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/unique/trust_lines/CMakeFiles/transactions__trustlines.dir/UpdateTrustLineTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/UpdateTrustLineTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/unique/trust_lines/UpdateTrustLineTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/regular/payments/CMakeFiles/transactions__payments.dir/base/BasePaymentTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/regular/payments/base/BasePaymentTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/regular/payments/base/BasePaymentTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/regular/payments/CMakeFiles/transactions__payments.dir/CoordinatorPaymentTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/regular/payments/CoordinatorPaymentTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/regular/payments/CoordinatorPaymentTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/regular/payments/CMakeFiles/transactions__payments.dir/ReceiverPaymentTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/regular/payments/ReceiverPaymentTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/regular/payments/ReceiverPaymentTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/regular/payments/CMakeFiles/transactions__payments.dir/IntermediateNodePaymentTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/regular/payments/IntermediateNodePaymentTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/regular/payments/IntermediateNodePaymentTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/result/CMakeFiles/transactions__result.dir/state/TransactionState.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/result/state/TransactionState.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/result/state/TransactionState.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/result/CMakeFiles/transactions__result.dir/TransactionResult.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/result/TransactionResult.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/result/TransactionResult.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/base/CMakeFiles/transactions__base.dir/BaseTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/base/BaseTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/base/BaseTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/base/CMakeFiles/transactions__base.dir/UniqueTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/base/UniqueTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/base/UniqueTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles/CMakeFiles/transactions__cycles.dir/FiveAndSixNodes/base/CyclesBaseFiveSixNodesInitTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FiveAndSixNodes/base/CyclesBaseFiveSixNodesInitTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FiveAndSixNodes/base/CyclesBaseFiveSixNodesInitTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles/CMakeFiles/transactions__cycles.dir/FiveAndSixNodes/CyclesFiveNodesInitTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FiveAndSixNodes/CyclesFiveNodesInitTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FiveAndSixNodes/CyclesFiveNodesInitTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles/CMakeFiles/transactions__cycles.dir/FiveAndSixNodes/CyclesSixNodesInitTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FiveAndSixNodes/CyclesSixNodesInitTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FiveAndSixNodes/CyclesSixNodesInitTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles/CMakeFiles/transactions__cycles.dir/FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FiveAndSixNodes/CyclesFiveNodesReceiverTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles/CMakeFiles/transactions__cycles.dir/FiveAndSixNodes/CyclesSixNodesReceiverTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FiveAndSixNodes/CyclesSixNodesReceiverTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FiveAndSixNodes/CyclesSixNodesReceiverTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles/CMakeFiles/transactions__cycles.dir/FourNodes/CyclesFourNodesInitTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FourNodes/CyclesFourNodesInitTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FourNodes/CyclesFourNodesInitTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles/CMakeFiles/transactions__cycles.dir/FourNodes/CyclesFourNodesReceiverTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FourNodes/CyclesFourNodesReceiverTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles/FourNodes/CyclesFourNodesReceiverTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles/CMakeFiles/transactions__cycles.dir/ThreeNodes/CyclesThreeNodesInitTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles/CMakeFiles/transactions__cycles.dir/ThreeNodes/CyclesThreeNodesReceiverTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/max_flow_calculation/CMakeFiles/transactions__max_flow_calculation.dir/InitiateMaxFlowCalculationTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/max_flow_calculation/CMakeFiles/transactions__max_flow_calculation.dir/ReceiveMaxFlowCalculationOnTargetTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/max_flow_calculation/CMakeFiles/transactions__max_flow_calculation.dir/MaxFlowCalculationSourceFstLevelTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/MaxFlowCalculationSourceFstLevelTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/MaxFlowCalculationSourceFstLevelTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/max_flow_calculation/CMakeFiles/transactions__max_flow_calculation.dir/MaxFlowCalculationTargetFstLevelTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/MaxFlowCalculationTargetFstLevelTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/MaxFlowCalculationTargetFstLevelTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/max_flow_calculation/CMakeFiles/transactions__max_flow_calculation.dir/MaxFlowCalculationSourceSndLevelTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/MaxFlowCalculationSourceSndLevelTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/MaxFlowCalculationSourceSndLevelTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/max_flow_calculation/CMakeFiles/transactions__max_flow_calculation.dir/MaxFlowCalculationTargetSndLevelTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/MaxFlowCalculationTargetSndLevelTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/max_flow_calculation/CMakeFiles/transactions__max_flow_calculation.dir/ReceiveResultMaxFlowCalculationTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/total_balances/CMakeFiles/transactions__total_balances.dir/TotalBalancesTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/total_balances/TotalBalancesTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/total_balances/TotalBalancesTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/total_balances/CMakeFiles/transactions__total_balances.dir/TotalBalancesFromRemoutNodeTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/total_balances/TotalBalancesFromRemoutNodeTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/total_balances/TotalBalancesFromRemoutNodeTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/history/CMakeFiles/transactions__history.dir/HistoryPaymentsTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/history/HistoryPaymentsTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/history/HistoryPaymentsTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/history/CMakeFiles/transactions__history.dir/HistoryTrustLinesTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/history/HistoryTrustLinesTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/history/HistoryTrustLinesTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/find_path/CMakeFiles/transactions__find_path.dir/FindPathTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/find_path/FindPathTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/find_path/FindPathTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/find_path/CMakeFiles/transactions__find_path.dir/GetRoutingTablesTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/find_path/GetRoutingTablesTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/find_path/GetRoutingTablesTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/find_path/CMakeFiles/transactions__find_path.dir/GetPathTestTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/find_path/GetPathTestTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/find_path/GetPathTestTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/routing_tables/CMakeFiles/transactions__routing_tables.dir/TrustLineStatesHandlerTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/routing_tables/TrustLineStatesHandlerTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/routing_tables/CMakeFiles/transactions__routing_tables.dir/NeighborsCollectingTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/routing_tables/NeighborsCollectingTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/routing_tables/NeighborsCollectingTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles_closing/CMakeFiles/transactions__cycles_closing.dir/base/BasePaymentTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles_closing/base/BasePaymentTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles_closing/base/BasePaymentTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles_closing/CMakeFiles/transactions__cycles_closing.dir/ReceiverPaymentTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles_closing/ReceiverPaymentTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles_closing/ReceiverPaymentTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles_closing/CMakeFiles/transactions__cycles_closing.dir/IntermediateNodePaymentTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles_closing/IntermediateNodePaymentTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles_closing/IntermediateNodePaymentTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/transactions/transactions/cycles_closing/CMakeFiles/transactions__cycles_closing.dir/CycleCloserInitiatorTransaction.cpp.o -c /media/work/projects/geo/engine/src/core/transactions/transactions/cycles_closing/CycleCloserInitiatorTransaction.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/transactions/transactions/cycles_closing/CycleCloserInitiatorTransaction.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/trust_lines/CMakeFiles/trust_lines.dir/manager/TrustLinesManager.cpp.o -c /media/work/projects/geo/engine/src/core/trust_lines/manager/TrustLinesManager.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/trust_lines/manager/TrustLinesManager.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/trust_lines/CMakeFiles/trust_lines.dir/TrustLine.cpp.o -c /media/work/projects/geo/engine/src/core/trust_lines/TrustLine.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/trust_lines/TrustLine.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/max_flow_calculation/CMakeFiles/max_flow_calculation.dir/MaxFlowCalculationTrustLine.cpp.o -c /media/work/projects/geo/engine/src/core/max_flow_calculation/MaxFlowCalculationTrustLine.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/max_flow_calculation/MaxFlowCalculationTrustLine.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/max_flow_calculation/CMakeFiles/max_flow_calculation.dir/manager/MaxFlowCalculationTrustLineManager.cpp.o -c /media/work/projects/geo/engine/src/core/max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/max_flow_calculation/CMakeFiles/max_flow_calculation.dir/cashe/MaxFlowCalculationCache.cpp.o -c /media/work/projects/geo/engine/src/core/max_flow_calculation/cashe/MaxFlowCalculationCache.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/max_flow_calculation/cashe/MaxFlowCalculationCache.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/max_flow_calculation/CMakeFiles/max_flow_calculation.dir/cashe/MaxFlowCalculationCacheManager.cpp.o -c /media/work/projects/geo/engine/src/core/max_flow_calculation/cashe/MaxFlowCalculationCacheManager.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/max_flow_calculation/cashe/MaxFlowCalculationCacheManager.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/max_flow_calculation/CMakeFiles/max_flow_calculation.dir/manager/MaxFlowCalculationTrustLineWithPtr.cpp.o -c /media/work/projects/geo/engine/src/core/max_flow_calculation/manager/MaxFlowCalculationTrustLineWithPtr.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/max_flow_calculation/manager/MaxFlowCalculationTrustLineWithPtr.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/delayed_tasks/CMakeFiles/delayed_tasks.dir/Cycles.cpp.o -c /media/work/projects/geo/engine/src/core/delayed_tasks/Cycles.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/delayed_tasks/Cycles.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/delayed_tasks/CMakeFiles/delayed_tasks.dir/MaxFlowCalculationCacheUpdateDelayedTask.cpp.o -c /media/work/projects/geo/engine/src/core/delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/payments/amount_blocks/CMakeFiles/amount_blocks.dir/AmountReservation.cpp.o -c /media/work/projects/geo/engine/src/core/payments/amount_blocks/AmountReservation.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/payments/amount_blocks/AmountReservation.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/payments/amount_blocks/CMakeFiles/amount_blocks.dir/AmountReservationsHandler.cpp.o -c /media/work/projects/geo/engine/src/core/payments/amount_blocks/AmountReservationsHandler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/payments/amount_blocks/AmountReservationsHandler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/io/storage/CMakeFiles/io__storage.dir/StorageHandler.cpp.o -c /media/work/projects/geo/engine/src/core/io/storage/StorageHandler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/io/storage/StorageHandler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/io/storage/CMakeFiles/io__storage.dir/RoutingTableHandler.cpp.o -c /media/work/projects/geo/engine/src/core/io/storage/RoutingTableHandler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/io/storage/RoutingTableHandler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/io/storage/CMakeFiles/io__storage.dir/RoutingTablesHandler.cpp.o -c /media/work/projects/geo/engine/src/core/io/storage/RoutingTablesHandler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/io/storage/RoutingTablesHandler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/io/storage/CMakeFiles/io__storage.dir/TrustLineHandler.cpp.o -c /media/work/projects/geo/engine/src/core/io/storage/TrustLineHandler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/io/storage/TrustLineHandler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/io/storage/CMakeFiles/io__storage.dir/PaymentOperationStateHandler.cpp.o -c /media/work/projects/geo/engine/src/core/io/storage/PaymentOperationStateHandler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/io/storage/PaymentOperationStateHandler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/io/storage/CMakeFiles/io__storage.dir/TransactionHandler.cpp.o -c /media/work/projects/geo/engine/src/core/io/storage/TransactionHandler.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/io/storage/TransactionHandler.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/io/storage/CMakeFiles/io__storage.dir/HistoryStorage.cpp.o -c /media/work/projects/geo/engine/src/core/io/storage/HistoryStorage.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/io/storage/HistoryStorage.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/io/storage/CMakeFiles/io__storage.dir/record/base/Record.cpp.o -c /media/work/projects/geo/engine/src/core/io/storage/record/base/Record.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/io/storage/record/base/Record.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/io/storage/CMakeFiles/io__storage.dir/record/trust_line/TrustLineRecord.cpp.o -c /media/work/projects/geo/engine/src/core/io/storage/record/trust_line/TrustLineRecord.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/io/storage/record/trust_line/TrustLineRecord.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/io/storage/CMakeFiles/io__storage.dir/record/payment/PaymentRecord.cpp.o -c /media/work/projects/geo/engine/src/core/io/storage/record/payment/PaymentRecord.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/io/storage/record/payment/PaymentRecord.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/resources/CMakeFiles/resources_manager.dir/manager/ResourcesManager.cpp.o -c /media/work/projects/geo/engine/src/core/resources/manager/ResourcesManager.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/resources/manager/ResourcesManager.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/resources/CMakeFiles/resources_manager.dir/resources/BaseResource.cpp.o -c /media/work/projects/geo/engine/src/core/resources/resources/BaseResource.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/resources/resources/BaseResource.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/c++   -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG   -std=c++14 -lboost_date_time -fsanitize=address -g -g   -o src/core/resources/CMakeFiles/resources_manager.dir/resources/PathsResource.cpp.o -c /media/work/projects/geo/engine/src/core/resources/resources/PathsResource.cpp",
+  "file": "/media/work/projects/geo/engine/src/core/resources/resources/PathsResource.cpp"
+},
+
+{
+  "directory": "/media/work/projects/geo/engine/build",
+  "command": "/usr/bin/cc  -DDEBUG -DINTERNAL_ARGUMENTS_VALIDATION -DLINUX -DNETWORK_DEBUG_LOG -DSCHEDULER_DEBUG_LOG -DTRANSACTIONS_LOG -I../src/libs/sqlite3  -g   -o src/libs/sqlite3/CMakeFiles/libsqlite3.dir/sqlite3.c.o   -c /media/work/projects/geo/engine/src/libs/sqlite3/sqlite3.c",
+  "file": "/media/work/projects/geo/engine/src/libs/sqlite3/sqlite3.c"
+}
+]

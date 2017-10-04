@@ -1,11 +1,11 @@
 #include "Exception.h"
 
-Exception::Exception(const std::string &message)
-    :mMessage(message){}
+Exception::Exception(const string &message):
 
-/*Exception::Exception(const char *message)
-    :mMessage(message){}*/
+    mMessage(message),
+    msg_(mMessage.c_str()){}
 
-const std::string Exception::message() const {
+const string Exception::message() const
+{
     return mMessage;
 }

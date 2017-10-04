@@ -1,0 +1,323 @@
+#include "PathsManager.h"
+
+PathsManager::PathsManager(
+    const NodeUUID &nodeUUID,
+    TrustLinesManager *trustLinesManager,
+    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+    Logger &logger):
+
+    mNodeUUID(nodeUUID),
+    mTrustLinesManager(trustLinesManager),
+    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
+    mLog(logger),
+    mPathCollection(nullptr)
+{}
+
+bool PathsManager::isPathValid(const Path &path)
+{
+    auto itGlobal = path.nodes.begin();
+    while (itGlobal != path.nodes.end() - 1) {
+        auto itLocal = itGlobal + 1;
+        while (itLocal != path.nodes.end()) {
+            if (*itGlobal == *itLocal) {
+                return false;
+            }
+            itLocal++;
+        }
+        itGlobal++;
+    }
+    return true;
+}
+
+// this method used the same logic as PathsManager::buildPaths
+void PathsManager::buildPaths(
+    const NodeUUID &contractorUUID)
+{
+    info() << "Build paths to " << contractorUUID;
+    auto startTime = utc_now();
+    mContractorUUID = contractorUUID;
+    mPathCollection = make_shared<PathsCollection>(
+        mNodeUUID,
+        mContractorUUID);
+
+    auto trustLinePtrsSet =
+        mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    if (trustLinePtrsSet.size() == 0) {
+        mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+        return;
+    }
+
+    for (mCurrentPathLength = 1; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
+        buildPathsOnOneLevel();
+    }
+
+    mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+    // todo remove after testing
+    info() << "building time: " << utc_now() - startTime;
+}
+
+// this method used the same logic as PathsManager::reBuildPathsOnOneLevel
+// and InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel
+void PathsManager::buildPathsOnOneLevel()
+{
+    auto trustLinePtrsSet =
+        mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    while(true) {
+        TrustLineAmount currentFlow = 0;
+        for (auto &trustLinePtr : trustLinePtrsSet) {
+            auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
+            auto trustLineFreeAmountShared = trustLine->freeAmount();
+            auto trustLineAmountPtr = trustLineFreeAmountShared.get();
+            mPassedNodeUUIDs.clear();
+            TrustLineAmount flow = calculateOneNode(
+                trustLine->targetUUID(),
+                *trustLineAmountPtr,
+                1);
+            if (flow > TrustLine::kZeroAmount()) {
+                currentFlow += flow;
+                trustLine->addUsedAmount(flow);
+                break;
+            }
+        }
+        if (currentFlow == 0) {
+            break;
+        }
+    }
+}
+
+// it used the same logic as PathsManager::calculateOneNodeForRebuildingPaths
+// and InitiateMaxFlowCalculationTransaction::calculateOneNode
+// if you change this method, you should change others
+TrustLineAmount PathsManager::calculateOneNode(
+    const NodeUUID& nodeUUID,
+    const TrustLineAmount& currentFlow,
+    byte level)
+{
+    if (nodeUUID == mContractorUUID) {
+        if (currentFlow > TrustLine::kZeroAmount()) {
+            Path path(
+                mNodeUUID,
+                mContractorUUID,
+                mPassedNodeUUIDs);
+            mPathCollection->add(path);
+            info() << "build path: " << path.toString() << " with amount " << currentFlow;
+        }
+        return currentFlow;
+    }
+    if (level == mCurrentPathLength) {
+        return 0;
+    }
+
+    auto trustLinePtrsSet =
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(nodeUUID);
+    if (trustLinePtrsSet.size() == 0) {
+        return 0;
+    }
+    for (auto &trustLinePtr : trustLinePtrsSet) {
+        auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
+        if (trustLine->targetUUID() == mNodeUUID) {
+            continue;
+        }
+        if (find(
+                mPassedNodeUUIDs.begin(),
+                mPassedNodeUUIDs.end(),
+                trustLine->targetUUID()) != mPassedNodeUUIDs.end()) {
+            continue;
+        }
+        TrustLineAmount nextFlow = currentFlow;
+        auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
+        auto trustLineFreeAmountPtr = trustLineFreeAmountShared.get();
+        if (*trustLineFreeAmountPtr < currentFlow) {
+            nextFlow = *trustLineFreeAmountPtr;
+        }
+        if (nextFlow == TrustLine::kZeroAmount()) {
+            continue;
+        }
+        mPassedNodeUUIDs.push_back(nodeUUID);
+        TrustLineAmount calcFlow = calculateOneNode(
+            trustLine->targetUUID(),
+            nextFlow,
+            level + (byte)1);
+        mPassedNodeUUIDs.pop_back();
+        if (calcFlow > TrustLine::kZeroAmount()) {
+            trustLine->addUsedAmount(calcFlow);
+            return calcFlow;
+        }
+    }
+    return 0;
+}
+
+// this method used for rebuild paths in case of insufficient founds
+// it used the same logic as PathsManager::buildPaths
+// and InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel
+void PathsManager::reBuildPaths(
+    const NodeUUID &contractorUUID,
+    const set<NodeUUID> &inaccessibleNodes)
+{
+    info() << "ReBuild paths to " << contractorUUID;
+    auto startTime = utc_now();
+    mContractorUUID = contractorUUID;
+    mInaccessibleNodes = inaccessibleNodes;
+    mPathCollection = make_shared<PathsCollection>(
+        mNodeUUID,
+        mContractorUUID);
+
+    auto trustLinePtrsSet =
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    if (trustLinePtrsSet.size() == 0) {
+        mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+        return;
+    }
+
+    // starts from 2, because direct path can't be rebuild
+    for (mCurrentPathLength = 2; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
+        reBuildPathsOnOneLevel();
+    }
+
+    mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+    info() << "rebuilding time: " << utc_now() - startTime;
+}
+
+// this method used for rebuild paths in case of insufficient founds
+// it used the same logic as PathsManager::reBuildPathsOnOneLevel
+// and InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel
+TrustLineAmount PathsManager::reBuildPathsOnOneLevel()
+{
+    TrustLineAmount result = 0;
+    auto trustLinePtrsSet =
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    while(true) {
+        TrustLineAmount currentFlow = 0;
+        for (auto &trustLinePtr : trustLinePtrsSet) {
+            auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
+            auto trustLineFreeAmountShared = trustLine->freeAmount();
+            auto trustLineAmountPtr = trustLineFreeAmountShared.get();
+            mPassedNodeUUIDs.clear();
+            if (mInaccessibleNodes.find(trustLine->targetUUID()) != mInaccessibleNodes.end()) {
+                continue;
+            }
+            TrustLineAmount flow = calculateOneNodeForRebuildingPaths(
+                trustLine->targetUUID(),
+                *trustLineAmountPtr,
+                1);
+            if (flow > TrustLine::kZeroAmount()) {
+                currentFlow += flow;
+                trustLine->addUsedAmount(flow);
+                break;
+            }
+        }
+        result += currentFlow;
+        if (currentFlow == 0) {
+            break;
+        }
+    }
+    return result;
+}
+
+// this method used for rebuild paths in case of insufficient founds,
+// it used the same logic as PathsManager::calculateOneNode
+// and InitiateMaxFlowCalculationTransaction::calculateOneNode
+// if you change this method, you should change others
+TrustLineAmount PathsManager::calculateOneNodeForRebuildingPaths(
+    const NodeUUID& nodeUUID,
+    const TrustLineAmount& currentFlow,
+    byte level)
+{
+    if (nodeUUID == mContractorUUID) {
+        if (currentFlow > TrustLine::kZeroAmount()) {
+            Path path(
+                mNodeUUID,
+                mContractorUUID,
+                mPassedNodeUUIDs);
+            mPathCollection->add(path);
+            info() << "build path: " << path.toString() << " with amount " << currentFlow;
+        }
+        return currentFlow;
+    }
+    if (level == mCurrentPathLength) {
+        return 0;
+    }
+
+    auto trustLinePtrsSet =
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(nodeUUID);
+    if (trustLinePtrsSet.size() == 0) {
+        return 0;
+    }
+    for (auto &trustLinePtr : trustLinePtrsSet) {
+        auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
+        if (trustLine->targetUUID() == mNodeUUID) {
+            continue;
+        }
+
+        if (mInaccessibleNodes.find(trustLine->targetUUID()) != mInaccessibleNodes.end()) {
+            continue;
+        }
+
+        if (find(
+                mPassedNodeUUIDs.begin(),
+                mPassedNodeUUIDs.end(),
+                trustLine->targetUUID()) != mPassedNodeUUIDs.end()) {
+            continue;
+        }
+        TrustLineAmount nextFlow = currentFlow;
+        auto trustLineFreeAmountShared = trustLine.get()->freeAmount();
+        auto trustLineFreeAmountPtr = trustLineFreeAmountShared.get();
+        if (*trustLineFreeAmountPtr < currentFlow) {
+            nextFlow = *trustLineFreeAmountPtr;
+        }
+        if (nextFlow == TrustLine::kZeroAmount()) {
+            continue;
+        }
+        mPassedNodeUUIDs.push_back(nodeUUID);
+        TrustLineAmount calcFlow = calculateOneNodeForRebuildingPaths(
+            trustLine->targetUUID(),
+            nextFlow,
+            level + (byte)1);
+        mPassedNodeUUIDs.pop_back();
+        if (calcFlow > TrustLine::kZeroAmount()) {
+            trustLine->addUsedAmount(calcFlow);
+            return calcFlow;
+        }
+    }
+    return 0;
+}
+
+void PathsManager::addUsedAmount(
+    const NodeUUID &sourceUUID,
+    const NodeUUID &targetUUID,
+    const TrustLineAmount &amount)
+{
+    mMaxFlowCalculationTrustLineManager->addUsedAmount(
+        sourceUUID,
+        targetUUID,
+        amount);
+}
+
+void PathsManager::makeTrustLineFullyUsed(
+    const NodeUUID &sourceUUID,
+    const NodeUUID &targetUUID)
+{
+    mMaxFlowCalculationTrustLineManager->makeFullyUsed(
+        sourceUUID,
+        targetUUID);
+}
+
+PathsCollection::Shared PathsManager::pathCollection() const
+{
+    return mPathCollection;
+}
+
+void PathsManager::clearPathsCollection()
+{
+    mPathCollection = nullptr;
+}
+
+LoggerStream PathsManager::info() const
+{
+    return mLog.info(logHeader());
+}
+
+const string PathsManager::logHeader() const
+{
+    return "[PathsManager]";
+}

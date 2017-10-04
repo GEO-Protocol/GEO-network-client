@@ -23,7 +23,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r150\n";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //        OpenTrustLineCommand *openTrustLineCommand = dynamic_cast<OpenTrustLineCommand *>(response.second.get());
 //
 //        assert(response.first);
@@ -37,7 +37,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "CREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r150\n";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //
 //        assert(!response.first);
 //        assert(response.second.get() == nullptr);
@@ -47,7 +47,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r150\n";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //
 //        assert(!response.first);
 //        assert(response.second.get() == nullptr);
@@ -57,7 +57,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\r550e8400-e29b-41d4-a716-446655440000\r150\n";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //
 //        assert(!response.first);
 //        assert(response.second.get() == nullptr);
@@ -67,7 +67,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rtrustlines/open\r550e8400-e29b-41d4-a716-446655440000\r150\n";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //
 //        assert(!response.first);
 //        assert(response.second.get() == nullptr);
@@ -77,7 +77,7 @@
 //        CommandsParser *parser = new CommandsParser();
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r150\n";
-//        auto response = parser->processReceivedCommandPart(command, strlen(command));
+//        auto response = parser->processReceivedCommands(command, strlen(command));
 //
 //        assert(!response.first);
 //        assert(response.second.get() == nullptr);
@@ -89,7 +89,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b\r150\n";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //
 //        assert(!response.first);
 //        assert(response.second.get() == nullptr);
@@ -99,7 +99,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\n";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //
 //        assert(!response.first);
 //        assert(response.second.get() == nullptr);
@@ -109,7 +109,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r150.12\n";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //
 //        assert(!response.first);
 //        assert(response.second.get() == nullptr);
@@ -119,7 +119,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r12pzdc\n";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //
 //        assert(!response.first);
 //        assert(response.second.get() == nullptr);
@@ -129,7 +129,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r0\n";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //
 //        assert(!response.first);
 //        assert(response.second.get() == nullptr);
@@ -139,7 +139,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rREMOVE:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\ntrustlines/open";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //        BaseUserCommand *c = response.second.get();
 //        CloseTrustLineCommand *closeTrustLineCommand = dynamic_cast<CloseTrustLineCommand *>(c);
 //
@@ -153,7 +153,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rSET:contractors/trust-lines\r550e8400-e29b-41d4-a716-446655440000\r11456\ntrustlines/open";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //        BaseUserCommand *c = response.second.get();
 //        UpdateOutgoingTrustAmountCommand *updateTrustLineCommand = dynamic_cast<UpdateOutgoingTrustAmountCommand *>(c);
 //
@@ -168,7 +168,7 @@
 //        CommandsParser parser;
 //
 //        const char *command = "550e8400-e29b-41d4-a716-446655440000\rCREATE:contractors/transations\r550e8400-e29b-41d4-a716-446655440000\r11456\rprosto tak\ntrustlines/open";
-//        auto response = parser.processReceivedCommandPart(command, strlen(command));
+//        auto response = parser.processReceivedCommands(command, strlen(command));
 //        BaseUserCommand *c = response.second.get();
 //        UseCreditCommand *useCeditCommand = dynamic_cast<UseCreditCommand *>(c);
 //

@@ -11,13 +11,15 @@ public:
     virtual ~Exception() throw(){}
 
     explicit Exception(const std::string &message);
-
     explicit Exception(const char *message) :
             msg_(message) {};
 
     const std::string message() const;
 
     virtual const char* what() const throw(){
+        if (!mMessage.empty()) {
+            return mMessage.c_str();
+        }
         return msg_.c_str();
     }
 
