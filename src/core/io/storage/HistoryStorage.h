@@ -56,7 +56,26 @@ public:
     vector<PaymentRecord::Shared> paymentRecordsByCommandUUID(
         const CommandUUID &commandUUID);
 
-    vector<PaymentRecord::Shared> allPaymentAdditionalRecords();
+    vector<PaymentRecord::Shared> allPaymentAdditionalRecords(
+        size_t recordsCount,
+        size_t fromRecord,
+        DateTime timeFrom,
+        bool isTimeFromPresent,
+        DateTime timeTo,
+        bool isTimeToPresent,
+        const TrustLineAmount& lowBoundaryAmount,
+        bool isLowBoundaryAmountPresent,
+        const TrustLineAmount& highBoundaryAmount,
+        bool isHighBoundaryAmountPresent
+    );
+
+    vector<PaymentRecord::Shared> allPaymentAdditionalRecords(
+        size_t recordsCount,
+        size_t fromRecord,
+        DateTime timeFrom,
+        bool isTimeFromPresent,
+        DateTime timeTo,
+        bool isTimeToPresent);
 
     vector<Record::Shared> recordsWithContractor(
         const NodeUUID &contractorUUID,
