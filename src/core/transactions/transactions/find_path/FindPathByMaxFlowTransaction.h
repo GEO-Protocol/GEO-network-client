@@ -1,14 +1,14 @@
 #ifndef GEO_NETWORK_CLIENT_FINDPATHBYMAXFLOWTRANSACTION_H
 #define GEO_NETWORK_CLIENT_FINDPATHBYMAXFLOWTRANSACTION_H
 
-#include "../base/BaseTransaction.h"
+#include "../base/BaseCollectTopologyTransaction.h"
 #include "../../../paths/PathsManager.h"
 #include "../../../resources/manager/ResourcesManager.h"
 #include "../../../resources/resources/PathsResource.h"
 
 #include "../max_flow_calculation/CollectTopologyTransaction.h"
 
-class FindPathByMaxFlowTransaction : public BaseTransaction {
+class FindPathByMaxFlowTransaction : public BaseCollectTopologyTransaction {
 
 public:
     typedef shared_ptr<FindPathByMaxFlowTransaction> Shared;
@@ -25,29 +25,23 @@ public:
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger);
 
-    TransactionResult::SharedConst run();
-
 protected:
     const string logHeader() const;
 
-protected:
-    enum Stages {
-        SendRequestForGettingRoutingTables = 1,
-        BuildAllPaths
-    };
+private:
+    TransactionResult::SharedConst sendRequestForCollectingTopology();
+
+    TransactionResult::SharedConst processCollectingTopology();
 
 private:
     // ToDo: move to separate config file
-    const uint32_t kTopologyCollectingMilisecondsTimeout = 2000;
+    const uint32_t kTopologyCollectingMillisecondsTimeout = 3000;
 
 private:
     NodeUUID mContractorUUID;
     TransactionUUID mRequestedTransactionUUID;
     PathsManager *mPathsManager;
     ResourcesManager *mResourcesManager;
-    TrustLinesManager *mTrustLineManager;
-    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
 };
 
 

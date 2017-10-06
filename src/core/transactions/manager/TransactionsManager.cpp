@@ -262,8 +262,12 @@ void TransactionsManager::processMessage(
             static_pointer_cast<InitiateMaxFlowCalculationMessage>(message));
 
     } else if (message->typeID() == Message::MessageType::MaxFlow_ResultMaxFlowCalculation) {
-        launchReceiveResultMaxFlowCalculationTransaction(
-            static_pointer_cast<ResultMaxFlowCalculationMessage>(message));
+        try {
+            mScheduler->tryAttachMessageToCollectTopologyTransaction(message);
+        } catch (NotFoundError &) {
+            launchReceiveResultMaxFlowCalculationTransaction(
+                static_pointer_cast<ResultMaxFlowCalculationMessage>(message));
+        }
 
     } else if (message->typeID() == Message::MessageType::MaxFlow_CalculationSourceFirstLevel) {
         launchMaxFlowCalculationSourceFstLevelTransaction(

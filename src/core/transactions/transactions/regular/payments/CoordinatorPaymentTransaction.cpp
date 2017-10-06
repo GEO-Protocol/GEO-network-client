@@ -141,6 +141,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     return transactionResultFromState(
         TransactionState::waitForResourcesTypes(
             {BaseResource::ResourceType::Paths},
+            // this delay should be greater than time of FindPathByMaxFlowTransaction running,
+            // because we didn't get resources
             maxNetworkDelay(4)));
 }
 

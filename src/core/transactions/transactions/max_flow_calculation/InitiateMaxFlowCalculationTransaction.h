@@ -1,19 +1,22 @@
 #ifndef GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONTRANSACTION_H
 #define GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONTRANSACTION_H
 
-#include "../base/BaseTransaction.h"
+#include "../base/BaseCollectTopologyTransaction.h"
 #include "../../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+
 #include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
+
 #include "CollectTopologyTransaction.h"
 
 #include <set>
 
-class InitiateMaxFlowCalculationTransaction : public BaseTransaction {
+class InitiateMaxFlowCalculationTransaction : public BaseCollectTopologyTransaction {
 
 public:
     typedef shared_ptr<InitiateMaxFlowCalculationTransaction> Shared;
@@ -22,28 +25,20 @@ public:
     InitiateMaxFlowCalculationTransaction(
         NodeUUID &nodeUUID,
         InitiateMaxFlowCalculationCommand::Shared command,
-        TrustLinesManager *manager,
+        TrustLinesManager *trustLinesManager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger);
 
     InitiateMaxFlowCalculationCommand::Shared command() const;
 
-    TransactionResult::SharedConst run();
-
-protected:
-    enum Stages {
-        SendRequestForCollectingTopology = 1,
-        CalculateMaxTransactionFlow
-    };
-
 protected:
     const string logHeader() const;
 
 private:
-    void sendMessagesToContractors();
+    TransactionResult::SharedConst sendRequestForCollectingTopology();
 
-    void sendMessagesOnFirstLevel();
+    TransactionResult::SharedConst processCollectingTopology();
 
     TrustLineAmount calculateMaxFlow(
         const NodeUUID &contractorUUID);
@@ -62,17 +57,20 @@ private:
 
 private:
     static const byte kMaxPathLength = 6;
-    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 4000;
+    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 3000;
+    static const uint32_t kWaitMillisecondsForCalculatingMaxFlowAgain = 500;
+    static const uint32_t kMaxWaitMillisecondsForCalculatingMaxFlow = 10000;
+    static const uint16_t kCountRunningProcessCollectingTopologyStage =
+        (kMaxWaitMillisecondsForCalculatingMaxFlow - kWaitMillisecondsForCalculatingMaxFlow) /
+            kWaitMillisecondsForCalculatingMaxFlowAgain;
 
 private:
     InitiateMaxFlowCalculationCommand::Shared mCommand;
-    TrustLinesManager *mTrustLinesManager;
-    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     vector<NodeUUID> mForbiddenNodeUUIDs;
     byte mCurrentPathLength;
     TrustLineAmount mCurrentMaxFlow;
     NodeUUID mCurrentContractor;
+    size_t mCountProcessCollectingTopologyRun;
 };
 
 
