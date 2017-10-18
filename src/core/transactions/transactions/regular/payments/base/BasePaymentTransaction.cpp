@@ -700,11 +700,6 @@ uint32_t BasePaymentTransaction::maxNetworkDelay (
     return totalHopsCount * kMaxMessageTransferLagMSec;
 }
 
-uint32_t BasePaymentTransaction::maxCoordinatorResponseTimeout () const
-{
-    return maxNetworkDelay(1);
-}
-
 /**
  * @returns true in case if "kMessage" contains positive vote for the transaction.
  * Otherwise - returns false.
@@ -958,7 +953,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToChec
 {
     debug() << "runPrepareListNodesToCheckNodes";
     // Add all nodes that could be asked for Votes Status.
-    // Ignore self and CoodinatorNode. Coordinator will be asked first
+    // Ignore self and Coordinator Node. Coordinator will be asked first
     const auto kCoordinatorUUID = mParticipantsVotesMessage->coordinatorUUID();
     for(const auto &kNodeUUIDAndVote: mParticipantsVotesMessage->votes()){
         if (kNodeUUIDAndVote.first != kCoordinatorUUID and kNodeUUIDAndVote.first != mNodeUUID)

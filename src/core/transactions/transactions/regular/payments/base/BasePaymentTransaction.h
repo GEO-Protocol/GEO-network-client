@@ -188,8 +188,6 @@ protected:
     uint32_t maxNetworkDelay (
         const uint16_t totalHopsCount) const;
 
-    uint32_t maxCoordinatorResponseTimeout() const;
-
     const bool contextIsValid(
         Message::MessageType messageType,
         bool showErrorMessage = true) const;
