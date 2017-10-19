@@ -91,6 +91,7 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
 {
     debug() << "runParseMessageAndCreateCyclesStage";
     if (mContext.size() != 1){
+        info() << "No responses messages are present. Can't create cycles paths;";
         return resultDone();
     }
 #ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
@@ -108,8 +109,10 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
             mNodeUUID,
             mNodeUUID,
             cycle);
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
         debug() << "build cycle: " << mNodeUUID << " -> " << mContractorUUID
                 << " -> " << nodeUUIDAndBalance << " -> " << mNodeUUID;
+#endif
         mCyclesManager->addCycle(
             cyclePath);
 #ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING

@@ -871,22 +871,23 @@ bool BasePaymentTransaction::updateReservations(
 
 BasePaymentTransaction::PathID BasePaymentTransaction::updateReservation(
     const NodeUUID &contractorUUID,
-    pair<PathID, AmountReservation::ConstShared> &reservation,
+    pair<PathID, AmountReservation::ConstShared> &pathIDAndReservation,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts)
 {
     for (auto pathIDAndAmount : finalAmounts) {
-        if (pathIDAndAmount.first == reservation.first) {
-            // todo : maybe add if reservations are different
-            shortageReservation(
-                contractorUUID,
-                reservation.second,
-                *pathIDAndAmount.second.get(),
-                pathIDAndAmount.first);
+        if (pathIDAndAmount.first == pathIDAndReservation.first) {
+            if (*pathIDAndAmount.second.get() != pathIDAndReservation.second->amount()) {
+                shortageReservation(
+                    contractorUUID,
+                    pathIDAndReservation.second,
+                    *pathIDAndAmount.second.get(),
+                    pathIDAndAmount.first);
+            }
             return pathIDAndAmount.first;
         }
     }
     dropNodeReservationsOnPath(
-        reservation.first);
+        pathIDAndReservation.first);
     return std::numeric_limits<PathID >::max();
 }
 

@@ -334,13 +334,13 @@ protected:
     /**
      * update reservations of current node to specified node on specified path
      * @param contractorUUID node with which reservation will be updated
-     * @param reservation pair of path id and pointer to reservations which will be updated
+     * @param pathIDAndReservation pair of path id and pointer to reservations which will be updated
      * @param finalAmounts vector of currently final amounts on all paths
      * @return path id of reservation if it was updated or 0 if reservation was dropped
      */
     PathID updateReservation(
         const NodeUUID &contractorUUID,
-        pair<PathID, AmountReservation::ConstShared> &reservation,
+        pair<PathID, AmountReservation::ConstShared> &pathIDAndReservation,
         const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts);
 
     /**
