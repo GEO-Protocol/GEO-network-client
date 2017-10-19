@@ -769,9 +769,8 @@ const bool BasePaymentTransaction::shortageReservation (
     }
 
     try {
-//#ifdef DEBUG
+        // this field used only for debug output
         const auto kPreviousAmount = kReservation->amount();
-//#endif
 
         auto updatedReservation = mTrustLines->updateAmountReservation(
             kContractor,
@@ -779,7 +778,6 @@ const bool BasePaymentTransaction::shortageReservation (
             kNewAmount);
 
         for (auto it = mReservations[kContractor].begin(); it != mReservations[kContractor].end(); it++){
-            // TODO detailed check this condition
             if ((*it).second.get() == kReservation.get() && (*it).first == pathID) {
                 mReservations[kContractor].erase(it);
                 break;
@@ -790,14 +788,12 @@ const bool BasePaymentTransaction::shortageReservation (
                 pathID,
                 updatedReservation));
 
-//#ifdef DEBUG
         if (kReservation->direction() == AmountReservation::Incoming)
             debug() << "Reservation for (" << kContractor << ") [" << pathID << "] shortened "
                    << "from " << kPreviousAmount << " to " << kNewAmount << " [<=]";
         else
             debug() << "Reservation for (" << kContractor << ") [" << pathID << "] shortened "
                    << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
-//#endif
 
         return true;
 
@@ -854,23 +850,6 @@ void BasePaymentTransaction::dropNodeReservationsOnPath(
     }
 }
 
-void BasePaymentTransaction::sendFinalPathConfiguration(
-    PathStats* pathStats,
-    PathID pathID,
-    const TrustLineAmount &finalPathAmount)
-{
-    debug() << "sendFinalPathConfiguration";
-    for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
-        debug() << "send message with final path amount info for node " << intermediateNode;
-        sendMessage<FinalPathConfigurationMessage>(
-            intermediateNode,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            pathID,
-            finalPathAmount);
-    }
-}
-
 bool BasePaymentTransaction::updateReservations(
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts)
 {
@@ -882,7 +861,7 @@ bool BasePaymentTransaction::updateReservations(
                 nodeAndReservations.first,
                 pathIDAndReservation,
                 finalAmounts);
-            if (updatedPathID != UINT16_MAX) {
+            if (updatedPathID != std::numeric_limits<PathID >::max()) {
                 updatedPaths.insert(updatedPathID);
             }
         }
@@ -908,8 +887,7 @@ BasePaymentTransaction::PathID BasePaymentTransaction::updateReservation(
     }
     dropNodeReservationsOnPath(
         reservation.first);
-    // max value of PathID (uint16_t)
-    return UINT16_MAX;
+    return std::numeric_limits<PathID >::max();
 }
 
 

@@ -156,7 +156,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
     if (mIncomingAmount < mOutgoingAmount) {
         mOutgoingAmount = mIncomingAmount;
     }
-    debug() << "Initial Outgoig Amount: " << mOutgoingAmount;
+    debug() << "Initial Outgoing Amount: " << mOutgoingAmount;
     mStep = Stages::Coordinator_AmountReservation;
     return runAmountReservationStage();
 }

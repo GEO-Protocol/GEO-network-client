@@ -68,7 +68,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
                     return runPaymentInitialisationStage();
 
                 case Stages::Coordinator_ReceiverResourceProcessing:
-                    return runReceiverResourceProcessingStage();
+                    return runPathsResourceProcessingStage();
 
                 case Stages::Coordinator_ReceiverResponseProcessing:
                     return runReceiverResponseProcessingStage();
@@ -151,9 +151,9 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
             maxNetworkDelay(4)));
 }
 
-TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourceProcessingStage()
+TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourceProcessingStage()
 {
-    debug() << "runReceiverResourceProcessingStage";
+    debug() << "runPathsResourceProcessingStage";
     if (mResources.size() != 0) {
         auto responseResource = *mResources.begin();
         if (responseResource->type() == BaseResource::ResourceType::Paths) {
@@ -168,7 +168,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResourc
                 }
             }
         } else {
-            throw Exception("CoordinatorPaymentTransaction::runReceiverResourceProcessingStage: "
+            throw Exception("CoordinatorPaymentTransaction::runPathsResourceProcessingStage: "
                                 "unexpected resource type");
         }
     } else {
@@ -1306,22 +1306,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::resultUnexpectedEr
         mCommand->responseUnexpectedError());
 }
 
-TrustLineAmount CoordinatorPaymentTransaction::totalReservedByAllPaths() const
-{
-    TrustLineAmount totalAmount = 0;
-
-    for (const auto &pathsStatsKV : mPathsStats) {
-        const auto path = pathsStatsKV.second.get();
-
-        if (! path->isValid())
-            continue;
-
-        totalAmount += pathsStatsKV.second->maxFlow();
-    }
-
-    return totalAmount;
-}
-
 const string CoordinatorPaymentTransaction::logHeader() const
 {
     stringstream s;
@@ -1617,7 +1601,6 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
     pathStats->setUnusable();
 
     auto firstIntermediateNode = pathStats->path()->nodes[1];
-    // TODO add checking if not find
     auto nodeReservations = mReservations.find(firstIntermediateNode);
     auto itPathIDAndReservation = nodeReservations->second.begin();
     while (itPathIDAndReservation != nodeReservations->second.end()) {
@@ -1659,6 +1642,23 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
         if (sendToLastProcessedNode && intermediateNode == lastProcessedNode) {
             break;
         }
+    }
+}
+
+void CoordinatorPaymentTransaction::sendFinalPathConfiguration(
+    PathStats* pathStats,
+    PathID pathID,
+    const TrustLineAmount &finalPathAmount)
+{
+    debug() << "sendFinalPathConfiguration";
+    for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
+        debug() << "send message with final path amount info for node " << intermediateNode;
+        sendMessage<FinalPathConfigurationMessage>(
+            intermediateNode,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            pathID,
+            finalPathAmount);
     }
 }
 
