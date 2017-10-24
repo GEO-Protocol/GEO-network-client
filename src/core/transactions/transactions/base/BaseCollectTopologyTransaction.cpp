@@ -36,25 +36,44 @@ TransactionResult::SharedConst BaseCollectTopologyTransaction::run()
 void BaseCollectTopologyTransaction::fillTopology()
 {
     while (!mContext.empty()) {
-        if (mContext.at(0)->typeID() != Message::MaxFlow_ResultMaxFlowCalculation) {
+        if (mContext.at(0)->typeID() == Message::MaxFlow_ResultMaxFlowCalculation) {
+            const auto kMessage = popNextMessage<ResultMaxFlowCalculationMessage>();
+            for (auto const &outgoingFlow : kMessage->outgoingFlows()) {
+                mMaxFlowCalculationTrustLineManager->addTrustLine(
+                    make_shared<MaxFlowCalculationTrustLine>(
+                        kMessage->senderUUID,
+                        outgoingFlow.first,
+                        outgoingFlow.second));
+            }
+            for (auto const &incomingFlow : kMessage->incomingFlows()) {
+                mMaxFlowCalculationTrustLineManager->addTrustLine(
+                    make_shared<MaxFlowCalculationTrustLine>(
+                        incomingFlow.first,
+                        kMessage->senderUUID,
+                        incomingFlow.second));
+            }
+        }
+        else if (mContext.at(0)->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
+            const auto kMessage = popNextMessage<ResultMaxFlowCalculationGatewayMessage>();
+            mMaxFlowCalculationTrustLineManager->addGateway(kMessage->senderUUID);
+            for (auto const &outgoingFlow : kMessage->outgoingFlows()) {
+                mMaxFlowCalculationTrustLineManager->addTrustLine(
+                    make_shared<MaxFlowCalculationTrustLine>(
+                        kMessage->senderUUID,
+                        outgoingFlow.first,
+                        outgoingFlow.second));
+            }
+            for (auto const &incomingFlow : kMessage->incomingFlows()) {
+                mMaxFlowCalculationTrustLineManager->addTrustLine(
+                    make_shared<MaxFlowCalculationTrustLine>(
+                        incomingFlow.first,
+                        kMessage->senderUUID,
+                        incomingFlow.second));
+            }
+        }
+        else {
             warning() << "Invalid message type in context during fill topology";
             mContext.pop_front();
-            continue;
-        }
-        const auto kMessage = popNextMessage<ResultMaxFlowCalculationMessage>();
-        for (auto const &outgoingFlow : kMessage->outgoingFlows()) {
-            mMaxFlowCalculationTrustLineManager->addTrustLine(
-                make_shared<MaxFlowCalculationTrustLine>(
-                    kMessage->senderUUID,
-                    outgoingFlow.first,
-                    outgoingFlow.second));
-        }
-        for (auto const &incomingFlow : kMessage->incomingFlows()) {
-            mMaxFlowCalculationTrustLineManager->addTrustLine(
-                make_shared<MaxFlowCalculationTrustLine>(
-                    incomingFlow.first,
-                    kMessage->senderUUID,
-                    incomingFlow.second));
         }
     }
 }
