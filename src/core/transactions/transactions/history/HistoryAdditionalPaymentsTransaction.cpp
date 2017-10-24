@@ -58,7 +58,7 @@ TransactionResult::SharedConst HistoryAdditionalPaymentsTransaction::resultOk(
         } else if (kOperationType == PaymentRecord::CyclerCloserIntermediateType) {
             formattedOperationType = "cycle_intermediate";
 
-        } else if (kOperationType == PaymentRecord::IncomingPaymentType) {
+        } else if (kOperationType == PaymentRecord::IntermediatePaymentType) {
             formattedOperationType = "intermediate";
 
         } else {
@@ -70,7 +70,7 @@ TransactionResult::SharedConst HistoryAdditionalPaymentsTransaction::resultOk(
         stream << kSeparator << kRecord->operationUUID() << kSeparator;
         stream << kUnixTimestampMicrosec << kSeparator;
         stream << formattedOperationType << kSeparator;
-        stream << kRecord->amount() << kSeparator;
+        stream << kRecord->amount();
     }
 
     auto result = stream.str();

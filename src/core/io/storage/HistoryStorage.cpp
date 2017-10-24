@@ -739,7 +739,7 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
 
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         result.push_back(
-            deserializePaymentRecord(
+            deserializePaymentAdditionalRecord(
                 stmt));
     }
 

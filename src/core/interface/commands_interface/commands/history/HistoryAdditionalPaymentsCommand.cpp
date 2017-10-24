@@ -23,10 +23,7 @@ const string &HistoryAdditionalPaymentsCommand::identifier()
 void HistoryAdditionalPaymentsCommand::parse(
     const string &command)
 {
-    const auto minCommandLength = 28;
-
-    cout << "######################" << endl;
-    cout << command.size() << endl;
+    const auto minCommandLength = 14;
 
     if (command.size() < minCommandLength) {
         throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
@@ -47,8 +44,6 @@ void HistoryAdditionalPaymentsCommand::parse(
         throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
                              "Can't parse command. Error occurred while parsing  'from' token.");
     }
-    cout << "historyFromStr: " << historyFromStr << endl;
-    cout << "tokenSeparatorPos: " << tokenSeparatorPos << endl;
 
     size_t nextTokenSeparatorPos = command.find(
         kTokensSeparator,
@@ -66,10 +61,6 @@ void HistoryAdditionalPaymentsCommand::parse(
         throw ValueError("HistoryAdditionalPaymentsCommand::parse: "
                              "Can't parse command. Error occurred while parsing 'count' token.");
     }
-
-    cout << "historyCountStr: " << historyCountStr << endl;
-    cout << "tokenSeparatorPos: " << tokenSeparatorPos << endl;
-    cout << "nextTokenSeparatorPos: " << nextTokenSeparatorPos << endl;
 
     tokenSeparatorPos = nextTokenSeparatorPos;
     nextTokenSeparatorPos = command.find(
@@ -92,10 +83,6 @@ void HistoryAdditionalPaymentsCommand::parse(
         }
     }
 
-    cout << "timeFromStr: " << timeFromStr << endl;
-    cout << "tokenSeparatorPos: " << tokenSeparatorPos << endl;
-    cout << "nextTokenSeparatorPos: " << nextTokenSeparatorPos << endl;
-
     tokenSeparatorPos = nextTokenSeparatorPos;
     nextTokenSeparatorPos = command.find(
         kTokensSeparator,
@@ -117,10 +104,6 @@ void HistoryAdditionalPaymentsCommand::parse(
         }
     }
 
-    cout << "timeToStr: " << timeToStr << endl;
-    cout << "tokenSeparatorPos: " << tokenSeparatorPos << endl;
-    cout << "nextTokenSeparatorPos: " << nextTokenSeparatorPos << endl;
-
     tokenSeparatorPos = nextTokenSeparatorPos;
     nextTokenSeparatorPos = command.find(
         kTokensSeparator,
@@ -141,21 +124,11 @@ void HistoryAdditionalPaymentsCommand::parse(
         }
     }
 
-    cout << "lowBoundaryAmountStr: " << lowBoundaryAmountStr << endl;
-    cout << "tokenSeparatorPos: " << tokenSeparatorPos << endl;
-    cout << "nextTokenSeparatorPos: " << nextTokenSeparatorPos << endl;
-
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = command.find(
-        kTokensSeparator,
-        tokenSeparatorPos + 1);
+    nextTokenSeparatorPos = command.size() - 1;
     string highBoundaryAmountStr = command.substr(
-        tokenSeparatorPos + 1,
-        nextTokenSeparatorPos - tokenSeparatorPos - 1);
-
-    cout << "highBoundaryAmountStr: " << highBoundaryAmountStr << endl;
-    cout << "tokenSeparatorPos: " << tokenSeparatorPos << endl;
-    cout << "nextTokenSeparatorPos: " << nextTokenSeparatorPos << endl;
+            tokenSeparatorPos + 1,
+            nextTokenSeparatorPos - tokenSeparatorPos - 1);
 
     if (highBoundaryAmountStr == kNullParameter) {
         mIsHighBoundaryAmountPresent = false;

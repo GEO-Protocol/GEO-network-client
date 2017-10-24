@@ -57,7 +57,6 @@ private:
     TrustLineAmount mHighBoundaryAmount;
     bool mIsLowBoundartAmountPresent;
     bool mIsHighBoundaryAmountPresent;
-    CommandUUID mPaymentRecordCommandUUID;
 };
 
 #endif //GEO_NETWORK_CLIENT_HISTORYADDTIONALPAYMENTSCOMMAND_H
