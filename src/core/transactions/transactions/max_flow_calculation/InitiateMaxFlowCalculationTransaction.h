@@ -41,10 +41,6 @@ protected:
     const string logHeader() const;
 
 private:
-    void sendMessagesToContractors();
-
-    void sendMessagesOnFirstLevel();
-
     TrustLineAmount calculateMaxFlow(
         const NodeUUID &contractorUUID);
 

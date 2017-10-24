@@ -79,6 +79,7 @@ public:
         MaxFlow_CalculationSourceSecondLevel = 403,
         MaxFlow_CalculationTargetSecondLevel = 404,
         MaxFlow_ResultMaxFlowCalculation = 405,
+        MaxFlow_ResultMaxFlowCalculationFromGateway = 406,
 
         /*
          * Total balance

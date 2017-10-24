@@ -131,6 +131,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::MaxFlow_ResultMaxFlowCalculation:
             return messageCollected<ResultMaxFlowCalculationMessage>(buffer);
 
+        case Message::MaxFlow_ResultMaxFlowCalculationFromGateway:
+            return messageCollected<ResultMaxFlowCalculationGatewayMessage>(buffer);
+
         case Message::MaxFlow_CalculationSourceFirstLevel:
             return messageCollected<MaxFlowCalculationSourceFstLevelMessage>(buffer);
 

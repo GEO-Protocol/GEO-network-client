@@ -19,7 +19,7 @@ public:
 
 public:
     MaxFlowCalculationTrustLineManager(
-        RoutingTableManager *roughtingTable,
+        RoutingTableManager *routingTable,
         Logger &logger);
 
     void addTrustLine(
@@ -34,6 +34,7 @@ public:
 
     size_t trustLinesCounts() const;
 
+    // todo : this code used only for testing and should be deleted in future
     void printTrustLines() const;
 
     DateTime closestTimeEvent() const;
@@ -54,6 +55,10 @@ public:
 
     set<NodeUUID> neighborsOf(
         const NodeUUID &sourceUUID);
+
+    void addGateway(const NodeUUID &gateway);
+
+    const set<NodeUUID> gateways() const;
 
 private:
     static const byte kResetTrustLinesHours = 0;
@@ -77,9 +82,10 @@ private:
 private:
     unordered_map<NodeUUID, TrustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
     map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
-    RoutingTableManager *mRoughtingTable;
+    RoutingTableManager *mRoutingTable;
     Logger &mLog;
     bool mPreventDeleting;
+    set<NodeUUID> mGateways;
 };
 
 #endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H

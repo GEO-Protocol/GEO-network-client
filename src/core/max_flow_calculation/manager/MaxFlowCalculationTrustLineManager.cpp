@@ -1,18 +1,18 @@
 #include "MaxFlowCalculationTrustLineManager.h"
 
 MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
-    RoutingTableManager *roughtingTable,
+    RoutingTableManager *routingTable,
     Logger &logger):
     mLog(logger),
     mPreventDeleting(false),
-    mRoughtingTable(roughtingTable)
+    mRoutingTable(routingTable)
 {}
 
 void MaxFlowCalculationTrustLineManager::addTrustLine(
     MaxFlowCalculationTrustLine::Shared trustLine)
 {
     // Part with roughting table
-    mRoughtingTable->updateMapAddOneNeighbor(trustLine->sourceUUID(), trustLine->targetUUID());
+    mRoutingTable->updateMapAddOneNeighbor(trustLine->sourceUUID(), trustLine->targetUUID());
 
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
@@ -229,6 +229,17 @@ set<NodeUUID> MaxFlowCalculationTrustLineManager::neighborsOf(
         result.insert(trustLinePtr->maxFlowCalculationtrustLine()->targetUUID());
     }
     return result;
+}
+
+void MaxFlowCalculationTrustLineManager::addGateway(
+    const NodeUUID &gateway)
+{
+    mGateways.insert(gateway);
+}
+
+const set<NodeUUID> MaxFlowCalculationTrustLineManager::gateways() const
+{
+    return mGateways;
 }
 
 void MaxFlowCalculationTrustLineManager::setPreventDeleting(

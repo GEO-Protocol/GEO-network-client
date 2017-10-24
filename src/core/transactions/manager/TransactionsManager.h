@@ -196,6 +196,9 @@ protected: // Transactions
     void launchReceiveResultMaxFlowCalculationTransaction(
         ResultMaxFlowCalculationMessage::Shared message);
 
+    void launchReceiveResultMaxFlowCalculationTransactionFromGateway(
+        ResultMaxFlowCalculationGatewayMessage::Shared message);
+
     void launchMaxFlowCalculationSourceFstLevelTransaction(
         MaxFlowCalculationSourceFstLevelMessage::Shared message);
 

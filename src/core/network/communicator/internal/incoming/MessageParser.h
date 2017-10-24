@@ -13,6 +13,7 @@
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationSourceSndLevelMessage.h"
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.h"
 #include "../../../messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
+#include "../../../messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 
 #include "../../../messages/payments/CoordinatorReservationRequestMessage.h"
 #include "../../../messages/payments/CoordinatorReservationResponseMessage.h"

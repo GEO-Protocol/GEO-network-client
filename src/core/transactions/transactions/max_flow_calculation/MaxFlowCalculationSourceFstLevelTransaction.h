@@ -6,7 +6,7 @@
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceSndLevelMessage.h"
-#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
+#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 
 class MaxFlowCalculationSourceFstLevelTransaction : public BaseTransaction  {
 

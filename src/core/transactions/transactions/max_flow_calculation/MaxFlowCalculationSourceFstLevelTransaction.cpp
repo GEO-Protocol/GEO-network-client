@@ -78,7 +78,7 @@ void MaxFlowCalculationSourceFstLevelTransaction::sendResultToInitiator()
     info() << "sendResult\t" << "IncomingFlows: " << incomingFlows.size();
 #endif
     if (outgoingFlows.size() > 0) {
-        sendMessage<ResultMaxFlowCalculationMessage>(
+        sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             mMessage->senderUUID,
             mNodeUUID,
             outgoingFlows,
@@ -111,7 +111,7 @@ void MaxFlowCalculationSourceFstLevelTransaction::sendCachedResultToInitiator(
     info() << "sendCachedResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
 #endif
     if (outgoingFlowsForSending.size() > 0) {
-        sendMessage<ResultMaxFlowCalculationMessage>(
+        sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             mMessage->senderUUID,
             mNodeUUID,
             outgoingFlowsForSending,

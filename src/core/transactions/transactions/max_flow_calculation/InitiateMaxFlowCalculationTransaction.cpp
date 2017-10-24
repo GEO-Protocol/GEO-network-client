@@ -90,34 +90,17 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::run()
     }
 }
 
-void InitiateMaxFlowCalculationTransaction::sendMessagesToContractors()
-{
-    for (const auto &contractorUUID : mCommand->contractors())
-    sendMessage<InitiateMaxFlowCalculationMessage>(
-        contractorUUID,
-        currentNodeUUID());
-}
-
-void InitiateMaxFlowCalculationTransaction::sendMessagesOnFirstLevel()
-{
-    vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
-    for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
-#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-        info() << "sendFirst\t" << nodeUUIDOutgoingFlow;
-#endif
-        sendMessage<MaxFlowCalculationSourceFstLevelMessage>(
-            nodeUUIDOutgoingFlow,
-            mNodeUUID);
-    }
-}
-
 // this method used the same logic as PathsManager::reBuildPaths
 // and PathsManager::buildPaths
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     const NodeUUID &contractorUUID)
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "calculateMaxFlow\tstart found flow to: " << contractorUUID;
+    info() << "start found flow to: " << contractorUUID;
+    info() << "gateways:";
+    for (auto const gateway : mMaxFlowCalculationTrustLineManager->gateways()) {
+        info() << "\t" << gateway;
+    }
 #endif
 
     mCurrentContractor = contractorUUID;

@@ -5,7 +5,8 @@ MaxFlowCalculationTargetSndLevelTransaction::MaxFlowCalculationTargetSndLevelTra
     MaxFlowCalculationTargetSndLevelMessage::Shared message,
     TrustLinesManager *manager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    Logger &logger) :
+    Logger &logger,
+    bool iAmGateway) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationTargetSndLevelTransactionType,
@@ -13,7 +14,8 @@ MaxFlowCalculationTargetSndLevelTransaction::MaxFlowCalculationTargetSndLevelTra
         logger),
     mMessage(message),
     mTrustLinesManager(manager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mIAmGateway(iAmGateway)
 {}
 
 MaxFlowCalculationTargetSndLevelMessage::Shared MaxFlowCalculationTargetSndLevelTransaction::message() const
@@ -63,11 +65,19 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator()
     info() << "sendResultToInitiator\t" << "IncomingFlows: " << incomingFlows.size();
 #endif
     if (outgoingFlows.size() > 0 || incomingFlows.size() > 0) {
-        sendMessage<ResultMaxFlowCalculationMessage>(
-            mMessage->targetUUID(),
-            mNodeUUID,
-            outgoingFlows,
-            incomingFlows);
+        if (mIAmGateway) {
+            sendMessage<ResultMaxFlowCalculationGatewayMessage>(
+                mMessage->targetUUID(),
+                mNodeUUID,
+                outgoingFlows,
+                incomingFlows);
+        } else {
+            sendMessage<ResultMaxFlowCalculationMessage>(
+                mMessage->targetUUID(),
+                mNodeUUID,
+                outgoingFlows,
+                incomingFlows);
+        }
         mMaxFlowCalculationCacheManager->addCache(
             mMessage->targetUUID(),
             make_shared<MaxFlowCalculationCache>(
@@ -104,11 +114,19 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
     info() << "sendCachedResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
 #endif
     if (outgoingFlowsForSending.size() > 0 || incomingFlowsForSending.size() > 0) {
-        sendMessage<ResultMaxFlowCalculationMessage>(
-            mMessage->targetUUID(),
-            mNodeUUID,
-            outgoingFlowsForSending,
-            incomingFlowsForSending);
+        if (mIAmGateway) {
+            sendMessage<ResultMaxFlowCalculationGatewayMessage>(
+                mMessage->targetUUID(),
+                mNodeUUID,
+                outgoingFlowsForSending,
+                incomingFlowsForSending);
+        } else {
+            sendMessage<ResultMaxFlowCalculationMessage>(
+                mMessage->targetUUID(),
+                mNodeUUID,
+                outgoingFlowsForSending,
+                incomingFlowsForSending);
+        }
     }
 }
 
