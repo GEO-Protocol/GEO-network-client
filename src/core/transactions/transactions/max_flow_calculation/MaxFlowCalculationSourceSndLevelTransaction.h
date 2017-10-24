@@ -4,6 +4,7 @@
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceSndLevelMessage.h"
+#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
@@ -32,6 +33,11 @@ private:
     void sendResultToInitiator();
 
     void sendCachedResultToInitiator(
+        MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr);
+
+    void sendGatewayResultToInitiator();
+
+    void sendCachedGatewayResultToInitiator(
         MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr);
 
 private:

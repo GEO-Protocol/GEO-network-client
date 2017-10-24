@@ -548,55 +548,68 @@ const TrustLine::Shared TrustLinesManager::trustLine(
     }
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const {
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const
+{
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
+        auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
+            nodeUUIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
-            result.push_back(nodeUUIDAndTrustLine.first);
+            result.push_back(
+                nodeUUIDAndTrustLine.first);
         }
     }
     return result;
 }
 
-vector<NodeUUID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow() const {
+vector<NodeUUID> TrustLinesManager::firstLevelGatewayNeighborsWithOutgoingFlow() const
+{
+    vector<NodeUUID> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+        if (!nodeUUIDAndTrustLine.second->isContractorGateway()) {
+            continue;
+        }
+        auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
+            nodeUUIDAndTrustLine.first);
+        auto trustLineAmountPtr = trustLineAmountShared.get();
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
+            result.push_back(
+                nodeUUIDAndTrustLine.first);
+        }
+    }
+    return result;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const
+{
+    vector<NodeUUID> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
+            nodeUUIDAndTrustLine.first);
+        auto trustLineAmountPtr = trustLineAmountShared.get();
+
+        if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
+            result.push_back(
+                nodeUUIDAndTrustLine.first);
+        }
+    }
+    return result;
+}
+
+vector<NodeUUID> TrustLinesManager::firstLevelNonGatewayNeighborsWithIncomingFlow() const
+{
     vector<NodeUUID> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
         if (nodeUUIDAndTrustLine.second->isContractorGateway()) {
-            auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
-            auto trustLineAmountPtr = trustLineAmountShared.get();
-            if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
-                result.push_back(nodeUUIDAndTrustLine.first);
-            }
+            continue;
         }
-    }
-    return result;
-}
-
-vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithIncomingFlow() const {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
+            nodeUUIDAndTrustLine.first);
         auto trustLineAmountPtr = trustLineAmountShared.get();
 
         if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
             result.push_back(nodeUUIDAndTrustLine.first);
-        }
-    }
-    return result;
-}
-
-vector<NodeUUID> TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFlow() const {
-    vector<NodeUUID> result;
-    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        if (nodeUUIDAndTrustLine.second->isContractorGateway()) {
-            auto trustLineAmountShared = incomingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
-            auto trustLineAmountPtr = trustLineAmountShared.get();
-
-            if (*trustLineAmountPtr > TrustLine::kZeroAmount()) {
-                result.push_back(nodeUUIDAndTrustLine.first);
-            }
         }
     }
     return result;
@@ -605,13 +618,12 @@ vector<NodeUUID> TrustLinesManager::firstLevelGatewayNeighborsWithIncomingFlow()
 vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlows() const {
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
-        auto trustLineAmountPtr = trustLineAmountShared.get();
-            result.push_back(
-                make_pair(
-                    nodeUUIDAndTrustLine.first,
-                    make_shared<const TrustLineAmount>(
-                        *trustLineAmountPtr)));
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
+            nodeUUIDAndTrustLine.first);
+        result.push_back(
+            make_pair(
+                nodeUUIDAndTrustLine.first,
+                trustLineAmountShared));
     }
     return result;
 }
@@ -619,13 +631,62 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFl
 vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlows() const {
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
     for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
-        auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(nodeUUIDAndTrustLine.first);
-        auto trustLineAmountPtr = trustLineAmountShared.get();
-            result.push_back(
-                make_pair(
-                    nodeUUIDAndTrustLine.first,
-                    make_shared<const TrustLineAmount>(
-                        *trustLineAmountPtr)));
+        auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
+            nodeUUIDAndTrustLine.first);
+        result.push_back(
+            make_pair(
+                nodeUUIDAndTrustLine.first,
+                trustLineAmountShared));
+    }
+    return result;
+}
+
+pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::incomingFlow(
+    const NodeUUID &contractorUUID) const
+{
+    return make_pair(
+        contractorUUID,
+        incomingTrustAmountConsideringReservations(
+            contractorUUID));
+}
+
+pair<NodeUUID, ConstSharedTrustLineAmount> TrustLinesManager::outgoingFlow(
+        const NodeUUID &contractorUUID) const
+{
+    return make_pair(
+        contractorUUID,
+        outgoingTrustAmountConsideringReservations(
+            contractorUUID));
+}
+
+vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::incomingFlowsFromNonGateways() const {
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+        if (nodeUUIDAndTrustLine.second->isContractorGateway()) {
+            continue;
+        }
+        auto trustLineAmountShared = incomingTrustAmountConsideringReservations(
+            nodeUUIDAndTrustLine.first);
+        result.push_back(
+            make_pair(
+                nodeUUIDAndTrustLine.first,
+                trustLineAmountShared));
+    }
+    return result;
+}
+
+vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFlowsToGateways() const {
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+        if (!nodeUUIDAndTrustLine.second->isContractorGateway()) {
+            continue;
+        }
+        auto trustLineAmountShared = outgoingTrustAmountConsideringReservations(
+            nodeUUIDAndTrustLine.first);
+        result.push_back(
+            make_pair(
+                nodeUUIDAndTrustLine.first,
+                trustLineAmountShared));
     }
     return result;
 }

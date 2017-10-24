@@ -3,10 +3,8 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetFstLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.h"
-#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 
 class MaxFlowCalculationTargetFstLevelTransaction : public BaseTransaction {
 
@@ -18,7 +16,6 @@ public:
         const NodeUUID &nodeUUID,
         MaxFlowCalculationTargetFstLevelMessage::Shared message,
         TrustLinesManager *manager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         Logger &logger,
         bool iAmGateway);
 
@@ -30,15 +27,8 @@ protected:
     const string logHeader() const;
 
 private:
-    void sendResultToInitiator();
-
-    void sendCachedResultToInitiator(
-            MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr);
-
-private:
     MaxFlowCalculationTargetFstLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     bool mIAmGateway;
 };
 
