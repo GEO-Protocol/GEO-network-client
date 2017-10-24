@@ -1452,3 +1452,10 @@ void TransactionsManager::launchRoutingTableRequestTransaction()
         throw ConflictError(e.message());
     }
 }
+
+#ifdef TESTS
+void TransactionsManager::setMeAsGateway()
+{
+    mIAmGateway = true;
+}
+#endif

@@ -509,6 +509,12 @@ void Core::onCommandReceivedSlot (
             subsystemsInfluenceCommand->forbiddenNodeUUID());
         mSubsystemsController->setForbiddenAmount(
             subsystemsInfluenceCommand->forbiddenAmount());
+        // set node as gateway
+        if ((subsystemsInfluenceCommand->flags() & 0x80000000000) != 0) {
+            mLog->logInfo("Core", "from now I am gateway");
+            mIAmGateway = true;
+            mTransactionsManager->setMeAsGateway();
+        }
 #endif
         mLog->logInfo("Core", "SubsystemsInfluenceCommand processed");
         return;

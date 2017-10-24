@@ -67,6 +67,7 @@ protected:
 
 //    41 - forbid run payment transactions  0x20000000000  //  2199023255552
 //    42 - forbid run trust line transactions  0x40000000000  //  4398046511104
+//    43 - set node as gateway 0x80000000000  // 8796093022208
 
     size_t mFlags;
     // this parameter used for forbid send messages only for this node,

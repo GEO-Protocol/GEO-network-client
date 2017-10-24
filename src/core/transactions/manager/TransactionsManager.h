@@ -162,6 +162,10 @@ public:
 
     void launchGatewayNotificationSenderTransaction();
 
+#ifdef TESTS
+    void setMeAsGateway();
+#endif
+
 protected:
     void loadTransactionsFromStorage();
 
