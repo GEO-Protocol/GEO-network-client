@@ -100,10 +100,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
             continue;
         } catch (Exception &e) {
             warning() << e.what();
-            auto ioTransaction = mStorageHandler->beginTransaction();
-            if (ioTransaction->historyStorage()->whetherOperationWasConducted(currentTransactionUUID())) {
-                warning() << "Something happens wrong in method run(), but transaction was conducted";
-                return resultOK();
+            {
+                auto ioTransaction = mStorageHandler->beginTransaction();
+                if (ioTransaction->historyStorage()->whetherOperationWasConducted(currentTransactionUUID())) {
+                    warning() << "Something happens wrong in method run(), but transaction was conducted";
+                    return resultOK();
+                }
             }
             return reject("Something happens wrong in method run(). Transaction will be rejected");
         }
