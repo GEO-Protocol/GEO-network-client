@@ -156,7 +156,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
     if (mIncomingAmount < mOutgoingAmount) {
         mOutgoingAmount = mIncomingAmount;
     }
-    debug() << "Initial Outgoig Amount: " << mOutgoingAmount;
+    debug() << "Initial Outgoing Amount: " << mOutgoingAmount;
     mStep = Stages::Coordinator_AmountReservation;
     return runAmountReservationStage();
 }
@@ -179,7 +179,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
 
     throw RuntimeError(
         "CycleCloserInitiatorTransaction::runAmountReservationStage: "
-            "unexpected behaviour occured.");
+            "unexpected behaviour occurred.");
 }
 
 /**
@@ -530,22 +530,21 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
         PathStats::ReservationApproved);
     debug() << "Neighbor node accepted coordinator request. Reserved: " << message->amountReserved();
 
-    path->shortageMaxFlow(message->amountReserved());
-    debug() << "Path max flow is now " << path->maxFlow();
-
-    // shortage reservation
-    // TODO maby add if change path->maxFlow()
-    for (auto const &itNodeAndReservations : mReservations) {
-        auto nodeReservations = itNodeAndReservations.second;
-        if (nodeReservations.size() != 1) {
-            throw ValueError("CycleCloserInitiatorTransaction::processRemoteNodeResponse: "
-                                 "unexpected behaviour: between two nodes should be only one reservation.");
+    if (message->amountReserved() != path->maxFlow()) {
+        path->shortageMaxFlow(message->amountReserved());
+        debug() << "Path max flow is now " << path->maxFlow();
+        for (auto const &itNodeAndReservations : mReservations) {
+            auto nodeReservations = itNodeAndReservations.second;
+            if (nodeReservations.size() != 1) {
+                throw ValueError("CycleCloserInitiatorTransaction::processRemoteNodeResponse: "
+                                     "unexpected behaviour: between two nodes should be only one reservation.");
+            }
+            shortageReservation(
+                itNodeAndReservations.first,
+                (*nodeReservations.begin()).second,
+                path->maxFlow(),
+                0);
         }
-        shortageReservation(
-            itNodeAndReservations.first,
-            (*nodeReservations.begin()).second,
-            path->maxFlow(),
-            0);
     }
 
     return runAmountReservationStage();
@@ -635,11 +634,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
 
     if (message->state() == CoordinatorCycleReservationResponseMessage::Rejected ||
             message->state() == CoordinatorCycleReservationResponseMessage::RejectedBecauseReservations) {
-        path->setUnusable();
-        path->setNodeState(
-            R_PathPosition,
-            PathStats::ReservationRejected);
-
         debug() << "Remote node rejected reservation. Can't pay";
         rollBack();
         informIntermediateNodesAboutTransactionFinish(
@@ -659,29 +653,28 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
     }
 
     const auto reservedAmount = message->amountReserved();
+    debug() << "(" << message->senderUUID << ") reserved " << reservedAmount;
 
-    path->shortageMaxFlow(reservedAmount);
     path->setNodeState(
         R_PathPosition,
         PathStats::ReservationApproved);
 
-    // shortage reservation
-    // TODO maby add if change path->maxFlow()
-    for (auto const &itNodeAndReservations : mReservations) {
-        auto nodeReservations = itNodeAndReservations.second;
-        if (nodeReservations.size() != 1) {
-            throw ValueError("CycleCloserInitiatorTransaction::processRemoteNodeResponse: "
-                                 "unexpected behaviour: between two nodes should be only one reservation.");
+    if (reservedAmount != path->maxFlow()) {
+        path->shortageMaxFlow(reservedAmount);
+        for (auto const &itNodeAndReservations : mReservations) {
+            auto nodeReservations = itNodeAndReservations.second;
+            if (nodeReservations.size() != 1) {
+                throw ValueError("CycleCloserInitiatorTransaction::processRemoteNodeResponse: "
+                                     "unexpected behaviour: between two nodes should be only one reservation.");
+            }
+            shortageReservation(
+                itNodeAndReservations.first,
+                (*nodeReservations.begin()).second,
+                path->maxFlow(),
+                0);
         }
-        shortageReservation(
-            itNodeAndReservations.first,
-            (*nodeReservations.begin()).second,
-            path->maxFlow(),
-            0);
+        debug() << "Path max flow is now " << path->maxFlow();
     }
-
-    debug() << "(" << message->senderUUID << ") reserved " << reservedAmount;
-    debug() << "Path max flow is now " << path->maxFlow();
 
     if (path->isLastIntermediateNodeProcessed()) {
 

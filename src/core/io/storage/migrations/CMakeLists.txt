@@ -35,6 +35,9 @@ set(SOURCE_FILES
         CommandUUIDMigration.h
         CommandUUIDMigration.cpp
 
+        RemoveRoutingTablesMigration.cpp
+        RemoveRoutingTablesMigration.h
+
         TrustLineContractorIsGatewayMigration.cpp
         TrustLineContractorIsGatewayMigration.h)
 

@@ -83,6 +83,9 @@ public:
     bool isTransactionInProcess(
         const TransactionUUID &transactionUUID) const;
 
+    void tryAttachMessageToCollectTopologyTransaction(
+        Message::Shared message);
+
 private:
     void launchTransaction(
         BaseTransaction::Shared transaction);

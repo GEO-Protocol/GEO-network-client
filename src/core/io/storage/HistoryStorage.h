@@ -63,6 +63,9 @@ public:
         size_t recordsCount,
         size_t fromRecord);
 
+    bool whetherOperationWasConducted(
+        const TransactionUUID &transactionUUID);
+
     const string mainTableName() const;
     const string additionalTableName() const;
 

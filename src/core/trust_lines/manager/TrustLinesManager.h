@@ -12,9 +12,7 @@
 #include "../../common/exceptions/NotFoundError.h"
 #include "../../common/exceptions/PreconditionFailedError.h"
 #include "../../logger/Logger.h"
-
-// todo: rename "amount_blocks" to "reservations"
-#include "../../payments/amount_blocks/AmountReservationsHandler.h"
+#include "../../payments/reservations/AmountReservationsHandler.h"
 
 // TODO: remove storage handler include (IO transactions must be transferred as arguments)
 #include "../../io/storage/StorageHandler.h"
@@ -310,8 +308,6 @@ public:
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
-
-    vector<pair<const NodeUUID, const TrustLineDirection>> rt1WithDirections() const;
 
     vector<NodeUUID> rt1() const;
 

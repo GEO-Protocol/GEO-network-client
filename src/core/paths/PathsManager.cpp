@@ -54,7 +54,6 @@ void PathsManager::buildPaths(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-    // todo remove after testing
     info() << "building time: " << utc_now() - startTime;
 }
 

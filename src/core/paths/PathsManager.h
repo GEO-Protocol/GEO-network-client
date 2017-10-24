@@ -42,7 +42,6 @@ public:
 private:
     bool isPathValid(const Path &path);
 
-    ////// path by max flow
     void buildPathsOnOneLevel();
 
     TrustLineAmount calculateOneNode(

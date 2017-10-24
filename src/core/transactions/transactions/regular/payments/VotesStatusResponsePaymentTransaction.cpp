@@ -32,6 +32,8 @@ TransactionResult::SharedConst VotesStatusResponsePaymentTransaction::run()
         return resultDone();
     }
     try {
+        // try to read participants vote message of requested transaction from database,
+        // if it will be found then send it to requester
         auto ioTransaction = mStorageHandler->beginTransaction();
         auto serializedVotesBufferAndSize = ioTransaction->paymentOperationStateHandler()->byTransaction(
             mRequest->transactionUUID());

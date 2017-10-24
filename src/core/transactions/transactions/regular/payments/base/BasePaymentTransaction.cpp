@@ -700,11 +700,6 @@ uint32_t BasePaymentTransaction::maxNetworkDelay (
     return totalHopsCount * kMaxMessageTransferLagMSec;
 }
 
-uint32_t BasePaymentTransaction::maxCoordinatorResponseTimeout () const
-{
-    return maxNetworkDelay(1);
-}
-
 /**
  * @returns true in case if "kMessage" contains positive vote for the transaction.
  * Otherwise - returns false.
@@ -774,9 +769,8 @@ const bool BasePaymentTransaction::shortageReservation (
     }
 
     try {
-//#ifdef DEBUG
+        // this field used only for debug output
         const auto kPreviousAmount = kReservation->amount();
-//#endif
 
         auto updatedReservation = mTrustLines->updateAmountReservation(
             kContractor,
@@ -784,7 +778,6 @@ const bool BasePaymentTransaction::shortageReservation (
             kNewAmount);
 
         for (auto it = mReservations[kContractor].begin(); it != mReservations[kContractor].end(); it++){
-            // TODO detailed check this condition
             if ((*it).second.get() == kReservation.get() && (*it).first == pathID) {
                 mReservations[kContractor].erase(it);
                 break;
@@ -795,14 +788,12 @@ const bool BasePaymentTransaction::shortageReservation (
                 pathID,
                 updatedReservation));
 
-//#ifdef DEBUG
         if (kReservation->direction() == AmountReservation::Incoming)
             debug() << "Reservation for (" << kContractor << ") [" << pathID << "] shortened "
                    << "from " << kPreviousAmount << " to " << kNewAmount << " [<=]";
         else
             debug() << "Reservation for (" << kContractor << ") [" << pathID << "] shortened "
                    << "from " << kPreviousAmount << " to " << kNewAmount << " [=>]";
-//#endif
 
         return true;
 
@@ -859,23 +850,6 @@ void BasePaymentTransaction::dropNodeReservationsOnPath(
     }
 }
 
-void BasePaymentTransaction::sendFinalPathConfiguration(
-    PathStats* pathStats,
-    PathID pathID,
-    const TrustLineAmount &finalPathAmount)
-{
-    debug() << "sendFinalPathConfiguration";
-    for (const auto &intermediateNode : pathStats->path()->intermediateUUIDs()) {
-        debug() << "send message with final path amount info for node " << intermediateNode;
-        sendMessage<FinalPathConfigurationMessage>(
-            intermediateNode,
-            currentNodeUUID(),
-            currentTransactionUUID(),
-            pathID,
-            finalPathAmount);
-    }
-}
-
 bool BasePaymentTransaction::updateReservations(
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts)
 {
@@ -887,7 +861,7 @@ bool BasePaymentTransaction::updateReservations(
                 nodeAndReservations.first,
                 pathIDAndReservation,
                 finalAmounts);
-            if (updatedPathID != UINT16_MAX) {
+            if (updatedPathID != std::numeric_limits<PathID >::max()) {
                 updatedPaths.insert(updatedPathID);
             }
         }
@@ -897,24 +871,24 @@ bool BasePaymentTransaction::updateReservations(
 
 BasePaymentTransaction::PathID BasePaymentTransaction::updateReservation(
     const NodeUUID &contractorUUID,
-    pair<PathID, AmountReservation::ConstShared> &reservation,
+    pair<PathID, AmountReservation::ConstShared> &pathIDAndReservation,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts)
 {
     for (auto pathIDAndAmount : finalAmounts) {
-        if (pathIDAndAmount.first == reservation.first) {
-            // todo : maybe add if reservations are different
-            shortageReservation(
-                contractorUUID,
-                reservation.second,
-                *pathIDAndAmount.second.get(),
-                pathIDAndAmount.first);
+        if (pathIDAndAmount.first == pathIDAndReservation.first) {
+            if (*pathIDAndAmount.second.get() != pathIDAndReservation.second->amount()) {
+                shortageReservation(
+                    contractorUUID,
+                    pathIDAndReservation.second,
+                    *pathIDAndAmount.second.get(),
+                    pathIDAndAmount.first);
+            }
             return pathIDAndAmount.first;
         }
     }
     dropNodeReservationsOnPath(
-        reservation.first);
-    // max value of PathID (uint16_t)
-    return UINT16_MAX;
+        pathIDAndReservation.first);
+    return std::numeric_limits<PathID >::max();
 }
 
 
@@ -958,7 +932,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runPrepareListNodesToChec
 {
     debug() << "runPrepareListNodesToCheckNodes";
     // Add all nodes that could be asked for Votes Status.
-    // Ignore self and CoodinatorNode. Coordinator will be asked first
+    // Ignore self and Coordinator Node. Coordinator will be asked first
     const auto kCoordinatorUUID = mParticipantsVotesMessage->coordinatorUUID();
     for(const auto &kNodeUUIDAndVote: mParticipantsVotesMessage->votes()){
         if (kNodeUUIDAndVote.first != kCoordinatorUUID and kNodeUUIDAndVote.first != mNodeUUID)

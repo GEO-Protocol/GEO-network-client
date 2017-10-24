@@ -773,6 +773,31 @@ vector<PaymentRecord::Shared> HistoryStorage::paymentRecordsByCommandUUID(
     return result;
 }
 
+bool HistoryStorage::whetherOperationWasConducted(
+    const TransactionUUID &transactionUUID)
+{
+    string query = "SELECT operation_uuid FROM "
+                   + mMainTableName + " WHERE operation_uuid = ? LIMIT 1";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::whetherOperationWasConducted: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+
+    rc = sqlite3_bind_blob(stmt, 1, transactionUUID.data, Record::kOperationUUIDBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::whetherOperationWasConducted: "
+                          "Bad binding of transactionUUID; sqlite error: " + to_string(rc));
+    }
+
+    bool result = (sqlite3_step(stmt) == SQLITE_ROW);
+    
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return result;
+}
+
 pair<BytesShared, size_t> HistoryStorage::serializedTrustLineRecordBody(
     TrustLineRecord::Shared trustLineRecord)
 {
