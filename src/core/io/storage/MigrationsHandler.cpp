@@ -273,8 +273,6 @@ void MigrationsHandler::applyMigration(
             auto migration = make_shared<RemoveRoutingTablesMigration>(
                 mDataBase,
                 mLog);
-                    mDataBase,
-                    mLog);
 
             migration->apply(ioTransaction);
             saveMigration(migrationUUID);
