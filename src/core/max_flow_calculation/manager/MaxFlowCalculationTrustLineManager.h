@@ -60,6 +60,9 @@ public:
 
     const set<NodeUUID> gateways() const;
 
+    void makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+        const NodeUUID &exceptedNode);
+
 private:
     static const byte kResetTrustLinesHours = 0;
     static const byte kResetTrustLinesMinutes = 12;

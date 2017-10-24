@@ -35,6 +35,8 @@ void PathsManager::buildPaths(
 {
     info() << "Build paths to " << contractorUUID;
     auto startTime = utc_now();
+    mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+        contractorUUID);
     mContractorUUID = contractorUUID;
     mPathCollection = make_shared<PathsCollection>(
         mNodeUUID,
@@ -156,6 +158,8 @@ void PathsManager::reBuildPaths(
 {
     info() << "ReBuild paths to " << contractorUUID;
     auto startTime = utc_now();
+    mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+        contractorUUID);
     mContractorUUID = contractorUUID;
     mInaccessibleNodes = inaccessibleNodes;
     mPathCollection = make_shared<PathsCollection>(

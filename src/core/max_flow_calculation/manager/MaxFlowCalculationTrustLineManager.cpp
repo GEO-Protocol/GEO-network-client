@@ -11,7 +11,7 @@ MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
 void MaxFlowCalculationTrustLineManager::addTrustLine(
     MaxFlowCalculationTrustLine::Shared trustLine)
 {
-    // Part with roughting table
+    // Part with routing table
     mRoutingTable->updateMapAddOneNeighbor(trustLine->sourceUUID(), trustLine->targetUUID());
 
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
@@ -240,6 +240,24 @@ void MaxFlowCalculationTrustLineManager::addGateway(
 const set<NodeUUID> MaxFlowCalculationTrustLineManager::gateways() const
 {
     return mGateways;
+}
+
+void MaxFlowCalculationTrustLineManager::makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+    const NodeUUID &exceptedNode)
+{
+    for (const auto gateway : mGateways) {
+        auto const &nodeUUIDAndSetFlows = msTrustLines.find(gateway);
+        if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+            continue;
+        }
+        for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
+            if (trustLinePtr->maxFlowCalculationtrustLine()->targetUUID() != exceptedNode) {
+                trustLinePtr->maxFlowCalculationtrustLine()->setUsedAmount(
+                        *trustLinePtr->maxFlowCalculationtrustLine()->amount().get());
+                return;
+            }
+        }
+    }
 }
 
 void MaxFlowCalculationTrustLineManager::setPreventDeleting(
