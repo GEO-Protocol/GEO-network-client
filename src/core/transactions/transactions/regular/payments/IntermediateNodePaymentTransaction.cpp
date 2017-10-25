@@ -457,7 +457,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 #ifdef TESTS
     // coordinator wait for this message maxNetworkDelay(4)
     // we try get max delay with normal working algorithm on this stage
-    mSubsystemsController->testSleepOnNextNeighborResponseProcessingStage(maxNetworkDelay(3));
+    mSubsystemsController->testSleepOnNextNeighborResponseProcessingStage(maxNetworkDelay(3) - 500);
 #endif
 
     sendMessage<CoordinatorReservationResponseMessage>(
