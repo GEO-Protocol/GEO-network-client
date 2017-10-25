@@ -142,8 +142,6 @@ private:
      */
     void notifyContractorsAboutCurrentTrustLinesAmounts();
 
-    void test_some_shit();
-
 protected:
     static string logHeader()
         noexcept;

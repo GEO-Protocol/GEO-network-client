@@ -64,21 +64,7 @@ Logger::Logger(
     mOperationsLogFileLinesNumber(0)
 {
 
-    ifstream kOperationLogFile(mOperationLogFileName);
-    std::string line;
-    while (std::getline(kOperationLogFile , line)){
-        ++mOperationsLogFileLinesNumber;
-        if(mOperationsLogFileLinesNumber == 1024){
-            kOperationLogFile.close();
-            rotate();
-            mOperationsLogFileLinesNumber = 0;
-            break;
-        }
-    }
-    if (kOperationLogFile.is_open()){
-        kOperationLogFile.close();
-    }
-
+    calculateOperationsLogFileLinesNumber();
 
 #ifdef DEBUG
     // It is mush more useful to truncate log file on each application start, in debug mode.
@@ -197,18 +183,39 @@ void Logger::logRecord(
     mOperationsLogFile.flush();
 
     mOperationsLogFileLinesNumber++;
-    if(mOperationsLogFileLinesNumber >= 1024)
+    if(mOperationsLogFileLinesNumber >= 1024){
         rotate();
+        mOperationsLogFileLinesNumber = 0;
+    }
 }
 
 void Logger::rotate()
 {
     stringstream rotateFileName;
-    rotateFileName << "operation_" << utc_now() << ".log";
+    rotateFileName << "archieved_operation_" << utc_now() << ".log";
+
     std::ifstream fin(mOperationLogFileName);
     std::ofstream fout(rotateFileName.str());
     std::string line;
-    while( std::getline(fin, line, '.' ) ) fout << line << '\n';
+
+    while( std::getline(fin, line, '.' ) ) fout << line;
+
+    fout.flush();
     fout.close();
     fin.close();
+
+    mOperationsLogFile.close();
+    mOperationsLogFile.open("operations.log", std::fstream::out | std::fstream::trunc);
+}
+
+void Logger::calculateOperationsLogFileLinesNumber() {
+
+    ifstream kOperationLogFile(mOperationLogFileName);
+    std::string line;
+    while (std::getline(kOperationLogFile , line)){
+        ++mOperationsLogFileLinesNumber;
+    }
+    if (kOperationLogFile.is_open()){
+        kOperationLogFile.close();
+    }
 }

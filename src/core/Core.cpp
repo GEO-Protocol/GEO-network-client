@@ -27,7 +27,6 @@ int Core::run()
         mCommandsInterface->beginAcceptCommands();
 
         mLog->logSuccess("Core", "Processing started.");
-
         mIOService.run();
         return 0;
 
@@ -650,16 +649,6 @@ LoggerStream Core::info() const
     return mLog->info(logHeader());
 }
 
-void Core::test_some_shit() {
-    size_t i = 0;
-    while(i<= 2056){
-        if(i==1024){
-            mLog->debug("Alarm") << "Have to rotate now";
-        }
-        i++;
-        mLog->debug("Debug Row") << "Write row motherFuckker  " << i << endl;
-    }
-}
 
 
 

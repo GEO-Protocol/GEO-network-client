@@ -118,6 +118,8 @@ protected:
 
     void rotate();
 
+    void calculateOperationsLogFileLinesNumber();
+
 private:
     NodeUUID mNodeUUID;
     std::ofstream mOperationsLogFile;
