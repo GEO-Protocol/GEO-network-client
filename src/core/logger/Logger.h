@@ -116,8 +116,12 @@ protected:
         const string &subsystem,
         const string &message);
 
+    void rotate();
+
 private:
     NodeUUID mNodeUUID;
     std::ofstream mOperationsLogFile;
+    uint16_t mOperationsLogFileLinesNumber;
+    string mOperationLogFileName;
 };
 #endif //GEO_NETWORK_CLIENT_LOGGER_H
