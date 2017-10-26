@@ -7,6 +7,7 @@
 #include "TransactionsHandler.h"
 #include "MigrationsHandler.h"
 #include "HistoryStorage.h"
+#include "NodeFeaturesHandler.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../../libs/sqlite3/sqlite3.h"
 #include "IOTransaction.h"
@@ -51,6 +52,7 @@ private:
     const string kHistoryMainTableName = "history";
     const string kHistoryAdditionalTableName = "history_additional";
     const string kMigrationTableName = "migrations";
+    const string kNodeFeaturesTableName = "node_features";
 //    const string kOutgoingNetworkMessagesQueue = "network_outgoing_messages";
 
 private:
@@ -62,6 +64,7 @@ private:
     PaymentOperationStateHandler mPaymentOperationStateHandler;
     TransactionsHandler mTransactionHandler;
     HistoryStorage mHistoryStorage;
+    NodeFeaturesHandler mNodeFeaturesHandler;
     string mDirectory;
     string mDataBaseName;
 };

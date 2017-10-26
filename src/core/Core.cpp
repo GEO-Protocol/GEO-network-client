@@ -306,16 +306,11 @@ int Core::initDelayedTasks()
             mMaxFlowCalculationTrustLimeManager.get(),
             *mLog.get());
 
-        if (mIAmGateway) {
-            mNotifyThatIAmIsGatewayDelayedTask = make_unique<NotifyThatIAmIsGatewayDelayedTask>(
-                mIOService,
-                *mLog.get());
-        }
+        mNotifyThatIAmIsGatewayDelayedTask = make_unique<NotifyThatIAmIsGatewayDelayedTask>(
+            mIOService,
+            *mLog.get());
 
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
-
-
-
 
         return 0;
     } catch (const std::exception &e) {
@@ -438,12 +433,10 @@ void Core::connectTrustLinesManagerSignals()
 
 void Core::connectDelayedTasksSignals()
 {
-    if (mIAmGateway) {
-        mNotifyThatIAmIsGatewayDelayedTask->mIAmGatewaySignal.connect(
-            boost::bind(
-                &Core::onGatewayNotificationSlot,
-                this));
-    }
+    mNotifyThatIAmIsGatewayDelayedTask->gatewayNotificationSignal.connect(
+        boost::bind(
+            &Core::onGatewayNotificationSlot,
+            this));
 }
 
 void Core::connectRoutingTableSignals()
@@ -591,8 +584,6 @@ void Core::onPathsResourceRequestedSlot(
     } catch (exception &e) {
         mLog->logException("Core", e);
     }
-
-    // todo: remove this empty method
 }
 
 void Core::onResourceCollectedSlot(

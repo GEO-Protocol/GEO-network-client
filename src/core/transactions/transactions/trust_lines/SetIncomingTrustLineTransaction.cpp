@@ -57,7 +57,8 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
                 sendMessage<GatewayNotificationMessage>(
                     kContractor,
                     currentNodeUUID(),
-                    currentTransactionUUID());
+                    currentTransactionUUID(),
+                    GatewayNotificationMessage::Gateway);
             }
 
             break;

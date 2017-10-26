@@ -25,8 +25,8 @@ void NotifyThatIAmIsGatewayDelayedTask::runSignalNotify(
     if (errorCode) {
         warning() << errorCode.message().c_str();
     }
-    info() << "run I am gateway signal";
-    mIAmGatewaySignal();
+    info() << "run gateway notification signal";
+    gatewayNotificationSignal();
 }
 
 LoggerStream NotifyThatIAmIsGatewayDelayedTask::debug() const

@@ -29,7 +29,7 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
         mTrustLineManager->setContractorAsGateway(
             ioTransaction,
             mMessage->senderUUID,
-            true);
+            mMessage->nodeState() == GatewayNotificationMessage::Gateway);
     } catch (NotFoundError &e) {
         ioTransaction->rollback();
         warning() << "Attempt to set contractor " << mMessage->senderUUID << " as gateway failed. "

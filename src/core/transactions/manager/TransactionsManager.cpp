@@ -912,6 +912,8 @@ void TransactionsManager::launchGatewayNotificationSenderTransaction()
             make_shared<GatewayNotificationSenderTransaction>(
                 mNodeUUID,
                 mTrustLines,
+                mStorageHandler,
+                mIAmGateway,
                 mLog),
             false,
             false,

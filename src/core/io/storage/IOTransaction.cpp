@@ -6,6 +6,7 @@ IOTransaction::IOTransaction(
     HistoryStorage *historyStorage,
     PaymentOperationStateHandler *paymentOperationStorage,
     TransactionsHandler *transactionHandler,
+    NodeFeaturesHandler *nodeFeaturesHandler,
     Logger &logger) :
 
     mDBConnection(dbConnection),
@@ -13,6 +14,7 @@ IOTransaction::IOTransaction(
     mHistoryStorage(historyStorage),
     mPaymentOperationStateHandler(paymentOperationStorage),
     mTransactionHandler(transactionHandler),
+    mNodeFeaturesHandler(nodeFeaturesHandler),
     mIsTransactionBegin(true),
     mLog(logger)
 {
@@ -58,6 +60,15 @@ TransactionsHandler* IOTransaction::transactionHandler()
                           "transaction was rollback, it can't be use now");
     }
     return mTransactionHandler;
+}
+
+NodeFeaturesHandler* IOTransaction::nodeFeaturesHandler()
+{
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::nodeFeaturesHandler: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mNodeFeaturesHandler;
 }
 
 void IOTransaction::commit()

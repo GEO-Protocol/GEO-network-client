@@ -16,7 +16,7 @@ namespace signals = boost::signals2;
 class NotifyThatIAmIsGatewayDelayedTask {
 
 public:
-    typedef signals::signal<void()> IAmGatewaySignal;
+    typedef signals::signal<void()> GatewayNotificationSignal;
 
 public:
     NotifyThatIAmIsGatewayDelayedTask(
@@ -24,7 +24,7 @@ public:
         Logger &logger);
 
 public:
-    mutable IAmGatewaySignal mIAmGatewaySignal;
+    mutable GatewayNotificationSignal gatewayNotificationSignal;
 
 private:
     void runSignalNotify(

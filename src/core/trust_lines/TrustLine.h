@@ -87,7 +87,8 @@ public:
 
     bool isContractorGateway() const;
 
-    void setContractorAsGateway();
+    void setContractorAsGateway(
+        bool contractorAsGateway);
 
     const BalanceRange balanceRange() const;
 

@@ -228,12 +228,10 @@ void TrustLinesManager::setContractorAsGateway(
     }
 
     auto trustLine = mTrustLines[contractorUUID];
-    if (contractorIsGateway) {
-        trustLine->setContractorAsGateway();
-        saveToDisk(
-            IOTransaction,
-            trustLine);
-    }
+    trustLine->setContractorAsGateway(contractorIsGateway);
+    saveToDisk(
+        IOTransaction,
+        trustLine);
 }
 
 //const bool TrustLinesManager::checkDirection(

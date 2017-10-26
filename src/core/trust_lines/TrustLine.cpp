@@ -181,9 +181,10 @@ bool TrustLine::isContractorGateway() const
     return mIsContractorGateway;
 }
 
-void TrustLine::setContractorAsGateway()
+void TrustLine::setContractorAsGateway(
+    bool contractorAsGateway)
 {
-    mIsContractorGateway = true;
+    mIsContractorGateway = contractorAsGateway;
 }
 
 const BalanceRange TrustLine::balanceRange() const{

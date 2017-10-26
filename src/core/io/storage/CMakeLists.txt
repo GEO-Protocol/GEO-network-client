@@ -24,7 +24,10 @@ set(SOURCE_FILES
         IOTransaction.h
 
         MigrationsHandler.h
-        MigrationsHandler.cpp)
+        MigrationsHandler.cpp
+
+        NodeFeaturesHandler.h
+        NodeFeaturesHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

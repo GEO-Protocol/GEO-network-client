@@ -8,6 +8,7 @@ MigrationsHandler::MigrationsHandler(
     HistoryStorage *historyStorage,
     PaymentOperationStateHandler *paymentOperationStorage,
     TransactionsHandler *transactionHandler,
+    NodeFeaturesHandler *nodeFeaturesHandler,
     Logger &logger):
 
     mLog(logger),
@@ -17,8 +18,8 @@ MigrationsHandler::MigrationsHandler(
     mTransactionHandler(transactionHandler),
     mTrustLineHandler(trustLineHandler),
     mPaymentOperationStateHandler(paymentOperationStorage),
-    mHistoryStorage(historyStorage)
-
+    mHistoryStorage(historyStorage),
+    mNodeFeaturesHandler(nodeFeaturesHandler)
 {
     enshureMigrationsTable();
 }
@@ -152,6 +153,7 @@ void MigrationsHandler::applyMigrations()
                 mHistoryStorage,
                 mPaymentOperationStateHandler,
                 mTransactionHandler,
+                mNodeFeaturesHandler,
                 mLog);
 
             try {
