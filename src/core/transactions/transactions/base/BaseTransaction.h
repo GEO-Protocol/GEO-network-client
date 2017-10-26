@@ -44,9 +44,12 @@ public:
     TransactionResult::Shared resultWaitForMessageTypes(
         vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
-    TransactionResult::Shared resultAwaikAfterMilliseconds(
+    TransactionResult::Shared resultAwakeAfterMilliseconds(
         uint32_t responseWaitTime) const ;
     TransactionResult::Shared resultContinuePreviousState() const;
+    TransactionResult::Shared resultWaitForMessageTypesAndAwakeAfterMilliseconds(
+        vector<Message::MessageType> &&requiredMessagesTypes,
+        uint32_t noLongerThanMilliseconds) const;
 
 public:
     virtual ~BaseTransaction() = default;

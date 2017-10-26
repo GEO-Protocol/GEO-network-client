@@ -60,7 +60,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
     mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
     launchSubsidiaryTransaction(kTransaction);
     mCountProcessCollectingTopologyRun = 0;
-    return resultAwaikAfterMilliseconds(
+    return resultAwakeAfterMilliseconds(
         kWaitMillisecondsForCalculatingMaxFlow);
 }
 
@@ -74,7 +74,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
     fillTopology();
     mCountProcessCollectingTopologyRun++;
     if (contextSize > 0 && mCountProcessCollectingTopologyRun <= kCountRunningProcessCollectingTopologyStage) {
-        return resultAwaikAfterMilliseconds(
+        return resultAwakeAfterMilliseconds(
             kWaitMillisecondsForCalculatingMaxFlowAgain);
     }
     vector<pair<NodeUUID, TrustLineAmount>> maxFlows;

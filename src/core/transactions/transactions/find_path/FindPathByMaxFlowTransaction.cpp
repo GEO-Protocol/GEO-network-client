@@ -48,7 +48,7 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForColle
         warning() << "Can not launch Collecting Topology transaction for " << mContractorUUID << ".";
     }
 
-    return resultAwaikAfterMilliseconds(
+    return resultAwakeAfterMilliseconds(
         kTopologyCollectingMillisecondsTimeout);
 }
 
