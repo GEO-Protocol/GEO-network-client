@@ -1717,8 +1717,8 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
         if (isPathValid(path)) {
             addPathForFurtherProcessing(path);
         }
-        // todo : clear pathsCollection
     }
+    mPathsManager->clearPathsCollection();
     debug() << "buildPathsAgain method time: " << utc_now() - startTime;
 }
 

@@ -889,7 +889,8 @@ void TrustLinesManager::printRTs()
         debug << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
                << (int)itTrustLine.second->incomingTrustAmount() << " "
                << (int)itTrustLine.second->outgoingTrustAmount() << " "
-               << (int)itTrustLine.second->balance() << endl;
+               << (int)itTrustLine.second->balance() << " "
+               << itTrustLine.second->isContractorGateway() << endl;
     }
     debug << "print payment incoming flows size: " << incomingFlows().size() << endl;
     for (auto const itIncomingFlow : incomingFlows()) {
