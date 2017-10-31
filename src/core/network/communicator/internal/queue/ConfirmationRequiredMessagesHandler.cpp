@@ -3,10 +3,12 @@
 
 ConfirmationRequiredMessagesHandler::ConfirmationRequiredMessagesHandler(
     IOService &ioService,
+    CommunicatorStorageHandler *communicatorStorageHandler,
     Logger &logger)
     noexcept:
 
     LoggerMixin(logger),
+    mCommunicatorStorageHandler(communicatorStorageHandler),
     mIOService(ioService),
     mCleaningTimer(ioService)
 {}
@@ -18,14 +20,30 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
     if (message->typeID() == Message::TrustLines_SetIncoming
         /* and <other message type here> */) {
 
-        // Appropriate message occured and must be enqueued.
+        // Appropriate message occurred and must be enqueued.
         // In case if no queue is present for this contractor - new one must be created.
         if (mQueues.count(contractorUUID) == 0) {
-            mQueues[contractorUUID] = make_shared<ConfirmationRequiredMessagesQueue>();
+            auto newQueue = make_shared<ConfirmationRequiredMessagesQueue>(
+                contractorUUID);
+            newQueue->signalSaveMessageToStorage.connect(
+                boost::bind(
+                    &ConfirmationRequiredMessagesHandler::addMessageToStorage,
+                    this,
+                    _1,
+                    _2));
+            newQueue->signalRemoveMessageFromStorage.connect(
+                boost::bind(
+                    &ConfirmationRequiredMessagesHandler::removeMessageFromStorage,
+                    this,
+                    _1,
+                    _2));
+            mQueues[contractorUUID] = newQueue;
         }
 
+        ioTransactionUnique = mCommunicatorStorageHandler->beginTransactionUnique();
         mQueues[contractorUUID]->enqueue(
             static_pointer_cast<TransactionMessage>(message));
+        ioTransactionUnique = nullptr;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         debug() << "Message of type " << message->typeID() << " enqueued for confirmation receiving.";
@@ -53,9 +71,14 @@ void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
     auto queue = mQueues[contractorUUID];
     if (queue->tryProcessConfirmation(confirmationMessage)) {
 
+        auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
+        ioTransaction->communicatorMessagesQueueHandler()->deleteRecord(
+            contractorUUID,
+            confirmationMessage->transactionUUID());
+
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         debug() << "Confirmation for message with transaction UUID " << confirmationMessage->transactionUUID() << " received. "
-                << "Relevant message succesfully confirmed.";
+                << "Relevant message successfully confirmed.";
 #endif
 
         // In case if last message was removed from the queue -
@@ -105,8 +128,14 @@ void ConfirmationRequiredMessagesHandler::rescheduleResending()
     }
 
     const auto kCleaningTimeout = closestQueueSendingTimestamp() - utc_now();
-    mCleaningTimer.expires_from_now(kCleaningTimeout);
-    mCleaningTimer.async_wait([this] (const boost::system::error_code &_) {
+    mCleaningTimer.expires_from_now(chrono::microseconds(kCleaningTimeout.total_microseconds()));
+    mCleaningTimer.async_wait([this] (const boost::system::error_code &e) {
+
+        if (e == boost::asio::error::operation_aborted) {
+            return;
+        }
+
+        this->warning() << e.message();
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         this->debug() << "Enqueued messages re-sending started.";
@@ -141,4 +170,26 @@ void ConfirmationRequiredMessagesHandler::sendPostponedMessages() const
                     transactionUUIDAndMessage.second));
         }
     }
+}
+
+void ConfirmationRequiredMessagesHandler::addMessageToStorage(
+    const NodeUUID &contractorUUID,
+    TransactionMessage::Shared message)
+{
+    auto bufferAndSize = message->serializeToBytes();
+    ioTransactionUnique->communicatorMessagesQueueHandler()->saveRecord(
+        contractorUUID,
+        message->transactionUUID(),
+        message->typeID(),
+        bufferAndSize.first,
+        bufferAndSize.second);
+}
+
+void ConfirmationRequiredMessagesHandler::removeMessageFromStorage(
+    const NodeUUID &contractorUUID,
+    uint16_t messageType)
+{
+    ioTransactionUnique->communicatorMessagesQueueHandler()->deleteRecord(
+        contractorUUID,
+        messageType);
 }

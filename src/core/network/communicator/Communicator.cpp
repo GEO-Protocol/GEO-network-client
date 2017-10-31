@@ -39,9 +39,17 @@ Communicator::Communicator(
             *mUUID2AddressService,
             logger)),
 
+    mCommunicatorStorageHandler(
+        make_unique<CommunicatorStorageHandler>(
+            // todo : move this consts to Core.h
+            "io",
+            "communicatorStorageDB",
+            logger)),
+
     mConfirmationRequiredMessagesHandler(
         make_unique<ConfirmationRequiredMessagesHandler>(
             IOService,
+            mCommunicatorStorageHandler.get(),
             logger))
 {
     // Direct signals chaining.
@@ -56,6 +64,16 @@ Communicator::Communicator(
             &Communicator::onConfirmationRequiredMessageReadyToResend,
             this,
             _1));
+
+    mDeserializationMessagesTimer = make_unique<as::steady_timer>(
+        mIOService);
+    mDeserializationMessagesTimer->expires_from_now(
+        chrono::seconds(
+            kMessagesDeserializationDelayedSecondsTime));
+    mDeserializationMessagesTimer->async_wait(
+        boost::bind(
+            &Communicator::deserializeAndResendMessages,
+            this));
 }
 
 /**
@@ -122,15 +140,15 @@ void Communicator::onMessageReceived(
 {
     // In case if received message is of type "confirmation message" -
     // then it must not be transferred for further processing.
-    // Instead of that, it must be transfereed for processing into
+    // Instead of that, it must be transferred for processing into
     // confirmation required messages handler.
     if (message->typeID() == Message::System_Confirmation) {
-        const auto kConfirmaionMessage =
+        const auto kConfirmationMessage =
             static_pointer_cast<ConfirmationMessage>(message);
 
         mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
-            kConfirmaionMessage->senderUUID,
-            kConfirmaionMessage);
+            kConfirmationMessage->senderUUID,
+            kConfirmationMessage);
         return;
     }
 
@@ -143,4 +161,35 @@ void Communicator::onConfirmationRequiredMessageReadyToResend(
     mOutgoingMessagesHandler->sendMessage(
         static_pointer_cast<Message>(adreseeAndMessage.second),
         adreseeAndMessage.first);
+}
+
+void Communicator::deserializeAndResendMessages()
+{
+    mDeserializationMessagesTimer->cancel();
+    vector<tuple<const NodeUUID, BytesShared, uint16_t>> messages;
+    {
+        auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
+        messages = ioTransaction->communicatorMessagesQueueHandler()->allMessages();
+    }
+    mLog.info("Communicator count messages: " + to_string(messages.size()));
+    for (auto message : messages) {
+        NodeUUID contractorUUID = NodeUUID::empty();
+        BytesShared messageBody;
+        uint16_t messageType;
+        TransactionMessage::Shared sendingMessage;
+        std::tie(contractorUUID, messageBody, messageType) = message;
+        switch (messageType) {
+            case Message::TrustLines_SetIncoming:
+                sendingMessage = static_pointer_cast<TransactionMessage>(
+                    make_shared<SetIncomingTrustLineMessage>(messageBody));
+                break;
+            default:
+                mLog.error("Communicator::deserializeAndResendMessages "
+                               "invalid message type");
+                continue;
+        }
+        sendMessage(
+            sendingMessage,
+            contractorUUID);
+    }
 }

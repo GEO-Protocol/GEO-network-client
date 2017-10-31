@@ -1,8 +1,10 @@
 #include "ConfirmationRequiredMessagesQueue.h"
 
 
-ConfirmationRequiredMessagesQueue::ConfirmationRequiredMessagesQueue()
-    noexcept
+ConfirmationRequiredMessagesQueue::ConfirmationRequiredMessagesQueue(
+    const NodeUUID &contractorUUID)
+    noexcept:
+    mContractorUUID(contractorUUID)
 {
     resetInternalTimeout();
     mNextSendingAttemptDateTime = utc_now() + boost::posix_time::seconds(mNextTimeoutSeconds);
@@ -74,11 +76,16 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(
 
         if (kMessage->typeID() == Message::TrustLines_SetIncoming) {
             mMessages.erase(it++);
-
+            signalRemoveMessageFromStorage(
+                mContractorUUID,
+                kMessage->typeID());
         } else {
             ++it;
         }
     }
 
     mMessages[message->transactionUUID()] = message;
+    signalSaveMessageToStorage(
+        mContractorUUID,
+        message);
 }
