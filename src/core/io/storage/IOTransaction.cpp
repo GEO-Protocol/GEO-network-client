@@ -75,13 +75,13 @@ void IOTransaction::commit()
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDBConnection, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("IOTransaction::commit: Bad query; sqlite error: " + rc);
+        throw IOError("IOTransaction::commit: Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     if (rc != SQLITE_DONE) {
-        throw IOError("IOTransaction::commit: Run query; sqlite error: " + rc);
+        throw IOError("IOTransaction::commit: Run query; sqlite error: " + to_string(rc));
     }
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "transaction commit";
@@ -97,13 +97,13 @@ void IOTransaction::rollback()
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDBConnection, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("IOTransaction::rollback: Bad query; sqlite error: " + rc);
+        throw IOError("IOTransaction::rollback: Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     if (rc != SQLITE_DONE) {
-        throw IOError("IOTransaction::rollback: Run query; sqlite error: " + rc);
+        throw IOError("IOTransaction::rollback: Run query; sqlite error: " + to_string(rc));
     }
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "rollBack done";
@@ -136,13 +136,13 @@ void IOTransaction::beginTransactionQuery() {
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDBConnection, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("IOTransaction::prepareInserted: Bad query; sqlite error: " + rc);
+        throw IOError("IOTransaction::prepareInserted: Bad query; sqlite error: " + to_string(rc));
     }
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);
     if (rc != SQLITE_DONE) {
-        throw IOError("IOTransaction::prepareInserted: Run query; sqlite error: " + rc);
+        throw IOError("IOTransaction::prepareInserted: Run query; sqlite error: " + to_string(rc));
     }
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "transaction begin";
