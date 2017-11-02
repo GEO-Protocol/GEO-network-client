@@ -3,6 +3,7 @@
 
 #include "../../logger/Logger.h"
 #include "../../common/Types.h"
+#include "../../network/messages/Message.hpp"
 #include "../../transactions/transactions/base/TransactionUUID.h"
 #include "../../common/exceptions/IOError.h"
 #include "../../common/memory/MemoryUtils.h"
@@ -19,23 +20,22 @@ public:
         const string &tableName,
         Logger &logger);
 
-    // todo : uint16_t should change on typedef in Message.hpp
     void saveRecord(
         const NodeUUID &contractorUUID,
         const TransactionUUID &transactionUUID,
-        const uint16_t messageType,
+        const Message::SerializedType messageType,
         BytesShared message,
         size_t messageBytesCount);
 
-    vector<tuple<const NodeUUID, BytesShared, uint16_t>> allMessages();
+    vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> allMessages();
+
+    void deleteRecord(
+        const NodeUUID &contractorUUID,
+        const Message::SerializedType messageType);
 
     void deleteRecord(
         const NodeUUID &contractorUUID,
         const TransactionUUID &transactionUUID);
-
-    void deleteRecord(
-        const NodeUUID &contractorUUID,
-        uint16_t messageType);
 
 private:
     LoggerStream info() const;

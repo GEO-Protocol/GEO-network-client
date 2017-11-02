@@ -174,12 +174,12 @@ void ConfirmationRequiredMessagesHandler::sendPostponedMessages() const
 
 void ConfirmationRequiredMessagesHandler::addMessageToStorage(
     const NodeUUID &contractorUUID,
-    TransactionMessage::Shared message)
+    Message::Shared message)
 {
     auto bufferAndSize = message->serializeToBytes();
     ioTransactionUnique->communicatorMessagesQueueHandler()->saveRecord(
         contractorUUID,
-        message->transactionUUID(),
+        (static_pointer_cast<TransactionMessage>(message))->transactionUUID(),
         message->typeID(),
         bufferAndSize.first,
         bufferAndSize.second);
@@ -187,7 +187,7 @@ void ConfirmationRequiredMessagesHandler::addMessageToStorage(
 
 void ConfirmationRequiredMessagesHandler::removeMessageFromStorage(
     const NodeUUID &contractorUUID,
-    uint16_t messageType)
+    Message::SerializedType messageType)
 {
     ioTransactionUnique->communicatorMessagesQueueHandler()->deleteRecord(
         contractorUUID,

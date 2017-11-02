@@ -114,11 +114,11 @@ protected:
 
     void addMessageToStorage(
         const NodeUUID &contractorUUID,
-        TransactionMessage::Shared message);
+        Message::Shared message);
 
     void removeMessageFromStorage(
         const NodeUUID &contractorUUID,
-        uint16_t messageType);
+        Message::SerializedType messageType);
 
 protected:
     /**
@@ -134,7 +134,6 @@ protected:
 
     CommunicatorStorageHandler *mCommunicatorStorageHandler;
 
-    // todo: think to use steady_timer.
     as::steady_timer mCleaningTimer;
 
     // this field used for removing and adding messages to storage during enqueue messages

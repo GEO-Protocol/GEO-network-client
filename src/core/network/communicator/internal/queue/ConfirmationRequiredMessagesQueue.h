@@ -20,9 +20,9 @@ public:
     typedef shared_ptr<ConfirmationRequiredMessagesQueue> Shared;
 
 public:
-    signals::signal<void(NodeUUID, uint16_t)> signalRemoveMessageFromStorage;
+    signals::signal<void(NodeUUID, Message::SerializedType)> signalRemoveMessageFromStorage;
 
-    signals::signal<void(NodeUUID, TransactionMessage::Shared)> signalSaveMessageToStorage;
+    signals::signal<void(NodeUUID, Message::Shared)> signalSaveMessageToStorage;
 
 public:
     ConfirmationRequiredMessagesQueue(
