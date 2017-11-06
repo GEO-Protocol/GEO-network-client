@@ -11,7 +11,17 @@ ConfirmationRequiredMessagesHandler::ConfirmationRequiredMessagesHandler(
     mCommunicatorStorageHandler(communicatorStorageHandler),
     mIOService(ioService),
     mCleaningTimer(ioService)
-{}
+{
+    mDeserializationMessagesTimer = make_unique<as::steady_timer>(
+        mIOService);
+    mDeserializationMessagesTimer->expires_from_now(
+        chrono::seconds(
+            kMessagesDeserializationDelayedSecondsTime));
+    mDeserializationMessagesTimer->async_wait(
+        boost::bind(
+                &ConfirmationRequiredMessagesHandler::deserializeMessages,
+            this));
+}
 
 void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
     const NodeUUID &contractorUUID,
@@ -192,4 +202,80 @@ void ConfirmationRequiredMessagesHandler::removeMessageFromStorage(
     ioTransactionUnique->communicatorMessagesQueueHandler()->deleteRecord(
         contractorUUID,
         messageType);
+}
+
+void ConfirmationRequiredMessagesHandler::deserializeMessages()
+{
+    mDeserializationMessagesTimer->cancel();
+    vector<tuple<const NodeUUID, BytesShared, uint16_t>> messages;
+    {
+        auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
+        messages = ioTransaction->communicatorMessagesQueueHandler()->allMessages();
+    }
+    mLog.info("Serialized messages count: " + to_string(messages.size()));
+    for (auto message : messages) {
+        NodeUUID contractorUUID = NodeUUID::empty();
+        BytesShared messageBody;
+        uint16_t messageType;
+        TransactionMessage::Shared sendingMessage;
+        std::tie(contractorUUID, messageBody, messageType) = message;
+        switch (messageType) {
+            case Message::TrustLines_SetIncoming:
+                sendingMessage = static_pointer_cast<TransactionMessage>(
+                    make_shared<SetIncomingTrustLineMessage>(messageBody));
+                break;
+            default:
+                mLog.error("ConfirmationRequiredMessagesHandler::deserializeMessages "
+                               "invalid message type");
+                continue;
+        }
+        tryEnqueueMessageWithoutConnectingSignalsToSlots(
+            contractorUUID,
+            sendingMessage);
+    }
+    for (auto contractorAndQueue : mQueues) {
+        contractorAndQueue.second->signalSaveMessageToStorage.connect(
+            boost::bind(
+                &ConfirmationRequiredMessagesHandler::addMessageToStorage,
+                this,
+                _1,
+                _2));
+        contractorAndQueue.second->signalRemoveMessageFromStorage.connect(
+            boost::bind(
+                &ConfirmationRequiredMessagesHandler::removeMessageFromStorage,
+                this,
+                _1,
+                _2));
+    }
+}
+
+void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSignalsToSlots(
+        const NodeUUID &contractorUUID,
+        const Message::Shared message)
+{
+    if (message->typeID() == Message::TrustLines_SetIncoming
+        /* and <other message type here> */) {
+
+        // Appropriate message occurred and must be enqueued.
+        // In case if no queue is present for this contractor - new one must be created.
+        if (mQueues.count(contractorUUID) == 0) {
+            auto newQueue = make_shared<ConfirmationRequiredMessagesQueue>(
+                contractorUUID);
+            mQueues[contractorUUID] = newQueue;
+        }
+
+        mQueues[contractorUUID]->enqueue(
+            static_pointer_cast<TransactionMessage>(message));
+
+#ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
+        debug() << "Message of type " << message->typeID() << " enqueued for confirmation receiving.";
+#endif
+
+        if (mQueues.size() == 1
+            and mQueues.begin()->second->size() == 1) {
+
+            // First message was added for further re-sending.
+            rescheduleResending();
+        }
+    }
 }

@@ -120,6 +120,15 @@ protected:
         const NodeUUID &contractorUUID,
         Message::SerializedType messageType);
 
+    void deserializeMessages();
+
+    void tryEnqueueMessageWithoutConnectingSignalsToSlots(
+        const NodeUUID &contractorUUID,
+        const Message::Shared message);
+
+protected:
+    static const uint16_t kMessagesDeserializationDelayedSecondsTime = 15;
+
 protected:
     /**
      * Map is used because it is expected,
@@ -138,6 +147,8 @@ protected:
 
     // this field used for removing and adding messages to storage during enqueue messages
     unique_ptr<CommunicatorIOTransaction> ioTransactionUnique;
+
+    unique_ptr<as::steady_timer> mDeserializationMessagesTimer;
 };
 
 #endif // CONFIRMATIONREQUIREDMESSAGESHANDLER_H

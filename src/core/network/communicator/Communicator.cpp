@@ -64,16 +64,6 @@ Communicator::Communicator(
             &Communicator::onConfirmationRequiredMessageReadyToResend,
             this,
             _1));
-
-    mDeserializationMessagesTimer = make_unique<as::steady_timer>(
-        mIOService);
-    mDeserializationMessagesTimer->expires_from_now(
-        chrono::seconds(
-            kMessagesDeserializationDelayedSecondsTime));
-    mDeserializationMessagesTimer->async_wait(
-        boost::bind(
-            &Communicator::deserializeAndResendMessages,
-            this));
 }
 
 /**
@@ -161,35 +151,4 @@ void Communicator::onConfirmationRequiredMessageReadyToResend(
     mOutgoingMessagesHandler->sendMessage(
         static_pointer_cast<Message>(adreseeAndMessage.second),
         adreseeAndMessage.first);
-}
-
-void Communicator::deserializeAndResendMessages()
-{
-    mDeserializationMessagesTimer->cancel();
-    vector<tuple<const NodeUUID, BytesShared, uint16_t>> messages;
-    {
-        auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
-        messages = ioTransaction->communicatorMessagesQueueHandler()->allMessages();
-    }
-    mLog.info("Communicator count messages: " + to_string(messages.size()));
-    for (auto message : messages) {
-        NodeUUID contractorUUID = NodeUUID::empty();
-        BytesShared messageBody;
-        uint16_t messageType;
-        TransactionMessage::Shared sendingMessage;
-        std::tie(contractorUUID, messageBody, messageType) = message;
-        switch (messageType) {
-            case Message::TrustLines_SetIncoming:
-                sendingMessage = static_pointer_cast<TransactionMessage>(
-                    make_shared<SetIncomingTrustLineMessage>(messageBody));
-                break;
-            default:
-                mLog.error("Communicator::deserializeAndResendMessages "
-                               "invalid message type");
-                continue;
-        }
-        sendMessage(
-            sendingMessage,
-            contractorUUID);
-    }
 }

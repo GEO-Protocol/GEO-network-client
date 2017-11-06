@@ -60,15 +60,11 @@ protected:
     void deserializeAndResendMessages();
 
 protected:
-    static const uint16_t kMessagesDeserializationDelayedSecondsTime = 15;
-
-protected:
     const Host mInterface;
     const Port mPort;
     IOService &mIOService;
     unique_ptr<CommunicatorStorageHandler> mCommunicatorStorageHandler;
     Logger &mLog;
-    unique_ptr<as::steady_timer> mDeserializationMessagesTimer;
 
     unique_ptr<UDPSocket> mSocket;
     unique_ptr<UUID2Address> mUUID2AddressService;
