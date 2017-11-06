@@ -100,10 +100,12 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::run()
             continue;
         } catch (Exception &e) {
             warning() << e.what();
-            auto ioTransaction = mStorageHandler->beginTransaction();
-            if (ioTransaction->historyStorage()->whetherOperationWasConducted(currentTransactionUUID())) {
-                warning() << "Something happens wrong in method run(), but transaction was conducted";
-                return resultOK();
+            {
+                auto ioTransaction = mStorageHandler->beginTransaction();
+                if (ioTransaction->historyStorage()->whetherOperationWasConducted(currentTransactionUUID())) {
+                    warning() << "Something happens wrong in method run(), but transaction was conducted";
+                    return resultOK();
+                }
             }
             return reject("Something happens wrong in method run(). Transaction will be rejected");
         }
@@ -1715,8 +1717,8 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
         if (isPathValid(path)) {
             addPathForFurtherProcessing(path);
         }
-        // todo : clear pathsCollection
     }
+    mPathsManager->clearPathsCollection();
     debug() << "buildPathsAgain method time: " << utc_now() - startTime;
 }
 

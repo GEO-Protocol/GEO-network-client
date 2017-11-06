@@ -61,6 +61,7 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::processCollectingTo
         make_shared<PathsResource>(
             mRequestedTransactionUUID,
             mPathsManager->pathCollection()));
+    mPathsManager->clearPathsCollection();
     mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
     return resultDone();
 }
