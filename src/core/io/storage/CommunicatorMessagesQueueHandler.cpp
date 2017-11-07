@@ -15,8 +15,7 @@ CommunicatorMessagesQueueHandler::CommunicatorMessagesQueueHandler(
                        "message_type INT NOT NULL, "
                        "message BLOB NOT NULL, "
                        "message_bytes_count INT NOT NULL, "
-                       "recording_time INT NOT NULL, "
-                       "CONSTRAINT contractor_message_type_pkey PRIMARY KEY (contractor_uuid, message_type));";
+                       "recording_time INT NOT NULL);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {

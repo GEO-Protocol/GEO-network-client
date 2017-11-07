@@ -145,8 +145,6 @@ void ConfirmationRequiredMessagesHandler::rescheduleResending()
             return;
         }
 
-        this->warning() << e.message();
-
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         this->debug() << "Enqueued messages re-sending started.";
 #endif
@@ -212,7 +210,7 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
         auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
         messages = ioTransaction->communicatorMessagesQueueHandler()->allMessages();
     }
-    mLog.info("Serialized messages count: " + to_string(messages.size()));
+    this->info() << "Serialized messages count: " << to_string(messages.size());
     for (auto message : messages) {
         NodeUUID contractorUUID = NodeUUID::empty();
         BytesShared messageBody;
