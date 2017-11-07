@@ -166,7 +166,7 @@ void SubsystemsController::testForbidSendMessageToCoordinatorOnReservationStage(
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageToCoordinatorOnReservationStage) {
-        if (mForbiddenNodeUUID == NodeUUID::empty()) {
+        if (mForbiddenNodeUUID == NodeUUID::empty() || previousNodeUUID == NodeUUID::empty()) {
             debug() << "ForbidSendMessageToCoordinatorOnReservationStage";
             mCountForbiddenMessages = countForbiddenMessages;
         } else if (mForbiddenNodeUUID == previousNodeUUID) {
