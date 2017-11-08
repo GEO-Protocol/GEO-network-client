@@ -362,6 +362,13 @@ protected:
         AmountReservation::ReservationDirection reservationDirection) const;
 
     /**
+     * check if all neighbors which are involved in current transaction
+     * are present in participants votes message
+     * @return true if present
+     */
+    bool checkAllNeighborsPresence() const;
+
+    /**
      * save result of payment transaction on database, implements by all transactions in different ways
      * @param ioTransaction pointer on database transaction
      */

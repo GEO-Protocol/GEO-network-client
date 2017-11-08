@@ -205,6 +205,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         return reject("Reservations on node are invalid");
     }
 
+    if (!checkAllNeighborsPresence()) {
+        return reject("Some neighbors which are involved in transaction are absent in participants");
+    }
+
     const auto kCurrentNodeUUID = currentNodeUUID();
     mParticipantsVotesMessage = popNextMessage<ParticipantsVotesMessage>();
     debug() << "Votes message received";
@@ -891,6 +895,15 @@ BasePaymentTransaction::PathID BasePaymentTransaction::updateReservation(
     return std::numeric_limits<PathID >::max();
 }
 
+bool BasePaymentTransaction::checkAllNeighborsPresence() const
+{
+    for (const auto reservation : mReservations) {
+        if (!mParticipantsVotesMessage->containsParticipant(reservation.first)) {
+            return false;
+        }
+    }
+    return true;
+}
 
 TransactionResult::SharedConst BasePaymentTransaction::runVotesRecoveryParentStage()
 {
