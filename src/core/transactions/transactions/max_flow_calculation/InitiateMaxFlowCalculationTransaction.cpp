@@ -97,6 +97,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "calculateMaxFlow\tstart found flow to: " << contractorUUID;
+    DateTime startTime = utc_now();
 #endif
     mCurrentContractor = contractorUUID;
     auto trustLinePtrsSet =
@@ -112,6 +113,9 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+    info() << "max flow calculating time: " << utc_now() - startTime;
+#endif
     return mCurrentMaxFlow;
 }
 
