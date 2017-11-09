@@ -59,8 +59,13 @@ LoggerStream::LoggerStream(
 Logger::Logger(
     const NodeUUID &nodeUUID):
 
-    mNodeUUID(nodeUUID)
+    mNodeUUID(nodeUUID),
+    mOperationLogFileName("operations.log"),
+    mOperationsLogFileLinesNumber(0)
 {
+
+    calculateOperationsLogFileLinesNumber();
+
 #ifdef DEBUG
     // It is mush more useful to truncate log file on each application start, in debug mode.
     mOperationsLogFile.open("operations.log", std::fstream::out | std::fstream::trunc);
@@ -70,6 +75,7 @@ Logger::Logger(
     // In production mode, logs must be appended.
     mOperationsLogFile.open("operations.log", std::fstream::out | std::fstream::app);
 #endif
+
 }
 
 void Logger::logException(
@@ -175,4 +181,41 @@ void Logger::logRecord(
     // Logging to the file
     mOperationsLogFile << recordStream.str();
     mOperationsLogFile.flush();
+
+    mOperationsLogFileLinesNumber++;
+    if(mOperationsLogFileLinesNumber >= 1024){
+        rotate();
+        mOperationsLogFileLinesNumber = 0;
+    }
+}
+
+void Logger::rotate()
+{
+    stringstream rotateFileName;
+    rotateFileName << "archieved_operation_" << utc_now() << ".log";
+
+    std::ifstream fin(mOperationLogFileName);
+    std::ofstream fout(rotateFileName.str());
+    std::string line;
+
+    while( std::getline(fin, line, '.' ) ) fout << line;
+
+    fout.flush();
+    fout.close();
+    fin.close();
+
+    mOperationsLogFile.close();
+    mOperationsLogFile.open("operations.log", std::fstream::out | std::fstream::trunc);
+}
+
+void Logger::calculateOperationsLogFileLinesNumber() {
+
+    ifstream kOperationLogFile(mOperationLogFileName);
+    std::string line;
+    while (std::getline(kOperationLogFile , line)){
+        ++mOperationsLogFileLinesNumber;
+    }
+    if (kOperationLogFile.is_open()){
+        kOperationLogFile.close();
+    }
 }
