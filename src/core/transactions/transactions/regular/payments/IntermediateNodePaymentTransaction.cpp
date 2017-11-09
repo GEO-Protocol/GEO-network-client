@@ -650,6 +650,8 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
         currentTransactionUUID(),
         FinalAmountsConfigurationResponseMessage::Accepted);
 
+    // todo ask neighbors about reservations
+
     mStep = Common_VotesChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_ParticipantsVotes,

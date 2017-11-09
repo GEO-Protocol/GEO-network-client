@@ -32,6 +32,7 @@
 #include "../../../messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../messages/payments/FinalAmountsConfigurationMessage.h"
 #include "../../../messages/payments/FinalAmountsConfigurationResponseMessage.h"
+#include "../../../messages/payments/ReservationsInRelationToNodeMessage.h"
 
 #include "../../../messages/total_balances/InitiateTotalBalancesMessage.h"
 #include "../../../messages/total_balances/TotalBalancesResultMessage.h"
