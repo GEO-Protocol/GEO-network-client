@@ -119,9 +119,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
 
     // Begin waiting for amount reservation requests.
     // There is non-zero probability, that first couple of paths will fail.
-    // So receiver will wait for time, that is approximatyle neede for several nodes for processing.
+    // So receiver will wait for time, that is approximately need for several nodes for processing.
     //
-    // TODO: enhancement: send aproximate paths count to receiver, so it will be able to wait correct timeout.
+    // TODO: enhancement: send approximate paths count to receiver, so it will be able to wait correct timeout.
     mStep = Stages::Receiver_AmountReservationsProcessing;
     return resultWaitForMessageTypes(
         {Message::Payments_IntermediateNodeReservationRequest,
@@ -134,7 +134,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     debug() << "runAmountReservationStage";
     if (contextIsValid(Message::Payments_TTLProlongationResponse, false)) {
         // current path was rejected and need reset delay time
-        // TODO check if message sender is coordinator
         debug() << "Receive TTL prolongation message";
         const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
         if (kMessage->state() == TTLProlongationResponseMessage::Continue) {
@@ -258,7 +257,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     if (kMessage->senderUUID == mMessage->senderUUID) {
         mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
             NodeUUID::empty(),
-            kReservationAmount);
+            TrustLine::kZeroAmount());
     }
     mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
         kMessage->senderUUID,

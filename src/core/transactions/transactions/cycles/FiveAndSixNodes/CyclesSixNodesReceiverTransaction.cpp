@@ -29,7 +29,9 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
         return resultDone();
     auto kFirstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
 //  Update message path and send to next level nodes
+#ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     info() << "current depth: " << to_string(kCurrentDepth);
+#endif
     if ((kCurrentDepth==1)) {
         mInBetweenNodeTopologyMessage->addNodeToPath(mNodeUUID);
         for(const auto &kNodeUUIDAndBalance: kFirstLevelNodes)

@@ -462,3 +462,18 @@ bool TransactionsScheduler::isTransactionInProcess(
     }
     return false;
 }
+
+void TransactionsScheduler::tryAttachMessageToCollectTopologyTransaction(
+    Message::Shared message) {
+    for (auto const &transactionAndState : *mTransactions) {
+        if (transactionAndState.first->transactionType() == BaseTransaction::InitiateMaxFlowCalculationTransactionType or
+                transactionAndState.first->transactionType() == BaseTransaction::FindPathByMaxFlowTransactionType) {
+            transactionAndState.first->pushContext(message);
+            return;
+        }
+    }
+    throw NotFoundError(
+            "TransactionsScheduler::tryAttachMessageToCollectTopologyTransaction: "
+                    "can't find CollectTopologyTransaction");
+
+}

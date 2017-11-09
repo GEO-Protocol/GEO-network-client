@@ -11,64 +11,59 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     Logger &logger) :
 
-    BaseTransaction(
-        BaseTransaction::TransactionType::FindPathByMaxFlowTransactionType,
+    BaseCollectTopologyTransaction(
+        BaseTransaction::FindPathByMaxFlowTransactionType,
         nodeUUID,
+        manager,
+        maxFlowCalculationTrustLineManager,
+        maxFlowCalculationCacheManager,
         logger),
 
     mContractorUUID(contractorUUID),
     mRequestedTransactionUUID(requestedTransactionUUID),
     mPathsManager(pathsManager),
-    mResourcesManager(resourcesManager),
-    mTrustLineManager(manager),
-    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mResourcesManager(resourcesManager)
 {}
 
-TransactionResult::SharedConst FindPathByMaxFlowTransaction::run()
-{
-    switch (mStep) {
-        case Stages::SendRequestForGettingRoutingTables:
-            if (mContractorUUID == currentNodeUUID()) {
-                warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
-                return resultDone();
-            }
-            mStep = Stages::BuildAllPaths;
-            debug() << "Build paths to " << mContractorUUID;
-            try {
-                vector<NodeUUID> contractors;
-                contractors.push_back(mContractorUUID);
-                const auto kTransaction = make_shared<CollectTopologyTransaction>(
-                    mNodeUUID,
-                    contractors,
-                    mTrustLineManager,
-                    mMaxFlowCalculationTrustLineManager,
-                    mMaxFlowCalculationCacheManager,
-                    mLog);
-
-                mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
-                launchSubsidiaryTransaction(kTransaction);
-            } catch (...) {
-                warning() << "Can not launch Collecting Topology transaction for " << mContractorUUID << ".";
-            }
-
-            return resultAwaikAfterMilliseconds(
-                kTopologyCollectingMilisecondsTimeout);
-
-        case Stages::BuildAllPaths:
-            mPathsManager->buildPaths(
-                mContractorUUID);
-            mResourcesManager->putResource(
-                make_shared<PathsResource>(
-                    mRequestedTransactionUUID,
-                    mPathsManager->pathCollection()));
-            mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
-            mStep = Stages::SendRequestForGettingRoutingTables;
-            return resultDone();
-        default:
-            throw ValueError("FindPathByMaxFlowTransaction::run: "
-                                     "wrong value of mStep");
+TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForCollectingTopology() {
+    if (mContractorUUID == currentNodeUUID()) {
+        warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
+        return resultDone();
     }
+    debug() << "Build paths to " << mContractorUUID;
+    try {
+        vector<NodeUUID> contractors;
+        contractors.push_back(mContractorUUID);
+        const auto kTransaction = make_shared<CollectTopologyTransaction>(
+            mNodeUUID,
+            contractors,
+            mTrustLinesManager,
+            mMaxFlowCalculationTrustLineManager,
+            mMaxFlowCalculationCacheManager,
+            mLog);
+
+        mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
+        launchSubsidiaryTransaction(kTransaction);
+    } catch (...) {
+        warning() << "Can not launch Collecting Topology transaction for " << mContractorUUID << ".";
+    }
+
+    return resultAwaikAfterMilliseconds(
+        kTopologyCollectingMillisecondsTimeout);
+}
+
+TransactionResult::SharedConst FindPathByMaxFlowTransaction::processCollectingTopology()
+{
+    fillTopology();
+    mPathsManager->buildPaths(
+        mContractorUUID);
+    mResourcesManager->putResource(
+        make_shared<PathsResource>(
+            mRequestedTransactionUUID,
+            mPathsManager->pathCollection()));
+    mPathsManager->clearPathsCollection();
+    mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
+    return resultDone();
 }
 
 const string FindPathByMaxFlowTransaction::logHeader() const

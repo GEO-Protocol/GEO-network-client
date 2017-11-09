@@ -12,6 +12,7 @@
 #include "migrations/DeleteSerializedTransactionsMigration.h"
 #include "migrations/PositiveSignMigration.h"
 #include "migrations/CommandUUIDMigration.h"
+#include "migrations/RemoveRoutingTablesMigration.h"
 
 #include "../../common/NodeUUID.h"
 #include "../../common/exceptions/IOError.h"

@@ -579,19 +579,6 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFl
     return result;
 }
 
-vector<pair<const NodeUUID, const TrustLineDirection>> TrustLinesManager::rt1WithDirections() const {
-
-    vector<pair<const NodeUUID, const TrustLineDirection >> result;
-    result.reserve(mTrustLines.size());
-    for (auto &nodeUUIDAndTrustLine : mTrustLines) {
-        result.push_back(
-            make_pair(
-                nodeUUIDAndTrustLine.first,
-                nodeUUIDAndTrustLine.second->direction()));
-    }
-    return result;
-}
-
 vector<NodeUUID> TrustLinesManager::rt1() const {
 
     vector<NodeUUID> result;
@@ -788,9 +775,9 @@ void TrustLinesManager::printRTs()
     debug << "printRTs\tRT1 size: " << trustLines().size() << endl;
     for (const auto itTrustLine : trustLines()) {
         debug << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
-               << (int)itTrustLine.second->incomingTrustAmount() << " "
-               << (int)itTrustLine.second->outgoingTrustAmount() << " "
-               << (int)itTrustLine.second->balance() << endl;
+               << itTrustLine.second->incomingTrustAmount() << " "
+               << itTrustLine.second->outgoingTrustAmount() << " "
+               << itTrustLine.second->balance() << endl;
     }
     debug << "print payment incoming flows size: " << incomingFlows().size() << endl;
     for (auto const itIncomingFlow : incomingFlows()) {
@@ -802,15 +789,15 @@ void TrustLinesManager::printRTs()
     }
     debug << "print cycle incoming flows size: " << incomingFlows().size() << endl;
     for (auto const trLine : mTrustLines) {
-//        const auto availableIncomingCycleAmounts = availableIncomingCycleAmounts(trLine.first);
-//        debug << trLine.first << " " << *(availableIncomingCycleAmounts.first)
-//              << " " << *(availableIncomingCycleAmounts.second) << endl;
+        auto const availableIncomingCycleAmounts = this->availableIncomingCycleAmounts(trLine.first);
+        debug << trLine.first << " " << *(availableIncomingCycleAmounts.first)
+              << " " << *(availableIncomingCycleAmounts.second) << endl;
     }
     debug << "print cycle outgoing flows size: " << outgoingFlows().size() << endl;
     for (auto const trLine : mTrustLines) {
-//        auto const availableOutgoingCycleAmounts = availableOutgoingCycleAmounts(trLine.first);
-//        debug << trLine.first << " " << *(availableOutgoingCycleAmounts.first)
-//              << " " << *(availableOutgoingCycleAmounts.second) << endl;
+        auto const availableOutgoingCycleAmounts = this->availableOutgoingCycleAmounts(trLine.first);
+        debug << trLine.first << " " << *(availableOutgoingCycleAmounts.first)
+              << " " << *(availableOutgoingCycleAmounts.second) << endl;
     }
 }
 

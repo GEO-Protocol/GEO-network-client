@@ -24,7 +24,16 @@ set(SOURCE_FILES
         IOTransaction.h
 
         MigrationsHandler.h
-        MigrationsHandler.cpp)
+        MigrationsHandler.cpp
+
+        CommunicatorMessagesQueueHandler.h
+        CommunicatorMessagesQueueHandler.cpp
+
+        CommunicatorStorageHandler.h
+        CommunicatorStorageHandler.cpp
+
+        CommunicatorIOTransaction.h
+        CommunicatorIOTransaction.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

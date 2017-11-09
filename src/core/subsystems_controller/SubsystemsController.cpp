@@ -50,6 +50,8 @@ void SubsystemsController::setFlags(size_t flags)
     mIsNetworkOn = (flags & 0x1) == 0;
     if (!mIsNetworkOn) {
         mCountForbiddenMessages = UINT32_MAX;
+    } else {
+        mCountForbiddenMessages = 0;
     }
     mIsRunCycleClosingTransactions = (flags & 0x2) == 0;
 
@@ -164,7 +166,7 @@ void SubsystemsController::testForbidSendMessageToCoordinatorOnReservationStage(
     uint32_t countForbiddenMessages)
 {
     if (mForbidSendMessageToCoordinatorOnReservationStage) {
-        if (mForbiddenNodeUUID == NodeUUID::empty()) {
+        if (mForbiddenNodeUUID == NodeUUID::empty() || previousNodeUUID == NodeUUID::empty()) {
             debug() << "ForbidSendMessageToCoordinatorOnReservationStage";
             mCountForbiddenMessages = countForbiddenMessages;
         } else if (mForbiddenNodeUUID == previousNodeUUID) {
