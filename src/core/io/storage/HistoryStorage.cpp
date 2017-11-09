@@ -620,22 +620,127 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentRecords(
     return result;
 }
 
-vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords()
+vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
+    size_t recordsCount,
+    size_t fromRecord,
+    DateTime timeFrom,
+    bool isTimeFromPresent,
+    DateTime timeTo,
+    bool isTimeToPresent,
+    const TrustLineAmount& lowBoundaryAmount,
+    bool isLowBoundaryAmountPresent,
+    const TrustLineAmount& highBoundaryAmount,
+    bool isHighBoundaryAmountPresent
+)
+{
+    if (!isLowBoundaryAmountPresent && !isHighBoundaryAmountPresent) {
+        return allPaymentAdditionalRecords(
+            recordsCount,
+            fromRecord,
+            timeFrom,
+            isTimeFromPresent,
+            timeTo,
+            isTimeToPresent);
+    }
+    vector<PaymentRecord::Shared> result;
+    size_t paymentRecordsCount = countRecordsByType(
+        Record::PaymentRecordType);
+    size_t currentOffset = 0;
+    size_t countRecordsUnderConditions = 0;
+    while (result.size() < recordsCount && currentOffset < paymentRecordsCount) {
+        auto paymentRecords = allPaymentRecords(
+            kPortionRequestSize,
+            currentOffset,
+            timeFrom,
+            isTimeFromPresent,
+            timeTo,
+            isTimeToPresent);
+        for (auto paymentRecord : paymentRecords) {
+            bool recordUnderConditions = true;
+            if (isLowBoundaryAmountPresent) {
+                recordUnderConditions = recordUnderConditions &&
+                                        (paymentRecord->amount() >= lowBoundaryAmount);
+            }
+            if (isHighBoundaryAmountPresent) {
+                recordUnderConditions = recordUnderConditions &&
+                                        (paymentRecord->amount() <= highBoundaryAmount);
+            }
+            if (recordUnderConditions) {
+                countRecordsUnderConditions++;
+                if (countRecordsUnderConditions > fromRecord) {
+                    result.push_back(paymentRecord);
+                }
+            }
+            if (result.size() >= recordsCount) {
+                break;
+            }
+        }
+        currentOffset += kPortionRequestSize;
+    }
+    return result;
+}
+
+vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
+    size_t recordsCount,
+    size_t fromRecord,
+    DateTime timeFrom,
+    bool isTimeFromPresent,
+    DateTime timeTo,
+    bool isTimeToPresent)
 {
     vector<PaymentRecord::Shared> result;
     string query = "SELECT operation_uuid, operation_timestamp, record_body, record_body_bytes_count FROM "
-                   + mAdditionalTableName + " ORDER BY operation_timestamp DESC;";
+                   + mAdditionalTableName + " WHERE record_type = ? ";
+    if (isTimeFromPresent) {
+        query += " AND operation_timestamp >= ? ";
+    }
+    if (isTimeToPresent) {
+        query += " AND operation_timestamp <= ? ";
+    }
+    query += " ORDER BY operation_timestamp DESC LIMIT ? OFFSET ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        throw IOError("HistoryStorage::allPaymentAdditionalRecords: "
-                              "Bad query; sqlite error: " + to_string(rc));
+        throw IOError("HistoryStorage::allAdditionalPaymentRecords: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    int idxParam = 1;
+    rc = sqlite3_bind_int(stmt, idxParam++, Record::PaymentRecordType);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::allAdditionalPaymentRecords: "
+                          "Bad binding of RecordType; sqlite error: " + to_string(rc));
+    }
+    if (isTimeFromPresent) {
+        GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(timeFrom);
+        rc = sqlite3_bind_int64(stmt, idxParam++, timestamp);
+        if (rc != SQLITE_OK) {
+            throw IOError("HistoryStorage::allAdditionalPaymentRecords: "
+                              "Bad binding of TimeFrom; sqlite error: " + to_string(rc));
+        }
+    }
+    if (isTimeToPresent) {
+        GEOEpochTimestamp timestamp = microsecondsSinceGEOEpoch(timeTo);
+        rc = sqlite3_bind_int64(stmt, idxParam++, timestamp);
+        if (rc != SQLITE_OK) {
+            throw IOError("HistoryStorage::allAdditionalPaymentRecords: "
+                              "Bad binding of TimeTo; sqlite error: " + to_string(rc));
+        }
+    }
+    rc = sqlite3_bind_int(stmt, idxParam++, (int)recordsCount);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::allAdditionalPaymentRecords: "
+                          "Bad binding of recordsCount; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_int(stmt, idxParam, (int)fromRecord);
+    if (rc != SQLITE_OK) {
+        throw IOError("HistoryStorage::allAdditionalPaymentRecords: "
+                          "Bad binding of fromRecord; sqlite error: " + to_string(rc));
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW ) {
         result.push_back(
             deserializePaymentAdditionalRecord(
-            stmt));
+                stmt));
     }
 
     sqlite3_reset(stmt);

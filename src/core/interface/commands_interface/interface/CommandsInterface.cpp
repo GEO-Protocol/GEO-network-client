@@ -168,6 +168,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == HistoryAdditionalPaymentsCommand::identifier()) {
+            command = new HistoryAdditionalPaymentsCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == HistoryTrustLinesCommand::identifier()) {
             command = new HistoryTrustLinesCommand(
                 uuid,

@@ -25,6 +25,7 @@
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
+#include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryWithContractorCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
@@ -80,6 +81,7 @@
 #include "../transactions/total_balances/TotalBalancesFromRemoutNodeTransaction.h"
 
 #include "../transactions/history/HistoryPaymentsTransaction.h"
+#include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
 #include "../transactions/history/HistoryTrustLinesTransaction.h"
 #include "../transactions/history/HistoryWithContractorTransaction.h"
 
@@ -237,6 +239,9 @@ protected: // Transactions
      */
     void launchHistoryPaymentsTransaction(
         HistoryPaymentsCommand::Shared command);
+
+    void launchAdditionalHistoryPaymentsTransaction(
+        HistoryAdditionalPaymentsCommand::Shared command);
 
     void launchHistoryTrustLinesTransaction(
         HistoryTrustLinesCommand::Shared command);
