@@ -30,6 +30,7 @@
 #include "../../../../../network/messages/payments/TTLProlongationResponseMessage.h"
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationResponseMessage.h"
+#include "../../../../../network/messages/payments/ReservationsInRelationToNodeMessage.h"
 
 #include "PathStats.h"
 
@@ -435,6 +436,9 @@ protected:
 
     // this amount used for saving in payment history
     TrustLineAmount mCommittedAmount;
+
+    bool mCoordinatorAlreadySentFinalAmountsConfiguration;
+    unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNeighborsConfirmation;
 
 protected:
     SubsystemsController *mSubsystemsController;

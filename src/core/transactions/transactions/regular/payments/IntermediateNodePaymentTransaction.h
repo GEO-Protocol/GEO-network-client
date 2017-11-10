@@ -83,6 +83,8 @@ protected:
      */
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
 
+    TransactionResult::SharedConst runFinalAmountsConfigurationNeighborConfirmation();
+
     /**
      * reaction on response TTL message from coordinator
      * after receiving participants votes message
@@ -96,6 +98,10 @@ protected:
      * to coordinator with request if transaction is still alive
      */
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
+
+    bool compareReservations(
+        const vector<pair<PathID, AmountReservation::ConstShared>> &localReservations,
+        const vector<pair<PathID, AmountReservation::ConstShared>> &remoteReservations);
 
 protected:
     // Intermediate node must launch closing cycles 3 and 4 transactions.

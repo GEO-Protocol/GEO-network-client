@@ -659,6 +659,42 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmoun
         maxNetworkDelay(5)); // todo : need discuss this parameter (5)
 }
 
+TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalAmountsConfigurationNeighborConfirmation()
+{
+    debug() << "runFinalAmountsConfigurationNeighborConfirmation";
+    auto kMessage = popNextMessage<ReservationsInRelationToNodeMessage>();
+    // if this message first
+    if (mFinalAmountNeighborsConfirmation.empty()) {
+        for (const auto &nodeAndReservations : mReservations) {
+            mFinalAmountNeighborsConfirmation.insert(
+                make_pair(
+                    nodeAndReservations.first,
+                    false));
+        }
+    }
+
+//    const auto nodeReservations = mReservations[kMessage->senderUUID];
+//    if (nodeReservations == mReservations.end()) {
+//        // current node has not reservations with sender, transaction should be rejected
+//        sendMessage<FinalAmountsConfigurationResponseMessage>(
+//            mCoordinator,
+//            currentNodeUUID(),
+//            currentTransactionUUID(),
+//            FinalAmountsConfigurationResponseMessage::Rejected);
+//    }
+//
+//    if (! compareReservations(nodeReservations, kMessage->finalAmountsConfiguration())) {
+//        // current node has different reservations with sender, transaction should be rejected
+//        sendMessage<FinalAmountsConfigurationResponseMessage>(
+//            mCoordinator,
+//            currentNodeUUID(),
+//            currentTransactionUUID(),
+//            FinalAmountsConfigurationResponseMessage::Rejected);
+//    }
+    return resultDone();
+
+}
+
 TransactionResult::SharedConst IntermediateNodePaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()
 {
     if (contextIsValid(Message::Payments_ParticipantsVotes, false)) {
