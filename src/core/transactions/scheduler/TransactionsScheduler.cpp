@@ -108,7 +108,9 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
             // filtering TTL response messages for payment TAs
             // this messages can send only transaction coordinator
             // in future if such cases will be more this code should make separate method
-            if (message->typeID() == Message::Payments_TTLProlongationResponse) {
+            if (message->typeID() == Message::Payments_TTLProlongationResponse or
+                    message->typeID() == Message::Payments_FinalAmountsConfiguration or
+                    message->typeID() == Message::Payments_FinalPathConfiguration) {
                 auto paymentTransaction = static_pointer_cast<BasePaymentTransaction>(
                     transactionAndState.first);
                 auto senderMessage = static_pointer_cast<SenderMessage>(message);
@@ -387,7 +389,7 @@ void TransactionsScheduler::handleAwakening(
         auto errors = mLog.warning("TransactionsScheduler::handleAwakening");
         if (errorsCount < 10) {
             errors << "Error occurred on planned awakening. Details: " << error.message().c_str()
-                   << ". Next awakening would be scheduled for" << errorsCount << " seconds from now.";
+                   << ". Next awakening would be scheduled for " << errorsCount << " seconds from now.";
 
             // Transactions processing must not be cancelled.
             // Next awakening would be delayed for 10 seconds

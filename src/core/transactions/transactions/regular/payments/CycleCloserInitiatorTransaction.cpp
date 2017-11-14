@@ -717,7 +717,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
 
     const auto kMessage = popNextMessage<IntermediateNodeCycleReservationRequestMessage>();
     mPreviousNode = kMessage->senderUUID;
-    debug() << "Coordiantor payment operation from node (" << mPreviousNode << ")";
+    debug() << "Coordinator payment operation from node (" << mPreviousNode << ")";
     debug() << "Requested amount reservation: " << kMessage->amount();
 
     const auto kIncomingAmounts = mTrustLines->availableIncomingCycleAmounts(mPreviousNode);
@@ -881,6 +881,10 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runVotesConsiste
 
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
     debug () << "Participants votes message received.";
+
+    if (!checkOldAndNewParticipants(kMessage, false)) {
+        return reject("Participants votes message is invalid. Rolling back.");
+    }
 
     mParticipantsVotesMessage = kMessage;
     if (mParticipantsVotesMessage->containsRejectVote()) {

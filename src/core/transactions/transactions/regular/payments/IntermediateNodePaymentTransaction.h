@@ -76,14 +76,16 @@ protected:
      */
     TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
 
+    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
+
     /**
      * reaction on message with final amounts configuration (on all paths) from coordinator
      * update all reservations according to received final configuration
      * and send response if all reservations was successfully updated
      */
-    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
+    TransactionResult::SharedConst runFinalReservationsCoordinatorConfirmation();
 
-    TransactionResult::SharedConst runFinalAmountsConfigurationNeighborConfirmation();
+    TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
 
     /**
      * reaction on response TTL message from coordinator
@@ -98,10 +100,6 @@ protected:
      * to coordinator with request if transaction is still alive
      */
     TransactionResult::SharedConst runVotesCheckingStageWithCoordinatorClarification();
-
-    bool compareReservations(
-        const vector<pair<PathID, AmountReservation::ConstShared>> &localReservations,
-        const vector<pair<PathID, AmountReservation::ConstShared>> &remoteReservations);
 
 protected:
     // Intermediate node must launch closing cycles 3 and 4 transactions.

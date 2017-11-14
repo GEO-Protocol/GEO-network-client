@@ -384,6 +384,16 @@ protected:
      */
     virtual bool checkReservationsDirections() const = 0;
 
+    bool compareReservations(
+        const vector<pair<PathID, AmountReservation::ConstShared>> &localReservations,
+        const vector<pair<PathID, AmountReservation::ConstShared>> &remoteReservations);
+
+    bool checkAllNeighborsReservationsAppropriate();
+
+    bool checkOldAndNewParticipants(
+        ParticipantsVotesMessage::Shared newMessageWithVotes,
+        bool checkCoordinatorPresence = true);
+
 protected:
     // Specifies how long node must wait for the response from the remote node.
     // This timeout must take into account also that remote node may process other transaction,
@@ -439,6 +449,7 @@ protected:
 
     bool mCoordinatorAlreadySentFinalAmountsConfiguration;
     unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNeighborsConfirmation;
+    map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mRemoteReservations;
 
 protected:
     SubsystemsController *mSubsystemsController;

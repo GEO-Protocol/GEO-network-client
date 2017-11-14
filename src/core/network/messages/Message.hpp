@@ -58,7 +58,7 @@ public:
         Payments_TTLProlongationRequest = 217,
         Payments_TTLProlongationResponse = 218,
 
-        Payments_ReservationsInRealtionToNode = 219,
+        Payments_ReservationsInRelationToNode = 219,
 
         /*
          * Cycles

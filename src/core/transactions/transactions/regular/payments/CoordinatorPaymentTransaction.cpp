@@ -1158,10 +1158,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
 #endif
 
     for (auto const nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
-        // todo : discuss if receiver need on final amounts
-        if (nodeAndFinalAmountsConfig.first == mCommand->contractorUUID()) {
-            continue;
-        }
         debug() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first;
         sendMessage<FinalAmountsConfigurationMessage>(
             nodeAndFinalAmountsConfig.first,
@@ -1175,6 +1171,15 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     }
 
     debug() << "Total count of all participants without coordinator is " << mNodesFinalAmountsConfiguration.size();
+
+    // send reservations to first level nodes on transaction paths
+    for (const auto nodeAndReservations : mReservations) {
+        sendMessage<ReservationsInRelationToNodeMessage>(
+            nodeAndReservations.first,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            nodeAndReservations.second);
+    }
 
     mStep = Coordinator_FinalAmountsConfigurationConfirmation;
     return resultWaitForMessageTypes(
@@ -1460,6 +1465,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runVotesConsistenc
 
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
     debug () << "Participants votes message received.";
+
+    if (!checkOldAndNewParticipants(kMessage, false)) {
+        return reject("Participants votes message is invalid. Rolling back.");
+    }
 
     mParticipantsVotesMessage = kMessage;
     if (mParticipantsVotesMessage->containsRejectVote()) {

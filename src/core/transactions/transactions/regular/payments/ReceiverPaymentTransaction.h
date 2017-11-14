@@ -57,6 +57,12 @@ protected:
      */
     TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
 
+    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
+
+    TransactionResult::SharedConst runFinalReservationsCoordinatorConfirmation();
+
+    TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
+
     /**
      * reaction on receiving participants votes message firstly
      * add own vote to message and send it to next participant

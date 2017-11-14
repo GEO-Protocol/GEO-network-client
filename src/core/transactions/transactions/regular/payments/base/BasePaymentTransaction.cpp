@@ -206,13 +206,13 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         return reject("Reservations on node are invalid");
     }
 
-    if (!checkAllNeighborsPresence()) {
-        return reject("Some neighbors which are involved in transaction are absent in participants");
-    }
-
     const auto kCurrentNodeUUID = currentNodeUUID();
     mParticipantsVotesMessage = popNextMessage<ParticipantsVotesMessage>();
     debug() << "Votes message received";
+
+    if (!checkAllNeighborsPresence()) {
+        return reject("Some neighbors which are involved in transaction are absent in participants");
+    }
 
     try {
         // Check if current node is listed in the votes list.
@@ -351,7 +351,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
     debug () << "Participants votes message received.";
 
+    if (!checkOldAndNewParticipants(kMessage)) {
+        return reject("Participants votes message is invalid. Rolling back.");
+    }
+
     mParticipantsVotesMessage = kMessage;
+
     if (mParticipantsVotesMessage->containsRejectVote()) {
         return reject("Some participant node has been rejected the transaction. Rolling back.");
     }
@@ -898,8 +903,42 @@ BasePaymentTransaction::PathID BasePaymentTransaction::updateReservation(
 
 bool BasePaymentTransaction::checkAllNeighborsPresence() const
 {
+    debug() << "checkAllNeighborsPresence";
     for (const auto reservation : mReservations) {
+        if (reservation.first == coordinatorUUID()) {
+            continue;
+        }
         if (!mParticipantsVotesMessage->containsParticipant(reservation.first)) {
+            return false;
+        }
+    }
+    debug() << "All neighbors are present in participants votes message";
+    return true;
+}
+
+bool BasePaymentTransaction::checkOldAndNewParticipants(
+    ParticipantsVotesMessage::Shared newMessageWithVotes,
+    bool checkCoordinatorPresence)
+{
+    debug() << "checkOldAndNewParticipants";
+    if (checkCoordinatorPresence) {
+        if (!newMessageWithVotes->containsParticipant(coordinatorUUID())) {
+            warning() << "New message doesn't contain coordinator vote";
+            return false;
+        }
+        if (newMessageWithVotes->participantsCount() != mParticipantsVotesMessage->participantsCount() + 1) {
+            warning() << "Wrong participants count in new message";
+            return false;
+        }
+    } else {
+        if (newMessageWithVotes->participantsCount() != mParticipantsVotesMessage->participantsCount()) {
+            warning() << "Wrong participants count in new message";
+            return false;
+        }
+    }
+    for (const auto oldParticipant : mParticipantsVotesMessage->votes()) {
+        if (!newMessageWithVotes->containsParticipant(oldParticipant.first)) {
+            warning() << "Different participants in new and old messages";
             return false;
         }
     }
@@ -1093,6 +1132,47 @@ const TrustLineAmount BasePaymentTransaction::totalReservedAmount(
         }
     }
     return totalAmount;
+}
+
+bool BasePaymentTransaction::compareReservations(
+    const vector<pair<PathID, AmountReservation::ConstShared>> &localReservations,
+    const vector<pair<PathID, AmountReservation::ConstShared>> &remoteReservations)
+{
+    if (localReservations.size() != remoteReservations.size()) {
+        return false;
+    }
+    for (const auto localPathAndReservation : localReservations) {
+        bool findAppropriateReservation = false;
+        for (const auto remotePathAndReservation : remoteReservations) {
+            if (remotePathAndReservation.first == localPathAndReservation.first) {
+                if (remotePathAndReservation.second->amount() == localPathAndReservation.second->amount() and
+                    remotePathAndReservation.second->direction() != localPathAndReservation.second->direction()) {
+                    findAppropriateReservation = true;
+                    break;
+                } else {
+                    return false;
+                }
+            }
+        }
+        if (!findAppropriateReservation) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool BasePaymentTransaction::checkAllNeighborsReservationsAppropriate()
+{
+    for (const auto nodeAndReservations : mReservations) {
+        if (mRemoteReservations.find(nodeAndReservations.first) == mRemoteReservations.end()) {
+            return false;
+        }
+        const auto remoteReservations = mRemoteReservations[nodeAndReservations.first];
+        if (!compareReservations(nodeAndReservations.second, remoteReservations)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
