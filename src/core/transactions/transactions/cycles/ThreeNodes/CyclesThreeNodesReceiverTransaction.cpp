@@ -26,6 +26,10 @@ TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run() {
     const auto kContractorBalance = mTrustLinesManager->balance(mRequestMessage->senderUUID);
     const TrustLineBalance kZeroBalance = 0;
 
+    if (kContractorBalance == kZeroBalance) {
+        return resultDone();
+    }
+
     bool searchDebtors = true;
     if (kContractorBalance > kZeroBalance)
         searchDebtors = false;

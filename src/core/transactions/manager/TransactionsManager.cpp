@@ -1,4 +1,5 @@
 ﻿#include "TransactionsManager.h"
+#include "../transactions/history/HistoryAdditionalPaymentsTransaction.h"
 
 
 /*!
@@ -214,6 +215,11 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == HistoryPaymentsCommand::identifier()){
         launchHistoryPaymentsTransaction(
             static_pointer_cast<HistoryPaymentsCommand>(
+                command));
+
+    } else if (command->identifier() == HistoryAdditionalPaymentsCommand::identifier()){
+        launchAdditionalHistoryPaymentsTransaction(
+            static_pointer_cast<HistoryAdditionalPaymentsCommand>(
                 command));
 
     } else if (command->identifier() == HistoryTrustLinesCommand::identifier()){
@@ -741,6 +747,24 @@ void TransactionsManager::launchHistoryPaymentsTransaction(
         throw ConflictError(e.message());
     }
 }
+
+void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
+    HistoryAdditionalPaymentsCommand::Shared command) {
+    try {
+        prepareAndSchedule(
+            make_shared<HistoryAdditionalPaymentsTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
 
 /*!
  *
