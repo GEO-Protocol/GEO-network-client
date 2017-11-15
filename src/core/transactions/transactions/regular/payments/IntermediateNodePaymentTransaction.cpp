@@ -740,13 +740,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
 {
     debug() << "runFinalReservationsNeighborConfirmation";
     auto kMessage = popNextMessage<ReservationsInRelationToNodeMessage>();
-
     debug() << "sender: " << kMessage->senderUUID;
-    for (const auto reservation : kMessage->reservations()) {
-        debug() << "\tpath: " << reservation.first;
-        debug() << "\tamount: " << reservation.second->amount();
-        debug() << "\tdirection: " << reservation.second->direction();
-    }
 
     mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
 
@@ -788,7 +782,6 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
     // not all neighbors sent theirs reservations
     return resultWaitForMessageTypes(
         {Message::Payments_ReservationsInRelationToNode,
-         Message::Payments_FinalAmountsConfiguration,
          Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(2));
 }

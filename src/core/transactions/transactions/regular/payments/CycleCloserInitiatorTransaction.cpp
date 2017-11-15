@@ -962,6 +962,15 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
             currentTransactionUUID(),
             finalPathAmount);
     }
+
+    // send reservations to first level node and last level node on transaction paths
+    for (const auto nodeAndReservations : mReservations) {
+        sendMessage<ReservationsInRelationToNodeMessage>(
+            nodeAndReservations.first,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            nodeAndReservations.second);
+    }
 }
 
 TransactionResult::SharedConst CycleCloserInitiatorTransaction::approve()
