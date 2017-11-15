@@ -62,6 +62,9 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::run()
             case Stages::Coordinator_FinalAmountsConfigurationConfirmation:
                 return runFinalAmountsConfigurationConfirmation();
 
+            case Stages::Common_ClarificationTransactionDuringFinalAmountsClarification:
+                return runClarificationOfTransactionDuringFinalAmountsClarification();
+
             case Stages::Common_VotesChecking:
                 return runVotesCheckingStageWithCoordinatorClarification();
 
@@ -413,6 +416,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalAmountsConfig
         coordinatorUUID(),
         currentNodeUUID(),
         currentTransactionUUID());
+    mStep = Common_ClarificationTransactionDuringFinalAmountsClarification;
 
     return resultWaitForMessageTypes(
         {Message::Payments_FinalAmountsConfiguration,
@@ -544,6 +548,36 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsN
          Message::Payments_FinalAmountsConfiguration,
          Message::Payments_TTLProlongationResponse},
         maxNetworkDelay(2));
+}
+
+TransactionResult::SharedConst ReceiverPaymentTransaction::runClarificationOfTransactionDuringFinalAmountsClarification()
+{
+    debug() << "runClarificationOfTransactionDuringFinalAmountsClarification";
+    if (contextIsValid(Message::Payments_IntermediateNodeReservationRequest, false)) {
+        return runAmountReservationStage();
+    }
+
+    if (contextIsValid(Message::Payments_FinalAmountsConfiguration, false) or
+            contextIsValid(Message::Payments_ReservationsInRelationToNode, false)) {
+        mStep = Coordinator_FinalAmountsConfigurationConfirmation;
+        return runFinalAmountsConfigurationConfirmation();
+    }
+
+    if (!contextIsValid(Message::MessageType::Payments_TTLProlongationResponse)) {
+        return reject("No participants votes message received. Transaction was closed. Rolling Back");
+    }
+
+    const auto kMessage = popNextMessage<TTLProlongationResponseMessage>();
+    if (kMessage->state() == TTLProlongationResponseMessage::Continue) {
+        // transactions is still alive and we continue waiting for messages
+        debug() << "Transactions is still alive. Continue waiting for messages";
+        mStep = Stages::Common_VotesChecking;
+        return resultWaitForMessageTypes(
+            {Message::Payments_IntermediateNodeReservationResponse,
+             Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay((kMaxPathLength - 1) * 4));
+    }
+    return reject("Coordinator send TTL message with transaction finish state. Rolling Back");
 }
 
 TransactionResult::SharedConst ReceiverPaymentTransaction::runVotesCheckingStageWithCoordinatorClarification()

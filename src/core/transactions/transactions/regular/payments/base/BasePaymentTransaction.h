@@ -133,6 +133,7 @@ protected:
         Common_FinalPathConfigurationChecking,
         Common_Recovery,
         Common_ClarificationTransactionBeforeVoting,
+        Common_ClarificationTransactionDuringFinalAmountsClarification,
         Common_ClarificationTransactionDuringVoting,
 
         Common_RollbackByOtherTransaction

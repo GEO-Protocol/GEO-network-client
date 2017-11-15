@@ -1099,6 +1099,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         if (kTotalAmount == mCommand->amount()){
             debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
 
+            mStep = Coordinator_FinalAmountsConfigurationConfirmation;
             return sendFinalAmountsConfigurationToAllParticipants();
         }
         return tryProcessNextPath();
@@ -1436,9 +1437,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
         debug() << "Total requested amount: " << mCommand->amount() << ". Collected.";
         debug() << "Begin processing participants votes.";
 
-        // in case of reservation of all transaction amount on direct TL,
-        // we skip sendFinalAmountsConfigurationToAllParticipants stage
-        return propagateVotesListAndWaitForVotingResult();
+        mStep = Coordinator_FinalAmountsConfigurationConfirmation;
+        return sendFinalAmountsConfigurationToAllParticipants();
     }
     mStep = Stages::Coordinator_AmountReservation;
     return tryProcessNextPath();

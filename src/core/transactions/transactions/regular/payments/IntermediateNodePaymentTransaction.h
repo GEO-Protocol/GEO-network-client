@@ -87,6 +87,8 @@ protected:
 
     TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
 
+    TransactionResult::SharedConst runClarificationOfTransactionDuringFinalAmountsClarification();
+
     /**
      * reaction on response TTL message from coordinator
      * after receiving participants votes message

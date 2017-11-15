@@ -63,6 +63,8 @@ protected:
 
     TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
 
+    TransactionResult::SharedConst runClarificationOfTransactionDuringFinalAmountsClarification();
+
     /**
      * reaction on receiving participants votes message firstly
      * add own vote to message and send it to next participant
