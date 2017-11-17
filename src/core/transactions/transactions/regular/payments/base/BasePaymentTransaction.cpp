@@ -364,17 +364,15 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     // Checking if no one node has been deleted current nodes sign.
     // (Message modification protection)
     // ToDo: [mvp+] add cryptographic mechanism to prevent removing of votes.
-    if (currentNodeUUID() != mParticipantsVotesMessage->coordinatorUUID()) {
-        if (!positiveVoteIsPresent(mParticipantsVotesMessage)) {
-            // Note: there is no correct way to exit from the transaction
-            // in case if some one removed the vote from the message.
-            // Rolling transaction back only reverts current node.
+    if (!positiveVoteIsPresent(mParticipantsVotesMessage)) {
+        // Note: there is no correct way to exit from the transaction
+        // in case if some one removed the vote from the message.
+        // Rolling transaction back only reverts current node.
 
-            rollBack();
-            throw RuntimeError(
-                    "BasePaymentTransaction::runVotesConsistencyCheckingStage: "
-                            "Some node has been modified the message and removed the vote of the current node.");
-        }
+        rollBack();
+        throw RuntimeError(
+                "BasePaymentTransaction::runVotesConsistencyCheckingStage: "
+                        "Some node has been modified the message and removed the vote of the current node.");
     }
 
     if (mParticipantsVotesMessage->achievedConsensus()){
