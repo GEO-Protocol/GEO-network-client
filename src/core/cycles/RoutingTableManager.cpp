@@ -6,8 +6,10 @@ RoutingTableManager::RoutingTableManager(
     mIOService(ioService),
     mLog(logger)
 {
-//    int timeStarted = rand() % (10 * 3);
-    int timeStarted = 10;
+    int timeStarted = 80 + rand() % (60);
+#ifdef TESTS
+    timeStarted = 10;
+#endif
     mUpdatingTimer = make_unique<as::steady_timer>(
         mIOService);
     mUpdatingTimer->expires_from_now(
@@ -31,10 +33,8 @@ void RoutingTableManager::updateMapAddSeveralNeighbors(
     const NodeUUID &firstLevelContractor,
     set<NodeUUID> secondLevelContractors)
 {
-    mLog.debug("updateMapAddSeveralNeighbors") << "Neighbor: " << firstLevelContractor;
-    for(auto node: secondLevelContractors){
-        mLog.debug("updateMapAddSeveralNeighbors") << "SecondLevelNode: " << node;
-    }
+    mLog.debug("updateMapAddSeveralNeighbors") << "Neighbor: " << firstLevelContractor
+               << " 2nd level nodes cnt: " << secondLevelContractors.size();
     mRoughtingTable[firstLevelContractor] = secondLevelContractors;
 }
 
