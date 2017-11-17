@@ -183,7 +183,7 @@ void Logger::logRecord(
     mOperationsLogFile.flush();
 
     mOperationsLogFileLinesNumber++;
-    if(mOperationsLogFileLinesNumber >= 1024){
+    if(mOperationsLogFileLinesNumber >= maxRotateLimit){
         rotate();
         mOperationsLogFileLinesNumber = 0;
     }
@@ -191,20 +191,15 @@ void Logger::logRecord(
 
 void Logger::rotate()
 {
+    mOperationsLogFile.close();
+
     stringstream rotateFileName;
     rotateFileName << "archieved_operation_" << utc_now() << ".log";
 
-    std::ifstream fin(mOperationLogFileName);
-    std::ofstream fout(rotateFileName.str());
-    std::string line;
+    const std::string tmp = rotateFileName.str();
+    const char* newname = tmp.c_str();
+    rename("operations.log", newname);
 
-    while( std::getline(fin, line, '.' ) ) fout << line;
-
-    fout.flush();
-    fout.close();
-    fin.close();
-
-    mOperationsLogFile.close();
     mOperationsLogFile.open("operations.log", std::fstream::out | std::fstream::trunc);
 }
 

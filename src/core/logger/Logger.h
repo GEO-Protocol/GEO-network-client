@@ -105,6 +105,9 @@ public:
         const string &message);
 
 protected:
+    const int maxRotateLimit = 500000;
+
+protected:
     const string formatMessage(
         const string &message) const;
 
@@ -119,6 +122,8 @@ protected:
     void rotate();
 
     void calculateOperationsLogFileLinesNumber();
+
+
 
 private:
     NodeUUID mNodeUUID;
