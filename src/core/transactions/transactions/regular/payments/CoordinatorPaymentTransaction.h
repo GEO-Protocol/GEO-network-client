@@ -102,6 +102,10 @@ protected:
      */
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
 
+    TransactionResult::SharedConst runFinalAmountsParticipantConfirmation();
+
+    TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
+
     /**
      * reaction on receiving participants votes message with result of voting
      * on this stage node can commit transaction or reject it
@@ -362,5 +366,8 @@ protected:
 
     // count failed attempts to connect with Receiver
     uint8_t mCountReceiverInaccessible;
+
+    bool mAllNodesSentConfirmationOnFinalAmountsConfiguration;
+    bool mAllNeighborsSentFinalReservations;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H
