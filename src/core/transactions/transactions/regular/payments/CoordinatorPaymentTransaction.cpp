@@ -1216,13 +1216,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsPar
     auto kMessage = popNextMessage<FinalAmountsConfigurationResponseMessage>();
     debug() << "sender: " << kMessage->senderUUID;
     if (mFinalAmountNodesConfirmation.find(kMessage->senderUUID) == mFinalAmountNodesConfirmation.end()) {
-        // todo : need actual action on this case
         warning() << "Sender is not participant of this transaction";
-        return resultWaitForMessageTypes(
-            {Message::Payments_FinalAmountsConfigurationResponse,
-             Message::Payments_ReservationsInRelationToNode,
-             Message::Payments_TTLProlongationRequest},
-            maxNetworkDelay(2));
+        return resultContinuePreviousState();
     }
     if (kMessage->state() == FinalAmountsConfigurationResponseMessage::Rejected) {
         return reject("Haven't reach consensus on reservation. Transaction rejected.");

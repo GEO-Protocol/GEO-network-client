@@ -452,6 +452,10 @@ protected:
     unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNeighborsConfirmation;
     map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mRemoteReservations;
 
+    // this fields are used by coordinators on final amount configuration clarification
+    bool mAllNodesSentConfirmationOnFinalAmountsConfiguration;
+    bool mAllNeighborsSentFinalReservations;
+
 protected:
     SubsystemsController *mSubsystemsController;
 };

@@ -43,7 +43,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr)
+    mParticipantsVotesMessage(nullptr),
+    mCoordinatorAlreadySentFinalAmountsConfiguration(false)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(

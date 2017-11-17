@@ -366,8 +366,5 @@ protected:
 
     // count failed attempts to connect with Receiver
     uint8_t mCountReceiverInaccessible;
-
-    bool mAllNodesSentConfirmationOnFinalAmountsConfiguration;
-    bool mAllNeighborsSentFinalReservations;
 };
 #endif //GEO_NETWORK_CLIENT_COORDINATORPAYMENTTRANSCATION_H
