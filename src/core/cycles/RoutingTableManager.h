@@ -43,7 +43,9 @@ public:
     mutable UpdateRoutingTableSignal updateRoutingTableSignal;
 
 protected:
-    const uint32_t kUpdatingTimerPeriodSeconds = 60 * 60 * 24 * 3;
+//    const uint32_t kUpdatingTimerPeriodSeconds = 60 * 60 * 24 * 3;
+    const uint32_t kUpdatingTimerPeriodSeconds = 10;
+
 
 protected:
     as::io_service &mIOService;

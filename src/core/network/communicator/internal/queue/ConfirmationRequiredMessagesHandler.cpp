@@ -16,7 +16,7 @@ ConfirmationRequiredMessagesHandler::ConfirmationRequiredMessagesHandler(
         mIOService);
     mDeserializationMessagesTimer->expires_from_now(
         chrono::seconds(
-            kMessagesDeserializationDelayedSecondsTime));
+            15));
     mDeserializationMessagesTimer->async_wait(
         boost::bind(
                 &ConfirmationRequiredMessagesHandler::deserializeMessages,

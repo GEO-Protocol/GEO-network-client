@@ -203,6 +203,12 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+            // Black list command
+        } else if (identifier == AddNodeToBlackListCommand::identifier()) {
+            return newCommand<AddNodeToBlackListCommand>(
+                uuid,
+                buffer);
+
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "

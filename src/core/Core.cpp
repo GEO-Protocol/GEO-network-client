@@ -83,6 +83,7 @@ int Core::initSubsystems()
         return initCode;
 
     initCode = initStorageHandler();
+    initCode = initStorageHandler();
     if (initCode != 0)
         return initCode;
 

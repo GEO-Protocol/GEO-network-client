@@ -126,7 +126,7 @@ protected:
         const NodeUUID &contractorUUID,
         const Message::Shared message);
 
-protected:
+public:
     static const uint16_t kMessagesDeserializationDelayedSecondsTime = 15;
 
 protected:
