@@ -54,6 +54,9 @@ public:
     enum TransactionType {
         SetOutgoingTrustLineTransaction = 100,
         SetIncomingTrustLineTransaction = 101,
+        CloseIncomingTrustLineTransaction = 102,
+        CloseOutgoingTrustLineTransaction = 103,
+
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,

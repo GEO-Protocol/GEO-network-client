@@ -19,6 +19,7 @@
  * Interface commands
  */
 #include "../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
 
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
@@ -51,6 +52,7 @@
  */
 #include "../transactions/trust_lines/SetOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/SetIncomingTrustLineTransaction.h"
+#include "../transactions/trust_lines/CloseIncomingTrustLineTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -172,6 +174,9 @@ protected: // Transactions
      */
     void launchSetOutgoingTrustLineTransaction(
         SetOutgoingTrustLineCommand::Shared command);
+
+    void launchCloseIncomingTrustLineTransaction(
+        CloseIncomingTrustLineCommand::Shared command);
 
     /**
      * Starts transaction that would orocesses received message

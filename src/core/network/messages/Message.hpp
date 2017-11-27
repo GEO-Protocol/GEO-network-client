@@ -32,6 +32,7 @@ public:
          * Trust lines
          */
         TrustLines_SetIncoming = 100,
+        TrustLines_CloseOutgoing = 101,
 
         /*
          * Payments messages

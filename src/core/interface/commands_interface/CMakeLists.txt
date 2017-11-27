@@ -10,8 +10,10 @@ set(SOURCE_FILES
         commands/BaseUserCommand.cpp
         commands/BaseUserCommand.h
 
-        commands/trust_lines/SetOutgoingTrustLineCommand.cpp
         commands/trust_lines/SetOutgoingTrustLineCommand.h
+        commands/trust_lines/SetOutgoingTrustLineCommand.cpp
+        commands/trust_lines/CloseIncomingTrustLineCommand.h
+        commands/trust_lines/CloseIncomingTrustLineCommand.cpp
 
         commands/payments/CreditUsageCommand.cpp
         commands/payments/CreditUsageCommand.h
@@ -41,7 +43,10 @@ set(SOURCE_FILES
         commands/trust_lines_list/GetTrustLineCommand.cpp
 
         commands/subsystems_controller/SubsystemsInfluenceCommand.h
-        commands/subsystems_controller/SubsystemsInfluenceCommand.cpp commands/history/HistoryAdditionalPaymentsCommand.h commands/history/HistoryAdditionalPaymentsCommand.cpp)
+        commands/subsystems_controller/SubsystemsInfluenceCommand.cpp
+
+        commands/history/HistoryAdditionalPaymentsCommand.h
+        commands/history/HistoryAdditionalPaymentsCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

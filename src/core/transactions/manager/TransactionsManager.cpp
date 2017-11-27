@@ -192,6 +192,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<SetOutgoingTrustLineCommand>(
                 command));
 
+    } else if (command->identifier() == CloseIncomingTrustLineCommand::identifier()) {
+        launchCloseIncomingTrustLineTransaction(
+            static_pointer_cast<CloseIncomingTrustLineCommand>(
+                command));
+
     } else if (command->identifier() == CreditUsageCommand::identifier()) {
         launchCoordinatorPaymentTransaction(
             dynamic_pointer_cast<CreditUsageCommand>(
@@ -382,6 +387,22 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mTrustLines,
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
+            mSubsystemsController,
+            mLog),
+        true,
+        false,
+        true);
+}
+
+void TransactionsManager::launchCloseIncomingTrustLineTransaction(
+    CloseIncomingTrustLineCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<CloseIncomingTrustLineTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mStorageHandler,
             mSubsystemsController,
             mLog),
         true,
