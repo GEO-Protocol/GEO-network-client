@@ -1,6 +1,4 @@
 ﻿#include "TransactionsManager.h"
-#include "../transactions/history/HistoryAdditionalPaymentsTransaction.h"
-
 
 /*!
  *
@@ -247,6 +245,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<GetTrustLineCommand>(
                 command));
 
+    // BlackList Commands
+    } else if (command->identifier() == GetTrustLineCommand::identifier()){
+        launchGetTrustlineTransaction(
+            static_pointer_cast<GetTrustLineCommand>(
+                command));
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -1402,4 +1405,23 @@ void TransactionsManager::launchRoutingTableRequestTransaction()
     } catch (ConflictError &e){
         throw ConflictError(e.message());
     }
+}
+
+void TransactionsManager::launchAddNodeToBlackListTransaction(
+    AddNodeToBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<AddNodeToBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+
 }

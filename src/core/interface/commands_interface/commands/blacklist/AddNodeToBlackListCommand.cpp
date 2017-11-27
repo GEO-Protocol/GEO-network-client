@@ -40,3 +40,14 @@ const NodeUUID &AddNodeToBlackListCommand::contractorUUID()
 noexcept {
     return mContractorUUID;
 }
+
+AddNodeToBlackListCommand::AddNodeToBlackListCommand(
+    const CommandUUID &commandUUID,
+    const NodeUUID &nodeUUID):
+    BaseUserCommand(
+        commandUUID,
+        identifier()),
+    mContractorUUID(nodeUUID)
+{
+
+}

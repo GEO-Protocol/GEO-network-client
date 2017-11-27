@@ -27,10 +27,14 @@
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryWithContractorCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/blacklist/AddNodeToBlackListCommand.h"
+
+
 
 /*
  * Network messages
@@ -81,7 +85,7 @@
 #include "../transactions/total_balances/TotalBalancesFromRemoutNodeTransaction.h"
 
 #include "../transactions/history/HistoryPaymentsTransaction.h"
-#include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
+#include "../transactions/history/HistoryAdditionalPaymentsTransaction.h"
 #include "../transactions/history/HistoryTrustLinesTransaction.h"
 #include "../transactions/history/HistoryWithContractorTransaction.h"
 
@@ -92,11 +96,16 @@
 #include "../transactions/routing_table/RoutingTableInitTransaction.h"
 #include "../transactions/routing_table/RoutingTableResponseTransaction.h"
 
+#include "../transactions/blacklist/AddNodeToBlackListTransaction.h"
+
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
 #include <boost/signals2.hpp>
 
 #include <string>
+
+
+
 
 using namespace std;
 namespace signals = boost::signals2;
@@ -261,6 +270,12 @@ protected: // Transactions
     void launchGetTrustlineTransaction(
         GetTrustLineCommand::Shared command);
 
+    /*
+     * BlackList
+     */
+public:
+    void launchAddNodeToBlackListTransaction(
+        AddNodeToBlackListCommand::Shared command);
     /*
      * RoutingTable
      */
