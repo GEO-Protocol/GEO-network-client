@@ -94,7 +94,7 @@ protected:
         noexcept;
 
     /**
-     * @returns timestamp, when next timer awakenes must be performed.
+     * @returns timestamp, when next timer awakeness must be performed.
      * This method checks all queues and returns the smalles one time duration,
      * between now and queue timeout.
      */
@@ -126,8 +126,8 @@ protected:
         const NodeUUID &contractorUUID,
         const Message::Shared message);
 
-public:
-    static const uint16_t kMessagesDeserializationDelayedSecondsTime = 15;
+protected:
+    static const uint16_t kMessagesDeserializationDelayedSecondsTime = 60;
 
 protected:
     /**

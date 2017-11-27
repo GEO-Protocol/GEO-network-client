@@ -19,7 +19,7 @@ ConfirmationRequiredMessagesHandler::ConfirmationRequiredMessagesHandler(
             15));
     mDeserializationMessagesTimer->async_wait(
         boost::bind(
-                &ConfirmationRequiredMessagesHandler::deserializeMessages,
+            &ConfirmationRequiredMessagesHandler::deserializeMessages,
             this));
 }
 
