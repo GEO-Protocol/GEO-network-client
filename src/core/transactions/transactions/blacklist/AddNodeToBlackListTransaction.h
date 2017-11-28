@@ -24,8 +24,12 @@ public:
 
     TransactionResult::SharedConst run();
 
+protected:
+    const string logHeader() const;
+
 private:
     AddNodeToBlackListCommand::Shared mCommand;
     StorageHandler *mStorageHandler;
 };
+
 #endif //GEO_NETWORK_CLIENT_ADDNODETOBLACKLISTTRANSACTION_H

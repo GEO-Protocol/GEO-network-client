@@ -1,20 +1,18 @@
-#ifndef GEO_NETWORK_CLIENT_REMOVENODEFROMBLACKLISTCOMMAND_H
-#define GEO_NETWORK_CLIENT_REMOVENODEFROMBLACKLISTCOMMAND_H
-
-
+#ifndef GEO_NETWORK_CLIENT_CHECKIFNODEINBLACKLIST_H
+#define GEO_NETWORK_CLIENT_CHECKIFNODEINBLACKLIST_H
 
 #include "../BaseUserCommand.h"
 #include "../../../../common/exceptions/ValueError.h"
 
 
-class RemoveNodeFromBlackListCommand:
+class CheckIfNodeInBlackListCommand:
     public BaseUserCommand {
 
 public:
-    typedef shared_ptr<RemoveNodeFromBlackListCommand> Shared;
+    typedef shared_ptr<CheckIfNodeInBlackListCommand> Shared;
 
 public:
-    RemoveNodeFromBlackListCommand(
+    CheckIfNodeInBlackListCommand(
         const CommandUUID &commandUUID,
         const string &commandBuffer);
 
@@ -33,4 +31,4 @@ protected:
     NodeUUID mContractorUUID;
 };
 
-#endif //GEO_NETWORK_CLIENT_REMOVENODEFROMBLACKLISTCOMMAND_H
+#endif //GEO_NETWORK_CLIENT_CHECKIFNODEINBLACKLIST_H

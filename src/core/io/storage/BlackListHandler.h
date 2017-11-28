@@ -34,10 +34,14 @@ public:
 
     void addNode(
         const NodeUUID &nodeUUID);
+
+    bool checkIfNodeExist(const NodeUUID &contractor_node);
+
+    void removeNodeFromBlackList(const NodeUUID &contractor_node);
+
 protected:
+
     void ensureBlackListTable();
-
-
 
 protected:
     LoggerStream info() const;

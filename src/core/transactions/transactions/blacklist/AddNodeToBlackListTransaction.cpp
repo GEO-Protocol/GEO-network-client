@@ -6,7 +6,7 @@ AddNodeToBlackListTransaction::AddNodeToBlackListTransaction(
     StorageHandler *storageHandler,
     Logger &logger):
     BaseTransaction(
-        BaseTransaction::ContractorsList,
+        BaseTransaction::AddNodeToBlackListTransactionType,
         nodeUUID,
         logger),
     mCommand(command),
@@ -23,4 +23,11 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run() {
     const auto contractorNode = mCommand->contractorUUID();
     ioTransaction->blackListHandler()->addNode(contractorNode);
     return transactionResultFromCommand(mCommand->responseOK());
+}
+
+const string AddNodeToBlackListTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[AddNodeToBlackListTA: " << currentTransactionUUID() << "] ";
+    return s.str();
 }

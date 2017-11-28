@@ -33,7 +33,9 @@
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/blacklist/AddNodeToBlackListCommand.h"
-
+#include "../../interface/commands_interface/commands/blacklist/CheckIfNodeInBlackListCommand.h"
+#include "../../interface/commands_interface/commands/blacklist/RemoveNodeFromBlackListCommand.h"
+#include "../../interface/commands_interface/commands/blacklist/GetBlackListCommand.h"
 
 
 /*
@@ -97,6 +99,10 @@
 #include "../transactions/routing_table/RoutingTableResponseTransaction.h"
 
 #include "../transactions/blacklist/AddNodeToBlackListTransaction.h"
+#include "../transactions/blacklist/CheckIfNodeInBlackListTransaction.h"
+#include "../transactions/blacklist/RemoveNodeFromBlackListTransaction.h"
+#include "../transactions/blacklist/GetBlackListTransaction.h"
+
 
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
@@ -276,6 +282,15 @@ protected: // Transactions
 public:
     void launchAddNodeToBlackListTransaction(
         AddNodeToBlackListCommand::Shared command);
+
+    void launchCheckIfNodeInBlackListTransaction(
+        CheckIfNodeInBlackListCommand::Shared command);
+
+    void launchRemoveNodeFromBlackListTransaction(
+        RemoveNodeFromBlackListCommand::Shared command);
+
+    void launchGetBlackListTransaction(
+        GetBlackListCommand::Shared command);
     /*
      * RoutingTable
      */

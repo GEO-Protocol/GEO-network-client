@@ -88,7 +88,7 @@ vector<NodeUUID> BlackListHandler::allNodesUUIDS() {
 
 void BlackListHandler::addNode(const NodeUUID &nodeUUID)
 {
-    string query = "INSERT INTO " + mTableName +
+    string query = "INSERT OR REPLACE INTO " + mTableName +
                    "(node_uuid) VALUES (?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
@@ -131,3 +131,59 @@ LoggerStream BlackListHandler::error() const
 {
     return mLog.warning(logHeader());
 }
+
+bool BlackListHandler::checkIfNodeExist(const NodeUUID &contractor_node)
+{
+    string query = "SELECT node_uuid FROM " + mTableName + " WHERE node_uuid = ? LIMIT 1";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+
+    if (rc != SQLITE_OK) {
+        throw IOError(
+            "BlackListHandler::allNodesUUIDS:"
+                "Can't select applied  blacklist.  "
+                "sqlite error code: " + to_string(rc));
+    }
+
+    rc = sqlite3_bind_blob(stmt, 1, contractor_node.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("BlackListHandler::delete: "
+                          "Bad binding of contractor_node; sqlite error: " + to_string(rc));
+    }
+
+    auto searchResult = (sqlite3_step(stmt) == SQLITE_ROW);
+
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+
+    return searchResult;
+}
+
+void BlackListHandler::removeNodeFromBlackList(
+    const NodeUUID &contractor_node) {
+    string query = "DELETE FROM " + mTableName + " WHERE node_uuid = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        throw IOError("BlackListHandler::delete: "
+                          "Bad query; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_bind_blob(stmt, 1, contractor_node.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        throw IOError("BlackListHandler::delete: "
+                          "Bad binding of contractor_node; sqlite error: " + to_string(rc));
+    }
+    rc = sqlite3_step(stmt);
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    if (rc == SQLITE_DONE) {
+#ifdef STORAGE_HANDLER_DEBUG_LOG
+        info() << "prepare deleting is completed successfully";
+#endif
+    } else {
+        throw IOError("BlackListHandler::delete: "
+                          "Run query; sqlite error: " + to_string(rc));
+    }
+}
+

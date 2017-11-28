@@ -17,19 +17,11 @@ public:
         const CommandUUID &commandUUID,
         const string &commandBuffer);
 
-    AddNodeToBlackListCommand(
-        const CommandUUID &commandUUID,
-        const NodeUUID &nodeUUID);
-
-
     static const string &identifier()
         noexcept;
 
     const NodeUUID& contractorUUID()
         noexcept;
-
-//    CommandResult::SharedConst resultOk(
-//        string &neighbor) const;
 
 protected:
     [[deprecated]]

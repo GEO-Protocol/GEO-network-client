@@ -1425,3 +1425,57 @@ void TransactionsManager::launchAddNodeToBlackListTransaction(
     }
 
 }
+
+void TransactionsManager::launchCheckIfNodeInBlackListTransaction(
+    CheckIfNodeInBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<CheckIfNodeInBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchRemoveNodeFromBlackListTransaction(
+    RemoveNodeFromBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<RemoveNodeFromBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchGetBlackListTransaction(
+    GetBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<GetBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}

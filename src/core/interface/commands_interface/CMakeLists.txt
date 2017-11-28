@@ -41,7 +41,22 @@ set(SOURCE_FILES
         commands/trust_lines_list/GetTrustLineCommand.cpp
 
         commands/subsystems_controller/SubsystemsInfluenceCommand.h
-        commands/subsystems_controller/SubsystemsInfluenceCommand.cpp commands/history/HistoryAdditionalPaymentsCommand.h commands/history/HistoryAdditionalPaymentsCommand.cpp commands/blacklist/AddNodeToBlackListCommand.cpp commands/blacklist/AddNodeToBlackListCommand.h commands/blacklist/RemoveNodeFromBlackListCommand.h commands/blacklist/RemoveNodeFromBlackListCommand.cpp commands/blacklist/GetBlackListCommand.h commands/blacklist/GetBlackListCommand.cpp commands/blacklist/CheckIfNodeInBlackList.h commands/blacklist/CheckIfNodeInBlackList.cpp)
+        commands/subsystems_controller/SubsystemsInfluenceCommand.cpp
+
+        commands/history/HistoryAdditionalPaymentsCommand.h
+        commands/history/HistoryAdditionalPaymentsCommand.cpp
+
+        commands/blacklist/AddNodeToBlackListCommand.cpp
+        commands/blacklist/AddNodeToBlackListCommand.h
+
+        commands/blacklist/RemoveNodeFromBlackListCommand.h
+        commands/blacklist/RemoveNodeFromBlackListCommand.cpp
+
+        commands/blacklist/GetBlackListCommand.h
+        commands/blacklist/GetBlackListCommand.cpp
+
+        commands/blacklist/CheckIfNodeInBlackListCommand.h
+        commands/blacklist/CheckIfNodeInBlackListCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

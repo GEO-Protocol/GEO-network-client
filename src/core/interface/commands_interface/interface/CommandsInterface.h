@@ -19,7 +19,7 @@
 #include "../commands/trust_lines_list/GetTrustLineCommand.h"
 #include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
 #include "../commands/blacklist/AddNodeToBlackListCommand.h"
-#include "../commands/blacklist/CheckIfNodeInBlackList.h"
+#include "../commands/blacklist/CheckIfNodeInBlackListCommand.h"
 #include "../commands/blacklist/RemoveNodeFromBlackListCommand.h"
 #include "../commands/blacklist/GetBlackListCommand.h"
 

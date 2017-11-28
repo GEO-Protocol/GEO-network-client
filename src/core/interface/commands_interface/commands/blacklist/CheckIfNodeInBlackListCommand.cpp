@@ -1,7 +1,7 @@
-#include "AddNodeToBlackListCommand.h"
+#include "CheckIfNodeInBlackListCommand.h"
 
 
-AddNodeToBlackListCommand::AddNodeToBlackListCommand(
+CheckIfNodeInBlackListCommand::CheckIfNodeInBlackListCommand(
     const CommandUUID &commandUUID,
     const string &command) :
 
@@ -14,7 +14,7 @@ AddNodeToBlackListCommand::AddNodeToBlackListCommand(
 
     if (command.size() < minCommandLength) {
         throw ValueError(
-            "AddNodeToBlackListCommand: can't parse command. "
+            "CheckIfNodeInBlackListCommand: can't parse command. "
                 "Received command is to short.");
     }
 
@@ -24,19 +24,19 @@ AddNodeToBlackListCommand::AddNodeToBlackListCommand(
 
     } catch (...) {
         throw ValueError(
-            "AddNodeToBlackListCommand: can't parse command. "
+            "CheckIfNodeInBlackListCommand: can't parse command. "
                 "Error occurred while parsing 'Contractor UUID' token.");
     }
 }
 
-const string &AddNodeToBlackListCommand::identifier()
+const string &CheckIfNodeInBlackListCommand::identifier()
 noexcept
 {
-    static const string identifier = "POST:blacklist";
+    static const string identifier = "GET:blacklist/one";
     return identifier;
 }
 
-const NodeUUID &AddNodeToBlackListCommand::contractorUUID()
+const NodeUUID &CheckIfNodeInBlackListCommand::contractorUUID()
 noexcept {
     return mContractorUUID;
 }
