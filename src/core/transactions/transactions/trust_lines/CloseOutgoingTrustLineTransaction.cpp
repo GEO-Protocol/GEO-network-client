@@ -39,8 +39,8 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
 
         // todo : change operation type
         populateHistory(ioTransaction, TrustLineRecord::Rejecting);
-        info() << "Incoming trust line from the node " << kContractor
-               << " has been successfully closed.";
+        info() << "Outgoing trust line to the node " << kContractor
+               << " has been successfully closed by remote node.";
 
         // Sending confirmation back.
         sendMessage<ConfirmationMessage>(
@@ -52,7 +52,7 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
 
     } catch (NotFoundError &e) {
         ioTransaction->rollback();
-        info() << "Attempt to close outgoing trust line from the node " << kContractor << " failed. "
+        info() << "Attempt to close outgoing trust line to the node " << kContractor << " failed. "
                << "Details are: " << e.what();
         return resultDone();
 
