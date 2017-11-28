@@ -366,6 +366,10 @@ void TransactionsManager::processMessage(
         launchSetIncomingTrustLineTransaction(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
 
+    } else if (message->typeID() == Message::TrustLines_CloseOutgoing) {
+        launchCloseOutgoingTrustLineTransaction(
+            static_pointer_cast<CloseOutgoingTrustLineMessage>(message));
+
     /*
      * RoutingTable
     */
@@ -420,6 +424,21 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             mTrustLines,
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
+            mLog),
+        true,
+        false,
+        true);
+}
+
+void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
+    CloseOutgoingTrustLineMessage::Shared message)
+{
+    prepareAndSchedule(
+        make_shared<CloseOutgoingTrustLineTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mStorageHandler,
             mLog),
         true,
         false,

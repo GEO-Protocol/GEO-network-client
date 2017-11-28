@@ -1,4 +1,5 @@
 #include "ConfirmationRequiredMessagesHandler.h"
+#include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 
 
 ConfirmationRequiredMessagesHandler::ConfirmationRequiredMessagesHandler(
@@ -28,6 +29,7 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
     const Message::Shared message)
 {
     if (message->typeID() == Message::TrustLines_SetIncoming
+        or message->typeID() == Message::TrustLines_CloseOutgoing
         /* and <other message type here> */) {
 
         // Appropriate message occurred and must be enqueued.
@@ -222,6 +224,10 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<SetIncomingTrustLineMessage>(messageBody));
                 break;
+            case Message::TrustLines_CloseOutgoing:
+                sendingMessage = static_pointer_cast<TransactionMessage>(
+                    make_shared<CloseOutgoingTrustLineMessage>(messageBody));
+                break;
             default:
                 mLog.error("ConfirmationRequiredMessagesHandler::deserializeMessages "
                                "invalid message type");
@@ -252,6 +258,7 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSign
         const Message::Shared message)
 {
     if (message->typeID() == Message::TrustLines_SetIncoming
+        or message->typeID() == Message::TrustLines_CloseOutgoing
         /* and <other message type here> */) {
 
         // Appropriate message occurred and must be enqueued.

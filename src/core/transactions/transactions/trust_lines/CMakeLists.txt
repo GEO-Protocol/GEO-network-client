@@ -8,7 +8,10 @@ set(SOURCE_FILES
     SetIncomingTrustLineTransaction.cpp
 
     CloseIncomingTrustLineTransaction.h
-    CloseIncomingTrustLineTransaction.cpp)
+    CloseIncomingTrustLineTransaction.cpp
+
+    CloseOutgoingTrustLineTransaction.h
+    CloseOutgoingTrustLineTransaction.cpp)
 
 add_library(transactions__trustlines ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines

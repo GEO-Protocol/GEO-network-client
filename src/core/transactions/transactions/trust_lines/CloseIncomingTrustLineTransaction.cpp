@@ -43,6 +43,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
             ioTransaction,
             kContractor);
 
+        // todo : change operation type
         populateHistory(ioTransaction, TrustLineRecord::Closing);
 
         info() << "Incoming trust line from the node " << kContractor
@@ -106,13 +107,12 @@ void CloseIncomingTrustLineTransaction::populateHistory(
     IOTransaction::Shared ioTransaction,
     TrustLineRecord::TrustLineOperationType operationType)
 {
-//#ifndef TESTS
-//    auto record = make_shared<TrustLineRecord>(
-//            mTransactionUUID,
-//            operationType,
-//            mCommand->contractorUUID(),
-//            mCommand->amount());
-//
-//    ioTransaction->historyStorage()->saveTrustLineRecord(record);
-//#endif
+#ifndef TESTS
+    auto record = make_shared<TrustLineRecord>(
+        mTransactionUUID,
+        operationType,
+        mCommand->contractorUUID());
+
+    ioTransaction->historyStorage()->saveTrustLineRecord(record);
+#endif
 }

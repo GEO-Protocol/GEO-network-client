@@ -53,6 +53,7 @@
 #include "../transactions/trust_lines/SetOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/SetIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseIncomingTrustLineTransaction.h"
+#include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -179,11 +180,14 @@ protected: // Transactions
         CloseIncomingTrustLineCommand::Shared command);
 
     /**
-     * Starts transaction that would orocesses received message
+     * Starts transaction that would processes received message
      * and attempts to set incoming trust line from the remote node.
      */
     void launchSetIncomingTrustLineTransaction(
         SetIncomingTrustLineMessage::Shared message);
+
+    void launchCloseOutgoingTrustLineTransaction(
+        CloseOutgoingTrustLineMessage::Shared message);
 
     /*
      * Max flow transactions
