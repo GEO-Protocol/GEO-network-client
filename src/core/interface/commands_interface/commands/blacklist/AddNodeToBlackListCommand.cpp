@@ -9,8 +9,7 @@ AddNodeToBlackListCommand::AddNodeToBlackListCommand(
         commandUUID,
         identifier())
 {
-    static const auto amountTokenOffset = NodeUUID::kHexSize + 1;
-    static const auto minCommandLength = amountTokenOffset + 1;
+    static const auto minCommandLength = NodeUUID::kHexSize + 1;
 
     if (command.size() < minCommandLength) {
         throw ValueError(

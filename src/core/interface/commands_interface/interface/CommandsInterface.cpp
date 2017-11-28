@@ -209,6 +209,21 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == RemoveNodeFromBlackListCommand::identifier()) {
+            return newCommand<RemoveNodeFromBlackListCommand>(
+                uuid,
+                buffer);
+
+        } else if (identifier == CheckIfNodeInBlackListCommand::identifier()) {
+            return newCommand<CheckIfNodeInBlackListCommand>(
+                uuid,
+                buffer);
+
+        } else if (identifier == GetBlackListCommand::identifier()) {
+            return newCommand<GetBlackListCommand>(
+                uuid,
+                buffer);
+
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "

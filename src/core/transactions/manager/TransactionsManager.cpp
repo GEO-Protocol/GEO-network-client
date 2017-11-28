@@ -246,10 +246,27 @@ void TransactionsManager::processCommand(
                 command));
 
     // BlackList Commands
-    } else if (command->identifier() == GetTrustLineCommand::identifier()){
-        launchGetTrustlineTransaction(
-            static_pointer_cast<GetTrustLineCommand>(
+    } else if (command->identifier() == AddNodeToBlackListCommand::identifier()){
+
+        launchAddNodeToBlackListTransaction(
+            static_pointer_cast<AddNodeToBlackListCommand>(
                 command));
+
+    } else if (command->identifier() == CheckIfNodeInBlackListCommand::identifier()){
+        launchCheckIfNodeInBlackListTransaction(
+            static_pointer_cast<CheckIfNodeInBlackListCommand>(
+                command));
+
+    } else if (command->identifier() == RemoveNodeFromBlackListCommand::identifier()){
+        launchRemoveNodeFromBlackListTransaction(
+            static_pointer_cast<RemoveNodeFromBlackListCommand>(
+                command));
+
+    } else if (command->identifier() == GetBlackListCommand::identifier()){
+        launchGetBlackListTransaction(
+            static_pointer_cast<GetBlackListCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "

@@ -9,8 +9,7 @@ CheckIfNodeInBlackListCommand::CheckIfNodeInBlackListCommand(
         commandUUID,
         identifier())
 {
-    static const auto amountTokenOffset = NodeUUID::kHexSize + 1;
-    static const auto minCommandLength = amountTokenOffset + 1;
+    static const auto minCommandLength = NodeUUID::kHexSize + 1;
 
     if (command.size() < minCommandLength) {
         throw ValueError(
@@ -32,7 +31,7 @@ CheckIfNodeInBlackListCommand::CheckIfNodeInBlackListCommand(
 const string &CheckIfNodeInBlackListCommand::identifier()
 noexcept
 {
-    static const string identifier = "GET:blacklist/one";
+    static const string identifier = "GET:blacklist/check";
     return identifier;
 }
 
