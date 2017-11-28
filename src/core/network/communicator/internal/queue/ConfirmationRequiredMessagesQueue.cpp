@@ -1,5 +1,4 @@
 #include "ConfirmationRequiredMessagesQueue.h"
-#include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 
 
 ConfirmationRequiredMessagesQueue::ConfirmationRequiredMessagesQueue(
@@ -24,6 +23,7 @@ void ConfirmationRequiredMessagesQueue::enqueue(
                 static_pointer_cast<CloseOutgoingTrustLineMessage>(message));
             break;
         }
+        //todo : add logger and warning default case
     }
 }
 
@@ -95,7 +95,7 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(
         message);
 }
 
-// todo : disscuss if need keep only one message in queue
+// todo : discuss if need keep only one message in queue
 void ConfirmationRequiredMessagesQueue::updateTrustLineCloseNotificationInTheQueue(
     CloseOutgoingTrustLineMessage::Shared message)
 {
