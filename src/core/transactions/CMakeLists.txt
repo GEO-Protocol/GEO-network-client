@@ -14,6 +14,7 @@ add_subdirectory(transactions/history)
 add_subdirectory(transactions/find_path)
 add_subdirectory(transactions/trustlines_list)
 add_subdirectory(transactions/routing_table)
+add_subdirectory(transactions/transaction)
 
 set(SOURCE_FILES
         manager/TransactionsManager.h
@@ -36,6 +37,7 @@ target_link_libraries(transactions
         transactions__trustlines_list
         transactions__find_path
         transactions__routing_table
+        transactions__transaction
 
         common
         exceptions)

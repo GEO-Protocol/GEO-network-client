@@ -247,6 +247,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<GetTrustLineCommand>(
                 command));
 
+    } else if (command->identifier() == PaymentTransactionByCommandUUIDCommand::identifier()){
+        launchPaymentTransactionByCommandUUIDTransaction(
+            static_pointer_cast<PaymentTransactionByCommandUUIDCommand>(
+                command));
+
     } else {
         throw ValueError(
             "TransactionsManager::processCommand: "
@@ -883,6 +888,25 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
                 mLog),
             true,
             true,
+            false);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchPaymentTransactionByCommandUUIDTransaction(
+    PaymentTransactionByCommandUUIDCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<PaymentTransactionByCommandUUIDTransaction>(
+                mNodeUUID,
+                command,
+                mScheduler->paymentTransactionByCommandUUID(
+                    command->paymentTransactionCommandUUID()),
+                mLog),
+            false,
+            false,
             false);
     } catch (ConflictError &e){
         throw ConflictError(e.message());

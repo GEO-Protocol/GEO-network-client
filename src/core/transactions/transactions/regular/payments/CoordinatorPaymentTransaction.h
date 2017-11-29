@@ -65,6 +65,8 @@ public:
      */
     const NodeUUID& coordinatorUUID() const;
 
+    const CommandUUID& commandUUID() const;
+
 protected:
     // Stages handlers
     // TODO: Add throws specifications

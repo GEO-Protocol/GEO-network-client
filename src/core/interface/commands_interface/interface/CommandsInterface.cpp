@@ -203,6 +203,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == PaymentTransactionByCommandUUIDCommand::identifier()) {
+            return newCommand<PaymentTransactionByCommandUUIDCommand>(
+                uuid,
+                buffer);
+
         } else {
             throw RuntimeError(
                 "CommandsParser::tryParseCommand: "

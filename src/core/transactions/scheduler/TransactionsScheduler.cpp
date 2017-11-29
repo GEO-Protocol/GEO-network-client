@@ -477,3 +477,18 @@ void TransactionsScheduler::tryAttachMessageToCollectTopologyTransaction(
                     "can't find CollectTopologyTransaction");
 
 }
+
+const BaseTransaction::Shared TransactionsScheduler::paymentTransactionByCommandUUID(
+    const CommandUUID &commandUUID) const
+{
+    for (const auto &transactionAndState : *mTransactions.get()) {
+        if (transactionAndState.first->transactionType() != BaseTransaction::CoordinatorPaymentTransaction) {
+            continue;
+        }
+        auto paymentTransaction = static_pointer_cast<CoordinatorPaymentTransaction>(transactionAndState.first);
+        if (paymentTransaction->commandUUID() == commandUUID) {
+            return transactionAndState.first;
+        }
+    }
+    return nullptr;
+}

@@ -30,6 +30,8 @@ set(SOURCE_FILES
         commands/history/HistoryTrustLinesCommand.h
         commands/history/HistoryWithContractorCommand.h
         commands/history/HistoryWithContractorCommand.cpp
+        commands/history/HistoryAdditionalPaymentsCommand.h
+        commands/history/HistoryAdditionalPaymentsCommand.cpp
 
         commands/trust_lines_list/GetFirstLevelContractorsCommand.h
         commands/trust_lines_list/GetFirstLevelContractorsCommand.cpp
@@ -41,7 +43,10 @@ set(SOURCE_FILES
         commands/trust_lines_list/GetTrustLineCommand.cpp
 
         commands/subsystems_controller/SubsystemsInfluenceCommand.h
-        commands/subsystems_controller/SubsystemsInfluenceCommand.cpp commands/history/HistoryAdditionalPaymentsCommand.h commands/history/HistoryAdditionalPaymentsCommand.cpp)
+        commands/subsystems_controller/SubsystemsInfluenceCommand.cpp
+
+        commands/transactions/PaymentTransactionByCommandUUIDCommand.h
+        commands/transactions/PaymentTransactionByCommandUUIDCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

@@ -105,6 +105,9 @@ public:
         //RoutingTable
         RoutingTableInitTransactionType = 900,
         RoutingTableResponceTransactionType = 901,
+
+        // Transactions
+        TransactionByCommandUUIDType = 1000
     };
 
 public:

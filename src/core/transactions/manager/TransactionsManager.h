@@ -31,6 +31,7 @@
 #include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/transactions/PaymentTransactionByCommandUUIDCommand.h"
 
 /*
  * Network messages
@@ -93,6 +94,8 @@
 #include "../transactions/routing_table/RoutingTableResponseTransaction.h"
 
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
+
+#include "../transactions/transaction/PaymentTransactionByCommandUUIDTransaction.h"
 
 #include <boost/signals2.hpp>
 
@@ -260,6 +263,12 @@ protected: // Transactions
 
     void launchGetTrustlineTransaction(
         GetTrustLineCommand::Shared command);
+
+    /*
+     * Transaction
+     */
+    void launchPaymentTransactionByCommandUUIDTransaction(
+        PaymentTransactionByCommandUUIDCommand::Shared command);
 
     /*
      * RoutingTable
