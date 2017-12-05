@@ -46,7 +46,19 @@ set(SOURCE_FILES
         commands/subsystems_controller/SubsystemsInfluenceCommand.cpp
 
         commands/history/HistoryAdditionalPaymentsCommand.h
-        commands/history/HistoryAdditionalPaymentsCommand.cpp)
+        commands/history/HistoryAdditionalPaymentsCommand.cpp
+
+        commands/blacklist/AddNodeToBlackListCommand.cpp
+        commands/blacklist/AddNodeToBlackListCommand.h
+
+        commands/blacklist/RemoveNodeFromBlackListCommand.h
+        commands/blacklist/RemoveNodeFromBlackListCommand.cpp
+
+        commands/blacklist/GetBlackListCommand.h
+        commands/blacklist/GetBlackListCommand.cpp
+
+        commands/blacklist/CheckIfNodeInBlackListCommand.h
+        commands/blacklist/CheckIfNodeInBlackListCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands

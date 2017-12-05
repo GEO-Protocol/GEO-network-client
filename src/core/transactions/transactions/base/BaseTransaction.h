@@ -108,6 +108,12 @@ public:
         //RoutingTable
         RoutingTableInitTransactionType = 900,
         RoutingTableResponceTransactionType = 901,
+
+        //BlackList
+        AddNodeToBlackListTransactionType = 1000,
+        CheckIfNodeInBlackListTransactionType = 1001,
+        RemoveNodeFromBlackListTransactionType = 1002,
+        GetBlackListTransactionType = 1003
     };
 
 public:

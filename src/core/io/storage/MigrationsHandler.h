@@ -61,6 +61,7 @@ public:
         HistoryStorage *historyStorage,
         PaymentOperationStateHandler *paymentOperationStorage,
         TransactionsHandler *transactionHandler,
+        BlackListHandler *blackListHandler,
         Logger &logger);
 
     void applyMigrations();
@@ -94,6 +95,7 @@ protected:
     HistoryStorage *mHistoryStorage;
     PaymentOperationStateHandler *mPaymentOperationStateHandler;
     TransactionsHandler *mTransactionHandler;
+    BlackListHandler *mBlackListHandler;
 
     // Name of the migrations table in the DB.
     // This table is used for storing information about already applied migrations.

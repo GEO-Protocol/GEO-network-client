@@ -19,6 +19,11 @@
 #include "../commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../commands/trust_lines_list/GetTrustLineCommand.h"
 #include "../commands/subsystems_controller/SubsystemsInfluenceCommand.h"
+#include "../commands/blacklist/AddNodeToBlackListCommand.h"
+#include "../commands/blacklist/CheckIfNodeInBlackListCommand.h"
+#include "../commands/blacklist/RemoveNodeFromBlackListCommand.h"
+#include "../commands/blacklist/GetBlackListCommand.h"
+
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"

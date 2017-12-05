@@ -648,7 +648,3 @@ LoggerStream Core::info() const
 {
     return mLog->info(logHeader());
 }
-
-
-
-

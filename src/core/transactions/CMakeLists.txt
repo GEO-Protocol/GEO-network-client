@@ -22,7 +22,7 @@ set(SOURCE_FILES
         scheduler/TransactionsScheduler.h
         scheduler/TransactionsScheduler.cpp
         
-        transactions/base/TransactionUUID.h)
+        transactions/base/TransactionUUID.h transactions/blacklist/AddNodeToBlackListTransaction.h transactions/blacklist/AddNodeToBlackListTransaction.cpp transactions/blacklist/CheckIfNodeInBlackListTransaction.h transactions/blacklist/CheckIfNodeInBlackListTransaction.cpp transactions/blacklist/RemoveNodeFromBlackListTransaction.h transactions/blacklist/RemoveNodeFromBlackListTransaction.cpp transactions/blacklist/GetBlackListTransaction.h transactions/blacklist/GetBlackListTransaction.cpp)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions

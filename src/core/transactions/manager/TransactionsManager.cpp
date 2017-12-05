@@ -1,6 +1,4 @@
 ﻿#include "TransactionsManager.h"
-#include "../transactions/history/HistoryAdditionalPaymentsTransaction.h"
-
 
 /*!
  *
@@ -250,6 +248,28 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == GetTrustLineCommand::identifier()){
         launchGetTrustlineTransaction(
             static_pointer_cast<GetTrustLineCommand>(
+                command));
+
+    // BlackList Commands
+    } else if (command->identifier() == AddNodeToBlackListCommand::identifier()){
+
+        launchAddNodeToBlackListTransaction(
+            static_pointer_cast<AddNodeToBlackListCommand>(
+                command));
+
+    } else if (command->identifier() == CheckIfNodeInBlackListCommand::identifier()){
+        launchCheckIfNodeInBlackListTransaction(
+            static_pointer_cast<CheckIfNodeInBlackListCommand>(
+                command));
+
+    } else if (command->identifier() == RemoveNodeFromBlackListCommand::identifier()){
+        launchRemoveNodeFromBlackListTransaction(
+            static_pointer_cast<RemoveNodeFromBlackListCommand>(
+                command));
+
+    } else if (command->identifier() == GetBlackListCommand::identifier()){
+        launchGetBlackListTransaction(
+            static_pointer_cast<GetBlackListCommand>(
                 command));
 
     } else {
@@ -1440,6 +1460,79 @@ void TransactionsManager::launchRoutingTableRequestTransaction()
             false,
             true);
     } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchAddNodeToBlackListTransaction(
+    AddNodeToBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<AddNodeToBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+
+}
+
+void TransactionsManager::launchCheckIfNodeInBlackListTransaction(
+    CheckIfNodeInBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<CheckIfNodeInBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchRemoveNodeFromBlackListTransaction(
+    RemoveNodeFromBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<RemoveNodeFromBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchGetBlackListTransaction(
+    GetBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<GetBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
         throw ConflictError(e.message());
     }
 }
