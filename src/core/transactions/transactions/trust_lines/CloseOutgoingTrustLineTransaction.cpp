@@ -37,8 +37,7 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
             ioTransaction,
             kContractor);
 
-        // todo : change operation type
-        populateHistory(ioTransaction, TrustLineRecord::Rejecting);
+        populateHistory(ioTransaction, TrustLineRecord::RejectingOutgoing);
         info() << "Outgoing trust line to the node " << kContractor
                << " has been successfully closed by remote node.";
 

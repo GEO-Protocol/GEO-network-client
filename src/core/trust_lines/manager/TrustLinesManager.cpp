@@ -59,13 +59,13 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
     const NodeUUID &contractorUUID,
     const TrustLineAmount &amount)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
-        // In case if TL to this contractor is absent,
-        // "amount" can't be 0 (otherwise, trust line with both sides set to zero would be opened).
+    if (outgoingTrustAmountDespiteReservations(contractorUUID) == 0) {
+        // In case if outgoing TL to this contractor is absent,
+        // "amount" can't be 0 (otherwise, trust line set to zero would be opened).
         if (amount == 0) {
             throw ValueError(
                 "TrustLinesManager::setOutgoing: "
-                "can't establish trust line with zero amount at both sides.");
+                "can't establish trust line with zero amount.");
 
         } else {
             // In case if trust line to this contractor is absent,
@@ -78,7 +78,7 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
             return TrustLineOperationResult::Opened;
         }
 
-    } else if (amount == 0 and incomingTrustAmountDespiteResevations(contractorUUID) == 0) {
+    } else if (amount == 0) {
         // In case if trust line is already present,
         // but incoming trust amount is 0, and received "amount" is 0 -
         // then it is interpreted as the command to close the outgoing trust line.
@@ -106,8 +106,8 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
     const NodeUUID &contractorUUID,
     const TrustLineAmount &amount)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
-        // In case if TL to this contractor is absent,
+    if (incomingTrustAmountDespiteResevations(contractorUUID) == 0) {
+        // In case if incoming TL amount to this contractor is absent,
         // "amount" can't be 0 (otherwise, trust line with both sides set to zero would be opened).
         if (amount == 0) {
             throw ValueError(
@@ -125,9 +125,9 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
             return TrustLineOperationResult::Opened;
         }
 
-    } else if (amount == 0 and outgoingTrustAmountDespiteReservations(contractorUUID) == 0) {
-        // In case if trust line is already present,
-        // but outgoing trust amount is 0, and received "amount" is 0 -
+    } else if (amount == 0) {
+        // In case if incoming trust line is already present,
+        // and received "amount" is 0 -
         // then it is interpreted as the command to close the incoming trust line.
         closeIncoming(
             IOTransaction,
@@ -235,9 +235,7 @@ const TrustLineAmount &TrustLinesManager::incomingTrustAmountDespiteResevations(
     const NodeUUID &contractorUUID) const
 {
     if (not trustLineIsPresent(contractorUUID)) {
-        throw NotFoundError(
-            "TrustLinesManager::incomingTrustAmountDespiteResevations: "
-            "There is no trust line from this contractor.");
+        return TrustLine::kZeroAmount();
     }
 
     return mTrustLines.at(contractorUUID)->incomingTrustAmount();
@@ -247,9 +245,7 @@ const TrustLineAmount &TrustLinesManager::outgoingTrustAmountDespiteReservations
     const NodeUUID &contractorUUID) const
 {
     if (not trustLineIsPresent(contractorUUID)) {
-        throw NotFoundError(
-            "TrustLinesManager::outgoingTrustAmountDespiteResevations: "
-            "There is no trust line to this contractor.");
+        return TrustLine::kZeroAmount();
     }
 
     return mTrustLines.at(contractorUUID)->outgoingTrustAmount();

@@ -42,7 +42,7 @@ namespace signals = boost::signals2;
 
 class TrustLinesManager {
 public:
-    // todo: rename signals so tehm would start with "Signal", i.e. SignalTrustLineCreated
+    // todo: rename signals so them would start with "Signal", i.e. SignalTrustLineCreated
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineCreatedSignal;
     signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineStateModifiedSignal;
 
@@ -162,7 +162,7 @@ public:
      * @param amount
      *
      * @throws NotFoundError in case if no trust line is present.
-     * @throws ValueError in case, if trust line hasn't enought free amount;
+     * @throws ValueError in case, if trust line hasn't enough free amount;
      * @throws ValueError in case, if outgoing trust amount == 0;
      */
     AmountReservation::ConstShared reserveOutgoingAmount(
@@ -178,7 +178,7 @@ public:
      * @param amount
      *
      * @throws NotFoundError in case if no trust line is present.
-     * @throws ValueError in case, if trust line hasn't enought free amount;
+     * @throws ValueError in case, if trust line hasn't enough free amount;
      * @throws ValueError in case, if incoming trust amount == 0;
      */
     AmountReservation::ConstShared reserveIncomingAmount(
@@ -189,8 +189,8 @@ public:
     /**
      * Updates present reservation with new amount.
      *
-     * @throws ValueError in case if trust line has not enought free amount.
-     * @throws NotFoundError in case if previous resevations was not found.
+     * @throws ValueError in case if trust line has not enough free amount.
+     * @throws NotFoundError in case if previous reservations was not found.
      */
     AmountReservation::ConstShared updateAmountReservation(
         const NodeUUID &contractor,
@@ -200,8 +200,8 @@ public:
     /**
      * Removes present reservation.
      *
-     * @throws NotFoundError in case if previous resevations was not found.
-     * @throws IOError in case if attempt to remove trust line (if needed) wasn't successfull.
+     * @throws NotFoundError in case if previous reservations was not found.
+     * @throws IOError in case if attempt to remove trust line (if needed) wasn't successful.
      */
     void dropAmountReservation(
         const NodeUUID &contractor,
@@ -325,8 +325,8 @@ protected:
         TrustLine::Shared trustLine);
 
     /**
-     * Reads trust lines info from the internal storage and initalises internal trust lines map.
-     * Ignores obsolete trust lines (outgoing 0, incomint 0, and balance 0).
+     * Reads trust lines info from the internal storage and initialises internal trust lines map.
+     * Ignores obsolete trust lines (outgoing 0, incoming 0, and balance 0).
      *
      * @throws IOError in case of storage read error.
      */

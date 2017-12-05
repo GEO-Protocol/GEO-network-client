@@ -43,8 +43,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
             ioTransaction,
             kContractor);
 
-        // todo : change operation type
-        populateHistory(ioTransaction, TrustLineRecord::Closing);
+        populateHistory(ioTransaction, TrustLineRecord::ClosingIncoming);
 
         info() << "Incoming trust line from the node " << kContractor
                << " successfully closed.";
