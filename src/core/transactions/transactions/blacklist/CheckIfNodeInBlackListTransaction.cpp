@@ -22,7 +22,7 @@ CheckIfNodeInBlackListCommand::Shared CheckIfNodeInBlackListTransaction::command
 TransactionResult::SharedConst CheckIfNodeInBlackListTransaction::run() {
     auto ioTransaction = mStorageHandler->beginTransaction();
     const auto contractorNode = mCommand->contractorUUID();
-    const auto kContractorNodesBanned = ioTransaction->blackListHandler()->checkIfNodeExist(contractorNode);
+    const auto kContractorNodesBanned = ioTransaction->blackListHandler()->checkIfNodeExists(contractorNode);
     if (kContractorNodesBanned){
         return transactionResultFromCommand(mCommand->responseOK());
     } else {

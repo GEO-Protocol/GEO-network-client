@@ -86,7 +86,8 @@ vector<NodeUUID> BlackListHandler::allNodesUUIDS() {
 }
 
 
-void BlackListHandler::addNode(const NodeUUID &nodeUUID)
+void BlackListHandler::addNode(
+    const NodeUUID &nodeUUID)
 {
     string query = "INSERT OR REPLACE INTO " + mTableName +
                    "(node_uuid) VALUES (?);";
@@ -132,7 +133,8 @@ LoggerStream BlackListHandler::error() const
     return mLog.warning(logHeader());
 }
 
-bool BlackListHandler::checkIfNodeExist(const NodeUUID &contractor_node)
+bool BlackListHandler::checkIfNodeExists(
+    const NodeUUID &contractorNode)
 {
     string query = "SELECT node_uuid FROM " + mTableName + " WHERE node_uuid = ? LIMIT 1";
 
@@ -146,7 +148,7 @@ bool BlackListHandler::checkIfNodeExist(const NodeUUID &contractor_node)
                 "sqlite error code: " + to_string(rc));
     }
 
-    rc = sqlite3_bind_blob(stmt, 1, contractor_node.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, contractorNode.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("BlackListHandler::delete: "
                           "Bad binding of contractor_node; sqlite error: " + to_string(rc));
@@ -161,7 +163,8 @@ bool BlackListHandler::checkIfNodeExist(const NodeUUID &contractor_node)
 }
 
 void BlackListHandler::removeNodeFromBlackList(
-    const NodeUUID &contractor_node) {
+    const NodeUUID &contractorNode)
+{
     string query = "DELETE FROM " + mTableName + " WHERE node_uuid = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(mDataBase, query.c_str(), -1, &stmt, 0);
@@ -169,7 +172,7 @@ void BlackListHandler::removeNodeFromBlackList(
         throw IOError("BlackListHandler::delete: "
                           "Bad query; sqlite error: " + to_string(rc));
     }
-    rc = sqlite3_bind_blob(stmt, 1, contractor_node.data, NodeUUID::kBytesSize, SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 1, contractorNode.data, NodeUUID::kBytesSize, SQLITE_STATIC);
     if (rc != SQLITE_OK) {
         throw IOError("BlackListHandler::delete: "
                           "Bad binding of contractor_node; sqlite error: " + to_string(rc));

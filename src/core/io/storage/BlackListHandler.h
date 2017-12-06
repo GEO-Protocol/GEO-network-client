@@ -35,9 +35,11 @@ public:
     void addNode(
         const NodeUUID &nodeUUID);
 
-    bool checkIfNodeExist(const NodeUUID &contractor_node);
+    bool checkIfNodeExists(
+        const NodeUUID &contractorNode);
 
-    void removeNodeFromBlackList(const NodeUUID &contractor_node);
+    void removeNodeFromBlackList(
+        const NodeUUID &contractorNode);
 
 protected:
 

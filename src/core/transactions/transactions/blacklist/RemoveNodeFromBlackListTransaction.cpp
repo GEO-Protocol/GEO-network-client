@@ -22,7 +22,7 @@ RemoveNodeFromBlackListCommand::Shared RemoveNodeFromBlackListTransaction::comma
 TransactionResult::SharedConst RemoveNodeFromBlackListTransaction::run() {
     auto ioTransaction = mStorageHandler->beginTransaction();
     const auto contractorNode = mCommand->contractorUUID();
-    const auto kContractorNodesBanned = ioTransaction->blackListHandler()->checkIfNodeExist(contractorNode);
+    const auto kContractorNodesBanned = ioTransaction->blackListHandler()->checkIfNodeExists(contractorNode);
     try {
         if (kContractorNodesBanned) {
             ioTransaction->blackListHandler()->removeNodeFromBlackList(contractorNode);
