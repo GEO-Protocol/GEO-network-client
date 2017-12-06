@@ -4,11 +4,13 @@ MaxFlowCalculationCacheUpdateDelayedTask::MaxFlowCalculationCacheUpdateDelayedTa
     as::io_service &ioService,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheMnager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &logger):
 
     mIOService(ioService),
     mMaxFlowCalculationCacheMnager(maxFlowCalculationCacheMnager),
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
+    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
     mLog(logger)
 {
     mMaxFlowCalculationCacheUpdateTimer = make_unique<as::steady_timer>(
@@ -50,17 +52,26 @@ DateTime MaxFlowCalculationCacheUpdateDelayedTask::minimalAwakeningTimestamp()
 {
     DateTime closestCacheManagerTimeEvent = mMaxFlowCalculationCacheMnager->closestTimeEvent();
     DateTime closestTrustLineManagerTimeEvent = mMaxFlowCalculationTrustLineManager->closestTimeEvent();
-    if (closestCacheManagerTimeEvent < closestTrustLineManagerTimeEvent) {
-        return closestCacheManagerTimeEvent;
-    } else {
-        return closestTrustLineManagerTimeEvent;
+    DateTime closestNodeCacheManagerTimeEvent = mMaxFlowCalculationNodeCacheManager->closestTimeEvent();
+    DateTime result = closestCacheManagerTimeEvent;
+    if (closestTrustLineManagerTimeEvent < result) {
+        result = closestTrustLineManagerTimeEvent;
     }
+    if (closestNodeCacheManagerTimeEvent < result) {
+        result = closestNodeCacheManagerTimeEvent;
+    }
+    return result;
 }
 
 DateTime MaxFlowCalculationCacheUpdateDelayedTask::updateCache()
 {
     mMaxFlowCalculationCacheMnager->updateCaches();
-    DateTime closestCacheManagerTimeEvent = mMaxFlowCalculationCacheMnager->closestTimeEvent();
+    DateTime result = mMaxFlowCalculationCacheMnager->closestTimeEvent();
+    mMaxFlowCalculationNodeCacheManager->updateCaches();
+    DateTime closestNodeCacheManagerTimeEvent = mMaxFlowCalculationNodeCacheManager->closestTimeEvent();
+    if (closestNodeCacheManagerTimeEvent < result) {
+        result = closestNodeCacheManagerTimeEvent;
+    }
     // if MaxFlowCalculation transaction not finished it is forbidden to delete trustlines
     // and should increse trustlines caches time
     DateTime closestTrustLineManagerTimeEvent;
@@ -73,11 +84,10 @@ DateTime MaxFlowCalculationCacheUpdateDelayedTask::updateCache()
         }
         closestTrustLineManagerTimeEvent = mMaxFlowCalculationTrustLineManager->closestTimeEvent();
     }
-    if (closestCacheManagerTimeEvent < closestTrustLineManagerTimeEvent) {
-        return closestCacheManagerTimeEvent;
-    } else {
-        return closestTrustLineManagerTimeEvent;
+    if (closestTrustLineManagerTimeEvent < result) {
+        result = closestTrustLineManagerTimeEvent;
     }
+    return result;
 }
 
 LoggerStream MaxFlowCalculationCacheUpdateDelayedTask::debug() const

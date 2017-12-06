@@ -8,6 +8,7 @@
 #include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCache.h"
 
 #include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"

@@ -120,6 +120,10 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
 //#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "max flow calculating time: " << utc_now() - startTime;
 //#endif
+    mMaxFlowCalculationNodeCacheManager->addCache(
+        mCurrentContractor,
+        make_shared<MaxFlowCalculationNodeCache>(
+            mCurrentMaxFlow));
     return mCurrentMaxFlow;
 }
 

@@ -8,7 +8,6 @@
 
 #include <map>
 #include <unordered_map>
-#include <set>
 #include <boost/functional/hash.hpp>
 
 class MaxFlowCalculationCacheManager {
@@ -55,16 +54,6 @@ private:
             kResetInitiatorCacheSeconds);
         return duration;
     }
-
-private:
-    // comparing two DateTimes for storing in set
-    struct customLess{
-        bool operator()(
-            const pair<NodeUUID, DateTime> a,
-            const pair<NodeUUID, DateTime> b) const {
-            return a.second < b.second;
-        }
-    };
 
 private:
     LoggerStream info() const;

@@ -6,7 +6,9 @@ MaxFlowCalculationCacheManager::MaxFlowCalculationCacheManager(Logger &logger):
     mInitiatorCache.first = false;
 }
 
-void MaxFlowCalculationCacheManager::addCache(const NodeUUID &keyUUID, MaxFlowCalculationCache::Shared cache)
+void MaxFlowCalculationCacheManager::addCache(
+    const NodeUUID &keyUUID,
+    MaxFlowCalculationCache::Shared cache)
 {
     NodeUUID* nodeUUIDPtr = new NodeUUID(keyUUID);
     mCaches.insert(make_pair(*nodeUUIDPtr, cache));

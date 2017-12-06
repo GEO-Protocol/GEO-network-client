@@ -314,12 +314,10 @@ int Core::initDelayedTasks()
             mIOService,
             mMaxFlowCalculationCacheManager.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
+            mMaxFlowCalculationNodeCacheManager.get(),
             *mLog.get());
 
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
-
-
-
 
         return 0;
     } catch (const std::exception &e) {

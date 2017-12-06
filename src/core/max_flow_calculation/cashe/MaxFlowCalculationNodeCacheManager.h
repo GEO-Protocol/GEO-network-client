@@ -7,7 +7,7 @@
 
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
-
+#include <map>
 
 class MaxFlowCalculationNodeCacheManager {
 public:
@@ -18,11 +18,43 @@ public:
         const NodeUUID &keyUUID,
         MaxFlowCalculationNodeCache::Shared cache);
 
+    void updateCaches();
+
     MaxFlowCalculationNodeCache::Shared cacheByNode(
         const NodeUUID &nodeUUID) const;
 
+    void updateCache(
+        const NodeUUID &keyUUID,
+        const TrustLineAmount &amount,
+        bool isFinal);
+
+    DateTime closestTimeEvent() const;
+
+    // todo : add reset cache void and call it after payment and TL operations
+
+private:
+    LoggerStream info() const;
+
+    LoggerStream warning() const;
+
+    const string logHeader() const;
+
+private:
+    static const byte kResetCacheHours = 0;
+    static const byte kResetCacheMinutes = 1;
+    static const byte kResetCacheSeconds = 0;
+
+    static Duration& kResetCacheDuration() {
+        static auto duration = Duration(
+            kResetCacheHours,
+            kResetCacheMinutes,
+            kResetCacheSeconds);
+        return duration;
+    }
+
 private:
     unordered_map<NodeUUID, MaxFlowCalculationNodeCache::Shared, boost::hash<boost::uuids::uuid>> mCaches;
+    map<DateTime, NodeUUID*> mTimeCaches;
     Logger &mLog;
 };
 

@@ -3,6 +3,7 @@
 
 #include "../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
+#include "../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
 #include "../common/time/TimeUtils.h"
 #include "../logger/Logger.h"
 
@@ -24,6 +25,7 @@ public:
         as::io_service &mIOService,
         MaxFlowCalculationCacheManager *maxflowCalculationCacheMnager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &logger);
 
 public:
@@ -61,6 +63,7 @@ private:
     unique_ptr<as::steady_timer> mMaxFlowCalculationCacheUpdateTimer;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheMnager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
+    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
     Logger &mLog;
 };
 
