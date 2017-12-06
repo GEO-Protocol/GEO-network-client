@@ -2,7 +2,7 @@
 
 BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionType type,
-    NodeUUID &nodeUUID,
+    const NodeUUID &nodeUUID,
     TrustLinesManager *trustLinesManager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
@@ -10,6 +10,25 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
 
     BaseTransaction(
         type,
+        nodeUUID,
+        logger),
+    mTrustLinesManager(trustLinesManager),
+    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+{}
+
+BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
+    const TransactionType type,
+    const TransactionUUID &transactionUUID,
+    const NodeUUID &nodeUUID,
+    TrustLinesManager *trustLinesManager,
+    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    Logger &logger) :
+
+    BaseTransaction(
+        type,
+        transactionUUID,
         nodeUUID,
         logger),
     mTrustLinesManager(trustLinesManager),

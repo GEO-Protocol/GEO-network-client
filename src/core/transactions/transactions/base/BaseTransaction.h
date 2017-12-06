@@ -83,6 +83,7 @@ public:
         MaxFlowCalculationTargetSndLevelTransactionType = 407,
         ReceiveResultMaxFlowCalculationTransactionType = 408,
         MaxFlowCalculationCacheUpdateTransactionType = 409,
+        MaxFlowCalculationFullyTransactionType = 410,
 
         // Contractors
         ContractorsList = 500,

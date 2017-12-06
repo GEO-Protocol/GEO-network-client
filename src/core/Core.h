@@ -14,6 +14,7 @@
 #include "transactions/manager/TransactionsManager.h"
 #include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
 #include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
 #include "io/storage/StorageHandler.h"
 #include "paths/PathsManager.h"
@@ -69,6 +70,8 @@ private:
     int initMaxFlowCalculationTrustLineManager();
 
     int initMaxFlowCalculationCacheManager();
+
+    int initMaxFlowCalculationNodeCacheManager();
 
     int initResourcesManager();
 
@@ -173,6 +176,7 @@ protected:
     unique_ptr<TransactionsManager> mTransactionsManager;
     unique_ptr<MaxFlowCalculationTrustLineManager> mMaxFlowCalculationTrustLimeManager;
     unique_ptr<MaxFlowCalculationCacheManager> mMaxFlowCalculationCacheManager;
+    unique_ptr<MaxFlowCalculationNodeCacheManager> mMaxFlowCalculationNodeCacheManager;
     unique_ptr<MaxFlowCalculationCacheUpdateDelayedTask> mMaxFlowCalculationCacheUpdateDelayedTask;
     unique_ptr<StorageHandler> mStorageHandler;
     unique_ptr<PathsManager> mPathsManager;

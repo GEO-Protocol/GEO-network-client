@@ -99,6 +99,11 @@ int Core::initSubsystems()
         return initCode;
     }
 
+    initCode = initMaxFlowCalculationNodeCacheManager();
+    if (initCode != 0) {
+        return initCode;
+    }
+
     initCode = initPathsManager();
     if (initCode != 0) {
         return initCode;
@@ -250,6 +255,20 @@ int Core::initMaxFlowCalculationCacheManager()
     }
 }
 
+int Core::initMaxFlowCalculationNodeCacheManager()
+{
+    try {
+        mMaxFlowCalculationNodeCacheManager = make_unique<MaxFlowCalculationNodeCacheManager>(
+            *mLog.get());
+        mLog->logSuccess("Core", "Max flow calculation Node Cache manager is successfully initialised");
+        return 0;
+
+    } catch (const std::exception &e) {
+        mLog->logException("Core", e);
+        return -1;
+    }
+}
+
 int Core::initResourcesManager()
 {
     try {
@@ -272,6 +291,7 @@ int Core::initTransactionsManager()
             mResourcesManager.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
             mMaxFlowCalculationCacheManager.get(),
+            mMaxFlowCalculationNodeCacheManager.get(),
             mResultsInterface.get(),
             mStorageHandler.get(),
             mPathsManager.get(),

@@ -31,6 +31,8 @@ protected:
 private:
     TransactionResult::SharedConst sendRequestForCollectingTopology();
 
+    TransactionResult::SharedConst processCollectingTopologyShortly(){}
+
     TransactionResult::SharedConst processCollectingTopology();
 
 private:

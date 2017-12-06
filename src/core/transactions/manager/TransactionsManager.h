@@ -9,6 +9,7 @@
 #include "../../trust_lines/manager/TrustLinesManager.h"
 #include "../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
 #include "../../io/storage/StorageHandler.h"
 #include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
@@ -114,6 +115,7 @@ public:
         ResourcesManager *ResourcesManager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
@@ -344,6 +346,7 @@ private:
     ResourcesManager *mResourcesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
     ResultsInterface *mResultsInterface;
     PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;

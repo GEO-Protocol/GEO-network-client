@@ -19,7 +19,16 @@ public:
 public:
     BaseCollectTopologyTransaction(
         const TransactionType type,
-        NodeUUID &nodeUUID,
+        const NodeUUID &nodeUUID,
+        TrustLinesManager *trustLinesManager,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        Logger &logger);
+
+    BaseCollectTopologyTransaction(
+        const TransactionType type,
+        const TransactionUUID &transactionUUID,
+        const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,

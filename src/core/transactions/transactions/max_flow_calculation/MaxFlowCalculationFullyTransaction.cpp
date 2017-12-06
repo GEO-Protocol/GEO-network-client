@@ -1,8 +1,9 @@
-#include "InitiateMaxFlowCalculationTransaction.h"
+#include "MaxFlowCalculationFullyTransaction.h"
 
-InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
-    NodeUUID &nodeUUID,
-    InitiateMaxFlowCalculationCommand::Shared command,
+MaxFlowCalculationFullyTransaction::MaxFlowCalculationFullyTransaction(
+    const NodeUUID &nodeUUID,
+    const TransactionUUID &transactionUUID,
+    const InitiateMaxFlowCalculationCommand::Shared command,
     TrustLinesManager *trustLinesManager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
@@ -10,7 +11,8 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
-        BaseTransaction::InitiateMaxFlowCalculationTransactionType,
+        BaseTransaction::MaxFlowCalculationFullyTransactionType,
+        transactionUUID,
         nodeUUID,
         trustLinesManager,
         maxFlowCalculationTrustLineManager,
@@ -20,58 +22,36 @@ InitiateMaxFlowCalculationTransaction::InitiateMaxFlowCalculationTransaction(
     mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager)
 {}
 
-InitiateMaxFlowCalculationCommand::Shared InitiateMaxFlowCalculationTransaction::command() const
+InitiateMaxFlowCalculationCommand::Shared MaxFlowCalculationFullyTransaction::command() const
 {
     return mCommand;
 }
 
-TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendRequestForCollectingTopology()
+TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestForCollectingTopology()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "run\t" << "initiator: " << mNodeUUID;
     info() << "run\t" << "targets count: " << mCommand->contractors().size();
     info() << "SendRequestForCollectingTopology";
 #endif
-    // Check if there is mNodeUUID in command parameters
-    for (const auto &contractorUUID : mCommand->contractors()) {
-        if (contractorUUID == currentNodeUUID()) {
-            warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
-            return resultProtocolError();
-        }
-    }
-    // Check if Node does not have outgoing FlowAmount;
-    if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().size() == 0){
-        vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
-        maxFlows.reserve(mCommand->contractors().size());
-        for (const auto &contractorUUID : mCommand->contractors()) {
-            maxFlows.push_back(
-                make_pair(
-                    contractorUUID,
-                    TrustLineAmount(0)));
-        }
-        return resultOk(maxFlows);
-    }
-
-    const auto kTransaction = make_shared<CollectTopologyTransaction>(
-        mNodeUUID,
-        mCommand->contractors(),
-        mTrustLinesManager,
-        mMaxFlowCalculationTrustLineManager,
-        mMaxFlowCalculationCacheManager,
-        mLog);
-    mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
-    launchSubsidiaryTransaction(kTransaction);
+    mCountProcessCollectingTopologyRun = 0;
     return resultAwaikAfterMilliseconds(
         kWaitMillisecondsForCalculatingMaxFlow);
 }
 
-TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCollectingTopology()
+TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::processCollectingTopology()
 {
 //#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "CalculateMaxTransactionFlow";
     info() << "context size: " << mContext.size();
 //#endif
+    auto const contextSize = mContext.size();
     fillTopology();
+    mCountProcessCollectingTopologyRun++;
+    if (contextSize > 0 && mCountProcessCollectingTopologyRun <= kCountRunningProcessCollectingTopologyStage) {
+        return resultAwaikAfterMilliseconds(
+            kWaitMillisecondsForCalculatingMaxFlowAgain);
+    }
     vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
     maxFlows.reserve(mCommand->contractors().size());
     mFirstLevelTopology =
@@ -83,22 +63,13 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
                 calculateMaxFlow(
                     contractorUUID)));
     }
-    const auto kTransaction = make_shared<MaxFlowCalculationFullyTransaction>(
-        mNodeUUID,
-        currentTransactionUUID(),
-        mCommand,
-        mTrustLinesManager,
-        mMaxFlowCalculationTrustLineManager,
-        mMaxFlowCalculationCacheManager,
-        mMaxFlowCalculationNodeCacheManager,
-        mLog);
-    launchSubsidiaryTransaction(kTransaction);
+    mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
     return resultOk(maxFlows);
 }
 
 // this method used the same logic as PathsManager::reBuildPaths
 // and PathsManager::buildPaths
-TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
+TrustLineAmount MaxFlowCalculationFullyTransaction::calculateMaxFlow(
     const NodeUUID &contractorUUID)
 {
 //#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
@@ -125,7 +96,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
 
 // this method used the same logic as PathsManager::reBuildPathsOnOneLevel
 // and PathsManager::buildPathsOnOneLevel
-void InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel()
+void MaxFlowCalculationFullyTransaction::calculateMaxFlowOnOneLevel()
 {
     while(true) {
         TrustLineAmount currentFlow = 0;
@@ -152,7 +123,7 @@ void InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel()
 // it used the same logic as PathsManager::calculateOneNodeForRebuildingPaths
 // and PathsManager::calculateOneNode
 // if you change this method, you should change others
-TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
+TrustLineAmount MaxFlowCalculationFullyTransaction::calculateOneNode(
     const NodeUUID& nodeUUID,
     const TrustLineAmount& currentFlow,
     byte level)
@@ -206,7 +177,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateOneNode(
     return 0;
 }
 
-TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultOk(
+TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::resultOk(
     vector<pair<NodeUUID, TrustLineAmount>> &maxFlows)
 {
     stringstream ss;
@@ -221,15 +192,9 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultOk(
             kMaxFlowAmountsStr));
 }
 
-TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultProtocolError()
-{
-    return transactionResultFromCommand(
-        mCommand->responseProtocolError());
-}
-
-const string InitiateMaxFlowCalculationTransaction::logHeader() const
+const string MaxFlowCalculationFullyTransaction::logHeader() const
 {
     stringstream s;
-    s << "[InitiateMaxFlowCalculationTA: " << currentTransactionUUID() << "]";
+    s << "[MaxFlowCalculationFullyTA: " << currentTransactionUUID() << "]";
     return s.str();
 }
