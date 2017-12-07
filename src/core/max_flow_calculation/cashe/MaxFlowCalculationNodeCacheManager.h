@@ -32,6 +32,9 @@ public:
 
     // todo : add reset cache void and call it after payment and TL operations
 
+    // Todo : used only for debug info
+    void printCaches();
+
 private:
     LoggerStream info() const;
 

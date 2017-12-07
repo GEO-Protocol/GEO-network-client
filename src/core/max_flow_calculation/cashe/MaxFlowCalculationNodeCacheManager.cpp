@@ -84,6 +84,16 @@ DateTime MaxFlowCalculationNodeCacheManager::closestTimeEvent() const
     return result;
 }
 
+void MaxFlowCalculationNodeCacheManager::printCaches()
+{
+    info() << "printCaches at time " << utc_now();
+    for (const auto nodeCache : mCaches) {
+        info() << "Node: " << nodeCache.first;
+        info() << "\t" << nodeCache.second->currentFlow() << " "
+               << nodeCache.second->isFlowFinal() << " " << nodeCache.second->lastModified();
+    }
+}
+
 LoggerStream MaxFlowCalculationNodeCacheManager::info() const
 {
     return mLog.info(logHeader());

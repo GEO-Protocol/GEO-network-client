@@ -214,7 +214,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultOk(
     vector<pair<NodeUUID, TrustLineAmount>> &maxFlows)
 {
     stringstream ss;
-    ss << maxFlows.size();
+    ss << "1" << "\t" << maxFlows.size();
     for (const auto &nodeUUIDAndMaxFlow : maxFlows) {
         ss << "\t" << nodeUUIDAndMaxFlow.first << "\t";
         ss << nodeUUIDAndMaxFlow.second;
