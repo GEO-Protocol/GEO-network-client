@@ -7,6 +7,8 @@
 #include "internal/outgoing/OutgoingMessagesHandler.h"
 #include "internal/incoming/IncomingMessagesHandler.h"
 #include "internal/queue/ConfirmationRequiredMessagesHandler.h"
+#include "../../io/storage/StorageHandler.h"
+#include "../../trust_lines/manager/TrustLinesManager.h"
 #include "internal/uuid2address/UUID2Address.h"
 #include <boost/asio/steady_timer.hpp>
 
@@ -28,6 +30,8 @@ public:
         const Port port,
         const Host &uuid2AddressHost,
         const Port uuid2AddressPort,
+        StorageHandler *storageHandler,
+        TrustLinesManager *trustLinesManager,
         Logger &logger)
         noexcept(false);
 

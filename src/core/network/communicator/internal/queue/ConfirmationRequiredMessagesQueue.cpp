@@ -104,7 +104,7 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineCloseNotificationInTheQue
     for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
         const auto kMessage = it->second;
 
-        if (kMessage->typeID() == Message::TrustLines_SetIncoming) {
+        if (kMessage->typeID() == Message::TrustLines_CloseOutgoing) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,

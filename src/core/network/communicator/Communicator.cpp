@@ -7,6 +7,8 @@ Communicator::Communicator(
     const Port port,
     const Host &UUID2AddressHost,
     const Port UUID2AddressPort,
+    StorageHandler *storageHandler,
+    TrustLinesManager *trustLinesManager,
     Logger &logger):
 
     mInterface(interface),
@@ -50,6 +52,8 @@ Communicator::Communicator(
         make_unique<ConfirmationRequiredMessagesHandler>(
             IOService,
             mCommunicatorStorageHandler.get(),
+            trustLinesManager,
+            storageHandler,
             logger))
 {
     // Direct signals chaining.

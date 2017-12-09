@@ -68,13 +68,22 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
                 "can't establish trust line with zero amount.");
 
         } else {
-            // In case if trust line to this contractor is absent,
-            // and "amount" is greater than 0 - new outgoing trust line should be created.
-            auto trustLine = make_shared<TrustLine>(
-                contractorUUID, 0, amount, 0);
-
-            mTrustLines[contractorUUID] = trustLine;
-            saveToDisk(IOTransaction, trustLine);
+            if (not trustLineIsPresent(contractorUUID)) {
+                // In case if trust line to this contractor is absent,
+                // and "amount" is greater than 0 - new trust line should be created.
+                auto trustLine = make_shared<TrustLine>(
+                    contractorUUID, 0, amount, 0);
+                mTrustLines[contractorUUID] = trustLine;
+                saveToDisk(IOTransaction, trustLine);
+            } else {
+                // In case if trust line to this contractor is present,
+                // and "amount" is greater than 0 - outgoing trust line should be created.
+                auto trustLine = mTrustLines[contractorUUID];
+                trustLine->setOutgoingTrustAmount(amount);
+                saveToDisk(
+                    IOTransaction,
+                    trustLine);
+            }
             return TrustLineOperationResult::Opened;
         }
 
@@ -115,13 +124,22 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
                 "can't establish trust line with zero amount at both sides.");
 
         } else {
-            // In case if TL to this contractor is absent,
-            // and "amount" is greater than 0 - new incoming trust line should be created.
-            auto trustLine = make_shared<TrustLine>(
-                contractorUUID, amount, 0, 0);
-
-            mTrustLines[contractorUUID] = trustLine;
-            saveToDisk(IOTransaction, trustLine);
+            if (not trustLineIsPresent(contractorUUID)) {
+                // In case if TL to this contractor is absent,
+                // and "amount" is greater than 0 - new trust line should be created.
+                auto trustLine = make_shared<TrustLine>(
+                    contractorUUID, amount, 0, 0);
+                mTrustLines[contractorUUID] = trustLine;
+                saveToDisk(IOTransaction, trustLine);
+            } else {
+                // In case if TL to this contractor is present,
+                // and "amount" is greater than 0 - incoming trust line should be created.
+                auto trustLine = mTrustLines[contractorUUID];
+                trustLine->setIncomingTrustAmount(amount);
+                saveToDisk(
+                    IOTransaction,
+                    trustLine);
+            }
             return TrustLineOperationResult::Opened;
         }
 

@@ -74,10 +74,6 @@ int Core::initSubsystems()
     if (initCode != 0)
         return initCode;
 
-    initCode = initCommunicator(conf);
-    if (initCode != 0)
-        return initCode;
-
     initCode = initResultsInterface();
     if (initCode != 0)
         return initCode;
@@ -87,6 +83,10 @@ int Core::initSubsystems()
         return initCode;
 
     initCode = initTrustLinesManager();
+    if (initCode != 0)
+        return initCode;
+
+    initCode = initCommunicator(conf);
     if (initCode != 0)
         return initCode;
 
@@ -167,6 +167,8 @@ int Core::initCommunicator(
             mSettings->port(&conf),
             mSettings->uuid2addressHost(&conf),
             mSettings->uuid2addressPort(&conf),
+            mStorageHandler.get(),
+            mTrustLinesManager.get(),
             *mLog.get());
 
         mLog->logSuccess("Core", "Network communicator is successfully initialised");

@@ -65,6 +65,12 @@ TransactionResult::SharedConst HistoryTrustLinesTransaction::resultOk(
         } else if (kOperationType == TrustLineRecord::Rejecting) {
             formattedOperationType = "rejecting";
 
+        } else if (kOperationType == TrustLineRecord::ClosingIncoming) {
+            formattedOperationType = "closing_incoming";
+
+        } else if (kOperationType == TrustLineRecord::RejectingOutgoing) {
+            formattedOperationType = "rejecting_outgoing";
+
         } else {
             throw RuntimeError(
                 "HistoryTrustLinesTransaction::resultOk: "

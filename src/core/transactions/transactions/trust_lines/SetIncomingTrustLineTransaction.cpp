@@ -36,6 +36,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
     // if contractor in black list we should reject operation with TL
     if (ioTransaction->blackListHandler()->checkIfNodeExists(kContractor)) {
+        info() << "Contractor " << kContractor << " is in black list. Transaction rejected";
         sendMessage<ConfirmationMessage>(
             mMessage->senderUUID,
             mNodeUUID,

@@ -1473,10 +1473,12 @@ void TransactionsManager::launchAddNodeToBlackListTransaction(
                 mNodeUUID,
                 command,
                 mStorageHandler,
+                mTrustLines,
+                mSubsystemsController,
                 mLog),
             true,
             false,
-            false);
+            true);
     } catch (ConflictError &e) {
         throw ConflictError(e.message());
     }
