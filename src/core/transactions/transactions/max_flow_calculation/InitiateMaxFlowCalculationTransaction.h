@@ -55,6 +55,7 @@ private:
         byte level);
 
     TransactionResult::SharedConst resultOk(
+        bool finalMaxFlows,
         vector<pair<NodeUUID, TrustLineAmount>> &maxFlows);
 
     TransactionResult::SharedConst resultProtocolError();
@@ -65,12 +66,12 @@ private:
 
 private:
     InitiateMaxFlowCalculationCommand::Shared mCommand;
-    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
     vector<NodeUUID> mForbiddenNodeUUIDs;
     byte mCurrentPathLength;
     TrustLineAmount mCurrentMaxFlow;
     NodeUUID mCurrentContractor;
     MaxFlowCalculationTrustLineManager::TrustLineWithPtrHashSet mFirstLevelTopology;
+    vector<NodeUUID> mAlreadyCalculated;
 };
 
 

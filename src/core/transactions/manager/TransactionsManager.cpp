@@ -883,6 +883,7 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
                 mTrustLines,
                 mMaxFlowCalculationTrustLineManager,
                 mMaxFlowCalculationCacheManager,
+                mMaxFlowCalculationNodeCacheManager,
                 mLog),
             true,
             true,

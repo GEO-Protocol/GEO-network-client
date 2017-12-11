@@ -6,6 +6,7 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     TrustLinesManager *trustLinesManager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -14,7 +15,8 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
         logger),
     mTrustLinesManager(trustLinesManager),
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager)
 {}
 
 BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
@@ -24,6 +26,7 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     TrustLinesManager *trustLinesManager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -33,7 +36,8 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
         logger),
     mTrustLinesManager(trustLinesManager),
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager)
 {}
 
 TransactionResult::SharedConst BaseCollectTopologyTransaction::run()

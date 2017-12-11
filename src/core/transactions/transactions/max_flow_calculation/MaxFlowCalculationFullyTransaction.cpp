@@ -17,9 +17,9 @@ MaxFlowCalculationFullyTransaction::MaxFlowCalculationFullyTransaction(
         trustLinesManager,
         maxFlowCalculationTrustLineManager,
         maxFlowCalculationCacheManager,
+        maxFlowCalculationNodeCacheManager,
         logger),
-    mCommand(command),
-    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager)
+    mCommand(command)
 {}
 
 InitiateMaxFlowCalculationCommand::Shared MaxFlowCalculationFullyTransaction::command() const
@@ -56,13 +56,24 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::processCollec
     maxFlows.reserve(mCommand->contractors().size());
     mFirstLevelTopology =
             mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    auto startTime = utc_now();
     for (const auto &contractorUUID : mCommand->contractors()) {
-        maxFlows.push_back(
-            make_pair(
-                contractorUUID,
-                calculateMaxFlow(
-                    contractorUUID)));
+        auto nodeCache = mMaxFlowCalculationNodeCacheManager->cacheByNode(contractorUUID);
+        // todo : implement separated logic when !nodeCache->isFlowFinal()
+        if (nodeCache != nullptr && nodeCache->isFlowFinal()) {
+            maxFlows.push_back(
+                make_pair(
+                    contractorUUID,
+                    nodeCache->currentFlow()));
+        } else {
+            maxFlows.push_back(
+                make_pair(
+                    contractorUUID,
+                    calculateMaxFlow(
+                        contractorUUID)));
+        }
     }
+    info() << "all contractors calculating time: " << utc_now() - startTime;
     mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
     return resultOk(maxFlows);
 }

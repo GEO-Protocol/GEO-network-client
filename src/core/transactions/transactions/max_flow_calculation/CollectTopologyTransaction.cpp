@@ -6,6 +6,7 @@ CollectTopologyTransaction::CollectTopologyTransaction(
     TrustLinesManager *manager,
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -15,7 +16,8 @@ CollectTopologyTransaction::CollectTopologyTransaction(
     mContractors(contractors),
     mTrustLinesManager(manager),
     mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager)
 {}
 
 TransactionResult::SharedConst CollectTopologyTransaction::run()

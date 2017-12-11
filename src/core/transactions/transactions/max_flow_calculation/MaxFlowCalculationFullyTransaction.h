@@ -51,7 +51,7 @@ private:
 
 private:
     static const byte kMaxPathLength = 6;
-    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 3000;
+    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 1500;
     static const uint32_t kWaitMillisecondsForCalculatingMaxFlowAgain = 500;
     static const uint32_t kMaxWaitMillisecondsForCalculatingMaxFlow = 10000;
     static const uint16_t kCountRunningProcessCollectingTopologyStage =
@@ -60,7 +60,6 @@ private:
 
 private:
     InitiateMaxFlowCalculationCommand::Shared mCommand;
-    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
     vector<NodeUUID> mForbiddenNodeUUIDs;
     byte mCurrentPathLength;
     TrustLineAmount mCurrentMaxFlow;
