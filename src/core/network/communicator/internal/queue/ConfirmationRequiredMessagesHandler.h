@@ -65,8 +65,6 @@ public:
     ConfirmationRequiredMessagesHandler(
         IOService &ioService,
         CommunicatorStorageHandler *communicatorStorageHandler,
-        TrustLinesManager *trustLinesManager,
-        StorageHandler *storageHandler,
         Logger &logger)
         noexcept;
 
@@ -147,8 +145,6 @@ protected:
     IOService &mIOService;
 
     CommunicatorStorageHandler *mCommunicatorStorageHandler;
-    TrustLinesManager *mTrustLinesManager;
-    StorageHandler *mStorageHandler;
 
     as::steady_timer mCleaningTimer;
 

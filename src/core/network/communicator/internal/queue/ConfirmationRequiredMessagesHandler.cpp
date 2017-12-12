@@ -4,15 +4,11 @@
 ConfirmationRequiredMessagesHandler::ConfirmationRequiredMessagesHandler(
     IOService &ioService,
     CommunicatorStorageHandler *communicatorStorageHandler,
-    TrustLinesManager *trustLinesManager,
-    StorageHandler *storageHandler,
     Logger &logger)
     noexcept:
 
     LoggerMixin(logger),
     mCommunicatorStorageHandler(communicatorStorageHandler),
-    mTrustLinesManager(trustLinesManager),
-    mStorageHandler(storageHandler),
     mIOService(ioService),
     mCleaningTimer(ioService)
 {
@@ -92,30 +88,6 @@ void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
 
         if (confirmationMessage->state() == ConfirmationMessage::ContractorBanned) {
             info() << "Contractor " << contractorUUID << " reject incoming TL";
-            auto ioTransaction = mStorageHandler->beginTransaction();
-            try {
-                mTrustLinesManager->closeOutgoing(
-                    ioTransaction,
-                    contractorUUID);
-                auto record = make_shared<TrustLineRecord>(
-                    // todo : should be confirmationMessage->transactionUUID(), but unique index in historyStorage
-                    TransactionUUID(),
-                    TrustLineRecord::RejectingOutgoing,
-                    contractorUUID);
-
-                ioTransaction->historyStorage()->saveTrustLineRecord(record);
-            } catch (NotFoundError) {
-                warning() << "Can't reject outgoing TL because absence";
-            } catch (IOError &e) {
-                ioTransaction->rollback();
-                info() << "Attempt to close outgoing trust line to the node " << contractorUUID << " failed. "
-                       << "IO transaction can't be completed. "
-                       << "Details are: " << e.what();
-
-                // Rethrowing the exception,
-                // because the TA can't finish propely and no result may be returned.
-                throw e;
-            }
         }
 
         auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();

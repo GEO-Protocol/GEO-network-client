@@ -60,6 +60,7 @@
 #include "../transactions/trust_lines/SetIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseIncomingTrustLineTransaction.h"
 #include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
+#include "../transactions/trust_lines/RejectOutgoingTrustLineTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -123,6 +124,7 @@ namespace signals = boost::signals2;
 class TransactionsManager {
 public:
     signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
+    signals::signal<void(const NodeUUID&, ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
 
 public:
     TransactionsManager(
@@ -203,6 +205,9 @@ protected: // Transactions
 
     void launchCloseOutgoingTrustLineTransaction(
         CloseOutgoingTrustLineMessage::Shared message);
+
+    void launchRejectOutgoingTrustLineTransaction(
+        ConfirmationMessage::Shared message);
 
     /*
      * Max flow transactions
@@ -340,6 +345,9 @@ protected:
     void subscribeForTryCloseNextCycleSignal(
         TransactionsScheduler::CycleCloserTransactionWasFinishedSignal &signal);
 
+    void subscribeForProcessingConfirmationMessage(
+        BaseTransaction::ProcessConfirmationMessageSignal &signal);
+
     // Slots
     void onSubsidiaryTransactionReady(
         BaseTransaction::Shared transaction);
@@ -368,6 +376,10 @@ protected:
         Path::ConstShared cycle);
 
     void onTryCloseNextCycleSlot();
+
+    void onProcessConfirmationMessageSlot(
+        const NodeUUID &contractorUUID,
+        ConfirmationMessage::Shared confirmationMessage);
 
 protected:
     void prepareAndSchedule(

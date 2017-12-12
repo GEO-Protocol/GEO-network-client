@@ -11,7 +11,10 @@ set(SOURCE_FILES
     CloseIncomingTrustLineTransaction.cpp
 
     CloseOutgoingTrustLineTransaction.h
-    CloseOutgoingTrustLineTransaction.cpp)
+    CloseOutgoingTrustLineTransaction.cpp
+
+    RejectOutgoingTrustLineTransaction.h
+    RejectOutgoingTrustLineTransaction.cpp)
 
 add_library(transactions__trustlines ${SOURCE_FILES})
 target_link_libraries(transactions__trustlines

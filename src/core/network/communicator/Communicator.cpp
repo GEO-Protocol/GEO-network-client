@@ -7,8 +7,6 @@ Communicator::Communicator(
     const Port port,
     const Host &UUID2AddressHost,
     const Port UUID2AddressPort,
-    StorageHandler *storageHandler,
-    TrustLinesManager *trustLinesManager,
     Logger &logger):
 
     mInterface(interface),
@@ -52,8 +50,6 @@ Communicator::Communicator(
         make_unique<ConfirmationRequiredMessagesHandler>(
             IOService,
             mCommunicatorStorageHandler.get(),
-            trustLinesManager,
-            storageHandler,
             logger))
 {
     // Direct signals chaining.
@@ -129,6 +125,15 @@ void Communicator::sendMessage (
         contractorUUID);
 }
 
+void Communicator::processConfirmationMessage(
+    const NodeUUID &contractorUUID,
+    ConfirmationMessage::Shared confirmationMessage)
+{
+    mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
+        contractorUUID,
+        confirmationMessage);
+}
+
 void Communicator::onMessageReceived(
     Message::Shared message)
 {
@@ -139,11 +144,12 @@ void Communicator::onMessageReceived(
     if (message->typeID() == Message::System_Confirmation) {
         const auto kConfirmationMessage =
             static_pointer_cast<ConfirmationMessage>(message);
-
-        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
-            kConfirmationMessage->senderUUID,
-            kConfirmationMessage);
-        return;
+        if (kConfirmationMessage->state() != ConfirmationMessage::ContractorBanned) {
+            mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
+                kConfirmationMessage->senderUUID,
+                kConfirmationMessage);
+            return;
+        }
     }
 
     signalMessageReceived(message);

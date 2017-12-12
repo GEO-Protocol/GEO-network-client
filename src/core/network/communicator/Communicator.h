@@ -30,8 +30,6 @@ public:
         const Port port,
         const Host &uuid2AddressHost,
         const Port uuid2AddressPort,
-        StorageHandler *storageHandler,
-        TrustLinesManager *trustLinesManager,
         Logger &logger)
         noexcept(false);
 
@@ -46,6 +44,10 @@ public:
         const Message::Shared kMessage,
         const NodeUUID &kContractorUUID)
         noexcept;
+
+    void processConfirmationMessage(
+        const NodeUUID &contractorUUID,
+        ConfirmationMessage::Shared confirmationMessage);
 
 protected:
     /**

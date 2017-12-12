@@ -390,6 +390,10 @@ void TransactionsManager::processMessage(
         launchCloseOutgoingTrustLineTransaction(
             static_pointer_cast<CloseOutgoingTrustLineMessage>(message));
 
+    } else if (message->typeID() == Message::System_Confirmation) {
+        launchRejectOutgoingTrustLineTransaction(
+            static_pointer_cast<ConfirmationMessage>(message));
+
     /*
      * RoutingTable
     */
@@ -463,6 +467,24 @@ void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
         true,
         false,
         true);
+}
+
+void TransactionsManager::launchRejectOutgoingTrustLineTransaction(
+    ConfirmationMessage::Shared message)
+{
+    auto transaction = make_shared<RejectOutgoingTrustLineTransaction>(
+        mNodeUUID,
+        message,
+        mTrustLines,
+        mStorageHandler,
+        mLog);
+    prepareAndSchedule(
+        transaction,
+        true,
+        false,
+        false);
+    subscribeForProcessingConfirmationMessage(
+        transaction->processConfirmationMessageSignal);
 }
 
 /*!
@@ -1064,6 +1086,17 @@ void TransactionsManager::subscribeForTryCloseNextCycleSignal(
             this));
 }
 
+void TransactionsManager::subscribeForProcessingConfirmationMessage(
+    BaseTransaction::ProcessConfirmationMessageSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onProcessConfirmationMessageSlot,
+            this,
+            _1,
+            _2));
+}
+
 void TransactionsManager::onTransactionOutgoingMessageReady(
     Message::Shared message,
     const NodeUUID &contractorUUID) {
@@ -1172,6 +1205,15 @@ void TransactionsManager::onCloseCycleTransaction(
 void TransactionsManager::onTryCloseNextCycleSlot()
 {
     mCyclesManager->closeOneCycle(true);
+}
+
+void TransactionsManager::onProcessConfirmationMessageSlot(
+    const NodeUUID &contractorUUID,
+    ConfirmationMessage::Shared confirmationMessage)
+{
+    ProcessConfirmationMessageSignal(
+        contractorUUID,
+        confirmationMessage);
 }
 
 /**

@@ -74,6 +74,10 @@ int Core::initSubsystems()
     if (initCode != 0)
         return initCode;
 
+    initCode = initCommunicator(conf);
+    if (initCode != 0)
+        return initCode;
+
     initCode = initResultsInterface();
     if (initCode != 0)
         return initCode;
@@ -83,10 +87,6 @@ int Core::initSubsystems()
         return initCode;
 
     initCode = initTrustLinesManager();
-    if (initCode != 0)
-        return initCode;
-
-    initCode = initCommunicator(conf);
     if (initCode != 0)
         return initCode;
 
@@ -167,8 +167,6 @@ int Core::initCommunicator(
             mSettings->port(&conf),
             mSettings->uuid2addressHost(&conf),
             mSettings->uuid2addressPort(&conf),
-            mStorageHandler.get(),
-            mTrustLinesManager.get(),
             *mLog.get());
 
         mLog->logSuccess("Core", "Network communicator is successfully initialised");
@@ -400,7 +398,15 @@ void Core::connectCommunicatorSignals()
             _2
         )
     );
+
+    mTransactionsManager->ProcessConfirmationMessageSignal.connect(
+        boost::bind(
+            &Core::onProcessConfirmationMessageSlot,
+            this,
+            _1,
+            _2));
 }
+
 void Core::connectTrustLinesManagerSignals()
 {
     mTrustLinesManager->trustLineCreatedSignal.connect(
@@ -578,6 +584,15 @@ void Core::onResourceCollectedSlot(
     } catch (exception &e) {
         mLog->logException("Core", e);
     }
+}
+
+void Core::onProcessConfirmationMessageSlot(
+    const NodeUUID &contractorUUID,
+    ConfirmationMessage::Shared confirmationMessage)
+{
+    mCommunicator->processConfirmationMessage(
+        contractorUUID,
+        confirmationMessage);
 }
 
 void Core::writePIDFile()

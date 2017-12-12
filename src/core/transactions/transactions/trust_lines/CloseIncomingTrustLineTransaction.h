@@ -46,7 +46,6 @@ protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     SubsystemsController *mSubsystemsController;
-
 };
 
 
