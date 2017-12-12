@@ -475,6 +475,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
     mStep = Stages::Common_FinalPathConfigurationChecking;
     return resultWaitForMessageTypes(
         {Message::Payments_FinalPathCycleConfiguration,
+         Message::Payments_ReservationsInRelationToNode,
          Message::Payments_TTLProlongationResponse},
         maxNetworkDelay((kMaxPathLength - 2) * 4));
 }
@@ -489,12 +490,21 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
         return resultDone();
     }
 
-    if (! contextIsValid(Message::Payments_FinalPathCycleConfiguration))
-        return reject("No final paths configuration was received from the coordinator. Rejected.");
+    if (contextIsValid(Message::Payments_FinalPathCycleConfiguration, false)) {
+        return runFinalPathConfigurationCoordinatorConfirmation();
+    }
 
+    if (contextIsValid(Message::Payments_ReservationsInRelationToNode, false)) {
+        return runFinalReservationsNeighborConfirmation();
+    }
+
+    return reject("No final paths configuration was received from the coordinator. Rejected.");
+}
+
+TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalPathConfigurationCoordinatorConfirmation()
+{
+    debug() << "runFinalPathConfigurationCoordinatorConfirmation";
     const auto kMessage = popNextMessage<FinalPathCycleConfigurationMessage>();
-
-    // TODO: check if message was really received from the coordinator;
 
     debug() << "Final payment path configuration received";
 
@@ -509,11 +519,13 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     // Shortening all reservations that belongs to this node and path.
     for (const auto &nodeAndReservations : mReservations) {
         for (const auto &pathIDAndReservation : nodeAndReservations.second) {
-            shortageReservation(
-                nodeAndReservations.first,
-                pathIDAndReservation.second,
-                kMessage->amount(),
-                pathIDAndReservation.first);
+            if (pathIDAndReservation.second->amount() != kMessage->amount()) {
+                shortageReservation(
+                    nodeAndReservations.first,
+                    pathIDAndReservation.second,
+                    kMessage->amount(),
+                    pathIDAndReservation.first);
+            }
         }
     }
 
@@ -521,18 +533,97 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     mSubsystemsController->testForbidSendMessageOnFinalAmountClarificationStage();
 #endif
 
-    debug() << "Final payment path was updated";
-    sendMessage<FinalAmountsConfigurationResponseMessage>(
-        kMessage->senderUUID,
-        currentNodeUUID(),
-        currentTransactionUUID(),
-        FinalAmountsConfigurationResponseMessage::Accepted);
+    debug() << "All reservations were updated";
 
-    mStep = Stages::Common_VotesChecking;
+    mCoordinatorAlreadySentFinalAmountsConfiguration = true;
+    for (const auto nodeAndReservations : mReservations) {
+        sendMessage<ReservationsInRelationToNodeMessage>(
+            nodeAndReservations.first,
+            currentNodeUUID(),
+            currentTransactionUUID(),
+            nodeAndReservations.second);
+    }
+
+    if (mReservations.size() == mRemoteReservations.size()) {
+        // all neighbors sent theirs reservations
+        if (checkAllNeighborsReservationsAppropriate()) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
+                kMessage->senderUUID,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Accepted);
+
+            info() << "Accepted final amounts configuration";
+
+            mStep = Common_VotesChecking;
+            return resultWaitForMessageTypes(
+                {Message::Payments_ParticipantsVotes,
+                 Message::Payments_TTLProlongationResponse},
+                maxNetworkDelay(5)); // todo : need discuss this parameter (5)
+        } else {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
+                kMessage->senderUUID,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            return reject("Current node has different reservations with remote one. Rejected");
+        }
+    }
+
     return resultWaitForMessageTypes(
-        {Message::Payments_ParticipantsVotes,
+        {Message::Payments_ReservationsInRelationToNode,
          Message::Payments_TTLProlongationResponse},
-        maxNetworkDelay(kMaxPathLength - 2));
+        maxNetworkDelay(2));
+}
+
+TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalReservationsNeighborConfirmation()
+{
+    debug() << "runFinalReservationsNeighborConfirmation";
+    auto kMessage = popNextMessage<ReservationsInRelationToNodeMessage>();
+    debug() << "sender: " << kMessage->senderUUID;
+
+    mRemoteReservations[kMessage->senderUUID] = kMessage->reservations();
+
+    if (!mCoordinatorAlreadySentFinalAmountsConfiguration) {
+        return resultWaitForMessageTypes(
+            {Message::Payments_FinalAmountsConfiguration,
+             Message::Payments_ReservationsInRelationToNode,
+             Message::Payments_TTLProlongationResponse},
+            maxNetworkDelay(1));
+    }
+
+    // coordinator already sent final amounts configuration
+    if (mReservations.size() == mRemoteReservations.size()) {
+        // all neighbors sent theirs reservations
+        if (checkAllNeighborsReservationsAppropriate()) {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
+                mCoordinator,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Accepted);
+
+            info() << "Accepted final amounts configuration";
+
+            mStep = Common_VotesChecking;
+            return resultWaitForMessageTypes(
+                {Message::Payments_ParticipantsVotes,
+                 Message::Payments_TTLProlongationResponse},
+                maxNetworkDelay(5)); // todo : need discuss this parameter (5)
+        } else {
+            sendMessage<FinalAmountsConfigurationResponseMessage>(
+                mCoordinator,
+                currentNodeUUID(),
+                currentTransactionUUID(),
+                FinalAmountsConfigurationResponseMessage::Rejected);
+            return reject("Current node has different reservations with remote one. Rejected");
+        }
+    }
+
+    // not all neighbors sent theirs reservations
+    return resultWaitForMessageTypes(
+        {Message::Payments_ReservationsInRelationToNode,
+         Message::Payments_TTLProlongationResponse},
+        maxNetworkDelay(2));
 }
 
 TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runVotesCheckingStageWithPossibleTTL()

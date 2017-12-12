@@ -19,7 +19,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr)
+    mParticipantsVotesMessage(nullptr),
+    mCoordinatorAlreadySentFinalAmountsConfiguration(false)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -42,7 +43,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
-    mParticipantsVotesMessage(nullptr)
+    mParticipantsVotesMessage(nullptr),
+    mCoordinatorAlreadySentFinalAmountsConfiguration(false)
 {}
 
 BasePaymentTransaction::BasePaymentTransaction(
@@ -209,6 +211,10 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     mParticipantsVotesMessage = popNextMessage<ParticipantsVotesMessage>();
     debug() << "Votes message received";
 
+    if (!checkAllNeighborsPresence()) {
+        return reject("Some neighbors which are involved in transaction are absent in participants");
+    }
+
     try {
         // Check if current node is listed in the votes list.
         // This check is needed to prevent processing message in case of missdelivering.
@@ -346,7 +352,12 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
     debug () << "Participants votes message received.";
 
+    if (!checkOldAndNewParticipants(kMessage)) {
+        return reject("Participants votes message is invalid. Rolling back.");
+    }
+
     mParticipantsVotesMessage = kMessage;
+
     if (mParticipantsVotesMessage->containsRejectVote()) {
         return reject("Some participant node has been rejected the transaction. Rolling back.");
     }
@@ -354,17 +365,15 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesConsistencyChecki
     // Checking if no one node has been deleted current nodes sign.
     // (Message modification protection)
     // ToDo: [mvp+] add cryptographic mechanism to prevent removing of votes.
-    if (currentNodeUUID() != mParticipantsVotesMessage->coordinatorUUID()) {
-        if (!positiveVoteIsPresent(mParticipantsVotesMessage)) {
-            // Note: there is no correct way to exit from the transaction
-            // in case if some one removed the vote from the message.
-            // Rolling transaction back only reverts current node.
+    if (!positiveVoteIsPresent(mParticipantsVotesMessage)) {
+        // Note: there is no correct way to exit from the transaction
+        // in case if some one removed the vote from the message.
+        // Rolling transaction back only reverts current node.
 
-            rollBack();
-            throw RuntimeError(
-                    "BasePaymentTransaction::runVotesConsistencyCheckingStage: "
-                            "Some node has been modified the message and removed the vote of the current node.");
-        }
+        rollBack();
+        throw RuntimeError(
+                "BasePaymentTransaction::runVotesConsistencyCheckingStage: "
+                        "Some node has been modified the message and removed the vote of the current node.");
     }
 
     if (mParticipantsVotesMessage->achievedConsensus()){
@@ -891,6 +900,49 @@ BasePaymentTransaction::PathID BasePaymentTransaction::updateReservation(
     return std::numeric_limits<PathID >::max();
 }
 
+bool BasePaymentTransaction::checkAllNeighborsPresence() const
+{
+    debug() << "checkAllNeighborsPresence";
+    for (const auto reservation : mReservations) {
+        if (reservation.first == coordinatorUUID()) {
+            continue;
+        }
+        if (!mParticipantsVotesMessage->containsParticipant(reservation.first)) {
+            return false;
+        }
+    }
+    debug() << "All neighbors are present in participants votes message";
+    return true;
+}
+
+bool BasePaymentTransaction::checkOldAndNewParticipants(
+    ParticipantsVotesMessage::Shared newMessageWithVotes,
+    bool checkCoordinatorPresence)
+{
+    debug() << "checkOldAndNewParticipants";
+    if (checkCoordinatorPresence) {
+        if (!newMessageWithVotes->containsParticipant(coordinatorUUID())) {
+            warning() << "New message doesn't contain coordinator vote";
+            return false;
+        }
+        if (newMessageWithVotes->participantsCount() != mParticipantsVotesMessage->participantsCount() + 1) {
+            warning() << "Wrong participants count in new message";
+            return false;
+        }
+    } else {
+        if (newMessageWithVotes->participantsCount() != mParticipantsVotesMessage->participantsCount()) {
+            warning() << "Wrong participants count in new message";
+            return false;
+        }
+    }
+    for (const auto oldParticipant : mParticipantsVotesMessage->votes()) {
+        if (!newMessageWithVotes->containsParticipant(oldParticipant.first)) {
+            warning() << "Different participants in new and old messages";
+            return false;
+        }
+    }
+    return true;
+}
 
 TransactionResult::SharedConst BasePaymentTransaction::runVotesRecoveryParentStage()
 {
@@ -1079,6 +1131,47 @@ const TrustLineAmount BasePaymentTransaction::totalReservedAmount(
         }
     }
     return totalAmount;
+}
+
+bool BasePaymentTransaction::compareReservations(
+    const vector<pair<PathID, AmountReservation::ConstShared>> &localReservations,
+    const vector<pair<PathID, AmountReservation::ConstShared>> &remoteReservations)
+{
+    if (localReservations.size() != remoteReservations.size()) {
+        return false;
+    }
+    for (const auto localPathAndReservation : localReservations) {
+        bool findAppropriateReservation = false;
+        for (const auto remotePathAndReservation : remoteReservations) {
+            if (remotePathAndReservation.first == localPathAndReservation.first) {
+                if (remotePathAndReservation.second->amount() == localPathAndReservation.second->amount() and
+                    remotePathAndReservation.second->direction() != localPathAndReservation.second->direction()) {
+                    findAppropriateReservation = true;
+                    break;
+                } else {
+                    return false;
+                }
+            }
+        }
+        if (!findAppropriateReservation) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool BasePaymentTransaction::checkAllNeighborsReservationsAppropriate()
+{
+    for (const auto nodeAndReservations : mReservations) {
+        if (mRemoteReservations.find(nodeAndReservations.first) == mRemoteReservations.end()) {
+            return false;
+        }
+        const auto remoteReservations = mRemoteReservations[nodeAndReservations.first];
+        if (!compareReservations(nodeAndReservations.second, remoteReservations)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const

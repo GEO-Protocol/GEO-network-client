@@ -67,7 +67,10 @@ set(SOURCE_FILES
     FinalAmountsConfigurationResponseMessage.cpp
 
     TTLProlongationResponseMessage.h
-    TTLProlongationResponseMessage.cpp)
+    TTLProlongationResponseMessage.cpp
+
+    ReservationsInRelationToNodeMessage.h
+    ReservationsInRelationToNodeMessage.cpp)
 
 add_library(messages__payments ${SOURCE_FILES})
 target_link_libraries(messages__payments

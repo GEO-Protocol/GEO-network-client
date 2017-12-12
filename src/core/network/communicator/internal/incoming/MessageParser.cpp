@@ -1,6 +1,5 @@
 #include "MessageParser.h"
 
-
 MessagesParser::MessagesParser(
     Logger *logger)
     noexcept:
@@ -95,6 +94,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 
         case Message::Payments_VotesStatusRequest:
             return messageCollected<VotesStatusRequestMessage>(buffer);
+
+        case Message::Payments_ReservationsInRelationToNode:
+            return messageCollected<ReservationsInRelationToNodeMessage>(buffer);
 
 
         /*

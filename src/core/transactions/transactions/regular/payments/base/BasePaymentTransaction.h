@@ -30,6 +30,7 @@
 #include "../../../../../network/messages/payments/TTLProlongationResponseMessage.h"
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationMessage.h"
 #include "../../../../../network/messages/payments/FinalAmountsConfigurationResponseMessage.h"
+#include "../../../../../network/messages/payments/ReservationsInRelationToNodeMessage.h"
 
 #include "PathStats.h"
 
@@ -132,6 +133,7 @@ protected:
         Common_FinalPathConfigurationChecking,
         Common_Recovery,
         Common_ClarificationTransactionBeforeVoting,
+        Common_ClarificationTransactionDuringFinalAmountsClarification,
         Common_ClarificationTransactionDuringVoting,
 
         Common_RollbackByOtherTransaction
@@ -362,6 +364,13 @@ protected:
         AmountReservation::ReservationDirection reservationDirection) const;
 
     /**
+     * check if all neighbors which are involved in current transaction
+     * are present in participants votes message
+     * @return true if present
+     */
+    bool checkAllNeighborsPresence() const;
+
+    /**
      * save result of payment transaction on database, implements by all transactions in different ways
      * @param ioTransaction pointer on database transaction
      */
@@ -375,6 +384,16 @@ protected:
      * @return true if reservations are valid
      */
     virtual bool checkReservationsDirections() const = 0;
+
+    bool compareReservations(
+        const vector<pair<PathID, AmountReservation::ConstShared>> &localReservations,
+        const vector<pair<PathID, AmountReservation::ConstShared>> &remoteReservations);
+
+    bool checkAllNeighborsReservationsAppropriate();
+
+    bool checkOldAndNewParticipants(
+        ParticipantsVotesMessage::Shared newMessageWithVotes,
+        bool checkCoordinatorPresence = true);
 
 protected:
     // Specifies how long node must wait for the response from the remote node.
@@ -428,6 +447,14 @@ protected:
 
     // this amount used for saving in payment history
     TrustLineAmount mCommittedAmount;
+
+    bool mCoordinatorAlreadySentFinalAmountsConfiguration;
+    unordered_map<NodeUUID, bool, boost::hash<boost::uuids::uuid>> mFinalAmountNeighborsConfirmation;
+    map<NodeUUID, vector<pair<PathID, AmountReservation::ConstShared>>> mRemoteReservations;
+
+    // this fields are used by coordinators on final amount configuration clarification
+    bool mAllNodesSentConfirmationOnFinalAmountsConfiguration;
+    bool mAllNeighborsSentFinalReservations;
 
 protected:
     SubsystemsController *mSubsystemsController;

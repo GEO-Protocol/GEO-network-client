@@ -71,6 +71,10 @@ protected:
      */
     TransactionResult::SharedConst runFinalPathConfigurationProcessingStage();
 
+    TransactionResult::SharedConst runFinalPathConfigurationCoordinatorConfirmation();
+
+    TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
+
     /**
      * continue reaction on coordinator further reservation request message
      * after waiting for closing conflicted transaction and releasing it amount
