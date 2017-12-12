@@ -1755,3 +1755,8 @@ const NodeUUID& CoordinatorPaymentTransaction::coordinatorUUID() const
 {
     return currentNodeUUID();
 }
+
+const CommandUUID& CoordinatorPaymentTransaction::commandUUID() const
+{
+    return mCommand->UUID();
+}

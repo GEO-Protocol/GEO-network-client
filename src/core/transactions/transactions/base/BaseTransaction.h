@@ -116,7 +116,10 @@ public:
         AddNodeToBlackListTransactionType = 1000,
         CheckIfNodeInBlackListTransactionType = 1001,
         RemoveNodeFromBlackListTransactionType = 1002,
-        GetBlackListTransactionType = 1003
+        GetBlackListTransactionType = 1003,
+
+        // Transactions
+        TransactionByCommandUUIDType = 1100
     };
 
 public:

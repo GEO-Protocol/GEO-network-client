@@ -23,7 +23,7 @@
 #include "../commands/blacklist/CheckIfNodeInBlackListCommand.h"
 #include "../commands/blacklist/RemoveNodeFromBlackListCommand.h"
 #include "../commands/blacklist/GetBlackListCommand.h"
-
+#include "../commands/transactions/PaymentTransactionByCommandUUIDCommand.h"
 
 #include "../../../common/exceptions/IOError.h"
 #include "../../../common/exceptions/ValueError.h"

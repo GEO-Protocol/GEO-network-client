@@ -20,7 +20,6 @@
  */
 #include "../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
-
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
@@ -37,7 +36,7 @@
 #include "../../interface/commands_interface/commands/blacklist/CheckIfNodeInBlackListCommand.h"
 #include "../../interface/commands_interface/commands/blacklist/RemoveNodeFromBlackListCommand.h"
 #include "../../interface/commands_interface/commands/blacklist/GetBlackListCommand.h"
-
+#include "../../interface/commands_interface/commands/transactions/PaymentTransactionByCommandUUIDCommand.h"
 
 /*
  * Network messages
@@ -110,12 +109,11 @@
 
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
 
+#include "../transactions/transaction/PaymentTransactionByCommandUUIDTransaction.h"
+
 #include <boost/signals2.hpp>
 
 #include <string>
-
-
-
 
 using namespace std;
 namespace signals = boost::signals2;
@@ -305,6 +303,13 @@ public:
 
     void launchGetBlackListTransaction(
         GetBlackListCommand::Shared command);
+
+    /*
+     * Transaction
+     */
+    void launchPaymentTransactionByCommandUUIDTransaction(
+        PaymentTransactionByCommandUUIDCommand::Shared command);
+
     /*
      * RoutingTable
      */

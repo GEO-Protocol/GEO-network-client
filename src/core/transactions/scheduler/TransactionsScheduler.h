@@ -10,6 +10,7 @@
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/regular/payments/base/BasePaymentTransaction.h"
+#include "../transactions/regular/payments/CoordinatorPaymentTransaction.h"
 #include "../transactions/result/TransactionResult.h"
 
 #include "../../resources/resources/BaseResource.h"
@@ -85,6 +86,9 @@ public:
 
     void tryAttachMessageToCollectTopologyTransaction(
         Message::Shared message);
+
+    const BaseTransaction::Shared paymentTransactionByCommandUUID(
+        const CommandUUID &commandUUID) const;
 
 private:
     void launchTransaction(

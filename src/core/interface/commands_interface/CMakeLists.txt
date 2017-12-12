@@ -32,6 +32,8 @@ set(SOURCE_FILES
         commands/history/HistoryTrustLinesCommand.h
         commands/history/HistoryWithContractorCommand.h
         commands/history/HistoryWithContractorCommand.cpp
+        commands/history/HistoryAdditionalPaymentsCommand.h
+        commands/history/HistoryAdditionalPaymentsCommand.cpp
 
         commands/trust_lines_list/GetFirstLevelContractorsCommand.h
         commands/trust_lines_list/GetFirstLevelContractorsCommand.cpp
@@ -45,9 +47,6 @@ set(SOURCE_FILES
         commands/subsystems_controller/SubsystemsInfluenceCommand.h
         commands/subsystems_controller/SubsystemsInfluenceCommand.cpp
 
-        commands/history/HistoryAdditionalPaymentsCommand.h
-        commands/history/HistoryAdditionalPaymentsCommand.cpp
-
         commands/blacklist/AddNodeToBlackListCommand.cpp
         commands/blacklist/AddNodeToBlackListCommand.h
 
@@ -58,7 +57,10 @@ set(SOURCE_FILES
         commands/blacklist/GetBlackListCommand.cpp
 
         commands/blacklist/CheckIfNodeInBlackListCommand.h
-        commands/blacklist/CheckIfNodeInBlackListCommand.cpp)
+        commands/blacklist/CheckIfNodeInBlackListCommand.cpp
+
+        commands/transactions/PaymentTransactionByCommandUUIDCommand.h
+        commands/transactions/PaymentTransactionByCommandUUIDCommand.cpp)
 
 add_library(interface__commands ${SOURCE_FILES})
 target_link_libraries(interface__commands
