@@ -100,6 +100,7 @@ public:
         HistoryPaymentsTransactionType = 700,
         HistoryTrustLinesTransactionType = 701,
         HistoryWithContractorTransactionType = 702,
+        HistoryAdditionalPaymentsTransactionType = 703,
 
         // FindPath
         FindPathByMaxFlowTransactionType = 800,

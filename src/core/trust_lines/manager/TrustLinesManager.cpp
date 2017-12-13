@@ -896,9 +896,9 @@ void TrustLinesManager::printRTs()
     debug << "printRTs\tRT1 size: " << trustLines().size() << endl;
     for (const auto itTrustLine : trustLines()) {
         debug << "printRTs\t" << itTrustLine.second->contractorNodeUUID() << " "
-               << (int)itTrustLine.second->incomingTrustAmount() << " "
-               << (int)itTrustLine.second->outgoingTrustAmount() << " "
-               << (int)itTrustLine.second->balance() << " "
+               << itTrustLine.second->incomingTrustAmount() << " "
+               << itTrustLine.second->outgoingTrustAmount() << " "
+               << itTrustLine.second->balance() << " "
                << itTrustLine.second->isContractorGateway() << endl;
     }
     debug << "print payment incoming flows size: " << incomingFlows().size() << endl;
@@ -911,15 +911,15 @@ void TrustLinesManager::printRTs()
     }
     debug << "print cycle incoming flows size: " << incomingFlows().size() << endl;
     for (auto const trLine : mTrustLines) {
-//        const auto availableIncomingCycleAmounts = availableIncomingCycleAmounts(trLine.first);
-//        debug << trLine.first << " " << *(availableIncomingCycleAmounts.first)
-//              << " " << *(availableIncomingCycleAmounts.second) << endl;
+        auto const availableIncomingCycleAmounts = this->availableIncomingCycleAmounts(trLine.first);
+        debug << trLine.first << " " << *(availableIncomingCycleAmounts.first)
+              << " " << *(availableIncomingCycleAmounts.second) << endl;
     }
     debug << "print cycle outgoing flows size: " << outgoingFlows().size() << endl;
     for (auto const trLine : mTrustLines) {
-//        auto const availableOutgoingCycleAmounts = availableOutgoingCycleAmounts(trLine.first);
-//        debug << trLine.first << " " << *(availableOutgoingCycleAmounts.first)
-//              << " " << *(availableOutgoingCycleAmounts.second) << endl;
+        auto const availableOutgoingCycleAmounts = this->availableOutgoingCycleAmounts(trLine.first);
+        debug << trLine.first << " " << *(availableOutgoingCycleAmounts.first)
+              << " " << *(availableOutgoingCycleAmounts.second) << endl;
     }
 }
 

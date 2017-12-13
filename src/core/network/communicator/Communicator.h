@@ -8,6 +8,9 @@
 #include "internal/incoming/IncomingMessagesHandler.h"
 #include "internal/queue/ConfirmationRequiredMessagesHandler.h"
 #include "internal/uuid2address/UUID2Address.h"
+#include <boost/asio/steady_timer.hpp>
+
+#include "../../io/storage/CommunicatorStorageHandler.h"
 
 
 using namespace std;
@@ -54,12 +57,13 @@ protected:
     void onConfirmationRequiredMessageReadyToResend(
         pair<NodeUUID, TransactionMessage::Shared>);
 
-
+    void deserializeAndResendMessages();
 
 protected:
     const Host mInterface;
     const Port mPort;
     IOService &mIOService;
+    unique_ptr<CommunicatorStorageHandler> mCommunicatorStorageHandler;
     Logger &mLog;
 
     unique_ptr<UDPSocket> mSocket;

@@ -101,6 +101,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     for (auto const gateway : mMaxFlowCalculationTrustLineManager->gateways()) {
         info() << "\t" << gateway;
     }
+    DateTime startTime = utc_now();
 #endif
 
     mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
@@ -119,6 +120,9 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+    info() << "max flow calculating time: " << utc_now() - startTime;
+#endif
     return mCurrentMaxFlow;
 }
 

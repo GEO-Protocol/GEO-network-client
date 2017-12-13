@@ -257,7 +257,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     if (kMessage->senderUUID == mMessage->senderUUID) {
         mSubsystemsController->testForbidSendMessageToCoordinatorOnReservationStage(
             NodeUUID::empty(),
-            kReservationAmount);
+            TrustLine::kZeroAmount());
     }
     mSubsystemsController->testForbidSendResponseToIntNodeOnReservationStage(
         kMessage->senderUUID,

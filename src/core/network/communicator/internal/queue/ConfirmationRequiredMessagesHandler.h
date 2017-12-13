@@ -5,6 +5,8 @@
 #include "../../internal/common/Types.h"
 #include "../../../../common/exceptions/RuntimeError.h"
 #include "../../../../logger/LoggerMixin.hpp"
+#include "../../../../io/storage/CommunicatorStorageHandler.h"
+#include "../../../../io/storage/CommunicatorIOTransaction.h"
 
 #include <boost/asio/steady_timer.hpp>
 #include <boost/signals2.hpp>
@@ -34,7 +36,7 @@ namespace as = boost::asio;
  * ---------------------------------------------------------------------------------------------------------
  * ToDo: "I'm online" message.
  * In case if remote node would be offline long period of time - timeout interval on current node would grow
- * up to 10+ minutes. Theretically, it is possible, that remote node would come back online right after
+ * up to 10+ minutes. Theoretically, it is possible, that remote node would come back online right after
  * failed sending attempt, so the next message would be sent to it after 10+ minutes.
  *
  * But, it would be much more efficient, if remote node might send "I'm online message" to it's contractors,
@@ -59,12 +61,13 @@ public:
 public:
     ConfirmationRequiredMessagesHandler(
         IOService &ioService,
+        CommunicatorStorageHandler *communicatorStorageHandler,
         Logger &logger)
         noexcept;
 
     /**
      * Checks "message" type, and in case if this message must be confirmed, -
-     * enqueues it for futher processing. If there is no queue for the "contractor" -
+     * enqueues it for further processing. If there is no queue for the "contractor" -
      * it would be created.
      *
      * (This method might be expended with othe messages types).
@@ -91,8 +94,8 @@ protected:
         noexcept;
 
     /**
-     * @returns timestamp, when next timer awakenes must be performed.
-     * This method checks all queues and returns the smalles one time dureation,
+     * @returns timestamp, when next timer awakeness must be performed.
+     * This method checks all queues and returns the smalles one time duration,
      * between now and queue timeout.
      */
     const DateTime closestQueueSendingTimestamp() const
@@ -104,14 +107,31 @@ protected:
     void rescheduleResending();
 
     /**
-     * Sends posptoned messages to the remote nodes.
+     * Sends postponed messages to the remote nodes.
      * This method would be called every time when some queue timeout would fire up.
      */
     void sendPostponedMessages() const;
 
+    void addMessageToStorage(
+        const NodeUUID &contractorUUID,
+        Message::Shared message);
+
+    void removeMessageFromStorage(
+        const NodeUUID &contractorUUID,
+        Message::SerializedType messageType);
+
+    void deserializeMessages();
+
+    void tryEnqueueMessageWithoutConnectingSignalsToSlots(
+        const NodeUUID &contractorUUID,
+        const Message::Shared message);
+
+protected:
+    static const uint16_t kMessagesDeserializationDelayedSecondsTime = 60;
+
 protected:
     /**
-     * Map is used becasuse it is expected,
+     * Map is used because it is expected,
      * that queues count would very rarely grow more than 200-300 objects.
      *
      * Current GCC realisation of the "map" and "unordered_map"
@@ -121,8 +141,14 @@ protected:
 
     IOService &mIOService;
 
-    // todo: think to use steady_timer.
-    as::deadline_timer mCleaningTimer;
+    CommunicatorStorageHandler *mCommunicatorStorageHandler;
+
+    as::steady_timer mCleaningTimer;
+
+    // this field used for removing and adding messages to storage during enqueue messages
+    unique_ptr<CommunicatorIOTransaction> ioTransactionUnique;
+
+    unique_ptr<as::steady_timer> mDeserializationMessagesTimer;
 };
 
 #endif // CONFIRMATIONREQUIREDMESSAGESHANDLER_H

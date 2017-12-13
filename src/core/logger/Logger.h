@@ -105,6 +105,9 @@ public:
         const string &message);
 
 protected:
+    const int maxRotateLimit = 500000;
+
+protected:
     const string formatMessage(
         const string &message) const;
 
@@ -116,8 +119,16 @@ protected:
         const string &subsystem,
         const string &message);
 
+    void rotate();
+
+    void calculateOperationsLogFileLinesNumber();
+
+
+
 private:
     NodeUUID mNodeUUID;
     std::ofstream mOperationsLogFile;
+    uint16_t mOperationsLogFileLinesNumber;
+    string mOperationLogFileName;
 };
 #endif //GEO_NETWORK_CLIENT_LOGGER_H

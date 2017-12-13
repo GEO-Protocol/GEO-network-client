@@ -26,6 +26,15 @@ set(SOURCE_FILES
         MigrationsHandler.h
         MigrationsHandler.cpp
 
+        CommunicatorMessagesQueueHandler.h
+        CommunicatorMessagesQueueHandler.cpp
+
+        CommunicatorStorageHandler.h
+        CommunicatorStorageHandler.cpp
+
+        CommunicatorIOTransaction.h
+        CommunicatorIOTransaction.cpp
+
         NodeFeaturesHandler.h
         NodeFeaturesHandler.cpp)
 

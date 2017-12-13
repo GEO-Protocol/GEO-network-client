@@ -11,6 +11,7 @@
 #include "../commands/total_balances/TotalBalancesCommand.h"
 #include "../commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../commands/history/HistoryPaymentsCommand.h"
+#include "../commands/history/HistoryAdditionalPaymentsCommand.h"
 #include "../commands/history/HistoryTrustLinesCommand.h"
 #include "../commands/history/HistoryWithContractorCommand.h"
 #include "../commands/trust_lines_list/GetFirstLevelContractorsCommand.h"

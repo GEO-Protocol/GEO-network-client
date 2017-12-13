@@ -27,7 +27,6 @@ int Core::run()
         mCommandsInterface->beginAcceptCommands();
 
         mLog->logSuccess("Core", "Processing started.");
-
         mIOService.run();
         return 0;
 
@@ -673,6 +672,7 @@ LoggerStream Core::info() const
 {
     return mLog->info(logHeader());
 }
+
 
 
 

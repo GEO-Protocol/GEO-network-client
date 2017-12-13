@@ -8,6 +8,7 @@
 #include <boost/filesystem.hpp>
 
 #include <string>
+#include <iostream>
 
 // for mkfifo()
 #include <sys/types.h>
@@ -30,6 +31,7 @@ protected:
     virtual const char* FIFOName() const = 0;
 
     const string FIFOFilePath() const {
+        cout << string(kFIFODir) << string(FIFOName()) << endl;
         return string(kFIFODir) + string(FIFOName());
     }
 

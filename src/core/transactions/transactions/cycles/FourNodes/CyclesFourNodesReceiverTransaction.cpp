@@ -19,12 +19,10 @@ TransactionResult::SharedConst CyclesFourNodesReceiverTransaction::run()
     const auto kDebtorNeighbor = mRequestMessage->debtor();
     const auto kCreditorNeighbor = mRequestMessage->creditor();
 
-    auto zeroTrustLine = TrustLineBalance(0);
-
-    if(mTrustLinesManager->balance(kDebtorNeighbor) < zeroTrustLine)
+    if(mTrustLinesManager->balance(kDebtorNeighbor) <= TrustLine::kZeroBalance())
         return resultDone();
 
-    if(mTrustLinesManager->balance(kCreditorNeighbor) > zeroTrustLine)
+    if(mTrustLinesManager->balance(kCreditorNeighbor) >= TrustLine::kZeroBalance())
         return resultDone();
 
     sendMessage<CyclesFourNodesBalancesResponseMessage>(

@@ -39,9 +39,17 @@ Communicator::Communicator(
             *mUUID2AddressService,
             logger)),
 
+    mCommunicatorStorageHandler(
+        make_unique<CommunicatorStorageHandler>(
+            // todo : move this consts to Core.h
+            "io",
+            "communicatorStorageDB",
+            logger)),
+
     mConfirmationRequiredMessagesHandler(
         make_unique<ConfirmationRequiredMessagesHandler>(
             IOService,
+            mCommunicatorStorageHandler.get(),
             logger))
 {
     // Direct signals chaining.
@@ -122,15 +130,15 @@ void Communicator::onMessageReceived(
 {
     // In case if received message is of type "confirmation message" -
     // then it must not be transferred for further processing.
-    // Instead of that, it must be transfereed for processing into
+    // Instead of that, it must be transferred for processing into
     // confirmation required messages handler.
     if (message->typeID() == Message::System_Confirmation) {
-        const auto kConfirmaionMessage =
+        const auto kConfirmationMessage =
             static_pointer_cast<ConfirmationMessage>(message);
 
         mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
-            kConfirmaionMessage->senderUUID,
-            kConfirmaionMessage);
+            kConfirmationMessage->senderUUID,
+            kConfirmationMessage);
         return;
     }
 

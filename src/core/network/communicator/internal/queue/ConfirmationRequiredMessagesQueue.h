@@ -6,8 +6,11 @@
 #include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../messages/gateway_notification/GatewayNotificationMessage.h"
 
+#include <boost/signals2.hpp>
+
 #include <map>
 
+namespace signals = boost::signals2;
 
 /**
  * Stores messages, that must be re-sent to the remote node,
@@ -18,7 +21,13 @@ public:
     typedef shared_ptr<ConfirmationRequiredMessagesQueue> Shared;
 
 public:
-    ConfirmationRequiredMessagesQueue()
+    signals::signal<void(NodeUUID, Message::SerializedType)> signalRemoveMessageFromStorage;
+
+    signals::signal<void(NodeUUID, Message::Shared)> signalSaveMessageToStorage;
+
+public:
+    ConfirmationRequiredMessagesQueue(
+        const NodeUUID &contractorUUID)
         noexcept;
 
     /**
@@ -89,6 +98,8 @@ protected:
     // Stores date time, when messages from this queue must be sent to the remote node.
     // On each sending attempt this temout must be increased by the mNextTiemoutSeconds.
     DateTime mNextSendingAttemptDateTime;
+
+    NodeUUID mContractorUUID;
 };
 
 #endif // CONFIRMATIONREQUIREDMESSAGESQUEUE_H
