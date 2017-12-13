@@ -86,6 +86,56 @@ void PathsManager::buildPathsOnOneLevel()
     }
 }
 
+void PathsManager::buildPathsOnSecondLevel()
+{
+    auto trustLinePtrsSet =
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    auto gateways = mTrustLinesManager->gateways();
+    while (gateways.size() > 0) {
+        auto itGateway = gateways.begin();
+        for (auto itTrustLinePtr = trustLinePtrsSet.begin(); itTrustLinePtr != trustLinePtrsSet.end(); itTrustLinePtr++) {
+            auto trustLine = (*itTrustLinePtr)->maxFlowCalculationtrustLine();
+            bool isContinue = true;
+            while (trustLine->sourceUUID() == *itGateway and isContinue) {
+                auto trustLineFreeAmountShared = trustLine->freeAmount();
+                auto trustLineAmountPtr = trustLineFreeAmountShared.get();
+                mPassedNodeUUIDs.clear();
+                TrustLineAmount flow = calculateOneNode(
+                    trustLine->targetUUID(),
+                    *trustLineAmountPtr,
+                    1);
+                if (flow > TrustLine::kZeroAmount()) {
+                    trustLine->addUsedAmount(flow);
+                } else {
+                    isContinue = false;
+                }
+            }
+            if (!isContinue) {
+                trustLinePtrsSet.erase(itTrustLinePtr);
+                break;
+            }
+        }
+        gateways.erase(itGateway);
+
+    }
+    auto itTrustLinePtr = trustLinePtrsSet.begin();
+    while (itTrustLinePtr != trustLinePtrsSet.end()) {
+        auto trustLine = (*itTrustLinePtr)->maxFlowCalculationtrustLine();
+        auto trustLineFreeAmountShared = trustLine->freeAmount();
+        auto trustLineAmountPtr = trustLineFreeAmountShared.get();
+        mPassedNodeUUIDs.clear();
+        TrustLineAmount flow = calculateOneNode(
+            trustLine->targetUUID(),
+            *trustLineAmountPtr,
+            1);
+        if (flow > TrustLine::kZeroAmount()) {
+            trustLine->addUsedAmount(flow);
+        } else {
+            itTrustLinePtr++;
+        }
+    }
+}
+
 // it used the same logic as PathsManager::calculateOneNodeForRebuildingPaths
 // and InitiateMaxFlowCalculationTransaction::calculateOneNode
 // if you change this method, you should change others

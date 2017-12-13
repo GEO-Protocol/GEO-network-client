@@ -689,6 +689,17 @@ vector<pair<NodeUUID, ConstSharedTrustLineAmount>> TrustLinesManager::outgoingFl
     return result;
 }
 
+vector<NodeUUID> TrustLinesManager::gateways() const
+{
+    vector<NodeUUID> result;
+    for (auto const &nodeUUIDAndTrustLine : mTrustLines) {
+        if (nodeUUIDAndTrustLine.second->isContractorGateway()) {
+            result.push_back(nodeUUIDAndTrustLine.first);
+        }
+    }
+    return result;
+}
+
 vector<NodeUUID> TrustLinesManager::rt1() const {
 
     vector<NodeUUID> result;

@@ -319,6 +319,8 @@ public:
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsToGateways() const;
 
+    vector<NodeUUID> gateways() const;
+
     vector<NodeUUID> rt1() const;
 
     // total balance to all 1st level neighbors
