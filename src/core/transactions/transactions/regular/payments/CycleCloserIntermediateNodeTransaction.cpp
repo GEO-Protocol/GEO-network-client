@@ -586,7 +586,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalR
 
     if (!mCoordinatorAlreadySentFinalAmountsConfiguration) {
         return resultWaitForMessageTypes(
-            {Message::Payments_FinalAmountsConfiguration,
+            {Message::Payments_FinalPathCycleConfiguration,
              Message::Payments_ReservationsInRelationToNode,
              Message::Payments_TTLProlongationResponse},
             maxNetworkDelay(1));
