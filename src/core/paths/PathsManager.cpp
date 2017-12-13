@@ -49,7 +49,11 @@ void PathsManager::buildPaths(
         return;
     }
 
-    for (mCurrentPathLength = 1; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
+    mCurrentPathLength = 1;
+    buildPathsOnOneLevel();
+    mCurrentPathLength = 2;
+    buildPathsOnSecondLevel();
+    for (mCurrentPathLength = 3; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
         buildPathsOnOneLevel();
     }
 
@@ -63,29 +67,29 @@ void PathsManager::buildPathsOnOneLevel()
 {
     auto trustLinePtrsSet =
         mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
-    while(true) {
-        TrustLineAmount currentFlow = 0;
-        for (auto &trustLinePtr : trustLinePtrsSet) {
-            auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
-            auto trustLineFreeAmountShared = trustLine->freeAmount();
-            auto trustLineAmountPtr = trustLineFreeAmountShared.get();
-            mPassedNodeUUIDs.clear();
-            TrustLineAmount flow = calculateOneNode(
-                trustLine->targetUUID(),
-                *trustLineAmountPtr,
-                1);
-            if (flow > TrustLine::kZeroAmount()) {
-                currentFlow += flow;
-                trustLine->addUsedAmount(flow);
-                break;
-            }
+    auto itTrustLinePtr = trustLinePtrsSet.begin();
+    while (itTrustLinePtr != trustLinePtrsSet.end()) {
+        auto trustLine = (*itTrustLinePtr)->maxFlowCalculationtrustLine();
+        auto trustLineFreeAmountShared = trustLine->freeAmount();
+        auto trustLineAmountPtr = trustLineFreeAmountShared.get();
+        if (*trustLineAmountPtr == TrustLine::kZeroAmount()) {
+            itTrustLinePtr++;
+            continue;
         }
-        if (currentFlow == 0) {
-            break;
+        mPassedNodeUUIDs.clear();
+        TrustLineAmount flow = calculateOneNode(
+            trustLine->targetUUID(),
+            *trustLineAmountPtr,
+            1);
+        if (flow > TrustLine::kZeroAmount()) {
+            trustLine->addUsedAmount(flow);
+        } else {
+            itTrustLinePtr++;
         }
     }
 }
 
+// on second level (paths on 3 nodes) we build paths through gateway first of all
 void PathsManager::buildPathsOnSecondLevel()
 {
     auto trustLinePtrsSet =
@@ -96,7 +100,7 @@ void PathsManager::buildPathsOnSecondLevel()
         for (auto itTrustLinePtr = trustLinePtrsSet.begin(); itTrustLinePtr != trustLinePtrsSet.end(); itTrustLinePtr++) {
             auto trustLine = (*itTrustLinePtr)->maxFlowCalculationtrustLine();
             bool isContinue = true;
-            while (trustLine->sourceUUID() == *itGateway and isContinue) {
+            if (trustLine->targetUUID() == *itGateway) {
                 auto trustLineFreeAmountShared = trustLine->freeAmount();
                 auto trustLineAmountPtr = trustLineFreeAmountShared.get();
                 mPassedNodeUUIDs.clear();
@@ -106,9 +110,8 @@ void PathsManager::buildPathsOnSecondLevel()
                     1);
                 if (flow > TrustLine::kZeroAmount()) {
                     trustLine->addUsedAmount(flow);
-                } else {
-                    isContinue = false;
                 }
+                isContinue = false;
             }
             if (!isContinue) {
                 trustLinePtrsSet.erase(itTrustLinePtr);
