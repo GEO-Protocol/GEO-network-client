@@ -472,7 +472,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToApp
 
     return resultWaitForMessageTypes(
         {Message::Payments_CoordinatorCycleReservationResponse},
-        kMaxMessageTransferLagMSec);
+        maxNetworkDelay(4));
 }
 
 
