@@ -1,6 +1,5 @@
 #include "MessageParser.h"
 
-
 MessagesParser::MessagesParser(
     Logger *logger)
     noexcept:
@@ -34,6 +33,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
          */
         case Message::TrustLines_SetIncoming:
             return messageCollected<SetIncomingTrustLineMessage>(buffer);
+
+        case Message::TrustLines_CloseOutgoing:
+            return messageCollected<CloseOutgoingTrustLineMessage>(buffer);
 
 
         /*
@@ -92,6 +94,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 
         case Message::Payments_VotesStatusRequest:
             return messageCollected<VotesStatusRequestMessage>(buffer);
+
+        case Message::Payments_ReservationsInRelationToNode:
+            return messageCollected<ReservationsInRelationToNodeMessage>(buffer);
 
 
         /*

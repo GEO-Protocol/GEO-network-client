@@ -35,6 +35,9 @@ set(SOURCE_FILES
         CommunicatorIOTransaction.h
         CommunicatorIOTransaction.cpp
 
+        BlackListHandler.h
+        BlackListHandler.cpp
+
         NodeFeaturesHandler.h
         NodeFeaturesHandler.cpp)
 

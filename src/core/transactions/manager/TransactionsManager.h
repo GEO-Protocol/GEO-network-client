@@ -19,7 +19,7 @@
  * Interface commands
  */
 #include "../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
-
+#include "../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
@@ -27,10 +27,16 @@
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
+#include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryWithContractorCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetFirstLevelContractorsCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLinesCommand.h"
 #include "../../interface/commands_interface/commands/trust_lines_list/GetTrustLineCommand.h"
+#include "../../interface/commands_interface/commands/blacklist/AddNodeToBlackListCommand.h"
+#include "../../interface/commands_interface/commands/blacklist/CheckIfNodeInBlackListCommand.h"
+#include "../../interface/commands_interface/commands/blacklist/RemoveNodeFromBlackListCommand.h"
+#include "../../interface/commands_interface/commands/blacklist/GetBlackListCommand.h"
+#include "../../interface/commands_interface/commands/transactions/PaymentTransactionByCommandUUIDCommand.h"
 
 /*
  * Network messages
@@ -51,6 +57,9 @@
  */
 #include "../transactions/trust_lines/SetOutgoingTrustLineTransaction.h"
 #include "../transactions/trust_lines/SetIncomingTrustLineTransaction.h"
+#include "../transactions/trust_lines/CloseIncomingTrustLineTransaction.h"
+#include "../transactions/trust_lines/CloseOutgoingTrustLineTransaction.h"
+#include "../transactions/trust_lines/RejectOutgoingTrustLineTransaction.h"
 
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 #include "../transactions/cycles/ThreeNodes/CyclesThreeNodesReceiverTransaction.h"
@@ -81,7 +90,7 @@
 #include "../transactions/total_balances/TotalBalancesFromRemoutNodeTransaction.h"
 
 #include "../transactions/history/HistoryPaymentsTransaction.h"
-#include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
+#include "../transactions/history/HistoryAdditionalPaymentsTransaction.h"
 #include "../transactions/history/HistoryTrustLinesTransaction.h"
 #include "../transactions/history/HistoryWithContractorTransaction.h"
 
@@ -92,7 +101,15 @@
 #include "../transactions/routing_table/RoutingTableInitTransaction.h"
 #include "../transactions/routing_table/RoutingTableResponseTransaction.h"
 
+#include "../transactions/blacklist/AddNodeToBlackListTransaction.h"
+#include "../transactions/blacklist/CheckIfNodeInBlackListTransaction.h"
+#include "../transactions/blacklist/RemoveNodeFromBlackListTransaction.h"
+#include "../transactions/blacklist/GetBlackListTransaction.h"
+
+
 #include "../transactions/find_path/FindPathByMaxFlowTransaction.h"
+
+#include "../transactions/transaction/PaymentTransactionByCommandUUIDTransaction.h"
 
 #include "../transactions/gateway_notification/GatewayNotificationSenderTransaction.h"
 #include "../transactions/gateway_notification/GatewayNotificationReceiverTransaction.h"
@@ -108,6 +125,7 @@ namespace signals = boost::signals2;
 class TransactionsManager {
 public:
     signals::signal<void(Message::Shared, const NodeUUID&)> transactionOutgoingMessageReadySignal;
+    signals::signal<void(const NodeUUID&, ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
 
 public:
     TransactionsManager(
@@ -183,12 +201,21 @@ protected: // Transactions
     void launchSetOutgoingTrustLineTransaction(
         SetOutgoingTrustLineCommand::Shared command);
 
+    void launchCloseIncomingTrustLineTransaction(
+        CloseIncomingTrustLineCommand::Shared command);
+
     /**
-     * Starts transaction that would orocesses received message
+     * Starts transaction that would processes received message
      * and attempts to set incoming trust line from the remote node.
      */
     void launchSetIncomingTrustLineTransaction(
         SetIncomingTrustLineMessage::Shared message);
+
+    void launchCloseOutgoingTrustLineTransaction(
+        CloseOutgoingTrustLineMessage::Shared message);
+
+    void launchRejectOutgoingTrustLineTransaction(
+        ConfirmationMessage::Shared message);
 
     /*
      * Max flow transactions
@@ -275,6 +302,28 @@ protected: // Transactions
         GetTrustLineCommand::Shared command);
 
     /*
+     * BlackList
+     */
+public:
+    void launchAddNodeToBlackListTransaction(
+        AddNodeToBlackListCommand::Shared command);
+
+    void launchCheckIfNodeInBlackListTransaction(
+        CheckIfNodeInBlackListCommand::Shared command);
+
+    void launchRemoveNodeFromBlackListTransaction(
+        RemoveNodeFromBlackListCommand::Shared command);
+
+    void launchGetBlackListTransaction(
+        GetBlackListCommand::Shared command);
+
+    /*
+     * Transaction
+     */
+    void launchPaymentTransactionByCommandUUIDTransaction(
+        PaymentTransactionByCommandUUIDCommand::Shared command);
+
+    /*
      * RoutingTable
      */
     void launchRoutingTableResponseTransaction(
@@ -321,6 +370,9 @@ protected:
     void subscribeForTryCloseNextCycleSignal(
         TransactionsScheduler::CycleCloserTransactionWasFinishedSignal &signal);
 
+    void subscribeForProcessingConfirmationMessage(
+        BaseTransaction::ProcessConfirmationMessageSignal &signal);
+
     // Slots
     void onSubsidiaryTransactionReady(
         BaseTransaction::Shared transaction);
@@ -349,6 +401,10 @@ protected:
         Path::ConstShared cycle);
 
     void onTryCloseNextCycleSlot();
+
+    void onProcessConfirmationMessageSlot(
+        const NodeUUID &contractorUUID,
+        ConfirmationMessage::Shared confirmationMessage);
 
 protected:
     void prepareAndSchedule(

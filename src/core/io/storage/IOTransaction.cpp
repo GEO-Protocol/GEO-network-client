@@ -6,6 +6,7 @@ IOTransaction::IOTransaction(
     HistoryStorage *historyStorage,
     PaymentOperationStateHandler *paymentOperationStorage,
     TransactionsHandler *transactionHandler,
+    BlackListHandler *blackListHandler,
     NodeFeaturesHandler *nodeFeaturesHandler,
     Logger &logger) :
 
@@ -14,6 +15,7 @@ IOTransaction::IOTransaction(
     mHistoryStorage(historyStorage),
     mPaymentOperationStateHandler(paymentOperationStorage),
     mTransactionHandler(transactionHandler),
+    mBlackListHandler(blackListHandler),
     mNodeFeaturesHandler(nodeFeaturesHandler),
     mIsTransactionBegin(true),
     mLog(logger)
@@ -158,4 +160,12 @@ void IOTransaction::beginTransactionQuery() {
 #ifdef STORAGE_HANDLER_DEBUG_LOG
     info() << "transaction begin";
 #endif
+}
+
+BlackListHandler *IOTransaction::blackListHandler() {
+    if (!mIsTransactionBegin) {
+        throw IOError("IOTransaction::historyStorage: "
+                          "transaction was rollback, it can't be use now");
+    }
+    return mBlackListHandler;
 }

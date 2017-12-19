@@ -7,6 +7,8 @@
 #include "internal/outgoing/OutgoingMessagesHandler.h"
 #include "internal/incoming/IncomingMessagesHandler.h"
 #include "internal/queue/ConfirmationRequiredMessagesHandler.h"
+#include "../../io/storage/StorageHandler.h"
+#include "../../trust_lines/manager/TrustLinesManager.h"
 #include "internal/uuid2address/UUID2Address.h"
 #include <boost/asio/steady_timer.hpp>
 
@@ -42,6 +44,10 @@ public:
         const Message::Shared kMessage,
         const NodeUUID &kContractorUUID)
         noexcept;
+
+    void processConfirmationMessage(
+        const NodeUUID &contractorUUID,
+        ConfirmationMessage::Shared confirmationMessage);
 
 protected:
     /**

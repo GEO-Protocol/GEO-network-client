@@ -59,27 +59,36 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
     const NodeUUID &contractorUUID,
     const TrustLineAmount &amount)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
-        // In case if TL to this contractor is absent,
-        // "amount" can't be 0 (otherwise, trust line with both sides set to zero would be opened).
+    if (outgoingTrustAmountDespiteReservations(contractorUUID) == 0) {
+        // In case if outgoing TL to this contractor is absent,
+        // "amount" can't be 0 (otherwise, trust line set to zero would be opened).
         if (amount == 0) {
             throw ValueError(
                 "TrustLinesManager::setOutgoing: "
-                "can't establish trust line with zero amount at both sides.");
+                "can't establish trust line with zero amount.");
 
         } else {
-            // In case if trust line to this contractor is absent,
-            // and "amount" is greater than 0 - new outgoing trust line should be created.
-            // todo : contractor is not gateway by default
-            auto trustLine = make_shared<TrustLine>(
-                contractorUUID, 0, amount, 0, false);
-
-            mTrustLines[contractorUUID] = trustLine;
-            saveToDisk(IOTransaction, trustLine);
+            if (not trustLineIsPresent(contractorUUID)) {
+                // In case if trust line to this contractor is absent,
+                // and "amount" is greater than 0 - new trust line should be created.
+                // todo : contractor is not gateway by default
+                auto trustLine = make_shared<TrustLine>(
+                    contractorUUID, 0, amount, 0, false);
+                mTrustLines[contractorUUID] = trustLine;
+                saveToDisk(IOTransaction, trustLine);
+            } else {
+                // In case if trust line to this contractor is present,
+                // and "amount" is greater than 0 - outgoing trust line should be created.
+                auto trustLine = mTrustLines[contractorUUID];
+                trustLine->setOutgoingTrustAmount(amount);
+                saveToDisk(
+                    IOTransaction,
+                    trustLine);
+            }
             return TrustLineOperationResult::Opened;
         }
 
-    } else if (amount == 0 and incomingTrustAmountDespiteResevations(contractorUUID) == 0) {
+    } else if (amount == 0) {
         // In case if trust line is already present,
         // but incoming trust amount is 0, and received "amount" is 0 -
         // then it is interpreted as the command to close the outgoing trust line.
@@ -107,8 +116,8 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
     const NodeUUID &contractorUUID,
     const TrustLineAmount &amount)
 {
-    if (not trustLineIsPresent(contractorUUID)) {
-        // In case if TL to this contractor is absent,
+    if (incomingTrustAmountDespiteResevations(contractorUUID) == 0) {
+        // In case if incoming TL amount to this contractor is absent,
         // "amount" can't be 0 (otherwise, trust line with both sides set to zero would be opened).
         if (amount == 0) {
             throw ValueError(
@@ -116,20 +125,29 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
                 "can't establish trust line with zero amount at both sides.");
 
         } else {
-            // In case if TL to this contractor is absent,
-            // and "amount" is greater than 0 - new incoming trust line should be created.
-            // todo : contractor is not gateway by default
-            auto trustLine = make_shared<TrustLine>(
-                contractorUUID, amount, 0, 0, false);
-
-            mTrustLines[contractorUUID] = trustLine;
-            saveToDisk(IOTransaction, trustLine);
+            if (not trustLineIsPresent(contractorUUID)) {
+                // In case if TL to this contractor is absent,
+                // and "amount" is greater than 0 - new trust line should be created.
+                // todo : contractor is not gateway by default
+                auto trustLine = make_shared<TrustLine>(
+                    contractorUUID, amount, 0, 0, false);
+                mTrustLines[contractorUUID] = trustLine;
+                saveToDisk(IOTransaction, trustLine);
+            } else {
+                // In case if TL to this contractor is present,
+                // and "amount" is greater than 0 - incoming trust line should be created.
+                auto trustLine = mTrustLines[contractorUUID];
+                trustLine->setIncomingTrustAmount(amount);
+                saveToDisk(
+                    IOTransaction,
+                    trustLine);
+            }
             return TrustLineOperationResult::Opened;
         }
 
-    } else if (amount == 0 and outgoingTrustAmountDespiteReservations(contractorUUID) == 0) {
-        // In case if trust line is already present,
-        // but outgoing trust amount is 0, and received "amount" is 0 -
+    } else if (amount == 0) {
+        // In case if incoming trust line is already present,
+        // and received "amount" is 0 -
         // then it is interpreted as the command to close the incoming trust line.
         closeIncoming(
             IOTransaction,
@@ -255,9 +273,7 @@ const TrustLineAmount &TrustLinesManager::incomingTrustAmountDespiteResevations(
     const NodeUUID &contractorUUID) const
 {
     if (not trustLineIsPresent(contractorUUID)) {
-        throw NotFoundError(
-            "TrustLinesManager::incomingTrustAmountDespiteResevations: "
-            "There is no trust line from this contractor.");
+        return TrustLine::kZeroAmount();
     }
 
     return mTrustLines.at(contractorUUID)->incomingTrustAmount();
@@ -267,9 +283,7 @@ const TrustLineAmount &TrustLinesManager::outgoingTrustAmountDespiteReservations
     const NodeUUID &contractorUUID) const
 {
     if (not trustLineIsPresent(contractorUUID)) {
-        throw NotFoundError(
-            "TrustLinesManager::outgoingTrustAmountDespiteResevations: "
-            "There is no trust line to this contractor.");
+        return TrustLine::kZeroAmount();
     }
 
     return mTrustLines.at(contractorUUID)->outgoingTrustAmount();

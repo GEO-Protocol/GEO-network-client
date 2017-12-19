@@ -125,6 +125,15 @@ void Communicator::sendMessage (
         contractorUUID);
 }
 
+void Communicator::processConfirmationMessage(
+    const NodeUUID &contractorUUID,
+    ConfirmationMessage::Shared confirmationMessage)
+{
+    mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
+        contractorUUID,
+        confirmationMessage);
+}
+
 void Communicator::onMessageReceived(
     Message::Shared message)
 {
@@ -135,11 +144,12 @@ void Communicator::onMessageReceived(
     if (message->typeID() == Message::System_Confirmation) {
         const auto kConfirmationMessage =
             static_pointer_cast<ConfirmationMessage>(message);
-
-        mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
-            kConfirmationMessage->senderUUID,
-            kConfirmationMessage);
-        return;
+        if (kConfirmationMessage->state() != ConfirmationMessage::ContractorBanned) {
+            mConfirmationRequiredMessagesHandler->tryProcessConfirmation(
+                kConfirmationMessage->senderUUID,
+                kConfirmationMessage);
+            return;
+        }
     }
 
     signalMessageReceived(message);

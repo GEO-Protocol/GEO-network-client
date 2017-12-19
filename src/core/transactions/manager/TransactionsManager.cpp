@@ -1,6 +1,4 @@
 ﻿#include "TransactionsManager.h"
-#include "../transactions/history/HistoryAdditionalPaymentsTransaction.h"
-
 
 /*!
  *
@@ -194,6 +192,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<SetOutgoingTrustLineCommand>(
                 command));
 
+    } else if (command->identifier() == CloseIncomingTrustLineCommand::identifier()) {
+        launchCloseIncomingTrustLineTransaction(
+            static_pointer_cast<CloseIncomingTrustLineCommand>(
+                command));
+
     } else if (command->identifier() == CreditUsageCommand::identifier()) {
         launchCoordinatorPaymentTransaction(
             dynamic_pointer_cast<CreditUsageCommand>(
@@ -247,6 +250,33 @@ void TransactionsManager::processCommand(
     } else if (command->identifier() == GetTrustLineCommand::identifier()){
         launchGetTrustlineTransaction(
             static_pointer_cast<GetTrustLineCommand>(
+                command));
+
+    // BlackList Commands
+    } else if (command->identifier() == AddNodeToBlackListCommand::identifier()){
+
+        launchAddNodeToBlackListTransaction(
+            static_pointer_cast<AddNodeToBlackListCommand>(
+                command));
+
+    } else if (command->identifier() == CheckIfNodeInBlackListCommand::identifier()){
+        launchCheckIfNodeInBlackListTransaction(
+            static_pointer_cast<CheckIfNodeInBlackListCommand>(
+                command));
+
+    } else if (command->identifier() == RemoveNodeFromBlackListCommand::identifier()){
+        launchRemoveNodeFromBlackListTransaction(
+            static_pointer_cast<RemoveNodeFromBlackListCommand>(
+                command));
+
+    } else if (command->identifier() == GetBlackListCommand::identifier()){
+        launchGetBlackListTransaction(
+            static_pointer_cast<GetBlackListCommand>(
+                command));
+
+    } else if (command->identifier() == PaymentTransactionByCommandUUIDCommand::identifier()){
+        launchPaymentTransactionByCommandUUIDTransaction(
+            static_pointer_cast<PaymentTransactionByCommandUUIDCommand>(
                 command));
 
     } else {
@@ -366,6 +396,14 @@ void TransactionsManager::processMessage(
         launchSetIncomingTrustLineTransaction(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
 
+    } else if (message->typeID() == Message::TrustLines_CloseOutgoing) {
+        launchCloseOutgoingTrustLineTransaction(
+            static_pointer_cast<CloseOutgoingTrustLineMessage>(message));
+
+    } else if (message->typeID() == Message::System_Confirmation) {
+        launchRejectOutgoingTrustLineTransaction(
+            static_pointer_cast<ConfirmationMessage>(message));
+
     /*
      * RoutingTable
     */
@@ -401,6 +439,22 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
         true);
 }
 
+void TransactionsManager::launchCloseIncomingTrustLineTransaction(
+    CloseIncomingTrustLineCommand::Shared command)
+{
+    prepareAndSchedule(
+        make_shared<CloseIncomingTrustLineTransaction>(
+            mNodeUUID,
+            command,
+            mTrustLines,
+            mStorageHandler,
+            mSubsystemsController,
+            mLog),
+        true,
+        false,
+        true);
+}
+
 void TransactionsManager::launchSetIncomingTrustLineTransaction(
     SetIncomingTrustLineMessage::Shared message)
 {
@@ -416,6 +470,39 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
         true,
         false,
         true);
+}
+
+void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
+    CloseOutgoingTrustLineMessage::Shared message)
+{
+    prepareAndSchedule(
+        make_shared<CloseOutgoingTrustLineTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mStorageHandler,
+            mLog),
+        true,
+        false,
+        true);
+}
+
+void TransactionsManager::launchRejectOutgoingTrustLineTransaction(
+    ConfirmationMessage::Shared message)
+{
+    auto transaction = make_shared<RejectOutgoingTrustLineTransaction>(
+        mNodeUUID,
+        message,
+        mTrustLines,
+        mStorageHandler,
+        mLog);
+    prepareAndSchedule(
+        transaction,
+        true,
+        false,
+        false);
+    subscribeForProcessingConfirmationMessage(
+        transaction->processConfirmationMessageSignal);
 }
 
 /*!
@@ -929,6 +1016,25 @@ void TransactionsManager::launchFindPathByMaxFlowTransaction(
     }
 }
 
+void TransactionsManager::launchPaymentTransactionByCommandUUIDTransaction(
+    PaymentTransactionByCommandUUIDCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<PaymentTransactionByCommandUUIDTransaction>(
+                mNodeUUID,
+                command,
+                mScheduler->paymentTransactionByCommandUUID(
+                    command->paymentTransactionCommandUUID()),
+                mLog),
+            false,
+            false,
+            false);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
 void TransactionsManager::launchGatewayNotificationSenderTransaction()
 {
     try {
@@ -1081,6 +1187,17 @@ void TransactionsManager::subscribeForTryCloseNextCycleSignal(
             this));
 }
 
+void TransactionsManager::subscribeForProcessingConfirmationMessage(
+    BaseTransaction::ProcessConfirmationMessageSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onProcessConfirmationMessageSlot,
+            this,
+            _1,
+            _2));
+}
+
 void TransactionsManager::onTransactionOutgoingMessageReady(
     Message::Shared message,
     const NodeUUID &contractorUUID) {
@@ -1189,6 +1306,15 @@ void TransactionsManager::onCloseCycleTransaction(
 void TransactionsManager::onTryCloseNextCycleSlot()
 {
     mCyclesManager->closeOneCycle(true);
+}
+
+void TransactionsManager::onProcessConfirmationMessageSlot(
+    const NodeUUID &contractorUUID,
+    ConfirmationMessage::Shared confirmationMessage)
+{
+    ProcessConfirmationMessageSignal(
+        contractorUUID,
+        confirmationMessage);
 }
 
 /**
@@ -1477,6 +1603,81 @@ void TransactionsManager::launchRoutingTableRequestTransaction()
             false,
             true);
     } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchAddNodeToBlackListTransaction(
+    AddNodeToBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<AddNodeToBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mTrustLines,
+                mSubsystemsController,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+
+}
+
+void TransactionsManager::launchCheckIfNodeInBlackListTransaction(
+    CheckIfNodeInBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<CheckIfNodeInBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchRemoveNodeFromBlackListTransaction(
+    RemoveNodeFromBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<RemoveNodeFromBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchGetBlackListTransaction(
+    GetBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<GetBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
         throw ConflictError(e.message());
     }
 }

@@ -8,6 +8,7 @@ MigrationsHandler::MigrationsHandler(
     HistoryStorage *historyStorage,
     PaymentOperationStateHandler *paymentOperationStorage,
     TransactionsHandler *transactionHandler,
+    BlackListHandler *blackListHandler,
     NodeFeaturesHandler *nodeFeaturesHandler,
     Logger &logger):
 
@@ -18,6 +19,7 @@ MigrationsHandler::MigrationsHandler(
     mTransactionHandler(transactionHandler),
     mTrustLineHandler(trustLineHandler),
     mPaymentOperationStateHandler(paymentOperationStorage),
+    mBlackListHandler(blackListHandler),
     mHistoryStorage(historyStorage),
     mNodeFeaturesHandler(nodeFeaturesHandler)
 {
@@ -153,6 +155,7 @@ void MigrationsHandler::applyMigrations()
                 mHistoryStorage,
                 mPaymentOperationStateHandler,
                 mTransactionHandler,
+                mBlackListHandler,
                 mNodeFeaturesHandler,
                 mLog);
 
@@ -171,7 +174,7 @@ void MigrationsHandler::applyMigrations()
         }
 
     } catch (const Exception &e) {
-        // allMigrationsUUIDS() might throw IOError.
+        // allNodesUUIDS() might throw IOError.
         mLog.logException("MigrationsHandler", e);
         throw RuntimeError(e.what());
     }

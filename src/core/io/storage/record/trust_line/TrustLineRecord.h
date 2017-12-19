@@ -23,7 +23,9 @@ public:
         Setting,
         Updating,
         Closing,
-        Rejecting
+        Rejecting,
+        ClosingIncoming,
+        RejectingOutgoing
     };
     typedef uint8_t SerializedTrustLineOperationType;
 

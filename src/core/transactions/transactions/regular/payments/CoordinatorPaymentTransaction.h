@@ -65,6 +65,8 @@ public:
      */
     const NodeUUID& coordinatorUUID() const;
 
+    const CommandUUID& commandUUID() const;
+
 protected:
     // Stages handlers
     // TODO: Add throws specifications
@@ -101,6 +103,10 @@ protected:
      * reaction on messages with approving or not of final amounts configuration from all participants
      */
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
+
+    TransactionResult::SharedConst runFinalAmountsParticipantConfirmation();
+
+    TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
 
     /**
      * reaction on receiving participants votes message with result of voting

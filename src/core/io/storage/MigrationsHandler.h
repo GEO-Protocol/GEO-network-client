@@ -62,6 +62,7 @@ public:
         HistoryStorage *historyStorage,
         PaymentOperationStateHandler *paymentOperationStorage,
         TransactionsHandler *transactionHandler,
+        BlackListHandler *blackListHandler,
         NodeFeaturesHandler *nodeFeaturesHandler,
         Logger &logger);
 
@@ -96,6 +97,7 @@ protected:
     HistoryStorage *mHistoryStorage;
     PaymentOperationStateHandler *mPaymentOperationStateHandler;
     TransactionsHandler *mTransactionHandler;
+    BlackListHandler *mBlackListHandler;
     NodeFeaturesHandler *mNodeFeaturesHandler;
 
     // Name of the migrations table in the DB.

@@ -13,6 +13,7 @@ StorageHandler::StorageHandler(
     mPaymentOperationStateHandler(connection(dataBaseName, directory), kPaymentOperationStateTableName, logger),
     mTransactionHandler(connection(dataBaseName, directory), kTransactionTableName, logger),
     mHistoryStorage(connection(dataBaseName, directory), kHistoryMainTableName, kHistoryAdditionalTableName, logger),
+    mBlackListHandler(connection(dataBaseName, directory), kBlackListTableName, logger),
     mNodeFeaturesHandler(connection(dataBaseName, directory), kNodeFeaturesTableName, logger),
     mLog(logger)
 {
@@ -60,6 +61,7 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         &mHistoryStorage,
         &mPaymentOperationStateHandler,
         &mTransactionHandler,
+        &mBlackListHandler,
         &mNodeFeaturesHandler,
         mLog);
 }
@@ -90,6 +92,7 @@ int StorageHandler::applyMigrations(const NodeUUID &nodeUUID) {
         &mHistoryStorage,
         &mPaymentOperationStateHandler,
         &mTransactionHandler,
+        &mBlackListHandler,
         &mNodeFeaturesHandler,
         mLog);
 

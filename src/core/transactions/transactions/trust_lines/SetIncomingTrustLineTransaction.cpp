@@ -35,6 +35,19 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
+
+    // if contractor in black list we should reject operation with TL
+    if (ioTransaction->blackListHandler()->checkIfNodeExists(kContractor)) {
+        info() << "Contractor " << kContractor << " is in black list. Transaction rejected";
+        sendMessage<ConfirmationMessage>(
+            mMessage->senderUUID,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            ConfirmationMessage::ContractorBanned);
+
+        return resultDone();
+    }
+
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
@@ -99,6 +112,11 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         ioTransaction->rollback();
         info() << "Attempt to set incoming trust line from the node " << kContractor << " failed. "
                << "Cannot open trustline with zero amount.";
+        sendMessage<ConfirmationMessage>(
+            mMessage->senderUUID,
+            mNodeUUID,
+            mMessage->transactionUUID(),
+            ConfirmationMessage::ErrorShouldBeRemovedFromQueue);
         return resultDone();
 
     } catch (NotFoundError &e) {
