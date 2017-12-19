@@ -143,6 +143,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == CloseIncomingTrustLineCommand::identifier()) {
+            command = new CloseIncomingTrustLineCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == CreditUsageCommand::identifier()) {
             command = new CreditUsageCommand(
                 uuid,
@@ -200,6 +205,32 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
         } else if (identifier == SubsystemsInfluenceCommand::identifier()) {
             return newCommand<SubsystemsInfluenceCommand>(
+                uuid,
+                buffer);
+
+            // Black list command
+        } else if (identifier == AddNodeToBlackListCommand::identifier()) {
+            return newCommand<AddNodeToBlackListCommand>(
+                uuid,
+                buffer);
+
+        } else if (identifier == RemoveNodeFromBlackListCommand::identifier()) {
+            return newCommand<RemoveNodeFromBlackListCommand>(
+                uuid,
+                buffer);
+
+        } else if (identifier == CheckIfNodeInBlackListCommand::identifier()) {
+            return newCommand<CheckIfNodeInBlackListCommand>(
+                uuid,
+                buffer);
+
+        } else if (identifier == GetBlackListCommand::identifier()) {
+            return newCommand<GetBlackListCommand>(
+                uuid,
+                buffer);
+
+        } else if (identifier == PaymentTransactionByCommandUUIDCommand::identifier()) {
+            return newCommand<PaymentTransactionByCommandUUIDCommand>(
                 uuid,
                 buffer);
 

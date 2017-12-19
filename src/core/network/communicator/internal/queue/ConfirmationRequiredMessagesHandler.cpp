@@ -16,7 +16,7 @@ ConfirmationRequiredMessagesHandler::ConfirmationRequiredMessagesHandler(
         mIOService);
     mDeserializationMessagesTimer->expires_from_now(
         chrono::seconds(
-            kMessagesDeserializationDelayedSecondsTime));
+            15));
     mDeserializationMessagesTimer->async_wait(
         boost::bind(
             &ConfirmationRequiredMessagesHandler::deserializeMessages,
@@ -28,6 +28,7 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
     const Message::Shared message)
 {
     if (message->typeID() == Message::TrustLines_SetIncoming
+        or message->typeID() == Message::TrustLines_CloseOutgoing
         /* and <other message type here> */) {
 
         // Appropriate message occurred and must be enqueued.
@@ -80,6 +81,14 @@ void ConfirmationRequiredMessagesHandler::tryProcessConfirmation(
 
     auto queue = mQueues[contractorUUID];
     if (queue->tryProcessConfirmation(confirmationMessage)) {
+
+        if (confirmationMessage->state() == ConfirmationMessage::ErrorShouldBeRemovedFromQueue) {
+            warning() << "Contractor " << contractorUUID << " reject this message";
+        }
+
+        if (confirmationMessage->state() == ConfirmationMessage::ContractorBanned) {
+            info() << "Contractor " << contractorUUID << " reject incoming TL";
+        }
 
         auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
         ioTransaction->communicatorMessagesQueueHandler()->deleteRecord(
@@ -222,6 +231,10 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<SetIncomingTrustLineMessage>(messageBody));
                 break;
+            case Message::TrustLines_CloseOutgoing:
+                sendingMessage = static_pointer_cast<TransactionMessage>(
+                    make_shared<CloseOutgoingTrustLineMessage>(messageBody));
+                break;
             default:
                 mLog.error("ConfirmationRequiredMessagesHandler::deserializeMessages "
                                "invalid message type");
@@ -252,6 +265,7 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSign
         const Message::Shared message)
 {
     if (message->typeID() == Message::TrustLines_SetIncoming
+        or message->typeID() == Message::TrustLines_CloseOutgoing
         /* and <other message type here> */) {
 
         // Appropriate message occurred and must be enqueued.

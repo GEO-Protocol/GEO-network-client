@@ -76,12 +76,18 @@ protected:
      */
     TransactionResult::SharedConst runClarificationOfTransactionBeforeVoting();
 
+    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
+
     /**
      * reaction on message with final amounts configuration (on all paths) from coordinator
      * update all reservations according to received final configuration
      * and send response if all reservations was successfully updated
      */
-    TransactionResult::SharedConst runFinalAmountsConfigurationConfirmation();
+    TransactionResult::SharedConst runFinalReservationsCoordinatorConfirmation();
+
+    TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
+
+    TransactionResult::SharedConst runClarificationOfTransactionDuringFinalAmountsClarification();
 
     /**
      * reaction on response TTL message from coordinator

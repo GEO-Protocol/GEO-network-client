@@ -8,6 +8,7 @@
 #include "../../../common/memory/MemoryUtils.h"
 
 #include "../../../network/messages/Message.hpp"
+#include "../../../network/messages/base/transaction/ConfirmationMessage.h"
 #include "../result/TransactionResult.h"
 #include "../result/state/TransactionState.h"
 #include "../../../network/messages/result/MessageResult.h"
@@ -36,6 +37,7 @@ public:
 
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
+    typedef signals::signal<void(const NodeUUID&, ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
 
 public:
     // TODO: add other states shortcuts here
@@ -54,6 +56,10 @@ public:
     enum TransactionType {
         SetOutgoingTrustLineTransaction = 100,
         SetIncomingTrustLineTransaction = 101,
+        CloseIncomingTrustLineTransaction = 102,
+        CloseOutgoingTrustLineTransaction = 103,
+        RejectOutgoingTrustLineTransaction = 104,
+
 
         // Cycles
         Cycles_ThreeNodesInitTransaction = 200,
@@ -106,6 +112,15 @@ public:
         //RoutingTable
         RoutingTableInitTransactionType = 900,
         RoutingTableResponceTransactionType = 901,
+
+        //BlackList
+        AddNodeToBlackListTransactionType = 1000,
+        CheckIfNodeInBlackListTransactionType = 1001,
+        RemoveNodeFromBlackListTransactionType = 1002,
+        GetBlackListTransactionType = 1003,
+
+        // Transactions
+        TransactionByCommandUUIDType = 1100
     };
 
 public:
@@ -203,6 +218,15 @@ protected:
             addressee);
     }
 
+    void processConfirmationMessage(
+        const NodeUUID &contractorUUID,
+        const ConfirmationMessage::Shared confirmationMessage)
+    {
+        processConfirmationMessageSignal(
+            contractorUUID,
+            confirmationMessage);
+    }
+
     void launchSubsidiaryTransaction(
       BaseTransaction::Shared transaction);
 
@@ -246,6 +270,7 @@ protected:
 public:
     mutable SendMessageSignal outgoingMessageIsReadySignal;
     mutable LaunchSubsidiaryTransactionSignal runSubsidiaryTransactionSignal;
+    mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
 
 protected:
     uint16_t mkStandardConnectionTimeout = 1500; //miliseconds

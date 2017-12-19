@@ -33,7 +33,10 @@ set(SOURCE_FILES
         CommunicatorStorageHandler.cpp
 
         CommunicatorIOTransaction.h
-        CommunicatorIOTransaction.cpp)
+        CommunicatorIOTransaction.cpp
+
+        BlackListHandler.h
+        BlackListHandler.cpp)
 
 add_library(io__storage ${SOURCE_FILES})
 

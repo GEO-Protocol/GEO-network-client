@@ -416,7 +416,15 @@ void Core::connectCommunicatorSignals()
             _2
         )
     );
+
+    mTransactionsManager->ProcessConfirmationMessageSignal.connect(
+        boost::bind(
+            &Core::onProcessConfirmationMessageSlot,
+            this,
+            _1,
+            _2));
 }
+
 void Core::connectTrustLinesManagerSignals()
 {
     mTrustLinesManager->trustLineCreatedSignal.connect(
@@ -596,6 +604,15 @@ void Core::onResourceCollectedSlot(
     }
 }
 
+void Core::onProcessConfirmationMessageSlot(
+    const NodeUUID &contractorUUID,
+    ConfirmationMessage::Shared confirmationMessage)
+{
+    mCommunicator->processConfirmationMessage(
+        contractorUUID,
+        confirmationMessage);
+}
+
 void Core::writePIDFile()
 {
     try {
@@ -666,7 +683,3 @@ LoggerStream Core::info() const
 {
     return mLog->info(logHeader());
 }
-
-
-
-

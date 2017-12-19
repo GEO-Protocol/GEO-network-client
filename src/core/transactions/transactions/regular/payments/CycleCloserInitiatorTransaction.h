@@ -91,6 +91,10 @@ protected:
      */
     TransactionResult::SharedConst runFinalAmountsConfigurationConfirmationProcessingStage();
 
+    TransactionResult::SharedConst runFinalAmountsParticipantConfirmation();
+
+    TransactionResult::SharedConst runFinalReservationsNeighborConfirmation();
+
     /**
      * reaction on receiving participants votes message with result of voting,
      * on this stage node can commit transaction or reject it

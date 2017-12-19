@@ -31,7 +31,6 @@ protected:
     virtual const char* FIFOName() const = 0;
 
     const string FIFOFilePath() const {
-        cout << string(kFIFODir) << string(FIFOName()) << endl;
         return string(kFIFODir) + string(FIFOName());
     }
 

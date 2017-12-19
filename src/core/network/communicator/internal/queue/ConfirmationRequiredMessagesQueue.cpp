@@ -14,11 +14,16 @@ void ConfirmationRequiredMessagesQueue::enqueue(
     TransactionMessage::Shared message)
 {
     switch (message->typeID()) {
-    case Message::TrustLines_SetIncoming: {
-        updateTrustLineNotificationInTheQueue(
-            static_pointer_cast<SetIncomingTrustLineMessage>(message));
-        break;
-    }
+        case Message::TrustLines_SetIncoming: {
+            updateTrustLineNotificationInTheQueue(
+                static_pointer_cast<SetIncomingTrustLineMessage>(message));
+            break;
+        case Message::TrustLines_CloseOutgoing:
+            updateTrustLineCloseNotificationInTheQueue(
+                static_pointer_cast<CloseOutgoingTrustLineMessage>(message));
+            break;
+        }
+        //todo : add logger and warning default case
     }
 }
 
@@ -75,6 +80,31 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(
         const auto kMessage = it->second;
 
         if (kMessage->typeID() == Message::TrustLines_SetIncoming) {
+            mMessages.erase(it++);
+            signalRemoveMessageFromStorage(
+                mContractorUUID,
+                kMessage->typeID());
+        } else {
+            ++it;
+        }
+    }
+
+    mMessages[message->transactionUUID()] = message;
+    signalSaveMessageToStorage(
+        mContractorUUID,
+        message);
+}
+
+// todo : discuss if need keep only one message in queue
+void ConfirmationRequiredMessagesQueue::updateTrustLineCloseNotificationInTheQueue(
+    CloseOutgoingTrustLineMessage::Shared message)
+{
+    // Only one CloseOutgoingTrustLineMessage should be in the queue in one moment of time.
+    // queue must contains only newest one notification, all other must be removed.
+    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
+        const auto kMessage = it->second;
+
+        if (kMessage->typeID() == Message::TrustLines_CloseOutgoing) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,

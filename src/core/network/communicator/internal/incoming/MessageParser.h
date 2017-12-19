@@ -6,6 +6,7 @@
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
 
 #include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
+#include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 
 #include "../../../messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
@@ -32,6 +33,7 @@
 #include "../../../messages/payments/VotesStatusRequestMessage.hpp"
 #include "../../../messages/payments/FinalAmountsConfigurationMessage.h"
 #include "../../../messages/payments/FinalAmountsConfigurationResponseMessage.h"
+#include "../../../messages/payments/ReservationsInRelationToNodeMessage.h"
 
 #include "../../../messages/total_balances/InitiateTotalBalancesMessage.h"
 #include "../../../messages/total_balances/TotalBalancesResultMessage.h"

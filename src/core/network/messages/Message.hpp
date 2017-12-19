@@ -32,6 +32,7 @@ public:
          * Trust lines
          */
         TrustLines_SetIncoming = 100,
+        TrustLines_CloseOutgoing = 101,
 
         /*
          * Payments messages
@@ -57,6 +58,8 @@ public:
         Payments_FinalPathCycleConfiguration = 216,
         Payments_TTLProlongationRequest = 217,
         Payments_TTLProlongationResponse = 218,
+
+        Payments_ReservationsInRelationToNode = 219,
 
         /*
          * Cycles

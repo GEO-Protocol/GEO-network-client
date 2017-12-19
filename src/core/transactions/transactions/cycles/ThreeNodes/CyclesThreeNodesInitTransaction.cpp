@@ -121,13 +121,13 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::runParseMessageA
     }
 
 #ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
-    cout << "CyclesThreeNodesInitTransaction::ResultCyclesCount " << to_string(ResultCycles.size()) << endl;
+    debug() << "ResultCyclesCount " << ResultCycles.size();
     for (vector<NodeUUID> KCyclePath: ResultCycles){
         stringstream ss;
         copy(KCyclePath.begin(), KCyclePath.end(), ostream_iterator<NodeUUID>(ss, ","));
-        cout << "CyclesThreeNodesInitTransaction::CyclePath " << ss.str() << endl;
+        debug() << "CyclePath " << ss.str();
     }
-    cout << "CyclesThreeNodesInitTransaction::End" << endl;
+    debug() << "End" << endl;
 #endif
     mCyclesManager->closeOneCycle();
     return resultDone();

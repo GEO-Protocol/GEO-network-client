@@ -8,6 +8,7 @@ MigrationsHandler::MigrationsHandler(
     HistoryStorage *historyStorage,
     PaymentOperationStateHandler *paymentOperationStorage,
     TransactionsHandler *transactionHandler,
+    BlackListHandler *blackListHandler,
     Logger &logger):
 
     mLog(logger),
@@ -17,6 +18,7 @@ MigrationsHandler::MigrationsHandler(
     mTransactionHandler(transactionHandler),
     mTrustLineHandler(trustLineHandler),
     mPaymentOperationStateHandler(paymentOperationStorage),
+    mBlackListHandler(blackListHandler),
     mHistoryStorage(historyStorage)
 
 {
@@ -151,6 +153,7 @@ void MigrationsHandler::applyMigrations()
                 mHistoryStorage,
                 mPaymentOperationStateHandler,
                 mTransactionHandler,
+                mBlackListHandler,
                 mLog);
 
             try {
@@ -168,7 +171,7 @@ void MigrationsHandler::applyMigrations()
         }
 
     } catch (const Exception &e) {
-        // allMigrationsUUIDS() might throw IOError.
+        // allNodesUUIDS() might throw IOError.
         mLog.logException("MigrationsHandler", e);
         throw RuntimeError(e.what());
     }
