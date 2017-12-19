@@ -14,6 +14,7 @@ add_subdirectory(transactions/history)
 add_subdirectory(transactions/find_path)
 add_subdirectory(transactions/trustlines_list)
 add_subdirectory(transactions/routing_table)
+add_subdirectory(transactions/blacklist)
 add_subdirectory(transactions/transaction)
 add_subdirectory(transactions/gateway_notification)
 
@@ -24,16 +25,7 @@ set(SOURCE_FILES
         scheduler/TransactionsScheduler.h
         scheduler/TransactionsScheduler.cpp
         
-        transactions/base/TransactionUUID.h
-
-        transactions/blacklist/AddNodeToBlackListTransaction.h
-        transactions/blacklist/AddNodeToBlackListTransaction.cpp
-        transactions/blacklist/CheckIfNodeInBlackListTransaction.h
-        transactions/blacklist/CheckIfNodeInBlackListTransaction.cpp
-        transactions/blacklist/RemoveNodeFromBlackListTransaction.h
-        transactions/blacklist/RemoveNodeFromBlackListTransaction.cpp
-        transactions/blacklist/GetBlackListTransaction.h
-        transactions/blacklist/GetBlackListTransaction.cpp)
+        transactions/base/TransactionUUID.h)
 
 add_library(transactions ${SOURCE_FILES})
 target_link_libraries(transactions
@@ -47,6 +39,7 @@ target_link_libraries(transactions
         transactions__trustlines_list
         transactions__find_path
         transactions__routing_table
+        transactions__black_list
         transactions__transaction
         transactions__gateway_notification
 

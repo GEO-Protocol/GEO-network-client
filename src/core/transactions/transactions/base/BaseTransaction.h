@@ -122,11 +122,11 @@ public:
         GetBlackListTransactionType = 1003,
 
         // Transactions
-        TransactionByCommandUUIDType = 1100
+        TransactionByCommandUUIDType = 1100,
 
         // Gateway notification
         GatewayNotificationSenderType = 1200,
-        GatewayNotificationReceiverType = 1201
+        GatewayNotificationReceiverType = 1201,
     };
 
 public:
