@@ -129,5 +129,23 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineCloseNotificationInTheQue
 void ConfirmationRequiredMessagesQueue::updateGatewayNotificationInTheQueue(
     GatewayNotificationMessage::Shared message)
 {
+    // Only one GatewayNotificationMessage should be in the queue in one moment of time.
+    // queue must contains only newest one notification, all other must be removed.
+    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
+        const auto kMessage = it->second;
+
+        if (kMessage->typeID() == Message::GatewayNotification) {
+            mMessages.erase(it++);
+            signalRemoveMessageFromStorage(
+                mContractorUUID,
+                kMessage->typeID());
+        } else {
+            ++it;
+        }
+    }
+
     mMessages[message->transactionUUID()] = message;
+    signalSaveMessageToStorage(
+        mContractorUUID,
+        message);
 }
