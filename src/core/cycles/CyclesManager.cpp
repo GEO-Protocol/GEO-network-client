@@ -17,7 +17,7 @@ CyclesManager::CyclesManager(
     mCurrentCycleClosingState = CycleClosingState::ThreeNodes;
 
     srand(randomInitializer());
-    int timeStarted = (10 * 60) + rand() % (60 * 60 * 6);
+    int timeStarted = (10 * 60) + (rand() % (60 * 60 * 6));
     mFiveNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
     mFiveNodesCycleTimer->expires_from_now(
@@ -29,7 +29,7 @@ CyclesManager::CyclesManager(
             this,
             as::placeholders::error));
 
-    timeStarted = (10 * 60) + rand() % (60 * 60 * 6);
+    timeStarted = (10 * 60) + (rand() % (60 * 60 * 6));
     mSixNodesCycleTimer = make_unique<as::steady_timer>(
         mIOService);
     mSixNodesCycleTimer->expires_from_now(
