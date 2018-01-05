@@ -21,12 +21,14 @@ public:
     CommandResult::SharedConst responseOk(
         string &totalBalancesStr) const;
 
-protected:
+    [[deprecated("Remove it when parent class would be updated")]]
     void parse(
-        const string &command);
+        const string &_){}
 
 private:
     NodeUUID mContractorUUID;
+    size_t mGatewaysCount;
+    vector<NodeUUID> mGateways;
 };
 
 

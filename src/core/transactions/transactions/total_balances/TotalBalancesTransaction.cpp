@@ -46,13 +46,22 @@ TransactionResult::SharedConst TotalBalancesTransaction::run()
     TrustLineAmount totalTrustUsedByContractor = 0;
     TrustLineAmount totalOutgoingTrust = 0;
     TrustLineAmount totalTrustUsedBySelf = 0;
+
+    // if contractor is gateway, than outgoing trust amount is equal balance on this TL
     for (auto &nodeUUIDAndTrustLine : mTrustLinesManager->trustLines()) {
+        if (find(mCommand->gateways().begin(),
+                 mCommand->gateways().end(),
+                 nodeUUIDAndTrustLine.first) == mCommand->gateways().end()) {
+            totalOutgoingTrust += nodeUUIDAndTrustLine.second->outgoingTrustAmount();
+        } else {
+            auto totalOutgoingTrustUsedShared = nodeUUIDAndTrustLine.second->usedAmountByContractor();
+            totalOutgoingTrust += *totalOutgoingTrustUsedShared.get();
+        }
         totalIncomingTrust += nodeUUIDAndTrustLine.second->incomingTrustAmount();
-        auto totalIncomingTrustUsedShared = nodeUUIDAndTrustLine.second->usedAmountByContractor();
-        totalTrustUsedByContractor += *totalIncomingTrustUsedShared.get();
-        totalOutgoingTrust += nodeUUIDAndTrustLine.second->outgoingTrustAmount();
-        auto totalOutgoingTrustUsedShared = nodeUUIDAndTrustLine.second->usedAmountBySelf();
-        totalTrustUsedBySelf += *totalOutgoingTrustUsedShared.get();
+        auto totalOutgoingTrustUsedShared = nodeUUIDAndTrustLine.second->usedAmountByContractor();
+        totalTrustUsedByContractor += *totalOutgoingTrustUsedShared.get();
+        auto totalIncomingTrustUsedShared = nodeUUIDAndTrustLine.second->usedAmountBySelf();
+        totalTrustUsedBySelf += *totalIncomingTrustUsedShared.get();
     }
     if (mCommand != nullptr) {
         return resultOk(
