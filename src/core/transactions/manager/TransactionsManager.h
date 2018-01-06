@@ -23,6 +23,7 @@
 #include "../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
+#include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
@@ -80,6 +81,7 @@
 
 
 #include "../transactions/max_flow_calculation/InitiateMaxFlowCalculationTransaction.h"
+#include "../transactions/max_flow_calculation/MaxFlowCalculationFullyTransaction.h"
 #include "../transactions/max_flow_calculation/ReceiveMaxFlowCalculationOnTargetTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationSourceFstLevelTransaction.h"
 #include "../transactions/max_flow_calculation/MaxFlowCalculationTargetFstLevelTransaction.h"
@@ -224,6 +226,9 @@ protected: // Transactions
      */
     void launchInitiateMaxFlowCalculatingTransaction(
         InitiateMaxFlowCalculationCommand::Shared command);
+
+    void launchMaxFlowCalculationFullyTransaction(
+        InitiateMaxFlowCalculationFullyCommand::Shared command);
 
     void launchReceiveMaxFlowCalculationOnTargetTransaction(
         InitiateMaxFlowCalculationMessage::Shared message);

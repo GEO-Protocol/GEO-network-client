@@ -158,6 +158,11 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
                 uuid,
                 buffer);
 
+        } else if (identifier == InitiateMaxFlowCalculationFullyCommand::identifier()) {
+            command = new InitiateMaxFlowCalculationFullyCommand(
+                uuid,
+                buffer);
+
         } else if (identifier == TotalBalancesCommand::identifier()) {
             command = new TotalBalancesCommand(
                 uuid,

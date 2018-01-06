@@ -209,6 +209,11 @@ void TransactionsManager::processCommand(
             static_pointer_cast<InitiateMaxFlowCalculationCommand>(
                 command));
 
+    } else if (command->identifier() == InitiateMaxFlowCalculationFullyCommand::identifier()){
+        launchMaxFlowCalculationFullyTransaction(
+            static_pointer_cast<InitiateMaxFlowCalculationFullyCommand>(
+                command));
+
     } else if (command->identifier() == TotalBalancesCommand::identifier()){
         launchTotalBalancesTransaction(
             static_pointer_cast<TotalBalancesCommand>(
@@ -512,11 +517,36 @@ void TransactionsManager::launchRejectOutgoingTrustLineTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
-    InitiateMaxFlowCalculationCommand::Shared command) {
-
+    InitiateMaxFlowCalculationCommand::Shared command)
+{
     try {
         prepareAndSchedule(
             make_shared<InitiateMaxFlowCalculationTransaction>(
+                mNodeUUID,
+                command,
+                mTrustLines,
+                mMaxFlowCalculationTrustLineManager,
+                mMaxFlowCalculationCacheManager,
+                mMaxFlowCalculationNodeCacheManager,
+                mLog),
+            true,
+            true,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
+void TransactionsManager::launchMaxFlowCalculationFullyTransaction(
+    InitiateMaxFlowCalculationFullyCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<MaxFlowCalculationFullyTransaction>(
                 mNodeUUID,
                 command,
                 mTrustLines,

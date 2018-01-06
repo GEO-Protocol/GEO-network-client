@@ -10,7 +10,8 @@ public:
 
 public:
     MaxFlowCalculationNodeCache(
-        const TrustLineAmount &amount);
+        const TrustLineAmount &amount,
+        bool isFinal = false);
 
     TrustLineAmount& currentFlow();
 

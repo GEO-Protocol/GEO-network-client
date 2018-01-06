@@ -1,21 +1,19 @@
-#ifndef GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONCOMMAND_H
-#define GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONCOMMAND_H
-
+#ifndef GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONFULLYCOMMAND_H
+#define GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONFULLYCOMMAND_H
 
 #include "../BaseUserCommand.h"
 #include "../../../../common/exceptions/ValueError.h"
 
-class InitiateMaxFlowCalculationCommand : public BaseUserCommand {
+class InitiateMaxFlowCalculationFullyCommand : public BaseUserCommand {
+public:
+    typedef shared_ptr<InitiateMaxFlowCalculationFullyCommand> Shared;
 
 public:
-    typedef shared_ptr<InitiateMaxFlowCalculationCommand> Shared;
-
-public:
-    InitiateMaxFlowCalculationCommand(
+    InitiateMaxFlowCalculationFullyCommand(
         const CommandUUID &uuid,
-        const string &command);
+        const string &commandBuffer);
 
-    InitiateMaxFlowCalculationCommand(
+    InitiateMaxFlowCalculationFullyCommand(
         BytesShared buffer);
 
     static const string &identifier();
@@ -35,4 +33,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONCOMMAND_H
+#endif //GEO_NETWORK_CLIENT_INITIATEMAXFLOWCALCULATIONFULLYCOMMAND_H

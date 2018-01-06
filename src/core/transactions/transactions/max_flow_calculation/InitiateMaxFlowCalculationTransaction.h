@@ -15,7 +15,7 @@
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 
 #include "CollectTopologyTransaction.h"
-#include "MaxFlowCalculationFullyTransaction.h"
+#include "MaxFlowCalculationStepTwoTransaction.h"
 
 #include <set>
 

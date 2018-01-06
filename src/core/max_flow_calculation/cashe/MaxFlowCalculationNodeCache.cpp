@@ -1,9 +1,10 @@
 #include "MaxFlowCalculationNodeCache.h"
 
 MaxFlowCalculationNodeCache::MaxFlowCalculationNodeCache(
-    const TrustLineAmount &amount) :
+    const TrustLineAmount &amount,
+    bool isFinal) :
     mCurrentFlow(amount),
-    mFinalFlow(false),
+    mFinalFlow(isFinal),
     mTimeLastModified(utc_now())
 {}
 

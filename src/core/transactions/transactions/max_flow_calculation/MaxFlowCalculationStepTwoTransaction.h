@@ -1,34 +1,32 @@
-#ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONFULLYTRANSACTION_H
-#define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONFULLYTRANSACTION_H
+#ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSTEPTWOTRANSACTION_H
+#define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSTEPTWOTRANSACTION_H
 
 #include "../base/BaseCollectTopologyTransaction.h"
-#include "../../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h"
+#include "../../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
 
-#include "CollectTopologyTransaction.h"
-
 #include <set>
 
-class MaxFlowCalculationFullyTransaction : public BaseCollectTopologyTransaction {
+class MaxFlowCalculationStepTwoTransaction : public BaseCollectTopologyTransaction {
+public:
+    typedef shared_ptr<MaxFlowCalculationStepTwoTransaction> Shared;
 
 public:
-    typedef shared_ptr<MaxFlowCalculationFullyTransaction> Shared;
-
-public:
-    MaxFlowCalculationFullyTransaction(
+    MaxFlowCalculationStepTwoTransaction(
         const NodeUUID &nodeUUID,
-        const InitiateMaxFlowCalculationFullyCommand::Shared command,
+        const TransactionUUID &transactionUUID,
+        const InitiateMaxFlowCalculationCommand::Shared command,
         TrustLinesManager *trustLinesManager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &logger);
 
-    InitiateMaxFlowCalculationFullyCommand::Shared command() const;
+    InitiateMaxFlowCalculationCommand::Shared command() const;
 
 protected:
     const string logHeader() const;
@@ -51,11 +49,9 @@ private:
     TransactionResult::SharedConst resultOk(
         vector<pair<NodeUUID, TrustLineAmount>> &maxFlows);
 
-    TransactionResult::SharedConst resultProtocolError();
-
 private:
     static const byte kMaxPathLength = 6;
-    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 4000;
+    static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 1500;
     static const uint32_t kWaitMillisecondsForCalculatingMaxFlowAgain = 500;
     static const uint32_t kMaxWaitMillisecondsForCalculatingMaxFlow = 10000;
     static const uint16_t kCountRunningProcessCollectingTopologyStage =
@@ -63,7 +59,7 @@ private:
             kWaitMillisecondsForCalculatingMaxFlowAgain;
 
 private:
-    InitiateMaxFlowCalculationFullyCommand::Shared mCommand;
+    InitiateMaxFlowCalculationCommand::Shared mCommand;
     vector<NodeUUID> mForbiddenNodeUUIDs;
     byte mCurrentPathLength;
     TrustLineAmount mCurrentMaxFlow;
@@ -73,4 +69,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONFULLYTRANSACTION_H
+#endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONSTEPTWOTRANSACTION_H
