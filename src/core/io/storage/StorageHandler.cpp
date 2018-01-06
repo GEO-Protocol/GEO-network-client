@@ -14,6 +14,7 @@ StorageHandler::StorageHandler(
     mTransactionHandler(connection(dataBaseName, directory), kTransactionTableName, logger),
     mHistoryStorage(connection(dataBaseName, directory), kHistoryMainTableName, kHistoryAdditionalTableName, logger),
     mBlackListHandler(connection(dataBaseName, directory), kBlackListTableName, logger),
+    mNodeFeaturesHandler(connection(dataBaseName, directory), kNodeFeaturesTableName, logger),
     mLog(logger)
 {
     sqlite3_config(SQLITE_CONFIG_SINGLETHREAD);
@@ -61,6 +62,7 @@ IOTransaction::Shared StorageHandler::beginTransaction()
         &mPaymentOperationStateHandler,
         &mTransactionHandler,
         &mBlackListHandler,
+        &mNodeFeaturesHandler,
         mLog);
 }
 
@@ -91,6 +93,7 @@ int StorageHandler::applyMigrations(const NodeUUID &nodeUUID) {
         &mPaymentOperationStateHandler,
         &mTransactionHandler,
         &mBlackListHandler,
+        &mNodeFeaturesHandler,
         mLog);
 
     try {

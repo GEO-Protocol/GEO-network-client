@@ -66,6 +66,14 @@ int Core::initSubsystems()
         return -1;
     }
 
+    try {
+        mIAmGateway = mSettings->iAmGateway(&conf);
+    } catch (RuntimeError &) {
+        // Logger was not initialized yet
+        cerr << utc_now() <<" : ERROR\tCORE\tCan't read if node is gateway from the settings" << endl;
+        return -1;
+    }
+
     initCode = initLogger();
     if (initCode != 0)
         return initCode;
@@ -297,7 +305,8 @@ int Core::initTransactionsManager()
             mPathsManager.get(),
             mRoutingTable.get(),
             *mLog.get(),
-            mSubsystemsController.get());
+            mSubsystemsController.get(),
+            mIAmGateway);
         mLog->logSuccess("Core", "Transactions handler is successfully initialised");
         return 0;
 
@@ -315,6 +324,10 @@ int Core::initDelayedTasks()
             mMaxFlowCalculationCacheManager.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
             mMaxFlowCalculationNodeCacheManager.get(),
+            *mLog.get());
+
+        mNotifyThatIAmIsGatewayDelayedTask = make_unique<NotifyThatIAmIsGatewayDelayedTask>(
+            mIOService,
             *mLog.get());
 
         mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
@@ -447,7 +460,12 @@ void Core::connectTrustLinesManagerSignals()
 }
 
 void Core::connectDelayedTasksSignals()
-{}
+{
+    mNotifyThatIAmIsGatewayDelayedTask->gatewayNotificationSignal.connect(
+        boost::bind(
+            &Core::onGatewayNotificationSlot,
+            this));
+}
 
 void Core::connectRoutingTableSignals()
 {
@@ -512,6 +530,12 @@ void Core::onCommandReceivedSlot (
             subsystemsInfluenceCommand->forbiddenNodeUUID());
         mSubsystemsController->setForbiddenAmount(
             subsystemsInfluenceCommand->forbiddenAmount());
+        // set node as gateway
+        if ((subsystemsInfluenceCommand->flags() & 0x80000000000) != 0) {
+            mLog->logInfo("Core", "from now I am gateway");
+            mIAmGateway = true;
+            mTransactionsManager->setMeAsGateway();
+        }
 #endif
         mLog->logInfo("Core", "SubsystemsInfluenceCommand processed");
         return;
@@ -588,8 +612,6 @@ void Core::onPathsResourceRequestedSlot(
     } catch (exception &e) {
         mLog->logException("Core", e);
     }
-
-    // todo: remove this empty method
 }
 
 void Core::onResourceCollectedSlot(
@@ -611,6 +633,11 @@ void Core::onProcessConfirmationMessageSlot(
     mCommunicator->processConfirmationMessage(
         contractorUUID,
         confirmationMessage);
+}
+
+void Core::onGatewayNotificationSlot()
+{
+    mTransactionsManager->launchGatewayNotificationSenderTransaction();
 }
 
 void Core::writePIDFile()

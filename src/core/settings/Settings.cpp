@@ -149,3 +149,15 @@ const string Settings::influxDbName(const json *conf) const {
     }
 }
 
+bool Settings::iAmGateway(const json *conf) const {
+    if (conf == nullptr) {
+        auto j = loadParsedJSON();
+        conf = &j;
+    }
+    try {
+        return (*conf).at("gateway");
+    } catch (...) {
+        // todo : throw RuntimeError
+        return false;
+    }
+}

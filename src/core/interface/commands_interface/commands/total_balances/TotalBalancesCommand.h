@@ -2,6 +2,7 @@
 #define GEO_NETWORK_CLIENT_TOTALBALANCESCOMMAND_H
 
 #include "../BaseUserCommand.h"
+#include "../../../../common/exceptions/ValueError.h"
 
 class TotalBalancesCommand : public BaseUserCommand {
 
@@ -15,12 +16,18 @@ public:
 
     static const string &identifier();
 
+    const vector<NodeUUID> &gateways() const;
+
     CommandResult::SharedConst resultOk(
         string &totalBalancesStr) const;
 
-protected:
+    [[deprecated("Remove it when parent class would be updated")]]
     void parse(
-        const string &command);
+        const string &_){}
+
+private:
+    size_t mGatewaysCount;
+    vector<NodeUUID> mGateways;
 };
 
 

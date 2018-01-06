@@ -6,6 +6,7 @@
 #include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
 #include "../../../max_flow_calculation/MaxFlowCalculationTrustLine.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
+#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 
 class ReceiveResultMaxFlowCalculationTransaction : public BaseTransaction {
 
@@ -16,6 +17,13 @@ public:
     ReceiveResultMaxFlowCalculationTransaction(
         NodeUUID &nodeUUID,
         ResultMaxFlowCalculationMessage::Shared message,
+        TrustLinesManager *manager,
+        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+        Logger &logger);
+
+    ReceiveResultMaxFlowCalculationTransaction(
+        NodeUUID &nodeUUID,
+        ResultMaxFlowCalculationGatewayMessage::Shared message,
         TrustLinesManager *manager,
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         Logger &logger);
@@ -31,6 +39,7 @@ private:
     ResultMaxFlowCalculationMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
+    bool mSenderIsGateway;
 };
 
 

@@ -4,12 +4,14 @@ TrustLine::TrustLine(
     const NodeUUID &nodeUUID,
     const TrustLineAmount &incomingAmount,
     const TrustLineAmount &outgoingAmount,
-    const TrustLineBalance &nodeBalance) :
+    const TrustLineBalance &nodeBalance,
+    bool isContractorGateway) :
 
     mContractorNodeUUID(nodeUUID),
     mIncomingTrustAmount(incomingAmount),
     mOutgoingTrustAmount(outgoingAmount),
-    mBalance(nodeBalance) {
+    mBalance(nodeBalance),
+    mIsContractorGateway(isContractorGateway) {
 
     // todo zero amounts checking
 //    if (mBalance > kZeroBalance()){
@@ -172,6 +174,17 @@ const TrustLineDirection TrustLine::direction() const {
     } else {
         return TrustLineDirection::Nowhere;
     }
+}
+
+bool TrustLine::isContractorGateway() const
+{
+    return mIsContractorGateway;
+}
+
+void TrustLine::setContractorAsGateway(
+    bool contractorAsGateway)
+{
+    mIsContractorGateway = contractorAsGateway;
 }
 
 const BalanceRange TrustLine::balanceRange() const{

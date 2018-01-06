@@ -14,7 +14,8 @@ TrustLineHandler::TrustLineHandler(
                    "(contractor BLOB NOT NULL, "
                    "incoming_amount BLOB NOT NULL, "
                    "outgoing_amount BLOB NOT NULL, "
-                   "balance BLOB NOT NULL);";
+                   "balance BLOB NOT NULL, "
+                   "is_contractor_gateway INTEGER NOT NULL DEFAULT 0);";
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::creating table: "
@@ -59,7 +60,7 @@ vector<TrustLine::Shared> TrustLineHandler::allTrustLines ()
     vector<TrustLine::Shared> result;
     result.reserve(rowCount);
 
-    string query = "SELECT contractor, incoming_amount, outgoing_amount, balance FROM " + mTableName;
+    string query = "SELECT contractor, incoming_amount, outgoing_amount, balance, is_contractor_gateway FROM " + mTableName;
     rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
         throw IOError("TrustLineHandler::trustLines: "
@@ -85,13 +86,17 @@ vector<TrustLine::Shared> TrustLineHandler::allTrustLines ()
                 balanceBytes,
                 balanceBytes + kTrustLineBalanceSerializeBytesCount);
         TrustLineBalance balance = bytesToTrustLineBalance(balanceBufferBytes);
+
+        int32_t isContractorGateway = sqlite3_column_int(stmt, 4);
+
         try {
             result.push_back(
                 make_shared<TrustLine>(
                     contractor,
                     incomingAmount,
                     outgoingAmount,
-                    balance));
+                    balance,
+                    isContractorGateway != 0));
         } catch (...) {
             throw Exception("TrustLinesManager::loadTrustLine. "
                                 "Unable to create trust line instance from DB.");
@@ -152,7 +157,8 @@ void TrustLineHandler::saveTrustLine(
     TrustLine::Shared trustLine)
 {
     string query = "INSERT OR REPLACE INTO " + mTableName +
-                   "(contractor, incoming_amount, outgoing_amount, balance) VALUES (?, ?, ?, ?);";
+                   "(contractor, incoming_amount, outgoing_amount, balance, is_contractor_gateway) "
+                   "VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2( mDataBase, query.c_str(), -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -182,6 +188,13 @@ void TrustLineHandler::saveTrustLine(
         throw IOError("TrustLineHandler::insert or replace: "
                           "Bad binding of Balance; sqlite error: " + to_string(rc));
     }
+    int32_t isContractorGateway = trustLine->isContractorGateway();
+    rc = sqlite3_bind_int(stmt, 5, isContractorGateway);
+    if (rc != SQLITE_OK) {
+        throw IOError("TrustLineHandler::insert or replace: "
+                          "Bad binding of IsContractorGateway; sqlite error: " + to_string(rc));
+    }
+
     rc = sqlite3_step(stmt);
     sqlite3_reset(stmt);
     sqlite3_finalize(stmt);

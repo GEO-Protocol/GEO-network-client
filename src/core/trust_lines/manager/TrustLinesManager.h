@@ -117,6 +117,16 @@ public:
         IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID);
 
+    /**
+     * Set contractor as Gateway if contractorIsGateway equals true.
+     *
+     * @throws NotFoundError in case if no trust line to this contractor is present.
+     */
+    void setContractorAsGateway(
+        IOTransaction::Shared IOTransaction,
+        const NodeUUID &contractorUUID,
+        bool contractorIsGateway);
+
 //    ToDo: it seems, that this method doesn't used.
 //    (method and method body is commented out)
 //
@@ -283,7 +293,11 @@ public:
 
     vector<NodeUUID> firstLevelNeighborsWithOutgoingFlow() const;
 
+    vector<NodeUUID> firstLevelGatewayNeighborsWithOutgoingFlow() const;
+
     vector<NodeUUID> firstLevelNeighborsWithIncomingFlow() const;
+
+    vector<NodeUUID> firstLevelNonGatewayNeighborsWithIncomingFlow() const;
 
     vector<NodeUUID> firstLevelNeighborsWithPositiveBalance() const;
 
@@ -294,6 +308,18 @@ public:
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows() const;
+
+    pair<NodeUUID, ConstSharedTrustLineAmount> incomingFlow(
+        const NodeUUID &contractorUUID) const;
+
+    pair<NodeUUID, ConstSharedTrustLineAmount> outgoingFlow(
+        const NodeUUID &contractorUUID) const;
+
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlowsFromNonGateways() const;
+
+    vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsToGateways() const;
+
+    vector<NodeUUID> gateways() const;
 
     vector<NodeUUID> rt1() const;
 

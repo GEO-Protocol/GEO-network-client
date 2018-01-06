@@ -24,4 +24,5 @@ add_library(transactions__max_flow_calculation ${SOURCE_FILES})
 
 target_link_libraries(transactions__max_flow_calculation
         transactions__base
-        max_flow_calculation)
+        max_flow_calculation
+        messages__max_flow_calculation)

@@ -46,9 +46,12 @@ public:
     TransactionResult::Shared resultWaitForMessageTypes(
         vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
-    TransactionResult::Shared resultAwaikAfterMilliseconds(
+    TransactionResult::Shared resultAwakeAfterMilliseconds(
         uint32_t responseWaitTime) const ;
     TransactionResult::Shared resultContinuePreviousState() const;
+    TransactionResult::Shared resultWaitForMessageTypesAndAwakeAfterMilliseconds(
+        vector<Message::MessageType> &&requiredMessagesTypes,
+        uint32_t noLongerThanMilliseconds) const;
 
 public:
     virtual ~BaseTransaction() = default;
@@ -120,7 +123,11 @@ public:
         GetBlackListTransactionType = 1003,
 
         // Transactions
-        TransactionByCommandUUIDType = 1100
+        TransactionByCommandUUIDType = 1100,
+
+        // Gateway notification
+        GatewayNotificationSenderType = 1200,
+        GatewayNotificationReceiverType = 1201,
     };
 
 public:

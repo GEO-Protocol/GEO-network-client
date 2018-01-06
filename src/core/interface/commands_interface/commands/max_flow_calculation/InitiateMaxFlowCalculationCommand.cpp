@@ -36,8 +36,7 @@ const vector<NodeUUID>& InitiateMaxFlowCalculationCommand::contractors() const
 void InitiateMaxFlowCalculationCommand::parse(
     const string &command)
 {
-    const auto amountTokenOffset = NodeUUID::kHexSize + 2;
-    const auto minCommandLength = amountTokenOffset;
+    const auto minCommandLength = NodeUUID::kHexSize + 2;
     if (command.size() < minCommandLength) {
         throw ValueError("InitiateMaxFlowCalculationCommand::parse: "
                              "Can't parse command. Received command is to short.");

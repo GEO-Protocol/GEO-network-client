@@ -147,7 +147,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
                 mReservationAmount = min(
                     mMessage->amount(),
                     reservation->amount());
-                return resultAwaikAfterMilliseconds(
+                return resultAwakeAfterMilliseconds(
                     kWaitingForReleasingAmountMSec);
             }
             debug() << "don't win reservation";
@@ -194,7 +194,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     if (mCyclesManager->isTransactionStillAlive(
         mConflictedTransaction)) {
         debug() << "wait again";
-        return resultAwaikAfterMilliseconds(
+        return resultAwakeAfterMilliseconds(
             kWaitingForReleasingAmountMSec);
     }
     debug() << "try reserve " << mReservationAmount;
@@ -316,7 +316,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
                 mReservationAmount = min(
                     kMessage->amount(),
                     reservation->amount());
-                return resultAwaikAfterMilliseconds(
+                return resultAwakeAfterMilliseconds(
                     kWaitingForReleasingAmountMSec);
             }
             debug() << "don't win reservation";
@@ -363,7 +363,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     if (mCyclesManager->isTransactionStillAlive(
         mConflictedTransaction)) {
         debug() << "wait again";
-        return resultAwaikAfterMilliseconds(
+        return resultAwakeAfterMilliseconds(
             kWaitingForReleasingAmountMSec);
     }
     debug() << "try reserve " << mReservationAmount;

@@ -136,6 +136,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::MaxFlow_ResultMaxFlowCalculation:
             return messageCollected<ResultMaxFlowCalculationMessage>(buffer);
 
+        case Message::MaxFlow_ResultMaxFlowCalculationFromGateway:
+            return messageCollected<ResultMaxFlowCalculationGatewayMessage>(buffer);
+
         case Message::MaxFlow_CalculationSourceFirstLevel:
             return messageCollected<MaxFlowCalculationSourceFstLevelMessage>(buffer);
 
@@ -165,6 +168,12 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
             return messageCollected<RoutingTableRequestMessage>(buffer);
         case Message::RoutingTableResponse:
             return messageCollected<RoutingTableResponseMessage>(buffer);
+
+        /*
+         * Gateway notification Messages
+         */
+        case Message::GatewayNotification:
+            return messageCollected<GatewayNotificationMessage>(buffer);
 
 #ifdef DEBUG
         /*

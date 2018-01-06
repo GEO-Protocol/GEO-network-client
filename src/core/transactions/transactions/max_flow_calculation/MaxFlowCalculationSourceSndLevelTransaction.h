@@ -5,6 +5,7 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceSndLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
+#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 
 class MaxFlowCalculationSourceSndLevelTransaction : public BaseTransaction {
@@ -18,7 +19,8 @@ public:
         MaxFlowCalculationSourceSndLevelMessage::Shared message,
         TrustLinesManager *manager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        Logger &logger);
+        Logger &logger,
+        bool iAmGateway);
 
     MaxFlowCalculationSourceSndLevelMessage::Shared message() const;
 
@@ -33,10 +35,16 @@ private:
     void sendCachedResultToInitiator(
         MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr);
 
+    void sendGatewayResultToInitiator();
+
+    void sendCachedGatewayResultToInitiator(
+        MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr);
+
 private:
     MaxFlowCalculationSourceSndLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    bool mIAmGateway;
 };
 
 

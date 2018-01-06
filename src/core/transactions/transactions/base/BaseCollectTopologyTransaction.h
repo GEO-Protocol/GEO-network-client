@@ -8,9 +8,8 @@
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
 
-#include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
-#include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
+#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 
 class BaseCollectTopologyTransaction : public BaseTransaction {
 

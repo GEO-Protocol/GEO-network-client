@@ -47,7 +47,12 @@ private:
     TrustLineAmount calculateMaxFlow(
         const NodeUUID &contractorUUID);
 
+    TrustLineAmount calculateMaxFlowUpdated(
+        const NodeUUID &contractorUUID);
+
     void calculateMaxFlowOnOneLevel();
+
+    void calculateMaxFlowOnOneLevelUpdated();
 
     TrustLineAmount calculateOneNode(
         const NodeUUID& nodeUUID,

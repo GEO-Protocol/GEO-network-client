@@ -58,7 +58,8 @@ void AmountAndBalanceSerializationMigration::migrateTrustLines(
                         contractor,
                         incomingAmount,
                         outgoingAmount,
-                        balance);
+                        balance,
+                        false);
             result.push_back(tl);
         } catch (...) {
             throw RuntimeError(

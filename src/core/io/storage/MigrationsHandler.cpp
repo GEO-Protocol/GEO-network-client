@@ -9,6 +9,7 @@ MigrationsHandler::MigrationsHandler(
     PaymentOperationStateHandler *paymentOperationStorage,
     TransactionsHandler *transactionHandler,
     BlackListHandler *blackListHandler,
+    NodeFeaturesHandler *nodeFeaturesHandler,
     Logger &logger):
 
     mLog(logger),
@@ -19,8 +20,8 @@ MigrationsHandler::MigrationsHandler(
     mTrustLineHandler(trustLineHandler),
     mPaymentOperationStateHandler(paymentOperationStorage),
     mBlackListHandler(blackListHandler),
-    mHistoryStorage(historyStorage)
-
+    mHistoryStorage(historyStorage),
+    mNodeFeaturesHandler(nodeFeaturesHandler)
 {
     enshureMigrationsTable();
 }
@@ -123,7 +124,8 @@ void MigrationsHandler::applyMigrations()
         MigrationUUID("149daff7-ff15-49d6-a121-e2eb37a37ef7"),
         MigrationUUID("d65438b6-f5c3-473c-8018-7dbf874c5bc4"),
         MigrationUUID("4160e78e-f7bf-4499-a63d-18e312590ddf"),
-        MigrationUUID("3a91cc61-fa61-4726-b0b8-bf692a94a0b2")
+        MigrationUUID("3a91cc61-fa61-4726-b0b8-bf692a94a0b2"),
+        MigrationUUID("74b8aa70-1df2-49d3-9586-7eccccce5472")
         // ...q
         // the rest migrations must be placed here.
     };
@@ -154,6 +156,7 @@ void MigrationsHandler::applyMigrations()
                 mPaymentOperationStateHandler,
                 mTransactionHandler,
                 mBlackListHandler,
+                mNodeFeaturesHandler,
                 mLog);
 
             try {
@@ -273,6 +276,14 @@ void MigrationsHandler::applyMigration(
 
         } else if (migrationUUID.stringUUID() == string("3a91cc61-fa61-4726-b0b8-bf692a94a0b2")) {
             auto migration = make_shared<RemoveRoutingTablesMigration>(
+                mDataBase,
+                mLog);
+
+            migration->apply(ioTransaction);
+            saveMigration(migrationUUID);
+
+        } else if (migrationUUID.stringUUID() == string("74b8aa70-1df2-49d3-9586-7eccccce5472")){
+            auto migration = make_shared<TrustLineContractorIsGatewayMigration>(
                 mDataBase,
                 mLog);
 

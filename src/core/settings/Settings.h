@@ -42,6 +42,9 @@ public:
     const uint16_t influxDbPort(
         const json *conf = nullptr) const;
 
+    bool iAmGateway(
+        const json *conf = nullptr) const;
+
     json loadParsedJSON() const;
 };
 

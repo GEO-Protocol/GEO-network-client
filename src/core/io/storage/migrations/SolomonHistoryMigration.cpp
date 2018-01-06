@@ -185,7 +185,8 @@ TrustLine::Shared SolomonHistoryMigration::getOutwornTrustLine(
                 contractor,
                 incomingAmount,
                 outgoingAmount,
-                balance);
+                balance,
+                false);
 
         } catch (...) {
             throw RuntimeError(

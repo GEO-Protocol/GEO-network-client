@@ -17,7 +17,8 @@ TransactionsManager::TransactionsManager(
     PathsManager *pathsManager,
     RoutingTableManager *routingTable,
     Logger &logger,
-    SubsystemsController *subsystemsController) :
+    SubsystemsController *subsystemsController,
+    bool iAmGateway) :
 
     mNodeUUID(nodeUUID),
     mIOService(IOService),
@@ -32,6 +33,7 @@ TransactionsManager::TransactionsManager(
     mLog(logger),
     mSubsystemsController(subsystemsController),
     mRoutingTable(routingTable),
+    mIAmGateway(iAmGateway),
 
     mScheduler(
         new TransactionsScheduler(
@@ -289,8 +291,8 @@ void TransactionsManager::processCommand(
 void TransactionsManager::processMessage(
     Message::Shared message)
 {
-    // ToDo: sort calls in the call probabilty order.
-    // For example, max flows calculations would be called much ofetn, then credit usage transactions.
+    // ToDo: sort calls in the call probability order.
+    // For example, max flows calculations would be called much oftetn, then credit usage transactions.
 
     /*
      * Max flow
@@ -306,6 +308,10 @@ void TransactionsManager::processMessage(
             launchReceiveResultMaxFlowCalculationTransaction(
                 static_pointer_cast<ResultMaxFlowCalculationMessage>(message));
         }
+
+    } else if (message->typeID() == Message::MessageType::MaxFlow_ResultMaxFlowCalculationFromGateway) {
+        launchReceiveResultMaxFlowCalculationTransactionFromGateway(
+            static_pointer_cast<ResultMaxFlowCalculationGatewayMessage>(message));
 
     } else if (message->typeID() == Message::MessageType::MaxFlow_CalculationSourceFirstLevel) {
         launchMaxFlowCalculationSourceFstLevelTransaction(
@@ -388,7 +394,6 @@ void TransactionsManager::processMessage(
     /*
      * Trust lines
      */
-
     } else if (message->typeID() == Message::TrustLines_SetIncoming) {
         launchSetIncomingTrustLineTransaction(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
@@ -407,6 +412,13 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::RoutingTableRequest) {
         launchRoutingTableResponseTransaction(
             static_pointer_cast<RoutingTableRequestMessage>(message));
+    /*
+     * Gateway notification
+     */
+    } else if (message->typeID() == Message::GatewayNotification) {
+        launchGatewayNotificationReceiverTransaction(
+            static_pointer_cast<GatewayNotificationMessage>(message));
+
     } else {
         mScheduler->tryAttachMessageToTransaction(message);
     }
@@ -455,6 +467,7 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             mTrustLines,
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
+            mIAmGateway,
             mLog),
         true,
         false,
@@ -569,6 +582,29 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
  *
  * Throws MemoryError.
  */
+void TransactionsManager::launchReceiveResultMaxFlowCalculationTransactionFromGateway(
+    ResultMaxFlowCalculationGatewayMessage::Shared message) {
+
+    try {
+        prepareAndSchedule(
+            make_shared<ReceiveResultMaxFlowCalculationTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mMaxFlowCalculationTrustLineManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+/*!
+ *
+ * Throws MemoryError.
+ */
 void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
     MaxFlowCalculationSourceFstLevelMessage::Shared message) {
 
@@ -578,7 +614,8 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
                 mNodeUUID,
                 message,
                 mTrustLines,
-                mLog),
+                mLog,
+                mIAmGateway),
             false,
             false,
             true);
@@ -600,7 +637,8 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
                 mNodeUUID,
                 message,
                 mTrustLines,
-                mLog),
+                mLog,
+                mIAmGateway),
             false,
             false,
             true);
@@ -623,7 +661,8 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
                 message,
                 mTrustLines,
                 mMaxFlowCalculationCacheManager,
-                mLog),
+                mLog,
+                mIAmGateway),
             false,
             false,
             true);
@@ -646,7 +685,8 @@ void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
                 message,
                 mTrustLines,
                 mMaxFlowCalculationCacheManager,
-                mLog),
+                mLog,
+                mIAmGateway),
             false,
             false,
             true);
@@ -994,6 +1034,43 @@ void TransactionsManager::launchPaymentTransactionByCommandUUIDTransaction(
             false,
             false,
             false);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchGatewayNotificationSenderTransaction()
+{
+    try {
+        prepareAndSchedule(
+            make_shared<GatewayNotificationSenderTransaction>(
+                mNodeUUID,
+                mTrustLines,
+                mStorageHandler,
+                mIAmGateway,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchGatewayNotificationReceiverTransaction(
+    GatewayNotificationMessage::Shared message)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<GatewayNotificationReceiverTransaction>(
+                mNodeUUID,
+                message,
+                mTrustLines,
+                mStorageHandler,
+                mLog),
+            false,
+            false,
+            true);
     } catch (ConflictError &e){
         throw ConflictError(e.message());
     }
@@ -1608,3 +1685,10 @@ void TransactionsManager::launchGetBlackListTransaction(
         throw ConflictError(e.message());
     }
 }
+
+#ifdef TESTS
+void TransactionsManager::setMeAsGateway()
+{
+    mIAmGateway = true;
+}
+#endif

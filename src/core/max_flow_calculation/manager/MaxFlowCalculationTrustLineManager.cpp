@@ -1,18 +1,18 @@
 #include "MaxFlowCalculationTrustLineManager.h"
 
 MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
-    RoutingTableManager *roughtingTable,
+    RoutingTableManager *routingTable,
     Logger &logger):
     mLog(logger),
     mPreventDeleting(false),
-    mRoughtingTable(roughtingTable)
+    mRoutingTable(routingTable)
 {}
 
 void MaxFlowCalculationTrustLineManager::addTrustLine(
     MaxFlowCalculationTrustLine::Shared trustLine)
 {
-    // Part with roughting table
-    mRoughtingTable->updateMapAddOneNeighbor(trustLine->sourceUUID(), trustLine->targetUUID());
+    // Part with routing table
+    mRoutingTable->updateMapAddOneNeighbor(trustLine->sourceUUID(), trustLine->targetUUID());
 
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
@@ -229,6 +229,35 @@ set<NodeUUID> MaxFlowCalculationTrustLineManager::neighborsOf(
         result.insert(trustLinePtr->maxFlowCalculationtrustLine()->targetUUID());
     }
     return result;
+}
+
+void MaxFlowCalculationTrustLineManager::addGateway(
+    const NodeUUID &gateway)
+{
+    mGateways.insert(gateway);
+}
+
+const set<NodeUUID> MaxFlowCalculationTrustLineManager::gateways() const
+{
+    return mGateways;
+}
+
+void MaxFlowCalculationTrustLineManager::makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+    const NodeUUID &exceptedNode)
+{
+    for (const auto gateway : mGateways) {
+        auto const &nodeUUIDAndSetFlows = msTrustLines.find(gateway);
+        if (nodeUUIDAndSetFlows == msTrustLines.end()) {
+            continue;
+        }
+        for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
+            if (trustLinePtr->maxFlowCalculationtrustLine()->targetUUID() != exceptedNode) {
+                trustLinePtr->maxFlowCalculationtrustLine()->setUsedAmount(
+                        *trustLinePtr->maxFlowCalculationtrustLine()->amount().get());
+                return;
+            }
+        }
+    }
 }
 
 void MaxFlowCalculationTrustLineManager::setPreventDeleting(

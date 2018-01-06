@@ -44,6 +44,8 @@ private:
 
     void buildPathsOnOneLevel();
 
+    void buildPathsOnSecondLevel();
+
     TrustLineAmount calculateOneNode(
         const NodeUUID& nodeUUID,
         const TrustLineAmount& currentFlow,

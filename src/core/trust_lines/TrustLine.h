@@ -31,7 +31,8 @@ public:
         const NodeUUID &nodeUUID,
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount,
-        const TrustLineBalance &nodeBalance);
+        const TrustLineBalance &nodeBalance,
+        bool isContractorGateway);
 
     TrustLine(
         const NodeUUID &nodeUUID,
@@ -83,6 +84,11 @@ public:
     ConstSharedTrustLineAmount usedAmountBySelf() const;
 
     const TrustLineDirection direction() const;
+
+    bool isContractorGateway() const;
+
+    void setContractorAsGateway(
+        bool contractorAsGateway);
 
     const BalanceRange balanceRange() const;
 
@@ -138,6 +144,7 @@ private:
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;
     TrustLineBalance mBalance;
+    bool mIsContractorGateway;
 
 };
 

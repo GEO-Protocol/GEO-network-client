@@ -4,14 +4,16 @@ MaxFlowCalculationSourceFstLevelTransaction::MaxFlowCalculationSourceFstLevelTra
     const NodeUUID &nodeUUID,
     MaxFlowCalculationSourceFstLevelMessage::Shared message,
     TrustLinesManager *trustLinesManager,
-    Logger &logger) :
+    Logger &logger,
+    bool iAmGateway) :
 
     BaseTransaction(
         BaseTransaction::TransactionType::MaxFlowCalculationSourceFstLevelTransactionType,
         nodeUUID,
         logger),
     mMessage(message),
-    mTrustLinesManager(trustLinesManager)
+    mTrustLinesManager(trustLinesManager),
+    mIAmGateway(iAmGateway)
 {}
 
 MaxFlowCalculationSourceFstLevelMessage::Shared MaxFlowCalculationSourceFstLevelTransaction::message() const
@@ -27,7 +29,12 @@ TransactionResult::SharedConst MaxFlowCalculationSourceFstLevelTransaction::run(
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 #endif
-    vector<NodeUUID> outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
+    vector<NodeUUID> outgoingFlowUuids;
+    if (mIAmGateway) {
+        outgoingFlowUuids = mTrustLinesManager->firstLevelGatewayNeighborsWithOutgoingFlow();
+    } else {
+        outgoingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow();
+    }
     for (auto const &nodeUUIDOutgoingFlow : outgoingFlowUuids) {
         if (nodeUUIDOutgoingFlow == mMessage->senderUUID) {
             continue;

@@ -16,7 +16,7 @@ ConfirmationRequiredMessagesHandler::ConfirmationRequiredMessagesHandler(
         mIOService);
     mDeserializationMessagesTimer->expires_from_now(
         chrono::seconds(
-            15));
+            kMessagesDeserializationDelayedSecondsTime));
     mDeserializationMessagesTimer->async_wait(
         boost::bind(
             &ConfirmationRequiredMessagesHandler::deserializeMessages,
@@ -29,7 +29,8 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
 {
     if (message->typeID() == Message::TrustLines_SetIncoming
         or message->typeID() == Message::TrustLines_CloseOutgoing
-        /* and <other message type here> */) {
+        or message->typeID() == Message::GatewayNotification
+        /* or <other message type here> */) {
 
         // Appropriate message occurred and must be enqueued.
         // In case if no queue is present for this contractor - new one must be created.

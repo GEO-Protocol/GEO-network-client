@@ -58,10 +58,9 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
     }
 
     mStep = Stages::ParseMessageAndCreateCycles;
-    return make_shared<TransactionResult>(
-        TransactionState::waitForMessageTypesAndAwakeAfterMilliseconds(
-            {Message::MessageType::Cycles_FourNodesBalancesResponse},
-            mkWaitingForResponseTime));
+    return resultWaitForMessageTypesAndAwakeAfterMilliseconds(
+        {Message::MessageType::Cycles_FourNodesBalancesResponse},
+        mkWaitingForResponseTime);
 }
 
 TransactionResult::SharedConst CyclesFourNodesInitTransaction::runParseMessageAndCreateCyclesStage()

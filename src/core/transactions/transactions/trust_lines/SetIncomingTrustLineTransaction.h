@@ -7,6 +7,7 @@
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h" // todo: rename "record" to "records"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
+#include "../../../network/messages/gateway_notification/GatewayNotificationMessage.h"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
 
 
@@ -35,6 +36,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        bool iAmGateway,
         Logger &logger)
         noexcept;
 
@@ -57,6 +59,7 @@ protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    bool mIAmGateway;
 };
 
 

@@ -12,7 +12,9 @@ set(SOURCE_FILES
         MaxFlowCalculationTargetSndLevelMessage.h
         MaxFlowCalculationTargetSndLevelMessage.cpp
         ResultMaxFlowCalculationMessage.h
-        ResultMaxFlowCalculationMessage.cpp)
+        ResultMaxFlowCalculationMessage.cpp
+        ResultMaxFlowCalculationGatewayMessage.h
+        ResultMaxFlowCalculationGatewayMessage.cpp )
 
 add_library(messages__max_flow_calculation ${SOURCE_FILES})
 

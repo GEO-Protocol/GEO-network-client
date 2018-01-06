@@ -87,7 +87,8 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
         mLog);
     mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
     launchSubsidiaryTransaction(kTransaction);
-    return resultAwaikAfterMilliseconds(
+    mCountProcessCollectingTopologyRun = 0;
+    return resultAwakeAfterMilliseconds(
         kWaitMillisecondsForCalculatingMaxFlow);
 }
 
@@ -98,6 +99,11 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
     info() << "context size: " << mContext.size();
 //#endif
     fillTopology();
+    mCountProcessCollectingTopologyRun++;
+    if (contextSize > 0 && mCountProcessCollectingTopologyRun <= kCountRunningProcessCollectingTopologyStage) {
+        return resultAwakeAfterMilliseconds(
+            kWaitMillisecondsForCalculatingMaxFlowAgain);
+    }
     vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
     maxFlows.reserve(mCommand->contractors().size());
     mFirstLevelTopology =
@@ -138,9 +144,16 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     const NodeUUID &contractorUUID)
 {
 //#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "calculateMaxFlow\tstart found flow to: " << contractorUUID;
+    info() << "start found flow to: " << contractorUUID;
+    info() << "gateways:";
+    for (auto const gateway : mMaxFlowCalculationTrustLineManager->gateways()) {
+        info() << "\t" << gateway;
+    }
     DateTime startTime = utc_now();
 //#endif
+
+    mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+        contractorUUID);
     mCurrentContractor = contractorUUID;
     if (mFirstLevelTopology.size() == 0) {
         mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
@@ -160,6 +173,40 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
         mCurrentContractor,
         make_shared<MaxFlowCalculationNodeCache>(
             mCurrentMaxFlow));
+    return mCurrentMaxFlow;
+}
+
+TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlowUpdated(
+        const NodeUUID &contractorUUID)
+{
+//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+    info() << "start found flow to: " << contractorUUID;
+    info() << "gateways:";
+    for (auto const gateway : mMaxFlowCalculationTrustLineManager->gateways()) {
+        info() << "\t" << gateway;
+    }
+    DateTime startTime = utc_now();
+//#endif
+
+    mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+            contractorUUID);
+    mCurrentContractor = contractorUUID;
+    auto trustLinePtrsSet =
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    if (trustLinePtrsSet.size() == 0) {
+        mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+        return TrustLine::kZeroAmount();
+    }
+
+    mCurrentMaxFlow = TrustLine::kZeroAmount();
+    for (mCurrentPathLength = 1; mCurrentPathLength <= kMaxPathLength; mCurrentPathLength++) {
+        calculateMaxFlowOnOneLevelUpdated();
+    }
+
+    mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+    info() << "max flow updated calculating time: " << utc_now() - startTime;
+//#endif
     return mCurrentMaxFlow;
 }
 
@@ -185,6 +232,32 @@ void InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevel()
         }
         if (currentFlow == 0) {
             break;
+        }
+    }
+}
+
+void InitiateMaxFlowCalculationTransaction::calculateMaxFlowOnOneLevelUpdated()
+{
+    auto trustLinePtrsSet =
+            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+    auto itTrustLinePtr = trustLinePtrsSet.begin();
+    while (itTrustLinePtr != trustLinePtrsSet.end()) {
+        auto trustLine = (*itTrustLinePtr)->maxFlowCalculationtrustLine();
+        auto trustLineFreeAmountShared = trustLine->freeAmount();
+        auto trustLineAmountPtr = trustLineFreeAmountShared.get();
+        if (*trustLineAmountPtr == TrustLine::kZeroAmount()) {
+            itTrustLinePtr++;
+            continue;
+        }
+        mForbiddenNodeUUIDs.clear();
+        TrustLineAmount flow = calculateOneNode(
+            trustLine->targetUUID(),
+            *trustLineAmountPtr,
+            1);
+        if (flow > TrustLine::kZeroAmount()) {
+            trustLine->addUsedAmount(flow);
+        } else {
+            itTrustLinePtr++;
         }
     }
 }

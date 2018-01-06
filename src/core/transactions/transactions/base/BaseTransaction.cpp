@@ -99,7 +99,7 @@ TransactionResult::Shared BaseTransaction::resultWaitForMessageTypes(
             noLongerThanMilliseconds));
 }
 
-TransactionResult::Shared BaseTransaction::resultAwaikAfterMilliseconds(
+TransactionResult::Shared BaseTransaction::resultAwakeAfterMilliseconds(
     uint32_t responseWaitTime) const
 {
     return make_shared<TransactionResult>(
@@ -111,6 +111,16 @@ TransactionResult::Shared BaseTransaction::resultContinuePreviousState() const
 {
     return make_shared<TransactionResult>(
         TransactionState::continueWithPreviousState());
+}
+
+TransactionResult::Shared BaseTransaction::resultWaitForMessageTypesAndAwakeAfterMilliseconds(
+    vector<Message::MessageType> &&requiredMessagesTypes,
+    uint32_t noLongerThanMilliseconds) const
+{
+    return make_shared<TransactionResult>(
+        TransactionState::waitForMessageTypesAndAwakeAfterMilliseconds(
+            move(requiredMessagesTypes),
+            noLongerThanMilliseconds));
 }
 
 const BaseTransaction::TransactionType BaseTransaction::transactionType() const {

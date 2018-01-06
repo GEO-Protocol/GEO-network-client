@@ -18,7 +18,7 @@ TransactionResult::SharedConst CyclesSixNodesInitTransaction::runCollectDataAndS
         );
     }
     mStep = Stages::ParseMessageAndCreateCycles;
-    return resultAwaikAfterMilliseconds(mkWaitingForResponseTime);
+    return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
 }
 
 CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(

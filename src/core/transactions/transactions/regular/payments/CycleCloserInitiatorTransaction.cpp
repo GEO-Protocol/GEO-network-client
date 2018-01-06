@@ -327,7 +327,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
                 mConflictedTransaction = reservation->transactionUUID();
                 mStep = Cycles_WaitForOutgoingAmountReleasing;
                 mOutgoingAmount = reservation->amount();
-                return resultAwaikAfterMilliseconds(
+                return resultAwakeAfterMilliseconds(
                     kWaitingForReleasingAmountMSec);
             }
             debug() << "don't win reservation";
@@ -368,7 +368,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
     if (mCyclesManager->isTransactionStillAlive(
         mConflictedTransaction)) {
         debug() << "wait again";
-        return resultAwaikAfterMilliseconds(
+        return resultAwakeAfterMilliseconds(
             kWaitingForReleasingAmountMSec);
     }
 
@@ -758,7 +758,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
                 mIncomingAmount = min(
                     reservation->amount(),
                     kMessage->amount());
-                return resultAwaikAfterMilliseconds(
+                return resultAwakeAfterMilliseconds(
                     kWaitingForReleasingAmountMSec);
             }
         }
@@ -802,7 +802,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
     if (mCyclesManager->isTransactionStillAlive(
         mConflictedTransaction)) {
         debug() << "wait again";
-        return resultAwaikAfterMilliseconds(
+        return resultAwakeAfterMilliseconds(
             kWaitingForReleasingAmountMSec);
     }
 

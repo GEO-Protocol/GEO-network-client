@@ -16,7 +16,8 @@ public:
         const NodeUUID &nodeUUID,
         MaxFlowCalculationSourceFstLevelMessage::Shared message,
         TrustLinesManager *trustLinesManager,
-        Logger &logger);
+        Logger &logger,
+        bool iAmGateway);
 
     MaxFlowCalculationSourceFstLevelMessage::Shared message() const;
 
@@ -28,6 +29,7 @@ protected:
 private:
     MaxFlowCalculationSourceFstLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
+    bool mIAmGateway;
 };
 
 

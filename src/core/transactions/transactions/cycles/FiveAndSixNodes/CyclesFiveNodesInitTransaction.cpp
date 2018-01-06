@@ -24,7 +24,7 @@ TransactionResult::SharedConst CyclesFiveNodesInitTransaction::runCollectDataAnd
                 path
             );
     mStep = Stages::ParseMessageAndCreateCycles;
-    return resultAwaikAfterMilliseconds(mkWaitingForResponseTime);
+    return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
 }
 
 CyclesFiveNodesInitTransaction::CyclesFiveNodesInitTransaction(

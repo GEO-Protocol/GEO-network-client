@@ -13,6 +13,7 @@
 #include "migrations/PositiveSignMigration.h"
 #include "migrations/CommandUUIDMigration.h"
 #include "migrations/RemoveRoutingTablesMigration.h"
+#include "migrations/TrustLineContractorIsGatewayMigration.h"
 
 #include "../../common/NodeUUID.h"
 #include "../../common/exceptions/IOError.h"
@@ -62,6 +63,7 @@ public:
         PaymentOperationStateHandler *paymentOperationStorage,
         TransactionsHandler *transactionHandler,
         BlackListHandler *blackListHandler,
+        NodeFeaturesHandler *nodeFeaturesHandler,
         Logger &logger);
 
     void applyMigrations();
@@ -96,6 +98,7 @@ protected:
     PaymentOperationStateHandler *mPaymentOperationStateHandler;
     TransactionsHandler *mTransactionHandler;
     BlackListHandler *mBlackListHandler;
+    NodeFeaturesHandler *mNodeFeaturesHandler;
 
     // Name of the migrations table in the DB.
     // This table is used for storing information about already applied migrations.

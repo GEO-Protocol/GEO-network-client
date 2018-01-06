@@ -50,7 +50,7 @@ TransactionResult::SharedConst RoutingTableInitTransaction::runCollectDataStage(
         );
     }
     mStep = Stages::UpdateRoutingTableStage;
-    return resultAwaikAfterMilliseconds(mkWaitingForResponseTime);
+    return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
 }
 
 const string RoutingTableInitTransaction::logHeader() const {

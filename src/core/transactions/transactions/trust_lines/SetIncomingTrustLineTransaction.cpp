@@ -7,6 +7,7 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    bool iAmGateway,
     Logger &logger)
     noexcept:
 
@@ -17,7 +18,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mMessage(message),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mIAmGateway(iAmGateway)
 {}
 
 TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
@@ -60,6 +62,18 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             mMaxFlowCalculationCacheManager->resetInitiatorCache();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully initialised with " << mMessage->amount();
+
+            if (mIAmGateway) {
+                // Notifying remote node that current node is gateway.
+                // Network communicator knows, that this message must be forced to be delivered,
+                // so the TA itself might finish without any response from the remote node.
+                sendMessage<GatewayNotificationMessage>(
+                    kContractor,
+                    currentNodeUUID(),
+                    currentTransactionUUID(),
+                    GatewayNotificationMessage::Gateway);
+            }
+
             break;
         }
 

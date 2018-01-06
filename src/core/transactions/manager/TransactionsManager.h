@@ -112,6 +112,9 @@
 
 #include "../transactions/transaction/PaymentTransactionByCommandUUIDTransaction.h"
 
+#include "../transactions/gateway_notification/GatewayNotificationSenderTransaction.h"
+#include "../transactions/gateway_notification/GatewayNotificationReceiverTransaction.h"
+
 #include <boost/signals2.hpp>
 
 #include <string>
@@ -139,7 +142,8 @@ public:
         PathsManager *pathsManager,
         RoutingTableManager *routingTable,
         Logger &logger,
-        SubsystemsController *subsystemsController);
+        SubsystemsController *subsystemsController,
+        bool iAmGateway);
 
     void processCommand(
         BaseUserCommand::Shared command);
@@ -177,6 +181,12 @@ public:
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
         const NodeUUID &destinationNodeUUID);
+
+    void launchGatewayNotificationSenderTransaction();
+
+#ifdef TESTS
+    void setMeAsGateway();
+#endif
 
 protected:
     void loadTransactionsFromStorage();
@@ -220,6 +230,9 @@ protected: // Transactions
 
     void launchReceiveResultMaxFlowCalculationTransaction(
         ResultMaxFlowCalculationMessage::Shared message);
+
+    void launchReceiveResultMaxFlowCalculationTransactionFromGateway(
+        ResultMaxFlowCalculationGatewayMessage::Shared message);
 
     void launchMaxFlowCalculationSourceFstLevelTransaction(
         MaxFlowCalculationSourceFstLevelMessage::Shared message);
@@ -321,6 +334,13 @@ public:
     void launchRoutingTableRequestTransaction();
 
 protected:
+    /*
+     * Gateway notification transactions
+     */
+    void launchGatewayNotificationReceiverTransaction(
+        GatewayNotificationMessage::Shared message);
+
+protected:
     // Signals connection to manager's slots
     void subscribeForSubsidiaryTransactions(
         BaseTransaction::LaunchSubsidiaryTransactionSignal &signal);
@@ -397,6 +417,7 @@ protected:
 
 private:
     NodeUUID &mNodeUUID;
+    bool mIAmGateway;
     as::io_service &mIOService;
     TrustLinesManager *mTrustLines;
     ResourcesManager *mResourcesManager;

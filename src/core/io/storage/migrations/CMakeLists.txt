@@ -36,7 +36,10 @@ set(SOURCE_FILES
         CommandUUIDMigration.cpp
 
         RemoveRoutingTablesMigration.cpp
-        RemoveRoutingTablesMigration.h)
+        RemoveRoutingTablesMigration.h
+
+        TrustLineContractorIsGatewayMigration.cpp
+        TrustLineContractorIsGatewayMigration.h)
 
 add_library(migrations ${SOURCE_FILES})
 

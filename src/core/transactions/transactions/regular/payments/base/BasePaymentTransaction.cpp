@@ -1022,7 +1022,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     if (kCoordinatorUUID == NodeUUID::empty() || kMessage->votes().size() == 0) {
         debug() << "Coordinator don't know result of this transaction yet. Sleep.";
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
-        return resultAwaikAfterMilliseconds(
+        return resultAwakeAfterMilliseconds(
             kWaitMillisecondsToTryRecoverAgain);
     }
 
@@ -1101,7 +1101,7 @@ TransactionResult::SharedConst BasePaymentTransaction::processNextNodeToCheckVot
     if (mNodesToCheckVotes.size() == 0) {
         debug() << "No nodes left to be asked. Sleep";
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
-        return resultAwaikAfterMilliseconds(
+        return resultAwakeAfterMilliseconds(
             kWaitMillisecondsToTryRecoverAgain);
     }
     debug() << "Ask another node from payment transaction";
