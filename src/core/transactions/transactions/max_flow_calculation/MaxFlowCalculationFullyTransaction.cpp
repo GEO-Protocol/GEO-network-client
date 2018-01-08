@@ -70,10 +70,10 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::sendRequestFo
 
 TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::processCollectingTopology()
 {
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "CalculateMaxTransactionFlow";
     info() << "context size: " << mContext.size();
-//#endif
+#endif
     auto const contextSize = mContext.size();
     fillTopology();
     mCountProcessCollectingTopologyRun++;
@@ -103,10 +103,10 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::processCollec
 TrustLineAmount MaxFlowCalculationFullyTransaction::calculateMaxFlow(
     const NodeUUID &contractorUUID)
 {
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "calculateMaxFlow\tstart found flow to: " << contractorUUID;
     DateTime startTime = utc_now();
-//#endif
+#endif
     mCurrentContractor = contractorUUID;
     if (mFirstLevelTopology.empty()) {
         mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
@@ -119,9 +119,9 @@ TrustLineAmount MaxFlowCalculationFullyTransaction::calculateMaxFlow(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "max flow calculating time: " << utc_now() - startTime;
-//#endif
+#endif
 
     auto nodeCache = mMaxFlowCalculationNodeCacheManager->cacheByNode(mCurrentContractor);
     if (nodeCache != nullptr) {

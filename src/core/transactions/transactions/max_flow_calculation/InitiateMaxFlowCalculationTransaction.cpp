@@ -27,11 +27,11 @@ InitiateMaxFlowCalculationCommand::Shared InitiateMaxFlowCalculationTransaction:
 
 TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendRequestForCollectingTopology()
 {
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "run\t" << "initiator: " << mNodeUUID;
     info() << "run\t" << "targets count: " << mCommand->contractors().size();
     info() << "SendRequestForCollectingTopology";
-//#endif
+#endif
     // Check if there is mNodeUUID in command parameters
     for (const auto &contractorUUID : mCommand->contractors()) {
         if (contractorUUID == currentNodeUUID()) {
@@ -93,10 +93,10 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::sendReques
 
 TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCollectingTopology()
 {
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "CalculateMaxTransactionFlow";
     info() << "context size: " << mContext.size();
-//#endif
+#endif
     fillTopology();
     vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
     maxFlows.reserve(mCommand->contractors().size());
@@ -138,14 +138,14 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     const NodeUUID &contractorUUID)
 {
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "start found flow to: " << contractorUUID;
     info() << "gateways:";
     for (auto const &gateway : mMaxFlowCalculationTrustLineManager->gateways()) {
         info() << "\t" << gateway;
     }
     DateTime startTime = utc_now();
-//#endif
+#endif
 
     mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
         contractorUUID);
@@ -161,9 +161,9 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "max flow calculating time: " << utc_now() - startTime;
-//#endif
+#endif
     mMaxFlowCalculationNodeCacheManager->addCache(
         mCurrentContractor,
         make_shared<MaxFlowCalculationNodeCache>(
@@ -174,14 +174,14 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlowUpdated(
         const NodeUUID &contractorUUID)
 {
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "start found flow to: " << contractorUUID;
     info() << "gateways:";
     for (auto const &gateway : mMaxFlowCalculationTrustLineManager->gateways()) {
         info() << "\t" << gateway;
     }
     DateTime startTime = utc_now();
-//#endif
+#endif
 
     mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
             contractorUUID);
@@ -199,9 +199,9 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlowUpdated(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "max flow updated calculating time: " << utc_now() - startTime;
-//#endif
+#endif
     return mCurrentMaxFlow;
 }
 
