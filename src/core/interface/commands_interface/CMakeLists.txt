@@ -23,8 +23,6 @@ set(SOURCE_FILES
 
         commands/total_balances/TotalBalancesCommand.cpp
         commands/total_balances/TotalBalancesCommand.h
-        commands/total_balances/TotalBalancesRemouteNodeCommand.cpp
-        commands/total_balances/TotalBalancesRemouteNodeCommand.h
 
         commands/history/HistoryPaymentsCommand.cpp
         commands/history/HistoryPaymentsCommand.h

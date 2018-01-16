@@ -212,11 +212,6 @@ void TransactionsManager::processCommand(
             static_pointer_cast<TotalBalancesCommand>(
                 command));
 
-    } else if (command->identifier() == TotalBalancesRemouteNodeCommand::identifier()){
-        launchTotalBalancesRemoteNodeTransaction(
-            static_pointer_cast<TotalBalancesRemouteNodeCommand>(
-                command));
-
     } else if (command->identifier() == HistoryPaymentsCommand::identifier()){
         launchHistoryPaymentsTransaction(
             static_pointer_cast<HistoryPaymentsCommand>(
@@ -326,13 +321,6 @@ void TransactionsManager::processMessage(
     } else if (message->typeID() == Message::MessageType::MaxFlow_CalculationTargetSecondLevel) {
         launchMaxFlowCalculationTargetSndLevelTransaction(
             static_pointer_cast<MaxFlowCalculationTargetSndLevelMessage>(message));
-
-    /*
-    * Total balances
-    */
-    } else if (message->typeID() == Message::MessageType::TotalBalance_Request) {
-        launchTotalBalancesTransaction(
-            static_pointer_cast<InitiateTotalBalancesMessage>(message));
 
     /*
      * Payments
@@ -806,49 +794,6 @@ void TransactionsManager::launchTotalBalancesTransaction(
             false,
             true
         );
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchTotalBalancesTransaction(
-    InitiateTotalBalancesMessage::Shared message) {
-
-    try {
-        prepareAndSchedule(
-            make_shared<TotalBalancesTransaction>(
-                mNodeUUID,
-                message,
-                mTrustLines,
-                mLog),
-            false,
-            false,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-/*!
- *
- * Throws MemoryError.
- */
-void TransactionsManager::launchTotalBalancesRemoteNodeTransaction(
-    TotalBalancesRemouteNodeCommand::Shared command) {
-
-    try {
-        prepareAndSchedule(
-            make_shared<TotalBalancesFromRemoutNodeTransaction>(
-                mNodeUUID,
-                command,
-                mLog),
-            true,
-            false,
-            true);
     } catch (ConflictError &e) {
         throw ConflictError(e.message());
     }

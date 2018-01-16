@@ -23,7 +23,6 @@
 #include "../../interface/commands_interface/commands/payments/CreditUsageCommand.h"
 #include "../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 #include "../../interface/commands_interface/commands/total_balances/TotalBalancesCommand.h"
-#include "../../interface/commands_interface/commands/total_balances/TotalBalancesRemouteNodeCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryAdditionalPaymentsCommand.h"
 #include "../../interface/commands_interface/commands/history/HistoryTrustLinesCommand.h"
@@ -87,7 +86,6 @@
 #include "../transactions/max_flow_calculation/ReceiveResultMaxFlowCalculationTransaction.h"
 
 #include "../transactions/total_balances/TotalBalancesTransaction.h"
-#include "../transactions/total_balances/TotalBalancesFromRemoutNodeTransaction.h"
 
 #include "../transactions/history/HistoryPaymentsTransaction.h"
 #include "../transactions/history/HistoryAdditionalPaymentsTransaction.h"
@@ -267,12 +265,6 @@ protected: // Transactions
      */
     void launchTotalBalancesTransaction(
         TotalBalancesCommand::Shared command);
-
-    void launchTotalBalancesTransaction(
-        InitiateTotalBalancesMessage::Shared message);
-
-    void launchTotalBalancesRemoteNodeTransaction(
-        TotalBalancesRemouteNodeCommand::Shared command);
 
     /*
      * History transactions

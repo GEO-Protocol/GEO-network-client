@@ -151,16 +151,6 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::MaxFlow_CalculationTargetSecondLevel:
             return messageCollected<MaxFlowCalculationTargetSndLevelMessage>(buffer);
 
-
-        /*
-         * Total Balances Messages
-         */
-        case Message::TotalBalance_Request:
-            return messageCollected<InitiateTotalBalancesMessage>(buffer);
-
-        case Message::TotalBalance_Response:
-            return messageCollected<TotalBalancesResultMessage>(buffer);
-
         /*
          * RoutingTables
          */
