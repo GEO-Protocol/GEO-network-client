@@ -128,6 +128,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
         mMaxFlowCalculationTrustLineManager,
         mMaxFlowCalculationCacheManager,
         mMaxFlowCalculationNodeCacheManager,
+        2,
         mLog);
     launchSubsidiaryTransaction(kTransaction);
     return resultOk(false, maxFlows);
@@ -320,7 +321,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::resultOk(
 {
     stringstream ss;
     if (finalMaxFlows) {
-        ss << "2" << "\t" << maxFlows.size();
+        ss << kFinalStep << "\t" << maxFlows.size();
     } else {
         ss << "1" << "\t" << maxFlows.size();
     }

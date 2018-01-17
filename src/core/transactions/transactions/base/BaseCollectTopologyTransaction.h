@@ -52,6 +52,9 @@ protected:
     void fillTopology();
 
 protected:
+    const string kFinalStep = "10";
+
+protected:
     TrustLinesManager *mTrustLinesManager;
     MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;

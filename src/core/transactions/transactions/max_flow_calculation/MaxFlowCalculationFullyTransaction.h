@@ -57,7 +57,7 @@ private:
     static const byte kMaxPathLength = 6;
     static const uint32_t kWaitMillisecondsForCalculatingMaxFlow = 4000;
     static const uint32_t kWaitMillisecondsForCalculatingMaxFlowAgain = 500;
-    static const uint32_t kMaxWaitMillisecondsForCalculatingMaxFlow = 10000;
+    static const uint32_t kMaxWaitMillisecondsForCalculatingMaxFlow = 15000;
     static const uint16_t kCountRunningProcessCollectingTopologyStage =
             (kMaxWaitMillisecondsForCalculatingMaxFlow - kWaitMillisecondsForCalculatingMaxFlow) /
             kWaitMillisecondsForCalculatingMaxFlowAgain;

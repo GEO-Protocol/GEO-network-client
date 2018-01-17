@@ -24,6 +24,7 @@ public:
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        uint8_t maxFlowCalculationStep,
         Logger &logger);
 
     InitiateMaxFlowCalculationCommand::Shared command() const;
@@ -47,6 +48,7 @@ private:
         byte level);
 
     TransactionResult::SharedConst resultOk(
+        bool finalMaxFlows,
         vector<pair<NodeUUID, TrustLineAmount>> &maxFlows);
 
 private:
@@ -66,6 +68,7 @@ private:
     NodeUUID mCurrentContractor;
     size_t mCountProcessCollectingTopologyRun;
     MaxFlowCalculationTrustLineManager::TrustLineWithPtrHashSet mFirstLevelTopology;
+    uint8_t mMaxFlowCalculationStep;
 };
 
 

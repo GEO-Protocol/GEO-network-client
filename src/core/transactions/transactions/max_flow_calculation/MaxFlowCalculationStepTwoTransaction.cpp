@@ -8,6 +8,7 @@ MaxFlowCalculationStepTwoTransaction::MaxFlowCalculationStepTwoTransaction(
     MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    uint8_t maxFlowCalculationStep,
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
@@ -19,7 +20,8 @@ MaxFlowCalculationStepTwoTransaction::MaxFlowCalculationStepTwoTransaction(
         maxFlowCalculationCacheManager,
         maxFlowCalculationNodeCacheManager,
         logger),
-    mCommand(command)
+    mCommand(command),
+    mMaxFlowCalculationStep(maxFlowCalculationStep)
 {}
 
 InitiateMaxFlowCalculationCommand::Shared MaxFlowCalculationStepTwoTransaction::command() const
@@ -53,6 +55,12 @@ TransactionResult::SharedConst MaxFlowCalculationStepTwoTransaction::processColl
         return resultAwakeAfterMilliseconds(
             kWaitMillisecondsForCalculatingMaxFlowAgain);
     }
+
+    bool finalTopologyCollected = true;
+    if (contextSize > 0){
+        finalTopologyCollected = false;
+    }
+
     vector<pair<NodeUUID, TrustLineAmount>> maxFlows;
     maxFlows.reserve(mCommand->contractors().size());
     mFirstLevelTopology =
@@ -76,7 +84,24 @@ TransactionResult::SharedConst MaxFlowCalculationStepTwoTransaction::processColl
     }
     info() << "all contractors calculating time: " << (utc_now() - startTime);
     mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
-    return resultOk(maxFlows);
+
+    if (!finalTopologyCollected) {
+        const auto kTransaction = make_shared<MaxFlowCalculationStepTwoTransaction>(
+            mNodeUUID,
+            currentTransactionUUID(),
+            mCommand,
+            mTrustLinesManager,
+            mMaxFlowCalculationTrustLineManager,
+            mMaxFlowCalculationCacheManager,
+            mMaxFlowCalculationNodeCacheManager,
+            mMaxFlowCalculationStep++,
+            mLog);
+        launchSubsidiaryTransaction(kTransaction);
+    }
+
+    return resultOk(
+        finalTopologyCollected,
+        maxFlows);
 }
 
 // this method used the same logic as PathsManager::reBuildPaths
@@ -194,10 +219,15 @@ TrustLineAmount MaxFlowCalculationStepTwoTransaction::calculateOneNode(
 }
 
 TransactionResult::SharedConst MaxFlowCalculationStepTwoTransaction::resultOk(
+    bool finalMaxFlows,
     vector<pair<NodeUUID, TrustLineAmount>> &maxFlows)
 {
     stringstream ss;
-    ss << "2" << "\t" << maxFlows.size();
+    if (finalMaxFlows) {
+        ss << kFinalStep << "\t" << maxFlows.size();
+    } else {
+        ss << mMaxFlowCalculationStep << "\t" << maxFlows.size();
+    }
     for (const auto &nodeUUIDAndMaxFlow : maxFlows) {
         ss << "\t" << nodeUUIDAndMaxFlow.first << "\t";
         ss << nodeUUIDAndMaxFlow.second;
