@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
         TotalBalancesTransaction.h
-        TotalBalancesTransaction.cpp
-        TotalBalancesFromRemoutNodeTransaction.h
-        TotalBalancesFromRemoutNodeTransaction.cpp )
+        TotalBalancesTransaction.cpp)
 
 add_library(transactions__total_balances ${SOURCE_FILES})
 

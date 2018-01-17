@@ -102,7 +102,6 @@ public:
 
         // TotalBalances
         TotalBalancesTransactionType = 600,
-        InitiateTotalBalancesFromRemoutNodeTransactionType = 601,
 
         // History
         HistoryPaymentsTransactionType = 700,

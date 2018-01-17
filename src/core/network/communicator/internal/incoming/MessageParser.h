@@ -36,9 +36,6 @@
 #include "../../../messages/payments/FinalAmountsConfigurationResponseMessage.h"
 #include "../../../messages/payments/ReservationsInRelationToNodeMessage.h"
 
-#include "../../../messages/total_balances/InitiateTotalBalancesMessage.h"
-#include "../../../messages/total_balances/TotalBalancesResultMessage.h"
-
 #include "../../../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../../../messages/cycles/ThreeNodes/CyclesThreeNodesBalancesResponseMessage.h"
 #include "../../../messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"

@@ -11,33 +11,12 @@ TotalBalancesTransaction::TotalBalancesTransaction(
         nodeUUID,
         logger),
     mCommand(command),
-    mMessage(nullptr),
-    mTrustLinesManager(manager)
-{}
-
-TotalBalancesTransaction::TotalBalancesTransaction(
-    NodeUUID &nodeUUID,
-    InitiateTotalBalancesMessage::Shared message,
-    TrustLinesManager *manager,
-    Logger &logger):
-
-    BaseTransaction(
-        BaseTransaction::TransactionType::TotalBalancesTransactionType,
-        nodeUUID,
-        logger),
-    mCommand(nullptr),
-    mMessage(message),
     mTrustLinesManager(manager)
 {}
 
 TotalBalancesCommand::Shared TotalBalancesTransaction::command() const
 {
     return mCommand;
-}
-
-InitiateTotalBalancesMessage::Shared TotalBalancesTransaction::message() const
-{
-    return  mMessage;
 }
 
 TransactionResult::SharedConst TotalBalancesTransaction::run()
@@ -63,26 +42,12 @@ TransactionResult::SharedConst TotalBalancesTransaction::run()
         auto totalIncomingTrustUsedShared = nodeUUIDAndTrustLine.second->usedAmountBySelf();
         totalTrustUsedBySelf += *totalIncomingTrustUsedShared.get();
     }
-    if (mCommand != nullptr) {
-        return resultOk(
-            totalIncomingTrust,
-            totalTrustUsedByContractor,
-            totalOutgoingTrust,
-            totalTrustUsedBySelf);
-    }
-    if (mMessage != nullptr) {
-        sendMessage<TotalBalancesResultMessage>(
-            mMessage->senderUUID,
-            mNodeUUID,
-            mMessage->transactionUUID(),
-            totalIncomingTrust,
-            totalTrustUsedByContractor,
-            totalOutgoingTrust,
-            totalTrustUsedBySelf);
-        return resultDone();
-    }
-    warning() << "something wrong: command and message are nulls";
-    return resultDone();
+
+    return resultOk(
+        totalIncomingTrust,
+        totalTrustUsedByContractor,
+        totalOutgoingTrust,
+        totalTrustUsedBySelf);
 }
 
 TransactionResult::SharedConst TotalBalancesTransaction::resultOk(
