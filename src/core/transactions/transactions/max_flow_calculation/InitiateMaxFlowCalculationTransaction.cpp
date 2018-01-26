@@ -85,7 +85,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
         maxFlows.push_back(
             make_pair(
                 contractorUUID,
-                calculateMaxFlow(
+                C(
                     contractorUUID)));
     }
     mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
@@ -97,14 +97,14 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     const NodeUUID &contractorUUID)
 {
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "start found flow to: " << contractorUUID;
     info() << "gateways:";
     for (auto const gateway : mMaxFlowCalculationTrustLineManager->gateways()) {
         info() << "\t" << gateway;
     }
     DateTime startTime = utc_now();
-//#endif
+#endif
 
     mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
         contractorUUID);
@@ -122,23 +122,23 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "max flow calculating time: " << utc_now() - startTime;
-//#endif
+#endif
     return mCurrentMaxFlow;
 }
 
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlowUpdated(
     const NodeUUID &contractorUUID)
 {
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "start found flow to: " << contractorUUID;
     info() << "gateways:";
     for (auto const gateway : mMaxFlowCalculationTrustLineManager->gateways()) {
         info() << "\t" << gateway;
     }
     DateTime startTime = utc_now();
-//#endif
+#endif
 
     mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
             contractorUUID);
@@ -156,9 +156,9 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlowUpdated(
     }
 
     mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "max flow updated calculating time: " << utc_now() - startTime;
-//#endif
+#endif
     return mCurrentMaxFlow;
 }
 
