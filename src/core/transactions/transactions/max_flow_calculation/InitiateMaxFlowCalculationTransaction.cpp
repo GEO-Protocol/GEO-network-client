@@ -85,7 +85,7 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
         maxFlows.push_back(
             make_pair(
                 contractorUUID,
-                C(
+                calculateMaxFlow(
                     contractorUUID)));
     }
     mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
