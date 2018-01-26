@@ -236,6 +236,9 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
                 sendingMessage = static_pointer_cast<TransactionMessage>(
                     make_shared<CloseOutgoingTrustLineMessage>(messageBody));
                 break;
+            case Message::GatewayNotification:
+                sendingMessage = static_pointer_cast<TransactionMessage>(
+                    make_shared<GatewayNotificationMessage>(messageBody));
             default:
                 mLog.error("ConfirmationRequiredMessagesHandler::deserializeMessages "
                                "invalid message type");
@@ -267,6 +270,7 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSign
 {
     if (message->typeID() == Message::TrustLines_SetIncoming
         or message->typeID() == Message::TrustLines_CloseOutgoing
+        or message->typeID() == Message::GatewayNotification
         /* and <other message type here> */) {
 
         // Appropriate message occurred and must be enqueued.

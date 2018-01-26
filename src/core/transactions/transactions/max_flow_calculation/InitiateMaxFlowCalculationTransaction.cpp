@@ -173,7 +173,7 @@ TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlow(
 }
 
 TrustLineAmount InitiateMaxFlowCalculationTransaction::calculateMaxFlowUpdated(
-        const NodeUUID &contractorUUID)
+    const NodeUUID &contractorUUID)
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "start found flow to: " << contractorUUID;
