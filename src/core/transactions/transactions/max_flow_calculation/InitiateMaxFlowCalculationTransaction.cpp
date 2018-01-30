@@ -81,7 +81,8 @@ TransactionResult::SharedConst InitiateMaxFlowCalculationTransaction::processCol
     maxFlows.reserve(mCommand->contractors().size());
     for (const auto &contractorUUID : mCommand->contractors()) {
         // todo : choose one method
-        calculateMaxFlowUpdated(contractorUUID);
+
+        calculateMaxFlow(contractorUUID);
         maxFlows.push_back(
             make_pair(
                 contractorUUID,

@@ -38,6 +38,9 @@ void BaseCollectTopologyTransaction::fillTopology()
     while (!mContext.empty()) {
         if (mContext.at(0)->typeID() == Message::MaxFlow_ResultMaxFlowCalculation) {
             const auto kMessage = popNextMessage<ResultMaxFlowCalculationMessage>();
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+            info() << "Sender " << kMessage->senderUUID << " common";
+#endif
             for (auto const &outgoingFlow : kMessage->outgoingFlows()) {
                 mMaxFlowCalculationTrustLineManager->addTrustLine(
                     make_shared<MaxFlowCalculationTrustLine>(
@@ -55,6 +58,9 @@ void BaseCollectTopologyTransaction::fillTopology()
         }
         else if (mContext.at(0)->typeID() == Message::MaxFlow_ResultMaxFlowCalculationFromGateway) {
             const auto kMessage = popNextMessage<ResultMaxFlowCalculationGatewayMessage>();
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+            info() << "Sender " << kMessage->senderUUID << " gateway";
+#endif
             mMaxFlowCalculationTrustLineManager->addGateway(kMessage->senderUUID);
             for (auto const &outgoingFlow : kMessage->outgoingFlows()) {
                 mMaxFlowCalculationTrustLineManager->addTrustLine(

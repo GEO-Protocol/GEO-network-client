@@ -5,6 +5,7 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetFstLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetSndLevelMessage.h"
+#include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 
 class MaxFlowCalculationTargetFstLevelTransaction : public BaseTransaction {
 
