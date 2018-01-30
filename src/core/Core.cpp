@@ -180,6 +180,7 @@ int Core::initCommunicator(
             mSettings->port(&conf),
             mSettings->uuid2addressHost(&conf),
             mSettings->uuid2addressPort(&conf),
+            mNodeUUID,
             *mLog.get());
 
         mLog->logSuccess("Core", "Network communicator is successfully initialised");
@@ -673,6 +674,7 @@ void Core::notifyContractorsAboutCurrentTrustLinesAmounts()
             make_shared<SetIncomingTrustLineMessage>(
                 mNodeUUID,
                 kTransactionUUID,
+                kContractor,
                 kOutgoingTrustAmount);
 
         mCommunicator->sendMessage(

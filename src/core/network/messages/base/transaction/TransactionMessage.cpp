@@ -55,20 +55,17 @@ pair<BytesShared, size_t> TransactionMessage::serializeToBytes() const
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         mTransactionUUID.data,
-        TransactionUUID::kBytesSize
-    );
+        TransactionUUID::kBytesSize);
     //----------------------------------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 const size_t TransactionMessage::kOffsetToInheritedBytes() const

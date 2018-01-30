@@ -59,7 +59,8 @@ TransactionResult::SharedConst AddNodeToBlackListTransaction::run()
         sendMessage<CloseOutgoingTrustLineMessage>(
             mCommand->contractorUUID(),
             mNodeUUID,
-            mTransactionUUID);
+            mTransactionUUID,
+            mCommand->contractorUUID());
 
         ioTransaction->blackListHandler()->addNode(contractorNode);
         info() << "Node " << kContractor << " successfully added to black list";

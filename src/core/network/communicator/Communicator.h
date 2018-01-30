@@ -30,6 +30,7 @@ public:
         const Port port,
         const Host &uuid2AddressHost,
         const Port uuid2AddressPort,
+        const NodeUUID &nodeUUID,
         Logger &logger)
         noexcept(false);
 
@@ -70,6 +71,7 @@ protected:
     const Port mPort;
     IOService &mIOService;
     unique_ptr<CommunicatorStorageHandler> mCommunicatorStorageHandler;
+    NodeUUID mNodeUUID;
     Logger &mLog;
 
     unique_ptr<UDPSocket> mSocket;

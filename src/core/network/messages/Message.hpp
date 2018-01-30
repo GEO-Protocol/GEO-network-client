@@ -31,6 +31,8 @@ public:
         /*
          * Trust lines
          */
+        // these messages has destination uuid, that's why they should be checked on communicator
+        // and their types should be added on Communicator::onMessageReceived if condition
         TrustLines_SetIncoming = 100,
         TrustLines_CloseOutgoing = 101,
 

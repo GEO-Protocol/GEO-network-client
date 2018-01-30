@@ -1,16 +1,16 @@
 #ifndef GEO_NETWORK_CLIENT_CLOSEOUTGOINGTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_CLOSEOUTGOINGTRUSTLINEMESSAGE_H
 
-#include "../base/transaction/TransactionMessage.h"
+#include "../base/transaction/DestinationMessage.h"
 
-class CloseOutgoingTrustLineMessage : public TransactionMessage {
+class CloseOutgoingTrustLineMessage : public DestinationMessage {
 
 public:
     typedef shared_ptr<CloseOutgoingTrustLineMessage> Shared;
     typedef shared_ptr<const CloseOutgoingTrustLineMessage> ConstShared;
 
 public:
-    using TransactionMessage::TransactionMessage;
+    using DestinationMessage::DestinationMessage;
 
 protected:
     const MessageType typeID() const;

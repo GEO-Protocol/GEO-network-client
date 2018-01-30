@@ -7,11 +7,13 @@ Communicator::Communicator(
     const Port port,
     const Host &UUID2AddressHost,
     const Port UUID2AddressPort,
+    const NodeUUID &nodeUUID,
     Logger &logger):
 
     mInterface(interface),
     mPort(port),
     mIOService(IOService),
+    mNodeUUID(nodeUUID),
     mLog(logger),
     mSocket(
         make_unique<UDPSocket>(
@@ -137,6 +139,21 @@ void Communicator::processConfirmationMessage(
 void Communicator::onMessageReceived(
     Message::Shared message)
 {
+    // these messages are inherited from DestinationMessage
+    // and should be checked if they were delivered on address
+    if (message->typeID() >= 100 && message->typeID() <= 101) {
+        const auto kDestinationMessage =
+            static_pointer_cast<DestinationMessage>(message);
+        if (kDestinationMessage->destinationUUID() != mNodeUUID) {
+            mLog.error("Communicator::onMessageReceived")
+                    << "Invalid destinationUUID. "
+                    << "Message type: " << kDestinationMessage->typeID()
+                    << ", destination UUID: " << kDestinationMessage->destinationUUID()
+                    << ", sender UUID: " << kDestinationMessage->senderUUID;
+            return;
+        }
+    }
+
     // In case if received message is of type "confirmation message" -
     // then it must not be transferred for further processing.
     // Instead of that, it must be transferred for processing into

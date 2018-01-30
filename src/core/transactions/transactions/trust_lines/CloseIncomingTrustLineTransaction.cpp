@@ -54,7 +54,8 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
         sendMessage<CloseOutgoingTrustLineMessage>(
             mCommand->contractorUUID(),
             mNodeUUID,
-            mTransactionUUID);
+            mTransactionUUID,
+            mCommand->contractorUUID());
 
         return resultOK();
 

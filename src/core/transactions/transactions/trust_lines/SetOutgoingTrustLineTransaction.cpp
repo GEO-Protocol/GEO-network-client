@@ -95,6 +95,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
             mCommand->contractorUUID(),
             mNodeUUID,
             mTransactionUUID,
+            mCommand->contractorUUID(),
             mCommand->amount());
 
         return resultOK();

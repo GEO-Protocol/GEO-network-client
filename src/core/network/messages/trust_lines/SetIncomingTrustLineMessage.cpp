@@ -4,12 +4,14 @@
 SetIncomingTrustLineMessage::SetIncomingTrustLineMessage(
     const NodeUUID &sender,
     const TransactionUUID &transactionUUID,
+    const NodeUUID &destination,
     const TrustLineAmount &amount)
     noexcept :
 
-    TransactionMessage(
+    DestinationMessage(
         sender,
-        transactionUUID),
+        transactionUUID,
+        destination),
     mAmount(amount)
 {}
 
@@ -17,11 +19,11 @@ SetIncomingTrustLineMessage::SetIncomingTrustLineMessage(
     BytesShared buffer)
     noexcept :
 
-    TransactionMessage(buffer)
+    DestinationMessage(buffer)
 {
     // todo: use desrializer
 
-    size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
+    size_t bytesBufferOffset = DestinationMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
     vector<byte> amountBytes(
         buffer.get() + bytesBufferOffset,
@@ -46,7 +48,7 @@ pair<BytesShared, size_t> SetIncomingTrustLineMessage::serializeToBytes() const
 {
     // todo: use serializer
 
-    auto parentBytesAndCount = TransactionMessage::serializeToBytes();
+    auto parentBytesAndCount = DestinationMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
                         + kTrustLineAmountBytesCount;
@@ -57,19 +59,16 @@ pair<BytesShared, size_t> SetIncomingTrustLineMessage::serializeToBytes() const
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     vector<byte> buffer = trustLineAmountToBytes(mAmount);
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         buffer.data(),
-        buffer.size()
-    );
+        buffer.size());
     //----------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }

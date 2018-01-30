@@ -1,12 +1,12 @@
 ﻿#ifndef GEO_NETWORK_CLIENT_SETTRUSTLINEMESSAGE_H
 #define GEO_NETWORK_CLIENT_SETTRUSTLINEMESSAGE_H
 
-#include "../base/transaction/TransactionMessage.h"
+#include "../base/transaction/DestinationMessage.h"
 #include "../../../common/multiprecision/MultiprecisionUtils.h"
 
 
 class SetIncomingTrustLineMessage:
-    public TransactionMessage {
+    public DestinationMessage {
 
 public:
     typedef shared_ptr<SetIncomingTrustLineMessage> Shared;
@@ -15,6 +15,7 @@ public:
     SetIncomingTrustLineMessage(
         const NodeUUID &sender,
         const TransactionUUID &transactionUUID,
+        const NodeUUID &destinationMessage,
         const TrustLineAmount &amount)
         noexcept;
 
