@@ -30,7 +30,8 @@ TransactionResult::SharedConst GatewayNotificationReceiverTransaction::run()
             ioTransaction,
             mMessage->senderUUID,
             mMessage->nodeState() == GatewayNotificationMessage::Gateway);
-        info() << "Node " << mMessage->senderUUID << " inform that it is gateway.";
+        info() << "Node " << mMessage->senderUUID << " inform that it is gateway "
+               << (mMessage->nodeState() == GatewayNotificationMessage::Gateway);
     } catch (NotFoundError &e) {
         ioTransaction->rollback();
         warning() << "Attempt to set contractor " << mMessage->senderUUID << " as gateway failed. "

@@ -197,7 +197,8 @@ void MaxFlowCalculationTrustLineManager::printTrustLines() const
         info() << "print\t" << "key: " << nodeUUIDAndTrustLines.first;
         for (auto &itTrustLine : *nodeUUIDAndTrustLines.second) {
             MaxFlowCalculationTrustLine::Shared trustLine = itTrustLine->maxFlowCalculationtrustLine();
-            info() << "print\t" << "value: " << trustLine->targetUUID() << " " << *trustLine->amount().get();
+            info() << "print\t" << "value: " << trustLine->targetUUID() << " " << *trustLine->amount().get()
+                    << " free amount: " << *trustLine->freeAmount();
         }
     }
 }
@@ -251,10 +252,13 @@ void MaxFlowCalculationTrustLineManager::makeFullyUsedTLsFromGatewaysToAllNodesE
             continue;
         }
         for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
-            if (trustLinePtr->maxFlowCalculationtrustLine()->targetUUID() != exceptedNode) {
+            const auto maxFlowTLTarget = trustLinePtr->maxFlowCalculationtrustLine()->targetUUID();
+            if (mGateways.count(maxFlowTLTarget) != 0) {
+                continue;
+            }
+            if (maxFlowTLTarget != exceptedNode) {
                 trustLinePtr->maxFlowCalculationtrustLine()->setUsedAmount(
                         *trustLinePtr->maxFlowCalculationtrustLine()->amount().get());
-                return;
             }
         }
     }

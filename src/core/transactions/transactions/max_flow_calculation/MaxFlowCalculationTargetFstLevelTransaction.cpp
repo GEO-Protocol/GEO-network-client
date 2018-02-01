@@ -27,11 +27,20 @@ TransactionResult::SharedConst MaxFlowCalculationTargetFstLevelTransaction::run(
     info() << "run\t" << "Iam: " << mNodeUUID;
     info() << "run\t" << "sender: " << mMessage->senderUUID;
     info() << "run\t" << "target: " << mMessage->targetUUID();
+    info() << "run\t" << "i am is gateway: " << mIAmGateway;
     info() << "run\t" << "OutgoingFlows: " << mTrustLinesManager->outgoingFlows().size();
     info() << "run\t" << "IncomingFlows: " << mTrustLinesManager->incomingFlows().size();
 #endif
     vector<NodeUUID> incomingFlowUuids;
     if (mIAmGateway) {
+        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
+        vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows;
+        // inform that I am is gateway
+        sendMessage<ResultMaxFlowCalculationGatewayMessage>(
+            mMessage->targetUUID(),
+            mNodeUUID,
+            outgoingFlows,
+            incomingFlows);
         incomingFlowUuids = mTrustLinesManager->firstLevelNeighborsWithIncomingFlow();
     } else {
         incomingFlowUuids = mTrustLinesManager->firstLevelNonGatewayNeighborsWithIncomingFlow();
