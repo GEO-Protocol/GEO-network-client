@@ -100,9 +100,6 @@ protected:
      */
     bool checkReservationsDirections() const;
 
-    // todo : discuss with Den V if this method is actual
-    void runBuildThreeNodesCyclesSignal();
-
     const string logHeader() const;
 
 protected:

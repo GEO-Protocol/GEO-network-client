@@ -564,7 +564,7 @@ void BasePaymentTransaction::commit(
                 debug() << "Committed reservation: [ => ] " << kPathIDAndReservation.second->amount()
                         << " for (" << kNodeUUIDAndReservations.first << ") [" << kPathIDAndReservation.first
                         << "]";
-                mCreditorsForCycles.push_back(kNodeUUIDAndReservations.first);
+                mCreditorsForCycles.insert(kNodeUUIDAndReservations.first);
             }
             else if (kPathIDAndReservation.second->direction() == AmountReservation::Incoming)
                 debug() << "Committed reservation: [ <= ] " << kPathIDAndReservation.second->amount()
