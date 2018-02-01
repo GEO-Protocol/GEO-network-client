@@ -35,6 +35,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
                 // Notifying remote node that current node is gateway.
                 // Network communicator knows, that this message must be forced to be delivered,
                 // so the TA itself might finish without any response from the remote node.
+                info() << "Send message that I am gateway to " << neighbor;
                 sendMessage<GatewayNotificationMessage>(
                     neighbor,
                     currentNodeUUID(),
@@ -50,6 +51,7 @@ TransactionResult::SharedConst GatewayNotificationSenderTransaction::run()
                 // Notifying remote node that current node is not gateway.
                 // Network communicator knows, that this message must be forced to be delivered,
                 // so the TA itself might finish without any response from the remote node.
+                info() << "Send message that I am common node to " << neighbor;
                 sendMessage<GatewayNotificationMessage>(
                     neighbor,
                     currentNodeUUID(),

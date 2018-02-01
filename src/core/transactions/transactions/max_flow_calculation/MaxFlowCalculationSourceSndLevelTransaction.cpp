@@ -27,6 +27,7 @@ TransactionResult::SharedConst MaxFlowCalculationSourceSndLevelTransaction::run(
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "run\t" << "Iam: " << mNodeUUID;
+    info() << "run\t" << "i am is gateway: " << mIAmGateway;
     info() << "run\t" << "sender: " << mMessage->senderUUID;
     info() << "run\t" << "target: " << mMessage->targetUUID();
 #endif
@@ -125,7 +126,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendGatewayResultToInitiator()
         return;
     }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "sendResultToInitiator\t" << "send to " << mMessage->targetUUID();
+    info() << "sendGatewayResultToInitiator\t" << "send to " << mMessage->targetUUID();
 #endif
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlows;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlowsToGateways()) {
@@ -144,8 +145,8 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendGatewayResultToInitiator()
             incomingFlow);
     }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "sendResult\t" << "OutgoingFlows: " << outgoingFlows.size();
-    info() << "sendResult\t" << "IncomingFlows: " << incomingFlows.size();
+    info() << "sendGatewayResult\t" << "OutgoingFlows: " << outgoingFlows.size();
+    info() << "sendGatewayResult\t" << "IncomingFlows: " << incomingFlows.size();
 #endif
     if (outgoingFlows.size() > 0 || incomingFlows.size() > 0) {
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
@@ -165,7 +166,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedGatewayResultToIniti
         MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr)
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID();
+    info() << "sendCachedGatewayResultToInitiator\t" << "send to " << mMessage->targetUUID();
 #endif
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> outgoingFlowsForSending;
     for (auto const &outgoingFlow : mTrustLinesManager->outgoingFlowsToGateways()) {
@@ -184,8 +185,8 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedGatewayResultToIniti
             incomingFlow);
     }
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
-    info() << "sendCachedResultToInitiator\t" << "OutgoingFlows: " << outgoingFlowsForSending.size();
-    info() << "sendCachedResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
+    info() << "sendCachedGatewayResultToInitiator\t" << "OutgoingFlows: " << outgoingFlowsForSending.size();
+    info() << "sendCachedGatewayResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
 #endif
     if (outgoingFlowsForSending.size() > 0 || incomingFlowsForSending.size() > 0) {
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
