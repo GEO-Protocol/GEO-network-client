@@ -36,7 +36,9 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
+    TrustLine::ConstShared previousTL = nullptr;
     try {
+        previousTL = mTrustLines->trustLineReadOnly(mCommand->contractorUUID());
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
         mTrustLines->closeIncoming(
@@ -67,6 +69,14 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
 
     } catch (IOError &e) {
         ioTransaction->rollback();
+        // return closed TL
+        auto trustLine = make_shared<TrustLine>(
+            mCommand->contractorUUID(),
+            previousTL->incomingTrustAmount(),
+            previousTL->outgoingTrustAmount(),
+            previousTL->balance(),
+            previousTL->isContractorGateway());
+        mTrustLines->trustLines()[mCommand->contractorUUID()] = trustLine;
         info() << "Attempt to close incoming trust line from the node " << kContractor << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();

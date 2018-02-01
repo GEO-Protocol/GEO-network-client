@@ -39,10 +39,18 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
     // Also, history record must be written about this operation.
     // Both writes must be done atomically, so the IO transaction is used.
     auto ioTransaction = mStorageHandler->beginTransaction();
+    TrustLine::ConstShared previousTL = nullptr;
+    try {
+        previousTL = mTrustLines->trustLineReadOnly(mCommand->contractorUUID());
+    } catch (NotFoundError &e) {
+        // Nothing actions, because TL will be created
+    }
+
+    TrustLinesManager::TrustLineOperationResult kOperationResult;
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        const auto kOperationResult = mTrustLines->setOutgoing(
+        kOperationResult = mTrustLines->setOutgoing(
             ioTransaction,
             kContractor,
             mCommand->amount());
@@ -77,7 +85,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::NoChanges: {
             // Trust line was set to the same value as previously.
-            // By the furst look, new history record is redundant here,
+            // By the first look, new history record is redundant here,
             // but this transaction might be launched only by the user,
             // so, in case if new amount is the same - then user knows it,
             // and new history record must be written too.
@@ -88,7 +96,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         }
         }
 
-        // Notifiyng remote node about trust line state changed.
+        // Notifying remote node about trust line state changed.
         // Network communicator knows, that this message must be forced to be delivered,
         // so the TA itself might finish without any response from the remote node.
         sendMessage<SetIncomingTrustLineMessage>(
@@ -114,12 +122,36 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 
     } catch (IOError &e) {
         ioTransaction->rollback();
+        switch (kOperationResult) {
+            case TrustLinesManager::TrustLineOperationResult::Opened: {
+                // remove created TL from TrustLinesManager
+                mTrustLines->trustLines().erase(mCommand->contractorUUID());
+                break;
+            }
+            case TrustLinesManager::TrustLineOperationResult::Updated: {
+                // Change outgoing TL amount to previous value
+                mTrustLines->trustLines()[mCommand->contractorUUID()]->setOutgoingTrustAmount(
+                    previousTL->outgoingTrustAmount());
+                break;
+            }
+            case TrustLinesManager::TrustLineOperationResult::Closed: {
+                // return closed TL
+                auto trustLine = make_shared<TrustLine>(
+                    mCommand->contractorUUID(),
+                    previousTL->incomingTrustAmount(),
+                    previousTL->outgoingTrustAmount(),
+                    previousTL->balance(),
+                    false);
+                mTrustLines->trustLines()[mCommand->contractorUUID()] = trustLine;
+                break;
+            }
+        }
         info() << "Attempt to set outgoing trust line to the node " << kContractor << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
 
         // Rethrowing the exception,
-        // because the TA can't finish propely and no result may be returned.
+        // because the TA can't finish properly and no result may be returned.
         throw e;
     }
 }

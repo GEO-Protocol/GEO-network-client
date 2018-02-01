@@ -48,10 +48,19 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         return resultDone();
     }
 
+    TrustLine::ConstShared previousTL = nullptr;
+    try {
+        previousTL = mTrustLines->trustLineReadOnly(mMessage->senderUUID);
+    } catch (NotFoundError &e) {
+        // Nothing actions, because TL will be created
+    }
+
+    TrustLinesManager::TrustLineOperationResult kOperationResult;
+
     try {
         // note: io transaction would commit automatically on destructor call.
         // there is no need to call commit manually.
-        const auto kOperationResult = mTrustLines->setIncoming(
+        kOperationResult = mTrustLines->setIncoming(
             ioTransaction,
             kContractor,
             mMessage->amount());
@@ -127,6 +136,30 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
     } catch (IOError &e) {
         ioTransaction->rollback();
+        switch (kOperationResult) {
+            case TrustLinesManager::TrustLineOperationResult::Opened: {
+                // remove created TL from TrustLinesManager
+                mTrustLines->trustLines().erase(mMessage->senderUUID);
+                break;
+            }
+            case TrustLinesManager::TrustLineOperationResult::Updated: {
+                // Change outgoing TL amount to previous value
+                mTrustLines->trustLines()[mMessage->senderUUID]->setOutgoingTrustAmount(
+                    previousTL->outgoingTrustAmount());
+                break;
+            }
+            case TrustLinesManager::TrustLineOperationResult::Closed: {
+                // return closed TL
+                auto trustLine = make_shared<TrustLine>(
+                    mMessage->senderUUID,
+                    previousTL->incomingTrustAmount(),
+                    previousTL->outgoingTrustAmount(),
+                    previousTL->balance(),
+                    previousTL->isContractorGateway());
+                mTrustLines->trustLines()[mMessage->senderUUID] = trustLine;
+                break;
+            }
+        }
         info() << "Attempt to set incoming trust line to the node " << kContractor << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
