@@ -460,7 +460,7 @@ const bool BasePaymentTransaction::contextIsValid(
         if (showErrorMessage) {
             stringstream stream;
             stream << "contextIsValid::context has " << mContext.size() << " messages: ";
-            for (auto const message : mContext) {
+            for (auto const &message : mContext) {
                 stream << message->typeID() << " ";
             }
             warning() << stream.str();
@@ -672,7 +672,7 @@ void BasePaymentTransaction::rollBack (
                     itPathIDAndReservation++;
                 }
             }
-        if (itNodeUUIDAndReservations->second.size() == 0) {
+        if (itNodeUUIDAndReservations->second.empty()) {
             itNodeUUIDAndReservations = mReservations.erase(itNodeUUIDAndReservations);
         } else {
             itNodeUUIDAndReservations++;
@@ -851,7 +851,7 @@ void BasePaymentTransaction::dropNodeReservationsOnPath(
                 itPathIDAndReservation++;
             }
         }
-        if (itNodeReservations->second.size() == 0) {
+        if (itNodeReservations->second.empty()) {
             itNodeReservations = mReservations.erase(itNodeReservations);
         } else {
             itNodeReservations++;
@@ -883,7 +883,7 @@ BasePaymentTransaction::PathID BasePaymentTransaction::updateReservation(
     pair<PathID, AmountReservation::ConstShared> &pathIDAndReservation,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts)
 {
-    for (auto pathIDAndAmount : finalAmounts) {
+    for (auto &pathIDAndAmount : finalAmounts) {
         if (pathIDAndAmount.first == pathIDAndReservation.first) {
             if (*pathIDAndAmount.second.get() != pathIDAndReservation.second->amount()) {
                 shortageReservation(
@@ -903,7 +903,7 @@ BasePaymentTransaction::PathID BasePaymentTransaction::updateReservation(
 bool BasePaymentTransaction::checkAllNeighborsPresence() const
 {
     debug() << "checkAllNeighborsPresence";
-    for (const auto reservation : mReservations) {
+    for (const auto &reservation : mReservations) {
         if (reservation.first == coordinatorUUID()) {
             continue;
         }
@@ -935,7 +935,7 @@ bool BasePaymentTransaction::checkOldAndNewParticipants(
             return false;
         }
     }
-    for (const auto oldParticipant : mParticipantsVotesMessage->votes()) {
+    for (const auto &oldParticipant : mParticipantsVotesMessage->votes()) {
         if (!newMessageWithVotes->containsParticipant(oldParticipant.first)) {
             warning() << "Different participants in new and old messages";
             return false;
@@ -1019,7 +1019,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
     const auto kCoordinatorUUID = kMessage->coordinatorUUID();
     const auto kSenderUUID = kMessage->senderUUID;
 
-    if (kCoordinatorUUID == NodeUUID::empty() || kMessage->votes().size() == 0) {
+    if (kCoordinatorUUID == NodeUUID::empty() || kMessage->votes().empty()) {
         debug() << "Coordinator don't know result of this transaction yet. Sleep.";
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         return resultAwakeAfterMilliseconds(
@@ -1069,7 +1069,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
     const auto kMessage = popNextMessage<ParticipantsVotesMessage>();
     const auto kSenderUUID = kMessage->senderUUID;
 
-    if (kMessage->votes().size() == 0) {
+    if (kMessage->votes().empty()) {
         debug() << "Intermediate node didn't know about this transaction";
         return processNextNodeToCheckVotes();
     }
@@ -1098,7 +1098,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
 TransactionResult::SharedConst BasePaymentTransaction::processNextNodeToCheckVotes()
 {
     debug() << "processNextNodeToCheckVotes";
-    if (mNodesToCheckVotes.size() == 0) {
+    if (mNodesToCheckVotes.empty()) {
         debug() << "No nodes left to be asked. Sleep";
         mVotesRecoveryStep = VotesRecoveryStages::Common_PrepareNodesListToCheckVotes;
         return resultAwakeAfterMilliseconds(
@@ -1123,8 +1123,8 @@ const TrustLineAmount BasePaymentTransaction::totalReservedAmount(
     AmountReservation::ReservationDirection reservationDirection) const
 {
     TrustLineAmount totalAmount = 0;
-    for (const auto nodeUUIDAndReservations : mReservations) {
-        for (const auto pathIDAndReservation : nodeUUIDAndReservations.second) {
+    for (const auto &nodeUUIDAndReservations : mReservations) {
+        for (const auto &pathIDAndReservation : nodeUUIDAndReservations.second) {
             if (pathIDAndReservation.second->direction() == reservationDirection) {
                 totalAmount += pathIDAndReservation.second->amount();
             }
@@ -1140,9 +1140,9 @@ bool BasePaymentTransaction::compareReservations(
     if (localReservations.size() != remoteReservations.size()) {
         return false;
     }
-    for (const auto localPathAndReservation : localReservations) {
+    for (const auto &localPathAndReservation : localReservations) {
         bool findAppropriateReservation = false;
-        for (const auto remotePathAndReservation : remoteReservations) {
+        for (const auto &remotePathAndReservation : remoteReservations) {
             if (remotePathAndReservation.first == localPathAndReservation.first) {
                 if (remotePathAndReservation.second->amount() == localPathAndReservation.second->amount() and
                     remotePathAndReservation.second->direction() != localPathAndReservation.second->direction()) {
@@ -1162,7 +1162,7 @@ bool BasePaymentTransaction::compareReservations(
 
 bool BasePaymentTransaction::checkAllNeighborsReservationsAppropriate()
 {
-    for (const auto nodeAndReservations : mReservations) {
+    for (const auto &nodeAndReservations : mReservations) {
         if (mRemoteReservations.find(nodeAndReservations.first) == mRemoteReservations.end()) {
             return false;
         }

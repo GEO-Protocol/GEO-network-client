@@ -169,7 +169,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     const auto kMessage = popNextMessage<IntermediateNodeReservationRequestMessage>();
 
     const auto kNeighbor = kMessage->senderUUID;
-    if (kMessage->finalAmountsConfiguration().size() == 0) {
+    if (kMessage->finalAmountsConfiguration().empty()) {
         warning() << "Reservation vector is empty";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
@@ -217,7 +217,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         kMessage->finalAmountsConfiguration().end()))) {
         warning() << "Coordinator send path configuration, which is absent on current node";
         // next loop is only logger info
-        for (const auto reservation : kMessage->finalAmountsConfiguration()) {
+        for (const auto &reservation : kMessage->finalAmountsConfiguration()) {
             debug() << "path: " << reservation.first << " amount: " << *reservation.second.get();
         }
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -453,7 +453,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runFinalReservationsC
     debug() << "All reservations was updated";
 
     mCoordinatorAlreadySentFinalAmountsConfiguration = true;
-    for (const auto nodeAndReservations : mReservations) {
+    for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
             nodeAndReservations.first,
             currentNodeUUID(),
@@ -680,8 +680,8 @@ void ReceiverPaymentTransaction::savePaymentOperationIntoHistory(
 bool ReceiverPaymentTransaction::checkReservationsDirections() const
 {
     debug() << "checkReservationsDirections";
-    for (const auto nodeAndReservations : mReservations) {
-        for (const auto pathIDAndReservation : nodeAndReservations.second) {
+    for (const auto &nodeAndReservations : mReservations) {
+        for (const auto &pathIDAndReservation : nodeAndReservations.second) {
             if (pathIDAndReservation.second->direction() != AmountReservation::Incoming) {
                 return false;
             }
@@ -700,7 +700,7 @@ void ReceiverPaymentTransaction::runBuildThreeNodesCyclesSignal()
 {
     vector<NodeUUID> contractorsUUID;
     contractorsUUID.reserve(mReservations.size());
-    for (auto const nodeUUIDAndReservations : mReservations) {
+    for (auto const &nodeUUIDAndReservations : mReservations) {
         contractorsUUID.push_back(
             nodeUUIDAndReservations.first);
     }

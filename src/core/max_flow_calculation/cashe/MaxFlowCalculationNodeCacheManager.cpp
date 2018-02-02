@@ -87,7 +87,7 @@ DateTime MaxFlowCalculationNodeCacheManager::closestTimeEvent() const
 void MaxFlowCalculationNodeCacheManager::printCaches()
 {
     info() << "printCaches at time " << utc_now();
-    for (const auto nodeCache : mCaches) {
+    for (const auto &nodeCache : mCaches) {
         info() << "Node: " << nodeCache.first;
         info() << "\t" << nodeCache.second->currentFlow() << " "
                << nodeCache.second->isFlowFinal() << " " << nodeCache.second->lastModified();

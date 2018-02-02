@@ -595,7 +595,7 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentRecords(
             isTimeFromPresent,
             timeTo,
             isTimeToPresent);
-        for (auto paymentRecord : paymentRecords) {
+        for (auto &paymentRecord : paymentRecords) {
             bool recordUnderConditions = true;
             if (isLowBoundaryAmountPresent) {
                 recordUnderConditions = recordUnderConditions &&
@@ -655,7 +655,7 @@ vector<PaymentRecord::Shared> HistoryStorage::allPaymentAdditionalRecords(
             isTimeFromPresent,
             timeTo,
             isTimeToPresent);
-        for (auto paymentRecord : paymentRecords) {
+        for (auto &paymentRecord : paymentRecords) {
             bool recordUnderConditions = true;
             if (isLowBoundaryAmountPresent) {
                 recordUnderConditions = recordUnderConditions &&
@@ -825,7 +825,7 @@ vector<Record::Shared> HistoryStorage::recordsWithContractor(
             contractorUUID,
             kPortionRequestSize,
             currentOffset);
-        for (auto record : records) {
+        for (auto &record : records) {
             if (record->contractorUUID() == contractorUUID) {
                 countRecordsUnderConditions++;
                 if (countRecordsUnderConditions > fromRecord) {

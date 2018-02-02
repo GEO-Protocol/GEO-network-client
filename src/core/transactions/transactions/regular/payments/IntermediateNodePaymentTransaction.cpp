@@ -98,7 +98,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
     const auto kNeighbor = mMessage->senderUUID;
     debug() << "Init. intermediate payment operation from node (" << kNeighbor << ")";
 
-    if (mMessage->finalAmountsConfiguration().size() == 0) {
+    if (mMessage->finalAmountsConfiguration().empty()) {
         warning() << "Not received reservation";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
@@ -106,7 +106,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             currentTransactionUUID(),
             0,                  // 0, because we don't know pathID
             ResponseMessage::Closed);
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
@@ -132,7 +132,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             ResponseMessage::Rejected);
         warning() << "Path is not valid: previous node is not neighbor of current one. Rejected.";
         // if no reservations close transaction
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         } else {
@@ -152,7 +152,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
         mMessage->finalAmountsConfiguration().end()))) {
         warning() << "Previous node send path configuration, which is absent on current node";
         // next loop is only logger info
-        for (const auto reservation : mMessage->finalAmountsConfiguration()) {
+        for (const auto &reservation : mMessage->finalAmountsConfiguration()) {
             debug() << "path: " << reservation.first << " amount: " << *reservation.second.get();
         }
         sendMessage<IntermediateNodeReservationResponseMessage>(
@@ -161,7 +161,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             currentTransactionUUID(),
             kReservation.first,
             ResponseMessage::Closed);
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
@@ -196,7 +196,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
             kReservation.first,
             ResponseMessage::Rejected);
         // if no reservations close transaction
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         } else {
@@ -251,7 +251,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     const auto kMessage = popNextMessage<CoordinatorReservationRequestMessage>();
     mCoordinator = kMessage->senderUUID;
     const auto kNextNode = kMessage->nextNodeInPath();
-    if (kMessage->finalAmountsConfiguration().size() == 0) {
+    if (kMessage->finalAmountsConfiguration().empty()) {
         warning() << "Not received reservation";
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
@@ -261,7 +261,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
             ResponseMessage::Closed);
         rollBack(mLastProcessedPath);
         // if no reservations close transaction
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
@@ -290,7 +290,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         debug() << "Path is not valid: next node is not neighbor of current one. Rolled back.";
         rollBack(kReservation.first);
         // if no reservations close transaction
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
@@ -321,7 +321,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
         debug() << "No amount reservation is possible. Rolled back.";
         rollBack(kReservation.first);
         // if no reservations close transaction
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
@@ -390,7 +390,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             ResponseMessage::NextNodeInaccessible);
         rollBack(mLastProcessedPath);
         // if no reservations close transaction
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
@@ -429,7 +429,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         debug() << "Amount reservation rejected with further transaction closing by the Receiver node.";
         rollBack(kMessage->pathID());
         // if no reservations close transaction
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
@@ -452,7 +452,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
         debug() << "Amount reservation rejected by the neighbor node.";
         rollBack(kMessage->pathID());
         // if no reservations close transaction
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
@@ -517,7 +517,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
     if (kMessage->amount() == 0) {
         rollBack(kMessage->pathID());
         // if no reservations close transaction
-        if (mReservations.size() == 0) {
+        if (mReservations.empty()) {
             debug() << "There are no reservations. Transaction closed.";
             return resultDone();
         }
@@ -696,7 +696,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalReser
     debug() << "All reservations was updated";
 
     mCoordinatorAlreadySentFinalAmountsConfiguration = true;
-    for (const auto nodeAndReservations : mReservations) {
+    for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
             nodeAndReservations.first,
             currentNodeUUID(),
@@ -921,15 +921,15 @@ void IntermediateNodePaymentTransaction::savePaymentOperationIntoHistory(
 bool IntermediateNodePaymentTransaction::checkReservationsDirections() const
 {
     debug() << "checkReservationsDirections";
-    for (const auto nodeUUIDAndReservations : mReservations) {
-        for (const auto pathIDAndReservation : nodeUUIDAndReservations.second) {
+    for (const auto &nodeUUIDAndReservations : mReservations) {
+        for (const auto &pathIDAndReservation : nodeUUIDAndReservations.second) {
             const auto checkedPath = pathIDAndReservation.first;
             const auto checkedAmount = pathIDAndReservation.second->amount();
             int countIncomingReservations = 0;
             int countOutgoingReservations = 0;
 
-            for (const auto nodeUUIDAndReservationsInternal : mReservations) {
-                for (const auto pathIDAndReservationInternal : nodeUUIDAndReservationsInternal.second) {
+            for (const auto &nodeUUIDAndReservationsInternal : mReservations) {
+                for (const auto &pathIDAndReservationInternal : nodeUUIDAndReservationsInternal.second) {
                     if (pathIDAndReservationInternal.first == checkedPath) {
                         if (pathIDAndReservationInternal.second->amount() != checkedAmount) {
                             warning() << "Amounts are different on path " << checkedPath;

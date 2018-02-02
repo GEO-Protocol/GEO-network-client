@@ -44,7 +44,7 @@ void PathsManager::buildPaths(
 
     auto trustLinePtrsSet =
         mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
-    if (trustLinePtrsSet.size() == 0) {
+    if (trustLinePtrsSet.empty()) {
         mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
         return;
     }
@@ -164,7 +164,7 @@ TrustLineAmount PathsManager::calculateOneNode(
 
     auto trustLinePtrsSet =
             mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(nodeUUID);
-    if (trustLinePtrsSet.size() == 0) {
+    if (trustLinePtrsSet.empty()) {
         return 0;
     }
     for (auto &trustLinePtr : trustLinePtrsSet) {
@@ -220,7 +220,7 @@ void PathsManager::reBuildPaths(
 
     auto trustLinePtrsSet =
             mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
-    if (trustLinePtrsSet.size() == 0) {
+    if (trustLinePtrsSet.empty()) {
         mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
         return;
     }
@@ -296,7 +296,7 @@ TrustLineAmount PathsManager::calculateOneNodeForRebuildingPaths(
 
     auto trustLinePtrsSet =
             mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(nodeUUID);
-    if (trustLinePtrsSet.size() == 0) {
+    if (trustLinePtrsSet.empty()) {
         return 0;
     }
     for (auto &trustLinePtr : trustLinePtrsSet) {

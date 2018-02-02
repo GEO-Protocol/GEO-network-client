@@ -302,7 +302,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     // TODO: [mvp] [cryptography] despite this, coordinator must sign the message,
     // so the other nodes would be possible to know that this message was emitted by the coordinator.
     // mNodesFinalAmountsConfiguration contains all nodes, which have actual reservations
-    for (auto const nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
+    for (auto const &nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
         mParticipantsVotesMessage->addParticipant(
             nodeAndFinalAmountsConfig.first);
     }
@@ -310,7 +310,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::propagateVotesList
     debug() << "Total participants included: " << mParticipantsVotesMessage->participantsCount();
 #ifdef DEBUG
     debug() << "Participants order is the next:";
-    for (const auto kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
+    for (const auto &kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
         debug() << kNodeUUIDAndVote.first;
     }
 #endif
@@ -1158,7 +1158,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     mSubsystemsController->testForbidSendMessageOnFinalAmountClarificationStage();
 #endif
 
-    for (auto const nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
+    for (auto const &nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
         debug() << "send final amount configuration to " << nodeAndFinalAmountsConfig.first;
         sendMessage<FinalAmountsConfigurationMessage>(
             nodeAndFinalAmountsConfig.first,
@@ -1174,7 +1174,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::sendFinalAmountsCo
     debug() << "Total count of all participants without coordinator is " << mNodesFinalAmountsConfiguration.size();
 
     // send reservations to first level nodes on transaction paths
-    for (const auto nodeAndReservations : mReservations) {
+    for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
             nodeAndReservations.first,
             currentNodeUUID(),
@@ -1224,7 +1224,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runFinalAmountsPar
     }
     debug() << "Node " << kMessage->senderUUID << " confirmed final amounts";
     mFinalAmountNodesConfirmation[kMessage->senderUUID] = true;
-    for (const auto nodeUUIDAndConfirmation : mFinalAmountNodesConfirmation) {
+    for (const auto &nodeUUIDAndConfirmation : mFinalAmountNodesConfirmation) {
         if (!nodeUUIDAndConfirmation.second) {
             debug() << "Some nodes are still not confirmed final amounts. Waiting.";
             if (mAllNeighborsSentFinalReservations) {
@@ -1306,7 +1306,7 @@ void CoordinatorPaymentTransaction::switchToNextPath()
         mPathIDs.erase(mPathIDs.cbegin());
     }
 
-    if (mPathIDs.size() == 0) {
+    if (mPathIDs.empty()) {
         // remove unusable path from paths scope
         if (!justProcessedPath->isValid()) {
             mPathsStats.erase(justProcessedPathIdentifier);
@@ -1647,7 +1647,7 @@ void CoordinatorPaymentTransaction::addFinalConfigurationOnPath(
     }
 
     // add final path configuration for all intermediate nodes
-    for (const auto node : pathStats->path()->intermediateUUIDs()) {
+    for (const auto &node : pathStats->path()->intermediateUUIDs()) {
         if (mNodesFinalAmountsConfiguration.find(node) == mNodesFinalAmountsConfiguration.end()) {
             vector<pair<PathID, ConstSharedTrustLineAmount>> newVector;
             newVector.push_back(pathIDAndAmount);
@@ -1669,7 +1669,7 @@ void CoordinatorPaymentTransaction::shortageReservationsOnPath(
 {
     debug() << "shortageReservationsOnPath";
     auto nodeReservations = mReservations[neighborUUID];
-    for (const auto pathIDAndReservation : nodeReservations) {
+    for (const auto &pathIDAndReservation : nodeReservations) {
         if (pathIDAndReservation.first == pathID) {
             shortageReservation(
                 neighborUUID,
@@ -1708,7 +1708,7 @@ void CoordinatorPaymentTransaction::dropReservationsOnPath(
             itPathIDAndReservation++;
         }
     }
-    if (nodeReservations->second.size() == 0) {
+    if (nodeReservations->second.empty()) {
         mReservations.erase(firstIntermediateNode);
     }
 
@@ -1755,7 +1755,7 @@ void CoordinatorPaymentTransaction::sendFinalPathConfiguration(
 void CoordinatorPaymentTransaction::informAllNodesAboutTransactionFinish()
 {
     debug() << "informAllNodesAboutTransactionFinish";
-    for (auto const nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
+    for (auto const &nodeAndFinalAmountsConfig : mNodesFinalAmountsConfiguration) {
         sendMessage<TTLProlongationResponseMessage>(
             nodeAndFinalAmountsConfig.first,
             currentNodeUUID(),
@@ -1779,7 +1779,7 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
                 pathStats->maxFlow());
         }
     }
-    for (const auto rejectedTrustLine : mRejectedTrustLines) {
+    for (const auto &rejectedTrustLine : mRejectedTrustLines) {
         mPathsManager->makeTrustLineFullyUsed(
             rejectedTrustLine.first,
             rejectedTrustLine.second);
@@ -1816,8 +1816,8 @@ void CoordinatorPaymentTransaction::savePaymentOperationIntoHistory(
 bool CoordinatorPaymentTransaction::checkReservationsDirections() const
 {
     debug() << "checkReservationsDirections";
-    for (const auto nodeAndReservations : mReservations) {
-        for (const auto pathIDAndReservation : nodeAndReservations.second) {
+    for (const auto &nodeAndReservations : mReservations) {
+        for (const auto &pathIDAndReservation : nodeAndReservations.second) {
             if (pathIDAndReservation.second->direction() != AmountReservation::Outgoing) {
                 return false;
             }

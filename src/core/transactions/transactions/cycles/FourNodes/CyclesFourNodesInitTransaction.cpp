@@ -41,7 +41,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
     debug() << "runCollectDataAndSendMessageStage; Receiver is " << mCreditorContractorUUID;
 
     auto neighborsDebtors = mTrustLinesManager->firstLevelNeighborsWithPositiveBalance();
-    for(const auto kDebtorNode:neighborsDebtors){
+    for(const auto &kDebtorNode:neighborsDebtors){
         auto commonNodes = calculateCommonNodes(kDebtorNode, mCreditorContractorUUID);
         if(commonNodes.size() == 0 )
             continue;
@@ -52,8 +52,7 @@ TransactionResult::SharedConst CyclesFourNodesInitTransaction::runCollectDataAnd
                 mNodeUUID,
                 currentTransactionUUID(),
                 kDebtorNode,
-                mCreditorContractorUUID
-            );
+                mCreditorContractorUUID);
         }
     }
 

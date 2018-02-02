@@ -55,7 +55,7 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
                         } else {
                             auto hashSetPtr = (*trLineWithPtr)->hashSetPtr();
                             hashSetPtr->erase(*trLineWithPtr);
-                            if (hashSetPtr->size() == 0) {
+                            if (hashSetPtr->empty()) {
                                 NodeUUID keyUUID = (*trLineWithPtr)->maxFlowCalculationtrustLine()->sourceUUID();
                                 msTrustLines.erase(keyUUID);
                                 delete hashSetPtr;
@@ -160,7 +160,7 @@ bool MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
 #endif
             auto hashSetPtr = trustLineWithPtr->hashSetPtr();
             hashSetPtr->erase(trustLineWithPtr);
-            if (hashSetPtr->size() == 0) {
+            if (hashSetPtr->empty()) {
                 NodeUUID keyUUID = trustLineWithPtr->maxFlowCalculationtrustLine()->sourceUUID();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
                 info() << "deleteLegacyTrustLines\t" << "remove all trustLines for node: " << keyUUID;
@@ -246,7 +246,7 @@ const set<NodeUUID> MaxFlowCalculationTrustLineManager::gateways() const
 void MaxFlowCalculationTrustLineManager::makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
     const NodeUUID &exceptedNode)
 {
-    for (const auto gateway : mGateways) {
+    for (const auto &gateway : mGateways) {
         auto const &nodeUUIDAndSetFlows = msTrustLines.find(gateway);
         if (nodeUUIDAndSetFlows == msTrustLines.end()) {
             continue;

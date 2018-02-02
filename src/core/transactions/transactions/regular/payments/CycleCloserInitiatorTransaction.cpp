@@ -233,7 +233,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
 #ifdef DEBUG
     debug() << "Total participants included: " << totalParticipantsCount;
     debug() << "Participants order is the next:";
-    for (const auto kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
+    for (const auto &kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
         debug() << kNodeUUIDAndVote.first;
     }
 #endif
@@ -318,7 +318,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::askNeighborToRes
     if (0 == mOutgoingAmount) {
         // try use reservations from other transactions
         auto reservations = mTrustLines->reservationsToContractor(mNextNode);
-        for (auto reservation : reservations) {
+        for (auto &reservation : reservations) {
             debug() << "try use " << reservation->amount() << " from "
                     << reservation->transactionUUID() << " transaction";
             if (mCyclesManager->resolveReservationConflict(
@@ -692,7 +692,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
         sendFinalPathConfiguration(
             path->maxFlow());
 
-        for (const auto node : path->path()->intermediateUUIDs()) {
+        for (const auto &node : path->path()->intermediateUUIDs()) {
             mFinalAmountNodesConfirmation.insert(
                 make_pair(
                     node,
@@ -750,7 +750,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
 
     if (0 == mIncomingAmount) {
         auto reservations = mTrustLines->reservationsFromContractor(mPreviousNode);
-        for (auto reservation : reservations) {
+        for (auto &reservation : reservations) {
             if (mCyclesManager->resolveReservationConflict(
                 currentTransactionUUID(), reservation->transactionUUID())) {
                 mConflictedTransaction = reservation->transactionUUID();
@@ -865,7 +865,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runFinalAmountsP
     }
     debug() << "Node " << kMessage->senderUUID << " confirmed final amounts";
     mFinalAmountNodesConfirmation[kMessage->senderUUID] = true;
-    for (const auto nodeUUIDAndConfirmation : mFinalAmountNodesConfirmation) {
+    for (const auto &nodeUUIDAndConfirmation : mFinalAmountNodesConfirmation) {
         if (!nodeUUIDAndConfirmation.second) {
             debug() << "Some nodes are still not confirmed final amounts. Waiting.";
             if (mAllNeighborsSentFinalReservations) {
@@ -978,7 +978,7 @@ void CycleCloserInitiatorTransaction::checkPath(
         throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
                              "path isn't cycle");
     }
-    for (const auto node : path->intermediateUUIDs()) {
+    for (const auto &node : path->intermediateUUIDs()) {
         if (node == path->sourceUUID() || node == path->destinationUUID()) {
             throw ValueError("CycleCloserInitiatorTransaction::checkPath: "
                                  "paths contains repeated nodes");
@@ -1027,7 +1027,7 @@ void CycleCloserInitiatorTransaction::sendFinalPathConfiguration(
     }
 
     // send reservations to first level node and last level node on transaction paths
-    for (const auto nodeAndReservations : mReservations) {
+    for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
             nodeAndReservations.first,
             currentNodeUUID(),

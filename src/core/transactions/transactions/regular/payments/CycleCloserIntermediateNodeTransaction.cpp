@@ -136,7 +136,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
     if (0 == mReservationAmount) {
         // try to use reservations from other transactions
         auto reservations = mTrustLines->reservationsFromContractor(mPreviousNode);
-        for (auto reservation : reservations) {
+        for (auto &reservation : reservations) {
             debug() << "try use " << reservation->amount() << " from "
                     << reservation->transactionUUID() << " transaction";
             if (mCyclesManager->resolveReservationConflict(
@@ -305,7 +305,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
     if (0 == mReservationAmount) {
         // try to use reservation from other transaction
         auto reservations = mTrustLines->reservationsToContractor(mNextNode);
-        for (auto reservation : reservations) {
+        for (auto &reservation : reservations) {
             debug() << "try use " << reservation->amount() << " from "
                     << reservation->transactionUUID() << " transaction";
             if (mCyclesManager->resolveReservationConflict(
@@ -536,7 +536,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runFinalP
     debug() << "All reservations were updated";
 
     mCoordinatorAlreadySentFinalAmountsConfiguration = true;
-    for (const auto nodeAndReservations : mReservations) {
+    for (const auto &nodeAndReservations : mReservations) {
         sendMessage<ReservationsInRelationToNodeMessage>(
             nodeAndReservations.first,
             currentNodeUUID(),

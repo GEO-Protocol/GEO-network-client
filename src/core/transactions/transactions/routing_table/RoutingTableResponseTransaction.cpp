@@ -37,7 +37,6 @@ TransactionResult::SharedConst RoutingTableResponseTransaction::run()
     sendMessage<RoutingTableResponseMessage>(
         mRequestMessage->senderUUID,
         mNodeUUID,
-        result
-    );
+        result);
     return resultDone();
 }

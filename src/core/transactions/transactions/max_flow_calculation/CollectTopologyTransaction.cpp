@@ -24,7 +24,7 @@ TransactionResult::SharedConst CollectTopologyTransaction::run()
 {
     debug() << "Collect topology to " << mContractors.size() << " contractors";
     // Check if Node does not have outgoing FlowAmount;
-    if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().size() == 0){
+    if(mTrustLinesManager->firstLevelNeighborsWithOutgoingFlow().empty()){
         return resultDone();
     }
     sendMessagesToContractors();

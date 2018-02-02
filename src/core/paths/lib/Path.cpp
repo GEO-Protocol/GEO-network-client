@@ -33,7 +33,7 @@ Path::Path(
 
 const NodeUUID& Path::sourceUUID() const
 {
-    if (nodes.size() == 0) {
+    if (nodes.empty()) {
         throw IndexError("Path::sourceUUID Path is empty");
     }
     return nodes.at(0);
@@ -41,7 +41,7 @@ const NodeUUID& Path::sourceUUID() const
 
 const NodeUUID& Path::destinationUUID() const
 {
-    if (nodes.size() == 0) {
+    if (nodes.empty()) {
         throw IndexError("Path::destinationUUID Path is empty");
     }
     return nodes.at(nodes.size() - 1);
@@ -49,7 +49,7 @@ const NodeUUID& Path::destinationUUID() const
 
 vector<NodeUUID> Path::intermediateUUIDs() const
 {
-    if (nodes.size() == 0) {
+    if (nodes.empty()) {
         throw IndexError("Path::intermediateUUIDs Path is empty");
     }
     if (nodes.size() <= 2) {
