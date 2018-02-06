@@ -1233,7 +1233,7 @@ void TransactionsManager::onSubsidiaryTransactionReady(
 }
 
 void TransactionsManager::onBuidCycleThreeNodesTransaction(
-    vector<NodeUUID> &contractorsUUID)
+    set<NodeUUID> &contractorsUUID)
 {
     for (const auto &contractorUUID : contractorsUUID) {
         launchThreeNodesCyclesInitTransaction(
@@ -1242,7 +1242,7 @@ void TransactionsManager::onBuidCycleThreeNodesTransaction(
 }
 
 void TransactionsManager::onBuildCycleFourNodesTransaction(
-    vector<NodeUUID> &creditors)
+    set<NodeUUID> &creditors)
 {
     for (const auto &kCreditor : creditors) {
         launchFourNodesCyclesInitTransaction(
