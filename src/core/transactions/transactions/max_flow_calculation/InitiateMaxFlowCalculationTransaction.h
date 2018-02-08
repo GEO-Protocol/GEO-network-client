@@ -32,6 +32,7 @@ public:
         MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        bool iAmGateway,
         Logger &logger);
 
     InitiateMaxFlowCalculationCommand::Shared command() const;
@@ -75,6 +76,8 @@ private:
     byte mCurrentPathLength;
     TrustLineAmount mCurrentMaxFlow;
     NodeUUID mCurrentContractor;
+    size_t mCountProcessCollectingTopologyRun;
+    bool mIAmGateway;
     MaxFlowCalculationTrustLineManager::TrustLineWithPtrHashSet mFirstLevelTopology;
     vector<NodeUUID> mAlreadyCalculated;
 };

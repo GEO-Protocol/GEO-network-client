@@ -2,11 +2,17 @@
 
 MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
     RoutingTableManager *routingTable,
+    bool iAmGateway,
+    NodeUUID &nodeUUID,
     Logger &logger):
     mLog(logger),
     mPreventDeleting(false),
     mRoutingTable(routingTable)
-{}
+{
+    if (iAmGateway) {
+        mGateways.insert(nodeUUID);
+    }
+}
 
 void MaxFlowCalculationTrustLineManager::addTrustLine(
     MaxFlowCalculationTrustLine::Shared trustLine)

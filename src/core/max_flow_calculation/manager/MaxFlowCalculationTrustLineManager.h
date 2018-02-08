@@ -20,6 +20,8 @@ public:
 public:
     MaxFlowCalculationTrustLineManager(
         RoutingTableManager *routingTable,
+        bool iAmGateway,
+        NodeUUID &nodeUUID,
         Logger &logger);
 
     void addTrustLine(

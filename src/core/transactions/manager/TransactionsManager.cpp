@@ -516,6 +516,7 @@ void TransactionsManager::launchInitiateMaxFlowCalculatingTransaction(
                 mMaxFlowCalculationTrustLineManager,
                 mMaxFlowCalculationCacheManager,
                 mMaxFlowCalculationNodeCacheManager,
+                mIAmGateway,
                 mLog),
             true,
             true,
