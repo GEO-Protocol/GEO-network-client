@@ -181,7 +181,7 @@ int Core::initCommunicator(
             mSettings->uuid2addressHost(&conf),
             mSettings->uuid2addressPort(&conf),
             mNodeUUID,
-            *mLog.get());
+            *mLog);
 
         info() << "Network communicator is successfully initialised";
         return 0;
@@ -196,7 +196,7 @@ int Core::initResultsInterface()
 {
     try {
         mResultsInterface = make_unique<ResultsInterface>(
-            *mLog.get());
+            *mLog);
         info() << "Results interface is successfully initialised";
         return 0;
 
@@ -211,7 +211,7 @@ int Core::initRoughtingTable()
     try {
         mRoutingTable = make_unique<RoutingTableManager>(
             mIOService,
-            *mLog.get());
+            *mLog);
         info() << "RoutingTable is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
@@ -225,7 +225,7 @@ int Core::initTrustLinesManager()
     try {
         mTrustLinesManager = make_unique<TrustLinesManager>(
             mStorageHandler.get(),
-            *mLog.get());
+            *mLog);
         info() << "Trust lines manager is successfully initialised";
         return 0;
 
@@ -240,7 +240,7 @@ int Core::initMaxFlowCalculationTrustLineManager()
     try{
         mMaxFlowCalculationTrustLimeManager = make_unique<MaxFlowCalculationTrustLineManager>(
             mRoutingTable.get(),
-            *mLog.get());
+            *mLog);
         info() << "Max flow calculation Trust lines manager is successfully initialised";
         return 0;
 
@@ -254,7 +254,7 @@ int Core::initMaxFlowCalculationCacheManager()
 {
     try {
         mMaxFlowCalculationCacheManager = make_unique<MaxFlowCalculationCacheManager>(
-            *mLog.get());
+            *mLog);
         info() << "Max flow calculation Cache manager is successfully initialised";
         return 0;
 
@@ -268,7 +268,7 @@ int Core::initMaxFlowCalculationNodeCacheManager()
 {
     try {
         mMaxFlowCalculationNodeCacheManager = make_unique<MaxFlowCalculationNodeCacheManager>(
-            *mLog.get());
+            *mLog);
         info() << "Max flow calculation Node Cache manager is successfully initialised";
         return 0;
 
@@ -305,7 +305,7 @@ int Core::initTransactionsManager()
             mStorageHandler.get(),
             mPathsManager.get(),
             mRoutingTable.get(),
-            *mLog.get(),
+            *mLog,
             mSubsystemsController.get(),
             mIAmGateway);
         info() << "Transactions handler is successfully initialised";
@@ -325,11 +325,11 @@ int Core::initDelayedTasks()
             mMaxFlowCalculationCacheManager.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
             mMaxFlowCalculationNodeCacheManager.get(),
-            *mLog.get());
+            *mLog);
 
         mNotifyThatIAmIsGatewayDelayedTask = make_unique<NotifyThatIAmIsGatewayDelayedTask>(
             mIOService,
-            *mLog.get());
+            *mLog);
 
         info() << "DelayedTasks is successfully initialised";
 
@@ -345,7 +345,7 @@ int Core::initCommandsInterface()
     try {
         mCommandsInterface = make_unique<CommandsInterface>(
             mIOService,
-            *mLog.get());
+            *mLog);
         info() << "Commands interface is successfully initialised";
         return 0;
 
@@ -355,22 +355,13 @@ int Core::initCommandsInterface()
     }
 }
 
-void Core::connectCommandsInterfaceSignals ()
-{
-    mCommandsInterface->commandReceivedSignal.connect(
-        boost::bind(
-            &Core::onCommandReceivedSlot,
-            this,
-            _1));
-}
-
 int Core::initStorageHandler()
 {
     try {
         mStorageHandler = make_unique<StorageHandler>(
             "io",
             "storageDB",
-            *mLog.get());
+            *mLog);
         info() << "Storage handler is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
@@ -386,7 +377,7 @@ int Core::initPathsManager()
             mNodeUUID,
             mTrustLinesManager.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
-            *mLog.get());
+            *mLog);
         info() << "Paths Manager is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
@@ -399,7 +390,7 @@ int Core::initSubsystemsController()
 {
     try {
         mSubsystemsController = make_unique<SubsystemsController>(
-            *mLog.get());
+            *mLog);
         info() << "Subsystems controller is successfully initialized";
         return 0;
     } catch (const std::exception &e) {
@@ -407,6 +398,15 @@ int Core::initSubsystemsController()
         return -1;
     }
 
+}
+
+void Core::connectCommandsInterfaceSignals ()
+{
+    mCommandsInterface->commandReceivedSignal.connect(
+        boost::bind(
+            &Core::onCommandReceivedSlot,
+            this,
+            _1));
 }
 
 void Core::connectCommunicatorSignals()
