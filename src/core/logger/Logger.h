@@ -84,26 +84,6 @@ public:
     LoggerStream warning(
         const string &subsystem);
 
-    [[deprecated("Please, use info()")]]
-    void logInfo(
-        const string &subsystem,
-        const string &message);
-
-    [[deprecated("Please, use info()")]]
-    void logSuccess(
-        const string &subsystem,
-        const string &message);
-
-    [[deprecated("Please, use error()")]]
-    void logError(
-        const string &subsystem,
-        const string &message);
-
-    [[deprecated("Please, use error()")]]
-    void logFatal(
-        const string &subsystem,
-        const string &message);
-
 protected:
     const uint32_t maxRotateLimit = 500000;
 

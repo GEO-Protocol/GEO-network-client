@@ -555,8 +555,8 @@ void TransactionsManager::launchMaxFlowCalculationFullyTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
-    InitiateMaxFlowCalculationMessage::Shared message) {
-
+    InitiateMaxFlowCalculationMessage::Shared message)
+{
     try {
         prepareAndSchedule(
             make_shared<ReceiveMaxFlowCalculationOnTargetTransaction>(
@@ -578,8 +578,8 @@ void TransactionsManager::launchReceiveMaxFlowCalculationOnTargetTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
-    ResultMaxFlowCalculationMessage::Shared message) {
-
+    ResultMaxFlowCalculationMessage::Shared message)
+{
     try {
         prepareAndSchedule(
             make_shared<ReceiveResultMaxFlowCalculationTransaction>(
@@ -601,8 +601,8 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchReceiveResultMaxFlowCalculationTransactionFromGateway(
-    ResultMaxFlowCalculationGatewayMessage::Shared message) {
-
+    ResultMaxFlowCalculationGatewayMessage::Shared message)
+{
     try {
         prepareAndSchedule(
             make_shared<ReceiveResultMaxFlowCalculationTransaction>(
@@ -624,8 +624,8 @@ void TransactionsManager::launchReceiveResultMaxFlowCalculationTransactionFromGa
  * Throws MemoryError.
  */
 void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
-    MaxFlowCalculationSourceFstLevelMessage::Shared message) {
-
+    MaxFlowCalculationSourceFstLevelMessage::Shared message)
+{
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationSourceFstLevelTransaction>(
@@ -647,8 +647,8 @@ void TransactionsManager::launchMaxFlowCalculationSourceFstLevelTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
-    MaxFlowCalculationTargetFstLevelMessage::Shared message) {
-
+    MaxFlowCalculationTargetFstLevelMessage::Shared message)
+{
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationTargetFstLevelTransaction>(
@@ -670,8 +670,8 @@ void TransactionsManager::launchMaxFlowCalculationTargetFstLevelTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
-    MaxFlowCalculationSourceSndLevelMessage::Shared message) {
-
+    MaxFlowCalculationSourceSndLevelMessage::Shared message)
+{
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationSourceSndLevelTransaction>(
@@ -694,8 +694,8 @@ void TransactionsManager::launchMaxFlowCalculationSourceSndLevelTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchMaxFlowCalculationTargetSndLevelTransaction(
-    MaxFlowCalculationTargetSndLevelMessage::Shared message) {
-
+    MaxFlowCalculationTargetSndLevelMessage::Shared message)
+{
     try {
         prepareAndSchedule(
             make_shared<MaxFlowCalculationTargetSndLevelTransaction>(
@@ -781,8 +781,7 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
                 mSubsystemsController),
             false,
             false,
-            true
-        );
+            true);
     } catch (ConflictError &e) {
         throw ConflictError(e.message());
     }
@@ -814,8 +813,8 @@ void TransactionsManager::launchVotesResponsePaymentsTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchTotalBalancesTransaction(
-    TotalBalancesCommand::Shared command) {
-
+    TotalBalancesCommand::Shared command)
+{
     try {
         prepareAndSchedule(
             make_shared<TotalBalancesTransaction>(
@@ -825,8 +824,7 @@ void TransactionsManager::launchTotalBalancesTransaction(
                 mLog),
             true,
             false,
-            true
-        );
+            true);
     } catch (ConflictError &e) {
         throw ConflictError(e.message());
     }
@@ -837,7 +835,8 @@ void TransactionsManager::launchTotalBalancesTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchHistoryPaymentsTransaction(
-    HistoryPaymentsCommand::Shared command) {
+    HistoryPaymentsCommand::Shared command)
+{
     try {
         prepareAndSchedule(
             make_shared<HistoryPaymentsTransaction>(
@@ -854,7 +853,8 @@ void TransactionsManager::launchHistoryPaymentsTransaction(
 }
 
 void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
-    HistoryAdditionalPaymentsCommand::Shared command) {
+    HistoryAdditionalPaymentsCommand::Shared command)
+{
     try {
         prepareAndSchedule(
             make_shared<HistoryAdditionalPaymentsTransaction>(
@@ -876,7 +876,8 @@ void TransactionsManager::launchAdditionalHistoryPaymentsTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchHistoryTrustLinesTransaction(
-    HistoryTrustLinesCommand::Shared command) {
+    HistoryTrustLinesCommand::Shared command)
+{
     try {
         prepareAndSchedule(
             make_shared<HistoryTrustLinesTransaction>(
@@ -897,7 +898,8 @@ void TransactionsManager::launchHistoryTrustLinesTransaction(
  * Throws MemoryError.
  */
 void TransactionsManager::launchHistoryWithContractorTransaction(
-    HistoryWithContractorCommand::Shared command) {
+    HistoryWithContractorCommand::Shared command)
+{
     try {
         prepareAndSchedule(
             make_shared<HistoryWithContractorTransaction>(
@@ -1059,54 +1061,46 @@ void TransactionsManager::attachResourceToTransaction(
 }
 
 void TransactionsManager::subscribeForSubsidiaryTransactions(
-    BaseTransaction::LaunchSubsidiaryTransactionSignal &signal) {
-
+    BaseTransaction::LaunchSubsidiaryTransactionSignal &signal)
+{
     signal.connect(
         boost::bind(
             &TransactionsManager::onSubsidiaryTransactionReady,
             this,
-            _1
-        )
-    );
+            _1));
 }
 
 void TransactionsManager::subscribeForOutgoingMessages(
-    BaseTransaction::SendMessageSignal &signal) {
-
-    // ToDo: connect signals of transaction and core dirctly (signal -> signal)
+    BaseTransaction::SendMessageSignal &signal)
+{
+    // ToDo: connect signals of transaction and core directly (signal -> signal)
     // Boost allows this type of connectivity.
     signal.connect(
         boost::bind(
             &TransactionsManager::onTransactionOutgoingMessageReady,
             this,
             _1,
-            _2
-        )
-    );
+            _2));
 }
 
 void TransactionsManager::subscribeForSerializeTransaction(
-    TransactionsScheduler::SerializeTransactionSignal &signal) {
-
+    TransactionsScheduler::SerializeTransactionSignal &signal)
+{
     signal.connect(
         boost::bind(
             &TransactionsManager::onSerializeTransaction,
             this,
-            _1
-        )
-    );
+            _1));
 }
 
 void TransactionsManager::subscribeForCommandResult(
-    TransactionsScheduler::CommandResultSignal &signal) {
-
+    TransactionsScheduler::CommandResultSignal &signal)
+{
     signal.connect(
         boost::bind(
             &TransactionsManager::onCommandResultReady,
             this,
-            _1
-        )
-    );
+            _1));
 }
 
 void TransactionsManager::subscribeForBuildCyclesThreeNodesTransaction(
@@ -1134,7 +1128,7 @@ void TransactionsManager::subscribeForBuildCyclesFiveNodesTransaction(
 {
     signal.connect(
         boost::bind(
-            &TransactionsManager::onBuidCycleFiveNodesTransaction,
+                &TransactionsManager::onBuildCycleFiveNodesTransaction,
             this));
 }
 
@@ -1143,7 +1137,7 @@ void TransactionsManager::subscribeForBuildCyclesSixNodesTransaction(
 {
     signal.connect(
         boost::bind(
-            &TransactionsManager::onBuidCycleSixNodesTransaction,
+                &TransactionsManager::onBuildCycleSixNodesTransaction,
             this));
 }
 
@@ -1179,8 +1173,8 @@ void TransactionsManager::subscribeForProcessingConfirmationMessage(
 
 void TransactionsManager::onTransactionOutgoingMessageReady(
     Message::Shared message,
-    const NodeUUID &contractorUUID) {
-
+    const NodeUUID &contractorUUID)
+{
     transactionOutgoingMessageReadySignal(
         message,
         contractorUUID);
@@ -1192,8 +1186,8 @@ void TransactionsManager::onTransactionOutgoingMessageReady(
  * Throws RuntimeError - in case if result can't be processed.
  */
 void TransactionsManager::onCommandResultReady(
-    CommandResult::SharedConst result) {
-
+    CommandResult::SharedConst result)
+{
     try {
         auto message = result->serialize();
 
@@ -1204,13 +1198,9 @@ void TransactionsManager::onCommandResultReady(
                 result->identifier() == HistoryWithContractorCommand::identifier() or
                 result->identifier() == GetTrustLinesCommand::identifier()) {
             auto shortMessage = result->serializeShort();
-            mLog.logSuccess(
-                "Transactions manager::onCommandResultReady",
-                shortMessage);
+            info() << "CommandResultReady: " << shortMessage;
         } else {
-            mLog.logSuccess(
-                "Transactions manager::onCommandResultReady",
-                message);
+            info() << "CommandResultReady: " << message;
         }
 
         mResultsInterface->writeResult(
@@ -1225,20 +1215,17 @@ void TransactionsManager::onCommandResultReady(
 }
 
 void TransactionsManager::onSubsidiaryTransactionReady(
-    BaseTransaction::Shared transaction) {
-
+    BaseTransaction::Shared transaction)
+{
     subscribeForSubsidiaryTransactions(
-        transaction->runSubsidiaryTransactionSignal
-    );
+        transaction->runSubsidiaryTransactionSignal);
 
     subscribeForOutgoingMessages(
-        transaction->outgoingMessageIsReadySignal
-    );
+        transaction->outgoingMessageIsReadySignal);
 
     mScheduler->postponeTransaction(
         transaction,
-        50
-    );
+        50);
 }
 
 void TransactionsManager::onBuidCycleThreeNodesTransaction(
@@ -1259,12 +1246,12 @@ void TransactionsManager::onBuildCycleFourNodesTransaction(
     }
 }
 
-void TransactionsManager::onBuidCycleFiveNodesTransaction()
+void TransactionsManager::onBuildCycleFiveNodesTransaction()
 {
     launchFiveNodesCyclesInitTransaction();
 }
 
-void TransactionsManager::onBuidCycleSixNodesTransaction()
+void TransactionsManager::onBuildCycleSixNodesTransaction()
 {
     launchSixNodesCyclesInitTransaction();
 }
@@ -1333,13 +1320,13 @@ void TransactionsManager::prepareAndSchedule(
             throw bad_alloc();
 
         } catch(ConflictError &e) {
-            mLog.warning("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
+            warning() << "prepareAndSchedule:" << "TransactionUUID: " << transaction->currentTransactionUUID()
                                               << " New TransactionType:" << transaction->transactionType()
                                               << " Recreate.";
             if (regenerateUUID) {
                 transaction->recreateTransactionUUID();
             } else {
-                mLog.warning("prepareAndSchedule:") << "TransactionUUID: " << transaction->currentTransactionUUID()
+                warning() << "prepareAndSchedule:" << "TransactionUUID: " << transaction->currentTransactionUUID()
                                                   << " New TransactionType:" << transaction->transactionType()
                                                   << "Exit.";
                 return;
@@ -1676,3 +1663,27 @@ void TransactionsManager::setMeAsGateway()
     mIAmGateway = true;
 }
 #endif
+
+string TransactionsManager::logHeader()
+    noexcept
+{
+    return "[TransactionsManager]";
+}
+
+LoggerStream TransactionsManager::error() const
+    noexcept
+{
+    return mLog.error(logHeader());
+}
+
+LoggerStream TransactionsManager::warning() const
+    noexcept
+{
+    return mLog.warning(logHeader());
+}
+
+LoggerStream TransactionsManager::info() const
+    noexcept
+{
+    return mLog.info(logHeader());
+}

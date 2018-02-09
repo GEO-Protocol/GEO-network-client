@@ -26,7 +26,7 @@ int Core::run()
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
 
-        mLog->logSuccess("Core", "Processing started.");
+        info() << "Processing started.";
         mIOService.run();
         return 0;
 
@@ -183,7 +183,7 @@ int Core::initCommunicator(
             mNodeUUID,
             *mLog.get());
 
-        mLog->logSuccess("Core", "Network communicator is successfully initialised");
+        info() << "Network communicator is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -197,7 +197,7 @@ int Core::initResultsInterface()
     try {
         mResultsInterface = make_unique<ResultsInterface>(
             *mLog.get());
-        mLog->logSuccess("Core", "Results interface is successfully initialised");
+        info() << "Results interface is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -212,7 +212,7 @@ int Core::initRoughtingTable()
         mRoutingTable = make_unique<RoutingTableManager>(
             mIOService,
             *mLog.get());
-        mLog->logSuccess("Core", "mRoutingTable is successfully initialised");
+        info() << "RoutingTable is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -226,7 +226,7 @@ int Core::initTrustLinesManager()
         mTrustLinesManager = make_unique<TrustLinesManager>(
             mStorageHandler.get(),
             *mLog.get());
-        mLog->logSuccess("Core", "Trust lines manager is successfully initialised");
+        info() << "Trust lines manager is successfully initialised";
         return 0;
 
     }catch(const std::exception &e) {
@@ -241,7 +241,7 @@ int Core::initMaxFlowCalculationTrustLineManager()
         mMaxFlowCalculationTrustLimeManager = make_unique<MaxFlowCalculationTrustLineManager>(
             mRoutingTable.get(),
             *mLog.get());
-        mLog->logSuccess("Core", "Max flow calculation Trust lines manager is successfully initialised");
+        info() << "Max flow calculation Trust lines manager is successfully initialised";
         return 0;
 
     }catch(const std::exception &e) {
@@ -255,7 +255,7 @@ int Core::initMaxFlowCalculationCacheManager()
     try {
         mMaxFlowCalculationCacheManager = make_unique<MaxFlowCalculationCacheManager>(
             *mLog.get());
-        mLog->logSuccess("Core", "Max flow calculation Cache manager is successfully initialised");
+        info() << "Max flow calculation Cache manager is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -269,7 +269,7 @@ int Core::initMaxFlowCalculationNodeCacheManager()
     try {
         mMaxFlowCalculationNodeCacheManager = make_unique<MaxFlowCalculationNodeCacheManager>(
             *mLog.get());
-        mLog->logSuccess("Core", "Max flow calculation Node Cache manager is successfully initialised");
+        info() << "Max flow calculation Node Cache manager is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -282,7 +282,7 @@ int Core::initResourcesManager()
 {
     try {
         mResourcesManager = make_unique<ResourcesManager>();
-        mLog->logSuccess("Core", "Resources manager is successfully initialized");
+        info() << "Resources manager is successfully initialized";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -308,7 +308,7 @@ int Core::initTransactionsManager()
             *mLog.get(),
             mSubsystemsController.get(),
             mIAmGateway);
-        mLog->logSuccess("Core", "Transactions handler is successfully initialised");
+        info() << "Transactions handler is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -331,7 +331,7 @@ int Core::initDelayedTasks()
             mIOService,
             *mLog.get());
 
-        mLog->logSuccess("Core", "DelayedTasks is successfully initialised");
+        info() << "DelayedTasks is successfully initialised";
 
         return 0;
     } catch (const std::exception &e) {
@@ -346,7 +346,7 @@ int Core::initCommandsInterface()
         mCommandsInterface = make_unique<CommandsInterface>(
             mIOService,
             *mLog.get());
-        mLog->logSuccess("Core", "Commands interface is successfully initialised");
+        info() << "Commands interface is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -371,7 +371,7 @@ int Core::initStorageHandler()
             "io",
             "storageDB",
             *mLog.get());
-        mLog->logSuccess("Core", "Storage handler is successfully initialised");
+        info() << "Storage handler is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -387,7 +387,7 @@ int Core::initPathsManager()
             mTrustLinesManager.get(),
             mMaxFlowCalculationTrustLimeManager.get(),
             *mLog.get());
-        mLog->logSuccess("Core", "Paths Manager is successfully initialised");
+        info() << "Paths Manager is successfully initialised";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -400,7 +400,7 @@ int Core::initSubsystemsController()
     try {
         mSubsystemsController = make_unique<SubsystemsController>(
             *mLog.get());
-        mLog->logSuccess("Core", "Subsystems controller is successfully initialized");
+        info() << "Subsystems controller is successfully initialized";
         return 0;
     } catch (const std::exception &e) {
         mLog->logException("Core", e);
@@ -537,7 +537,7 @@ void Core::onCommandReceivedSlot (
             mTransactionsManager->setMeAsGateway();
         }
 #endif
-        mLog->logInfo("Core", "SubsystemsInfluenceCommand processed");
+        info() << "SubsystemsInfluenceCommand processed";
         return;
     }
 

@@ -105,43 +105,15 @@ LoggerStream Logger::debug(
 }
 
 LoggerStream Logger::error(
-        const string &subsystem)
+    const string &subsystem)
 {
     return LoggerStream(this, "ERROR", subsystem);
-}
-
-void Logger::logInfo(
-    const string &subsystem,
-    const string &message)
-{
-    logRecord("INFO", subsystem, message);
-}
-
-void Logger::logSuccess(
-    const string &subsystem,
-    const string &message)
-{
-    logRecord("SUCCESS", subsystem, message);
-}
-
-void Logger::logError(
-    const string &subsystem,
-    const string &message)
-{
-    logRecord("ERROR", subsystem, message);
-}
-
-void Logger::logFatal(
-    const string &subsystem,
-    const string &message)
-{
-    logRecord("FATAL", subsystem, message);
 }
 
 const string Logger::formatMessage(
     const string &message) const
 {
-    if (message.size() == 0) {
+    if (message.empty()) {
         return message;
     }
 

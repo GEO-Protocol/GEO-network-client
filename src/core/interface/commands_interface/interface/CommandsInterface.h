@@ -89,8 +89,8 @@ public:
     static const size_t kUUIDHexRepresentationSize = 36;
     static const size_t kMinCommandSize = kUUIDHexRepresentationSize + 2;
     static const size_t kAverageCommandIdentifierLength = 15;
-    static const char kCommandsSeparator = '\n';
-    static const char kTokensSeparator = '\t';
+//    static const char kCommandsSeparator = '\n';
+//    static const char kTokensSeparator = '\t';
 
 protected:
 
@@ -106,6 +106,12 @@ protected:
                     uuid,
                     buffer)));
     }
+
+    static string logHeader()
+    noexcept;
+
+    LoggerStream error() const
+    noexcept;
 
 private:
     string mBuffer;
@@ -144,6 +150,12 @@ protected:
         const boost::system::error_code &error);
 
     virtual const char* FIFOName() const;
+
+    static string logHeader()
+    noexcept;
+
+    LoggerStream error() const
+    noexcept;
 
 public:
     static const constexpr char *kFIFOName = "commands.fifo";

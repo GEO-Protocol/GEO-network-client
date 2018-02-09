@@ -4,7 +4,8 @@
 CommandsParser::CommandsParser(
     Logger &log):
 
-    mLog(log) {}
+    mLog(log)
+{}
 
 /**
  * Copies data, received from the commands FIFO, into the internal buffer.
@@ -19,8 +20,8 @@ CommandsParser::CommandsParser(
  */
 void CommandsParser::appendReadData(
     as::streambuf *buffer,
-    const size_t receivedBytesCount) {
-
+    const size_t receivedBytesCount)
+{
     if (receivedBytesCount == 0) {
         return;
     }
@@ -41,8 +42,8 @@ void CommandsParser::appendReadData(
  *
  * See: tryDeserializeCommand() for the details.
  */
-pair<bool, BaseUserCommand::Shared> CommandsParser::processReceivedCommands() {
-
+pair<bool, BaseUserCommand::Shared> CommandsParser::processReceivedCommands()
+{
     return tryDeserializeCommand();
 }
 
@@ -55,8 +56,8 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::processReceivedCommands() {
  * and, if so, - the second one will contains shared pointer to the command instance itself.
  * Otherwise - the second value of the pair will contains "nullptr".
  */
-pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
-
+pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand()
+{
     if (mBuffer.size() < kMinCommandSize) {
         return commandIsInvalidOrIncomplete();
     }
@@ -108,9 +109,7 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
             commandIdentifier,
             mBuffer.substr(
                 nextTokenOffset,
-                nextCommandBegin - nextTokenOffset + 1
-            )
-        );
+                nextCommandBegin - nextTokenOffset + 1));
 
         cutBufferUpToNextCommand();
         return command;
@@ -134,8 +133,8 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryDeserializeCommand() {
 pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
     const CommandUUID &uuid,
     const string &identifier,
-    const string &buffer) {
-
+    const string &buffer)
+{
     BaseUserCommand *command = nullptr;
     try {
         if (identifier == SetOutgoingTrustLineCommand::identifier()) {
@@ -241,9 +240,8 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
         }
 
     } catch (bad_alloc &) {
-        auto errors = mLog.error("CommandsParser::tryParseCommand");
-        errors << "Memory allocation error occurred on command instance creation. "
-               << "Command was dropped. ";
+        error() << "tryParseCommand: Memory allocation error occurred on command instance creation. "
+                << "Command was dropped. ";
 
         return commandIsInvalidOrIncomplete();
 
@@ -254,8 +252,7 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
 
     return make_pair(
         true,
-        BaseUserCommand::Shared(command)
-    );
+        BaseUserCommand::Shared(command));
 }
 
 /*!
@@ -263,8 +260,8 @@ pair<bool, BaseUserCommand::Shared> CommandsParser::tryParseCommand(
  * Stops on commands separator symbol.
  * If no commands separator symbol is present - clears buffer at all.
  */
-void CommandsParser::cutBufferUpToNextCommand() {
-
+void CommandsParser::cutBufferUpToNextCommand()
+{
     size_t nextCommandSeparatorIndex = mBuffer.find(kCommandsSeparator);
     if (mBuffer.size() > (nextCommandSeparatorIndex + 1)) {
         // Buffer contains other commands (or their parts), and them should be keept;
@@ -279,12 +276,11 @@ void CommandsParser::cutBufferUpToNextCommand() {
     mBuffer.shrink_to_fit();
 }
 
-pair<bool, BaseUserCommand::Shared> CommandsParser::commandIsInvalidOrIncomplete() {
-
+pair<bool, BaseUserCommand::Shared> CommandsParser::commandIsInvalidOrIncomplete()
+{
     return make_pair(
         false,
-        nullptr
-    );
+        nullptr);
 }
 
 CommandsInterface::CommandsInterface(
@@ -292,8 +288,8 @@ CommandsInterface::CommandsInterface(
     Logger &logger) :
 
     mIOService(ioService),
-    mLog(logger){
-
+    mLog(logger)
+{
     // Try to open FIFO file in non-blocking manner.
     // In case if this file will be opened in standard blocking manner -
     // it will freeze whole the process,
@@ -308,8 +304,7 @@ CommandsInterface::CommandsInterface(
 
     mFIFODescriptor = open(
         FIFOFilePath().c_str(),
-        O_RDONLY | O_NONBLOCK
-    );
+        O_RDONLY | O_NONBLOCK);
 
     if (mFIFODescriptor == -1) {
         throw IOError("CommandsInterface::CommandsInterface: "
@@ -319,8 +314,7 @@ CommandsInterface::CommandsInterface(
     try {
         mFIFOStreamDescriptor = unique_ptr<as::posix::stream_descriptor> (new as::posix::stream_descriptor(
             mIOService,
-            mFIFODescriptor
-        ));
+            mFIFODescriptor));
         mFIFOStreamDescriptor->non_blocking(true);
 
     } catch (std::bad_alloc &) {
@@ -331,8 +325,7 @@ CommandsInterface::CommandsInterface(
     try {
         mReadTimeoutTimer = unique_ptr<as::deadline_timer> (new as::deadline_timer(
             mIOService,
-            boost::posix_time::seconds(2)
-        ));
+            boost::posix_time::seconds(2)));
 
     } catch (std::bad_alloc &) {
         throw MemoryError(
@@ -352,8 +345,8 @@ CommandsInterface::CommandsInterface(
     mCommandBuffer.prepare(kCommandBufferSize);
 }
 
-CommandsInterface::~CommandsInterface() {
-
+CommandsInterface::~CommandsInterface()
+{
     mFIFOStreamDescriptor->cancel();
     mReadTimeoutTimer->cancel();
     close(mFIFODescriptor);
@@ -364,19 +357,17 @@ void CommandsInterface::beginAcceptCommands()
     asyncReceiveNextCommand();
 }
 
-void CommandsInterface::asyncReceiveNextCommand() {
-
+void CommandsInterface::asyncReceiveNextCommand()
+{
     as::async_read_until(
         *mFIFOStreamDescriptor,
         mCommandBuffer,
-        CommandsParser::kCommandsSeparator,
+        kCommandsSeparator,
         boost::bind(
             &CommandsInterface::handleReceivedInfo,
             this,
             as::placeholders::error,
-            as::placeholders::bytes_transferred
-        )
-    );
+            as::placeholders::bytes_transferred));
 }
 
 /** Parse received commands data until parsing is successfully.
@@ -389,13 +380,12 @@ void CommandsInterface::asyncReceiveNextCommand() {
  */
 void CommandsInterface::handleReceivedInfo(
     const boost::system::error_code &error,
-    const size_t bytesTransferred) {
-
+    const size_t bytesTransferred)
+{
     if (!error || error == as::error::message_size) {
         mCommandsParser->appendReadData(
             &mCommandBuffer,
-            bytesTransferred
-        );
+            bytesTransferred);
         mCommandBuffer.consume(bytesTransferred);
 
         while (true) {
@@ -415,9 +405,7 @@ void CommandsInterface::handleReceivedInfo(
                 boost::bind(
                     &CommandsInterface::handleTimeout,
                     this,
-                    as::placeholders::error
-                )
-            );
+                    as::placeholders::error));
 
         } else {
             // Looks like FIFO file is corrupted or unreachable.
@@ -427,18 +415,16 @@ void CommandsInterface::handleReceivedInfo(
                 boost::bind(
                 &CommandsInterface::handleTimeout,
                 this,
-                as::placeholders::error
-                )
-            );
+                as::placeholders::error));
         }
     }
 }
 
 void CommandsInterface::handleTimeout(
-    const boost::system::error_code &error) {
-
-    if (error) {
-        mLog.logError("CommandsInterface::handleTimeout", error.message());
+    const boost::system::error_code &errorMessage)
+{
+    if (errorMessage) {
+        error() << "handleTimeout error: " << errorMessage.message();
     }
 
     asyncReceiveNextCommand();
@@ -447,4 +433,28 @@ void CommandsInterface::handleTimeout(
 const char *CommandsInterface::FIFOName() const {
 
     return kFIFOName;
+}
+
+string CommandsInterface::logHeader()
+    noexcept
+{
+    return "[CommandsInterface]";
+}
+
+LoggerStream CommandsInterface::error() const
+    noexcept
+{
+    return mLog.error(logHeader());
+}
+
+string CommandsParser::logHeader()
+    noexcept
+{
+    return "[CommandsParser]";
+}
+
+LoggerStream CommandsParser::error() const
+    noexcept
+{
+    return mLog.error(logHeader());
 }

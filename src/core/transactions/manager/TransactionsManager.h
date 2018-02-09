@@ -392,9 +392,9 @@ protected:
     void onBuildCycleFourNodesTransaction(
         vector<NodeUUID> &creditors);
 
-    void onBuidCycleFiveNodesTransaction();
+    void onBuildCycleFiveNodesTransaction();
 
-    void onBuidCycleSixNodesTransaction();
+    void onBuildCycleSixNodesTransaction();
 
     void onCloseCycleTransaction(
         Path::ConstShared cycle);
@@ -411,6 +411,19 @@ protected:
         bool regenerateUUID=false,
         bool subsidiaryTransactionSubscribe=false,
         bool outgoingMessagesSubscribe=false);
+
+protected:
+    static string logHeader()
+    noexcept;
+
+    LoggerStream error() const
+    noexcept;
+
+    LoggerStream warning() const
+    noexcept;
+
+    LoggerStream info() const
+    noexcept;
 
 private:
     NodeUUID &mNodeUUID;
