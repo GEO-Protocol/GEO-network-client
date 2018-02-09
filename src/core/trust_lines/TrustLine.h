@@ -36,10 +36,6 @@ public:
         const TrustLineAmount &incomingAmount,
         const TrustLineAmount &outgoingAmount);
 
-    TrustLine(
-        const byte *buffer,
-        const NodeUUID &contractorUUID);
-
     void setIncomingTrustAmount(
         const TrustLineAmount &amount);
 
@@ -72,17 +68,10 @@ public:
 
     ConstSharedTrustLineAmount usedAmountBySelf() const;
 
-    const TrustLineDirection direction() const;
-
     bool isContractorGateway() const;
 
     void setContractorAsGateway(
         bool contractorAsGateway);
-
-    vector<byte> serialize();
-
-    void deserialize(
-        const byte *buffer);
 
     static const TrustLineBalance& kZeroBalance();
 
@@ -97,34 +86,6 @@ public:
         const TrustLine &contractor2);
 
 private:
-    void trustAmountToBytes(
-        const TrustLineAmount &amount,
-        vector<byte> &buffer);
-
-    void balanceToBytes(
-        const TrustLineBalance &balance,
-        vector<byte> &buffer);
-
-    void parseTrustAmount(
-        const byte *buffer,
-        TrustLineAmount &variable);
-
-    void parseBalance(
-        const byte *buffer);
-
-private:
-    const size_t kTrustAmountPartSize = 32;
-    const size_t kBalancePartSize = 32;
-    const size_t kSignBytePartSize = 1;
-    const size_t kTrustStatePartSize = 1;
-    const size_t kRecordSize =
-        + kTrustAmountPartSize
-        + kTrustAmountPartSize
-        + kBalancePartSize
-        + kSignBytePartSize
-        + kTrustStatePartSize
-        + kTrustStatePartSize;
-
     NodeUUID mContractorNodeUUID;
     TrustLineAmount mIncomingTrustAmount;
     TrustLineAmount mOutgoingTrustAmount;

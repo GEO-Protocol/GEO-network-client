@@ -31,14 +31,6 @@ typedef shared_ptr<const TrustLineBalance> ConstSharedTrustLineBalance;
 const size_t kTrustLineBalanceBytesCount = 32;
 const size_t kTrustLineBalanceSerializeBytesCount = 33;
 
-enum TrustLineDirection {
-    Nowhere = 0, // todo: remove this
-    Incoming,
-    Outgoing,
-    Both,
-};
-typedef uint8_t SerializedTrustLineDirection;
-
 static const constexpr char kCommandsSeparator = '\n';
 static const constexpr char kTokensSeparator = '\t';
 

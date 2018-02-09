@@ -92,8 +92,6 @@ private:
 
     void connectCommandsInterfaceSignals();
 
-    void connectTrustLinesManagerSignals();
-
     void connectDelayedTasksSignals();
 
     void connectResourcesManagerSignals();
@@ -117,16 +115,6 @@ private:
     void onProcessConfirmationMessageSlot(
         const NodeUUID &contractorUUID,
         ConfirmationMessage::Shared confirmationMessage);
-
-    [[deprecated]]
-    void onTrustLineCreatedSlot(
-        const NodeUUID &contractorUUID, 
-        const TrustLineDirection direction);
-
-    [[deprecated]]
-    void onTrustLineStateModifiedSlot(
-        const NodeUUID &contractorUUID,
-        const TrustLineDirection direction);
 
     void onPathsResourceRequestedSlot(
         const TransactionUUID &transactionUUID,

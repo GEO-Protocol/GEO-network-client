@@ -197,7 +197,7 @@ void OutgoingRemoteNode::populateQueueWithNewPackets(
 
 void OutgoingRemoteNode::beginPacketsSending()
 {
-    if (mPacketsQueue.size() == 0) {
+    if (mPacketsQueue.empty()) {
         return;
     }
 
@@ -211,7 +211,7 @@ void OutgoingRemoteNode::beginPacketsSending()
             << "Endpoint can't be fetched from uuid2address. "
             << "No messages can be sent. Outgoing queue cleared.";
 
-        while (mPacketsQueue.size() > 0) {
+        while (!mPacketsQueue.empty()) {
             const auto packetDataAndSize = mPacketsQueue.front();
             free(packetDataAndSize.first);
             mPacketsQueue.pop();

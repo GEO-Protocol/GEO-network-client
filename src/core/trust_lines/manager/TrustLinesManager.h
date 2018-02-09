@@ -42,11 +42,6 @@ namespace signals = boost::signals2;
 
 class TrustLinesManager {
 public:
-    // todo: rename signals so them would start with "Signal", i.e. SignalTrustLineCreated
-    signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineCreatedSignal;
-    signals::signal<void(const NodeUUID&, const TrustLineDirection)> trustLineStateModifiedSignal;
-
-public:
     enum TrustLineOperationResult {
         Opened,
         Updated,
@@ -64,7 +59,7 @@ public:
      *
      * Creates new trust line in case if no trust line to the contractor is present.
      * Updates trust line with new amount if it's already present.
-     * In case if ne wamount is equal to previously set amount - "NoChanges" result would bereturned.
+     * In case if new amount is equal to previously set amount - "NoChanges" result would be returned.
      * Closes the trust line if it's present and received amount = 0.
      *
      * @returns final state of the operation.
@@ -82,7 +77,7 @@ public:
      *
      * Creates new trust line in case if no trust line from the contractor is present.
      * Updates trust line with new amount if it's already present.
-     * In case if ne wamount is equal to previously set amount - "NoChanges" result would bereturned.
+     * In case if ne wamount is equal to previously set amount - "NoChanges" result would be returned.
      * Closes the trust line if it's present and received amount = 0.
      *
      * @returns final state of the operation.
@@ -126,19 +121,6 @@ public:
         IOTransaction::Shared IOTransaction,
         const NodeUUID &contractorUUID,
         bool contractorIsGateway);
-
-//    ToDo: it seems, that this method doesn't used.
-//    (method and method body is commented out)
-//
-//    const bool checkDirection(
-//        const NodeUUID &contractorUUID,
-//        const TrustLineDirection direction) const;
-
-//    ToDo: it seems, that this method doesn't used.
-//    (method and method body is commented out)
-//
-//    const BalanceRange balanceRange(
-//        const NodeUUID &contractorUUID) const;
 
     /**
      * @returns outgoing trust amount without considering present reservations.
@@ -325,10 +307,6 @@ public:
 
     // total balance to all 1st level neighbors
     ConstSharedTrustLineBalance totalBalance() const;
-
-    [[deprecated("Buggy function. Use trustLineReadOnly instead")]]
-    const TrustLine::Shared trustLine(
-        const NodeUUID &contractorUUID) const;
 
     const TrustLine::ConstShared trustLineReadOnly(
         const NodeUUID &contractorUUID) const;

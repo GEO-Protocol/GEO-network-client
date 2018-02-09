@@ -252,23 +252,6 @@ void TrustLinesManager::setContractorAsGateway(
         trustLine);
 }
 
-//const bool TrustLinesManager::checkDirection(
-//    const NodeUUID &contractorUUID,
-//    const TrustLineDirection direction) const {
-
-//    if (trustLineIsPresent(contractorUUID)) {
-//        return mTrustLines.at(contractorUUID)->direction() == direction;
-//    }
-
-//    return false;
-//}
-
-//const BalanceRange TrustLinesManager::balanceRange(
-//    const NodeUUID &contractorUUID) const {
-
-//    return mTrustLines.at(contractorUUID)->balanceRange();
-//}
-
 const TrustLineAmount &TrustLinesManager::incomingTrustAmountDespiteResevations(
     const NodeUUID &contractorUUID) const
 {
@@ -479,13 +462,8 @@ const bool TrustLinesManager::reservationIsPresent(
 
 void TrustLinesManager::saveToDisk(
     IOTransaction::Shared IOTransaction,
-    TrustLine::Shared trustLine) {
-
-    bool alreadyExisted = false;
-    if (trustLineIsPresent(trustLine->contractorNodeUUID())) {
-        alreadyExisted = true;
-    }
-
+    TrustLine::Shared trustLine)
+{
     IOTransaction->trustLinesHandler()->saveTrustLine(trustLine);
     try {
         mTrustLines.insert(
@@ -497,17 +475,6 @@ void TrustLinesManager::saveToDisk(
             throw MemoryError("TrustLinesManager::saveToDisk: "
                                   "Can not reallocate STL container memory for new trust line instance.");
         }
-
-    if (alreadyExisted) {
-        trustLineStateModifiedSignal(
-            trustLine->contractorNodeUUID(),
-            trustLine->direction());
-
-    } else {
-        trustLineCreatedSignal(
-            trustLine->contractorNodeUUID(),
-            trustLine->direction());
-    }
 }
 
 /**
@@ -546,18 +513,6 @@ bool TrustLinesManager::isTrustLineEmpty(
     return (*outgoingAmountShared.get() == 0
         and *incomingAmountShared.get() == 0
         and balance(contractorUUID) == 0);
-}
-
-const TrustLine::Shared TrustLinesManager::trustLine(
-    const NodeUUID &contractorUUID) const {
-    if (trustLineIsPresent(contractorUUID)) {
-        return mTrustLines.at(contractorUUID);
-
-    } else {
-        throw NotFoundError(
-            "TrustLinesManager::removeTrustLine. "
-                "Trust line to such contractor does not exist.");
-    }
 }
 
 vector<NodeUUID> TrustLinesManager::firstLevelNeighborsWithOutgoingFlow() const

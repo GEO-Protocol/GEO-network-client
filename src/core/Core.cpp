@@ -416,9 +416,7 @@ void Core::connectCommunicatorSignals()
         boost::bind(
             &Core::onMessageReceivedSlot,
             this,
-            _1
-        )
-    );
+            _1));
 
     //transactions manager's to communicator slot
     mTransactionsManager->transactionOutgoingMessageReadySignal.connect(
@@ -426,9 +424,7 @@ void Core::connectCommunicatorSignals()
             &Core::onMessageSendSlot,
             this,
             _1,
-            _2
-        )
-    );
+            _2));
 
     mTransactionsManager->ProcessConfirmationMessageSignal.connect(
         boost::bind(
@@ -436,27 +432,6 @@ void Core::connectCommunicatorSignals()
             this,
             _1,
             _2));
-}
-
-void Core::connectTrustLinesManagerSignals()
-{
-    mTrustLinesManager->trustLineCreatedSignal.connect(
-        boost::bind(
-            &Core::onTrustLineCreatedSlot,
-            this,
-            _1,
-            _2
-        )
-    );
-
-    mTrustLinesManager->trustLineStateModifiedSignal.connect(
-        boost::bind(
-            &Core::onTrustLineStateModifiedSlot,
-            this,
-            _1,
-            _2
-        )
-    );
 }
 
 void Core::connectDelayedTasksSignals()
@@ -472,9 +447,7 @@ void Core::connectRoutingTableSignals()
     mRoutingTable->updateRoutingTableSignal.connect(
         boost::bind(
             &Core::onUpdateRoutingTableSlot,
-            this
-        )
-    );
+            this));
 }
 void Core::connectResourcesManagerSignals()
 {
@@ -483,23 +456,18 @@ void Core::connectResourcesManagerSignals()
             &Core::onPathsResourceRequestedSlot,
             this,
             _1,
-            _2
-        )
-    );
+            _2));
 
     mResourcesManager->attachResourceSignal.connect(
         boost::bind(
             &Core::onResourceCollectedSlot,
             this,
-            _1
-        )
-    );
+            _1));
 }
 void Core::connectSignalsToSlots()
 {
     connectCommandsInterfaceSignals();
     connectCommunicatorSignals();
-    connectTrustLinesManagerSignals();
     connectDelayedTasksSignals();
     connectResourcesManagerSignals();
     connectRoutingTableSignals();
@@ -590,16 +558,6 @@ void Core::onMessageSendSlot(
     }
 }
 
-void Core::onTrustLineCreatedSlot(
-    const NodeUUID &contractorUUID,
-    const TrustLineDirection direction)
-{}
-
-void Core::onTrustLineStateModifiedSlot(
-    const NodeUUID &contractorUUID,
-    const TrustLineDirection direction)
-{}
-
 void Core::onPathsResourceRequestedSlot(
     const TransactionUUID &transactionUUID,
     const NodeUUID &destinationNodeUUID)
@@ -663,7 +621,7 @@ void Core::notifyContractorsAboutCurrentTrustLinesAmounts()
 {
     const auto kTransactionUUID = TransactionUUID();
 
-    for (const auto kContractorUUIDAndTrustLine : mTrustLinesManager->trustLines()) {
+    for (const auto &kContractorUUIDAndTrustLine : mTrustLinesManager->trustLines()) {
         const auto kTrustLine =  kContractorUUIDAndTrustLine.second;
         const auto kContractor = kTrustLine->contractorNodeUUID();
         const auto kOutgoingTrustAmount = kTrustLine->outgoingTrustAmount();

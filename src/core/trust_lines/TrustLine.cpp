@@ -28,15 +28,6 @@ TrustLine::TrustLine(
 
 }
 
-TrustLine::TrustLine(
-    const byte *buffer,
-    const NodeUUID &contractorUUID) :
-
-    mContractorNodeUUID(contractorUUID)
-{
-    deserialize(buffer);
-}
-
 /**
  * Sets incoming trust amount of the trust line.
  * This method rewrites previous incoming trust amount.
@@ -109,7 +100,7 @@ const TrustLineBalance &TrustLine::balance() const
 }
 
 /*!
- * Returns amount that is availale to use on the trust line.
+ * Returns amount that is available to use on the trust line.
  */
 ConstSharedTrustLineAmount TrustLine::availableOutgoingAmount() const
 {
@@ -121,7 +112,7 @@ ConstSharedTrustLineAmount TrustLine::availableOutgoingAmount() const
 }
 
 /*!
- * Returns amount that is availale to use on the trust line from contractor node.
+ * Returns amount that is available to use on the trust line from contractor node.
  */
 ConstSharedTrustLineAmount TrustLine::availableIncomingAmount() const
 {
@@ -150,22 +141,6 @@ ConstSharedTrustLineAmount TrustLine::usedAmountBySelf() const
     }
 }
 
-const TrustLineDirection TrustLine::direction() const
-{
-    if (mOutgoingTrustAmount > kZeroAmount() && mIncomingTrustAmount > kZeroAmount()) {
-        return TrustLineDirection::Both;
-
-    } else if (mOutgoingTrustAmount > kZeroAmount() && mIncomingTrustAmount == kZeroAmount()) {
-        return TrustLineDirection::Outgoing;
-
-    } else if (mOutgoingTrustAmount == kZeroAmount() && mIncomingTrustAmount > kZeroAmount()) {
-        return TrustLineDirection::Incoming;
-
-    } else {
-        return TrustLineDirection::Nowhere;
-    }
-}
-
 bool TrustLine::isContractorGateway() const
 {
     return mIsContractorGateway;
@@ -175,124 +150,6 @@ void TrustLine::setContractorAsGateway(
     bool contractorAsGateway)
 {
     mIsContractorGateway = contractorAsGateway;
-}
-
-/*!
- * Throws RuntimeError in case of unsuccessful serialization.
- */
-vector<byte> TrustLine::serialize()
-{
-    vector<byte> buffer;
-    buffer.reserve(kRecordSize);
-
-    try {
-        trustAmountToBytes(
-            mIncomingTrustAmount,
-            buffer);
-
-        trustAmountToBytes(
-            mOutgoingTrustAmount,
-            buffer);
-
-        balanceToBytes(
-            mBalance,
-            buffer);
-        return buffer;
-
-    } catch (exception &e) {
-        throw RuntimeError(string("TrustLine::serialize: can't serialize the trust line. Details: ") +
-                               e.what());
-    }
-}
-
-/*!
- * Throws RuntimeError in case of unsucessfull deserialization.
- */
-void TrustLine::deserialize(
-    const byte *buffer)
-{
-
-    try {
-        size_t bufferOffset = 0;
-
-        parseTrustAmount(
-            buffer,
-            mIncomingTrustAmount);
-        bufferOffset += kTrustAmountPartSize;
-
-        parseTrustAmount(
-            buffer + bufferOffset,
-            mOutgoingTrustAmount);
-        bufferOffset += kTrustAmountPartSize;
-
-        parseBalance(
-            buffer + bufferOffset);
-
-    } catch (exception &e) {
-        throw RuntimeError(string("TrustLine::deserialize: can't deserialize buffer to trust line instance") +
-                               e.what());
-    }
-}
-
-/*!
- * todo: (hsc) think how to refactor this a little bit
- */
-void TrustLine::trustAmountToBytes(
-    const TrustLineAmount &amount,
-    vector<byte> &buffer)
-{
-    vector<byte> bytes = trustLineAmountToBytes(const_cast<TrustLineAmount&>(amount));
-    buffer.insert(
-      buffer.end(),
-      bytes.begin(),
-      bytes.end());
-}
-
-/*!
- * todo: (hsc) think how to refactor this a little bit
- */
-void TrustLine::balanceToBytes(
-    const TrustLineBalance &balance,
-    vector<byte> &buffer)
-{
-    vector<byte> bytes = trustLineBalanceToBytes(const_cast<TrustLineBalance&>(balance));
-    buffer.insert(
-        buffer.end(),
-        bytes.begin(),
-        bytes.end());
-}
-
-/*!
- * todo: (hsc) think how to refactor this a little bit
- *
- * Parses trust line amount from "buffer" into "variable".
- *
- */
-void TrustLine::parseTrustAmount(
-    const byte *buffer,
-    TrustLineAmount &variable)
-{
-    vector<byte> bytesVector(
-        buffer,
-        buffer + kTrustAmountPartSize);
-
-    variable = bytesToTrustLineAmount(bytesVector);
-}
-
-/*!
- * todo: (hsc) think how to refactor this a little bit
- *
- * Parses trust line balance from "buffer".
- *
- */
-void TrustLine::parseBalance(
-    const byte *buffer)
-{
-    vector<byte> bytesVector(
-        buffer,
-        buffer + kBalancePartSize + kSignBytePartSize);
-
-    mBalance = bytesToTrustLineBalance(bytesVector);
 }
 
 /*!
