@@ -174,8 +174,8 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
 #endif
 
         default: {
-            mLog->warning("MessagesParser::processBytesSequence")
-                << "Unexpected message identifier occured (" << kMessageIdentifier << "). Message dropped.";
+            warning() << "processBytesSequence: "
+                << "Unexpected message identifier occurred (" << kMessageIdentifier << "). Message dropped.";
             return messageInvalidOrIncomplete();
         }
 
@@ -208,4 +208,16 @@ pair<bool, Message::Shared> MessagesParser::messageCollected(
         true,
         static_pointer_cast<Message>(
             make_shared<CollectedMessageType>(message)));
+}
+
+string MessagesParser::logHeader()
+    noexcept
+{
+    return "[MessagesParser]";
+}
+
+LoggerStream MessagesParser::warning() const
+    noexcept
+{
+    return mLog->warning(logHeader());
 }

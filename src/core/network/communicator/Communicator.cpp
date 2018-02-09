@@ -86,7 +86,7 @@ bool Communicator::joinUUID2Address(
         return true;
 
     } catch (std::exception &e) {
-        mLog.error("Communicator::joinUUID2Address")
+        error() << "joinUUID2Address: "
             << "Can't register in global nodes addresses space. "
             << "Internal error details: " << e.what();
     }
@@ -145,7 +145,7 @@ void Communicator::onMessageReceived(
         const auto kDestinationMessage =
             static_pointer_cast<DestinationMessage>(message);
         if (kDestinationMessage->destinationUUID() != mNodeUUID) {
-            mLog.error("Communicator::onMessageReceived")
+            error() << "onMessageReceived: "
                     << "Invalid destinationUUID. "
                     << "Message type: " << kDestinationMessage->typeID()
                     << ", destination UUID: " << kDestinationMessage->destinationUUID()
@@ -178,4 +178,16 @@ void Communicator::onConfirmationRequiredMessageReadyToResend(
     mOutgoingMessagesHandler->sendMessage(
         static_pointer_cast<Message>(adreseeAndMessage.second),
         adreseeAndMessage.first);
+}
+
+string Communicator::logHeader()
+noexcept
+{
+    return "[Communicator]";
+}
+
+LoggerStream Communicator::error() const
+noexcept
+{
+    return mLog.error(logHeader());
 }

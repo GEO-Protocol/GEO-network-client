@@ -1191,7 +1191,7 @@ void TransactionsManager::onCommandResultReady(
     try {
         auto message = result->serialize();
 
-        mLog.info("Result for command " + result->identifier());
+        info() << "Result for command " + result->identifier();
 
         if (result->identifier() == HistoryPaymentsCommand::identifier() or
                 result->identifier() == HistoryTrustLinesCommand::identifier() or

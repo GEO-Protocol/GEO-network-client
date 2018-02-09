@@ -44,6 +44,8 @@ private:
 
     LoggerStream warning() const;
 
+    LoggerStream error() const;
+
     const string logHeader() const;
 
 private:
@@ -55,7 +57,6 @@ private:
     const string kMigrationTableName = "migrations";
     const string kNodeFeaturesTableName = "node_features";
     const string kBlackListTableName = "blacklist";
-//    const string kOutgoingNetworkMessagesQueue = "network_outgoing_messages";
 
 private:
     static sqlite3 *mDBConnection;

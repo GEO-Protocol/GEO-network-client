@@ -66,6 +66,12 @@ protected:
 
     void deserializeAndResendMessages();
 
+    static string logHeader()
+    noexcept;
+
+    LoggerStream error() const
+    noexcept;
+
 protected:
     const Host mInterface;
     const Port mPort;

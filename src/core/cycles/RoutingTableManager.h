@@ -39,6 +39,17 @@ public:
 
     void runSignalUpdateTimer(const boost::system::error_code &err);
 
+protected:
+    static string logHeader();
+
+    LoggerStream warning() const;
+
+    LoggerStream error() const;
+
+    LoggerStream info() const;
+
+    LoggerStream debug() const;
+
 public:
     mutable UpdateRoutingTableSignal updateRoutingTableSignal;
 

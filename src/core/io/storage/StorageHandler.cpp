@@ -76,6 +76,11 @@ LoggerStream StorageHandler::warning() const
     return mLog.warning(logHeader());
 }
 
+LoggerStream StorageHandler::error() const
+{
+    return mLog.error(logHeader());
+}
+
 const string StorageHandler::logHeader() const
 {
     stringstream s;
@@ -101,7 +106,7 @@ int StorageHandler::applyMigrations(const NodeUUID &nodeUUID) {
         return 0;
 
     } catch(const Exception &e) {
-        mLog.error("") << e.what();
+        error() << "applyMigrations: " << e.what();
         return -1;
     }
 }

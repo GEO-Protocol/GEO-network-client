@@ -88,6 +88,13 @@ protected:
         CollectedMessageType message) const;
 
 protected:
+    static string logHeader()
+    noexcept;
+
+    LoggerStream warning() const
+    noexcept;
+
+protected:
     Logger *mLog;
 };
 

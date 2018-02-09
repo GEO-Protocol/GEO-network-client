@@ -33,7 +33,7 @@ void RoutingTableManager::updateMapAddSeveralNeighbors(
     const NodeUUID &firstLevelContractor,
     set<NodeUUID> secondLevelContractors)
 {
-    mLog.debug("updateMapAddSeveralNeighbors") << "Neighbor: " << firstLevelContractor
+    debug() << "updateMapAddSeveralNeighbors. Neighbor: " << firstLevelContractor
                << " 2nd level nodes cnt: " << secondLevelContractors.size();
     mRoughtingTable[firstLevelContractor] = secondLevelContractors;
 }
@@ -52,9 +52,9 @@ void RoutingTableManager::runSignalUpdateTimer(
     const boost::system::error_code &err)
 {
     if (err) {
-        mLog.error("RoutingTableManager") << err.message();
+        error() << err.message();
     }
-    mLog.info("runSignalUpdateTimer");
+    info() << "runSignalUpdateTimer";
     mUpdatingTimer->cancel();
     mUpdatingTimer->expires_from_now(
         std::chrono::seconds(
@@ -65,4 +65,29 @@ void RoutingTableManager::runSignalUpdateTimer(
             this,
             as::placeholders::error));
     updateRoutingTableSignal();
+}
+
+string RoutingTableManager::logHeader()
+{
+    return "[RoutingTableManager]";
+}
+
+LoggerStream RoutingTableManager::error() const
+{
+    return mLog.error(logHeader());
+}
+
+LoggerStream RoutingTableManager::warning() const
+{
+    return mLog.warning(logHeader());
+}
+
+LoggerStream RoutingTableManager::info() const
+{
+    return mLog.info(logHeader());
+}
+
+LoggerStream RoutingTableManager::debug() const
+{
+    return mLog.debug(logHeader());
 }

@@ -9,15 +9,15 @@ TransactionsScheduler::TransactionsScheduler(
     mLog(logger),
 
     mTransactions(new map<BaseTransaction::Shared, TransactionState::SharedConst>()),
-    mProcessingTimer(new as::steady_timer(mIOService)) {
-}
+    mProcessingTimer(new as::steady_timer(mIOService))
+{}
 
 /*!
  * Schedules awakening for the next transaction.
  * Doesn't blocks execution.
  */
-void TransactionsScheduler::run() {
-
+void TransactionsScheduler::run()
+{
     if (mTransactions->empty()) {
         // If no transactions are present -
         // there is no reason to reschedule next interruption:
@@ -37,12 +37,13 @@ void TransactionsScheduler::run() {
 }
 
 void TransactionsScheduler::scheduleTransaction(
-    BaseTransaction::Shared transaction) {
+    BaseTransaction::Shared transaction)
+{
     for ( auto it = mTransactions->begin(); it != mTransactions->end(); it++ ){
         if (transaction->currentTransactionUUID() == it->first->currentTransactionUUID()) {
-            mLog.warning("scheduleTransaction:") << "Duplicate TransactionUUID. Already exists. "
-                                             << "Current TA type: " << transaction->transactionType()
-                                             << ". Conflicted TA type:" << it->first->transactionType();
+            warning() << "scheduleTransaction: Duplicate TransactionUUID. Already exists. "
+                      << "Current TA type: " << transaction->transactionType()
+                      << ". Conflicted TA type:" << it->first->transactionType();
             throw ConflictError("Duplicate Transaction UUID");
         }
     }
@@ -53,16 +54,16 @@ void TransactionsScheduler::scheduleTransaction(
 
 void TransactionsScheduler::postponeTransaction(
     BaseTransaction::Shared transaction,
-    uint32_t millisecondsDelay) {
-
+    uint32_t millisecondsDelay)
+{
     (*mTransactions)[transaction] = TransactionState::awakeAfterMilliseconds(millisecondsDelay);
 
     adjustAwakeningToNextTransaction();
 }
 
 void TransactionsScheduler::killTransaction(
-    const TransactionUUID &transactionUUID) {
-
+    const TransactionUUID &transactionUUID)
+{
     for (const auto &transactionAndState : *mTransactions) {
         if (transactionAndState.first->currentTransactionUUID() == transactionUUID) {
             forgetTransaction(transactionAndState.first);
@@ -71,7 +72,8 @@ void TransactionsScheduler::killTransaction(
 }
 
 void TransactionsScheduler::tryAttachMessageToTransaction(
-    Message::Shared message) {
+    Message::Shared message)
+{
     // TODO: check the message type before the loop
     for (auto const &transactionAndState : *mTransactions) {
 
@@ -134,8 +136,8 @@ void TransactionsScheduler::tryAttachMessageToTransaction(
 }
 
 void TransactionsScheduler::tryAttachResourceToTransaction(
-    BaseResource::Shared resource) {
-
+    BaseResource::Shared resource)
+{
     for (const auto& transactionAndState : *mTransactions) {
 
         if (resource->transactionUUID() != transactionAndState.first->currentTransactionUUID()) {
@@ -161,15 +163,14 @@ void TransactionsScheduler::tryAttachResourceToTransaction(
 }
 
 void TransactionsScheduler::launchTransaction(
-    BaseTransaction::Shared transaction) {
-
+    BaseTransaction::Shared transaction)
+{
     try {
         const auto kTAType = transaction->transactionType();
         if (kTAType >= BaseTransaction::CoordinatorPaymentTransaction
             && kTAType <= BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
 
-            mLog.info("[Transactions scheduler]")
-                << "Payment or cycle closing TA launched:"
+            info() << "Payment or cycle closing TA launched:"
                 << " UUID: " << transaction->currentTransactionUUID()
                 << " Type: " << transaction->transactionType()
                 << " Step: " << transaction->currentStep();
@@ -191,8 +192,7 @@ void TransactionsScheduler::launchTransaction(
             result);
 
     } catch (exception &e) {
-        mLog.warning("[Transactions scheduler]")
-            << "TA error occurred:"
+        error() << "TA error occurred:"
             << " UUID: " << transaction->currentTransactionUUID()
             << " Type: " << transaction->transactionType()
             << " Step: " << transaction->currentStep()
@@ -206,30 +206,27 @@ void TransactionsScheduler::launchTransaction(
 
 void TransactionsScheduler::handleTransactionResult(
     BaseTransaction::Shared transaction,
-    TransactionResult::SharedConst result) {
-
+    TransactionResult::SharedConst result)
+{
     switch (result->resultType()) {
         case TransactionResult::ResultType::CommandResultType: {
             processCommandResult(
                 transaction,
-                result->commandResult()
-            );
+                result->commandResult());
             break;
         }
 
         case TransactionResult::ResultType::MessageResultType: {
             processMessageResult(
                 transaction,
-                result->messageResult()
-            );
+                result->messageResult());
             break;
         }
 
         case TransactionResult::ResultType::TransactionStateType: {
             processTransactionState(
                 transaction,
-                result->state()
-            );
+                result->state());
             break;
         }
     }
@@ -238,24 +235,24 @@ void TransactionsScheduler::handleTransactionResult(
 
 void TransactionsScheduler::processCommandResult(
     BaseTransaction::Shared transaction,
-    CommandResult::SharedConst result) {
-
+    CommandResult::SharedConst result)
+{
     commandResultIsReadySignal(result);
     forgetTransaction(transaction);
 }
 
 void TransactionsScheduler::processMessageResult(
     BaseTransaction::Shared transaction,
-    MessageResult::SharedConst result) {
-
+    MessageResult::SharedConst result)
+{
     // todo: add writing to remote transactions results log.
     forgetTransaction(transaction);
 }
 
 void TransactionsScheduler::processTransactionState(
     BaseTransaction::Shared transaction,
-    TransactionState::SharedConst state) {
-
+    TransactionState::SharedConst state)
+{
     if (state->mustSavePreviousStateState()) {
         return;
     }
@@ -280,20 +277,13 @@ void TransactionsScheduler::processTransactionState(
 }
 
 void TransactionsScheduler::forgetTransaction(
-    BaseTransaction::Shared transaction) {
-
-//    try {
-//        mStorage->erase(
-//            storage::uuids::uuid(transaction->currentTransactionUUID())
-//        );
-//    } catch (IndexError &) {}
-
+    BaseTransaction::Shared transaction)
+{
     const auto kTAType = transaction->transactionType();
     if (kTAType >= BaseTransaction::CoordinatorPaymentTransaction
         && kTAType <= BaseTransaction::Payments_CycleCloserIntermediateNodeTransaction) {
 
-        mLog.info("[Transactions scheduler]")
-                << "Payment or cycle closing TA has been forgotten:"
+        info() << "Payment or cycle closing TA has been forgotten:"
                 << " UUID: " << transaction->currentTransactionUUID()
                 << " Type: " << transaction->transactionType()
                 << " Step: " << transaction->currentStep();
@@ -318,8 +308,8 @@ void TransactionsScheduler::adjustAwakeningToNextTransaction() {
  *
  * Throws NotFoundError in case if no transactions are delayed.
  */
-pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transactionWithMinimalAwakeningTimestamp() const {
-
+pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transactionWithMinimalAwakeningTimestamp() const
+{
     if (mTransactions->empty()) {
         throw NotFoundError(
             "TransactionsScheduler::transactionWithMinimalAwakeningTimestamp: "
@@ -353,8 +343,8 @@ pair<BaseTransaction::Shared, GEOEpochTimestamp> TransactionsScheduler::transact
 }
 
 void TransactionsScheduler::asyncWaitUntil(
-    GEOEpochTimestamp nextAwakeningTimestamp) {
-
+    GEOEpochTimestamp nextAwakeningTimestamp)
+{
     GEOEpochTimestamp microsecondsDelay = 0;
     GEOEpochTimestamp now = microsecondsSinceGEOEpoch(utc_now());
     if (nextAwakeningTimestamp > now) {
@@ -377,19 +367,18 @@ void TransactionsScheduler::asyncWaitUntil(
 }
 
 void TransactionsScheduler::handleAwakening(
-    const boost::system::error_code &error) {
-
+    const boost::system::error_code &errorMessage)
+{
     static auto errorsCount = 0;
 
-    if (error && error == as::error::operation_aborted) {
+    if (errorMessage && errorMessage == as::error::operation_aborted) {
         return;
     }
 
-    if (error && error != as::error::operation_aborted) {
+    if (errorMessage && errorMessage != as::error::operation_aborted) {
 
-        auto errors = mLog.warning("TransactionsScheduler::handleAwakening");
         if (errorsCount < 10) {
-            errors << "Error occurred on planned awakening. Details: " << error.message().c_str()
+            error() << "handleAwakening. Error occurred on planned awakening. Details: " << errorMessage.message().c_str()
                    << ". Next awakening would be scheduled for " << errorsCount << " seconds from now.";
 
             // Transactions processing must not be cancelled.
@@ -397,12 +386,10 @@ void TransactionsScheduler::handleAwakening(
             // (for cases when OS runs out of memory, or similar).
             asyncWaitUntil(
                 microsecondsSinceGEOEpoch(
-                    utc_now() + pt::seconds(errorsCount)
-                )
-            );
+                    utc_now() + pt::seconds(errorsCount)));
 
         } else {
-            errors << "Some error repeatedly occurs on awakening. "
+            error() << "handleAwakening. Some error repeatedly occurs on awakening. "
                    << "It seems that it can't be recovered automatically."
                    << "Next awakening would not be planned.";
 
@@ -429,12 +416,13 @@ void TransactionsScheduler::handleAwakening(
 }
 
 const map<BaseTransaction::Shared, TransactionState::SharedConst>* transactions(
-    TransactionsScheduler *scheduler) {
-
+    TransactionsScheduler *scheduler)
+{
     return scheduler->mTransactions.get();
 }
 
-void TransactionsScheduler::addTransactionAndState(BaseTransaction::Shared transaction, TransactionState::SharedConst state) {
+void TransactionsScheduler::addTransactionAndState(BaseTransaction::Shared transaction, TransactionState::SharedConst state)
+{
     mTransactions->insert(make_pair(transaction, state));
 }
 
@@ -467,7 +455,8 @@ bool TransactionsScheduler::isTransactionInProcess(
 }
 
 void TransactionsScheduler::tryAttachMessageToCollectTopologyTransaction(
-    Message::Shared message) {
+    Message::Shared message)
+{
     for (auto const &transactionAndState : *mTransactions) {
         if (transactionAndState.first->transactionType() == BaseTransaction::InitiateMaxFlowCalculationTransactionType
             or transactionAndState.first->transactionType() == BaseTransaction::FindPathByMaxFlowTransactionType
@@ -495,4 +484,34 @@ const BaseTransaction::Shared TransactionsScheduler::paymentTransactionByCommand
         }
     }
     return nullptr;
+}
+
+string TransactionsScheduler::logHeader()
+    noexcept
+{
+    return "[TransactionsScheduler]";
+}
+
+LoggerStream TransactionsScheduler::error() const
+    noexcept
+{
+    return mLog.error(logHeader());
+}
+
+LoggerStream TransactionsScheduler::warning() const
+    noexcept
+{
+    return mLog.warning(logHeader());
+}
+
+LoggerStream TransactionsScheduler::info() const
+    noexcept
+{
+    return mLog.info(logHeader());
+}
+
+LoggerStream TransactionsScheduler::debug() const
+    noexcept
+{
+    return mLog.debug(logHeader());
 }

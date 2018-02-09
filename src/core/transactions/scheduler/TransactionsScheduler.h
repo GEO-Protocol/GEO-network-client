@@ -90,6 +90,22 @@ public:
     const BaseTransaction::Shared paymentTransactionByCommandUUID(
         const CommandUUID &commandUUID) const;
 
+protected:
+    static string logHeader()
+    noexcept;
+
+    LoggerStream warning() const
+    noexcept;
+
+    LoggerStream error() const
+    noexcept;
+
+    LoggerStream info() const
+    noexcept;
+
+    LoggerStream debug() const
+    noexcept;
+
 private:
     void launchTransaction(
         BaseTransaction::Shared transaction);

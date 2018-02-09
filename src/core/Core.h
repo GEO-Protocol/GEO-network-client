@@ -154,16 +154,19 @@ private:
 
 protected:
     static string logHeader()
-        noexcept;
+    noexcept;
 
     LoggerStream warning() const
-        noexcept;
+    noexcept;
 
     LoggerStream error() const
     noexcept;
 
     LoggerStream info() const
-        noexcept;
+    noexcept;
+
+    LoggerStream debug() const
+    noexcept;
 
 protected:
     // This pointer is used to modify executable command description.

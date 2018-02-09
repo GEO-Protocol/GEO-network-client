@@ -532,7 +532,7 @@ void Core::onCommandReceivedSlot (
             subsystemsInfluenceCommand->forbiddenAmount());
         // set node as gateway
         if ((subsystemsInfluenceCommand->flags() & 0x80000000000) != 0) {
-            mLog->logInfo("Core", "from now I am gateway");
+            info() << "from now I am gateway";
             mIAmGateway = true;
             mTransactionsManager->setMeAsGateway();
         }
@@ -555,7 +555,7 @@ void Core::onMessageReceivedSlot(
 #ifdef TESTS
     if (not mSubsystemsController->isNetworkOn()) {
         // Ignore incoming message in case if network was disabled.
-        mLog->debug("Core: Ignore process incoming message");
+        debug() << "Ignore process incoming message";
         return;
     }
 #endif
@@ -575,7 +575,7 @@ void Core::onMessageSendSlot(
 #ifdef TESTS
     if (not mSubsystemsController->isNetworkOn()) {
         // Ignore outgoing message in case if network was disabled.
-        mLog->debug("Core: Ignore send message");
+        debug() << "Ignore send message";
         return;
     }
 #endif
@@ -648,8 +648,7 @@ void Core::writePIDFile()
         pidFile.close();
 
     } catch (std::exception &e) {
-        auto errors = mLog->error("Core");
-        errors << "Can't write/update pid file. Error message is: " << e.what();
+        error() << "Can't write/update pid file. Error message is: " << e.what();
     }
 }
 
@@ -710,4 +709,10 @@ LoggerStream Core::info() const
     noexcept
 {
     return mLog->info(logHeader());
+}
+
+LoggerStream Core::debug() const
+    noexcept
+{
+    return mLog->debug(logHeader());
 }

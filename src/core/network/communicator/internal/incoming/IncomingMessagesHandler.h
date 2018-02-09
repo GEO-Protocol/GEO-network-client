@@ -35,10 +35,16 @@ protected:
     void rescheduleCleaning()
         noexcept;
 
+    static string logHeader()
+        noexcept;
+
     LoggerStream info() const
         noexcept;
 
-    LoggerStream errors() const
+    LoggerStream error() const
+        noexcept;
+
+    LoggerStream warning() const
         noexcept;
 
     LoggerStream debug() const

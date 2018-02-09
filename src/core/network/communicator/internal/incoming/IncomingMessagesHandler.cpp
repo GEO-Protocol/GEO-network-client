@@ -48,7 +48,7 @@ void IncomingMessagesHandler::beginReceivingData ()
 }
 
 void IncomingMessagesHandler::handleReceivedInfo(
-    const boost::system::error_code &error,
+    const boost::system::error_code &errorMessage,
     size_t bytesTransferred)
     noexcept
 {
@@ -56,13 +56,11 @@ void IncomingMessagesHandler::handleReceivedInfo(
     static boost::asio::steady_timer waitingTimer(mIOService);
 
 
-    if (error) {
-        mLog.warning("IncomingMessagesHandler::handleReceivedInfo")
-            << "ASIO error: "
-            << error.message();
+    if (errorMessage) {
+        error() << "handleReceivedInfo: ASIO error: " << errorMessage.message();
 
         // In case of error - wait for some period of time
-        // and then restart receiveing messages.
+        // and then restart receiving messages.
         exponetialTimeoutSeconds = exponetialTimeoutSeconds * 2;
         waitingTimer.expires_from_now(
             chrono::seconds(
@@ -101,7 +99,7 @@ void IncomingMessagesHandler::handleReceivedInfo(
                     *(reinterpret_cast<PacketHeader::TotalPacketsCount*>(
                         mIncomingBuffer.data() + PacketHeader::kPacketsCountOffset));
 
-                this->debug()
+                debug()
                     << setw(4) << bytesTransferred <<  "B RX [ <= ] "
                     << mRemoteEndpointBuffer.address() << ":" << mRemoteEndpointBuffer.port() << "; "
                     << "Channel: " << setw(9) << (kChannelIndex) << "; "
@@ -127,7 +125,7 @@ void IncomingMessagesHandler::handleReceivedInfo(
         }
 
     } catch (exception &e) {
-        errors() << e.what();
+        error() << e.what();
     }
 
 
@@ -153,28 +151,40 @@ void IncomingMessagesHandler::rescheduleCleaning()
         this->rescheduleCleaning();
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR_GARBAGE_COLLECTOR
-        this->debug() << "Automatic cleaning finished";
+        debug() << "Automatic cleaning finished";
 #endif
     });
+}
+
+string IncomingMessagesHandler::logHeader()
+    noexcept
+{
+    return "[IncomingMessagesHandler]";
 }
 
 LoggerStream IncomingMessagesHandler::info() const
     noexcept
 {
-    return mLog.info("IncomingMessagesHandler");
+    return mLog.info(logHeader());
 }
 
-LoggerStream IncomingMessagesHandler::errors() const
+LoggerStream IncomingMessagesHandler::error() const
     noexcept
 {
-    return mLog.warning("IncomingMessagesHandler");
+    return mLog.error(logHeader());
+}
+
+LoggerStream IncomingMessagesHandler::warning() const
+    noexcept
+{
+    return mLog.warning(logHeader());
 }
 
 LoggerStream IncomingMessagesHandler::debug() const
     noexcept
 {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-    return mLog.debug("IncomingMessagesHandler");
+    return mLog.debug(logHeader());
 #endif
 
 #ifndef DEBUG_LOG_NETWORK_COMMUNICATOR

@@ -128,11 +128,17 @@ void OutgoingNodesHandler::removeOutdatedHandlers()
 #endif
 }
 
+string OutgoingNodesHandler::logHeader()
+    noexcept
+{
+    return "[OutgoingNodesHandler]";
+}
+
 LoggerStream OutgoingNodesHandler::debug() const
     noexcept
 {
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
-    return mLog.debug("OutgoingNodesHandler");
+    return mLog.debug(logHeader());
 #endif
 
 #ifndef DEBUG_LOG_NETWORK_COMMUNICATOR

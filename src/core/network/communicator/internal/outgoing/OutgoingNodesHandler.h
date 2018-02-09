@@ -33,6 +33,9 @@ protected:
     void removeOutdatedHandlers()
         noexcept;
 
+    static string logHeader()
+        noexcept;
+
     LoggerStream debug() const
         noexcept;
 
