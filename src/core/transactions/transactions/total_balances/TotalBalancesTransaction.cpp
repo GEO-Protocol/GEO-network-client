@@ -57,8 +57,8 @@ TransactionResult::SharedConst TotalBalancesTransaction::resultOk(
     const TrustLineAmount &totalTrustUsedBySelf)
 {
     stringstream s;
-    s << totalIncomingTrust << "\t" << totalTrustUsedByContractor
-      << "\t" << totalOutgoingTrust << "\t" << totalTrustUsedBySelf;
+    s << totalIncomingTrust << kTokensSeparator << totalTrustUsedByContractor
+      << kTokensSeparator << totalOutgoingTrust << kTokensSeparator << totalTrustUsedBySelf;
     string totalBalancesStrResult = s.str();
     return transactionResultFromCommand(
         mCommand->resultOk(

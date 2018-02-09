@@ -36,7 +36,6 @@ TransactionResult::SharedConst HistoryTrustLinesTransaction::resultOk(
     const vector<TrustLineRecord::Shared> &records)
 {
     const auto kUnixEpoch = DateTime(boost::gregorian::date(1970,1,1));
-    const auto kSeparator = BaseUserCommand::kTokensSeparator;
 
     stringstream stream;
     stream << records.size();
@@ -77,10 +76,10 @@ TransactionResult::SharedConst HistoryTrustLinesTransaction::resultOk(
                 "unexpected operation type occured.");
         }
 
-        stream << kSeparator << kRecord->operationUUID() << kSeparator;
-        stream << kUnixTimestampMicrosec << kSeparator;
-        stream << kRecord->contractorUUID() << kSeparator;
-        stream << formattedOperationType << kSeparator;
+        stream << kTokensSeparator << kRecord->operationUUID() << kTokensSeparator;
+        stream << kUnixTimestampMicrosec << kTokensSeparator;
+        stream << kRecord->contractorUUID() << kTokensSeparator;
+        stream << formattedOperationType << kTokensSeparator;
         stream << kRecord->amount();
     }
 

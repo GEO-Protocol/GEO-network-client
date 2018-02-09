@@ -3,7 +3,7 @@
 PaymentTransactionByCommandUUIDTransaction::PaymentTransactionByCommandUUIDTransaction(
     NodeUUID &nodeUUID,
     PaymentTransactionByCommandUUIDCommand::Shared command,
-    BaseTransaction::Shared reuqestedTransaction,
+    BaseTransaction::Shared requestedTransaction,
     Logger &logger) :
 
     BaseTransaction(
@@ -11,7 +11,7 @@ PaymentTransactionByCommandUUIDTransaction::PaymentTransactionByCommandUUIDTrans
         nodeUUID,
         logger),
     mCommand(command),
-    mRequestedPaymentTransaction(reuqestedTransaction)
+    mRequestedPaymentTransaction(requestedTransaction)
 {}
 
 PaymentTransactionByCommandUUIDCommand::Shared PaymentTransactionByCommandUUIDTransaction::command() const
@@ -26,7 +26,7 @@ TransactionResult::SharedConst PaymentTransactionByCommandUUIDTransaction::run()
         stream << "0";
         info() << "Requested transaction not found";
     } else {
-        stream << "1" << BaseUserCommand::kTokensSeparator
+        stream << "1" << kTokensSeparator
                << mRequestedPaymentTransaction->currentTransactionUUID().stringUUID();
         info() << "Requested transaction found";
     }

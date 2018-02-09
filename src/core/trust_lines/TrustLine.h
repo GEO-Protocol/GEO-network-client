@@ -21,9 +21,6 @@ using namespace std;
 class TrustLine {
 public:
     typedef shared_ptr<TrustLine> Shared;
-
-    [[deprecated]]
-    typedef shared_ptr<const TrustLine> SharedConst;
     typedef shared_ptr<const TrustLine> ConstShared;
 
 public:
@@ -59,14 +56,6 @@ public:
     void acceptPayment(
         const TrustLineAmount &amount);
 
-    void activateOutgoingDirection();
-
-    void suspendOutgoingDirection();
-
-    void activateIncomingDirection();
-
-    void suspendIncomingDirection();
-
     const NodeUUID& contractorNodeUUID() const;
 
     const TrustLineAmount& incomingTrustAmount() const;
@@ -90,8 +79,6 @@ public:
     void setContractorAsGateway(
         bool contractorAsGateway);
 
-    const BalanceRange balanceRange() const;
-
     vector<byte> serialize();
 
     void deserialize(
@@ -103,13 +90,11 @@ public:
 
     friend bool operator== (
         const TrustLine::Shared contractor1,
-        const TrustLine::Shared contractor2
-    );
+        const TrustLine::Shared contractor2);
 
     friend bool operator== (
         const TrustLine &contractor1,
-        const TrustLine &contractor2
-    );
+        const TrustLine &contractor2);
 
 private:
     void trustAmountToBytes(

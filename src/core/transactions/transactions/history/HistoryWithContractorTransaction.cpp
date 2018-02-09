@@ -33,7 +33,6 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
     const vector<Record::Shared> &records)
 {
     const auto kUnixEpoch = DateTime(boost::gregorian::date(1970,1,1));
-    const auto kSeparator = BaseUserCommand::kTokensSeparator;
 
     stringstream stream;
     stream << records.size();
@@ -60,11 +59,11 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
                                 "unexpected payment operation type occured.");
             }
 
-            stream << kSeparator << formattedRecordType << kSeparator;
-            stream << paymentRecord->operationUUID() << kSeparator;
-            stream << kUnixTimestampMicrosec << kSeparator;
-            stream << formattedOperationType << kSeparator;
-            stream << paymentRecord->amount() << kSeparator;
+            stream << kTokensSeparator << formattedRecordType << kTokensSeparator;
+            stream << paymentRecord->operationUUID() << kTokensSeparator;
+            stream << kUnixTimestampMicrosec << kTokensSeparator;
+            stream << formattedOperationType << kTokensSeparator;
+            stream << paymentRecord->amount() << kTokensSeparator;
             stream << paymentRecord->balanceAfterOperation();
 
         } else if (kRecord->isTrustLineRecord()) {
@@ -104,10 +103,10 @@ TransactionResult::SharedConst HistoryWithContractorTransaction::resultOk(
                             "unexpected trust line operation type occured.");
             }
 
-            stream << kSeparator << formattedRecordType << kSeparator;
-            stream << trustLineRecord->operationUUID() << kSeparator;
-            stream << kUnixTimestampMicrosec << kSeparator;
-            stream << formattedOperationType << kSeparator;
+            stream << kTokensSeparator << formattedRecordType << kTokensSeparator;
+            stream << trustLineRecord->operationUUID() << kTokensSeparator;
+            stream << kUnixTimestampMicrosec << kTokensSeparator;
+            stream << formattedOperationType << kTokensSeparator;
             stream << trustLineRecord->amount();
         } else {
             throw ValueError("HistoryWithContractorTransaction::resultOk: "

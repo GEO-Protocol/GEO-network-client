@@ -229,7 +229,7 @@ TransactionResult::SharedConst MaxFlowCalculationFullyTransaction::resultOk(
     stringstream ss;
     ss << maxFlows.size();
     for (const auto &nodeUUIDAndMaxFlow : maxFlows) {
-        ss << "\t" << nodeUUIDAndMaxFlow.first << "\t";
+        ss << kTokensSeparator << nodeUUIDAndMaxFlow.first << kTokensSeparator;
         ss << nodeUUIDAndMaxFlow.second;
     }
     auto kMaxFlowAmountsStr = ss.str();

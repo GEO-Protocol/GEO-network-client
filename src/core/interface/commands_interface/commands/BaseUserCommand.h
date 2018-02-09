@@ -17,10 +17,6 @@ public:
     typedef shared_ptr<BaseUserCommand> Shared;
 
 public:
-    static const constexpr char kCommandsSeparator = '\n';
-    static const constexpr char kTokensSeparator = '\t';
-
-public:
     BaseUserCommand(
         const string& identifier);
 

@@ -43,6 +43,8 @@ public:
 
     const string serialize() const;
 
+    const string serializeShort() const;
+
     const string identifier() const;
 
 private:

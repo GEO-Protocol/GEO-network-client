@@ -1198,15 +1198,24 @@ void TransactionsManager::onCommandResultReady(
         auto message = result->serialize();
 
         mLog.info("Result for command " + result->identifier());
-        mLog.logSuccess(
-            "Transactions manager::onCommandResultReady",
-            message
-        );
+
+        if (result->identifier() == HistoryPaymentsCommand::identifier() or
+                result->identifier() == HistoryTrustLinesCommand::identifier() or
+                result->identifier() == HistoryWithContractorCommand::identifier() or
+                result->identifier() == GetTrustLinesCommand::identifier()) {
+            auto shortMessage = result->serializeShort();
+            mLog.logSuccess(
+                "Transactions manager::onCommandResultReady",
+                shortMessage);
+        } else {
+            mLog.logSuccess(
+                "Transactions manager::onCommandResultReady",
+                message);
+        }
 
         mResultsInterface->writeResult(
             message.c_str(),
-            message.size()
-        );
+            message.size());
 
     } catch (...) {
         throw RuntimeError(

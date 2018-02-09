@@ -25,10 +25,10 @@ TransactionResult::SharedConst GetBlackListTransaction::run() {
     ss << to_string(kBannedUsers.size());
 
     for (const auto kNodeUUID: kBannedUsers) {
-        ss << "\t";
+        ss << kTokensSeparator;
         ss << kNodeUUID;
     }
-    ss << "\n";
+    ss << kCommandsSeparator;
     string kResultInfo = ss.str();
     return transactionResultFromCommand(mCommand->resultOk(kResultInfo));
 }

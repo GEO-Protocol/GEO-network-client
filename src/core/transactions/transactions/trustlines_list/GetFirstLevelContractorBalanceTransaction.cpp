@@ -25,11 +25,11 @@ TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::run() 
         return resultTrustLineIsAbsent();
     }
     auto kContractorTrustLine = mTrustLinesManager->trustLineReadOnly(contractorUUID);
-    ss << contractorUUID << "\t";
-    ss << kContractorTrustLine->incomingTrustAmount() << "\t";
-    ss << kContractorTrustLine->outgoingTrustAmount() << "\t";
+    ss << contractorUUID << kTokensSeparator;
+    ss << kContractorTrustLine->incomingTrustAmount() << kTokensSeparator;
+    ss << kContractorTrustLine->outgoingTrustAmount() << kTokensSeparator;
     ss << kContractorTrustLine->balance();
-    ss << "\n";
+    ss << kCommandsSeparator;
     string kResultInfo = ss.str();
     return transactionResultFromCommand(
         mCommand->resultOk(

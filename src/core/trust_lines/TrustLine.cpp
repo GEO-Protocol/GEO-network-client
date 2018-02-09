@@ -11,21 +11,9 @@ TrustLine::TrustLine(
     mIncomingTrustAmount(incomingAmount),
     mOutgoingTrustAmount(outgoingAmount),
     mBalance(nodeBalance),
-    mIsContractorGateway(isContractorGateway) {
-
+    mIsContractorGateway(isContractorGateway)
+{
     // todo zero amounts checking
-//    if (mBalance > kZeroBalance()){
-//        if (mBalance > mOutgoingTrustAmount and  mIncomingTrustAmount == kZeroAmount()) {
-//            throw ValueError("TrustLine::TrustLine: "
-//                                 "Balance can't be greater than incoming trust amount.");
-//        }
-//
-//    } else {
-//        if (-mBalance > mIncomingTrustAmount) {
-//            throw ValueError("TrustLine::TrustLine: "
-//                                 "Balance can't be less than outgoing trust amount.");
-//        }
-//    }
 }
 
 TrustLine::TrustLine(
@@ -44,8 +32,8 @@ TrustLine::TrustLine(
     const byte *buffer,
     const NodeUUID &contractorUUID) :
 
-    mContractorNodeUUID(contractorUUID) {
-
+    mContractorNodeUUID(contractorUUID)
+{
     deserialize(buffer);
 }
 
@@ -56,8 +44,8 @@ TrustLine::TrustLine(
  * Throws ValueError in case if "amount" is too big.
  */
 void TrustLine::setIncomingTrustAmount(
-    const TrustLineAmount &amount) {
-
+    const TrustLineAmount &amount)
+{
     // Incoming trust amount may be converted to the TrustLineBalance,
     // and, in case if it would be converted to the negative value, - overflow is possible.
     // To avoid this - max value of TrustLineAmount is avoided from using.
@@ -77,8 +65,8 @@ void TrustLine::setIncomingTrustAmount(
  * Throws ValueError in case if "amount" is too big.
  */
 void TrustLine::setOutgoingTrustAmount(
-    const TrustLineAmount &amount) {
-
+    const TrustLineAmount &amount)
+{
     // Incoming trust amount may be converted to the TrustLineBalance,
     // and in case if it would be converted to the negative value - overflow is possible.
     // To avoid this - max value of TrustLineAmount is avoided from using.
@@ -100,23 +88,23 @@ void TrustLine::setBalance(
     mBalance = balance;
 }
 
-const NodeUUID &TrustLine::contractorNodeUUID() const {
-
+const NodeUUID &TrustLine::contractorNodeUUID() const
+{
     return mContractorNodeUUID;
 }
 
-const TrustLineAmount &TrustLine::incomingTrustAmount() const {
-
+const TrustLineAmount &TrustLine::incomingTrustAmount() const
+{
     return mIncomingTrustAmount;
 }
 
-const TrustLineAmount &TrustLine::outgoingTrustAmount() const {
-
+const TrustLineAmount &TrustLine::outgoingTrustAmount() const
+{
     return mOutgoingTrustAmount;
 }
 
-const TrustLineBalance &TrustLine::balance() const {
-
+const TrustLineBalance &TrustLine::balance() const
+{
     return mBalance;
 }
 
@@ -144,7 +132,8 @@ ConstSharedTrustLineAmount TrustLine::availableIncomingAmount() const
         mOutgoingTrustAmount - mBalance);
 }
 
-ConstSharedTrustLineAmount TrustLine::usedAmountByContractor() const {
+ConstSharedTrustLineAmount TrustLine::usedAmountByContractor() const
+{
     if (mBalance >= kZeroBalance()) {
         return make_shared<const TrustLineAmount>(mBalance);
     } else {
@@ -152,7 +141,8 @@ ConstSharedTrustLineAmount TrustLine::usedAmountByContractor() const {
     }
 }
 
-ConstSharedTrustLineAmount TrustLine::usedAmountBySelf() const {
+ConstSharedTrustLineAmount TrustLine::usedAmountBySelf() const
+{
     if (mBalance <= kZeroBalance()) {
         return make_shared<const TrustLineAmount>(-mBalance);
     } else {
@@ -160,8 +150,8 @@ ConstSharedTrustLineAmount TrustLine::usedAmountBySelf() const {
     }
 }
 
-const TrustLineDirection TrustLine::direction() const {
-
+const TrustLineDirection TrustLine::direction() const
+{
     if (mOutgoingTrustAmount > kZeroAmount() && mIncomingTrustAmount > kZeroAmount()) {
         return TrustLineDirection::Both;
 
@@ -187,41 +177,26 @@ void TrustLine::setContractorAsGateway(
     mIsContractorGateway = contractorAsGateway;
 }
 
-const BalanceRange TrustLine::balanceRange() const{
-
-    if (mBalance > kZeroBalance()) {
-        return BalanceRange::Positive;
-
-    } else if (mBalance < kZeroBalance()) {
-        return BalanceRange::Negative;
-
-    } else {
-        return BalanceRange::EqualsZero;
-    }
-}
-
 /*!
  * Throws RuntimeError in case of unsuccessful serialization.
  */
-vector<byte> TrustLine::serialize() {
+vector<byte> TrustLine::serialize()
+{
     vector<byte> buffer;
     buffer.reserve(kRecordSize);
 
     try {
         trustAmountToBytes(
             mIncomingTrustAmount,
-            buffer
-        );
+            buffer);
 
         trustAmountToBytes(
             mOutgoingTrustAmount,
-            buffer
-        );
+            buffer);
 
         balanceToBytes(
             mBalance,
-            buffer
-        );
+            buffer);
         return buffer;
 
     } catch (exception &e) {
@@ -234,26 +209,24 @@ vector<byte> TrustLine::serialize() {
  * Throws RuntimeError in case of unsucessfull deserialization.
  */
 void TrustLine::deserialize(
-    const byte *buffer) {
+    const byte *buffer)
+{
 
     try {
         size_t bufferOffset = 0;
 
         parseTrustAmount(
             buffer,
-            mIncomingTrustAmount
-        );
+            mIncomingTrustAmount);
         bufferOffset += kTrustAmountPartSize;
 
         parseTrustAmount(
             buffer + bufferOffset,
-            mOutgoingTrustAmount
-        );
+            mOutgoingTrustAmount);
         bufferOffset += kTrustAmountPartSize;
 
         parseBalance(
-            buffer + bufferOffset
-        );
+            buffer + bufferOffset);
 
     } catch (exception &e) {
         throw RuntimeError(string("TrustLine::deserialize: can't deserialize buffer to trust line instance") +
@@ -266,14 +239,13 @@ void TrustLine::deserialize(
  */
 void TrustLine::trustAmountToBytes(
     const TrustLineAmount &amount,
-    vector<byte> &buffer) {
-
+    vector<byte> &buffer)
+{
     vector<byte> bytes = trustLineAmountToBytes(const_cast<TrustLineAmount&>(amount));
     buffer.insert(
       buffer.end(),
       bytes.begin(),
-      bytes.end()
-    );
+      bytes.end());
 }
 
 /*!
@@ -281,13 +253,13 @@ void TrustLine::trustAmountToBytes(
  */
 void TrustLine::balanceToBytes(
     const TrustLineBalance &balance,
-    vector<byte> &buffer) {
+    vector<byte> &buffer)
+{
     vector<byte> bytes = trustLineBalanceToBytes(const_cast<TrustLineBalance&>(balance));
     buffer.insert(
         buffer.end(),
         bytes.begin(),
-        bytes.end()
-    );
+        bytes.end());
 }
 
 /*!
@@ -298,12 +270,11 @@ void TrustLine::balanceToBytes(
  */
 void TrustLine::parseTrustAmount(
     const byte *buffer,
-    TrustLineAmount &variable) {
-
+    TrustLineAmount &variable)
+{
     vector<byte> bytesVector(
         buffer,
-        buffer + kTrustAmountPartSize
-    );
+        buffer + kTrustAmountPartSize);
 
     variable = bytesToTrustLineAmount(bytesVector);
 }
@@ -315,12 +286,11 @@ void TrustLine::parseTrustAmount(
  *
  */
 void TrustLine::parseBalance(
-    const byte *buffer) {
-
+    const byte *buffer)
+{
     vector<byte> bytesVector(
         buffer,
-        buffer + kBalancePartSize + kSignBytePartSize
-    );
+        buffer + kBalancePartSize + kSignBytePartSize);
 
     mBalance = bytesToTrustLineBalance(bytesVector);
 }
@@ -329,8 +299,8 @@ void TrustLine::parseBalance(
  * @returns static constant zero balance,
  * that is useful in comparison operations.
  */
-const TrustLineBalance &TrustLine::kZeroBalance() {
-
+const TrustLineBalance &TrustLine::kZeroBalance()
+{
     static TrustLineBalance zero(0);
     return zero;
 }
@@ -339,23 +309,23 @@ const TrustLineBalance &TrustLine::kZeroBalance() {
  * @returns static constant zero amount,
  * that is useful in comparison operations.
  */
-const TrustLineAmount &TrustLine::kZeroAmount() {
-
+const TrustLineAmount &TrustLine::kZeroAmount()
+{
     static TrustLineAmount zero(0);
     return zero;
 }
 
 bool operator==(
     const TrustLine::Shared contractor1,
-    const TrustLine::Shared contractor2) {
-
+    const TrustLine::Shared contractor2)
+{
     return contractor1->contractorNodeUUID() == contractor2->contractorNodeUUID();
 }
 
 bool operator==(
     const TrustLine &contractor1,
-    const TrustLine &contractor2) {
-
+    const TrustLine &contractor2)
+{
     return contractor1.contractorNodeUUID() == contractor2.contractorNodeUUID();
 }
 

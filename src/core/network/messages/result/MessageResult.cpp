@@ -7,33 +7,33 @@ MessageResult::MessageResult(
 
     mSenderUUID(senderUUID),
     mTransactionUUID(transactionUUID),
-    mTimestampCompleted(utc_now()) {
-
+    mTimestampCompleted(utc_now())
+{
     mResultCode = resultCode;
 }
 
-const NodeUUID &MessageResult::senderUUID() const {
-
+const NodeUUID &MessageResult::senderUUID() const
+{
     return mSenderUUID;
 }
 
-const TransactionUUID MessageResult::transactionUUID() const {
-
+const TransactionUUID MessageResult::transactionUUID() const
+{
     return mTransactionUUID;
 }
 
-const uint16_t MessageResult::resultCode() const {
-
+const uint16_t MessageResult::resultCode() const
+{
     return mResultCode;
 }
 
-const DateTime &MessageResult::timestampCompleted() const {
-
+const DateTime &MessageResult::timestampCompleted() const
+{
     return mTimestampCompleted;
 }
 
-const string MessageResult::serialize() const {
-
-    return mSenderUUID.stringUUID() + "\t" +
-           boost::lexical_cast<string>(mResultCode) + "\n";
+const string MessageResult::serialize() const
+{
+    return mSenderUUID.stringUUID() + kTokensSeparator +
+           to_string(mResultCode) + kCommandsSeparator;
 }

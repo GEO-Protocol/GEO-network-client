@@ -224,12 +224,12 @@ TransactionResult::SharedConst MaxFlowCalculationStepTwoTransaction::resultOk(
 {
     stringstream ss;
     if (finalMaxFlows) {
-        ss << kFinalStep << "\t" << maxFlows.size();
+        ss << kFinalStep << kTokensSeparator << maxFlows.size();
     } else {
-        ss << mMaxFlowCalculationStep << "\t" << maxFlows.size();
+        ss << mMaxFlowCalculationStep << kTokensSeparator << maxFlows.size();
     }
     for (const auto &nodeUUIDAndMaxFlow : maxFlows) {
-        ss << "\t" << nodeUUIDAndMaxFlow.first << "\t";
+        ss << kTokensSeparator << nodeUUIDAndMaxFlow.first << kTokensSeparator;
         ss << nodeUUIDAndMaxFlow.second;
     }
     auto kMaxFlowAmountsStr = ss.str();

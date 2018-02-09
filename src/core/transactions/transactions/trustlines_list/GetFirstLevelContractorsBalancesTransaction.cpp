@@ -23,16 +23,16 @@ TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run(
     stringstream ss;
     ss << to_string(kNeighborsCount);
     for (const auto kNodeUUIDAndTrustline: mTrustLinesManager->trustLines()) {
-        ss << "\t";
+        ss << kTokensSeparator;
         ss << kNodeUUIDAndTrustline.first;
-        ss << "\t";
+        ss << kTokensSeparator;
         ss << kNodeUUIDAndTrustline.second->incomingTrustAmount();
-        ss << "\t";
+        ss << kTokensSeparator;
         ss << kNodeUUIDAndTrustline.second->outgoingTrustAmount();
-        ss << "\t";
+        ss << kTokensSeparator;
         ss << kNodeUUIDAndTrustline.second->balance();
     }
-    ss << "\n";
+    ss << kCommandsSeparator;
     string kResultInfo = ss.str();
     return transactionResultFromCommand(
         mCommand->resultOk(

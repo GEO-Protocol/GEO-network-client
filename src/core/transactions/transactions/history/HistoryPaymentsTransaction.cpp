@@ -50,7 +50,6 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
     const vector<PaymentRecord::Shared> &records)
 {
     const auto kUnixEpoch = DateTime(boost::gregorian::date(1970,1,1));
-    const auto kSeparator = BaseUserCommand::kTokensSeparator;
 
     stringstream stream;
     stream << records.size();
@@ -70,14 +69,14 @@ TransactionResult::SharedConst HistoryPaymentsTransaction::resultOk(
         } else {
             throw RuntimeError(
                 "HistoryPaymentsTransaction::resultOk: "
-                "unexpected operation type occured.");
+                "unexpected operation type occurred.");
         }
 
-        stream << kSeparator << kRecord->operationUUID() << kSeparator;
-        stream << kUnixTimestampMicrosec << kSeparator;
-        stream << kRecord->contractorUUID() << kSeparator;
-        stream << formattedOperationType << kSeparator;
-        stream << kRecord->amount() << kSeparator;
+        stream << kTokensSeparator << kRecord->operationUUID() << kTokensSeparator;
+        stream << kUnixTimestampMicrosec << kTokensSeparator;
+        stream << kRecord->contractorUUID() << kTokensSeparator;
+        stream << formattedOperationType << kTokensSeparator;
+        stream << kRecord->amount() << kTokensSeparator;
         stream << kRecord->balanceAfterOperation();
     }
 

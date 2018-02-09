@@ -27,17 +27,9 @@ const size_t kTrustLineAmountBytesCount = 32;
 typedef multiprecision::int256_t TrustLineBalance;
 typedef shared_ptr<TrustLineBalance> SharedTrustLineBalance;
 typedef shared_ptr<const TrustLineBalance> ConstSharedTrustLineBalance;
+
 const size_t kTrustLineBalanceBytesCount = 32;
 const size_t kTrustLineBalanceSerializeBytesCount = 33;
-
-
-enum BalanceRange {
-    Negative = 1,
-    EqualsZero = 2,
-    Positive = 3
-};
-
-typedef uint8_t SerializedTrustLineState;
 
 enum TrustLineDirection {
     Nowhere = 0, // todo: remove this
@@ -46,5 +38,8 @@ enum TrustLineDirection {
     Both,
 };
 typedef uint8_t SerializedTrustLineDirection;
+
+static const constexpr char kCommandsSeparator = '\n';
+static const constexpr char kTokensSeparator = '\t';
 
 #endif //GEO_NETWORK_CLIENT_TYPES_H
