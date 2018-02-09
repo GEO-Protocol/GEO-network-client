@@ -27,9 +27,6 @@ public:
         const CommandUUID &commandUUID,
         const string &commandBuffer);
 
-    SetOutgoingTrustLineCommand(
-        BytesShared buffer);
-
     static const string &identifier()
         noexcept;
 
@@ -38,19 +35,6 @@ public:
 
     const TrustLineAmount &amount() const
         noexcept;
-
-    pair<BytesShared, size_t> serializeToBytes();
-
-    static const size_t kRequestedBufferSize()
-        noexcept;
-
-protected:
-    void deserializeFromBytes(
-        BytesShared buffer);
-
-    [[deprecated("Remove it when parent class would be updated")]]
-    void parse(
-        const string &_){}
 
 private:
     NodeUUID mContractorUUID;

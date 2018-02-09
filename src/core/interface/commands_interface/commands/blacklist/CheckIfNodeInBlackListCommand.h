@@ -23,11 +23,6 @@ public:
     noexcept;
 
 protected:
-    [[deprecated]]
-    virtual void parse(
-        const string &){}
-
-protected:
     NodeUUID mContractorUUID;
 };
 

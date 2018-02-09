@@ -23,10 +23,6 @@ public:
     CommandResult::SharedConst responseOk(
         string &maxFlowAmount) const;
 
-    [[deprecated("Remove it when parent class would be updated")]]
-    void parse(
-        const string &_){}
-
 private:
     size_t mContractorsCount;
     vector<NodeUUID> mContractors;

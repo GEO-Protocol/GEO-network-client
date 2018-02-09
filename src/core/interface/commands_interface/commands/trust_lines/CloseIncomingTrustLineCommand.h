@@ -21,10 +21,6 @@ public:
     const NodeUUID &contractorUUID() const
         noexcept;
 
-    [[deprecated("Remove it when parent class would be updated")]]
-    void parse(
-        const string &_){}
-
 private:
     NodeUUID mContractorUUID;
 };

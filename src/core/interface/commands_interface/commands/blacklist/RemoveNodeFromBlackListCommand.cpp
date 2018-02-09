@@ -29,13 +29,14 @@ RemoveNodeFromBlackListCommand::RemoveNodeFromBlackListCommand(
 }
 
 const string &RemoveNodeFromBlackListCommand::identifier()
-noexcept
+    noexcept
 {
     static const string identifier = "DELETE:blacklist";
     return identifier;
 }
 
 const NodeUUID &RemoveNodeFromBlackListCommand::contractorUUID()
-noexcept {
+    noexcept
+{
     return mContractorUUID;
 }

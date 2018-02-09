@@ -4,9 +4,10 @@ GetTrustLinesCommand::GetTrustLinesCommand(
     const CommandUUID &uuid,
     const string &commandBuffer)
     noexcept:
-        BaseUserCommand(
-            uuid,
-            identifier())
+
+    BaseUserCommand(
+        uuid,
+        identifier())
 {}
 
 const string &GetTrustLinesCommand::identifier()
@@ -18,9 +19,9 @@ const string &GetTrustLinesCommand::identifier()
 CommandResult::SharedConst GetTrustLinesCommand::resultOk(
     string &neighbors) const
 {
-    return make_shared<const CommandResult>(identifier(), UUID(), 200, neighbors);
+    return make_shared<const CommandResult>(
+        identifier(),
+        UUID(),
+        200,
+        neighbors);
 }
-
-void GetTrustLinesCommand::parse(const string &command)
-// This command does not requires any parameters. Command UUID and Identifier are parsed separately
-{}

@@ -15,7 +15,7 @@ public:
     GetTrustLineCommand(
         const CommandUUID &uuid,
         const string &commandBuffer)
-    noexcept;
+        noexcept;
 
     static const string &identifier();
 
@@ -23,9 +23,6 @@ public:
 
     CommandResult::SharedConst resultOk(
         string &neighbor) const;
-
-protected:
-    void parse(const string &command);
 
 protected:
     NodeUUID mContractorUUID;

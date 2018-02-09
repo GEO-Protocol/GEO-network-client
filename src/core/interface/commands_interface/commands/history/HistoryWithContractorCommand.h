@@ -25,10 +25,6 @@ public:
 
     const NodeUUID& contractorUUID() const;
 
-protected:
-    void parse(
-        const string &command);
-
 private:
     size_t mHistoryFrom;
     size_t mHistoryCount;

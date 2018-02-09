@@ -25,11 +25,6 @@ public:
     const TrustLineAmount &forbiddenAmount() const;
 
 protected:
-    [[deprecated]]
-    virtual void parse(
-        const string &){}
-
-protected:
 //    bits order:
 //    0 - Network in general   0x1  // 1
 //    1 - Possibility closing cycles 0x2 // 2

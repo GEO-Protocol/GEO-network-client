@@ -21,10 +21,6 @@ public:
     CommandResult::SharedConst resultOk(
         string &totalBalancesStr) const;
 
-    [[deprecated("Remove it when parent class would be updated")]]
-    void parse(
-        const string &_){}
-
 private:
     size_t mGatewaysCount;
     vector<NodeUUID> mGateways;

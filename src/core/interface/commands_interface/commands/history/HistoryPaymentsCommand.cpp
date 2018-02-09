@@ -8,64 +8,49 @@ HistoryPaymentsCommand::HistoryPaymentsCommand(
         uuid,
         identifier())
 {
-    parse(commandBuffer);
-}
-
-const string &HistoryPaymentsCommand::identifier()
-{
-    static const string identifier = "GET:history/payments";
-    return identifier;
-}
-
-/**
- * Throws ValueError if deserialization was unsuccessful.
- */
-void HistoryPaymentsCommand::parse(
-        const string &command)
-{
     const auto minCommandLength = 17;
-    if (command.size() < minCommandLength) {
+    if (commandBuffer.size() < minCommandLength) {
         throw ValueError("HistoryPaymentsCommand::parse: "
-                                 "Can't parse command. Received command is to short.");
+                             "Can't parse command. Received command is to short.");
     }
-    size_t tokenSeparatorPos = command.find(
+    size_t tokenSeparatorPos = commandBuffer.find(
         kTokensSeparator);
-    string historyFromStr = command.substr(
+    string historyFromStr = commandBuffer.substr(
         0,
         tokenSeparatorPos);
     if (historyFromStr.at(0) == '-') {
         throw ValueError("HistoryPaymentsCommand::parse: "
-                                 "Can't parse command. 'from' token can't be negative.");
+                             "Can't parse command. 'from' token can't be negative.");
     }
     try {
         mHistoryFrom = std::stoul(historyFromStr);
     } catch (...) {
         throw ValueError("HistoryPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing  'from' token.");
+                             "Can't parse command. Error occurred while parsing  'from' token.");
     }
 
-    size_t nextTokenSeparatorPos = command.find(
+    size_t nextTokenSeparatorPos = commandBuffer.find(
         kTokensSeparator,
         tokenSeparatorPos + 1);
-    string historyCountStr = command.substr(
+    string historyCountStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (historyCountStr.at(0) == '-') {
         throw ValueError("HistoryPaymentsCommand::parse: "
-                                 "Can't parse command. 'count' token can't be negative.");
+                             "Can't parse command. 'count' token can't be negative.");
     }
     try {
         mHistoryCount = std::stoul(historyCountStr);
     } catch (...) {
         throw ValueError("HistoryPaymentsCommand::parse: "
-                                 "Can't parse command. Error occurred while parsing 'count' token.");
+                             "Can't parse command. Error occurred while parsing 'count' token.");
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = command.find(
+    nextTokenSeparatorPos = commandBuffer.find(
         kTokensSeparator,
         tokenSeparatorPos + 1);
-    string timeFromStr = command.substr(
+    string timeFromStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (timeFromStr == kNullParameter) {
@@ -83,10 +68,10 @@ void HistoryPaymentsCommand::parse(
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = command.find(
+    nextTokenSeparatorPos = commandBuffer.find(
         kTokensSeparator,
         tokenSeparatorPos + 1);
-    string timeToStr = command.substr(
+    string timeToStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (timeToStr == kNullParameter) {
@@ -104,10 +89,10 @@ void HistoryPaymentsCommand::parse(
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = command.find(
+    nextTokenSeparatorPos = commandBuffer.find(
         kTokensSeparator,
         tokenSeparatorPos + 1);
-    string lowBoundaryAmountStr = command.substr(
+    string lowBoundaryAmountStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (lowBoundaryAmountStr == kNullParameter) {
@@ -116,7 +101,7 @@ void HistoryPaymentsCommand::parse(
         mIsLowBoundartAmountPresent = true;
         try {
             mLowBoundaryAmount = TrustLineAmount(
-                lowBoundaryAmountStr);
+                    lowBoundaryAmountStr);
         } catch (...) {
             throw ValueError("HistoryPaymentsCommand::parse: "
                                  "Can't parse command. Error occurred while parsing 'lowBoundaryAmount' token.");
@@ -124,10 +109,10 @@ void HistoryPaymentsCommand::parse(
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = command.find(
+    nextTokenSeparatorPos = commandBuffer.find(
         kTokensSeparator,
         tokenSeparatorPos + 1);
-    string highBoundaryAmountStr = command.substr(
+    string highBoundaryAmountStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (highBoundaryAmountStr == kNullParameter) {
@@ -136,7 +121,7 @@ void HistoryPaymentsCommand::parse(
         mIsHighBoundaryAmountPresent = true;
         try {
             mHighBoundaryAmount = TrustLineAmount(
-                highBoundaryAmountStr);
+                    highBoundaryAmountStr);
         } catch (...) {
             throw ValueError("HistoryPaymentsCommand::parse: "
                                  "Can't parse command. Error occurred while parsing 'mHighBoundaryAmount' token.");
@@ -144,8 +129,8 @@ void HistoryPaymentsCommand::parse(
     }
 
     tokenSeparatorPos = nextTokenSeparatorPos;
-    nextTokenSeparatorPos = command.size() - 1;
-    string paymentRecordCommandUUIDStr = command.substr(
+    nextTokenSeparatorPos = commandBuffer.size() - 1;
+    string paymentRecordCommandUUIDStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (paymentRecordCommandUUIDStr == kNullParameter) {
@@ -159,6 +144,12 @@ void HistoryPaymentsCommand::parse(
                                  "Can't parse command. Error occurred while parsing 'mPaymentRecordCommandUUID' token.");
         }
     }
+}
+
+const string &HistoryPaymentsCommand::identifier()
+{
+    static const string identifier = "GET:history/payments";
+    return identifier;
 }
 
 const size_t HistoryPaymentsCommand::historyFrom() const

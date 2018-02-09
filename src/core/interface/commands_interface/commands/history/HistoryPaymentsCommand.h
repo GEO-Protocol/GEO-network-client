@@ -17,7 +17,8 @@ public:
 
     static const string &identifier();
 
-    CommandResult::SharedConst resultOk(string &historyPaymentsStr) const;
+    CommandResult::SharedConst resultOk(
+        string &historyPaymentsStr) const;
 
     const size_t historyFrom() const;
 
@@ -42,10 +43,6 @@ public:
     const CommandUUID &paymentRecordCommandUUID() const;
 
     const bool isPaymentRecordCommandUUIDPresent() const;
-
-protected:
-    void parse(
-        const string &command);
 
 private:
     string kNullParameter = "null";

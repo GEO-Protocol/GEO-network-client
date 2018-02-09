@@ -49,14 +49,6 @@ InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
     }
 }
 
-InitiateMaxFlowCalculationCommand::InitiateMaxFlowCalculationCommand(
-    BytesShared buffer) :
-
-    BaseUserCommand(identifier())
-{
-    deserializeFromBytes(buffer);
-}
-
 const string &InitiateMaxFlowCalculationCommand::identifier()
 {
     static const string identifier = "GET:contractors/transactions/max";

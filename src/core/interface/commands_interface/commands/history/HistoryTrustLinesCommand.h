@@ -17,7 +17,8 @@ public:
 
     static const string &identifier();
 
-    CommandResult::SharedConst resultOk(string &historyTrustLinesStr) const;
+    CommandResult::SharedConst resultOk(
+        string &historyTrustLinesStr) const;
 
     const size_t historyFrom() const;
 
@@ -30,10 +31,6 @@ public:
     const bool isTimeFromPresent() const;
 
     const bool isTimeToPresent() const;
-
-protected:
-    void parse(
-            const string &command);
 
 private:
     string kNullParameter = "null";

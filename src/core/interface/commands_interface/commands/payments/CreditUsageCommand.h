@@ -16,34 +16,21 @@ public:
     typedef shared_ptr<CreditUsageCommand> Shared;
 
 public:
-    static const string &identifier();
-
-// TODO: deprecated
-//    static const size_t kMinRequestedBufferSize();
-
-public:
     CreditUsageCommand(
         const CommandUUID &uuid,
         const string &commandBuffer);
 
-    CreditUsageCommand(
-        BytesShared buffer);
+    static const string &identifier();
 
-    pair<BytesShared, size_t> serializeToBytes();
     const TrustLineAmount& amount() const;
+
     const NodeUUID& contractorUUID() const;
 
 public:
     // Results handlers
     CommandResult::SharedConst responseNoConsensus() const;
-    CommandResult::SharedConst responseOK(string &transactionUUID) const;
-
-protected:
-    void deserializeFromBytes(
-        BytesShared buffer);
-
-    void parse(
-        const string &command);
+    CommandResult::SharedConst responseOK(
+        string &transactionUUID) const;
 
 private:
     NodeUUID mContractorUUID;

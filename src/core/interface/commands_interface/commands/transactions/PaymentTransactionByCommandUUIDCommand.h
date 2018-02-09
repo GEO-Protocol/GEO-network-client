@@ -20,11 +20,6 @@ public:
 
     const CommandUUID &paymentTransactionCommandUUID() const;
 
-protected:
-    [[deprecated("Remove it when parent class would be updated")]]
-    void parse(
-        const string &_){}
-
 private:
     CommandUUID mPaymentTransactionCommandUUID;
 };

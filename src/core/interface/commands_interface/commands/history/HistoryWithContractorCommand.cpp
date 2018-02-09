@@ -8,29 +8,14 @@ HistoryWithContractorCommand::HistoryWithContractorCommand(
         uuid,
         identifier())
 {
-    parse(commandBuffer);
-}
-
-const string &HistoryWithContractorCommand::identifier()
-{
-    static const string identifier = "GET:history/contractor";
-    return identifier;
-}
-
-/**
- * Throws ValueError if deserialization was unsuccessful.
- */
-void HistoryWithContractorCommand::parse(
-    const string &command)
-{
     const auto minCommandLength = NodeUUID::kHexSize + 5;
-    if (command.size() < minCommandLength) {
+    if (commandBuffer.size() < minCommandLength) {
         throw ValueError("HistoryWithContractorCommand::parse: "
                              "Can't parse command. Received command is to short.");
     }
-    size_t tokenSeparatorPos = command.find(
+    size_t tokenSeparatorPos = commandBuffer.find(
         kTokensSeparator);
-    string historyFromStr = command.substr(
+    string historyFromStr = commandBuffer.substr(
         0,
         tokenSeparatorPos);
     if (historyFromStr.at(0) == '-') {
@@ -44,10 +29,10 @@ void HistoryWithContractorCommand::parse(
                              "Can't parse command. Error occurred while parsing  'from' token.");
     }
 
-    size_t nextTokenSeparatorPos = command.find(
+    size_t nextTokenSeparatorPos = commandBuffer.find(
         kTokensSeparator,
         tokenSeparatorPos + 1);
-    string historyCountStr = command.substr(
+    string historyCountStr = commandBuffer.substr(
         tokenSeparatorPos + 1,
         nextTokenSeparatorPos - tokenSeparatorPos - 1);
     if (historyCountStr.at(0) == '-') {
@@ -63,7 +48,7 @@ void HistoryWithContractorCommand::parse(
 
     tokenSeparatorPos = nextTokenSeparatorPos;
     try {
-        string hexUUID = command.substr(
+        string hexUUID = commandBuffer.substr(
             tokenSeparatorPos + 1,
             NodeUUID::kHexSize);
         mContractorUUID = boost::lexical_cast<uuids::uuid>(hexUUID);
@@ -72,10 +57,16 @@ void HistoryWithContractorCommand::parse(
                              "Can't parse command. Error occurred while parsing 'Contractor UUID' token.");
     }
     nextTokenSeparatorPos = tokenSeparatorPos + NodeUUID::kHexSize + 1;
-    if (nextTokenSeparatorPos + 1 < command.length()) {
+    if (nextTokenSeparatorPos + 1 < commandBuffer.length()) {
         throw ValueError("HistoryWithContractorCommand::parse: "
                              "Can't parse command. Command contains extra characters");
     }
+}
+
+const string &HistoryWithContractorCommand::identifier()
+{
+    static const string identifier = "GET:history/contractor";
+    return identifier;
 }
 
 const size_t HistoryWithContractorCommand::historyFrom() const

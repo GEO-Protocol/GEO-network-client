@@ -12,16 +12,14 @@ public:
 
 public:
     GetFirstLevelContractorsCommand(
-            const CommandUUID &uuid,
-            const string &commandBuffer)
+        const CommandUUID &uuid,
+        const string &commandBuffer)
         noexcept;
 
     static const string &identifier();
 
-    CommandResult::SharedConst resultOk(string &neighbors) const;
+    CommandResult::SharedConst resultOk(
+        string &neighbors) const;
 
-protected:
-    void parse(
-            const string &command);
 };
 #endif //GEO_NETWORK_CLIENT_GETFIRSTLEVELCONTRACTORSCOMMAND_H

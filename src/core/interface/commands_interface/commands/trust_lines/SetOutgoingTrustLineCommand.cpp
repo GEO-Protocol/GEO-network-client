@@ -45,15 +45,6 @@ SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
     }
 }
 
-SetOutgoingTrustLineCommand::SetOutgoingTrustLineCommand(
-    BytesShared buffer) :
-
-    BaseUserCommand(identifier())
-{
-    // todo: move code from deserializeFromBytes here.
-    deserializeFromBytes(buffer);
-}
-
 const string &SetOutgoingTrustLineCommand::identifier()
     noexcept
 {
@@ -71,68 +62,4 @@ const TrustLineAmount &SetOutgoingTrustLineCommand::amount() const
     noexcept
 {
     return mAmount;
-}
-
-pair<BytesShared, size_t> SetOutgoingTrustLineCommand::serializeToBytes() {
-
-    auto parentBytesAndCount = BaseUserCommand::serializeToBytes();
-
-    size_t bytesCount = parentBytesAndCount.second +
-        NodeUUID::kBytesSize +
-        kTrustLineAmountBytesCount;
-    BytesShared dataBytesShared = tryCalloc(bytesCount);
-    size_t dataBytesOffset = 0;
-    //----------------------------------------------------
-    memcpy(
-        dataBytesShared.get(),
-        parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
-    dataBytesOffset += parentBytesAndCount.second;
-    //----------------------------------------------------
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        mContractorUUID.data,
-        NodeUUID::kBytesSize
-    );
-    dataBytesOffset += NodeUUID::kBytesSize;
-    //----------------------------------------------------
-    vector<byte> buffer = trustLineAmountToBytes(mAmount);
-    memcpy(
-        dataBytesShared.get() + dataBytesOffset,
-        buffer.data(),
-        buffer.size()
-    );
-    //----------------------------------------------------
-    return make_pair(
-        dataBytesShared,
-        bytesCount
-    );
-}
-
-void SetOutgoingTrustLineCommand::deserializeFromBytes(
-    BytesShared buffer) {
-
-    BaseUserCommand::deserializeFromBytes(buffer);
-    size_t bytesBufferOffset = BaseUserCommand::kOffsetToInheritedBytes();
-    //----------------------------------------------------
-    memcpy(
-        mContractorUUID.data,
-        buffer.get() + bytesBufferOffset,
-        NodeUUID::kBytesSize
-    );
-    bytesBufferOffset += NodeUUID::kBytesSize;
-    //----------------------------------------------------
-    vector<byte> amountBytes(
-        buffer.get() + bytesBufferOffset,
-        buffer.get() + bytesBufferOffset + kTrustLineAmountBytesCount);
-
-    mAmount = bytesToTrustLineAmount(amountBytes);
-}
-
-const size_t SetOutgoingTrustLineCommand::kRequestedBufferSize()
-    noexcept
-{
-    static const size_t size = kOffsetToInheritedBytes() + NodeUUID::kBytesSize + kTrustLineAmountBytesCount;
-    return size;
 }
