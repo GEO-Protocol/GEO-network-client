@@ -140,12 +140,12 @@ BasePaymentTransaction::BasePaymentTransaction(
             bytesBufferOffset += TransactionUUID::kBytesSize;
 
             // Direction
-            uint8_t stepDirection;
+            AmountReservation::SerializedReservationDirectionSize stepDirection;
             memcpy(
                 &stepDirection,
                 buffer.get() + bytesBufferOffset,
-                sizeof(uint8_t));
-            bytesBufferOffset += sizeof(uint8_t);
+                sizeof(AmountReservation::SerializedReservationDirectionSize));
+            bytesBufferOffset += sizeof(AmountReservation::SerializedReservationDirectionSize);
             auto stepEnumDirection = static_cast<AmountReservation::ReservationDirection>(stepDirection);
 
             auto stepAmountReservation = make_shared<AmountReservation>(
@@ -877,7 +877,7 @@ bool BasePaymentTransaction::updateReservations(
     return updatedPaths.size() == finalAmounts.size();
 }
 
-BasePaymentTransaction::PathID BasePaymentTransaction::updateReservation(
+PathID BasePaymentTransaction::updateReservation(
     const NodeUUID &contractorUUID,
     pair<PathID, AmountReservation::ConstShared> &pathIDAndReservation,
     const vector<pair<PathID, ConstSharedTrustLineAmount>> &finalAmounts)
@@ -1260,8 +1260,8 @@ pair<BytesShared, size_t> BasePaymentTransaction::serializeToBytes() const
             memcpy(
                 dataBytesShared.get() + dataBytesOffset,
                 &kDirection,
-                sizeof(uint8_t));
-            dataBytesOffset += sizeof(uint8_t);
+                sizeof(AmountReservation::SerializedReservationDirectionSize));
+            dataBytesOffset += sizeof(AmountReservation::SerializedReservationDirectionSize);
         }
     }
     return make_pair(
@@ -1276,7 +1276,8 @@ size_t BasePaymentTransaction::reservationsSizeInBytes() const {
                                 sizeof(PathID) + // PathID
                                 kTrustLineAmountBytesCount +  // Reservation Amount
                                 TransactionUUID::kBytesSize + // Reservation Transaction UUID
-                                sizeof(uint8_t)) * it->second.size() + // Reservation Direction
+                                                              // Reservation Direction
+                                sizeof(AmountReservation::SerializedReservationDirectionSize)) * it->second.size() +
                                 sizeof(uint64_t); // Vector Size
 
     }
@@ -1289,7 +1290,7 @@ const NodeUUID& BasePaymentTransaction::coordinatorUUID() const
     return currentNodeUUID();
 }
 
-const uint8_t BasePaymentTransaction::cycleLength() const
+const SerializedPathLengthSize BasePaymentTransaction::cycleLength() const
 {
     return 0;
 }

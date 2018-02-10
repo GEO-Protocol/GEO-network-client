@@ -28,14 +28,14 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
         NodeUUID::kBytesSize);
     bytesBufferOffset += NodeUUID::kBytesSize;
 
-    RecordsCount kRecordsCount;
+    SerializedRecordsCount kRecordsCount;
     memcpy(
         &kRecordsCount,
         buffer.get() + bytesBufferOffset,
-        sizeof(RecordsCount));
-    bytesBufferOffset += sizeof(RecordsCount);
+        sizeof(SerializedRecordsCount));
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
 
-    for (RecordsCount i=0; i<kRecordsCount; ++i) {
+    for (SerializedRecordNumber i=0; i<kRecordsCount; ++i) {
         NodeUUID participantUUID(buffer.get() + bytesBufferOffset);
 
         const SerializedVote kVote =
@@ -64,7 +64,7 @@ ParticipantsVotesMessage::ParticipantsVotesMessage(
 void ParticipantsVotesMessage::addParticipant(
     const NodeUUID &participant)
 {
-    if (mVotes.size() == numeric_limits<RecordsCount>::max()-1)
+    if (mVotes.size() == numeric_limits<SerializedRecordsCount>::max()-1)
         throw OverflowError(
             "ParticipantsVotesMessage::addParticipant: "
             "no more new participants can be added.");
@@ -170,7 +170,7 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
     const auto kBufferSize =
         parentBytesAndCount.second
         + NodeUUID::kBytesSize
-        + sizeof(RecordsCount)
+        + sizeof(SerializedRecordsCount)
         + kTotalParticipantsCount * kParticipantRecordSize;
 
     BytesShared buffer = tryMalloc(kBufferSize);
@@ -194,11 +194,11 @@ pair<BytesShared, size_t> ParticipantsVotesMessage::serializeToBytes() const
     memcpy(
         buffer.get() + dataBytesOffset,
         &kTotalParticipantsCount,
-        sizeof(RecordsCount));
-    dataBytesOffset += sizeof(RecordsCount);
+        sizeof(SerializedRecordsCount));
+    dataBytesOffset += sizeof(SerializedRecordsCount);
 
     // Nodes UUIDs and votes
-    for (const auto NodeUUIDAndVote : mVotes) {
+    for (const auto &NodeUUIDAndVote : mVotes) {
 
         const auto kParticipantUUID = NodeUUIDAndVote.first;
         memcpy(
@@ -268,7 +268,7 @@ bool ParticipantsVotesMessage::containsRejectVote() const {
  * Otherwise - returns false;
  */
 bool ParticipantsVotesMessage::achievedConsensus() const {
-    for (const auto kNodeAndVote : mVotes) {
+    for (const auto &kNodeAndVote : mVotes) {
         if (kNodeAndVote.second == Vote::Uncertain or
             kNodeAndVote.second == Vote::Rejected)
             return false;

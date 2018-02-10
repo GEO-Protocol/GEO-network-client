@@ -5,7 +5,7 @@ IntermediateNodeCycleReservationRequestMessage::IntermediateNodeCycleReservation
     const TransactionUUID& transactionUUID,
     const TrustLineAmount& amount,
     const NodeUUID& coordinatorUUID,
-    uint8_t cycleLength) :
+    SerializedPathLengthSize cycleLength) :
 
     RequestCycleMessage(
         senderUUID,
@@ -27,7 +27,7 @@ IntermediateNodeCycleReservationRequestMessage::IntermediateNodeCycleReservation
         coordinatorUUIDOffset,
         NodeUUID::kBytesSize);
     auto cycleLengthOffset = coordinatorUUIDOffset + NodeUUID::kBytesSize;
-    uint8_t *cycleLength = new (cycleLengthOffset) uint8_t;
+    SerializedPathLengthSize *cycleLength = new (cycleLengthOffset) SerializedPathLengthSize;
     mCycleLength = *cycleLength;
 }
 
@@ -36,7 +36,7 @@ const Message::MessageType IntermediateNodeCycleReservationRequestMessage::typeI
     return Message::Payments_IntermediateNodeCycleReservationRequest;
 }
 
-uint8_t IntermediateNodeCycleReservationRequestMessage::cycleLength() const
+SerializedPathLengthSize IntermediateNodeCycleReservationRequestMessage::cycleLength() const
 {
     return mCycleLength;
 }
@@ -56,7 +56,7 @@ pair<BytesShared, size_t> IntermediateNodeCycleReservationRequestMessage::serial
     size_t totalBytesCount =
         + parentBytesAndCount.second
         + NodeUUID::kBytesSize
-        + sizeof(uint8_t);
+        + sizeof(SerializedPathLengthSize);
 
     BytesShared buffer = tryMalloc(totalBytesCount);
     auto initialOffset = buffer.get();
@@ -75,7 +75,7 @@ pair<BytesShared, size_t> IntermediateNodeCycleReservationRequestMessage::serial
     memcpy(
         cycleLengthOffset,
         &mCycleLength,
-        sizeof(uint8_t));
+        sizeof(SerializedPathLengthSize));
 
     return make_pair(
         buffer,

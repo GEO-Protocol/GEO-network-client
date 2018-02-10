@@ -43,7 +43,7 @@ public:
      * @return length of cycle which is closing by current transaction
      * used in CyclesManager for resolving cycle closing conflicts
      */
-    const uint8_t cycleLength() const;
+    const SerializedPathLengthSize cycleLength() const;
 
 protected:
     /**
@@ -121,7 +121,7 @@ protected:
 
     TrustLineAmount mLastReservedAmount;
     NodeUUID mCoordinator;
-    uint8_t mCycleLength;
+    SerializedPathLengthSize mCycleLength;
 
     // fields, wor continue process coordinator request after releasing conflicted reservation
     // transaction on which reservation we pretend

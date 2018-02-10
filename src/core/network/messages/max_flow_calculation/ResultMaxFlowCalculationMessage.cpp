@@ -17,11 +17,11 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
 {
     size_t bytesBufferOffset = SenderMessage::kOffsetToInheritedBytes();
     //----------------------------------------------------
-    RecordCount *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) RecordCount;
-    bytesBufferOffset += sizeof(RecordCount);
+    SerializedRecordsCount *trustLinesOutCount = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
     //-----------------------------------------------------
     mOutgoingFlows.reserve(*trustLinesOutCount);
-    for (RecordNumber idx = 0; idx < *trustLinesOutCount; idx++) {
+    for (SerializedRecordNumber idx = 0; idx < *trustLinesOutCount; idx++) {
         NodeUUID nodeUUID(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
@@ -37,11 +37,11 @@ ResultMaxFlowCalculationMessage::ResultMaxFlowCalculationMessage(
                 trustLineAmount)));
     }
     //----------------------------------------------------
-    RecordCount *trustLinesInCount = new (buffer.get() + bytesBufferOffset) RecordCount;
-    bytesBufferOffset += sizeof(RecordCount);
+    SerializedRecordsCount *trustLinesInCount = new (buffer.get() + bytesBufferOffset) SerializedRecordsCount;
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
     //-----------------------------------------------------
     mIncomingFlows.reserve(*trustLinesInCount);
-    for (RecordNumber idx = 0; idx < *trustLinesInCount; idx++) {
+    for (SerializedRecordNumber idx = 0; idx < *trustLinesInCount; idx++) {
         NodeUUID nodeUUID(buffer.get() + bytesBufferOffset);
         bytesBufferOffset += NodeUUID::kBytesSize;
         //---------------------------------------------------
@@ -68,8 +68,10 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() co
 {
     auto parentBytesAndCount = SenderMessage::serializeToBytes();
     size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(RecordCount) + mOutgoingFlows.size() * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount)
-                        + sizeof(RecordCount) + mIncomingFlows.size() * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
+                        + sizeof(SerializedRecordsCount) + mOutgoingFlows.size()
+                                                           * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount)
+                        + sizeof(SerializedRecordsCount) + mIncomingFlows.size()
+                                                           * (NodeUUID::kBytesSize + kTrustLineAmountBytesCount);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
@@ -79,12 +81,12 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() co
         parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
-    RecordCount trustLinesOutCount = (RecordCount)mOutgoingFlows.size();
+    SerializedRecordsCount trustLinesOutCount = (SerializedRecordsCount)mOutgoingFlows.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &trustLinesOutCount,
-        sizeof(RecordCount));
-    dataBytesOffset += sizeof(RecordCount);
+        sizeof(SerializedRecordsCount));
+    dataBytesOffset += sizeof(SerializedRecordsCount);
     //----------------------------------------------------
     for (auto const &it : mOutgoingFlows) {
         memcpy(
@@ -101,12 +103,12 @@ pair<BytesShared, size_t> ResultMaxFlowCalculationMessage::serializeToBytes() co
         dataBytesOffset += kTrustLineAmountBytesCount;
     }
     //----------------------------------------------------
-    RecordCount trustLinesInCount = (RecordCount)mIncomingFlows.size();
+    SerializedRecordsCount trustLinesInCount = (SerializedRecordsCount)mIncomingFlows.size();
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &trustLinesInCount,
-        sizeof(RecordCount));
-    dataBytesOffset += sizeof(RecordCount);
+        sizeof(SerializedRecordsCount));
+    dataBytesOffset += sizeof(SerializedRecordsCount);
     //----------------------------------------------------
     for (auto const &it : mIncomingFlows) {
         memcpy(

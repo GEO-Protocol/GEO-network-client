@@ -21,8 +21,7 @@ public:
     MessageResult(
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
-        const uint16_t resultCode
-    );
+        const uint16_t resultCode);
 
     const NodeUUID &senderUUID() const;
 

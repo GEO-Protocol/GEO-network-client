@@ -16,14 +16,14 @@ public:
         const TransactionUUID& transactionUUID,
         const TrustLineAmount& amount,
         const NodeUUID& coordinatorUUID,
-        uint8_t cucleLength);
+        SerializedPathLengthSize cucleLength);
 
     IntermediateNodeCycleReservationRequestMessage(
         BytesShared buffer);
 
     const NodeUUID& coordinatorUUID() const;
 
-    uint8_t cycleLength() const;
+    SerializedPathLengthSize cycleLength() const;
 
 protected:
     const MessageType typeID() const;
@@ -32,7 +32,7 @@ protected:
     throw(bad_alloc);
 
 protected:
-    uint8_t mCycleLength;
+    SerializedPathLengthSize mCycleLength;
     NodeUUID mCoordinatorUUID;
 };
 

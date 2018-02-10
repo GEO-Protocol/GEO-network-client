@@ -21,7 +21,7 @@ noexcept :
  * @throws ValueError in case if new state is less than previous one.
  */
 void PathStats::setNodeState(
-    const uint8_t positionInPath,
+    const SerializedPositionInPath positionInPath,
     const PathStats::NodeState state)
 throw (ValueError)
 {
@@ -78,10 +78,10 @@ noexcept
  * @throws NotFoundError in case if no currently processed node,
  * or last in the path is already processed.
  */
-const pair<NodeUUID, uint8_t> PathStats::currentIntermediateNodeAndPos () const
+const pair<NodeUUID, SerializedPositionInPath> PathStats::currentIntermediateNodeAndPos () const
 throw (NotFoundError)
 {
-    for (uint8_t i=0; i<mIntermediateNodesStates.size(); ++i)
+    for (SerializedPositionInPath i=0; i<mIntermediateNodesStates.size(); ++i)
         if (mIntermediateNodesStates[i] != PathStats::ReservationApproved &&
             mIntermediateNodesStates[i] != PathStats::ReservationRejected)
             return make_pair(mPath->nodes[i+1], i+1);
@@ -100,10 +100,10 @@ throw (NotFoundError)
  *
  * @throws NotFoundError - in case if all nodes of this path are already processed.
  */
-const pair<NodeUUID, uint8_t> PathStats::nextIntermediateNodeAndPos() const
+const pair<NodeUUID, SerializedPositionInPath> PathStats::nextIntermediateNodeAndPos() const
 throw (NotFoundError)
 {
-    for (uint8_t i=0; i<mIntermediateNodesStates.size(); ++i) {
+    for (SerializedPositionInPath i=0; i<mIntermediateNodesStates.size(); ++i) {
         if (0==i &&
             mIntermediateNodesStates[i] == PathStats::NeighbourReservationApproved) {
             return make_pair(mPath->nodes[i+1], i+1);

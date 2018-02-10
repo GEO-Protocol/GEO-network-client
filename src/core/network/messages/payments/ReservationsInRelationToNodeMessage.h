@@ -28,10 +28,6 @@ protected:
     pair<BytesShared, size_t> serializeToBytes() const
     throw (bad_alloc);
 
-protected:
-    typedef uint16_t RecordNumber;
-    typedef RecordNumber RecordCount;
-
 private:
     vector<pair<PathID, AmountReservation::ConstShared>> mReservations;
 };

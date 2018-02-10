@@ -3,7 +3,7 @@
 Response::Response(
     const NodeUUID &sender,
     const TransactionUUID &transactionUUID,
-    const uint16_t code) :
+    const SerializedResponseCode code) :
 
     TransactionMessage(
         sender,
@@ -19,7 +19,7 @@ Response::Response(
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //------------------------------
-    uint16_t *code = new (buffer.get() + bytesBufferOffset) uint16_t;
+    SerializedResponseCode *code = new (buffer.get() + bytesBufferOffset) SerializedResponseCode;
     mCode = *code;
 }
 
@@ -34,7 +34,7 @@ pair<BytesShared, size_t> Response::serializeToBytes() const
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(uint16_t);
+                        + sizeof(SerializedResponseCode);
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
@@ -48,7 +48,7 @@ pair<BytesShared, size_t> Response::serializeToBytes() const
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &mCode,
-        sizeof(uint16_t));
+        sizeof(SerializedResponseCode));
     //----------------------------
     return make_pair(
         dataBytesShared,

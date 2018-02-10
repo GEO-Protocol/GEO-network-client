@@ -83,7 +83,10 @@ const size_t BaseUserCommand::kOffsetToInheritedBytes()
 CommandResult::SharedConst BaseUserCommand::makeResult(
     const uint16_t code) const
 {
-    return make_shared<const CommandResult>(identifier(), UUID(), code);
+    return make_shared<const CommandResult>(
+        identifier(),
+        UUID(),
+        code);
 }
 
 CommandResult::SharedConst BaseUserCommand::responseOK() const

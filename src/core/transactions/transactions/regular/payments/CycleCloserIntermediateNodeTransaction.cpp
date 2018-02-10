@@ -655,7 +655,7 @@ const NodeUUID& CycleCloserIntermediateNodeTransaction::coordinatorUUID() const
     return mCoordinator;
 }
 
-const uint8_t CycleCloserIntermediateNodeTransaction::cycleLength() const
+const SerializedPathLengthSize CycleCloserIntermediateNodeTransaction::cycleLength() const
 {
     return mCycleLength;
 }

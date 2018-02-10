@@ -31,10 +31,6 @@ public:
     const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
 private:
-    typedef uint32_t RecordNumber;
-    typedef RecordNumber RecordCount;
-
-private:
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> mOutgoingFlows;
     vector<pair<NodeUUID, ConstSharedTrustLineAmount>> mIncomingFlows;
 };

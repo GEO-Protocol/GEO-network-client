@@ -26,9 +26,8 @@ protected:
     virtual pair<BytesShared, size_t> serializeToBytes() const
     throw (bad_alloc);
 
-protected:
-    typedef uint32_t RecordNumber;
-    typedef RecordNumber RecordCount;
+    const size_t kOffsetToInheritedBytes() const
+    noexcept;
 
 private:
     vector<pair<PathID, ConstSharedTrustLineAmount>> mFinalAmountsConfiguration;

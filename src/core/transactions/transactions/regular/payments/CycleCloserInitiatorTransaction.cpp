@@ -204,10 +204,6 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
         kTransactionUUID,
         kCurrentNodeUUID);
 
-#ifdef DEBUG
-    uint16_t totalParticipantsCount = 0;
-#endif
-
     // If paths wasn't processed - exclude it (all it's nodes).
     // Unprocessed paths may occur, because paths are loaded into the transaction in batch,
     // some of them may be used, and some may be left unprocessed.
@@ -224,19 +220,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::propagateVotesLi
             continue;
 
         mParticipantsVotesMessage->addParticipant(nodeUUID);
-
-#ifdef DEBUG
-        totalParticipantsCount++;
-#endif
     }
-
-#ifdef DEBUG
-    debug() << "Total participants included: " << totalParticipantsCount;
-    debug() << "Participants order is the next:";
-    for (const auto &kNodeUUIDAndVote : mParticipantsVotesMessage->votes()) {
-        debug() << kNodeUUIDAndVote.first;
-    }
-#endif
 
 #ifdef TESTS
     mSubsystemsController->testForbidSendMessageToNextNodeOnVoteStage();
@@ -999,10 +983,10 @@ void CycleCloserInitiatorTransaction::checkPath(
 }
 
 void CycleCloserInitiatorTransaction::informIntermediateNodesAboutTransactionFinish(
-    const uint8_t lastInformedNodePosition)
+    const SerializedPositionInPath lastInformedNodePosition)
 {
     debug() << "informIntermediateNodesAboutTransactionFinish";
-    for (uint8_t nodePosition = 1; nodePosition <= lastInformedNodePosition; nodePosition++) {
+    for (SerializedPositionInPath nodePosition = 1; nodePosition <= lastInformedNodePosition; nodePosition++) {
         sendMessage<TTLProlongationResponseMessage>(
             mPathStats->path()->nodes.at(nodePosition),
             currentNodeUUID(),
@@ -1095,9 +1079,9 @@ const NodeUUID& CycleCloserInitiatorTransaction::coordinatorUUID() const
     return currentNodeUUID();
 }
 
-const uint8_t CycleCloserInitiatorTransaction::cycleLength() const
+const SerializedPathLengthSize CycleCloserInitiatorTransaction::cycleLength() const
 {
-    return (uint8_t)mPathStats->path()->length();
+    return (SerializedPathLengthSize)mPathStats->path()->length();
 }
 
 const string CycleCloserInitiatorTransaction::logHeader() const

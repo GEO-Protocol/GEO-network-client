@@ -16,12 +16,6 @@ public:
     typedef uint16_t SerializedType;
 
 public:
-    // TODO: move it into separate *.h file.
-    // it used in pair of BasePaymentTransaction::PathID
-    // so if you change this one, you should change another too
-    typedef uint16_t PathID;
-
-public:
     enum MessageType {
         /*
          * System messages types
@@ -154,7 +148,7 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         noexcept(false)
     {
-        const uint16_t kMessageType = typeID();
+        const SerializedType kMessageType = typeID();
         auto buffer = tryMalloc(sizeof(kMessageType));
 
         memcpy(
@@ -174,7 +168,7 @@ protected:
 
     virtual const size_t kOffsetToInheritedBytes() const
     {
-        return sizeof(uint16_t);
+        return sizeof(SerializedType);
     }
 };
 

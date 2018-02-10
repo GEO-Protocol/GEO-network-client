@@ -22,22 +22,20 @@ CyclesThreeNodesBalancesRequestMessage::CyclesThreeNodesBalancesRequestMessage(
 {
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
 
-    uint16_t neighborsCount;
+    SerializedRecordsCount neighborsCount;
     // path
     memcpy(
         &neighborsCount,
         buffer.get() + bytesBufferOffset,
-        sizeof(uint16_t)
-    );
-    bytesBufferOffset += sizeof(neighborsCount);
+        sizeof(SerializedRecordsCount));
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
 
-    for (uint8_t i = 1; i <= neighborsCount; ++i) {
+    for (SerializedRecordNumber i = 1; i <= neighborsCount; ++i) {
         NodeUUID stepNode;
         memcpy(
             stepNode.data,
             buffer.get() + bytesBufferOffset,
-            NodeUUID::kBytesSize
-        );
+            NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
         mNeighbors.push_back(stepNode);
     }
@@ -47,47 +45,45 @@ pair<BytesShared, size_t> CyclesThreeNodesBalancesRequestMessage::serializeToByt
     throw(bad_alloc)
 {
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
-    uint16_t neighborsCount = mNeighbors.size();
+    SerializedRecordsCount neighborsCount = (SerializedRecordsCount)mNeighbors.size();
     size_t bytesCount = parentBytesAndCount.second
-                        + sizeof(neighborsCount)
+                        + sizeof(SerializedRecordsCount)
                         + neighborsCount * NodeUUID::kBytesSize;
 
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //----------------------------------------------------
     memcpy(
-            dataBytesShared.get(),
-            parentBytesAndCount.first.get(),
-            parentBytesAndCount.second
-    );
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     // For path
     memcpy(
-            dataBytesShared.get() + dataBytesOffset,
-            &neighborsCount,
-            sizeof(neighborsCount)
-    );
-    dataBytesOffset += sizeof(neighborsCount);
+        dataBytesShared.get() + dataBytesOffset,
+        &neighborsCount,
+        sizeof(SerializedRecordsCount));
+    dataBytesOffset += sizeof(SerializedRecordsCount);
 
     for(auto const& value: mNeighbors) {
         memcpy(
-                dataBytesShared.get() + dataBytesOffset,
-                &value,
-                NodeUUID::kBytesSize
-        );
+            dataBytesShared.get() + dataBytesOffset,
+            &value,
+            NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
     }
     //----------------------------------------------------
     return make_pair(
-            dataBytesShared,
-            bytesCount
-    );
+        dataBytesShared,
+        bytesCount);
 }
 
-const Message::MessageType CyclesThreeNodesBalancesRequestMessage::typeID() const {
+const Message::MessageType CyclesThreeNodesBalancesRequestMessage::typeID() const
+{
     return Message::MessageType::Cycles_ThreeNodesBalancesRequest;
 }
 
-vector<NodeUUID> CyclesThreeNodesBalancesRequestMessage::Neighbors() {
+vector<NodeUUID> CyclesThreeNodesBalancesRequestMessage::Neighbors()
+{
     return mNeighbors;
 }

@@ -19,10 +19,7 @@ CoordinatorReservationRequestMessage::CoordinatorReservationRequestMessage(
 
     RequestMessageWithReservations(buffer)
 {
-    size_t parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes()
-                                 + sizeof(RequestMessageWithReservations::RecordCount)
-                                 + finalAmountsConfiguration().size() *
-                                   (sizeof(PathID) + kTrustLineAmountBytesCount);
+    size_t parentMessageOffset = RequestMessageWithReservations::kOffsetToInheritedBytes();
 
     memcpy(
         mNextPathNode.data,

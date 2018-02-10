@@ -28,7 +28,7 @@ public:
     noexcept;
 
     void setNodeState (
-        const uint8_t positionInPath,
+        const SerializedPositionInPath positionInPath,
         const NodeState state)
     throw(ValueError);
 
@@ -42,10 +42,10 @@ public:
     const Path::ConstShared path () const
     noexcept;
 
-    const pair<NodeUUID, uint8_t> currentIntermediateNodeAndPos () const
+    const pair<NodeUUID, SerializedPositionInPath> currentIntermediateNodeAndPos () const
     throw (NotFoundError);
 
-    const pair<NodeUUID, uint8_t> nextIntermediateNodeAndPos () const
+    const pair<NodeUUID, SerializedPositionInPath> nextIntermediateNodeAndPos () const
     throw (NotFoundError);
 
     const bool reservationRequestSentToAllNodes () const

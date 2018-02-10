@@ -19,11 +19,11 @@ ReservationsInRelationToNodeMessage::ReservationsInRelationToNodeMessage(
     auto parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes();
     auto bytesBufferOffset = buffer.get() + parentMessageOffset;
     //----------------------------------------------------
-    RecordCount *reservationsCount = new (bytesBufferOffset) RecordCount;
-    bytesBufferOffset += sizeof(RecordCount);
+    SerializedRecordsCount *reservationsCount = new (bytesBufferOffset) SerializedRecordsCount;
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
     //-----------------------------------------------------
     mReservations.reserve(*reservationsCount);
-    for (RecordNumber idx = 0; idx < *reservationsCount; idx++) {
+    for (SerializedRecordNumber idx = 0; idx < *reservationsCount; idx++) {
 
         // PathID
         PathID *pathID = new (bytesBufferOffset) PathID;
@@ -37,9 +37,9 @@ ReservationsInRelationToNodeMessage::ReservationsInRelationToNodeMessage(
         TrustLineAmount reservationAmount = bytesToTrustLineAmount(bufferTrustLineAmount);
 
         // Direction
-        // todo : add type ReservationDirectionSize
-        uint8_t *direction = new (bytesBufferOffset)uint8_t;
-        bytesBufferOffset += sizeof(uint8_t);
+        AmountReservation::SerializedReservationDirectionSize *direction =
+                new (bytesBufferOffset)AmountReservation::SerializedReservationDirectionSize;
+        bytesBufferOffset += sizeof(AmountReservation::SerializedReservationDirectionSize);
         auto reservationEnumDirection = static_cast<AmountReservation::ReservationDirection>(*direction);
 
         auto amountReservation = make_shared<AmountReservation>(
@@ -53,7 +53,7 @@ ReservationsInRelationToNodeMessage::ReservationsInRelationToNodeMessage(
     }
 }
 
-const vector<pair<Message::PathID, AmountReservation::ConstShared>>& ReservationsInRelationToNodeMessage::reservations() const
+const vector<pair<PathID, AmountReservation::ConstShared>>& ReservationsInRelationToNodeMessage::reservations() const
 {
     return mReservations;
 }
@@ -64,9 +64,9 @@ pair<BytesShared, size_t> ReservationsInRelationToNodeMessage::serializeToBytes(
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount =
         + parentBytesAndCount.second
-        + sizeof(RecordCount)
+        + sizeof(SerializedRecordsCount)
         + mReservations.size() *
-          (sizeof(PathID) + kTrustLineAmountBytesCount + sizeof(uint8_t));
+          (sizeof(PathID) + kTrustLineAmountBytesCount + sizeof(AmountReservation::SerializedReservationDirectionSize));
 
     BytesShared buffer = tryMalloc(bytesCount);
 
@@ -77,12 +77,12 @@ pair<BytesShared, size_t> ReservationsInRelationToNodeMessage::serializeToBytes(
         parentBytesAndCount.second);
     auto bytesBufferOffset = initialOffset + parentBytesAndCount.second;
     //----------------------------------------------------
-    RecordCount reservationsCount = (RecordCount)mReservations.size();
+    SerializedRecordsCount reservationsCount = (SerializedRecordsCount)mReservations.size();
     memcpy(
         bytesBufferOffset,
         &reservationsCount,
-        sizeof(RecordCount));
-    bytesBufferOffset += sizeof(RecordCount);
+        sizeof(SerializedRecordsCount));
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
     //----------------------------------------------------
     for (auto const &it : mReservations) {
         memcpy(
@@ -102,8 +102,8 @@ pair<BytesShared, size_t> ReservationsInRelationToNodeMessage::serializeToBytes(
         memcpy(
             bytesBufferOffset,
             &kDirection,
-            sizeof(uint8_t));
-        bytesBufferOffset += sizeof(uint8_t);
+            sizeof(AmountReservation::SerializedReservationDirectionSize));
+        bytesBufferOffset += sizeof(AmountReservation::SerializedReservationDirectionSize);
     }
     //----------------------------------------------------
     return make_pair(

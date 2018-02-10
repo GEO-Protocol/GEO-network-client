@@ -20,11 +20,11 @@ RequestMessageWithReservations::RequestMessageWithReservations(
     auto parentMessageOffset = TransactionMessage::kOffsetToInheritedBytes();
     auto bytesBufferOffset = buffer.get() + parentMessageOffset;
     //----------------------------------------------------
-    RecordCount *finalAmountsConfigurationCount = new (bytesBufferOffset) RecordCount;
-    bytesBufferOffset += sizeof(RecordCount);
+    SerializedRecordsCount *finalAmountsConfigurationCount = new (bytesBufferOffset) SerializedRecordsCount;
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
     //-----------------------------------------------------
     mFinalAmountsConfiguration.reserve(*finalAmountsConfigurationCount);
-    for (RecordNumber idx = 0; idx < *finalAmountsConfigurationCount; idx++) {
+    for (SerializedRecordNumber idx = 0; idx < *finalAmountsConfigurationCount; idx++) {
         PathID *pathID = new (bytesBufferOffset) PathID;
         bytesBufferOffset += sizeof(PathID);
         //---------------------------------------------------
@@ -42,7 +42,7 @@ RequestMessageWithReservations::RequestMessageWithReservations(
     }
 }
 
-const vector<pair<Message::PathID, ConstSharedTrustLineAmount>>& RequestMessageWithReservations::finalAmountsConfiguration() const
+const vector<pair<PathID, ConstSharedTrustLineAmount>>& RequestMessageWithReservations::finalAmountsConfiguration() const
 {
     return mFinalAmountsConfiguration;
 }
@@ -57,7 +57,7 @@ pair<BytesShared, size_t> RequestMessageWithReservations::serializeToBytes() con
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
     size_t bytesCount =
             + parentBytesAndCount.second
-            + sizeof(RecordCount)
+            + sizeof(SerializedRecordsCount)
             + mFinalAmountsConfiguration.size() *
               (sizeof(PathID) + kTrustLineAmountBytesCount);
 
@@ -71,12 +71,12 @@ pair<BytesShared, size_t> RequestMessageWithReservations::serializeToBytes() con
     auto bytesBufferOffset = initialOffset + parentBytesAndCount.second;
 
     //----------------------------------------------------
-    RecordCount finalAmountsConfigurationCount = (RecordCount)mFinalAmountsConfiguration.size();
+    SerializedRecordsCount finalAmountsConfigurationCount = (SerializedRecordsCount)mFinalAmountsConfiguration.size();
     memcpy(
         bytesBufferOffset,
         &finalAmountsConfigurationCount,
-        sizeof(RecordCount));
-    bytesBufferOffset += sizeof(RecordCount);
+        sizeof(SerializedRecordsCount));
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
     //----------------------------------------------------
     for (auto const &it : mFinalAmountsConfiguration) {
         memcpy(
@@ -96,4 +96,16 @@ pair<BytesShared, size_t> RequestMessageWithReservations::serializeToBytes() con
     return make_pair(
         buffer,
         bytesCount);
+}
+
+const size_t RequestMessageWithReservations::kOffsetToInheritedBytes() const
+    noexcept
+{
+    static const auto kOffset =
+            TransactionMessage::kOffsetToInheritedBytes()
+            + sizeof(SerializedRecordsCount)
+            + finalAmountsConfiguration().size() *
+              (sizeof(PathID) + kTrustLineAmountBytesCount);
+
+    return kOffset;
 }

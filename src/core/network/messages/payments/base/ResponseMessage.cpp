@@ -34,7 +34,7 @@ const ResponseMessage::OperationState ResponseMessage::state() const
     return mState;
 }
 
-const Message::PathID ResponseMessage::pathID() const
+const PathID ResponseMessage::pathID() const
 {
     return mPathID;
 }

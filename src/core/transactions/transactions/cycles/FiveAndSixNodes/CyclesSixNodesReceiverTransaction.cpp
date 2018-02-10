@@ -10,25 +10,26 @@ CyclesSixNodesReceiverTransaction::CyclesSixNodesReceiverTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(manager),
-    mInBetweenNodeTopologyMessage(message) {
-}
+    mInBetweenNodeTopologyMessage(message)
+{}
 
-TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
+TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run()
+{
     vector<NodeUUID> path = mInBetweenNodeTopologyMessage->Path();
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-    const uint8_t kCurrentDepth = path.size();
+    const SerializedPathLengthSize kCurrentDepth = path.size();
 #pragma clang diagnostic pop
     const TrustLineBalance kZeroBalance = 0;
     // Direction has mirror sign for initiator node and receiver node.
     // Direction is calculated based on initiator node
     TrustLineBalance maxFlow = (-1) *  mTrustLinesManager->balance(path.back());
 
-//  If balance to previous node equal zero finish transaction
+    //  If balance to previous node equal zero finish transaction
     if (maxFlow == kZeroBalance)
         return resultDone();
     auto kFirstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
-//  Update message path and send to next level nodes
+    //  Update message path and send to next level nodes
 #ifdef DDEBUG_LOG_CYCLES_BUILDING_POCESSING
     info() << "current depth: " << to_string(kCurrentDepth);
 #endif
@@ -37,16 +38,14 @@ TransactionResult::SharedConst CyclesSixNodesReceiverTransaction::run() {
         for(const auto &kNodeUUIDAndBalance: kFirstLevelNodes)
             sendMessage(
                 kNodeUUIDAndBalance,
-                mInBetweenNodeTopologyMessage
-            );
+                mInBetweenNodeTopologyMessage);
     }
     else if (kCurrentDepth==2){
         path.push_back(mNodeUUID);
         sendMessage<CyclesSixNodesBoundaryMessage>(
             path.front(),
             path,
-            kFirstLevelNodes
-        );
+            kFirstLevelNodes);
     }
     else {
         warning() << "Wrong path size " << to_string(kCurrentDepth);

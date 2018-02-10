@@ -20,6 +20,8 @@ public:
         Incoming
     };
 
+    typedef uint8_t SerializedReservationDirectionSize;
+
 public:
     AmountReservation(
         const TransactionUUID &transactionUUID,

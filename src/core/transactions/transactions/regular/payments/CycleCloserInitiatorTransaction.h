@@ -54,7 +54,7 @@ public:
      * @return length of cycle which is closing by current transaction
      * used in CyclesManager for resolving cycle closing conflicts
      */
-    const uint8_t cycleLength() const;
+    const SerializedPathLengthSize cycleLength() const;
 
 protected:
     // Stages handlers
@@ -177,7 +177,7 @@ protected:
      * which will be informed about transaction finishing
      */
     void informIntermediateNodesAboutTransactionFinish(
-        const uint8_t lastInformedNodePosition);
+        const SerializedPositionInPath lastInformedNodePosition);
 
     /**
      * save result of payment transaction on database

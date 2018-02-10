@@ -1772,7 +1772,7 @@ void CoordinatorPaymentTransaction::buildPathsAgain()
     for (auto const &pathIDAndPathStats : mPathsStats) {
         auto const pathStats = pathIDAndPathStats.second.get();
 
-        for (uint32_t idx = 0; idx < pathStats->path()->nodes.size() - 1; idx++) {
+        for (SerializedPositionInPath idx = 0; idx < pathStats->path()->nodes.size() - 1; idx++) {
             mPathsManager->addUsedAmount(
                 pathStats->path()->nodes.at(idx),
                 pathStats->path()->nodes.at(idx + 1),

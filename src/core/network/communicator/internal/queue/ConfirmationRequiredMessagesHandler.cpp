@@ -215,7 +215,7 @@ void ConfirmationRequiredMessagesHandler::removeMessageFromStorage(
 void ConfirmationRequiredMessagesHandler::deserializeMessages()
 {
     mDeserializationMessagesTimer->cancel();
-    vector<tuple<const NodeUUID, BytesShared, uint16_t>> messages;
+    vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> messages;
     {
         auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
         messages = ioTransaction->communicatorMessagesQueueHandler()->allMessages();
@@ -224,7 +224,7 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
     for (auto message : messages) {
         NodeUUID contractorUUID = NodeUUID::empty();
         BytesShared messageBody;
-        uint16_t messageType;
+        Message::SerializedType messageType;
         TransactionMessage::Shared sendingMessage;
         std::tie(contractorUUID, messageBody, messageType) = message;
         switch (messageType) {

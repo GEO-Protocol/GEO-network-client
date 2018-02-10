@@ -18,11 +18,11 @@ pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBy
 {
     auto parentBytesAndCount = CycleBaseFiveOrSixNodesInBetweenMessage::serializeToBytes();
 
-    uint16_t boundaryNodesCount = (uint16_t) mBoundaryNodes.size();
+    SerializedRecordsCount boundaryNodesCount = (SerializedRecordsCount) mBoundaryNodes.size();
     size_t bytesCount =
         parentBytesAndCount.second +
         (NodeUUID::kBytesSize) * boundaryNodesCount +
-        sizeof(boundaryNodesCount);
+        sizeof(SerializedRecordsCount);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     // for parent node
@@ -36,8 +36,8 @@ pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBy
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &boundaryNodesCount,
-        sizeof(uint16_t));
-    dataBytesOffset += sizeof(uint16_t);
+        sizeof(SerializedRecordsCount));
+    dataBytesOffset += sizeof(SerializedRecordsCount);
     vector<byte> stepObligationFlow;
     for(const auto &kNodeUUID: mBoundaryNodes){
         memcpy(
@@ -56,15 +56,15 @@ void CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared b
     CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes();
     //    Get NodesCount
-    uint16_t boundaryNodesCount;
+    SerializedRecordsCount boundaryNodesCount;
     memcpy(
         &boundaryNodesCount,
         buffer.get() + bytesBufferOffset,
-        sizeof(uint16_t));
-    bytesBufferOffset += sizeof(uint16_t);
+        sizeof(SerializedRecordsCount));
+    bytesBufferOffset += sizeof(SerializedRecordsCount);
     //    Parse boundary nodes
     NodeUUID stepNodeUUID;
-    for (uint16_t i=1; i<=boundaryNodesCount; i++){
+    for (SerializedRecordNumber i=1; i<=boundaryNodesCount; i++){
         memcpy(
             stepNodeUUID.data,
             buffer.get() + bytesBufferOffset,

@@ -34,4 +34,14 @@ const size_t kTrustLineBalanceSerializeBytesCount = 33;
 static const constexpr char kCommandsSeparator = '\n';
 static const constexpr char kTokensSeparator = '\t';
 
+typedef uint16_t SerializedRecordsCount;
+typedef SerializedRecordsCount SerializedRecordNumber;
+
+typedef uint16_t SerializedResponseCode;
+
+// payments
+typedef uint16_t PathID;
+typedef uint8_t SerializedPathLengthSize;
+typedef SerializedPathLengthSize SerializedPositionInPath;
+
 #endif //GEO_NETWORK_CLIENT_TYPES_H

@@ -94,7 +94,7 @@ public:
      * @return length of cycle which is closing by current transaction
      * used in CyclesManager for resolving cycle closing conflicts
      */
-    virtual const uint8_t cycleLength() const;
+    virtual const SerializedPathLengthSize cycleLength() const;
 
     /**
      * @return if payment transaction on Common_VotesChecking stage
@@ -146,11 +146,6 @@ protected:
     };
 
 protected:
-    // TODO: move it into separate *.h file.
-    // it used in pair of Message::PathID
-    // so if you change this one, you should change another too
-    typedef uint16_t PathID;
-
     // Stages handlers
     /**
      * reaction on receiving participants votes message firstly

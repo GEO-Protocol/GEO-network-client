@@ -37,7 +37,7 @@ const TrustLineAmount &RequestMessage::amount() const
     return mAmount;
 }
 
-const Message::PathID &RequestMessage::pathID() const
+const PathID &RequestMessage::pathID() const
 {
     return mPathID;
 }

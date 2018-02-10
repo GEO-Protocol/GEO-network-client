@@ -34,6 +34,7 @@ class BaseTransaction {
 public:
     typedef shared_ptr<BaseTransaction> Shared;
     typedef uint16_t SerializedTransactionType;
+    typedef uint16_t SerializedStep;
 
     typedef signals::signal<void(Message::Shared, const NodeUUID&)> SendMessageSignal;
     typedef signals::signal<void(BaseTransaction::Shared)> LaunchSubsidiaryTransactionSignal;
@@ -255,10 +256,8 @@ public:
     mutable ProcessConfirmationMessageSignal processConfirmationMessageSignal;
 
 protected:
-    uint16_t mkStandardConnectionTimeout = 1500; //miliseconds
-    uint16_t mkWaitingForResponseTime = 3000;
-    uint16_t mStep = 1;
-    uint8_t mVotesRecoveryStep = 0;
+    static const uint16_t mkStandardConnectionTimeout = 1500; //miliseconds
+    static const uint16_t mkWaitingForResponseTime = 3000;
 
 protected:
     TransactionType mType;
@@ -266,6 +265,8 @@ protected:
     NodeUUID mNodeUUID;
     deque<Message::Shared> mContext;
     deque<BaseResource::Shared> mResources;
+    SerializedStep mStep = 1;
+    uint8_t mVotesRecoveryStep = 0;
 
     Logger &mLog;
 };

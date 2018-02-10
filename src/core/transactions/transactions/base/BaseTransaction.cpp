@@ -149,11 +149,11 @@ pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const
 {
     size_t bytesCount = sizeof(SerializedTransactionType) +
         TransactionUUID::kBytesSize +
-        sizeof(uint16_t);
+        sizeof(SerializedStep);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     //-----------------------------------------------------
-    uint16_t transactionType = mType;
+    SerializedTransactionType transactionType = mType;
     memcpy(
         dataBytesShared.get(),
         &transactionType,
@@ -169,7 +169,7 @@ pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &mStep,
-        sizeof(uint16_t));
+        sizeof(SerializedStep));
     //-----------------------------------------------------
     return make_pair(
         dataBytesShared,
@@ -191,13 +191,15 @@ void BaseTransaction::deserializeFromBytes(
         TransactionUUID::kBytesSize);
     bytesBufferOffset += TransactionUUID::kBytesSize;
     //-----------------------------------------------------
-    uint16_t *step = new (buffer.get() + bytesBufferOffset) uint16_t;
+    SerializedStep *step = new (buffer.get() + bytesBufferOffset) SerializedStep;
     mStep = *step;
 }
 
 const size_t BaseTransaction::kOffsetToInheritedBytes()
 {
-    static const size_t offset = sizeof(uint16_t) + TransactionUUID::kBytesSize + sizeof(uint16_t);
+    static const size_t offset = sizeof(SerializedTransactionType)
+                                 + TransactionUUID::kBytesSize
+                                 + sizeof(SerializedStep);
     return offset;
 }
 

@@ -18,12 +18,12 @@ public:
     Response(
         const NodeUUID &sender,
         const TransactionUUID &transactionUUID,
-        const uint16_t code);
+        const SerializedResponseCode code);
 
     Response(
         BytesShared buffer);
 
-    uint16_t code();
+    SerializedResponseCode code();
 
 private:
     virtual pair<BytesShared, size_t> serializeToBytes() const
@@ -33,6 +33,6 @@ private:
         BytesShared buffer);
 
 private:
-    uint16_t mCode;
+    SerializedResponseCode mCode;
 };
 #endif //GEO_NETWORK_CLIENT_RESPONSE_H
