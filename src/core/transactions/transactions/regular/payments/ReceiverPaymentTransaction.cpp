@@ -659,7 +659,6 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::approve()
     mCommittedAmount = totalReservedAmount(
         AmountReservation::Incoming);
     BasePaymentTransaction::approve();
-    runBuildThreeNodesCyclesSignal();
     return resultDone();
 }
 
@@ -694,16 +693,4 @@ bool ReceiverPaymentTransaction::checkReservationsDirections() const
 const NodeUUID& ReceiverPaymentTransaction::coordinatorUUID() const
 {
     return mMessage->senderUUID;
-}
-
-void ReceiverPaymentTransaction::runBuildThreeNodesCyclesSignal()
-{
-    vector<NodeUUID> contractorsUUID;
-    contractorsUUID.reserve(mReservations.size());
-    for (auto const &nodeUUIDAndReservations : mReservations) {
-        contractorsUUID.push_back(
-            nodeUUIDAndReservations.first);
-    }
-    mBuildCycleThreeNodesSignal(
-        contractorsUUID);
 }

@@ -121,9 +121,9 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
 
 void MaxFlowCalculationTargetSndLevelTransaction::sendGatewayResultToInitiator()
 {
-//#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
+#ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID();
-//#endif
+#endif
     MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr
             = mMaxFlowCalculationCacheManager->cacheByNode(mMessage->targetUUID());
     if (maxFlowCalculationCachePtr != nullptr) {

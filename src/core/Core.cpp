@@ -240,6 +240,8 @@ int Core::initMaxFlowCalculationTrustLineManager()
     try{
         mMaxFlowCalculationTrustLimeManager = make_unique<MaxFlowCalculationTrustLineManager>(
             mRoutingTable.get(),
+            mIAmGateway,
+            mNodeUUID,
             *mLog);
         info() << "Max flow calculation Trust lines manager is successfully initialised";
         return 0;

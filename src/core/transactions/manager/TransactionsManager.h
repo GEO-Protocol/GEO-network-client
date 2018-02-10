@@ -387,10 +387,10 @@ protected:
         BaseTransaction::Shared transaction);
 
     void onBuidCycleThreeNodesTransaction(
-        vector<NodeUUID> &contractorsUUID);
+        set<NodeUUID> &contractorsUUID);
 
     void onBuildCycleFourNodesTransaction(
-        vector<NodeUUID> &creditors);
+        set<NodeUUID> &creditors);
 
     void onBuildCycleFiveNodesTransaction();
 
