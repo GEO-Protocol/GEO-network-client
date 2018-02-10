@@ -30,8 +30,6 @@ public:
 
     const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> incomingFlows() const;
 
-    const bool isMaxFlowCalculationResponseMessage() const;
-
 private:
     typedef uint32_t RecordNumber;
     typedef RecordNumber RecordCount;

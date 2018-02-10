@@ -30,3 +30,10 @@ TransactionResult::SharedConst GetFirstLevelContractorsTransaction::run() {
     string kResultInfo = ss.str();
     return transactionResultFromCommand(mCommand->resultOk(kResultInfo));
 }
+
+const string GetFirstLevelContractorsTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[GetFirstLevelContractorsTA: " << currentTransactionUUID() << "] ";
+    return s.str();
+}

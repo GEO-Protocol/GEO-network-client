@@ -19,10 +19,6 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
     throw(bad_alloc);
 
-    virtual const MessageType typeID() const = 0;
-
-    const bool isCyclesDiscoveringResponseMessage() const;
-
     const vector<NodeUUID> BoundaryNodes() const;
 
 protected:

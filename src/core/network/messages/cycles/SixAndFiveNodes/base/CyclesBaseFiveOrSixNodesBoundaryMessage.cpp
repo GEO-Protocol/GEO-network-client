@@ -1,15 +1,12 @@
 #include "CyclesBaseFiveOrSixNodesBoundaryMessage.h"
 
 CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(
-        vector<NodeUUID>& path,
-        vector<NodeUUID>& boundaryNodes) :
+    vector<NodeUUID>& path,
+    vector<NodeUUID>& boundaryNodes) :
 
-    CycleBaseFiveOrSixNodesInBetweenMessage(
-            path
-    ),
+    CycleBaseFiveOrSixNodesInBetweenMessage(path),
     mBoundaryNodes(boundaryNodes)
-{
-}
+{}
 
 CyclesBaseFiveOrSixNodesBoundaryMessage::CyclesBaseFiveOrSixNodesBoundaryMessage(BytesShared buffer)
 {
@@ -23,69 +20,61 @@ pair<BytesShared, size_t> CyclesBaseFiveOrSixNodesBoundaryMessage::serializeToBy
 
     uint16_t boundaryNodesCount = (uint16_t) mBoundaryNodes.size();
     size_t bytesCount =
-            parentBytesAndCount.second +
-            (NodeUUID::kBytesSize) * boundaryNodesCount +
-            sizeof(boundaryNodesCount);
+        parentBytesAndCount.second +
+        (NodeUUID::kBytesSize) * boundaryNodesCount +
+        sizeof(boundaryNodesCount);
     BytesShared dataBytesShared = tryCalloc(bytesCount);
     size_t dataBytesOffset = 0;
     // for parent node
     //----------------------------------------------------
     memcpy(
-            dataBytesShared.get(),
-            parentBytesAndCount.first.get(),
-            parentBytesAndCount.second
-    );
+        dataBytesShared.get(),
+        parentBytesAndCount.first.get(),
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
-//    for BoundaryNodes
+    //    for BoundaryNodes
     memcpy(
-      dataBytesShared.get() + dataBytesOffset,
-      &boundaryNodesCount,
-      sizeof(uint16_t)
-    );
+        dataBytesShared.get() + dataBytesOffset,
+        &boundaryNodesCount,
+        sizeof(uint16_t));
     dataBytesOffset += sizeof(uint16_t);
     vector<byte> stepObligationFlow;
     for(const auto &kNodeUUID: mBoundaryNodes){
         memcpy(
-                dataBytesShared.get() + dataBytesOffset,
-                &kNodeUUID,
-                NodeUUID::kBytesSize
-        );
+            dataBytesShared.get() + dataBytesOffset,
+            &kNodeUUID,
+            NodeUUID::kBytesSize);
         dataBytesOffset += NodeUUID::kBytesSize;
     }
     return make_pair(
-            dataBytesShared,
-            bytesCount
-    );
+        dataBytesShared,
+        bytesCount);
 }
 
-void CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared buffer) {
+void CyclesBaseFiveOrSixNodesBoundaryMessage::deserializeFromBytes(BytesShared buffer)
+{
     CycleBaseFiveOrSixNodesInBetweenMessage::deserializeFromBytes(buffer);
     size_t bytesBufferOffset = CycleBaseFiveOrSixNodesInBetweenMessage::kOffsetToInheritedBytes();
-//    Get NodesCount
+    //    Get NodesCount
     uint16_t boundaryNodesCount;
     memcpy(
-            &boundaryNodesCount,
-            buffer.get() + bytesBufferOffset,
-            sizeof(uint16_t)
-    );
+        &boundaryNodesCount,
+        buffer.get() + bytesBufferOffset,
+        sizeof(uint16_t));
     bytesBufferOffset += sizeof(uint16_t);
-//    Parse boundary nodes
+    //    Parse boundary nodes
     NodeUUID stepNodeUUID;
     for (uint16_t i=1; i<=boundaryNodesCount; i++){
         memcpy(
-                stepNodeUUID.data,
-                buffer.get() + bytesBufferOffset,
-                NodeUUID::kBytesSize
-        );
+            stepNodeUUID.data,
+            buffer.get() + bytesBufferOffset,
+            NodeUUID::kBytesSize);
         bytesBufferOffset += NodeUUID::kBytesSize;
         mBoundaryNodes.push_back(stepNodeUUID);
-    };
+    }
 }
 
-const bool CyclesBaseFiveOrSixNodesBoundaryMessage::isCyclesDiscoveringResponseMessage() const {
-    return true;
-}
-
-const vector<NodeUUID> CyclesBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const {
+const vector<NodeUUID> CyclesBaseFiveOrSixNodesBoundaryMessage::BoundaryNodes() const
+{
     return mBoundaryNodes;
 }

@@ -137,8 +137,3 @@ const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> ResultMaxFlowCalculatio
 {
     return mIncomingFlows;
 }
-
-const bool ResultMaxFlowCalculationMessage::isMaxFlowCalculationResponseMessage() const
-{
-    return true;
-}

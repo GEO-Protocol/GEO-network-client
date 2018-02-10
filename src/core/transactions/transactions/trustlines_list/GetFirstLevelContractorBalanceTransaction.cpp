@@ -41,3 +41,10 @@ TransactionResult::SharedConst GetFirstLevelContractorBalanceTransaction::result
     return transactionResultFromCommand(
         mCommand->responseTrustlineIsAbsent());
 }
+
+const string GetFirstLevelContractorBalanceTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[GetFirstLevelContractorBalanceTA: " << currentTransactionUUID() << "] ";
+    return s.str();
+}

@@ -26,11 +26,6 @@ public:
     uint16_t code();
 
 private:
-    const bool isTransactionMessage() const
-        noexcept;
-
-    const MessageType typeID() const;
-
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 

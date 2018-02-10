@@ -152,24 +152,20 @@ public:
     virtual TransactionResult::SharedConst run() = 0;
 
 protected:
-    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
         Logger &log);
 
-    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
         Logger &log);
 
-    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
         const NodeUUID &nodeUUID,
         Logger &log);
 
-    // TODO: make logger REQUIRED
     BaseTransaction(
         const TransactionType type,
         const TransactionUUID &transactionUUID,
@@ -180,11 +176,6 @@ protected:
         BytesShared buffer,
         const NodeUUID &nodeUUID,
         Logger &log);
-
-    [[deprecated("Use sendMessage() instead.")]]
-    void addMessage(
-        Message::Shared message,
-        const NodeUUID &nodeUUID);
 
     // TODO: convert to hpp?
     template <typename ContextMessageType>
@@ -236,18 +227,6 @@ protected:
     void launchSubsidiaryTransaction(
       BaseTransaction::Shared transaction);
 
-    [[deprecated("Use stages enum instead. See payment operations as example")]]
-    void increaseStepsCounter();
-
-    [[deprecated("Use stages enum instead. See payment operations as example")]]
-    void resetStepsCounter();
-
-    [[deprecated]]
-    void setExpectationResponsesCounter(
-        uint16_t count);
-
-    void resetExpectationResponsesCounter();
-
     void clearContext();
 
     virtual void deserializeFromBytes(
@@ -264,10 +243,7 @@ protected:
     TransactionResult::SharedConst transactionResultFromState(
         TransactionState::SharedConst state) const;
 
-    [[deprecated]]
-    TransactionResult::SharedConst finishTransaction();
-
-    virtual const string logHeader() const;
+    virtual const string logHeader() const = 0;
     LoggerStream info() const;
     LoggerStream warning() const;
     LoggerStream error() const;
@@ -280,7 +256,6 @@ public:
 
 protected:
     uint16_t mkStandardConnectionTimeout = 1500; //miliseconds
-    uint16_t mkExpectationResponsesCount = 0;
     uint16_t mkWaitingForResponseTime = 3000;
     uint16_t mStep = 1;
     uint8_t mVotesRecoveryStep = 0;

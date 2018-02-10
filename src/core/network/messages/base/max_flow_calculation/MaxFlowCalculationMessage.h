@@ -25,8 +25,6 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
-    const bool isMaxFlowCalculationResponseMessage() const;
-
 protected:
     MaxFlowCalculationMessage(
         const NodeUUID &senderUUID,

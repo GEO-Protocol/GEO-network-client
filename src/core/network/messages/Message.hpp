@@ -87,10 +87,8 @@ public:
         MaxFlow_ResultMaxFlowCalculationFromGateway = 406,
 
         /*
-         * Total balance
+         * Empty slot with codes 500-599
          */
-        TotalBalance_Request  = 500,
-        TotalBalance_Response = 501,
 
         /*
          * Routing table
@@ -99,12 +97,9 @@ public:
         RoutingTableResponse = 601,
 
         /*
-         * Total balance
+         * Gateway notification
          */
         GatewayNotification = 700,
-
-        // ToDo: remove this
-        ResponseMessageType = 1000,
 
         /*
          * DEBUG
@@ -150,27 +145,6 @@ public:
     {
         return false;
     }
-
-    virtual const bool isRoutingTableMessage() const
-    {
-        return false;
-    }
-
-    virtual const bool isRoutingTableResponseMessage() const
-    {
-        return false;
-    }
-
-    virtual const bool isMaxFlowCalculationResponseMessage() const
-    {
-        return false;
-    }
-
-    virtual const bool isCyclesDiscoveringResponseMessage() const
-    {
-        return false;
-    }
-
 
     virtual const MessageType typeID() const = 0;
 

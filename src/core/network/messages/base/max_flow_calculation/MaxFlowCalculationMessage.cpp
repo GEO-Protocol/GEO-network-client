@@ -65,8 +65,3 @@ const size_t MaxFlowCalculationMessage::kOffsetToInheritedBytes()
     static const size_t offset = sizeof(MessageType) + NodeUUID::kBytesSize;
     return offset;
 }
-
-const bool MaxFlowCalculationMessage::isMaxFlowCalculationResponseMessage() const
-{
-    return true;
-}

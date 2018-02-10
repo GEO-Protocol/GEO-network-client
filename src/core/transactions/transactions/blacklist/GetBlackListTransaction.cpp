@@ -32,3 +32,10 @@ TransactionResult::SharedConst GetBlackListTransaction::run() {
     string kResultInfo = ss.str();
     return transactionResultFromCommand(mCommand->resultOk(kResultInfo));
 }
+
+const string GetBlackListTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[GetBlackListTA: " << currentTransactionUUID() << "] ";
+    return s.str();
+}

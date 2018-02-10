@@ -38,3 +38,10 @@ TransactionResult::SharedConst GetFirstLevelContractorsBalancesTransaction::run(
         mCommand->resultOk(
             kResultInfo));
 }
+
+const string GetFirstLevelContractorsBalancesTransaction::logHeader() const
+{
+    stringstream s;
+    s << "[GetFirstLevelContractorsBalancesTA: " << currentTransactionUUID() << "] ";
+    return s.str();
+}

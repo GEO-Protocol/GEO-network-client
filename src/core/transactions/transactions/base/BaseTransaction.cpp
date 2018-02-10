@@ -59,21 +59,11 @@ BaseTransaction::BaseTransaction(
     mStep = 1;
 }
 
-void BaseTransaction::addMessage(
-    Message::Shared message,
-    const NodeUUID &nodeUUID) {
-
-    outgoingMessageIsReadySignal(
-        message,
-        nodeUUID);
-}
-
 void BaseTransaction::launchSubsidiaryTransaction(
-    BaseTransaction::Shared transaction) {
-
+    BaseTransaction::Shared transaction)
+{
     runSubsidiaryTransactionSignal(
-        transaction
-    );
+        transaction);
 }
 
 TransactionResult::Shared BaseTransaction::resultDone () const
@@ -123,60 +113,40 @@ TransactionResult::Shared BaseTransaction::resultWaitForMessageTypesAndAwakeAfte
             noLongerThanMilliseconds));
 }
 
-const BaseTransaction::TransactionType BaseTransaction::transactionType() const {
-
+const BaseTransaction::TransactionType BaseTransaction::transactionType() const
+{
     return mType;
 }
 
-const TransactionUUID &BaseTransaction::currentTransactionUUID () const {
-
+const TransactionUUID &BaseTransaction::currentTransactionUUID () const
+{
     return mTransactionUUID;
 }
 
-const NodeUUID &BaseTransaction::currentNodeUUID () const {
-
+const NodeUUID &BaseTransaction::currentNodeUUID () const
+{
     return mNodeUUID;
 }
 
-void BaseTransaction::increaseStepsCounter() {
-
-    mStep += 1;
-}
-
-void BaseTransaction::resetStepsCounter() {
-
-    mStep = 1;
-}
-
-void BaseTransaction::setExpectationResponsesCounter(
-    uint16_t count) {
-
-    mkExpectationResponsesCount = count;
-}
-
-void BaseTransaction::resetExpectationResponsesCounter() {
-
-    mkExpectationResponsesCount = 0;
-}
-
 void BaseTransaction::pushContext(
-    Message::Shared message) {
-
+    Message::Shared message)
+{
     mContext.push_back(message);
 }
 
 void BaseTransaction::pushResource(
-    BaseResource::Shared resource) {
-
+    BaseResource::Shared resource)
+{
     mResources.push_back(resource);
 }
 
-void BaseTransaction::clearContext() {
-
+void BaseTransaction::clearContext()
+{
     mContext.clear();
 }
 
-pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const {
+pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const
+{
     size_t bytesCount = sizeof(SerializedTransactionType) +
         TransactionUUID::kBytesSize +
         sizeof(uint16_t);
@@ -187,32 +157,28 @@ pair<BytesShared, size_t> BaseTransaction::serializeToBytes() const {
     memcpy(
         dataBytesShared.get(),
         &transactionType,
-        sizeof(SerializedTransactionType)
-    );
+        sizeof(SerializedTransactionType));
     dataBytesOffset += sizeof(SerializedTransactionType);
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         mTransactionUUID.data,
-        TransactionUUID::kBytesSize
-    );
+        TransactionUUID::kBytesSize);
     dataBytesOffset += TransactionUUID::kBytesSize;
     //-----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &mStep,
-        sizeof(uint16_t)
-    );
+        sizeof(uint16_t));
     //-----------------------------------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 void BaseTransaction::deserializeFromBytes(
-    BytesShared buffer) {
-
+    BytesShared buffer)
+{
     size_t bytesBufferOffset = 0;
 
     SerializedTransactionType *transactionType = new (buffer.get()) SerializedTransactionType;
@@ -222,23 +188,22 @@ void BaseTransaction::deserializeFromBytes(
     memcpy(
         mTransactionUUID.data,
         buffer.get() + bytesBufferOffset,
-        TransactionUUID::kBytesSize
-    );
+        TransactionUUID::kBytesSize);
     bytesBufferOffset += TransactionUUID::kBytesSize;
     //-----------------------------------------------------
     uint16_t *step = new (buffer.get() + bytesBufferOffset) uint16_t;
     mStep = *step;
 }
 
-const size_t BaseTransaction::kOffsetToInheritedBytes() {
-
+const size_t BaseTransaction::kOffsetToInheritedBytes()
+{
     static const size_t offset = sizeof(uint16_t) + TransactionUUID::kBytesSize + sizeof(uint16_t);
     return offset;
 }
 
 TransactionResult::SharedConst BaseTransaction::transactionResultFromCommand(
-    CommandResult::SharedConst result) const {
-
+    CommandResult::SharedConst result) const
+{
     // todo: refactor me
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setCommandResult(result);
@@ -246,8 +211,8 @@ TransactionResult::SharedConst BaseTransaction::transactionResultFromCommand(
 }
 
 TransactionResult::SharedConst BaseTransaction::transactionResultFromMessage(
-    MessageResult::SharedConst messageResult) const {
-
+    MessageResult::SharedConst messageResult) const
+{
     // todo: refactor me
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setMessageResult(messageResult);
@@ -255,35 +220,21 @@ TransactionResult::SharedConst BaseTransaction::transactionResultFromMessage(
 }
 
 TransactionResult::SharedConst BaseTransaction::transactionResultFromState(
-    TransactionState::SharedConst state) const {
-
+    TransactionState::SharedConst state) const
+{
     // todo: refactor me
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setTransactionState(state);
     return TransactionResult::SharedConst(transactionResult);
 }
 
-TransactionResult::SharedConst BaseTransaction::finishTransaction() {
-
-    return make_shared<const TransactionResult>(
-        TransactionState::exit()
-    );
-}
-
-const string BaseTransaction::logHeader() const
-{
-    // todo: must be marked as "=0" in header;
-}
-
 LoggerStream BaseTransaction::info() const
 {
-
     return mLog.info(logHeader());
 }
 
 LoggerStream BaseTransaction::error() const
 {
-
     return mLog.error(logHeader());
 }
 
@@ -297,10 +248,12 @@ LoggerStream BaseTransaction::debug() const
     return mLog.debug(logHeader());
 }
 
-const int BaseTransaction::currentStep() const {
+const int BaseTransaction::currentStep() const
+{
     return mStep;
 }
 
-void BaseTransaction::recreateTransactionUUID() {
+void BaseTransaction::recreateTransactionUUID()
+{
     mTransactionUUID = TransactionUUID();
 }

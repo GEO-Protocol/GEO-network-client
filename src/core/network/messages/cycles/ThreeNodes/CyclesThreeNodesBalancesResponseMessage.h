@@ -34,9 +34,6 @@ public:
     const MessageType typeID() const
         noexcept;
 
-    const bool isTransactionMessage() const
-        noexcept;
-
     vector<NodeUUID> NeighborsAndBalances()
         noexcept;
 

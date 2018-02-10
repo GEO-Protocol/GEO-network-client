@@ -15,8 +15,5 @@ public:
     using TransactionMessage::TransactionMessage;
 
     const MessageType typeID() const;
-
-    const bool isTransactionMessage() const
-        noexcept;
 };
 #endif //GEO_NETWORK_CLIENT_FOURNODESBALANCESRESPONSEMESSAGE_H

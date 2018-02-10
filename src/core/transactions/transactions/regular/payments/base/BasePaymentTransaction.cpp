@@ -247,7 +247,6 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
     // TODO : insert propagate message here
     mParticipantsVotesMessage->approve(kCurrentNodeUUID);
     mTransactionIsVoted = true;
-    // TODO: flush
     {
         debug() << "Serializing transaction";
         auto ioTransaction = mStorageHandler->beginTransaction();

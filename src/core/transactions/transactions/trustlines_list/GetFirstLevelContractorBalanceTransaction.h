@@ -27,6 +27,9 @@ public:
 
     TransactionResult::SharedConst resultTrustLineIsAbsent();
 
+protected:
+    const string logHeader() const;
+
 private:
     GetTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLinesManager;

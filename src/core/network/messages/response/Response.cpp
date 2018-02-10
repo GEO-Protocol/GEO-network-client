@@ -1,14 +1,14 @@
 ﻿#include "Response.h"
 
-Response::Response(const NodeUUID &sender,
-                   const TransactionUUID &transactionUUID,
-                   const uint16_t code) :
+Response::Response(
+    const NodeUUID &sender,
+    const TransactionUUID &transactionUUID,
+    const uint16_t code) :
 
     TransactionMessage(
         sender,
-        transactionUUID
-    ) {
-
+        transactionUUID)
+{
     mCode = code;
 }
 
@@ -17,33 +17,20 @@ Response::Response(
 
     TransactionMessage(buffer)
 {
-
     size_t bytesBufferOffset = TransactionMessage::kOffsetToInheritedBytes();
     //------------------------------
     uint16_t *code = new (buffer.get() + bytesBufferOffset) uint16_t;
     mCode = *code;
 }
 
-const bool Response::isTransactionMessage() const
-    noexcept
+uint16_t Response::code()
 {
-    return true;
-}
-
-const Message::MessageType Response::typeID() const {
-
-    return Message::MessageType::ResponseMessageType;
-}
-
-uint16_t Response::code() {
-
     return mCode;
 }
 
 pair<BytesShared, size_t> Response::serializeToBytes() const
     throw(bad_alloc)
 {
-
     auto parentBytesAndCount = TransactionMessage::serializeToBytes();
 
     size_t bytesCount = parentBytesAndCount.second
@@ -55,24 +42,21 @@ pair<BytesShared, size_t> Response::serializeToBytes() const
     memcpy(
         dataBytesShared.get(),
         parentBytesAndCount.first.get(),
-        parentBytesAndCount.second
-    );
+        parentBytesAndCount.second);
     dataBytesOffset += parentBytesAndCount.second;
     //----------------------------------------------------
     memcpy(
         dataBytesShared.get() + dataBytesOffset,
         &mCode,
-        sizeof(uint16_t)
-    );
+        sizeof(uint16_t));
     //----------------------------
     return make_pair(
         dataBytesShared,
-        bytesCount
-    );
+        bytesCount);
 }
 
 void Response::deserializeFromBytes(
-    BytesShared buffer) {
-
+    BytesShared buffer)
+{
     TransactionMessage::deserializeFromBytes(buffer);
 }

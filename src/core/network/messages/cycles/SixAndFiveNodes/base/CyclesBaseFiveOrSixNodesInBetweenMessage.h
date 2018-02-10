@@ -22,15 +22,11 @@ public:
     virtual pair<BytesShared, size_t> serializeToBytes() const
         throw(bad_alloc);
 
-    virtual const MessageType typeID() const = 0;
-
     const vector<NodeUUID> Path() const;
 
     void addNodeToPath(NodeUUID InBetweenNode);
 
 protected:
-
-
     void deserializeFromBytes(
         BytesShared buffer);
 
