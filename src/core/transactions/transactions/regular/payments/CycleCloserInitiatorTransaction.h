@@ -27,6 +27,7 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController)
         noexcept;
@@ -38,6 +39,7 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController)
         throw (bad_alloc);

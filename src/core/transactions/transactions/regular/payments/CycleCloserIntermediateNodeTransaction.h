@@ -18,6 +18,7 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -28,6 +29,7 @@ public:
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 

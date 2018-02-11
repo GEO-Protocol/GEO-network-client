@@ -6,6 +6,8 @@
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../network/messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
 
 class CloseOutgoingTrustLineTransaction : public BaseTransaction {
 
@@ -18,6 +20,8 @@ public:
         CloseOutgoingTrustLineMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &logger)
         noexcept;
 
@@ -39,6 +43,8 @@ protected:
     CloseOutgoingTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
 };
 
 

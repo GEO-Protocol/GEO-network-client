@@ -11,6 +11,7 @@
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../io/storage/StorageHandler.h"
 #include "../../../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "../../../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
 
 #include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
@@ -58,6 +59,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -68,6 +70,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -77,6 +80,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -418,6 +422,7 @@ protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.

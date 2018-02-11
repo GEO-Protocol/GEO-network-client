@@ -7,6 +7,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     SubsystemsController *subsystemsController,
     Logger &logger)
     noexcept :
@@ -19,6 +20,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     mTrustLines(manager),
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
     mSubsystemsController(subsystemsController)
 {}
 
@@ -59,6 +61,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         case TrustLinesManager::TrustLineOperationResult::Opened: {
             populateHistory(ioTransaction, TrustLineRecord::Opening);
             mMaxFlowCalculationCacheManager->resetInitiatorCache();
+            mMaxFlowCalculationNodeCacheManager->clearCashes();
 
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully initialised with " << mCommand->amount();
@@ -68,6 +71,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         case TrustLinesManager::TrustLineOperationResult::Updated: {
             populateHistory(ioTransaction, TrustLineRecord::Setting);
             mMaxFlowCalculationCacheManager->resetInitiatorCache();
+            mMaxFlowCalculationNodeCacheManager->clearCashes();
 
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully set to " << mCommand->amount();
@@ -77,6 +81,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         case TrustLinesManager::TrustLineOperationResult::Closed: {
             populateHistory(ioTransaction, TrustLineRecord::Closing);
             mMaxFlowCalculationCacheManager->resetInitiatorCache();
+            mMaxFlowCalculationNodeCacheManager->clearCashes();
 
             info() << "Outgoing trust line to the node " << kContractor
                    << " successfully closed.";

@@ -87,6 +87,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mTrustLines,
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
+                    mMaxFlowCalculationNodeCacheManager,
                     mResourcesManager,
                     mPathsManager,
                     mLog,
@@ -107,6 +108,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mTrustLines,
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
+                    mMaxFlowCalculationNodeCacheManager,
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
@@ -127,6 +129,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mTrustLines,
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
+                    mMaxFlowCalculationNodeCacheManager,
                     mLog,
                     mSubsystemsController);
                 subscribeForBuildCyclesThreeNodesTransaction(
@@ -146,6 +149,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mCyclesManager.get(),
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
+                    mMaxFlowCalculationNodeCacheManager,
                     mLog,
                     mSubsystemsController);
                 prepareAndSchedule(
@@ -163,6 +167,7 @@ void TransactionsManager::loadTransactionsFromStorage()
                     mCyclesManager.get(),
                     mStorageHandler,
                     mMaxFlowCalculationCacheManager,
+                    mMaxFlowCalculationNodeCacheManager,
                     mLog,
                     mSubsystemsController);
                 prepareAndSchedule(
@@ -427,6 +432,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mTrustLines,
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
+            mMaxFlowCalculationNodeCacheManager,
             mSubsystemsController,
             mLog),
         true,
@@ -443,6 +449,8 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
             command,
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
+            mMaxFlowCalculationNodeCacheManager,
             mSubsystemsController,
             mLog),
         true,
@@ -460,6 +468,7 @@ void TransactionsManager::launchSetIncomingTrustLineTransaction(
             mTrustLines,
             mStorageHandler,
             mMaxFlowCalculationCacheManager,
+            mMaxFlowCalculationNodeCacheManager,
             mIAmGateway,
             mLog),
         true,
@@ -476,6 +485,8 @@ void TransactionsManager::launchCloseOutgoingTrustLineTransaction(
             message,
             mTrustLines,
             mStorageHandler,
+            mMaxFlowCalculationCacheManager,
+            mMaxFlowCalculationNodeCacheManager,
             mLog),
         true,
         false,
@@ -723,6 +734,7 @@ void TransactionsManager::launchCoordinatorPaymentTransaction(
         mTrustLines,
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
+        mMaxFlowCalculationNodeCacheManager,
         mResourcesManager,
         mPathsManager,
         mLog,
@@ -741,6 +753,7 @@ void TransactionsManager::launchReceiverPaymentTransaction(
         mTrustLines,
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
+        mMaxFlowCalculationNodeCacheManager,
         mLog,
         mSubsystemsController);
     subscribeForBuildCyclesThreeNodesTransaction(
@@ -757,6 +770,7 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
         mTrustLines,
         mStorageHandler,
         mMaxFlowCalculationCacheManager,
+        mMaxFlowCalculationNodeCacheManager,
         mLog,
         mSubsystemsController);
     subscribeForBuildCyclesThreeNodesTransaction(
@@ -764,6 +778,29 @@ void TransactionsManager::launchIntermediateNodePaymentTransaction(
     subscribeForBuildCyclesFourNodesTransaction(
         transaction->mBuildCycleFourNodesSignal);
     prepareAndSchedule(transaction, false, false, true);
+}
+
+void TransactionsManager::onCloseCycleTransaction(
+    Path::ConstShared cycle)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<CycleCloserInitiatorTransaction>(
+                mNodeUUID,
+                cycle,
+                mTrustLines,
+                mCyclesManager.get(),
+                mStorageHandler,
+                mMaxFlowCalculationCacheManager,
+                mMaxFlowCalculationNodeCacheManager,
+                mLog,
+                mSubsystemsController),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
 }
 
 void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
@@ -778,6 +815,7 @@ void TransactionsManager::launchCycleCloserIntermediateNodeTransaction(
                 mCyclesManager.get(),
                 mStorageHandler,
                 mMaxFlowCalculationCacheManager,
+                mMaxFlowCalculationNodeCacheManager,
                 mLog,
                 mSubsystemsController),
             false,
@@ -1255,28 +1293,6 @@ void TransactionsManager::onBuildCycleFiveNodesTransaction()
 void TransactionsManager::onBuildCycleSixNodesTransaction()
 {
     launchSixNodesCyclesInitTransaction();
-}
-
-void TransactionsManager::onCloseCycleTransaction(
-    Path::ConstShared cycle)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<CycleCloserInitiatorTransaction>(
-                mNodeUUID,
-                cycle,
-                mTrustLines,
-                mCyclesManager.get(),
-                mStorageHandler,
-                mMaxFlowCalculationCacheManager,
-                mLog,
-                mSubsystemsController),
-            true,
-            false,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
 }
 
 void TransactionsManager::onTryCloseNextCycleSlot()

@@ -7,6 +7,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -17,6 +18,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
+        maxFlowCalculationNodeCacheManager,
         log,
         subsystemsController),
     mMessage(message),
@@ -31,6 +33,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -40,6 +43,7 @@ ReceiverPaymentTransaction::ReceiverPaymentTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
+        maxFlowCalculationNodeCacheManager,
         log,
         subsystemsController)
 {}

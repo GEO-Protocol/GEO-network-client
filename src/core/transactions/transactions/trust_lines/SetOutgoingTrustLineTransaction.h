@@ -6,7 +6,8 @@
 #include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../../../io/storage/StorageHandler.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../../io/storage/record/trust_line/TrustLineRecord.h" // todo: rename "record" to "records"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
+#include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
@@ -37,6 +38,7 @@ public:
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         SubsystemsController *subsystemsController,
         Logger &logger)
         noexcept;
@@ -64,6 +66,7 @@ protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
     SubsystemsController *mSubsystemsController;
 };
 

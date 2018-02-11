@@ -17,6 +17,7 @@ public:
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -26,6 +27,7 @@ public:
         TrustLinesManager* trustLines,
         StorageHandler *storageHandler,
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 

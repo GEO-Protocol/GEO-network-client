@@ -30,7 +30,7 @@ public:
 
     DateTime closestTimeEvent() const;
 
-    // todo : add reset cache void and call it after payment and TL operations
+    void clearCashes();
 
     // Todo : used only for debug info
     void printCaches();

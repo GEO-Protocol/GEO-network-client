@@ -71,7 +71,7 @@ DateTime MaxFlowCalculationNodeCacheManager::closestTimeEvent() const
     DateTime result = utc_now() + kResetCacheDuration();
     // if there are caches then take cache removing closest time as result closest time event
     // else take life time of cache + now as result closest time event
-    if (mTimeCaches.size() > 0) {
+    if (!mTimeCaches.empty()) {
         auto timeAndNodeUUID = mTimeCaches.cbegin();
         if (timeAndNodeUUID->first + kResetCacheDuration() < result) {
             result = timeAndNodeUUID->first + kResetCacheDuration();
@@ -82,6 +82,15 @@ DateTime MaxFlowCalculationNodeCacheManager::closestTimeEvent() const
         }
     }
     return result;
+}
+
+void MaxFlowCalculationNodeCacheManager::clearCashes()
+{
+    for (auto cacheElement : mTimeCaches) {
+        delete cacheElement.second;
+    }
+    mTimeCaches.clear();
+    mCaches.clear();
 }
 
 void MaxFlowCalculationNodeCacheManager::printCaches()

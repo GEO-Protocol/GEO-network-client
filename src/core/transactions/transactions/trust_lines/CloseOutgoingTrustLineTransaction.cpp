@@ -5,6 +5,8 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
     CloseOutgoingTrustLineMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &logger)
     noexcept:
 
@@ -15,7 +17,9 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
         logger),
     mMessage(message),
     mTrustLines(manager),
-    mStorageHandler(storageHandler)
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager)
 {}
 
 TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
@@ -41,6 +45,8 @@ TransactionResult::SharedConst CloseOutgoingTrustLineTransaction::run()
             kContractor);
 
         populateHistory(ioTransaction, TrustLineRecord::RejectingOutgoing);
+        mMaxFlowCalculationCacheManager->resetInitiatorCache();
+        mMaxFlowCalculationNodeCacheManager->clearCashes();
         info() << "Outgoing trust line to the node " << kContractor
                << " has been successfully closed by remote node.";
 

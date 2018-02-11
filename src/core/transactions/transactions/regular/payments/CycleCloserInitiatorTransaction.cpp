@@ -7,6 +7,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController)
 noexcept :
@@ -17,6 +18,7 @@ noexcept :
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
+        maxFlowCalculationNodeCacheManager,
         log,
         subsystemsController),
     mCyclesManager(cyclesManager)
@@ -32,6 +34,7 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController)
 throw (bad_alloc) :
@@ -42,6 +45,7 @@ throw (bad_alloc) :
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
+        maxFlowCalculationNodeCacheManager,
         log,
         subsystemsController),
     mCyclesManager(cyclesManager)

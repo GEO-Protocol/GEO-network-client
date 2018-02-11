@@ -7,6 +7,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -17,6 +18,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
+        maxFlowCalculationNodeCacheManager,
         log,
         subsystemsController),
     mMessage(message),
@@ -32,6 +34,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -41,6 +44,7 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         trustLines,
         storageHandler,
         maxFlowCalculationCacheManager,
+        maxFlowCalculationNodeCacheManager,
         log,
         subsystemsController),
     mCyclesManager(cyclesManager)

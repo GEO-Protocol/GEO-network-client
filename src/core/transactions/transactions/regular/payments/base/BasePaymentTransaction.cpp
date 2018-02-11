@@ -1,5 +1,4 @@
 ﻿#include "BasePaymentTransaction.h"
-#include "../../../cycles/ThreeNodes/CyclesThreeNodesInitTransaction.h"
 
 BasePaymentTransaction::BasePaymentTransaction(
     const TransactionType type,
@@ -7,6 +6,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -17,6 +17,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr),
@@ -30,6 +31,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -41,6 +43,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr),
@@ -53,6 +56,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -63,6 +67,7 @@ BasePaymentTransaction::BasePaymentTransaction(
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
     mSubsystemsController(subsystemsController)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
@@ -589,6 +594,7 @@ void BasePaymentTransaction::commit(
     // reset initiator cache, because after changing balances
     // we need updated information on max flow calculation transaction
     mMaxFlowCalculationCacheManager->resetInitiatorCache();
+    mMaxFlowCalculationNodeCacheManager->clearCashes();
     debug() << "Transaction committed.";
     saveVotes(ioTransaction);
     debug() << "Votes saved.";

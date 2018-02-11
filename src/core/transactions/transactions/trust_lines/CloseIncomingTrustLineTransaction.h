@@ -6,6 +6,8 @@
 #include "../../../interface/commands_interface/commands/trust_lines/CloseIncomingTrustLineCommand.h"
 #include "../../../network/messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../io/storage/StorageHandler.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 
 class CloseIncomingTrustLineTransaction : public BaseTransaction {
@@ -19,6 +21,8 @@ public:
         CloseIncomingTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         SubsystemsController *subsystemsController,
         Logger &logger)
     noexcept;
@@ -45,6 +49,8 @@ protected:
     CloseIncomingTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
+    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
     SubsystemsController *mSubsystemsController;
 };
 
