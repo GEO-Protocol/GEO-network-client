@@ -14,9 +14,7 @@ RoutingTableInitTransaction::RoutingTableInitTransaction(
     mTrustlineManager(trustlineManager),
     mRoutingTableManager(routingTableManager),
     mLog(logger)
-{
-
-}
+{}
 
 TransactionResult::SharedConst RoutingTableInitTransaction::run() {
     while (true) {
@@ -43,11 +41,10 @@ TransactionResult::SharedConst RoutingTableInitTransaction::run() {
 
 TransactionResult::SharedConst RoutingTableInitTransaction::runCollectDataStage() {
     auto neighbors = mTrustlineManager->rt1();
-    for(const auto kNeighborNode: neighbors){
+    for(const auto &kNeighborNode: neighbors){
         sendMessage<RoutingTableRequestMessage>(
             kNeighborNode,
-            currentNodeUUID()
-        );
+            currentNodeUUID());
     }
     mStep = Stages::UpdateRoutingTableStage;
     return resultAwakeAfterMilliseconds(mkWaitingForResponseTime);
@@ -61,18 +58,20 @@ const string RoutingTableInitTransaction::logHeader() const {
 
 TransactionResult::SharedConst RoutingTableInitTransaction::runUpdateRoutingTableStage()
 {
-    if (mContext.size() == 0){
+    if (mContext.empty()){
         info() << "No responses from neighbors. RoutingTable will not be updated." << endl;
         return resultDone();
     }
     mRoutingTableManager->clearMap();
 
-    for(auto stepMessage: mContext){
+    for(auto &stepMessage: mContext){
         auto message = static_pointer_cast<RoutingTableResponseMessage>(stepMessage);
         if(!mTrustlineManager->isNeighbor(message->senderUUID)){
             continue;
         }
-        mRoutingTableManager->updateMapAddSeveralNeighbors(message->senderUUID, message->neighbors());
+        mRoutingTableManager->updateMapAddSeveralNeighbors(
+            message->senderUUID,
+            message->neighbors());
     }
     return resultDone();
 }

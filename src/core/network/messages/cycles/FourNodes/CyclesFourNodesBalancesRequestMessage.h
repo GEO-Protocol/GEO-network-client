@@ -18,11 +18,10 @@ public:
         const NodeUUID &senderUUID,
         const TransactionUUID &transactionUUID,
         const NodeUUID &creditorNeighbor,
-        const NodeUUID &debtorNeighbor
-    );
+        const NodeUUID &debtorNeighbor);
 
     CyclesFourNodesBalancesRequestMessage(
-            BytesShared buffer);
+        BytesShared buffer);
 
     virtual pair<BytesShared, size_t> serializeToBytes()const
         throw(bad_alloc);

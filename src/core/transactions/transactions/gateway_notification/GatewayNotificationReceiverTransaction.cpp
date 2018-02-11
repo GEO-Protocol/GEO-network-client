@@ -9,6 +9,7 @@ GatewayNotificationReceiverTransaction::GatewayNotificationReceiverTransaction(
 
     BaseTransaction(
         BaseTransaction::TransactionType::GatewayNotificationReceiverType,
+        message->transactionUUID(),
         nodeUUID,
         logger),
     mMessage(message),

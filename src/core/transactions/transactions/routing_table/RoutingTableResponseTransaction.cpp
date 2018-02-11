@@ -7,13 +7,12 @@ RoutingTableResponseTransaction::RoutingTableResponseTransaction(
     Logger &logger):
     BaseTransaction(
         BaseTransaction::TransactionType::RoutingTableResponceTransactionType,
+
         nodeUUID,
         logger),
     mRequestMessage(message),
     mTrustLinesManager(manager)
-{
-
-}
+{}
 
 const string RoutingTableResponseTransaction::logHeader() const
 {

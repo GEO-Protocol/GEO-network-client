@@ -13,6 +13,7 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
 
     BaseTransaction(
         BaseTransaction::SetIncomingTrustLineTransaction,
+        message->transactionUUID(),
         nodeUUID,
         logger),
     mMessage(message),

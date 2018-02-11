@@ -10,6 +10,7 @@ CloseOutgoingTrustLineTransaction::CloseOutgoingTrustLineTransaction(
 
     BaseTransaction(
         BaseTransaction::CloseOutgoingTrustLineTransaction,
+        message->transactionUUID(),
         nodeUUID,
         logger),
     mMessage(message),

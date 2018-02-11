@@ -10,6 +10,7 @@ RejectOutgoingTrustLineTransaction::RejectOutgoingTrustLineTransaction(
 
     BaseTransaction(
         BaseTransaction::RejectOutgoingTrustLineTransaction,
+        message->transactionUUID(),
         nodeUUID,
         logger),
     mMessage(message),

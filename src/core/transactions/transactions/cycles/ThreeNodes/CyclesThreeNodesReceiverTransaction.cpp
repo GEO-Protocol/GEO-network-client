@@ -40,7 +40,7 @@ TransactionResult::SharedConst CyclesThreeNodesReceiverTransaction::run() {
         if ((searchDebtors and stepNodeBalance > kZeroBalance)
             or (not searchDebtors and (stepNodeBalance < kZeroBalance)))
             kMessage->addNeighborUUIDAndBalance(
-                    kNodeUUID);
+                kNodeUUID);
     }
     if (kMessage->NeighborsAndBalances().size() > 0)
         sendMessage(mRequestMessage->senderUUID, kMessage);
