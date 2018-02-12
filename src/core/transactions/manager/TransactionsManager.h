@@ -43,7 +43,6 @@
  * Network messages
  */
 #include "../../network/messages/Message.hpp"
-#include "../../network/messages/response/Response.h"
 #include "../../network/messages/cycles/ThreeNodes/CyclesThreeNodesBalancesRequestMessage.h"
 #include "../../network/messages/cycles/FourNodes/CyclesFourNodesBalancesRequestMessage.h"
 #include "../../network/messages/cycles/SixAndFiveNodes/CyclesSixNodesInBetweenMessage.hpp"

@@ -79,7 +79,7 @@ DateTime MaxFlowCalculationCacheManager::closestTimeEvent() const
     // if there are sender caches then take sender cache removing closest time as result closest time event
     // else take life time of sender cache + now as result closest time event
     // take as result minimal from initiator cache and sender cache closest time
-    if (msCache.size() > 0) {
+    if (!msCache.empty()) {
         auto timeAndNodeUUID = msCache.cbegin();
         if (timeAndNodeUUID->first + kResetSenderCacheDuration() < result) {
             result = timeAndNodeUUID->first + kResetSenderCacheDuration();

@@ -2,7 +2,6 @@
 #define GEO_NETWORK_CLIENT_TRANSACTIONRESULT_H
 
 #include "../../../interface/results_interface/result/CommandResult.h"
-#include "../../../network/messages/result/MessageResult.h"
 #include "state/TransactionState.h"
 
 #include "../../../common/exceptions/ConflictError.h"
@@ -19,8 +18,7 @@ public:
 public:
     enum ResultType {
         CommandResultType = 1,
-        MessageResultType = 2,
-        TransactionStateType = 3,
+        TransactionStateType = 2,
     };
 
 public:
@@ -32,15 +30,10 @@ public:
     void setCommandResult(
         CommandResult::SharedConst commandResult);
 
-    void setMessageResult(
-        MessageResult::SharedConst messageResult);
-
     void setTransactionState(
         TransactionState::SharedConst transactionState);
 
     CommandResult::SharedConst commandResult() const;
-
-    MessageResult::SharedConst messageResult() const;
 
     TransactionState::SharedConst state() const;
 
@@ -48,7 +41,6 @@ public:
 
 private:
     CommandResult::SharedConst mCommandResult;
-    MessageResult::SharedConst mMessageResult;
     TransactionState::SharedConst mTransactionState;
 };
 #endif //GEO_NETWORK_CLIENT_TRANSACTIONRESULT_H

@@ -5,8 +5,6 @@
 
 #include "../../network/messages/Message.hpp"
 #include "../../network/messages/base/transaction/TransactionMessage.h"
-#include "../../network/messages/response/Response.h"
-
 
 #include "../transactions/base/BaseTransaction.h"
 #include "../transactions/regular/payments/base/BasePaymentTransaction.h"
@@ -117,10 +115,6 @@ private:
     void processCommandResult(
         BaseTransaction::Shared transaction,
         CommandResult::SharedConst result);
-
-    void processMessageResult(
-        BaseTransaction::Shared transaction,
-        MessageResult::SharedConst result);
 
     void processTransactionState(
         BaseTransaction::Shared transaction,

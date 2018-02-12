@@ -7,8 +7,6 @@ add_subdirectory(trust_lines)
 add_subdirectory(payments)
 add_subdirectory(cycles)
 add_subdirectory(max_flow_calculation)
-add_subdirectory(response) # todo: there is no common responses in the system, this indicates invalid design
-add_subdirectory(result)   # todo: there is no common responses in the system, this indicates invalid design
 add_subdirectory(routing_table)
 add_subdirectory(gateway_notification)
 
@@ -35,8 +33,4 @@ target_link_libraries(network__messages
         messages__cycles
         messages__max_flow_calculation
         messages__routing_table
-        messages__gateway_notification
-
-        # todo: remove this
-        messages__result
-        messages__response)
+        messages__gateway_notification)

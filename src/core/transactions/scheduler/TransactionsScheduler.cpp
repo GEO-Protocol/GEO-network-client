@@ -216,13 +216,6 @@ void TransactionsScheduler::handleTransactionResult(
             break;
         }
 
-        case TransactionResult::ResultType::MessageResultType: {
-            processMessageResult(
-                transaction,
-                result->messageResult());
-            break;
-        }
-
         case TransactionResult::ResultType::TransactionStateType: {
             processTransactionState(
                 transaction,
@@ -238,14 +231,6 @@ void TransactionsScheduler::processCommandResult(
     CommandResult::SharedConst result)
 {
     commandResultIsReadySignal(result);
-    forgetTransaction(transaction);
-}
-
-void TransactionsScheduler::processMessageResult(
-    BaseTransaction::Shared transaction,
-    MessageResult::SharedConst result)
-{
-    // todo: add writing to remote transactions results log.
     forgetTransaction(transaction);
 }
 

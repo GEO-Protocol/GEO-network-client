@@ -89,6 +89,16 @@ TransactionResult::Shared BaseTransaction::resultWaitForMessageTypes(
             noLongerThanMilliseconds));
 }
 
+TransactionResult::Shared BaseTransaction::resultWaitForResourceTypes(
+    vector<BaseResource::ResourceType> &&requiredResourcesType,
+    uint32_t noLongerThanMilliseconds) const
+{
+    return make_shared<TransactionResult>(
+        TransactionState::waitForResourcesTypes(
+            move(requiredResourcesType),
+            noLongerThanMilliseconds));
+}
+
 TransactionResult::Shared BaseTransaction::resultAwakeAfterMilliseconds(
     uint32_t responseWaitTime) const
 {
@@ -209,24 +219,6 @@ TransactionResult::SharedConst BaseTransaction::transactionResultFromCommand(
     // todo: refactor me
     TransactionResult *transactionResult = new TransactionResult();
     transactionResult->setCommandResult(result);
-    return TransactionResult::SharedConst(transactionResult);
-}
-
-TransactionResult::SharedConst BaseTransaction::transactionResultFromMessage(
-    MessageResult::SharedConst messageResult) const
-{
-    // todo: refactor me
-    TransactionResult *transactionResult = new TransactionResult();
-    transactionResult->setMessageResult(messageResult);
-    return TransactionResult::SharedConst(transactionResult);
-}
-
-TransactionResult::SharedConst BaseTransaction::transactionResultFromState(
-    TransactionState::SharedConst state) const
-{
-    // todo: refactor me
-    TransactionResult *transactionResult = new TransactionResult();
-    transactionResult->setTransactionState(state);
     return TransactionResult::SharedConst(transactionResult);
 }
 

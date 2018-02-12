@@ -147,18 +147,17 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
         mCommand->contractorUUID());
 
     mStep = Stages::Coordinator_ReceiverResourceProcessing;
-    return transactionResultFromState(
-        TransactionState::waitForResourcesTypes(
-            {BaseResource::ResourceType::Paths},
-            // this delay should be greater than time of FindPathByMaxFlowTransaction running,
-            // because we didn't get resources
-            maxNetworkDelay(4)));
+    return resultWaitForResourceTypes(
+        {BaseResource::ResourceType::Paths},
+        // this delay should be greater than time of FindPathByMaxFlowTransaction running,
+        // because we didn't get resources
+        maxNetworkDelay(4));
 }
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourceProcessingStage()
 {
     debug() << "runPathsResourceProcessingStage";
-    if (mResources.size() != 0) {
+    if (!mResources.empty()) {
         auto responseResource = *mResources.begin();
         if (responseResource->type() == BaseResource::ResourceType::Paths) {
 

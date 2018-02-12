@@ -54,7 +54,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()
     info() << "sendResultToInitiator\t" << "send to " << mMessage->senderUUID;
     info() << "sendResultToInitiator\t" << "IncomingFlows: " << incomingFlows.size();
 #endif
-    if (incomingFlows.size() > 0) {
+    if (!incomingFlows.empty()) {
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->senderUUID,
             mNodeUUID,
@@ -86,7 +86,7 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendCachedResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
 #endif
-    if (incomingFlowsForSending.size() > 0) {
+    if (!incomingFlowsForSending.empty()) {
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->senderUUID,
             mNodeUUID,

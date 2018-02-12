@@ -42,7 +42,7 @@ CyclesSixNodesInitTransaction::CyclesSixNodesInitTransaction(
 TransactionResult::SharedConst CyclesSixNodesInitTransaction::runParseMessageAndCreateCyclesStage()
 {
     debug() << "runParseMessageAndCreateCyclesStage";
-    if (mContext.size() == 0) {
+    if (mContext.empty()) {
         info() << "No responses messages are present. Can't create cycles paths;";
         return resultDone();
     }

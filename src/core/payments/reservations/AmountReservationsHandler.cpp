@@ -115,7 +115,7 @@ void AmountReservationsHandler::free(
         for (auto it=reservations->cbegin(); it!=reservations->cend(); ++it){
             if (*it == reservation) {
                 reservations->erase(it);
-                if (reservations->size() == 0) {
+                if (reservations->empty()) {
                     mReservations.erase(iterator);
                 }
                 return;

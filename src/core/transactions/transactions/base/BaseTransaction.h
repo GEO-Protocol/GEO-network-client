@@ -11,7 +11,6 @@
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
 #include "../result/TransactionResult.h"
 #include "../result/state/TransactionState.h"
-#include "../../../network/messages/result/MessageResult.h"
 #include "../../../interface/results_interface/result/CommandResult.h"
 #include "../../../resources/resources/BaseResource.h"
 
@@ -43,13 +42,22 @@ public:
 public:
     // TODO: add other states shortcuts here
     TransactionResult::Shared resultDone () const;
+
     TransactionResult::Shared resultFlushAndContinue() const;
+
     TransactionResult::Shared resultWaitForMessageTypes(
         vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
+
+    TransactionResult::Shared resultWaitForResourceTypes(
+        vector<BaseResource::ResourceType> &&requiredResourcesType,
+        uint32_t noLongerThanMilliseconds) const;
+
     TransactionResult::Shared resultAwakeAfterMilliseconds(
         uint32_t responseWaitTime) const ;
+
     TransactionResult::Shared resultContinuePreviousState() const;
+
     TransactionResult::Shared resultWaitForMessageTypesAndAwakeAfterMilliseconds(
         vector<Message::MessageType> &&requiredMessagesTypes,
         uint32_t noLongerThanMilliseconds) const;
@@ -237,12 +245,6 @@ protected:
 
     TransactionResult::SharedConst transactionResultFromCommand(
         CommandResult::SharedConst result) const;
-
-    TransactionResult::SharedConst transactionResultFromMessage(
-        MessageResult::SharedConst result) const;
-
-    TransactionResult::SharedConst transactionResultFromState(
-        TransactionState::SharedConst state) const;
 
     virtual const string logHeader() const = 0;
     LoggerStream info() const;

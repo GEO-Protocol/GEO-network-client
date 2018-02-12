@@ -95,7 +95,7 @@ void PathsManager::buildPathsOnSecondLevel()
     auto trustLinePtrsSet =
             mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
     auto gateways = mTrustLinesManager->gateways();
-    while (gateways.size() > 0) {
+    while (!gateways.empty()) {
         auto itGateway = gateways.begin();
         for (auto itTrustLinePtr = trustLinePtrsSet.begin(); itTrustLinePtr != trustLinePtrsSet.end(); itTrustLinePtr++) {
             auto trustLine = (*itTrustLinePtr)->maxFlowCalculationtrustLine();

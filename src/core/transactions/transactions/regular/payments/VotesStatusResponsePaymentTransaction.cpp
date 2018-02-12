@@ -8,7 +8,6 @@ VotesStatusResponsePaymentTransaction::VotesStatusResponsePaymentTransaction(
     Logger &logger):
     BaseTransaction(
         BaseTransaction::TransactionType::VoutesStatusResponsePaymentTransaction,
-        message->transactionUUID(),
         nodeUUID,
         logger),
     mStorageHandler(storageHandler),

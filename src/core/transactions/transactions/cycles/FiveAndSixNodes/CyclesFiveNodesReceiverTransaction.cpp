@@ -24,7 +24,7 @@ TransactionResult::SharedConst CyclesFiveNodesReceiverTransaction::run()
     // Direction is calculated based on initiator node
     TrustLineBalance maxFlow = (-1) * mTrustLinesManager->balance(path.back());
     auto firstLevelNodes = mTrustLinesManager->getFirstLevelNodesForCycles(maxFlow);
-    if (firstLevelNodes.size() == 0){
+    if (firstLevelNodes.empty()){
         info() << "CyclesFiveNodesReceiverTransaction: No suitable firstLevelNodes " << endl;
         return resultDone();
     }

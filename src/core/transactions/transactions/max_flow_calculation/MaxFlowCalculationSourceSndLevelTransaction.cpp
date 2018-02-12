@@ -69,7 +69,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendResultToInitiator()
     info() << "sendResult\t" << "OutgoingFlows: " << outgoingFlows.size();
     info() << "sendResult\t" << "IncomingFlows: " << incomingFlows.size();
 #endif
-    if (outgoingFlows.size() > 0 || incomingFlows.size() > 0) {
+    if (!outgoingFlows.empty() || !incomingFlows.empty()) {
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->targetUUID(),
             mNodeUUID,
@@ -108,7 +108,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedResultToInitiator(
     info() << "sendCachedResultToInitiator\t" << "OutgoingFlows: " << outgoingFlowsForSending.size();
     info() << "sendCachedResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
 #endif
-    if (outgoingFlowsForSending.size() > 0 || incomingFlowsForSending.size() > 0) {
+    if (!outgoingFlowsForSending.empty() || !incomingFlowsForSending.empty()) {
         sendMessage<ResultMaxFlowCalculationMessage>(
             mMessage->targetUUID(),
             mNodeUUID,
@@ -148,7 +148,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendGatewayResultToInitiator()
     info() << "sendGatewayResult\t" << "OutgoingFlows: " << outgoingFlows.size();
     info() << "sendGatewayResult\t" << "IncomingFlows: " << incomingFlows.size();
 #endif
-    if (outgoingFlows.size() > 0 || incomingFlows.size() > 0) {
+    if (!outgoingFlows.empty() || !incomingFlows.empty()) {
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             mMessage->targetUUID(),
             mNodeUUID,
@@ -188,7 +188,7 @@ void MaxFlowCalculationSourceSndLevelTransaction::sendCachedGatewayResultToIniti
     info() << "sendCachedGatewayResultToInitiator\t" << "OutgoingFlows: " << outgoingFlowsForSending.size();
     info() << "sendCachedGatewayResultToInitiator\t" << "IncomingFlows: " << incomingFlowsForSending.size();
 #endif
-    if (outgoingFlowsForSending.size() > 0 || incomingFlowsForSending.size() > 0) {
+    if (!outgoingFlowsForSending.empty() || !incomingFlowsForSending.empty()) {
         sendMessage<ResultMaxFlowCalculationGatewayMessage>(
             mMessage->targetUUID(),
             mNodeUUID,
