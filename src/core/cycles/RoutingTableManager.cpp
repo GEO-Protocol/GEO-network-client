@@ -6,7 +6,7 @@ RoutingTableManager::RoutingTableManager(
     mIOService(ioService),
     mLog(logger)
 {
-    int timeStarted = 80 + rand() % (60);
+    int timeStarted = 120 + rand() % (60);
 #ifdef TESTS
     timeStarted = 10;
 #endif

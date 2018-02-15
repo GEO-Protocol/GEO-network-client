@@ -30,8 +30,6 @@ public:
 
     const string &identifier() const;
 
-    const DateTime &timestampAccepted() const;
-
     // TODO: remove noexcept
     // TODO: split methods into classes
     CommandResult::SharedConst responseOK() const

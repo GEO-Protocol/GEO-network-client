@@ -129,8 +129,10 @@ protected:
         const NodeUUID &contractorUUID,
         const Message::Shared message);
 
+    void delayedRescheduleResendingAfterDeserialization();
+
 protected:
-    static const uint16_t kMessagesDeserializationDelayedSecondsTime = 60;
+    static const uint16_t kMessagesDeserializationDelayedSecondsTime = 150;
 
 protected:
     /**

@@ -14,13 +14,7 @@ ConfirmationRequiredMessagesHandler::ConfirmationRequiredMessagesHandler(
 {
     mDeserializationMessagesTimer = make_unique<as::steady_timer>(
         mIOService);
-    mDeserializationMessagesTimer->expires_from_now(
-        chrono::seconds(
-            kMessagesDeserializationDelayedSecondsTime));
-    mDeserializationMessagesTimer->async_wait(
-        boost::bind(
-            &ConfirmationRequiredMessagesHandler::deserializeMessages,
-            this));
+    deserializeMessages();
 }
 
 void ConfirmationRequiredMessagesHandler::tryEnqueueMessage(
@@ -137,7 +131,7 @@ const DateTime ConfirmationRequiredMessagesHandler::closestQueueSendingTimestamp
 
 void ConfirmationRequiredMessagesHandler::rescheduleResending()
 {
-    if (mQueues.size() == 0) {
+    if (mQueues.empty()) {
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         this->debug() << "There are no postponed messages present. "
@@ -181,7 +175,7 @@ void ConfirmationRequiredMessagesHandler::sendPostponedMessages() const
             continue;
         }
 
-        for (const auto transactionUUIDAndMessage : kQueue->messages()) {
+        for (const auto &transactionUUIDAndMessage : kQueue->messages()) {
             signalOutgoingMessageReady(
                 make_pair(
                     kContractor,
@@ -214,14 +208,16 @@ void ConfirmationRequiredMessagesHandler::removeMessageFromStorage(
 
 void ConfirmationRequiredMessagesHandler::deserializeMessages()
 {
-    mDeserializationMessagesTimer->cancel();
     vector<tuple<const NodeUUID, BytesShared, Message::SerializedType>> messages;
     {
         auto ioTransaction = mCommunicatorStorageHandler->beginTransaction();
         messages = ioTransaction->communicatorMessagesQueueHandler()->allMessages();
     }
-    this->info() << "Serialized messages count: " << to_string(messages.size());
-    for (auto message : messages) {
+    if (messages.empty()) {
+        return;
+    }
+    this->warning() << "Serialized messages count: " << messages.size();
+    for (auto &message : messages) {
         NodeUUID contractorUUID = NodeUUID::empty();
         BytesShared messageBody;
         Message::SerializedType messageType;
@@ -262,6 +258,13 @@ void ConfirmationRequiredMessagesHandler::deserializeMessages()
                 _1,
                 _2));
     }
+    mDeserializationMessagesTimer->expires_from_now(
+        chrono::seconds(
+            kMessagesDeserializationDelayedSecondsTime));
+    mDeserializationMessagesTimer->async_wait(
+        boost::bind(
+            &ConfirmationRequiredMessagesHandler::delayedRescheduleResendingAfterDeserialization,
+            this));
 }
 
 void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSignalsToSlots(
@@ -281,18 +284,20 @@ void ConfirmationRequiredMessagesHandler::tryEnqueueMessageWithoutConnectingSign
             mQueues[contractorUUID] = newQueue;
         }
 
+        ioTransactionUnique = mCommunicatorStorageHandler->beginTransactionUnique();
         mQueues[contractorUUID]->enqueue(
             static_pointer_cast<TransactionMessage>(message));
+        ioTransactionUnique = nullptr;
 
 #ifdef DEBUG_LOG_NETWORK_COMMUNICATOR
         debug() << "Message of type " << message->typeID() << " enqueued for confirmation receiving.";
 #endif
-
-        if (mQueues.size() == 1
-            and mQueues.begin()->second->size() == 1) {
-
-            // First message was added for further re-sending.
-            rescheduleResending();
-        }
     }
+}
+
+void ConfirmationRequiredMessagesHandler::delayedRescheduleResendingAfterDeserialization()
+{
+    mDeserializationMessagesTimer->cancel();
+    mDeserializationMessagesTimer = nullptr;
+    rescheduleResending();
 }

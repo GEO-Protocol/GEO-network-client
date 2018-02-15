@@ -26,11 +26,6 @@ const string &BaseUserCommand::identifier() const
     return mCommandIdentifier;
 }
 
-const DateTime &BaseUserCommand::timestampAccepted() const
-{
-    return mTimestampAccepted;
-}
-
 pair<BytesShared, size_t> BaseUserCommand::serializeToBytes()
 {
     size_t bytesCount = CommandUUID::kBytesSize + sizeof(GEOEpochTimestamp);

@@ -101,7 +101,7 @@ pair<BytesShared, size_t> RequestMessageWithReservations::serializeToBytes() con
 const size_t RequestMessageWithReservations::kOffsetToInheritedBytes() const
     noexcept
 {
-    static const auto kOffset =
+    auto kOffset =
             TransactionMessage::kOffsetToInheritedBytes()
             + sizeof(SerializedRecordsCount)
             + finalAmountsConfiguration().size() *
