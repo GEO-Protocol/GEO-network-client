@@ -198,6 +198,7 @@ size_t MaxFlowCalculationTrustLineManager::trustLinesCounts() const
 
 void MaxFlowCalculationTrustLineManager::printTrustLines() const
 {
+    size_t trustLinesCnt = 0;
     info() << "print\t" << "trustLineMap size: " << msTrustLines.size();
     for (const auto &nodeUUIDAndTrustLines : msTrustLines) {
         info() << "print\t" << "key: " << nodeUUIDAndTrustLines.first;
@@ -206,7 +207,9 @@ void MaxFlowCalculationTrustLineManager::printTrustLines() const
             info() << "print\t" << "value: " << trustLine->targetUUID() << " " << *trustLine->amount().get()
                     << " free amount: " << *trustLine->freeAmount();
         }
+        trustLinesCnt += nodeUUIDAndTrustLines.second->size();
     }
+    info() << "print\t" << "trust lines count: " << trustLinesCnt;
 }
 
 DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const

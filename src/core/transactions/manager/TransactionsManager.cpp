@@ -310,8 +310,12 @@ void TransactionsManager::processMessage(
         }
 
     } else if (message->typeID() == Message::MessageType::MaxFlow_ResultMaxFlowCalculationFromGateway) {
-        launchReceiveResultMaxFlowCalculationTransactionFromGateway(
-            static_pointer_cast<ResultMaxFlowCalculationGatewayMessage>(message));
+        try {
+            mScheduler->tryAttachMessageToCollectTopologyTransaction(message);
+        } catch (NotFoundError &) {
+            launchReceiveResultMaxFlowCalculationTransactionFromGateway(
+                static_pointer_cast<ResultMaxFlowCalculationGatewayMessage>(message));
+        }
 
     } else if (message->typeID() == Message::MessageType::MaxFlow_CalculationSourceFirstLevel) {
         launchMaxFlowCalculationSourceFstLevelTransaction(
