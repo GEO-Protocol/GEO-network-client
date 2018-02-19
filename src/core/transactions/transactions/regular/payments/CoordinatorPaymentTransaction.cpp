@@ -124,7 +124,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
     debug() << "Operation amount: " << mCommand->amount();
 
     if (mCommand->contractorUUID() == currentNodeUUID()) {
-        debug() << "Attempt to initialise operation against itself was prevented. Canceled.";
+        warning() << "Attempt to initialise operation against itself was prevented. Canceled.";
         return resultProtocolError();
     }
 
@@ -201,15 +201,13 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResponseProcessingStage ()
 {
     if (! contextIsValid(Message::Payments_ReceiverInitPaymentResponse))
-        return exitWithResult(
-            resultNoResponseError(),
-            "Receiver reservation response wasn't received. Canceling.");
+        warning() << "Receiver reservation response wasn't received. Canceling.";
+        return resultNoResponseError();
 
     const auto kMessage = popNextMessage<ReceiverInitPaymentResponseMessage>();
     if (kMessage->state() != ReceiverInitPaymentResponseMessage::Accepted) {
-        return exitWithResult(
-            resultInsufficientFundsError(),
-            "Receiver rejected payment operation. Canceling.");
+        info() << "Receiver rejected payment operation. Canceling.";
+        return resultInsufficientFundsError();
     }
 
     debug() << "Receiver accepted operation. Begin reserving amounts.";

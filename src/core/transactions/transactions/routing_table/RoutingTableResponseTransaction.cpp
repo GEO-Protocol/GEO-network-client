@@ -25,7 +25,7 @@ const string RoutingTableResponseTransaction::logHeader() const
 TransactionResult::SharedConst RoutingTableResponseTransaction::run()
 {
     if(!mTrustLinesManager->isNeighbor(mRequestMessage->senderUUID)){
-        info() << mRequestMessage->senderUUID << " is not a neighbor. Finish transaction;";
+        warning() << mRequestMessage->senderUUID << " is not a neighbor. Finish transaction;";
     }
     auto neighbors = mTrustLinesManager->rt1();
     set<NodeUUID> result;

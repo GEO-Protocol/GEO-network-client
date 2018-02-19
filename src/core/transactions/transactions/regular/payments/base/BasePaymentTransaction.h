@@ -176,10 +176,6 @@ protected:
         const char *message = nullptr);
 
 
-    TransactionResult::SharedConst exitWithResult(
-        const TransactionResult::SharedConst result,
-        const char *message=nullptr);
-
     /**
      * starts recovery process
      */

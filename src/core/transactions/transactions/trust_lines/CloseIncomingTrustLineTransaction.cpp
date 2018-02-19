@@ -28,7 +28,7 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
     const auto kContractor = mCommand->contractorUUID();
 
     if (kContractor == mNodeUUID) {
-        info() << "Attempt to launch transaction against itself was prevented.";
+        warning() << "Attempt to launch transaction against itself was prevented.";
         return resultProtocolError();
     }
 
@@ -60,13 +60,13 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
 
     } catch (NotFoundError &e) {
         ioTransaction->rollback();
-        info() << "Attempt to close incoming trust line from the node " << kContractor << " failed. "
+        warning() << "Attempt to close incoming trust line from the node " << kContractor << " failed. "
                << "Details are: " << e.what();
         return resultProtocolError();
 
     } catch (IOError &e) {
         ioTransaction->rollback();
-        info() << "Attempt to close incoming trust line from the node " << kContractor << " failed. "
+        warning() << "Attempt to close incoming trust line from the node " << kContractor << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
 
