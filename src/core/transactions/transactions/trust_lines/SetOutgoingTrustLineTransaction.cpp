@@ -33,7 +33,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
     const auto kContractor = mCommand->contractorUUID();
 
     if (kContractor == mNodeUUID) {
-        info() << "Attempt to launch transaction against itself was prevented.";
+        warning() << "Attempt to launch transaction against itself was prevented.";
         return resultProtocolError();
     }
 
@@ -115,13 +115,13 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
 
     } catch (ValueError &) {
         ioTransaction->rollback();
-        info() << "Attempt to set outgoing trust line to the node " << kContractor << " failed. "
+        warning() << "Attempt to set outgoing trust line to the node " << kContractor << " failed. "
                << "Cannot open trustline with zero amount.";
         return resultProtocolError();
 
     } catch (NotFoundError &e) {
         ioTransaction->rollback();
-        info() << "Attempt to update outgoing trust line to the node " << kContractor << " failed. "
+        warning() << "Attempt to update outgoing trust line to the node " << kContractor << " failed. "
                << "Details are: " << e.what();
         return resultProtocolError();
 
@@ -151,7 +151,7 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
                 break;
             }
         }
-        info() << "Attempt to set outgoing trust line to the node " << kContractor << " failed. "
+        warning() << "Attempt to set outgoing trust line to the node " << kContractor << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
 

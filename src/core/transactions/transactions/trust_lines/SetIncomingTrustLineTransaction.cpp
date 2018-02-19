@@ -30,7 +30,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
     const auto kContractor = mMessage->senderUUID;
 
     if (kContractor == mNodeUUID) {
-        info() << "Attempt to launch transaction against itself was prevented.";
+        warning() << "Attempt to launch transaction against itself was prevented.";
         return resultDone();
     }
 
@@ -41,7 +41,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
     // if contractor in black list we should reject operation with TL
     if (ioTransaction->blackListHandler()->checkIfNodeExists(kContractor)) {
-        info() << "Contractor " << kContractor << " is in black list. Transaction rejected";
+        warning() << "Contractor " << kContractor << " is in black list. Transaction rejected";
         sendMessage<ConfirmationMessage>(
             mMessage->senderUUID,
             mNodeUUID,
@@ -125,7 +125,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
     } catch (ValueError &) {
         ioTransaction->rollback();
-        info() << "Attempt to set incoming trust line from the node " << kContractor << " failed. "
+        warning() << "Attempt to set incoming trust line from the node " << kContractor << " failed. "
                << "Cannot open trustline with zero amount.";
         sendMessage<ConfirmationMessage>(
             mMessage->senderUUID,
@@ -136,7 +136,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
     } catch (NotFoundError &e) {
         ioTransaction->rollback();
-        info() << "Attempt to update incoming trust line from the node " << kContractor << " failed. "
+        warning() << "Attempt to update incoming trust line from the node " << kContractor << " failed. "
                << "Details are: " << e.what();
         return resultDone();
 
@@ -166,7 +166,7 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
                 break;
             }
         }
-        info() << "Attempt to set incoming trust line to the node " << kContractor << " failed. "
+        warning() << "Attempt to set incoming trust line to the node " << kContractor << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
 

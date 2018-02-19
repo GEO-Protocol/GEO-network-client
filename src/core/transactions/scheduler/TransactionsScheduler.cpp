@@ -444,6 +444,7 @@ void TransactionsScheduler::tryAttachMessageToCollectTopologyTransaction(
 {
     for (auto const &transactionAndState : *mTransactions) {
         if (transactionAndState.first->transactionType() == BaseTransaction::InitiateMaxFlowCalculationTransactionType
+            or transactionAndState.first->transactionType() == BaseTransaction::MaxFlowCalculationStepTwoTransactionType
             or transactionAndState.first->transactionType() == BaseTransaction::FindPathByMaxFlowTransactionType
             or transactionAndState.first->transactionType() == BaseTransaction::MaxFlowCalculationFullyTransactionType) {
             transactionAndState.first->pushContext(message);

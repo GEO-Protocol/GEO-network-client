@@ -115,9 +115,8 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runInitialisationStag
             mMessage->pathID(),
             ReceiverInitPaymentResponseMessage::Rejected);
 
-        return exitWithResult(
-            resultDone(),
-            "Operation rejected due to insufficient funds.");
+        info() << "Operation rejected due to insufficient funds.";
+        return resultDone();
     }
 
     sendMessage<ReceiverInitPaymentResponseMessage>(

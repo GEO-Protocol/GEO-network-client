@@ -23,7 +23,7 @@ TransactionResult::SharedConst RejectOutgoingTrustLineTransaction::run()
     const auto kContractor = mMessage->senderUUID;
 
     if (kContractor == mNodeUUID) {
-        info() << "Attempt to launch transaction against itself was prevented.";
+        warning() << "Attempt to launch transaction against itself was prevented.";
         return resultDone();
     }
 
@@ -44,15 +44,15 @@ TransactionResult::SharedConst RejectOutgoingTrustLineTransaction::run()
             mMessage);
         info() << "Outgoing TL to the node " << kContractor << " successfully rejected";
         return resultDone();
-    } catch (NotFoundError) {
-        warning() << "Can't reject outgoing TL because absence";
+    } catch (NotFoundError &e) {
+        warning() << "Can't reject outgoing TL because absence. Details are: " << e.what();
         processConfirmationMessage(
             kContractor,
             mMessage);
         return resultDone();
     } catch (IOError &e) {
         ioTransaction->rollback();
-        info() << "Attempt to close outgoing trust line to the node " << kContractor << " failed. "
+        warning() << "Attempt to close outgoing trust line to the node " << kContractor << " failed. "
                << "IO transaction can't be completed. "
                << "Details are: " << e.what();
 

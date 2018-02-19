@@ -531,7 +531,7 @@ TransactionResult::SharedConst BasePaymentTransaction::cancel(
     // if transaction doesn't achieved votes processing state yet.
 
     rollBack();
-    info() << "Transaction succesfully rolled back.";
+    info() << "Transaction successfully rolled back.";
 
     return resultDone();
 }
@@ -814,16 +814,6 @@ const bool BasePaymentTransaction::shortageReservation (
     } catch (NotFoundError &) {}
 
     return false;
-}
-
-TransactionResult::SharedConst BasePaymentTransaction::exitWithResult(
-    TransactionResult::SharedConst result,
-    const char *message)
-{
-    if (message != nullptr)
-        info() << message;
-
-    return result;
 }
 
 void BasePaymentTransaction::dropNodeReservationsOnPath(
