@@ -200,9 +200,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResponseProcessingStage ()
 {
-    if (! contextIsValid(Message::Payments_ReceiverInitPaymentResponse))
+    if (! contextIsValid(Message::Payments_ReceiverInitPaymentResponse)) {
         warning() << "Receiver reservation response wasn't received. Canceling.";
         return resultNoResponseError();
+    }
 
     const auto kMessage = popNextMessage<ReceiverInitPaymentResponseMessage>();
     if (kMessage->state() != ReceiverInitPaymentResponseMessage::Accepted) {
