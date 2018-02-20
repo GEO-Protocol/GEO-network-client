@@ -233,7 +233,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runVotesCheckingStage()
         //
         // In this case - the message must be simply ignored.
 
-        debug() << "Votes message ignored due to transactions UUIDs collision detected.";
+        warning() << "Votes message ignored due to transactions UUIDs collision detected.";
         debug() << "Waiting for another votes message.";
 
         return resultWaitForMessageTypes(
@@ -497,7 +497,7 @@ TransactionResult::SharedConst BasePaymentTransaction::reject(
     const char *message)
 {
     if (message)
-        info() << message;
+        warning() << message;
 
     // Participants votes may not be received,
     // if transaction doesn't achieved votes processing state yet.
@@ -517,21 +517,6 @@ TransactionResult::SharedConst BasePaymentTransaction::reject(
 
     rollBack();
     debug() << "Transaction successfully rolled back.";
-
-    return resultDone();
-}
-
-TransactionResult::SharedConst BasePaymentTransaction::cancel(
-    const char *message)
-{
-    if (message)
-        info() << message;
-
-    // Participants votes may not be received,
-    // if transaction doesn't achieved votes processing state yet.
-
-    rollBack();
-    info() << "Transaction successfully rolled back.";
 
     return resultDone();
 }
@@ -690,7 +675,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
 {
     debug() << "recover";
     if (message != nullptr)
-        info() << message;
+        warning() << message;
 
     if(mTransactionIsVoted and (mParticipantsVotesMessage != nullptr)){
         mStep = Stages::Common_Recovery;
@@ -698,7 +683,7 @@ TransactionResult::SharedConst BasePaymentTransaction::recover (
         clearContext();
         return runVotesRecoveryParentStage();
     } else {
-        debug() << "Transaction doesn't sent/receive participants votes message and will be closed";
+        warning() << "Transaction doesn't sent/receive participants votes message and will be closed";
         rollBack();
         return resultDone();
     }
@@ -1003,7 +988,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
             debug() << "Coordinator didn't sent response";
             return processNextNodeToCheckVotes();
         }
-        debug() << "receive message with invalid type, ignore it";
+        warning() << "receive message with invalid type, ignore it";
         clearContext();
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
@@ -1023,7 +1008,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckCoordinatorVotesS
 
     // Check if answer is from Coordinator
     if (kSenderUUID != kCoordinatorUUID){
-        debug() << "Sender (" << kSenderUUID << ") is not coordinator ("
+        warning() << "Sender (" << kSenderUUID << ") is not coordinator ("
                 << kCoordinatorUUID << "), ignore this message";
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
@@ -1054,7 +1039,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
             debug() << "Intermediate node didn't sent response";
             return processNextNodeToCheckVotes();
         }
-        debug() << "receive message with invalid type, ignore it";
+        warning() << "receive message with invalid type, ignore it";
         clearContext();
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
@@ -1070,7 +1055,7 @@ TransactionResult::SharedConst BasePaymentTransaction::runCheckIntermediateNodeV
     }
 
     if (kSenderUUID != mCurrentNodeToCheckVotes){
-        debug() << "Sender is not current checking node";
+        warning() << "Sender is not current checking node";
         return resultWaitForMessageTypes(
             {Message::Payments_ParticipantsVotes},
             maxNetworkDelay(2));

@@ -126,7 +126,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 ResponseCycleMessage::Rejected);
-            debug() << "can't reserve requested amount, event with reservations, transaction closed";
+            warning() << "can't reserve requested amount, event with reservations, transaction closed";
             return resultDone();
         } else {
             mReservationAmount = TrustLineAmount(0);
@@ -164,7 +164,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
-        debug() << "can't reserve requested amount, transaction closed";
+        warning() << "can't reserve requested amount, transaction closed";
         return resultDone();
     }
 
@@ -208,7 +208,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runPrevio
             currentNodeUUID(),
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
-        debug() << "can't reserve requested amount, transaction closed";
+        warning() << "can't reserve requested amount, transaction closed";
         return resultDone();
     }
 
@@ -294,7 +294,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
                 currentTransactionUUID(),
                 ResponseCycleMessage::Rejected);
 
-            debug() << "No amount reservation is possible, even with using other reservations. Rolled back.";
+            warning() << "No amount reservation is possible, even with using other reservations. Rolled back.";
             rollBack();
             return resultDone();
         } else {
@@ -333,7 +333,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
 
-        debug() << "No amount reservation is possible. Rolled back.";
+        warning() << "No amount reservation is possible. Rolled back.";
         rollBack();
         return resultDone();
     }
@@ -378,7 +378,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runCoordi
             currentTransactionUUID(),
             ResponseCycleMessage::RejectedBecauseReservations);
 
-        debug() << "No amount reservation is possible. Rolled back.";
+        warning() << "No amount reservation is possible. Rolled back.";
         rollBack();
         return resultDone();
     }
@@ -409,7 +409,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
 {
     debug() << "runNextNeighborResponseProcessingStage";
     if (! contextIsValid(Message::Payments_IntermediateNodeCycleReservationResponse)) {
-        debug() << "No valid amount reservation response received. Rolled back.";
+        warning() << "No valid amount reservation response received. Rolled back.";
         rollBack();
         sendMessage<CoordinatorCycleReservationResponseMessage>(
             mCoordinator,
@@ -429,7 +429,7 @@ TransactionResult::SharedConst CycleCloserIntermediateNodeTransaction::runNextNe
             currentNodeUUID(),
             currentTransactionUUID(),
             kMessage->state());
-        debug() << "Amount reservation rejected by the neighbor node.";
+        warning() << "Amount reservation rejected by the neighbor node.";
         rollBack();
         return resultDone();
     }

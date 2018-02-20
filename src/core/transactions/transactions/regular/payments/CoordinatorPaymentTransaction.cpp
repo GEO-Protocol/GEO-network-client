@@ -132,7 +132,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPaymentInitiali
         return resultProtocolError();
     }
 
-
     // Check if total outgoing possibilities of this node are not smaller,
     // than total operation amount. In case if so - there is no reason to begin the operation:
     // current node would not be able to pay such an amount.
@@ -168,6 +167,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
                 auto path = response->pathCollection()->nextPath();
                 if (isPathValid(path)) {
                     addPathForFurtherProcessing(path);
+                } else {
+                    warning() << "Invalid path: " << path->toString();
                 }
             }
         } else {
@@ -203,9 +204,10 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runPathsResourcePr
 
 TransactionResult::SharedConst CoordinatorPaymentTransaction::runReceiverResponseProcessingStage ()
 {
-    if (! contextIsValid(Message::Payments_ReceiverInitPaymentResponse))
+    if (! contextIsValid(Message::Payments_ReceiverInitPaymentResponse)) {
         warning() << "Receiver reservation response wasn't received. Canceling.";
         return resultNoResponseError();
+    }
 
     const auto kMessage = popNextMessage<ReceiverInitPaymentResponseMessage>();
     if (kMessage->state() != ReceiverInitPaymentResponseMessage::Accepted) {
@@ -491,8 +493,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::tryReserveNextInte
         }
 
     } catch(NotFoundError) {
-        debug() << "No unprocessed paths are left.";
-        debug() << "Requested amount can't be collected. Canceling.";
+        debug() << "No unprocessed paths are left. Requested amount can't be collected. Canceling.";
         rollBack();
         informAllNodesAboutTransactionFinish();
         return resultInsufficientFundsError();
@@ -506,7 +507,7 @@ void CoordinatorPaymentTransaction::addPathForFurtherProcessing(
     for (const auto &identifierAndStats : mPathsStats) {
         if (identifierAndStats.second->path() == path)
             throw ConflictError("CoordinatorPaymentTransaction::addPathForFurtherProcessing: "
-                "duplicated path occured in the transaction.");
+                "duplicated path occurred in the transaction.");
     }
 
     PathID currentPathID = 0;
@@ -534,8 +535,8 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::askNeighborToReser
         // No next path must be selected.
         // Transaction execution must be cancelled.
 
-        warning() << "Invalid path occurred. Node (" << neighbor << ") is not listed in first level contractors list.";
-        warning() << "This may signal about protocol/data manipulations.";
+        warning() << "Invalid path occurred. Node (" << neighbor << ") is not listed in first level contractors list."
+                    << " This may signal about protocol/data manipulations.";
 
         throw RuntimeError(
             "CoordinatorPaymentTransaction::tryReserveNextIntermediateNodeAmount: "
@@ -707,11 +708,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborAmo
 
     if (message->state() == IntermediateNodeReservationResponseMessage::Closed) {
         warning() << "Neighbor node doesn't approved reservation request";
-        return reject("Desynchronization in reservation with Receiver occured. Transaction closed.");
+        return reject("Desynchronization in reservation with Receiver occurred. Transaction closed.");
     }
 
     if (message->state() == IntermediateNodeReservationResponseMessage::Rejected) {
-        debug() << "Neighbor node doesn't approved reservation request";
+        warning() << "Neighbor node doesn't approved reservation request";
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
@@ -771,11 +772,11 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     auto message = popNextMessage<CoordinatorReservationResponseMessage>();
 
     if (message->state() == CoordinatorReservationResponseMessage::Closed) {
-        return reject("Desynchronization in reservation with Receiver occured. Transaction closed.");
+        return reject("Desynchronization in reservation with Receiver occurred. Transaction closed.");
     }
 
     if (message->state() == CoordinatorReservationResponseMessage::NextNodeInaccessible) {
-        debug() << "Next node after neighbor is inaccessible. Rejecting request.";
+        warning() << "Next node after neighbor is inaccessible. Rejecting request.";
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
@@ -808,7 +809,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
     }
 
     if (message->amountReserved() == 0 || message->state() == CoordinatorReservationResponseMessage::Rejected) {
-        debug() << "Neighbor node doesn't accepted coordinator request.";
+        warning() << "Neighbor node doesn't accepted coordinator request.";
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
@@ -858,7 +859,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processNeighborFur
         debug() << "Total collected amount by all paths: " << kTotalAmount;
 
         if (kTotalAmount > mCommand->amount()){
-            debug() << "Total requested amount: " << mCommand->amount();
+            info() << "Total requested amount: " << mCommand->amount();
             return reject("Total collected amount is greater than requested amount. "
                               "It indicates that some of the nodes doesn't follows the protocol, "
                               "or that an error is present in protocol itself.");
@@ -970,7 +971,6 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
         return tryProcessNextPath();
     }
 
-
     const auto message = popNextMessage<CoordinatorReservationResponseMessage>();
     auto path = currentAmountReservationPathStats();
 
@@ -979,7 +979,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
     }
 
     if (message->state() == CoordinatorReservationResponseMessage::NextNodeInaccessible) {
-        debug() << "Next node after neighbor is inaccessible. Rejecting request.";
+        warning() << "Next node after neighbor is inaccessible. Rejecting request.";
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
@@ -1020,7 +1020,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::processRemoteNodeR
     const auto R_PathPosition = R_UUIDAndPos.second;
 
     if (0 == message->amountReserved() || message->state() == CoordinatorReservationResponseMessage::Rejected) {
-        debug() << "Remote node rejected reservation. Switching to another path.";
+        warning() << "Remote node rejected reservation. Switching to another path.";
         dropReservationsOnPath(
             currentAmountReservationPathStats(),
             mCurrentAmountReservingPathIdentifier);
@@ -1460,7 +1460,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
     const auto kMessage = popNextMessage<IntermediateNodeReservationResponseMessage>();
 
     if (kMessage->state() != IntermediateNodeReservationResponseMessage::Accepted) {
-        debug() << "Receiver node rejected reservation. "
+        warning() << "Receiver node rejected reservation. "
                << "Switching to another path.";
 
         dropReservationsOnPath(
@@ -1491,7 +1491,7 @@ TransactionResult::SharedConst CoordinatorPaymentTransaction::runDirectAmountRes
     debug() << "Total collected amount by all paths: " << kTotalAmount;
 
     if (kTotalAmount > mCommand->amount()){
-        warning() << "Total requested amount: " << mCommand->amount();
+        debug() << "Total requested amount: " << mCommand->amount();
         return reject("Total collected amount is greater than requested amount. "
                           "It indicates that some of the nodes doesn't follows the protocol, "
                           "or that an error is present in protocol itself.");

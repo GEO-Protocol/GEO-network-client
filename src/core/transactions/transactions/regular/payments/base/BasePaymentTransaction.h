@@ -171,9 +171,6 @@ protected:
     // rejecting of transaction
     virtual TransactionResult::SharedConst reject(
         const char *message = nullptr);
-    virtual TransactionResult::SharedConst cancel(
-        const char *message = nullptr);
-
 
     /**
      * starts recovery process

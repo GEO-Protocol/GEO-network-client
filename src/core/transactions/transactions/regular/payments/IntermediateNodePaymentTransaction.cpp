@@ -192,7 +192,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runPreviousNe
 #endif
 
     if (0 == kReservationAmount || ! reserveIncomingAmount(kNeighbor, kReservationAmount, kReservation.first)) {
-        debug() << "No amount reservation is possible.";
+        warning() << "No amount reservation is possible.";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
@@ -240,7 +240,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
     debug() << "runCoordinatorRequestProcessingStage";
 
     if (!contextIsValid(Message::Payments_CoordinatorReservationRequest, false)) {
-        debug() << "No coordinator request received.";
+        warning() << "No coordinator request received.";
         return runReservationProlongationStage();
     }
 
@@ -291,7 +291,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
             currentTransactionUUID(),
             kReservation.first,
             ResponseMessage::Rejected);
-        debug() << "Path is not valid: next node is not neighbor of current one. Rolled back.";
+        warning() << "Path is not valid: next node is not neighbor of current one. Rolled back.";
         rollBack(kReservation.first);
         // if no reservations close transaction
         if (mReservations.empty()) {
@@ -322,7 +322,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runCoordinato
             kReservation.first,
             ResponseMessage::Rejected);
 
-        debug() << "No amount reservation is possible. Rolled back.";
+        warning() << "No amount reservation is possible. Rolled back.";
         rollBack(kReservation.first);
         // if no reservations close transaction
         if (mReservations.empty()) {
@@ -385,7 +385,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
 {
     debug() << "runNextNeighborResponseProcessingStage";
     if (mContext.empty()) {
-        debug() << "No amount reservation response received. Rolled back.";
+        warning() << "No amount reservation response received. Rolled back.";
         sendMessage<CoordinatorReservationResponseMessage>(
             mCoordinator,
             currentNodeUUID(),
@@ -430,7 +430,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             currentTransactionUUID(),
             mLastProcessedPath,
             ResponseMessage::Closed);
-        debug() << "Amount reservation rejected with further transaction closing by the Receiver node.";
+        warning() << "Amount reservation rejected with further transaction closing by the Receiver node.";
         rollBack(kMessage->pathID());
         // if no reservations close transaction
         if (mReservations.empty()) {
@@ -453,7 +453,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runNextNeighb
             currentTransactionUUID(),
             kMessage->pathID(),
             ResponseMessage::Rejected);
-        debug() << "Amount reservation rejected by the neighbor node.";
+        warning() << "Amount reservation rejected by the neighbor node.";
         rollBack(kMessage->pathID());
         // if no reservations close transaction
         if (mReservations.empty()) {
@@ -506,7 +506,7 @@ TransactionResult::SharedConst IntermediateNodePaymentTransaction::runFinalPathC
     debug() << "runFinalPathConfigurationProcessingStage";
 
     if (!contextIsValid(Message::Payments_FinalPathConfiguration, false)) {
-        debug() << "No final paths configuration was received from the coordinator.";
+        warning() << "No final paths configuration was received from the coordinator.";
         return runReservationProlongationStage();
     }
 

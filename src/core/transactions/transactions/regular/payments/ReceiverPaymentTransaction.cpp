@@ -242,7 +242,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
     // Note: copy of shared pointer is required.
     const auto kAvailableAmount = mTrustLines->incomingTrustAmountConsideringReservations(kNeighbor);
     if (*kAvailableAmount == TrustLine::kZeroAmount()) {
-        debug() << "Available amount equals zero. Reservation reject.";
+        warning() << "Available amount equals zero. Reservation reject.";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),
@@ -291,7 +291,7 @@ TransactionResult::SharedConst ReceiverPaymentTransaction::runAmountReservationS
         // that wasn't approved by the current node yet.
         //
         // In this case, reservation request must be rejected.
-        debug() << "Can't reserve incoming amount. Reservation reject.";
+        warning() << "Can't reserve incoming amount. Reservation reject.";
         sendMessage<IntermediateNodeReservationResponseMessage>(
             kNeighbor,
             currentNodeUUID(),

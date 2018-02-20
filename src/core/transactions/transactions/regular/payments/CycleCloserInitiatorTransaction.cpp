@@ -120,7 +120,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
 
     if (*kOutgoingAmountWithReservations == TrustLine::kZeroAmount()) {
         if (*kOutgoingAmountWithoutReservations == TrustLine::kZeroAmount()) {
-            debug() << "Can't close cycle, because coordinator outgoing amount equal zero, "
+            warning() << "Can't close cycle, because coordinator outgoing amount equal zero, "
                 "and can't use reservations from other transactions";
             mCyclesManager->addClosedTrustLine(
                 currentNodeUUID(),
@@ -149,7 +149,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runInitialisatio
     mIncomingAmount = *(kIncomingAmounts.first);
 
     if (mIncomingAmount == TrustLine::kZeroAmount()) {
-        debug() << "Can't close cycle, because coordinator incoming amount equal zero";
+        warning() << "Can't close cycle, because coordinator incoming amount equal zero";
         mCyclesManager->addClosedTrustLine(
             mPreviousNode,
             currentNodeUUID());
@@ -284,8 +284,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::tryReserveNextIn
         }
 
     } catch(NotFoundError) {
-        debug() << "No unprocessed paths are left.";
-        debug() << "Requested amount can't be collected. Canceling.";
+        warning() << "No unprocessed paths are left. Requested amount can't be collected. Canceling.";
         return resultDone();
     }
 }
@@ -362,7 +361,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runAmountReserva
 
     debug() << "Reservation was released, continue";
     if (!reserveOutgoingAmount(mNextNode, mOutgoingAmount, 0)) {
-        debug() << "Can't reserve. Close transaction";
+        warning() << "Can't reserve. Close transaction";
         return resultDone();
     }
 
@@ -497,7 +496,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processNeighborF
 
     if (message->state() == CoordinatorCycleReservationResponseMessage::Rejected ||
             message->state() == CoordinatorCycleReservationResponseMessage::RejectedBecauseReservations) {
-        debug() << "Neighbor node doesn't accepted coordinator request.";
+        warning() << "Neighbor node doesn't accepted coordinator request.";
         rollBack();
         if (message->state() == CoordinatorCycleReservationResponseMessage::Rejected) {
             mCyclesManager->addClosedTrustLine(
@@ -622,7 +621,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::processRemoteNod
 
     if (message->state() == CoordinatorCycleReservationResponseMessage::Rejected ||
             message->state() == CoordinatorCycleReservationResponseMessage::RejectedBecauseReservations) {
-        debug() << "Remote node rejected reservation. Can't pay";
+        warning() << "Remote node rejected reservation. Can't pay";
         rollBack();
         informIntermediateNodesAboutTransactionFinish(
             path->currentIntermediateNodeAndPos().second - 1);
@@ -724,7 +723,7 @@ TransactionResult::SharedConst CycleCloserInitiatorTransaction::runPreviousNeigh
                 currentNodeUUID(),
                 currentTransactionUUID(),
                 ResponseCycleMessage::Rejected);
-            debug() << "can't reserve requested amount, because coordinator incoming amount "
+            warning() << "can't reserve requested amount, because coordinator incoming amount "
                 "event without reservations equal zero, transaction closed";
             return resultDone();
         } else {
