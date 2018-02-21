@@ -9,6 +9,7 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
     MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
     SubsystemsController *subsystemsController,
+    bool iAmGateway,
     Logger &logger)
     noexcept :
 
@@ -21,7 +22,8 @@ SetOutgoingTrustLineTransaction::SetOutgoingTrustLineTransaction(
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
-    mSubsystemsController(subsystemsController)
+    mSubsystemsController(subsystemsController),
+    mIAmGateway(iAmGateway)
 {}
 
 TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
@@ -104,12 +106,21 @@ TransactionResult::SharedConst SetOutgoingTrustLineTransaction::run()
         // Notifying remote node about trust line state changed.
         // Network communicator knows, that this message must be forced to be delivered,
         // so the TA itself might finish without any response from the remote node.
-        sendMessage<SetIncomingTrustLineMessage>(
-            mCommand->contractorUUID(),
-            mNodeUUID,
-            mTransactionUUID,
-            mCommand->contractorUUID(),
-            mCommand->amount());
+        if (mIAmGateway) {
+            sendMessage<SetIncomingTrustLineFromGatewayMessage>(
+                mCommand->contractorUUID(),
+                mNodeUUID,
+                mTransactionUUID,
+                mCommand->contractorUUID(),
+                mCommand->amount());
+        } else {
+            sendMessage<SetIncomingTrustLineMessage>(
+                mCommand->contractorUUID(),
+                mNodeUUID,
+                mTransactionUUID,
+                mCommand->contractorUUID(),
+                mCommand->amount());
+        }
 
         return resultOK();
 

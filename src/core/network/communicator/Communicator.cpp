@@ -141,7 +141,7 @@ void Communicator::onMessageReceived(
 {
     // these messages are inherited from DestinationMessage
     // and should be checked if they were delivered on address
-    if (message->typeID() >= 100 && message->typeID() <= 101) {
+    if (message->typeID() >= 100 && message->typeID() <= 102) {
         const auto kDestinationMessage =
             static_pointer_cast<DestinationMessage>(message);
         if (kDestinationMessage->destinationUUID() != mNodeUUID) {

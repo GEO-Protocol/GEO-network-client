@@ -69,16 +69,6 @@ void TrustLine::setOutgoingTrustAmount(
     mOutgoingTrustAmount = amount;
 }
 
-/*!
- * Sets balance of the trust line.
- * This method rewrites previous balance.
- */
-void TrustLine::setBalance(
-    const TrustLineBalance &balance)
-{
-    mBalance = balance;
-}
-
 const NodeUUID &TrustLine::contractorNodeUUID() const
 {
     return mContractorNodeUUID;

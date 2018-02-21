@@ -9,6 +9,7 @@
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
+#include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 
@@ -40,6 +41,7 @@ public:
         MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
         MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
         SubsystemsController *subsystemsController,
+        bool iAmGateway,
         Logger &logger)
         noexcept;
 
@@ -68,6 +70,7 @@ protected:
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
     SubsystemsController *mSubsystemsController;
+    bool mIAmGateway;
 };
 
 

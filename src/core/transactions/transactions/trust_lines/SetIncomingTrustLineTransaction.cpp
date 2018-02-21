@@ -22,7 +22,33 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mStorageHandler(storageHandler),
     mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
     mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
-    mIAmGateway(iAmGateway)
+    mIAmGateway(iAmGateway),
+    mSenderIsGateway(false)
+{}
+
+SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
+    const NodeUUID &nodeUUID,
+    SetIncomingTrustLineFromGatewayMessage::Shared message,
+    TrustLinesManager *manager,
+    StorageHandler *storageHandler,
+    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    bool iAmGateway,
+    Logger &logger)
+    noexcept:
+
+    BaseTransaction(
+        BaseTransaction::SetIncomingTrustLineTransaction,
+        message->transactionUUID(),
+        nodeUUID,
+        logger),
+    mMessage(message),
+    mTrustLines(manager),
+    mStorageHandler(storageHandler),
+    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
+    mIAmGateway(iAmGateway),
+    mSenderIsGateway(true)
 {}
 
 TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
@@ -75,6 +101,14 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
             mMaxFlowCalculationNodeCacheManager->clearCashes();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully initialised with " << mMessage->amount();
+
+            if (mSenderIsGateway) {
+                mTrustLines->setContractorAsGateway(
+                    ioTransaction,
+                    mMessage->senderUUID,
+                    true);
+                info() << "Incoming trust line was opened from gateway";
+            }
 
             if (mIAmGateway) {
                 // Notifying remote node that current node is gateway.

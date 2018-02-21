@@ -87,26 +87,3 @@ const string StorageHandler::logHeader() const
     s << "[StorageHandler]";
     return s.str();
 }
-
-int StorageHandler::applyMigrations(const NodeUUID &nodeUUID) {
-    auto migrationHandler = make_shared<MigrationsHandler>(
-        mDBConnection,
-        kMigrationTableName,
-        nodeUUID,
-        &mTrustLineHandler,
-        &mHistoryStorage,
-        &mPaymentOperationStateHandler,
-        &mTransactionHandler,
-        &mBlackListHandler,
-        &mNodeFeaturesHandler,
-        mLog);
-
-    try {
-        migrationHandler->applyMigrations();
-        return 0;
-
-    } catch(const Exception &e) {
-        error() << "applyMigrations: " << e.what();
-        return -1;
-    }
-}

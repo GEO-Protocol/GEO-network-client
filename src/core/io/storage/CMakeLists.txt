@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
 
-add_subdirectory(migrations)
-
 set(SOURCE_FILES
         StorageHandler.h
         StorageHandler.cpp
@@ -23,9 +21,6 @@ set(SOURCE_FILES
         IOTransaction.cpp
         IOTransaction.h
 
-        MigrationsHandler.h
-        MigrationsHandler.cpp
-
         CommunicatorMessagesQueueHandler.h
         CommunicatorMessagesQueueHandler.cpp
 
@@ -44,5 +39,4 @@ set(SOURCE_FILES
 add_library(io__storage ${SOURCE_FILES})
 
 target_link_libraries(io__storage
-        migrations
         libsqlite3)

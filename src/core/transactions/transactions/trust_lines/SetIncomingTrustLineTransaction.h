@@ -8,6 +8,7 @@
 #include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
+#include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../network/messages/gateway_notification/GatewayNotificationMessage.h"
 #include "../../../network/messages/base/transaction/ConfirmationMessage.h"
 
@@ -42,6 +43,17 @@ public:
         Logger &logger)
         noexcept;
 
+    SetIncomingTrustLineTransaction(
+        const NodeUUID &nodeUUID,
+        SetIncomingTrustLineFromGatewayMessage::Shared message,
+        TrustLinesManager *manager,
+        StorageHandler *storageHandler,
+        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        bool iAmGateway,
+        Logger &logger)
+    noexcept;
+
     TransactionResult::SharedConst run();
 
 protected:
@@ -63,6 +75,7 @@ protected:
     MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
     MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
     bool mIAmGateway;
+    bool mSenderIsGateway;
 };
 
 

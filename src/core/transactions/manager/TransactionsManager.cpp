@@ -400,6 +400,10 @@ void TransactionsManager::processMessage(
         launchSetIncomingTrustLineTransaction(
             static_pointer_cast<SetIncomingTrustLineMessage>(message));
 
+    } else if (message->typeID() == Message::TrustLines_SetIncomingFromGateway) {
+        launchSetIncomingTrustLineTransaction(
+            static_pointer_cast<SetIncomingTrustLineFromGatewayMessage>(message));
+
     } else if (message->typeID() == Message::TrustLines_CloseOutgoing) {
         launchCloseOutgoingTrustLineTransaction(
             static_pointer_cast<CloseOutgoingTrustLineMessage>(message));
@@ -438,6 +442,7 @@ void TransactionsManager::launchSetOutgoingTrustLineTransaction(
             mMaxFlowCalculationCacheManager,
             mMaxFlowCalculationNodeCacheManager,
             mSubsystemsController,
+            mIAmGateway,
             mLog),
         true,
         false,
@@ -464,6 +469,24 @@ void TransactionsManager::launchCloseIncomingTrustLineTransaction(
 
 void TransactionsManager::launchSetIncomingTrustLineTransaction(
     SetIncomingTrustLineMessage::Shared message)
+{
+    prepareAndSchedule(
+        make_shared<SetIncomingTrustLineTransaction>(
+            mNodeUUID,
+            message,
+            mTrustLines,
+            mStorageHandler,
+            mMaxFlowCalculationCacheManager,
+            mMaxFlowCalculationNodeCacheManager,
+            mIAmGateway,
+            mLog),
+        true,
+        false,
+        true);
+}
+
+void TransactionsManager::launchSetIncomingTrustLineTransaction(
+    SetIncomingTrustLineFromGatewayMessage::Shared message)
 {
     prepareAndSchedule(
         make_shared<SetIncomingTrustLineTransaction>(

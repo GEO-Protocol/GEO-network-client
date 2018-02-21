@@ -5,7 +5,6 @@
 #include "TrustLineHandler.h"
 #include "PaymentOperationStateHandler.h"
 #include "TransactionsHandler.h"
-#include "MigrationsHandler.h"
 #include "HistoryStorage.h"
 #include "BlackListHandler.h"
 #include "NodeFeaturesHandler.h"
@@ -30,8 +29,6 @@ public:
 
     IOTransaction::Shared beginTransaction();
 
-    int applyMigrations(const NodeUUID &nodeUUID);
-
 private:
     static void checkDirectory(
         const string &directory);
@@ -54,7 +51,6 @@ private:
     const string kTransactionTableName = "transactions";
     const string kHistoryMainTableName = "history";
     const string kHistoryAdditionalTableName = "history_additional";
-    const string kMigrationTableName = "migrations";
     const string kNodeFeaturesTableName = "node_features";
     const string kBlackListTableName = "blacklist";
 

@@ -29,6 +29,10 @@ void ConfirmationRequiredMessagesQueue::enqueue(
                 static_pointer_cast<GatewayNotificationMessage>(message));
             break;
         }
+        case Message::TrustLines_SetIncomingFromGateway: {
+            updateTrustLineFromGatewayNotificationInTheQueue(
+                static_pointer_cast<SetIncomingTrustLineFromGatewayMessage>(message));
+        }
         //todo : add logger and warning default case
     }
 }
@@ -86,6 +90,30 @@ void ConfirmationRequiredMessagesQueue::updateTrustLineNotificationInTheQueue(
         const auto kMessage = it->second;
 
         if (kMessage->typeID() == Message::TrustLines_SetIncoming) {
+            mMessages.erase(it++);
+            signalRemoveMessageFromStorage(
+                mContractorUUID,
+                kMessage->typeID());
+        } else {
+            ++it;
+        }
+    }
+
+    mMessages[message->transactionUUID()] = message;
+    signalSaveMessageToStorage(
+        mContractorUUID,
+        message);
+}
+
+void ConfirmationRequiredMessagesQueue::updateTrustLineFromGatewayNotificationInTheQueue(
+    SetIncomingTrustLineFromGatewayMessage::Shared message)
+{
+    // Only one SetIncomingTrustLineFromGatewayMessage should be in the queue in one moment of time.
+    // queue must contains only newest one notification, all other must be removed.
+    for (auto it = mMessages.cbegin(); it != mMessages.cend();) {
+        const auto kMessage = it->second;
+
+        if (kMessage->typeID() == Message::TrustLines_SetIncomingFromGateway) {
             mMessages.erase(it++);
             signalRemoveMessageFromStorage(
                 mContractorUUID,

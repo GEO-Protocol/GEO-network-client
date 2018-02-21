@@ -29,6 +29,7 @@ public:
         // and their types should be added on Communicator::onMessageReceived if condition
         TrustLines_SetIncoming = 100,
         TrustLines_CloseOutgoing = 101,
+        TrustLines_SetIncomingFromGateway = 102,
 
         /*
          * Payments messages

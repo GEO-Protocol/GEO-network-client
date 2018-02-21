@@ -42,10 +42,6 @@ public:
     void setOutgoingTrustAmount(
         const TrustLineAmount &amount);
 
-    [[deprecated("Used only for migrations.")]]
-    void setBalance(
-        const TrustLineBalance &balance);
-
     void pay(
         const TrustLineAmount &amount);
 

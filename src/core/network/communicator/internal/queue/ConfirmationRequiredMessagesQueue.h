@@ -4,6 +4,7 @@
 #include "../../../../common/time/TimeUtils.h"
 #include "../../../messages/base/transaction/ConfirmationMessage.h"
 #include "../../../messages/trust_lines/SetIncomingTrustLineMessage.h"
+#include "../../../messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
 #include "../../../messages/trust_lines/CloseOutgoingTrustLineMessage.h"
 #include "../../../messages/gateway_notification/GatewayNotificationMessage.h"
 
@@ -79,6 +80,9 @@ protected: // messages handlers
      */
     void updateTrustLineNotificationInTheQueue(
         SetIncomingTrustLineMessage::Shared message);
+
+    void updateTrustLineFromGatewayNotificationInTheQueue(
+        SetIncomingTrustLineFromGatewayMessage::Shared message);
 
     void updateTrustLineCloseNotificationInTheQueue(
         CloseOutgoingTrustLineMessage::Shared message);

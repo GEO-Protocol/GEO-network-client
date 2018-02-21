@@ -5,7 +5,10 @@ set(SOURCE_FILES
         SetIncomingTrustLineMessage.cpp
 
         CloseOutgoingTrustLineMessage.h
-        CloseOutgoingTrustLineMessage.cpp)
+        CloseOutgoingTrustLineMessage.cpp
+
+        SetIncomingTrustLineFromGatewayMessage.h
+        SetIncomingTrustLineFromGatewayMessage.cpp)
 
 add_library(messages__trust_lines ${SOURCE_FILES})
 target_link_libraries(messages__trust_lines

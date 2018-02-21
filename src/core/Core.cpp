@@ -22,7 +22,10 @@ int Core::run()
     updateProcessName();
 
     try {
-        mCommunicator->joinUUID2Address(mNodeUUID);
+        if (!mCommunicator->joinUUID2Address(mNodeUUID)) {
+            error() << "Core can't be initialised. Process will now be stopped.";
+            return -1;
+        }
         mCommunicator->beginAcceptMessages();
         mCommandsInterface->beginAcceptCommands();
 
@@ -239,7 +242,6 @@ int Core::initMaxFlowCalculationTrustLineManager()
 {
     try{
         mMaxFlowCalculationTrustLimeManager = make_unique<MaxFlowCalculationTrustLineManager>(
-            mRoutingTable.get(),
             mIAmGateway,
             mNodeUUID,
             *mLog);

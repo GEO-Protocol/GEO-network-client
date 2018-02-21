@@ -34,6 +34,9 @@ pair<bool, Message::Shared> MessagesParser::processBytesSequence(
         case Message::TrustLines_SetIncoming:
             return messageCollected<SetIncomingTrustLineMessage>(buffer);
 
+        case Message::TrustLines_SetIncomingFromGateway:
+            return messageCollected<SetIncomingTrustLineFromGatewayMessage>(buffer);
+
         case Message::TrustLines_CloseOutgoing:
             return messageCollected<CloseOutgoingTrustLineMessage>(buffer);
 
