@@ -1,26 +1,26 @@
-#ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONNODECACHEMANAGER_H
-#define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONNODECACHEMANAGER_H
+#ifndef GEO_NETWORK_CLIENT_MAXFLOWCACHEMANAGER_H
+#define GEO_NETWORK_CLIENT_MAXFLOWCACHEMANAGER_H
 
 #include "../../common/NodeUUID.h"
-#include "MaxFlowCalculationNodeCache.h"
+#include "MaxFlowCache.h"
 #include "../../logger/Logger.h"
 
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
 #include <map>
 
-class MaxFlowCalculationNodeCacheManager {
+class MaxFlowCacheManager {
 public:
-    MaxFlowCalculationNodeCacheManager(
+    MaxFlowCacheManager(
         Logger &logger);
 
     void addCache(
         const NodeUUID &keyUUID,
-        MaxFlowCalculationNodeCache::Shared cache);
+        MaxFlowCache::Shared cache);
 
     void updateCaches();
 
-    MaxFlowCalculationNodeCache::Shared cacheByNode(
+    MaxFlowCache::Shared cacheByNode(
         const NodeUUID &nodeUUID) const;
 
     void updateCache(
@@ -56,10 +56,10 @@ private:
     }
 
 private:
-    unordered_map<NodeUUID, MaxFlowCalculationNodeCache::Shared, boost::hash<boost::uuids::uuid>> mCaches;
+    unordered_map<NodeUUID, MaxFlowCache::Shared, boost::hash<boost::uuids::uuid>> mCaches;
     map<DateTime, NodeUUID*> mTimeCaches;
     Logger &mLog;
 };
 
 
-#endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONNODECACHEMANAGER_H
+#endif //GEO_NETWORK_CLIENT_MAXFLOWCACHEMANAGER_H

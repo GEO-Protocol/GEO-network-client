@@ -4,7 +4,7 @@ MaxFlowCalculationTargetSndLevelTransaction::MaxFlowCalculationTargetSndLevelTra
     const NodeUUID &nodeUUID,
     MaxFlowCalculationTargetSndLevelMessage::Shared message,
     TrustLinesManager *manager,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    TopologyCacheManager *topologyCacheManager,
     Logger &logger,
     bool iAmGateway) :
 
@@ -14,7 +14,7 @@ MaxFlowCalculationTargetSndLevelTransaction::MaxFlowCalculationTargetSndLevelTra
         logger),
     mMessage(message),
     mTrustLinesManager(manager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
+    mTopologyCacheManager(topologyCacheManager),
     mIAmGateway(iAmGateway)
 {}
 
@@ -41,8 +41,8 @@ TransactionResult::SharedConst MaxFlowCalculationTargetSndLevelTransaction::run(
 
 void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator()
 {
-    MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr
-        = mMaxFlowCalculationCacheManager->cacheByNode(mMessage->targetUUID());
+    TopologyCache::Shared maxFlowCalculationCachePtr
+        = mTopologyCacheManager->cacheByNode(mMessage->targetUUID());
     if (maxFlowCalculationCachePtr != nullptr) {
         sendCachedResultToInitiator(maxFlowCalculationCachePtr);
         return;
@@ -75,16 +75,16 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendResultToInitiator()
             mNodeUUID,
             outgoingFlows,
             incomingFlows);
-        mMaxFlowCalculationCacheManager->addCache(
+        mTopologyCacheManager->addCache(
             mMessage->targetUUID(),
-            make_shared<MaxFlowCalculationCache>(
+            make_shared<TopologyCache>(
                 outgoingFlows,
                 incomingFlows));
     }
 }
 
 void MaxFlowCalculationTargetSndLevelTransaction::sendCachedResultToInitiator(
-    MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr)
+    TopologyCache::Shared maxFlowCalculationCachePtr)
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID();
@@ -124,8 +124,8 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendGatewayResultToInitiator()
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->targetUUID();
 #endif
-    MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr
-            = mMaxFlowCalculationCacheManager->cacheByNode(mMessage->targetUUID());
+    TopologyCache::Shared maxFlowCalculationCachePtr
+            = mTopologyCacheManager->cacheByNode(mMessage->targetUUID());
     if (maxFlowCalculationCachePtr != nullptr) {
         sendCachedGatewayResultToInitiator(maxFlowCalculationCachePtr);
         return;
@@ -159,16 +159,16 @@ void MaxFlowCalculationTargetSndLevelTransaction::sendGatewayResultToInitiator()
             mNodeUUID,
             outgoingFlows,
             incomingFlows);
-        mMaxFlowCalculationCacheManager->addCache(
+        mTopologyCacheManager->addCache(
             mMessage->targetUUID(),
-            make_shared<MaxFlowCalculationCache>(
+            make_shared<TopologyCache>(
                 outgoingFlows,
                 incomingFlows));
     }
 }
 
 void MaxFlowCalculationTargetSndLevelTransaction::sendCachedGatewayResultToInitiator(
-    MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr)
+    TopologyCache::Shared maxFlowCalculationCachePtr)
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendCachedGatewayResultToInitiator\t" << "send to " << mMessage->targetUUID();

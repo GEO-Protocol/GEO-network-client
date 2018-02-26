@@ -6,8 +6,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     SetIncomingTrustLineMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     bool iAmGateway,
     Logger &logger)
     noexcept:
@@ -20,8 +20,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mMessage(message),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager),
     mIAmGateway(iAmGateway),
     mSenderIsGateway(false)
 {}
@@ -31,8 +31,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     SetIncomingTrustLineFromGatewayMessage::Shared message,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *maxFlowCalculationCacheManager,
+    MaxFlowCacheManager *maxFlowCalculationNodeCacheManager,
     bool iAmGateway,
     Logger &logger)
     noexcept:
@@ -45,8 +45,8 @@ SetIncomingTrustLineTransaction::SetIncomingTrustLineTransaction(
     mMessage(message),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
+    mTopologyCacheManager(maxFlowCalculationCacheManager),
+    mMaxFlowCacheManager(maxFlowCalculationNodeCacheManager),
     mIAmGateway(iAmGateway),
     mSenderIsGateway(true)
 {}
@@ -97,8 +97,8 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
         switch (kOperationResult) {
         case TrustLinesManager::TrustLineOperationResult::Opened: {
             populateHistory(ioTransaction, TrustLineRecord::Accepting);
-            mMaxFlowCalculationCacheManager->resetInitiatorCache();
-            mMaxFlowCalculationNodeCacheManager->clearCashes();
+            mTopologyCacheManager->resetInitiatorCache();
+            mMaxFlowCacheManager->clearCashes();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully initialised with " << mMessage->amount();
 
@@ -126,8 +126,8 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Updated: {
             populateHistory(ioTransaction, TrustLineRecord::Updating);
-            mMaxFlowCalculationCacheManager->resetInitiatorCache();
-            mMaxFlowCalculationNodeCacheManager->clearCashes();
+            mTopologyCacheManager->resetInitiatorCache();
+            mMaxFlowCacheManager->clearCashes();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully set to " << mMessage->amount();
             break;
@@ -135,8 +135,8 @@ TransactionResult::SharedConst SetIncomingTrustLineTransaction::run()
 
         case TrustLinesManager::TrustLineOperationResult::Closed: {
             populateHistory(ioTransaction, TrustLineRecord::Rejecting);
-            mMaxFlowCalculationCacheManager->resetInitiatorCache();
-            mMaxFlowCalculationNodeCacheManager->clearCashes();
+            mTopologyCacheManager->resetInitiatorCache();
+            mMaxFlowCacheManager->clearCashes();
             info() << "Incoming trust line from the node " << kContractor
                    << " has been successfully closed.";
             break;

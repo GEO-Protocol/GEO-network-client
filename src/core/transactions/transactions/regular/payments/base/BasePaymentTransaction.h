@@ -10,8 +10,8 @@
 
 #include "../../../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../../../io/storage/StorageHandler.h"
-#include "../../../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
+#include "../../../../../topology/cashe/TopologyCacheManager.h"
+#include "../../../../../topology/cashe/MaxFlowCacheManager.h"
 
 #include "../../../../../network/messages/payments/ReceiverInitPaymentRequestMessage.h"
 #include "../../../../../network/messages/payments/ReceiverInitPaymentResponseMessage.h"
@@ -58,8 +58,8 @@ public:
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -69,8 +69,8 @@ public:
         const NodeUUID &currentNodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -79,8 +79,8 @@ public:
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -414,8 +414,8 @@ public:
 protected:
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
+    TopologyCacheManager *mTopologyCacheManager;
+    MaxFlowCacheManager *mMaxFlowCacheManager;
 
     // If true - votes check stage has been processed and transaction has been approved.
     // In this case transaction can't be simply rolled back.

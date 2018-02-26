@@ -2,9 +2,11 @@
 
 
 TrustLinesManager::TrustLinesManager(
+    const SerializedEquivalent equivalent,
     StorageHandler *storageHandler,
     Logger &logger):
 
+    mEquivalent(equivalent),
     mStorageHandler(storageHandler),
     mLogger(logger),
     mAmountReservationsHandler(
@@ -16,7 +18,7 @@ TrustLinesManager::TrustLinesManager(
 void TrustLinesManager::loadTrustLinesFromDisk()
 {
     auto ioTransaction = mStorageHandler->beginTransaction();
-    const auto kTrustLines = ioTransaction->trustLinesHandler()->allTrustLines();
+    const auto kTrustLines = ioTransaction->trustLinesHandler()->allTrustLinesByEquivalent(mEquivalent);
 
     mTrustLines.reserve(kTrustLines.size());
 
@@ -28,7 +30,9 @@ void TrustLinesManager::loadTrustLinesFromDisk()
             // Empty trust line occured.
             // This might occure in case if trust line wasn't deleted properly when it was closed by both sides.
             // Now it must be removed.
-            ioTransaction->trustLinesHandler()->deleteTrustLine(kTrustLine->contractorNodeUUID());
+            ioTransaction->trustLinesHandler()->deleteTrustLine(
+                kTrustLine->contractorNodeUUID(),
+                mEquivalent);
             info() << "Trust line to the node " << kTrustLine->contractorNodeUUID()
                    << " is empty (outgoing trust amount = 0, incoming trust amount = 0, balane = 0). Removed.";
             continue;
@@ -42,10 +46,12 @@ void TrustLinesManager::loadTrustLinesFromDisk()
     }
 }
 
-const string TrustLinesManager::logHeader()
+const string TrustLinesManager::logHeader() const
     noexcept
 {
-    return "[TrustLinesManager]";
+    stringstream s;
+    s << "[TrustLinesManager: " << mEquivalent << "] ";
+    return s.str();
 }
 
 LoggerStream TrustLinesManager::info() const
@@ -64,7 +70,7 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setOutgoing(
         // "amount" can't be 0 (otherwise, trust line set to zero would be opened).
         if (amount == 0) {
             throw ValueError(
-                "TrustLinesManager::setOutgoing: "
+                logHeader() + "::setOutgoing: "
                 "can't establish trust line with zero amount.");
 
         } else {
@@ -121,7 +127,7 @@ TrustLinesManager::TrustLineOperationResult TrustLinesManager::setIncoming(
         // "amount" can't be 0 (otherwise, trust line with both sides set to zero would be opened).
         if (amount == 0) {
             throw ValueError(
-                "TrustLinesManager::setIncoming: "
+                logHeader() + "::setIncoming: "
                 "can't establish trust line with zero amount at both sides.");
 
         } else {
@@ -174,7 +180,7 @@ void TrustLinesManager::closeOutgoing(
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            "TrustLinesManager::closeOutgoing: "
+            logHeader() + "::closeOutgoing: "
             "Can't close outgoing trust line. No trust line to this contractor is present.");
     }
 
@@ -207,7 +213,7 @@ void TrustLinesManager::closeIncoming(
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            "TrustLinesManager::closeIncoming: "
+            logHeader() + "::closeIncoming: "
             "Can't close incoming trust line. No trust line to this contractor is present.");
     }
 
@@ -241,8 +247,8 @@ void TrustLinesManager::setContractorAsGateway(
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            "TrustLinesManager::setContractorAsGateway: "
-                    "Can't set contractor as gateway. No trust line to this contractor is present.");
+            logHeader() + "::setContractorAsGateway: "
+            "Can't set contractor as gateway. No trust line to this contractor is present.");
     }
 
     auto trustLine = mTrustLines[contractorUUID];
@@ -277,7 +283,7 @@ const TrustLineBalance &TrustLinesManager::balance(
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            "TrustLinesManager::outgoingTrustAmountDespiteResevations: "
+            logHeader() + "::outgoingTrustAmountDespiteResevations: "
             "There is no trust line to this contractor.");
     }
 
@@ -298,7 +304,7 @@ AmountReservation::ConstShared TrustLinesManager::reserveOutgoingAmount(
             AmountReservation::Outgoing);
     }
     throw ValueError(
-        "TrustLinesManager::reserveOutgoingAmount: "
+        logHeader() + "::reserveOutgoingAmount: "
         "there is no enough amount on the trust line.");
 }
 
@@ -316,7 +322,7 @@ AmountReservation::ConstShared TrustLinesManager::reserveIncomingAmount(
             AmountReservation::Incoming);
     }
     throw ValueError(
-        "TrustLinesManager::reserveOutgoingAmount: "
+        logHeader() + "::reserveOutgoingAmount: "
         "there is no enough amount on the trust line.");
 }
 
@@ -341,7 +347,7 @@ AmountReservation::ConstShared TrustLinesManager::updateAmountReservation(
             newAmount);
 
     throw ValueError(
-        "TrustLinesManager::reserveOutgoingAmount: "
+        logHeader() + "::reserveOutgoingAmount: "
         "Trust line has not enought free amount.");
 }
 
@@ -464,7 +470,9 @@ void TrustLinesManager::saveToDisk(
     IOTransaction::Shared IOTransaction,
     TrustLine::Shared trustLine)
 {
-    IOTransaction->trustLinesHandler()->saveTrustLine(trustLine);
+    IOTransaction->trustLinesHandler()->saveTrustLine(
+        trustLine,
+        mEquivalent);
     try {
         mTrustLines.insert(
             make_pair(
@@ -472,8 +480,9 @@ void TrustLinesManager::saveToDisk(
                 trustLine));
 
         } catch (std::bad_alloc&) {
-            throw MemoryError("TrustLinesManager::saveToDisk: "
-                                  "Can not reallocate STL container memory for new trust line instance.");
+            throw MemoryError(
+                logHeader() + "::saveToDisk: "
+                "Can not reallocate STL container memory for new trust line instance.");
         }
 }
 
@@ -487,11 +496,13 @@ void TrustLinesManager::removeTrustLine(
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            "TrustLinesManager::removeTrustLine: "
+            logHeader() + "::removeTrustLine: "
             "There is no trust line to the contractor.");
     }
 
-    IOTransaction->trustLinesHandler()->deleteTrustLine(contractorUUID);
+    IOTransaction->trustLinesHandler()->deleteTrustLine(
+        contractorUUID,
+        mEquivalent);
     mTrustLines.erase(contractorUUID);
 }
 
@@ -504,8 +515,8 @@ bool TrustLinesManager::isTrustLineEmpty(
 {
     if (not trustLineIsPresent(contractorUUID)) {
         throw NotFoundError(
-            "TrustLinesManager::isTrustLineEmpty: "
-                    "There is no trust line to the contractor.");
+            logHeader() + "::isTrustLineEmpty: "
+            "There is no trust line to the contractor.");
     }
 
     auto outgoingAmountShared = outgoingTrustAmountConsideringReservations(contractorUUID);
@@ -711,7 +722,7 @@ const TrustLine::ConstShared TrustLinesManager::trustLineReadOnly(
 
     } else {
         throw NotFoundError(
-            "TrustLinesManager::trustLineReadOnly: "
+            logHeader() + "::trustLineReadOnly: "
             "Trust line to such an contractor does not exists.");
     }
 }
@@ -797,7 +808,7 @@ void TrustLinesManager::useReservation(
 {
     if (not trustLineIsPresent(contractor)) {
         throw NotFoundError(
-            "TrustLinesManager::useReservation: "
+            logHeader() + "::useReservation: "
             "No trust line with the contractor is present.");
     }
 
@@ -814,7 +825,7 @@ void TrustLinesManager::useReservation(
 
     default: {
         throw ValueError(
-            "TrustLinesManager::useReservation: "
+            logHeader() + "::useReservation: "
             "Unexpected trust line direction occurred.");
     }
     }
@@ -890,18 +901,4 @@ void TrustLinesManager::printRTs()
         debug << trLine.first << " " << *(availableOutgoingCycleAmounts.first)
               << " " << *(availableOutgoingCycleAmounts.second) << endl;
     }
-}
-
-pair<TrustLineBalance, TrustLineBalance> TrustLinesManager::debtAndCredit()
-{
-    TrustLineBalance debt = TrustLine::kZeroBalance();
-    TrustLineBalance credit = TrustLine::kZeroBalance();
-    for (auto const trLine : mTrustLines) {
-        if (trLine.second->balance() > TrustLine::kZeroBalance()) {
-            debt += trLine.second->balance();
-        } else {
-            credit += trLine.second->balance();
-        }
-    }
-    return make_pair(debt, credit);
 }

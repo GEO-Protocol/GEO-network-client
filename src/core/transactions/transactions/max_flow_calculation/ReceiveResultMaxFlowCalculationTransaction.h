@@ -3,8 +3,8 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
-#include "../../../max_flow_calculation/MaxFlowCalculationTrustLine.h"
+#include "../../../topology/manager/TopologyTrustLineManager.h"
+#include "../../../topology/TopologyTrustLine.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
 
@@ -17,15 +17,15 @@ public:
     ReceiveResultMaxFlowCalculationTransaction(
         NodeUUID &nodeUUID,
         ResultMaxFlowCalculationMessage::Shared message,
-        TrustLinesManager *manager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+        TrustLinesManager *trustLinesManager,
+        TopologyTrustLineManager *topologyTrustLineManager,
         Logger &logger);
 
     ReceiveResultMaxFlowCalculationTransaction(
         NodeUUID &nodeUUID,
         ResultMaxFlowCalculationGatewayMessage::Shared message,
-        TrustLinesManager *manager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+        TrustLinesManager *trustLinesManager,
+        TopologyTrustLineManager *topologyTrustLineManager,
         Logger &logger);
 
     ResultMaxFlowCalculationMessage::Shared message() const;
@@ -38,7 +38,7 @@ protected:
 private:
     ResultMaxFlowCalculationMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
+    TopologyTrustLineManager *mTopologyTrustLineManager;
     bool mSenderIsGateway;
 };
 

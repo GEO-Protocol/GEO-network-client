@@ -4,9 +4,9 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionType type,
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLinesManager,
-    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -14,9 +14,9 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(trustLinesManager),
-    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager)
+    mTopologyTrustLineManager(topologyTrustLineManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager)
 {}
 
 BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
@@ -24,9 +24,9 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
     const TransactionUUID &transactionUUID,
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLinesManager,
-    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -35,9 +35,9 @@ BaseCollectTopologyTransaction::BaseCollectTopologyTransaction(
         nodeUUID,
         logger),
     mTrustLinesManager(trustLinesManager),
-    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager)
+    mTopologyTrustLineManager(topologyTrustLineManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager)
 {}
 
 TransactionResult::SharedConst BaseCollectTopologyTransaction::run()
@@ -65,15 +65,15 @@ void BaseCollectTopologyTransaction::fillTopology()
             info() << "Sender " << kMessage->senderUUID << " common";
 #endif
             for (auto const &outgoingFlow : kMessage->outgoingFlows()) {
-                mMaxFlowCalculationTrustLineManager->addTrustLine(
-                    make_shared<MaxFlowCalculationTrustLine>(
+                mTopologyTrustLineManager->addTrustLine(
+                    make_shared<TopologyTrustLine>(
                         kMessage->senderUUID,
                         outgoingFlow.first,
                         outgoingFlow.second));
             }
             for (auto const &incomingFlow : kMessage->incomingFlows()) {
-                mMaxFlowCalculationTrustLineManager->addTrustLine(
-                    make_shared<MaxFlowCalculationTrustLine>(
+                mTopologyTrustLineManager->addTrustLine(
+                    make_shared<TopologyTrustLine>(
                         incomingFlow.first,
                         kMessage->senderUUID,
                         incomingFlow.second));
@@ -84,17 +84,17 @@ void BaseCollectTopologyTransaction::fillTopology()
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
             info() << "Sender " << kMessage->senderUUID << " gateway";
 #endif
-            mMaxFlowCalculationTrustLineManager->addGateway(kMessage->senderUUID);
+            mTopologyTrustLineManager->addGateway(kMessage->senderUUID);
             for (auto const &outgoingFlow : kMessage->outgoingFlows()) {
-                mMaxFlowCalculationTrustLineManager->addTrustLine(
-                    make_shared<MaxFlowCalculationTrustLine>(
+                mTopologyTrustLineManager->addTrustLine(
+                    make_shared<TopologyTrustLine>(
                         kMessage->senderUUID,
                         outgoingFlow.first,
                         outgoingFlow.second));
             }
             for (auto const &incomingFlow : kMessage->incomingFlows()) {
-                mMaxFlowCalculationTrustLineManager->addTrustLine(
-                    make_shared<MaxFlowCalculationTrustLine>(
+                mTopologyTrustLineManager->addTrustLine(
+                    make_shared<TopologyTrustLine>(
                         incomingFlow.first,
                         kMessage->senderUUID,
                         incomingFlow.second));

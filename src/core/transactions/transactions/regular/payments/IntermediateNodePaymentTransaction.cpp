@@ -6,8 +6,8 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     IntermediateNodeReservationRequestMessage::ConstShared message,
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -17,8 +17,8 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         currentNodeUUID,
         trustLines,
         storageHandler,
-        maxFlowCalculationCacheManager,
-        maxFlowCalculationNodeCacheManager,
+        topologyCacheManager,
+        maxFlowCacheManager,
         log,
         subsystemsController),
     mMessage(message)
@@ -32,8 +32,8 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
     const NodeUUID &nodeUUID,
     TrustLinesManager* trustLines,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -42,8 +42,8 @@ IntermediateNodePaymentTransaction::IntermediateNodePaymentTransaction(
         nodeUUID,
         trustLines,
         storageHandler,
-        maxFlowCalculationCacheManager,
-        maxFlowCalculationNodeCacheManager,
+        topologyCacheManager,
+        maxFlowCacheManager,
         log,
         subsystemsController)
 {}

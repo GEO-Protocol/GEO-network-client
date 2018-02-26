@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 
 set(SOURCE_FILES
-        MaxFlowCalculationCacheUpdateDelayedTask.h
-        MaxFlowCalculationCacheUpdateDelayedTask.cpp
+        TopologyCacheUpdateDelayedTask.h
+        TopologyCacheUpdateDelayedTask.cpp
 
         NotifyThatIAmIsGatewayDelayedTask.h
         NotifyThatIAmIsGatewayDelayedTask.cpp)

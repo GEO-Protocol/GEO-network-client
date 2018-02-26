@@ -12,10 +12,10 @@
 #include "trust_lines/manager/TrustLinesManager.h"
 #include "resources/manager/ResourcesManager.h"
 #include "transactions/manager/TransactionsManager.h"
-#include "max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
-#include "max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
-#include "delayed_tasks/MaxFlowCalculationCacheUpdateDelayedTask.h"
+#include "topology/manager/TopologyTrustLineManager.h"
+#include "topology/cashe/TopologyCacheManager.h"
+#include "topology/cashe/MaxFlowCacheManager.h"
+#include "delayed_tasks/TopologyCacheUpdateDelayedTask.h"
 #include "delayed_tasks/NotifyThatIAmIsGatewayDelayedTask.h"
 #include "io/storage/StorageHandler.h"
 #include "paths/PathsManager.h"
@@ -68,11 +68,11 @@ private:
 
     int initTrustLinesManager();
 
-    int initMaxFlowCalculationTrustLineManager();
+    int initTopologyTrustLineManager();
 
-    int initMaxFlowCalculationCacheManager();
+    int initTopologyCacheManager();
 
-    int initMaxFlowCalculationNodeCacheManager();
+    int initMaxFlowCacheManager();
 
     int initResourcesManager();
 
@@ -86,7 +86,7 @@ private:
 
     int initSubsystemsController();
 
-    int initRoughtingTable();
+    int initRoutingTable();
 
     void connectCommunicatorSignals();
 
@@ -173,10 +173,10 @@ protected:
     unique_ptr<TrustLinesManager> mTrustLinesManager;
     unique_ptr<ResourcesManager> mResourcesManager;
     unique_ptr<TransactionsManager> mTransactionsManager;
-    unique_ptr<MaxFlowCalculationTrustLineManager> mMaxFlowCalculationTrustLimeManager;
-    unique_ptr<MaxFlowCalculationCacheManager> mMaxFlowCalculationCacheManager;
-    unique_ptr<MaxFlowCalculationNodeCacheManager> mMaxFlowCalculationNodeCacheManager;
-    unique_ptr<MaxFlowCalculationCacheUpdateDelayedTask> mMaxFlowCalculationCacheUpdateDelayedTask;
+    unique_ptr<TopologyTrustLineManager> mTopologyTrustLimeManager;
+    unique_ptr<TopologyCacheManager> mTopologyCacheManager;
+    unique_ptr<MaxFlowCacheManager> mMaxFlowCacheManager;
+    unique_ptr<TopologyCacheUpdateDelayedTask> mTopologyCacheUpdateDelayedTask;
     unique_ptr<NotifyThatIAmIsGatewayDelayedTask> mNotifyThatIAmIsGatewayDelayedTask;
     unique_ptr<StorageHandler> mStorageHandler;
     unique_ptr<PathsManager> mPathsManager;

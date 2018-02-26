@@ -5,8 +5,8 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     CloseIncomingTrustLineCommand::Shared command,
     TrustLinesManager *manager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     SubsystemsController *subsystemsController,
     Logger &logger)
     noexcept :
@@ -18,8 +18,8 @@ CloseIncomingTrustLineTransaction::CloseIncomingTrustLineTransaction(
     mCommand(command),
     mTrustLines(manager),
     mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController)
 {}
 
@@ -50,8 +50,8 @@ TransactionResult::SharedConst CloseIncomingTrustLineTransaction::run()
             kContractor);
 
         populateHistory(ioTransaction, TrustLineRecord::ClosingIncoming);
-        mMaxFlowCalculationCacheManager->resetInitiatorCache();
-        mMaxFlowCalculationNodeCacheManager->clearCashes();
+        mTopologyCacheManager->resetInitiatorCache();
+        mMaxFlowCacheManager->clearCashes();
         info() << "Incoming trust line from the node " << kContractor
                << " successfully closed.";
 

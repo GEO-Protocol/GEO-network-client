@@ -4,9 +4,9 @@
 #include "BaseTransaction.h"
 
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
+#include "../../../topology/manager/TopologyTrustLineManager.h"
+#include "../../../topology/cashe/TopologyCacheManager.h"
+#include "../../../topology/cashe/MaxFlowCacheManager.h"
 
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
@@ -21,9 +21,9 @@ public:
         const TransactionType type,
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &logger);
 
     BaseCollectTopologyTransaction(
@@ -31,9 +31,9 @@ public:
         const TransactionUUID &transactionUUID,
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -56,9 +56,9 @@ protected:
 
 protected:
     TrustLinesManager *mTrustLinesManager;
-    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
+    TopologyTrustLineManager *mTopologyTrustLineManager;
+    TopologyCacheManager *mTopologyCacheManager;
+    MaxFlowCacheManager *mMaxFlowCacheManager;
 };
 
 

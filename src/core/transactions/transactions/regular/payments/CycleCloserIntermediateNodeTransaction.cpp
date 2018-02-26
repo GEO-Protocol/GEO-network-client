@@ -6,8 +6,8 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     TrustLinesManager* trustLines,
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -17,8 +17,8 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         currentNodeUUID,
         trustLines,
         storageHandler,
-        maxFlowCalculationCacheManager,
-        maxFlowCalculationNodeCacheManager,
+        topologyCacheManager,
+        maxFlowCacheManager,
         log,
         subsystemsController),
     mMessage(message),
@@ -33,8 +33,8 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
     TrustLinesManager* trustLines,
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -43,8 +43,8 @@ CycleCloserIntermediateNodeTransaction::CycleCloserIntermediateNodeTransaction(
         nodeUUID,
         trustLines,
         storageHandler,
-        maxFlowCalculationCacheManager,
-        maxFlowCalculationNodeCacheManager,
+        topologyCacheManager,
+        maxFlowCacheManager,
         log,
         subsystemsController),
     mCyclesManager(cyclesManager)

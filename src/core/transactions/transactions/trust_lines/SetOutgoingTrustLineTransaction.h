@@ -5,12 +5,11 @@
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../interface/commands_interface/commands/trust_lines/SetOutgoingTrustLineCommand.h"
 #include "../../../io/storage/StorageHandler.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
+#include "../../../topology/cashe/TopologyCacheManager.h"
+#include "../../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
 #include "../../../subsystems_controller/SubsystemsController.h"
 
 
@@ -38,8 +37,8 @@ public:
         SetOutgoingTrustLineCommand::Shared command,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         SubsystemsController *subsystemsController,
         bool iAmGateway,
         Logger &logger)
@@ -67,8 +66,8 @@ protected:
     SetOutgoingTrustLineCommand::Shared mCommand;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
+    TopologyCacheManager *mTopologyCacheManager;
+    MaxFlowCacheManager *mMaxFlowCacheManager;
     SubsystemsController *mSubsystemsController;
     bool mIAmGateway;
 };

@@ -4,9 +4,9 @@ CollectTopologyTransaction::CollectTopologyTransaction(
     const NodeUUID &nodeUUID,
     const vector<NodeUUID> &contractors,
     TrustLinesManager *manager,
-    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -15,9 +15,9 @@ CollectTopologyTransaction::CollectTopologyTransaction(
         logger),
     mContractors(contractors),
     mTrustLinesManager(manager),
-    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager)
+    mTopologyTrustLineManager(topologyTrustLineManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager)
 {}
 
 TransactionResult::SharedConst CollectTopologyTransaction::run()
@@ -28,17 +28,17 @@ TransactionResult::SharedConst CollectTopologyTransaction::run()
         return resultDone();
     }
     sendMessagesToContractors();
-    if (!mMaxFlowCalculationCacheManager->isInitiatorCached()) {
+    if (!mTopologyCacheManager->isInitiatorCached()) {
         for (auto const &nodeUUIDAndOutgoingFlow : mTrustLinesManager->outgoingFlows()) {
             auto trustLineAmountShared = nodeUUIDAndOutgoingFlow.second;
-            mMaxFlowCalculationTrustLineManager->addTrustLine(
-                make_shared<MaxFlowCalculationTrustLine>(
+            mTopologyTrustLineManager->addTrustLine(
+                make_shared<TopologyTrustLine>(
                     mNodeUUID,
                     nodeUUIDAndOutgoingFlow.first,
                     trustLineAmountShared));
         }
         sendMessagesOnFirstLevel();
-        mMaxFlowCalculationCacheManager->setInitiatorCache();
+        mTopologyCacheManager->setInitiatorCache();
     }
     return resultDone();
 }

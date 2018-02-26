@@ -16,8 +16,8 @@ public:
         IntermediateNodeReservationRequestMessage::ConstShared message,
         TrustLinesManager *trustLines,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 
@@ -26,8 +26,8 @@ public:
         const NodeUUID &nodeUUID,
         TrustLinesManager* trustLines,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController);
 

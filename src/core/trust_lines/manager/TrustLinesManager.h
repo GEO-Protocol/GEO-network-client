@@ -51,6 +51,7 @@ public:
 
 public:
     TrustLinesManager(
+        const SerializedEquivalent equivalent,
         StorageHandler *storageHandler,
         Logger &logger);
 
@@ -319,10 +320,6 @@ public:
     // TODO remove after testing
     void printRTs();
 
-    // TODO remove after testing
-    // this method is used for testing closing cycles
-    pair<TrustLineBalance, TrustLineBalance> debtAndCredit();
-
 protected:
     void saveToDisk(
         IOTransaction::Shared IOTransaction,
@@ -337,27 +334,15 @@ protected:
     void loadTrustLinesFromDisk();
 
 protected: // log shortcuts
-    static const string logHeader()
+    const string logHeader() const
         noexcept;
 
     LoggerStream info() const
         noexcept;
 
 private:
-    static const size_t kTrustAmountPartSize = 32;
-    static const size_t kBalancePartSize = 32;
-    static const size_t kSignBytePartSize = 1;
-    static const size_t kTrustStatePartSize = 1;
-    static const size_t kRecordSize =
-        + kTrustAmountPartSize
-        + kTrustAmountPartSize
-        + kBalancePartSize
-        + kSignBytePartSize
-        + kTrustStatePartSize
-        + kTrustStatePartSize;
-
-
     unordered_map<NodeUUID, TrustLine::Shared, boost::hash<boost::uuids::uuid>> mTrustLines;
+    SerializedEquivalent mEquivalent;
 
     unique_ptr<AmountReservationsHandler> mAmountReservationsHandler;
     StorageHandler *mStorageHandler;

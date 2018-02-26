@@ -1,15 +1,15 @@
-#ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONNODECACHE_H
-#define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONNODECACHE_H
+#ifndef GEO_NETWORK_CLIENT_MAXFLOWCACHE_H
+#define GEO_NETWORK_CLIENT_MAXFLOWCACHE_H
 
 #include "../../common/Types.h"
 #include "../../common/time/TimeUtils.h"
 
-class MaxFlowCalculationNodeCache {
+class MaxFlowCache {
 public:
-    typedef shared_ptr<MaxFlowCalculationNodeCache> Shared;
+    typedef shared_ptr<MaxFlowCache> Shared;
 
 public:
-    MaxFlowCalculationNodeCache(
+    MaxFlowCache(
         const TrustLineAmount &amount,
         bool isFinal = false);
 
@@ -30,4 +30,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONNODECACHE_H
+#endif //GEO_NETWORK_CLIENT_MAXFLOWCACHE_H

@@ -6,7 +6,7 @@
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceSndLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationGatewayMessage.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "../../../topology/cashe/TopologyCacheManager.h"
 
 class MaxFlowCalculationSourceSndLevelTransaction : public BaseTransaction {
 
@@ -18,7 +18,7 @@ public:
         const NodeUUID &nodeUUID,
         MaxFlowCalculationSourceSndLevelMessage::Shared message,
         TrustLinesManager *manager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+        TopologyCacheManager *topologyCacheManager,
         Logger &logger,
         bool iAmGateway);
 
@@ -33,17 +33,17 @@ private:
     void sendResultToInitiator();
 
     void sendCachedResultToInitiator(
-        MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr);
+        TopologyCache::Shared maxFlowCalculationCachePtr);
 
     void sendGatewayResultToInitiator();
 
     void sendCachedGatewayResultToInitiator(
-        MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr);
+        TopologyCache::Shared maxFlowCalculationCachePtr);
 
 private:
     MaxFlowCalculationSourceSndLevelMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    TopologyCacheManager *mTopologyCacheManager;
     bool mIAmGateway;
 };
 

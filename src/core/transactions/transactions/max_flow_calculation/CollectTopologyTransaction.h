@@ -3,9 +3,9 @@
 
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
+#include "../../../topology/manager/TopologyTrustLineManager.h"
+#include "../../../topology/cashe/TopologyCacheManager.h"
+#include "../../../topology/cashe/MaxFlowCacheManager.h"
 
 #include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
@@ -20,9 +20,9 @@ public:
         const NodeUUID &nodeUUID,
         const vector<NodeUUID> &contractors,
         TrustLinesManager *manager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &logger);
 
     TransactionResult::SharedConst run();
@@ -37,9 +37,9 @@ private:
 
 private:
     TrustLinesManager *mTrustLinesManager;
-    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
+    TopologyTrustLineManager *mTopologyTrustLineManager;
+    TopologyCacheManager *mTopologyCacheManager;
+    MaxFlowCacheManager *mMaxFlowCacheManager;
 
     vector<NodeUUID> mContractors;
 };

@@ -1,8 +1,8 @@
-#ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H
-#define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H
+#ifndef GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINEMANAGER_H
+#define GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINEMANAGER_H
 
 #include "../../common/NodeUUID.h"
-#include "MaxFlowCalculationTrustLineWithPtr.h"
+#include "TopologyTrustLineWithPtr.h"
 #include "../../common/time/TimeUtils.h"
 #include "../../logger/Logger.h"
 
@@ -11,19 +11,19 @@
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
 
-class MaxFlowCalculationTrustLineManager {
+class TopologyTrustLineManager {
 
 public:
-    typedef unordered_set<MaxFlowCalculationTrustLineWithPtr*> TrustLineWithPtrHashSet;
+    typedef unordered_set<TopologyTrustLineWithPtr*> TrustLineWithPtrHashSet;
 
 public:
-    MaxFlowCalculationTrustLineManager(
+    TopologyTrustLineManager(
         bool iAmGateway,
         NodeUUID &nodeUUID,
         Logger &logger);
 
     void addTrustLine(
-        MaxFlowCalculationTrustLine::Shared trustLine);
+        TopologyTrustLine::Shared trustLine);
 
     TrustLineWithPtrHashSet trustLinePtrsSet(
         const NodeUUID &nodeUUID);
@@ -84,10 +84,10 @@ private:
 
 private:
     unordered_map<NodeUUID, TrustLineWithPtrHashSet*, boost::hash<boost::uuids::uuid>> msTrustLines;
-    map<DateTime, MaxFlowCalculationTrustLineWithPtr*> mtTrustLines;
+    map<DateTime, TopologyTrustLineWithPtr*> mtTrustLines;
     Logger &mLog;
     bool mPreventDeleting;
     set<NodeUUID> mGateways;
 };
 
-#endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONTRUSTLINEMANAGER_H
+#endif //GEO_NETWORK_CLIENT_TOPOLOGYTRUSTLINEMANAGER_H

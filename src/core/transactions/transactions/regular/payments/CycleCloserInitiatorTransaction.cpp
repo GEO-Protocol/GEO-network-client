@@ -6,8 +6,8 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     TrustLinesManager *trustLines,
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController)
 noexcept :
@@ -17,8 +17,8 @@ noexcept :
         kCurrentNodeUUID,
         trustLines,
         storageHandler,
-        maxFlowCalculationCacheManager,
-        maxFlowCalculationNodeCacheManager,
+        topologyCacheManager,
+        maxFlowCacheManager,
         log,
         subsystemsController),
     mCyclesManager(cyclesManager)
@@ -33,8 +33,8 @@ CycleCloserInitiatorTransaction::CycleCloserInitiatorTransaction(
     TrustLinesManager *trustLines,
     CyclesManager *cyclesManager,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController)
 throw (bad_alloc) :
@@ -44,8 +44,8 @@ throw (bad_alloc) :
         nodeUUID,
         trustLines,
         storageHandler,
-        maxFlowCalculationCacheManager,
-        maxFlowCalculationNodeCacheManager,
+        topologyCacheManager,
+        maxFlowCacheManager,
         log,
         subsystemsController),
     mCyclesManager(cyclesManager)

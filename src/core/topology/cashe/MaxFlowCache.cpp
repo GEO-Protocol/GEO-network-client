@@ -1,6 +1,6 @@
-#include "MaxFlowCalculationNodeCache.h"
+#include "MaxFlowCache.h"
 
-MaxFlowCalculationNodeCache::MaxFlowCalculationNodeCache(
+MaxFlowCache::MaxFlowCache(
     const TrustLineAmount &amount,
     bool isFinal) :
     mCurrentFlow(amount),
@@ -8,22 +8,22 @@ MaxFlowCalculationNodeCache::MaxFlowCalculationNodeCache(
     mTimeLastModified(utc_now())
 {}
 
-TrustLineAmount& MaxFlowCalculationNodeCache::currentFlow()
+TrustLineAmount& MaxFlowCache::currentFlow()
 {
     return mCurrentFlow;
 }
 
-bool MaxFlowCalculationNodeCache::isFlowFinal()
+bool MaxFlowCache::isFlowFinal()
 {
     return mFinalFlow;
 }
 
-DateTime MaxFlowCalculationNodeCache::lastModified()
+DateTime MaxFlowCache::lastModified()
 {
     return mTimeLastModified;
 }
 
-void MaxFlowCalculationNodeCache::updateCurrentFlow(
+void MaxFlowCache::updateCurrentFlow(
     const TrustLineAmount &amount,
     bool isFinal)
 {

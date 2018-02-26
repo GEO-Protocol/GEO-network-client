@@ -4,8 +4,8 @@
 #include "../base/BaseTransaction.h"
 #include "../../../trust_lines/manager/TrustLinesManager.h"
 #include "../../../io/storage/StorageHandler.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
+#include "../../../topology/cashe/TopologyCacheManager.h"
+#include "../../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../../io/storage/record/trust_line/TrustLineRecord.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineMessage.h"
 #include "../../../network/messages/trust_lines/SetIncomingTrustLineFromGatewayMessage.h"
@@ -37,8 +37,8 @@ public:
         SetIncomingTrustLineMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         bool iAmGateway,
         Logger &logger)
         noexcept;
@@ -48,8 +48,8 @@ public:
         SetIncomingTrustLineFromGatewayMessage::Shared message,
         TrustLinesManager *manager,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyCacheManager *maxFlowCalculationCacheManager,
+        MaxFlowCacheManager *maxFlowCalculationNodeCacheManager,
         bool iAmGateway,
         Logger &logger)
     noexcept;
@@ -72,8 +72,8 @@ protected:
     SetIncomingTrustLineMessage::Shared mMessage;
     TrustLinesManager *mTrustLines;
     StorageHandler *mStorageHandler;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
+    TopologyCacheManager *mTopologyCacheManager;
+    MaxFlowCacheManager *mMaxFlowCacheManager;
     bool mIAmGateway;
     bool mSenderIsGateway;
 };

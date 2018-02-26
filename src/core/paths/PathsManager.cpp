@@ -3,12 +3,12 @@
 PathsManager::PathsManager(
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLinesManager,
-    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+    TopologyTrustLineManager *topologyTrustLineManager,
     Logger &logger):
 
     mNodeUUID(nodeUUID),
     mTrustLinesManager(trustLinesManager),
-    mMaxFlowCalculationTrustLineManager(maxFlowCalculationTrustLineManager),
+    mTopologyTrustLineManager(topologyTrustLineManager),
     mLog(logger),
     mPathCollection(nullptr)
 {}
@@ -35,7 +35,7 @@ void PathsManager::buildPaths(
 {
     info() << "Build paths to " << contractorUUID;
     auto startTime = utc_now();
-    mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+    mTopologyTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
         contractorUUID);
     mContractorUUID = contractorUUID;
     mPathCollection = make_shared<PathsCollection>(
@@ -43,9 +43,9 @@ void PathsManager::buildPaths(
         mContractorUUID);
 
     auto trustLinePtrsSet =
-        mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+        mTopologyTrustLineManager->trustLinePtrsSet(mNodeUUID);
     if (trustLinePtrsSet.empty()) {
-        mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+        mTopologyTrustLineManager->resetAllUsedAmounts();
         return;
     }
 
@@ -57,7 +57,7 @@ void PathsManager::buildPaths(
         buildPathsOnOneLevel();
     }
 
-    mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+    mTopologyTrustLineManager->resetAllUsedAmounts();
     info() << "building time: " << utc_now() - startTime;
 }
 
@@ -66,10 +66,10 @@ void PathsManager::buildPaths(
 void PathsManager::buildPathsOnOneLevel()
 {
     auto trustLinePtrsSet =
-        mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+        mTopologyTrustLineManager->trustLinePtrsSet(mNodeUUID);
     auto itTrustLinePtr = trustLinePtrsSet.begin();
     while (itTrustLinePtr != trustLinePtrsSet.end()) {
-        auto trustLine = (*itTrustLinePtr)->maxFlowCalculationtrustLine();
+        auto trustLine = (*itTrustLinePtr)->topologyTrustLine();
         auto trustLineFreeAmountShared = trustLine->freeAmount();
         auto trustLineAmountPtr = trustLineFreeAmountShared.get();
         if (*trustLineAmountPtr == TrustLine::kZeroAmount()) {
@@ -93,12 +93,12 @@ void PathsManager::buildPathsOnOneLevel()
 void PathsManager::buildPathsOnSecondLevel()
 {
     auto trustLinePtrsSet =
-            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+            mTopologyTrustLineManager->trustLinePtrsSet(mNodeUUID);
     auto gateways = mTrustLinesManager->gateways();
     while (!gateways.empty()) {
         auto itGateway = gateways.begin();
         for (auto itTrustLinePtr = trustLinePtrsSet.begin(); itTrustLinePtr != trustLinePtrsSet.end(); itTrustLinePtr++) {
-            auto trustLine = (*itTrustLinePtr)->maxFlowCalculationtrustLine();
+            auto trustLine = (*itTrustLinePtr)->topologyTrustLine();
             bool isContinue = true;
             if (trustLine->targetUUID() == *itGateway) {
                 auto trustLineFreeAmountShared = trustLine->freeAmount();
@@ -123,7 +123,7 @@ void PathsManager::buildPathsOnSecondLevel()
     }
     auto itTrustLinePtr = trustLinePtrsSet.begin();
     while (itTrustLinePtr != trustLinePtrsSet.end()) {
-        auto trustLine = (*itTrustLinePtr)->maxFlowCalculationtrustLine();
+        auto trustLine = (*itTrustLinePtr)->topologyTrustLine();
         auto trustLineFreeAmountShared = trustLine->freeAmount();
         auto trustLineAmountPtr = trustLineFreeAmountShared.get();
         mPassedNodeUUIDs.clear();
@@ -163,12 +163,12 @@ TrustLineAmount PathsManager::calculateOneNode(
     }
 
     auto trustLinePtrsSet =
-            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(nodeUUID);
+            mTopologyTrustLineManager->trustLinePtrsSet(nodeUUID);
     if (trustLinePtrsSet.empty()) {
         return 0;
     }
     for (auto &trustLinePtr : trustLinePtrsSet) {
-        auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
+        auto trustLine = trustLinePtr->topologyTrustLine();
         if (trustLine->targetUUID() == mNodeUUID) {
             continue;
         }
@@ -210,7 +210,7 @@ void PathsManager::reBuildPaths(
 {
     info() << "ReBuild paths to " << contractorUUID;
     auto startTime = utc_now();
-    mMaxFlowCalculationTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+    mTopologyTrustLineManager->makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
         contractorUUID);
     mContractorUUID = contractorUUID;
     mInaccessibleNodes = inaccessibleNodes;
@@ -219,9 +219,9 @@ void PathsManager::reBuildPaths(
         mContractorUUID);
 
     auto trustLinePtrsSet =
-            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+            mTopologyTrustLineManager->trustLinePtrsSet(mNodeUUID);
     if (trustLinePtrsSet.empty()) {
-        mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+        mTopologyTrustLineManager->resetAllUsedAmounts();
         return;
     }
 
@@ -230,7 +230,7 @@ void PathsManager::reBuildPaths(
         reBuildPathsOnOneLevel();
     }
 
-    mMaxFlowCalculationTrustLineManager->resetAllUsedAmounts();
+    mTopologyTrustLineManager->resetAllUsedAmounts();
     info() << "rebuilding time: " << utc_now() - startTime;
 }
 
@@ -241,11 +241,11 @@ TrustLineAmount PathsManager::reBuildPathsOnOneLevel()
 {
     TrustLineAmount result = 0;
     auto trustLinePtrsSet =
-            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(mNodeUUID);
+            mTopologyTrustLineManager->trustLinePtrsSet(mNodeUUID);
     while(true) {
         TrustLineAmount currentFlow = 0;
         for (auto &trustLinePtr : trustLinePtrsSet) {
-            auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
+            auto trustLine = trustLinePtr->topologyTrustLine();
             auto trustLineFreeAmountShared = trustLine->freeAmount();
             auto trustLineAmountPtr = trustLineFreeAmountShared.get();
             mPassedNodeUUIDs.clear();
@@ -295,12 +295,12 @@ TrustLineAmount PathsManager::calculateOneNodeForRebuildingPaths(
     }
 
     auto trustLinePtrsSet =
-            mMaxFlowCalculationTrustLineManager->trustLinePtrsSet(nodeUUID);
+            mTopologyTrustLineManager->trustLinePtrsSet(nodeUUID);
     if (trustLinePtrsSet.empty()) {
         return 0;
     }
     for (auto &trustLinePtr : trustLinePtrsSet) {
-        auto trustLine = trustLinePtr->maxFlowCalculationtrustLine();
+        auto trustLine = trustLinePtr->topologyTrustLine();
         if (trustLine->targetUUID() == mNodeUUID) {
             continue;
         }
@@ -343,7 +343,7 @@ void PathsManager::addUsedAmount(
     const NodeUUID &targetUUID,
     const TrustLineAmount &amount)
 {
-    mMaxFlowCalculationTrustLineManager->addUsedAmount(
+    mTopologyTrustLineManager->addUsedAmount(
         sourceUUID,
         targetUUID,
         amount);
@@ -353,7 +353,7 @@ void PathsManager::makeTrustLineFullyUsed(
     const NodeUUID &sourceUUID,
     const NodeUUID &targetUUID)
 {
-    mMaxFlowCalculationTrustLineManager->makeFullyUsed(
+    mTopologyTrustLineManager->makeFullyUsed(
         sourceUUID,
         targetUUID);
 }

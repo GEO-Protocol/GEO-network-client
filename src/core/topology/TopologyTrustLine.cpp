@@ -1,6 +1,6 @@
-#include "MaxFlowCalculationTrustLine.h"
+#include "TopologyTrustLine.h"
 
-MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine(
+TopologyTrustLine::TopologyTrustLine(
     const NodeUUID &sourceUUID,
     const NodeUUID &targetUUID,
     ConstSharedTrustLineAmount amount):
@@ -11,44 +11,44 @@ MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine(
     mUsedAmount(make_shared<TrustLineAmount>(0))
 {
     if (*amount.get() < TrustLine::kZeroAmount()) {
-        throw ValueError("MaxFlowCalculationTrustLine::MaxFlowCalculationTrustLine: "
+        throw ValueError("TopologyTrustLine::TopologyTrustLine: "
                              "Amount can't be negative value.");
     }
 }
 
-const NodeUUID& MaxFlowCalculationTrustLine::sourceUUID() const
+const NodeUUID& TopologyTrustLine::sourceUUID() const
 {
     return mSourceUUID;
 }
 
-const NodeUUID& MaxFlowCalculationTrustLine::targetUUID() const
+const NodeUUID& TopologyTrustLine::targetUUID() const
 {
     return mTargetUUID;
 }
 
-ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::amount() const
+ConstSharedTrustLineAmount TopologyTrustLine::amount() const
 {
     return mAmount;
 }
 
-ConstSharedTrustLineAmount MaxFlowCalculationTrustLine::freeAmount()
+ConstSharedTrustLineAmount TopologyTrustLine::freeAmount()
 {
     return ConstSharedTrustLineAmount(
         new TrustLineAmount(
             *mAmount.get() - *mUsedAmount.get()));
 }
 
-void MaxFlowCalculationTrustLine::addUsedAmount(const TrustLineAmount &amount)
+void TopologyTrustLine::addUsedAmount(const TrustLineAmount &amount)
 {
     *mUsedAmount.get() = *mUsedAmount.get() + amount;
 }
 
-void MaxFlowCalculationTrustLine::setUsedAmount(const TrustLineAmount &amount)
+void TopologyTrustLine::setUsedAmount(const TrustLineAmount &amount)
 {
     *mUsedAmount.get() = amount;
 }
 
-void MaxFlowCalculationTrustLine::setAmount(ConstSharedTrustLineAmount amount)
+void TopologyTrustLine::setAmount(ConstSharedTrustLineAmount amount)
 {
     mAmount = amount;
 }

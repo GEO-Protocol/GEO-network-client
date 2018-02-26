@@ -4,7 +4,7 @@
 #include "lib/Path.h"
 #include "lib/PathsCollection.h"
 #include "../trust_lines/manager/TrustLinesManager.h"
-#include "../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
+#include "../topology/manager/TopologyTrustLineManager.h"
 #include "../logger/Logger.h"
 
 #include <set>
@@ -15,7 +15,7 @@ public:
     PathsManager(
         const NodeUUID &nodeUUID,
         TrustLinesManager *trustLinesManager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
+        TopologyTrustLineManager *topologyTrustLineManager,
         Logger &logger);
 
     void buildPaths(
@@ -67,7 +67,7 @@ private:
 
 private:
     TrustLinesManager *mTrustLinesManager;
-    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
+    TopologyTrustLineManager *mTopologyTrustLineManager;
     Logger &mLog;
     PathsCollection::Shared mPathCollection;
     NodeUUID mNodeUUID;

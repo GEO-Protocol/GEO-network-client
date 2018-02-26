@@ -7,9 +7,9 @@
 #include "../../common/memory/MemoryUtils.h"
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../trust_lines/manager/TrustLinesManager.h"
-#include "../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
-#include "../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
+#include "../../topology/manager/TopologyTrustLineManager.h"
+#include "../../topology/cashe/TopologyCacheManager.h"
+#include "../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../io/storage/StorageHandler.h"
 #include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
@@ -133,9 +133,9 @@ public:
         as::io_service &IOService,
         TrustLinesManager *trustLinesManager,
         ResourcesManager *ResourcesManager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         ResultsInterface *resultsInterface,
         StorageHandler *storageHandler,
         PathsManager *pathsManager,
@@ -433,9 +433,9 @@ private:
     as::io_service &mIOService;
     TrustLinesManager *mTrustLines;
     ResourcesManager *mResourcesManager;
-    MaxFlowCalculationTrustLineManager *mMaxFlowCalculationTrustLineManager;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
-    MaxFlowCalculationNodeCacheManager *mMaxFlowCalculationNodeCacheManager;
+    TopologyTrustLineManager *mTopologyTrustLineManager;
+    TopologyCacheManager *mTopologyCacheManager;
+    MaxFlowCacheManager *mMaxFlowCacheManager;
     ResultsInterface *mResultsInterface;
     PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;

@@ -1,21 +1,21 @@
-#include "MaxFlowCalculationCacheManager.h"
+#include "TopologyCacheManager.h"
 
-MaxFlowCalculationCacheManager::MaxFlowCalculationCacheManager(Logger &logger):
+TopologyCacheManager::TopologyCacheManager(Logger &logger):
     mLog(logger)
 {
     mInitiatorCache.first = false;
 }
 
-void MaxFlowCalculationCacheManager::addCache(
+void TopologyCacheManager::addCache(
     const NodeUUID &keyUUID,
-    MaxFlowCalculationCache::Shared cache)
+    TopologyCache::Shared cache)
 {
     NodeUUID* nodeUUIDPtr = new NodeUUID(keyUUID);
     mCaches.insert(make_pair(*nodeUUIDPtr, cache));
     msCache.insert(make_pair(utc_now(), nodeUUIDPtr));
 }
 
-MaxFlowCalculationCache::Shared MaxFlowCalculationCacheManager::cacheByNode(
+TopologyCache::Shared TopologyCacheManager::cacheByNode(
     const NodeUUID &nodeUUID) const
 {
     auto nodeUUIDAndCache = mCaches.find(nodeUUID);
@@ -25,7 +25,7 @@ MaxFlowCalculationCache::Shared MaxFlowCalculationCacheManager::cacheByNode(
     return nodeUUIDAndCache->second;
 }
 
-void MaxFlowCalculationCacheManager::updateCaches()
+void TopologyCacheManager::updateCaches()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "updateCaches\t" << "mCaches size: " << mCaches.size();
@@ -52,23 +52,23 @@ void MaxFlowCalculationCacheManager::updateCaches()
     }
 }
 
-void MaxFlowCalculationCacheManager::setInitiatorCache()
+void TopologyCacheManager::setInitiatorCache()
 {
     mInitiatorCache.first = true;
     mInitiatorCache.second = utc_now();
 }
 
-void MaxFlowCalculationCacheManager::resetInitiatorCache()
+void TopologyCacheManager::resetInitiatorCache()
 {
     mInitiatorCache.first = false;
 }
 
-bool MaxFlowCalculationCacheManager::isInitiatorCached()
+bool TopologyCacheManager::isInitiatorCached()
 {
     return mInitiatorCache.first;
 }
 
-DateTime MaxFlowCalculationCacheManager::closestTimeEvent() const
+DateTime TopologyCacheManager::closestTimeEvent() const
 {
     // if initiator cache is active then take initiator cache removing time as result closest time event
     // else take life time of initiator cache + now as result closest time event
@@ -92,14 +92,14 @@ DateTime MaxFlowCalculationCacheManager::closestTimeEvent() const
     return result;
 }
 
-LoggerStream MaxFlowCalculationCacheManager::info() const
+LoggerStream TopologyCacheManager::info() const
 {
     return mLog.info(logHeader());
 }
 
-const string MaxFlowCalculationCacheManager::logHeader() const
+const string TopologyCacheManager::logHeader() const
 {
     stringstream s;
-    s << "[MaxFlowCalculationCacheManager]";
+    s << "[TopologyCacheManager]";
     return s.str();
 }

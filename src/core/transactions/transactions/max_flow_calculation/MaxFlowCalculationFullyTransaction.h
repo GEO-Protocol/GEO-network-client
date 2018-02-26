@@ -4,11 +4,6 @@
 #include "../base/BaseCollectTopologyTransaction.h"
 #include "../../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationFullyCommand.h"
 
-#include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
-
 #include "CollectTopologyTransaction.h"
 
 #include <set>
@@ -23,9 +18,9 @@ public:
         const NodeUUID &nodeUUID,
         const InitiateMaxFlowCalculationFullyCommand::Shared command,
         TrustLinesManager *trustLinesManager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &logger);
 
     InitiateMaxFlowCalculationFullyCommand::Shared command() const;
@@ -69,7 +64,7 @@ private:
     TrustLineAmount mCurrentMaxFlow;
     NodeUUID mCurrentContractor;
     size_t mCountProcessCollectingTopologyRun;
-    MaxFlowCalculationTrustLineManager::TrustLineWithPtrHashSet mFirstLevelTopology;
+    TopologyTrustLineManager::TrustLineWithPtrHashSet mFirstLevelTopology;
 };
 
 

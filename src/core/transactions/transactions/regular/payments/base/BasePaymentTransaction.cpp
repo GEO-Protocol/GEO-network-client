@@ -5,8 +5,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     const NodeUUID &currentNodeUUID,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -16,8 +16,8 @@ BasePaymentTransaction::BasePaymentTransaction(
         log),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr),
@@ -30,8 +30,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     const NodeUUID &currentNodeUUID,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -42,8 +42,8 @@ BasePaymentTransaction::BasePaymentTransaction(
         log),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController),
     mTransactionIsVoted(false),
     mParticipantsVotesMessage(nullptr),
@@ -55,8 +55,8 @@ BasePaymentTransaction::BasePaymentTransaction(
     const NodeUUID &nodeUUID,
     TrustLinesManager *trustLines,
     StorageHandler *storageHandler,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &log,
     SubsystemsController *subsystemsController) :
 
@@ -66,8 +66,8 @@ BasePaymentTransaction::BasePaymentTransaction(
         log),
     mTrustLines(trustLines),
     mStorageHandler(storageHandler),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager),
-    mMaxFlowCalculationNodeCacheManager(maxFlowCalculationNodeCacheManager),
+    mTopologyCacheManager(topologyCacheManager),
+    mMaxFlowCacheManager(maxFlowCacheManager),
     mSubsystemsController(subsystemsController)
 {
     auto bytesBufferOffset = BaseTransaction::kOffsetToInheritedBytes();
@@ -578,8 +578,8 @@ void BasePaymentTransaction::commit(
 
     // reset initiator cache, because after changing balances
     // we need updated information on max flow calculation transaction
-    mMaxFlowCalculationCacheManager->resetInitiatorCache();
-    mMaxFlowCalculationNodeCacheManager->clearCashes();
+    mTopologyCacheManager->resetInitiatorCache();
+    mMaxFlowCacheManager->clearCashes();
     debug() << "Transaction committed.";
     saveVotes(ioTransaction);
     debug() << "Votes saved.";

@@ -36,7 +36,6 @@ TransactionResult::SharedConst CyclesThreeNodesInitTransaction::run()
     }
 }
 
-// todo : need used topology from MaxFlowCalculationTrustLineManager
 set<NodeUUID> CyclesThreeNodesInitTransaction::getNeighborsWithContractor()
 {
     const auto kBalanceToContractor = mTrustLinesManager->balance(mContractorUUID);

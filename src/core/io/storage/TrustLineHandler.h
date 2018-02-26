@@ -20,18 +20,32 @@ public:
         const string &tableName,
         Logger &logger);
 
+    [[deprecated("Use saving with equivalent instead.")]]
     void saveTrustLine(
         TrustLine::Shared trustLine);
 
-    vector<TrustLine::Shared> allTrustLines ();
+    void saveTrustLine(
+        TrustLine::Shared trustLine,
+        const SerializedEquivalent equivalent);
 
+    [[deprecated("Use allTrustLinesByEquivalent instead.")]]
+    vector<TrustLine::Shared> allTrustLines();
+
+    vector<TrustLine::Shared> allTrustLinesByEquivalent(
+        const SerializedEquivalent equivalent);
+
+    [[deprecated("Use deleting with equivalent instead.")]]
     void deleteTrustLine(const NodeUUID &contractorUUID);
+
+    void deleteTrustLine(
+        const NodeUUID &contractorUUID,
+        const SerializedEquivalent equivalent);
+
+    vector<SerializedEquivalent> equivalents();
 
     const string &tableName() const;
 
 private:
-    bool containsContractor(const NodeUUID &contractorUUID);
-
     LoggerStream info() const;
 
     LoggerStream warning() const;

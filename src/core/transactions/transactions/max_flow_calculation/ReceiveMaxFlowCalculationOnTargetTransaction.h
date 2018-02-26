@@ -6,7 +6,7 @@
 #include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationTargetFstLevelMessage.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
+#include "../../../topology/cashe/TopologyCacheManager.h"
 
 class ReceiveMaxFlowCalculationOnTargetTransaction : public BaseTransaction {
 
@@ -15,11 +15,11 @@ public:
 
 public:
     ReceiveMaxFlowCalculationOnTargetTransaction(
-            const NodeUUID &nodeUUID,
-            InitiateMaxFlowCalculationMessage::Shared message,
-            TrustLinesManager *manager,
-            MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-            Logger &logger);
+        const NodeUUID &nodeUUID,
+        InitiateMaxFlowCalculationMessage::Shared message,
+        TrustLinesManager *trustLinesManager,
+        TopologyCacheManager *topologyCacheManager,
+        Logger &logger);
 
     InitiateMaxFlowCalculationMessage::Shared message() const;
 
@@ -34,12 +34,12 @@ private:
     void sendResultToInitiator();
 
     void sendCachedResultToInitiator(
-        MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr);
+        TopologyCache::Shared maxFlowCalculationCachePtr);
 
 private:
     InitiateMaxFlowCalculationMessage::Shared mMessage;
     TrustLinesManager *mTrustLinesManager;
-    MaxFlowCalculationCacheManager *mMaxFlowCalculationCacheManager;
+    TopologyCacheManager *mTopologyCacheManager;
 };
 
 

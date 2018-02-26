@@ -4,12 +4,6 @@
 #include "../base/BaseCollectTopologyTransaction.h"
 #include "../../../interface/commands_interface/commands/max_flow_calculation/InitiateMaxFlowCalculationCommand.h"
 
-#include "../../../trust_lines/manager/TrustLinesManager.h"
-#include "../../../max_flow_calculation/manager/MaxFlowCalculationTrustLineManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationCacheManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCacheManager.h"
-#include "../../../max_flow_calculation/cashe/MaxFlowCalculationNodeCache.h"
-
 #include "../../../network/messages/max_flow_calculation/InitiateMaxFlowCalculationMessage.h"
 #include "../../../network/messages/max_flow_calculation/MaxFlowCalculationSourceFstLevelMessage.h"
 #include "../../../network/messages/max_flow_calculation/ResultMaxFlowCalculationMessage.h"
@@ -29,9 +23,9 @@ public:
         NodeUUID &nodeUUID,
         InitiateMaxFlowCalculationCommand::Shared command,
         TrustLinesManager *trustLinesManager,
-        MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyTrustLineManager *topologyTrustLineManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         bool iAmGateway,
         Logger &logger);
 
@@ -78,7 +72,7 @@ private:
     NodeUUID mCurrentContractor;
     size_t mCountProcessCollectingTopologyRun;
     bool mIAmGateway;
-    MaxFlowCalculationTrustLineManager::TrustLineWithPtrHashSet mFirstLevelTopology;
+    TopologyTrustLineManager::TrustLineWithPtrHashSet mFirstLevelTopology;
     vector<NodeUUID> mAlreadyCalculated;
 };
 

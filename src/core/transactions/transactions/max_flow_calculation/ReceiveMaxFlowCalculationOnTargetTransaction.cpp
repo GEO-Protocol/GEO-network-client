@@ -3,8 +3,8 @@
 ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetTransaction(
     const NodeUUID &nodeUUID,
     InitiateMaxFlowCalculationMessage::Shared message,
-    TrustLinesManager *manager,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
+    TrustLinesManager *trustLinesManager,
+    TopologyCacheManager *topologyCacheManager,
     Logger &logger) :
 
     BaseTransaction(
@@ -12,8 +12,8 @@ ReceiveMaxFlowCalculationOnTargetTransaction::ReceiveMaxFlowCalculationOnTargetT
         nodeUUID,
         logger),
     mMessage(message),
-    mTrustLinesManager(manager),
-    mMaxFlowCalculationCacheManager(maxFlowCalculationCacheManager)
+    mTrustLinesManager(trustLinesManager),
+    mTopologyCacheManager(topologyCacheManager)
 {}
 
 InitiateMaxFlowCalculationMessage::Shared ReceiveMaxFlowCalculationOnTargetTransaction::message() const
@@ -36,8 +36,8 @@ TransactionResult::SharedConst ReceiveMaxFlowCalculationOnTargetTransaction::run
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()
 {
-    MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr
-        = mMaxFlowCalculationCacheManager->cacheByNode(mMessage->senderUUID);
+    TopologyCache::Shared maxFlowCalculationCachePtr
+        = mTopologyCacheManager->cacheByNode(mMessage->senderUUID);
     if (maxFlowCalculationCachePtr != nullptr) {
         sendCachedResultToInitiator(maxFlowCalculationCachePtr);
         return;
@@ -60,16 +60,16 @@ void ReceiveMaxFlowCalculationOnTargetTransaction::sendResultToInitiator()
             mNodeUUID,
             outgoingFlows,
             incomingFlows);
-        mMaxFlowCalculationCacheManager->addCache(
+        mTopologyCacheManager->addCache(
             mMessage->senderUUID,
-            make_shared<MaxFlowCalculationCache>(
+            make_shared<TopologyCache>(
                 outgoingFlows,
                 incomingFlows));
     }
 }
 
 void ReceiveMaxFlowCalculationOnTargetTransaction::sendCachedResultToInitiator(
-    MaxFlowCalculationCache::Shared maxFlowCalculationCachePtr)
+    TopologyCache::Shared maxFlowCalculationCachePtr)
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "sendCachedResultToInitiator\t" << "send to " << mMessage->senderUUID;

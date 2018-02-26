@@ -7,18 +7,18 @@ FindPathByMaxFlowTransaction::FindPathByMaxFlowTransaction(
     PathsManager *pathsManager,
     ResourcesManager *resourcesManager,
     TrustLinesManager *manager,
-    MaxFlowCalculationTrustLineManager *maxFlowCalculationTrustLineManager,
-    MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-    MaxFlowCalculationNodeCacheManager *MaxFlowCalculationNodeCacheManager,
+    TopologyTrustLineManager *topologyTrustLineManager,
+    TopologyCacheManager *topologyCacheManager,
+    MaxFlowCacheManager *maxFlowCacheManager,
     Logger &logger) :
 
     BaseCollectTopologyTransaction(
         BaseTransaction::FindPathByMaxFlowTransactionType,
         nodeUUID,
         manager,
-        maxFlowCalculationTrustLineManager,
-        maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager,
+        topologyTrustLineManager,
+        topologyCacheManager,
+        maxFlowCacheManager,
         logger),
 
     mContractorUUID(contractorUUID),
@@ -40,12 +40,12 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::sendRequestForColle
             mNodeUUID,
             contractors,
             mTrustLinesManager,
-            mMaxFlowCalculationTrustLineManager,
-            mMaxFlowCalculationCacheManager,
-            mMaxFlowCalculationNodeCacheManager,
+            mTopologyTrustLineManager,
+            mTopologyCacheManager,
+            mMaxFlowCacheManager,
             mLog);
 
-        mMaxFlowCalculationTrustLineManager->setPreventDeleting(true);
+        mTopologyTrustLineManager->setPreventDeleting(true);
         launchSubsidiaryTransaction(kTransaction);
     } catch (...) {
         warning() << "Can not launch Collecting Topology transaction for " << mContractorUUID << ".";
@@ -65,7 +65,7 @@ TransactionResult::SharedConst FindPathByMaxFlowTransaction::processCollectingTo
             mRequestedTransactionUUID,
             mPathsManager->pathCollection()));
     mPathsManager->clearPathsCollection();
-    mMaxFlowCalculationTrustLineManager->setPreventDeleting(false);
+    mTopologyTrustLineManager->setPreventDeleting(false);
     return resultDone();
 }
 

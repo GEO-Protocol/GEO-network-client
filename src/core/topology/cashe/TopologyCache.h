@@ -1,5 +1,5 @@
-#ifndef GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONCACHE_H
-#define GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONCACHE_H
+#ifndef GEO_NETWORK_CLIENT_TOPOLOGYCACHE_H
+#define GEO_NETWORK_CLIENT_TOPOLOGYCACHE_H
 
 #include "../../common/Types.h"
 #include "../../common/NodeUUID.h"
@@ -10,12 +10,12 @@
 #include <vector>
 #include <boost/functional/hash.hpp>
 
-class MaxFlowCalculationCache {
+class TopologyCache {
 
 public:
-    typedef shared_ptr<MaxFlowCalculationCache> Shared;
+    typedef shared_ptr<TopologyCache> Shared;
 
-    MaxFlowCalculationCache(
+    TopologyCache(
         const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
         const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows);
 
@@ -33,4 +33,4 @@ private:
 };
 
 
-#endif //GEO_NETWORK_CLIENT_MAXFLOWCALCULATIONCACHE_H
+#endif //GEO_NETWORK_CLIENT_TOPOLOGYCACHE_H

@@ -1,13 +1,13 @@
-#include "MaxFlowCalculationNodeCacheManager.h"
+#include "MaxFlowCacheManager.h"
 
-MaxFlowCalculationNodeCacheManager::MaxFlowCalculationNodeCacheManager(
+MaxFlowCacheManager::MaxFlowCacheManager(
     Logger &logger):
     mLog(logger)
 {}
 
-void MaxFlowCalculationNodeCacheManager::addCache(
+void MaxFlowCacheManager::addCache(
     const NodeUUID &keyUUID,
-    MaxFlowCalculationNodeCache::Shared cache)
+    MaxFlowCache::Shared cache)
 {
     mCaches.insert(
         make_pair(
@@ -20,7 +20,7 @@ void MaxFlowCalculationNodeCacheManager::addCache(
             nodeUUIDPtr));
 }
 
-void MaxFlowCalculationNodeCacheManager::updateCaches()
+void MaxFlowCacheManager::updateCaches()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "updateCaches\t" << "mCaches size: " << mCaches.size();
@@ -41,7 +41,7 @@ void MaxFlowCalculationNodeCacheManager::updateCaches()
     }
 }
 
-MaxFlowCalculationNodeCache::Shared MaxFlowCalculationNodeCacheManager::cacheByNode(
+MaxFlowCache::Shared MaxFlowCacheManager::cacheByNode(
     const NodeUUID &nodeUUID) const
 {
     auto nodeUUIDAndCache = mCaches.find(nodeUUID);
@@ -51,7 +51,7 @@ MaxFlowCalculationNodeCache::Shared MaxFlowCalculationNodeCacheManager::cacheByN
     return nodeUUIDAndCache->second;
 }
 
-void MaxFlowCalculationNodeCacheManager::updateCache(
+void MaxFlowCacheManager::updateCache(
     const NodeUUID &keyUUID,
     const TrustLineAmount &amount,
     bool isFinal)
@@ -66,7 +66,7 @@ void MaxFlowCalculationNodeCacheManager::updateCache(
         isFinal);
 }
 
-DateTime MaxFlowCalculationNodeCacheManager::closestTimeEvent() const
+DateTime MaxFlowCacheManager::closestTimeEvent() const
 {
     DateTime result = utc_now() + kResetCacheDuration();
     // if there are caches then take cache removing closest time as result closest time event
@@ -84,7 +84,7 @@ DateTime MaxFlowCalculationNodeCacheManager::closestTimeEvent() const
     return result;
 }
 
-void MaxFlowCalculationNodeCacheManager::clearCashes()
+void MaxFlowCacheManager::clearCashes()
 {
     for (auto cacheElement : mTimeCaches) {
         delete cacheElement.second;
@@ -93,7 +93,7 @@ void MaxFlowCalculationNodeCacheManager::clearCashes()
     mCaches.clear();
 }
 
-void MaxFlowCalculationNodeCacheManager::printCaches()
+void MaxFlowCacheManager::printCaches()
 {
     info() << "printCaches at time " << utc_now();
     for (const auto &nodeCache : mCaches) {
@@ -103,19 +103,19 @@ void MaxFlowCalculationNodeCacheManager::printCaches()
     }
 }
 
-LoggerStream MaxFlowCalculationNodeCacheManager::info() const
+LoggerStream MaxFlowCacheManager::info() const
 {
     return mLog.info(logHeader());
 }
 
-LoggerStream MaxFlowCalculationNodeCacheManager::warning() const
+LoggerStream MaxFlowCacheManager::warning() const
 {
     return mLog.warning(logHeader());
 }
 
-const string MaxFlowCalculationNodeCacheManager::logHeader() const
+const string MaxFlowCacheManager::logHeader() const
 {
     stringstream s;
-    s << "[MaxFlowCalculationNodeCacheManager]";
+    s << "[MaxFlowCacheManager]";
     return s.str();
 }

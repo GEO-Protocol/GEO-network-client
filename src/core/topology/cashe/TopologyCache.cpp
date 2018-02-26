@@ -1,6 +1,6 @@
-#include "MaxFlowCalculationCache.h"
+#include "TopologyCache.h"
 
-MaxFlowCalculationCache::MaxFlowCalculationCache(
+TopologyCache::TopologyCache(
     const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &outgoingFlows,
     const vector<pair<NodeUUID, ConstSharedTrustLineAmount>> &incomingFlows)
 {
@@ -13,7 +13,7 @@ MaxFlowCalculationCache::MaxFlowCalculationCache(
 }
 
 // check if incoming flow already cached
-bool MaxFlowCalculationCache::containsIncomingFlow(
+bool TopologyCache::containsIncomingFlow(
     const NodeUUID &nodeUUID,
     ConstSharedTrustLineAmount flow)
 {
@@ -50,7 +50,7 @@ bool MaxFlowCalculationCache::containsIncomingFlow(
 }
 
 // check if inoutgoing flow already cached
-bool MaxFlowCalculationCache::containsOutgoingFlow(
+bool TopologyCache::containsOutgoingFlow(
     const NodeUUID &nodeUUID,
     const ConstSharedTrustLineAmount flow)
 {

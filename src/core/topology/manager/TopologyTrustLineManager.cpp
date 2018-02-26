@@ -1,6 +1,6 @@
-#include "MaxFlowCalculationTrustLineManager.h"
+#include "TopologyTrustLineManager.h"
 
-MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
+TopologyTrustLineManager::TopologyTrustLineManager(
     bool iAmGateway,
     NodeUUID &nodeUUID,
     Logger &logger):
@@ -12,16 +12,16 @@ MaxFlowCalculationTrustLineManager::MaxFlowCalculationTrustLineManager(
     }
 }
 
-void MaxFlowCalculationTrustLineManager::addTrustLine(
-    MaxFlowCalculationTrustLine::Shared trustLine)
+void TopologyTrustLineManager::addTrustLine(
+    TopologyTrustLine::Shared trustLine)
 {
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(trustLine->sourceUUID());
     if (nodeUUIDAndSetFlows == msTrustLines.end()) {
         if (*(trustLine->amount()) == TrustLine::kZeroAmount()) {
             return;
         }
-        auto newHashSet = new unordered_set<MaxFlowCalculationTrustLineWithPtr*>();
-        auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(
+        auto newHashSet = new unordered_set<TopologyTrustLineWithPtr*>();
+        auto newTrustLineWithPtr = new TopologyTrustLineWithPtr(
             trustLine,
             newHashSet);
         newHashSet->insert(
@@ -39,14 +39,14 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
         auto hashSet = nodeUUIDAndSetFlows->second;
         auto trLineWithPtr = hashSet->begin();
         while (trLineWithPtr != hashSet->end()) {
-            if ((*trLineWithPtr)->maxFlowCalculationtrustLine()->targetUUID() == trustLine->targetUUID()) {
-                (*trLineWithPtr)->maxFlowCalculationtrustLine()->setAmount(trustLine->amount());
+            if ((*trLineWithPtr)->topologyTrustLine()->targetUUID() == trustLine->targetUUID()) {
+                (*trLineWithPtr)->topologyTrustLine()->setAmount(trustLine->amount());
 
                 // update time creation of trustline
                 auto dateTimeAndTrustLine = mtTrustLines.begin();
                 while (dateTimeAndTrustLine != mtTrustLines.end()) {
                     if (dateTimeAndTrustLine->second == *trLineWithPtr) {
-                        if (*(*trLineWithPtr)->maxFlowCalculationtrustLine()->amount() != TrustLine::kZeroAmount()) {
+                        if (*(*trLineWithPtr)->topologyTrustLine()->amount() != TrustLine::kZeroAmount()) {
                             mtTrustLines.erase(
                                 dateTimeAndTrustLine);
                             mtTrustLines.insert(
@@ -57,7 +57,7 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
                             auto hashSetPtr = (*trLineWithPtr)->hashSetPtr();
                             hashSetPtr->erase(*trLineWithPtr);
                             if (hashSetPtr->empty()) {
-                                NodeUUID keyUUID = (*trLineWithPtr)->maxFlowCalculationtrustLine()->sourceUUID();
+                                NodeUUID keyUUID = (*trLineWithPtr)->topologyTrustLine()->sourceUUID();
                                 msTrustLines.erase(keyUUID);
                                 delete hashSetPtr;
                             }
@@ -77,7 +77,7 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
             if (*trustLine->amount() == TrustLine::kZeroAmount()) {
                 return;
             }
-            auto newTrustLineWithPtr = new MaxFlowCalculationTrustLineWithPtr(
+            auto newTrustLineWithPtr = new TopologyTrustLineWithPtr(
                 trustLine,
                 hashSet);
             hashSet->insert(
@@ -90,7 +90,7 @@ void MaxFlowCalculationTrustLineManager::addTrustLine(
     }
 }
 
-unordered_set<MaxFlowCalculationTrustLineWithPtr*> MaxFlowCalculationTrustLineManager::trustLinePtrsSet(
+unordered_set<TopologyTrustLineWithPtr*> TopologyTrustLineManager::trustLinePtrsSet(
     const NodeUUID &nodeUUID)
 {
     auto const &nodeUUIDAndSetFlows = msTrustLines.find(nodeUUID);
@@ -101,19 +101,19 @@ unordered_set<MaxFlowCalculationTrustLineWithPtr*> MaxFlowCalculationTrustLineMa
     return *nodeUUIDAndSetFlows->second;
 }
 
-void MaxFlowCalculationTrustLineManager::resetAllUsedAmounts()
+void TopologyTrustLineManager::resetAllUsedAmounts()
 {
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
     info() << "resetAllUsedAmounts";
 #endif
     for (auto &nodeUUIDAndTrustLine : msTrustLines) {
         for (auto &trustLine : *nodeUUIDAndTrustLine.second) {
-            trustLine->maxFlowCalculationtrustLine()->setUsedAmount(0);
+            trustLine->topologyTrustLine()->setUsedAmount(0);
         }
     }
 }
 
-void MaxFlowCalculationTrustLineManager::addUsedAmount(
+void TopologyTrustLineManager::addUsedAmount(
     const NodeUUID &sourceUUID,
     const NodeUUID &targetUUID,
     const TrustLineAmount &amount)
@@ -123,14 +123,14 @@ void MaxFlowCalculationTrustLineManager::addUsedAmount(
         return;
     }
     for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
-        if (trustLinePtr->maxFlowCalculationtrustLine()->targetUUID() == targetUUID) {
-            trustLinePtr->maxFlowCalculationtrustLine()->addUsedAmount(amount);
+        if (trustLinePtr->topologyTrustLine()->targetUUID() == targetUUID) {
+            trustLinePtr->topologyTrustLine()->addUsedAmount(amount);
             return;
         }
     }
 }
 
-void MaxFlowCalculationTrustLineManager::makeFullyUsed(
+void TopologyTrustLineManager::makeFullyUsed(
     const NodeUUID &sourceUUID,
     const NodeUUID &targetUUID)
 {
@@ -139,15 +139,15 @@ void MaxFlowCalculationTrustLineManager::makeFullyUsed(
         return;
     }
     for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
-        if (trustLinePtr->maxFlowCalculationtrustLine()->targetUUID() == targetUUID) {
-            trustLinePtr->maxFlowCalculationtrustLine()->setUsedAmount(
-                *trustLinePtr->maxFlowCalculationtrustLine()->amount().get());
+        if (trustLinePtr->topologyTrustLine()->targetUUID() == targetUUID) {
+            trustLinePtr->topologyTrustLine()->setUsedAmount(
+                *trustLinePtr->topologyTrustLine()->amount().get());
             return;
         }
     }
 }
 
-bool MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
+bool TopologyTrustLineManager::deleteLegacyTrustLines()
 {
     bool isTrustLineWasDeleted = false;
     for (auto &timeAndTrustLineWithPtr : mtTrustLines) {
@@ -162,7 +162,7 @@ bool MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
             auto hashSetPtr = trustLineWithPtr->hashSetPtr();
             hashSetPtr->erase(trustLineWithPtr);
             if (hashSetPtr->empty()) {
-                NodeUUID keyUUID = trustLineWithPtr->maxFlowCalculationtrustLine()->sourceUUID();
+                NodeUUID keyUUID = trustLineWithPtr->topologyTrustLine()->sourceUUID();
 #ifdef DEBUG_LOG_MAX_FLOW_CALCULATION
                 info() << "deleteLegacyTrustLines\t" << "remove all trustLines for node: " << keyUUID;
 #endif
@@ -182,7 +182,7 @@ bool MaxFlowCalculationTrustLineManager::deleteLegacyTrustLines()
     return isTrustLineWasDeleted;
 }
 
-size_t MaxFlowCalculationTrustLineManager::trustLinesCounts() const
+size_t TopologyTrustLineManager::trustLinesCounts() const
 {
     size_t countTrustLines = 0;
     for (const auto &nodeUUIDAndTrustLines : msTrustLines) {
@@ -191,14 +191,14 @@ size_t MaxFlowCalculationTrustLineManager::trustLinesCounts() const
     return countTrustLines;
 }
 
-void MaxFlowCalculationTrustLineManager::printTrustLines() const
+void TopologyTrustLineManager::printTrustLines() const
 {
     size_t trustLinesCnt = 0;
     info() << "print\t" << "trustLineMap size: " << msTrustLines.size();
     for (const auto &nodeUUIDAndTrustLines : msTrustLines) {
         info() << "print\t" << "key: " << nodeUUIDAndTrustLines.first;
         for (auto &itTrustLine : *nodeUUIDAndTrustLines.second) {
-            MaxFlowCalculationTrustLine::Shared trustLine = itTrustLine->maxFlowCalculationtrustLine();
+            TopologyTrustLine::Shared trustLine = itTrustLine->topologyTrustLine();
             info() << "print\t" << "value: " << trustLine->targetUUID() << " " << *trustLine->amount().get()
                     << " free amount: " << *trustLine->freeAmount();
         }
@@ -207,7 +207,7 @@ void MaxFlowCalculationTrustLineManager::printTrustLines() const
     info() << "print\t" << "trust lines count: " << trustLinesCnt;
 }
 
-DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const
+DateTime TopologyTrustLineManager::closestTimeEvent() const
 {
     DateTime result = utc_now() + kResetTrustLinesDuration();
     // if there are cached trust lines, then take closest trust line removing time as result closest time event
@@ -221,7 +221,7 @@ DateTime MaxFlowCalculationTrustLineManager::closestTimeEvent() const
     return result;
 }
 
-set<NodeUUID> MaxFlowCalculationTrustLineManager::neighborsOf(
+set<NodeUUID> TopologyTrustLineManager::neighborsOf(
     const NodeUUID &sourceUUID)
 {
     set<NodeUUID> result;
@@ -231,23 +231,23 @@ set<NodeUUID> MaxFlowCalculationTrustLineManager::neighborsOf(
         return result;
     }
     for (auto &trustLinePtr : *nodeUUIDAndSetTrustLines->second) {
-        result.insert(trustLinePtr->maxFlowCalculationtrustLine()->targetUUID());
+        result.insert(trustLinePtr->topologyTrustLine()->targetUUID());
     }
     return result;
 }
 
-void MaxFlowCalculationTrustLineManager::addGateway(
+void TopologyTrustLineManager::addGateway(
     const NodeUUID &gateway)
 {
     mGateways.insert(gateway);
 }
 
-const set<NodeUUID> MaxFlowCalculationTrustLineManager::gateways() const
+const set<NodeUUID> TopologyTrustLineManager::gateways() const
 {
     return mGateways;
 }
 
-void MaxFlowCalculationTrustLineManager::makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
+void TopologyTrustLineManager::makeFullyUsedTLsFromGatewaysToAllNodesExceptOne(
     const NodeUUID &exceptedNode)
 {
     for (const auto &gateway : mGateways) {
@@ -256,42 +256,42 @@ void MaxFlowCalculationTrustLineManager::makeFullyUsedTLsFromGatewaysToAllNodesE
             continue;
         }
         for (auto &trustLinePtr : *nodeUUIDAndSetFlows->second) {
-            const auto maxFlowTLTarget = trustLinePtr->maxFlowCalculationtrustLine()->targetUUID();
+            const auto maxFlowTLTarget = trustLinePtr->topologyTrustLine()->targetUUID();
             if (mGateways.count(maxFlowTLTarget) != 0) {
                 continue;
             }
             if (maxFlowTLTarget != exceptedNode) {
-                trustLinePtr->maxFlowCalculationtrustLine()->setUsedAmount(
-                        *trustLinePtr->maxFlowCalculationtrustLine()->amount().get());
+                trustLinePtr->topologyTrustLine()->setUsedAmount(
+                        *trustLinePtr->topologyTrustLine()->amount().get());
             }
         }
     }
 }
 
-void MaxFlowCalculationTrustLineManager::setPreventDeleting(
+void TopologyTrustLineManager::setPreventDeleting(
     bool preventDeleting)
 {
     mPreventDeleting = preventDeleting;
 }
 
-bool MaxFlowCalculationTrustLineManager::preventDeleting() const
+bool TopologyTrustLineManager::preventDeleting() const
 {
     return mPreventDeleting;
 }
 
-LoggerStream MaxFlowCalculationTrustLineManager::info() const
+LoggerStream TopologyTrustLineManager::info() const
 {
     return mLog.info(logHeader());
 }
 
-LoggerStream MaxFlowCalculationTrustLineManager::debug() const
+LoggerStream TopologyTrustLineManager::debug() const
 {
     return mLog.debug(logHeader());
 }
 
-const string MaxFlowCalculationTrustLineManager::logHeader() const
+const string TopologyTrustLineManager::logHeader() const
 {
     stringstream s;
-    s << "[MaxFlowCalculationTrustLineManager]";
+    s << "[TopologyTrustLineManager]";
     return s.str();
 }

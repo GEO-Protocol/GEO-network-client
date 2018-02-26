@@ -26,8 +26,8 @@ public:
         TrustLinesManager *trustLines,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController)
         noexcept;
@@ -38,8 +38,8 @@ public:
         TrustLinesManager *trustLines,
         CyclesManager *cyclesManager,
         StorageHandler *storageHandler,
-        MaxFlowCalculationCacheManager *maxFlowCalculationCacheManager,
-        MaxFlowCalculationNodeCacheManager *maxFlowCalculationNodeCacheManager,
+        TopologyCacheManager *topologyCacheManager,
+        MaxFlowCacheManager *maxFlowCacheManager,
         Logger &log,
         SubsystemsController *subsystemsController)
         throw (bad_alloc);

@@ -81,7 +81,7 @@ int Core::initSubsystems()
     if (initCode != 0)
         return initCode;
 
-    initCode = initRoughtingTable();
+    initCode = initRoutingTable();
     if (initCode != 0)
         return initCode;
 
@@ -101,16 +101,16 @@ int Core::initSubsystems()
     if (initCode != 0)
         return initCode;
 
-    initCode = initMaxFlowCalculationTrustLineManager();
+    initCode = initTopologyTrustLineManager();
     if (initCode != 0)
         return initCode;
 
-    initCode = initMaxFlowCalculationCacheManager();
+    initCode = initTopologyCacheManager();
     if (initCode != 0) {
         return initCode;
     }
 
-    initCode = initMaxFlowCalculationNodeCacheManager();
+    initCode = initMaxFlowCacheManager();
     if (initCode != 0) {
         return initCode;
     }
@@ -209,7 +209,7 @@ int Core::initResultsInterface()
     }
 }
 
-int Core::initRoughtingTable()
+int Core::initRoutingTable()
 {
     try {
         mRoutingTable = make_unique<RoutingTableManager>(
@@ -227,6 +227,7 @@ int Core::initTrustLinesManager()
 {
     try {
         mTrustLinesManager = make_unique<TrustLinesManager>(
+            0,
             mStorageHandler.get(),
             *mLog);
         info() << "Trust lines manager is successfully initialised";
@@ -238,14 +239,14 @@ int Core::initTrustLinesManager()
     }
 }
 
-int Core::initMaxFlowCalculationTrustLineManager()
+int Core::initTopologyTrustLineManager()
 {
     try{
-        mMaxFlowCalculationTrustLimeManager = make_unique<MaxFlowCalculationTrustLineManager>(
+        mTopologyTrustLimeManager = make_unique<TopologyTrustLineManager>(
             mIAmGateway,
             mNodeUUID,
             *mLog);
-        info() << "Max flow calculation Trust lines manager is successfully initialised";
+        info() << "Topology Trust lines manager is successfully initialised";
         return 0;
 
     }catch(const std::exception &e) {
@@ -254,12 +255,12 @@ int Core::initMaxFlowCalculationTrustLineManager()
     }
 }
 
-int Core::initMaxFlowCalculationCacheManager()
+int Core::initTopologyCacheManager()
 {
     try {
-        mMaxFlowCalculationCacheManager = make_unique<MaxFlowCalculationCacheManager>(
+        mTopologyCacheManager = make_unique<TopologyCacheManager>(
             *mLog);
-        info() << "Max flow calculation Cache manager is successfully initialised";
+        info() << "Topology Cache manager is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -268,12 +269,12 @@ int Core::initMaxFlowCalculationCacheManager()
     }
 }
 
-int Core::initMaxFlowCalculationNodeCacheManager()
+int Core::initMaxFlowCacheManager()
 {
     try {
-        mMaxFlowCalculationNodeCacheManager = make_unique<MaxFlowCalculationNodeCacheManager>(
+        mMaxFlowCacheManager = make_unique<MaxFlowCacheManager>(
             *mLog);
-        info() << "Max flow calculation Node Cache manager is successfully initialised";
+        info() << "Max flow Cache manager is successfully initialised";
         return 0;
 
     } catch (const std::exception &e) {
@@ -302,9 +303,9 @@ int Core::initTransactionsManager()
             mIOService,
             mTrustLinesManager.get(),
             mResourcesManager.get(),
-            mMaxFlowCalculationTrustLimeManager.get(),
-            mMaxFlowCalculationCacheManager.get(),
-            mMaxFlowCalculationNodeCacheManager.get(),
+            mTopologyTrustLimeManager.get(),
+            mTopologyCacheManager.get(),
+            mMaxFlowCacheManager.get(),
             mResultsInterface.get(),
             mStorageHandler.get(),
             mPathsManager.get(),
@@ -324,11 +325,11 @@ int Core::initTransactionsManager()
 int Core::initDelayedTasks()
 {
     try{
-        mMaxFlowCalculationCacheUpdateDelayedTask = make_unique<MaxFlowCalculationCacheUpdateDelayedTask>(
+        mTopologyCacheUpdateDelayedTask = make_unique<TopologyCacheUpdateDelayedTask>(
             mIOService,
-            mMaxFlowCalculationCacheManager.get(),
-            mMaxFlowCalculationTrustLimeManager.get(),
-            mMaxFlowCalculationNodeCacheManager.get(),
+            mTopologyCacheManager.get(),
+            mTopologyTrustLimeManager.get(),
+            mMaxFlowCacheManager.get(),
             *mLog);
 
         mNotifyThatIAmIsGatewayDelayedTask = make_unique<NotifyThatIAmIsGatewayDelayedTask>(
@@ -380,7 +381,7 @@ int Core::initPathsManager()
         mPathsManager = make_unique<PathsManager>(
             mNodeUUID,
             mTrustLinesManager.get(),
-            mMaxFlowCalculationTrustLimeManager.get(),
+            mTopologyTrustLimeManager.get(),
             *mLog);
         info() << "Paths Manager is successfully initialised";
         return 0;
