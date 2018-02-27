@@ -142,13 +142,14 @@ add_subdirectory(src/core/settings)
 add_subdirectory(src/core/paths)
 add_subdirectory(src/core/transactions)
 add_subdirectory(src/core/trust_lines)
-add_subdirectory(src/core/max_flow_calculation)
+add_subdirectory(src/core/topology)
 add_subdirectory(src/core/delayed_tasks)
 add_subdirectory(src/core/payments/reservations)
 add_subdirectory(src/core/io/storage)
 add_subdirectory(src/core/resources)
 add_subdirectory(src/core/cycles)
 add_subdirectory(src/core/subsystems_controller)
+add_subdirectory(src/core/equivalents)
 
 
 #
@@ -185,9 +186,10 @@ target_link_libraries(geo_network_client
 
         paths
         trust_lines
-        max_flow_calculation
+        topology
         delayed_tasks
         transactions
         resources_manager
         cycles
-        subsystems_controller)
+        subsystems_controller
+        equivalents)
