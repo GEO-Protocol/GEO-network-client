@@ -37,6 +37,8 @@ EquivalentsCyclesSubsystemsRouter::EquivalentsCyclesSubsystemsRouter(
                     mLogger)));
         info() << "Routing Table Manager is successfully initialized";
     }
+
+    connectSignalsToSlots();
 }
 
 CyclesManager* EquivalentsCyclesSubsystemsRouter::cyclesManager(

@@ -86,6 +86,8 @@ EquivalentsSubsystemsRouter::EquivalentsSubsystemsRouter(
                     mLogger)));
         info() << "Gateway Notification Delayed Task is successfully initialized";
     }
+
+    connectSignalsToSlots();
 }
 
 vector<SerializedEquivalent> EquivalentsSubsystemsRouter::equivalents() const

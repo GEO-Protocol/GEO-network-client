@@ -72,8 +72,6 @@ private:
 
     void connectCommandsInterfaceSignals();
 
-    void connectDelayedTasksSignals();
-
     void connectResourcesManagerSignals();
 
     void connectSignalsToSlots();
@@ -98,9 +96,6 @@ private:
 
     void onResourceCollectedSlot(
         BaseResource::Shared resource);
-
-    void onGatewayNotificationSlot(
-        const SerializedEquivalent equivalent);
 
     void writePIDFile();
 

@@ -4,73 +4,6 @@
  *
  * Throws RuntimeError in case if some internal components can't be initialised.
  */
-/*TransactionsManager::TransactionsManager(
-    NodeUUID &nodeUUID,
-    as::io_service &IOService,
-    TrustLinesManager *trustLinesManager,
-    ResourcesManager *resourcesManager,
-    TopologyTrustLinesManager *topologyTrustLineManager,
-    TopologyCacheManager *topologyCacheManager,
-    MaxFlowCacheManager *maxFlowCacheManager,
-    ResultsInterface *resultsInterface,
-    StorageHandler *storageHandler,
-    PathsManager *pathsManager,
-    RoutingTableManager *routingTable,
-    Logger &logger,
-    SubsystemsController *subsystemsController,
-    bool iAmGateway) :
-
-    mNodeUUID(nodeUUID),
-    mIOService(IOService),
-    mTrustLines(trustLinesManager),
-    mResourcesManager(resourcesManager),
-    mTopologyTrustLineManager(topologyTrustLineManager),
-    mTopologyCacheManager(topologyCacheManager),
-    mMaxFlowCacheManager(maxFlowCacheManager),
-    mResultsInterface(resultsInterface),
-    mStorageHandler(storageHandler),
-    mPathsManager(pathsManager),
-    mLog(logger),
-    mSubsystemsController(subsystemsController),
-    mRoutingTable(routingTable),
-    mIAmGateway(iAmGateway),
-
-    mScheduler(
-        new TransactionsScheduler(
-            mIOService,
-            mLog)),
-    mCyclesManager(
-        new CyclesManager(
-            0,
-            mNodeUUID,
-            mScheduler.get(),
-            mIOService,
-            mLog,
-            mSubsystemsController))
-{
-    subscribeForCommandResult(
-        mScheduler->commandResultIsReadySignal);
-    subscribeForSerializeTransaction(
-        mScheduler->serializeTransactionSignal);
-    subscribeForCloseCycleTransaction(
-        mCyclesManager->closeCycleSignal);
-    subscribeForBuildCyclesFiveNodesTransaction(
-        mCyclesManager->buildFiveNodesCyclesSignal);
-    subscribeForBuildCyclesSixNodesTransaction(
-        mCyclesManager->buildSixNodesCyclesSignal);
-    subscribeForTryCloseNextCycleSignal(
-        mScheduler->cycleCloserTransactionWasFinishedSignal);
-
-    try {
-        loadTransactionsFromStorage();
-
-    } catch (exception &e) {
-        throw RuntimeError(e.what());
-    }
-
-    // todo: send current trust line amount to te contractors
-}*/
-
 TransactionsManager::TransactionsManager(
     NodeUUID &nodeUUID,
     as::io_service &IOService,
@@ -120,6 +53,8 @@ TransactionsManager::TransactionsManager(
         mScheduler->cycleCloserTransactionWasFinishedSignal);
     subscribeForUpdatingRoutingTable(
         mEquivalentsCyclesSubsystemsRouter->updateRoutingTableSignal);
+    subscribeForGatewayNotificationSignal(
+        mEquivalentsSubsystemsRouter->gatewayNotificationSignal);
 
     try {
         loadTransactionsFromStorage();
@@ -1015,6 +950,178 @@ void TransactionsManager::launchVotesResponsePaymentsTransaction(
     }
 }
 
+void TransactionsManager::launchThreeNodesCyclesInitTransaction(
+    const NodeUUID &contractorUUID)
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
+    auto routingTableManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<CyclesThreeNodesInitTransaction>(
+                mNodeUUID,
+                contractorUUID,
+                trustLinesManager,
+                routingTableManager,
+                cyclesManager,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchThreeNodesCyclesResponseTransaction(
+    CyclesThreeNodesBalancesRequestMessage::Shared message)
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<CyclesThreeNodesReceiverTransaction>(
+                mNodeUUID,
+                message,
+                trustLinesManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchSixNodesCyclesInitTransaction()
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<CyclesSixNodesInitTransaction>(
+                mNodeUUID,
+                trustLinesManager,
+                cyclesManager,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchSixNodesCyclesResponseTransaction(
+    CyclesSixNodesInBetweenMessage::Shared message)
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<CyclesSixNodesReceiverTransaction>(
+                mNodeUUID,
+                message,
+                trustLinesManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchFiveNodesCyclesInitTransaction()
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<CyclesFiveNodesInitTransaction>(
+                mNodeUUID,
+                trustLinesManager,
+                cyclesManager,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
+    CyclesFiveNodesInBetweenMessage::Shared message)
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<CyclesFiveNodesReceiverTransaction>(
+                mNodeUUID,
+                message,
+                trustLinesManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchFourNodesCyclesInitTransaction(
+    const NodeUUID &creditorUUID)
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
+    auto routingTableManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<CyclesFourNodesInitTransaction>(
+                mNodeUUID,
+                creditorUUID,
+                trustLinesManager,
+                routingTableManager,
+                cyclesManager,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchFourNodesCyclesResponseTransaction(
+    CyclesFourNodesBalancesRequestMessage::Shared message)
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<CyclesFourNodesReceiverTransaction>(
+                mNodeUUID,
+                message,
+                trustLinesManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
 /*!
  *
  * Throws MemoryError.
@@ -1184,36 +1291,120 @@ void TransactionsManager::launchGetTrustLineTransaction(
     } catch (ConflictError &e) {
         throw ConflictError(e.message());
     }
-
 }
 
-void TransactionsManager::launchFindPathByMaxFlowTransaction(
-    const TransactionUUID &requestedTransactionUUID,
-    const NodeUUID &destinationNodeUUID)
+void TransactionsManager::launchRoutingTableResponseTransaction(
+    RoutingTableRequestMessage::Shared message)
 {
     SerializedEquivalent equivalent = 0;
     auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    auto topologyTrustLinesManager = mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent);
-    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
-    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
-    auto pathsManager = mEquivalentsSubsystemsRouter->pathsManager(equivalent);
     try {
         prepareAndSchedule(
-            make_shared<FindPathByMaxFlowTransaction>(
+            make_shared<RoutingTableResponseTransaction>(
                 mNodeUUID,
-                destinationNodeUUID,
-                requestedTransactionUUID,
-                pathsManager,
-                mResourcesManager,
+                message,
                 trustLinesManager,
-                topologyTrustLinesManager,
-                topologyCacheManager,
-                maxFlowCacheManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchRoutingTableRequestTransaction()
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto routingTableManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<RoutingTableInitTransaction>(
+                mNodeUUID,
+                trustLinesManager,
+                routingTableManager,
+                mLog),
+            false,
+            false,
+            true);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchAddNodeToBlackListTransaction(
+    AddNodeToBlackListCommand::Shared command)
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<AddNodeToBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                trustLinesManager,
+                mSubsystemsController,
                 mLog),
             true,
+            false,
+            true);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchCheckIfNodeInBlackListTransaction(
+    CheckIfNodeInBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<CheckIfNodeInBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
             true,
+            false,
             false);
-    } catch (ConflictError &e){
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchRemoveNodeFromBlackListTransaction(
+    RemoveNodeFromBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<RemoveNodeFromBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
+        throw ConflictError(e.message());
+    }
+}
+
+void TransactionsManager::launchGetBlackListTransaction(
+    GetBlackListCommand::Shared command)
+{
+    try {
+        prepareAndSchedule(
+            make_shared<GetBlackListTransaction>(
+                mNodeUUID,
+                command,
+                mStorageHandler,
+                mLog),
+            true,
+            false,
+            false);
+    } catch (ConflictError &e) {
         throw ConflictError(e.message());
     }
 }
@@ -1278,9 +1469,40 @@ void TransactionsManager::launchGatewayNotificationReceiverTransaction(
     }
 }
 
-void TransactionsManager::attachResourceToTransaction(
-    BaseResource::Shared resource) {
+void TransactionsManager::launchFindPathByMaxFlowTransaction(
+    const TransactionUUID &requestedTransactionUUID,
+    const NodeUUID &destinationNodeUUID)
+{
+    SerializedEquivalent equivalent = 0;
+    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
+    auto topologyTrustLinesManager = mEquivalentsSubsystemsRouter->topologyTrustLineManager(equivalent);
+    auto topologyCacheManager = mEquivalentsSubsystemsRouter->topologyCacheManager(equivalent);
+    auto maxFlowCacheManager = mEquivalentsSubsystemsRouter->maxFlowCacheManager(equivalent);
+    auto pathsManager = mEquivalentsSubsystemsRouter->pathsManager(equivalent);
+    try {
+        prepareAndSchedule(
+            make_shared<FindPathByMaxFlowTransaction>(
+                mNodeUUID,
+                destinationNodeUUID,
+                requestedTransactionUUID,
+                pathsManager,
+                mResourcesManager,
+                trustLinesManager,
+                topologyTrustLinesManager,
+                topologyCacheManager,
+                maxFlowCacheManager,
+                mLog),
+            true,
+            true,
+            false);
+    } catch (ConflictError &e){
+        throw ConflictError(e.message());
+    }
+}
 
+void TransactionsManager::attachResourceToTransaction(
+    BaseResource::Shared resource)
+{
     mScheduler->tryAttachResourceToTransaction(
         resource);
 }
@@ -1409,6 +1631,16 @@ void TransactionsManager::subscribeForUpdatingRoutingTable(
             _1));
 }
 
+void TransactionsManager::subscribeForGatewayNotificationSignal(
+    EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal)
+{
+    signal.connect(
+        boost::bind(
+            &TransactionsManager::onGatewayNotificationSlot,
+            this,
+            _1));
+}
+
 void TransactionsManager::onTransactionOutgoingMessageReady(
     Message::Shared message,
     const NodeUUID &contractorUUID)
@@ -1518,6 +1750,12 @@ void TransactionsManager::onUpdatingRoutingTableSlot(
     launchRoutingTableRequestTransaction();
 }
 
+void TransactionsManager::onGatewayNotificationSlot(
+    const SerializedEquivalent equivalent)
+{
+    launchGatewayNotificationSenderTransaction();
+}
+
 /**
  *
  * @throws bad_alloc;
@@ -1558,181 +1796,6 @@ void TransactionsManager::prepareAndSchedule(
                 return;
             }
         }
-    }
-}
-
-void TransactionsManager::launchThreeNodesCyclesInitTransaction(
-    const NodeUUID &contractorUUID)
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
-    auto routingTableManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<CyclesThreeNodesInitTransaction>(
-                mNodeUUID,
-                contractorUUID,
-                trustLinesManager,
-                routingTableManager,
-                cyclesManager,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-
-}
-
-void TransactionsManager::launchThreeNodesCyclesResponseTransaction(
-    CyclesThreeNodesBalancesRequestMessage::Shared message)
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<CyclesThreeNodesReceiverTransaction>(
-                mNodeUUID,
-                message,
-                trustLinesManager,
-                mLog),
-            false,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchSixNodesCyclesInitTransaction()
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<CyclesSixNodesInitTransaction>(
-                mNodeUUID,
-                trustLinesManager,
-                cyclesManager,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchSixNodesCyclesResponseTransaction(
-    CyclesSixNodesInBetweenMessage::Shared message)
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<CyclesSixNodesReceiverTransaction>(
-                mNodeUUID,
-                message,
-                trustLinesManager,
-                mLog),
-            false,
-            false,
-            true
-        );
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchFiveNodesCyclesInitTransaction()
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<CyclesFiveNodesInitTransaction>(
-                mNodeUUID,
-                trustLinesManager,
-                cyclesManager,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchFiveNodesCyclesResponseTransaction(
-    CyclesFiveNodesInBetweenMessage::Shared message)
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<CyclesFiveNodesReceiverTransaction>(
-                mNodeUUID,
-                message,
-                trustLinesManager,
-                mLog),
-            false,
-            false,
-            true
-        );
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchFourNodesCyclesInitTransaction(
-    const NodeUUID &creditorUUID)
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    auto cyclesManager = mEquivalentsCyclesSubsystemsRouter->cyclesManager(equivalent);
-    auto routingTableManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<CyclesFourNodesInitTransaction>(
-                mNodeUUID,
-                creditorUUID,
-                trustLinesManager,
-                routingTableManager,
-                cyclesManager,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchFourNodesCyclesResponseTransaction(
-    CyclesFourNodesBalancesRequestMessage::Shared message)
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<CyclesFourNodesReceiverTransaction>(
-                mNodeUUID,
-                message,
-                trustLinesManager,
-                mLog),
-            false,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
     }
 }
 
@@ -1792,123 +1855,6 @@ void TransactionsManager::onSerializeTransaction(
                 "TrustLinesManager::onSerializeTransaction. "
                     "Unexpected transaction type identifier.");
         }
-    }
-}
-
-void TransactionsManager::launchRoutingTableResponseTransaction(
-    RoutingTableRequestMessage::Shared message)
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<RoutingTableResponseTransaction>(
-                mNodeUUID,
-                message,
-                trustLinesManager,
-                mLog),
-            false,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchRoutingTableRequestTransaction()
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    auto routingTableManager = mEquivalentsCyclesSubsystemsRouter->routingTableManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<RoutingTableInitTransaction>(
-                mNodeUUID,
-                trustLinesManager,
-                routingTableManager,
-                mLog),
-            false,
-            false,
-            true);
-    } catch (ConflictError &e){
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchAddNodeToBlackListTransaction(
-    AddNodeToBlackListCommand::Shared command)
-{
-    SerializedEquivalent equivalent = 0;
-    auto trustLinesManager = mEquivalentsSubsystemsRouter->trustLinesManager(equivalent);
-    try {
-        prepareAndSchedule(
-            make_shared<AddNodeToBlackListTransaction>(
-                mNodeUUID,
-                command,
-                mStorageHandler,
-                trustLinesManager,
-                mSubsystemsController,
-                mLog),
-            true,
-            false,
-            true);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-
-}
-
-void TransactionsManager::launchCheckIfNodeInBlackListTransaction(
-    CheckIfNodeInBlackListCommand::Shared command)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<CheckIfNodeInBlackListTransaction>(
-                mNodeUUID,
-                command,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            false);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchRemoveNodeFromBlackListTransaction(
-    RemoveNodeFromBlackListCommand::Shared command)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<RemoveNodeFromBlackListTransaction>(
-                mNodeUUID,
-                command,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            false);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
-    }
-}
-
-void TransactionsManager::launchGetBlackListTransaction(
-    GetBlackListCommand::Shared command)
-{
-    try {
-        prepareAndSchedule(
-            make_shared<GetBlackListTransaction>(
-                mNodeUUID,
-                command,
-                mStorageHandler,
-                mLog),
-            true,
-            false,
-            false);
-    } catch (ConflictError &e) {
-        throw ConflictError(e.message());
     }
 }
 

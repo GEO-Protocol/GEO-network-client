@@ -8,14 +8,8 @@
 #include "../../interface/results_interface/interface/ResultsInterface.h"
 #include "../../equivalents/EquivalentsSubsystemsRouter.h"
 #include "../../equivalents/EquivalentsCyclesSubsystemsRouter.h"
-#include "../../trust_lines/manager/TrustLinesManager.h"
-#include "../../topology/manager/TopologyTrustLinesManager.h"
-#include "../../topology/cashe/TopologyCacheManager.h"
-#include "../../topology/cashe/MaxFlowCacheManager.h"
 #include "../../io/storage/StorageHandler.h"
-#include "../../paths/PathsManager.h"
 #include "../../logger/Logger.h"
-#include "../../cycles/CyclesManager.h"
 #include "../../subsystems_controller/SubsystemsController.h"
 
 /*
@@ -130,22 +124,6 @@ public:
     signals::signal<void(const NodeUUID&, ConfirmationMessage::Shared)> ProcessConfirmationMessageSignal;
 
 public:
-    /*TransactionsManager(
-        NodeUUID &nodeUUID,
-        as::io_service &IOService,
-        TrustLinesManager *trustLinesManager,
-        ResourcesManager *ResourcesManager,
-        TopologyTrustLinesManager *topologyTrustLineManager,
-        TopologyCacheManager *topologyCacheManager,
-        MaxFlowCacheManager *maxFlowCacheManager,
-        ResultsInterface *resultsInterface,
-        StorageHandler *storageHandler,
-        PathsManager *pathsManager,
-        RoutingTableManager *routingTable,
-        Logger &logger,
-        SubsystemsController *subsystemsController,
-        bool iAmGateway);*/
-
     TransactionsManager(
         NodeUUID &nodeUUID,
         as::io_service &IOService,
@@ -173,8 +151,6 @@ public:
     void launchFindPathByMaxFlowTransaction(
         const TransactionUUID &requestedTransactionUUID,
         const NodeUUID &destinationNodeUUID);
-
-    void launchGatewayNotificationSenderTransaction();
 
 #ifdef TESTS
     void setMeAsGateway();
@@ -263,7 +239,7 @@ protected: // Transactions
         VotesStatusRequestMessage::Shared message);
 
     /*
-     * Cycles Transactions
+     * Cycles building Transactions
      */
     void launchFourNodesCyclesInitTransaction(
         const NodeUUID &creditorUUID);
@@ -349,10 +325,11 @@ protected: // Transactions
     void launchPaymentTransactionByCommandUUIDTransaction(
         PaymentTransactionByCommandUUIDCommand::Shared command);
 
-protected:
     /*
      * Gateway notification transactions
      */
+    void launchGatewayNotificationSenderTransaction();
+
     void launchGatewayNotificationReceiverTransaction(
         GatewayNotificationMessage::Shared message);
 
@@ -394,6 +371,9 @@ protected:
     void subscribeForUpdatingRoutingTable(
         EquivalentsCyclesSubsystemsRouter::UpdateRoutingTableSignal &signal);
 
+    void subscribeForGatewayNotificationSignal(
+        EquivalentsSubsystemsRouter::GatewayNotificationSignal &signal);
+
     // Slots
     void onSubsidiaryTransactionReady(
         BaseTransaction::Shared transaction);
@@ -433,6 +413,9 @@ protected:
     void onUpdatingRoutingTableSlot(
         const SerializedEquivalent equivalent);
 
+    void onGatewayNotificationSlot(
+        const SerializedEquivalent equivalent);
+
 protected:
     void prepareAndSchedule(
         BaseTransaction::Shared transaction,
@@ -457,22 +440,15 @@ private:
     NodeUUID &mNodeUUID;
     bool mIAmGateway;
     as::io_service &mIOService;
-    //TrustLinesManager *mTrustLines;
     EquivalentsSubsystemsRouter *mEquivalentsSubsystemsRouter;
     ResourcesManager *mResourcesManager;
-    //TopologyTrustLinesManager *mTopologyTrustLineManager;
-    //TopologyCacheManager *mTopologyCacheManager;
-    //MaxFlowCacheManager *mMaxFlowCacheManager;
     ResultsInterface *mResultsInterface;
-    //PathsManager *mPathsManager;
     StorageHandler *mStorageHandler;
-    //RoutingTableManager *mRoutingTable;
     Logger &mLog;
 
     SubsystemsController *mSubsystemsController;
 
     unique_ptr<TransactionsScheduler> mScheduler;
-    //unique_ptr<CyclesManager> mCyclesManager;
     unique_ptr<EquivalentsCyclesSubsystemsRouter> mEquivalentsCyclesSubsystemsRouter;
 };
 

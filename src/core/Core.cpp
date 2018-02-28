@@ -313,15 +313,6 @@ void Core::connectCommunicatorSignals()
             _2));
 }
 
-void Core::connectDelayedTasksSignals()
-{
-    mEquivalentsSubsystemsRouter->gatewayNotificationSignal.connect(
-        boost::bind(
-            &Core::onGatewayNotificationSlot,
-            this,
-            _1));
-}
-
 void Core::connectResourcesManagerSignals()
 {
     mResourcesManager->requestPathsResourcesSignal.connect(
@@ -341,7 +332,6 @@ void Core::connectSignalsToSlots()
 {
     connectCommandsInterfaceSignals();
     connectCommunicatorSignals();
-    connectDelayedTasksSignals();
     connectResourcesManagerSignals();
 }
 
@@ -454,12 +444,6 @@ void Core::onProcessConfirmationMessageSlot(
     mCommunicator->processConfirmationMessage(
         contractorUUID,
         confirmationMessage);
-}
-
-void Core::onGatewayNotificationSlot(
-    const SerializedEquivalent equivalent)
-{
-    mTransactionsManager->launchGatewayNotificationSenderTransaction();
 }
 
 void Core::writePIDFile()
